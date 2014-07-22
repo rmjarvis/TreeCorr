@@ -77,14 +77,14 @@ files.
 
 - `file_name` = (str or list) The file(s) with the galaxy data.
 
-  You an also specify two files here, in which case the program calculates a 
-  cross-correlation between the two sets of values.  e.g.
+    You an also specify two files here, in which case the program calculates a 
+    cross-correlation between the two sets of values.  e.g.
 
         file_name = file1.dat file2.dat
 
-  If you are specifying this on the command line, you'll need to put 
-  quotes around the names, or it won't be parsed correctly:
-  filename="file1.dat file2.dat"
+    If you are specifying this on the command line, you'll need to put 
+    quotes around the names, or it won't be parsed correctly:
+    filename="file1.dat file2.dat"
 
 
 - `do_auto_corr` = (bool, default=false) Whether to do auto-correlations within

@@ -73,8 +73,7 @@ This can be useful when running the program from a script for lots of input
 files.
 
 
-Parameters about the input file
--------------------------------
+# Parameters about the input file
 
     file_name = (str or list) The file(s) with the galaxy data.
 
@@ -288,8 +287,7 @@ Parameters about the input file
         (These use the same units specified for ra_units, dec_units.)
 
 
-Parameters about the binned correlation function to be calculated
------------------------------------------------------------------
+# Parameters about the binned correlation function to be calculated
 
     min_sep = (float) The minimum separation to include in the output.
     max_sep = (float) The maximum separation to include in the output.
@@ -335,8 +333,7 @@ Parameters about the binned correlation function to be calculated
         If omitted or smooth_scale = 0, then no smoothing will be done.
 
 
-Parameters about the output file(s)
------------------------------------
+# Parameters about the output file(s)
 
     The kind of correlation function that the code will calculate is based on 
     which output file(s) you specify.  It will do the calculation(s) relevant for 
@@ -541,8 +538,7 @@ Parameters about the output file(s)
         else. 
 
 
-Derived output quantities
--------------------------
+# Derived output quantities
 
 The rest of these output files are calculated based on one or more correlation 
 functions.
@@ -621,8 +617,7 @@ functions.
         - sig_nnnorm = The 1-sigma error bar for this value.
 
 
-Miscellaneous parameters
-------------------------
+# Miscellaneous parameters
 
     verbose = (int, default=0) How verbose the code should be during processing.
 
@@ -647,8 +642,7 @@ Miscellaneous parameters
         "mean", "median", or "middle" respectively.
 
 
-Reporting bugs
---------------
+# Reporting bugs
 
 If you find a bug running the code, please report it at:
 

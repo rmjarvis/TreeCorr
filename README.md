@@ -4,7 +4,7 @@ TreeCorr
 The repository will become live with the release of version 3.0, which is still in 
 development.  Until then, please use the latet 2.x release from 
 
-    https://code.google.com/p/mjarvis/
+https://code.google.com/p/mjarvis/
 
 The code is licensed under a FreeBSD license.  Essentially, you can use the 
 code in any way you want, but if you distribute it, you need to include the 

@@ -92,19 +92,19 @@ files.
 - `do_cross_corr` = (bool, default=true)) Whether to do cross-correlations within 
         a list of files.
 
-    If there are more than two names in the file_name paramter, then the code 
+    If there are more than two names in the `file_name` paramter, then the code 
     will normally calculate all the pair-wise cross-correlations of each pair 
     i,j in the list.  The default is to only do cross-correlations, but not 
-    auto-correlations.  You may change that behavior by changing do_auto_corr 
-    or do_cross_corr.  
+    auto-correlations.  You may change that behavior by changing `do_auto_corr` 
+    or `do_cross_corr`.  
 
 
 - `file_name2` = (str or list) The file(s) to use for the second field for a 
     cross-correlation.
 
     If you want to cross-correlate one set of files with another, then the 
-    above file_name parameter isn't sufficient.  Instead, you would list 
-    the first set of files in file_name, and the second set in file_name2.
+    above `file_name` parameter isn't sufficient.  Instead, you would list 
+    the first set of files in `file_name`, and the second set in `file_name2`.
     Of course, each list may only contain one file each, so this is another
     way to specify two files to be cross-correlated.
 
@@ -119,16 +119,16 @@ files.
     details.  For cross-correlations, you need to provide both of the above
     values to separately calibrate the first and second fields.
     
-- `file_list` = (str) A text file with file names in lieu of file_name.
-- `file_list2` = (str) A text file with file names in lieu of file_name2.
-- `rand_file_list` = (str) A text file with file names in lieu of rand_file_name.
-- `rand_file_list2` = (str) A text file with file names in lieu of rand_file_name2.
+- `file_list` = (str) A text file with file names in lieu of `file_name`.
+- `file_list2` = (str) A text file with file names in lieu of `file_name2`.
+- `rand_file_list` = (str) A text file with file names in lieu of `rand_file_name`.
+- `rand_file_list2` = (str) A text file with file names in lieu of `rand_file_name2`.
 
     If you have a list of file names, it may be cumbersome to list them all
-    in the file_name (etc) parameter.  It may be easier to do something like
+    in the `file_name` (etc) parameter.  It may be easier to do something like
     `ls *.cat > catlist` and then use `file_list=catlist` as the list of 
-    file names to use.  Of course, it is an error to specify both file_list
-    and file_name (or any of the other corresponding pairs).
+    file names to use.  Of course, it is an error to specify both `file_list`
+    and `file_name` (or any of the other corresponding pairs).
 
 - `file_type` = (ASCII or FITS) The file type of the input files.
 - `delimiter` = (str, default = '\0') The delimeter between input values in an 
@@ -138,7 +138,7 @@ files.
 
     The default file type is normally ASCII.  However, if the file name 
     includes ".fit" in it, then a fits binary table is assumed.
-    You can override this behavior using file_type.
+    You can override this behavior using `file_type`.
 
     Furthermore, you may specify a delimiter for ASCII catalogs if desired.
     e.g. delimiter=',' for a comma-separated value file.  Similarly, 
@@ -153,9 +153,9 @@ files.
 - `last_row` = (int, default=-1)
 
     You can optionally not use all the rows in the input file.
-    You may specify first_row, last_row, or both to limit the rows being used.
-    The rows are numbered starting with 1.  If last_row is not positive, it 
-    means to use all the rows (starting with first_row).
+    You may specify `first_row`, `last_row`, or both to limit the rows being used.
+    The rows are numbered starting with 1.  If `last_row` is not positive, it 
+    means to use all the rows (starting with `first_row`).
 
 - `x_col` = (int/str) Which column to use for x
 - `y_col` = (int/str) Which column to use for y
@@ -208,27 +208,27 @@ files.
     The code can be set to ignore objects with a particular flag value if desired.
     Some codes output a flag along with the shear value.  Typically any flag != 0
     should be ignored, but you can optionally have the code ignore only particular 
-    flags, treating the flag value as a bit mask.  If ignore_flag is set to 
-    something, then objects with (flag & ignore_flag != 0) will be ignored.
-    If ok_flag is set, then objects with (flag & ~ok_flag != 0) will be ignored.
-    The default is equivalent to ok_flag = 0, which ignores any flag != 0.
+    flags, treating the flag value as a bit mask.  If `ignore_flag` is set to 
+    something, then objects with `(flag & ignore_flag != 0)` will be ignored.
+    If `ok_flag` is set, then objects with `(flag & ~ok_flag != 0)` will be ignored.
+    The default is equivalent to `ok_flag = 0`, which ignores any flag != 0.
 
 - `flip_g1` = (bool, default=false) Whether to flip the sign of g1
 - `flip_g2` = (bool, default=false) Whether to flip the sign of g2
 
     Sometimes there are issues with the sign conventions of gamma.  If you 
-    need to flip the sign of g1 or g2, you may do that with flip_g1 or flip_g2 
+    need to flip the sign of g1 or g2, you may do that with `flip_g1` or `flip_g2` 
     (or both).
 
-- `x_hdu` = (int) Which HDU to use for the x_col
-- `y_hdu` = (int) Which HDU to use for the y_col
-- `ra_hdu` = (int) Which HDU to use for the ra_col
-- `dec_hdu` = (int) Which HDU to use for the dec_col
-- `g1_hdu` = (int) Which HDU to use for the g1_col
-- `g2_hdu` = (int) Which HDU to use for the g2_col
-- `k_hdu` = (int) Which HDU to use for the k_col
-- `w_hdu` = (int) Which HDU to use for the w_col
-- `flag_hdu` = (int) Which HDU to use for the flag_col
+- `x_hdu` = (int) Which HDU to use for the `x_col`
+- `y_hdu` = (int) Which HDU to use for the `y_col`
+- `ra_hdu` = (int) Which HDU to use for the `ra_col`
+- `dec_hdu` = (int) Which HDU to use for the `dec_col`
+- `g1_hdu` = (int) Which HDU to use for the `g1_col`
+- `g2_hdu` = (int) Which HDU to use for the `g2_col`
+- `k_hdu` = (int) Which HDU to use for the `k_col`
+- `w_hdu` = (int) Which HDU to use for the `w_col`
+- `flag_hdu` = (int) Which HDU to use for the `flag_col`
 
     If you want to use an HDU other than the first one, normally you would 
     specify which fits extension to use with the hdu parameter.  However, if 
@@ -236,11 +236,11 @@ files.
     the default (given by hdu or 1 if there is no hdu parameter) for each
     column separately.  
 
-    Notes about the above parameters: 
+**Notes about the above parameters:** 
     - If you are cross-correlating two files with different formats, you may 
-        set any of the above items from file_type to flip_g2 as a two element 
+        set any of the above items from `file_type` to `flip_g2` as a two element 
         list (i.e. two values separated by a space).  In this case, the first 
-        item refers to the file(s) in file_name, and the second item refers 
+        item refers to the file(s) in `file_name`, and the second item refers 
         to the file(s) in files_name2.
       
     - You may not mix (x,y) columns with (ra,dec) columns , since its meaning 
@@ -284,8 +284,8 @@ files.
 
     The default tangent point for the projection is the average position.
     However, this may be inappropriate for some reason, so you may specify the
-    projection point with project_ra, project_dec.
-    (These use the same units specified for ra_units, dec_units.)
+    projection point with `project_ra`, `project_dec`.
+    (These use the same units specified for `ra_units`, `dec_units`.)
 
 
 ### Parameters about the binned correlation function to be calculated
@@ -299,16 +299,16 @@ files.
     parameters.  The fourth one is automatically calculated from the values
     of the other three.
 
-    There is one exception.  If you set min_sep, max_sep, and bin_size, 
+    There is one exception.  If you set `min_sep`, `max_sep`, and `bin_size`, 
     then it won't generally be the case that the corresponding number of 
-    bins is an integer.  So the code will increase max_sep slightly to make
+    bins is an integer.  So the code will increase `max_sep` slightly to make
     sure the total range is an integer number of bins.
 
-- `sep_units` = (str, default=arcsec) The units to use for min_sep and max_sep.
+- `sep_units` = (str, default=arcsec) The units to use for `min_sep` and `max_sep`.
 
-    sep_units is also the units of R in the output file.  The default only
+    `sep_units` is also the units of R in the output file.  The default only
     makes sense if using x,y.  For Ra, Dec values, you need to specify
-    sep_units explicitly.
+    `sep_units` explicitly.
 
 - `bin_slop` = (float, default=1) The fraction of a bin width by which it is 
     ok to let the pairs miss the correct bin.
@@ -317,21 +317,21 @@ files.
     distance pairs for the two nodes have a spread in distance that is less than the 
     bin size.  i.e. the error in the tree traversal is less than the uncertainty 
     induced by just binning the results into a histogram.  This factor can be changed
-    by the parameter bin_slop.  It is probably best to keep it at 1, but if you want to
+    by the parameter `bin_slop`.  It is probably best to keep it at 1, but if you want to
     make the code more conservative, you can decrease it, in which case the error 
     from using the tree nodes will be less than the error in the histogram binning.
     (In practice, if you are going to do this, you are probably better off just 
-    decreasing the bin_size instead and leaving bin_slop=1.)
+    decreasing the `bin_size` instead and leaving `bin_slop=1`.)
 
-    Note, if you set bin_slop=0, then the code will effectively do a brute-force
+    Note, if you set `bin_slop=0`, then the code will effectively do a brute-force
     calculation, since it will branch all the way to each leaf of the tree.
 
 - `smooth_scale` = (float) An optional smoothing scale to smooth the output values.
 
     In addition to the raw output, the code will also optionally output a smoothed 
     version of the correlation functions, which is better for plotting.
-    The smoothing scale is specified as smooth_scale.
-    If omitted or smooth_scale = 0, then no smoothing will be done.
+    The smoothing scale is specified as `smooth_scale`.
+    If omitted or `smooth_scale = 0`, then no smoothing will be done.
 
 
 ### Parameters about the output file(s)
@@ -353,13 +353,13 @@ CAVEAT: The error estimates for all quantities only include the propagation
     This is the normal density two-point correlation function.
         
     The output columns are:
-    - R_nominal = The center of the bin
-    - <R> = The mean separation of the points that went into the bin.  
+    - `R_nominal` = The center of the bin
+    - `<R>` = The mean separation of the points that went into the bin.  
         Technically, since we bin in log(R), this is really exp( <log(R)> ).
-    - omega = The NN correlation function.
-    - sig_omega = The 1-sigma error bar for omega.
-    - DD, RR = The raw numbers of pairs for the data and randoms
-    - DR, RD (if n2_statistic=compensated) = The cross terms between data and 
+    - `omega` = The NN correlation function.
+    - `sig_omega` = The 1-sigma error bar for omega.
+    - `DD`, `RR` = The raw numbers of pairs for the data and randoms
+    - `DR`, `RD` (if `n2_statistic=compensated`) = The cross terms between data and 
         random.  Note: For an auto-correlation, DR and RD are identical, but 
         for cross-correlations, they may be different.
 
@@ -379,28 +379,28 @@ CAVEAT: The error estimates for all quantities only include the propagation
     lensing.
         
     The output columns are:
-    - R_nominal = The center of the bin
-    - <R> = The mean separation of the points that went into the bin.  
+    - `R_nominal` = The center of the bin
+    - `<R>` = The mean separation of the points that went into the bin.  
         Technically, since we bin in log(R), this is really exp( <log(R)> ).
-    - <gamT> = The mean tangential shear with respect to the point in question.
-    - <gamX> = The shear component 45 degrees from the tangential direction.
-    - sig = The 1-sigma error bar for <gamT> and <gamX>.
-    - weight (if ng_statistic = simple) = The total weight of the pairs in each bin.
-    - npairs (if ng_statistic = simple) = The total number of pairs in each bin.
-    - gamT_d (if ng_statistic = compensated) = The raw <gamT> from just the data.
-    - gamX_d (if ng_statistic = compensated) = The raw <gamX> from just the data.
-    - weight_d (if ng_statistic = compensated) = The raw weight from just the data.
-    - npairs_d (if ng_statistic = compensated) = The raw npairs from just the data.
-    - gamT_r (if ng_statistic = compensated) = The <gamT> from the randoms.
-    - gamX_r (if ng_statistic = compensated) = The <gamX> from the randoms.
-    - weight_r (if ng_statistic = compensated) = The weight from the randoms.
-    - npairs_r (if ng_statistic = compensated) = The npairs from the randoms.
-    - R_sm (if smooth_scale is set) = <R> for the smoothed values
-    - gamT_sm (if smooth_scale is set) = <gamT> smoothed over the appropriate scale.
-    - sig_sm (if smooth_scale is set) = The 1-sigma error bar for gamT_sm.
+    - `<gamT>` = The mean tangential shear with respect to the point in question.
+    - `<gamX>` = The shear component 45 degrees from the tangential direction.
+    - `sig` = The 1-sigma error bar for <gamT> and <gamX>.
+    - `weight` (if `ng_statistic` = simple) = The total weight of the pairs in each bin.
+    - `npairs` (if `ng_statistic` = simple) = The total number of pairs in each bin.
+    - `gamT_d` (if `ng_statistic` = compensated) = The raw <gamT> from just the data.
+    - `gamX_d` (if `ng_statistic` = compensated) = The raw <gamX> from just the data.
+    - `weight_d` (if `ng_statistic` = compensated) = The raw weight from just the data.
+    - `npairs_d` (if `ng_statistic` = compensated) = The raw npairs from just the data.
+    - `gamT_r` (if `ng_statistic` = compensated) = The <gamT> from the randoms.
+    - `gamX_r` (if `ng_statistic` = compensated) = The <gamX> from the randoms.
+    - `weight_r` (if `ng_statistic` = compensated) = The weight from the randoms.
+    - `npairs_r` (if `ng_statistic` = compensated) = The npairs from the randoms.
+    - `R_sm` (if `smooth_scale is` set) = <R> for the smoothed values
+    - `gamT_sm` (if `smooth_scale` is set) = <gamT> smoothed over the appropriate scale.
+    - `sig_sm` (if `smooth_scale` is set) = The 1-sigma error bar for `gamT_sm`.
 
 
-- `ng_statistic` = (str, default=compensated if rand_files is given, otherwise 
+- `ng_statistic` = (str, default=compensated if `rand_files` is given, otherwise 
     simple) Which statistic to use for the mean shear as the 
     estimator of the NG correlation function. 
 
@@ -419,30 +419,30 @@ CAVEAT: The error estimates for all quantities only include the propagation
     This is the shear-shear correlation function, used for cosmic shear.
         
     The output columns are:
-    - R_nominal = The center of the bin
-    - <R> = The mean separation of the points that went into the bin.  
+    - `R_nominal` = The center of the bin
+    - `<R>` = The mean separation of the points that went into the bin.  
         Technically, since we bin in log(R), this is really exp( <log(R)> ).
-    - xi+ = <g1 g1 + g2 g2> where g1 and g2 are measured with respect to the
+    - `xi+` = <g1 g1 + g2 g2> where g1 and g2 are measured with respect to the
         line joining the two galaxies.
-    - xi- = <g1 g1 - g2 g2> where g1 and g2 are measured with respect to the
+    - `xi-` = <g1 g1 - g2 g2> where g1 and g2 are measured with respect to the
         line joining the two galaxies.
-    - xi+_im = <g2 g1 - g1 g2>.  In the formulation of xi+ using complex 
+    - `xi+_im` = <g2 g1 - g1 g2>.  In the formulation of `xi+` using complex 
         numbers, this is the imaginary component. 
         It should normally be consistent with zero, especially for an
         auto-correlation, because if every pair were counted twice to 
         get each galaxy in both positions, then this would come out 
         exactly zero.
-    - xi-_im = <g2 g1 + g1 g2>.  In the formulation of xi- using complex 
+    - `xi-_im` = <g2 g1 + g1 g2>.  In the formulation of `xi-` using complex 
         numbers, this is the imaginary component.
         It should be consistent with zero for parity invariant shear 
         fields.
-    - sig_xi = The 1-sigma error bar for xi+ and xi-.
-    - weight = The total weight of the pairs in each bin.
-    - npairs = The total number of pairs in each bin.
-    - R_sm (if smooth_scale is set) = <R> for the smoothed values
-    - xi+_sm, xi-_sm (if smooth_scale is set) = xi+, xi- smoothed over the 
+    - `sig_xi` = The 1-sigma error bar for `xi+` and `xi-`.
+    - `weight` = The total weight of the pairs in each bin.
+    - `npairs` = The total number of pairs in each bin.
+    - `R_sm` (if `smooth_scale` is set) = <R> for the smoothed values
+    - `xi+_sm`, `xi-_sm` (if `smooth_scale` is set) = xi+, xi- smoothed over the 
         appropriate scale.
-    - sig_sm (if smooth_scale is set) = The 1-sigma error bar for xi+_sm, xi-_sm.
+    - `sig_sm` (if `smooth_scale` is set) = The 1-sigma error bar for `xi+_sm`, `xi-_sm`.
 
 - `nk_file_name` = (str) The output filename for point-kappa correlation function.
 
@@ -450,25 +450,25 @@ CAVEAT: The error estimates for all quantities only include the propagation
     really any scalar quantity, so it can be used for temperature, size, etc.
 
     The output columns are:
-    - R_nominal = The center of the bin
-    - <R> = The mean separation of the points that went into the bin.  
+    - `R_nominal` = The center of the bin
+    - `<R>` = The mean separation of the points that went into the bin.  
         Technically, since we bin in log(R), this is really exp( <log(R)> ).
-    - <kappa> = The mean kappa this distance from the foreground points.
-    - sig = The 1-sigma error bar for <kappa>.
-    - weight (if nk_statistic = simple) = The total weight of the pairs in each bin.
-    - npairs (if nk_statistic = simple) = The total number of pairs in each bin.
-    - kappa_d (if nk_statistic = compensated) = The raw <kappa> from just the data.
-    - weight_d (if nk_statistic = compensated) = The raw weight from just the data.
-    - npairs_d (if nk_statistic = compensated) = The raw npairs from just the data.
-    - kappa_r (if nk_statistic = compensated) = The <kappa> from the randoms.
-    - weight_r (if nk_statistic = compensated) = The weight from the randoms.
-    - npairs_r (if nk_statistic = compensated) = The npairs from the randoms.
-    - R_sm (if smooth_scale is set) = <R> for the smoothed values
-    - kappa_sm (if smooth_scale is set) = <kappa> smoothed over the appropriate scale.
-    - sig_sm (if smooth_scale is set) = The 1-sigma error bar for kappasm.
+    - `<kappa>` = The mean kappa this distance from the foreground points.
+    - `sig` = The 1-sigma error bar for <kappa>.
+    - `weight` (if `nk_statistic` = simple) = The total weight of the pairs in each bin.
+    - `npairs` (if `nk_statistic` = simple) = The total number of pairs in each bin.
+    - `kappa_d` (if `nk_statistic` = compensated) = The raw <kappa> from just the data.
+    - `weight_d` (if `nk_statistic` = compensated) = The raw weight from just the data.
+    - `npairs_d` (if `nk_statistic` = compensated) = The raw npairs from just the data.
+    - `kappa_r` (if `nk_statistic` = compensated) = The <kappa> from the randoms.
+    - `weight_r` (if `nk_statistic` = compensated) = The weight from the randoms.
+    - `npairs_r` (if `nk_statistic` = compensated) = The npairs from the randoms.
+    - `R_sm` (if `smooth_scale` is set) = <R> for the smoothed values
+    - `kappa_sm` (if `smooth_scale` is set) = <kappa> smoothed over the appropriate scale.
+    - `sig_sm` (if `smooth_scale` is set) = The 1-sigma error bar for kappasm.
 
 
-- `nk_statistic` = (str, default=compensated if rand_files is given, otherwise 
+- `nk_statistic` = (str, default=compensated if `rand_files` is given, otherwise 
     simple) Which statistic to use for the mean shear as the 
     estimator of the NK correlation function. 
 
@@ -488,16 +488,16 @@ CAVEAT: The error estimates for all quantities only include the propagation
     scalar quantity, so it can be used for temperature, size, etc.
         
     The output columns are:
-    - R_nominal = The center of the bin
-    - <R> = The mean separation of the points that went into the bin.  
+    - `R_nominal` = The center of the bin
+    - `<R>` = The mean separation of the points that went into the bin.  
         Technically, since we bin in log(R), this is really exp( <log(R)> ).
-    - xi = The correlation function <k k> 
-    - sig_xi = The 1-sigma error bar for xi.
-    - weight = The total weight of the pairs in each bin.
-    - npairs = The total number of pairs in each bin.
-    - R_sm (if smooth_scale is set) = <R> for the smoothed values
-    - xi_sm (if smooth_scale is set) = xi smoothed over the appropriate scale.
-    - sig_sm (if smooth_scale is set) = The 1-sigma error bar for xi.
+    - `xi` = The correlation function <k k> 
+    - `sig_xi` = The 1-sigma error bar for xi.
+    - `weight` = The total weight of the pairs in each bin.
+    - `npairs` = The total number of pairs in each bin.
+    - `R_sm` (if `smooth_scale` is set) = <R> for the smoothed values
+    - `xi_sm` (if `smooth_scale` is set) = xi smoothed over the appropriate scale.
+    - `sig_sm` (if `smooth_scale` is set) = The 1-sigma error bar for xi.
 
 
 - `kg_file_name` = (str) The output filename for kappa-shear correlation function.
@@ -507,27 +507,27 @@ CAVEAT: The error estimates for all quantities only include the propagation
     kappa values.
         
     The output columns are:
-    - R_nominal = The center of the bin
-    - <R> = The mean separation of the points that went into the bin.  
+    - `R_nominal` = The center of the bin
+    - `<R>` = The mean separation of the points that went into the bin.  
         Technically, since we bin in log(R), this is really exp( <log(R)> ).
-    - <kgamT> = The kappa-weighted mean tangential shear.
-    - <kgamX> = The kappa-weighted shear component 45 degrees from the 
+    - `<kgamT>` = The kappa-weighted mean tangential shear.
+    - `<kgamX>` = The kappa-weighted shear component 45 degrees from the 
         tangential direction.
-    - sig = The 1-sigma error bar for <kgamT> and <kgamX>.
-    - weight (if ng_statistic = simple) = The total weight of the pairs in each bin.
-    - npairs (if ng_statistic = simple) = The total number of pairs in each bin.
-    - kgamT_d (if ng_statistic = compensated) = The raw <kgamT> from just the data.
-    - kgamX_d (if ng_statistic = compensated) = The raw <kgamX> from just the data.
-    - weight_d (if ng_statistic = compensated) = The raw weight from just the data.
-    - npairs_d (if ng_statistic = compensated) = The raw npairs from just the data.
-    - kgamT_r (if ng_statistic = compensated) = The <kgamT> from the randoms.
-    - kgamX_r (if ng_statistic = compensated) = The <kgamX> from the randoms.
-    - weight_r (if ng_statistic = compensated) = The weight from the randoms.
-    - npairs_r (if ng_statistic = compensated) = The npairs from the randoms.
-    - R_sm (if smooth_scale is set) = <R> for the smoothed values
-    - kgamT_sm (if smooth_scale is set) = <kgamT> smoothed over the appropriate 
+    - `sig` = The 1-sigma error bar for <kgamT> and <kgamX>.
+    - `weight` (if `ng_statistic` = simple) = The total weight of the pairs in each bin.
+    - `npairs` (if `ng_statistic` = simple) = The total number of pairs in each bin.
+    - `kgamT_d` (if `ng_statistic` = compensated) = The raw <kgamT> from just the data.
+    - `kgamX_d` (if `ng_statistic` = compensated) = The raw <kgamX> from just the data.
+    - `weight_d` (if `ng_statistic` = compensated) = The raw weight from just the data.
+    - `npairs_d` (if `ng_statistic` = compensated) = The raw npairs from just the data.
+    - `kgamT_r` (if `ng_statistic` = compensated) = The <kgamT> from the randoms.
+    - `kgamX_r` (if `ng_statistic` = compensated) = The <kgamX> from the randoms.
+    - `weight_r` (if `ng_statistic` = compensated) = The weight from the randoms.
+    - `npairs_r` (if `ng_statistic` = compensated) = The npairs from the randoms.
+    - `R_sm` (if `smooth_scale` is set) = <R> for the smoothed values
+    - `kgamT_sm` (if `smooth_scale` is set) = <kgamT> smoothed over the appropriate 
         scale.
-    - sig_sm (if smooth_scale is set) = The 1-sigma error bar for kgamT_sm.
+    - `sig_sm` (if `smooth_scale` is set) = The 1-sigma error bar for `kgamT_sm`.
 
 
 - `precision` = (int) The number of digits after the decimal in the output.
@@ -551,16 +551,16 @@ functions.
         
     The output columns are:
 
-    - R = The radius of the aperture.  (Spaced the same way as  R_nominal is 
-        in the correlation function output files.
-    - <Map^2> = The E-mode aperture mass variance for each radius R.
-    - <Mx^2> = The B-mode aperture mass variance.
-    - <MMx>(a), <MMx>(b) = Two semi-independent estimate for the E-B cross term.
+    - `R` = The radius of the aperture.  (Spaced the same way as  `R_nominal` is 
+        in the` correlation function output files.
+    - `<Map^2>` = The E-mode aperture mass variance for each radius R.
+    - `<Mx^2>` = The B-mode aperture mass variance.
+    - `<MMx>(a)`, `<MMx>(b)` = Two semi-independent estimate for the E-B cross term.
         (Both should be consistent with zero for parity invariance shear fields.)
-    - sig_map = The 1-sigma error bar for these values.
-    - <Gam^2> = The variance of the top-hat weighted mean shear in apertures of 
+    - `sig_map` = The 1-sigma error bar for these values.
+    - `<Gam^2>` = The variance of the top-hat weighted mean shear in apertures of 
         the given radius R.
-    - sig_gam = The 1-sigma error bar for <Gam^2>.
+    - `sig_gam` = The 1-sigma error bar for <Gam^2>.
 
 - `m2_uform` = (str, default=Crittenden) The function form of the aperture
 
@@ -574,7 +574,7 @@ functions.
     has a closed form solution in terms of the 3-point function for the 
     Crittenden form, but no such formula is known for the Schneider form.
     
-    The m2_uform parameter allows you to switch between the two forms,
+    The `m2_uform` parameter allows you to switch between the two forms,
     at least for 2-point applications.  (You will get an error if you
     try to use Schneider with the m3 output.)
 
@@ -586,12 +586,12 @@ functions.
     function.
         
     The output columns are:
-    - R = The radius of the aperture.  (Spaced the same way as  R_nominal is 
+    - `R` = The radius of the aperture.  (Spaced the same way as  `R_nominal` is 
         in the correlation function output files.
-    - <NMap> = The E-mode aperture mass correlated with the density smoothed
+    - `<NMap>` = The E-mode aperture mass correlated with the density smoothed
         with the same aperture profile as the aperture mass statistic uses.
-    - <NMx> = The corresponding B-mode statistic.
-    - sig_nmap = The 1-sigma error bar for these values.
+    - `<NMx>` = The corresponding B-mode statistic.
+    - `sig_nmap` = The 1-sigma error bar for these values.
 
 
 - `norm_file_name` = (str) The output filename for <N Map>^2/<N^2><Map^2>
@@ -601,29 +601,29 @@ functions.
     provides an estimate of the correlation coefficient, r.
         
     The output columns are:
-    - R = The radius of the aperture.  (Spaced the same way as  R_nominal is 
+    - `R` = The radius of the aperture.  (Spaced the same way as  `R_nominal` is 
         in the correlation function output files.
-    - <NMap> = The E-mode aperture mass correlated with the density smoothed
+    - `<NMap>` = The E-mode aperture mass correlated with the density smoothed
         with the same aperture profile as the aperture mass statistic uses.
-    - <NMx> = The corresponding B-mode statistic.
-    - sig_nm = The 1-sigma error bar for these values.
-    - <N^2> = The variance of the aperture-weighted galaxy density.
-    - sig_nm = The 1-sigma error bar for <N^2>.
-    - <Map^2> = The aperture mass variance.
-    - sig_mm = The 1-sigma error bar for <Map^2>.
-    - nmnorm = <NMap>^2 / (<N^2> <Map^2> )
-    - sig_nmnorm = The 1-sigma error bar for this value.
-    - nnnorm = <NN> / <Map^2> 
-    - sig_nnnorm = The 1-sigma error bar for this value.
+    - `<NMx>` = The corresponding B-mode statistic.
+    - `sig_nm` = The 1-sigma error bar for these values.
+    - `<N^2>` = The variance of the aperture-weighted galaxy density.
+    - `sig_nm` = The 1-sigma error bar for <N^2>.
+    - `<Map^2>` = The aperture mass variance.
+    - `sig_mm` = The 1-sigma error bar for <Map^2>.
+    - `nmnorm` = <NMap>^2 / (<N^2> <Map^2> )
+    - `sig_nmnorm` = The 1-sigma error bar for this value.
+    - `nnnorm` = <NN> / <Map^2> 
+    - `sig_nnnorm` = The 1-sigma error bar for this value.
 
 
 ### Miscellaneous parameters
 
 - `verbose` = (int, default=0) How verbose the code should be during processing.
 
-    0 = no output
-    1 = normal output
-    2 = extra output
+    - 0 = no output
+    - 1 = normal output
+    - 2 = extra output
 
 
 - `num_threads` = (int, default=auto) How many (OpenMP) threads should be used.
@@ -638,7 +638,7 @@ functions.
     of points into two chld cells.  The direction is always taken to be the 
     coordinate direction with the largest extent.  Then, in that direction,
     you can split at the mean value, the median value, or the "middle" =
-    (xmin+xmax)/2.  To select among these, split_method may be given as
+    (xmin+xmax)/2.  To select among these, `split_method` may be given as
     "mean", "median", or "middle" respectively.
 
 

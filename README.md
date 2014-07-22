@@ -37,17 +37,17 @@ Two-point Correlations
 
 This software is able to compute several varieties of two-point correlations:
 
-NN = the normal two point correlation function of things like 2dF that
+- NN = the normal two point correlation function of things like 2dF that
      correlate the galaxy counts at each position.
-NG = correlation of counts with shear.  This is what is often called
+- NG = correlation of counts with shear.  This is what is often called
      galaxy-galaxy lensing.
-GG = two-point shear correlation function.
-NK = correlation of counts with kappa.  While kappa is nominally the lensing
+- GG = two-point shear correlation function.
+- NK = correlation of counts with kappa.  While kappa is nominally the lensing
      convergence, it could really be any scalar quantity, like temperature,
      size, etc.
-KG = correlation of convergence with shear.  Like the NG calculation, but 
+- KG = correlation of convergence with shear.  Like the NG calculation, but 
      weighting the pairs by the convergence values the foreground points.
-KK = two-point kappa correlation function.
+- KK = two-point kappa correlation function.
 
 
 Running corr2
@@ -75,20 +75,21 @@ files.
 
 ### Parameters about the input file
 
-    file_name = (str or list) The file(s) with the galaxy data.
+- `file_name` = (str or list) The file(s) with the galaxy data.
 
         You an also specify two files here, in which case the program calculates a 
         cross-correlation between the two sets of values.  e.g.
-        file_name = file1.dat file2.dat
+
+            file_name = file1.dat file2.dat
 
         If you are specifying this on the command line, you'll need to put 
         quotes around the names, or it won't be parsed correctly:
         filename="file1.dat file2.dat"
 
 
-    do_auto_corr = (bool, default=false) Whether to do auto-correlations within
+- `do_auto_corr` = (bool, default=false) Whether to do auto-correlations within
         a list of files.
-    do_cross_corr = (bool, default=true)) Whether to do cross-correlations within 
+- `do_cross_corr` = (bool, default=true)) Whether to do cross-correlations within 
         a list of files.
 
         If there are more than two names in the file_name paramter, then the code 
@@ -98,7 +99,7 @@ files.
         or do_cross_corr.  
 
 
-    file_name2 = (str or list) The file(s) to use for the second field for a 
+- `file_name2` = (str or list) The file(s) to use for the second field for a 
         cross-correlation.
 
         If you want to cross-correlate one set of files with another, then the 
@@ -108,8 +109,8 @@ files.
         way to specify two files to be cross-correlated.
 
 
-    rand_file_name = (str or list) For NN correlations, a list of random files.
-    rand_file_name2 = (str or list) The randoms for the second field for a 
+- `rand_file_name` = (str or list) For NN correlations, a list of random files.
+- `rand_file_name2` = (str or list) The randoms for the second field for a 
         cross correlation.
 
         When doing NN correlations, you need to account for masks and variable
@@ -118,10 +119,10 @@ files.
         details.  For cross-correlations, you need to provide both of the above
         values to separately calibrate the first and second fields.
     
-    file_list = (str) A text file with file names in lieu of file_name.
-    file_list2 = (str) A text file with file names in lieu of file_name2.
-    rand_file_list = (str) A text file with file names in lieu of rand_file_name.
-    rand_file_list2 = (str) A text file with file names in lieu of rand_file_name2.
+- `file_list` = (str) A text file with file names in lieu of file_name.
+- `file_list2` = (str) A text file with file names in lieu of file_name2.
+- `rand_file_list` = (str) A text file with file names in lieu of rand_file_name.
+- `rand_file_list2` = (str) A text file with file names in lieu of rand_file_name2.
 
         If you have a list of file names, it may be cumbersome to list them all
         in the file_name (etc) parameter.  It may be easier to do something like
@@ -129,10 +130,10 @@ files.
         file names to use.  Of course, it is an error to specify both file_list
         and file_name (or any of the other corresponding pairs).
 
-    file_type = (ASCII or FITS) The file type of the input files.
-    delimiter = (str, default = '\0') The delimeter between input values in an 
+- `file_type` = (ASCII or FITS) The file type of the input files.
+- `delimiter` = (str, default = '\0') The delimeter between input values in an 
         ASCII catalog.
-    comment_marker = (str, default = '#') The first (non-whitespace) character 
+- `comment_marker` = (str, default = '#') The first (non-whitespace) character 
         of comment lines in an input ASCII catalog.
 
         The default file type is normally ASCII.  However, if the file name 
@@ -144,22 +145,22 @@ files.
         comment lines usually begin with '#', but you may specify something 
         different if necessary.
 
-    hdu = (int) Normally if you are using a fits file, the binary fits table is
+- `hdu` = (int) Normally if you are using a fits file, the binary fits table is
         taken from the first extension, HDU 1.  If you want to read from a
         different HDU, you can specify which one to use with the hdu parameter.
 
-    first_row = (int, default=1)
-    last_row = (int, default=-1)
+- `first_row` = (int, default=1)
+- `last_row` = (int, default=-1)
 
         You can optionally not use all the rows in the input file.
         You may specify first_row, last_row, or both to limit the rows being used.
         The rows are numbered starting with 1.  If last_row is not positive, it 
         means to use all the rows (starting with first_row).
 
-    x_col = (int/str) Which column to use for x
-    y_col = (int/str) Which column to use for y
-    ra_col = (int/str) Which column to use for ra
-    dec_col = (int/str) Which column to use for dec
+- `x_col` = (int/str) Which column to use for x
+- `y_col` = (int/str) Which column to use for y
+- `ra_col` = (int/str) Which column to use for ra
+- `dec_col` = (int/str) Which column to use for dec
 
         For the positions of the objects, you can specify either x,y values, which 
         imply a flat-sky approximation has already been performed (or ignored),
@@ -169,10 +170,10 @@ files.
         the first column (not 0!).  
         For FITS files, the columns are specified by name, not number.
 
-    x_units = (str, default=arcsec) The units of x values.
-    y_units = (str, default=arcsec) The units of y values.
-    ra_units = (str) The units of ra values.
-    dec_units = (str) The units of dec values.
+- `x_units` = (str, default=arcsec) The units of x values.
+- `y_units` = (str, default=arcsec) The units of y values.
+- `ra_units` = (str) The units of ra values.
+- `dec_units` = (str) The units of dec values.
 
         All distances on the sky include a "units" parameter to specify what in 
         units the values are specified.  Options for units are radians, hours, 
@@ -180,8 +181,8 @@ files.
         x,y.  But for ra, dec the units field is required.
 
 
-    g1_col = (int/str) Which column to use for g1
-    g2_col = (int/str) Which column to use for g2
+- `g1_col` = (int/str) Which column to use for g1
+- `g2_col` = (int/str) Which column to use for g2
 
         If you are doing one of the shear correlation functions (i.e. NG, KG, GG),
         then you need to specify the shear estimates of the corresponding galaxies.
@@ -189,20 +190,20 @@ files.
         unbiases estimators of g1,g2, so they are allowed to exceed |g| = 1.
         (This is required for some methods to produce unbiased estimates.
 
-    k_col = (int/str) Which column to use for kappa 
+- `k_col` = (int/str) Which column to use for kappa 
 
         If you are doing one of the kappa correlation functions (i.e. NK, KG, KK),
         then you need to specify the column to use for kappa.  While kappa is 
         nominally the lensing convergence, it could really be any scalar quantity,
         like temperature, size, etc.
     
-    w_col = (int/str) Which column to use for the weight (if any)
+- `w_col` = (int/str) Which column to use for the weight (if any)
 
         The weight column is optional. If omitted, all weights are taken to be 1.
 
-    flag_col = (int/str) Which column to use for the weight (if any)
-    ignore_flag = (int) What flag(s) should be ignored.
-    ok_flag = (int) What flag(s) are ok to use.
+- `flag_col` = (int/str) Which column to use for the weight (if any)
+- `ignore_flag` = (int) What flag(s) should be ignored.
+- `ok_flag` = (int) What flag(s) are ok to use.
 
         The code can be set to ignore objects with a particular flag value if desired.
         Some codes output a flag along with the shear value.  Typically any flag != 0
@@ -212,22 +213,22 @@ files.
         If ok_flag is set, then objects with (flag & ~ok_flag != 0) will be ignored.
         The default is equivalent to ok_flag = 0, which ignores any flag != 0.
 
-    flip_g1 = (bool, default=false) Whether to flip the sign of g1
-    flip_g2 = (bool, default=false) Whether to flip the sign of g2
+- `flip_g1` = (bool, default=false) Whether to flip the sign of g1
+- `flip_g2` = (bool, default=false) Whether to flip the sign of g2
 
         Sometimes there are issues with the sign conventions of gamma.  If you 
         need to flip the sign of g1 or g2, you may do that with flip_g1 or flip_g2 
         (or both).
 
-    x_hdu = (int) Which HDU to use for the x_col
-    y_hdu = (int) Which HDU to use for the y_col
-    ra_hdu = (int) Which HDU to use for the ra_col
-    dec_hdu = (int) Which HDU to use for the dec_col
-    g1_hdu = (int) Which HDU to use for the g1_col
-    g2_hdu = (int) Which HDU to use for the g2_col
-    k_hdu = (int) Which HDU to use for the k_col
-    w_hdu = (int) Which HDU to use for the w_col
-    flag_hdu = (int) Which HDU to use for the flag_col
+- `x_hdu` = (int) Which HDU to use for the x_col
+- `y_hdu` = (int) Which HDU to use for the y_col
+- `ra_hdu` = (int) Which HDU to use for the ra_col
+- `dec_hdu` = (int) Which HDU to use for the dec_col
+- `g1_hdu` = (int) Which HDU to use for the g1_col
+- `g2_hdu` = (int) Which HDU to use for the g2_col
+- `k_hdu` = (int) Which HDU to use for the k_col
+- `w_hdu` = (int) Which HDU to use for the w_col
+- `flag_hdu` = (int) Which HDU to use for the flag_col
 
         If you want to use an HDU other than the first one, normally you would 
         specify which fits extension to use with the hdu parameter.  However, if 
@@ -253,7 +254,7 @@ files.
         (e.g. k_col for an n-kappa cross-correlation) then you may specify just
         the column name or number for the file to which it does apply.
 
-    pairwise = (bool, default=false) Whether to do a pair-wise cross-correlation 
+- `pairwise` = (bool, default=false) Whether to do a pair-wise cross-correlation 
         of the corresponding lines in the two files, rather than correlating
         all lines in one with all the lines in the other.
            
@@ -268,7 +269,7 @@ files.
         use the corresponding centers where the galaxy was observed, rather than
         using all the field centers in the whole survey.
 
-    project = (bool, default=false) Whether to do a tangent plane projection for
+- `project` = (bool, default=false) Whether to do a tangent plane projection for
         handling the curved sky values.
 
         The native RA, Dec code is almost as fast as the flat-sky code, so it is
@@ -278,8 +279,8 @@ files.
         investigating bugs in the curved sky code, so I suspect most users will
         not want to use this feature.
 
-    project_ra = (float) The ra of the tangent point for projection.
-    project_dec = (float) The dec of the tangent point for projection.
+- `project_ra` = (float) The ra of the tangent point for projection.
+- `project_dec` = (float) The dec of the tangent point for projection.
 
         The default tangent point for the projection is the average position.
         However, this may be inappropriate for some reason, so you may specify the
@@ -289,10 +290,10 @@ files.
 
 ### Parameters about the binned correlation function to be calculated
 
-    min_sep = (float) The minimum separation to include in the output.
-    max_sep = (float) The maximum separation to include in the output.
-    nbins = (int) The number of output bins to use.
-    bin_size = (float) The size of the output bins in log(sep).
+- `min_sep` = (float) The minimum separation to include in the output.
+- `max_sep` = (float) The maximum separation to include in the output.
+- `nbins` = (int) The number of output bins to use.
+- `bin_size` = (float) The size of the output bins in log(sep).
 
         The bins for the histogram may be defined by setting any 3 of the above 4 
         parameters.  The fourth one is automatically calculated from the values
@@ -303,13 +304,13 @@ files.
         bins is an integer.  So the code will increase max_sep slightly to make
         sure the total range is an integer number of bins.
 
-    sep_units = (str, default=arcsec) The units to use for min_sep and max_sep.
+- `sep_units` = (str, default=arcsec) The units to use for min_sep and max_sep.
 
         sep_units is also the units of R in the output file.  The default only
         makes sense if using x,y.  For Ra, Dec values, you need to specify
         sep_units explicitly.
 
-    bin_slop = (float, default=1) The fraction of a bin width by which it is 
+- `bin_slop` = (float, default=1) The fraction of a bin width by which it is 
         ok to let the pairs miss the correct bin.
 
         The code normally determines when to stop traversing the tree when all of the 
@@ -325,7 +326,7 @@ files.
         Note, if you set bin_slop=0, then the code will effectively do a brute-force
         calculation, since it will branch all the way to each leaf of the tree.
 
-    smooth_scale = (float) An optional smoothing scale to smooth the output values.
+- `smooth_scale` = (float) An optional smoothing scale to smooth the output values.
 
         In addition to the raw output, the code will also optionally output a smoothed 
         version of the correlation functions, which is better for plotting.
@@ -347,7 +348,7 @@ files.
             So the error values should always be treated as an underestimate
             of the true error bars.
 
-    n2_file_name = (str) The output filename for point-point correlation function.
+- `n2_file_name` = (str) The output filename for point-point correlation function.
 
         This is the normal density two-point correlation function.
         
@@ -363,7 +364,7 @@ files.
             for cross-correlations, they may be different.
 
 
-    n2_statistic = (str, default=compensated) Which statistic to use for omega as
+- `n2_statistic` = (str, default=compensated) Which statistic to use for omega as
         the estimator of the NN correlation function.  
 
         Options are:
@@ -372,7 +373,7 @@ files.
         - "simple" is the older version: omega = (DD/RR - 1)
 
 
-    ng_file_name = (str) The output filename for point-shear correlation function.
+- `ng_file_name` = (str) The output filename for point-shear correlation function.
 
         This is the point-shear correlation function, often called galaxy-galaxy
         lensing.
@@ -399,7 +400,7 @@ files.
         - sig_sm (if smooth_scale is set) = The 1-sigma error bar for gamT_sm.
 
 
-    ng_statistic = (str, default=compensated if rand_files is given, otherwise 
+- `ng_statistic` = (str, default=compensated if rand_files is given, otherwise 
         simple) Which statistic to use for the mean shear as the 
         estimator of the NG correlation function. 
 
@@ -413,7 +414,7 @@ files.
         - "simple" is the normal version: <gamma> = DG/npairs
 
 
-    g2_file_name = (str) The output filename for shear-shear correlation function.
+- `g2_file_name` = (str) The output filename for shear-shear correlation function.
 
         This is the shear-shear correlation function, used for cosmic shear.
         
@@ -443,7 +444,7 @@ files.
             appropriate scale.
         - sig_sm (if smooth_scale is set) = The 1-sigma error bar for xi+_sm, xi-_sm.
 
-    nk_file_name = (str) The output filename for point-kappa correlation function.
+- `nk_file_name` = (str) The output filename for point-kappa correlation function.
 
         This is nominally the kappa version of the ne calculation.  However, k is
         really any scalar quantity, so it can be used for temperature, size, etc.
@@ -467,7 +468,7 @@ files.
         - sig_sm (if smooth_scale is set) = The 1-sigma error bar for kappasm.
 
 
-    nk_statistic = (str, default=compensated if rand_files is given, otherwise 
+- `nk_statistic` = (str, default=compensated if rand_files is given, otherwise 
         simple) Which statistic to use for the mean shear as the 
         estimator of the NK correlation function. 
 
@@ -481,7 +482,7 @@ files.
         - "simple" is the normal version: <kappa> = DK/npairs
 
 
-    k2_file_name = (str) The output filename for kappa-kappa correlation function.
+- `k2_file_name` = (str) The output filename for kappa-kappa correlation function.
 
         This is the kappa-kappa correlation function.  However, k is really any 
         scalar quantity, so it can be used for temperature, size, etc.
@@ -499,7 +500,7 @@ files.
         - sig_sm (if smooth_scale is set) = The 1-sigma error bar for xi.
 
 
-    kg_file_name = (str) The output filename for kappa-shear correlation function.
+- `kg_file_name` = (str) The output filename for kappa-shear correlation function.
 
         This is the kappa-shear correlation function.  Essentially, this is just
         galaxy-galaxy lensing, weighting the tangential shears by the foreground
@@ -530,7 +531,7 @@ files.
         - sig_sm (if smooth_scale is set) = The 1-sigma error bar for kgamT_sm.
 
 
-    precision = (int) The number of digits after the decimal in the output.
+- `precision` = (int) The number of digits after the decimal in the output.
 
         All output quantities are printed using scientific notation, so this sets 
         the number of digits output for all values.  The default precision is 3. 
@@ -544,7 +545,7 @@ The rest of these output files are calculated based on one or more correlation
 functions.
 
 
-    m2_file_name = (str) The output filename for the aperture mass statistics.
+- `m2_file_name` = (str) The output filename for the aperture mass statistics.
 
         This file outputs the aperture mass variance and related quantities, 
         derived from the shear-shear correlation function.
@@ -562,7 +563,7 @@ functions.
             the given radius R.
         - sig_gam = The 1-sigma error bar for <Gam^2>.
 
-    m2_uform = (str, default=Crittenden) The function form of the aperture
+- `m2_uform` = (str, default=Crittenden) The function form of the aperture
 
         The form of the aperture mass statistic popularized by Schneider is
             U = 9/Pi (1-r^2) (1/3-r^2)
@@ -579,7 +580,7 @@ functions.
         try to use Schneider with the m3 output.)
 
 
-    nm_file_name = (str) The output filename for <N Map> and related values.
+- `nm_file_name` = (str) The output filename for <N Map> and related values.
 
         This file outputs the correlation of the aperture mass with the 
         aperture-smoothed density field, derived from the point-shear correlation 
@@ -594,7 +595,7 @@ functions.
         - sig_nmap = The 1-sigma error bar for these values.
 
 
-    norm_file_name = (str) The output filename for <N Map>^2/<N^2><Map^2>
+- `norm_file_name` = (str) The output filename for <N Map>^2/<N^2><Map^2>
         and related values.
 
         This file outputs the <N Map> values normalized by <N^2><Map^2>.  This 
@@ -619,20 +620,20 @@ functions.
 
 ### Miscellaneous parameters
 
-    verbose = (int, default=0) How verbose the code should be during processing.
+- `verbose` = (int, default=0) How verbose the code should be during processing.
 
         0 = no output
         1 = normal output
         2 = extra output
 
 
-    num_threads = (int, default=auto) How many (OpenMP) threads should be used.
+- `num_threads` = (int, default=auto) How many (OpenMP) threads should be used.
 
         The default is to let OpenMP determine an appropriate number of threads 
         automatically.  Usually this matches the number of cores your system has.
 
 
-    split_method = (str, default=mean) Which method to use for splitting cells.
+- `split_method` = (str, default=mean) Which method to use for splitting cells.
 
         When building the tree, there are three choices for how to split a set
         of points into two chld cells.  The direction is always taken to be the 

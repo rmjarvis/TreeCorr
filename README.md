@@ -6,10 +6,6 @@ development.  Until then, please use the latet 2.x release from
 
 https://code.google.com/p/mjarvis/
 
-The code is licensed under a FreeBSD license.  Essentially, you can use the 
-code in any way you want, but if you distribute it, you need to include the 
-file `TreeCorr_LICENSE` with the distribution.  See that file for details.
-
 Overview
 --------
 
@@ -30,6 +26,10 @@ compute 2 and 3-point correlation functions.
 - 3-point functions have not yet been migrated to the new API, but they should be
   available soon.
 - Reference: Jarvis, Bernstein, & Jain, 2004, MNRAS, 352, 338
+
+The code is licensed under a FreeBSD license.  Essentially, you can use the 
+code in any way you want, but if you distribute it, you need to include the 
+file `TreeCorr_LICENSE` with the distribution.  See that file for details.
 
 
 Two-point Correlations

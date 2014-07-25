@@ -19,7 +19,10 @@ def parse_variable(config, v):
     if '=' not in v:
         raise ValueError('Improper variable specification.  Use field.item=value.')
     key, value = v.split('=',1)
+    key = key.strip()
     value = value.strip()
+    # Cut off any trailing comment
+    if '#' in value: value = value.split('#')[0]
     if value[0] == '{':
         values = value[1:-1].split(',')
     else:
@@ -54,7 +57,7 @@ def read_config(file_name):
     with open(file_name) as fin:
         for v in fin:
             v = v.strip()
-            if v[0] == '#':
+            if len(v) == 0 or v[0] == '#':
                 pass
             elif v[0] == '+':
                 include_file_name = v[1:]

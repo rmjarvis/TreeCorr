@@ -20,7 +20,17 @@ import sys
 import treecorr
 
 def parse_args():
-    """Handle the command line arguments
+    """Handle the command line arguments to corr2 executable.
+
+    Returns the args as an argparse.Namespace object.
+    
+    It will have the following fields:
+
+        args.config_file
+        args.variables
+        args.verbosity
+        args.log_file
+        args.version
     """
     import argparse
 

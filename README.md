@@ -619,11 +619,19 @@ functions.
 
 ### Miscellaneous parameters
 
-- `verbose` = (int, default=0) How verbose the code should be during processing.
+- `verbose` = (int, default=1) How verbose the code should be during processing.
 
-    - 0 = no output
-    - 1 = normal output
-    - 2 = extra output
+    - 0 = no output unless there is an error
+    - 1 = output warnings
+    - 2 = output progress information
+    - 3 = output extra debugging lines
+
+    This is overridden by the -v command line argument for the corr2 executable.
+
+- `log_file` = (str, default=None) Where to write the logging information.
+
+    The default is to write lines to the screen, but this option allows you to
+    write them to a file instead.
 
 
 - `num_threads` = (int, default=auto) How many (OpenMP) threads should be used.

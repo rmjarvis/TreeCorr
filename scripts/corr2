@@ -47,7 +47,7 @@ def parse_args():
         help='additional variables or modifications to variables in the config file. ' +
         'e.g. `corr2 g2.params g2_file_name=run03.out`')
     parser.add_argument(
-        '-v', '--verbosity', type=int, action='store', default=2, choices=(0, 1, 2),
+        '-v', '--verbosity', type=int, action='store', default=1, choices=(0, 1, 2, 3),
         help='integer verbosity level: min=0, max=3 [default=1]')
     parser.add_argument(
         '-l', '--log_file', type=str, action='store', default=None,
@@ -73,22 +73,10 @@ def parse_args():
 def main():
     args = parse_args()
 
-    # Parse the integer verbosity level from the command line args into a logging_level string
-    import logging
-    logging_levels = {  0: logging.CRITICAL,
-                        1: logging.WARNING,
-                        2: logging.INFO,
-                        3: logging.DEBUG }
-    logging_level = logging_levels[args.verbosity]
+    # Create a logger with the given verbosity and log_file
+    logger = treecorr.config.setup_logger(args.verbosity, args.log_file)
 
-    # Setup logging to go to sys.stdout or (if requested) to an output file
-    if args.log_file is None:
-        logging.basicConfig(format="%(message)s", level=logging_level, stream=sys.stdout)
-    else:
-        logging.basicConfig(format="%(message)s", level=logging_level, filename=args.log_file)
-    logger = logging.getLogger('treecorr')
-
-
+    # Read the config file
     config = treecorr.config.read_config(args.config_file)
     logger.debug('Successfully read config file %s'%args.config_file)
 
@@ -97,9 +85,8 @@ def main():
         logger.debug('Parsing additional variable: %s',v)
         treecorr.config.parse_variable(config, v)
 
-    import pprint
-    print 'config = '
-    pprint.pprint(config)
+    # Run the corr2 function
+    treecorr.corr2(config, logger)
 
 if __name__ == '__main__':
     main()

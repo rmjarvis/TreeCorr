@@ -18,3 +18,4 @@
 version = 3.0
 
 from . import config
+from .corr2 import corr2, print_corr2_params

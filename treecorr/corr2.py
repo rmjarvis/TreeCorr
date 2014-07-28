@@ -16,8 +16,6 @@
 
 import treecorr
 
-valid_units = ['arcsec', 'arcmin', 'hour', 'deg', 'degrees', 'rad', 'radians']
-
 # Dict describing the valid parameters, what types they are, and a description:
 # Each value is a tuple with the following elements:
 #    type
@@ -67,13 +65,13 @@ corr2_valid_params = {
             'Which column to use for ra. Should be an integer for ASCII catalogs.'),
     'dec_col' : (str, False, '0', None,
             'Which column to use for dec. Should be an integer for ASCII catalogs.'),
-    'x_units' : (str, False, 'arcsec', valid_units,
+    'x_units' : (str, True, 'arcsec', treecorr.angle_units.keys(),
             'The units of x values.'),
-    'y_units' : (str, False, 'arcsec', valid_units,
+    'y_units' : (str, True, 'arcsec', treecorr.angle_units.keys(),
             'The units of y values.'),
-    'ra_units' : (str, False, None, valid_units,
+    'ra_units' : (str, True, None, treecorr.angle_units.keys(),
             'The units of ra values. Required when using ra_col.'),
-    'dec_units' : (str, False, None, valid_units,
+    'dec_units' : (str, True, None, treecorr.angle_units.keys(),
             'The units of dec values. Required when using dec_col.'),
     'g1_col' : (str, False, '0', None,
             'Which column to use for g1. Should be an integer for ASCII catalogs.'),
@@ -121,6 +119,8 @@ corr2_valid_params = {
             'The ra of the tangent point for projection.'),
     'project_dec' : (float, False, None, None,
             'The dec of the tangent point for projection.'),
+    'projection' : (str, False, False, 'lambert',
+            'Which kind of tangent plane projection to do.'),
 
     # Parameters about the binned correlation function to be calculated
 
@@ -132,7 +132,7 @@ corr2_valid_params = {
             'The number of output bins to use.'),
     'bin_size' : (float, False, None, None,
             'The size of the output bins in log(sep).'),
-    'sep_units' : (str, False, 'arcsec', valid_units,
+    'sep_units' : (str, False, 'arcsec', treecorr.angle_units.keys(),
             'The units to use for min_sep and max_sep.'),
     'bin_slop' : (float, False, 1, None,
             'The fraction of a bin width by which it is ok to let the pairs miss the correct bin.'),

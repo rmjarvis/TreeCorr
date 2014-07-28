@@ -27,7 +27,7 @@ corr2_valid_params = {
 
     # Parameters about the input catlogs
 
-    'file_name' : (str , True, None, None,
+    'file_name' : (str, True, None, None,
             'The file(s) with the galaxy data.'),
     'do_auto_corr' : (bool, False, False,  None,
             'Whether to do auto-correlations within a list of files.'),
@@ -49,21 +49,21 @@ corr2_valid_params = {
             'A text file with file names in lieu of rand_file_name2.'),
     'file_type' : (str, False, None, ['ASCII', 'FITS'],
             'The file type of the input files. The default is to use the file name extension.'),
-    'delimiter' : (str, False, '\0', None,
-            'The delimeter between input valus in an ASCII catalog.'),
-    'comment_marker' : (str, False, '#', None,
+    'delimiter' : (str, True, None, None,
+            'The delimeter between values in an ASCII catalog. The default is any whitespace.'),
+    'comment_marker' : (str, True, '#', None,
             'The first (non-whitespace) character of comment lines in an input ASCII catalog.'),
-    'first_row' : (int, False, 1, None,
+    'first_row' : (int, True, 1, None,
             'The first row to use from the input catalog'),
-    'last_row' : (int, False, -1, None,
+    'last_row' : (int, True, -1, None,
             'The last row to use from the input catalog.  The default is to use all of them.'),
-    'x_col' : (str, False, '0', None,
+    'x_col' : (str, True, '0', None,
             'Which column to use for x. Should be an integer for ASCII catalogs.'),
-    'y_col' : (str, False, '0', None,
+    'y_col' : (str, True, '0', None,
             'Which column to use for y. Should be an integer for ASCII catalogs.'),
-    'ra_col' : (str, False, '0', None,
+    'ra_col' : (str, True, '0', None,
             'Which column to use for ra. Should be an integer for ASCII catalogs.'),
-    'dec_col' : (str, False, '0', None,
+    'dec_col' : (str, True, '0', None,
             'Which column to use for dec. Should be an integer for ASCII catalogs.'),
     'x_units' : (str, True, 'arcsec', treecorr.angle_units.keys(),
             'The units of x values.'),
@@ -73,45 +73,45 @@ corr2_valid_params = {
             'The units of ra values. Required when using ra_col.'),
     'dec_units' : (str, True, None, treecorr.angle_units.keys(),
             'The units of dec values. Required when using dec_col.'),
-    'g1_col' : (str, False, '0', None,
+    'g1_col' : (str, True, '0', None,
             'Which column to use for g1. Should be an integer for ASCII catalogs.'),
-    'g2_col' : (str, False, '0', None,
+    'g2_col' : (str, True, '0', None,
             'Which column to use for g2. Should be an integer for ASCII catalogs.'),
-    'k_col' : (str, False, '0', None,
+    'k_col' : (str, True, '0', None,
             'Which column to use for kappa. Should be an integer for ASCII catalogs. '),
-    'w_col' : (str, False, '0', None,
+    'w_col' : (str, True, '0', None,
             'Which column to use for weight. Should be an integer for ASCII catalogs.'),
-    'flag_col' : (str, False, '0', None,
+    'flag_col' : (str, True, '0', None,
             'Which column to use for flag. Should be an integer for ASCII catalogs.'),
-    'ignore_flag': (int, False, None, None,
+    'ignore_flag': (int, True, None, None,
             'Ignore objects with flag & ignore_flag != 0 (bitwise &)'),
-    'ok_flag': (int, False, 0, None,
+    'ok_flag': (int, True, 0, None,
             'Ignore objects with flag & ~ok_flag != 0 (bitwise &, ~)'),
-    'hdu': (int, False, 1, None,
+    'hdu': (int, True, 1, None,
             'Which HDU in a fits file to use rather than hdu=1'),
-    'x_hdu': (int, False, None, None,
+    'x_hdu': (int, True, None, None,
             'Which HDU to use for the x_col. default is the global hdu value.'),
-    'y_hdu': (int, False, None, None,
+    'y_hdu': (int, True, None, None,
             'Which HDU to use for the y_col. default is the global hdu value.'),
-    'ra_hdu': (int, False, None, None,
+    'ra_hdu': (int, True, None, None,
             'Which HDU to use for the ra_col. default is the global hdu value.'),
-    'dec_hdu': (int, False, None, None,
+    'dec_hdu': (int, True, None, None,
             'Which HDU to use for the dec_col. default is the global hdu value.'),
-    'g1_hdu': (int, False, None, None,
+    'g1_hdu': (int, True, None, None,
             'Which HDU to use for the g1_col. default is the global hdu value.'),
-    'g2_hdu': (int, False, None, None,
+    'g2_hdu': (int, True, None, None,
             'Which HDU to use for the g2_col. default is the global hdu value.'),
-    'k_hdu': (int, False, None, None,
+    'k_hdu': (int, True, None, None,
             'Which HDU to use for the k_col. default is the global hdu value.'),
-    'w_hdu': (int, False, None, None,
+    'w_hdu': (int, True, None, None,
             'Which HDU to use for the w_col. default is the global hdu value.'),
-    'flag_hdu': (int, False, None, None,
+    'flag_hdu': (int, True, None, None,
             'Which HDU to use for the flag_col. default is the global hdu value.'),
-    'flip_g1' : (bool, False, False, None,
+    'flip_g1' : (bool, True, False, None,
             'Whether to flip the sign of g1'),
-    'flip_g2' : (bool, False, False, None,
+    'flip_g2' : (bool, True, False, None,
             'Whether to flip the sign of g2'),
-    'pairwise' : (bool, False, False, None,
+    'pairwise' : (bool, True, False, None,
             'Whether to do a pair-wise cross-correlation '),
     'project' : (bool, False, False, None,
             'Whether to do a tangent plane projection'),
@@ -207,6 +207,8 @@ def corr2(config, logger=None):
         verbose = config['verbose']
         log_file = config['log_file']
         logger = treecorr.config.setup_logger(verbose, log_file)
+    import pprint
+    logger.debug('Using configuration dict:\n%s',pprint.pformat(config))
 
     # Set the number of threads
     num_threads = config['num_threads']
@@ -215,8 +217,19 @@ def corr2(config, logger=None):
         num_threads = multiprocessing.cpu_count()
     logger.info('Using %d threads.',num_threads)
 
-    # Read in the input files
-    #cat1, cat2, rand1, rand2 = read_catalogs(config, logger)
+    # Read in the input files.  Each of these is a list.
+    cat1 = treecorr.read_catalogs(config, 'file_name', 'file_list', 0, logger)
+    if len(cat1) == 0:
+        raise AttributeError("Parameter file_name is required")
+    cat2 = treecorr.read_catalogs(config, 'file_name2', 'rand_file_list2', 1, logger)
+    rand1 = treecorr.read_catalogs(config, 'rand_file_name', 'rand_file_list', 0, logger,
+                                   is_rand=True)
+    rand2 = treecorr.read_catalogs(config, 'rand_file_name2', 'rand_file_list2', 1, logger, 
+                                   is_rand=True)
+
+    print 'cat2 = ',cat2
+    print 'rand1 = ',rand1
+    print 'rand2 = ',rand2
 
 
 def print_corr2_params():

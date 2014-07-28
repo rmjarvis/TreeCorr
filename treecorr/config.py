@@ -17,12 +17,13 @@
 
 def parse_variable(config, v):
     if '=' not in v:
-        raise ValueError('Improper variable specification.  Use field.item=value.')
+        print 'trying to parse: ',v
+        raise ValueError('Improper variable specification.  Use syntax: item = value.')
     key, value = v.split('=',1)
     key = key.strip()
-    value = value.strip()
     # Cut off any trailing comment
     if '#' in value: value = value.split('#')[0]
+    value = value.strip()
     if value[0] == '{':
         values = value[1:-1].split(',')
     else:
@@ -153,3 +154,16 @@ def print_params(params):
             print "                Default value is {0!s}".format(default_value)
         print
 
+def get_from_list(config, key, num, value_type=str, default=None):
+    """A helper function to get a key from config that is allowed to be a list
+    """
+    if key in config:
+        values = config[key]
+        if isinstance(values, list):
+            if num > len(values):
+                raise ValueError("Not enough values in list for %s"%key)
+            return value_type(values[num])
+        else:
+            return value_type(values)
+    else:
+        return default

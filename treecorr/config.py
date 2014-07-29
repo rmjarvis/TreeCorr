@@ -125,7 +125,8 @@ def check_config(config, params):
     for key in params:
         if key in config: continue
         value_type, may_be_list, default_value, valid_values = params[key][:4]
-        config[key] = default_value
+        if default_value is not None:
+            config[key] = default_value
 
     return config
 

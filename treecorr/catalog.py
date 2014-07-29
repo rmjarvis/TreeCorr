@@ -70,7 +70,8 @@ class Catalog(object):
     def __init__(self, file_name=None, config=None, num=0, logger=None, is_rand=False,
                  x=None, y=None, ra=None, dec=None, g1=None, g2=None, k=None, w=None):
         if logger is None:
-            self.logger = treecorr.config.setup_logger(config.get('verbose',0))
+            self.logger = treecorr.config.setup_logger(config.get('verbose',0),
+                                                       config.get('log_file',None))
         else:
             self.logger = logger
 
@@ -85,7 +86,7 @@ class Catalog(object):
             file_type = treecorr.config.get_from_list(config,'file_type',num)
             if file_type is None:
                 import os
-                name, ext = os.path.splitext(self.file_name)
+                name, ext = os.path.splitext(file_name)
                 if ext.lower().startswith('.fit'):
                     file_type = 'FITS'
                 else:
@@ -105,8 +106,8 @@ class Catalog(object):
                     raise AttributeErorr("y_units specified without specifying x_units")
                 x_units = treecorr.config.get_from_list(config,'x_units',num,str,'arcsec')
                 y_units = treecorr.config.get_from_list(config,'y_units',num,str,'arcsec')
-                self.x *= treecorr.angle_units[config['x_units']]
-                self.y *= treecorr.angle_units[config['y_units']]
+                self.x *= treecorr.angle_units[x_units]
+                self.y *= treecorr.angle_units[y_units]
             else:
                 if not config['ra_units']:
                     raise ValueError("ra_units is required when using ra, dec")
@@ -114,8 +115,8 @@ class Catalog(object):
                     raise ValueError("dec_units is required when using ra, dec")
                 ra_units = treecorr.config.get_from_list(config,'ra_units',num,str,'arcsec')
                 dec_units = treecorr.config.get_from_list(config,'dec_units',num,str,'arcsec')
-                self.ra *= treecorr.angle_units[config['ra_units']]
-                self.dec *= treecorr.angle_units[config['dec_units']]
+                self.ra *= treecorr.angle_units[ra_units]
+                self.dec *= treecorr.angle_units[dec_units]
 
             # Apply flips if requested
             flip_g1 = treecorr.config.get_from_list(config,'flip_g1',num,bool,False)
@@ -125,7 +126,7 @@ class Catalog(object):
 
             # Convert the flag to a weight
             if self.flag is not None:
-                if 'ignore_flag' in config and config['ignore_flag'] is not None:
+                if 'ignore_flag' in config:
                     ignore_flag = treecorr.config.get_from_list(config,'ignore_flag',num,int)
                 else:
                     ok_flag = treecorr.config.get_from_list(config,'ok_flag',num,int,0)
@@ -135,7 +136,6 @@ class Catalog(object):
                     self.w = numpy.ones_like(self.flag)
                 self.w[self.w.where(self.flag & ignore_flag)] = 0
                 self.logger.debug('Applied flag: w => %s',str(self.w))
-                del self.flag
 
             # Update the data according to the specified first and last row
             first_row = treecorr.config.get_from_list(config,'first_row',num,int,1)
@@ -160,10 +160,10 @@ class Catalog(object):
             if self.y is not None: self.y = self.y[start:end]
             if self.ra is not None: self.ra = self.ra[start:end]
             if self.dec is not None: self.dec = self.dec[start:end]
+            if self.w is not None: self.w = self.w[start:end]
             if self.k is not None: self.k = self.k[start:end]
             if self.g1 is not None: self.g1 = self.g1[start:end]
             if self.g2 is not None: self.g2 = self.g2[start:end]
-            if self.w is not None: self.w = self.w[start:end]
 
             # Project if requested
             if config.get('project',False):
@@ -199,21 +199,17 @@ class Catalog(object):
                     raise AttributeError("x and y must both be provided")
                 if ra is not None or dec is not None:
                     raise AttributeError("ra and dec may not be provided with x,y")
-                self.x = x
-                self.y = y
-                self.ra = None
-                self.dec = None
             if ra is not None or dec is not None:
                 if ra is None or dec is None:
                     raise AttributeError("ra and dec must both be provided")
-                self.x = None
-                self.y = None
-                self.ra = ra
-                self.dec = dec
+            self.x = x
+            self.y = y
+            self.ra = ra
+            self.dec = dec
+            self.w = w
             self.g1 = g1
             self.g2 = g2
             self.k = k
-            self.w = w
 
         # Check that all columns have the same length:
         if self.x is not None: 
@@ -224,14 +220,14 @@ class Catalog(object):
             nobj = len(self.ra)
             if len(self.dec) != nobj: 
                 raise ValueError("ra and dec have different numbers of elements")
+        if self.w is not None and len(self.w) != nobj:
+            raise ValueError("w has the wrong numbers of elements")
         if self.g1 is not None and len(self.g1) != nobj:
             raise ValueError("g1 has the wrong numbers of elements")
         if self.g2 is not None and len(self.g1) != nobj:
             raise ValueError("g1 has the wrong numbers of elements")
         if self.k is not None and len(self.k) != nobj:
             raise ValueError("k has the wrong numbers of elements")
-        if self.w is not None and len(self.w) != nobj:
-            raise ValueError("w has the wrong numbers of elements")
         
 
     def get_param(self, config, key, num, default=None):
@@ -268,6 +264,20 @@ class Catalog(object):
         dec_col = treecorr.config.get_from_list(config,'dec_col',num,int,0)
         w_col = treecorr.config.get_from_list(config,'w_col',num,int,0)
         flag_col = treecorr.config.get_from_list(config,'flag_col',num,int,0)
+        g1_col = treecorr.config.get_from_list(config,'g1_col',num,int,0)
+        g2_col = treecorr.config.get_from_list(config,'g2_col',num,int,0)
+        k_col = treecorr.config.get_from_list(config,'k_col',num,int,0)
+
+        # Start with everything set to None.  Overwrite as appropriate.
+        self.x = None
+        self.y = None
+        self.ra = None
+        self.dec = None
+        self.w = None
+        self.flag = None
+        self.g1 = None
+        self.g2 = None
+        self.k = None
 
         # Read x,y or ra,dec
         if x_col != 0 or y_col != 0:
@@ -283,9 +293,6 @@ class Catalog(object):
             self.logger.debug('read x = %s',str(self.x))
             self.y = data[y_col-1].astype(float)
             self.logger.debug('read y = %s',str(self.y))
-            self.ra = None
-            self.dec = None
-
         elif ra_col != 0 or dec_col != 0:
             if ra_col <= 0 or ra_col > ncols:
                 raise AttributeError("ra_col missing or invalid for file %s"%file_name)
@@ -295,9 +302,6 @@ class Catalog(object):
             self.logger.debug('read ra = %s',str(self.ra))
             self.dec = data[dec_col-1].astype(float)
             self.logger.debug('read dec = %s',str(self.dec))
-            self.x = None
-            self.y = None
-
         else:
             raise AttributeError("No valid position columns specified for file %s"%file_name)
 
@@ -307,8 +311,6 @@ class Catalog(object):
                 raise AttributeError("w_col is invalid for file %s"%file_name)
             self.w = data[w_col-1].astype(float)
             self.logger.debug('read w = %s',str(self.w))
-        else:
-            self.w = None
 
         # Read flag 
         if flag_col != 0:
@@ -316,28 +318,9 @@ class Catalog(object):
                 raise AttributeError("flag_col is invalid for file %s"%file_name)
             self.flag = data[flag_col-1].astype(int)
             self.logger.debug('read flag = %s',str(self.flag))
-        else:
-            self.flag = None
 
         # Return here if this file is a random catalog
-        if is_rand:
-            self.g1 = None
-            self.g2 = None
-            self.k = None
-            return
-
-        g1_col = treecorr.config.get_from_list(config,'g1_col',num,int,0)
-        g2_col = treecorr.config.get_from_list(config,'g2_col',num,int,0)
-        k_col = treecorr.config.get_from_list(config,'k_col',num,int,0)
-
-        # Read k
-        if k_col != 0 and isKColRequired(config,num):
-            if k_col <= 0 or k_col > ncols:
-                raise AttributeError("k_col is invalid for file %s"%file_name)
-            self.k = data[k_col-1].astype(float)
-            self.logger.debug('read k = %s',str(self.k))
-        else:
-            self.k = None
+        if is_rand: return
 
         # Read g1,g2
         if (g1_col != 0 or g2_col != 0) and isGColRequired(config,num):
@@ -349,9 +332,13 @@ class Catalog(object):
             self.logger.debug('read g1 = %s',str(self.g1))
             self.g2 = data[g2_col-1].astype(float)
             self.logger.debug('read g2 = %s',str(self.g2))
-        else:
-            self.g1 = None
-            self.g2 = None
+
+        # Read k
+        if k_col != 0 and isKColRequired(config,num):
+            if k_col <= 0 or k_col > ncols:
+                raise AttributeError("k_col is invalid for file %s"%file_name)
+            self.k = data[k_col-1].astype(float)
+            self.logger.debug('read k = %s',str(self.k))
 
     def read_fits(self, file_name, config, num, is_rand):
         """Read the catalog from a FITS file
@@ -379,8 +366,22 @@ class Catalog(object):
         dec_col = treecorr.config.get_from_list(config,'dec_col',num,str,'0')
         w_col = treecorr.config.get_from_list(config,'w_col',num,str,'0')
         flag_col = treecorr.config.get_from_list(config,'flag_col',num,str,'0')
+        g1_col = treecorr.config.get_from_list(config,'g1_col',num,str,'0')
+        g2_col = treecorr.config.get_from_list(config,'g2_col',num,str,'0')
+        k_col = treecorr.config.get_from_list(config,'k_col',num,str,'0')
 
         hdu = treecorr.config.get_from_list(config,'hdu',num,int,1)
+
+        # Start with everything set to None.  Overwrite as appropriate.
+        self.x = None
+        self.y = None
+        self.ra = None
+        self.dec = None
+        self.w = None
+        self.flag = None
+        self.g1 = None
+        self.g2 = None
+        self.k = None
 
         # Read x,y or ra,dec
         if x_col != '0' or y_col != '0':
@@ -402,8 +403,6 @@ class Catalog(object):
             self.logger.debug('read x = %s',str(self.x))
             self.y = hdu_list[y_hdu].data.field(y_col).astype(float)
             self.logger.debug('read y = %s',str(self.y))
-            self.ra = None
-            self.dec = None
         elif ra_col != '0' or dec_col != '0':
             if ra_col != '0':
                 raise AttributeError("ra_col missing for file %s"%file_name)
@@ -419,8 +418,6 @@ class Catalog(object):
             self.logger.debug('read ra = %s',str(self.ra))
             self.dec = hdu_list[dec_hdu].data.field(dec_col).astype(float)
             self.logger.debug('read dec = %s',str(self.dec))
-            self.x = None
-            self.y = None
         else:
             raise AttributeError("No valid position columns specified for file %s"%file_name)
 
@@ -431,8 +428,6 @@ class Catalog(object):
                 raise AttributeError("w_col is invalid for file %s"%file_name)
             self.w = hdu_list[w_hdu].data.field(w_col).astype(float)
             self.logger.debug('read w = %s',str(self.w))
-        else:
-            self.w = None
 
         # Read flag
         if flag_col != '0':
@@ -441,29 +436,6 @@ class Catalog(object):
                 raise AttributeError("flag_col is invalid for file %s"%file_name)
             self.flag = hdu_list[flag_hdu].data.field(flag_col).astype(int)
             self.logger.debug('read flag = %s',str(self.flag))
-        else:
-            self.flag = None
-
-        # Return here if this file is a random catalog
-        if is_rand: 
-            self.g1 = None
-            self.g2 = None
-            self.k = None
-            return
-
-        g1_col = treecorr.config.get_from_list(config,'g1_col',num,str,'0')
-        g2_col = treecorr.config.get_from_list(config,'g2_col',num,str,'0')
-        k_col = treecorr.config.get_from_list(config,'k_col',num,str,'0')
-
-        # Read k
-        if k_col != '0' and isKColRequired(config,num):
-            k_hdu = treecorr.config.get_from_list(config,'k_hdu',num,int,hdu)
-            if k_col not in hdu_list[k_hdu].columns.names:
-                raise AttributeError("k_col is invalid for file %s"%file_name)
-            self.k = hdu_list[k_hdu].data.field(k_col).astype(float)
-            self.logger.debug('read k = %s',str(self.k))
-        else:
-            self.k = None
 
         # Read g1,g2
         if (g1_col != '0' or g2_col != '0') and isGColRequired(config,num):
@@ -481,9 +453,14 @@ class Catalog(object):
             self.logger.debug('read g1 = %s',str(self.g1))
             self.g2 = hdu_list[g2_hdu].data.field(g2_col).astype(float)
             self.logger.debug('read g2 = %s',str(self.g2))
-        else:
-            self.g1 = None
-            self.g2 = None
+
+        # Read k
+        if k_col != '0' and isKColRequired(config,num):
+            k_hdu = treecorr.config.get_from_list(config,'k_hdu',num,int,hdu)
+            if k_col not in hdu_list[k_hdu].columns.names:
+                raise AttributeError("k_col is invalid for file %s"%file_name)
+            self.k = hdu_list[k_hdu].data.field(k_col).astype(float)
+            self.logger.debug('read k = %s',str(self.k))
 
 
 def read_catalogs(config, key, list_key, num, logger, is_rand=False):
@@ -491,11 +468,11 @@ def read_catalogs(config, key, list_key, num, logger, is_rand=False):
 
     num indicates which key to use if any of the fields like x_col, flip_g1, etc. are lists.
     """
-    if key in config and config[key] is not None:
-        if list_key in config and config[list_key] is not None:
+    if key in config:
+        if list_key in config:
             raise AttributeError("Cannot provide both %s and %s."%(key,list_key))
         file_names = config[key]
-    elif list_key in config and config[list_key] is not None:
+    elif list_key in config:
         list_file = config[list_key]
         with open(list_file,'r') as fin:
             file_names = [ f.strip() for f in fin ]

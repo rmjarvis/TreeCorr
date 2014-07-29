@@ -215,21 +215,162 @@ def corr2(config, logger=None):
     if num_threads < 0:
         import multiprocessing
         num_threads = multiprocessing.cpu_count()
-    logger.info('Using %d threads.',num_threads)
+    if num_threads > 1:
+        logger.info('Using %d threads.',num_threads)
 
     # Read in the input files.  Each of these is a list.
     cat1 = treecorr.read_catalogs(config, 'file_name', 'file_list', 0, logger)
     if len(cat1) == 0:
-        raise AttributeError("Parameter file_name is required")
+        raise AttributeError("Either file_name or file_list is required")
     cat2 = treecorr.read_catalogs(config, 'file_name2', 'rand_file_list2', 1, logger)
     rand1 = treecorr.read_catalogs(config, 'rand_file_name', 'rand_file_list', 0, logger,
                                    is_rand=True)
     rand2 = treecorr.read_catalogs(config, 'rand_file_name2', 'rand_file_list2', 1, logger, 
                                    is_rand=True)
+    if len(cat2) == 0 and len(rand2) > 0:
+        raise AttributeError("rand_file_name2 is invalid without file_name2")
+    logger.info("Done reading input catalogs")
 
-    print 'cat2 = ',cat2
-    print 'rand1 = ',rand1
-    print 'rand2 = ',rand2
+    # Do g2 correlation function if necessary
+    if config['g2_file_name'] or config['m2_file_name']:
+        logger.info("Start g2 calculations...")
+        gg = treecorr.G2Correlation(config,logger)
+        gg.process(cat1,cat2)
+        logger.info("Done g2 calculations.")
+        if config['g2_file_name']:
+            gg.write(config['g2_file_name'])
+            logger.info("Wrote file %s",config['g2_file_name'])
+        if config['m2_file_name']:
+            gg.writeM2(config['m2_file_name'])
+            logger.info("Wrote file %s",config['m2_file_name'])
+
+    # Do ng correlation function if necessary
+    if config['ng_file_name'] or config['nm_file_name'] or config['norm_file_name']:
+        if len(cat2) == 0:
+            raise AttributeError("file_name2 is required for ng correlation")
+        logger.info("Start ng calculations...")
+        ng = treecorr.NGCorrelation(config,logger)
+        ng.process(cat1,cat2)
+        logger.info("Done ng calculation.")
+
+        # The default ng_statistic is compensated _iff_ rand files are given.
+        if len(rand1) == 0:
+            if config.get('ng_statistic',None) == 'compensated':
+                raise AttributeError("rand_files is required for ng_statistic = compensated")
+        elif config.get('ng_statistic','compensated'):
+            rg = treecorr.NGCorrelation(config,logger)
+            rg.process(rand1,cat2)
+            logger.info("Done rg calculation.")
+        else:
+            rg = None
+
+        if config['ng_file_name']:
+            ng.write(config['ng_file_name'], rg)
+            logger.info("Wrote file %s",config['ng_file_name'])
+        if config['nm_file_name']:
+            ng.writeNM(config['nm_file_name'], rg)
+            logger.info("Wrote file %s",config['nm_file_name'])
+
+        if config['norm_file_name']:
+            gg = treecorr.G2Correlation(config,logger)
+            gg.process(cat2)
+            logger.info("Done gg calculation for norm")
+            nn = treecorr.N2Correlation(config,logger)
+            nn.process(cat1)
+            logger.info("Done nn calculation for norm")
+            rr = treecorr.N2Correlation(config,logger)
+            rr.process(rand1)
+            logger.info("Done rr calculation for norm")
+            if config['n2_statistic'] == 'compensated':
+                nr = treecorr.N2Correlation(config,logger)
+                nr.process(cat1,rand1)
+                logger.info("Done nr calculation for norm")
+            else:
+                nr = None
+            ng.writeNorm(config['norm_file_name'],gg,nn,rr,nr,rg)
+
+    # Do n2 correlation function if necessary
+    if config['n2_file_name']:
+        if len(rand1) == 0:
+            raise AttributeError("rand_file_name is required for n2 correlation")
+        if len(cat2) > 0 and len(rand2) == 0:
+            raise AttributeError("rand_file_name2 is required for n2 cross-correlation")
+        logger.info("Start n2 calculations...")
+        nn = treecorr.N2Correlation(config,logger)
+        nn.process(cat1,cat2)
+        logger.info("Done n2 calculations.")
+
+        if len(cat2) == 0:
+            rr = treecorr.N2Correlation(config,logger)
+            rr.process(rand1)
+            logger.info("Done r2 calculations.")
+
+            if config['n2_statistic'] == 'compensated':
+                nr = treecorr.N2Correlation(config,logger)
+                nr.process(cat1,rand1)
+                logger.info("Done nr calculations.")
+            else:
+                nr = None
+            rn = None
+        else:
+            rr = treecorr.N2Correlation(config,logger)
+            rr.process(rand1,rand2)
+            logger.info("Done r2 calculations.")
+
+            if config['n2_statistic'] == 'compensated':
+                nr = treecorr.N2Correlation(config,logger)
+                nr.process(cat1,rand2)
+                logger.info("Done nr calculations.")
+                rn = treecorr.N2Correlation(config,logger)
+                rn.process(rand1,cat2)
+                logger.info("Done rn calculations.")
+            else:
+                nr = None
+                rn = None
+        nn.write(config['n2_file_name'],rr,nr,rn)
+
+    # Do k2 correlation function if necessary
+    if config['k2_file_name']:
+        logger.info("Start k2 calculations...")
+        kk = treecorr.K2Correlation(config,logger)
+        kk.process(cat1,cat2)
+        logger.info("Done k2 calculations.")
+        kk.write(config['k2_file_name'])
+        logger.info("Wrote file %s",config['k2_file_name'])
+
+    # Do ng correlation function if necessary
+    if config['nk_file_name']:
+        if len(cat2) == 0:
+            raise AttributeError("file_name2 is required for nk correlation")
+        logger.info("Start nk calculations...")
+        nk = treecorr.NKCorrelation(config,logger)
+        nk.process(cat1,cat2)
+        logger.info("Done nk calculation.")
+
+        if len(rand1) == 0:
+            if config.get('nk_statistic',None) == 'compensated':
+                raise AttributeError("rand_files is required for nk_statistic = compensated")
+        elif config.get('nk_statistic','compensated'):
+            rk = treecorr.NKCorrelation(config,logger)
+            rk.process(rand1,cat2)
+            logger.info("Done rk calculation.")
+        else:
+            rk = None
+
+        nk.write(config['nk_file_name'], rk)
+        logger.info("Wrote file %s",config['nk_file_name'])
+
+    # Do kg correlation function if necessary
+    if config['kg_file_name']:
+        if len(cat2) == 0:
+            raise AttributeError("file_name2 is required for kg correlation")
+        logger.info("Start kg calculations...")
+        kg = treecorr.KGCorrelation(config,logger)
+        kg.process(cat1,cat2)
+        logger.info("Done kg calculation.")
+        kg.write(config['kg_file_name'])
+        logger.info("Wrote file %s",config['kg_file_name'])
+
 
 
 def print_corr2_params():

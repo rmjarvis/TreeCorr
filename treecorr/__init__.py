@@ -21,3 +21,5 @@ from . import config
 from .celestial import CelestialCoord, angle_units
 from .corr2 import corr2, print_corr2_params
 from .catalog import Catalog, read_catalogs
+from .binnedcorr2 import BinnedCorr2, G2Correlation, N2Correlation, K2Correlation
+from .binnedcorr2 import NGCorrelation, NKCorrelation, KGCorrelation

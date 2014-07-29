@@ -136,8 +136,6 @@ corr2_valid_params = {
             'The units to use for min_sep and max_sep.'),
     'bin_slop' : (float, False, 1, None,
             'The fraction of a bin width by which it is ok to let the pairs miss the correct bin.'),
-    'smooth_scale' : (float, False, 0, None,
-            'An optional smoothing scale to smooth the output values.'),
 
     # Parameters about the output file(s)
 

@@ -15,6 +15,10 @@ configuration file does any of these to indicate that you need to change it.
 
 - Removed smooth_scale option.  It is easy enough for people to do this
   themselves if they want, so it seems unnecessary.
+- Removed the extra columns that had been written out in the case of
+  compensated NG and NK calculations.
+- Always output DR and RD regardless of whether they are calculated for
+  N2 calculations.
 - Changed the handling of file_name and file_name2 slightly.  Before, the
   two files for a cross-correlation could be specified with just file_name
   using 2 entries.  Now these need to be listed as separate key words

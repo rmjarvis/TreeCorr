@@ -15,7 +15,7 @@
 #    this software without specific prior written permission.
 
 import treecorr
-
+import numpy
 
 def isKColRequired(config, num):
     """A quick helper function that checks whether we need to bother reading the k column.
@@ -66,6 +66,22 @@ class Catalog(object):
     in radians.  Valid columns to include are: x,y,ra,dec,g1,g2,k,w.  As usual, exactly one of
     (x,y) or (ra,dec) must be given.  The others are optional, although if g1 or g2 is given,
     the other must also be given.  Flags may be included by setting w=0 for those objects.
+
+    A Catalog object will have available the following attributes:
+
+        x           The x positions, if defined, as a numpy array. (None otherwise)
+        y           The y positions, if defined, as a numpy array. (None otherwise)
+        ra          The right ascension, if defined, as a numpy array. (None otherwise)
+        dec         The declination, if defined, as a numpy array. (None otherwise)
+        g1          The g1 component of the shear, if defined, as a numpy array. (None otherwise)
+        g2          The g2 component of the shear, if defined, as a numpy array. (None otherwise)
+        k           The convergence, kappa, if defined, as a numpy array. (None otherwise)
+        w           The weights, if defined, as a numpy array. (None otherwise)
+
+        nobj        The number of objects with non-zero weight
+        sumw        The sum of the weights
+        varg        The shear variance (aka shape noise)
+        vark        The kappa variance
     """
     def __init__(self, file_name=None, config=None, num=0, logger=None, is_rand=False,
                  x=None, y=None, ra=None, dec=None, g1=None, g2=None, k=None, w=None):
@@ -228,8 +244,35 @@ class Catalog(object):
             raise ValueError("g1 has the wrong numbers of elements")
         if self.k is not None and len(self.k) != nobj:
             raise ValueError("k has the wrong numbers of elements")
-        
 
+        # Calculate some summary parameters here that will typically be needed
+        if self.w is not None:
+            self.nobj = numpy.sum(self.w != 0)
+            self.sumw = numpy.sum(self.w)
+            if self.g1 is not None:
+                self.varg = numpy.sum(self.w**2 * (self.g1**2 + self.g2**2))
+                # The 2 is because we need the variance _per componenet_.
+                self.varg /= 2.*self.sumw**2/self.nobj
+            else:
+                self.varg = 0.
+            if self.k is not None:
+                self.vark = numpy.sum(self.w**2 * self.k**2)
+                self.vark /= self.sumw**2/self.nobj
+            else:
+                self.vark = 0.
+        else:
+            self.nobj = nobj # From above.
+            self.sumw = nobj
+            if self.g1 is not None:
+                self.varg = numpy.sum(self.g1**2 + self.g2**2) / (2.*self.nobj)
+            else:
+                self.varg = 0.
+            if self.k is not None:
+                self.vark = numpy.sum(self.k**2) / self.nobj
+            else:
+                self.vark = 0.
+            
+        
     def get_param(self, config, key, num, default=None):
         self.logger.debug("Get parameter %s, num = %d, default = %s",key,num,str(default))
         value = config.get(key, default)
@@ -481,5 +524,38 @@ def read_catalogs(config, key, list_key, num, logger, is_rand=False):
         return []
     if not isinstance(file_names,list): file_names = [ file_names ]
     return [ Catalog(file_name, config, num, logger, is_rand) for file_name in file_names ]
+
+
+def calculateVarG(cat_list):
+    """Calculate the overall shear variance from a list of catalogs.
+        
+    The catalogs are assumed to be equivalent, so this is just the average shear
+    variance weighted by the number of objects in each catalog.
+    """
+    if len(cat_list) == 1:
+        return cat_list[0].varg
+    else:
+        varg = 0
+        ntot = 0
+        for cat in cat_list:
+            varg += cat.varg * cat.nobj
+            ntot += cat.nobj
+        return varg / ntot
+
+def calculateVarK(cat_list):
+    """Calculate the overall kappa variance from a list of catalogs.
+        
+    The catalogs are assumed to be equivalent, so this is just the average kappa
+    variance weighted by the number of objects in each catalog.
+    """
+    if len(cat_list) == 1:
+        return cat_list[0].vark
+    else:
+        vark = 0
+        ntot = 0
+        for cat in cat_list:
+            vark += cat.vark * cat.nobj
+            ntot += cat.nobj
+        return vark / ntot
 
 

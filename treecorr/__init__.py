@@ -20,6 +20,11 @@ version = 3.0
 from . import config
 from .celestial import CelestialCoord, angle_units
 from .corr2 import corr2, print_corr2_params
-from .catalog import Catalog, read_catalogs
-from .binnedcorr2 import BinnedCorr2, G2Correlation, N2Correlation, K2Correlation
-from .binnedcorr2 import NGCorrelation, NKCorrelation, KGCorrelation
+from .catalog import Catalog, read_catalogs, calculateVarG, calculateVarK
+from .binnedcorr2 import BinnedCorr2
+from .g2correlation import G2Correlation
+from .n2correlation import N2Correlation
+from .k2correlation import K2Correlation
+from .ngcorrelation import NGCorrelation
+from .nkcorrelation import NKCorrelation
+from .kgcorrelation import KGCorrelation

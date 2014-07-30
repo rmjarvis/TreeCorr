@@ -53,6 +53,7 @@ class BinnedCorr2(object):
     """
     def __init__(self, config=None, logger=None, **kwargs):
         import math
+        import numpy
         if kwargs:
             import copy
             config = copy.copy(config)
@@ -107,119 +108,9 @@ class BinnedCorr2(object):
                          self.nbins,self.min_sep,self.max_sep,self.bin_size)
 
         self.bin_slop = config.get('bin_slop', 1.0)
-
-    def clear(self):
-        """Clear the existing data array.  i.e. set all values to 0.
-        """
-        self.data[:] = 0
-
-
-class G2Correlation(BinnedCorr2):
-    """This class handles the calculation and storage of a 2-point shear-shear correlation
-    function.
-    """
-    def __init__(self, config=None, logger=None, **kwargs):
-        import numpy
-        BinnedCorr2.__init__(self, config, logger=None, **kwargs)
-
-        self.data = numpy.zeros(self.nbins, dtype=complex)
-
-    def process(self, cat1, cat2=None):
-        self.logger.info('Process G2 correlations...  or not.')
-
-    def write(self, file_name):
-        self.logger.info('Writing G2 correlations to %s',file_name)
-
-    def writeM2(self, file_name):
-        self.logger.info('Writing Map^2 from G2 correlations to %s',file_name)
-
-class N2Correlation(BinnedCorr2):
-    """This class handles the calculation and storage of a 2-point shear-shear correlation
-    function.
-    """
-    def __init__(self, config=None, logger=None, **kwargs):
-        import numpy
-        BinnedCorr2.__init__(self, config, logger=None, **kwargs)
-
-        self.data = numpy.zeros(self.nbins, dtype=float)
-
-    def process(self, cat1, cat2=None):
-        self.logger.info('Process N2 correlations...  or not.')
-
-    def write(self, file_name, rr, dr=None, rd=None):
-        self.logger.info('Writing N2 correlations to %s',file_name)
-
-
-class K2Correlation(BinnedCorr2):
-    """This class handles the calculation and storage of a 2-point shear-shear correlation
-    function.
-    """
-    def __init__(self, config=None, logger=None, **kwargs):
-        import numpy
-        BinnedCorr2.__init__(self, config, logger=None, **kwargs)
-
-        self.data = numpy.zeros(self.nbins, dtype=float)
-
-    def process(self, cat1, cat2=None):
-        self.logger.info('Process K2 correlations...  or not.')
-
-    def write(self, file_name):
-        self.logger.info('Writing K2 correlations to %s',file_name)
-
-
-class NGCorrelation(BinnedCorr2):
-    """This class handles the calculation and storage of a 2-point shear-shear correlation
-    function.
-    """
-    def __init__(self, config=None, logger=None, **kwargs):
-        import numpy
-        BinnedCorr2.__init__(self, config, logger=None, **kwargs)
-
-        self.data = numpy.zeros(self.nbins, dtype=complex)
-
-    def process(self, cat1, cat2):
-        self.logger.info('Process NG correlations...  or not.')
-
-    def write(self, file_name, rg=None):
-        self.logger.info('Writing NG correlations to %s',file_name)
-
-    def writeNM(self, file_name, rg=None):
-        self.logger.info('Writing NMap from NG correlations to %s',file_name)
-
-    def writeNorm(self, file_name, gg, nn, rr, nr=None, rg=None):
-        self.logger.info('Writing Norm from NG correlations to %s',file_name)
-
-
-class NKCorrelation(BinnedCorr2):
-    """This class handles the calculation and storage of a 2-point shear-shear correlation
-    function.
-    """
-    def __init__(self, config=None, logger=None, **kwargs):
-        import numpy
-        BinnedCorr2.__init__(self, config, logger=None, **kwargs)
-
-        self.data = numpy.zeros(self.nbins, dtype=float)
-
-    def process(self, cat1, cat2):
-        self.logger.info('Process NK correlations...  or not.')
-
-    def write(self, file_name, rk=None):
-        self.logger.info('Writing NK correlations to %s',file_name)
-
-
-class KGCorrelation(BinnedCorr2):
-    """This class handles the calculation and storage of a 2-point shear-shear correlation
-    function.
-    """
-    def __init__(self, config=None, logger=None, **kwargs):
-        import numpy
-        BinnedCorr2.__init__(self, config, logger=None, **kwargs)
-
-        self.data = numpy.zeros(self.nbins, dtype=complex)
-
-    def process(self, cat1, cat2):
-        self.logger.info('Process KG correlations...  or not.')
-
-    def write(self, file_name):
-        self.logger.info('Writing KG correlations to %s',file_name)
+        # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
+        self.logr = numpy.linspace(start=0, stop=self.nbins*self.bin_size, 
+                                   num=self.nbins, endpoint=True)
+        # Offset by the position of the center of the first bin.
+        self.logr += math.log(self.min_sep) + 0.5*self.bin_size
 

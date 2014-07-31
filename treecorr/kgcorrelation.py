@@ -58,7 +58,8 @@ class KGCorrelation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
         """
-        self.logger.info('Process KG cross-correlations...  or not.')
+        self.logger.info('Process KG cross-correlations for cats %s,%s...  or not.',
+                         cat1.file_name, cat2.file_name)
 
     def finalize(self, vark, varg):
         """Finalize the calculation of the correlation function.

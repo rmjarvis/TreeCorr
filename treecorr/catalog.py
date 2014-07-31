@@ -76,20 +76,25 @@ class Catalog(object):
         g1          The g1 component of the shear, if defined, as a numpy array. (None otherwise)
         g2          The g2 component of the shear, if defined, as a numpy array. (None otherwise)
         k           The convergence, kappa, if defined, as a numpy array. (None otherwise)
-        w           The weights, if defined, as a numpy array. (None otherwise)
+        w           The weights, as a numpy array. (All 1's if no weight column provided.)
 
         nobj        The number of objects with non-zero weight
         sumw        The sum of the weights
         varg        The shear variance (aka shape noise)
         vark        The kappa variance
+        file_name   This is only used as a name after construction, so if you construct it from
+                    data vectors directly, it will be ''.  You may assign to it if you want to
+                    give this catalog a different name.
     """
     def __init__(self, file_name=None, config=None, num=0, logger=None, is_rand=False,
                  x=None, y=None, ra=None, dec=None, g1=None, g2=None, k=None, w=None):
-        if logger is None:
+
+        if config is None: config = {}
+        if logger is not None:
+            self.logger = logger
+        else:
             self.logger = treecorr.config.setup_logger(config.get('verbose',0),
                                                        config.get('log_file',None))
-        else:
-            self.logger = logger
 
         # First style -- read from a file
         if file_name is not None:
@@ -97,9 +102,11 @@ class Catalog(object):
                 raise AttributeError("config must be provided when file_name is provided.")
             if any([v is not None for v in [x,y,ra,dec,g1,g2,k,w]]):
                 raise AttributeError("Vectors may not be provided when file_name is provided.")
+            self.file_name = file_name
+            self.config = config
 
             # Figure out which file type the catalog is
-            file_type = treecorr.config.get_from_list(config,'file_type',num)
+            file_type = treecorr.config.get_from_list(self.config,'file_type',num)
             if file_type is None:
                 import os
                 name, ext = os.path.splitext(file_name)
@@ -110,42 +117,42 @@ class Catalog(object):
 
             # Read the input file
             if file_type == 'FITS':
-                self.read_fits(file_name,config,num,is_rand)
+                self.read_fits(file_name,num,is_rand)
             else:
-                self.read_ascii(file_name,config,num,is_rand)
+                self.read_ascii(file_name,num,is_rand)
 
             # Apply units to x,y,ra,dec
             if self.x is not None:
-                if 'x_units' in config and not 'y_units' in config:
+                if 'x_units' in self.config and not 'y_units' in self.config:
                     raise AttributeErorr("x_units specified without specifying y_units")
-                if 'y_units' in config and not 'x_units' in config:
+                if 'y_units' in self.config and not 'x_units' in self.config:
                     raise AttributeErorr("y_units specified without specifying x_units")
-                x_units = treecorr.config.get_from_list(config,'x_units',num,str,'arcsec')
-                y_units = treecorr.config.get_from_list(config,'y_units',num,str,'arcsec')
+                x_units = treecorr.config.get_from_list(self.config,'x_units',num,str,'arcsec')
+                y_units = treecorr.config.get_from_list(self.config,'y_units',num,str,'arcsec')
                 self.x *= treecorr.angle_units[x_units]
                 self.y *= treecorr.angle_units[y_units]
             else:
-                if not config['ra_units']:
+                if not self.config['ra_units']:
                     raise ValueError("ra_units is required when using ra, dec")
-                if not config['dec_units']:
+                if not self.config['dec_units']:
                     raise ValueError("dec_units is required when using ra, dec")
-                ra_units = treecorr.config.get_from_list(config,'ra_units',num,str,'arcsec')
-                dec_units = treecorr.config.get_from_list(config,'dec_units',num,str,'arcsec')
+                ra_units = treecorr.config.get_from_list(self.config,'ra_units',num,str,'arcsec')
+                dec_units = treecorr.config.get_from_list(self.config,'dec_units',num,str,'arcsec')
                 self.ra *= treecorr.angle_units[ra_units]
                 self.dec *= treecorr.angle_units[dec_units]
 
             # Apply flips if requested
-            flip_g1 = treecorr.config.get_from_list(config,'flip_g1',num,bool,False)
-            flip_g2 = treecorr.config.get_from_list(config,'flip_g2',num,bool,False)
+            flip_g1 = treecorr.config.get_from_list(self.config,'flip_g1',num,bool,False)
+            flip_g2 = treecorr.config.get_from_list(self.config,'flip_g2',num,bool,False)
             if flip_g1: self.g1 = -self.g1
             if flip_g2: self.g2 = -self.g2
 
             # Convert the flag to a weight
             if self.flag is not None:
-                if 'ignore_flag' in config:
-                    ignore_flag = treecorr.config.get_from_list(config,'ignore_flag',num,int)
+                if 'ignore_flag' in self.config:
+                    ignore_flag = treecorr.config.get_from_list(self.config,'ignore_flag',num,int)
                 else:
-                    ok_flag = treecorr.config.get_from_list(config,'ok_flag',num,int,0)
+                    ok_flag = treecorr.config.get_from_list(self.config,'ok_flag',num,int,0)
                     ignore_flag = ~ok_flag
                 # If we don't already have a weight column, make one with all values = 1.
                 if self.w is None:
@@ -154,10 +161,10 @@ class Catalog(object):
                 self.logger.debug('Applied flag: w => %s',str(self.w))
 
             # Update the data according to the specified first and last row
-            first_row = treecorr.config.get_from_list(config,'first_row',num,int,1)
+            first_row = treecorr.config.get_from_list(self.config,'first_row',num,int,1)
             if first_row < 1:
                 raise ValueError("first_row should be >= 1")
-            last_row = treecorr.config.get_from_list(config,'last_row',num,int,-1)
+            last_row = treecorr.config.get_from_list(self.config,'last_row',num,int,-1)
             if last_row > 0 and last_row < first_row:
                 raise ValueError("last_row should be >= first_row")
             if last_row > 0:
@@ -182,7 +189,7 @@ class Catalog(object):
             if self.g2 is not None: self.g2 = self.g2[start:end]
 
             # Project if requested
-            if config.get('project',False):
+            if self.config.get('project',False):
                 if self.ra is None:
                     raise AttributeError("project is invalid without ra, dec")
                 self.logger.warn("Warning: You probably should not use the project option.")
@@ -192,24 +199,22 @@ class Catalog(object):
                 self.logger.warn("than project onto a tangent plane.")
 
                 if params['project_ra']:
-                    ra_cen = param['project_ra']*treecorr.angle_units[config['ra_units']]
+                    ra_cen = param['project_ra']*treecorr.angle_units[self.config['ra_units']]
                 else:
                     ra_cen = ra.mean()
                 if params['project_dec']:
-                    dec_cen = param['project_dec']*treecorr.angle_units[config['dec_units']]
+                    dec_cen = param['project_dec']*treecorr.angle_units[self.config['dec_units']]
                 else:
                     dec_cen = dec.mean()
                 
                 cen = CelestialCoord(ra_cen, dec_cen)
-                projection = config.get('projection','lambert')
+                projection = self.config.get('projection','lambert')
                 self.x, self.y = cen.project_rad(self.ra, self.dec, projection)
                 self.ra = None
                 self.dec = None
 
         # Second style -- pass in the vectors directly
         else:
-            if config is not None:
-                raise AttributeError("config may not be provided when vectors are provided.")
             if x is not None or y is not None:
                 if x is None or y is None:
                     raise AttributeError("x and y must both be provided")
@@ -218,6 +223,8 @@ class Catalog(object):
             if ra is not None or dec is not None:
                 if ra is None or dec is None:
                     raise AttributeError("ra and dec must both be provided")
+            self.file_name = ''
+            self.config = config  # May be None.
             self.x = x
             self.y = y
             self.ra = ra
@@ -271,23 +278,15 @@ class Catalog(object):
                 self.vark = numpy.sum(self.k**2) / self.nobj
             else:
                 self.vark = 0.
+            self.w = numpy.ones( (self.nobj) )
             
         
-    def get_param(self, config, key, num, default=None):
-        self.logger.debug("Get parameter %s, num = %d, default = %s",key,num,str(default))
-        value = config.get(key, default)
-        if isinstance(value, list):
-            if num >= len(value):
-                raise ValueError("The list of items for key %s is too short"%key)
-            value = value[num]
-        return value
-
-    def read_ascii(self, file_name, config, num, is_rand):
+    def read_ascii(self, file_name, num, is_rand):
         """Read the catalog from an ASCII file
         """
         import numpy
-        comment_marker = config.get('comment_marker','#')
-        delimiter = config.get('delimiter',None)
+        comment_marker = self.config.get('comment_marker','#')
+        delimiter = self.config.get('delimiter',None)
         data = numpy.loadtxt(file_name, comments=comment_marker, delimiter=delimiter, 
                              dtype=str, unpack=True)
         self.logger.debug('read data from %s, num=%d',file_name,num)
@@ -301,15 +300,15 @@ class Catalog(object):
         ncols = data.shape[0]
 
         # Get the column numbers or names
-        x_col = treecorr.config.get_from_list(config,'x_col',num,int,0)
-        y_col = treecorr.config.get_from_list(config,'y_col',num,int,0)
-        ra_col = treecorr.config.get_from_list(config,'ra_col',num,int,0)
-        dec_col = treecorr.config.get_from_list(config,'dec_col',num,int,0)
-        w_col = treecorr.config.get_from_list(config,'w_col',num,int,0)
-        flag_col = treecorr.config.get_from_list(config,'flag_col',num,int,0)
-        g1_col = treecorr.config.get_from_list(config,'g1_col',num,int,0)
-        g2_col = treecorr.config.get_from_list(config,'g2_col',num,int,0)
-        k_col = treecorr.config.get_from_list(config,'k_col',num,int,0)
+        x_col = treecorr.config.get_from_list(self.config,'x_col',num,int,0)
+        y_col = treecorr.config.get_from_list(self.config,'y_col',num,int,0)
+        ra_col = treecorr.config.get_from_list(self.config,'ra_col',num,int,0)
+        dec_col = treecorr.config.get_from_list(self.config,'dec_col',num,int,0)
+        w_col = treecorr.config.get_from_list(self.config,'w_col',num,int,0)
+        flag_col = treecorr.config.get_from_list(self.config,'flag_col',num,int,0)
+        g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,int,0)
+        g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,int,0)
+        k_col = treecorr.config.get_from_list(self.config,'k_col',num,int,0)
 
         # Start with everything set to None.  Overwrite as appropriate.
         self.x = None
@@ -366,7 +365,7 @@ class Catalog(object):
         if is_rand: return
 
         # Read g1,g2
-        if (g1_col != 0 or g2_col != 0) and isGColRequired(config,num):
+        if (g1_col != 0 or g2_col != 0) and isGColRequired(self.config,num):
             if g1_col <= 0 or g1_col > ncols:
                 raise AttributeError("g1_col is missing or invalid for file %s"%file_name)
             if g2_col <= 0 or g2_col > ncols:
@@ -377,25 +376,25 @@ class Catalog(object):
             self.logger.debug('read g2 = %s',str(self.g2))
 
         # Read k
-        if k_col != 0 and isKColRequired(config,num):
+        if k_col != 0 and isKColRequired(self.config,num):
             if k_col <= 0 or k_col > ncols:
                 raise AttributeError("k_col is invalid for file %s"%file_name)
             self.k = data[k_col-1].astype(float)
             self.logger.debug('read k = %s',str(self.k))
 
-    def read_fits(self, file_name, config, num, is_rand):
+    def read_fits(self, file_name, num, is_rand):
         """Read the catalog from a FITS file
         """
         try:
             import fitsio
-            self.read_fitsio(file_name, config, num, is_rand)
+            self.read_fitsio(file_name, num, is_rand)
         except:
-            self.read_pyfits(file_name, config, num, is_rand)
+            self.read_pyfits(file_name, num, is_rand)
 
-    def read_fitsio(self, file_name, config, num, is_rand):
+    def read_fitsio(self, file_name, num, is_rand):
         raise NotImplementedError("Using fitsio rather than pyfits not yet implemented")
 
-    def read_pyfits(self, file_name, config, num, is_rand):
+    def read_pyfits(self, file_name, num, is_rand):
         try:
             import astropy.io.fits as pyfits
         except:
@@ -403,17 +402,17 @@ class Catalog(object):
         hdu_list = pyfits.open(file_name, 'readonly')
 
         # Get the column names
-        x_col = treecorr.config.get_from_list(config,'x_col',num,str,'0')
-        y_col = treecorr.config.get_from_list(config,'y_col',num,str,'0')
-        ra_col = treecorr.config.get_from_list(config,'ra_col',num,str,'0')
-        dec_col = treecorr.config.get_from_list(config,'dec_col',num,str,'0')
-        w_col = treecorr.config.get_from_list(config,'w_col',num,str,'0')
-        flag_col = treecorr.config.get_from_list(config,'flag_col',num,str,'0')
-        g1_col = treecorr.config.get_from_list(config,'g1_col',num,str,'0')
-        g2_col = treecorr.config.get_from_list(config,'g2_col',num,str,'0')
-        k_col = treecorr.config.get_from_list(config,'k_col',num,str,'0')
+        x_col = treecorr.config.get_from_list(self.config,'x_col',num,str,'0')
+        y_col = treecorr.config.get_from_list(self.config,'y_col',num,str,'0')
+        ra_col = treecorr.config.get_from_list(self.config,'ra_col',num,str,'0')
+        dec_col = treecorr.config.get_from_list(self.config,'dec_col',num,str,'0')
+        w_col = treecorr.config.get_from_list(self.config,'w_col',num,str,'0')
+        flag_col = treecorr.config.get_from_list(self.config,'flag_col',num,str,'0')
+        g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,str,'0')
+        g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,str,'0')
+        k_col = treecorr.config.get_from_list(self.config,'k_col',num,str,'0')
 
-        hdu = treecorr.config.get_from_list(config,'hdu',num,int,1)
+        hdu = treecorr.config.get_from_list(self.config,'hdu',num,int,1)
 
         # Start with everything set to None.  Overwrite as appropriate.
         self.x = None
@@ -436,8 +435,8 @@ class Catalog(object):
                 raise AttributeError("ra_col not allowed in conjunction with x/y cols")
             if dec_col != '0':
                 raise AttributeError("dec_col not allowed in conjunction with x/y cols")
-            x_hdu = treecorr.config.get_from_list(config,'x_hdu',num,int,hdu)
-            y_hdu = treecorr.config.get_from_list(config,'y_hdu',num,int,hdu)
+            x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
+            y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
             if x_col not in hdu_list[x_hdu].columns.names:
                 raise AttributeError("x_col is invalid for file %s"%file_name)
             if y_col not in hdu_list[y_hdu].columns.names:
@@ -451,8 +450,8 @@ class Catalog(object):
                 raise AttributeError("ra_col missing for file %s"%file_name)
             if dec_col != '0':
                 raise AttributeError("dec_col missing for file %s"%file_name)
-            ra_hdu = treecorr.config.get_from_list(config,'ra_hdu',num,int,hdu)
-            dec_hdu = treecorr.config.get_from_list(config,'dec_hdu',num,int,hdu)
+            ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
+            dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
             if ra_col not in hdu_list[ra_hdu].columns.names:
                 raise AttributeError("ra_col is invalid for file %s"%file_name)
             if dec_col not in hdu_list[dec_hdu].columns.names:
@@ -466,7 +465,7 @@ class Catalog(object):
 
         # Read w
         if w_col != '0':
-            w_hdu = treecorr.config.get_from_list(config,'w_hdu',num,int,hdu)
+            w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,int,hdu)
             if w_col not in hdu_list[w_hdu].columns.names:
                 raise AttributeError("w_col is invalid for file %s"%file_name)
             self.w = hdu_list[w_hdu].data.field(w_col).astype(float)
@@ -474,20 +473,20 @@ class Catalog(object):
 
         # Read flag
         if flag_col != '0':
-            flag_hdu = treecorr.config.get_from_list(config,'flag_hdu',num,int,hdu)
+            flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
             if flag_col not in hdu_list[flag_hdu].columns.names:
                 raise AttributeError("flag_col is invalid for file %s"%file_name)
             self.flag = hdu_list[flag_hdu].data.field(flag_col).astype(int)
             self.logger.debug('read flag = %s',str(self.flag))
 
         # Read g1,g2
-        if (g1_col != '0' or g2_col != '0') and isGColRequired(config,num):
+        if (g1_col != '0' or g2_col != '0') and isGColRequired(self.config,num):
             if g1_col != '0':
                 raise AttributeError("g1_col is missing for file %s"%file_name)
             if g2_col != '0':
                 raise AttributeError("g2_col is missing for file %s"%file_name)
-            g1_hdu = treecorr.config.get_from_list(config,'g1_hdu',num,int,hdu)
-            g2_hdu = treecorr.config.get_from_list(config,'g2_hdu',num,int,hdu)
+            g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
+            g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
             if g1_col not in hdu_list[g1_hdu].columns.names:
                 raise AttributeError("g1_col is invalid for file %s"%file_name)
             if g2_col not in hdu_list[g2_hdu].columns.names:
@@ -498,12 +497,32 @@ class Catalog(object):
             self.logger.debug('read g2 = %s',str(self.g2))
 
         # Read k
-        if k_col != '0' and isKColRequired(config,num):
-            k_hdu = treecorr.config.get_from_list(config,'k_hdu',num,int,hdu)
+        if k_col != '0' and isKColRequired(self.config,num):
+            k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
             if k_col not in hdu_list[k_hdu].columns.names:
                 raise AttributeError("k_col is invalid for file %s"%file_name)
             self.k = hdu_list[k_hdu].data.field(k_col).astype(float)
             self.logger.debug('read k = %s',str(self.k))
+
+    def getGField(self, min_sep, max_sep, b, logger=None, config=None):
+        """Return a GField based on the g1,g2 values in this catalog.
+
+        The GField object is cached, so this is efficient to call multiple times.
+        """
+        if (not hasattr(self,'gfield') 
+            or min_sep != self.gfield.min_sep
+            or max_sep != self.gfield.max_sep
+            or b != self.gfield.b):
+
+            if self.g1 is None or self.g2 is None:
+                raise AttributeError("g1,g2 are not defined.")
+            if logger is None:
+                logger = self.logger
+            if config is None:
+                config = self.config
+            self.gfield = treecorr.GField(self,min_sep,max_sep,b,logger,config)
+
+        return self.gfield
 
 
 def read_catalogs(config, key, list_key, num, logger, is_rand=False):

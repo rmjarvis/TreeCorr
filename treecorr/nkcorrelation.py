@@ -95,11 +95,29 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.clear()
 
         if not isinstance(cat1,list): cat1 = [cat1]
+        if not isinstance(cat2,list): cat2 = [cat2]
+        if len(cat1) == 0:
+            raise ValueError("No catalogs provided for cat1")
+        if len(cat2) == 0:
+            raise ValueError("No catalogs provided for cat2")
+
         vark = treecorr.calculateVarK(cat2)
         for c1 in cat1:
             for c2 in cat2:
                 self.process_cross(c1,c2)
         self.finalize(vark)
+
+    def calculateXi(self, rk=None):
+        """Calculate the correlation function possibly given another correlation function
+        that uses random points for the foreground objects.
+
+        If rk is None, the simple correlation function <kappa> is returned.
+        If rk is not None, then a compensated calculation is done: <kappa> = (nk - rk)
+        """
+        if rk is None:
+            return self.xi
+        else:
+            return self.xi - rk.xi
 
 
     def write(self, file_name, rk=None):
@@ -110,18 +128,11 @@ class NKCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Writing NK correlations to %s',file_name)
 
-        if rk is None:
-            xi = self.xi
-            varxi = self.varxi
-        else:
-            xi = self.xi - rk.xi
-            varxi = self.varxi + rk.varxi
-        
         output = numpy.empty( (self.nbins, 6) )
         output[:,0] = numpy.exp(self.logr)
         output[:,1] = numpy.exp(self.meanlogr)
-        output[:,2] = xi
-        output[:,3] = numpy.sqrt(varxi)
+        output[:,2] = self.calculateXi(rk)
+        output[:,3] = numpy.sqrt(self.varxi)
         output[:,4] = self.weight
         output[:,5] = self.npairs
 

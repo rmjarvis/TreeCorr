@@ -96,6 +96,11 @@ class KGCorrelation(treecorr.BinnedCorr2):
 
         if not isinstance(cat1,list): cat1 = [cat1]
         if not isinstance(cat2,list): cat2 = [cat2]
+        if len(cat1) == 0:
+            raise ValueError("No catalogs provided for cat1")
+        if len(cat2) == 0:
+            raise ValueError("No catalogs provided for cat2")
+
         vark = treecorr.calculateVarK(cat1)
         varg = treecorr.calculateVarG(cat2)
         for c1 in cat1:
@@ -104,6 +109,8 @@ class KGCorrelation(treecorr.BinnedCorr2):
         self.finalize(vark,varg)
 
     def write(self, file_name):
+        """Write the correlation function to the file, file_name.
+        """
         self.logger.info('Writing KG correlations to %s',file_name)
         
         output = numpy.empty( (self.nbins, 7) )

@@ -95,12 +95,29 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.clear()
 
         if not isinstance(cat1,list): cat1 = [cat1]
+        if not isinstance(cat2,list): cat2 = [cat2]
+        if len(cat1) == 0:
+            raise ValueError("No catalogs provided for cat1")
+        if len(cat2) == 0:
+            raise ValueError("No catalogs provided for cat2")
+
         varg = treecorr.calculateVarG(cat2)
         for c1 in cat1:
             for c2 in cat2:
                 self.process_cross(c1,c2)
         self.finalize(varg)
 
+    def calculateXi(self, rg=None):
+        """Calculate the correlation function possibly given another correlation function
+        that uses random points for the foreground objects.
+
+        If rg is None, the simple correlation function <gamma_T> is returned.
+        If rg is not None, then a compensated calculation is done: <gamma_T> = (ng - rg)
+        """
+        if rg is None:
+            return self.xi
+        else:
+            return self.xi - rg.xi
 
     def write(self, file_name, rg=None):
         """Write the correlation function to the file, file_name.
@@ -109,20 +126,15 @@ class NGCorrelation(treecorr.BinnedCorr2):
         If rg is not None, then a compensated calculation is done: <gamma_T> = (ng - rg)
         """
         self.logger.info('Writing NG correlations to %s',file_name)
-
-        if rg is None:
-            xi = self.xi
-            varxi = self.varxi
-        else:
-            xi = self.xi - rg.xi
-            varxi = self.varxi + rg.varxi
+    
+        xi = self.calculateXi(rg)
         
         output = numpy.empty( (self.nbins, 7) )
         output[:,0] = numpy.exp(self.logr)
         output[:,1] = numpy.exp(self.meanlogr)
         output[:,2] = xi.real
         output[:,3] = xi.imag
-        output[:,4] = numpy.sqrt(varxi)
+        output[:,4] = numpy.sqrt(self.varxi)
         output[:,5] = self.weight
         output[:,6] = self.npairs
 
@@ -134,7 +146,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         fmt = '%%%d.%de'%(width,prec)
         numpy.savetxt(file_name, output, fmt=fmt, header=header)
 
-    def writeNM(self, file_name, rg=None):
+    def writeNMap(self, file_name, rg=None):
         self.logger.info('Writing NMap from NG correlations to %s',file_name)
 
     def writeNorm(self, file_name, gg, nn, rr, nr=None, rg=None):

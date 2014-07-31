@@ -63,7 +63,7 @@ class K2Correlation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
         """
-        self.logger.info('Process K2 auto-correlations...  or not.')
+        self.logger.info('Process K2 auto-correlations for cat %s...  or not.',cat1.file_name)
 
     def process_cross(self, cat1, cat2):
         """Process a single pair of catalogs, accumulating the cross-correlation.
@@ -73,7 +73,8 @@ class K2Correlation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
         """
-        self.logger.info('Process K2 cross-correlations...  or not.')
+        self.logger.info('Process K2 cross-correlations for cats %s,%s...  or not.',
+                         cat1.file_name, cat2.file_name)
 
     def finalize(self, vark1, vark2):
         """Finalize the calculation of the correlation function.

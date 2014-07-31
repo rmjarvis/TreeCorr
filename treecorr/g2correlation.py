@@ -113,7 +113,11 @@ class G2Correlation(treecorr.BinnedCorr2):
         self.clear()
 
         if not isinstance(cat1,list): cat1 = [cat1]
-        if cat2 is None:
+        if cat2 is not None and not isinstance(cat2,list): cat2 = [cat2]
+        if len(cat1) == 0:
+            raise ValueError("No catalogs provided for cat1")
+
+        if cat2 is None or len(cat2) == 0:
             varg1 = treecorr.calculateVarG(cat1)
             varg2 = varg1
 
@@ -136,6 +140,8 @@ class G2Correlation(treecorr.BinnedCorr2):
 
 
     def write(self, file_name):
+        """Write the correlation function to the file, file_name.
+        """
         self.logger.info('Writing G2 correlations to %s',file_name)
         
         output = numpy.empty( (self.nbins, 9) )
@@ -157,6 +163,13 @@ class G2Correlation(treecorr.BinnedCorr2):
         fmt = '%%%d.%de'%(width,prec)
         numpy.savetxt(file_name, output, fmt=fmt, header=header)
 
-    def writeM2(self, file_name):
+    def calculateMapSq(self):
+        """Calculate the aperture mass statistics from the correlation function.
+        """
+
+    def writeMapSq(self, file_name):
+        """Write the aperture mass statistics based on the correlation function to the
+        file, file_name.
+        """
         self.logger.info('Writing Map^2 from G2 correlations to %s',file_name)
 

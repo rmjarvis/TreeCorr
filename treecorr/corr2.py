@@ -239,7 +239,7 @@ def corr2(config, logger=None):
             gg.write(config['g2_file_name'])
             logger.info("Wrote file %s",config['g2_file_name'])
         if config['m2_file_name']:
-            gg.writeM2(config['m2_file_name'])
+            gg.writeMapSq(config['m2_file_name'])
             logger.info("Wrote file %s",config['m2_file_name'])
 
     # Do ng correlation function if necessary
@@ -266,7 +266,7 @@ def corr2(config, logger=None):
             ng.write(config['ng_file_name'], rg)
             logger.info("Wrote file %s",config['ng_file_name'])
         if config['nm_file_name']:
-            ng.writeNM(config['nm_file_name'], rg)
+            ng.writeNMap(config['nm_file_name'], rg)
             logger.info("Wrote file %s",config['nm_file_name'])
 
         if config['norm_file_name']:

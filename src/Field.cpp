@@ -16,6 +16,7 @@
  */
 
 #include "Field.h"
+#include "Cell.h"
 #include <iostream>
 
 #ifdef __cplusplus

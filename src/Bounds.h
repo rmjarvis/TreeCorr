@@ -159,10 +159,11 @@ public:
     // Position<Sphere> can also be initialized with a Postion<Flat> object, which is 
     // taken to be RA, Dec, both in radians.  The <Sphere> position is then the 
     // corresponding point on the unit sphere.
-    Position(const Position<Flat>& rhs) 
+    Position(const Position<Flat>& rhs) { buildFromRaDec(rhs.getX(),rhs.getY()); }
+    Position(double ra, double dec) { buildFromRaDec(ra,dec); }
+
+    void buildFromRaDec(double ra, double dec)
     {
-        const double ra = rhs.getX();
-        const double dec = rhs.getY();
         const double cosra = cos(ra);
         const double sinra = sin(ra);
         const double cosdec = cos(dec);

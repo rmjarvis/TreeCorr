@@ -14,6 +14,8 @@
 #    contributors may be used to endorse or promote products derived from
 #    this software without specific prior written permission.
 
+import treecorr
+
 # Start by loading up the relevant C functions using ctypes
 import numpy
 import ctypes
@@ -21,7 +23,6 @@ import os
 
 # Some aliases for my own benefit...
 double_ptr = ctypes.POINTER(ctypes.c_double)
-void_ptr = ctypes.c_void_p
 
 # The numpy version of this function tries to be more portable than the native
 # ctypes.cdll.LoadLibary or cdtypes.CDLL functions.
@@ -71,17 +72,30 @@ class GField(object):
 
         if cat.x is not None:
             # Then build field with flat sky approximation
-            _treecorr.BuildGFieldFlat.restype = void_ptr
+            _treecorr.BuildGFieldFlat.restype = ctypes.c_void_p
             x = cat.x.ctypes.data_as(double_ptr)
             y = cat.y.ctypes.data_as(double_ptr)
+            self.coord = 'flat'
             self.data = _treecorr.BuildGFieldFlat(x,y,g1,g2,w,nobj,min_sep,max_sep,b,sm)
             logger.debug('Finished building GField Flat')
         else:
             # Then build field for spherical coordinates
-            _treecorr.BuildGFieldSphere.restype = void_ptr
+            _treecorr.BuildGFieldSphere.restype = ctypes.c_void_p
             ra = cat.ra.ctypes.data_as(double_ptr)
             dec = cat.dec.ctypes.data_as(double_ptr)
+            self.coord = 'sphere'
             self.data = _treecorr.BuildGFieldSphere(ra,dec,g1,g2,w,nobj,min_sep,max_sep,b,sm)
             logger.debug('Finished building GField Sphere')
 
 
+    def __del__(self):
+        # Using memory allocated from the C layer means we have to explicitly deallocate it
+        # rather than being able to rely on the Python memory manager.
+
+        if hasattr(self,'data'):    # In case __init__ failed to get that far
+            if self.coord == 'flat':
+                _treecorr.DestroyGFieldFlat.argtypes = [ ctypes.c_void_p ]
+                _treecorr.DestroyGFieldFlat(self.data)
+            else:
+                _treecorr.DestroyGFieldSphere.argtypes = [ ctypes.c_void_p ]
+                _treecorr.DestroyGFieldSphere(self.data)

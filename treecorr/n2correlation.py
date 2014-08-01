@@ -147,15 +147,21 @@ class N2Correlation(treecorr.BinnedCorr2):
         """
         if nr is None:
             if rn is None:
-                return (self.xi - rr.xi)/rr.xi
+                xi = (self.xi - rr.xi)
             else:
-                return (self.xi - 2.*rn.xi + rr.xi)/rr.xi
+                xi = (self.xi - 2.*rn.xi + rr.xi)
         else:
             if rn is None:
-                return (self.xi - 2.*rn.xi + rr.xi)/rr.xi
+                xi = (self.xi - 2.*rn.xi + rr.xi)
             else:
-                return (self.xi - rn.xi - nr.xi + rr.xi)/rr.xi
-
+                xi = (self.xi - rn.xi - nr.xi + rr.xi)
+        if any(rr.xi == 0):
+            self.logger.warn("Warning: Some bins for the randoms have zero weight.")
+            self.logger.warn("         This is probably an error.")
+        mask1 = self.xi != 0
+        mask2 = self.xi == 0
+        xi[mask1] /= rr.xi[mask1]
+        xi[mask2] = 0
 
     def write(self, file_name, rr, nr=None, rn=None):
         """Write the correlation function to the file, file_name.

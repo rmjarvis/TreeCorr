@@ -1,8 +1,8 @@
 
 file_name = test1.dat
-file_name2 = test1.dat
-rand_file_list = randlist1  # Has 3 rand1.dat's to check functionality with multiple rands.
-rand_file_name2 = rand1.dat
+#file_name2 = test1.dat
+#rand_file_list = randlist1  # Has 3 rand1.dat's to check functionality with multiple rands.
+#rand_file_name2 = rand1.dat
 
 do_auto_corr=true
 
@@ -26,13 +26,13 @@ bin_size = 0.10
 sep_units = deg
 
 g2_file_name = test1.g2
-m2_file_name = test1.m2
-n2_file_name = test1.n2
-ng_file_name = test1.ng
-nm_file_name = test1.nm
-norm_file_name = test1.norm
-k2_file_name = test1.k2
-nk_file_name = test1.nk
-kg_file_name = test1.kg
+#m2_file_name = test1.m2
+#n2_file_name = test1.n2
+#ng_file_name = test1.ng
+#nm_file_name = test1.nm
+#norm_file_name = test1.norm
+#k2_file_name = test1.k2
+#nk_file_name = test1.nk
+#kg_file_name = test1.kg
 
 

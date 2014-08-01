@@ -23,11 +23,15 @@ template <int M>
 CellData<NData,M>::CellData(
     const std::vector<CellData<NData,M>*>& vdata,
     size_t start, size_t end) :
-    _n(end-start)
+    _w(0.), _n(end-start)
 {
-    for(size_t i=start; i!=end; ++i) _pos += vdata[i]->getPos();
-    Assert(_n != 0);
-    _pos /= _n;
+    for(size_t i=start; i!=end; ++i) {
+        const CellData<NData,M>& data = *vdata[i];
+        _pos += data.getPos();
+        _w += data.getW();
+    }
+    Assert(_w != 0);
+    _pos /= _w;
     // If M == Sphere, the average position is no longer on the surface of the unit sphere.
     // Divide by the new r.
     if (M == Sphere) {
@@ -40,7 +44,7 @@ template <int M>
 CellData<KData,M>::CellData(
     const std::vector<CellData<KData,M>*>& vdata,
     size_t start, size_t end) :
-    _pos(), _wk(0.), _w(0.), _n(end-start)
+    _wk(0.), _w(0.), _n(end-start)
 {
     for(size_t i=start;i<end;++i) {
         const CellData<KData,M>& data = *vdata[i];

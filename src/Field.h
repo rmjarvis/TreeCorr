@@ -15,9 +15,7 @@
  *    this software without specific prior written permission.
  */
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
     extern void* BuildGFieldFlat(double* x, double* y, double* g1, double* g2, double* w,
                                  int nobj, double minsep, double maxsep, double b, int sm);
@@ -26,7 +24,36 @@ extern "C" {
                                    int nobj, double minsep, double maxsep, double b, int sm);
 
 
-#ifdef __cplusplus
+    extern void* BuildGFieldFlat(double* x, double* y, double* g1, double* g2, double* w,
+                                 int nobj, double minsep, double maxsep, double b, int sm_int);
+
+    extern void* BuildGFieldSphere(double* ra, double* dec, double* g1, double* g2, double* w,
+                                   int nobj, double minsep, double maxsep, double b, int sm_int);
+
+    extern void* BuildKFieldFlat(double* x, double* y, double* k, double* w,
+                                 int nobj, double minsep, double maxsep, double b, int sm_int);
+
+    extern void* BuildKFieldSphere(double* ra, double* dec, double* k, double* w,
+                                   int nobj, double minsep, double maxsep, double b, int sm_int);
+
+    extern void* BuildNFieldFlat(double* x, double* y, double* w,
+                                 int nobj, double minsep, double maxsep, double b, int sm_int);
+
+    extern void* BuildNFieldSphere(double* ra, double* dec, double* w,
+                                   int nobj, double minsep, double maxsep, double b, int sm_int);
+
+    extern void DestroyGFieldFlat(void* cells);
+
+    extern void DestroyGFieldSphere(void* cells);
+
+    extern void DestroyKFieldFlat(void* cells);
+
+    extern void DestroyKFieldSphere(void* cells);
+
+    extern void DestroyNFieldFlat(void* cells);
+
+    extern void DestroyNFieldSphere(void* cells);
+
+
 }
-#endif
 

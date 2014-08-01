@@ -20,13 +20,13 @@
 extern std::ostream* dbgout;
 extern bool XDEBUG;
 
-#ifdef NDEBUG
-#define dbg if(false) (*dbgout)
+#ifdef TREECORR_NDEBUG
+#define dbg if (false) (*dbgout)
 #define xdbg if (false) (*dbgout)
 #define xxdbg if (false) (*dbgout)
 #define Assert(x)
 #else
-#define dbg if(dbgout) (*dbgout)
+#define dbg if (dbgout) (*dbgout)
 #define xdbg if (dbgout && XDEBUG) (*dbgout)
 #define xxdbg if (false) (*dbgout)
 #define Assert(x) \

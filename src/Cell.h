@@ -35,10 +35,10 @@ class CellData<NData,M>
 public:
     CellData() {}
 
-    CellData(const Position<M>& pos) : _pos(pos), _n(1) {}
+    CellData(const Position<M>& pos, double w) : _pos(pos), _w(w), _n(1) {}
 
     template <int M2>
-    CellData(const Position<M2>& pos) : _pos(pos), _n(1) {}
+    CellData(const Position<M2>& pos, double w) : _pos(pos), _w(w), _n(1) {}
 
     CellData(const std::vector<CellData<NData,M>*>& vdata,
              size_t start, size_t end);
@@ -49,11 +49,13 @@ public:
     {}
 
     const Position<M>& getPos() const { return _pos; }
+    double getW() const { return _w; }
     long getN() const { return _n; }
 
 private:
 
     Position<M> _pos;
+    float _w;
     long _n;
 };
 

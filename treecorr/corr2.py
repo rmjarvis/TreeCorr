@@ -230,20 +230,20 @@ def corr2(config, logger=None):
     logger.info("Done reading input catalogs")
 
     # Do g2 correlation function if necessary
-    if config['g2_file_name'] or config['m2_file_name']:
+    if 'g2_file_name' in config or 'm2_file_name' in config:
         logger.info("Start g2 calculations...")
         gg = treecorr.G2Correlation(config,logger)
         gg.process(cat1,cat2)
         logger.info("Done g2 calculations.")
-        if config['g2_file_name']:
+        if 'g2_file_name' in config:
             gg.write(config['g2_file_name'])
             logger.info("Wrote file %s",config['g2_file_name'])
-        if config['m2_file_name']:
+        if 'm2_file_name' in config:
             gg.writeMapSq(config['m2_file_name'])
             logger.info("Wrote file %s",config['m2_file_name'])
 
     # Do ng correlation function if necessary
-    if config['ng_file_name'] or config['nm_file_name'] or config['norm_file_name']:
+    if 'ng_file_name' in config or 'nm_file_name' in config or 'norm_file_name' in config:
         if len(cat2) == 0:
             raise AttributeError("file_name2 is required for ng correlation")
         logger.info("Start ng calculations...")
@@ -262,14 +262,14 @@ def corr2(config, logger=None):
         else:
             rg = None
 
-        if config['ng_file_name']:
+        if 'ng_file_name' in config:
             ng.write(config['ng_file_name'], rg)
             logger.info("Wrote file %s",config['ng_file_name'])
-        if config['nm_file_name']:
+        if 'nm_file_name' in config:
             ng.writeNMap(config['nm_file_name'], rg)
             logger.info("Wrote file %s",config['nm_file_name'])
 
-        if config['norm_file_name']:
+        if 'norm_file_name' in config:
             gg = treecorr.G2Correlation(config,logger)
             gg.process(cat2)
             logger.info("Done gg calculation for norm")
@@ -288,7 +288,7 @@ def corr2(config, logger=None):
             ng.writeNorm(config['norm_file_name'],gg,nn,rr,nr,rg)
 
     # Do n2 correlation function if necessary
-    if config['n2_file_name']:
+    if 'n2_file_name' in config:
         if len(rand1) == 0:
             raise AttributeError("rand_file_name is required for n2 correlation")
         if len(cat2) > 0 and len(rand2) == 0:
@@ -328,7 +328,7 @@ def corr2(config, logger=None):
         nn.write(config['n2_file_name'],rr,nr,rn)
 
     # Do k2 correlation function if necessary
-    if config['k2_file_name']:
+    if 'k2_file_name' in config:
         logger.info("Start k2 calculations...")
         kk = treecorr.K2Correlation(config,logger)
         kk.process(cat1,cat2)
@@ -337,7 +337,7 @@ def corr2(config, logger=None):
         logger.info("Wrote file %s",config['k2_file_name'])
 
     # Do ng correlation function if necessary
-    if config['nk_file_name']:
+    if 'nk_file_name' in config:
         if len(cat2) == 0:
             raise AttributeError("file_name2 is required for nk correlation")
         logger.info("Start nk calculations...")
@@ -359,7 +359,7 @@ def corr2(config, logger=None):
         logger.info("Wrote file %s",config['nk_file_name'])
 
     # Do kg correlation function if necessary
-    if config['kg_file_name']:
+    if 'kg_file_name' in config:
         if len(cat2) == 0:
             raise AttributeError("file_name2 is required for kg correlation")
         logger.info("Start kg calculations...")

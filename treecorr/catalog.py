@@ -279,25 +279,34 @@ class Catalog(object):
             else:
                 self.vark = 0.
             self.w = numpy.ones( (self.nobj) )
-            
-        
+
     def read_ascii(self, file_name, num, is_rand):
         """Read the catalog from an ASCII file
         """
         import numpy
         comment_marker = self.config.get('comment_marker','#')
         delimiter = self.config.get('delimiter',None)
-        data = numpy.loadtxt(file_name, comments=comment_marker, delimiter=delimiter, 
-                             dtype=str, unpack=True)
+        try:
+            import pandas
+            if delimiter is None:
+                data = pandas.read_csv(file_name, comment=comment_marker, delim_whitespace=True)
+            else:
+                data = pandas.read_csv(file_name, comment=comment_marker, delimiter=delimiter)
+            data = data.as_matrix()
+        except ImportError:
+            self.logger.warn("Unable to import pandas..  Using numpy.genfromtxt instead.")
+            self.logger.warn("Installing pandas is recommended for increased speed.")
+            data = numpy.genfromtxt(file_name, comments=comment_marker, delimiter=delimiter)
+
         self.logger.debug('read data from %s, num=%d',file_name,num)
         self.logger.debug('data shape = %s',str(data.shape))
 
         # If only one row, then the shape comes in as one-d.  Reshape it:
         if len(data.shape) == 1:
-            data = data.reshape(-1,1)
+            data = data.reshape(1,-1)
         if len(data.shape) != 2:
             raise IOError('Unable to parse the input catalog as a 2-d array')
-        ncols = data.shape[0]
+        ncols = data.shape[1]
 
         # Get the column numbers or names
         x_col = treecorr.config.get_from_list(self.config,'x_col',num,int,0)
@@ -331,18 +340,21 @@ class Catalog(object):
                 raise AttributeError("ra_col not allowed in conjunction with x/y cols")
             if dec_col != 0:
                 raise AttributeError("dec_col not allowed in conjunction with x/y cols")
-            self.x = data[x_col-1].astype(float)
+            # NB. astype always copies, even if the type is already correct.
+            # We actually want this, since it makes the result contiguous in memory, 
+            # which we will need.
+            self.x = data[:,x_col-1].astype(float)
             self.logger.debug('read x = %s',str(self.x))
-            self.y = data[y_col-1].astype(float)
+            self.y = data[:,y_col-1].astype(float)
             self.logger.debug('read y = %s',str(self.y))
         elif ra_col != 0 or dec_col != 0:
             if ra_col <= 0 or ra_col > ncols:
                 raise AttributeError("ra_col missing or invalid for file %s"%file_name)
             if dec_col <= 0 or dec_col > ncols:
                 raise AttributeError("dec_col missing or invalid for file %s"%file_name)
-            self.ra = data[ra_col-1].astype(float)
+            self.ra = data[:,ra_col-1].astype(float)
             self.logger.debug('read ra = %s',str(self.ra))
-            self.dec = data[dec_col-1].astype(float)
+            self.dec = data[:,dec_col-1].astype(float)
             self.logger.debug('read dec = %s',str(self.dec))
         else:
             raise AttributeError("No valid position columns specified for file %s"%file_name)
@@ -351,14 +363,14 @@ class Catalog(object):
         if w_col != 0:
             if w_col <= 0 or w_col > ncols:
                 raise AttributeError("w_col is invalid for file %s"%file_name)
-            self.w = data[w_col-1].astype(float)
+            self.w = data[:,w_col-1].astype(float)
             self.logger.debug('read w = %s',str(self.w))
 
         # Read flag 
         if flag_col != 0:
             if flag_col <= 0 or flag_col > ncols:
                 raise AttributeError("flag_col is invalid for file %s"%file_name)
-            self.flag = data[flag_col-1].astype(int)
+            self.flag = data[:,flag_col-1].astype(float)
             self.logger.debug('read flag = %s',str(self.flag))
 
         # Return here if this file is a random catalog
@@ -370,16 +382,16 @@ class Catalog(object):
                 raise AttributeError("g1_col is missing or invalid for file %s"%file_name)
             if g2_col <= 0 or g2_col > ncols:
                 raise AttributeError("g2_col is missing or invalid for file %s"%file_name)
-            self.g1 = data[g1_col-1].astype(float)
+            self.g1 = data[:,g1_col-1].astype(float)
             self.logger.debug('read g1 = %s',str(self.g1))
-            self.g2 = data[g2_col-1].astype(float)
+            self.g2 = data[:,g2_col-1].astype(float)
             self.logger.debug('read g2 = %s',str(self.g2))
 
         # Read k
         if k_col != 0 and isKColRequired(self.config,num):
             if k_col <= 0 or k_col > ncols:
                 raise AttributeError("k_col is invalid for file %s"%file_name)
-            self.k = data[k_col-1].astype(float)
+            self.k = data[:,k_col-1].astype(float)
             self.logger.debug('read k = %s',str(self.k))
 
     def read_fits(self, file_name, num, is_rand):
@@ -476,7 +488,7 @@ class Catalog(object):
             flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
             if flag_col not in hdu_list[flag_hdu].columns.names:
                 raise AttributeError("flag_col is invalid for file %s"%file_name)
-            self.flag = hdu_list[flag_hdu].data.field(flag_col).astype(int)
+            self.flag = hdu_list[flag_hdu].data.field(flag_col).astype(float)
             self.logger.debug('read flag = %s',str(self.flag))
 
         # Read g1,g2

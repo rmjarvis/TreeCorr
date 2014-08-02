@@ -52,7 +52,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         xi = kg.xi              # Or access the correlation function directly.
     """
     def __init__(self, config=None, logger=None, **kwargs):
-        treecorr.BinnedCorr2.__init__(self, config, logger=None, **kwargs)
+        treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
         self.xi = numpy.zeros(self.nbins, dtype=float)
         self.xi_im = numpy.zeros(self.nbins, dtype=float)
@@ -73,7 +73,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
 
         self.corr = _treecorr.BuildKGCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                                           xi,xi_im,meanlogr,weight,npairs);
-        logger.debug('Finished building KGCorr')
+        self.logger.debug('Finished building KGCorr')
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -91,7 +91,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
         """
-        self.logger.info('Process KG cross-correlations for cats %s, %s.',
+        self.logger.info('Starting process KG cross-correlations for cats %s, %s.',
                          cat1.file_name, cat2.file_name)
         kfield1 = cat1.getKField(self.min_sep,self.max_sep,self.b)
         gfield2 = cat2.getGField(self.min_sep,self.max_sep,self.b)
@@ -101,12 +101,12 @@ class KGCorrelation(treecorr.BinnedCorr2):
 
         if kfield1.sphere:
             _treecorr.ProcessCrossKGSphere.argtypes = [ 
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp ]
-            _treecorr.ProcessCrossKGSphere(self.corr, kfield1.data, gfield2.data)
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
+            _treecorr.ProcessCrossKGSphere(self.corr, kfield1.data, gfield2.data, self.output_dots)
         else:
             _treecorr.ProcessCrossKGFlat.argtypes = [
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp ]
-            _treecorr.ProcessCrossKGFlat(self.corr, kfield1.data, gfield2.data)
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
+            _treecorr.ProcessCrossKGFlat(self.corr, kfield1.data, gfield2.data, self.output_dots)
 
 
     def finalize(self, vark, varg):

@@ -35,7 +35,7 @@ class NField(object):
         >>> nfield = cat.getNField(min_sep, max_sep, b)
     """
     def __init__(self, cat, min_sep, max_sep, b, logger=None, config=None):
-        logger.info('Build NField from cat %s',cat.file_name)
+        logger.info('Building NField from cat %s',cat.file_name)
 
         if config is None: config = {}
         if logger is not None:
@@ -46,7 +46,7 @@ class NField(object):
 
         split_method = config.get('split_method','mean')
         if split_method not in ['middle', 'median', 'mean']:
-            raise AttributeError("Invalid split_method %s"%split_method)
+            raise ValueError("Invalid split_method %s"%split_method)
 
         self.min_sep = min_sep
         self.max_sep = max_sep
@@ -110,7 +110,7 @@ class KField(object):
         >>> gfield = cat.getKField(min_sep, max_sep, b)
     """
     def __init__(self, cat, min_sep, max_sep, b, logger=None, config=None):
-        logger.info('Build KField from cat %s',cat.file_name)
+        logger.info('Building KField from cat %s',cat.file_name)
  
         if config is None: config = {}
         if logger is not None:
@@ -121,7 +121,7 @@ class KField(object):
 
         split_method = config.get('split_method','mean')
         if split_method not in ['middle', 'median', 'mean']:
-            raise AttributeError("Invalid split_method %s"%split_method)
+            raise ValueError("Invalid split_method %s"%split_method)
 
         self.min_sep = min_sep
         self.max_sep = max_sep
@@ -185,7 +185,7 @@ class GField(object):
         >>> gfield = cat.getGField(min_sep, max_sep, b)
     """
     def __init__(self, cat, min_sep, max_sep, b, logger=None, config=None):
-        logger.info('Build GField from cat %s',cat.file_name)
+        logger.info('Building GField from cat %s',cat.file_name)
 
         if config is None: config = {}
         if logger is not None:
@@ -196,7 +196,7 @@ class GField(object):
 
         split_method = config.get('split_method','mean')
         if split_method not in ['middle', 'median', 'mean']:
-            raise AttributeError("Invalid split_method %s"%split_method)
+            raise ValueError("Invalid split_method %s"%split_method)
 
         self.min_sep = min_sep
         self.max_sep = max_sep

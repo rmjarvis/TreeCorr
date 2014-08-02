@@ -84,9 +84,9 @@ public:
                 double* meanlogr, double* weight, double* npairs);
 
     template <int M>
-    void process(const Field<DC1, M>& field);
+    void process(const Field<DC1, M>& field, bool dots);
     template <int M>
-    void process(const Field<DC1, M>& field1, const Field<DC2, M>& field2);
+    void process(const Field<DC1, M>& field1, const Field<DC2, M>& field2, bool dots);
     //void processPairwise(const InputFile& file1, const InputFile& file2);
 
     // Main worker functions for calculating the result
@@ -158,25 +158,25 @@ extern "C" {
     extern void DestroyKGCorr(void* corr);
     extern void DestroyGGCorr(void* corr);
 
-    extern void ProcessAutoNNFlat(void* corr, void* field);
-    extern void ProcessAutoNNSphere(void* corr, void* field);
-    extern void ProcessAutoKKFlat(void* corr, void* field);
-    extern void ProcessAutoKKSphere(void* corr, void* field);
-    extern void ProcessAutoGGFlat(void* corr, void* field);
-    extern void ProcessAutoGGSphere(void* corr, void* field);
+    extern void ProcessAutoNNFlat(void* corr, void* field, int dots);
+    extern void ProcessAutoNNSphere(void* corr, void* field, int dots);
+    extern void ProcessAutoKKFlat(void* corr, void* field, int dots);
+    extern void ProcessAutoKKSphere(void* corr, void* field, int dots);
+    extern void ProcessAutoGGFlat(void* corr, void* field, int dots);
+    extern void ProcessAutoGGSphere(void* corr, void* field, int dots);
 
-    extern void ProcessCrossNNFlat(void* corr, void* field1, void* field2);
-    extern void ProcessCrossNNSphere(void* corr, void* field1, void* field2);
-    extern void ProcessCrossNKFlat(void* corr, void* field1, void* field2);
-    extern void ProcessCrossNKSphere(void* corr, void* field1, void* field2);
-    extern void ProcessCrossNGFlat(void* corr, void* field1, void* field2);
-    extern void ProcessCrossNGSphere(void* corr, void* field1, void* field2);
-    extern void ProcessCrossKKFlat(void* corr, void* field1, void* field2);
-    extern void ProcessCrossKKSphere(void* corr, void* field1, void* field2);
-    extern void ProcessCrossKGFlat(void* corr, void* field1, void* field2);
-    extern void ProcessCrossKGSphere(void* corr, void* field1, void* field2);
-    extern void ProcessCrossGGFlat(void* corr, void* field1, void* field2);
-    extern void ProcessCrossGGSphere(void* corr, void* field1, void* field2);
+    extern void ProcessCrossNNFlat(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossNNSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossNKFlat(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossNKSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossNGFlat(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossNGSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossKKFlat(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossKKSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossKGFlat(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossKGSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossGGFlat(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossGGSphere(void* corr, void* field1, void* field2, int dots);
 
 }
 

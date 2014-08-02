@@ -57,7 +57,7 @@ class K2Correlation(treecorr.BinnedCorr2):
         xi = kk.xi              # Or access the correlation function directly.
     """
     def __init__(self, config=None, logger=None, **kwargs):
-        treecorr.BinnedCorr2.__init__(self, config, logger=None, **kwargs)
+        treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
         self.xi = numpy.zeros(self.nbins, dtype=float)
 
@@ -76,7 +76,7 @@ class K2Correlation(treecorr.BinnedCorr2):
 
         self.corr = _treecorr.BuildKKCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                                           xi,meanlogr,weight,npairs);
-        logger.debug('Finished building KKCorr')
+        self.logger.debug('Finished building KKCorr')
  
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -93,15 +93,17 @@ class K2Correlation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
         """
-        self.logger.info('Process K2 auto-correlations for cat %s.',cat1.file_name)
+        self.logger.info('Starting process K2 auto-correlations for cat %s.',cat1.file_name)
         kfield = cat1.getKField(self.min_sep,self.max_sep,self.b)
 
         if kfield.sphere:
-            _treecorr.ProcessAutoKKSphere.argtypes = [ ctypes.c_void_p, ctypes.c_void_p ]
-            _treecorr.ProcessAutoKKSphere(self.corr, kfield.data)
+            _treecorr.ProcessAutoKKSphere.argtypes = [
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int ]
+            _treecorr.ProcessAutoKKSphere(self.corr, kfield.data, self.output_dots)
         else:
-            _treecorr.ProcessAutoKKFlat.argtypes = [ ctypes.c_void_p, ctypes.c_void_p ]
-            _treecorr.ProcessAutoKKFlat(self.corr, kfield.data)
+            _treecorr.ProcessAutoKKFlat.argtypes = [
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int ]
+            _treecorr.ProcessAutoKKFlat(self.corr, kfield.data, self.output_dots)
 
 
     def process_cross(self, cat1, cat2):
@@ -112,7 +114,7 @@ class K2Correlation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
         """
-        self.logger.info('Process K2 cross-correlations for cats %s, %s.',
+        self.logger.info('Starting process K2 cross-correlations for cats %s, %s.',
                          cat1.file_name, cat2.file_name)
         kfield1 = cat1.getKField(self.min_sep,self.max_sep,self.b)
         kfield2 = cat2.getKField(self.min_sep,self.max_sep,self.b)
@@ -122,12 +124,12 @@ class K2Correlation(treecorr.BinnedCorr2):
 
         if kfield1.sphere:
             _treecorr.ProcessCrossKKSphere.argtypes = [ 
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp ]
-            _treecorr.ProcessCrossKKSphere(self.corr, kfield1.data, kfield2.data)
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
+            _treecorr.ProcessCrossKKSphere(self.corr, kfield1.data, kfield2.data, self.output_dots)
         else:
             _treecorr.ProcessCrossKKFlat.argtypes = [
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp ]
-            _treecorr.ProcessCrossKKFlat(self.corr, kfield1.data, kfield2.data)
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
+            _treecorr.ProcessCrossKKFlat(self.corr, kfield1.data, kfield2.data, self.output_dots)
 
 
     def finalize(self, vark1, vark2):

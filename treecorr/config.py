@@ -44,13 +44,13 @@ def parse_bool(value):
                 val = bool(int(value))
                 return val
             except:
-                raise AttributeError("Unable to parse %s as a bool."%value)
+                raise ValueError("Unable to parse %s as a bool."%value)
     else:
         try:
             val = bool(value)
             return val
         except:
-            raise AttributeError("Unable to parse %s as a bool."%value)
+            raise ValueError("Unable to parse %s as a bool."%value)
 
 
 def read_config(file_name):
@@ -115,7 +115,7 @@ def check_config(config, params):
 
         # If limited allowed values, check that this is one of them.
         if valid_values is not None and value not in valid_values:
-            raise AttributeError("Parameter %s has the invalid value %s.  Valid values are %s."%(
+            raise ValueError("Parameter %s has the invalid value %s.  Valid values are %s."%(
                 key, config[key], str(valid_values)))
 
         # Write it back to the dict with the right type

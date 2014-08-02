@@ -289,9 +289,11 @@ class Catalog(object):
         try:
             import pandas
             if delimiter is None:
-                data = pandas.read_csv(file_name, comment=comment_marker, delim_whitespace=True)
+                data = pandas.read_csv(file_name, comment=comment_marker, header=None,
+                                       delim_whitespace=True)
             else:
-                data = pandas.read_csv(file_name, comment=comment_marker, delimiter=delimiter)
+                data = pandas.read_csv(file_name, comment=comment_marker, header=None,
+                                       delimiter=delimiter)
             data = data.as_matrix()
         except ImportError:
             self.logger.warn("Unable to import pandas..  Using numpy.genfromtxt instead.")

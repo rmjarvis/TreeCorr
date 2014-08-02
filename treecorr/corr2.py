@@ -133,7 +133,7 @@ corr2_valid_params = {
     'bin_size' : (float, False, None, None,
             'The size of the output bins in log(sep).'),
     'sep_units' : (str, False, 'arcsec', treecorr.angle_units.keys(),
-            'The units to use for min_sep and max_sep.'),
+            'The units to use for min_sep and max_sep.  Also the units of the output r columns'),
     'bin_slop' : (float, False, 1, None,
             'The fraction of a bin width by which it is ok to let the pairs miss the correct bin.'),
 

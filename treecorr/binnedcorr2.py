@@ -68,8 +68,9 @@ class BinnedCorr2(object):
 
         if 'x_col' not in config and 'sep_units' not in config:
             raise AttributeError("sep_units is required if not using x_col,y_col")
-        sep_units = config.get('sep_units','arcsec')
-        sep_units = treecorr.angle_units[sep_units]
+        self.sep_units = config.get('sep_units','arcsec')
+        self.sep_units = treecorr.angle_units[self.sep_units]
+        self.log_sep_units = math.log(self.sep_units)
         if 'nbins' not in self.config:
             if 'max_sep' not in self.config:
                 raise AttributeError("Missing required parameter max_sep")
@@ -77,8 +78,8 @@ class BinnedCorr2(object):
                 raise AttributeError("Missing required parameter min_sep")
             if 'bin_size' not in self.config:
                 raise AttributeError("Missing required parameter bin_size")
-            self.min_sep = self.config['min_sep'] * sep_units
-            self.max_sep = self.config['max_sep'] * sep_units
+            self.min_sep = self.config['min_sep'] * self.sep_units
+            self.max_sep = self.config['max_sep'] * self.sep_units
             self.bin_size = self.config['bin_size']
             self.nbins = int(math.ceil(math.log(self.max_sep/self.min_sep)/self.bin_size))
         elif 'bin_size' not in self.config:
@@ -86,21 +87,21 @@ class BinnedCorr2(object):
                 raise AttributeError("Missing required parameter max_sep")
             if 'min_sep' not in self.config:
                 raise AttributeError("Missing required parameter min_sep")
-            self.min_sep = self.config['min_sep'] * sep_units
-            self.max_sep = self.config['max_sep'] * sep_units
+            self.min_sep = self.config['min_sep'] * self.sep_units
+            self.max_sep = self.config['max_sep'] * self.sep_units
             self.nbins = self.config['nbins']
             self.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
         elif 'max_sep' not in self.config:
             if 'min_sep' not in self.config:
                 raise AttributeError("Missing required parameter min_sep")
-            self.min_sep = self.config['min_sep'] * sep_units
+            self.min_sep = self.config['min_sep'] * self.sep_units
             self.nbins = self.config['nbins']
             self.bin_size = self.config['bin_size']
             self.max_sep = exp(self.nbins*self.bin_size)*self.min_sep
         else:
             if 'min_sep' in self.config:
                 raise AttributeError("Only 3 of min_sep, max_sep, bin_size, nbins are allowed.")
-            self.max_sep = self.config['max_sep'] * sep_units
+            self.max_sep = self.config['max_sep'] * self.sep_units
             self.nbins = self.config['nbins']
             self.bin_size = self.config['bin_size']
             self.min_sep = self.max_sep*exp(-self.nbins*self.bin_size)
@@ -111,9 +112,12 @@ class BinnedCorr2(object):
         self.b = self.bin_size * self.bin_slop
         # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
         self.logr = numpy.linspace(start=0, stop=self.nbins*self.bin_size, 
-                                   num=self.nbins, endpoint=True)
+                                   num=self.nbins, endpoint=False)
         # Offset by the position of the center of the first bin.
         self.logr += math.log(self.min_sep) + 0.5*self.bin_size
+
+        # And correct the units:
+        self.logr -= self.log_sep_units
 
         # All correlation functions use these, so go ahead and set them up here.
         self.meanlogr = numpy.zeros( (self.nbins, ) )

@@ -20,7 +20,7 @@
 extern std::ostream* dbgout;
 extern bool XDEBUG;
 
-#ifdef TREECORR_NDEBUG
+#ifdef NDEBUG
 #define dbg if (false) (*dbgout)
 #define xdbg if (false) (*dbgout)
 #define xxdbg if (false) (*dbgout)

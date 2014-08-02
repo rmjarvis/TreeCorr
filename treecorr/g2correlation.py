@@ -27,8 +27,10 @@ class G2Correlation(treecorr.BinnedCorr2):
         logr        The nominal center of the bin in log(r).
         meanlogr    The (weighted) mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
-        xip         The correlation function, xi_plus(r). (complex)
-        xim         The correlation funciton, xi_minus(r). (complex)
+        xip         The correlation function, xi_plus(r).
+        xim         The correlation funciton, xi_minus(r).
+        xip_im      The imaginary part of xi_plus(r).
+        xim_im      The imaginary part of xi_plus(r).
         varxi       The variance of xip and xim, only including the shape noise propagated
                     into the final correlation.  This does not include sample variance, so
                     it is always an underestimate of the actual variance.
@@ -46,12 +48,10 @@ class G2Correlation(treecorr.BinnedCorr2):
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger=None, **kwargs)
 
-        self.meanlogr = numpy.zeros(self.nbins, dtype=float)
-        self.xip = numpy.zeros(self.nbins, dtype=complex)
-        self.xim = numpy.zeros(self.nbins, dtype=complex)
-        self.varxi = numpy.zeros(self.nbins, dtype=float)
-        self.weight = numpy.zeros(self.nbins, dtype=float)
-        self.npairs = numpy.zeros(self.nbins, dtype=float)
+        self.xip = numpy.zeros(self.nbins, dtype=float)
+        self.xim = numpy.zeros(self.nbins, dtype=float)
+        self.xip_im = numpy.zeros(self.nbins, dtype=float)
+        self.xim_im = numpy.zeros(self.nbins, dtype=float)
 
     def process_auto(self, cat1):
         """Process a single catalog, accumulating the auto-correlation.
@@ -87,6 +87,8 @@ class G2Correlation(treecorr.BinnedCorr2):
 
         self.xip[mask1] /= self.weight[mask1]
         self.xim[mask1] /= self.weight[mask1]
+        self.xip_im[mask1] /= self.weight[mask1]
+        self.xim_im[mask1] /= self.weight[mask1]
         self.meanlogr[mask1] /= self.weight[mask1]
         self.varxi[mask1] = varg1 * varg2 / self.npairs[mask1]
 
@@ -99,6 +101,8 @@ class G2Correlation(treecorr.BinnedCorr2):
         """
         self.xip[:] = 0
         self.xim[:] = 0
+        self.xip_im[:] = 0
+        self.xim_im[:] = 0
         self.meanlogr[:] = 0
         self.weight[:] = 0
         self.npairs[:] = 0
@@ -149,10 +153,10 @@ class G2Correlation(treecorr.BinnedCorr2):
         output = numpy.empty( (self.nbins, 9) )
         output[:,0] = numpy.exp(self.logr)
         output[:,1] = numpy.exp(self.meanlogr)
-        output[:,2] = self.xip.real
-        output[:,3] = self.xip.imag
-        output[:,4] = self.xim.real
-        output[:,5] = self.xim.imag
+        output[:,2] = self.xip
+        output[:,3] = self.xip_im
+        output[:,4] = self.xim
+        output[:,5] = self.xim_im
         output[:,6] = numpy.sqrt(self.varxi)
         output[:,7] = self.weight
         output[:,8] = self.npairs

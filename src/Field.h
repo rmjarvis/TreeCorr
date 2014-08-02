@@ -15,32 +15,58 @@
  *    this software without specific prior written permission.
  */
 
+#include "Cell.h"
+
+// The C++ class
+template <int DC, int M>
+class Field
+{
+public:
+    // Note: for M=Sphere, x,y here are really ra,dec.
+    Field(double* x, double* y, double* g1, double* g2, double* k, double* w,
+          long nobj, double minsep, double maxsep, double b, int sm_int);
+    ~Field();
+
+    int getN() { return int(_cells.size()); }
+    const std::vector<Cell<DC,M>*>& getCells() { return _cells; }
+
+private:
+
+    long _nobj;
+    double _minsep;
+    double _maxsep;
+    double _b;
+    SplitMethod _sm;
+    std::vector<Cell<DC,M>*> _cells;
+};
+
+// The C interface for python
 extern "C" {
 
     extern void* BuildGFieldFlat(double* x, double* y, double* g1, double* g2, double* w,
-                                 int nobj, double minsep, double maxsep, double b, int sm);
+                                 long nobj, double minsep, double maxsep, double b, int sm);
 
     extern void* BuildGFieldSphere(double* ra, double* dec, double* g1, double* g2, double* w,
-                                   int nobj, double minsep, double maxsep, double b, int sm);
+                                   long nobj, double minsep, double maxsep, double b, int sm);
 
 
     extern void* BuildGFieldFlat(double* x, double* y, double* g1, double* g2, double* w,
-                                 int nobj, double minsep, double maxsep, double b, int sm_int);
+                                 long nobj, double minsep, double maxsep, double b, int sm_int);
 
     extern void* BuildGFieldSphere(double* ra, double* dec, double* g1, double* g2, double* w,
-                                   int nobj, double minsep, double maxsep, double b, int sm_int);
+                                   long nobj, double minsep, double maxsep, double b, int sm_int);
 
     extern void* BuildKFieldFlat(double* x, double* y, double* k, double* w,
-                                 int nobj, double minsep, double maxsep, double b, int sm_int);
+                                 long nobj, double minsep, double maxsep, double b, int sm_int);
 
     extern void* BuildKFieldSphere(double* ra, double* dec, double* k, double* w,
-                                   int nobj, double minsep, double maxsep, double b, int sm_int);
+                                   long nobj, double minsep, double maxsep, double b, int sm_int);
 
     extern void* BuildNFieldFlat(double* x, double* y, double* w,
-                                 int nobj, double minsep, double maxsep, double b, int sm_int);
+                                 long nobj, double minsep, double maxsep, double b, int sm_int);
 
     extern void* BuildNFieldSphere(double* ra, double* dec, double* w,
-                                   int nobj, double minsep, double maxsep, double b, int sm_int);
+                                   long nobj, double minsep, double maxsep, double b, int sm_int);
 
     extern void DestroyGFieldFlat(void* cells);
 

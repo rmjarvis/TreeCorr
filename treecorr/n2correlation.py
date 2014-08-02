@@ -41,10 +41,7 @@ class N2Correlation(treecorr.BinnedCorr2):
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger=None, **kwargs)
 
-        self.meanlogr = numpy.zeros(self.nbins, dtype=float)
         self.xi = numpy.zeros(self.nbins, dtype=float)
-        self.weight = numpy.zeros(self.nbins, dtype=float)
-        self.npairs = numpy.zeros(self.nbins, dtype=float)
         self.ww = 0.
 
     def process_auto(self, cat1):

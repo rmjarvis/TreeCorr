@@ -27,7 +27,8 @@ class KGCorrelation(treecorr.BinnedCorr2):
         logr        The nominal center of the bin in log(r).
         meanlogr    The (weighted) mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
-        xi          The correlation function, xi(r) = <kappa gamma_T>. (complex)
+        xi          The correlation function, xi(r) = <kappa gamma_T>.
+        xi_im       The imaginary part of xi(r).
         varxi       The variance of xi, only including the shape noise propagated into the
                     final correlation.  This does not include sample variance, so it is always
                     an underestimate of the actual variance.
@@ -44,11 +45,8 @@ class KGCorrelation(treecorr.BinnedCorr2):
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger=None, **kwargs)
 
-        self.meanlogr = numpy.zeros(self.nbins, dtype=float)
-        self.xi = numpy.zeros(self.nbins, dtype=complex)
-        self.varxi = numpy.zeros(self.nbins, dtype=float)
-        self.weight = numpy.zeros(self.nbins, dtype=float)
-        self.npairs = numpy.zeros(self.nbins, dtype=float)
+        self.xi = numpy.zeros(self.nbins, dtype=float)
+        self.xi_im = numpy.zeros(self.nbins, dtype=float)
 
     def process_cross(self, cat1, cat2):
         """Process a single pair of catalogs, accumulating the cross-correlation.
@@ -117,8 +115,8 @@ class KGCorrelation(treecorr.BinnedCorr2):
         output = numpy.empty( (self.nbins, 7) )
         output[:,0] = numpy.exp(self.logr)
         output[:,1] = numpy.exp(self.meanlogr)
-        output[:,2] = self.xi.real
-        output[:,3] = self.xi.imag
+        output[:,2] = self.xi
+        output[:,3] = self.xi_im
         output[:,4] = numpy.sqrt(self.varxi)
         output[:,5] = self.weight
         output[:,6] = self.npairs

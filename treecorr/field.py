@@ -68,7 +68,7 @@ class GField(object):
             sm = ctypes.c_int(1)
         else:
             sm = ctypes.c_int(2)
-        nobj = ctypes.c_int(cat.nobj)
+        nobj = ctypes.c_long(cat.nobj)
 
         if cat.x is not None:
             # Then build field with flat sky approximation

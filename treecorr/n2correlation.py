@@ -140,6 +140,10 @@ class N2Correlation(treecorr.BinnedCorr2):
             self.xi = self.weight / self.ww
 
         self.meanlogr[mask1] /= self.weight[mask1]
+
+        # Update the units of meanlogr
+        self.meanlogr[mask1] -= self.log_sep_units
+
         # Use meanlogr when available, but set to nominal when no pairs in bin.
         self.meanlogr[mask2] = self.logr[mask2]
 
@@ -210,7 +214,6 @@ class N2Correlation(treecorr.BinnedCorr2):
                 xi = (self.xi - rn.xi - nr.xi + rr.xi)
         if any(rr.xi == 0):
             self.logger.warn("Warning: Some bins for the randoms have zero weight.")
-            self.logger.warn("         This is probably an error.")
         mask1 = rr.xi != 0
         mask2 = rr.xi == 0
         xi[mask1] /= rr.xi[mask1]

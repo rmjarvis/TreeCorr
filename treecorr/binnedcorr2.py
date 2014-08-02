@@ -115,3 +115,9 @@ class BinnedCorr2(object):
         # Offset by the position of the center of the first bin.
         self.logr += math.log(self.min_sep) + 0.5*self.bin_size
 
+        # All correlation functions use these, so go ahead and set them up here.
+        self.meanlogr = numpy.zeros( (self.nbins, ) )
+        self.varxi = numpy.zeros( (self.nbins, ) )
+        self.weight = numpy.zeros( (self.nbins, ) )
+        self.npairs = numpy.zeros( (self.nbins, ) )
+

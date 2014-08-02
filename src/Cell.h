@@ -9,6 +9,7 @@ enum SplitMethod { MIDDLE, MEDIAN, MEAN };
 #include <vector>
 
 #include "Bounds.h"
+#include "dbg.h"
 
 const double PI = 3.141592653589793;
 const double TWOPI = 2.*PI;

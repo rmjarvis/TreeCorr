@@ -27,7 +27,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         logr        The nominal center of the bin in log(r).
         meanlogr    The (weighted) mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
-        xi          The correlation function, xi(r) = <gamma_T>. (complex)
+        xi          The correlation function, xi(r) = <gamma_T>.
+        xi_im       The imaginary part of xi(r).
         varxi       The variance of xi, only including the shape noise propagated into the
                     final correlation.  This does not include sample variance, so it is
                     always an underestimate of the actual variance.
@@ -44,11 +45,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger=None, **kwargs)
 
-        self.meanlogr = numpy.zeros(self.nbins, dtype=float)
-        self.xi = numpy.zeros(self.nbins, dtype=complex)
-        self.varxi = numpy.zeros(self.nbins, dtype=float)
-        self.weight = numpy.zeros(self.nbins, dtype=float)
-        self.npairs = numpy.zeros(self.nbins, dtype=float)
+        self.xi = numpy.zeros(self.nbins, dtype=float)
+        self.xi_im = numpy.zeros(self.nbins, dtype=float)
 
     def process_cross(self, cat1, cat2):
         """Process a single pair of catalogs, accumulating the cross-correlation.
@@ -116,9 +114,9 @@ class NGCorrelation(treecorr.BinnedCorr2):
         If rg is not None, then a compensated calculation is done: <gamma_T> = (ng - rg)
         """
         if rg is None:
-            return self.xi
+            return self.xi, self.xi_im
         else:
-            return self.xi - rg.xi
+            return self.xi - rg.xi, self.xi_im - rg.xi_im
 
     def write(self, file_name, rg=None):
         """Write the correlation function to the file, file_name.
@@ -128,13 +126,13 @@ class NGCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Writing NG correlations to %s',file_name)
     
-        xi = self.calculateXi(rg)
+        xi, xi_im = self.calculateXi(rg)
         
         output = numpy.empty( (self.nbins, 7) )
         output[:,0] = numpy.exp(self.logr)
         output[:,1] = numpy.exp(self.meanlogr)
-        output[:,2] = xi.real
-        output[:,3] = xi.imag
+        output[:,2] = xi
+        output[:,3] = xi_im
         output[:,4] = numpy.sqrt(self.varxi)
         output[:,5] = self.weight
         output[:,6] = self.npairs

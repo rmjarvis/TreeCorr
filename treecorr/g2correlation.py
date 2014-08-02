@@ -18,6 +18,15 @@
 import treecorr
 import numpy
 
+# Start by loading up the relevant C functions using ctypes
+import ctypes
+import os
+
+# The numpy version of this function tries to be more portable than the native
+# ctypes.cdll.LoadLibary or cdtypes.CDLL functions.
+_treecorr = numpy.ctypeslib.load_library('_treecorr',os.path.dirname(__file__))
+
+
 class G2Correlation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point shear-shear correlation
     function.
@@ -53,6 +62,33 @@ class G2Correlation(treecorr.BinnedCorr2):
         self.xip_im = numpy.zeros(self.nbins, dtype=float)
         self.xim_im = numpy.zeros(self.nbins, dtype=float)
 
+        # an alias
+        double_ptr = ctypes.POINTER(ctypes.c_double)
+
+        xip = self.xip.ctypes.data_as(double_ptr)
+        xipi = self.xip_im.ctypes.data_as(double_ptr)
+        xim = self.xim.ctypes.data_as(double_ptr)
+        ximi = self.xim_im.ctypes.data_as(double_ptr)
+        meanlogr = self.meanlogr.ctypes.data_as(double_ptr)
+        weight = self.weight.ctypes.data_as(double_ptr)
+        npairs = self.npairs.ctypes.data_as(double_ptr)
+
+        _treecorr.BuildGGCorr.restype = ctypes.c_void_p
+        _treecorr.BuildGGCorr.argtypes = [
+            ctypes.c_double, ctypes.c_double, ctypes.c_int, ctypes.c_double, ctypes.c_double,
+            double_ptr, double_ptr, double_ptr, double_ptr, double_ptr, double_ptr, double_ptr ]
+
+        self.corr = _treecorr.BuildGGCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                                          xip,xipi,xim,ximi,meanlogr,weight,npairs);
+        logger.debug('Finished building GGCorr')
+ 
+    def __del__(self):
+        # Using memory allocated from the C layer means we have to explicitly deallocate it
+        # rather than being able to rely on the Python memory manager.
+        if hasattr(self,'data'):    # In case __init__ failed to get that far
+            _treecorr.DestroyGGCorr.argtypes = [ ctypes.c_void_p ]
+            _treecorr.DestroyGGCorr(self.corr)
+
     def process_auto(self, cat1):
         """Process a single catalog, accumulating the auto-correlation.
 
@@ -61,8 +97,15 @@ class G2Correlation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
         """
-        self.logger.info('Process G2 auto-correlations for cat %s...  or not.',cat1.file_name)
+        self.logger.info('Process G2 auto-correlations for cat %s.',cat1.file_name)
         gfield = cat1.getGField(self.min_sep,self.max_sep,self.b)
+
+        if gfield.sphere:
+            _treecorr.ProcessAutoGGSphere.argtypes = [ ctypes.c_void_p, ctypes.c_void_p ]
+            _treecorr.ProcessAutoGGSphere(self.corr, gfield.data)
+        else:
+            _treecorr.ProcessAutoGGFlat.argtypes = [ ctypes.c_void_p, ctypes.c_void_p ]
+            _treecorr.ProcessAutoGGFlat(self.corr, gfield.data)
 
     def process_cross(self, cat1, cat2):
         """Process a single pair of catalogs, accumulating the cross-correlation.
@@ -72,8 +115,23 @@ class G2Correlation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
         """
-        self.logger.info('Process G2 cross-correlations for cats %s,%s...  or not.',
+        self.logger.info('Process G2 cross-correlations for cats %s, %s.',
                          cat1.file_name, cat2.file_name)
+        gfield1 = cat1.getGField(self.min_sep,self.max_sep,self.b)
+        gfield2 = cat2.getGField(self.min_sep,self.max_sep,self.b)
+
+        if gfield1.sphere != gfield2.sphere:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+
+        if gfield1.sphere:
+            _treecorr.ProcessCrossGGSphere.argtypes = [ 
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp ]
+            _treecorr.ProcessCrossGGSphere(self.corr, gfield1.data, gfield2.data)
+        else:
+            _treecorr.ProcessCrossGGFlat.argtypes = [
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp ]
+            _treecorr.ProcessCrossGGFlat(self.corr, gfield1.data, gfield2.data)
+
 
     def finalize(self, varg1, varg2):
         """Finalize the calculation of the correlation function.
@@ -154,8 +212,8 @@ class G2Correlation(treecorr.BinnedCorr2):
         output[:,0] = numpy.exp(self.logr)
         output[:,1] = numpy.exp(self.meanlogr)
         output[:,2] = self.xip
-        output[:,3] = self.xip_im
-        output[:,4] = self.xim
+        output[:,3] = self.xim
+        output[:,4] = self.xip_im
         output[:,5] = self.xim_im
         output[:,6] = numpy.sqrt(self.varxi)
         output[:,7] = self.weight
@@ -164,8 +222,8 @@ class G2Correlation(treecorr.BinnedCorr2):
         prec = self.config.get('precision',3)
         width = prec+8
         header_form = 8*("{:^%d}."%width) + "{:^%d}"%width
-        header = header_form.format('R_nom','<R>','real(xi+)','imag(xi+)','real(xi-)','imag(xi-)',
-                                   'sigma_xi','weight','npairs')
+        header = header_form.format('R_nom','<R>','xi+','xi-','xi+_im','xi-_im',
+                                    'sigma_xi','weight','npairs')
         fmt = '%%%d.%de'%(width,prec)
         numpy.savetxt(file_name, output, fmt=fmt, header=header)
 

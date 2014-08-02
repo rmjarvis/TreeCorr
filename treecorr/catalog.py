@@ -504,6 +504,44 @@ class Catalog(object):
             self.k = hdu_list[k_hdu].data.field(k_col).astype(float)
             self.logger.debug('read k = %s',str(self.k))
 
+    def getNField(self, min_sep, max_sep, b, logger=None, config=None):
+        """Return an NField based on the positions in this catalog.
+
+        The NField object is cached, so this is efficient to call multiple times.
+        """
+        if (not hasattr(self,'nfield') 
+            or min_sep != self.nfield.min_sep
+            or max_sep != self.nfield.max_sep
+            or b != self.nfield.b):
+
+            if logger is None:
+                logger = self.logger
+            if config is None:
+                config = self.config
+            self.nfield = treecorr.NField(self,min_sep,max_sep,b,logger,config)
+
+        return self.nfield
+
+    def getKField(self, min_sep, max_sep, b, logger=None, config=None):
+        """Return a KField based on the k values in this catalog.
+
+        The KField object is cached, so this is efficient to call multiple times.
+        """
+        if (not hasattr(self,'kfield') 
+            or min_sep != self.kfield.min_sep
+            or max_sep != self.kfield.max_sep
+            or b != self.kfield.b):
+
+            if self.g1 is None or self.g2 is None:
+                raise AttributeError("g1,g2 are not defined.")
+            if logger is None:
+                logger = self.logger
+            if config is None:
+                config = self.config
+            self.kfield = treecorr.KField(self,min_sep,max_sep,b,logger,config)
+
+        return self.kfield
+
     def getGField(self, min_sep, max_sep, b, logger=None, config=None):
         """Return a GField based on the g1,g2 values in this catalog.
 

@@ -21,5 +21,9 @@ configuration file does any of these to indicate that you need to change it.
   two files for a cross-correlation could be specified with just file_name
   using 2 entries.  Now these need to be listed as separate key words
   with file_name and file_name2.
-  
+- Added another verbosity level between what was 0 and 1.  Now we have:
+    0 - Errors only (equivalent to old 0)
+    1 - Warnings (new default verbosity)
+    2 - Progress (equivalent to old 1)
+    3 - Debugging (equivalent to old 2)
 

@@ -306,11 +306,3 @@ void DestroyNFieldSphere(void* field)
 }
 
 
-#if 0
-template class Field<GData,Flat>;
-template class Field<GData,Sphere>;
-template class Field<KData,Flat>;
-template class Field<KData,Sphere>;
-template class Field<NData,Flat>;
-template class Field<NData,Sphere>;
-#endif

@@ -18,6 +18,16 @@
 import treecorr
 import numpy
 
+# Start by loading up the relevant C functions using ctypes
+import ctypes
+import os
+
+# The numpy version of this function tries to be more portable than the native
+# ctypes.cdll.LoadLibary or cdtypes.CDLL functions.
+_treecorr = numpy.ctypeslib.load_library('_treecorr',os.path.dirname(__file__))
+
+
+
 class K2Correlation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point kappa-kappa correlation
     function.
@@ -51,6 +61,30 @@ class K2Correlation(treecorr.BinnedCorr2):
 
         self.xi = numpy.zeros(self.nbins, dtype=float)
 
+        # an alias
+        double_ptr = ctypes.POINTER(ctypes.c_double)
+
+        xi = self.xi.ctypes.data_as(double_ptr)
+        meanlogr = self.meanlogr.ctypes.data_as(double_ptr)
+        weight = self.weight.ctypes.data_as(double_ptr)
+        npairs = self.npairs.ctypes.data_as(double_ptr)
+
+        _treecorr.BuildKKCorr.restype = ctypes.c_void_p
+        _treecorr.BuildKKCorr.argtypes = [
+            ctypes.c_double, ctypes.c_double, ctypes.c_int, ctypes.c_double, ctypes.c_double,
+            double_ptr, double_ptr, double_ptr, double_ptr ]
+
+        self.corr = _treecorr.BuildKKCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                                          xi,meanlogr,weight,npairs);
+        logger.debug('Finished building KKCorr')
+ 
+    def __del__(self):
+        # Using memory allocated from the C layer means we have to explicitly deallocate it
+        # rather than being able to rely on the Python memory manager.
+        if hasattr(self,'data'):    # In case __init__ failed to get that far
+            _treecorr.DestroyKKCorr.argtypes = [ ctypes.c_void_p ]
+            _treecorr.DestroyKKCorr(self.corr)
+
     def process_auto(self, cat1):
         """Process a single catalog, accumulating the auto-correlation.
 
@@ -59,7 +93,16 @@ class K2Correlation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
         """
-        self.logger.info('Process K2 auto-correlations for cat %s...  or not.',cat1.file_name)
+        self.logger.info('Process K2 auto-correlations for cat %s.',cat1.file_name)
+        kfield = cat1.getKField(self.min_sep,self.max_sep,self.b)
+
+        if kfield.sphere:
+            _treecorr.ProcessAutoKKSphere.argtypes = [ ctypes.c_void_p, ctypes.c_void_p ]
+            _treecorr.ProcessAutoKKSphere(self.corr, kfield.data)
+        else:
+            _treecorr.ProcessAutoKKFlat.argtypes = [ ctypes.c_void_p, ctypes.c_void_p ]
+            _treecorr.ProcessAutoKKFlat(self.corr, kfield.data)
+
 
     def process_cross(self, cat1, cat2):
         """Process a single pair of catalogs, accumulating the cross-correlation.
@@ -69,8 +112,23 @@ class K2Correlation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
         """
-        self.logger.info('Process K2 cross-correlations for cats %s,%s...  or not.',
+        self.logger.info('Process K2 cross-correlations for cats %s, %s.',
                          cat1.file_name, cat2.file_name)
+        kfield1 = cat1.getKField(self.min_sep,self.max_sep,self.b)
+        kfield2 = cat2.getKField(self.min_sep,self.max_sep,self.b)
+
+        if kfield1.sphere != kfield2.sphere:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+
+        if kfield1.sphere:
+            _treecorr.ProcessCrossKKSphere.argtypes = [ 
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp ]
+            _treecorr.ProcessCrossKKSphere(self.corr, kfield1.data, kfield2.data)
+        else:
+            _treecorr.ProcessCrossKKFlat.argtypes = [
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp ]
+            _treecorr.ProcessCrossKKFlat(self.corr, kfield1.data, kfield2.data)
+
 
     def finalize(self, vark1, vark2):
         """Finalize the calculation of the correlation function.

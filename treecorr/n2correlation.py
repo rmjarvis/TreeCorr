@@ -18,6 +18,15 @@
 import treecorr
 import numpy
 
+# Start by loading up the relevant C functions using ctypes
+import ctypes
+import os
+
+# The numpy version of this function tries to be more portable than the native
+# ctypes.cdll.LoadLibary or cdtypes.CDLL functions.
+_treecorr = numpy.ctypeslib.load_library('_treecorr',os.path.dirname(__file__))
+
+
 class N2Correlation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point shear-shear correlation
     function.
@@ -44,6 +53,30 @@ class N2Correlation(treecorr.BinnedCorr2):
         self.xi = numpy.zeros(self.nbins, dtype=float)
         self.ww = 0.
 
+        # an alias
+        double_ptr = ctypes.POINTER(ctypes.c_double)
+
+        meanlogr = self.meanlogr.ctypes.data_as(double_ptr)
+        weight = self.weight.ctypes.data_as(double_ptr)
+        npairs = self.npairs.ctypes.data_as(double_ptr)
+
+        _treecorr.BuildNNCorr.restype = ctypes.c_void_p
+        _treecorr.BuildNNCorr.argtypes = [
+            ctypes.c_double, ctypes.c_double, ctypes.c_int, ctypes.c_double, ctypes.c_double,
+            double_ptr, double_ptr, double_ptr ]
+
+        self.corr = _treecorr.BuildNNCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                                          meanlogr,weight,npairs);
+        logger.debug('Finished building NNCorr')
+
+    def __del__(self):
+        # Using memory allocated from the C layer means we have to explicitly deallocate it
+        # rather than being able to rely on the Python memory manager.
+        if hasattr(self,'data'):    # In case __init__ failed to get that far
+            _treecorr.DestroyNNCorr.argtypes = [ ctypes.c_void_p ]
+            _treecorr.DestroyNNCorr(self.corr)
+
+
     def process_auto(self, cat1):
         """Process a single catalog, accumulating the auto-correlation.
 
@@ -52,7 +85,15 @@ class N2Correlation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
         """
-        self.logger.info('Process N2 auto-correlations for cat %s...  or not.',cat1.file_name)
+        self.logger.info('Process N2 auto-correlations for cat %s.',cat1.file_name)
+        nfield = cat1.getNField(self.min_sep,self.max_sep,self.b)
+
+        if nfield.sphere:
+            _treecorr.ProcessAutoNNSphere.argtypes = [ ctypes.c_void_p, ctypes.c_void_p ]
+            _treecorr.ProcessAutoNNSphere(self.corr, nfield.data)
+        else:
+            _treecorr.ProcessAutoNNFlat.argtypes = [ ctypes.c_void_p, ctypes.c_void_p ]
+            _treecorr.ProcessAutoNNFlat(self.corr, nfield.data)
 
     def process_cross(self, cat1, cat2):
         """Process a single pair of catalogs, accumulating the cross-correlation.
@@ -62,8 +103,23 @@ class N2Correlation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
         """
-        self.logger.info('Process N2 cross-correlations for cats %s,%s...  or not.',
+        self.logger.info('Process N2 cross-correlations for cats %s, %s.',
                          cat1.file_name, cat2.file_name)
+        nfield1 = cat1.getNField(self.min_sep,self.max_sep,self.b)
+        nfield2 = cat2.getNField(self.min_sep,self.max_sep,self.b)
+
+        if nfield1.sphere != nfield2.sphere:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+
+        if nfield1.sphere:
+            _treecorr.ProcessCrossNNSphere.argtypes = [ 
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp ]
+            _treecorr.ProcessCrossNNSphere(self.corr, nfield1.data, nfield2.data)
+        else:
+            _treecorr.ProcessCrossNNFlat.argtypes = [
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp ]
+            _treecorr.ProcessCrossNNFlat(self.corr, nfield1.data, nfield2.data)
+
 
     def finalize(self):
         """Finalize the calculation of the correlation function.
@@ -155,8 +211,8 @@ class N2Correlation(treecorr.BinnedCorr2):
         if any(rr.xi == 0):
             self.logger.warn("Warning: Some bins for the randoms have zero weight.")
             self.logger.warn("         This is probably an error.")
-        mask1 = self.xi != 0
-        mask2 = self.xi == 0
+        mask1 = rr.xi != 0
+        mask2 = rr.xi == 0
         xi[mask1] /= rr.xi[mask1]
         xi[mask2] = 0
 
@@ -181,7 +237,10 @@ class N2Correlation(treecorr.BinnedCorr2):
         output[:,0] = numpy.exp(self.logr)
         output[:,1] = numpy.exp(self.meanlogr)
         output[:,2] = self.calculateXi(rr,nr,rn)
-        output[:,3] = numpy.sqrt(1./rr.npairs)
+        mask1 = rr.xi != 0
+        mask2 = rr.xi == 0
+        output[mask1,3] = numpy.sqrt(1./rr.xi)
+        output[mask2,3] = 0.
         output[:,4] = self.weight
         output[:,5] = self.npairs
         output[:,6] = self.xi

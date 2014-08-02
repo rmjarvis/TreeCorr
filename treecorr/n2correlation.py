@@ -239,7 +239,7 @@ class N2Correlation(treecorr.BinnedCorr2):
         output[:,2] = self.calculateXi(rr,nr,rn)
         mask1 = rr.xi != 0
         mask2 = rr.xi == 0
-        output[mask1,3] = numpy.sqrt(1./rr.xi)
+        output[mask1,3] = numpy.sqrt(1./rr.xi[mask1])
         output[mask2,3] = 0.
         output[:,4] = self.weight
         output[:,5] = self.npairs

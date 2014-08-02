@@ -175,14 +175,19 @@ corr2_valid_params = {
 
     # Miscellaneous parameters
 
-    'verbose' : (int, False, 2, [0, 1, 2, 3],
+    'verbose' : (int, False, 1, [0, 1, 2, 3],
             'How verbose the code should be during processing. ',
             '0 = Errors Only, 1 = Warnings, 2 = Progress, 3 = Debugging'),
     'num_threads' : (int, False, 1, None,
             'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
     'split_method' : (str, False, 'mean', ['mean', 'median', 'middle'],
             'Which method to use for splitting cells.'),
-
+    'log_file' : (str, False, None, None,
+            'If desired, an output file for the logging output.',
+            'The default is to write the output to stdout.'),
+    'output_dots' : (bool, False, None, None,
+            'Whether to output dots to the stdout during the C++-level computation.',
+            'The default is True if verbose >= 2 and there is no log_file.  Else False.'),
 }
 
 def corr2(config, logger=None):
@@ -203,10 +208,15 @@ def corr2(config, logger=None):
     # Setup logger based on config verbose value
     if logger is None:
         verbose = config['verbose']
-        log_file = config['log_file']
+        log_file = config.get('log_file',None)
         logger = treecorr.config.setup_logger(verbose, log_file)
     import pprint
     logger.debug('Using configuration dict:\n%s',pprint.pformat(config))
+
+    if ( 'output_dots' not in config 
+          and config.get('log_file',None) is None 
+          and config['verbose'] >= 2 ):
+        config['output_dots'] = True
 
     # Set the number of threads
     num_threads = config['num_threads']
@@ -237,10 +247,8 @@ def corr2(config, logger=None):
         logger.info("Done g2 calculations.")
         if 'g2_file_name' in config:
             gg.write(config['g2_file_name'])
-            logger.info("Wrote file %s",config['g2_file_name'])
         if 'm2_file_name' in config:
             gg.writeMapSq(config['m2_file_name'])
-            logger.info("Wrote file %s",config['m2_file_name'])
 
     # Do ng correlation function if necessary
     if 'ng_file_name' in config or 'nm_file_name' in config or 'norm_file_name' in config:
@@ -264,10 +272,8 @@ def corr2(config, logger=None):
 
         if 'ng_file_name' in config:
             ng.write(config['ng_file_name'], rg)
-            logger.info("Wrote file %s",config['ng_file_name'])
         if 'nm_file_name' in config:
             ng.writeNMap(config['nm_file_name'], rg)
-            logger.info("Wrote file %s",config['nm_file_name'])
 
         if 'norm_file_name' in config:
             gg = treecorr.G2Correlation(config,logger)
@@ -334,7 +340,6 @@ def corr2(config, logger=None):
         kk.process(cat1,cat2)
         logger.info("Done k2 calculations.")
         kk.write(config['k2_file_name'])
-        logger.info("Wrote file %s",config['k2_file_name'])
 
     # Do ng correlation function if necessary
     if 'nk_file_name' in config:
@@ -356,7 +361,6 @@ def corr2(config, logger=None):
             rk = None
 
         nk.write(config['nk_file_name'], rk)
-        logger.info("Wrote file %s",config['nk_file_name'])
 
     # Do kg correlation function if necessary
     if 'kg_file_name' in config:
@@ -367,7 +371,6 @@ def corr2(config, logger=None):
         kg.process(cat1,cat2)
         logger.info("Done kg calculation.")
         kg.write(config['kg_file_name'])
-        logger.info("Wrote file %s",config['kg_file_name'])
 
 
 

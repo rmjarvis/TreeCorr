@@ -51,7 +51,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         xi = nk.xi              # Or access the correlation function directly.
     """
     def __init__(self, config=None, logger=None, **kwargs):
-        treecorr.BinnedCorr2.__init__(self, config, logger=None, **kwargs)
+        treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
         self.xi = numpy.zeros(self.nbins, dtype=float)
 
@@ -70,7 +70,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         self.corr = _treecorr.BuildNKCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                                           xi,meanlogr,weight,npairs);
-        logger.debug('Finished building NKCorr')
+        self.logger.debug('Finished building NKCorr')
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -88,7 +88,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
         """
-        self.logger.info('Process NK cross-correlations for cats %s, %s.',
+        self.logger.info('Starting process NK cross-correlations for cats %s, %s.',
                          cat1.file_name, cat2.file_name)
         nfield1 = cat1.getNField(self.min_sep,self.max_sep,self.b)
         kfield2 = cat2.getKField(self.min_sep,self.max_sep,self.b)
@@ -98,12 +98,12 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         if nfield1.sphere:
             _treecorr.ProcessCrossNKSphere.argtypes = [ 
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp ]
-            _treecorr.ProcessCrossNKSphere(self.corr, nfield1.data, kfield2.data)
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
+            _treecorr.ProcessCrossNKSphere(self.corr, nfield1.data, kfield2.data, self.output_dots)
         else:
             _treecorr.ProcessCrossNKFlat.argtypes = [
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp ]
-            _treecorr.ProcessCrossNKFlat(self.corr, nfield1.data, kfield2.data)
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
+            _treecorr.ProcessCrossNKFlat(self.corr, nfield1.data, kfield2.data, self.output_dots)
 
 
     def finalize(self, vark):

@@ -48,7 +48,7 @@ class N2Correlation(treecorr.BinnedCorr2):
         nn.write(file_name)     # Write out to a file.
     """
     def __init__(self, config=None, logger=None, **kwargs):
-        treecorr.BinnedCorr2.__init__(self, config, logger=None, **kwargs)
+        treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
         self.xi = numpy.zeros(self.nbins, dtype=float)
         self.ww = 0.
@@ -67,7 +67,7 @@ class N2Correlation(treecorr.BinnedCorr2):
 
         self.corr = _treecorr.BuildNNCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                                           meanlogr,weight,npairs);
-        logger.debug('Finished building NNCorr')
+        self.logger.debug('Finished building NNCorr')
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -85,15 +85,17 @@ class N2Correlation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
         """
-        self.logger.info('Process N2 auto-correlations for cat %s.',cat1.file_name)
+        self.logger.info('Starting process N2 auto-correlations for cat %s.',cat1.file_name)
         nfield = cat1.getNField(self.min_sep,self.max_sep,self.b)
 
         if nfield.sphere:
-            _treecorr.ProcessAutoNNSphere.argtypes = [ ctypes.c_void_p, ctypes.c_void_p ]
-            _treecorr.ProcessAutoNNSphere(self.corr, nfield.data)
+            _treecorr.ProcessAutoNNSphere.argtypes = [
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int ]
+            _treecorr.ProcessAutoNNSphere(self.corr, nfield.data, self.output_dots)
         else:
-            _treecorr.ProcessAutoNNFlat.argtypes = [ ctypes.c_void_p, ctypes.c_void_p ]
-            _treecorr.ProcessAutoNNFlat(self.corr, nfield.data)
+            _treecorr.ProcessAutoNNFlat.argtypes = [
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int ]
+            _treecorr.ProcessAutoNNFlat(self.corr, nfield.data, self.output_dots)
 
     def process_cross(self, cat1, cat2):
         """Process a single pair of catalogs, accumulating the cross-correlation.
@@ -103,7 +105,7 @@ class N2Correlation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
         """
-        self.logger.info('Process N2 cross-correlations for cats %s, %s.',
+        self.logger.info('Starting process N2 cross-correlations for cats %s, %s.',
                          cat1.file_name, cat2.file_name)
         nfield1 = cat1.getNField(self.min_sep,self.max_sep,self.b)
         nfield2 = cat2.getNField(self.min_sep,self.max_sep,self.b)
@@ -113,12 +115,12 @@ class N2Correlation(treecorr.BinnedCorr2):
 
         if nfield1.sphere:
             _treecorr.ProcessCrossNNSphere.argtypes = [ 
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp ]
-            _treecorr.ProcessCrossNNSphere(self.corr, nfield1.data, nfield2.data)
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
+            _treecorr.ProcessCrossNNSphere(self.corr, nfield1.data, nfield2.data, self.output_dots)
         else:
             _treecorr.ProcessCrossNNFlat.argtypes = [
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp ]
-            _treecorr.ProcessCrossNNFlat(self.corr, nfield1.data, nfield2.data)
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
+            _treecorr.ProcessCrossNNFlat(self.corr, nfield1.data, nfield2.data, self.output_dots)
 
 
     def finalize(self):

@@ -104,6 +104,7 @@ class Catalog(object):
                 raise AttributeError("Vectors may not be provided when file_name is provided.")
             self.file_name = file_name
             self.config = config
+            logger.info("Reading input file %s",self.file_name)
 
             # Figure out which file type the catalog is
             file_type = treecorr.config.get_from_list(self.config,'file_type',num)
@@ -114,6 +115,7 @@ class Catalog(object):
                     file_type = 'FITS'
                 else:
                     file_type = 'ASCII'
+                logger.info("   file_type assumed to be %s from the file name.",file_type)
 
             # Read the input file
             if file_type == 'FITS':
@@ -124,9 +126,9 @@ class Catalog(object):
             # Apply units to x,y,ra,dec
             if self.x is not None:
                 if 'x_units' in self.config and not 'y_units' in self.config:
-                    raise AttributeErorr("x_units specified without specifying y_units")
+                    raise AttributeError("x_units specified without specifying y_units")
                 if 'y_units' in self.config and not 'x_units' in self.config:
-                    raise AttributeErorr("y_units specified without specifying x_units")
+                    raise AttributeError("y_units specified without specifying x_units")
                 x_units = treecorr.config.get_from_list(self.config,'x_units',num,str,'arcsec')
                 y_units = treecorr.config.get_from_list(self.config,'y_units',num,str,'arcsec')
                 self.x *= treecorr.angle_units[x_units]
@@ -279,6 +281,7 @@ class Catalog(object):
             else:
                 self.vark = 0.
             self.w = numpy.ones( (self.nobj) )
+        logger.info("   nobj = %d",nobj)
 
     def read_ascii(self, file_name, num, is_rand):
         """Read the catalog from an ASCII file

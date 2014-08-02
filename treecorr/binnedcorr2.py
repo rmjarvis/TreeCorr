@@ -61,14 +61,16 @@ class BinnedCorr2(object):
         self.config = config
 
         if logger is None:
-            self.logger = treecorr.config.setup_logger(config.get('verbose',0),
-                                                       config.get('log_file',None))
+            self.logger = treecorr.config.setup_logger(self.config.get('verbose',0),
+                                                       self.config.get('log_file',None))
         else:
             self.logger = logger
 
-        if 'x_col' not in config and 'sep_units' not in config:
+        self.output_dots = self.config.get('output_dots',False)
+
+        if 'x_col' not in self.config and 'sep_units' not in self.config:
             raise AttributeError("sep_units is required if not using x_col,y_col")
-        self.sep_units = config.get('sep_units','arcsec')
+        self.sep_units = self.config.get('sep_units','arcsec')
         self.sep_units = treecorr.angle_units[self.sep_units]
         self.log_sep_units = math.log(self.sep_units)
         if 'nbins' not in self.config:
@@ -105,10 +107,10 @@ class BinnedCorr2(object):
             self.nbins = self.config['nbins']
             self.bin_size = self.config['bin_size']
             self.min_sep = self.max_sep*exp(-self.nbins*self.bin_size)
-        self.logger.info("nbins = %d, min,max sep = %e..%e radians, bin_size = %e",
+        self.logger.info("nbins = %d, min,max sep = %e..%e radians, bin_size = %f",
                          self.nbins,self.min_sep,self.max_sep,self.bin_size)
 
-        self.bin_slop = config.get('bin_slop', 1.0)
+        self.bin_slop = self.config.get('bin_slop', 1.0)
         self.b = self.bin_size * self.bin_slop
         # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
         self.logr = numpy.linspace(start=0, stop=self.nbins*self.bin_size, 

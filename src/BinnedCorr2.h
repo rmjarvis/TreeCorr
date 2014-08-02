@@ -8,7 +8,7 @@
 #include "Field.h"
 
 template <int DC1, int DC2>
-struct XiData
+struct XiData // This works for NK, KK
 {
     XiData(double* xi0, double*, double*, double*) : xi(xi0) {}
     void Copy(const XiData<DC1,DC2>& rhs,int n) 
@@ -20,7 +20,7 @@ struct XiData
 };
 
 template <int DC1>
-struct XiData<DC1, GData>
+struct XiData<DC1, GData> // This works for NG, KG
 {
     XiData(double* xi0, double* xi1, double*, double*) : xi(xi0), xi_im(xi1) {}
     void Copy(const XiData<DC1,GData>& rhs,int n) 
@@ -80,8 +80,8 @@ class BinnedCorr2
 public:
 
     BinnedCorr2(double minsep, double maxsep, int nbins, double binsize, double b,
-                double* xi, double* xi1, double* xi2, double* xi3,
-                double* varxi, double* meanlogr, double* weight, double* npairs);
+                double* xi0, double* xi1, double* xi2, double* xi3,
+                double* meanlogr, double* weight, double* npairs);
 
     template <int M>
     void process(const Field<DC1, M>& field);
@@ -125,11 +125,59 @@ protected:
     // The different correlation functions have different numbers of arrays for xi, 
     // so encapsulate that difference with a templated XiData class.
     XiData<DC1,DC2> _xi;
-    double* _varxi;
     double* _meanlogr;
     double* _weight;
     double* _npairs;
 };
 
+// The C interface for python
+extern "C" {
+
+    extern void* BuildNNCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                             double* meanlogr, double* weight, double* npairs);
+    extern void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                             double* xi,
+                             double* meanlogr, double* weight, double* npairs);
+    extern void* BuildNGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                             double* xi, double* xi_im,
+                             double* meanlogr, double* weight, double* npairs);
+    extern void* BuildKKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                             double* xi,
+                             double* meanlogr, double* weight, double* npairs);
+    extern void* BuildKGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                             double* xi, double* xi_im,
+                             double* meanlogr, double* weight, double* npairs);
+    extern void* BuildGGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                             double* xip, double* xip_im, double* xim, double* xim_im,
+                             double* meanlogr, double* weight, double* npairs);
+
+    extern void DestroyNNCorr(void* corr);
+    extern void DestroyNKCorr(void* corr);
+    extern void DestroyNGCorr(void* corr);
+    extern void DestroyKKCorr(void* corr);
+    extern void DestroyKGCorr(void* corr);
+    extern void DestroyGGCorr(void* corr);
+
+    extern void ProcessAutoNNFlat(void* corr, void* field);
+    extern void ProcessAutoNNSphere(void* corr, void* field);
+    extern void ProcessAutoKKFlat(void* corr, void* field);
+    extern void ProcessAutoKKSphere(void* corr, void* field);
+    extern void ProcessAutoGGFlat(void* corr, void* field);
+    extern void ProcessAutoGGSphere(void* corr, void* field);
+
+    extern void ProcessCrossNNFlat(void* corr, void* field1, void* field2);
+    extern void ProcessCrossNNSphere(void* corr, void* field1, void* field2);
+    extern void ProcessCrossNKFlat(void* corr, void* field1, void* field2);
+    extern void ProcessCrossNKSphere(void* corr, void* field1, void* field2);
+    extern void ProcessCrossNGFlat(void* corr, void* field1, void* field2);
+    extern void ProcessCrossNGSphere(void* corr, void* field1, void* field2);
+    extern void ProcessCrossKKFlat(void* corr, void* field1, void* field2);
+    extern void ProcessCrossKKSphere(void* corr, void* field1, void* field2);
+    extern void ProcessCrossKGFlat(void* corr, void* field1, void* field2);
+    extern void ProcessCrossKGSphere(void* corr, void* field1, void* field2);
+    extern void ProcessCrossGGFlat(void* corr, void* field1, void* field2);
+    extern void ProcessCrossGGSphere(void* corr, void* field1, void* field2);
+
+}
 
 #endif

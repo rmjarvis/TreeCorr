@@ -27,8 +27,8 @@ public:
           long nobj, double minsep, double maxsep, double b, int sm_int);
     ~Field();
 
-    int getN() { return int(_cells.size()); }
-    const std::vector<Cell<DC,M>*>& getCells() { return _cells; }
+    int getN() const { return int(_cells.size()); }
+    const std::vector<Cell<DC,M>*>& getCells() const { return _cells; }
 
 private:
 
@@ -68,17 +68,17 @@ extern "C" {
     extern void* BuildNFieldSphere(double* ra, double* dec, double* w,
                                    long nobj, double minsep, double maxsep, double b, int sm_int);
 
-    extern void DestroyGFieldFlat(void* cells);
+    extern void DestroyGFieldFlat(void* field);
 
-    extern void DestroyGFieldSphere(void* cells);
+    extern void DestroyGFieldSphere(void* field);
 
-    extern void DestroyKFieldFlat(void* cells);
+    extern void DestroyKFieldFlat(void* field);
 
-    extern void DestroyKFieldSphere(void* cells);
+    extern void DestroyKFieldSphere(void* field);
 
-    extern void DestroyNFieldFlat(void* cells);
+    extern void DestroyNFieldFlat(void* field);
 
-    extern void DestroyNFieldSphere(void* cells);
+    extern void DestroyNFieldSphere(void* field);
 
 
 }

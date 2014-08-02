@@ -18,6 +18,15 @@
 import treecorr
 import numpy
 
+# Start by loading up the relevant C functions using ctypes
+import ctypes
+import os
+
+# The numpy version of this function tries to be more portable than the native
+# ctypes.cdll.LoadLibary or cdtypes.CDLL functions.
+_treecorr = numpy.ctypeslib.load_library('_treecorr',os.path.dirname(__file__))
+
+
 class NKCorrelation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point shear-shear correlation
     function.
@@ -46,6 +55,31 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         self.xi = numpy.zeros(self.nbins, dtype=float)
 
+        # an alias
+        double_ptr = ctypes.POINTER(ctypes.c_double)
+
+        xi = self.xi.ctypes.data_as(double_ptr)
+        meanlogr = self.meanlogr.ctypes.data_as(double_ptr)
+        weight = self.weight.ctypes.data_as(double_ptr)
+        npairs = self.npairs.ctypes.data_as(double_ptr)
+
+        _treecorr.BuildNKCorr.restype = ctypes.c_void_p
+        _treecorr.BuildNKCorr.argtypes = [
+            ctypes.c_double, ctypes.c_double, ctypes.c_int, ctypes.c_double, ctypes.c_double,
+            double_ptr, double_ptr, double_ptr, double_ptr ]
+
+        self.corr = _treecorr.BuildNKCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                                          xi,meanlogr,weight,npairs);
+        logger.debug('Finished building NKCorr')
+
+    def __del__(self):
+        # Using memory allocated from the C layer means we have to explicitly deallocate it
+        # rather than being able to rely on the Python memory manager.
+        if hasattr(self,'data'):    # In case __init__ failed to get that far
+            _treecorr.DestroyNKCorr.argtypes = [ ctypes.c_void_p ]
+            _treecorr.DestroyNKCorr(self.corr)
+
+
     def process_cross(self, cat1, cat2):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
@@ -54,8 +88,23 @@ class NKCorrelation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
         """
-        self.logger.info('Process NK cross-correlations for cats %s,%s...  or not.',
+        self.logger.info('Process NK cross-correlations for cats %s, %s.',
                          cat1.file_name, cat2.file_name)
+        nfield1 = cat1.getNField(self.min_sep,self.max_sep,self.b)
+        kfield2 = cat2.getKField(self.min_sep,self.max_sep,self.b)
+
+        if nfield1.sphere != kfield2.sphere:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+
+        if nfield1.sphere:
+            _treecorr.ProcessCrossNKSphere.argtypes = [ 
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp ]
+            _treecorr.ProcessCrossNKSphere(self.corr, nfield1.data, kfield2.data)
+        else:
+            _treecorr.ProcessCrossNKFlat.argtypes = [
+                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp ]
+            _treecorr.ProcessCrossNKFlat(self.corr, nfield1.data, kfield2.data)
+
 
     def finalize(self, vark):
         """Finalize the calculation of the correlation function.

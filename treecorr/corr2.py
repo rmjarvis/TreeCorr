@@ -175,9 +175,9 @@ corr2_valid_params = {
 
     # Miscellaneous parameters
 
-    'verbose' : (int, False, 1, [0, 1, 2, 3],
+    'verbose' : (int, False, 2, [0, 1, 2, 3],
             'How verbose the code should be during processing. ',
-            '0 = Errors, 1 = Warnings, 2 = Progress, 3 = Debugging'),
+            '0 = Errors Only, 1 = Warnings, 2 = Progress, 3 = Debugging'),
     'num_threads' : (int, False, 1, None,
             'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
     'split_method' : (str, False, 'mean', ['mean', 'median', 'middle'],

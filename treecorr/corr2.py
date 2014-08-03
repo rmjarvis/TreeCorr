@@ -263,7 +263,7 @@ def corr2(config, logger=None):
         if len(rand1) == 0:
             if config.get('ng_statistic',None) == 'compensated':
                 raise AttributeError("rand_files is required for ng_statistic = compensated")
-        elif config.get('ng_statistic','compensated'):
+        elif config.get('ng_statistic','compensated') == 'compensated':
             rg = treecorr.NGCorrelation(config,logger)
             rg.process(rand1,cat2)
             logger.info("Done rg calculation.")
@@ -353,7 +353,7 @@ def corr2(config, logger=None):
         if len(rand1) == 0:
             if config.get('nk_statistic',None) == 'compensated':
                 raise AttributeError("rand_files is required for nk_statistic = compensated")
-        elif config.get('nk_statistic','compensated'):
+        elif config.get('nk_statistic','compensated') == 'compensated':
             rk = treecorr.NKCorrelation(config,logger)
             rk.process(rand1,cat2)
             logger.info("Done rk calculation.")

@@ -164,6 +164,11 @@ def get_from_list(config, key, num, value_type=str, default=None):
             if num > len(values):
                 raise ValueError("Not enough values in list for %s"%key)
             return value_type(values[num])
+        elif isinstance(values, str) and values[0] == '[' and values[-1] == ']':
+            values = eval(values)
+            if num > len(values):
+                raise ValueError("Not enough values in list for %s"%key)
+            return value_type(values[num])
         else:
             return value_type(values)
     else:

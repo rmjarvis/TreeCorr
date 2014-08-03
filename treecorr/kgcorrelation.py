@@ -120,6 +120,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         mask2 = self.npairs == 0
 
         self.xi[mask1] /= self.weight[mask1]
+        self.xi_im[mask1] /= self.weight[mask1]
         self.meanlogr[mask1] /= self.weight[mask1]
         self.varxi[mask1] = vark * varg / self.npairs[mask1]
 
@@ -134,6 +135,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         """Clear the data vectors
         """
         self.xi[:] = 0
+        self.xi_im[:] = 0
         self.meanlogr[:] = 0
         self.weight[:] = 0
         self.npairs[:] = 0

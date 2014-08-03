@@ -220,6 +220,7 @@ class N2Correlation(treecorr.BinnedCorr2):
         mask2 = rr.xi == 0
         xi[mask1] /= rr.xi[mask1]
         xi[mask2] = 0
+        return xi
 
     def write(self, file_name, rr, nr=None, rn=None):
         """Write the correlation function to the file, file_name.

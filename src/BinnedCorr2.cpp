@@ -571,6 +571,32 @@ struct DirectHelper<GData,GData>
     }
 };
 
+// The way meanlogr and weight are processed is the same for everything except NN.
+// So do this as a separate template specialization:
+template <int DC1, int DC2>
+struct DirectHelper2
+{
+    template <int M>
+    static void ProcessWeight(
+        const Cell<DC1,M>& c1, const Cell<DC2,M>& c2, const double logr, const double ,
+        double* meanlogr, double* weight, int k)
+    {
+        double ww = double(c1.getData().getW()) * double(c2.getData().getW());
+        meanlogr[k] += ww * logr;
+        weight[k] += ww;
+    }
+};
+            
+template <>
+struct DirectHelper2<NData, NData>
+{
+    template <int M>
+    static void ProcessWeight(
+        const Cell<NData,M>& , const Cell<NData,M>& , const double logr, const double nn,
+        double* meanlogr, double* , int k)
+    { meanlogr[k] += nn * logr; }
+};
+
 template <int DC1, int DC2> template <int M>
 void BinnedCorr2<DC1,DC2>::directProcess11(
     const Cell<DC1,M>& c1, const Cell<DC2,M>& c2, const double dsq)
@@ -589,11 +615,10 @@ void BinnedCorr2<DC1,DC2>::directProcess11(
 
     double nn = double(c1.getData().getN()) * double(c2.getData().getN());
     _npairs[k] += nn;
-    double ww = double(c1.getData().getW()) * double(c2.getData().getW());
-    _meanlogr[k] += ww * logr;
-    _weight[k] += ww;
 
     DirectHelper<DC1,DC2>::ProcessXi(c1,c2,dsq,_xi,k);
+
+    DirectHelper2<DC1,DC2>::ProcessWeight(c1,c2,logr,nn,_meanlogr,_weight,k);
 }
 
 template <int DC1, int DC2>
@@ -623,13 +648,13 @@ void BinnedCorr2<DC1,DC2>::operator+=(const BinnedCorr2<DC1,DC2>& rhs)
 //
 
 void* BuildNNCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                  double* meanlogr, double* weight, double* npairs)
+                  double* meanlogr, double* npairs)
 {
     dbg<<"Start BuildNNCorr\n";
     void* corr = static_cast<void*>(new BinnedCorr2<NData,NData>(
             minsep, maxsep, nbins, binsize, b,
             0, 0, 0, 0,
-            meanlogr, weight, npairs));
+            meanlogr, 0, npairs));
     dbg<<"corr = "<<corr<<std::endl;
     return corr;
 }

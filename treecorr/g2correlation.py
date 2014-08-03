@@ -217,24 +217,12 @@ class G2Correlation(treecorr.BinnedCorr2):
         """
         self.logger.info('Writing G2 correlations to %s',file_name)
         
-        output = numpy.empty( (self.nbins, 9) )
-        output[:,0] = numpy.exp(self.logr)
-        output[:,1] = numpy.exp(self.meanlogr)
-        output[:,2] = self.xip
-        output[:,3] = self.xim
-        output[:,4] = self.xip_im
-        output[:,5] = self.xim_im
-        output[:,6] = numpy.sqrt(self.varxi)
-        output[:,7] = self.weight
-        output[:,8] = self.npairs
-
-        prec = self.config.get('precision',3)
-        width = prec+8
-        header_form = 8*("{:^%d}."%width) + "{:^%d}"%width
-        header = header_form.format('R_nom','<R>','xi+','xi-','xi+_im','xi-_im',
-                                    'sigma_xi','weight','npairs')
-        fmt = '%%%d.%de'%(width,prec)
-        numpy.savetxt(file_name, output, fmt=fmt, header=header)
+        self.gen_write(
+            file_name,
+            ['R_nom','<R>','xi+','xi-','xi+_im','xi-_im','sigma_xi','weight','npairs'],
+            [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
+              self.xip, self.xim, self.xip_im, self.xim_im, numpy.sqrt(self.varxi),
+              self.weight, self.npairs ] )
 
     def calculateMapSq(self, m2_uform=None):
         """Calculate the aperture mass statistics from the correlation function.
@@ -250,8 +238,8 @@ class G2Correlation(treecorr.BinnedCorr2):
 
             U(r) = 1/2Pi (1-r^2) exp(-r^2/2)
             Q(r) = 1/4Pi r^2 exp(-r^2/2)
-            T+(s) = (s^4 - 16s^2 + 32)/128  exp(-s^2/4)
-            T-(s) = s^4/128  exp(-s^2/4)
+            T+(s) = (s^4 - 16s^2 + 32)/128 exp(-s^2/4)
+            T-(s) = s^4/128 exp(-s^2/4)
 
         If m2_uform == 'Schneider':
 
@@ -263,7 +251,7 @@ class G2Correlation(treecorr.BinnedCorr2):
 
         cf Schneider, et al (2001): http://xxx.lanl.gov/abs/astro-ph/0112441
 
-        returns a tuple (mapsq, mapsq_im, mxsq, mxsq_im, varmapsq)
+        returns (mapsq, mapsq_im, mxsq, mxsq_im, varmapsq)
         """
         if m2_uform is None:
             m2_uform = self.config.get('m2_uform','Crittenden')
@@ -277,7 +265,7 @@ class G2Correlation(treecorr.BinnedCorr2):
         ssq = s*s
         if m2_uform == 'Crittenden':
             exp_factor = numpy.exp(-ssq/4.)
-            Tp = (32. + ssq*(-16. + ssq))/128. * exp_factor
+            Tp = (32. + ssq*(-16. + ssq)) / 128. * exp_factor
             Tm = ssq * ssq / 128. * exp_factor
         else:
             Tp = numpy.zeros_like(s)
@@ -320,13 +308,13 @@ class G2Correlation(treecorr.BinnedCorr2):
         S-(s) = (s<=2):  1/(Pi s^4) * ( s sqrt(4-s^2) (6-s^2) - 8(3-s^2) arcsin(s/2) )
                 (s>=2):  4(s^2-3)/s^4
 
-        cf Schneider, et al (2001): http://xxx.lanl.gov/abs/astro-ph/0112441
+        cf Schneider, et al, 2001: http://adsabs.harvard.edu/abs/2002A%26A...389..729S
 
         The default behavior is not to compute the E/B versions.  They are calculated if
         eb is set to True.
 
-        returns a tuple (gamsq, vargamsq)                            if eb == False
-                or  (gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e)  if eb == True
+        returns (gamsq, vargamsq)                                if eb == False
+                (gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e)  if eb == True
         """
         r = numpy.exp(self.logr)
         meanr = numpy.exp(self.meanlogr) # Use the actual mean r for each bin
@@ -369,25 +357,14 @@ class G2Correlation(treecorr.BinnedCorr2):
         """
         self.logger.info('Writing Map^2 from G2 correlations to %s',file_name)
 
-        mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = self.calculateMapSq(m2_uform=None)
+        mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = self.calculateMapSq(m2_uform=m2_uform)
         gamsq, vargamsq = self.calculateGamSq()
- 
-        output = numpy.empty( (self.nbins, 8) )
-        output[:,0] = numpy.exp(self.logr)
-        output[:,1] = mapsq
-        output[:,2] = mxsq
-        output[:,3] = mapsq_im
-        output[:,4] = -mxsq_im
-        output[:,5] = numpy.sqrt(varmapsq)
-        output[:,6] = gamsq
-        output[:,7] = numpy.sqrt(vargamsq)
 
-        prec = self.config.get('precision',3)
-        width = prec+8
-        header_form = 7*("{:^%d}."%width) + "{:^%d}"%width
-        header = header_form.format('R','<Map^2>','<Mx^2>','<MMx>(a)','<MMx>(b)','sig_map',
-                                    '<Gam^2>','sig_gam')
-        fmt = '%%%d.%de'%(width,prec)
-        numpy.savetxt(file_name, output, fmt=fmt, header=header)
+        self.gen_write(
+            file_name,
+            ['R','<Map^2>','<Mx^2>','<MMx>(a)','<MMx>(b)','sig_map','<Gam^2>','sig_gam'],
+            [ numpy.exp(self.logr),
+              mapsq, mxsq, mapsq_im, -mxsq_im, numpy.sqrt(varmapsq),
+              gamsq, numpy.sqrt(vargamsq) ] )
 
 

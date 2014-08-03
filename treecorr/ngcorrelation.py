@@ -168,7 +168,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         If rg is None, the simple correlation function <gamma_T> is returned.
         If rg is not None, then a compensated calculation is done: <gamma_T> = (ng - rg)
 
-        return a tuple (xi, xi_im, varxi)
+        return (xi, xi_im, varxi)
         """
         if rg is None:
             return self.xi, self.xi_im, self.varxi
@@ -184,26 +184,120 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.logger.info('Writing NG correlations to %s',file_name)
     
         xi, xi_im, varxi = self.calculateXi(rg)
-        
-        output = numpy.empty( (self.nbins, 7) )
-        output[:,0] = numpy.exp(self.logr)
-        output[:,1] = numpy.exp(self.meanlogr)
-        output[:,2] = xi
-        output[:,3] = xi_im
-        output[:,4] = numpy.sqrt(varxi)
-        output[:,5] = self.weight
-        output[:,6] = self.npairs
+         
+        self.gen_write(
+            file_name,
+            ['R_nom','<R>','<gamT>','<gamX>','sigma','weight','npairs'],
+            [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
+              xi, xi_im, numpy.sqrt(varxi), self.weight, self.npairs ] )
 
-        prec = self.config.get('precision',3)
-        width = prec+8
-        header_form = 6*("{:^%d}."%width) + "{:^%d}"%width
-        header = header_form.format('R_nom','<R>','<gamT>','<gamX>','sigma','weight','npairs')
-        fmt = '%%%d.%de'%(width,prec)
-        numpy.savetxt(file_name, output, fmt=fmt, header=header)
+    def calculateNMap(self, rg=None, m2_uform=None):
+        """Calculate the aperture mass statistics from the correlation function.
 
-    def writeNMap(self, file_name, rg=None):
+        <NMap>(R) = int_r=0..2R [s^2 dlogr Tx(s) <gammaT>(r)]
+        <NMx>(R)  = int_r=0..2R [s^2 dlogr Tx(s) <gammaX>(r)]
+
+        The m2_uform parameter sets which definition of the aperture mass to use.
+        The default is to look in the config dict that was used to build the catalog,
+        or use 'Crittenden' if it is not specified.
+
+        If m2_uform == 'Crittenden':
+
+            Tx(s) = s^2/128 (12-s^2) exp(-s^2/4)
+
+        If m2_uform == 'Schneider':
+
+            Tx(s) = 18/Pi s^2 arccos(s/s) - 3/40Pi s^3 sqrt(4-s^2) (196 - 74s^2 + 14s^4 - s^6)
+
+        returns (nmap, nmx, varnmap)
+        """
+        if m2_uform is None:
+            m2_uform = self.config.get('m2_uform','Crittenden')
+        if m2_uform not in ['Crittenden', 'Schneider']:
+            raise ValueError("Invalid m2_uform")
+
+        # Make s a matrix, so we can eventually do the integral by doing a matrix product.
+        r = numpy.exp(self.logr)
+        meanr = numpy.exp(self.meanlogr) # Use the actual mean r for each bin
+        s = numpy.outer(1./r, meanr)  
+        ssq = s*s
+        if m2_uform == 'Crittenden':
+            exp_factor = numpy.exp(-ssq/4.)
+            Tx = ssq * (12. - ssq) / 128. * exp_factor
+        else:
+            Tx = numpy.zeros_like(s)
+            sa = s[s<2.]
+            ssqa = ssq[s<2.]
+            Tx[s<2.] = 18./numpy.pi * ssqa * numpy.arccos(sa/2.)
+        Tx *= ssq
+
+        xi, xi_im, varxi = self.calculateXi(rg)
+
+        # Now do the integral by taking the matrix products.
+        # Note that dlogr = bin_size
+        Txxi = Tx.dot(xi)
+        Txxi_im = Tx.dot(xi_im)
+        nmap = Txxi * self.bin_size
+        nmx = Txxi_im * self.bin_size
+
+        # The variance of each of these is 
+        # Var(<NMap>(R)) = int_r=0..2R [s^4 dlogr^2 Tx(s)^2 Var(xi)]
+        varnmap = (Tx**2).dot(varxi) * self.bin_size**2
+
+        return nmap, nmx, varnmap
+
+    def writeNMap(self, file_name, rg=None, m2_uform=None):
+        """Write the cross correlation of the foreground galaxy counts with the aperture mass
+        based on the correlation function to the file, file_name.
+
+        if rg is provided, the compensated calculation will be used for xi.
+
+        See calculateNMap for an explanation of the m2_uform parameter.
+        """
         self.logger.info('Writing NMap from NG correlations to %s',file_name)
 
-    def writeNorm(self, file_name, gg, nn, rr, nr=None, rg=None):
+        nmap, nmx, varnmap = self.calculateNMap(rg=rg, m2_uform=m2_uform)
+ 
+        self.gen_write(
+            file_name,
+            ['R','<NMap>','<NMx>','sig_nmap'],
+            [ numpy.exp(self.logr), nmap, nmx, numpy.sqrt(varnmap) ] )
+
+
+    def writeNorm(self, file_name, gg, nn, rr, nr=None, rg=None, m2_uform=None):
+        """Write the normalized aperture mass cross-correlation to the file, file_name.
+
+        The combination <NMap>^2 / <Map^2> <N_ap^2> is related to r^2, the galaxy-mass
+        correlation coefficient.
+
+        Similarly, <N_ap^2> / <Map^2> is related to b^2, the galaxy bias parameter.
+
+        cf. Hoekstra et al, 2002: http://adsabs.harvard.edu/abs/2002ApJ...577..604H
+
+        if rg is provided, the compensated calculation will be used for NMap.
+        if nr is provided, the compensated calculation will be used for N^2.
+
+        See calculateNMap for an explanation of the m2_uform parameter.
+        """
         self.logger.info('Writing Norm from NG correlations to %s',file_name)
+
+        nmap, nmx, varnmap = self.calculateNMap(rg=rg, m2_uform=m2_uform)
+        mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq(m2_uform=m2_uform)
+        nsq, varnsq = nn.calculateNapSq(rr, nr=nr, m2_uform=m2_uform)
+
+        nmnorm = nmap**2 / (nsq * mapsq)
+        varnmnorm = nmnorm**2 * (4. * varnmap / nmap**2 + varnsq / nsq**2 + varmapsq / mapsq**2)
+        nnnorm = nsq / mapsq
+        varnnnorm = nnnorm**2 * (varnsq / nsq**2 + varmapsq / mapsq**2)
+ 
+        self.gen_write(
+            file_name,
+            [ 'R',
+              '<NMap>','<NMx>','sig_nmap',
+              '<Nap^2>','sig_napsq','<Map^2>','sig_mapsq',
+              'NMap_norm','sig_norm','N^2/Map^2','sig_nn/mm' ],
+            [ numpy.exp(self.logr),
+              nmap, nmx, numpy.sqrt(varnmap),
+              nsq, numpy.sqrt(varnsq), mapsq, numpy.sqrt(varmapsq), 
+              nmnorm, numpy.sqrt(varnmnorm), nnnorm, numpy.sqrt(varnnnorm) ] )
 

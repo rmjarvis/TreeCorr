@@ -127,3 +127,28 @@ class BinnedCorr2(object):
         self.weight = numpy.zeros( (self.nbins, ) )
         self.npairs = numpy.zeros( (self.nbins, ) )
 
+    def gen_write(self, file_name, headers, columns):
+        """Write some columns to an output file with the given headers.
+
+        We do this basic functionality a lot, so put the code to do it in one place.
+
+        headers should be a list of strings.
+        columns should be a list of numpy arrays.
+        """
+        import numpy
+        if len(headers) != len(columns):
+            raise ValueError("headers and columns are not the same length.")
+    
+        ncol = len(headers)
+        output = numpy.empty( (self.nbins, ncol) )
+        for i,col in enumerate(columns):
+            output[:,i] = col
+
+        prec = self.config.get('precision',3)
+        width = prec+8
+        header_form = "{:^%d}"%(width-1) + (ncol-1)*(".{:^%d}"%width)
+        header = header_form.format(*headers)
+        fmt = '%%%d.%de'%(width,prec)
+        numpy.savetxt(file_name, output, fmt=fmt, header=header)
+
+

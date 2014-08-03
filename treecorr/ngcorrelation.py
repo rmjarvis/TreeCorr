@@ -120,6 +120,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         mask2 = self.npairs == 0
 
         self.xi[mask1] /= self.weight[mask1]
+        self.xi_im[mask1] /= self.weight[mask1]
         self.meanlogr[mask1] /= self.weight[mask1]
         self.varxi[mask1] = varg / self.npairs[mask1]
 
@@ -134,6 +135,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         """Clear the data vectors
         """
         self.xi[:] = 0
+        self.xi_im[:] = 0
         self.meanlogr[:] = 0
         self.weight[:] = 0
         self.npairs[:] = 0
@@ -165,11 +167,13 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         If rg is None, the simple correlation function <gamma_T> is returned.
         If rg is not None, then a compensated calculation is done: <gamma_T> = (ng - rg)
+
+        return a tuple (xi, xi_im, varxi)
         """
         if rg is None:
-            return self.xi, self.xi_im
+            return self.xi, self.xi_im, self.varxi
         else:
-            return self.xi - rg.xi, self.xi_im - rg.xi_im
+            return (self.xi - rg.xi), (self.xi_im - rg.xi_im), self.varxi + rg.varxi
 
     def write(self, file_name, rg=None):
         """Write the correlation function to the file, file_name.
@@ -179,22 +183,21 @@ class NGCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Writing NG correlations to %s',file_name)
     
-        xi, xi_im = self.calculateXi(rg)
+        xi, xi_im, varxi = self.calculateXi(rg)
         
         output = numpy.empty( (self.nbins, 7) )
         output[:,0] = numpy.exp(self.logr)
         output[:,1] = numpy.exp(self.meanlogr)
         output[:,2] = xi
         output[:,3] = xi_im
-        output[:,4] = numpy.sqrt(self.varxi)
+        output[:,4] = numpy.sqrt(varxi)
         output[:,5] = self.weight
         output[:,6] = self.npairs
 
         prec = self.config.get('precision',3)
         width = prec+8
         header_form = 6*("{:^%d}."%width) + "{:^%d}"%width
-        header = header_form.format('R_nom','<R>','real(xi)','imag(xi)','sigma_xi','weight',
-                                    'npairs')
+        header = header_form.format('R_nom','<R>','<gamT>','<gamX>','sigma','weight','npairs')
         fmt = '%%%d.%de'%(width,prec)
         numpy.savetxt(file_name, output, fmt=fmt, header=header)
 

@@ -20,9 +20,9 @@
 #include "dbg.h"
 
 // To turn on debugging statements, set dbgout to &std::cerr or some other stream.
-std::ostream* dbgout=&std::cerr;
+std::ostream* dbgout=&std::cout;
 // For even more debugging, set this to true.
-bool XDEBUG = true;
+bool XDEBUG = false;
 
 // Most of the functionality for building Cells and doing the correlation functions is the
 // same regardless of which kind of Cell we have (N, K, G) or which kind of positions we
@@ -45,8 +45,9 @@ void SetupTopLevelCells(
     std::vector<double>& top_sizesq,
     std::vector<size_t>& top_start, std::vector<size_t>& top_end)
 {
-    xdbg<<"Start SetupTopLevelCells: start,end = "<<start<<','<<end<<std::endl;
-    xdbg<<"minsizesq = "<<minsizesq<<", maxsizesq = "<<maxsizesq<<std::endl;
+    dbg<<"Start SetupTopLevelCells: start,end = "<<start<<','<<end<<std::endl;
+    dbg<<"minsizesq = "<<minsizesq<<", maxsizesq = "<<maxsizesq<<std::endl;
+    dbg<<"celldata has "<<celldata.size()<<" entries\n";
     // The structure of this is very similar to the Cell constructor.
     // The difference is that here we only construct a new Cell (and do the corresponding
     // calculation of the averages) if the size is small enough.  At that point, the 
@@ -122,7 +123,7 @@ Field<DC,M>::Field(
         if (w[i] != 0.)
             celldata.push_back(BuildCellData<DC,M>(x[i],y[i],g1[i],g2[i],k[i],w[i]));
     }
-    xdbg<<"Built celldata with "<<celldata.size()<<" entries\n";
+    dbg<<"Built celldata with "<<celldata.size()<<" entries\n";
 
     // We don't build Cells that are too big or too small based on the min/max separation:
 

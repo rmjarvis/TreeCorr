@@ -162,11 +162,13 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         If rk is None, the simple correlation function <kappa> is returned.
         If rk is not None, then a compensated calculation is done: <kappa> = (nk - rk)
+
+        returns a tuple (xi, varxi)
         """
         if rk is None:
-            return self.xi
+            return self.xi, self.varxi
         else:
-            return self.xi - rk.xi
+            return self.xi - rk.xi, self.varxi + rk.varxi
 
 
     def write(self, file_name, rk=None):
@@ -177,11 +179,13 @@ class NKCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Writing NK correlations to %s',file_name)
 
+        xi, varxi = self.calculateXi(rk)
+
         output = numpy.empty( (self.nbins, 6) )
         output[:,0] = numpy.exp(self.logr)
         output[:,1] = numpy.exp(self.meanlogr)
-        output[:,2] = self.calculateXi(rk)
-        output[:,3] = numpy.sqrt(self.varxi)
+        output[:,2] = xi
+        output[:,3] = numpy.sqrt(varxi)
         output[:,4] = self.weight
         output[:,5] = self.npairs
 

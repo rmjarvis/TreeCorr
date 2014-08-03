@@ -655,12 +655,11 @@ Reporting bugs
 
 If you find a bug running the code, please report it at:
 
-http://code.google.com/p/mjarvis/issues/list
+https://github.com/rmjarvis/TreeCorr/issues
 
 Click "New Issue", which will open up a form for you to fill in with the
 details of the problem you are having.
 
-If you would like to request a new feature, then after clicking "New Issue",
-you can change the Template to "Feature Request", which will ask more
-appropriate questions about the feature you would like me to add.
+If you would like to request a new feature, do the same thing, and fill
+in the details of the feature you would like added to TreeCorr.
 

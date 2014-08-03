@@ -134,7 +134,7 @@ protected:
 extern "C" {
 
     extern void* BuildNNCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                             double* meanlogr, double* weight, double* npairs);
+                             double* meanlogr, double* npairs);
     extern void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                              double* xi,
                              double* meanlogr, double* weight, double* npairs);

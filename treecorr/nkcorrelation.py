@@ -181,21 +181,9 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         xi, varxi = self.calculateXi(rk)
 
-        output = numpy.empty( (self.nbins, 6) )
-        output[:,0] = numpy.exp(self.logr)
-        output[:,1] = numpy.exp(self.meanlogr)
-        output[:,2] = xi
-        output[:,3] = numpy.sqrt(varxi)
-        output[:,4] = self.weight
-        output[:,5] = self.npairs
-
-        prec = self.config.get('precision',3)
-        width = prec+8
-        header_form = 5*("{:^%d}."%width) + "{:^%d}"%width
-        header = header_form.format('R_nom','<R>','xi', 'sigma_xi','weight','npairs')
-        fmt = '%%%d.%de'%(width,prec)
-        numpy.savetxt(file_name, output, fmt=fmt, header=header)
-
-    def writeM2(self, file_name):
-        self.logger.info('Writing Map^2 from NK correlations to %s',file_name)
+        self.gen_write(
+            file_name,
+            ['R_nom','<R>','xi','sigma_xi','weight','npairs'],
+            [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
+              xi, numpy.sqrt(varxi), self.weight, self.npairs ] )
 

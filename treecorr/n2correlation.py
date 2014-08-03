@@ -36,37 +36,41 @@ class N2Correlation(treecorr.BinnedCorr2):
         logr        The nominal center of the bin in log(r).
         meanlogr    The (weighted) mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
-        xi          The raw correlation function, normalized as npairs / (w1*w2).
-        weight      The total weight in each bin.
         npairs      The number of pairs going into each bin.
+        tot         The total number of pairs processed, which is used to normalize
+                    the randoms if they have a different number of pairs.
 
     The usage pattern is as follows:
 
         nn = treecorr.N2Correlation(config)
         nn.process(cat1)        # For auto-correlation.
         nn.process(cat1,cat2)   # For cross-correlation.
-        nn.write(file_name)     # Write out to a file.
+        rr.process...           # Likewise for random-random correlations
+        nr.process...           # If desired, also do data-random correlations
+        rn.process...           # For cross-correlations, also do the reverse.
+        nn.write(file_name,rr,nr,rn)         # Write out to a file.
+        xi,varxi = nn.calculateXi(rr,nr,rn)  # Or get the calculated correlation function directly.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
         self.xi = numpy.zeros(self.nbins, dtype=float)
-        self.ww = 0.
+        self.varxi = numpy.zeros(self.nbins, dtype=float)
+        self.tot = 0.
 
         # an alias
         double_ptr = ctypes.POINTER(ctypes.c_double)
 
         meanlogr = self.meanlogr.ctypes.data_as(double_ptr)
-        weight = self.weight.ctypes.data_as(double_ptr)
         npairs = self.npairs.ctypes.data_as(double_ptr)
 
         _treecorr.BuildNNCorr.restype = ctypes.c_void_p
         _treecorr.BuildNNCorr.argtypes = [
             ctypes.c_double, ctypes.c_double, ctypes.c_int, ctypes.c_double, ctypes.c_double,
-            double_ptr, double_ptr, double_ptr ]
+            double_ptr, double_ptr ]
 
         self.corr = _treecorr.BuildNNCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
-                                          meanlogr,weight,npairs);
+                                          meanlogr,npairs);
         self.logger.debug('Finished building NNCorr')
 
     def __del__(self):
@@ -80,10 +84,9 @@ class N2Correlation(treecorr.BinnedCorr2):
     def process_auto(self, cat1):
         """Process a single catalog, accumulating the auto-correlation.
 
-        This accumulates the weighted sums into the bins, but does not finalize
-        the calculation by dividing by the total weight at the end.  After
+        This accumulates the auto-correlation for the given catalog.  After
         calling this function as often as desired, the finalize() command will
-        finish the calculation.
+        finish the calculation of meanlogr.
         """
         self.logger.info('Starting process N2 auto-correlations for cat %s.',cat1.file_name)
         nfield = cat1.getNField(self.min_sep,self.max_sep,self.b)
@@ -100,10 +103,9 @@ class N2Correlation(treecorr.BinnedCorr2):
     def process_cross(self, cat1, cat2):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
-        This accumulates the weighted sums into the bins, but does not finalize
-        the calculation by dividing by the total weight at the end.  After
+        This accumulates the cross-correlation for the given catalogs.  After
         calling this function as often as desired, the finalize() command will
-        finish the calculation.
+        finish the calculation of meanlogr.
         """
         self.logger.info('Starting process N2 cross-correlations for cats %s, %s.',
                          cat1.file_name, cat2.file_name)
@@ -128,20 +130,12 @@ class N2Correlation(treecorr.BinnedCorr2):
 
         The process_auto and process_cross commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation by dividing each column by the total weight.
+        finishes the calculation of meanlogr by dividing each column by the total weight.
         """
         mask1 = self.npairs != 0
         mask2 = self.npairs == 0
 
-        # The NN arrays need to be normalized by the total possible number of pairs.
-        # i.e. nobj1 * nobj2.  This accounts for the possibility that the randoms
-        # have a different number of objects than the data.
-        if self.ww == 0:
-            self.xi = self.weight
-        else:
-            self.xi = self.weight / self.ww
-
-        self.meanlogr[mask1] /= self.weight[mask1]
+        self.meanlogr[mask1] /= self.npairs[mask1]
 
         # Update the units of meanlogr
         self.meanlogr[mask1] -= self.log_sep_units
@@ -153,10 +147,8 @@ class N2Correlation(treecorr.BinnedCorr2):
         """Clear the data vectors
         """
         self.meanlogr[:] = 0.
-        self.xi[:] = 0.
-        self.weight[:] = 0.
         self.npairs[:] = 0.
-        self.ww = 0.
+        self.tot = 0.
 
 
     def process(self, cat1, cat2=None):
@@ -178,17 +170,17 @@ class N2Correlation(treecorr.BinnedCorr2):
             if self.config.get('do_auto_corr',False) or len(cat1) == 1:
                 for c1 in cat1:
                     self.process_auto(c1)
-                    self.ww += 0.5*c1.sumw**2
+                    self.tot += 0.5*c1.nobj**2
             if self.config.get('do_cross_corr',True):
                 for i,c1 in enumerate(cat1):
                     for c2 in cat1[i+1:]:
                         self.process_cross(c1,c2)
-                        self.ww += c1.sumw*c2.sumw
+                        self.tot += c1.nobj*c2.nobj
         else:
             for c1 in cat1:
                 for c2 in cat2:
                     self.process_cross(c1,c2)
-                    self.ww += c1.sumw*c2.sumw
+                    self.tot += c1.nobj*c2.nobj
         self.finalize()
 
 
@@ -203,24 +195,36 @@ class N2Correlation(treecorr.BinnedCorr2):
         If nr is None, the simple correlation function (nn/rr - 1) is used.
         if nr is given and rn is None, then (nn - 2nr + rr)/rr is used.
         If nr and rn are both given, then (nn - nr - rn + rr)/rr is used.
+
+        returns (xi, varxi)
         """
+        # Each random npairs value needs to be rescaled by the ratio of total possible pairs.
+        rrw = self.tot / rr.tot
         if nr is None:
             if rn is None:
-                xi = (self.xi - rr.xi)
+                xi = (self.npairs - rr.npairs * rrw)
             else:
-                xi = (self.xi - 2.*rn.xi + rr.xi)
+                rnw = self.tot / rn.tot
+                xi = (self.npairs - 2.*rn.npairs * rnw + rr.npairs * rrw)
         else:
+            nrw = self.tot / nr.tot
             if rn is None:
-                xi = (self.xi - 2.*rn.xi + rr.xi)
+                xi = (self.npairs - 2.*nr.npairs * nrw + rr.npairs * rrw)
             else:
-                xi = (self.xi - rn.xi - nr.xi + rr.xi)
-        if any(rr.xi == 0):
-            self.logger.warn("Warning: Some bins for the randoms have zero weight.")
-        mask1 = rr.xi != 0
-        mask2 = rr.xi == 0
-        xi[mask1] /= rr.xi[mask1]
+                rnw = self.tot / rn.tot
+                xi = (self.npairs - rn.npairs * rnw - nr.npairs * nrw + rr.npairs * rrw)
+        if any(rr.npairs == 0):
+            self.logger.warn("Warning: Some bins for the randoms had no pairs.")
+            self.logger.warn("         Probably max_sep is larger than your field.")
+        mask1 = rr.npairs != 0
+        mask2 = rr.npairs == 0
+        xi[mask1] /= (rr.npairs[mask1] * rrw)
         xi[mask2] = 0
-        return xi
+
+        varxi = numpy.zeros_like(rr.npairs)
+        varxi[mask1] = 1./ (rr.npairs[mask1] * rrw)
+
+        return xi, varxi
 
     def write(self, file_name, rr, nr=None, rn=None):
         """Write the correlation function to the file, file_name.
@@ -232,35 +236,60 @@ class N2Correlation(treecorr.BinnedCorr2):
         """
         self.logger.info('Writing N2 correlations to %s',file_name)
         
-        if nr is None and rn is None:
-            ncol = 8
-        else:
-            ncol = 10
+        xi, varxi = self.calculateXi(rr,nr,rn)
+
+        headers = ['R_nom','<R>','xi','sigma_xi','NN','RR']
+        columns = [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
+                    xi, numpy.sqrt(varxi),
+                    self.npairs, rr.npairs * (self.tot/rr.tot) ]
+
+        if nr is not None or rn is not None:
             if nr is None: nr = rn
             if rn is None: rn = nr
+            headers += ['NR','RN']
+            columns += [ nr.npairs * (self.tot/nr.tot), rn.npairs * (self.tot/rn.tot) ]
 
-        output = numpy.empty( (self.nbins, ncol) )
-        output[:,0] = numpy.exp(self.logr)
-        output[:,1] = numpy.exp(self.meanlogr)
-        output[:,2] = self.calculateXi(rr,nr,rn)
-        mask1 = rr.xi != 0
-        mask2 = rr.xi == 0
-        output[mask1,3] = numpy.sqrt(1./rr.xi[mask1])
-        output[mask2,3] = 0.
-        output[:,4] = self.weight
-        output[:,5] = self.npairs
-        output[:,6] = self.xi
-        output[:,7] = rr.xi
-        if ncol == 10:
-            output[:,8] = nr.xi
-            output[:,9] = rn.xi
+        self.gen_write(file_name, headers, columns)
 
-        prec = self.config.get('precision',3)
-        width = prec+8
-        header_form = (ncol-1)*("{:^%d}."%width) + "{:^%d}"%width
-        # NB. The last two arguments are silently ignored if ncol = 8.
-        header = header_form.format('R_nom','<R>','xi','sigma_xi','weight','npairs',
-                                    'NN','RR','NR','RN')
-        fmt = '%%%d.%de'%(width,prec)
-        numpy.savetxt(file_name, output, fmt=fmt, header=header)
+    def calculateNapSq(self, rr, nr=None, rn=None, m2_uform=None):
+        """Calculate the correlary to the aperture mass statistics for counts.
+
+        This is used by NGCorrelation.writeNorm.  See that function and also 
+        G2Correlation.calculateMapSq() for more details.
+
+        returns (nsq, varnsq)
+        """
+        if m2_uform is None:
+            m2_uform = self.config.get('m2_uform','Crittenden')
+        if m2_uform not in ['Crittenden', 'Schneider']:
+            raise ValueError("Invalid m2_uform")
+
+        # Make s a matrix, so we can eventually do the integral by doing a matrix product.
+        r = numpy.exp(self.logr)
+        meanr = numpy.exp(self.meanlogr) # Use the actual mean r for each bin
+        s = numpy.outer(1./r, meanr)  
+        ssq = s*s
+        if m2_uform == 'Crittenden':
+            exp_factor = numpy.exp(-ssq/4.)
+            Tp = (32. + ssq*(-16. + ssq)) / 128. * exp_factor
+        else:
+            Tp = numpy.zeros_like(s)
+            sa = s[s<2.]
+            ssqa = ssq[s<2.]
+            Tp[s<2.] = 12./(5.*numpy.pi) * (2.-15.*ssqa) * numpy.arccos(sa/2.)
+            Tp[s<2.] += 1./(100.*numpy.pi) * sa * numpy.sqrt(4.-ssqa) * (
+                        120. + ssqa*(2320. + ssqa*(-754. + ssqa*(132. - 9.*ssqa))))
+        Tp *= ssq
+
+        xi, varxi = self.calculateXi(rr,nr,rn)
+
+        # Now do the integral by taking the matrix products.
+        # Note that dlogr = bin_size
+        Tpxi = Tp.dot(xi)
+        nsq = Tpxi * self.bin_size
+        varnsq = (Tp**2).dot(varxi) * self.bin_size**2
+
+        return nsq, varnsq
+
+
 

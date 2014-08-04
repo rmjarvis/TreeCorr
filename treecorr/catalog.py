@@ -444,9 +444,9 @@ class Catalog(object):
 
         # Read x,y or ra,dec
         if x_col != '0' or y_col != '0':
-            if x_col != '0':
+            if x_col == '0':
                 raise AttributeError("x_col missing for file %s"%file_name)
-            if y_col != '0':
+            if y_col == '0':
                 raise AttributeError("y_col missing for file %s"%file_name)
             if ra_col != '0':
                 raise AttributeError("ra_col not allowed in conjunction with x/y cols")
@@ -463,9 +463,9 @@ class Catalog(object):
             self.y = hdu_list[y_hdu].data.field(y_col).astype(float)
             self.logger.debug('read y = %s',str(self.y))
         elif ra_col != '0' or dec_col != '0':
-            if ra_col != '0':
+            if ra_col == '0':
                 raise AttributeError("ra_col missing for file %s"%file_name)
-            if dec_col != '0':
+            if dec_col == '0':
                 raise AttributeError("dec_col missing for file %s"%file_name)
             ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
             dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
@@ -498,9 +498,9 @@ class Catalog(object):
 
         # Read g1,g2
         if (g1_col != '0' or g2_col != '0') and isGColRequired(self.config,num):
-            if g1_col != '0':
+            if g1_col == '0':
                 raise AttributeError("g1_col is missing for file %s"%file_name)
-            if g2_col != '0':
+            if g2_col == '0':
                 raise AttributeError("g2_col is missing for file %s"%file_name)
             g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
             g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)

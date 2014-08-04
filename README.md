@@ -12,9 +12,7 @@ Overview
 --------
 
 TreeCorr is a package for efficiently computing 2-point correlation functions.
-The code is hosted at
-
-    https://github.com/rmjarvis/TreeCorr
+The code is hosted at https://github.com/rmjarvis/TreeCorr
 
 - Can compute correlations of regular number counts, scalar quantities such as
   convergence or CMB temperature fluctutations, or shears.
@@ -49,6 +47,9 @@ The installation is very simple:
     https://github.com/rmjarvis/TreeCorr/archive/master.zip
 
 2. Unzip the archive.  It will unzip into the directory TreeCorr-master.
+   Change to that directory:
+
+    cd TreeCorr-master
 
 3. Install with the normal setup.py options.  Typically this would be the
    command

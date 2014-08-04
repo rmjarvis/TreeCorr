@@ -2,7 +2,7 @@
 file_name = test3.dat
 ra_col = 1
 dec_col = 2
-ra_units = hour
+ra_units = hours
 dec_units = deg
 #project = true
 #project_ra = 0
@@ -11,7 +11,7 @@ dec_units = deg
 g1_col = 3
 g2_col = 4
 
-verbose = 1
+verbose = 2
 
 min_sep = 0.01
 max_sep = 10.

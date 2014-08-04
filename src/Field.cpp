@@ -157,12 +157,12 @@ Field<DC,M>::Field(
     if (maxsizesq == 0.) {
         dbg<<"Doing brute-force calculation (all cells are leaf nodes).\n";
         // If doing a brute-force calculation, the top-level cell data are the same as celldata.
-        const size_t n = celldata.size();
+        const ptrdiff_t n = celldata.size();
         _cells.resize(n);
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-        for(int i=0;i<n;++i) {
+        for(ptrdiff_t i=0;i<n;++i) {
             _cells[i] = new Cell<DC,M>(celldata[i]);
             celldata[i] = 0; // Make sure the calling routing doesn't delete this one.
         }
@@ -175,13 +175,13 @@ Field<DC,M>::Field(
         // Setup the top level cells:
         SetupTopLevelCells(celldata,minsizesq,maxsizesq,sm,0,celldata.size(),
                            top_data,top_sizesq,top_start,top_end);
-        const size_t n = top_data.size();
+        const ptrdiff_t n = top_data.size();
         dbg<<"Field has "<<n<<" top-level nodes.  Building lower nodes...\n";
         _cells.resize(n);
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-        for(int i=0;i<n;++i)
+        for(ptrdiff_t i=0;i<n;++i)
             _cells[i] = new Cell<DC,M>(top_data[i],top_sizesq[i],celldata,minsizesq,sm,
                                        top_start[i],top_end[i]);
     }

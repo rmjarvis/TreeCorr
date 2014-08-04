@@ -1,35 +1,66 @@
 TreeCorr
 ========
 
-The repository will become live with the release of version 3.0, which is still in 
-development.  Until then, please use the latet 2.x release from 
+Note: The repository will become live with the release of version 3.0, which
+is still in development.  Until then, please use the latet 2.x release from 
 
 https://code.google.com/p/mjarvis/
+
+The rest of this file is for the upcoming version 3.0.
 
 Overview
 --------
 
-Code for efficiently computing 2-point correlation functions on the celestial sphere.
+TreeCorr is a package for efficiently computing 2-point correlation functions.
+The code is hosted at
 
-This software package uses ball trees (similar to kd trees) to efficiently
-compute 2 and 3-point correlation functions.
+    https://github.com/rmjarvis/TreeCorr
 
-- Current version is 2.6, which is hosted at: 
-    https://code.google.com/p/mjarvis/
-- 2-point correlations may be auto-correlations or cross-correlations.
-- Includes shear-shear, count-shear, count-count, kappa-kappa, etc.
-  (Any combination of shear, kappa, and counts.)
+- Can compute correlations of regular number counts, scalar quantities such as
+  convergence or CMB temperature fluctutations, or shears.
+- 2-point correlations may be auto-correlations or cross-correlations.  This
+  includes shear-shear, count-shear, count-count, kappa-kappa, etc.  (Any
+  combination of shear, kappa, and counts.)
 - 2-point functions can be done with correct curved-sky calculation using
   RA, Dec coordinates or on a Euclidean tangent plane.
-- Can use OpenMP to run in parallel on multi-core machines.
+- The front end is in python, which can be used as a python module or as a 
+  standalone executable using configuration files.
+- The actual computation of the correlation functions is done in C++ using ball
+  trees (similar to kd trees), which make the calculation extremely
+  efficient.
+- When available, OpenMP is used to run in parallel on multi-core machines.
 - Approximate running time for 2-point shear-shear is ~30 sec * (N/10^6) / core.
-- 3-point functions have not yet been migrated to the new API, but they should be
-  available soon.
+- 3-point functions have not yet been migrated to the new API, but they should
+  be available soon.
 - Reference: Jarvis, Bernstein, & Jain, 2004, MNRAS, 352, 338
 
 The code is licensed under a FreeBSD license.  Essentially, you can use the 
 code in any way you want, but if you distribute it, you need to include the 
 file `TreeCorr_LICENSE` with the distribution.  See that file for details.
+
+
+Installation
+------------
+
+The installation is very simple:
+
+1. Download a zip file from: 
+
+    https://github.com/rmjarvis/TreeCorr/archive/master.zip
+
+2. Unzip the archive.  It will unzip into the directory TreeCorr-master.
+
+3. Install with the normal setup.py options.  Typically this would be the
+   command
+
+    python setup.py install --prefix=/your/home/directory
+
+This will install the executable `corr2` at
+
+    /your/home/directory/bin/corr2
+
+It will also install the python module called treecorr which you can use
+from within python.
 
 
 Two-point Correlations
@@ -72,6 +103,29 @@ the configuration file. e.g.:
 This can be useful when running the program from a script for lots of input 
 files.
 
+Using the python module
+-----------------------
+
+The same functionality can be achieved from within python using a python dict
+for the configuration parameters:
+
+    >>> import treecorr
+    >>> config = treecorr.config.read_config(config_file)
+    >>> config['file_name'] = file1.dat
+    >>> config['g2_file_name'] = file1.out
+    >>> treecorr.corr2(config)
+
+A more complete description of the python API is forthcoming.  If you feel
+adventurous, you can probably gleen much of it by looking at the driver
+code in treecorr/corr2.py and the doc strings for the functions it calls.
+
+
+Configuration parameters
+------------------------
+
+Here are the valid configuration parameters for controlling what corr2 does:
+(Note: This is kind of long to be in the README file, so I'll probably move
+this section to the GitHub wiki page.)
 
 ### Parameters about the input file
 

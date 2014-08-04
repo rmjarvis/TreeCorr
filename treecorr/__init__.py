@@ -17,7 +17,7 @@
 
 version = 3.0
 
-from . import config
+from .config import read_config
 from .celestial import CelestialCoord, angle_units
 from .corr2 import corr2, print_corr2_params
 from .catalog import Catalog, read_catalogs, calculateVarG, calculateVarK

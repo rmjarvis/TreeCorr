@@ -11,7 +11,7 @@ g1_col = 3
 g2_col = 4
 k_col = 3 5
 
-verbose = 1
+verbose = 2
 
 min_sep = 0.01
 max_sep = 10.

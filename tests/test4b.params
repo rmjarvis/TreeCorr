@@ -8,13 +8,13 @@ x_col = 1
 y_col = 2
 x_units = deg
 y_units = deg
-w_col = 5 0
+w_col = 3 0
 
 g1_col = 3
 g2_col = 4
 k_col = 3 5
 
-verbose = 1
+verbose = 2
 
 min_sep = 0.01
 max_sep = 10.
@@ -22,7 +22,7 @@ bin_size = 0.10
 sep_units = deg
 
 ng_file_name = test4b.ng
-#kg_file_name = test4b.kg
+kg_file_name = test4b.kg
 nk_file_name = test4b.nk
 
 

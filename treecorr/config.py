@@ -114,9 +114,18 @@ def check_config(config, params):
             value = value_type(config[key])
 
         # If limited allowed values, check that this is one of them.
-        if valid_values is not None and value not in valid_values:
-            raise ValueError("Parameter %s has the invalid value %s.  Valid values are %s."%(
-                key, config[key], str(valid_values)))
+        if valid_values is not None:
+            if value_type is str:
+                # Allow the string to be longer.  e.g. degrees is valid if 'deg' is in valid_values.
+                matches = [ v for v in valid_values if value.startswith(v) ]
+                if len(matches) != 1:
+                    raise ValueError("Parameter %s has invalid value %s.  Valid values are %s."%(
+                        key, config[key], str(valid_values)))
+                value = matches[0]
+            else:
+                if value not in valid_values:
+                    raise ValueError("Parameter %s has invalid value %s.  Valid values are %s."%(
+                        key, config[key], str(valid_values)))
 
         # Write it back to the dict with the right type
         config[key] = value

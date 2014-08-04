@@ -51,11 +51,9 @@ angle_units = {
     'arcsec' : 4.84813681109537e-6,
     'arcmin' : 2.90888208665722e-4,
     'deg' : 1.74532925199433e-2,
-    'degrees' : 1.74532925199433e-2,
     'hr' : 2.61799387799149e-1,
-    'hours' : 2.61799387799149e-1,
+    'hour' : 2.61799387799149e-1,
     'rad' : 1.,
-    'radians' : 1.,
 }
 
 class CelestialCoord(object):

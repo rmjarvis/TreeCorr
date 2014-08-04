@@ -549,8 +549,8 @@ class Catalog(object):
             or max_sep != self.kfield.max_sep
             or b != self.kfield.b):
 
-            if self.g1 is None or self.g2 is None:
-                raise AttributeError("g1,g2 are not defined.")
+            if self.k is None:
+                raise AttributeError("k are not defined.")
             if logger is None:
                 logger = self.logger
             if config is None:

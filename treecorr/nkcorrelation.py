@@ -183,7 +183,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         self.gen_write(
             file_name,
-            ['R_nom','<R>','xi','sigma_xi','weight','npairs'],
+            ['R_nom','<R>','<kappa>','sigma','weight','npairs'],
             [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
               xi, numpy.sqrt(varxi), self.weight, self.npairs ] )
 

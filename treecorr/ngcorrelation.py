@@ -173,7 +173,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         if rg is None:
             return self.xi, self.xi_im, self.varxi
         else:
-            return (self.xi - rg.xi), (self.xi_im - rg.xi_im), self.varxi + rg.varxi
+            return (self.xi - rg.xi), (self.xi_im - rg.xi_im), (self.varxi + rg.varxi)
 
     def write(self, file_name, rg=None):
         """Write the correlation function to the file, file_name.

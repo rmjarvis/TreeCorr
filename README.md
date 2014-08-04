@@ -12,9 +12,9 @@ Overview
 --------
 
 TreeCorr is a package for efficiently computing 2-point correlation functions.
-The code is hosted at https://github.com/rmjarvis/TreeCorr
 
-- Can compute correlations of regular number counts, scalar quantities such as
+- The code is hosted at https://github.com/rmjarvis/TreeCorr
+- It can compute correlations of regular number counts, scalar quantities such as
   convergence or CMB temperature fluctutations, or shears.
 - 2-point correlations may be auto-correlations or cross-correlations.  This
   includes shear-shear, count-shear, count-count, kappa-kappa, etc.  (Any
@@ -27,7 +27,10 @@ The code is hosted at https://github.com/rmjarvis/TreeCorr
   trees (similar to kd trees), which make the calculation extremely
   efficient.
 - When available, OpenMP is used to run in parallel on multi-core machines.
-- Approximate running time for 2-point shear-shear is ~30 sec * (N/10^6) / core.
+- Approximate running time for 2-point shear-shear is ~30 sec * (N/10^6) / core
+  for a bin size of 0.1 in log(r).  It scales as b^(-2).  This is the slowest
+  of the various kinds of correlations, so others will be a bit faster, but
+  with the same scaling with N and b.
 - 3-point functions have not yet been migrated to the new API, but they should
   be available soon.
 - Reference: Jarvis, Bernstein, & Jain, 2004, MNRAS, 352, 338

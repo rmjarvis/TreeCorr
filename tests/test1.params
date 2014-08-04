@@ -1,12 +1,11 @@
 
 file_name = test1.dat
 file_name2 = test1.dat
+#rand_file_name = rand1.dat
 rand_file_list = randlist1  # Has 3 rand1.dat's to check functionality with multiple rands.
 rand_file_name2 = rand1.dat
 
 do_auto_corr=true
-
-#smooth_scale=2.
 
 x_col = 1
 y_col = 2
@@ -21,8 +20,8 @@ verbose = 2
 
 min_sep = 0.01
 max_sep = 10.
-#nbins = 100
-bin_size = 0.10
+nbins = 50
+#bin_size = 0.10
 sep_units = deg
 
 g2_file_name = test1.g2

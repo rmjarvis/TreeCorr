@@ -169,7 +169,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         
         self.gen_write(
             file_name,
-            ['R_nom','<R>','real(xi)','imag(xi)','sigma_xi','weight','npairs'],
+            ['R_nom','<R>','<kgammaT>','<kgammaX>','sigma','weight','npairs'],
             [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
               self.xi, self.xi_im, numpy.sqrt(self.varxi), self.weight, self.npairs ] )
 

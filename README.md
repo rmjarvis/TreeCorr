@@ -44,7 +44,7 @@ Installation
 
 The installation is very simple:
 
-1. Download a zip file from: 
+1. Download the zip file of the current code from: 
 
     https://github.com/rmjarvis/TreeCorr/archive/master.zip
 

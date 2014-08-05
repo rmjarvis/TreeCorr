@@ -975,3 +975,17 @@ void ProcessPairwiseGGSphere(void* corr, void* field1, void* field2, int dots)
         *static_cast<SimpleField<GData,Sphere>*>(field2),dots);
 }
 
+int SetOMPThreads(int num_threads)
+{
+#ifdef _OPENMP
+    if (params.keyExists("num_threads")) {
+        int num_threads = params["num_threads"];
+        omp_set_num_threads(num_threads);
+    }
+    return omp_get_max_threads();
+#else
+    return 1;
+#endif
+}
+        
+

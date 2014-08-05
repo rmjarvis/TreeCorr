@@ -17,6 +17,16 @@
 
 import treecorr
 
+import os
+import numpy
+import ctypes
+_treecorr = numpy.ctypeslib.load_library('_treecorr',os.path.dirname(__file__))
+_treecorr.SetOMPThreads.restype = ctypes.c_int
+_treecorr.SetOMPThreads.argtypes = [ ctypes.c_int ]
+
+def SetOMPThreads(num_threads):
+    return _treecorr.SetOMPThreads(num_threads)
+
 class BinnedCorr2(object):
     """This class stores the results of a 2-point correlation calculation, along with some
     ancillary data.

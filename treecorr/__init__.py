@@ -28,4 +28,4 @@ from .k2correlation import K2Correlation
 from .ngcorrelation import NGCorrelation
 from .nkcorrelation import NKCorrelation
 from .kgcorrelation import KGCorrelation
-from .field import NField, KField, GField
+from .field import NField, KField, GField, NSimpleField, KSimpleField, GSimpleField

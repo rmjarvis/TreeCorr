@@ -25,6 +25,72 @@ import os
 # ctypes.cdll.LoadLibary or cdtypes.CDLL functions.
 _treecorr = numpy.ctypeslib.load_library('_treecorr',os.path.dirname(__file__))
 
+# Some convenient aliases:
+cvoid_ptr = ctypes.c_void_p
+cdouble = ctypes.c_double
+clong = ctypes.c_long
+cint = ctypes.c_int
+cdouble_ptr = ctypes.POINTER(cdouble)
+
+# Define the restypes and argtypes for the C functions:
+_treecorr.BuildNFieldSphere.restype = cvoid_ptr
+_treecorr.BuildNFieldSphere.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint ]
+_treecorr.BuildNFieldFlat.restype = cvoid_ptr
+_treecorr.BuildNFieldFlat.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint ]
+_treecorr.DestroyNFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyNFieldFlat.argtypes = [ cvoid_ptr ]
+
+_treecorr.BuildKFieldSphere.restype = cvoid_ptr
+_treecorr.BuildKFieldSphere.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint ]
+_treecorr.BuildKFieldFlat.restype = cvoid_ptr
+_treecorr.BuildKFieldFlat.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint ]
+_treecorr.DestroyKFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyKFieldFlat.argtypes = [ cvoid_ptr ]
+
+_treecorr.BuildGFieldSphere.restype = cvoid_ptr
+_treecorr.BuildGFieldSphere.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    clong, cdouble, cdouble, cdouble, cint ]
+_treecorr.BuildGFieldFlat.restype = cvoid_ptr
+_treecorr.BuildGFieldFlat.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    clong, cdouble, cdouble, cdouble, cint ]
+_treecorr.DestroyGFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyGFieldFlat.argtypes = [ cvoid_ptr ]
+
+_treecorr.BuildNSimpleFieldSphere.restype = cvoid_ptr
+_treecorr.BuildNSimpleFieldSphere.argtypes = [ cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+_treecorr.BuildNSimpleFieldFlat.restype = cvoid_ptr
+_treecorr.BuildNSimpleFieldFlat.argtypes = [ cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+_treecorr.DestroyNSimpleFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyNSimpleFieldFlat.argtypes = [ cvoid_ptr ]
+
+_treecorr.BuildKSimpleFieldSphere.restype = cvoid_ptr
+_treecorr.BuildKSimpleFieldSphere.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+_treecorr.BuildKSimpleFieldFlat.restype = cvoid_ptr
+_treecorr.BuildKSimpleFieldFlat.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+_treecorr.DestroyKSimpleFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyKSimpleFieldFlat.argtypes = [ cvoid_ptr ]
+
+_treecorr.BuildGSimpleFieldSphere.restype = cvoid_ptr
+_treecorr.BuildGSimpleFieldSphere.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+_treecorr.BuildGSimpleFieldFlat.restype = cvoid_ptr
+_treecorr.BuildGSimpleFieldFlat.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+_treecorr.DestroyGSimpleFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyGSimpleFieldFlat.argtypes = [ cvoid_ptr ]
+
+def parse_split_method(split_method):
+    if split_method == 'middle': return cint(0)
+    elif split_method == 'median': return cint(1)
+    else: return cint(2)
 
 class NField(object):
     """This class stores the positions in a tree structure from which it is efficient
@@ -35,14 +101,14 @@ class NField(object):
         >>> nfield = cat.getNField(min_sep, max_sep, b)
     """
     def __init__(self, cat, min_sep, max_sep, b, logger=None, config=None):
-        logger.info('Building NField from cat %s',cat.file_name)
-
         if config is None: config = {}
         if logger is not None:
             self.logger = logger
         else:
             self.logger = treecorr.config.setup_logger(config.get('verbose',0),
                                                        config.get('log_file',None))
+        self.logger.info('Building NField from cat %s',cat.file_name)
+
 
         split_method = config.get('split_method','mean')
         if split_method not in ['middle', 'median', 'mean']:
@@ -53,39 +119,23 @@ class NField(object):
         self.b = b
         self.split_method = split_method
 
-        # an alias
-        double_ptr = ctypes.POINTER(ctypes.c_double)
-
-        w = cat.w.ctypes.data_as(double_ptr)
-        if split_method == 'middle':
-            sm = ctypes.c_int(0)
-        elif split_method == 'median':
-            sm = ctypes.c_int(1)
-        else:
-            sm = ctypes.c_int(2)
+        w = cat.w.ctypes.data_as(cdouble_ptr)
+        sm = parse_split_method(split_method)
 
         self.sphere = (cat.x is None)
 
         if self.sphere:
             # Then build field for spherical coordinates
-            _treecorr.BuildNFieldSphere.restype = ctypes.c_void_p
-            _treecorr.BuildNFieldSphere.argtypes = [
-                double_ptr, double_ptr, double_ptr,
-                ctypes.c_long, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_int ]
-            ra = cat.ra.ctypes.data_as(double_ptr)
-            dec = cat.dec.ctypes.data_as(double_ptr)
+            ra = cat.ra.ctypes.data_as(cdouble_ptr)
+            dec = cat.dec.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildNFieldSphere(ra,dec,w,cat.nobj,min_sep,max_sep,b,sm)
-            logger.debug('Finished building NField Sphere')
+            self.logger.debug('Finished building NField Sphere')
         else:
             # Then build field with flat sky approximation
-            _treecorr.BuildNFieldFlat.restype = ctypes.c_void_p
-            _treecorr.BuildNFieldFlat.argtypes = [
-                double_ptr, double_ptr, double_ptr,
-                ctypes.c_long, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_int ]
-            x = cat.x.ctypes.data_as(double_ptr)
-            y = cat.y.ctypes.data_as(double_ptr)
+            x = cat.x.ctypes.data_as(cdouble_ptr)
+            y = cat.y.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildNFieldFlat(x,y,w,cat.nobj,min_sep,max_sep,b,sm)
-            logger.debug('Finished building NField Flat')
+            self.logger.debug('Finished building NField Flat')
 
 
     def __del__(self):
@@ -94,10 +144,8 @@ class NField(object):
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             if self.sphere:
-                _treecorr.DestroyNFieldSphere.argtypes = [ ctypes.c_void_p ]
                 _treecorr.DestroyNFieldSphere(self.data)
             else:
-                _treecorr.DestroyNFieldFlat.argtypes = [ ctypes.c_void_p ]
                 _treecorr.DestroyNFieldFlat(self.data)
 
 
@@ -107,17 +155,16 @@ class KField(object):
 
     A KField is typically created from a Catalog object using
 
-        >>> gfield = cat.getKField(min_sep, max_sep, b)
+        >>> kfield = cat.getKField(min_sep, max_sep, b)
     """
     def __init__(self, cat, min_sep, max_sep, b, logger=None, config=None):
-        logger.info('Building KField from cat %s',cat.file_name)
- 
         if config is None: config = {}
         if logger is not None:
             self.logger = logger
         else:
             self.logger = treecorr.config.setup_logger(config.get('verbose',0),
                                                        config.get('log_file',None))
+        self.logger.info('Building KField from cat %s',cat.file_name)
 
         split_method = config.get('split_method','mean')
         if split_method not in ['middle', 'median', 'mean']:
@@ -128,40 +175,24 @@ class KField(object):
         self.b = b
         self.split_method = split_method
 
-        # an alias
-        double_ptr = ctypes.POINTER(ctypes.c_double)
-
-        k = cat.k.ctypes.data_as(double_ptr)
-        w = cat.w.ctypes.data_as(double_ptr)
-        if split_method == 'middle':
-            sm = ctypes.c_int(0)
-        elif split_method == 'median':
-            sm = ctypes.c_int(1)
-        else:
-            sm = ctypes.c_int(2)
+        k = cat.k.ctypes.data_as(cdouble_ptr)
+        w = cat.w.ctypes.data_as(cdouble_ptr)
+        sm = parse_split_method(split_method)
 
         self.sphere = (cat.x is None)
 
         if self.sphere:
             # Then build field for spherical coordinates
-            _treecorr.BuildKFieldSphere.restype = ctypes.c_void_p
-            _treecorr.BuildKFieldSphere.argtypes = [
-                double_ptr, double_ptr, double_ptr, double_ptr,
-                ctypes.c_long, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_int ]
-            ra = cat.ra.ctypes.data_as(double_ptr)
-            dec = cat.dec.ctypes.data_as(double_ptr)
+            ra = cat.ra.ctypes.data_as(cdouble_ptr)
+            dec = cat.dec.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildKFieldSphere(ra,dec,k,w,cat.nobj,min_sep,max_sep,b,sm)
-            logger.debug('Finished building KField Sphere')
+            self.logger.debug('Finished building KField Sphere')
         else:
             # Then build field with flat sky approximation
-            _treecorr.BuildKFieldFlat.restype = ctypes.c_void_p
-            _treecorr.BuildKFieldFlat.argtypes = [
-                double_ptr, double_ptr, double_ptr, double_ptr,
-                ctypes.c_long, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_int ]
-            x = cat.x.ctypes.data_as(double_ptr)
-            y = cat.y.ctypes.data_as(double_ptr)
+            x = cat.x.ctypes.data_as(cdouble_ptr)
+            y = cat.y.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildKFieldFlat(x,y,k,w,cat.nobj,min_sep,max_sep,b,sm)
-            logger.debug('Finished building KField Flat')
+            self.logger.debug('Finished building KField Flat')
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -169,10 +200,8 @@ class KField(object):
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             if self.sphere:
-                _treecorr.DestroyKFieldSphere.argtypes = [ ctypes.c_void_p ]
                 _treecorr.DestroyKFieldSphere(self.data)
             else:
-                _treecorr.DestroyKFieldFlat.argtypes = [ ctypes.c_void_p ]
                 _treecorr.DestroyKFieldFlat(self.data)
 
 
@@ -185,14 +214,13 @@ class GField(object):
         >>> gfield = cat.getGField(min_sep, max_sep, b)
     """
     def __init__(self, cat, min_sep, max_sep, b, logger=None, config=None):
-        logger.info('Building GField from cat %s',cat.file_name)
-
         if config is None: config = {}
         if logger is not None:
             self.logger = logger
         else:
             self.logger = treecorr.config.setup_logger(config.get('verbose',0),
                                                        config.get('log_file',None))
+        self.logger.info('Building GField from cat %s',cat.file_name)
 
         split_method = config.get('split_method','mean')
         if split_method not in ['middle', 'median', 'mean']:
@@ -203,43 +231,68 @@ class GField(object):
         self.b = b
         self.split_method = split_method
 
-        # an alias
-        double_ptr = ctypes.POINTER(ctypes.c_double)
-
-        g1 = cat.g1.ctypes.data_as(double_ptr)
-        g2 = cat.g2.ctypes.data_as(double_ptr)
-        w = cat.w.ctypes.data_as(double_ptr)
-        if split_method == 'middle':
-            sm = ctypes.c_int(0)
-        elif split_method == 'median':
-            sm = ctypes.c_int(1)
-        else:
-            sm = ctypes.c_int(2)
+        g1 = cat.g1.ctypes.data_as(cdouble_ptr)
+        g2 = cat.g2.ctypes.data_as(cdouble_ptr)
+        w = cat.w.ctypes.data_as(cdouble_ptr)
+        sm = parse_split_method(split_method)
 
         self.sphere = (cat.x is None)
 
         if self.sphere:
             # Then build field for spherical coordinates
-            _treecorr.BuildGFieldSphere.restype = ctypes.c_void_p
-            _treecorr.BuildGFieldSphere.argtypes = [
-                double_ptr, double_ptr, double_ptr, double_ptr, double_ptr,
-                ctypes.c_long, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_int ]
-            ra = cat.ra.ctypes.data_as(double_ptr)
-            dec = cat.dec.ctypes.data_as(double_ptr)
-            self.sphere = True
+            ra = cat.ra.ctypes.data_as(cdouble_ptr)
+            dec = cat.dec.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildGFieldSphere(ra,dec,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm)
-            logger.debug('Finished building GField Sphere')
+            self.logger.debug('Finished building GField Sphere')
         else:
             # Then build field with flat sky approximation
-            _treecorr.BuildGFieldFlat.restype = ctypes.c_void_p
-            _treecorr.BuildGFieldFlat.argtypes = [
-                double_ptr, double_ptr, double_ptr, double_ptr, double_ptr,
-                ctypes.c_long, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_int ]
-            x = cat.x.ctypes.data_as(double_ptr)
-            y = cat.y.ctypes.data_as(double_ptr)
-            self.sphere = False
+            x = cat.x.ctypes.data_as(cdouble_ptr)
+            y = cat.y.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildGFieldFlat(x,y,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm)
-            logger.debug('Finished building GField Flat')
+            self.logger.debug('Finished building GField Flat')
+
+    def __del__(self):
+        # Using memory allocated from the C layer means we have to explicitly deallocate it
+        # rather than being able to rely on the Python memory manager.
+
+        if hasattr(self,'data'):    # In case __init__ failed to get that far
+            if self.sphere:
+                _treecorr.DestroyGFieldSphere(self.data)
+            else:
+                _treecorr.DestroyGFieldFlat(self.data)
+
+class NSimpleField(object):
+    """This class stores the positions as a list, skipping all the tree stuff.
+
+    An NSimpleField is typically created from a Catalog object using
+
+        >>> nfield = cat.getNSimpleField()
+    """
+    def __init__(self, cat, logger=None, config=None):
+        if config is None: config = {}
+        if logger is not None:
+            self.logger = logger
+        else:
+            self.logger = treecorr.config.setup_logger(config.get('verbose',0),
+                                                       config.get('log_file',None))
+        self.logger.info('Building NSimpleField from cat %s',cat.file_name)
+
+        w = cat.w.ctypes.data_as(cdouble_ptr)
+
+        self.sphere = (cat.x is None)
+
+        if self.sphere:
+            # Then build field for spherical coordinates
+            ra = cat.ra.ctypes.data_as(cdouble_ptr)
+            dec = cat.dec.ctypes.data_as(cdouble_ptr)
+            self.data = _treecorr.BuildNSimpleFieldSphere(ra,dec,w,cat.nobj)
+            self.logger.debug('Finished building NSimpleField Sphere')
+        else:
+            # Then build field with flat sky approximation
+            x = cat.x.ctypes.data_as(cdouble_ptr)
+            y = cat.y.ctypes.data_as(cdouble_ptr)
+            self.data = _treecorr.BuildNSimpleFieldFlat(x,y,w,cat.nobj)
+            self.logger.debug('Finished building NSimpleField Flat')
 
 
     def __del__(self):
@@ -248,9 +301,101 @@ class GField(object):
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             if self.sphere:
-                _treecorr.DestroyGFieldSphere.argtypes = [ ctypes.c_void_p ]
-                _treecorr.DestroyGFieldSphere(self.data)
+                _treecorr.DestroyNSimpleFieldSphere(self.data)
             else:
-                _treecorr.DestroyGFieldFlat.argtypes = [ ctypes.c_void_p ]
-                _treecorr.DestroyGFieldFlat(self.data)
+                _treecorr.DestroyNSimpleFieldFlat(self.data)
+
+
+class KSimpleField(object):
+    """This class stores the kappa field in a tree structure from which it is efficient
+    to compute the two-point correlation functions.  
+
+    A KSimpleField is typically created from a Catalog object using
+
+        >>> kfield = cat.getKSimpleField()
+    """
+    def __init__(self, cat, logger=None, config=None):
+        if config is None: config = {}
+        if logger is not None:
+            self.logger = logger
+        else:
+            self.logger = treecorr.config.setup_logger(config.get('verbose',0),
+                                                       config.get('log_file',None))
+        self.logger.info('Building KSimpleField from cat %s',cat.file_name)
+
+        k = cat.k.ctypes.data_as(cdouble_ptr)
+        w = cat.w.ctypes.data_as(cdouble_ptr)
+
+        self.sphere = (cat.x is None)
+
+        if self.sphere:
+            # Then build field for spherical coordinates
+            ra = cat.ra.ctypes.data_as(cdouble_ptr)
+            dec = cat.dec.ctypes.data_as(cdouble_ptr)
+            self.data = _treecorr.BuildKSimpleFieldSphere(ra,dec,k,w,cat.nobj)
+            self.logger.debug('Finished building KSimpleField Sphere')
+        else:
+            # Then build field with flat sky approximation
+            x = cat.x.ctypes.data_as(cdouble_ptr)
+            y = cat.y.ctypes.data_as(cdouble_ptr)
+            self.data = _treecorr.BuildKSimpleFieldFlat(x,y,k,w,cat.nobj)
+            self.logger.debug('Finished building KSimpleField Flat')
+
+    def __del__(self):
+        # Using memory allocated from the C layer means we have to explicitly deallocate it
+        # rather than being able to rely on the Python memory manager.
+
+        if hasattr(self,'data'):    # In case __init__ failed to get that far
+            if self.sphere:
+                _treecorr.DestroyKSimpleFieldSphere(self.data)
+            else:
+                _treecorr.DestroyKSimpleFieldFlat(self.data)
+
+
+class GSimpleField(object):
+    """This class stores the shear field in a tree structure from which it is efficient
+    to compute the two-point correlation functions.  
+
+    A GSimpleField is typically created from a Catalog object using
+
+        >>> gfield = cat.getGSimpleField()
+    """
+    def __init__(self, cat, logger=None, config=None):
+        if config is None: config = {}
+        if logger is not None:
+            self.logger = logger
+        else:
+            self.logger = treecorr.config.setup_logger(config.get('verbose',0),
+                                                       config.get('log_file',None))
+        self.logger.info('Building GSimpleField from cat %s',cat.file_name)
+
+        g1 = cat.g1.ctypes.data_as(cdouble_ptr)
+        g2 = cat.g2.ctypes.data_as(cdouble_ptr)
+        w = cat.w.ctypes.data_as(cdouble_ptr)
+
+        self.sphere = (cat.x is None)
+
+        if self.sphere:
+            # Then build field for spherical coordinates
+            ra = cat.ra.ctypes.data_as(cdouble_ptr)
+            dec = cat.dec.ctypes.data_as(cdouble_ptr)
+            self.data = _treecorr.BuildGSimpleFieldSphere(ra,dec,g1,g2,w,cat.nobj)
+            self.logger.debug('Finished building GSimpleField Sphere')
+        else:
+            # Then build field with flat sky approximation
+            x = cat.x.ctypes.data_as(cdouble_ptr)
+            y = cat.y.ctypes.data_as(cdouble_ptr)
+            self.data = _treecorr.BuildGSimpleFieldFlat(x,y,g1,g2,w,cat.nobj)
+            self.logger.debug('Finished building GSimpleField Flat')
+
+
+    def __del__(self):
+        # Using memory allocated from the C layer means we have to explicitly deallocate it
+        # rather than being able to rely on the Python memory manager.
+
+        if hasattr(self,'data'):    # In case __init__ failed to get that far
+            if self.sphere:
+                _treecorr.DestroyGSimpleFieldSphere(self.data)
+            else:
+                _treecorr.DestroyGSimpleFieldFlat(self.data)
 

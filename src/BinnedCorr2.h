@@ -87,7 +87,9 @@ public:
     void process(const Field<DC1, M>& field, bool dots);
     template <int M>
     void process(const Field<DC1, M>& field1, const Field<DC2, M>& field2, bool dots);
-    //void processPairwise(const InputFile& file1, const InputFile& file2);
+    template <int M>
+    void processPairwise(const SimpleField<DC1, M>& field, const SimpleField<DC2, M>& field2,
+                         bool dots);
 
     // Main worker functions for calculating the result
     template <int M>
@@ -104,9 +106,6 @@ public:
     void operator+=(const BinnedCorr2<DC1,DC2>& rhs);
 
 protected:
-
-    //template <int M>
-    //void doProcessPairwise(const InputFile& file1, const InputFile& file2);
 
     double _minsep;
     double _maxsep;
@@ -177,6 +176,19 @@ extern "C" {
     extern void ProcessCrossKGSphere(void* corr, void* field1, void* field2, int dots);
     extern void ProcessCrossGGFlat(void* corr, void* field1, void* field2, int dots);
     extern void ProcessCrossGGSphere(void* corr, void* field1, void* field2, int dots);
+
+    extern void ProcessPairwiseNNFlat(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessPairwiseNNSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessPairwiseNKFlat(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessPairwiseNKSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessPairwiseNGFlat(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessPairwiseNGSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessPairwiseKKFlat(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessPairwiseKKSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessPairwiseKGFlat(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessPairwiseKGSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessPairwiseGGFlat(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessPairwiseGGSphere(void* corr, void* field1, void* field2, int dots);
 
 }
 

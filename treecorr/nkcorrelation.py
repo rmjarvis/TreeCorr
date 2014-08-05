@@ -26,6 +26,21 @@ import os
 # ctypes.cdll.LoadLibary or cdtypes.CDLL functions.
 _treecorr = numpy.ctypeslib.load_library('_treecorr',os.path.dirname(__file__))
 
+# some useful aliases
+cint = ctypes.c_int
+cdouble = ctypes.c_double
+cdouble_ptr = ctypes.POINTER(cdouble)
+cvoid_ptr = ctypes.c_void_p
+
+_treecorr.BuildNKCorr.restype = cvoid_ptr
+_treecorr.BuildNKCorr.argtypes = [
+    cdouble, cdouble, cint, cdouble, cdouble,
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
+_treecorr.DestroyNKCorr.argtypes = [ cvoid_ptr ]
+_treecorr.ProcessCrossNKSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossNKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseNKSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseNKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 class NKCorrelation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point shear-shear correlation
@@ -55,18 +70,10 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         self.xi = numpy.zeros(self.nbins, dtype=float)
 
-        # an alias
-        double_ptr = ctypes.POINTER(ctypes.c_double)
-
-        xi = self.xi.ctypes.data_as(double_ptr)
-        meanlogr = self.meanlogr.ctypes.data_as(double_ptr)
-        weight = self.weight.ctypes.data_as(double_ptr)
-        npairs = self.npairs.ctypes.data_as(double_ptr)
-
-        _treecorr.BuildNKCorr.restype = ctypes.c_void_p
-        _treecorr.BuildNKCorr.argtypes = [
-            ctypes.c_double, ctypes.c_double, ctypes.c_int, ctypes.c_double, ctypes.c_double,
-            double_ptr, double_ptr, double_ptr, double_ptr ]
+        xi = self.xi.ctypes.data_as(cdouble_ptr)
+        meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
+        weight = self.weight.ctypes.data_as(cdouble_ptr)
+        npairs = self.npairs.ctypes.data_as(cdouble_ptr)
 
         self.corr = _treecorr.BuildNKCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                                           xi,meanlogr,weight,npairs);
@@ -76,7 +83,6 @@ class NKCorrelation(treecorr.BinnedCorr2):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'data'):    # In case __init__ failed to get that far
-            _treecorr.DestroyNKCorr.argtypes = [ ctypes.c_void_p ]
             _treecorr.DestroyNKCorr(self.corr)
 
 
@@ -90,20 +96,39 @@ class NKCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Starting process NK cross-correlations for cats %s, %s.',
                          cat1.file_name, cat2.file_name)
-        nfield1 = cat1.getNField(self.min_sep,self.max_sep,self.b)
-        kfield2 = cat2.getKField(self.min_sep,self.max_sep,self.b)
+        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b)
+        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b)
 
-        if nfield1.sphere != kfield2.sphere:
+        if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
-        if nfield1.sphere:
-            _treecorr.ProcessCrossNKSphere.argtypes = [ 
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
-            _treecorr.ProcessCrossNKSphere(self.corr, nfield1.data, kfield2.data, self.output_dots)
+        if f1.sphere:
+            _treecorr.ProcessCrossNKSphere(self.corr, f1.data, f2.data, self.output_dots)
         else:
-            _treecorr.ProcessCrossNKFlat.argtypes = [
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
-            _treecorr.ProcessCrossNKFlat(self.corr, nfield1.data, kfield2.data, self.output_dots)
+            _treecorr.ProcessCrossNKFlat(self.corr, f1.data, f2.data, self.output_dots)
+
+
+    def process_pairwise(self, cat1, cat2):
+        """Process a single pair of catalogs, accumulating the cross-correlation, only using
+        the corresponding pairs of objects in each catalog.
+
+        This accumulates the weighted sums into the bins, but does not finalize
+        the calculation by dividing by the total weight at the end.  After
+        calling this function as often as desired, the finalize() command will
+        finish the calculation.
+        """
+        self.logger.info('Starting process NK pairwise-correlations for cats %s, %s.',
+                         cat1.file_name, cat2.file_name)
+        f1 = cat1.getNSimpleField()
+        f2 = cat2.getKSimpleField()
+
+        if f1.sphere != f2.sphere:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+
+        if f1.sphere:
+            _treecorr.ProcessPairwiseNKSphere(self.corr, f1.data, f2.data, self.output_dots)
+        else:
+            _treecorr.ProcessPairwiseNKFlat(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def finalize(self, vark):
@@ -134,6 +159,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.meanlogr[:] = 0
         self.weight[:] = 0
         self.npairs[:] = 0
+        self.tot = 0
 
     def process(self, cat1, cat2):
         """Compute the correlation function.
@@ -141,6 +167,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         Both arguments may be lists, in which case all items in the list are used 
         for that element of the correlation.
         """
+        import math
         self.clear()
 
         if not isinstance(cat1,list): cat1 = [cat1]
@@ -151,9 +178,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
             raise ValueError("No catalogs provided for cat2")
 
         vark = treecorr.calculateVarK(cat2)
-        for c1 in cat1:
-            for c2 in cat2:
-                self.process_cross(c1,c2)
+        self.logger.info("vark = %f: sig_k = %f",vark,math.sqrt(vark))
+        self._process_all_cross(cat1,cat2)
         self.finalize(vark)
 
     def calculateXi(self, rk=None):

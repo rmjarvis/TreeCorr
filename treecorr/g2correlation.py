@@ -26,6 +26,23 @@ import os
 # ctypes.cdll.LoadLibary or cdtypes.CDLL functions.
 _treecorr = numpy.ctypeslib.load_library('_treecorr',os.path.dirname(__file__))
 
+# some useful aliases
+cint = ctypes.c_int
+cdouble = ctypes.c_double
+cdouble_ptr = ctypes.POINTER(cdouble)
+cvoid_ptr = ctypes.c_void_p
+
+_treecorr.BuildGGCorr.restype = ctypes.c_void_p
+_treecorr.BuildGGCorr.argtypes = [
+    cdouble, cdouble, cint, cdouble, cdouble,
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
+_treecorr.DestroyGGCorr.argtypes = [ cvoid_ptr ]
+_treecorr.ProcessAutoGGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint  ]
+_treecorr.ProcessAutoGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint  ]
+_treecorr.ProcessCrossGGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseGGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 class G2Correlation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point shear-shear correlation
@@ -62,21 +79,13 @@ class G2Correlation(treecorr.BinnedCorr2):
         self.xip_im = numpy.zeros(self.nbins, dtype=float)
         self.xim_im = numpy.zeros(self.nbins, dtype=float)
 
-        # an alias
-        double_ptr = ctypes.POINTER(ctypes.c_double)
-
-        xip = self.xip.ctypes.data_as(double_ptr)
-        xipi = self.xip_im.ctypes.data_as(double_ptr)
-        xim = self.xim.ctypes.data_as(double_ptr)
-        ximi = self.xim_im.ctypes.data_as(double_ptr)
-        meanlogr = self.meanlogr.ctypes.data_as(double_ptr)
-        weight = self.weight.ctypes.data_as(double_ptr)
-        npairs = self.npairs.ctypes.data_as(double_ptr)
-
-        _treecorr.BuildGGCorr.restype = ctypes.c_void_p
-        _treecorr.BuildGGCorr.argtypes = [
-            ctypes.c_double, ctypes.c_double, ctypes.c_int, ctypes.c_double, ctypes.c_double,
-            double_ptr, double_ptr, double_ptr, double_ptr, double_ptr, double_ptr, double_ptr ]
+        xip = self.xip.ctypes.data_as(cdouble_ptr)
+        xipi = self.xip_im.ctypes.data_as(cdouble_ptr)
+        xim = self.xim.ctypes.data_as(cdouble_ptr)
+        ximi = self.xim_im.ctypes.data_as(cdouble_ptr)
+        meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
+        weight = self.weight.ctypes.data_as(cdouble_ptr)
+        npairs = self.npairs.ctypes.data_as(cdouble_ptr)
 
         self.corr = _treecorr.BuildGGCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                                           xip,xipi,xim,ximi,meanlogr,weight,npairs);
@@ -86,7 +95,6 @@ class G2Correlation(treecorr.BinnedCorr2):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'data'):    # In case __init__ failed to get that far
-            _treecorr.DestroyGGCorr.argtypes = [ ctypes.c_void_p ]
             _treecorr.DestroyGGCorr(self.corr)
 
     def process_auto(self, cat1):
@@ -98,16 +106,12 @@ class G2Correlation(treecorr.BinnedCorr2):
         finish the calculation.
         """
         self.logger.info('Starting process G2 auto-correlations for cat %s.',cat1.file_name)
-        gfield = cat1.getGField(self.min_sep,self.max_sep,self.b)
+        field = cat1.getGField(self.min_sep,self.max_sep,self.b)
 
-        if gfield.sphere:
-            _treecorr.ProcessAutoGGSphere.argtypes = [ 
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int  ]
-            _treecorr.ProcessAutoGGSphere(self.corr, gfield.data, self.output_dots)
+        if field.sphere:
+            _treecorr.ProcessAutoGGSphere(self.corr, field.data, self.output_dots)
         else:
-            _treecorr.ProcessAutoGGFlat.argtypes = [
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int  ]
-            _treecorr.ProcessAutoGGFlat(self.corr, gfield.data, self.output_dots)
+            _treecorr.ProcessAutoGGFlat(self.corr, field.data, self.output_dots)
 
     def process_cross(self, cat1, cat2):
         """Process a single pair of catalogs, accumulating the cross-correlation.
@@ -119,20 +123,39 @@ class G2Correlation(treecorr.BinnedCorr2):
         """
         self.logger.info('Starting process G2 cross-correlations for cats %s, %s.',
                          cat1.file_name, cat2.file_name)
-        gfield1 = cat1.getGField(self.min_sep,self.max_sep,self.b)
-        gfield2 = cat2.getGField(self.min_sep,self.max_sep,self.b)
+        f1 = cat1.getGField(self.min_sep,self.max_sep,self.b)
+        f2 = cat2.getGField(self.min_sep,self.max_sep,self.b)
 
-        if gfield1.sphere != gfield2.sphere:
+        if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
-        if gfield1.sphere:
-            _treecorr.ProcessCrossGGSphere.argtypes = [ 
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
-            _treecorr.ProcessCrossGGSphere(self.corr, gfield1.data, gfield2.data, self.output_dots)
+        if f1.sphere:
+            _treecorr.ProcessCrossGGSphere(self.corr, f1.data, f2.data, self.output_dots)
         else:
-            _treecorr.ProcessCrossGGFlat.argtypes = [
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
-            _treecorr.ProcessCrossGGFlat(self.corr, gfield1.data, gfield2.data, self.output_dots)
+            _treecorr.ProcessCrossGGFlat(self.corr, f1.data, f2.data, self.output_dots)
+
+
+    def process_pairwise(self, cat1, cat2):
+        """Process a single pair of catalogs, accumulating the cross-correlation, only using
+        the corresponding pairs of objects in each catalog.
+
+        This accumulates the weighted sums into the bins, but does not finalize
+        the calculation by dividing by the total weight at the end.  After
+        calling this function as often as desired, the finalize() command will
+        finish the calculation.
+        """
+        self.logger.info('Starting process G2 pairwise-correlations for cats %s, %s.',
+                         cat1.file_name, cat2.file_name)
+        f1 = cat1.getGSimpleField()
+        f2 = cat2.getGSimpleField()
+
+        if f1.sphere != f2.sphere:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+
+        if f1.sphere:
+            _treecorr.ProcessPairwiseGGSphere(self.corr, f1.data, f2.data, self.output_dots)
+        else:
+            _treecorr.ProcessPairwiseGGFlat(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def finalize(self, varg1, varg2):
@@ -169,6 +192,7 @@ class G2Correlation(treecorr.BinnedCorr2):
         self.meanlogr[:] = 0
         self.weight[:] = 0
         self.npairs[:] = 0
+        self.tot = 0
 
     def process(self, cat1, cat2=None):
         """Compute the correlation function.
@@ -191,24 +215,13 @@ class G2Correlation(treecorr.BinnedCorr2):
             varg1 = treecorr.calculateVarG(cat1)
             varg2 = varg1
             self.logger.info("varg = %f: sig_sn (per component) = %f",varg1,math.sqrt(varg1))
-
-            if self.config.get('do_auto_corr',False) or len(cat1) == 1:
-                for c1 in cat1:
-                    self.process_auto(c1)
-
-            if self.config.get('do_cross_corr',True):
-                for i,c1 in enumerate(cat1):
-                    for c2 in cat1[i+1:]:
-                        self.process_cross(c1,c2)
+            self._process_all_auto(cat1)
         else:
             varg1 = treecorr.calculateVarG(cat1)
             varg2 = treecorr.calculateVarG(cat2)
             self.logger.info("varg1 = %f: sig_sn (per component) = %f",varg1,math.sqrt(varg1))
             self.logger.info("varg2 = %f: sig_sn (per component) = %f",varg2,math.sqrt(varg2))
-            for c1 in cat1:
-                for c2 in cat2:
-                    self.process_cross(c1,c2)
-
+            self._process_all_cross(cat1,cat2)
         self.finalize(varg1,varg2)
 
 

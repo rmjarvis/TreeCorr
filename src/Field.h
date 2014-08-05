@@ -27,7 +27,8 @@ public:
           long nobj, double minsep, double maxsep, double b, int sm_int);
     ~Field();
 
-    int getN() const { return int(_cells.size()); }
+    long getNObj() const { return _nobj; }
+    long getNTopLevel() const { return long(_cells.size()); }
     const std::vector<Cell<DC,M>*>& getCells() const { return _cells; }
 
 private:
@@ -37,6 +38,22 @@ private:
     double _maxsep;
     double _b;
     SplitMethod _sm;
+    std::vector<Cell<DC,M>*> _cells;
+};
+
+// A SimpleField just stores the celldata.  It doesn't go on to build up the Cells.
+// It is used by processPairwise.
+template <int DC, int M>
+class SimpleField
+{
+public:
+    SimpleField(double* x, double* y, double* g1, double* g2, double* k, double* w, long nobj);
+    ~SimpleField();
+
+    long getNObj() const { return long(_cells.size()); }
+    const std::vector<Cell<DC,M>*>& getCells() const { return _cells; }
+
+private:
     std::vector<Cell<DC,M>*> _cells;
 };
 
@@ -79,6 +96,40 @@ extern "C" {
     extern void DestroyNFieldFlat(void* field);
 
     extern void DestroyNFieldSphere(void* field);
+
+
+
+    extern void* BuildGSimpleFieldFlat(double* x, double* y, double* g1, double* g2, double* w,
+                                       long nobj);
+
+    extern void* BuildGSimpleFieldSphere(double* ra, double* dec, double* g1, double* g2, double* w,
+                                         long nobj);
+
+    extern void* BuildGSimpleFieldFlat(double* x, double* y, double* g1, double* g2, double* w,
+                                       long nobj);
+
+    extern void* BuildGSimpleFieldSphere(double* ra, double* dec, double* g1, double* g2, double* w,
+                                         long nobj);
+
+    extern void* BuildKSimpleFieldFlat(double* x, double* y, double* k, double* w, long nobj);
+
+    extern void* BuildKSimpleFieldSphere(double* ra, double* dec, double* k, double* w, long nobj);
+
+    extern void* BuildNSimpleFieldFlat(double* x, double* y, double* w, long nobj);
+
+    extern void* BuildNSimpleFieldSphere(double* ra, double* dec, double* w, long nobj);
+
+    extern void DestroyGSimpleFieldFlat(void* field);
+
+    extern void DestroyGSimpleFieldSphere(void* field);
+
+    extern void DestroyKSimpleFieldFlat(void* field);
+
+    extern void DestroyKSimpleFieldSphere(void* field);
+
+    extern void DestroyNSimpleFieldFlat(void* field);
+
+    extern void DestroyNSimpleFieldSphere(void* field);
 
 
 }

@@ -604,6 +604,52 @@ class Catalog(object):
 
         return self.gfield
 
+    def getNSimpleField(self, logger=None, config=None):
+        """Return an NSimpleField based on the positions in this catalog.
+
+        The NSimpleField object is cached, so this is efficient to call multiple times.
+        """
+        if not hasattr(self,'nsimplefield'):
+            if logger is None:
+                logger = self.logger
+            if config is None:
+                config = self.config
+            self.nsimplefield = treecorr.NSimpleField(self,logger,config)
+
+        return self.nsimplefield
+
+    def getKSimpleField(self, logger=None, config=None):
+        """Return a KSimpleField based on the k values in this catalog.
+
+        The KSimpleField object is cached, so this is efficient to call multiple times.
+        """
+        if not hasattr(self,'ksimplefield'):
+            if self.k is None:
+                raise AttributeError("k are not defined.")
+            if logger is None:
+                logger = self.logger
+            if config is None:
+                config = self.config
+            self.ksimplefield = treecorr.KSimpleField(self,logger,config)
+
+        return self.ksimplefield
+
+    def getGSimpleField(self, logger=None, config=None):
+        """Return a GSimpleField based on the g1,g2 values in this catalog.
+
+        The GSimpleField object is cached, so this is efficient to call multiple times.
+        """
+        if not hasattr(self,'gsimplefield'):
+            if self.g1 is None or self.g2 is None:
+                raise AttributeError("g1,g2 are not defined.")
+            if logger is None:
+                logger = self.logger
+            if config is None:
+                config = self.config
+            self.gsimplefield = treecorr.GSimpleField(self,logger,config)
+
+        return self.gsimplefield
+
 
 def read_catalogs(config, key, list_key, num, logger, is_rand=False):
     """Read in a list of catalogs for the given key.

@@ -1,16 +1,6 @@
 TreeCorr
 ========
 
-Note: The repository will become live with the release of version 3.0, which
-is still in development.  Until then, please use the latet 2.x release from 
-
-https://code.google.com/p/mjarvis/
-
-The rest of this file is for the upcoming version 3.0.
-
-Overview
---------
-
 TreeCorr is a package for efficiently computing 2-point correlation functions.
 
 - The code is hosted at https://github.com/rmjarvis/TreeCorr
@@ -93,9 +83,12 @@ name of a configuration file:
 
     corr2 config_file
 
-A sample configuration file is provided, called default.params, and see below 
-for a fairly complete list of 
-includes much of this 
+A sample configuration file is provided, called default.params, and see the
+TreeCorr wiki page
+
+https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters
+
+for the complete documentation about the allowed parameters.
 
 You can also specify parameters on the command line after the name of 
 the configuration file. e.g.:
@@ -106,6 +99,7 @@ the configuration file. e.g.:
 
 This can be useful when running the program from a script for lots of input 
 files.
+
 
 Using the python module
 -----------------------
@@ -122,15 +116,6 @@ for the configuration parameters:
 A more complete description of the python API is forthcoming.  If you feel
 adventurous, you can probably gleen much of it by looking at the driver
 code in treecorr/corr2.py and the doc strings for the functions it calls.
-
-
-Configuration parameters
-------------------------
-
-A complete list of the parameters that can be used in the config file or 
-config dict can be found on the TreeCorr wiki:
-
-https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters
 
 
 Reporting bugs

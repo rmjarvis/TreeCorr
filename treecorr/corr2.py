@@ -178,7 +178,7 @@ corr2_valid_params = {
     'verbose' : (int, False, 1, [0, 1, 2, 3],
             'How verbose the code should be during processing. ',
             '0 = Errors Only, 1 = Warnings, 2 = Progress, 3 = Debugging'),
-    'num_threads' : (int, False, 1, None,
+    'num_threads' : (int, False, 0, None,
             'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
     'split_method' : (str, False, 'mean', ['mean', 'median', 'middle'],
             'Which method to use for splitting cells.'),
@@ -220,11 +220,15 @@ def corr2(config, logger=None):
 
     # Set the number of threads
     num_threads = config['num_threads']
-    if num_threads < 0:
+    if num_threads <= 0:
         import multiprocessing
         num_threads = multiprocessing.cpu_count()
     if num_threads > 1:
-        logger.info('Using %d threads.',num_threads)
+        num_threads = treecorr.SetOMPThreads(num_threads)
+        if num_threads > 1:
+            logger.info('Using %d threads.',num_threads)
+        else:
+            logger.warn('Unable to use multiple threads, since OpenMP is not enabled.')
 
     # Read in the input files.  Each of these is a list.
     cat1 = treecorr.read_catalogs(config, 'file_name', 'file_list', 0, logger)

@@ -2,6 +2,8 @@
 file_name = test4_centers.dat
 file_name2 = test4.dat
 
+num_threads = 0
+
 pairwise = true
 
 x_col = 1

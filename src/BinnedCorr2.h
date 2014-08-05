@@ -190,6 +190,7 @@ extern "C" {
     extern void ProcessPairwiseGGFlat(void* corr, void* field1, void* field2, int dots);
     extern void ProcessPairwiseGGSphere(void* corr, void* field1, void* field2, int dots);
 
+    extern int SetOMPThreads(int num_threads);
 }
 
 #endif

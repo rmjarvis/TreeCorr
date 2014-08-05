@@ -104,7 +104,7 @@ class Catalog(object):
                 raise AttributeError("Vectors may not be provided when file_name is provided.")
             self.file_name = file_name
             self.config = config
-            logger.info("Reading input file %s",self.file_name)
+            self.logger.info("Reading input file %s",self.file_name)
 
             # Figure out which file type the catalog is
             file_type = treecorr.config.get_from_list(self.config,'file_type',num)
@@ -115,7 +115,7 @@ class Catalog(object):
                     file_type = 'FITS'
                 else:
                     file_type = 'ASCII'
-                logger.info("   file_type assumed to be %s from the file name.",file_type)
+                self.logger.info("   file_type assumed to be %s from the file name.",file_type)
 
             # Read the input file
             if file_type == 'FITS':
@@ -245,6 +245,8 @@ class Catalog(object):
             nobj = len(self.ra)
             if len(self.dec) != nobj: 
                 raise ValueError("ra and dec have different numbers of elements")
+        if nobj == 0:
+            raise RuntimeError("Catalog has no objects!")
         if self.w is not None and len(self.w) != nobj:
             raise ValueError("w has the wrong numbers of elements")
         if self.g1 is not None and len(self.g1) != nobj:
@@ -254,10 +256,22 @@ class Catalog(object):
         if self.k is not None and len(self.k) != nobj:
             raise ValueError("k has the wrong numbers of elements")
 
+        # Check for NaN's:
+        self.checkForNaN(self.x,'x')
+        self.checkForNaN(self.y,'y')
+        self.checkForNaN(self.ra,'ra')
+        self.checkForNaN(self.dec,'dec')
+        self.checkForNaN(self.g1,'g1')
+        self.checkForNaN(self.g2,'g2')
+        self.checkForNaN(self.k,'k')
+        self.checkForNaN(self.w,'w')
+
         # Calculate some summary parameters here that will typically be needed
         if self.w is not None:
             self.nobj = numpy.sum(self.w != 0)
             self.sumw = numpy.sum(self.w)
+            if self.sumw == 0.:
+                raise RuntimeError("Catalog has invalid sumw == 0")
             if self.g1 is not None:
                 self.varg = numpy.sum(self.w**2 * (self.g1**2 + self.g2**2))
                 # The 2 is because we need the variance _per componenet_.
@@ -281,7 +295,18 @@ class Catalog(object):
             else:
                 self.vark = 0.
             self.w = numpy.ones( (self.nobj) )
-        logger.info("   nobj = %d",nobj)
+
+        self.logger.info("   nobj = %d",nobj)
+
+    def checkForNaN(self, col, col_str):
+        if col is not None and any(numpy.isnan(col)):
+            index = numpy.where(numpy.isnan(col))[0]
+            print 'index = ',index
+            self.logger.warn("Warning: NaNs found in %s column.  Skipping rows %s.",
+                             col_str,str(index.tolist()))
+            if self.w is None:
+                self.w = numpy.ones_like(col)
+            self.w[index] = 0
 
     def read_ascii(self, file_name, num, is_rand):
         """Read the catalog from an ASCII file

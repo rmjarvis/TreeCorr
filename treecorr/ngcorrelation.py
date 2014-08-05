@@ -26,6 +26,21 @@ import os
 # ctypes.cdll.LoadLibary or cdtypes.CDLL functions.
 _treecorr = numpy.ctypeslib.load_library('_treecorr',os.path.dirname(__file__))
 
+# some useful aliases
+cint = ctypes.c_int
+cdouble = ctypes.c_double
+cdouble_ptr = ctypes.POINTER(cdouble)
+cvoid_ptr = ctypes.c_void_p
+
+_treecorr.BuildNGCorr.restype = cvoid_ptr
+_treecorr.BuildNGCorr.argtypes = [
+    cdouble, cdouble, cint, cdouble, cdouble,
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
+_treecorr.DestroyNGCorr.argtypes = [ cvoid_ptr ]
+_treecorr.ProcessCrossNGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossNGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseNGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseNGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 class NGCorrelation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point shear-shear correlation
@@ -57,19 +72,11 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.xi = numpy.zeros(self.nbins, dtype=float)
         self.xi_im = numpy.zeros(self.nbins, dtype=float)
 
-        # an alias
-        double_ptr = ctypes.POINTER(ctypes.c_double)
-
-        xi = self.xi.ctypes.data_as(double_ptr)
-        xi_im = self.xi_im.ctypes.data_as(double_ptr)
-        meanlogr = self.meanlogr.ctypes.data_as(double_ptr)
-        weight = self.weight.ctypes.data_as(double_ptr)
-        npairs = self.npairs.ctypes.data_as(double_ptr)
-
-        _treecorr.BuildNGCorr.restype = ctypes.c_void_p
-        _treecorr.BuildNGCorr.argtypes = [
-            ctypes.c_double, ctypes.c_double, ctypes.c_int, ctypes.c_double, ctypes.c_double,
-            double_ptr, double_ptr, double_ptr, double_ptr, double_ptr ]
+        xi = self.xi.ctypes.data_as(cdouble_ptr)
+        xi_im = self.xi_im.ctypes.data_as(cdouble_ptr)
+        meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
+        weight = self.weight.ctypes.data_as(cdouble_ptr)
+        npairs = self.npairs.ctypes.data_as(cdouble_ptr)
 
         self.corr = _treecorr.BuildNGCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                                           xi,xi_im,meanlogr,weight,npairs);
@@ -79,7 +86,6 @@ class NGCorrelation(treecorr.BinnedCorr2):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'data'):    # In case __init__ failed to get that far
-            _treecorr.DestroyNGCorr.argtypes = [ ctypes.c_void_p ]
             _treecorr.DestroyNGCorr(self.corr)
 
 
@@ -93,20 +99,39 @@ class NGCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Starting process NG cross-correlations for cats %s, %s.',
                          cat1.file_name, cat2.file_name)
-        nfield1 = cat1.getNField(self.min_sep,self.max_sep,self.b)
-        gfield2 = cat2.getGField(self.min_sep,self.max_sep,self.b)
+        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b)
+        f2 = cat2.getGField(self.min_sep,self.max_sep,self.b)
 
-        if nfield1.sphere != gfield2.sphere:
+        if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
-        if nfield1.sphere:
-            _treecorr.ProcessCrossNGSphere.argtypes = [ 
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
-            _treecorr.ProcessCrossNGSphere(self.corr, nfield1.data, gfield2.data, self.output_dots)
+        if f1.sphere:
+            _treecorr.ProcessCrossNGSphere(self.corr, f1.data, f2.data, self.output_dots)
         else:
-            _treecorr.ProcessCrossNGFlat.argtypes = [
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
-            _treecorr.ProcessCrossNGFlat(self.corr, nfield1.data, gfield2.data, self.output_dots)
+            _treecorr.ProcessCrossNGFlat(self.corr, f1.data, f2.data, self.output_dots)
+
+
+    def process_pairwise(self, cat1, cat2):
+        """Process a single pair of catalogs, accumulating the cross-correlation, only using
+        the corresponding pairs of objects in each catalog.
+
+        This accumulates the weighted sums into the bins, but does not finalize
+        the calculation by dividing by the total weight at the end.  After
+        calling this function as often as desired, the finalize() command will
+        finish the calculation.
+        """
+        self.logger.info('Starting process G2 pairwise-correlations for cats %s, %s.',
+                         cat1.file_name, cat2.file_name)
+        f1 = cat1.getNSimpleField()
+        f2 = cat2.getGSimpleField()
+
+        if f1.sphere != f2.sphere:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+
+        if f1.sphere:
+            _treecorr.ProcessPairwiseNGSphere(self.corr, f1.data, f2.data, self.output_dots)
+        else:
+            _treecorr.ProcessPairwiseNGFlat(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def finalize(self, varg):
@@ -139,6 +164,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.meanlogr[:] = 0
         self.weight[:] = 0
         self.npairs[:] = 0
+        self.tot = 0
 
     def process(self, cat1, cat2):
         """Compute the correlation function.
@@ -146,6 +172,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         Both arguments may be lists, in which case all items in the list are used 
         for that element of the correlation.
         """
+        import math
         self.clear()
 
         if not isinstance(cat1,list): cat1 = [cat1]
@@ -156,9 +183,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
             raise ValueError("No catalogs provided for cat2")
 
         varg = treecorr.calculateVarG(cat2)
-        for c1 in cat1:
-            for c2 in cat2:
-                self.process_cross(c1,c2)
+        self.logger.info("varg = %f: sig_sn (per component) = %f",varg,math.sqrt(varg))
+        self._process_all_cross(cat1,cat2)
         self.finalize(varg)
 
     def calculateXi(self, rg=None):

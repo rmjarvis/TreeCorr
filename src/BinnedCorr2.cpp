@@ -52,7 +52,7 @@ void BinnedCorr2<DC1,DC2>::process(const Field<DC1,M>& field, bool dots)
     Assert(DC1 == DC2);
     Assert(_metric == -1 || _metric == M);
     _metric = M;
-    const int n1 = field.getN();
+    const long n1 = field.getNTopLevel();
     xdbg<<"field has "<<n1<<" top level nodes\n";
     Assert(n1 > 0);
 #ifdef _OPENMP
@@ -102,8 +102,8 @@ void BinnedCorr2<DC1,DC2>::process(const Field<DC1,M>& field1, const Field<DC2,M
 {
     Assert(_metric == -1 || _metric == M);
     _metric = M;
-    const int n1 = field1.getN();
-    const int n2 = field2.getN();
+    const long n1 = field1.getNTopLevel();
+    const long n2 = field2.getNTopLevel();
     xdbg<<"field1 has "<<n1<<" top level nodes\n";
     xdbg<<"field2 has "<<n2<<" top level nodes\n";
     Assert(n1 > 0);
@@ -130,8 +130,8 @@ void BinnedCorr2<DC1,DC2>::process(const Field<DC1,M>& field1, const Field<DC2,M
                 //dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
                 if (dots) std::cout<<'.'<<std::flush;
             }
+            const Cell<DC1,M>& c1 = *field1.getCells()[i];
             for (int j=0;j<n2;++j) {
-                const Cell<DC1,M>& c1 = *field1.getCells()[i];
                 const Cell<DC2,M>& c2 = *field2.getCells()[j];
                 bc2.process11(c1,c2);
             }
@@ -149,19 +149,20 @@ void BinnedCorr2<DC1,DC2>::process(const Field<DC1,M>& field1, const Field<DC2,M
     if (dots) std::cout<<std::endl;
 }
 
-#if 0
 template <int DC1, int DC2> template <int M>
-void BinnedCorr2<DC1,DC2>::doProcessPairwise(const InputFile& file1, const InputFile& file2)
-{
-    std::vector<CellData<DC1,M>*> celldata1;
-    std::vector<CellData<DC2,M>*> celldata2;
-    Field<DC1>::BuildCellData(file1,celldata1);
-    Field<DC2>::BuildCellData(file2,celldata2);
-
+void BinnedCorr2<DC1,DC2>::processPairwise(
+    const SimpleField<DC1,M>& field1, const SimpleField<DC2,M>& field2, bool dots)
+{ 
+    Assert(_metric == -1 || _metric == M);
     _metric = M;
+    const long nobj = field1.getNObj();
+    const long nobj2 = field2.getNObj();
+    xdbg<<"field1 has "<<nobj<<" objects\n";
+    xdbg<<"field2 has "<<nobj2<<" objects\n";
+    Assert(nobj > 0);
+    Assert(nobj == nobj2);
 
-    const int n = celldata1.size();
-    const int sqrtn = int(sqrt(double(n)));
+    const long sqrtn = long(sqrt(double(nobj)));
 
 #ifdef _OPENMP
 #pragma omp parallel 
@@ -176,29 +177,25 @@ void BinnedCorr2<DC1,DC2>::doProcessPairwise(const InputFile& file1, const Input
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-        for (int i=0;i<n;++i) {
+        for (long i=0;i<nobj;++i) {
             // Let the progress dots happen every sqrt(n) iterations.
-            if (i % sqrtn == 0) {
+            if (dots && (i % sqrtn == 0)) {
 #ifdef _OPENMP
 #pragma omp critical
 #endif
                 {
                     //xdbg<<omp_get_thread_num()<<" "<<i<<std::endl;
-                    dbg<<'.';
+                    std::cout<<'.'<<std::flush;
                 }
             }
-            // Note: This transfers ownership of the pointer to the Cell,
-            // and the data is deleted when the Cell goes out of scope.
-            // TODO: I really should switch to using shared_ptr, so these
-            // memory issues are more seamless...
-            Cell<DC1,M> c1(celldata1[i]);
-            Cell<DC2,M> c2(celldata2[i]);
+            const Cell<DC1,M>& c1 = *field1.getCells()[i];
+            const Cell<DC2,M>& c2 = *field2.getCells()[i];
             const double dsq = DistSq(c1.getData().getPos(),c2.getData().getPos());
             if (dsq >= _minsepsq && dsq < _maxsepsq) {
                 bc2.directProcess11(c1,c2,dsq);
             }
         }
-        dbg<<std::endl;
+        if (dots) std::cout<<std::endl;
 #ifdef _OPENMP
         // Accumulate the results
 #pragma omp critical
@@ -208,29 +205,6 @@ void BinnedCorr2<DC1,DC2>::doProcessPairwise(const InputFile& file1, const Input
     }
 #endif
 }
-#endif
-
-#if 0
-template <int DC1, int DC2>
-void BinnedCorr2<DC1,DC2>::processPairwise(const InputFile& file1, const InputFile& file2)
-{
-    dbg<<"Starting processPairwise for 2 files: "<<
-        file1.getFileName()<<"  "<<file2.getFileName()<<std::endl;
-    const int n = file1.getNTot();
-    const int n2 = file2.getNTot();
-    Assert(n > 0);
-    Assert(n == n2);
-    xdbg<<"files have "<<n<<" objects\n";
-
-    if (file1.useRaDec()) {
-        Assert(file2.useRaDec());
-        doProcessPairwise<Sphere>(file1,file2);
-    } else {
-        Assert(!file2.useRaDec());
-        doProcessPairwise<Flat>(file1,file2);
-    }
-}
-#endif
 
 template <int DC1, int DC2> template <int M>
 void BinnedCorr2<DC1,DC2>::process2(const Cell<DC1,M>& c12)
@@ -903,5 +877,101 @@ void ProcessCrossGGSphere(void* corr, void* field1, void* field2, int dots)
     static_cast<BinnedCorr2<GData,GData>*>(corr)->process(
         *static_cast<Field<GData,Sphere>*>(field1),
         *static_cast<Field<GData,Sphere>*>(field2),dots);
+}
+
+void ProcessPairwiseNNFlat(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseNNFlat\n";
+    static_cast<BinnedCorr2<NData,NData>*>(corr)->processPairwise(
+        *static_cast<SimpleField<NData,Flat>*>(field1),
+        *static_cast<SimpleField<NData,Flat>*>(field2),dots);
+}
+
+void ProcessPairwiseNNSphere(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseNNSphere\n";
+    static_cast<BinnedCorr2<NData,NData>*>(corr)->processPairwise(
+        *static_cast<SimpleField<NData,Sphere>*>(field1),
+        *static_cast<SimpleField<NData,Sphere>*>(field2),dots);
+}
+
+void ProcessPairwiseNKFlat(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseNKFlat\n";
+    static_cast<BinnedCorr2<NData,KData>*>(corr)->processPairwise(
+        *static_cast<SimpleField<NData,Flat>*>(field1),
+        *static_cast<SimpleField<KData,Flat>*>(field2),dots);
+}
+
+void ProcessPairwiseNKSphere(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseNKSphere\n";
+    static_cast<BinnedCorr2<NData,KData>*>(corr)->processPairwise(
+        *static_cast<SimpleField<NData,Sphere>*>(field1),
+        *static_cast<SimpleField<KData,Sphere>*>(field2),dots);
+}
+
+void ProcessPairwiseNGFlat(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseNGFlat\n";
+    static_cast<BinnedCorr2<NData,GData>*>(corr)->processPairwise(
+        *static_cast<SimpleField<NData,Flat>*>(field1),
+        *static_cast<SimpleField<GData,Flat>*>(field2),dots);
+}
+
+void ProcessPairwiseNGSphere(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseNGSphere\n";
+    static_cast<BinnedCorr2<NData,GData>*>(corr)->processPairwise(
+        *static_cast<SimpleField<NData,Sphere>*>(field1),
+        *static_cast<SimpleField<GData,Sphere>*>(field2),dots);
+}
+
+void ProcessPairwiseKKFlat(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseKKFlat\n";
+    static_cast<BinnedCorr2<KData,KData>*>(corr)->processPairwise(
+        *static_cast<SimpleField<KData,Flat>*>(field1),
+        *static_cast<SimpleField<KData,Flat>*>(field2),dots);
+}
+
+void ProcessPairwiseKKSphere(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseKKSphere\n";
+    static_cast<BinnedCorr2<KData,KData>*>(corr)->processPairwise(
+        *static_cast<SimpleField<KData,Sphere>*>(field1),
+        *static_cast<SimpleField<KData,Sphere>*>(field2),dots);
+}
+
+void ProcessPairwiseKGFlat(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseKGFlat\n";
+    static_cast<BinnedCorr2<KData,GData>*>(corr)->processPairwise(
+        *static_cast<SimpleField<KData,Flat>*>(field1),
+        *static_cast<SimpleField<GData,Flat>*>(field2),dots);
+}
+
+void ProcessPairwiseKGSphere(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseKGSphere\n";
+    static_cast<BinnedCorr2<KData,GData>*>(corr)->processPairwise(
+        *static_cast<SimpleField<KData,Sphere>*>(field1),
+        *static_cast<SimpleField<GData,Sphere>*>(field2),dots);
+}
+
+void ProcessPairwiseGGFlat(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseGGFlat\n";
+    static_cast<BinnedCorr2<GData,GData>*>(corr)->processPairwise(
+        *static_cast<SimpleField<GData,Flat>*>(field1),
+        *static_cast<SimpleField<GData,Flat>*>(field2),dots);
+}
+
+void ProcessPairwiseGGSphere(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseGGSphere\n";
+    static_cast<BinnedCorr2<GData,GData>*>(corr)->processPairwise(
+        *static_cast<SimpleField<GData,Sphere>*>(field1),
+        *static_cast<SimpleField<GData,Sphere>*>(field2),dots);
 }
 

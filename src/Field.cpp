@@ -84,7 +84,7 @@ void SetupTopLevelCells(
 
 // Specialize for all the different kinds of CellData possibilities.
 template <int DC, int M>
-CellData<DC,M>* BuildCellData(double x, double y, double g1, double g2, double k, double w);
+CellData<DC,M>* BuildCellData(double x, double y, double g1, double g2, double, double w);
 
 template <>
 CellData<GData,Flat>* BuildCellData(double x, double y, double g1, double g2, double, double w)
@@ -196,6 +196,37 @@ Field<DC,M>::~Field()
     for(size_t i=0; i<_cells.size(); ++i) delete _cells[i];
 }
 
+template <int DC, int M>
+SimpleField<DC,M>::SimpleField(
+    double* x, double* y, double* g1, double* g2, double* k, double* w, long nobj)
+{
+    // This bit is the same as the start of the Field constructor.
+    dbg<<"Starting to Build SimpleField with "<<nobj<<" objects\n";
+    std::vector<CellData<DC,M>*> celldata;
+    celldata.reserve(nobj);
+    for(long i=0;i<nobj;++i) {
+        if (w[i] != 0.)
+            celldata.push_back(BuildCellData<DC,M>(x[i],y[i],g1[i],g2[i],k[i],w[i]));
+    }
+    dbg<<"Built celldata with "<<celldata.size()<<" entries\n";
+
+    // However, now we just turn each item into a leaf Cell and keep them all in a single vector.
+    ptrdiff_t n = celldata.size();
+    _cells.resize(n);
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for(ptrdiff_t i=0;i<n;++i) 
+        _cells[i] = new Cell<DC,M>(celldata[i]);
+}
+
+template <int DC, int M>
+SimpleField<DC,M>::~SimpleField()
+{
+    for(size_t i=0; i<_cells.size(); ++i) delete _cells[i];
+}
+
+
 //
 //
 // Now the C-C++ interface functions that get used in python:
@@ -296,7 +327,7 @@ void DestroyNFieldFlat(void* field)
 { 
     dbg<<"Start DestroyNFieldFlat\n";
     dbg<<"field = "<<field<<std::endl;
-    delete static_cast<Field<KData,Flat>*>(field);
+    delete static_cast<Field<NData,Flat>*>(field);
 }
 
 void DestroyNFieldSphere(void* field)
@@ -304,6 +335,101 @@ void DestroyNFieldSphere(void* field)
     dbg<<"Start DestroyNFieldSphere\n";
     dbg<<"field = "<<field<<std::endl;
     delete static_cast<Field<NData,Sphere>*>(field);
+}
+
+
+
+
+void* BuildGSimpleFieldFlat(double* x, double* y, double* g1, double* g2, double* w, long nobj)
+{
+    dbg<<"Start BuildGSimpleFieldFlat\n";
+    // Use w for k in this call to make sure k[i] is valid and won't seg fault.
+    // The actual value of k[i] is ignored.
+    void* field = static_cast<void*>(new SimpleField<GData,Flat>(x, y, g1, g2, w, w, nobj));
+    dbg<<"field = "<<field<<std::endl;
+    return field;
+}
+
+void* BuildGSimpleFieldSphere(double* ra, double* dec, double* g1, double* g2, double* w, long nobj)
+{
+    dbg<<"Start BuildGSimpleFieldSphere\n";
+    void* field = static_cast<void*>(new SimpleField<GData,Sphere>(ra, dec, g1, g2, w, w, nobj));
+    dbg<<"field = "<<field<<std::endl;
+    return field;
+}
+
+void* BuildKSimpleFieldFlat(double* x, double* y, double* k, double* w, long nobj)
+{
+    dbg<<"Start BuildKSimpleFieldFlat\n";
+    void* field = static_cast<void*>(new SimpleField<KData,Flat>(x, y, w, w, k, w, nobj));
+    dbg<<"field = "<<field<<std::endl;
+    return field;
+}
+
+void* BuildKSimpleFieldSphere(double* ra, double* dec, double* k, double* w, long nobj)
+{
+    dbg<<"Start BuildKSimpleFieldSphere\n";
+    void* field = static_cast<void*>(new SimpleField<KData,Sphere>(ra, dec, w, w, k, w, nobj));
+    dbg<<"field = "<<field<<std::endl;
+    return field;
+}
+
+void* BuildNSimpleFieldFlat(double* x, double* y, double* w, long nobj)
+{
+    dbg<<"Start BuildNSimpleFieldFlat\n";
+    void* field = static_cast<void*>(new SimpleField<NData,Flat>(x, y, w, w, w, w, nobj));
+    dbg<<"field = "<<field<<std::endl;
+    return field;
+}
+
+void* BuildNSimpleFieldSphere(double* ra, double* dec, double* w, long nobj)
+{
+    dbg<<"Start BuildNSimpleFieldSphere\n";
+    void* field = static_cast<void*>(new SimpleField<NData,Sphere>(ra, dec, w, w, w, w, nobj));
+    dbg<<"field = "<<field<<std::endl;
+    return field;
+}
+
+void DestroyGSimpleFieldFlat(void* field)
+{
+    dbg<<"Start DestroyGSimpleFieldFlat\n";
+    dbg<<"field = "<<field<<std::endl;
+    delete static_cast<SimpleField<GData,Flat>*>(field);
+}
+
+void DestroyGSimpleFieldSphere(void* field)
+{
+    dbg<<"Start DestroyGSimpleFieldSphere\n";
+    dbg<<"field = "<<field<<std::endl;
+    delete static_cast<SimpleField<GData,Sphere>*>(field);
+}
+
+void DestroyKSimpleFieldFlat(void* field)
+{ 
+    dbg<<"Start DestroyKSimpleFieldFlat\n";
+    dbg<<"field = "<<field<<std::endl;
+    delete static_cast<SimpleField<KData,Flat>*>(field);
+}
+
+void DestroyKSimpleFieldSphere(void* field)
+{
+    dbg<<"Start DestroyKSimpleFieldSphere\n";
+    dbg<<"field = "<<field<<std::endl;
+    delete static_cast<SimpleField<KData,Sphere>*>(field);
+}
+
+void DestroyNSimpleFieldFlat(void* field)
+{ 
+    dbg<<"Start DestroyNSimpleFieldFlat\n";
+    dbg<<"field = "<<field<<std::endl;
+    delete static_cast<SimpleField<NData,Flat>*>(field);
+}
+
+void DestroyNSimpleFieldSphere(void* field)
+{
+    dbg<<"Start DestroyNSimpleFieldSphere\n";
+    dbg<<"field = "<<field<<std::endl;
+    delete static_cast<SimpleField<NData,Sphere>*>(field);
 }
 
 

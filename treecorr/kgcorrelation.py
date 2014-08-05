@@ -26,6 +26,22 @@ import os
 # ctypes.cdll.LoadLibary or cdtypes.CDLL functions.
 _treecorr = numpy.ctypeslib.load_library('_treecorr',os.path.dirname(__file__))
 
+# some useful aliases
+cint = ctypes.c_int
+cdouble = ctypes.c_double
+cdouble_ptr = ctypes.POINTER(cdouble)
+cvoid_ptr = ctypes.c_void_p
+
+_treecorr.BuildKGCorr.restype = cvoid_ptr
+_treecorr.BuildKGCorr.argtypes = [
+    cdouble, cdouble, cint, cdouble, cdouble,
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
+_treecorr.DestroyKGCorr.argtypes = [ cvoid_ptr ]
+_treecorr.ProcessCrossKGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossKGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseKGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseKGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+
 
 class KGCorrelation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point shear-shear correlation
@@ -57,19 +73,11 @@ class KGCorrelation(treecorr.BinnedCorr2):
         self.xi = numpy.zeros(self.nbins, dtype=float)
         self.xi_im = numpy.zeros(self.nbins, dtype=float)
 
-        # an alias
-        double_ptr = ctypes.POINTER(ctypes.c_double)
-
-        xi = self.xi.ctypes.data_as(double_ptr)
-        xi_im = self.xi_im.ctypes.data_as(double_ptr)
-        meanlogr = self.meanlogr.ctypes.data_as(double_ptr)
-        weight = self.weight.ctypes.data_as(double_ptr)
-        npairs = self.npairs.ctypes.data_as(double_ptr)
-
-        _treecorr.BuildKGCorr.restype = ctypes.c_void_p
-        _treecorr.BuildKGCorr.argtypes = [
-            ctypes.c_double, ctypes.c_double, ctypes.c_int, ctypes.c_double, ctypes.c_double,
-            double_ptr, double_ptr, double_ptr, double_ptr, double_ptr ]
+        xi = self.xi.ctypes.data_as(cdouble_ptr)
+        xi_im = self.xi_im.ctypes.data_as(cdouble_ptr)
+        meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
+        weight = self.weight.ctypes.data_as(cdouble_ptr)
+        npairs = self.npairs.ctypes.data_as(cdouble_ptr)
 
         self.corr = _treecorr.BuildKGCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                                           xi,xi_im,meanlogr,weight,npairs);
@@ -79,7 +87,6 @@ class KGCorrelation(treecorr.BinnedCorr2):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'data'):    # In case __init__ failed to get that far
-            _treecorr.DestroyKGCorr.argtypes = [ ctypes.c_void_p ]
             _treecorr.DestroyKGCorr(self.corr)
 
 
@@ -93,20 +100,39 @@ class KGCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Starting process KG cross-correlations for cats %s, %s.',
                          cat1.file_name, cat2.file_name)
-        kfield1 = cat1.getKField(self.min_sep,self.max_sep,self.b)
-        gfield2 = cat2.getGField(self.min_sep,self.max_sep,self.b)
+        f1 = cat1.getKField(self.min_sep,self.max_sep,self.b)
+        f2 = cat2.getGField(self.min_sep,self.max_sep,self.b)
 
-        if kfield1.sphere != gfield2.sphere:
+        if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
-        if kfield1.sphere:
-            _treecorr.ProcessCrossKGSphere.argtypes = [ 
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
-            _treecorr.ProcessCrossKGSphere(self.corr, kfield1.data, gfield2.data, self.output_dots)
+        if f1.sphere:
+            _treecorr.ProcessCrossKGSphere(self.corr, f1.data, f2.data, self.output_dots)
         else:
-            _treecorr.ProcessCrossKGFlat.argtypes = [
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
-            _treecorr.ProcessCrossKGFlat(self.corr, kfield1.data, gfield2.data, self.output_dots)
+            _treecorr.ProcessCrossKGFlat(self.corr, f1.data, f2.data, self.output_dots)
+
+
+    def process_pairwise(self, cat1, cat2):
+        """Process a single pair of catalogs, accumulating the cross-correlation, only using
+        the corresponding pairs of objects in each catalog.
+
+        This accumulates the weighted sums into the bins, but does not finalize
+        the calculation by dividing by the total weight at the end.  After
+        calling this function as often as desired, the finalize() command will
+        finish the calculation.
+        """
+        self.logger.info('Starting process G2 pairwise-correlations for cats %s, %s.',
+                         cat1.file_name, cat2.file_name)
+        f1 = cat1.getKSimpleField()
+        f2 = cat2.getGSimpleField()
+
+        if f1.sphere != f2.sphere:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+
+        if f1.sphere:
+            _treecorr.ProcessPairwiseKGSphere(self.corr, f1.data, f2.data, self.output_dots)
+        else:
+            _treecorr.ProcessPairwiseKGFlat(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def finalize(self, vark, varg):
@@ -139,6 +165,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         self.meanlogr[:] = 0
         self.weight[:] = 0
         self.npairs[:] = 0
+        self.tot = 0
 
     def process(self, cat1, cat2):
         """Compute the correlation function.
@@ -146,6 +173,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         Both arguments may be lists, in which case all items in the list are used 
         for that element of the correlation.
         """
+        import math
         self.clear()
 
         if not isinstance(cat1,list): cat1 = [cat1]
@@ -157,9 +185,9 @@ class KGCorrelation(treecorr.BinnedCorr2):
 
         vark = treecorr.calculateVarK(cat1)
         varg = treecorr.calculateVarG(cat2)
-        for c1 in cat1:
-            for c2 in cat2:
-                self.process_cross(c1,c2)
+        self.logger.info("vark = %f: sig_k = %f",vark,math.sqrt(vark))
+        self.logger.info("varg = %f: sig_sn (per component) = %f",varg,math.sqrt(varg))
+        self._process_all_cross(cat1,cat2)
         self.finalize(vark,varg)
 
     def write(self, file_name):

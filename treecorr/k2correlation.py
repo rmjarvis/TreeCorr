@@ -26,6 +26,23 @@ import os
 # ctypes.cdll.LoadLibary or cdtypes.CDLL functions.
 _treecorr = numpy.ctypeslib.load_library('_treecorr',os.path.dirname(__file__))
 
+# some useful aliases
+cint = ctypes.c_int
+cdouble = ctypes.c_double
+cdouble_ptr = ctypes.POINTER(cdouble)
+cvoid_ptr = ctypes.c_void_p
+
+_treecorr.BuildKKCorr.restype = cvoid_ptr
+_treecorr.BuildKKCorr.argtypes = [
+    cdouble, cdouble, cint, cdouble, cdouble,
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
+_treecorr.DestroyKKCorr.argtypes = [ cvoid_ptr ]
+_treecorr.ProcessAutoKKSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessAutoKKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossKKSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossKKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseKKSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseKKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
 class K2Correlation(treecorr.BinnedCorr2):
@@ -61,18 +78,10 @@ class K2Correlation(treecorr.BinnedCorr2):
 
         self.xi = numpy.zeros(self.nbins, dtype=float)
 
-        # an alias
-        double_ptr = ctypes.POINTER(ctypes.c_double)
-
-        xi = self.xi.ctypes.data_as(double_ptr)
-        meanlogr = self.meanlogr.ctypes.data_as(double_ptr)
-        weight = self.weight.ctypes.data_as(double_ptr)
-        npairs = self.npairs.ctypes.data_as(double_ptr)
-
-        _treecorr.BuildKKCorr.restype = ctypes.c_void_p
-        _treecorr.BuildKKCorr.argtypes = [
-            ctypes.c_double, ctypes.c_double, ctypes.c_int, ctypes.c_double, ctypes.c_double,
-            double_ptr, double_ptr, double_ptr, double_ptr ]
+        xi = self.xi.ctypes.data_as(cdouble_ptr)
+        meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
+        weight = self.weight.ctypes.data_as(cdouble_ptr)
+        npairs = self.npairs.ctypes.data_as(cdouble_ptr)
 
         self.corr = _treecorr.BuildKKCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                                           xi,meanlogr,weight,npairs);
@@ -82,7 +91,6 @@ class K2Correlation(treecorr.BinnedCorr2):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'data'):    # In case __init__ failed to get that far
-            _treecorr.DestroyKKCorr.argtypes = [ ctypes.c_void_p ]
             _treecorr.DestroyKKCorr(self.corr)
 
     def process_auto(self, cat1):
@@ -94,16 +102,12 @@ class K2Correlation(treecorr.BinnedCorr2):
         finish the calculation.
         """
         self.logger.info('Starting process K2 auto-correlations for cat %s.',cat1.file_name)
-        kfield = cat1.getKField(self.min_sep,self.max_sep,self.b)
+        field = cat1.getKField(self.min_sep,self.max_sep,self.b)
 
-        if kfield.sphere:
-            _treecorr.ProcessAutoKKSphere.argtypes = [
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int ]
-            _treecorr.ProcessAutoKKSphere(self.corr, kfield.data, self.output_dots)
+        if field.sphere:
+            _treecorr.ProcessAutoKKSphere(self.corr, field.data, self.output_dots)
         else:
-            _treecorr.ProcessAutoKKFlat.argtypes = [
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int ]
-            _treecorr.ProcessAutoKKFlat(self.corr, kfield.data, self.output_dots)
+            _treecorr.ProcessAutoKKFlat(self.corr, field.data, self.output_dots)
 
 
     def process_cross(self, cat1, cat2):
@@ -116,20 +120,39 @@ class K2Correlation(treecorr.BinnedCorr2):
         """
         self.logger.info('Starting process K2 cross-correlations for cats %s, %s.',
                          cat1.file_name, cat2.file_name)
-        kfield1 = cat1.getKField(self.min_sep,self.max_sep,self.b)
-        kfield2 = cat2.getKField(self.min_sep,self.max_sep,self.b)
+        f1 = cat1.getKField(self.min_sep,self.max_sep,self.b)
+        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b)
 
-        if kfield1.sphere != kfield2.sphere:
+        if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
-        if kfield1.sphere:
-            _treecorr.ProcessCrossKKSphere.argtypes = [ 
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
-            _treecorr.ProcessCrossKKSphere(self.corr, kfield1.data, kfield2.data, self.output_dots)
+        if f1.sphere:
+            _treecorr.ProcessCrossKKSphere(self.corr, f1.data, f2.data, self.output_dots)
         else:
-            _treecorr.ProcessCrossKKFlat.argtypes = [
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_voidp, ctypes.c_int ]
-            _treecorr.ProcessCrossKKFlat(self.corr, kfield1.data, kfield2.data, self.output_dots)
+            _treecorr.ProcessCrossKKFlat(self.corr, f1.data, f2.data, self.output_dots)
+
+
+    def process_pairwise(self, cat1, cat2):
+        """Process a single pair of catalogs, accumulating the cross-correlation, only using
+        the corresponding pairs of objects in each catalog.
+
+        This accumulates the weighted sums into the bins, but does not finalize
+        the calculation by dividing by the total weight at the end.  After
+        calling this function as often as desired, the finalize() command will
+        finish the calculation.
+        """
+        self.logger.info('Starting process G2 pairwise-correlations for cats %s, %s.',
+                         cat1.file_name, cat2.file_name)
+        f1 = cat1.getKSimpleField()
+        f2 = cat2.getKSimpleField()
+
+        if f1.sphere != f2.sphere:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+
+        if f1.sphere:
+            _treecorr.ProcessPairwiseKKSphere(self.corr, f1.data, f2.data, self.output_dots)
+        else:
+            _treecorr.ProcessPairwiseKKFlat(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def finalize(self, vark1, vark2):
@@ -160,6 +183,7 @@ class K2Correlation(treecorr.BinnedCorr2):
         self.meanlogr[:] = 0
         self.weight[:] = 0
         self.npairs[:] = 0
+        self.tot = 0
 
     def process(self, cat1, cat2=None):
         """Compute the correlation function.
@@ -170,6 +194,7 @@ class K2Correlation(treecorr.BinnedCorr2):
         Both arguments may be lists, in which case all items in the list are used 
         for that element of the correlation.
         """
+        import math
         self.clear()
 
         if not isinstance(cat1,list): cat1 = [cat1]
@@ -180,22 +205,14 @@ class K2Correlation(treecorr.BinnedCorr2):
         if cat2 is None or len(cat2) == 0:
             vark1 = treecorr.calculateVarK(cat1)
             vark2 = vark1
-
-            if self.config.get('do_auto_corr',False) or len(cat1) == 1:
-                for c1 in cat1:
-                    self.process_auto(c1)
-
-            if self.config.get('do_cross_corr',True):
-                for i,c1 in enumerate(cat1):
-                    for c2 in cat1[i+1:]:
-                        self.process_cross(c1,c2)
+            self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
+            self._process_all_auto(cat1)
         else:
             vark1 = treecorr.calculateVarK(cat1)
             vark2 = treecorr.calculateVarK(cat2)
-            for c1 in cat1:
-                for c2 in cat2:
-                    self.process_cross(c1,c2)
-
+            self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
+            self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
+            self._process_all_cross(cat1,cat2)
         self.finalize(vark1,vark2)
 
 

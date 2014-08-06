@@ -90,6 +90,7 @@ setup(name="TreeCorr",
       url="https://github.com/rmjarvis/TreeCorr",
       packages=['treecorr'],
       ext_modules=[ext],
+      install_requires=['numpy'],
       cmdclass = {'build_ext': my_builder },
       scripts=scripts)
 

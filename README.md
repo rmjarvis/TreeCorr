@@ -141,6 +141,14 @@ https://github.com/rmjarvis/TreeCorr/issues
 Click "New Issue", which will open up a form for you to fill in with the
 details of the problem you are having.
 
-If you would like to request a new feature, do the same thing, and fill
-in the details of the feature you would like added to TreeCorr.
+
+Requesting features
+-------------------
+
+If you would like to request a new feature, do the same thing.  Open a new
+issue and fill in the details of the feature you would like added to TreeCorr.
+Or if there is already an issue for your desired feature, please add to the 
+discussion, describing your use case.  The more people who say they want a
+feature, the more likely I am to get around to it sooner than later.
+
 

@@ -73,10 +73,10 @@ class Catalog(object):
         y           The y positions, if defined, as a numpy array. (None otherwise)
         ra          The right ascension, if defined, as a numpy array. (None otherwise)
         dec         The declination, if defined, as a numpy array. (None otherwise)
+        w           The weights, as a numpy array. (All 1's if no weight column provided.)
         g1          The g1 component of the shear, if defined, as a numpy array. (None otherwise)
         g2          The g2 component of the shear, if defined, as a numpy array. (None otherwise)
         k           The convergence, kappa, if defined, as a numpy array. (None otherwise)
-        w           The weights, as a numpy array. (All 1's if no weight column provided.)
 
         nobj        The number of objects with non-zero weight
         sumw        The sum of the weights
@@ -87,7 +87,7 @@ class Catalog(object):
                     give this catalog a different name.
     """
     def __init__(self, file_name=None, config=None, num=0, logger=None, is_rand=False,
-                 x=None, y=None, ra=None, dec=None, g1=None, g2=None, k=None, w=None):
+                 x=None, y=None, ra=None, dec=None, w=None, g1=None, g2=None, k=None):
 
         if config is None: config = {}
         if logger is not None:

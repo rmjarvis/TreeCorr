@@ -42,6 +42,7 @@ _treecorr.ProcessCrossNKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint 
 _treecorr.ProcessPairwiseNKSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseNKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
+
 class NKCorrelation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point shear-shear correlation
     function.
@@ -78,6 +79,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.corr = _treecorr.BuildNKCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                                           xi,meanlogr,weight,npairs);
         self.logger.debug('Finished building NKCorr')
+
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -152,6 +154,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.meanlogr[mask2] = self.logr[mask2]
         self.varxi[mask2] = 0.
 
+
     def clear(self):
         """Clear the data vectors
         """
@@ -160,6 +163,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.weight[:] = 0
         self.npairs[:] = 0
         self.tot = 0
+
 
     def process(self, cat1, cat2):
         """Compute the correlation function.
@@ -181,6 +185,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.logger.info("vark = %f: sig_k = %f",vark,math.sqrt(vark))
         self._process_all_cross(cat1,cat2)
         self.finalize(vark)
+
 
     def calculateXi(self, rk=None):
         """Calculate the correlation function possibly given another correlation function

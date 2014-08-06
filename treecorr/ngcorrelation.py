@@ -42,6 +42,7 @@ _treecorr.ProcessCrossNGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint 
 _treecorr.ProcessPairwiseNGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseNGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
+
 class NGCorrelation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point shear-shear correlation
     function.
@@ -81,6 +82,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.corr = _treecorr.BuildNGCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                                           xi,xi_im,meanlogr,weight,npairs);
         self.logger.debug('Finished building NGCorr')
+
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -156,6 +158,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.meanlogr[mask2] = self.logr[mask2]
         self.varxi[mask2] = 0.
 
+
     def clear(self):
         """Clear the data vectors
         """
@@ -165,6 +168,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.weight[:] = 0
         self.npairs[:] = 0
         self.tot = 0
+
 
     def process(self, cat1, cat2):
         """Compute the correlation function.
@@ -187,6 +191,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self._process_all_cross(cat1,cat2)
         self.finalize(varg)
 
+
     def calculateXi(self, rg=None):
         """Calculate the correlation function possibly given another correlation function
         that uses random points for the foreground objects.
@@ -200,6 +205,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
             return self.xi, self.xi_im, self.varxi
         else:
             return (self.xi - rg.xi), (self.xi_im - rg.xi_im), (self.varxi + rg.varxi)
+
 
     def write(self, file_name, rg=None):
         """Write the correlation function to the file, file_name.
@@ -216,6 +222,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
             ['R_nom','<R>','<gamT>','<gamX>','sigma','weight','npairs'],
             [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
               xi, xi_im, numpy.sqrt(varxi), self.weight, self.npairs ] )
+
 
     def calculateNMap(self, rg=None, m2_uform=None):
         """Calculate the aperture mass statistics from the correlation function.
@@ -271,6 +278,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         varnmap = (Tx**2).dot(varxi) * self.bin_size**2
 
         return nmap, nmx, varnmap
+
 
     def writeNMap(self, file_name, rg=None, m2_uform=None):
         """Write the cross correlation of the foreground galaxy counts with the aperture mass

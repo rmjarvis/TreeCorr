@@ -87,11 +87,13 @@ class K2Correlation(treecorr.BinnedCorr2):
                                           xi,meanlogr,weight,npairs);
         self.logger.debug('Finished building KKCorr')
  
+
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             _treecorr.DestroyKKCorr(self.corr)
+
 
     def process_auto(self, cat1):
         """Process a single catalog, accumulating the auto-correlation.
@@ -176,6 +178,7 @@ class K2Correlation(treecorr.BinnedCorr2):
         self.meanlogr[mask2] = self.logr[mask2]
         self.varxi[mask2] = 0.
 
+
     def clear(self):
         """Clear the data vectors
         """
@@ -184,6 +187,7 @@ class K2Correlation(treecorr.BinnedCorr2):
         self.weight[:] = 0
         self.npairs[:] = 0
         self.tot = 0
+
 
     def process(self, cat1, cat2=None):
         """Compute the correlation function.

@@ -298,6 +298,7 @@ class Catalog(object):
 
         self.logger.info("   nobj = %d",nobj)
 
+
     def checkForNaN(self, col, col_str):
         if col is not None and any(numpy.isnan(col)):
             index = numpy.where(numpy.isnan(col))[0]
@@ -307,6 +308,7 @@ class Catalog(object):
             if self.w is None:
                 self.w = numpy.ones_like(col)
             self.w[index] = 0
+
 
     def read_ascii(self, file_name, num, is_rand):
         """Read the catalog from an ASCII file
@@ -424,25 +426,10 @@ class Catalog(object):
             self.k = data[:,k_col-1].astype(float)
             self.logger.debug('read k = %s',str(self.k))
 
+
     def read_fits(self, file_name, num, is_rand):
         """Read the catalog from a FITS file
         """
-        try:
-            import fitsio
-            self.read_fitsio(file_name, num, is_rand)
-        except:
-            self.read_pyfits(file_name, num, is_rand)
-
-    def read_fitsio(self, file_name, num, is_rand):
-        raise NotImplementedError("Using fitsio rather than pyfits not yet implemented")
-
-    def read_pyfits(self, file_name, num, is_rand):
-        try:
-            import astropy.io.fits as pyfits
-        except:
-            import pyfits
-        hdu_list = pyfits.open(file_name, 'readonly')
-
         # Get the column names
         x_col = treecorr.config.get_from_list(self.config,'x_col',num,str,'0')
         y_col = treecorr.config.get_from_list(self.config,'y_col',num,str,'0')
@@ -453,8 +440,6 @@ class Catalog(object):
         g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,str,'0')
         g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,str,'0')
         k_col = treecorr.config.get_from_list(self.config,'k_col',num,str,'0')
-
-        hdu = treecorr.config.get_from_list(self.config,'hdu',num,int,1)
 
         # Start with everything set to None.  Overwrite as appropriate.
         self.x = None
@@ -467,7 +452,7 @@ class Catalog(object):
         self.g2 = None
         self.k = None
 
-        # Read x,y or ra,dec
+        # Check that position cols are valid:
         if x_col != '0' or y_col != '0':
             if x_col == '0':
                 raise AttributeError("x_col missing for file %s"%file_name)
@@ -477,74 +462,176 @@ class Catalog(object):
                 raise AttributeError("ra_col not allowed in conjunction with x/y cols")
             if dec_col != '0':
                 raise AttributeError("dec_col not allowed in conjunction with x/y cols")
-            x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
-            y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
-            if x_col not in hdu_list[x_hdu].columns.names:
-                raise AttributeError("x_col is invalid for file %s"%file_name)
-            if y_col not in hdu_list[y_hdu].columns.names:
-                raise AttributeError("y_col is invalid for file %s"%file_name)
-            self.x = hdu_list[x_hdu].data.field(x_col).astype(float)
-            self.logger.debug('read x = %s',str(self.x))
-            self.y = hdu_list[y_hdu].data.field(y_col).astype(float)
-            self.logger.debug('read y = %s',str(self.y))
         elif ra_col != '0' or dec_col != '0':
             if ra_col == '0':
                 raise AttributeError("ra_col missing for file %s"%file_name)
             if dec_col == '0':
                 raise AttributeError("dec_col missing for file %s"%file_name)
-            ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
-            dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
-            if ra_col not in hdu_list[ra_hdu].columns.names:
-                raise AttributeError("ra_col is invalid for file %s"%file_name)
-            if dec_col not in hdu_list[dec_hdu].columns.names:
-                raise AttributeError("dec_col is invalid for file %s"%file_name)
-            self.ra = hdu_list[ra_hdu].data.field(ra_col).astype(float)
-            self.logger.debug('read ra = %s',str(self.ra))
-            self.dec = hdu_list[dec_hdu].data.field(dec_col).astype(float)
-            self.logger.debug('read dec = %s',str(self.dec))
         else:
             raise AttributeError("No valid position columns specified for file %s"%file_name)
 
-        # Read w
-        if w_col != '0':
-            w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,int,hdu)
-            if w_col not in hdu_list[w_hdu].columns.names:
-                raise AttributeError("w_col is invalid for file %s"%file_name)
-            self.w = hdu_list[w_hdu].data.field(w_col).astype(float)
-            self.logger.debug('read w = %s',str(self.w))
-
-        # Read flag
-        if flag_col != '0':
-            flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
-            if flag_col not in hdu_list[flag_hdu].columns.names:
-                raise AttributeError("flag_col is invalid for file %s"%file_name)
-            self.flag = hdu_list[flag_hdu].data.field(flag_col).astype(float)
-            self.logger.debug('read flag = %s',str(self.flag))
-
-        # Read g1,g2
+        # Check that g1,g2 cols are valid
         if (g1_col != '0' or g2_col != '0') and isGColRequired(self.config,num):
             if g1_col == '0':
                 raise AttributeError("g1_col is missing for file %s"%file_name)
             if g2_col == '0':
                 raise AttributeError("g2_col is missing for file %s"%file_name)
-            g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
-            g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
-            if g1_col not in hdu_list[g1_hdu].columns.names:
-                raise AttributeError("g1_col is invalid for file %s"%file_name)
-            if g2_col not in hdu_list[g2_hdu].columns.names:
-                raise AttributeError("g2_col is invalid for file %s"%file_name)
-            self.g1 = hdu_list[g1_hdu].data.field(g1_col).astype(float)
-            self.logger.debug('read g1 = %s',str(self.g1))
-            self.g2 = hdu_list[g2_hdu].data.field(g2_col).astype(float)
-            self.logger.debug('read g2 = %s',str(self.g2))
 
-        # Read k
-        if k_col != '0' and isKColRequired(self.config,num):
-            k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
-            if k_col not in hdu_list[k_hdu].columns.names:
-                raise AttributeError("k_col is invalid for file %s"%file_name)
-            self.k = hdu_list[k_hdu].data.field(k_col).astype(float)
-            self.logger.debug('read k = %s',str(self.k))
+        # OK, now go ahead and read all the columns.
+        try:
+            self.read_fitsio(file_name, num, is_rand,
+                             x_col, y_col, ra_col, dec_col, w_col, flag_col,
+                             g1_col, g2_col, k_col)
+        except ImportError:
+            self.read_pyfits(file_name, num, is_rand,
+                             x_col, y_col, ra_col, dec_col, w_col, flag_col,
+                             g1_col, g2_col, k_col)
+
+
+    def read_fitsio(self, file_name, num, is_rand,
+                    x_col, y_col, ra_col, dec_col, w_col, flag_col,
+                    g1_col, g2_col, k_col):
+        import fitsio
+
+        hdu = treecorr.config.get_from_list(self.config,'hdu',num,int,1)
+
+        with fitsio.FITS(file_name, 'r') as fits:
+
+            # Read x,y or ra,dec
+            if x_col != '0':
+                x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
+                y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
+                if x_col not in fits[x_hdu].columns.names:
+                    raise AttributeError("x_col is invalid for file %s"%file_name)
+                if y_col not in fits[y_hdu].get_colnames():
+                    raise AttributeError("y_col is invalid for file %s"%file_name)
+                self.x = fits[x_hdu].read_column(x_col).astype(float)
+                self.logger.debug('read x = %s',str(self.x))
+                self.y = fits[y_hdu].read_column(y_col).astype(float)
+                self.logger.debug('read y = %s',str(self.y))
+            else:
+                ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
+                dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
+                if ra_col not in fits[ra_hdu].get_colnames():
+                    raise AttributeError("ra_col is invalid for file %s"%file_name)
+                if dec_col not in fits[dec_hdu].get_colnames():
+                    raise AttributeError("dec_col is invalid for file %s"%file_name)
+                self.ra = fits[ra_hdu].read_column(ra_col).astype(float)
+                self.logger.debug('read ra = %s',str(self.ra))
+                self.dec = fits[dec_hdu].read_column(dec_col).astype(float)
+                self.logger.debug('read dec = %s',str(self.dec))
+
+            # Read w
+            if w_col != '0':
+                w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,int,hdu)
+                if w_col not in fits[w_hdu].get_colnames():
+                    raise AttributeError("w_col is invalid for file %s"%file_name)
+                self.w = fits[w_hdu].read_column(w_col).astype(float)
+                self.logger.debug('read w = %s',str(self.w))
+
+            # Read flag
+            if flag_col != '0':
+                flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
+                if flag_col not in fits[flag_hdu].get_colnames():
+                    raise AttributeError("flag_col is invalid for file %s"%file_name)
+                self.flag = fits[flag_hdu].read_column(flag_col).astype(float)
+                self.logger.debug('read flag = %s',str(self.flag))
+
+            # Read g1,g2
+            if (g1_col != '0' or g2_col != '0') and isGColRequired(self.config,num):
+                g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
+                g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
+                if g1_col not in fits[g1_hdu].get_colnames():
+                    raise AttributeError("g1_col is invalid for file %s"%file_name)
+                if g2_col not in fits[g2_hdu].get_colnames():
+                    raise AttributeError("g2_col is invalid for file %s"%file_name)
+                self.g1 = fits[g1_hdu].read_column(g1_col).astype(float)
+                self.logger.debug('read g1 = %s',str(self.g1))
+                self.g2 = fits[g2_hdu].read_column(g2_col).astype(float)
+                self.logger.debug('read g2 = %s',str(self.g2))
+
+            # Read k
+            if k_col != '0' and isKColRequired(self.config,num):
+                k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
+                if k_col not in fits[k_hdu].get_colnames():
+                    raise AttributeError("k_col is invalid for file %s"%file_name)
+                self.k = fits[k_hdu].read_column(k_col).astype(float)
+                self.logger.debug('read k = %s',str(self.k))
+
+ 
+    def read_pyfits(self, file_name, num, is_rand,
+                    x_col, y_col, ra_col, dec_col, w_col, flag_col,
+                    g1_col, g2_col, k_col):
+        try:
+            import astropy.io.fits as pyfits
+        except:
+            import pyfits
+
+        with pyfits.open(file_name, 'readonly') as hdu_list:
+
+            hdu = treecorr.config.get_from_list(self.config,'hdu',num,int,1)
+
+            # Read x,y or ra,dec
+            if x_col != '0' or y_col != '0':
+                x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
+                y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
+                if x_col not in hdu_list[x_hdu].columns.names:
+                    raise AttributeError("x_col is invalid for file %s"%file_name)
+                if y_col not in hdu_list[y_hdu].columns.names:
+                    raise AttributeError("y_col is invalid for file %s"%file_name)
+                self.x = hdu_list[x_hdu].data.field(x_col).astype(float)
+                self.logger.debug('read x = %s',str(self.x))
+                self.y = hdu_list[y_hdu].data.field(y_col).astype(float)
+                self.logger.debug('read y = %s',str(self.y))
+            elif ra_col != '0' or dec_col != '0':
+                ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
+                dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
+                if ra_col not in hdu_list[ra_hdu].columns.names:
+                    raise AttributeError("ra_col is invalid for file %s"%file_name)
+                if dec_col not in hdu_list[dec_hdu].columns.names:
+                    raise AttributeError("dec_col is invalid for file %s"%file_name)
+                self.ra = hdu_list[ra_hdu].data.field(ra_col).astype(float)
+                self.logger.debug('read ra = %s',str(self.ra))
+                self.dec = hdu_list[dec_hdu].data.field(dec_col).astype(float)
+                self.logger.debug('read dec = %s',str(self.dec))
+
+            # Read w
+            if w_col != '0':
+                w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,int,hdu)
+                if w_col not in hdu_list[w_hdu].columns.names:
+                    raise AttributeError("w_col is invalid for file %s"%file_name)
+                self.w = hdu_list[w_hdu].data.field(w_col).astype(float)
+                self.logger.debug('read w = %s',str(self.w))
+
+            # Read flag
+            if flag_col != '0':
+                flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
+                if flag_col not in hdu_list[flag_hdu].columns.names:
+                    raise AttributeError("flag_col is invalid for file %s"%file_name)
+                self.flag = hdu_list[flag_hdu].data.field(flag_col).astype(float)
+                self.logger.debug('read flag = %s',str(self.flag))
+
+            # Read g1,g2
+            if (g1_col != '0' or g2_col != '0') and isGColRequired(self.config,num):
+                g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
+                g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
+                if g1_col not in hdu_list[g1_hdu].columns.names:
+                    raise AttributeError("g1_col is invalid for file %s"%file_name)
+                if g2_col not in hdu_list[g2_hdu].columns.names:
+                    raise AttributeError("g2_col is invalid for file %s"%file_name)
+                self.g1 = hdu_list[g1_hdu].data.field(g1_col).astype(float)
+                self.logger.debug('read g1 = %s',str(self.g1))
+                self.g2 = hdu_list[g2_hdu].data.field(g2_col).astype(float)
+                self.logger.debug('read g2 = %s',str(self.g2))
+
+            # Read k
+            if k_col != '0' and isKColRequired(self.config,num):
+                k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
+                if k_col not in hdu_list[k_hdu].columns.names:
+                    raise AttributeError("k_col is invalid for file %s"%file_name)
+                self.k = hdu_list[k_hdu].data.field(k_col).astype(float)
+                self.logger.debug('read k = %s',str(self.k))
+
 
     def getNField(self, min_sep, max_sep, b, logger=None, config=None):
         """Return an NField based on the positions in this catalog.
@@ -563,6 +650,7 @@ class Catalog(object):
             self.nfield = treecorr.NField(self,min_sep,max_sep,b,logger,config)
 
         return self.nfield
+
 
     def getKField(self, min_sep, max_sep, b, logger=None, config=None):
         """Return a KField based on the k values in this catalog.
@@ -584,6 +672,7 @@ class Catalog(object):
 
         return self.kfield
 
+
     def getGField(self, min_sep, max_sep, b, logger=None, config=None):
         """Return a GField based on the g1,g2 values in this catalog.
 
@@ -604,6 +693,7 @@ class Catalog(object):
 
         return self.gfield
 
+
     def getNSimpleField(self, logger=None, config=None):
         """Return an NSimpleField based on the positions in this catalog.
 
@@ -617,6 +707,7 @@ class Catalog(object):
             self.nsimplefield = treecorr.NSimpleField(self,logger,config)
 
         return self.nsimplefield
+
 
     def getKSimpleField(self, logger=None, config=None):
         """Return a KSimpleField based on the k values in this catalog.
@@ -633,6 +724,7 @@ class Catalog(object):
             self.ksimplefield = treecorr.KSimpleField(self,logger,config)
 
         return self.ksimplefield
+
 
     def getGSimpleField(self, logger=None, config=None):
         """Return a GSimpleField based on the g1,g2 values in this catalog.

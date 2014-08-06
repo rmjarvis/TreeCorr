@@ -87,10 +87,12 @@ _treecorr.BuildGSimpleFieldFlat.argtypes = [
 _treecorr.DestroyGSimpleFieldSphere.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyGSimpleFieldFlat.argtypes = [ cvoid_ptr ]
 
+
 def parse_split_method(split_method):
     if split_method == 'middle': return cint(0)
     elif split_method == 'median': return cint(1)
     else: return cint(2)
+
 
 class NField(object):
     """This class stores the positions in a tree structure from which it is efficient
@@ -194,6 +196,7 @@ class KField(object):
             self.data = _treecorr.BuildKFieldFlat(x,y,k,w,cat.nobj,min_sep,max_sep,b,sm)
             self.logger.debug('Finished building KField Flat')
 
+
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
@@ -251,6 +254,7 @@ class GField(object):
             self.data = _treecorr.BuildGFieldFlat(x,y,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm)
             self.logger.debug('Finished building GField Flat')
 
+
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
@@ -260,6 +264,7 @@ class GField(object):
                 _treecorr.DestroyGFieldSphere(self.data)
             else:
                 _treecorr.DestroyGFieldFlat(self.data)
+
 
 class NSimpleField(object):
     """This class stores the positions as a list, skipping all the tree stuff.
@@ -293,6 +298,7 @@ class NSimpleField(object):
             y = cat.y.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildNSimpleFieldFlat(x,y,w,cat.nobj)
             self.logger.debug('Finished building NSimpleField Flat')
+
 
 
     def __del__(self):
@@ -340,6 +346,7 @@ class KSimpleField(object):
             y = cat.y.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildKSimpleFieldFlat(x,y,k,w,cat.nobj)
             self.logger.debug('Finished building KSimpleField Flat')
+
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it

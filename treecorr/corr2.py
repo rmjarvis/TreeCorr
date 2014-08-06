@@ -190,6 +190,7 @@ corr2_valid_params = {
             'The default is True if verbose >= 2 and there is no log_file.  Else False.'),
 }
 
+
 def corr2(config, logger=None):
     """Run the full two-point correlation function code based on the parameters in the
     given config dict.
@@ -368,7 +369,6 @@ def corr2(config, logger=None):
         kg.process(cat1,cat2)
         logger.info("Done kg calculation.")
         kg.write(config['kg_file_name'])
-
 
 
 def print_corr2_params():

@@ -106,6 +106,7 @@ class CelestialCoord(object):
     @property
     def dec(self): return self._dec
 
+
     def _set_aux(self):
         if self._x is None:
             import math
@@ -116,6 +117,7 @@ class CelestialCoord(object):
             self._x = self._cosdec * self._cosra
             self._y = -self._cosdec * self._sinra
             self._z = self._sindec
+
 
     def distanceTo(self, other):
         """Returns the great circle distance between this coord and another one.
@@ -145,6 +147,7 @@ class CelestialCoord(object):
         import math
         theta = 2. * math.asin(0.5 * math.sqrt(dsq))
         return theta
+
 
     def angleBetween(self, coord1, coord2):
         """Find the open angle at the location of the current coord between `coord1` and `coord2`.
@@ -176,6 +179,7 @@ class CelestialCoord(object):
         import math
         C = math.atan2(sinC, cosC)
         return C
+
 
     def project(self, other, projection='lambert'):
         """Use the currect coord as the center point of a tangent plane projection to project
@@ -217,6 +221,7 @@ class CelestialCoord(object):
                                   projection)
 
         return u,v
+
 
     def _project_core(self, cosra, sinra, cosdec, sindec, projection):
         # The equations are given at the above mathworld websites.  They are the same except
@@ -264,6 +269,7 @@ class CelestialCoord(object):
 
         return u, v
 
+
     def project_rad(self, ra, dec, projection):
         """This is basically identical to the project() function except that the input `ra`, `dec`
         are given in radians rather than packaged as a CelestialCoord object.
@@ -286,6 +292,7 @@ class CelestialCoord(object):
 
         return self._project_core(cosra, sinra, cosdec, sindec, projection)
 
+
     def deproject(self, pos, projection='lambert'):
         """Do the reverse process from the project() function.
 
@@ -300,6 +307,7 @@ class CelestialCoord(object):
         ra, dec = self._deproject_core(pos.x, pos.y, projection)
 
         return CelestialCoord(ra,dec)
+
 
     def _deproject_core(self, u, v, projection):
         # The inverse equations are also given at the same web sites:
@@ -361,6 +369,7 @@ class CelestialCoord(object):
 
         return ra, dec
 
+
     def deproject_rad(self, u, v, projection='lambert'):
         """This is basically identical to the deproject() function except that the output `ra`,
         `dec` are returned as a tuple (ra, dec) in radians rather than packaged as a CelestialCoord
@@ -375,6 +384,7 @@ class CelestialCoord(object):
             raise ValueError('Unknown projection ' + projection)
 
         return self._deproject_core(u, v, projection)
+
 
     def deproject_jac(self, u, v, projection='lambert'):
         """Return the jacobian of the deprojection.
@@ -456,6 +466,7 @@ class CelestialCoord(object):
         drdv *= cosdec
         return drdu, drdv, dddu, dddv
 
+
     def precess(self, from_epoch, to_epoch):
         """This function precesses equatorial ra and dec from one epoch to another.
            It is adapted from a set of fortran subroutines based on (a) pages 30-34 of
@@ -508,6 +519,7 @@ class CelestialCoord(object):
         new_coord = CelestialCoord(new_ra,new_dec)
         return new_coord
 
+
     def galactic(self, epoch=2000.):
         """Get the longitude and latitude in galactic coordinates corresponding to this position.
 
@@ -545,6 +557,7 @@ class CelestialCoord(object):
         el = math.atan2(sl,cl) + el0;
 
         return (el, b)
+
 
     def copy(self): return CelestialCoord(self._ra, self._dec)
 

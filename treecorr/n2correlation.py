@@ -44,6 +44,7 @@ _treecorr.ProcessCrossNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint 
 _treecorr.ProcessPairwiseNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
+
 class N2Correlation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point shear-shear correlation
     function.
@@ -82,6 +83,7 @@ class N2Correlation(treecorr.BinnedCorr2):
                                           meanlogr,npairs);
         self.logger.debug('Finished building NNCorr')
 
+
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
@@ -103,6 +105,7 @@ class N2Correlation(treecorr.BinnedCorr2):
             _treecorr.ProcessAutoNNSphere(self.corr, field.data, self.output_dots)
         else:
             _treecorr.ProcessAutoNNFlat(self.corr, field.data, self.output_dots)
+
 
     def process_cross(self, cat1, cat2):
         """Process a single pair of catalogs, accumulating the cross-correlation.
@@ -166,12 +169,14 @@ class N2Correlation(treecorr.BinnedCorr2):
         # Use meanlogr when available, but set to nominal when no pairs in bin.
         self.meanlogr[mask2] = self.logr[mask2]
 
+
     def clear(self):
         """Clear the data vectors
         """
         self.meanlogr[:] = 0.
         self.npairs[:] = 0.
         self.tot = 0.
+
 
     def process(self, cat1, cat2=None):
         """Compute the correlation function.
@@ -237,6 +242,7 @@ class N2Correlation(treecorr.BinnedCorr2):
 
         return xi, varxi
 
+
     def write(self, file_name, rr, nr=None, rn=None):
         """Write the correlation function to the file, file_name.
 
@@ -261,6 +267,7 @@ class N2Correlation(treecorr.BinnedCorr2):
             columns += [ nr.npairs * (self.tot/nr.tot), rn.npairs * (self.tot/rn.tot) ]
 
         self.gen_write(file_name, headers, columns)
+
 
     def calculateNapSq(self, rr, nr=None, rn=None, m2_uform=None):
         """Calculate the correlary to the aperture mass statistics for counts.

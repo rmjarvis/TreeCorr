@@ -44,6 +44,7 @@ _treecorr.ProcessCrossGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint 
 _treecorr.ProcessPairwiseGGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
+
 class G2Correlation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point shear-shear correlation
     function.
@@ -91,11 +92,13 @@ class G2Correlation(treecorr.BinnedCorr2):
                                           xip,xipi,xim,ximi,meanlogr,weight,npairs);
         self.logger.debug('Finished building GGCorr')
  
+
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             _treecorr.DestroyGGCorr(self.corr)
+
 
     def process_auto(self, cat1):
         """Process a single catalog, accumulating the auto-correlation.
@@ -112,6 +115,7 @@ class G2Correlation(treecorr.BinnedCorr2):
             _treecorr.ProcessAutoGGSphere(self.corr, field.data, self.output_dots)
         else:
             _treecorr.ProcessAutoGGFlat(self.corr, field.data, self.output_dots)
+
 
     def process_cross(self, cat1, cat2):
         """Process a single pair of catalogs, accumulating the cross-correlation.
@@ -182,6 +186,7 @@ class G2Correlation(treecorr.BinnedCorr2):
         self.meanlogr[mask2] = self.logr[mask2]
         self.varxi[mask2] = 0.
 
+
     def clear(self):
         """Clear the data vectors
         """
@@ -193,6 +198,7 @@ class G2Correlation(treecorr.BinnedCorr2):
         self.weight[:] = 0
         self.npairs[:] = 0
         self.tot = 0
+
 
     def process(self, cat1, cat2=None):
         """Compute the correlation function.
@@ -236,6 +242,7 @@ class G2Correlation(treecorr.BinnedCorr2):
             [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
               self.xip, self.xim, self.xip_im, self.xim_im, numpy.sqrt(self.varxi),
               self.weight, self.npairs ] )
+
 
     def calculateMapSq(self, m2_uform=None):
         """Calculate the aperture mass statistics from the correlation function.

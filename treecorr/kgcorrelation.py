@@ -83,6 +83,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
                                           xi,xi_im,meanlogr,weight,npairs);
         self.logger.debug('Finished building KGCorr')
 
+
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
@@ -157,6 +158,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         self.meanlogr[mask2] = self.logr[mask2]
         self.varxi[mask2] = 0.
 
+
     def clear(self):
         """Clear the data vectors
         """
@@ -166,6 +168,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         self.weight[:] = 0
         self.npairs[:] = 0
         self.tot = 0
+
 
     def process(self, cat1, cat2):
         """Compute the correlation function.
@@ -189,6 +192,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         self.logger.info("varg = %f: sig_sn (per component) = %f",varg,math.sqrt(varg))
         self._process_all_cross(cat1,cat2)
         self.finalize(vark,varg)
+
 
     def write(self, file_name):
         """Write the correlation function to the file, file_name.

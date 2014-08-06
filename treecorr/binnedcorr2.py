@@ -138,6 +138,7 @@ class BinnedCorr2(object):
         self.npairs = numpy.zeros( (self.nbins, ) )
         self.tot = 0
 
+
     def gen_write(self, file_name, headers, columns):
         """Write some columns to an output file with the given headers.
 
@@ -162,6 +163,7 @@ class BinnedCorr2(object):
         fmt = '%%%d.%de'%(width,prec)
         numpy.savetxt(file_name, output, fmt=fmt, header=header)
 
+
     def _process_all_auto(self, cat1):
         if self.config.get('do_auto_corr',False) or len(cat1) == 1:
             for c1 in cat1:
@@ -173,6 +175,7 @@ class BinnedCorr2(object):
                 for c2 in cat1[i+1:]:
                     self.process_cross(c1,c2)
                     self.tot += c1.nobj*c2.nobj
+
 
     def _process_all_cross(self, cat1, cat2):
         if self.config.get('pairwise',False):

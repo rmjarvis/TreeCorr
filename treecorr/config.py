@@ -33,6 +33,7 @@ def parse_variable(config, v):
         else:
             config[key] = values
 
+
 def parse_bool(value):
     if isinstance(value,str):
         if value.strip().upper() in [ 'TRUE', 'YES', 'T', 'Y' ]:
@@ -68,6 +69,7 @@ def read_config(file_name):
             else:
                 parse_variable(config,v)
     return config
+
 
 def setup_logger(verbose, log_file):
     """Parse the integer verbosity level from the command line args into a logging_level string
@@ -139,6 +141,7 @@ def check_config(config, params):
 
     return config
 
+
 def print_params(params):
     """List the information about the valid parameters, given by the given params dict.
     See check_config for the structure of the params dict.
@@ -163,6 +166,7 @@ def print_params(params):
         if default_value is not None:
             print "                Default value is {0!s}".format(default_value)
         print
+
 
 def get_from_list(config, key, num, value_type=str, default=None):
     """A helper function to get a key from config that is allowed to be a list

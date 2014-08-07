@@ -15,6 +15,7 @@
  *    this software without specific prior written permission.
  */
 
+#include <cstddef>  // for ptrdiff_t
 #include "Field.h"
 #include "Cell.h"
 #include "dbg.h"

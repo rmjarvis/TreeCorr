@@ -11,7 +11,7 @@ TreeCorr is a package for efficiently computing 2-point correlation functions.
   combination of shear, kappa, and counts.)
 - 2-point functions can be done with correct curved-sky calculation using
   RA, Dec coordinates or on a Euclidean tangent plane.
-- The front end is in python, which can be used as a python module or as a 
+- The front end is in Python, which can be used as a Python module or as a 
   standalone executable using configuration files.
 - The actual computation of the correlation functions is done in C++ using ball
   trees (similar to kd trees), which make the calculation extremely
@@ -66,8 +66,8 @@ This will install the executable `corr2` at
 
     /your/home/directory/bin/corr2
 
-It will also install the python module called treecorr which you can use
-from within python.
+It will also install the Python module called treecorr which you can use
+from within Python.
 
 
 Two-point Correlations
@@ -114,10 +114,10 @@ This can be useful when running the program from a script for lots of input
 files.
 
 
-Using the python module
+Using the Python module
 -----------------------
 
-The same functionality can be achieved from within python using a python dict
+The same functionality can be achieved from within Python using a Python dict
 for the configuration parameters:
 
     >>> import treecorr
@@ -126,10 +126,11 @@ for the configuration parameters:
     >>> config['g2_file_name'] = file1.out
     >>> treecorr.corr2(config)
 
-A more complete description of the python API is forthcoming.  If you feel
-adventurous, you can probably gleen much of it by looking at the driver
-code in treecorr/corr2.py and the doc strings for the functions it calls.
+However, the Python module gives you much more flexibility in how to specify
+the input and output, including going directly from and to numpy arrays within
+Python.  For more information, see the wiki page:
 
+https://github.com/rmjarvis/TreeCorr/wiki/Guide-to-using-TreeCorr-in-Python
 
 Reporting bugs
 --------------

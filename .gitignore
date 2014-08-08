@@ -20,4 +20,9 @@
 *.out
 *.app
 
+TreeCorr.egg-info
+dist
 build
+
+.*.swp
+*.pyc

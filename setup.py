@@ -4,9 +4,11 @@ import glob
 try:
     from setuptools import setup, Extension
     from setuptools.command.build_ext import build_ext
+    from setuptools.sysconfig import get_config_vars
 except ImportError:
     from distutils.core import setup, Extension
     from distutils.command.build_ext import build_ext
+    from distutils.sysconfig import get_config_vars
 
 scripts = ['corr2']
 scripts = [ os.path.join('scripts',f) for f in scripts ]
@@ -67,20 +69,28 @@ def get_compiler(cc):
     else:
         return 'unknown'
 
+# This was supposed to remove the -Wstrict-prototypes flag
+# But it doesn't work....
+# Hopefully they'll fix this bug soon:
+#  http://bugs.python.org/issue9031
+#  http://bugs.python.org/issue1222585
+#(opt,) = get_config_vars('OPT')
+#os.environ['OPT'] = " ".join( flag for flag in opt.split() if flag != '-Wstrict-prototypes')
+
 # Make a subclass of build_ext so we can do different things depending on which compiler we have.
 # In particular, we want to use different compiler options for OpenMP in each case.
 # cf. http://stackoverflow.com/questions/724664/python-distutils-how-to-get-a-compiler-that-is-going-to-be-used
 class my_builder( build_ext ):
     def build_extensions(self):
         cc = self.compiler.executables['compiler_cxx'][0]
-        comp = get_compiler(cc)
-        print 'Using compiler %s, which is %s'%(cc,comp)
-        if copt.has_key(comp):
+        comp_type = get_compiler(cc)
+        print 'Using compiler %s, which is %s'%(cc,comp_type)
+        if copt.has_key(comp_type):
            for e in self.extensions:
-               e.extra_compile_args = copt[ comp ]
-        if lopt.has_key(comp):
+               e.extra_compile_args = copt[ comp_type ]
+        if lopt.has_key(comp_type):
             for e in self.extensions:
-                e.extra_link_args = lopt[ comp ]
+                e.extra_link_args = lopt[ comp_type ]
         build_ext.build_extensions(self)
 
 ext=Extension("treecorr._treecorr",

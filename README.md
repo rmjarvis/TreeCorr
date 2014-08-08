@@ -41,7 +41,7 @@ The installation is very simple:
    so you should not need to worry about these.  But if you are interested,
    the dependencies are:
 
-   - numpy: version >= 1.6.
+   - numpy
    - fitsio: TreeCorr can use either fitsio or pyfits (now part of astropy),
      so it will only install fitsio if none of these are present on your
      system.

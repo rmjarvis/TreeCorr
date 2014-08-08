@@ -192,7 +192,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         that uses random points for the foreground objects.
 
         If rk is None, the simple correlation function <kappa> is returned.
-        If rk is not None, then a compensated calculation is done: <kappa> = (nk - rk)
+        If rk is not None, then a compensated calculation is done: <kappa> = (dk - rk)
 
         returns a tuple (xi, varxi)
         """
@@ -206,7 +206,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         """Write the correlation function to the file, file_name.
 
         If rk is None, the simple correlation function <kappa>(R) is used.
-        If rk is not None, then a compensated calculation is done: <kappa>(R) = (nk - rk)
+        If rk is not None, then a compensated calculation is done: <kappa>(R) = (dk - rk)
         """
         self.logger.info('Writing NK correlations to %s',file_name)
 

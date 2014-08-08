@@ -56,6 +56,8 @@ def get_compiler(cc):
         return 'clang'
     elif 'gcc' in lines[0]:
         return 'gcc'
+    elif 'GCC' in lines[0]:
+        return 'gcc'
     elif 'clang' in cc:
         return 'clang'
     elif 'gcc' in cc or 'g++' in cc:

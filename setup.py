@@ -100,7 +100,7 @@ ext=Extension("treecorr._treecorr",
               sources,
               undef_macros = undef_macros)
 
-dependencies = ['numpy>=1.6']
+dependencies = ['numpy']
 if py_version < '2.7':
     dependencies += ['argparse']
 else:

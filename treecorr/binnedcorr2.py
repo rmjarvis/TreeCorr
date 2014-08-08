@@ -158,16 +158,18 @@ class BinnedCorr2(object):
 
         prec = self.config.get('precision',3)
         width = prec+8
-        header_form = "{:^%d}"%(width-1) + (ncol-1)*(".{:^%d}"%width)
+        header_form = "{0:^%d}"%(width-1)
+        for i in range(1,ncol):
+            header_form += ".{%d:^%d}"%(i,width)
         header = header_form.format(*headers)
         fmt = '%%%d.%de'%(width,prec)
         try:
             numpy.savetxt(file_name, data, fmt=fmt, header=header)
-        except AttributeError:
+        except (AttributeError, TypeError):
             # header was added with version 1.7, so do it by hand if not available.
             fid = open(file_name, 'w') 
-            fid.write(header)
-            savetxt(fid, data, fmt=fmt) 
+            fid.write('#' + header)
+            numpy.savetxt(fid, data, fmt=fmt) 
             fid.close() 
 
 

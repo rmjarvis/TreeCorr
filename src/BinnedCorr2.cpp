@@ -52,7 +52,7 @@ void BinnedCorr2<DC1,DC2>::clear()
     _xi.clear(_nbins);
     for (int i=0; i<_nbins; ++i) {
         _meanlogr[i] = 0.;
-        _weight[i] = 0.;
+        if (_weight) _weight[i] = 0.;
         _npairs[i] = 0.;
     }
 }
@@ -612,7 +612,7 @@ void BinnedCorr2<DC1,DC2>::operator=(const BinnedCorr2<DC1,DC2>& rhs)
     Assert(rhs._nbins == _nbins);
     _xi.copy(rhs._xi,_nbins);
     for (int i=0; i<_nbins; ++i) _meanlogr[i] = rhs._meanlogr[i];
-    for (int i=0; i<_nbins; ++i) _weight[i] = rhs._weight[i];
+    if (_weight) for (int i=0; i<_nbins; ++i) _weight[i] = rhs._weight[i];
     for (int i=0; i<_nbins; ++i) _npairs[i] = rhs._npairs[i];
 }
 
@@ -622,7 +622,7 @@ void BinnedCorr2<DC1,DC2>::operator+=(const BinnedCorr2<DC1,DC2>& rhs)
     Assert(rhs._nbins == _nbins);
     _xi.add(rhs._xi,_nbins);
     for (int i=0; i<_nbins; ++i) _meanlogr[i] = rhs._meanlogr[i];
-    for (int i=0; i<_nbins; ++i) _weight[i] = rhs._weight[i];
+    if (_weight) for (int i=0; i<_nbins; ++i) _weight[i] = rhs._weight[i];
     for (int i=0; i<_nbins; ++i) _npairs[i] = rhs._npairs[i];
 }
 

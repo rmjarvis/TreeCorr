@@ -8,69 +8,7 @@
 #include "Field.h"
 
 template <int DC1, int DC2>
-struct XiData // This works for NK, KK
-{
-    XiData(double* xi0, double*, double*, double*) : xi(xi0) {}
-    void Copy(const XiData<DC1,DC2>& rhs,int n) 
-    { for (int i=0; i<n; ++i) xi[i] = rhs.xi[i]; }
-    void Add(const XiData<DC1,DC2>& rhs,int n) 
-    { for (int i=0; i<n; ++i) xi[i] += rhs.xi[i]; }
-
-    double* xi;
-};
-
-template <int DC1>
-struct XiData<DC1, GData> // This works for NG, KG
-{
-    XiData(double* xi0, double* xi1, double*, double*) : xi(xi0), xi_im(xi1) {}
-    void Copy(const XiData<DC1,GData>& rhs,int n) 
-    { 
-        for (int i=0; i<n; ++i) xi[i] = rhs.xi[i]; 
-        for (int i=0; i<n; ++i) xi_im[i] = rhs.xi_im[i]; 
-    }
-    void Add(const XiData<DC1,GData>& rhs,int n) 
-    {
-        for (int i=0; i<n; ++i) xi[i] += rhs.xi[i]; 
-        for (int i=0; i<n; ++i) xi_im[i] += rhs.xi_im[i]; 
-    }
-
-    double* xi;
-    double* xi_im;
-};
-
-template <>
-struct XiData<GData, GData>
-{
-    XiData(double* xi0, double* xi1, double* xi2, double* xi3) :
-        xip(xi0), xip_im(xi1), xim(xi2), xim_im(xi3) {}
-    void Copy(const XiData<GData,GData>& rhs,int n) 
-    { 
-        for (int i=0; i<n; ++i) xip[i] = rhs.xip[i]; 
-        for (int i=0; i<n; ++i) xip_im[i] = rhs.xip_im[i]; 
-        for (int i=0; i<n; ++i) xim[i] = rhs.xim[i]; 
-        for (int i=0; i<n; ++i) xim_im[i] = rhs.xim_im[i]; 
-    }
-    void Add(const XiData<GData,GData>& rhs,int n) 
-    {
-        for (int i=0; i<n; ++i) xip[i] += rhs.xip[i]; 
-        for (int i=0; i<n; ++i) xip_im[i] += rhs.xip_im[i]; 
-        for (int i=0; i<n; ++i) xim[i] += rhs.xim[i]; 
-        for (int i=0; i<n; ++i) xim_im[i] += rhs.xim_im[i]; 
-    }
-    double* xip;
-    double* xip_im;
-    double* xim;
-    double* xim_im;
-};
-
-template <>
-struct XiData<NData, NData>
-{
-    XiData(double* , double* , double* , double* ) {}
-    void Copy(const XiData<NData,NData>& rhs,int n) {}
-    void Add(const XiData<NData,NData>& rhs,int n) {}
-};
-
+struct XiData;
 
 // BinnedCorr2 encapsulates a binned correlation function.
 template <int DC1, int DC2>
@@ -82,6 +20,8 @@ public:
     BinnedCorr2(double minsep, double maxsep, int nbins, double binsize, double b,
                 double* xi0, double* xi1, double* xi2, double* xi3,
                 double* meanlogr, double* weight, double* npairs);
+
+    void clear();  // Set all data to 0.
 
     template <int M>
     void process(const Field<DC1, M>& field, bool dots);
@@ -128,6 +68,90 @@ protected:
     double* _weight;
     double* _npairs;
 };
+
+template <int DC1, int DC2>
+struct XiData // This works for NK, KK
+{
+    XiData(double* xi0, double*, double*, double*) : xi(xi0) {}
+
+    void copy(const XiData<DC1,DC2>& rhs,int n) 
+    { for (int i=0; i<n; ++i) xi[i] = rhs.xi[i]; }
+    void add(const XiData<DC1,DC2>& rhs,int n) 
+    { for (int i=0; i<n; ++i) xi[i] += rhs.xi[i]; }
+    void clear(int n)
+    { for (int i=0; i<n; ++i) xi[i] = 0.; }
+
+    double* xi;
+};
+
+template <int DC1>
+struct XiData<DC1, GData> // This works for NG, KG
+{
+    XiData(double* xi0, double* xi1, double*, double*) : xi(xi0), xi_im(xi1) {}
+
+    void copy(const XiData<DC1,GData>& rhs,int n) 
+    { 
+        for (int i=0; i<n; ++i) xi[i] = rhs.xi[i]; 
+        for (int i=0; i<n; ++i) xi_im[i] = rhs.xi_im[i]; 
+    }
+    void add(const XiData<DC1,GData>& rhs,int n) 
+    {
+        for (int i=0; i<n; ++i) xi[i] += rhs.xi[i]; 
+        for (int i=0; i<n; ++i) xi_im[i] += rhs.xi_im[i]; 
+    }
+    void clear(int n)
+    { 
+        for (int i=0; i<n; ++i) xi[i] = 0.;
+        for (int i=0; i<n; ++i) xi_im[i] = 0.;
+    }
+
+    double* xi;
+    double* xi_im;
+};
+
+template <>
+struct XiData<GData, GData>
+{
+    XiData(double* xi0, double* xi1, double* xi2, double* xi3) :
+        xip(xi0), xip_im(xi1), xim(xi2), xim_im(xi3) {}
+
+    void copy(const XiData<GData,GData>& rhs,int n) 
+    { 
+        for (int i=0; i<n; ++i) xip[i] = rhs.xip[i]; 
+        for (int i=0; i<n; ++i) xip_im[i] = rhs.xip_im[i]; 
+        for (int i=0; i<n; ++i) xim[i] = rhs.xim[i]; 
+        for (int i=0; i<n; ++i) xim_im[i] = rhs.xim_im[i]; 
+    }
+    void add(const XiData<GData,GData>& rhs,int n) 
+    {
+        for (int i=0; i<n; ++i) xip[i] += rhs.xip[i]; 
+        for (int i=0; i<n; ++i) xip_im[i] += rhs.xip_im[i]; 
+        for (int i=0; i<n; ++i) xim[i] += rhs.xim[i]; 
+        for (int i=0; i<n; ++i) xim_im[i] += rhs.xim_im[i]; 
+    }
+    void clear(int n)
+    { 
+        for (int i=0; i<n; ++i) xip[i] = 0.;
+        for (int i=0; i<n; ++i) xip_im[i] = 0.;
+        for (int i=0; i<n; ++i) xim[i] = 0.;
+        for (int i=0; i<n; ++i) xim_im[i] = 0.;
+    }
+
+    double* xip;
+    double* xip_im;
+    double* xim;
+    double* xim_im;
+};
+
+template <>
+struct XiData<NData, NData>
+{
+    XiData(double* , double* , double* , double* ) {}
+    void copy(const XiData<NData,NData>& rhs,int n) {}
+    void add(const XiData<NData,NData>& rhs,int n) {}
+    void clear(int n) {}
+};
+
 
 // The C interface for python
 extern "C" {

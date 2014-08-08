@@ -10,7 +10,7 @@ except ImportError:
     from distutils.command.build_ext import build_ext
     from distutils.sysconfig import get_config_vars
 
-py_version = "%d.%d"%(sys.version_info.major, sys.version_info.minor)
+py_version = "%d.%d"%sys.version_info[0:2]
 print 'Python version = ',py_version
 
 scripts = ['corr2']

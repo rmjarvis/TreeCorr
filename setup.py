@@ -10,6 +10,9 @@ except ImportError:
     from distutils.command.build_ext import build_ext
     from distutils.sysconfig import get_config_vars
 
+py_version = "%d.%d"%(sys.version_info.major, sys.version_info.minor)
+print 'Python version = ',py_version
+
 scripts = ['corr2']
 scripts = [ os.path.join('scripts',f) for f in scripts ]
 
@@ -97,6 +100,10 @@ ext=Extension("treecorr._treecorr",
               sources,
               undef_macros = undef_macros)
 
+dependencies = ['numpy']
+if py_version < '2.7':
+    dependencies += ['argparse']
+
 setup(name="TreeCorr", 
       version="3.0",
       description="Python module for computing 2-point correlation functions",
@@ -106,7 +113,7 @@ setup(name="TreeCorr",
       url="https://github.com/rmjarvis/TreeCorr",
       packages=['treecorr'],
       ext_modules=[ext],
-      install_requires=['numpy'],
+      install_requires=dependencies,
       cmdclass = {'build_ext': my_builder },
       scripts=scripts)
 

@@ -206,7 +206,6 @@ void BinnedCorr2<DC1,DC2>::processPairwise(
                 bc2.directProcess11(c1,c2,dsq);
             }
         }
-        if (dots) std::cout<<std::endl;
 #ifdef _OPENMP
         // Accumulate the results
 #pragma omp critical
@@ -215,6 +214,7 @@ void BinnedCorr2<DC1,DC2>::processPairwise(
         }
     }
 #endif
+    if (dots) std::cout<<std::endl;
 }
 
 template <int DC1, int DC2> template <int M>

@@ -15,7 +15,7 @@
 #    this software without specific prior written permission.
 
 
-version = 3.0beta
+version = '3.0beta'
 
 from .config import read_config
 from .celestial import CelestialCoord, angle_units

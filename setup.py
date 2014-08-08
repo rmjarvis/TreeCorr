@@ -100,9 +100,21 @@ ext=Extension("treecorr._treecorr",
               sources,
               undef_macros = undef_macros)
 
-dependencies = ['numpy']
+dependencies = ['numpy>=1.6']
 if py_version < '2.7':
     dependencies += ['argparse']
+else:
+    dependencies += ['pandas']  # These seem to have conflicting numpy requirements, so don't
+                                # include pandas with argparse.
+
+# Make sure at least some fits package is present.
+try:
+    import astropy
+except ImportError:
+    try:
+        import pyfits
+    except ImportError:
+        dependencies += ['fitsio']
 
 setup(name="TreeCorr", 
       version="3.0",

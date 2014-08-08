@@ -35,20 +35,20 @@ Installation
 
 The installation is very simple:
 
-0. Prerequisites:
+0. Dependencies:
 
-   - The only real dependency is numpy, which should be automatically installed
-     by the setup.py script if you don't have it.
-   - If you want to read FITS catalogs, then you need at least one of the 
-     following packages:
-      - fitsio (https://github.com/esheldon/fitsio)
-      - pyfits (http://www.stsci.edu/institute/software_hardware/pyfits)
-      - astropy (http://www.astropy.org/)
-   - An optional package that speeds up reading ASCII input catalogs is 
-     pandas (http://pandas.pydata.org/), but if you don't have it, a slower
-     numpy function will be used instead.
+   All dependencies should be installed automatically for you by setup.py,
+   so you should not need to worry about these.  But if you are interested,
+   the dependencies are:
 
-1. Download the zip file of the current code from: 
+   - numpy: version >= 1.6.
+   - fitsio: TreeCorr can use either fitsio or pyfits (now part of astropy),
+     so it will only install fitsio if none of these are present on your
+     system.
+   - pandas: This package significantly speeds up the reading of ASCII
+     input catalogs over the numpy functions loadtxt or genfromtxt.
+
+1. Download the zip file of the current code from:
 
    https://github.com/rmjarvis/TreeCorr/archive/master.zip
 

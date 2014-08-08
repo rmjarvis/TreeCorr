@@ -328,7 +328,8 @@ class Catalog(object):
             data = data.as_matrix()
         except ImportError:
             self.logger.warn("Unable to import pandas..  Using numpy.genfromtxt instead.")
-            self.logger.warn("Installing pandas is recommended for increased speed.")
+            self.logger.warn("Installing pandas is recommended for increased speed when "+
+                             "reading ASCII catalogs.")
             data = numpy.genfromtxt(file_name, comments=comment_marker, delimiter=delimiter)
 
         self.logger.debug('read data from %s, num=%d',file_name,num)

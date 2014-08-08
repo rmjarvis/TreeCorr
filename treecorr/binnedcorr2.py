@@ -152,16 +152,23 @@ class BinnedCorr2(object):
             raise ValueError("headers and columns are not the same length.")
     
         ncol = len(headers)
-        output = numpy.empty( (self.nbins, ncol) )
+        data = numpy.empty( (self.nbins, ncol) )
         for i,col in enumerate(columns):
-            output[:,i] = col
+            data[:,i] = col
 
         prec = self.config.get('precision',3)
         width = prec+8
         header_form = "{:^%d}"%(width-1) + (ncol-1)*(".{:^%d}"%width)
         header = header_form.format(*headers)
         fmt = '%%%d.%de'%(width,prec)
-        numpy.savetxt(file_name, output, fmt=fmt, header=header)
+        try:
+            numpy.savetxt(file_name, data, fmt=fmt, header=header)
+        except AttributeError:
+            # header was added with version 1.7, so do it by hand if not available.
+            fid = open(file_name, 'w') 
+            fid.write(header)
+            savetxt(fid, data, fmt=fmt) 
+            fid.close() 
 
 
     def _process_all_auto(self, cat1):

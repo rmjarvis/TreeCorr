@@ -46,6 +46,17 @@ struct ProcessHelper<DC,DC,M>
     static void process2(BinnedCorr2<DC,DC>& b, const Cell<DC,M>& c12) { b.process2(c12); }
 };
 
+template <int DC1, int DC2>
+void BinnedCorr2<DC1,DC2>::clear()
+{
+    _xi.clear(_nbins);
+    for (int i=0; i<_nbins; ++i) {
+        _meanlogr[i] = 0.;
+        _weight[i] = 0.;
+        _npairs[i] = 0.;
+    }
+}
+
 template <int DC1, int DC2> template <int M>
 void BinnedCorr2<DC1,DC2>::process(const Field<DC1,M>& field, bool dots)
 {
@@ -60,7 +71,7 @@ void BinnedCorr2<DC1,DC2>::process(const Field<DC1,M>& field, bool dots)
     {
         // Give each thread their own copy of the data vector to fill in.
         BinnedCorr2<DC1,DC2> bc2(*this);
-        bc2.clearData();
+        bc2.clear();
 #else
         BinnedCorr2<DC1,DC2>& bc2 = *this;
 #endif
@@ -114,7 +125,7 @@ void BinnedCorr2<DC1,DC2>::process(const Field<DC1,M>& field1, const Field<DC2,M
     {
         // Give each thread their own copy of the data vector to fill in.
         BinnedCorr2<DC1,DC2> bc2(*this);
-        bc2.clearData();
+        bc2.clear();
 #else
         BinnedCorr2<DC1,DC2>& bc2 = *this;
 #endif
@@ -169,7 +180,7 @@ void BinnedCorr2<DC1,DC2>::processPairwise(
     {
         // Give each thread their own copy of the data vector to fill in.
         BinnedCorr2<DC1,DC2> bc2(*this);
-        bc2.clearData();
+        bc2.clear();
 #else
         BinnedCorr2<DC1,DC2>& bc2 = *this;
 #endif
@@ -599,7 +610,7 @@ template <int DC1, int DC2>
 void BinnedCorr2<DC1,DC2>::operator=(const BinnedCorr2<DC1,DC2>& rhs)
 {
     Assert(rhs._nbins == _nbins);
-    _xi.Copy(rhs._xi,_nbins);
+    _xi.copy(rhs._xi,_nbins);
     for (int i=0; i<_nbins; ++i) _meanlogr[i] = rhs._meanlogr[i];
     for (int i=0; i<_nbins; ++i) _weight[i] = rhs._weight[i];
     for (int i=0; i<_nbins; ++i) _npairs[i] = rhs._npairs[i];
@@ -609,7 +620,7 @@ template <int DC1, int DC2>
 void BinnedCorr2<DC1,DC2>::operator+=(const BinnedCorr2<DC1,DC2>& rhs)
 {
     Assert(rhs._nbins == _nbins);
-    _xi.Add(rhs._xi,_nbins);
+    _xi.add(rhs._xi,_nbins);
     for (int i=0; i<_nbins; ++i) _meanlogr[i] = rhs._meanlogr[i];
     for (int i=0; i<_nbins; ++i) _weight[i] = rhs._weight[i];
     for (int i=0; i<_nbins; ++i) _npairs[i] = rhs._npairs[i];
@@ -978,10 +989,7 @@ void ProcessPairwiseGGSphere(void* corr, void* field1, void* field2, int dots)
 int SetOMPThreads(int num_threads)
 {
 #ifdef _OPENMP
-    if (params.keyExists("num_threads")) {
-        int num_threads = params["num_threads"];
-        omp_set_num_threads(num_threads);
-    }
+    omp_set_num_threads(num_threads);
     return omp_get_max_threads();
 #else
     return 1;

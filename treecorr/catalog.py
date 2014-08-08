@@ -96,6 +96,7 @@ class Catalog(object):
             self.logger = treecorr.config.setup_logger(config.get('verbose',0),
                                                        config.get('log_file',None))
 
+
         # First style -- read from a file
         if file_name is not None:
             if config is None:
@@ -537,6 +538,9 @@ class Catalog(object):
                 self.flag = fits[flag_hdu].read_column(flag_col).astype(float)
                 self.logger.debug('read flag = %s',str(self.flag))
 
+            # Return here if this file is a random catalog
+            if is_rand: return
+
             # Read g1,g2
             if (g1_col != '0' or g2_col != '0') and isGColRequired(self.config,num):
                 g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
@@ -610,6 +614,9 @@ class Catalog(object):
                     raise AttributeError("flag_col is invalid for file %s"%file_name)
                 self.flag = hdu_list[flag_hdu].data.field(flag_col).astype(float)
                 self.logger.debug('read flag = %s',str(self.flag))
+
+            # Return here if this file is a random catalog
+            if is_rand: return
 
             # Read g1,g2
             if (g1_col != '0' or g2_col != '0') and isGColRequired(self.config,num):
@@ -743,22 +750,37 @@ class Catalog(object):
         return self.gsimplefield
 
 
-def read_catalogs(config, key, list_key, num, logger, is_rand=False):
+def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=None):
     """Read in a list of catalogs for the given key.
 
+    key should be the file_name parameter or similar key word.
+    list_key should be be corresponging file_list parameter, if appropriate.
+    At least one of key or list_key must be provided.  If both are provided, then only
+    one of these should be in the config dict.
+
+    If neither key nor list_key is found in the config dict, then a null list [] is returned.
+
     num indicates which key to use if any of the fields like x_col, flip_g1, etc. are lists.
+    The default is 0, which means to use the first item in the list if they are lists.
     """
-    if key in config:
+    if key is None and list_key is None:
+        raise AttributeError("Must provide either %s or %s."%(key,list_key))
+    if key is not None and key in config:
         if list_key in config:
             raise AttributeError("Cannot provide both %s and %s."%(key,list_key))
         file_names = config[key]
-    elif list_key in config:
+    elif list_key is not None and list_key in config:
         list_file = config[list_key]
         with open(list_file,'r') as fin:
             file_names = [ f.strip() for f in fin ]
     else:
         # If this key was required (i.e. file_name) then let the caller check this.
         return []
+    if is_rand is None:
+        if key is not None:
+            is_rand = 'rand' in key
+        else:
+            is_rand = 'rand' in list_key
     if not isinstance(file_names,list): file_names = [ file_names ]
     return [ Catalog(file_name, config, num, logger, is_rand) for file_name in file_names ]
 

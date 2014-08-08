@@ -78,7 +78,7 @@ class my_builder( build_ext ):
         if copt.has_key(comp):
            for e in self.extensions:
                e.extra_compile_args = copt[ comp ]
-        if lopt.has_key(cc):
+        if lopt.has_key(comp):
             for e in self.extensions:
                 e.extra_link_args = lopt[ comp ]
         build_ext.build_extensions(self)

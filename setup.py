@@ -1,8 +1,12 @@
 import sys
 import os
 import glob
-from distutils.core import setup, Extension
-from distutils.command.build_ext import build_ext
+try:
+    from setuptools import setup, Extension
+    from setuptools.command.build_ext import build_ext
+except ImportError:
+    from distutils.core import setup, Extension
+    from distutils.command.build_ext import build_ext
 
 scripts = ['corr2']
 scripts = [ os.path.join('scripts',f) for f in scripts ]

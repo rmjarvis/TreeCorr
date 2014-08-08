@@ -197,7 +197,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         that uses random points for the foreground objects.
 
         If rg is None, the simple correlation function <gamma_T> is returned.
-        If rg is not None, then a compensated calculation is done: <gamma_T> = (ng - rg)
+        If rg is not None, then a compensated calculation is done: <gamma_T> = (dg - rg)
 
         return (xi, xi_im, varxi)
         """
@@ -211,7 +211,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         """Write the correlation function to the file, file_name.
 
         If rg is None, the simple correlation function <gamma_T> is used.
-        If rg is not None, then a compensated calculation is done: <gamma_T> = (ng - rg)
+        If rg is not None, then a compensated calculation is done: <gamma_T> = (dg - rg)
         """
         self.logger.info('Writing NG correlations to %s',file_name)
     
@@ -298,7 +298,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
             [ numpy.exp(self.logr), nmap, nmx, numpy.sqrt(varnmap) ] )
 
 
-    def writeNorm(self, file_name, gg, nn, rr, nr=None, rg=None, m2_uform=None):
+    def writeNorm(self, file_name, gg, dd, rr, dr=None, rg=None, m2_uform=None):
         """Write the normalized aperture mass cross-correlation to the file, file_name.
 
         The combination <NMap>^2 / <Map^2> <N_ap^2> is related to r^2, the galaxy-mass
@@ -309,7 +309,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         cf. Hoekstra et al, 2002: http://adsabs.harvard.edu/abs/2002ApJ...577..604H
 
         if rg is provided, the compensated calculation will be used for NMap.
-        if nr is provided, the compensated calculation will be used for N^2.
+        if dr is provided, the compensated calculation will be used for N^2.
 
         See calculateNMap for an explanation of the m2_uform parameter.
         """
@@ -317,7 +317,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         nmap, nmx, varnmap = self.calculateNMap(rg=rg, m2_uform=m2_uform)
         mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq(m2_uform=m2_uform)
-        nsq, varnsq = nn.calculateNapSq(rr, nr=nr, m2_uform=m2_uform)
+        nsq, varnsq = dd.calculateNapSq(rr, dr=dr, m2_uform=m2_uform)
 
         nmnorm = nmap**2 / (nsq * mapsq)
         varnmnorm = nmnorm**2 * (4. * varnmap / nmap**2 + varnsq / nsq**2 + varmapsq / mapsq**2)

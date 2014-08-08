@@ -64,10 +64,10 @@ class N2Correlation(treecorr.BinnedCorr2):
         nn.process(cat1)        # For auto-correlation.
         nn.process(cat1,cat2)   # For cross-correlation.
         rr.process...           # Likewise for random-random correlations
-        nr.process...           # If desired, also do data-random correlations
-        rn.process...           # For cross-correlations, also do the reverse.
-        nn.write(file_name,rr,nr,rn)         # Write out to a file.
-        xi,varxi = nn.calculateXi(rr,nr,rn)  # Or get the calculated correlation function directly.
+        dr.process...           # If desired, also do data-random correlations
+        rd.process...           # For cross-correlations, also do the reverse.
+        nn.write(file_name,rr,dr,rd)         # Write out to a file.
+        xi,varxi = nn.calculateXi(rr,dr,rd)  # Or get the calculated correlation function directly.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
@@ -200,35 +200,35 @@ class N2Correlation(treecorr.BinnedCorr2):
         self.finalize()
 
 
-    def calculateXi(self, rr, nr=None, rn=None):
+    def calculateXi(self, rr, dr=None, rd=None):
         """Calculate the correlation function given another correlation function of random
         points using the same mask, and possibly cross correlations of the data and random.
 
         For a signal that involves a cross correlations, there should be two random
-        cross-correlations: data-random and random-data, given as nr and rn.
+        cross-correlations: data-random and random-data, given as dr and rd.
 
         rr is the N2Correlation function for random points.
-        If nr is None, the simple correlation function (nn/rr - 1) is used.
-        if nr is given and rn is None, then (nn - 2nr + rr)/rr is used.
-        If nr and rn are both given, then (nn - nr - rn + rr)/rr is used.
+        If dr is None, the simple correlation function (nn/rr - 1) is used.
+        if dr is given and rd is None, then (nn - 2dr + rr)/rr is used.
+        If dr and rd are both given, then (nn - dr - rd + rr)/rr is used.
 
         returns (xi, varxi)
         """
         # Each random npairs value needs to be rescaled by the ratio of total possible pairs.
         rrw = self.tot / rr.tot
-        if nr is None:
-            if rn is None:
+        if dr is None:
+            if rd is None:
                 xi = (self.npairs - rr.npairs * rrw)
             else:
-                rnw = self.tot / rn.tot
-                xi = (self.npairs - 2.*rn.npairs * rnw + rr.npairs * rrw)
+                rdw = self.tot / rd.tot
+                xi = (self.npairs - 2.*rd.npairs * rdw + rr.npairs * rrw)
         else:
-            nrw = self.tot / nr.tot
-            if rn is None:
-                xi = (self.npairs - 2.*nr.npairs * nrw + rr.npairs * rrw)
+            drw = self.tot / dr.tot
+            if rd is None:
+                xi = (self.npairs - 2.*dr.npairs * drw + rr.npairs * rrw)
             else:
-                rnw = self.tot / rn.tot
-                xi = (self.npairs - rn.npairs * rnw - nr.npairs * nrw + rr.npairs * rrw)
+                rdw = self.tot / rd.tot
+                xi = (self.npairs - rd.npairs * rdw - dr.npairs * drw + rr.npairs * rrw)
         if any(rr.npairs == 0):
             self.logger.warn("Warning: Some bins for the randoms had no pairs.")
             self.logger.warn("         Probably max_sep is larger than your field.")
@@ -243,33 +243,33 @@ class N2Correlation(treecorr.BinnedCorr2):
         return xi, varxi
 
 
-    def write(self, file_name, rr, nr=None, rn=None):
+    def write(self, file_name, rr, dr=None, rd=None):
         """Write the correlation function to the file, file_name.
 
         rr is the N2Correlation function for random points.
-        If nr is None, the simple correlation function (nn - rr)/rr is used.
-        if nr is given and rn is None, then (nn - 2nr + rr)/rr is used.
-        If nr and rn are both given, then (nn - nr - rn + rr)/rr is used.
+        If dr is None, the simple correlation function (nn - rr)/rr is used.
+        if dr is given and rd is None, then (nn - 2dr + rr)/rr is used.
+        If dr and rd are both given, then (nn - dr - rd + rr)/rr is used.
         """
         self.logger.info('Writing N2 correlations to %s',file_name)
         
-        xi, varxi = self.calculateXi(rr,nr,rn)
+        xi, varxi = self.calculateXi(rr,dr,rd)
 
-        headers = ['R_nom','<R>','xi','sigma_xi','NN','RR']
+        headers = ['R_nom','<R>','xi','sigma_xi','DD','RR']
         columns = [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
                     xi, numpy.sqrt(varxi),
                     self.npairs, rr.npairs * (self.tot/rr.tot) ]
 
-        if nr is not None or rn is not None:
-            if nr is None: nr = rn
-            if rn is None: rn = nr
-            headers += ['NR','RN']
-            columns += [ nr.npairs * (self.tot/nr.tot), rn.npairs * (self.tot/rn.tot) ]
+        if dr is not None or rd is not None:
+            if dr is None: dr = rd
+            if rd is None: rd = dr
+            headers += ['DR','RD']
+            columns += [ dr.npairs * (self.tot/dr.tot), rd.npairs * (self.tot/rd.tot) ]
 
         self.gen_write(file_name, headers, columns)
 
 
-    def calculateNapSq(self, rr, nr=None, rn=None, m2_uform=None):
+    def calculateNapSq(self, rr, dr=None, rd=None, m2_uform=None):
         """Calculate the correlary to the aperture mass statistics for counts.
 
         This is used by NGCorrelation.writeNorm.  See that function and also 
@@ -299,7 +299,7 @@ class N2Correlation(treecorr.BinnedCorr2):
                         120. + ssqa*(2320. + ssqa*(-754. + ssqa*(132. - 9.*ssqa))))
         Tp *= ssq
 
-        xi, varxi = self.calculateXi(rr,nr,rn)
+        xi, varxi = self.calculateXi(rr,dr,rd)
 
         # Now do the integral by taking the matrix products.
         # Note that dlogr = bin_size

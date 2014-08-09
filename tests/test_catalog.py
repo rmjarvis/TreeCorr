@@ -156,6 +156,49 @@ def test_ascii():
     numpy.testing.assert_almost_equal(cat7.w[flags >= 16], 0.)
 
  
-    
+def test_fits():
+    get_aardvark()
+
+    file_name = os.path.join('data','Aardvark.fit')
+    config = treecorr.read_config('Aardvark.params')
+
+    # Just test a few random particular values
+    cat1 = treecorr.Catalog(file_name, config)
+    numpy.testing.assert_equal(len(cat1.ra), 390935)
+    numpy.testing.assert_equal(cat1.nobj, 390935)
+    numpy.testing.assert_almost_equal(cat1.ra[0], 56.4195 * (pi/180.))
+    numpy.testing.assert_almost_equal(cat1.ra[390934], 78.4782 * (pi/180.))
+    numpy.testing.assert_almost_equal(cat1.dec[290333], 83.1579 * (pi/180.))
+    numpy.testing.assert_almost_equal(cat1.g1[46392], 0.0005066675)
+    numpy.testing.assert_almost_equal(cat1.g2[46392], -0.0001006742)
+    numpy.testing.assert_almost_equal(cat1.k[46392], -0.0008628797)
+
+    # The catalog doesn't have x, y, or w, but test that functionality as well.
+    del config['ra_col']
+    del config['dec_col']
+    config['x_col'] = 'RA'
+    config['y_col'] = 'DEC'
+    config['w_col'] = 'MU'
+    config['flag_col'] = 'INDEX'
+    config['ignore_flag'] = 64
+    cat2 = treecorr.Catalog(file_name, config)
+    numpy.testing.assert_almost_equal(cat2.x[390934], 78.4782 * (pi/180./3600.))
+    numpy.testing.assert_almost_equal(cat2.y[290333], 83.1579 * (pi/180./3600.))
+    numpy.testing.assert_almost_equal(cat2.w[46392], 0.)        # index = 1200379
+    numpy.testing.assert_almost_equal(cat2.w[46393], 0.9995946) # index = 1200386
+
+    # Test using a limited set of rows
+    config['first_row'] = 101
+    config['last_row'] = 50000
+    cat3 = treecorr.Catalog(file_name, config)
+    numpy.testing.assert_equal(len(cat3.x), 49900)
+    numpy.testing.assert_equal(cat3.nobj, sum(cat3.w != 0))
+    numpy.testing.assert_almost_equal(cat3.g1[46292], 0.0005066675)
+    numpy.testing.assert_almost_equal(cat3.g2[46292], -0.0001006742)
+    numpy.testing.assert_almost_equal(cat3.k[46292], -0.0008628797)
+
+
 if __name__ == '__main__':
     test_ascii()
+    test_fits()
+

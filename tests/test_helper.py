@@ -24,5 +24,7 @@ def get_aardvark():
     url = 'https://github.com/rmjarvis/TreeCorr/wiki/Aardvark.fit'
     if not os.path.isfile(file_name):
         import urllib
+        print 'downloading %s from %s...'%(file_name,url)
         urllib.urlretrieve(url,file_name)
+        print 'done.'
     

@@ -107,7 +107,7 @@ class NField(object):
         if logger is not None:
             self.logger = logger
         else:
-            self.logger = treecorr.config.setup_logger(config.get('verbose',0),
+            self.logger = treecorr.config.setup_logger(treecorr.config.get(config,'verbose',int,0),
                                                        config.get('log_file',None))
         self.logger.info('Building NField from cat %s',cat.file_name)
 
@@ -164,7 +164,7 @@ class KField(object):
         if logger is not None:
             self.logger = logger
         else:
-            self.logger = treecorr.config.setup_logger(config.get('verbose',0),
+            self.logger = treecorr.config.setup_logger(treecorr.config.get(config,'verbose',int,0),
                                                        config.get('log_file',None))
         self.logger.info('Building KField from cat %s',cat.file_name)
 
@@ -221,7 +221,7 @@ class GField(object):
         if logger is not None:
             self.logger = logger
         else:
-            self.logger = treecorr.config.setup_logger(config.get('verbose',0),
+            self.logger = treecorr.config.setup_logger(treecorr.config.get(config,'verbose',int,0),
                                                        config.get('log_file',None))
         self.logger.info('Building GField from cat %s',cat.file_name)
 
@@ -278,7 +278,7 @@ class NSimpleField(object):
         if logger is not None:
             self.logger = logger
         else:
-            self.logger = treecorr.config.setup_logger(config.get('verbose',0),
+            self.logger = treecorr.config.setup_logger(treecorr.config.get(config,'verbose',int,0),
                                                        config.get('log_file',None))
         self.logger.info('Building NSimpleField from cat %s',cat.file_name)
 
@@ -325,7 +325,7 @@ class KSimpleField(object):
         if logger is not None:
             self.logger = logger
         else:
-            self.logger = treecorr.config.setup_logger(config.get('verbose',0),
+            self.logger = treecorr.config.setup_logger(treecorr.config.get(config,'verbose',int,0),
                                                        config.get('log_file',None))
         self.logger.info('Building KSimpleField from cat %s',cat.file_name)
 
@@ -372,7 +372,7 @@ class GSimpleField(object):
         if logger is not None:
             self.logger = logger
         else:
-            self.logger = treecorr.config.setup_logger(config.get('verbose',0),
+            self.logger = treecorr.config.setup_logger(treecorr.config.get(config,'verbose',int,0),
                                                        config.get('log_file',None))
         self.logger.info('Building GSimpleField from cat %s',cat.file_name)
 

@@ -14,6 +14,7 @@
 #    contributors may be used to endorse or promote products derived from
 #    this software without specific prior written permission.
 
+import treecorr
 
 def parse_variable(config, v):
     if '=' not in v:
@@ -52,6 +53,13 @@ def parse_bool(value):
             return val
         except:
             raise ValueError("Unable to parse %s as a bool."%value)
+
+def parse_unit(value):
+    """Get the appropriate unit, allowing the value to merely start with one of the unit names.
+    """
+    for unit in treecorr.angle_units.keys():
+        if value.startswith(unit): return treecorr.angle_units[unit]
+    raise ValueError("Unable to parse %s as an angle unit"%value)
 
 
 def read_config(file_name):
@@ -168,6 +176,14 @@ def print_params(params):
         print
 
 
+def convert(value, value_type, key):
+    if value_type == str and 'unit' in key:
+        return parse_unit(value)
+    elif value_type == bool:
+        return parse_bool(value)
+    else:
+        return value_type(value)
+
 def get_from_list(config, key, num, value_type=str, default=None):
     """A helper function to get a key from config that is allowed to be a list
     """
@@ -176,13 +192,26 @@ def get_from_list(config, key, num, value_type=str, default=None):
         if isinstance(values, list):
             if num > len(values):
                 raise ValueError("Not enough values in list for %s"%key)
-            return value_type(values[num])
+            return convert(values[num],value_type,key)
         elif isinstance(values, str) and values[0] == '[' and values[-1] == ']':
             values = eval(values)
             if num > len(values):
                 raise ValueError("Not enough values in list for %s"%key)
-            return value_type(values[num])
+            return convert(values[num],value_type,key)
         else:
-            return value_type(values)
+            return convert(values,value_type,key)
+    elif default is not None:
+        return convert(default,value_type,key)
+    else:
+        return default
+
+def get(config, key, value_type=str, default=None):
+    """A helper function to get a key from config converting to a particular type
+    """
+    if key in config:
+        value = config[key]
+        return convert(value, value_type, key)
+    elif default is not None:
+        return convert(default,value_type,key)
     else:
         return default

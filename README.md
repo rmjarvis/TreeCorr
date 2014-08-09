@@ -121,7 +121,7 @@ The same functionality can be achieved from within Python using a Python dict
 for the configuration parameters:
 
     >>> import treecorr
-    >>> config = treecorr.config.read_config(config_file)
+    >>> config = treecorr.read_config(config_file)
     >>> config['file_name'] = file1.dat
     >>> config['g2_file_name'] = file1.out
     >>> treecorr.corr2(config)

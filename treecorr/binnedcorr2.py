@@ -166,10 +166,9 @@ class BinnedCorr2(object):
             numpy.savetxt(file_name, data, fmt=fmt, header=header)
         except (AttributeError, TypeError):
             # header was added with version 1.7, so do it by hand if not available.
-            fid = open(file_name, 'w') 
-            fid.write('#' + header)
-            numpy.savetxt(fid, data, fmt=fmt) 
-            fid.close() 
+            with open(file_name, 'w') as fid:
+                fid.write('#' + header + '\n')
+                numpy.savetxt(fid, data, fmt=fmt) 
 
 
     def _process_all_auto(self, cat1):

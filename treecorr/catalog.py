@@ -132,8 +132,8 @@ class Catalog(object):
                     raise AttributeError("y_units specified without specifying x_units")
                 x_units = treecorr.config.get_from_list(self.config,'x_units',num,str,'arcsec')
                 y_units = treecorr.config.get_from_list(self.config,'y_units',num,str,'arcsec')
-                self.x *= treecorr.angle_units[x_units]
-                self.y *= treecorr.angle_units[y_units]
+                self.x *= treecorr.get_unit(x_units)
+                self.y *= treecorr.get_unit(y_units)
             else:
                 if not self.config['ra_units']:
                     raise ValueError("ra_units is required when using ra, dec")
@@ -141,8 +141,8 @@ class Catalog(object):
                     raise ValueError("dec_units is required when using ra, dec")
                 ra_units = treecorr.config.get_from_list(self.config,'ra_units',num,str,'arcsec')
                 dec_units = treecorr.config.get_from_list(self.config,'dec_units',num,str,'arcsec')
-                self.ra *= treecorr.angle_units[ra_units]
-                self.dec *= treecorr.angle_units[dec_units]
+                self.ra *= treecorr.get_unit(ra_units)
+                self.dec *= treecorr.get_unit(dec_units)
 
             # Apply flips if requested
             flip_g1 = treecorr.config.get_from_list(self.config,'flip_g1',num,bool,False)
@@ -258,13 +258,13 @@ class Catalog(object):
             if self.config.get('project_ra',None) is not None:
                 if not self.config['ra_units']:
                     raise ValueError("ra_units is required when using project_ra")
-                ra_cen = self.config['project_ra']*treecorr.angle_units[self.config['ra_units']]
+                ra_cen = self.config['project_ra']*treecorr.get_unit(self.config['ra_units'])
             else:
                 ra_cen = ra.mean()
             if self.config.get('project_dec',None) is not None:
                 if not self.config['dec_units']:
                     raise ValueError("dec_units is required when using project_dec")
-                dec_cen = self.config['project_dec']*treecorr.angle_units[self.config['dec_units']]
+                dec_cen = self.config['project_dec']*treecorr.get_unit(self.config['dec_units'])
             else:
                 dec_cen = dec.mean()
 
@@ -532,7 +532,7 @@ class Catalog(object):
             if x_col != '0':
                 x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
                 y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
-                if x_col not in fits[x_hdu].columns.names:
+                if x_col not in fits[x_hdu].get_colnames():
                     raise AttributeError("x_col is invalid for file %s"%file_name)
                 if y_col not in fits[y_hdu].get_colnames():
                     raise AttributeError("y_col is invalid for file %s"%file_name)

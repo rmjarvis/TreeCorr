@@ -1,6 +1,4 @@
 
-verbose = 2
-
 # available from https://github.com/rmjarvis/TreeCorr/wiki/Aardvark.fit
 file_name = Aardvark.fit
 
@@ -11,6 +9,7 @@ dec_units = degrees
 
 g1_col = GAMMA1
 g2_col = GAMMA2
+k_col = KAPPA
 
 min_sep = 1
 max_sep = 400

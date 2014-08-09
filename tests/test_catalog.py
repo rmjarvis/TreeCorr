@@ -1,0 +1,161 @@
+# Copyright (c) 2003-2014 by Mike Jarvis
+#
+# TreeCorr is free software: redistribution and use in source and binary forms,
+# with or without modification, are permitted provided that the following
+# conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+#    list of conditions, and the disclaimer given in the accompanying LICENSE
+#    file.
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions, and the disclaimer given in the documentation
+#    and/or other materials provided with the distribution.
+# 3. Neither the name of the {organization} nor the names of its
+#    contributors may be used to endorse or promote products derived from
+#    this software without specific prior written permission.
+
+
+import numpy
+import treecorr
+import os
+from numpy import pi
+
+from test_helper import get_aardvark
+
+def test_ascii():
+
+    nobj = 5000
+    x = numpy.random.random_sample(nobj)
+    y = numpy.random.random_sample(nobj)
+    ra = numpy.random.random_sample(nobj)
+    dec = numpy.random.random_sample(nobj)
+    w = numpy.random.random_sample(nobj)
+    g1 = numpy.random.random_sample(nobj)
+    g2 = numpy.random.random_sample(nobj)
+    k = numpy.random.random_sample(nobj)
+
+    flags = numpy.zeros(nobj).astype(int)
+    for flag in [ 1, 2, 4, 8, 16 ]:
+        sub = numpy.random.random_sample(nobj) < 0.1
+        flags[sub] = numpy.bitwise_or(flags[sub], flag)
+
+    file_name = os.path.join('data','test.dat')
+    with open(file_name, 'w') as fid:
+        # These are intentionally in a different order from the order we parse them.
+        fid.write('# ra,dec,x,y,k,g1,g2,w,flag\n')
+        for i in range(nobj):
+            fid.write((('%.8f '*8)+'%d\n')%(ra[i],dec[i],x[i],y[i],k[i],g1[i],g2[i],w[i],flags[i]))
+
+    # Check basic input
+    config = {
+        'x_col' : 3,
+        'y_col' : 4,
+        'x_units' : 'rad',
+        'y_units' : 'rad',
+        'w_col' : 8,
+        'g1_col' : 6,
+        'g2_col' : 7,
+        'k_col' : 5,
+    }
+    cat1 = treecorr.Catalog(file_name, config)
+    numpy.testing.assert_almost_equal(cat1.x, x)
+    numpy.testing.assert_almost_equal(cat1.y, y)
+    numpy.testing.assert_almost_equal(cat1.w, w)
+    numpy.testing.assert_almost_equal(cat1.g1, g1)
+    numpy.testing.assert_almost_equal(cat1.g2, g2)
+
+    # Check flags
+    config['flag_col'] = 9
+    cat2 = treecorr.Catalog(file_name, config)
+    numpy.testing.assert_almost_equal(cat2.w[flags==0], w[flags==0])
+    numpy.testing.assert_almost_equal(cat2.w[flags!=0], 0.)
+
+    # Check ok_flag
+    config['ok_flag'] = 4
+    cat3 = treecorr.Catalog(file_name, config)
+    numpy.testing.assert_almost_equal(cat3.w[numpy.logical_or(flags==0, flags==4)], 
+                                      w[numpy.logical_or(flags==0, flags==4)])
+    numpy.testing.assert_almost_equal(cat3.w[numpy.logical_and(flags!=0, flags!=4)], 0.)
+
+    # Check ignore_flag
+    del config['ok_flag']
+    config['ignore_flag'] = 16
+    cat4 = treecorr.Catalog(file_name, config)
+    numpy.testing.assert_almost_equal(cat4.w[flags < 16], w[flags < 16])
+    numpy.testing.assert_almost_equal(cat4.w[flags >= 16], 0.)
+
+    # Check different units for x,y
+    config['x_units'] = 'arcsec'
+    config['y_units'] = 'arcsec'
+    cat5 = treecorr.Catalog(file_name, config)
+    numpy.testing.assert_almost_equal(cat5.x, x * (pi/180./3600.))
+    numpy.testing.assert_almost_equal(cat5.y, y * (pi/180./3600.))
+
+    config['x_units'] = 'arcmin'
+    config['y_units'] = 'arcmin'
+    cat5 = treecorr.Catalog(file_name, config)
+    numpy.testing.assert_almost_equal(cat5.x, x * (pi/180./60.))
+    numpy.testing.assert_almost_equal(cat5.y, y * (pi/180./60.))
+
+    config['x_units'] = 'deg'
+    config['y_units'] = 'deg'
+    cat5 = treecorr.Catalog(file_name, config)
+    numpy.testing.assert_almost_equal(cat5.x, x * (pi/180.))
+    numpy.testing.assert_almost_equal(cat5.y, y * (pi/180.))
+
+    del config['x_units']  # Default is arcsec
+    del config['y_units']
+    cat5 = treecorr.Catalog(file_name, config)
+    numpy.testing.assert_almost_equal(cat5.x, x * (pi/180./3600.))
+    numpy.testing.assert_almost_equal(cat5.y, y * (pi/180./3600.))
+
+    # Check ra,dec
+    del config['x_col']
+    del config['y_col']
+    config['ra_col'] = 1
+    config['dec_col'] = 2
+    config['ra_units'] = 'rad'
+    config['dec_units'] = 'rad'
+    cat6 = treecorr.Catalog(file_name, config)
+    numpy.testing.assert_almost_equal(cat6.ra, ra)
+    numpy.testing.assert_almost_equal(cat6.dec, dec)
+
+    config['ra_units'] = 'deg'
+    config['dec_units'] = 'deg'
+    cat6 = treecorr.Catalog(file_name, config)
+    numpy.testing.assert_almost_equal(cat6.ra, ra * (pi/180.))
+    numpy.testing.assert_almost_equal(cat6.dec, dec * (pi/180.))
+
+    config['ra_units'] = 'hour'
+    config['dec_units'] = 'deg'
+    cat6 = treecorr.Catalog(file_name, config)
+    numpy.testing.assert_almost_equal(cat6.ra, ra * (pi/12.))
+    numpy.testing.assert_almost_equal(cat6.dec, dec * (pi/180.))
+
+    # Check using a different delimiter, comment marker
+    csv_file_name = os.path.join('data','test.csv')
+    with open(csv_file_name, 'w') as fid:
+        # These are intentionally in a different order from the order we parse them.
+        fid.write('% This file uses commas for its delimiter')
+        fid.write('% And more than one header line.')
+        fid.write('% Plus some extra comment lines every so often.')
+        fid.write('% And we use a weird comment marker to boot.')
+        fid.write('% ra,dec,x,y,k,g1,g2,w,flag\n')
+        for i in range(nobj):
+            fid.write((('%.8f,'*8)+'%d\n')%(ra[i],dec[i],x[i],y[i],k[i],g1[i],g2[i],w[i],flags[i]))
+            if i%100 == 0:
+                fid.write('%%%% Line %d\n'%i)
+    config['delimiter'] = ','
+    config['comment_marker'] = '%'
+    cat7 = treecorr.Catalog(csv_file_name, config)
+    numpy.testing.assert_almost_equal(cat7.ra, ra * (pi/12.))
+    numpy.testing.assert_almost_equal(cat7.dec, dec * (pi/180.))
+    numpy.testing.assert_almost_equal(cat7.g1, g1)
+    numpy.testing.assert_almost_equal(cat7.g2, g2)
+    numpy.testing.assert_almost_equal(cat7.w[flags < 16], w[flags < 16])
+    numpy.testing.assert_almost_equal(cat7.w[flags >= 16], 0.)
+
+ 
+    
+if __name__ == '__main__':
+    test_ascii()

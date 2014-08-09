@@ -160,7 +160,7 @@ class Catalog(object):
                 # If we don't already have a weight column, make one with all values = 1.
                 if self.w is None:
                     self.w = numpy.ones_like(self.flag)
-                self.w[self.w.where(self.flag & ignore_flag)] = 0
+                self.w[(self.flag & ignore_flag)!=0] = 0
                 self.logger.debug('Applied flag: w => %s',str(self.w))
 
             # Update the data according to the specified first and last row
@@ -191,31 +191,6 @@ class Catalog(object):
             if self.g1 is not None: self.g1 = self.g1[start:end]
             if self.g2 is not None: self.g2 = self.g2[start:end]
 
-            # Project if requested
-            if self.config.get('project',False):
-                if self.ra is None:
-                    raise AttributeError("project is invalid without ra, dec")
-                self.logger.warn("Warning: You probably should not use the project option.")
-                self.logger.warn("It is mostly just for testing the accuracy of the sphererical")
-                self.logger.warn("geometry code.  But that is working well, so you should probably")
-                self.logger.warn("just let TreeCorr handle the spherical geometry for you, rather")
-                self.logger.warn("than project onto a tangent plane.")
-
-                if params['project_ra']:
-                    ra_cen = param['project_ra']*treecorr.angle_units[self.config['ra_units']]
-                else:
-                    ra_cen = ra.mean()
-                if params['project_dec']:
-                    dec_cen = param['project_dec']*treecorr.angle_units[self.config['dec_units']]
-                else:
-                    dec_cen = dec.mean()
-                
-                cen = CelestialCoord(ra_cen, dec_cen)
-                projection = self.config.get('projection','lambert')
-                self.x, self.y = cen.project_rad(self.ra, self.dec, projection)
-                self.ra = None
-                self.dec = None
-
         # Second style -- pass in the vectors directly
         else:
             if x is not None or y is not None:
@@ -227,7 +202,10 @@ class Catalog(object):
                 if ra is None or dec is None:
                     raise AttributeError("ra and dec must both be provided")
             self.file_name = ''
-            self.config = config  # May be None.
+            if config is None:
+                self.config = {}
+            else:
+                self.config = config
             self.x = x
             self.y = y
             self.ra = ra
@@ -267,6 +245,35 @@ class Catalog(object):
         self.checkForNaN(self.k,'k')
         self.checkForNaN(self.w,'w')
 
+        # Project if requested
+        if self.config.get('project',False):
+            if self.ra is None:
+                raise AttributeError("project is invalid without ra, dec")
+            self.logger.warn("Warning: You probably should not use the project option.")
+            self.logger.warn("It is mostly just for testing the accuracy of the sphererical")
+            self.logger.warn("geometry code.  But that is working well, so you should probably")
+            self.logger.warn("just let TreeCorr handle the spherical geometry for you, rather")
+            self.logger.warn("than project onto a tangent plane.")
+
+            if self.config.get('project_ra',None) is not None:
+                if not self.config['ra_units']:
+                    raise ValueError("ra_units is required when using project_ra")
+                ra_cen = self.config['project_ra']*treecorr.angle_units[self.config['ra_units']]
+            else:
+                ra_cen = ra.mean()
+            if self.config.get('project_dec',None) is not None:
+                if not self.config['dec_units']:
+                    raise ValueError("dec_units is required when using project_dec")
+                dec_cen = self.config['project_dec']*treecorr.angle_units[self.config['dec_units']]
+            else:
+                dec_cen = dec.mean()
+
+            cen = CelestialCoord(ra_cen, dec_cen)
+            projection = self.config.get('projection','lambert')
+            self.x, self.y = cen.project_rad(self.ra, self.dec, projection)
+            self.ra = None
+            self.dec = None
+
         # Calculate some summary parameters here that will typically be needed
         if self.w is not None:
             self.nobj = numpy.sum(self.w != 0)
@@ -303,7 +310,6 @@ class Catalog(object):
     def checkForNaN(self, col, col_str):
         if col is not None and any(numpy.isnan(col)):
             index = numpy.where(numpy.isnan(col))[0]
-            print 'index = ',index
             self.logger.warn("Warning: NaNs found in %s column.  Skipping rows %s.",
                              col_str,str(index.tolist()))
             if self.w is None:
@@ -311,7 +317,7 @@ class Catalog(object):
             self.w[index] = 0
 
 
-    def read_ascii(self, file_name, num, is_rand):
+    def read_ascii(self, file_name, num=0, is_rand=False):
         """Read the catalog from an ASCII file
         """
         import numpy
@@ -319,13 +325,23 @@ class Catalog(object):
         delimiter = self.config.get('delimiter',None)
         try:
             import pandas
+            # I want read_csv to ignore header lines that start with the comment marker, but
+            # there is currently a bug in read_csv that messing things up when we do this.
+            # cf. https://github.com/pydata/pandas/issues/4623
+            # For now, my workaround in to count how many lines start with the comment marker
+            # and skip them by hand.
+            skip = 0
+            with open(file_name, 'r') as fid:
+                for line in fid:
+                    if line.startswith(comment_marker): skip += 1
+                    else: break
             if delimiter is None:
-                data = pandas.read_csv(file_name, comment=comment_marker, header=None,
-                                       delim_whitespace=True)
+                data = pandas.read_csv(file_name, comment=comment_marker, delim_whitespace=True,
+                                       header=None, skiprows=skip)
             else:
-                data = pandas.read_csv(file_name, comment=comment_marker, header=None,
-                                       delimiter=delimiter)
-            data = data.as_matrix()
+                data = pandas.read_csv(file_name, comment=comment_marker, delimiter=delimiter,
+                                       header=None, skiprows=skip)
+            data = data.values
         except ImportError:
             self.logger.warn("Unable to import pandas..  Using numpy.genfromtxt instead.")
             self.logger.warn("Installing pandas is recommended for increased speed when "+
@@ -404,32 +420,41 @@ class Catalog(object):
         if flag_col != 0:
             if flag_col <= 0 or flag_col > ncols:
                 raise AttributeError("flag_col is invalid for file %s"%file_name)
-            self.flag = data[:,flag_col-1].astype(float)
+            self.flag = data[:,flag_col-1].astype(int)
             self.logger.debug('read flag = %s',str(self.flag))
 
         # Return here if this file is a random catalog
         if is_rand: return
 
         # Read g1,g2
-        if (g1_col != 0 or g2_col != 0) and isGColRequired(self.config,num):
-            if g1_col <= 0 or g1_col > ncols:
-                raise AttributeError("g1_col is missing or invalid for file %s"%file_name)
-            if g2_col <= 0 or g2_col > ncols:
-                raise AttributeError("g2_col is missing or invalid for file %s"%file_name)
-            self.g1 = data[:,g1_col-1].astype(float)
-            self.logger.debug('read g1 = %s',str(self.g1))
-            self.g2 = data[:,g2_col-1].astype(float)
-            self.logger.debug('read g2 = %s',str(self.g2))
+        if (g1_col != 0 or g2_col != 0):
+            if g1_col <= 0 or g1_col > ncols or g2_col <= 0 or g2_col > ncols:
+                if isGColRequired(self.config,num):
+                    raise AttributeError("g1_col, g2_col are invalid for file %s"%file_name)
+                else:
+                    self.logger.warn("Warning: skipping g1_col, g2_col for %s, num=%d",
+                                     file_name,num)
+                    self.logger.warn("because they are invalid, but unneeded.")
+            else:
+                self.g1 = data[:,g1_col-1].astype(float)
+                self.logger.debug('read g1 = %s',str(self.g1))
+                self.g2 = data[:,g2_col-1].astype(float)
+                self.logger.debug('read g2 = %s',str(self.g2))
 
         # Read k
-        if k_col != 0 and isKColRequired(self.config,num):
+        if k_col != 0:
             if k_col <= 0 or k_col > ncols:
-                raise AttributeError("k_col is invalid for file %s"%file_name)
-            self.k = data[:,k_col-1].astype(float)
-            self.logger.debug('read k = %s',str(self.k))
+                if isKColRequired(self.config,num):
+                    raise AttributeError("k_col is invalid for file %s"%file_name)
+                else:
+                    self.logger.warn("Warning: skipping k_col for %s, num=%d",file_name,num)
+                    self.logger.warn("because it is invalid, but unneeded.")
+            else:
+                self.k = data[:,k_col-1].astype(float)
+                self.logger.debug('read k = %s',str(self.k))
 
 
-    def read_fits(self, file_name, num, is_rand):
+    def read_fits(self, file_name, num=0, is_rand=False):
         """Read the catalog from a FITS file
         """
         # Get the column names
@@ -472,12 +497,16 @@ class Catalog(object):
         else:
             raise AttributeError("No valid position columns specified for file %s"%file_name)
 
-        # Check that g1,g2 cols are valid
-        if (g1_col != '0' or g2_col != '0') and isGColRequired(self.config,num):
-            if g1_col == '0':
-                raise AttributeError("g1_col is missing for file %s"%file_name)
-            if g2_col == '0':
-                raise AttributeError("g2_col is missing for file %s"%file_name)
+        # Check that g1,g2,k cols are valid
+        if g1_col == '0' and isGColRequired(self.config,num):
+            raise AttributeError("g1_col is missing for file %s"%file_name)
+        if g2_col == '0' and isGColRequired(self.config,num):
+            raise AttributeError("g2_col is missing for file %s"%file_name)
+        if k_col == '0' and isKColRequired(self.config,num):
+            raise AttributeError("k_col is missing for file %s"%file_name)
+
+        if (g1_col != '0' and g2_col == '0') or (g1_col == '0' and g2_col != '0'):
+            raise AttributeError("g1_col, g2_col are invalid for file %s"%file_name)
 
         # OK, now go ahead and read all the columns.
         try:
@@ -536,32 +565,42 @@ class Catalog(object):
                 flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
                 if flag_col not in fits[flag_hdu].get_colnames():
                     raise AttributeError("flag_col is invalid for file %s"%file_name)
-                self.flag = fits[flag_hdu].read_column(flag_col).astype(float)
+                self.flag = fits[flag_hdu].read_column(flag_col).astype(int)
                 self.logger.debug('read flag = %s',str(self.flag))
 
             # Return here if this file is a random catalog
             if is_rand: return
 
             # Read g1,g2
-            if (g1_col != '0' or g2_col != '0') and isGColRequired(self.config,num):
+            if g1_col != '0' and g2_col != '0':
                 g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
                 g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
-                if g1_col not in fits[g1_hdu].get_colnames():
-                    raise AttributeError("g1_col is invalid for file %s"%file_name)
-                if g2_col not in fits[g2_hdu].get_colnames():
-                    raise AttributeError("g2_col is invalid for file %s"%file_name)
-                self.g1 = fits[g1_hdu].read_column(g1_col).astype(float)
-                self.logger.debug('read g1 = %s',str(self.g1))
-                self.g2 = fits[g2_hdu].read_column(g2_col).astype(float)
-                self.logger.debug('read g2 = %s',str(self.g2))
+                if (g1_col not in fits[g1_hdu].get_colnames() or
+                    g2_col not in fits[g2_hdu].get_colnames()):
+                    if isGColRequired(self.config,num):
+                        raise AttributeError("g1_col, g2_col are invalid for file %s"%file_name)
+                    else:
+                        self.logger.warn("Warning: skipping g1_col, g2_col for %s, num=%d",
+                                        file_name,num)
+                        self.logger.warn("because they are invalid, but unneeded.")
+                else:
+                    self.g1 = fits[g1_hdu].read_column(g1_col).astype(float)
+                    self.logger.debug('read g1 = %s',str(self.g1))
+                    self.g2 = fits[g2_hdu].read_column(g2_col).astype(float)
+                    self.logger.debug('read g2 = %s',str(self.g2))
 
             # Read k
-            if k_col != '0' and isKColRequired(self.config,num):
+            if k_col != '0':
                 k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
                 if k_col not in fits[k_hdu].get_colnames():
-                    raise AttributeError("k_col is invalid for file %s"%file_name)
-                self.k = fits[k_hdu].read_column(k_col).astype(float)
-                self.logger.debug('read k = %s',str(self.k))
+                    if isKColRequired(self.config,num):
+                        raise AttributeError("k_col is invalid for file %s"%file_name)
+                    else:
+                        self.logger.warn("Warning: skipping k_col for %s, num=%d",file_name,num)
+                        self.logger.warn("because it is invalid, but unneeded.")
+                else:
+                    self.k = fits[k_hdu].read_column(k_col).astype(float)
+                    self.logger.debug('read k = %s',str(self.k))
 
  
     def read_pyfits(self, file_name, num, is_rand,
@@ -613,32 +652,42 @@ class Catalog(object):
                 flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
                 if flag_col not in hdu_list[flag_hdu].columns.names:
                     raise AttributeError("flag_col is invalid for file %s"%file_name)
-                self.flag = hdu_list[flag_hdu].data.field(flag_col).astype(float)
+                self.flag = hdu_list[flag_hdu].data.field(flag_col).astype(int)
                 self.logger.debug('read flag = %s',str(self.flag))
 
             # Return here if this file is a random catalog
             if is_rand: return
 
             # Read g1,g2
-            if (g1_col != '0' or g2_col != '0') and isGColRequired(self.config,num):
+            if g1_col != '0':
                 g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
                 g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
-                if g1_col not in hdu_list[g1_hdu].columns.names:
-                    raise AttributeError("g1_col is invalid for file %s"%file_name)
-                if g2_col not in hdu_list[g2_hdu].columns.names:
-                    raise AttributeError("g2_col is invalid for file %s"%file_name)
-                self.g1 = hdu_list[g1_hdu].data.field(g1_col).astype(float)
-                self.logger.debug('read g1 = %s',str(self.g1))
-                self.g2 = hdu_list[g2_hdu].data.field(g2_col).astype(float)
-                self.logger.debug('read g2 = %s',str(self.g2))
+                if (g1_col not in hdu_list[g1_hdu].columns.names or
+                    g2_col not in hdu_list[g2_hdu].columns.names):
+                    if isGColRequired(self.config,num):
+                        raise AttributeError("g1_col, g2_col are invalid for file %s"%file_name)
+                    else:
+                        self.logger.warn("Warning: skipping g1_col, g2_col for %s, num=%d",
+                                        file_name,num)
+                        self.logger.warn("because they are invalid, but unneeded.")
+                else:
+                    self.g1 = hdu_list[g1_hdu].data.field(g1_col).astype(float)
+                    self.logger.debug('read g1 = %s',str(self.g1))
+                    self.g2 = hdu_list[g2_hdu].data.field(g2_col).astype(float)
+                    self.logger.debug('read g2 = %s',str(self.g2))
 
             # Read k
-            if k_col != '0' and isKColRequired(self.config,num):
+            if k_col != '0':
                 k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
                 if k_col not in hdu_list[k_hdu].columns.names:
-                    raise AttributeError("k_col is invalid for file %s"%file_name)
-                self.k = hdu_list[k_hdu].data.field(k_col).astype(float)
-                self.logger.debug('read k = %s',str(self.k))
+                    if isKColRequired(self.config,num):
+                        raise AttributeError("k_col is invalid for file %s"%file_name)
+                    else:
+                        self.logger.warn("Warning: skipping k_col for %s, num=%d",file_name,num)
+                        self.logger.warn("because it is invalid, but unneeded.")
+                else:
+                    self.k = hdu_list[k_hdu].data.field(k_col).astype(float)
+                    self.logger.debug('read k = %s',str(self.k))
 
 
     def getNField(self, min_sep, max_sep, b, logger=None, config=None):

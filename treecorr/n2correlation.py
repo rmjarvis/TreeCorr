@@ -105,6 +105,7 @@ class N2Correlation(treecorr.BinnedCorr2):
             _treecorr.ProcessAutoNNSphere(self.corr, field.data, self.output_dots)
         else:
             _treecorr.ProcessAutoNNFlat(self.corr, field.data, self.output_dots)
+        self.tot += 0.5 * cat1.nobj**2
 
 
     def process_cross(self, cat1, cat2):
@@ -126,6 +127,7 @@ class N2Correlation(treecorr.BinnedCorr2):
             _treecorr.ProcessCrossNNSphere(self.corr, f1.data, f2.data, self.output_dots)
         else:
             _treecorr.ProcessCrossNNFlat(self.corr, f1.data, f2.data, self.output_dots)
+        self.tot += cat1.nobj*cat2.nobj
 
 
     def process_pairwise(self, cat1, cat2):
@@ -149,6 +151,7 @@ class N2Correlation(treecorr.BinnedCorr2):
             _treecorr.ProcessPairwiseNNSphere(self.corr, f1.data, f2.data, self.output_dots)
         else:
             _treecorr.ProcessPairwiseNNFlat(self.corr, f1.data, f2.data, self.output_dots)
+        self.tot += cat1.nobj
 
 
     def finalize(self):
@@ -215,6 +218,9 @@ class N2Correlation(treecorr.BinnedCorr2):
         returns (xi, varxi)
         """
         # Each random npairs value needs to be rescaled by the ratio of total possible pairs.
+        if rr.tot == 0:
+            raise RuntimeError("rr has tot=0.")
+
         rrw = self.tot / rr.tot
         if dr is None:
             if rd is None:
@@ -263,6 +269,10 @@ class N2Correlation(treecorr.BinnedCorr2):
         if dr is not None or rd is not None:
             if dr is None: dr = rd
             if rd is None: rd = dr
+            if dr.tot == 0:
+                raise RuntimeError("dr has tot=0.")
+            if rd.tot == 0:
+                raise RuntimeError("rd has tot=0.")
             headers += ['DR','RD']
             columns += [ dr.npairs * (self.tot/dr.tot), rd.npairs * (self.tot/rd.tot) ]
 

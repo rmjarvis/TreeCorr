@@ -1,12 +1,3 @@
 *.out
-*.g2
-*.m2
-*.k2
-*.n2
-*.ng
-*.nm
-*.norm
-*.nk
-*.kg
-*.png
+.png
 *.pyc

@@ -31,14 +31,6 @@ angle_units = {
     'rad' : 1.,
 }
 
-def get_unit(s):
-    """Get the appropriate unit for the string s, allowing the string to
-    merely start with one of the unit names.
-    """
-    for unit in angle_units.keys():
-        if s.startswith(unit): return angle_units[unit]
-    raise ValueError("Unable to parse %s as an angle unit"%s)
-
 class CelestialCoord(object):
     """This class defines a position on the celestial sphere, normally given by
     two angles, `ra` and `dec`.

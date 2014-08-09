@@ -3,35 +3,25 @@
 
 import math
 import matplotlib.pyplot as plt
+import numpy
 
 # Read truth file
-#truth = open('Aardvark.direct.dat')
-truth = open('Aardvark.bs0.out')
-truth_r = []
-truth_xip = []
-truth_xim = []
-
-for line in truth:
-    if line[0] == '#':
-        continue
-    cols = line.strip().split()
-    truth_r.append(float(cols[1]))
-    truth_xip.append(float(cols[2]))
-    truth_xim.append(float(cols[3]))
+if True:
+    truth = numpy.loadtxt('Aardvark.bs0.out')
+    truth_r = truth[:,1]
+    truth_xip = truth[:,2]
+    truth_xim = truth[:,3]
+else:
+    truth = numpy.loadtxt('Aardvark.direct.dat')
+    truth_r = truth[:,2]
+    truth_xip = truth[:,3]
+    truth_xim = truth[:,4]
 
 # Read my output file
-mine = open('Aardvark.out')
-my_r = []
-my_xip = []
-my_xim = []
-
-for line in mine:
-    if line[0] == '#':
-        continue
-    cols = line.strip().split()
-    my_r.append(float(cols[1]))
-    my_xip.append(float(cols[2]))
-    my_xim.append(float(cols[3]))
+mine = numpy.loadtxt('Aardvark.out')
+my_r = mine[:,1]
+my_xip = mine[:,2]
+my_xim = mine[:,3]
 
 #
 # Make the plot

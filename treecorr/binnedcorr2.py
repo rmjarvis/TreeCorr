@@ -71,17 +71,22 @@ class BinnedCorr2(object):
         self.config = config
 
         if logger is None:
-            self.logger = treecorr.config.setup_logger(self.config.get('verbose',0),
-                                                       self.config.get('log_file',None))
+            self.logger = treecorr.config.setup_logger(
+                    treecorr.config.get(self.config,'verbose',int,0),
+                    self.config.get('log_file',None))
         else:
             self.logger = logger
 
-        self.output_dots = self.config.get('output_dots',False)
+        if 'output_dots' in self.config:
+            self.output_dots = treecorr.config.get(self.config,'output_dots',bool)
+        elif 'verbose' in self.config:
+            self.output_dots = treecorr.config.get(self.config,'verbose',int) >= 2
+        else:
+            self.output_dots = False
 
         if 'x_col' not in self.config and 'sep_units' not in self.config:
             raise AttributeError("sep_units is required if not using x_col,y_col")
-        self.sep_units = self.config.get('sep_units','arcsec')
-        self.sep_units = treecorr.get_unit(self.sep_units)
+        self.sep_units = treecorr.config.get(self.config,'sep_units',str,'arcsec')
         self.log_sep_units = math.log(self.sep_units)
         if 'nbins' not in self.config:
             if 'max_sep' not in self.config:
@@ -90,37 +95,37 @@ class BinnedCorr2(object):
                 raise AttributeError("Missing required parameter min_sep")
             if 'bin_size' not in self.config:
                 raise AttributeError("Missing required parameter bin_size")
-            self.min_sep = self.config['min_sep'] * self.sep_units
-            self.max_sep = self.config['max_sep'] * self.sep_units
-            self.bin_size = self.config['bin_size']
+            self.min_sep = float(self.config['min_sep']) * self.sep_units
+            self.max_sep = float(self.config['max_sep']) * self.sep_units
+            self.bin_size = float(self.config['bin_size'])
             self.nbins = int(math.ceil(math.log(self.max_sep/self.min_sep)/self.bin_size))
         elif 'bin_size' not in self.config:
             if 'max_sep' not in self.config:
                 raise AttributeError("Missing required parameter max_sep")
             if 'min_sep' not in self.config:
                 raise AttributeError("Missing required parameter min_sep")
-            self.min_sep = self.config['min_sep'] * self.sep_units
-            self.max_sep = self.config['max_sep'] * self.sep_units
-            self.nbins = self.config['nbins']
+            self.min_sep = float(self.config['min_sep']) * self.sep_units
+            self.max_sep = float(self.config['max_sep']) * self.sep_units
+            self.nbins = int(self.config['nbins'])
             self.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
         elif 'max_sep' not in self.config:
             if 'min_sep' not in self.config:
                 raise AttributeError("Missing required parameter min_sep")
-            self.min_sep = self.config['min_sep'] * self.sep_units
-            self.nbins = self.config['nbins']
-            self.bin_size = self.config['bin_size']
+            self.min_sep = float(self.config['min_sep']) * self.sep_units
+            self.nbins = int(self.config['nbins'])
+            self.bin_size = float(self.config['bin_size'])
             self.max_sep = exp(self.nbins*self.bin_size)*self.min_sep
         else:
             if 'min_sep' in self.config:
                 raise AttributeError("Only 3 of min_sep, max_sep, bin_size, nbins are allowed.")
-            self.max_sep = self.config['max_sep'] * self.sep_units
-            self.nbins = self.config['nbins']
-            self.bin_size = self.config['bin_size']
+            self.max_sep = float(self.config['max_sep']) * self.sep_units
+            self.nbins = int(self.config['nbins'])
+            self.bin_size = float(self.config['bin_size'])
             self.min_sep = self.max_sep*exp(-self.nbins*self.bin_size)
         self.logger.info("nbins = %d, min,max sep = %e..%e radians, bin_size = %f",
                          self.nbins,self.min_sep,self.max_sep,self.bin_size)
 
-        self.bin_slop = self.config.get('bin_slop', 1.0)
+        self.bin_slop = treecorr.config.get(self.config,'bin_slop',float,1.0)
         self.b = self.bin_size * self.bin_slop
         # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
         self.logr = numpy.linspace(start=0, stop=self.nbins*self.bin_size, 
@@ -155,7 +160,7 @@ class BinnedCorr2(object):
         for i,col in enumerate(columns):
             data[:,i] = col
 
-        prec = self.config.get('precision',3)
+        prec = treecorr.config.get(self.config,'precision',int,3)
         width = prec+8
         header_form = "{0:^%d}"%(width-1)
         for i in range(1,ncol):
@@ -172,18 +177,18 @@ class BinnedCorr2(object):
 
 
     def _process_all_auto(self, cat1):
-        if self.config.get('do_auto_corr',False) or len(cat1) == 1:
+        if treecorr.config.get(self.config,'do_auto_corr',bool,False) or len(cat1) == 1:
             for c1 in cat1:
                 self.process_auto(c1)
 
-        if self.config.get('do_cross_corr',True):
+        if treecorr.config.get(self.config,'do_cross_corr',bool,True):
             for i,c1 in enumerate(cat1):
                 for c2 in cat1[i+1:]:
                     self.process_cross(c1,c2)
 
 
     def _process_all_cross(self, cat1, cat2):
-        if self.config.get('pairwise',False):
+        if treecorr.config.get(self.config,'pairwise',bool,False):
             if len(cat1) != len(cat2):
                 raise RuntimeError("Number of files for 1 and 2 must be equal for pairwise.")
             for c1,c2 in zip(cat1,cat2):

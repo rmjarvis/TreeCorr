@@ -90,21 +90,22 @@ class Catalog(object):
                  x=None, y=None, ra=None, dec=None, w=None, g1=None, g2=None, k=None):
 
         if config is None: config = {}
+        self.config = config
         if logger is not None:
             self.logger = logger
         else:
-            self.logger = treecorr.config.setup_logger(config.get('verbose',0),
-                                                       config.get('log_file',None))
+            self.logger = treecorr.config.setup_logger(
+                    treecorr.config.get(self.config,'verbose',int,0),
+                    self.config.get('log_file',None))
 
 
         # First style -- read from a file
         if file_name is not None:
-            if config is None:
+            if self.config is None:
                 raise AttributeError("config must be provided when file_name is provided.")
             if any([v is not None for v in [x,y,ra,dec,g1,g2,k,w]]):
                 raise AttributeError("Vectors may not be provided when file_name is provided.")
             self.file_name = file_name
-            self.config = config
             self.logger.info("Reading input file %s",self.file_name)
 
             # Figure out which file type the catalog is
@@ -132,17 +133,17 @@ class Catalog(object):
                     raise AttributeError("y_units specified without specifying x_units")
                 x_units = treecorr.config.get_from_list(self.config,'x_units',num,str,'arcsec')
                 y_units = treecorr.config.get_from_list(self.config,'y_units',num,str,'arcsec')
-                self.x *= treecorr.get_unit(x_units)
-                self.y *= treecorr.get_unit(y_units)
+                self.x *= x_units
+                self.y *= y_units
             else:
-                if not self.config['ra_units']:
+                if not self.config.get('ra_units',None):
                     raise ValueError("ra_units is required when using ra, dec")
-                if not self.config['dec_units']:
+                if not self.config.get('dec_units',None):
                     raise ValueError("dec_units is required when using ra, dec")
                 ra_units = treecorr.config.get_from_list(self.config,'ra_units',num,str,'arcsec')
                 dec_units = treecorr.config.get_from_list(self.config,'dec_units',num,str,'arcsec')
-                self.ra *= treecorr.get_unit(ra_units)
-                self.dec *= treecorr.get_unit(dec_units)
+                self.ra *= ra_units
+                self.dec *= dec_units
 
             # Apply flips if requested
             flip_g1 = treecorr.config.get_from_list(self.config,'flip_g1',num,bool,False)
@@ -202,10 +203,6 @@ class Catalog(object):
                 if ra is None or dec is None:
                     raise AttributeError("ra and dec must both be provided")
             self.file_name = ''
-            if config is None:
-                self.config = {}
-            else:
-                self.config = config
             self.x = x
             self.y = y
             self.ra = ra
@@ -246,7 +243,7 @@ class Catalog(object):
         self.checkForNaN(self.w,'w')
 
         # Project if requested
-        if self.config.get('project',False):
+        if treecorr.config.get(self.config,'project',bool,False):
             if self.ra is None:
                 raise AttributeError("project is invalid without ra, dec")
             self.logger.warn("Warning: You probably should not use the project option.")
@@ -256,15 +253,15 @@ class Catalog(object):
             self.logger.warn("than project onto a tangent plane.")
 
             if self.config.get('project_ra',None) is not None:
-                if not self.config['ra_units']:
+                if not self.config.get('ra_units',None):
                     raise ValueError("ra_units is required when using project_ra")
-                ra_cen = self.config['project_ra']*treecorr.get_unit(self.config['ra_units'])
+                ra_cen = self.config['project_ra']*treecorr.config.get(self.config,'ra_units',str)
             else:
                 ra_cen = ra.mean()
             if self.config.get('project_dec',None) is not None:
-                if not self.config['dec_units']:
+                if not self.config.get('dec_units',None):
                     raise ValueError("dec_units is required when using project_dec")
-                dec_cen = self.config['project_dec']*treecorr.get_unit(self.config['dec_units'])
+                dec_cen = self.config['project_dec']*treecorr.config.get(self.config,'dec_units',str)
             else:
                 dec_cen = dec.mean()
 

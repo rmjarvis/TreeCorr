@@ -63,6 +63,7 @@ def test_ascii():
     numpy.testing.assert_almost_equal(cat1.w, w)
     numpy.testing.assert_almost_equal(cat1.g1, g1)
     numpy.testing.assert_almost_equal(cat1.g2, g2)
+    numpy.testing.assert_almost_equal(cat1.k, k)
 
     # Check flags
     config['flag_col'] = 9
@@ -198,7 +199,35 @@ def test_fits():
     numpy.testing.assert_almost_equal(cat3.k[46292], -0.0008628797)
 
 
+def test_direct():
+
+    nobj = 5000
+    x = numpy.random.random_sample(nobj)
+    y = numpy.random.random_sample(nobj)
+    ra = numpy.random.random_sample(nobj)
+    dec = numpy.random.random_sample(nobj)
+    w = numpy.random.random_sample(nobj)
+    g1 = numpy.random.random_sample(nobj)
+    g2 = numpy.random.random_sample(nobj)
+    k = numpy.random.random_sample(nobj)
+
+    cat1 = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, k=k)
+    numpy.testing.assert_almost_equal(cat1.x, x)
+    numpy.testing.assert_almost_equal(cat1.y, y)
+    numpy.testing.assert_almost_equal(cat1.w, w)
+    numpy.testing.assert_almost_equal(cat1.g1, g1)
+    numpy.testing.assert_almost_equal(cat1.g2, g2)
+    numpy.testing.assert_almost_equal(cat1.k, k)
+
+    cat2 = treecorr.Catalog(ra=ra, dec=dec, w=w, g1=g1, g2=g2, k=k)
+    numpy.testing.assert_almost_equal(cat2.ra, ra)
+    numpy.testing.assert_almost_equal(cat2.ra, ra)
+    numpy.testing.assert_almost_equal(cat2.w, w)
+    numpy.testing.assert_almost_equal(cat2.g1, g1)
+    numpy.testing.assert_almost_equal(cat2.g2, g2)
+    numpy.testing.assert_almost_equal(cat2.k, k)
+
 if __name__ == '__main__':
     test_ascii()
     test_fits()
-
+    test_direct()

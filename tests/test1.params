@@ -24,14 +24,14 @@ nbins = 50
 #bin_size = 0.10
 sep_units = deg
 
-g2_file_name = test1.g2
-m2_file_name = test1.m2
-n2_file_name = test1.n2
-ng_file_name = test1.ng
-nm_file_name = test1.nm
-norm_file_name = test1.norm
-k2_file_name = test1.k2
-nk_file_name = test1.nk
-kg_file_name = test1.kg
+g2_file_name = output/test1.g2
+m2_file_name = output/test1.m2
+n2_file_name = output/test1.n2
+ng_file_name = output/test1.ng
+nm_file_name = output/test1.nm
+norm_file_name = output/test1.norm
+k2_file_name = output/test1.k2
+nk_file_name = output/test1.nk
+kg_file_name = output/test1.kg
 
 

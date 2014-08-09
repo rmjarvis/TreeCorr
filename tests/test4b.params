@@ -23,8 +23,8 @@ max_sep = 10.
 bin_size = 0.10
 sep_units = deg
 
-ng_file_name = test4b.ng
-kg_file_name = test4b.kg
-nk_file_name = test4b.nk
+ng_file_name = output/test4b.ng
+kg_file_name = output/test4b.kg
+nk_file_name = output/test4b.nk
 
 

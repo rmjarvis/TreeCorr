@@ -162,7 +162,6 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.meanlogr[:] = 0
         self.weight[:] = 0
         self.npairs[:] = 0
-        self.tot = 0
 
 
     def process(self, cat1, cat2):

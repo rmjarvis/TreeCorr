@@ -136,7 +136,6 @@ class BinnedCorr2(object):
         self.varxi = numpy.zeros( (self.nbins, ) )
         self.weight = numpy.zeros( (self.nbins, ) )
         self.npairs = numpy.zeros( (self.nbins, ) )
-        self.tot = 0
 
 
     def gen_write(self, file_name, headers, columns):
@@ -177,13 +176,11 @@ class BinnedCorr2(object):
         if self.config.get('do_auto_corr',False) or len(cat1) == 1:
             for c1 in cat1:
                 self.process_auto(c1)
-                self.tot += 0.5*c1.nobj**2
 
         if self.config.get('do_cross_corr',True):
             for i,c1 in enumerate(cat1):
                 for c2 in cat1[i+1:]:
                     self.process_cross(c1,c2)
-                    self.tot += c1.nobj*c2.nobj
 
 
     def _process_all_cross(self, cat1, cat2):
@@ -194,10 +191,8 @@ class BinnedCorr2(object):
                 if c1.nobj != c2.nobj:
                     raise RuntimeError("Number of objects must be equal for pairwise.")
                 self.process_pairwise(c1,c2)
-                self.tot += c1.nobj
         else:
             for c1 in cat1:
                 for c2 in cat2:
                     self.process_cross(c1,c2)
-                    self.tot += c1.nobj*c2.nobj
  

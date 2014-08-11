@@ -48,27 +48,27 @@ def test_g2():
     g2 = -A * numpy.exp(-r2/2.) * (2.*x*y)/s**2
 
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
-    g2 = treecorr.G2Correlation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
+    gg = treecorr.G2Correlation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
                                 verbose=2)
-    g2.process(cat)
-    r = numpy.exp(g2.meanlogr) * treecorr.angle_units['arcmin']
+    gg.process(cat)
+    r = numpy.exp(gg.meanlogr) * treecorr.angle_units['arcmin']
     temp = numpy.pi/16. * A**2 * (s/L)**2 * numpy.exp(-0.25*r**2/s**2)
     true_xip = temp * (r**4 - 16.*r**2*s**2 + 32.*s**4)/s**4
     true_xim = temp * r**4/s**4
 
-    print 'g2.xim = ',g2.xim
+    print 'gg.xim = ',gg.xim
     print 'true_xim = ',true_xim
-    print 'ratio = ',g2.xim / true_xim
-    print 'diff = ',g2.xim - true_xim
-    print 'max diff = ',max(g2.xim - true_xim)
-    assert max(g2.xim - true_xim) < 3.e-7
+    print 'ratio = ',gg.xim / true_xim
+    print 'diff = ',gg.xim - true_xim
+    print 'max diff = ',max(abs(gg.xim - true_xim))
+    assert max(abs(gg.xim - true_xim)) < 3.e-7
 
-    print 'g2.xip = ',g2.xip
+    print 'gg.xip = ',gg.xip
     print 'true_xip = ',true_xip
-    print 'ratio = ',g2.xip / true_xip
-    print 'diff = ',g2.xip - true_xip
-    print 'max diff = ',max(g2.xip - true_xip)
-    assert max(g2.xip - true_xip) < 3.e-7
+    print 'ratio = ',gg.xip / true_xip
+    print 'diff = ',gg.xip - true_xip
+    print 'max diff = ',max(abs(gg.xip - true_xip))
+    assert max(abs(gg.xip - true_xip)) < 3.e-7
 
 
 def test_aardvark():
@@ -93,13 +93,13 @@ def test_aardvark():
 
     xip_err = gg.xip - direct_xip
     print 'xip_err = ',xip_err
-    print 'max = ',max(xip_err)
-    assert max(xip_err) < 2.e-7
+    print 'max = ',max(abs(xip_err))
+    assert max(abs(xip_err)) < 2.e-7
 
     xim_err = gg.xim - direct_xim
     print 'xim_err = ',xim_err
-    print 'max = ',max(xim_err)
-    assert max(xim_err) < 1.e-7
+    print 'max = ',max(abs(xim_err))
+    assert max(abs(xim_err)) < 1.e-7
 
     # However, after some back and forth about the calculation, we concluded that Eric hadn't
     # done the spherical trig correctly to get the shears relative to the great circle joining
@@ -118,13 +118,13 @@ def test_aardvark():
 
     xip_err = gg.xip - bs0_xip
     print 'xip_err = ',xip_err
-    print 'max = ',max(xip_err)
-    assert max(xip_err) < 1.e-7
+    print 'max = ',max(abs(xip_err))
+    assert max(abs(xip_err)) < 1.e-7
 
     xim_err = gg.xim - bs0_xim
     print 'xim_err = ',xim_err
-    print 'max = ',max(xim_err)
-    assert max(xim_err) < 5.e-8
+    print 'max = ',max(abs(xim_err))
+    assert max(abs(xim_err)) < 5.e-8
 
     # As bin_slop decreases, the agreement should get even better.
     if __name__ == '__main__':
@@ -138,15 +138,15 @@ def test_aardvark():
 
         xip_err = gg.xip - bs0_xip
         print 'xip_err = ',xip_err
-        print 'max = ',max(xip_err)
-        assert max(xip_err) < 1.e-8
+        print 'max = ',max(abs(xip_err))
+        assert max(abs(xip_err)) < 1.e-8
 
         xim_err = gg.xim - bs0_xim
         print 'xim_err = ',xim_err
-        print 'max = ',max(xim_err)
-        assert max(xim_err) < 1.e-8
+        print 'max = ',max(abs(xim_err))
+        assert max(abs(xim_err)) < 1.e-8
 
  
 if __name__ == '__main__':
     test_g2()
-    #test_aardvark()
+    test_aardvark()

@@ -25,6 +25,7 @@ from test_helper import get_aardvark
 def test_ascii():
 
     nobj = 5000
+    numpy.random.seed(8675309)
     x = numpy.random.random_sample(nobj)
     y = numpy.random.random_sample(nobj)
     ra = numpy.random.random_sample(nobj)
@@ -202,6 +203,7 @@ def test_fits():
 def test_direct():
 
     nobj = 5000
+    numpy.random.seed(8675309)
     x = numpy.random.random_sample(nobj)
     y = numpy.random.random_sample(nobj)
     ra = numpy.random.random_sample(nobj)

@@ -21,6 +21,56 @@ import os
 
 from test_helper import get_aardvark
 
+def test_g2():
+    # cf. http://adsabs.harvard.edu/abs/2002A%26A...389..729S for the basic formulae I use here.
+    #
+    # Use gamma_t(r) = A r^2/s^2 exp(-r^2/2s^2)
+    # i.e. gamma(r) = -A exp(-r^2/2s^2) (x+iy)^2 / s^2
+    #
+    # The Fourier transform is: gamma~(k) = -2 pi A s^4 k^2 exp(-s^2 k^2/2) / L^2
+    # P(k) = (1/2pi) <|kappa~(k)|^2> = 2 pi A^2 s^8 k^4 / L^4 exp(-s^2 k^2)
+    # xi+(r) = (1/2pi) int( dk k P(k) J0(kr) ) 
+    #        = pi/16 A^2 (s/L)^2 exp(-r^2/4s^2) (r^4 - 16r^2s^2 + 32s^4)/s^4
+    # xi-(r) = (1/2pi) int( dk k P(k) J4(kr) ) 
+    #        = pi/16 A^2 (s/L)^2 exp(-r^2/4s^2)
+    # Note: I'm not sure I handled the L factors correctly, but the units at the end need
+    # to be kappa^2, so it needs to be (s/L)^2. 
+
+    ngal = 1000000
+    A = 0.05
+    s = 10. * treecorr.angle_units['arcmin']
+    L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+    numpy.random.seed(8675309)
+    x = (numpy.random.random_sample(ngal)-0.5) * L
+    y = (numpy.random.random_sample(ngal)-0.5) * L
+    r2 = (x**2 + y**2)/s**2
+    g1 = -A * numpy.exp(-r2/2.) * (x**2-y**2)/s**2
+    g2 = -A * numpy.exp(-r2/2.) * (2.*x*y)/s**2
+
+    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
+    g2 = treecorr.G2Correlation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
+                                verbose=2)
+    g2.process(cat)
+    r = numpy.exp(g2.meanlogr) * treecorr.angle_units['arcmin']
+    temp = numpy.pi/16. * A**2 * (s/L)**2 * numpy.exp(-0.25*r**2/s**2)
+    true_xip = temp * (r**4 - 16.*r**2*s**2 + 32.*s**4)/s**4
+    true_xim = temp * r**4/s**4
+
+    print 'g2.xim = ',g2.xim
+    print 'true_xim = ',true_xim
+    print 'ratio = ',g2.xim / true_xim
+    print 'diff = ',g2.xim - true_xim
+    print 'max diff = ',max(g2.xim - true_xim)
+    assert max(g2.xim - true_xim) < 3.e-7
+
+    print 'g2.xip = ',g2.xip
+    print 'true_xip = ',true_xip
+    print 'ratio = ',g2.xip / true_xip
+    print 'diff = ',g2.xip - true_xip
+    print 'max diff = ',max(g2.xip - true_xip)
+    assert max(g2.xip - true_xip) < 3.e-7
+
+
 def test_aardvark():
 
     # Eric Suchyta did a brute force calculation of the Aardvark catalog, so it is useful to
@@ -98,4 +148,5 @@ def test_aardvark():
 
  
 if __name__ == '__main__':
-    test_aardvark()
+    test_g2()
+    #test_aardvark()

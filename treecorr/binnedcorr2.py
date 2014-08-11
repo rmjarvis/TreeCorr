@@ -64,10 +64,16 @@ class BinnedCorr2(object):
     def __init__(self, config=None, logger=None, **kwargs):
         import math
         import numpy
+        if config is None: config = {}
         if kwargs:
             import copy
-            config = copy.copy(config)
-            config.update(kwargs)
+            if config is not None:
+                config = copy.copy(config)
+                config.update(kwargs)
+            else: 
+                config = kwargs
+        if config is None:
+            config = {}
         self.config = config
 
         if logger is None:

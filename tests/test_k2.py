@@ -77,8 +77,8 @@ def test_k2():
     print 'true_xi = ',true_xi
     print 'ratio = ',k2.xi / true_xi
     print 'diff = ',k2.xi - true_xi
-    print 'max diff = ',max(k2.xi - true_xi)
-    assert max(k2.xi - true_xi) < 5.e-7
+    print 'max diff = ',max(abs(k2.xi - true_xi))
+    assert max(abs(k2.xi - true_xi)) < 5.e-7
 
 if __name__ == '__main__':
     test_constant()

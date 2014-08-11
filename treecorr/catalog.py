@@ -98,6 +98,16 @@ class Catalog(object):
                     treecorr.config.get(self.config,'verbose',int,0),
                     self.config.get('log_file',None))
 
+        # Start with everything set to None.  Overwrite as appropriate.
+        self.x = None
+        self.y = None
+        self.ra = None
+        self.dec = None
+        self.w = None
+        self.flag = None
+        self.g1 = None
+        self.g2 = None
+        self.k = None
 
         # First style -- read from a file
         if file_name is not None:
@@ -203,14 +213,14 @@ class Catalog(object):
                 if ra is None or dec is None:
                     raise AttributeError("ra and dec must both be provided")
             self.file_name = ''
-            self.x = x
-            self.y = y
-            self.ra = ra
-            self.dec = dec
-            self.w = w
-            self.g1 = g1
-            self.g2 = g2
-            self.k = k
+            if x is not None: self.x = numpy.array(x,dtype=float)
+            if y is not None: self.y = numpy.array(y,dtype=float)
+            if ra is not None: self.ra = numpy.array(ra,dtype=float)
+            if dec is not None: self.dec = numpy.array(dec,dtype=float)
+            if w is not None: self.w = numpy.array(w,dtype=float)
+            if g1 is not None: self.g1 = numpy.array(g1,dtype=float)
+            if g2 is not None: self.g2 = numpy.array(g2,dtype=float)
+            if k is not None: self.k = numpy.array(k,dtype=float)
 
         # Check that all columns have the same length:
         if self.x is not None: 
@@ -366,17 +376,6 @@ class Catalog(object):
         g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,int,0)
         k_col = treecorr.config.get_from_list(self.config,'k_col',num,int,0)
 
-        # Start with everything set to None.  Overwrite as appropriate.
-        self.x = None
-        self.y = None
-        self.ra = None
-        self.dec = None
-        self.w = None
-        self.flag = None
-        self.g1 = None
-        self.g2 = None
-        self.k = None
-
         # Read x,y or ra,dec
         if x_col != 0 or y_col != 0:
             if x_col <= 0 or x_col > ncols:
@@ -464,17 +463,6 @@ class Catalog(object):
         g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,str,'0')
         g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,str,'0')
         k_col = treecorr.config.get_from_list(self.config,'k_col',num,str,'0')
-
-        # Start with everything set to None.  Overwrite as appropriate.
-        self.x = None
-        self.y = None
-        self.ra = None
-        self.dec = None
-        self.w = None
-        self.flag = None
-        self.g1 = None
-        self.g2 = None
-        self.k = None
 
         # Check that position cols are valid:
         if x_col != '0' or y_col != '0':

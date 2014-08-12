@@ -57,6 +57,10 @@ class BinnedCorr2(object):
         max_sep - The maximum separation; the right edge of the last bin
 
     Any three of these may be provided.  The fourth number will be calculated from them.
+
+    Note that if bin_size, min_sep, and max_sep are specified, then the nominal number of
+    bins is not necessarily and integer.  In this case, nbins will be rounded up to the 
+    next higher integer, and max_sep will be updated to account for this.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         import math
@@ -102,6 +106,8 @@ class BinnedCorr2(object):
             self.max_sep = float(self.config['max_sep']) * self.sep_units
             self.bin_size = float(self.config['bin_size'])
             self.nbins = int(math.ceil(math.log(self.max_sep/self.min_sep)/self.bin_size))
+            # Update max_sep given this value of nbins
+            self.max_sep = math.exp(self.nbins*self.bin_size)*self.min_sep
         elif 'bin_size' not in self.config:
             if 'max_sep' not in self.config:
                 raise AttributeError("Missing required parameter max_sep")
@@ -117,14 +123,14 @@ class BinnedCorr2(object):
             self.min_sep = float(self.config['min_sep']) * self.sep_units
             self.nbins = int(self.config['nbins'])
             self.bin_size = float(self.config['bin_size'])
-            self.max_sep = exp(self.nbins*self.bin_size)*self.min_sep
+            self.max_sep = math.exp(self.nbins*self.bin_size)*self.min_sep
         else:
             if 'min_sep' in self.config:
                 raise AttributeError("Only 3 of min_sep, max_sep, bin_size, nbins are allowed.")
             self.max_sep = float(self.config['max_sep']) * self.sep_units
             self.nbins = int(self.config['nbins'])
             self.bin_size = float(self.config['bin_size'])
-            self.min_sep = self.max_sep*exp(-self.nbins*self.bin_size)
+            self.min_sep = self.max_sep*math.exp(-self.nbins*self.bin_size)
         self.logger.info("nbins = %d, min,max sep = %e..%e radians, bin_size = %f",
                          self.nbins,self.min_sep,self.max_sep,self.bin_size)
 

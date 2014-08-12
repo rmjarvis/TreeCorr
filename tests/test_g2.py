@@ -83,7 +83,7 @@ def test_aardvark():
     gg = treecorr.G2Correlation(config)
     gg.process(cat1)
 
-    direct_file_name = os.path.join('data','Aardvark.direct.dat')
+    direct_file_name = os.path.join('data','Aardvark.direct')
     direct_data = numpy.loadtxt(direct_file_name)
     direct_xip = direct_data[:,3]
     direct_xim = direct_data[:,4]

@@ -1,0 +1,136 @@
+# Copyright (c) 2003-2014 by Mike Jarvis
+#
+# TreeCorr is free software: redistribution and use in source and binary forms,
+# with or without modification, are permitted provided that the following
+# conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+#    list of conditions, and the disclaimer given in the accompanying LICENSE
+#    file.
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions, and the disclaimer given in the documentation
+#    and/or other materials provided with the distribution.
+
+import numpy
+import treecorr
+import os
+
+from test_helper import get_aardvark
+from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
+
+def test_single():
+    # Use kappa(r) = kappa0 exp(-r^2/2r0^2) (1-r^2/2r0^2) around a single lens
+
+    nsource = 1000000
+    kappa0 = 0.05
+    r0 = 10. * treecorr.angle_units['arcmin']
+    L = 5. * r0
+    numpy.random.seed(8675309)
+    x = (numpy.random.random_sample(nsource)-0.5) * L
+    y = (numpy.random.random_sample(nsource)-0.5) * L
+    r2 = (x**2 + y**2)
+    k = kappa0 * numpy.exp(-0.5*r2/r0**2) * (1.-0.5*r2/r0**2)
+
+    lens_cat = treecorr.Catalog(x=[0], y=[0])
+    source_cat = treecorr.Catalog(x=x, y=y, k=k)
+    nk = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+                                verbose=2)
+    nk.process(lens_cat, source_cat)
+
+    r = numpy.exp(nk.meanlogr) * treecorr.angle_units['arcmin']
+    true_k = kappa0 * numpy.exp(-0.5*r**2/r0**2) * (1.-0.5*r**2/r0**2)
+
+    print 'nk.xi = ',nk.xi
+    print 'true_kappa = ',true_k
+    print 'ratio = ',nk.xi / true_k
+    print 'diff = ',nk.xi - true_k
+    print 'max diff = ',max(abs(nk.xi - true_k))
+    assert max(abs(nk.xi - true_k)) < 4.e-4
+
+    # Check that we get the same result using the corr2 executable:
+    lens_cat.write(os.path.join('data','test_nk_single1.dat'))
+    source_cat.write(os.path.join('data','test_nk_single2.dat'))
+    import subprocess
+    p = subprocess.Popen( ["corr2","test_nk_single.params"] )
+    p.communicate()
+    corr2_output = numpy.loadtxt(os.path.join('output','test_nk_single.out'))
+    print 'nk.xi = ',nk.xi
+    print 'from corr2 output = ',corr2_output[:,2]
+    print 'ratio = ',corr2_output[:,2]/nk.xi
+    print 'diff = ',corr2_output[:,2]-nk.xi
+    numpy.testing.assert_almost_equal(corr2_output[:,2]/nk.xi, 1., decimal=3)
+
+
+def test_nk():
+    # Use kappa(r) = kappa0 exp(-r^2/2r0^2) (1-r^2/2r0^2) around many lenses.
+
+    nlens = 1000
+    nsource = 100000
+    kappa0 = 0.05
+    r0 = 10. * treecorr.angle_units['arcmin']
+    L = 50. * r0
+    numpy.random.seed(8675309)
+    xl = (numpy.random.random_sample(nlens)-0.5) * L
+    yl = (numpy.random.random_sample(nlens)-0.5) * L
+    xs = (numpy.random.random_sample(nsource)-0.5) * L
+    ys = (numpy.random.random_sample(nsource)-0.5) * L
+    k = numpy.zeros( (nsource,) )
+    for x,y in zip(xl,yl):
+        dx = xs-x
+        dy = ys-y
+        r2 = dx**2 + dy**2
+        k += kappa0 * numpy.exp(-0.5*r2/r0**2) * (1.-0.5*r2/r0**2)
+
+    lens_cat = treecorr.Catalog(x=xl, y=yl)
+    source_cat = treecorr.Catalog(x=xs, y=ys, k=k)
+    nk = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+                                verbose=2)
+    nk.process(lens_cat, source_cat)
+
+    r = numpy.exp(nk.meanlogr) * treecorr.angle_units['arcmin']
+    true_k = kappa0 * numpy.exp(-0.5*r**2/r0**2) * (1.-0.5*r**2/r0**2)
+
+    print 'nk.xi = ',nk.xi
+    print 'true_kappa = ',true_k
+    print 'ratio = ',nk.xi / true_k
+    print 'diff = ',nk.xi - true_k
+    print 'max diff = ',max(abs(nk.xi - true_k))
+    assert max(abs(nk.xi - true_k)) < 5.e-3
+
+    nrand = nlens * 13
+    xr = (numpy.random.random_sample(nrand)-0.5) * L
+    yr = (numpy.random.random_sample(nrand)-0.5) * L
+    rand_cat = treecorr.Catalog(x=xr, y=yr)
+    rk = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+                                verbose=2)
+    rk.process(rand_cat, source_cat)
+    print 'rk.xi = ',rk.xi
+    xi, varxi = nk.calculateXi(rk)
+    print 'compensated xi = ',xi
+    print 'true_kappa = ',true_k
+    print 'ratio = ',xi / true_k
+    print 'diff = ',xi - true_k
+    print 'max diff = ',max(abs(xi - true_k))
+    # It turns out this doesn't come out much better.  I think the imprecision is mostly just due
+    # to the smallish number of lenses, not to edge effects
+    assert max(abs(xi - true_k)) < 5.e-3
+
+    # Check that we get the same result using the corr2 executable:
+    lens_cat.write(os.path.join('data','test_nk1.dat'))
+    source_cat.write(os.path.join('data','test_nk2.dat'))
+    rand_cat.write(os.path.join('data','test_nk3.dat'))
+    import subprocess
+    p = subprocess.Popen( ["corr2","test_nk.params"] )
+    p.communicate()
+    corr2_output = numpy.loadtxt(os.path.join('output','test_nk.out'))
+    print 'nk.xi = ',nk.xi
+    print 'xi = ',xi
+    print 'from corr2 output = ',corr2_output[:,2]
+    print 'ratio = ',corr2_output[:,2]/xi
+    print 'diff = ',corr2_output[:,2]-xi
+    numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
+
+
+if __name__ == '__main__':
+    test_single()
+    test_nk()

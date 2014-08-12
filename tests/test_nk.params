@@ -1,0 +1,21 @@
+
+file_name = data/test_nk1.dat
+file_name2 = data/test_nk2.dat
+rand_file_name = data/test_nk3.dat
+
+x_col = 1
+y_col = 2
+x_units = rad
+y_units = rad
+
+w_col = 3
+k_col = 4
+
+verbose = 2
+
+min_sep = 1.
+max_sep = 25.
+bin_size = 0.10
+sep_units = arcmin
+
+nk_file_name = output/test_nk.out

@@ -1,0 +1,20 @@
+
+file_name = data/test_g2.dat
+
+x_col = 1
+y_col = 2
+x_units = rad
+y_units = rad
+
+w_col = 3
+g1_col = 4
+g2_col = 5
+
+verbose = 2
+
+min_sep = 1.
+max_sep = 100.
+bin_size = 0.10
+sep_units = arcmin
+
+g2_file_name = output/test_g2.out

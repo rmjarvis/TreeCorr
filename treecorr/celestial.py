@@ -212,7 +212,7 @@ class CelestialCoord(object):
         """Use the currect coord as the center point of a tangent plane projection to project
         the `other` coordinate onto that plane.
 
-        This function return the position (u,v) in the Euclidean coordinate system defined by
+        This function returns the position (u,v) in the Euclidean coordinate system defined by
         a tangent plane projection around the current coordinate, with +v pointing north and
         +u pointing west.
 
@@ -226,7 +226,7 @@ class CelestialCoord(object):
                     not area.  For more information, see
                     http://mathworld.wolfram.com/StereographicProjection.html
             'gnomonic' uses a gnomonic projection (i.e. a projection from the center of the
-                    sphere, which has the property that all great circles become straight 
+                    sphere), which has the property that all great circles become straight 
                     lines.  For more information, see
                     http://mathworld.wolfram.com/GnomonicProjection.html
             'postel' uses a Postel equidistant proejection, which preserves distances from

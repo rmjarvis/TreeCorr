@@ -253,7 +253,7 @@ def test_spherical():
 
 
 def test_ng():
-    # Use gamma_t(r) = gamma0 exp(-r^2/2r0^2) around a bunch of foregroung lenses.
+    # Use gamma_t(r) = gamma0 exp(-r^2/2r0^2) around a bunch of foreground lenses.
     # i.e. gamma(r) = -gamma0 exp(-r^2/2r0^2) (x+iy)^2/r^2
 
     nlens = 1000

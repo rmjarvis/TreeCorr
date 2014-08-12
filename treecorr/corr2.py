@@ -29,10 +29,6 @@ corr2_valid_params = {
 
     'file_name' : (str, True, None, None,
             'The file(s) with the galaxy data.'),
-    'do_auto_corr' : (bool, False, False,  None,
-            'Whether to do auto-correlations within a list of files.'),
-    'do_cross_corr' : (bool, False, True,  None,
-            'Whether to do cross-correlations within a list of files.'),
     'file_name2' : (str, True, None,  None,
             'The file(s) to use for the second field for a cross-correlation.'),
     'rand_file_name' : (str, True, None,  None,

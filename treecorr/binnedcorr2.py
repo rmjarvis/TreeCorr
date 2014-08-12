@@ -183,14 +183,12 @@ class BinnedCorr2(object):
 
 
     def _process_all_auto(self, cat1):
-        if treecorr.config.get(self.config,'do_auto_corr',bool,False) or len(cat1) == 1:
-            for c1 in cat1:
-                self.process_auto(c1)
+        for c1 in cat1:
+            self.process_auto(c1)
 
-        if treecorr.config.get(self.config,'do_cross_corr',bool,True):
-            for i,c1 in enumerate(cat1):
-                for c2 in cat1[i+1:]:
-                    self.process_cross(c1,c2)
+        for i,c1 in enumerate(cat1):
+            for c2 in cat1[i+1:]:
+                self.process_cross(c1,c2)
 
 
     def _process_all_cross(self, cat1, cat2):

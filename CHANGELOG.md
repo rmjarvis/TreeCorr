@@ -23,9 +23,13 @@ API changes:
 - Changed the handling of file_name and file_name2 slightly.  Before, the
   two files for a heterogeneous cross-correlation (i.e. NG, NK, or KG) could
   be specified with just file_name using 2 entries.  Now these need to be
-  listed as separate key words with file_name and file_name2.  Same-type
-  cross-correlations can still use just file_name so long as the catalogs
-  have the same column structure.
+  listed as separate key words with file_name and file_name2.
+- Removed the do_auto_corr and do_cross_corr options.  These were too
+  confusing, so the current behavior is equivalent to setting
+  do_auto_corr=True and do_cross_corr=True.  i.e. A list of files is
+  conceptually equivalent to having everything in a single file.
+  If you want to do something more complicated, you should now use the
+  python interface to get precisely the pairings that you want.
 - Added another verbosity level between what was 0 and 1.  Now we have:
     0 - Errors only (equivalent to old 0)
     1 - Warnings (new default verbosity)

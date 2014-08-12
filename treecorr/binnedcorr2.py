@@ -166,7 +166,7 @@ class BinnedCorr2(object):
         for i,col in enumerate(columns):
             data[:,i] = col
 
-        prec = treecorr.config.get(self.config,'precision',int,3)
+        prec = treecorr.config.get(self.config,'precision',int,4)
         width = prec+8
         header_form = "{0:^%d}"%(width-1)
         for i in range(1,ncol):

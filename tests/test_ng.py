@@ -40,7 +40,7 @@ def test_single():
 
     lens_cat = treecorr.Catalog(x=[0], y=[0])
     source_cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
-    ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=30., sep_units='arcmin',
+    ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     ng.process(lens_cat, source_cat)
 
@@ -48,31 +48,84 @@ def test_single():
     true_gt = gamma0 * numpy.exp(-0.5*r**2/r0**2)
 
     print 'ng.xi = ',ng.xi
+    print 'ng.xi_im = ',ng.xi_im
     print 'true_gammat = ',true_gt
     print 'ratio = ',ng.xi / true_gt
     print 'diff = ',ng.xi - true_gt
     print 'max diff = ',max(abs(ng.xi - true_gt))
-    assert max(abs(ng.xi - true_gt)) < 3.e-4
+    assert max(abs(ng.xi - true_gt)) < 4.e-4
+    assert max(abs(ng.xi_im)) < 3.e-5
 
-    # Test the same calculation, but with the pairwise calcualtion:
+    # Check that we get the same result using the corr2 executable:
+    lens_cat.write(os.path.join('data','test_ng_single1.dat'))
+    source_cat.write(os.path.join('data','test_ng_single2.dat'))
+    import subprocess
+    p = subprocess.Popen( ["corr2","test_ng_single.params"] )
+    p.communicate()
+    corr2_output = numpy.loadtxt(os.path.join('output','test_ng_single.out'))
+    print 'ng.xi = ',ng.xi
+    print 'from corr2 output = ',corr2_output[:,2]
+    print 'ratio = ',corr2_output[:,2]/ng.xi
+    print 'diff = ',corr2_output[:,2]-ng.xi
+    numpy.testing.assert_almost_equal(corr2_output[:,2]/ng.xi, 1., decimal=3)
+
+    print 'xi_im from corr2 output = ',corr2_output[:,3]
+    assert max(abs(corr2_output[:,3])) < 3.e-5
+
+
+def test_pairwise():
+    # Test the same profile, but with the pairwise calcualtion:
+    nsource = 1000000
+    gamma0 = 0.05
+    r0 = 10. * treecorr.angle_units['arcmin']
+    L = 5. * r0
+    numpy.random.seed(8675309)
+    x = (numpy.random.random_sample(nsource)-0.5) * L
+    y = (numpy.random.random_sample(nsource)-0.5) * L
+    r2 = (x**2 + y**2)
+    gammat = gamma0 * numpy.exp(-0.5*r2/r0**2)
+    g1 = -gammat * (x**2-y**2)/r2
+    g2 = -gammat * (2.*x*y)/r2
+
     dx = (numpy.random.random_sample(nsource)-0.5) * L
     dx = (numpy.random.random_sample(nsource)-0.5) * L
 
-    lens_cat2 = treecorr.Catalog(x=dx, y=dx)
-    source_cat2 = treecorr.Catalog(x=x+dx, y=y+dx, g1=g1, g2=g2)
-    ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=30., sep_units='arcmin',
+    lens_cat = treecorr.Catalog(x=dx, y=dx)
+    source_cat = treecorr.Catalog(x=x+dx, y=y+dx, g1=g1, g2=g2)
+    ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2, pairwise=True)
-    ng2.process(lens_cat2, source_cat2)
+    ng.process(lens_cat, source_cat)
+
+    r = numpy.exp(ng.meanlogr) * treecorr.angle_units['arcmin']
+    true_gt = gamma0 * numpy.exp(-0.5*r**2/r0**2)
 
     print 'ng.xi = ',ng.xi
+    print 'ng.xi_im = ',ng.xi_im
     print 'true_gammat = ',true_gt
-    print 'ratio = ',ng2.xi / true_gt
-    print 'diff = ',ng2.xi - true_gt
-    print 'max diff = ',max(abs(ng2.xi - true_gt))
+    print 'ratio = ',ng.xi / true_gt
+    print 'diff = ',ng.xi - true_gt
+    print 'max diff = ',max(abs(ng.xi - true_gt))
     # I don't really understand why this comes out slightly less accurate.
     # I would have thought it would be slightly more accurate because it doesn't use the
     # approximations intrinsic to the tree calculation.
-    assert max(abs(ng2.xi - true_gt)) < 4.e-4
+    assert max(abs(ng.xi - true_gt)) < 4.e-4
+    assert max(abs(ng.xi_im)) < 3.e-5
+
+    # Check that we get the same result using the corr2 executable:
+    lens_cat.write(os.path.join('data','test_ng_pairwise1.dat'))
+    source_cat.write(os.path.join('data','test_ng_pairwise2.dat'))
+    import subprocess
+    p = subprocess.Popen( ["corr2","test_ng_pairwise.params"] )
+    p.communicate()
+    corr2_output = numpy.loadtxt(os.path.join('output','test_ng_pairwise.out'))
+    print 'ng.xi = ',ng.xi
+    print 'from corr2 output = ',corr2_output[:,2]
+    print 'ratio = ',corr2_output[:,2]/ng.xi
+    print 'diff = ',corr2_output[:,2]-ng.xi
+    numpy.testing.assert_almost_equal(corr2_output[:,2]/ng.xi, 1., decimal=3)
+
+    print 'xi_im from corr2 output = ',corr2_output[:,3]
+    assert max(abs(corr2_output[:,3])) < 3.e-5
 
 
 def test_spherical():
@@ -95,7 +148,7 @@ def test_spherical():
     r = numpy.sqrt(r2)
     theta = arctan2(y,x)
 
-    ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=40., sep_units='deg',
+    ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='deg',
                                 verbose=2)
     r1 = numpy.exp(ng.logr) * treecorr.angle_units['deg']
     true_gt = gamma0 * numpy.exp(-0.5*r1**2/r0**2)
@@ -174,11 +227,29 @@ def test_spherical():
     ng.process(lens_cat, source_cat)
 
     print 'ng.xi = ',ng.xi
+    print 'ng.xi_im = ',ng.xi_im
     print 'true_gammat = ',true_gt
     print 'ratio = ',ng.xi / true_gt
     print 'diff = ',ng.xi - true_gt
     print 'max diff = ',max(abs(ng.xi - true_gt))
-    assert max(abs(ng.xi - true_gt)) < 4.e-4
+    assert max(abs(ng.xi - true_gt)) < 1.e-3
+    assert max(abs(ng.xi_im)) < 3.e-5
+
+    # Check that we get the same result using the corr2 executable:
+    lens_cat.write(os.path.join('data','test_ng_spherical1.dat'))
+    source_cat.write(os.path.join('data','test_ng_spherical2.dat'))
+    import subprocess
+    p = subprocess.Popen( ["corr2","test_ng_spherical.params"] )
+    p.communicate()
+    corr2_output = numpy.loadtxt(os.path.join('output','test_ng_spherical.out'))
+    print 'ng.xi = ',ng.xi
+    print 'from corr2 output = ',corr2_output[:,2]
+    print 'ratio = ',corr2_output[:,2]/ng.xi
+    print 'diff = ',corr2_output[:,2]-ng.xi
+    numpy.testing.assert_almost_equal(corr2_output[:,2]/ng.xi, 1., decimal=3)
+
+    print 'xi_im from corr2 output = ',corr2_output[:,3]
+    assert max(abs(corr2_output[:,3])) < 3.e-5
 
 
 def test_ng():
@@ -189,7 +260,7 @@ def test_ng():
     nsource = 100000
     gamma0 = 0.05
     r0 = 10. * treecorr.angle_units['arcmin']
-    L = 5. * r0
+    L = 50. * r0
     numpy.random.seed(8675309)
     xl = (numpy.random.random_sample(nlens)-0.5) * L
     yl = (numpy.random.random_sample(nlens)-0.5) * L
@@ -207,7 +278,7 @@ def test_ng():
 
     lens_cat = treecorr.Catalog(x=xl, y=yl)
     source_cat = treecorr.Catalog(x=xs, y=ys, g1=g1, g2=g2)
-    ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=30., sep_units='arcmin',
+    ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     ng.process(lens_cat, source_cat)
 
@@ -215,13 +286,55 @@ def test_ng():
     true_gt = gamma0 * numpy.exp(-0.5*r**2/r0**2)
 
     print 'ng.xi = ',ng.xi
+    print 'ng.xi_im = ',ng.xi_im
     print 'true_gammat = ',true_gt
     print 'ratio = ',ng.xi / true_gt
     print 'diff = ',ng.xi - true_gt
     print 'max diff = ',max(abs(ng.xi - true_gt))
-    assert max(abs(ng.xi - true_gt)) < 3.e-3
+    assert max(abs(ng.xi - true_gt)) < 4.e-3
+    assert max(abs(ng.xi_im)) < 4.e-3
+
+    nrand = nlens * 13
+    xr = (numpy.random.random_sample(nrand)-0.5) * L
+    yr = (numpy.random.random_sample(nrand)-0.5) * L
+    rand_cat = treecorr.Catalog(x=xr, y=yr)
+    rg = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+                                verbose=2)
+    rg.process(rand_cat, source_cat)
+    print 'rg.xi = ',rg.xi
+    xi, xi_im, varxi = ng.calculateXi(rg)
+    print 'compensated xi = ',xi
+    print 'compensated xi_im = ',xi_im
+    print 'true_gammat = ',true_gt
+    print 'ratio = ',xi / true_gt
+    print 'diff = ',xi - true_gt
+    print 'max diff = ',max(abs(xi - true_gt))
+    # It turns out this doesn't come out much better.  I think the imprecision is mostly just due
+    # to the smallish number of lenses, not to edge effects
+    assert max(abs(xi - true_gt)) < 4.e-3
+    assert max(abs(xi_im)) < 4.e-3
+
+    # Check that we get the same result using the corr2 executable:
+    lens_cat.write(os.path.join('data','test_ng1.dat'))
+    source_cat.write(os.path.join('data','test_ng2.dat'))
+    rand_cat.write(os.path.join('data','test_ng3.dat'))
+    import subprocess
+    p = subprocess.Popen( ["corr2","test_ng.params"] )
+    p.communicate()
+    corr2_output = numpy.loadtxt(os.path.join('output','test_ng.out'))
+    print 'ng.xi = ',ng.xi
+    print 'xi = ',xi
+    print 'from corr2 output = ',corr2_output[:,2]
+    print 'ratio = ',corr2_output[:,2]/xi
+    print 'diff = ',corr2_output[:,2]-xi
+    numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
+
+    print 'xi_im from corr2 output = ',corr2_output[:,3]
+    assert max(abs(corr2_output[:,3])) < 4.e-3
+
 
 if __name__ == '__main__':
     test_single()
+    test_pairwise()
     test_spherical()
     test_ng()

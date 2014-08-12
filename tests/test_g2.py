@@ -53,19 +53,49 @@ def test_g2():
     true_xip = temp * (r**4 - 16.*r**2*s**2 + 32.*s**4)/s**4
     true_xim = temp * r**4/s**4
 
-    print 'gg.xim = ',gg.xim
-    print 'true_xim = ',true_xim
-    print 'ratio = ',gg.xim / true_xim
-    print 'diff = ',gg.xim - true_xim
-    print 'max diff = ',max(abs(gg.xim - true_xim))
-    assert max(abs(gg.xim - true_xim)) < 3.e-7
-
     print 'gg.xip = ',gg.xip
     print 'true_xip = ',true_xip
     print 'ratio = ',gg.xip / true_xip
     print 'diff = ',gg.xip - true_xip
     print 'max diff = ',max(abs(gg.xip - true_xip))
     assert max(abs(gg.xip - true_xip)) < 3.e-7
+    print 'xip_im = ',gg.xip_im
+    assert max(abs(gg.xip_im)) < 2.e-7
+
+    print 'gg.xim = ',gg.xim
+    print 'true_xim = ',true_xim
+    print 'ratio = ',gg.xim / true_xim
+    print 'diff = ',gg.xim - true_xim
+    print 'max diff = ',max(abs(gg.xim - true_xim))
+    assert max(abs(gg.xim - true_xim)) < 3.e-7
+    print 'xim_im = ',gg.xim_im
+    assert max(abs(gg.xim_im)) < 1.e-7
+
+    # Check that we get the same result using the corr2 executable:
+    cat.write(os.path.join('data','test_g2.dat'))
+    import subprocess
+    p = subprocess.Popen( ["corr2","test_g2.params"] )
+    p.communicate()
+    corr2_output = numpy.loadtxt(os.path.join('output','test_g2.out'))
+    print 'gg.xip = ',gg.xip
+    print 'from corr2 output = ',corr2_output[:,2]
+    print 'ratio = ',corr2_output[:,2]/gg.xip
+    print 'diff = ',corr2_output[:,2]-gg.xip
+    numpy.testing.assert_almost_equal(corr2_output[:,2]/gg.xip, 1., decimal=3)
+
+    print 'gg.xim = ',gg.xim
+    print 'from corr2 output = ',corr2_output[:,3]
+    print 'ratio = ',corr2_output[:,3]/gg.xim
+    print 'diff = ',corr2_output[:,3]-gg.xim
+    numpy.testing.assert_almost_equal(corr2_output[:,3]/gg.xim, 1., decimal=3)
+
+    print 'xip_im from corr2 output = ',corr2_output[:,4]
+    print 'max err = ',max(abs(corr2_output[:,4]))
+    assert max(abs(corr2_output[:,4])) < 2.e-7
+    print 'xim_im from corr2 output = ',corr2_output[:,5]
+    print 'max err = ',max(abs(corr2_output[:,5]))
+    assert max(abs(corr2_output[:,5])) < 1.e-7
+
 
 
 def test_aardvark():
@@ -92,11 +122,17 @@ def test_aardvark():
     print 'xip_err = ',xip_err
     print 'max = ',max(abs(xip_err))
     assert max(abs(xip_err)) < 2.e-7
+    print 'xip_im = ',gg.xip_im
+    print 'max = ',max(abs(gg.xip_im))
+    assert max(abs(gg.xip_im)) < 3.e-7
 
     xim_err = gg.xim - direct_xim
     print 'xim_err = ',xim_err
     print 'max = ',max(abs(xim_err))
     assert max(abs(xim_err)) < 1.e-7
+    print 'xim_im = ',gg.xim_im
+    print 'max = ',max(abs(gg.xim_im))
+    assert max(abs(gg.xim_im)) < 1.e-7
 
     # However, after some back and forth about the calculation, we concluded that Eric hadn't
     # done the spherical trig correctly to get the shears relative to the great circle joining
@@ -122,6 +158,30 @@ def test_aardvark():
     print 'xim_err = ',xim_err
     print 'max = ',max(abs(xim_err))
     assert max(abs(xim_err)) < 5.e-8
+
+    # Check that we get the same result using the corr2 executable:
+    import subprocess
+    p = subprocess.Popen( ["corr2","Aardvark.params"] )
+    p.communicate()
+    corr2_output = numpy.loadtxt(os.path.join('output','Aardvark.out'))
+    print 'gg.xip = ',gg.xip
+    print 'from corr2 output = ',corr2_output[:,2]
+    print 'ratio = ',corr2_output[:,2]/gg.xip
+    print 'diff = ',corr2_output[:,2]-gg.xip
+    numpy.testing.assert_almost_equal(corr2_output[:,2]/gg.xip, 1., decimal=3)
+
+    print 'gg.xim = ',gg.xim
+    print 'from corr2 output = ',corr2_output[:,3]
+    print 'ratio = ',corr2_output[:,3]/gg.xim
+    print 'diff = ',corr2_output[:,3]-gg.xim
+    numpy.testing.assert_almost_equal(corr2_output[:,3]/gg.xim, 1., decimal=3)
+
+    print 'xip_im from corr2 output = ',corr2_output[:,4]
+    print 'max err = ',max(abs(corr2_output[:,4]))
+    assert max(abs(corr2_output[:,4])) < 3.e-7
+    print 'xim_im from corr2 output = ',corr2_output[:,5]
+    print 'max err = ',max(abs(corr2_output[:,5]))
+    assert max(abs(corr2_output[:,5])) < 1.e-7
 
     # As bin_slop decreases, the agreement should get even better.
     if __name__ == '__main__':

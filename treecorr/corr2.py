@@ -159,7 +159,7 @@ corr2_valid_params = {
             'The output filename for kappa-kappa correlation function.'),
     'kg_file_name' : (str, False, None, None,
             'The output filename for kappa-shear correlation function.'),
-    'precision' : (int, False, 3, None,
+    'precision' : (int, False, 4, None,
             'The number of digits after the decimal in the output.'),
 
     # Derived output quantities

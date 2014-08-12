@@ -784,6 +784,58 @@ class Catalog(object):
 
         return self.gsimplefield
 
+    def write(self, file_name):
+        """Write the catalog to a file.  Currently only ASCII output is supported.
+        """
+        import numpy
+
+        col_names = []
+        columns = []
+        if self.x is not None:
+            col_names.append('x')
+            columns.append(self.x)
+        if self.y is not None:
+            col_names.append('y')
+            columns.append(self.y)
+        if self.ra is not None:
+            col_names.append('ra')
+            columns.append(self.ra)
+        if self.dec is not None:
+            col_names.append('dec')
+            columns.append(self.dec)
+        if self.w is not None:
+            col_names.append('w')
+            columns.append(self.w)
+        if self.g1 is not None:
+            col_names.append('g1')
+            columns.append(self.g1)
+        if self.g2 is not None:
+            col_names.append('g2')
+            columns.append(self.g2)
+        if self.k is not None:
+            col_names.append('k')
+            columns.append(self.k)
+
+        ncol = len(col_names)
+        data = numpy.empty( (self.nobj, ncol) )
+        for i,col in enumerate(columns):
+            data[:,i] = col
+
+        prec = treecorr.config.get(self.config,'cat_precision',int,8)
+        width = prec+8
+        header_form = "{0:^%d}"%(width-1)
+        for i in range(1,ncol):
+            header_form += ".{%d:^%d}"%(i,width)
+        header = header_form.format(*col_names)
+        fmt = '%%%d.%de'%(width,prec)
+        try:
+            numpy.savetxt(file_name, data, fmt=fmt, header=header)
+        except (AttributeError, TypeError):
+            # header was added with version 1.7, so do it by hand if not available.
+            with open(file_name, 'w') as fid:
+                fid.write('#' + header + '\n')
+                numpy.savetxt(fid, data, fmt=fmt) 
+
 
 def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=None):
     """Read in a list of catalogs for the given key.

@@ -44,6 +44,7 @@ Changes in the output files:
 - Removed the extra columns that had been written out in the case of
   compensated NG and NK calculations.
 - Removed the extraneous <R> column from the norm output file.
+- Changed the default precision from 3 to 4.
 
 Bug fixes:
 ----------

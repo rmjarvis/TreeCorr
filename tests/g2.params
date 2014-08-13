@@ -1,6 +1,5 @@
 
-file_name = data/test_ng_single1.dat
-file_name2 = data/test_ng_single2.dat
+file_name = data/g2.dat
 
 x_col = 1
 y_col = 2
@@ -14,8 +13,8 @@ g2_col = 5
 verbose = 2
 
 min_sep = 1.
-max_sep = 25.
+max_sep = 100.
 bin_size = 0.10
 sep_units = arcmin
 
-ng_file_name = output/test_ng_single.out
+g2_file_name = output/g2.out

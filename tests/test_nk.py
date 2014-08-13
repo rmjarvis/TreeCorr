@@ -48,12 +48,12 @@ def test_single():
     assert max(abs(nk.xi - true_k)) < 4.e-4
 
     # Check that we get the same result using the corr2 executable:
-    lens_cat.write(os.path.join('data','test_nk_single1.dat'))
-    source_cat.write(os.path.join('data','test_nk_single2.dat'))
+    lens_cat.write(os.path.join('data','nk_single_lens.dat'))
+    source_cat.write(os.path.join('data','nk_single_source.dat'))
     import subprocess
-    p = subprocess.Popen( ["corr2","test_nk_single.params"] )
+    p = subprocess.Popen( ["corr2","nk_single.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','test_nk_single.out'))
+    corr2_output = numpy.loadtxt(os.path.join('output','nk_single.out'))
     print 'nk.xi = ',nk.xi
     print 'from corr2 output = ',corr2_output[:,2]
     print 'ratio = ',corr2_output[:,2]/nk.xi
@@ -116,13 +116,13 @@ def test_nk():
     assert max(abs(xi - true_k)) < 5.e-3
 
     # Check that we get the same result using the corr2 executable:
-    lens_cat.write(os.path.join('data','test_nk1.dat'))
-    source_cat.write(os.path.join('data','test_nk2.dat'))
-    rand_cat.write(os.path.join('data','test_nk3.dat'))
+    lens_cat.write(os.path.join('data','nk_lens.dat'))
+    source_cat.write(os.path.join('data','nk_source.dat'))
+    rand_cat.write(os.path.join('data','nk_rand.dat'))
     import subprocess
-    p = subprocess.Popen( ["corr2","test_nk.params"] )
+    p = subprocess.Popen( ["corr2","nk.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','test_nk.out'))
+    corr2_output = numpy.loadtxt(os.path.join('output','nk.out'))
     print 'nk.xi = ',nk.xi
     print 'xi = ',xi
     print 'from corr2 output = ',corr2_output[:,2]

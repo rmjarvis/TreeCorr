@@ -35,9 +35,7 @@ Installation
 
 The installation is very simple:
 
-1. Dependencies:
-
-   All dependencies should be installed automatically for you by setup.py,
+1. Dependencies: All dependencies should be installed automatically for you by setup.py,
    so you should not need to worry about these.  But if you are interested,
    the dependencies are:
 

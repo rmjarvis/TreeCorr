@@ -249,35 +249,6 @@ class Catalog(object):
         self.checkForNaN(self.k,'k')
         self.checkForNaN(self.w,'w')
 
-        # Project if requested
-        if treecorr.config.get(self.config,'project',bool,False):
-            if self.ra is None:
-                raise AttributeError("project is invalid without ra, dec")
-            self.logger.warn("Warning: You probably should not use the project option.")
-            self.logger.warn("It is mostly just for testing the accuracy of the sphererical")
-            self.logger.warn("geometry code.  But that is working well, so you should probably")
-            self.logger.warn("just let TreeCorr handle the spherical geometry for you, rather")
-            self.logger.warn("than project onto a tangent plane.")
-
-            if self.config.get('project_ra',None) is not None:
-                if not self.config.get('ra_units',None):
-                    raise ValueError("ra_units is required when using project_ra")
-                ra_cen = self.config['project_ra']*treecorr.config.get(self.config,'ra_units',str)
-            else:
-                ra_cen = ra.mean()
-            if self.config.get('project_dec',None) is not None:
-                if not self.config.get('dec_units',None):
-                    raise ValueError("dec_units is required when using project_dec")
-                dec_cen = self.config['project_dec']*treecorr.config.get(self.config,'dec_units',str)
-            else:
-                dec_cen = dec.mean()
-
-            cen = CelestialCoord(ra_cen, dec_cen)
-            projection = self.config.get('projection','lambert')
-            self.x, self.y = cen.project_rad(self.ra, self.dec, projection)
-            self.ra = None
-            self.dec = None
-
         # Calculate some summary parameters here that will typically be needed
         if self.w is not None:
             self.nobj = numpy.sum(self.w != 0)

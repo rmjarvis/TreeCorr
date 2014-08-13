@@ -38,7 +38,6 @@ The installation is very simple:
 1. Dependencies: All dependencies should be installed automatically for you by setup.py,
    so you should not need to worry about these.  But if you are interested,
    the dependencies are:
-
     - numpy
     - fitsio: TreeCorr can use either fitsio or pyfits (now part of astropy),
       so it will only install fitsio if none of these are present on your

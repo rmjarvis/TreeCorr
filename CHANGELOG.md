@@ -30,6 +30,12 @@ API changes:
   conceptually equivalent to having everything in a single file.
   If you want to do something more complicated, you should now use the
   python interface to get precisely the pairings that you want.
+- Removed the project options from the corr2 parameters.  That option
+  was really only for me to debug the spherical trig code, but since that
+  is working, there is really no reason for anyone to use it, so I do
+  not want users to see this option and think it is a good idea.  If you
+  really want to though, the functionality still exists at the python
+  layer, so you can do the projections yourself there.
 - Added another verbosity level between what was 0 and 1.  Now we have:
     0 - Errors only (equivalent to old 0)
     1 - Warnings (new default verbosity)

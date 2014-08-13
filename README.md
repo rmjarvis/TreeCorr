@@ -96,7 +96,7 @@ name of a configuration file:
 
     corr2 config_file
 
-A sample configuration file is provided, called default.params, and see the
+A sample configuration file is provided, called sample.params, and see the
 TreeCorr wiki page
 
 https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters

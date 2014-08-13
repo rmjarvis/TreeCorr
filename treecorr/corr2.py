@@ -106,14 +106,6 @@ corr2_valid_params = {
             'Whether to flip the sign of g2'),
     'pairwise' : (bool, True, False, None,
             'Whether to do a pair-wise cross-correlation '),
-    'project' : (bool, False, False, None,
-            'Whether to do a tangent plane projection'),
-    'project_ra' : (float, False, None, None,
-            'The ra of the tangent point for projection.'),
-    'project_dec' : (float, False, None, None,
-            'The dec of the tangent point for projection.'),
-    'projection' : (str, False, False, 'lambert',
-            'Which kind of tangent plane projection to do.'),
 
     # Parameters about the binned correlation function to be calculated
 

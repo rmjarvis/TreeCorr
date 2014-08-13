@@ -39,16 +39,16 @@ The installation is very simple:
    so you should not need to worry about these.  But if you are interested,
    the dependencies are:
 
-   - numpy
-   - fitsio: TreeCorr can use either fitsio or pyfits (now part of astropy),
-     so it will only install fitsio if none of these are present on your
-     system.
-   - pandas: This package significantly speeds up the reading of ASCII
-     input catalogs over the numpy functions loadtxt or genfromtxt.
+    - numpy
+    - fitsio: TreeCorr can use either fitsio or pyfits (now part of astropy),
+      so it will only install fitsio if none of these are present on your
+      system.
+    - pandas: This package significantly speeds up the reading of ASCII
+      input catalogs over the numpy functions loadtxt or genfromtxt.
 
 2. Download the zip file of the current code from:
 
-   https://github.com/rmjarvis/TreeCorr/archive/master.zip
+    https://github.com/rmjarvis/TreeCorr/archive/master.zip
 
 3. Unzip the archive.  It will unzip into the directory TreeCorr-master.
    Change to that directory:

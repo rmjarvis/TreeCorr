@@ -73,11 +73,11 @@ def test_g2():
     assert max(abs(gg.xim_im)) < 1.e-7
 
     # Check that we get the same result using the corr2 executable:
-    cat.write(os.path.join('data','test_g2.dat'))
+    cat.write(os.path.join('data','g2.dat'))
     import subprocess
-    p = subprocess.Popen( ["corr2","test_g2.params"] )
+    p = subprocess.Popen( ["corr2","g2.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','test_g2.out'))
+    corr2_output = numpy.loadtxt(os.path.join('output','g2.out'))
     print 'gg.xip = ',gg.xip
     print 'from corr2 output = ',corr2_output[:,2]
     print 'ratio = ',corr2_output[:,2]/gg.xip
@@ -225,11 +225,11 @@ def test_spherical():
     assert max(abs(gg.xim_im)) < 2.e-7
 
     # Check that we get the same result using the corr2 executable:
-    cat.write(os.path.join('data','test_g2_spherical.dat'))
+    cat.write(os.path.join('data','g2_spherical.dat'))
     import subprocess
-    p = subprocess.Popen( ["corr2","test_g2_spherical.params"] )
+    p = subprocess.Popen( ["corr2","g2_spherical.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','test_g2_spherical.out'))
+    corr2_output = numpy.loadtxt(os.path.join('output','g2_spherical.out'))
     print 'gg.xip = ',gg.xip
     print 'from corr2 output = ',corr2_output[:,2]
     print 'ratio = ',corr2_output[:,2]/gg.xip

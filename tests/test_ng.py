@@ -54,12 +54,12 @@ def test_single():
     assert max(abs(ng.xi_im)) < 3.e-5
 
     # Check that we get the same result using the corr2 executable:
-    lens_cat.write(os.path.join('data','test_ng_single1.dat'))
-    source_cat.write(os.path.join('data','test_ng_single2.dat'))
+    lens_cat.write(os.path.join('data','ng_single_lens.dat'))
+    source_cat.write(os.path.join('data','ng_single_source.dat'))
     import subprocess
-    p = subprocess.Popen( ["corr2","test_ng_single.params"] )
+    p = subprocess.Popen( ["corr2","ng_single.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','test_ng_single.out'))
+    corr2_output = numpy.loadtxt(os.path.join('output','ng_single.out'))
     print 'ng.xi = ',ng.xi
     print 'from corr2 output = ',corr2_output[:,2]
     print 'ratio = ',corr2_output[:,2]/ng.xi
@@ -109,12 +109,12 @@ def test_pairwise():
     assert max(abs(ng.xi_im)) < 3.e-5
 
     # Check that we get the same result using the corr2 executable:
-    lens_cat.write(os.path.join('data','test_ng_pairwise1.dat'))
-    source_cat.write(os.path.join('data','test_ng_pairwise2.dat'))
+    lens_cat.write(os.path.join('data','ng_pairwise_lens.dat'))
+    source_cat.write(os.path.join('data','ng_pairwise_source.dat'))
     import subprocess
-    p = subprocess.Popen( ["corr2","test_ng_pairwise.params"] )
+    p = subprocess.Popen( ["corr2","ng_pairwise.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','test_ng_pairwise.out'))
+    corr2_output = numpy.loadtxt(os.path.join('output','ng_pairwise.out'))
     print 'ng.xi = ',ng.xi
     print 'from corr2 output = ',corr2_output[:,2]
     print 'ratio = ',corr2_output[:,2]/ng.xi
@@ -233,12 +233,12 @@ def test_spherical():
     assert max(abs(ng.xi_im)) < 3.e-5
 
     # Check that we get the same result using the corr2 executable:
-    lens_cat.write(os.path.join('data','test_ng_spherical1.dat'))
-    source_cat.write(os.path.join('data','test_ng_spherical2.dat'))
+    lens_cat.write(os.path.join('data','ng_spherical_lens.dat'))
+    source_cat.write(os.path.join('data','ng_spherical_source.dat'))
     import subprocess
-    p = subprocess.Popen( ["corr2","test_ng_spherical.params"] )
+    p = subprocess.Popen( ["corr2","ng_spherical.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','test_ng_spherical.out'))
+    corr2_output = numpy.loadtxt(os.path.join('output','ng_spherical.out'))
     print 'ng.xi = ',ng.xi
     print 'from corr2 output = ',corr2_output[:,2]
     print 'ratio = ',corr2_output[:,2]/ng.xi
@@ -312,13 +312,13 @@ def test_ng():
     assert max(abs(xi_im)) < 4.e-3
 
     # Check that we get the same result using the corr2 executable:
-    lens_cat.write(os.path.join('data','test_ng1.dat'))
-    source_cat.write(os.path.join('data','test_ng2.dat'))
-    rand_cat.write(os.path.join('data','test_ng3.dat'))
+    lens_cat.write(os.path.join('data','ng_lens.dat'))
+    source_cat.write(os.path.join('data','ng_source.dat'))
+    rand_cat.write(os.path.join('data','ng_rand.dat'))
     import subprocess
-    p = subprocess.Popen( ["corr2","test_ng.params"] )
+    p = subprocess.Popen( ["corr2","ng.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','test_ng.out'))
+    corr2_output = numpy.loadtxt(os.path.join('output','ng.out'))
     print 'ng.xi = ',ng.xi
     print 'xi = ',xi
     print 'from corr2 output = ',corr2_output[:,2]

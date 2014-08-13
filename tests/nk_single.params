@@ -1,6 +1,6 @@
 
-file_name = data/test_nk_single1.dat
-file_name2 = data/test_nk_single2.dat
+file_name = data/nk_single_lens.dat
+file_name2 = data/nk_single_source.dat
 
 x_col = 1
 y_col = 2
@@ -17,4 +17,4 @@ max_sep = 25.
 bin_size = 0.10
 sep_units = arcmin
 
-nk_file_name = output/test_nk_single.out
+nk_file_name = output/nk_single.out

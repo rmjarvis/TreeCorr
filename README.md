@@ -35,7 +35,7 @@ Installation
 
 The installation is very simple:
 
-0. Dependencies:
+1. Dependencies:
 
    All dependencies should be installed automatically for you by setup.py,
    so you should not need to worry about these.  But if you are interested,
@@ -48,16 +48,16 @@ The installation is very simple:
    - pandas: This package significantly speeds up the reading of ASCII
      input catalogs over the numpy functions loadtxt or genfromtxt.
 
-1. Download the zip file of the current code from:
+2. Download the zip file of the current code from:
 
    https://github.com/rmjarvis/TreeCorr/archive/master.zip
 
-2. Unzip the archive.  It will unzip into the directory TreeCorr-master.
+3. Unzip the archive.  It will unzip into the directory TreeCorr-master.
    Change to that directory:
 
         cd TreeCorr-master
 
-3. Install with the normal setup.py options.  Typically this would be the
+4. Install with the normal setup.py options.  Typically this would be the
    command
 
         python setup.py install --prefix=/your/home/directory

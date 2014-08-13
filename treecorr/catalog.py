@@ -818,7 +818,7 @@ class Catalog(object):
         for i,col in enumerate(columns):
             data[:,i] = col
 
-        prec = treecorr.config.get(self.config,'cat_precision',int,8)
+        prec = treecorr.config.get(self.config,'cat_precision',int,16)
         width = prec+8
         header_form = "{0:^%d}"%(width-1)
         for i in range(1,ncol):

@@ -17,41 +17,42 @@ import treecorr
 import os
 
 from test_helper import get_aardvark
+from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
 
 def test_g2():
     # cf. http://adsabs.harvard.edu/abs/2002A%26A...389..729S for the basic formulae I use here.
     #
-    # Use gamma_t(r) = A r^2/s^2 exp(-r^2/2s^2)
-    # i.e. gamma(r) = -A exp(-r^2/2s^2) (x+iy)^2 / s^2
+    # Use gamma_t(r) = gamma0 r^2/r0^2 exp(-r^2/2r0^2)
+    # i.e. gamma(r) = -gamma0 exp(-r^2/2r0^2) (x+iy)^2 / r0^2
     #
-    # The Fourier transform is: gamma~(k) = -2 pi A s^4 k^2 exp(-s^2 k^2/2) / L^2
-    # P(k) = (1/2pi) <|kappa~(k)|^2> = 2 pi A^2 s^8 k^4 / L^4 exp(-s^2 k^2)
+    # The Fourier transform is: gamma~(k) = -2 pi gamma0 r0^4 k^2 exp(-r0^2 k^2/2) / L^2
+    # P(k) = (1/2pi) <|kappa~(k)|^2> = 2 pi gamma0^2 r0^8 k^4 / L^4 exp(-r0^2 k^2)
     # xi+(r) = (1/2pi) int( dk k P(k) J0(kr) ) 
-    #        = pi/16 A^2 (s/L)^2 exp(-r^2/4s^2) (r^4 - 16r^2s^2 + 32s^4)/s^4
+    #        = pi/16 gamma0^2 (r0/L)^2 exp(-r^2/4r0^2) (r^4 - 16r^2r0^2 + 32r0^4)/r0^4
     # xi-(r) = (1/2pi) int( dk k P(k) J4(kr) ) 
-    #        = pi/16 A^2 (s/L)^2 exp(-r^2/4s^2)
+    #        = pi/16 gamma0^2 (r0/L)^2 exp(-r^2/4r0^2)
     # Note: I'm not sure I handled the L factors correctly, but the units at the end need
-    # to be kappa^2, so it needs to be (s/L)^2. 
+    # to be kappa^2, so it needs to be (r0/L)^2. 
 
     ngal = 1000000
-    A = 0.05
-    s = 10. * treecorr.angle_units['arcmin']
-    L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+    gamma0 = 0.05
+    r0 = 10. * treecorr.angle_units['arcmin']
+    L = 50. * r0  # Not infinity, so this introduces some error.  Our integrals were to infinity.
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(ngal)-0.5) * L
     y = (numpy.random.random_sample(ngal)-0.5) * L
-    r2 = (x**2 + y**2)/s**2
-    g1 = -A * numpy.exp(-r2/2.) * (x**2-y**2)/s**2
-    g2 = -A * numpy.exp(-r2/2.) * (2.*x*y)/s**2
+    r2 = (x**2 + y**2)/r0**2
+    g1 = -gamma0 * numpy.exp(-r2/2.) * (x**2-y**2)/r0**2
+    g2 = -gamma0 * numpy.exp(-r2/2.) * (2.*x*y)/r0**2
 
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
     gg = treecorr.G2Correlation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
                                 verbose=2)
     gg.process(cat)
     r = numpy.exp(gg.meanlogr) * treecorr.angle_units['arcmin']
-    temp = numpy.pi/16. * A**2 * (s/L)**2 * numpy.exp(-0.25*r**2/s**2)
-    true_xip = temp * (r**4 - 16.*r**2*s**2 + 32.*s**4)/s**4
-    true_xim = temp * r**4/s**4
+    temp = numpy.pi/16. * gamma0**2 * (r0/L)**2 * numpy.exp(-0.25*r**2/r0**2)
+    true_xip = temp * (r**4 - 16.*r**2*r0**2 + 32.*r0**4)/r0**4
+    true_xim = temp * r**4/r0**4
 
     print 'gg.xip = ',gg.xip
     print 'true_xip = ',true_xip
@@ -95,6 +96,157 @@ def test_g2():
     print 'xim_im from corr2 output = ',corr2_output[:,5]
     print 'max err = ',max(abs(corr2_output[:,5]))
     assert max(abs(corr2_output[:,5])) < 1.e-7
+
+
+def test_spherical():
+    # This is the same field we used for test_g2, but put into spherical coords.
+    # We do the spherical trig by hand using the obvious formulae, rather than the clever
+    # optimizations that are used by the TreeCorr code, thus serving as a useful test of
+    # the latter.
+
+    nsource = 1000000
+    gamma0 = 0.05
+    r0 = 10. * treecorr.angle_units['arcmin']
+    L = 50. * r0
+    numpy.random.seed(8675309)
+    x = (numpy.random.random_sample(nsource)-0.5) * L
+    y = (numpy.random.random_sample(nsource)-0.5) * L
+    r2 = x**2 + y**2
+    g1 = -gamma0 * numpy.exp(-r2/2./r0**2) * (x**2-y**2)/r0**2
+    g2 = -gamma0 * numpy.exp(-r2/2./r0**2) * (2.*x*y)/r0**2
+    r = numpy.sqrt(r2)
+    theta = arctan2(y,x)
+
+    gg = treecorr.G2Correlation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
+                                verbose=2)
+    r1 = numpy.exp(gg.logr) * treecorr.angle_units['arcmin']
+    temp = numpy.pi/16. * gamma0**2 * (r0/L)**2 * numpy.exp(-0.25*r1**2/r0**2)
+    true_xip = temp * (r1**4 - 16.*r1**2*r0**2 + 32.*r0**4)/r0**4
+    true_xim = temp * r1**4/r0**4
+
+    # Test this around several central points
+    # (For now just one -- on the equator)
+    ra0_list = [ 0., 1., 1.3, 232., 0. ]
+    dec0_list = [ pi/2-1.e-6, -0.3, 1.3, -1.4, pi/2.-1.e-6 ]
+    #if False:
+    for ra0, dec0 in zip(ra0_list, dec0_list):
+
+        # Use spherical triangle with A = point, B = (ra0,dec0), C = N. pole
+        # a = Pi/2-dec0
+        # c = 2*asin(r/2)  (lambert projection)
+        # B = Pi/2 - theta
+
+        c = 2.*arcsin(r/2.)
+        a = pi/2. - dec0
+        B = pi/2. - theta
+        B[x<0] *= -1.
+        B[B<-pi] += 2.*pi
+        B[B>pi] -= 2.*pi
+
+        # Solve the rest of the triangle with spherical trig:
+        cosb = cos(a)*cos(c) + sin(a)*sin(c)*cos(B)
+        b = arccos(cosb)
+        cosA = (cos(a) - cos(b)*cos(c)) / (sin(b)*sin(c))
+        #A = arccos(cosA)
+        A = numpy.zeros_like(cosA)
+        A[abs(cosA)<1] = arccos(cosA[abs(cosA)<1])
+        A[cosA<=-1] = pi
+        cosC = (cos(c) - cos(a)*cos(b)) / (sin(a)*sin(b))
+        #C = arccos(cosC)
+        C = numpy.zeros_like(cosC)
+        C[abs(cosC)<1] = arccos(cosC[abs(cosC)<1])
+        C[cosC<=-1] = pi
+        C[x<0] *= -1.
+
+        ra = ra0 - C
+        dec = pi/2. - b
+
+        # Rotate shear relative to local west
+        # gamma_sph = exp(2i beta) * gamma
+        # where beta = pi - (A+B) is the angle between north and "up" in the tangent plane.
+        beta = pi - (A+B)
+        beta[x>0] *= -1.
+        cos2beta = cos(2.*beta)
+        sin2beta = sin(2.*beta)
+        g1_sph = g1 * cos2beta - g2 * sin2beta
+        g2_sph = g2 * cos2beta + g1 * sin2beta
+
+        cat = treecorr.Catalog(ra=ra, dec=dec, g1=g1_sph, g2=g2_sph)
+        gg = treecorr.G2Correlation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
+                                    verbose=2)
+        gg.process(cat)
+
+        print 'ra0, dec0 = ',ra0,dec0
+        print 'gg.xip = ',gg.xip
+        print 'true_xip = ',true_xip
+        print 'ratio = ',gg.xip / true_xip
+        print 'diff = ',gg.xip - true_xip
+        print 'max diff = ',max(abs(gg.xip - true_xip))
+        # The 3rd and 4th centers are somewhat less accurate.  Not sure why.
+        # The math seems to be right, since the last one that gets all the way to the pole
+        # works, so I'm not sure what is going on.  It's just a few bins that get a bit less
+        # accurate.  Possibly worth investigating further at some point...
+        assert max(abs(gg.xip - true_xip)) < 3.e-7
+
+        print 'gg.xim = ',gg.xim
+        print 'true_xim = ',true_xim
+        print 'ratio = ',gg.xim / true_xim
+        print 'diff = ',gg.xim - true_xim
+        print 'max diff = ',max(abs(gg.xim - true_xim))
+        assert max(abs(gg.xim - true_xim)) < 2.e-7
+
+    # One more center that can be done very easily.  If the center is the north pole, then all
+    # the tangential shears are pure (positive) g1.
+    ra0 = 0
+    dec0 = pi/2.
+    ra = theta
+    dec = pi/2. - 2.*arcsin(r/2.)
+    gammat = -gamma0 * r2/r0**2 * numpy.exp(-r2/2./r0**2)
+
+    cat = treecorr.Catalog(ra=ra, dec=dec, g1=gammat, g2=numpy.zeros_like(gammat))
+    gg.process(cat)
+
+    print 'gg.xip = ',gg.xip
+    print 'gg.xip_im = ',gg.xip_im
+    print 'true_xip = ',true_xip
+    print 'ratio = ',gg.xip / true_xip
+    print 'diff = ',gg.xip - true_xip
+    print 'max diff = ',max(abs(gg.xip - true_xip))
+    assert max(abs(gg.xip - true_xip)) < 3.e-7
+    assert max(abs(gg.xip_im)) < 3.e-7
+
+    print 'gg.xim = ',gg.xim
+    print 'gg.xim_im = ',gg.xim_im
+    print 'true_xim = ',true_xim
+    print 'ratio = ',gg.xim / true_xim
+    print 'diff = ',gg.xim - true_xim
+    print 'max diff = ',max(abs(gg.xim - true_xim))
+    assert max(abs(gg.xim - true_xim)) < 2.e-7
+    assert max(abs(gg.xim_im)) < 2.e-7
+
+    # Check that we get the same result using the corr2 executable:
+    cat.write(os.path.join('data','test_g2_spherical.dat'))
+    import subprocess
+    p = subprocess.Popen( ["corr2","test_g2_spherical.params"] )
+    p.communicate()
+    corr2_output = numpy.loadtxt(os.path.join('output','test_g2_spherical.out'))
+    print 'gg.xip = ',gg.xip
+    print 'from corr2 output = ',corr2_output[:,2]
+    print 'ratio = ',corr2_output[:,2]/gg.xip
+    print 'diff = ',corr2_output[:,2]-gg.xip
+    numpy.testing.assert_almost_equal(corr2_output[:,2]/gg.xip, 1., decimal=3)
+
+    print 'gg.xim = ',gg.xim
+    print 'from corr2 output = ',corr2_output[:,3]
+    print 'ratio = ',corr2_output[:,3]/gg.xim
+    print 'diff = ',corr2_output[:,3]-gg.xim
+    numpy.testing.assert_almost_equal(corr2_output[:,3]/gg.xim, 1., decimal=3)
+
+    print 'xip_im from corr2 output = ',corr2_output[:,4]
+    assert max(abs(corr2_output[:,4])) < 3.e-7
+
+    print 'xim_im from corr2 output = ',corr2_output[:,5]
+    assert max(abs(corr2_output[:,5])) < 2.e-7
 
 
 
@@ -205,5 +357,6 @@ def test_aardvark():
 
  
 if __name__ == '__main__':
-    test_g2()
-    test_aardvark()
+    #test_g2()
+    test_spherical()
+    #test_aardvark()

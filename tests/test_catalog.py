@@ -226,7 +226,51 @@ def test_direct():
     numpy.testing.assert_almost_equal(cat2.g2, g2)
     numpy.testing.assert_almost_equal(cat2.k, k)
 
+def test_contiguous():
+    # This unit test comes from Melanie Simet who discovered a bug in earlier
+    # versions of the code that the Catalog didn't correctly handle input arrays
+    # that were not contiguous in memory.  We want to make sure this kind of
+    # input works correctly.  It also checks that the input dtype doesn't have
+    # to be float
+
+    source_data = numpy.array([
+            (0.0380569697547, 0.0142782758818, 0.330845443464, -0.111049332655),
+            (-0.0261291090735, 0.0863787933931, 0.122954685209, 0.40260430406),
+            (0.125086697534, 0.0283621046495, -0.208159531309, 0.142491564101),
+            (0.0457709426026, -0.0299249486373, -0.0406555089425, 0.24515956887),
+            (-0.00338578248926, 0.0460291122935, 0.363057738173, -0.524536297555)],
+            dtype=[('ra', None), ('dec', numpy.float64), ('g1', numpy.float32), ('g2', numpy.float128)])
+
+    config = {'min_sep': 0.05, 'max_sep': 0.2, 'sep_units': 'degrees', 'nbins': 5 }
+
+    cat1 = treecorr.Catalog(ra=[0], dec=[0]) # dumb lens
+    cat2 = treecorr.Catalog(ra=source_data['ra']*treecorr.angle_units['deg'],
+                            dec=source_data['dec']*treecorr.angle_units['deg'],
+                            g1=source_data['g1'],
+                            g2=source_data['g2'])
+    cat2_float = treecorr.Catalog(ra=source_data['ra'].astype(float)*treecorr.angle_units['deg'],
+                                  dec=source_data['dec'].astype(float)*treecorr.angle_units['deg'],
+                                  g1=source_data['g1'].astype(float), 
+                                  g2=source_data['g2'].astype(float))
+
+    print "dtypes of original arrays are: ", [source_data[key].dtype for key in ['ra','dec','g1','g2']]
+    print "dtypes of cat2 arrays are: ", [getattr(cat2,key).dtype for key in ['ra','dec','g1','g2']]
+    print "dtypes of cat2_float arrays are: ", [getattr(cat2_float,key).dtype for key in ['ra','dec','g1','g2']]
+    print "is original g2 array contiguous?", source_data['g2'].flags['C_CONTIGUOUS']
+    print "is cat2.g2 array contiguous?", cat2.g2.flags['C_CONTIGUOUS']
+    print "is cat2_float.g2 array contiguous?", cat2_float.g2.flags['C_CONTIGUOUS']
+    assert not source_data['g2'].flags['C_CONTIGUOUS']
+    assert cat2.g2.flags['C_CONTIGUOUS']
+
+    ng = treecorr.NGCorrelation(config)
+    ng.process(cat1,cat2)
+    ng_float = treecorr.NGCorrelation(config)
+    ng_float.process(cat1,cat2_float)
+
+    numpy.testing.assert_equal(ng.xi, ng_float.xi)
+
 if __name__ == '__main__':
     test_ascii()
     test_fits()
     test_direct()
+    test_contiguous()

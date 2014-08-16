@@ -69,8 +69,6 @@ class N2Correlation(treecorr.BinnedCorr2):
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
-        self.xi = numpy.zeros(self.nbins, dtype=float)
-        self.varxi = numpy.zeros(self.nbins, dtype=float)
         self.tot = 0.
 
         meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)

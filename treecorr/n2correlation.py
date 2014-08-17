@@ -93,7 +93,7 @@ class N2Correlation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation of meanlogr.
         """
-        self.logger.info('Starting process N2 auto-correlations for cat %s.',cat1.file_name)
+        self.logger.info('Starting process N2 auto-correlations for cat %s.',cat1.name)
         field = cat1.getNField(self.min_sep,self.max_sep,self.b)
 
         if field.sphere:
@@ -111,7 +111,7 @@ class N2Correlation(treecorr.BinnedCorr2):
         finish the calculation of meanlogr.
         """
         self.logger.info('Starting process N2 cross-correlations for cats %s, %s.',
-                         cat1.file_name, cat2.file_name)
+                         cat1.name, cat2.name)
         f1 = cat1.getNField(self.min_sep,self.max_sep,self.b)
         f2 = cat2.getNField(self.min_sep,self.max_sep,self.b)
 
@@ -135,7 +135,7 @@ class N2Correlation(treecorr.BinnedCorr2):
         finish the calculation.
         """
         self.logger.info('Starting process G2 pairwise-correlations for cats %s, %s.',
-                         cat1.file_name, cat2.file_name)
+                         cat1.name, cat2.name)
         f1 = cat1.getNSimpleField()
         f2 = cat2.getNSimpleField()
 

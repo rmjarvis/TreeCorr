@@ -212,3 +212,18 @@ def get(config, key, value_type=str, default=None):
         return convert(default,value_type,key)
     else:
         return default
+
+def merge_config(config, kwargs):
+    if config is None: config = {}
+    if kwargs:
+        import copy
+        if config is not None:
+            config = copy.copy(config)
+            config.update(kwargs)
+        else: 
+            config = kwargs
+    if config is None:
+        config = {}
+    return config
+
+

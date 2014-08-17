@@ -23,7 +23,7 @@ def test_single():
 
     nsource = 1000000
     kappa0 = 0.05
-    r0 = 10. * treecorr.angle_units['arcmin']
+    r0 = 10.
     L = 5. * r0
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(nsource)-0.5) * L
@@ -31,13 +31,13 @@ def test_single():
     r2 = (x**2 + y**2)
     k = kappa0 * numpy.exp(-0.5*r2/r0**2) * (1.-0.5*r2/r0**2)
 
-    lens_cat = treecorr.Catalog(x=[0], y=[0])
-    source_cat = treecorr.Catalog(x=x, y=y, k=k)
+    lens_cat = treecorr.Catalog(x=[0], y=[0], x_units='arcmin', y_units='arcmin')
+    source_cat = treecorr.Catalog(x=x, y=y, k=k, x_units='arcmin', y_units='arcmin')
     nk = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     nk.process(lens_cat, source_cat)
 
-    r = numpy.exp(nk.meanlogr) * treecorr.angle_units['arcmin']
+    r = numpy.exp(nk.meanlogr)
     true_k = kappa0 * numpy.exp(-0.5*r**2/r0**2) * (1.-0.5*r**2/r0**2)
 
     print 'nk.xi = ',nk.xi
@@ -67,7 +67,7 @@ def test_nk():
     nlens = 1000
     nsource = 100000
     kappa0 = 0.05
-    r0 = 10. * treecorr.angle_units['arcmin']
+    r0 = 10.
     L = 50. * r0
     numpy.random.seed(8675309)
     xl = (numpy.random.random_sample(nlens)-0.5) * L
@@ -81,13 +81,13 @@ def test_nk():
         r2 = dx**2 + dy**2
         k += kappa0 * numpy.exp(-0.5*r2/r0**2) * (1.-0.5*r2/r0**2)
 
-    lens_cat = treecorr.Catalog(x=xl, y=yl)
-    source_cat = treecorr.Catalog(x=xs, y=ys, k=k)
+    lens_cat = treecorr.Catalog(x=xl, y=yl, x_units='arcmin', y_units='arcmin')
+    source_cat = treecorr.Catalog(x=xs, y=ys, k=k, x_units='arcmin', y_units='arcmin')
     nk = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     nk.process(lens_cat, source_cat)
 
-    r = numpy.exp(nk.meanlogr) * treecorr.angle_units['arcmin']
+    r = numpy.exp(nk.meanlogr)
     true_k = kappa0 * numpy.exp(-0.5*r**2/r0**2) * (1.-0.5*r**2/r0**2)
 
     print 'nk.xi = ',nk.xi
@@ -100,7 +100,7 @@ def test_nk():
     nrand = nlens * 13
     xr = (numpy.random.random_sample(nrand)-0.5) * L
     yr = (numpy.random.random_sample(nrand)-0.5) * L
-    rand_cat = treecorr.Catalog(x=xr, y=yr)
+    rand_cat = treecorr.Catalog(x=xr, y=yr, x_units='arcmin', y_units='arcmin')
     rk = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     rk.process(rand_cat, source_cat)

@@ -25,7 +25,7 @@ def test_single():
 
     nsource = 1000000
     gamma0 = 0.05
-    r0 = 10. * treecorr.angle_units['arcmin']
+    r0 = 10.
     L = 5. * r0
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(nsource)-0.5) * L
@@ -35,13 +35,13 @@ def test_single():
     g1 = -gammat * (x**2-y**2)/r2
     g2 = -gammat * (2.*x*y)/r2
 
-    lens_cat = treecorr.Catalog(x=[0], y=[0])
-    source_cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
+    lens_cat = treecorr.Catalog(x=[0], y=[0], x_units='arcmin', y_units='arcmin')
+    source_cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     ng.process(lens_cat, source_cat)
 
-    r = numpy.exp(ng.meanlogr) * treecorr.angle_units['arcmin']
+    r = numpy.exp(ng.meanlogr)
     true_gt = gamma0 * numpy.exp(-0.5*r**2/r0**2)
 
     print 'ng.xi = ',ng.xi
@@ -74,7 +74,7 @@ def test_pairwise():
     # Test the same profile, but with the pairwise calcualtion:
     nsource = 1000000
     gamma0 = 0.05
-    r0 = 10. * treecorr.angle_units['arcmin']
+    r0 = 10.
     L = 5. * r0
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(nsource)-0.5) * L
@@ -87,13 +87,13 @@ def test_pairwise():
     dx = (numpy.random.random_sample(nsource)-0.5) * L
     dx = (numpy.random.random_sample(nsource)-0.5) * L
 
-    lens_cat = treecorr.Catalog(x=dx, y=dx)
-    source_cat = treecorr.Catalog(x=x+dx, y=y+dx, g1=g1, g2=g2)
+    lens_cat = treecorr.Catalog(x=dx, y=dx, x_units='arcmin', y_units='arcmin')
+    source_cat = treecorr.Catalog(x=x+dx, y=y+dx, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2, pairwise=True)
     ng.process(lens_cat, source_cat)
 
-    r = numpy.exp(ng.meanlogr) * treecorr.angle_units['arcmin']
+    r = numpy.exp(ng.meanlogr)
     true_gt = gamma0 * numpy.exp(-0.5*r**2/r0**2)
 
     print 'ng.xi = ',ng.xi
@@ -196,8 +196,9 @@ def test_spherical():
         g1_sph = g1 * cos2beta - g2 * sin2beta
         g2_sph = g2 * cos2beta + g1 * sin2beta
 
-        lens_cat = treecorr.Catalog(ra=[ra0], dec=[dec0])
-        source_cat = treecorr.Catalog(ra=ra, dec=dec, g1=g1_sph, g2=g2_sph)
+        lens_cat = treecorr.Catalog(ra=[ra0], dec=[dec0], ra_units='rad', dec_units='rad')
+        source_cat = treecorr.Catalog(ra=ra, dec=dec, g1=g1_sph, g2=g2_sph,
+                                      ra_units='rad', dec_units='rad')
         ng.process(lens_cat, source_cat)
 
         print 'ra0, dec0 = ',ra0,dec0
@@ -219,8 +220,9 @@ def test_spherical():
     ra = theta
     dec = pi/2. - 2.*arcsin(r/2.)
 
-    lens_cat = treecorr.Catalog(ra=[ra0], dec=[dec0])
-    source_cat = treecorr.Catalog(ra=ra, dec=dec, g1=gammat, g2=numpy.zeros_like(gammat))
+    lens_cat = treecorr.Catalog(ra=[ra0], dec=[dec0], ra_units='rad', dec_units='rad')
+    source_cat = treecorr.Catalog(ra=ra, dec=dec, g1=gammat, g2=numpy.zeros_like(gammat),
+                                  ra_units='rad', dec_units='rad')
     ng.process(lens_cat, source_cat)
 
     print 'ng.xi = ',ng.xi
@@ -256,7 +258,7 @@ def test_ng():
     nlens = 1000
     nsource = 100000
     gamma0 = 0.05
-    r0 = 10. * treecorr.angle_units['arcmin']
+    r0 = 10.
     L = 50. * r0
     numpy.random.seed(8675309)
     xl = (numpy.random.random_sample(nlens)-0.5) * L
@@ -273,13 +275,13 @@ def test_ng():
         g1 += -gammat * (dx**2-dy**2)/r2
         g2 += -gammat * (2.*dx*dy)/r2
 
-    lens_cat = treecorr.Catalog(x=xl, y=yl)
-    source_cat = treecorr.Catalog(x=xs, y=ys, g1=g1, g2=g2)
+    lens_cat = treecorr.Catalog(x=xl, y=yl, x_units='arcmin', y_units='arcmin')
+    source_cat = treecorr.Catalog(x=xs, y=ys, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     ng.process(lens_cat, source_cat)
 
-    r = numpy.exp(ng.meanlogr) * treecorr.angle_units['arcmin']
+    r = numpy.exp(ng.meanlogr)
     true_gt = gamma0 * numpy.exp(-0.5*r**2/r0**2)
 
     print 'ng.xi = ',ng.xi
@@ -294,7 +296,7 @@ def test_ng():
     nrand = nlens * 13
     xr = (numpy.random.random_sample(nrand)-0.5) * L
     yr = (numpy.random.random_sample(nrand)-0.5) * L
-    rand_cat = treecorr.Catalog(x=xr, y=yr)
+    rand_cat = treecorr.Catalog(x=xr, y=yr, x_units='arcmin', y_units='arcmin')
     rg = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     rg.process(rand_cat, source_cat)

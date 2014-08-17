@@ -21,13 +21,13 @@ def test_constant():
 
     ngal = 100000
     A = 0.05
-    L = 100. * treecorr.angle_units['arcmin']
+    L = 100.
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(ngal)-0.5) * L
     y = (numpy.random.random_sample(ngal)-0.5) * L
     kappa = A * numpy.ones(ngal)
 
-    cat = treecorr.Catalog(x=x, y=y, k=kappa)
+    cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     k2 = treecorr.K2Correlation(bin_size=0.1, min_sep=0.1, max_sep=10., sep_units='arcmin')
     k2.process(cat)
     print 'k2.xi = ',k2.xi
@@ -35,7 +35,7 @@ def test_constant():
 
     # Now add some noise to the values. It should still work, but at slightly lower accuracy.
     kappa += 0.001 * (numpy.random.random_sample(ngal)-0.5)
-    cat = treecorr.Catalog(x=x, y=y, k=kappa)
+    cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     k2.process(cat)
     print 'k2.xi = ',k2.xi
     numpy.testing.assert_almost_equal(k2.xi, A**2, decimal=6)
@@ -56,7 +56,7 @@ def test_k2():
 
     ngal = 1000000
     A = 0.05
-    s = 10. * treecorr.angle_units['arcmin']
+    s = 10.
     L = 30. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(ngal)-0.5) * L
@@ -64,11 +64,11 @@ def test_k2():
     r2 = (x**2 + y**2)/s**2
     kappa = A * numpy.exp(-r2/2.)
 
-    cat = treecorr.Catalog(x=x, y=y, k=kappa)
+    cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     k2 = treecorr.K2Correlation(bin_size=0.1, min_sep=1., max_sep=50., sep_units='arcmin',
                                 verbose=2)
     k2.process(cat)
-    r = numpy.exp(k2.meanlogr) * treecorr.angle_units['arcmin']
+    r = numpy.exp(k2.meanlogr)
     true_xi = numpy.pi * A**2 * (s/L)**2 * numpy.exp(-0.25*r**2/s**2)
     print 'k2.xi = ',k2.xi
     print 'true_xi = ',true_xi

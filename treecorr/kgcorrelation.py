@@ -97,7 +97,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
         """
         self.logger.info('Starting process KG cross-correlations for cats %s, %s.',
-                         cat1.file_name, cat2.file_name)
+                         cat1.name, cat2.name)
         f1 = cat1.getKField(self.min_sep,self.max_sep,self.b)
         f2 = cat2.getGField(self.min_sep,self.max_sep,self.b)
 
@@ -120,7 +120,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
         """
         self.logger.info('Starting process G2 pairwise-correlations for cats %s, %s.',
-                         cat1.file_name, cat2.file_name)
+                         cat1.name, cat2.name)
         f1 = cat1.getKSimpleField()
         f2 = cat2.getGSimpleField()
 

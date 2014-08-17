@@ -65,18 +65,7 @@ class BinnedCorr2(object):
     def __init__(self, config=None, logger=None, **kwargs):
         import math
         import numpy
-        if config is None: config = {}
-        if kwargs:
-            import copy
-            if config is not None:
-                config = copy.copy(config)
-                config.update(kwargs)
-            else: 
-                config = kwargs
-        if config is None:
-            config = {}
-        self.config = config
-
+        self.config = treecorr.config.merge_config(config,kwargs)
         if logger is None:
             self.logger = treecorr.config.setup_logger(
                     treecorr.config.get(self.config,'verbose',int,0),

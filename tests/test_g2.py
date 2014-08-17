@@ -45,7 +45,7 @@ def test_g2():
     g1 = -gamma0 * numpy.exp(-r2/2.) * (x**2-y**2)/r0**2
     g2 = -gamma0 * numpy.exp(-r2/2.) * (2.*x*y)/r0**2
 
-    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
+    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, x_units='rad', y_units='rad')
     gg = treecorr.G2Correlation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
                                 verbose=2)
     gg.process(cat)
@@ -171,7 +171,8 @@ def test_spherical():
         g1_sph = g1 * cos2beta - g2 * sin2beta
         g2_sph = g2 * cos2beta + g1 * sin2beta
 
-        cat = treecorr.Catalog(ra=ra, dec=dec, g1=g1_sph, g2=g2_sph)
+        cat = treecorr.Catalog(ra=ra, dec=dec, g1=g1_sph, g2=g2_sph, ra_units='rad', 
+                               dec_units='rad')
         gg = treecorr.G2Correlation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
                                     verbose=2)
         gg.process(cat)
@@ -203,7 +204,8 @@ def test_spherical():
     dec = pi/2. - 2.*arcsin(r/2.)
     gammat = -gamma0 * r2/r0**2 * numpy.exp(-r2/2./r0**2)
 
-    cat = treecorr.Catalog(ra=ra, dec=dec, g1=gammat, g2=numpy.zeros_like(gammat))
+    cat = treecorr.Catalog(ra=ra, dec=dec, g1=gammat, g2=numpy.zeros_like(gammat), ra_units='rad',
+                           dec_units='rad')
     gg.process(cat)
 
     print 'gg.xip = ',gg.xip

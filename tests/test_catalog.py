@@ -211,16 +211,17 @@ def test_direct():
     k = numpy.random.random_sample(nobj)
 
     cat1 = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, k=k)
-    numpy.testing.assert_almost_equal(cat1.x, x)
-    numpy.testing.assert_almost_equal(cat1.y, y)
+    numpy.testing.assert_almost_equal(cat1.x, x * treecorr.angle_units['arcsec'])
+    numpy.testing.assert_almost_equal(cat1.y, y * treecorr.angle_units['arcsec'])
     numpy.testing.assert_almost_equal(cat1.w, w)
     numpy.testing.assert_almost_equal(cat1.g1, g1)
     numpy.testing.assert_almost_equal(cat1.g2, g2)
     numpy.testing.assert_almost_equal(cat1.k, k)
 
-    cat2 = treecorr.Catalog(ra=ra, dec=dec, w=w, g1=g1, g2=g2, k=k)
-    numpy.testing.assert_almost_equal(cat2.ra, ra)
-    numpy.testing.assert_almost_equal(cat2.ra, ra)
+    cat2 = treecorr.Catalog(ra=ra, dec=dec, w=w, g1=g1, g2=g2, k=k,
+                            ra_units='hours', dec_units='degrees')
+    numpy.testing.assert_almost_equal(cat2.ra, ra * treecorr.angle_units['hour'])
+    numpy.testing.assert_almost_equal(cat2.dec, dec * treecorr.angle_units['deg'])
     numpy.testing.assert_almost_equal(cat2.w, w)
     numpy.testing.assert_almost_equal(cat2.g1, g1)
     numpy.testing.assert_almost_equal(cat2.g2, g2)
@@ -239,26 +240,25 @@ def test_contiguous():
             (0.125086697534, 0.0283621046495, -0.208159531309, 0.142491564101),
             (0.0457709426026, -0.0299249486373, -0.0406555089425, 0.24515956887),
             (-0.00338578248926, 0.0460291122935, 0.363057738173, -0.524536297555)],
-            dtype=[('ra', None), ('dec', numpy.float64), ('g1', numpy.float32), ('g2', numpy.float128)])
+            dtype=[('ra', None), ('dec', numpy.float64), ('g1', numpy.float32),
+                   ('g2', numpy.float128)])
 
     config = {'min_sep': 0.05, 'max_sep': 0.2, 'sep_units': 'degrees', 'nbins': 5 }
 
-    cat1 = treecorr.Catalog(ra=[0], dec=[0]) # dumb lens
-    cat2 = treecorr.Catalog(ra=source_data['ra']*treecorr.angle_units['deg'],
-                            dec=source_data['dec']*treecorr.angle_units['deg'],
+    cat1 = treecorr.Catalog(ra=[0], dec=[0], ra_units='deg', dec_units='deg') # dumb lens
+    cat2 = treecorr.Catalog(ra=source_data['ra'], ra_units='deg',
+                            dec=source_data['dec'], dec_units='deg',
                             g1=source_data['g1'],
                             g2=source_data['g2'])
-    cat2_float = treecorr.Catalog(ra=source_data['ra'].astype(float)*treecorr.angle_units['deg'],
-                                  dec=source_data['dec'].astype(float)*treecorr.angle_units['deg'],
+    cat2_float = treecorr.Catalog(ra=source_data['ra'].astype(float), ra_units='deg',
+                                  dec=source_data['dec'].astype(float), dec_units='deg',
                                   g1=source_data['g1'].astype(float), 
                                   g2=source_data['g2'].astype(float))
 
-    print "dtypes of original arrays are: ", [source_data[key].dtype for key in ['ra','dec','g1','g2']]
-    print "dtypes of cat2 arrays are: ", [getattr(cat2,key).dtype for key in ['ra','dec','g1','g2']]
-    print "dtypes of cat2_float arrays are: ", [getattr(cat2_float,key).dtype for key in ['ra','dec','g1','g2']]
+    print "dtypes of original arrays: ", [source_data[key].dtype for key in ['ra','dec','g1','g2']]
+    print "dtypes of cat2 arrays: ", [getattr(cat2,key).dtype for key in ['ra','dec','g1','g2']]
     print "is original g2 array contiguous?", source_data['g2'].flags['C_CONTIGUOUS']
     print "is cat2.g2 array contiguous?", cat2.g2.flags['C_CONTIGUOUS']
-    print "is cat2_float.g2 array contiguous?", cat2_float.g2.flags['C_CONTIGUOUS']
     assert not source_data['g2'].flags['C_CONTIGUOUS']
     assert cat2.g2.flags['C_CONTIGUOUS']
 

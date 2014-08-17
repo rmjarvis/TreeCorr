@@ -44,6 +44,10 @@ class Catalog(object):
     a FITS catalog or an ASCII catalog.  Normally the distinction is made according to the
     file_name's extension, but it can also be set explicitly with config['file_type'].
 
+    See https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters
+    for a complete list of all of the relevant configuration parameters.  In particular,
+    the first section "Parameters about the input file".
+
     The num parameter is either 0 or 1 (default 0), which specifies whether this corresponds
     to the first or second file in the configuration file.  e.g. if you are doing an NG
     correlation function, then the first file is not required to have g1_col, g2_col set.
@@ -57,12 +61,15 @@ class Catalog(object):
     data vectors in python and then want to compute the correlation function.  The syntax for this
     is:
 
-        >>> cat = treecorr.Catalog(g1=g1, g2=g2, ra=ra, dec=dec)
-    
-    Each of these data vectors should be a numpy array.  The units for x,y,ra,dec should be
-    in radians.  Valid columns to include are: x,y,ra,dec,g1,g2,k,w.  As usual, exactly one of
-    (x,y) or (ra,dec) must be given.  The others are optional, although if g1 or g2 is given,
-    the other must also be given.  Flags may be included by setting w=0 for those objects.
+        >>> cat = treecorr.Catalog(g1=g1, g2=g2, ra=ra, dec=dec,
+                                   ra_units=ra_units, dec_units=dec_units)
+
+    Each of these data vectors should be a numpy array.  For x,y, the units fields are optional,
+    in which case the units are assumed to be arcsec.  But for ra,dec they are required.
+    These units parameters may alternatively be provided in the config dict as above.
+    Valid columns to include are: x,y,ra,dec,g1,g2,k,w.  As usual, exactly one of (x,y) or
+    (ra,dec) must be given.  The others are optional, although if g1 or g2 is given, the other
+    must also be given.  Flags may be included by setting w=0 for those objects.
 
     A Catalog object will have available the following attributes:
 
@@ -79,15 +86,16 @@ class Catalog(object):
         sumw        The sum of the weights
         varg        The shear variance (aka shape noise)
         vark        The kappa variance
-        file_name   This is only used as a name after construction, so if you construct it from
-                    data vectors directly, it will be ''.  You may assign to it if you want to
-                    give this catalog a different name.
+        name        When constructed from a file, this will be the file_name.  It is only used as
+                    a reference name in logging output  after construction, so if you construct it 
+                    from data vectors directly, it will be ''.  You may assign to it if you want to
+                    give this catalog a specific name.
     """
     def __init__(self, file_name=None, config=None, num=0, logger=None, is_rand=False,
-                 x=None, y=None, ra=None, dec=None, w=None, g1=None, g2=None, k=None):
+                 x=None, y=None, ra=None, dec=None, w=None, flag=None, g1=None, g2=None, k=None,
+                 **kwargs):
 
-        if config is None: config = {}
-        self.config = config
+        self.config = treecorr.config.merge_config(config,kwargs)
         if logger is not None:
             self.logger = logger
         else:
@@ -112,8 +120,8 @@ class Catalog(object):
                 raise AttributeError("config must be provided when file_name is provided.")
             if any([v is not None for v in [x,y,ra,dec,g1,g2,k,w]]):
                 raise AttributeError("Vectors may not be provided when file_name is provided.")
-            self.file_name = file_name
-            self.logger.info("Reading input file %s",self.file_name)
+            self.name = file_name
+            self.logger.info("Reading input file %s",self.name)
 
             # Figure out which file type the catalog is
             file_type = treecorr.config.get_from_list(self.config,'file_type',num)
@@ -132,73 +140,6 @@ class Catalog(object):
             else:
                 self.read_ascii(file_name,num,is_rand)
 
-            # Apply units to x,y,ra,dec
-            if self.x is not None:
-                if 'x_units' in self.config and not 'y_units' in self.config:
-                    raise AttributeError("x_units specified without specifying y_units")
-                if 'y_units' in self.config and not 'x_units' in self.config:
-                    raise AttributeError("y_units specified without specifying x_units")
-                x_units = treecorr.config.get_from_list(self.config,'x_units',num,str,'arcsec')
-                y_units = treecorr.config.get_from_list(self.config,'y_units',num,str,'arcsec')
-                self.x *= x_units
-                self.y *= y_units
-            else:
-                if not self.config.get('ra_units',None):
-                    raise ValueError("ra_units is required when using ra, dec")
-                if not self.config.get('dec_units',None):
-                    raise ValueError("dec_units is required when using ra, dec")
-                ra_units = treecorr.config.get_from_list(self.config,'ra_units',num,str,'arcsec')
-                dec_units = treecorr.config.get_from_list(self.config,'dec_units',num,str,'arcsec')
-                self.ra *= ra_units
-                self.dec *= dec_units
-
-            # Apply flips if requested
-            flip_g1 = treecorr.config.get_from_list(self.config,'flip_g1',num,bool,False)
-            flip_g2 = treecorr.config.get_from_list(self.config,'flip_g2',num,bool,False)
-            if flip_g1: self.g1 = -self.g1
-            if flip_g2: self.g2 = -self.g2
-
-            # Convert the flag to a weight
-            if self.flag is not None:
-                if 'ignore_flag' in self.config:
-                    ignore_flag = treecorr.config.get_from_list(self.config,'ignore_flag',num,int)
-                else:
-                    ok_flag = treecorr.config.get_from_list(self.config,'ok_flag',num,int,0)
-                    ignore_flag = ~ok_flag
-                # If we don't already have a weight column, make one with all values = 1.
-                if self.w is None:
-                    self.w = numpy.ones_like(self.flag)
-                self.w[(self.flag & ignore_flag)!=0] = 0
-                self.logger.debug('Applied flag: w => %s',str(self.w))
-
-            # Update the data according to the specified first and last row
-            first_row = treecorr.config.get_from_list(self.config,'first_row',num,int,1)
-            if first_row < 1:
-                raise ValueError("first_row should be >= 1")
-            last_row = treecorr.config.get_from_list(self.config,'last_row',num,int,-1)
-            if last_row > 0 and last_row < first_row:
-                raise ValueError("last_row should be >= first_row")
-            if last_row > 0:
-                end = last_row
-            else:
-                if self.x is not None: 
-                    end = len(self.x)
-                else:
-                    end = len(self.ra)
-            if first_row > 1: 
-                start = first_row-1
-            else:
-                start = 0
-            self.logger.debug('start..end = %d..%d',start,end)
-            if self.x is not None: self.x = self.x[start:end]
-            if self.y is not None: self.y = self.y[start:end]
-            if self.ra is not None: self.ra = self.ra[start:end]
-            if self.dec is not None: self.dec = self.dec[start:end]
-            if self.w is not None: self.w = self.w[start:end]
-            if self.k is not None: self.k = self.k[start:end]
-            if self.g1 is not None: self.g1 = self.g1[start:end]
-            if self.g2 is not None: self.g2 = self.g2[start:end]
-
         # Second style -- pass in the vectors directly
         else:
             if x is not None or y is not None:
@@ -209,15 +150,84 @@ class Catalog(object):
             if ra is not None or dec is not None:
                 if ra is None or dec is None:
                     raise AttributeError("ra and dec must both be provided")
-            self.file_name = ''
+            self.name = ''
             if x is not None: self.x = numpy.array(x,dtype=float)
             if y is not None: self.y = numpy.array(y,dtype=float)
             if ra is not None: self.ra = numpy.array(ra,dtype=float)
             if dec is not None: self.dec = numpy.array(dec,dtype=float)
             if w is not None: self.w = numpy.array(w,dtype=float)
+            if flag is not None: self.flag = numpy.array(flag,dtype=int)
             if g1 is not None: self.g1 = numpy.array(g1,dtype=float)
             if g2 is not None: self.g2 = numpy.array(g2,dtype=float)
             if k is not None: self.k = numpy.array(k,dtype=float)
+
+
+        # Apply units to x,y,ra,dec
+        if self.x is not None:
+            if 'x_units' in self.config and not 'y_units' in self.config:
+                raise AttributeError("x_units specified without specifying y_units")
+            if 'y_units' in self.config and not 'x_units' in self.config:
+                raise AttributeError("y_units specified without specifying x_units")
+            x_units = treecorr.config.get_from_list(self.config,'x_units',num,str,'arcsec')
+            y_units = treecorr.config.get_from_list(self.config,'y_units',num,str,'arcsec')
+            self.x *= x_units
+            self.y *= y_units
+        else:
+            if not self.config.get('ra_units',None):
+                raise ValueError("ra_units is required when using ra, dec")
+            if not self.config.get('dec_units',None):
+                raise ValueError("dec_units is required when using ra, dec")
+            ra_units = treecorr.config.get_from_list(self.config,'ra_units',num,str,'arcsec')
+            dec_units = treecorr.config.get_from_list(self.config,'dec_units',num,str,'arcsec')
+            self.ra *= ra_units
+            self.dec *= dec_units
+
+        # Apply flips if requested
+        flip_g1 = treecorr.config.get_from_list(self.config,'flip_g1',num,bool,False)
+        flip_g2 = treecorr.config.get_from_list(self.config,'flip_g2',num,bool,False)
+        if flip_g1: self.g1 = -self.g1
+        if flip_g2: self.g2 = -self.g2
+
+        # Convert the flag to a weight
+        if self.flag is not None:
+            if 'ignore_flag' in self.config:
+                ignore_flag = treecorr.config.get_from_list(self.config,'ignore_flag',num,int)
+            else:
+                ok_flag = treecorr.config.get_from_list(self.config,'ok_flag',num,int,0)
+                ignore_flag = ~ok_flag
+            # If we don't already have a weight column, make one with all values = 1.
+            if self.w is None:
+                self.w = numpy.ones_like(self.flag)
+            self.w[(self.flag & ignore_flag)!=0] = 0
+            self.logger.debug('Applied flag: w => %s',str(self.w))
+
+        # Update the data according to the specified first and last row
+        first_row = treecorr.config.get_from_list(self.config,'first_row',num,int,1)
+        if first_row < 1:
+            raise ValueError("first_row should be >= 1")
+        last_row = treecorr.config.get_from_list(self.config,'last_row',num,int,-1)
+        if last_row > 0 and last_row < first_row:
+            raise ValueError("last_row should be >= first_row")
+        if last_row > 0:
+            end = last_row
+        else:
+            if self.x is not None: 
+                end = len(self.x)
+            else:
+                end = len(self.ra)
+        if first_row > 1: 
+            start = first_row-1
+        else:
+            start = 0
+        self.logger.debug('start..end = %d..%d',start,end)
+        if self.x is not None: self.x = self.x[start:end]
+        if self.y is not None: self.y = self.y[start:end]
+        if self.ra is not None: self.ra = self.ra[start:end]
+        if self.dec is not None: self.dec = self.dec[start:end]
+        if self.w is not None: self.w = self.w[start:end]
+        if self.k is not None: self.k = self.k[start:end]
+        if self.g1 is not None: self.g1 = self.g1[start:end]
+        if self.g2 is not None: self.g2 = self.g2[start:end]
 
         # Check that all columns have the same length:
         if self.x is not None: 

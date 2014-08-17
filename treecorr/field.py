@@ -99,20 +99,35 @@ class NField(object):
 
         >>> nfield = cat.getNField(min_sep, max_sep, b)
     """
-    def __init__(self, cat, min_sep, max_sep, b, logger=None, config=None):
-        if config is None: config = {}
+    def __init__(self, cat, min_sep=None, max_sep=None, b=None, logger=None, config=None,
+                 **kwargs):
+        self.config = treecorr.config.merge_config(config,kwargs)
         if logger is not None:
             self.logger = logger
         else:
-            self.logger = treecorr.config.setup_logger(treecorr.config.get(config,'verbose',int,0),
-                                                       config.get('log_file',None))
-        self.logger.info('Building NField from cat %s',cat.file_name)
+            self.logger = treecorr.config.setup_logger(
+                    treecorr.config.get(self.config,'verbose',int,0),
+                    self.config.get('log_file',None))
+        self.logger.info('Building NField from cat %s',cat.name)
 
-
-        split_method = config.get('split_method','mean')
+        split_method = self.config.get('split_method','mean')
         if split_method not in ['middle', 'median', 'mean']:
             raise ValueError("Invalid split_method %s"%split_method)
 
+        if min_sep is None:
+            if 'min_sep' not in self.config:
+                raise AttributeError("min_sep is required")
+            min_sep = self.config['min_sep']
+        if max_sep is None:
+            if 'max_sep' not in self.config:
+                raise AttributeError("min_sep is required")
+            max_sep = self.config['max_sep']
+        if b is None:
+            if 'bin_size' not in self.config:
+                raise AttributeError("b or bin_size is required")
+            bin_size = self.config['bin_size']
+            b = bin_size * self.config.get('bin_slop',1.)
+            
         self.min_sep = min_sep
         self.max_sep = max_sep
         self.b = b
@@ -156,19 +171,35 @@ class KField(object):
 
         >>> kfield = cat.getKField(min_sep, max_sep, b)
     """
-    def __init__(self, cat, min_sep, max_sep, b, logger=None, config=None):
-        if config is None: config = {}
+    def __init__(self, cat, min_sep=None, max_sep=None, b=None, logger=None, config=None,
+                 **kwargs):
+        self.config = treecorr.config.merge_config(config,kwargs)
         if logger is not None:
             self.logger = logger
         else:
-            self.logger = treecorr.config.setup_logger(treecorr.config.get(config,'verbose',int,0),
-                                                       config.get('log_file',None))
-        self.logger.info('Building KField from cat %s',cat.file_name)
+            self.logger = treecorr.config.setup_logger(
+                    treecorr.config.get(self.config,'verbose',int,0),
+                    self.config.get('log_file',None))
+        self.logger.info('Building KField from cat %s',cat.name)
 
-        split_method = config.get('split_method','mean')
+        split_method = self.config.get('split_method','mean')
         if split_method not in ['middle', 'median', 'mean']:
             raise ValueError("Invalid split_method %s"%split_method)
 
+        if min_sep is None:
+            if 'min_sep' not in self.config:
+                raise AttributeError("min_sep is required")
+            min_sep = self.config['min_sep']
+        if max_sep is None:
+            if 'max_sep' not in self.config:
+                raise AttributeError("min_sep is required")
+            max_sep = self.config['max_sep']
+        if b is None:
+            if 'bin_size' not in self.config:
+                raise AttributeError("b or bin_size is required")
+            bin_size = self.config['bin_size']
+            b = bin_size * self.config.get('bin_slop',1.)
+         
         self.min_sep = min_sep
         self.max_sep = max_sep
         self.b = b
@@ -213,19 +244,35 @@ class GField(object):
 
         >>> gfield = cat.getGField(min_sep, max_sep, b)
     """
-    def __init__(self, cat, min_sep, max_sep, b, logger=None, config=None):
-        if config is None: config = {}
+    def __init__(self, cat, min_sep=None, max_sep=None, b=None, logger=None, config=None,
+                 **kwargs):
+        self.config = treecorr.config.merge_config(config,kwargs)
         if logger is not None:
             self.logger = logger
         else:
-            self.logger = treecorr.config.setup_logger(treecorr.config.get(config,'verbose',int,0),
-                                                       config.get('log_file',None))
-        self.logger.info('Building GField from cat %s',cat.file_name)
+            self.logger = treecorr.config.setup_logger(
+                    treecorr.config.get(self.config,'verbose',int,0),
+                    self.config.get('log_file',None))
+        self.logger.info('Building GField from cat %s',cat.name)
 
-        split_method = config.get('split_method','mean')
+        split_method = self.config.get('split_method','mean')
         if split_method not in ['middle', 'median', 'mean']:
             raise ValueError("Invalid split_method %s"%split_method)
 
+        if min_sep is None:
+            if 'min_sep' not in self.config:
+                raise AttributeError("min_sep is required")
+            min_sep = self.config['min_sep']
+        if max_sep is None:
+            if 'max_sep' not in self.config:
+                raise AttributeError("min_sep is required")
+            max_sep = self.config['max_sep']
+        if b is None:
+            if 'bin_size' not in self.config:
+                raise AttributeError("b or bin_size is required")
+            bin_size = self.config['bin_size']
+            b = bin_size * self.config.get('bin_slop',1.)
+         
         self.min_sep = min_sep
         self.max_sep = max_sep
         self.b = b
@@ -270,14 +317,15 @@ class NSimpleField(object):
 
         >>> nfield = cat.getNSimpleField()
     """
-    def __init__(self, cat, logger=None, config=None):
-        if config is None: config = {}
+    def __init__(self, cat, logger=None, config=None, **kwargs):
+        self.config = treecorr.config.merge_config(config,kwargs)
         if logger is not None:
             self.logger = logger
         else:
-            self.logger = treecorr.config.setup_logger(treecorr.config.get(config,'verbose',int,0),
-                                                       config.get('log_file',None))
-        self.logger.info('Building NSimpleField from cat %s',cat.file_name)
+            self.logger = treecorr.config.setup_logger(
+                    treecorr.config.get(self.config,'verbose',int,0),
+                    self.config.get('log_file',None))
+        self.logger.info('Building NSimpleField from cat %s',cat.name)
 
         w = cat.w.ctypes.data_as(cdouble_ptr)
 
@@ -317,14 +365,15 @@ class KSimpleField(object):
 
         >>> kfield = cat.getKSimpleField()
     """
-    def __init__(self, cat, logger=None, config=None):
-        if config is None: config = {}
+    def __init__(self, cat, logger=None, config=None, **kwargs):
+        self.config = treecorr.config.merge_config(config,kwargs)
         if logger is not None:
             self.logger = logger
         else:
-            self.logger = treecorr.config.setup_logger(treecorr.config.get(config,'verbose',int,0),
-                                                       config.get('log_file',None))
-        self.logger.info('Building KSimpleField from cat %s',cat.file_name)
+            self.logger = treecorr.config.setup_logger(
+                    treecorr.config.get(self.config,'verbose',int,0),
+                    self.config.get('log_file',None))
+        self.logger.info('Building KSimpleField from cat %s',cat.name)
 
         k = cat.k.ctypes.data_as(cdouble_ptr)
         w = cat.w.ctypes.data_as(cdouble_ptr)
@@ -364,14 +413,15 @@ class GSimpleField(object):
 
         >>> gfield = cat.getGSimpleField()
     """
-    def __init__(self, cat, logger=None, config=None):
-        if config is None: config = {}
+    def __init__(self, cat, logger=None, config=None, **kwargs):
+        self.config = treecorr.config.merge_config(config,kwargs)
         if logger is not None:
             self.logger = logger
         else:
-            self.logger = treecorr.config.setup_logger(treecorr.config.get(config,'verbose',int,0),
-                                                       config.get('log_file',None))
-        self.logger.info('Building GSimpleField from cat %s',cat.file_name)
+            self.logger = treecorr.config.setup_logger(
+                    treecorr.config.get(self.config,'verbose',int,0),
+                    self.config.get('log_file',None))
+        self.logger.info('Building GSimpleField from cat %s',cat.name)
 
         g1 = cat.g1.ctypes.data_as(cdouble_ptr)
         g2 = cat.g2.ctypes.data_as(cdouble_ptr)

@@ -104,6 +104,8 @@ class BinnedCorr2(object):
                 raise AttributeError("Missing required parameter bin_size")
             self.min_sep = float(self.config['min_sep']) * self.sep_units
             self.max_sep = float(self.config['max_sep']) * self.sep_units
+            if self.min_sep >= self.max_sep:
+                raise ValueError("max_sep must be larger than min_sep")
             self.bin_size = float(self.config['bin_size'])
             self.nbins = int(math.ceil(math.log(self.max_sep/self.min_sep)/self.bin_size))
             # Update max_sep given this value of nbins
@@ -115,6 +117,8 @@ class BinnedCorr2(object):
                 raise AttributeError("Missing required parameter min_sep")
             self.min_sep = float(self.config['min_sep']) * self.sep_units
             self.max_sep = float(self.config['max_sep']) * self.sep_units
+            if self.min_sep >= self.max_sep:
+                raise ValueError("max_sep must be larger than min_sep")
             self.nbins = int(self.config['nbins'])
             self.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
         elif 'max_sep' not in self.config:

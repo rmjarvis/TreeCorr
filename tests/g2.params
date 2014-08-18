@@ -3,8 +3,8 @@ file_name = data/g2.dat
 
 x_col = 1
 y_col = 2
-x_units = rad
-y_units = rad
+x_units = arcmin
+y_units = arcmin
 
 w_col = 3
 g1_col = 4

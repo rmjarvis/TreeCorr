@@ -28,6 +28,13 @@ angle_units = {
     'rad' : 1.,
 }
 
+# Convenient shorthand:
+arcsec = angle_units['arcsec']
+arcmin = angle_units['arcmin']
+degrees = angle_units['deg']
+hours = angle_units['hour']
+radians = angle_units['rad']
+
 class CelestialCoord(object):
     """This class defines a position on the celestial sphere, normally given by
     two angles, `ra` and `dec`.

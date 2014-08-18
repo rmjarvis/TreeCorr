@@ -19,6 +19,7 @@ import treecorr
 from numpy import sin, cos, tan, arcsin, arccos, arctan, sqrt, pi
 
 def test_angle_units():
+    # First using the angle_units dict:
     rad = treecorr.angle_units['rad']
     hour = treecorr.angle_units['hour']
     deg = treecorr.angle_units['deg']
@@ -30,6 +31,20 @@ def test_angle_units():
     numpy.testing.assert_almost_equal(deg, pi/180.)
     numpy.testing.assert_almost_equal(arcmin, pi/(180.*60))
     numpy.testing.assert_almost_equal(arcsec, pi/(180.*3600))
+
+    # Now with the shorthand variables
+    rad = treecorr.radians
+    hour = treecorr.hours
+    deg = treecorr.degrees
+    arcmin = treecorr.arcmin
+    arcsec = treecorr.arcsec
+    
+    numpy.testing.assert_almost_equal(rad, 1.)
+    numpy.testing.assert_almost_equal(hour, pi/12.)
+    numpy.testing.assert_almost_equal(deg, pi/180.)
+    numpy.testing.assert_almost_equal(arcmin, pi/(180.*60))
+    numpy.testing.assert_almost_equal(arcsec, pi/(180.*3600))
+
 
 
 def test_distance():
@@ -378,15 +393,15 @@ def test_precess():
     # I found a website that does precession calculations, so check that we are 
     # consistent with them.
     # http://www.bbastrodesigns.com/coordErrors.html
-    dra_1950 = -(2. + 39.07/60.)/60. * treecorr.angle_units['hour']
-    ddec_1950 = -(16. + 16.3/60.)/60. * treecorr.angle_units['deg']
+    dra_1950 = -(2. + 39.07/60.)/60. * treecorr.hours
+    ddec_1950 = -(16. + 16.3/60.)/60. * treecorr.degrees
     print 'delta from website: ',dra_1950,ddec_1950
     print 'delta from precess: ',(c1.ra-orig.ra),(c1.dec-orig.dec)
     numpy.testing.assert_almost_equal(dra_1950, c1.ra-orig.ra, decimal=5)
     numpy.testing.assert_almost_equal(ddec_1950, c1.dec-orig.dec, decimal=5)
 
-    dra_1900 = -(5. + 17.74/60.)/60. * treecorr.angle_units['hour']
-    ddec_1900 = -(32. + 35.4/60.)/60. * treecorr.angle_units['deg']
+    dra_1900 = -(5. + 17.74/60.)/60. * treecorr.hours
+    ddec_1900 = -(32. + 35.4/60.)/60. * treecorr.degrees
     print 'delta from website: ',dra_1900,ddec_1900
     print 'delta from precess: ',(c2.ra-orig.ra),(c2.dec-orig.dec)
     numpy.testing.assert_almost_equal(dra_1900, c2.ra-orig.ra, decimal=5)
@@ -395,30 +410,30 @@ def test_precess():
 def test_galactic():
     # According to wikipedia: http://en.wikipedia.org/wiki/Galactic_coordinate_system
     # the galactic center is located at 17h:45.6m, -28.94d
-    center = treecorr.CelestialCoord( (17.+45.6/60.) * treecorr.angle_units['hour'],
-                                      -28.94 * treecorr.angle_units['deg'] )
+    center = treecorr.CelestialCoord( (17.+45.6/60.) * treecorr.hours,
+                                      -28.94 * treecorr.degrees )
     print 'center.galactic = ',center.galactic()
     el,b = center.galactic()
     numpy.testing.assert_almost_equal(el, 0., decimal=3)
     numpy.testing.assert_almost_equal(b, 0., decimal=3)
 
     # The north pole is at 12h:51.4m, 27.13d
-    north = treecorr.CelestialCoord( (12.+51.4/60.) * treecorr.angle_units['hour'],
-                                     27.13 * treecorr.angle_units['deg'] )
+    north = treecorr.CelestialCoord( (12.+51.4/60.) * treecorr.hours,
+                                     27.13 * treecorr.degrees )
     print 'north.galactic = ',north.galactic()
     el,b = north.galactic()
     numpy.testing.assert_almost_equal(b, pi/2., decimal=3)
 
     # The south pole is at 0h:51.4m, -27.13d
-    south = treecorr.CelestialCoord( (0.+51.4/60.) * treecorr.angle_units['hour'],
-                                     -27.13 * treecorr.angle_units['deg'] )
+    south = treecorr.CelestialCoord( (0.+51.4/60.) * treecorr.hours,
+                                     -27.13 * treecorr.degrees )
     print 'south.galactic = ',south.galactic()
     el,b = south.galactic()
     numpy.testing.assert_almost_equal(b, -pi/2., decimal=3)
 
     # The anti-center is at 5h:42.6m, 28.92d
-    anticenter = treecorr.CelestialCoord( (5.+45.6/60.) * treecorr.angle_units['hour'],
-                                          28.94 * treecorr.angle_units['deg'] )
+    anticenter = treecorr.CelestialCoord( (5.+45.6/60.) * treecorr.hours,
+                                          28.94 * treecorr.degrees )
     print 'anticenter.galactic = ',anticenter.galactic()
     el,b = anticenter.galactic()
     numpy.testing.assert_almost_equal(el, pi, decimal=3)

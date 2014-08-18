@@ -36,7 +36,7 @@ def test_g2():
 
     ngal = 1000000
     gamma0 = 0.05
-    r0 = 10. * treecorr.angle_units['arcmin']
+    r0 = 10.
     L = 50. * r0  # Not infinity, so this introduces some error.  Our integrals were to infinity.
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(ngal)-0.5) * L
@@ -45,11 +45,11 @@ def test_g2():
     g1 = -gamma0 * numpy.exp(-r2/2.) * (x**2-y**2)/r0**2
     g2 = -gamma0 * numpy.exp(-r2/2.) * (2.*x*y)/r0**2
 
-    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, x_units='rad', y_units='rad')
+    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     gg = treecorr.G2Correlation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
                                 verbose=2)
     gg.process(cat)
-    r = numpy.exp(gg.meanlogr) * treecorr.angle_units['arcmin']
+    r = numpy.exp(gg.meanlogr)
     temp = numpy.pi/16. * gamma0**2 * (r0/L)**2 * numpy.exp(-0.25*r**2/r0**2)
     true_xip = temp * (r**4 - 16.*r**2*r0**2 + 32.*r0**4)/r0**4
     true_xim = temp * r**4/r0**4
@@ -106,7 +106,7 @@ def test_spherical():
 
     nsource = 1000000
     gamma0 = 0.05
-    r0 = 10. * treecorr.angle_units['arcmin']
+    r0 = 10. * treecorr.arcmin
     L = 50. * r0
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(nsource)-0.5) * L
@@ -119,7 +119,7 @@ def test_spherical():
 
     gg = treecorr.G2Correlation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
                                 verbose=2)
-    r1 = numpy.exp(gg.logr) * treecorr.angle_units['arcmin']
+    r1 = numpy.exp(gg.logr) * treecorr.arcmin
     temp = numpy.pi/16. * gamma0**2 * (r0/L)**2 * numpy.exp(-0.25*r1**2/r0**2)
     true_xip = temp * (r1**4 - 16.*r1**2*r0**2 + 32.*r0**4)/r0**4
     true_xim = temp * r1**4/r0**4
@@ -359,6 +359,6 @@ def test_aardvark():
 
  
 if __name__ == '__main__':
-    #test_g2()
+    test_g2()
     test_spherical()
-    #test_aardvark()
+    test_aardvark()

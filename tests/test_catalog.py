@@ -211,8 +211,8 @@ def test_direct():
     k = numpy.random.random_sample(nobj)
 
     cat1 = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, k=k)
-    numpy.testing.assert_almost_equal(cat1.x, x * treecorr.angle_units['arcsec'])
-    numpy.testing.assert_almost_equal(cat1.y, y * treecorr.angle_units['arcsec'])
+    numpy.testing.assert_almost_equal(cat1.x, x * treecorr.arcsec)
+    numpy.testing.assert_almost_equal(cat1.y, y * treecorr.arcsec)
     numpy.testing.assert_almost_equal(cat1.w, w)
     numpy.testing.assert_almost_equal(cat1.g1, g1)
     numpy.testing.assert_almost_equal(cat1.g2, g2)
@@ -220,8 +220,8 @@ def test_direct():
 
     cat2 = treecorr.Catalog(ra=ra, dec=dec, w=w, g1=g1, g2=g2, k=k,
                             ra_units='hours', dec_units='degrees')
-    numpy.testing.assert_almost_equal(cat2.ra, ra * treecorr.angle_units['hour'])
-    numpy.testing.assert_almost_equal(cat2.dec, dec * treecorr.angle_units['deg'])
+    numpy.testing.assert_almost_equal(cat2.ra, ra * treecorr.hours)
+    numpy.testing.assert_almost_equal(cat2.dec, dec * treecorr.degrees)
     numpy.testing.assert_almost_equal(cat2.w, w)
     numpy.testing.assert_almost_equal(cat2.g1, g1)
     numpy.testing.assert_almost_equal(cat2.g2, g2)

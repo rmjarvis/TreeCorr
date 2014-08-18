@@ -133,7 +133,7 @@ def test_spherical():
 
     nsource = 1000000
     gamma0 = 0.05
-    r0 = 10. * treecorr.angle_units['deg']
+    r0 = 10. * treecorr.degrees
     L = 5. * r0
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(nsource)-0.5) * L
@@ -147,7 +147,7 @@ def test_spherical():
 
     ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='deg',
                                 verbose=2)
-    r1 = numpy.exp(ng.logr) * treecorr.angle_units['deg']
+    r1 = numpy.exp(ng.logr) * treecorr.degrees
     true_gt = gamma0 * numpy.exp(-0.5*r1**2/r0**2)
 
     # Test this around several central points

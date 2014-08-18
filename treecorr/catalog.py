@@ -168,19 +168,19 @@ class Catalog(object):
                 raise AttributeError("x_units specified without specifying y_units")
             if 'y_units' in self.config and not 'x_units' in self.config:
                 raise AttributeError("y_units specified without specifying x_units")
-            x_units = treecorr.config.get_from_list(self.config,'x_units',num,str,'arcsec')
-            y_units = treecorr.config.get_from_list(self.config,'y_units',num,str,'arcsec')
-            self.x *= x_units
-            self.y *= y_units
+            self.x_units = treecorr.config.get_from_list(self.config,'x_units',num,str,'arcsec')
+            self.y_units = treecorr.config.get_from_list(self.config,'y_units',num,str,'arcsec')
+            self.x *= self.x_units
+            self.y *= self.y_units
         else:
             if not self.config.get('ra_units',None):
                 raise ValueError("ra_units is required when using ra, dec")
             if not self.config.get('dec_units',None):
                 raise ValueError("dec_units is required when using ra, dec")
-            ra_units = treecorr.config.get_from_list(self.config,'ra_units',num,str,'arcsec')
-            dec_units = treecorr.config.get_from_list(self.config,'dec_units',num,str,'arcsec')
-            self.ra *= ra_units
-            self.dec *= dec_units
+            self.ra_units = treecorr.config.get_from_list(self.config,'ra_units',num,str,'arcsec')
+            self.dec_units = treecorr.config.get_from_list(self.config,'dec_units',num,str,'arcsec')
+            self.ra *= self.ra_units
+            self.dec *= self.dec_units
 
         # Apply flips if requested
         flip_g1 = treecorr.config.get_from_list(self.config,'flip_g1',num,bool,False)
@@ -764,6 +764,15 @@ class Catalog(object):
 
     def write(self, file_name):
         """Write the catalog to a file.  Currently only ASCII output is supported.
+
+        Note that the x,y,ra,dec columns are output using the same units as were used when
+        building the Catalog.  If you want to use a different unit, you can set the catalog's
+        units directly before writing.  e.g.:
+
+            >>> cat = treecorr.Catalog('cat.dat', ra=ra, dec=dec,
+                                       ra_units='hours', dec_units='degrees')
+            >>> cat.ra_units = treecorr.degrees
+            >>> cat.write('new_cat.dat')
         """
         import numpy
 
@@ -771,16 +780,16 @@ class Catalog(object):
         columns = []
         if self.x is not None:
             col_names.append('x')
-            columns.append(self.x)
+            columns.append(self.x / self.x_units)
         if self.y is not None:
             col_names.append('y')
-            columns.append(self.y)
+            columns.append(self.y / self.y_units)
         if self.ra is not None:
             col_names.append('ra')
-            columns.append(self.ra)
+            columns.append(self.ra / self.ra_units)
         if self.dec is not None:
             col_names.append('dec')
-            columns.append(self.dec)
+            columns.append(self.dec / self.dec_units)
         if self.w is not None:
             col_names.append('w')
             columns.append(self.w)

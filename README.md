@@ -119,8 +119,11 @@ for the configuration parameters:
 
     >>> import treecorr
     >>> config = treecorr.read_config(config_file)
-    >>> config['file_name'] = file1.dat
-    >>> config['g2_file_name'] = file1.out
+    >>> config['file_name'] = 'file1.dat'
+    >>> config['g2_file_name'] = 'file1.out'
+    >>> treecorr.corr2(config)
+    >>> config['file_name'] = 'file2.dat'
+    >>> config['g2_file_name'] = 'file2.out'
     >>> treecorr.corr2(config)
 
 However, the Python module gives you much more flexibility in how to specify

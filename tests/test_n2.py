@@ -35,7 +35,7 @@ def test_n2():
 
     ngal = 1000000
     s = 10.
-    L = 30. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+    L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
     numpy.random.seed(8675309)
     x = numpy.random.normal(0,s, (ngal,) )
     y = numpy.random.normal(0,s, (ngal,) )
@@ -47,7 +47,7 @@ def test_n2():
         y[mask] = numpy.random.normal(0,s, (len(mask),) )
 
     cat = treecorr.Catalog(x=x, y=y, x_units='arcmin', y_units='arcmin')
-    dd = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
+    dd = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     dd.process(cat)
     print 'dd.npairs = ',dd.npairs
@@ -56,12 +56,12 @@ def test_n2():
     rx = (numpy.random.random_sample(nrand)-0.5) * L
     ry = (numpy.random.random_sample(nrand)-0.5) * L
     rand = treecorr.Catalog(x=rx,y=ry, x_units='arcmin', y_units='arcmin')
-    rr = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
+    rr = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     rr.process(rand)
     print 'rr.npairs = ',rr.npairs
 
-    dr = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
+    dr = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     dr.process(cat,rand)
     print 'dr.npairs = ',dr.npairs
@@ -80,17 +80,31 @@ def test_n2():
     # we still have L in there.)
     assert max(abs(xi - true_xi)/true_xi) < 0.1
 
-    xi, varxi = dd.calculateXi(rr)
-    print 'simple xi = ',xi
+    simple_xi, varxi = dd.calculateXi(rr)
+    print 'simple xi = ',simple_xi
     #print 'true_xi = ',true_xi
-    #print 'ratio = ',xi / true_xi
-    #print 'diff = ',xi - true_xi
-    print 'max rel diff = ',max(abs((xi - true_xi)/true_xi))
+    #print 'ratio = ',simple_xi / true_xi
+    #print 'diff = ',simple_xi - true_xi
+    print 'max rel diff = ',max(abs((simple_xi - true_xi)/true_xi))
     # The simple calculation (i.e. dd/rr-1, rather than (dd-2dr+rr)/rr as above) is only 
     # slightly less accurate in this case.  Probably because the mask is simple (a box), so
     # the difference is relatively minor.  The error is slightly higher in this case, but testing
     # that it is everywhere < 0.1 is still appropriate.
-    assert max(abs(xi - true_xi)/true_xi) < 0.1
+    assert max(abs(simple_xi - true_xi)/true_xi) < 0.1
+
+    # Check that we get the same result using the corr2 executable:
+    cat.write(os.path.join('data','n2_data.dat'))
+    rand.write(os.path.join('data','n2_rand.dat'))
+    import subprocess
+    p = subprocess.Popen( ["corr2","n2.params"] )
+    p.communicate()
+    corr2_output = numpy.loadtxt(os.path.join('output','n2.out'))
+    print 'xi = ',xi
+    print 'from corr2 output = ',corr2_output[:,2]
+    print 'ratio = ',corr2_output[:,2]/xi
+    print 'diff = ',corr2_output[:,2]-xi
+    numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
+
 
 if __name__ == '__main__':
     test_n2()

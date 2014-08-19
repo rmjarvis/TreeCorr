@@ -26,13 +26,13 @@ def test_g2():
     # i.e. gamma(r) = -gamma0 exp(-r^2/2r0^2) (x+iy)^2 / r0^2
     #
     # The Fourier transform is: gamma~(k) = -2 pi gamma0 r0^4 k^2 exp(-r0^2 k^2/2) / L^2
-    # P(k) = (1/2pi) <|kappa~(k)|^2> = 2 pi gamma0^2 r0^8 k^4 / L^4 exp(-r0^2 k^2)
+    # P(k) = (1/2pi) <|gamma~(k)|^2> = 2 pi gamma0^2 r0^8 k^4 / L^4 exp(-r0^2 k^2)
     # xi+(r) = (1/2pi) int( dk k P(k) J0(kr) ) 
     #        = pi/16 gamma0^2 (r0/L)^2 exp(-r^2/4r0^2) (r^4 - 16r^2r0^2 + 32r0^4)/r0^4
     # xi-(r) = (1/2pi) int( dk k P(k) J4(kr) ) 
-    #        = pi/16 gamma0^2 (r0/L)^2 exp(-r^2/4r0^2)
+    #        = pi/16 gamma0^2 (r0/L)^2 exp(-r^2/4r0^2) r^4/r0^4
     # Note: I'm not sure I handled the L factors correctly, but the units at the end need
-    # to be kappa^2, so it needs to be (r0/L)^2. 
+    # to be gamma^2, so it needs to be (r0/L)^2. 
 
     ngal = 1000000
     gamma0 = 0.05
@@ -72,6 +72,32 @@ def test_g2():
     print 'xim_im = ',gg.xim_im
     assert max(abs(gg.xim_im)) < 1.e-7
 
+    # Check MapSq calculation:
+    # cf. http://adsabs.harvard.edu/abs/2004MNRAS.352..338J
+    # Use Crittenden formulation, since the analytic result is simpler:
+    # Map^2(R) = int 1/2 r/R^2 (T+(r/R) xi+(r) + T-(r/R) xi-(r))
+    #          = 6 pi gamma0^2 r0^8 R^4 / (L^2 (r0^2+R^2)^5)
+    # Mx^2(R)  = int 1/2 r/R^2 (T+(r/R) xi+(r) - T-(r/R) xi-(r))
+    #          = 0
+    true_mapsq = 6.*numpy.pi * gamma0**2 * r0**8 * r**4 / (L**2 * (r**2+r0**2)**5)
+
+    mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq('Crittenden')
+    print 'mapsq = ',mapsq
+    print 'true_mapsq = ',true_mapsq
+    print 'ratio = ',mapsq/true_mapsq
+    print 'diff = ',mapsq-true_mapsq
+    print 'max diff = ',max(abs(mapsq - true_mapsq))
+    print 'max diff[16:] = ',max(abs(mapsq[16:] - true_mapsq[16:]))
+    # It's pretty ratty near the start where the integral is poorly evaluated, but the 
+    # agreement is pretty good if we skip the first 16 elements.
+    # Well, it gets bad again at the end, but those values are small enough that they still
+    # pass this test.
+    assert max(abs(mapsq[16:]-true_mapsq[16:])) < 3.e-8
+    print 'mxsq = ',mxsq
+    print 'max = ',max(abs(mxsq))
+    print 'max[16:] = ',max(abs(mxsq[16:]))
+    assert max(abs(mxsq[16:])) < 3.e-8
+
     # Check that we get the same result using the corr2 executable:
     cat.write(os.path.join('data','g2.dat'))
     import subprocess
@@ -96,6 +122,19 @@ def test_g2():
     print 'xim_im from corr2 output = ',corr2_output[:,5]
     print 'max err = ',max(abs(corr2_output[:,5]))
     assert max(abs(corr2_output[:,5])) < 1.e-7
+
+    corr2_output2 = numpy.loadtxt(os.path.join('output','g2_m2.out'))
+    print 'mapsq = ',mapsq
+    print 'from corr2 output = ',corr2_output2[:,1]
+    print 'ratio = ',corr2_output2[:,1]/mapsq
+    print 'diff = ',corr2_output2[:,1]-mapsq
+    numpy.testing.assert_almost_equal(corr2_output2[:,1]/mapsq, 1., decimal=3)
+
+    print 'mxsq = ',mxsq
+    print 'from corr2 output = ',corr2_output2[:,2]
+    print 'ratio = ',corr2_output2[:,2]/mxsq
+    print 'diff = ',corr2_output2[:,2]-mxsq
+    numpy.testing.assert_almost_equal(corr2_output2[:,2]/mxsq, 1., decimal=3)
 
 
 def test_spherical():

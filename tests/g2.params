@@ -18,3 +18,4 @@ bin_size = 0.10
 sep_units = arcmin
 
 g2_file_name = output/g2.out
+m2_file_name = output/g2_m2.out

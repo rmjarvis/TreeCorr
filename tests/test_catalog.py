@@ -102,11 +102,11 @@ def test_ascii():
     numpy.testing.assert_almost_equal(cat5.x, x * (pi/180.))
     numpy.testing.assert_almost_equal(cat5.y, y * (pi/180.))
 
-    del config['x_units']  # Default is arcsec
+    del config['x_units']  # Default is radians
     del config['y_units']
     cat5 = treecorr.Catalog(file_name, config)
-    numpy.testing.assert_almost_equal(cat5.x, x * (pi/180./3600.))
-    numpy.testing.assert_almost_equal(cat5.y, y * (pi/180./3600.))
+    numpy.testing.assert_almost_equal(cat5.x, x)
+    numpy.testing.assert_almost_equal(cat5.y, y)
 
     # Check ra,dec
     del config['x_col']
@@ -181,8 +181,8 @@ def test_fits():
     config['flag_col'] = 'INDEX'
     config['ignore_flag'] = 64
     cat2 = treecorr.Catalog(file_name, config)
-    numpy.testing.assert_almost_equal(cat2.x[390934], 78.4782 * (pi/180./3600.))
-    numpy.testing.assert_almost_equal(cat2.y[290333], 83.1579 * (pi/180./3600.))
+    numpy.testing.assert_almost_equal(cat2.x[390934], 78.4782, decimal=4)
+    numpy.testing.assert_almost_equal(cat2.y[290333], 83.1579, decimal=4)
     numpy.testing.assert_almost_equal(cat2.w[46392], 0.)        # index = 1200379
     numpy.testing.assert_almost_equal(cat2.w[46393], 0.9995946) # index = 1200386
 
@@ -211,8 +211,8 @@ def test_direct():
     k = numpy.random.random_sample(nobj)
 
     cat1 = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, k=k)
-    numpy.testing.assert_almost_equal(cat1.x, x * treecorr.arcsec)
-    numpy.testing.assert_almost_equal(cat1.y, y * treecorr.arcsec)
+    numpy.testing.assert_almost_equal(cat1.x, x)
+    numpy.testing.assert_almost_equal(cat1.y, y)
     numpy.testing.assert_almost_equal(cat1.w, w)
     numpy.testing.assert_almost_equal(cat1.g1, g1)
     numpy.testing.assert_almost_equal(cat1.g2, g2)

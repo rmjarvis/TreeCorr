@@ -32,7 +32,7 @@ cdouble_ptr = ctypes.POINTER(cdouble)
 # Define the restypes and argtypes for the C functions:
 _treecorr.BuildNFieldSphere.restype = cvoid_ptr
 _treecorr.BuildNFieldSphere.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint ]
 _treecorr.BuildNFieldFlat.restype = cvoid_ptr
 _treecorr.BuildNFieldFlat.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint ]
@@ -41,7 +41,7 @@ _treecorr.DestroyNFieldFlat.argtypes = [ cvoid_ptr ]
 
 _treecorr.BuildKFieldSphere.restype = cvoid_ptr
 _treecorr.BuildKFieldSphere.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint ]
+    cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint ]
 _treecorr.BuildKFieldFlat.restype = cvoid_ptr
 _treecorr.BuildKFieldFlat.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint ]
@@ -50,7 +50,7 @@ _treecorr.DestroyKFieldFlat.argtypes = [ cvoid_ptr ]
 
 _treecorr.BuildGFieldSphere.restype = cvoid_ptr
 _treecorr.BuildGFieldSphere.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, cdouble_ptr,
     clong, cdouble, cdouble, cdouble, cint ]
 _treecorr.BuildGFieldFlat.restype = cvoid_ptr
 _treecorr.BuildGFieldFlat.argtypes = [
@@ -60,7 +60,7 @@ _treecorr.DestroyGFieldSphere.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyGFieldFlat.argtypes = [ cvoid_ptr ]
 
 _treecorr.BuildNSimpleFieldSphere.restype = cvoid_ptr
-_treecorr.BuildNSimpleFieldSphere.argtypes = [ cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+_treecorr.BuildNSimpleFieldSphere.argtypes = [ cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
 _treecorr.BuildNSimpleFieldFlat.restype = cvoid_ptr
 _treecorr.BuildNSimpleFieldFlat.argtypes = [ cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
 _treecorr.DestroyNSimpleFieldSphere.argtypes = [ cvoid_ptr ]
@@ -68,7 +68,7 @@ _treecorr.DestroyNSimpleFieldFlat.argtypes = [ cvoid_ptr ]
 
 _treecorr.BuildKSimpleFieldSphere.restype = cvoid_ptr
 _treecorr.BuildKSimpleFieldSphere.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
 _treecorr.BuildKSimpleFieldFlat.restype = cvoid_ptr
 _treecorr.BuildKSimpleFieldFlat.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
@@ -77,7 +77,7 @@ _treecorr.DestroyKSimpleFieldFlat.argtypes = [ cvoid_ptr ]
 
 _treecorr.BuildGSimpleFieldSphere.restype = cvoid_ptr
 _treecorr.BuildGSimpleFieldSphere.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
 _treecorr.BuildGSimpleFieldFlat.restype = cvoid_ptr
 _treecorr.BuildGSimpleFieldFlat.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
@@ -142,7 +142,11 @@ class NField(object):
             # Then build field for spherical coordinates
             ra = cat.ra.ctypes.data_as(cdouble_ptr)
             dec = cat.dec.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildNFieldSphere(ra,dec,w,cat.nobj,min_sep,max_sep,b,sm)
+            if cat.r is None:
+                r = None
+            else:
+                r = cat.r.ctypes.data_as(cdouble_ptr)
+            self.data = _treecorr.BuildNFieldSphere(ra,dec,r,w,cat.nobj,min_sep,max_sep,b,sm)
             self.logger.debug('Finished building NField Sphere')
         else:
             # Then build field with flat sky approximation
@@ -215,7 +219,11 @@ class KField(object):
             # Then build field for spherical coordinates
             ra = cat.ra.ctypes.data_as(cdouble_ptr)
             dec = cat.dec.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildKFieldSphere(ra,dec,k,w,cat.nobj,min_sep,max_sep,b,sm)
+            if cat.r is None:
+                r = None
+            else:
+                r = cat.r.ctypes.data_as(cdouble_ptr)
+            self.data = _treecorr.BuildKFieldSphere(ra,dec,r,k,w,cat.nobj,min_sep,max_sep,b,sm)
             self.logger.debug('Finished building KField Sphere')
         else:
             # Then build field with flat sky approximation
@@ -289,7 +297,11 @@ class GField(object):
             # Then build field for spherical coordinates
             ra = cat.ra.ctypes.data_as(cdouble_ptr)
             dec = cat.dec.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildGFieldSphere(ra,dec,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm)
+            if cat.r is None:
+                r = None
+            else:
+                r = cat.r.ctypes.data_as(cdouble_ptr)
+            self.data = _treecorr.BuildGFieldSphere(ra,dec,r,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm)
             self.logger.debug('Finished building GField Sphere')
         else:
             # Then build field with flat sky approximation
@@ -335,7 +347,11 @@ class NSimpleField(object):
             # Then build field for spherical coordinates
             ra = cat.ra.ctypes.data_as(cdouble_ptr)
             dec = cat.dec.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildNSimpleFieldSphere(ra,dec,w,cat.nobj)
+            if cat.r is None:
+                r = None
+            else:
+                r = cat.r.ctypes.data_as(cdouble_ptr)
+            self.data = _treecorr.BuildNSimpleFieldSphere(ra,dec,r,w,cat.nobj)
             self.logger.debug('Finished building NSimpleField Sphere')
         else:
             # Then build field with flat sky approximation
@@ -384,7 +400,11 @@ class KSimpleField(object):
             # Then build field for spherical coordinates
             ra = cat.ra.ctypes.data_as(cdouble_ptr)
             dec = cat.dec.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildKSimpleFieldSphere(ra,dec,k,w,cat.nobj)
+            if cat.r is None:
+                r = None
+            else:
+                r = cat.r.ctypes.data_as(cdouble_ptr)
+            self.data = _treecorr.BuildKSimpleFieldSphere(ra,dec,r,k,w,cat.nobj)
             self.logger.debug('Finished building KSimpleField Sphere')
         else:
             # Then build field with flat sky approximation
@@ -433,7 +453,11 @@ class GSimpleField(object):
             # Then build field for spherical coordinates
             ra = cat.ra.ctypes.data_as(cdouble_ptr)
             dec = cat.dec.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildGSimpleFieldSphere(ra,dec,g1,g2,w,cat.nobj)
+            if cat.r is None:
+                r = None
+            else:
+                r = cat.r.ctypes.data_as(cdouble_ptr)
+            self.data = _treecorr.BuildGSimpleFieldSphere(ra,dec,r,g1,g2,w,cat.nobj)
             self.logger.debug('Finished building GSimpleField Sphere')
         else:
             # Then build field with flat sky approximation

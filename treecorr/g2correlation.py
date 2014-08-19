@@ -293,7 +293,7 @@ class G2Correlation(treecorr.BinnedCorr2):
             Tp[s<2.] = 12./(5.*numpy.pi) * (2.-15.*ssqa) * numpy.arccos(sa/2.)
             Tp[s<2.] += 1./(100.*numpy.pi) * sa * numpy.sqrt(4.-ssqa) * (
                         120. + ssqa*(2320. + ssqa*(-754. + ssqa*(132. - 9.*ssqa))))
-            Tm[s<2.] = 3./(70.*numpy.pi) * sa * ssqa (4.-ssqa)**3.5
+            Tm[s<2.] = 3./(70.*numpy.pi) * sa * ssqa * (4.-ssqa)**3.5
         Tp *= ssq
         Tm *= ssq
 

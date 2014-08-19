@@ -75,9 +75,9 @@ def test_g2():
     # Check MapSq calculation:
     # cf. http://adsabs.harvard.edu/abs/2004MNRAS.352..338J
     # Use Crittenden formulation, since the analytic result is simpler:
-    # Map^2(R) = int 1/2 r/R^2 (T+(r/R) xi+(r) + T-(r/R) xi-(r))
+    # Map^2(R) = int 1/2 r/R^2 (T+(r/R) xi+(r) + T-(r/R) xi-(r)) dr
     #          = 6 pi gamma0^2 r0^8 R^4 / (L^2 (r0^2+R^2)^5)
-    # Mx^2(R)  = int 1/2 r/R^2 (T+(r/R) xi+(r) - T-(r/R) xi-(r))
+    # Mx^2(R)  = int 1/2 r/R^2 (T+(r/R) xi+(r) - T-(r/R) xi-(r)) dr
     #          = 0
     true_mapsq = 6.*numpy.pi * gamma0**2 * r0**8 * r**4 / (L**2 * (r**2+r0**2)**5)
 
@@ -137,8 +137,10 @@ def test_g2():
         print 'diff = ',corr2_output2[:,2]-mxsq
         numpy.testing.assert_almost_equal(corr2_output2[:,2]/mxsq, 1., decimal=3)
 
-    # Also check the Schneider version.  The math isn't quite as nice here, but it is tractable.
-    # Map^2(R) = 576 pi gamma0^2 r0^6/(L^2 R^10) exp(-R^2/2r0^2)
+    # Also check the Schneider version.  The math isn't quite as nice here, but it is tractable
+    # using a different formula than I used above:
+    # Map^2(R) = int k P(k) W(kR) dk
+    #          = 576 pi gamma0^2 r0^6/(L^2 R^10) exp(-R^2/2r0^2)
     #            x (I0(R^2/2r0^2) R^2 (R^4 + 96 r0^4) - 16 I1(R^2/2r0^2) r0^2 (R^4 + 24 r0^4)
     try:
         from scipy.special import i0,i1

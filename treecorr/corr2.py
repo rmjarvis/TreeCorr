@@ -163,7 +163,7 @@ corr2_valid_params = {
     'verbose' : (int, False, 1, [0, 1, 2, 3],
             'How verbose the code should be during processing. ',
             '0 = Errors Only, 1 = Warnings, 2 = Progress, 3 = Debugging'),
-    'num_threads' : (int, False, 0, None,
+    'num_threads' : (int, False, None, None,
             'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
     'split_method' : (str, False, 'mean', ['mean', 'median', 'middle'],
             'Which method to use for splitting cells.'),
@@ -205,7 +205,7 @@ def corr2(config, logger=None):
         config['output_dots'] = True
 
     # Set the number of threads
-    num_threads = config['num_threads']
+    num_threads = config.get('num_threads',0)
     if num_threads <= 0:
         import multiprocessing
         num_threads = multiprocessing.cpu_count()
@@ -213,7 +213,8 @@ def corr2(config, logger=None):
         num_threads = treecorr.SetOMPThreads(num_threads)
         if num_threads > 1:
             logger.info('Using %d threads.',num_threads)
-        else:
+        elif 'num_threads' in config:
+            # Only warn if the user specifically asked for num_threads != 1.
             logger.warn('Unable to use multiple threads, since OpenMP is not enabled.')
 
     # Read in the input files.  Each of these is a list.

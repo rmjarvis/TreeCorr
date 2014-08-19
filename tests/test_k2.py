@@ -77,6 +77,20 @@ def test_k2():
     print 'max diff = ',max(abs(k2.xi - true_xi))
     assert max(abs(k2.xi - true_xi)) < 5.e-7
 
+    # Check that we get the same result using the corr2 executable:
+    if __name__ == '__main__':
+        cat.write(os.path.join('data','k2.dat'))
+        import subprocess
+        p = subprocess.Popen( ["corr2","k2.params"] )
+        p.communicate()
+        corr2_output = numpy.loadtxt(os.path.join('output','k2.out'))
+        print 'k2.xi = ',k2.xi
+        print 'from corr2 output = ',corr2_output[:,2]
+        print 'ratio = ',corr2_output[:,2]/k2.xi
+        print 'diff = ',corr2_output[:,2]-k2.xi
+        numpy.testing.assert_almost_equal(corr2_output[:,2]/k2.xi, 1., decimal=3)
+
+
 if __name__ == '__main__':
     test_constant()
     test_k2()

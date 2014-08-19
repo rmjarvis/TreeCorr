@@ -48,17 +48,18 @@ def test_single():
     assert max(abs(nk.xi - true_k)) < 4.e-4
 
     # Check that we get the same result using the corr2 executable:
-    lens_cat.write(os.path.join('data','nk_single_lens.dat'))
-    source_cat.write(os.path.join('data','nk_single_source.dat'))
-    import subprocess
-    p = subprocess.Popen( ["corr2","nk_single.params"] )
-    p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','nk_single.out'))
-    print 'nk.xi = ',nk.xi
-    print 'from corr2 output = ',corr2_output[:,2]
-    print 'ratio = ',corr2_output[:,2]/nk.xi
-    print 'diff = ',corr2_output[:,2]-nk.xi
-    numpy.testing.assert_almost_equal(corr2_output[:,2]/nk.xi, 1., decimal=3)
+    if __name__ == '__main__':
+        lens_cat.write(os.path.join('data','nk_single_lens.dat'))
+        source_cat.write(os.path.join('data','nk_single_source.dat'))
+        import subprocess
+        p = subprocess.Popen( ["corr2","nk_single.params"] )
+        p.communicate()
+        corr2_output = numpy.loadtxt(os.path.join('output','nk_single.out'))
+        print 'nk.xi = ',nk.xi
+        print 'from corr2 output = ',corr2_output[:,2]
+        print 'ratio = ',corr2_output[:,2]/nk.xi
+        print 'diff = ',corr2_output[:,2]-nk.xi
+        numpy.testing.assert_almost_equal(corr2_output[:,2]/nk.xi, 1., decimal=3)
 
 
 def test_nk():
@@ -116,19 +117,20 @@ def test_nk():
     assert max(abs(xi - true_k)) < 5.e-3
 
     # Check that we get the same result using the corr2 executable:
-    lens_cat.write(os.path.join('data','nk_lens.dat'))
-    source_cat.write(os.path.join('data','nk_source.dat'))
-    rand_cat.write(os.path.join('data','nk_rand.dat'))
-    import subprocess
-    p = subprocess.Popen( ["corr2","nk.params"] )
-    p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','nk.out'))
-    print 'nk.xi = ',nk.xi
-    print 'xi = ',xi
-    print 'from corr2 output = ',corr2_output[:,2]
-    print 'ratio = ',corr2_output[:,2]/xi
-    print 'diff = ',corr2_output[:,2]-xi
-    numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
+    if __name__ == '__main__':
+        lens_cat.write(os.path.join('data','nk_lens.dat'))
+        source_cat.write(os.path.join('data','nk_source.dat'))
+        rand_cat.write(os.path.join('data','nk_rand.dat'))
+        import subprocess
+        p = subprocess.Popen( ["corr2","nk.params"] )
+        p.communicate()
+        corr2_output = numpy.loadtxt(os.path.join('output','nk.out'))
+        print 'nk.xi = ',nk.xi
+        print 'xi = ',xi
+        print 'from corr2 output = ',corr2_output[:,2]
+        print 'ratio = ',corr2_output[:,2]/xi
+        print 'diff = ',corr2_output[:,2]-xi
+        numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
 
 
 if __name__ == '__main__':

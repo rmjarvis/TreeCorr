@@ -54,20 +54,21 @@ def test_single():
     assert max(abs(ng.xi_im)) < 3.e-5
 
     # Check that we get the same result using the corr2 executable:
-    lens_cat.write(os.path.join('data','ng_single_lens.dat'))
-    source_cat.write(os.path.join('data','ng_single_source.dat'))
-    import subprocess
-    p = subprocess.Popen( ["corr2","ng_single.params"] )
-    p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','ng_single.out'))
-    print 'ng.xi = ',ng.xi
-    print 'from corr2 output = ',corr2_output[:,2]
-    print 'ratio = ',corr2_output[:,2]/ng.xi
-    print 'diff = ',corr2_output[:,2]-ng.xi
-    numpy.testing.assert_almost_equal(corr2_output[:,2]/ng.xi, 1., decimal=3)
+    if __name__ == '__main__':
+        lens_cat.write(os.path.join('data','ng_single_lens.dat'))
+        source_cat.write(os.path.join('data','ng_single_source.dat'))
+        import subprocess
+        p = subprocess.Popen( ["corr2","ng_single.params"] )
+        p.communicate()
+        corr2_output = numpy.loadtxt(os.path.join('output','ng_single.out'))
+        print 'ng.xi = ',ng.xi
+        print 'from corr2 output = ',corr2_output[:,2]
+        print 'ratio = ',corr2_output[:,2]/ng.xi
+        print 'diff = ',corr2_output[:,2]-ng.xi
+        numpy.testing.assert_almost_equal(corr2_output[:,2]/ng.xi, 1., decimal=3)
 
-    print 'xi_im from corr2 output = ',corr2_output[:,3]
-    assert max(abs(corr2_output[:,3])) < 3.e-5
+        print 'xi_im from corr2 output = ',corr2_output[:,3]
+        assert max(abs(corr2_output[:,3])) < 3.e-5
 
 
 def test_pairwise():

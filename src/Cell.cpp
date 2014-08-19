@@ -32,81 +32,69 @@ double CalculateSizeSq(
     return sizesq;
 }
 
-template <int M>
-CellData<NData,M>::CellData(
-    const std::vector<CellData<NData,M>*>& vdata,
-    size_t start, size_t end) :
-    _w(0.), _n(end-start)
+template <int DC, int M>
+void BuildCellData(
+    const std::vector<CellData<DC,M>*>& vdata, size_t start, size_t end,
+    Position<M>& pos, float& w)
 {
-    for(size_t i=start; i!=end; ++i) {
-        const CellData<NData,M>& data = *vdata[i];
-        _pos += data.getPos();
-        _w += data.getW();
+    Assert(start < end);
+    // Note: starting with the first element makes sure that for M=Sphere, the 
+    // final pos will have the right value if _is3d.
+    pos = vdata[start]->getPos();
+    w = vdata[start]->getW();
+    for(size_t i=start+1; i!=end; ++i) {
+        const CellData<DC,M>& data = *vdata[i];
+        pos += data.getPos();
+        w += data.getW();
     }
-    Assert(_w != 0);
-    _pos /= _w;
+    Assert(w != 0);
+    pos /= w;
     // If M == Sphere, the average position is no longer on the surface of the unit sphere.
     // Divide by the new r.  (This is a null op if M == Flat or _pos is a 3D position.)
-    _pos.normalize();
+    pos.normalize();
 }
+
+template <int M>
+CellData<NData,M>::CellData(
+    const std::vector<CellData<NData,M>*>& vdata, size_t start, size_t end) :
+    _w(0.), _n(end-start)
+{ BuildCellData(vdata,start,end,_pos,_w); }
 
 template <int M>
 CellData<KData,M>::CellData(
-    const std::vector<CellData<KData,M>*>& vdata,
-    size_t start, size_t end) :
+    const std::vector<CellData<KData,M>*>& vdata, size_t start, size_t end) :
     _wk(0.), _w(0.), _n(end-start)
-{
-    for(size_t i=start;i<end;++i) {
-        const CellData<KData,M>& data = *vdata[i];
-        _pos += data.getPos() * data.getW();
-        _wk += data.getWK();
-        _w += data.getW();
-    }
-    Assert(_w != 0.);
-    _pos /= _w;
-    _pos.normalize();
-}
+{ BuildCellData(vdata,start,end,_pos,_w); }
+
+template <int M>
+CellData<GData,M>::CellData(
+    const std::vector<CellData<GData,M>*>& vdata, size_t start, size_t end) :
+    _wg(0.), _w(0.), _n(end-start)
+{ BuildCellData(vdata,start,end,_pos,_w); }
 
 template <int M>
 void CellData<KData,M>::finishAverages(
-    const std::vector<CellData<KData,M>*>& vdata,
-    size_t start, size_t end) 
+    const std::vector<CellData<KData,M>*>& vdata, size_t start, size_t end) 
 {
-    double dwk=0.;
+    // Accumulate in double precision for better accuracy.
+    double dwk = 0.;
     for(size_t i=start;i<end;++i) dwk += vdata[i]->getWK();
     _wk = dwk;
 }
 
-template <int M>
-CellData<GData,M>::CellData(
-    const std::vector<CellData<GData,M>*>& vdata,
-    size_t start, size_t end) :
-    _pos(), _wg(0.), _w(0.), _n(end-start)
-{
-    for(size_t i=start;i<end;++i) {
-        const CellData<GData,M>& data = *vdata[i];
-        _pos += data.getPos() * data.getW();
-        _w += data.getW();
-    }
-    Assert(_w != 0.);
-    _pos /= _w;
-    _pos.normalize();
-}
-
 template <>
 void CellData<GData,Flat>::finishAverages(
-    const std::vector<CellData<GData,Flat>*>& vdata,
-    size_t start, size_t end) 
+    const std::vector<CellData<GData,Flat>*>& vdata, size_t start, size_t end) 
 {
-    std::complex<double> dwg=0.;
+    // Accumulate in double precision for better accuracy.
+    std::complex<double> dwg(0.);
     for(size_t i=start;i<end;++i) dwg += vdata[i]->getWG();
     _wg = dwg;
 }
 
 template <>
 void CellData<GData,Sphere>::finishAverages(
-    const std::vector<CellData<GData,Sphere>*>& vdata,
-    size_t start, size_t end) 
+    const std::vector<CellData<GData,Sphere>*>& vdata, size_t start, size_t end) 
 {
     // For the average shear, we need to parallel transport each one to the center
     // to account for the different coordinate systems for each measurement.

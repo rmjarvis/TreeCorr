@@ -59,8 +59,7 @@ public:
 
     // This doesn't do anything, but is provided for consistency with the other
     // kinds of CellData.
-    void finishAverages(const std::vector<CellData<NData,M>*>&, size_t , size_t )
-    {}
+    void finishAverages(const std::vector<CellData<NData,M>*>&, size_t , size_t ) {}
 
     const Position<M>& getPos() const { return _pos; }
     double getW() const { return _w; }

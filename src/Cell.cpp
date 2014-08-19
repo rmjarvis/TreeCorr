@@ -46,11 +46,8 @@ CellData<NData,M>::CellData(
     Assert(_w != 0);
     _pos /= _w;
     // If M == Sphere, the average position is no longer on the surface of the unit sphere.
-    // Divide by the new r.
-    if (M == Sphere) {
-        Assert(_pos.norm() != 0.);
-        _pos /= _pos.norm();
-    }
+    // Divide by the new r.  (This is a null op if M == Flat or _pos is a 3D position.)
+    _pos.normalize();
 }
 
 template <int M>
@@ -67,10 +64,7 @@ CellData<KData,M>::CellData(
     }
     Assert(_w != 0.);
     _pos /= _w;
-    if (M == Sphere) {
-        Assert(_pos.norm() != 0.);
-        _pos /= _pos.norm();
-    }
+    _pos.normalize();
 }
 
 template <int M>
@@ -96,10 +90,7 @@ CellData<GData,M>::CellData(
     }
     Assert(_w != 0.);
     _pos /= _w;
-    if (M == Sphere) {
-        Assert(_pos.norm() != 0.);
-        _pos /= _pos.norm();
-    }
+    _pos.normalize();
 }
 
 template <>
@@ -123,9 +114,9 @@ void CellData<GData,Sphere>::finishAverages(
     std::complex<double> dwg=0.;
     for(size_t i=start;i<end;++i) {
         //xxdbg<<"Project shear "<<(vdata[i]->wg/vdata[i]->w)<<" at point "<<vdata[i]->getPos()<<std::endl;
-        // This is a lot like the ProjectSphere function in BinData2.h
+        // This is a lot like the ProjectShear function in BinCorr2.cpp
         // The difference is that here, we just rotate the single shear by
-        // (Pi-A-B).  See the comments in ProjectSphere for understanding
+        // (Pi-A-B).  See the comments in ProjectShear2 for understanding
         // the initial bit where we calculate A,B.
         double x1 = _pos.getX(); 
         double y1 = _pos.getY(); 

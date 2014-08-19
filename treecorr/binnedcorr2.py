@@ -80,9 +80,7 @@ class BinnedCorr2(object):
         else:
             self.output_dots = False
 
-        if 'x_col' not in self.config and 'sep_units' not in self.config:
-            raise AttributeError("sep_units is required if not using x_col,y_col")
-        self.sep_units = treecorr.config.get(self.config,'sep_units',str,'arcsec')
+        self.sep_units = treecorr.config.get(self.config,'sep_units',str,'radians')
         self.log_sep_units = math.log(self.sep_units)
         if 'nbins' not in self.config:
             if 'max_sep' not in self.config:

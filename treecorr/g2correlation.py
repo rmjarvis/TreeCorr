@@ -243,8 +243,8 @@ class G2Correlation(treecorr.BinnedCorr2):
     def calculateMapSq(self, m2_uform=None):
         """Calculate the aperture mass statistics from the correlation function.
 
-        <Map^2>(R) = int_r=0..2R [1/2 s^2 dlogr (T+(s) xi+(r) + T-(s) xi-(r)) ]
-        <Mx^2>(R)  = int_r=0..2R [1/2 s^2 dlogr (T+(s) xi+(r) - T-(s) xi-(r)) ]
+        <Map^2>(R) = int_r=0..rmax [1/2 (r/R)^2 dlogr (T+(r/R) xi+(r) + T-(r/R) xi-(r)) ]
+        <Mx^2>(R)  = int_r=0..rmax [1/2 (r/R)^2 dlogr (T+(r/R) xi+(r) - T-(r/R) xi-(r)) ]
 
         The m2_uform parameter sets which definition of the aperture mass to use.
         The default is to look in the config dict that was used to build the catalog,
@@ -256,6 +256,7 @@ class G2Correlation(treecorr.BinnedCorr2):
             Q(r) = 1/4Pi r^2 exp(-r^2/2)
             T+(s) = (s^4 - 16s^2 + 32)/128 exp(-s^2/4)
             T-(s) = s^4/128 exp(-s^2/4)
+            rmax = infinity
 
         If m2_uform == 'Schneider':
 
@@ -264,6 +265,7 @@ class G2Correlation(treecorr.BinnedCorr2):
             T+(s) = 12/5Pi (2-15s^2) arccos(s/2)
                       + 1/(100Pi) s sqrt(4-s^2) (120 + 2320s^2 - 754s^4 + 132s^6 - 9s^8)
             T-(s) = 3/70Pi s^3 (4-s^2)^(7/2)
+            rmax = 2R
 
         cf Schneider, et al (2001): http://xxx.lanl.gov/abs/astro-ph/0112441
 

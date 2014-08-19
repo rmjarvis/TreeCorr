@@ -110,20 +110,21 @@ def test_pairwise():
     assert max(abs(ng.xi_im)) < 3.e-5
 
     # Check that we get the same result using the corr2 executable:
-    lens_cat.write(os.path.join('data','ng_pairwise_lens.dat'))
-    source_cat.write(os.path.join('data','ng_pairwise_source.dat'))
-    import subprocess
-    p = subprocess.Popen( ["corr2","ng_pairwise.params"] )
-    p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','ng_pairwise.out'))
-    print 'ng.xi = ',ng.xi
-    print 'from corr2 output = ',corr2_output[:,2]
-    print 'ratio = ',corr2_output[:,2]/ng.xi
-    print 'diff = ',corr2_output[:,2]-ng.xi
-    numpy.testing.assert_almost_equal(corr2_output[:,2]/ng.xi, 1., decimal=3)
+    if __name__ == '__main__':
+        lens_cat.write(os.path.join('data','ng_pairwise_lens.dat'))
+        source_cat.write(os.path.join('data','ng_pairwise_source.dat'))
+        import subprocess
+        p = subprocess.Popen( ["corr2","ng_pairwise.params"] )
+        p.communicate()
+        corr2_output = numpy.loadtxt(os.path.join('output','ng_pairwise.out'))
+        print 'ng.xi = ',ng.xi
+        print 'from corr2 output = ',corr2_output[:,2]
+        print 'ratio = ',corr2_output[:,2]/ng.xi
+        print 'diff = ',corr2_output[:,2]-ng.xi
+        numpy.testing.assert_almost_equal(corr2_output[:,2]/ng.xi, 1., decimal=3)
 
-    print 'xi_im from corr2 output = ',corr2_output[:,3]
-    assert max(abs(corr2_output[:,3])) < 3.e-5
+        print 'xi_im from corr2 output = ',corr2_output[:,3]
+        assert max(abs(corr2_output[:,3])) < 3.e-5
 
 
 def test_spherical():
@@ -236,20 +237,21 @@ def test_spherical():
     assert max(abs(ng.xi_im)) < 3.e-5
 
     # Check that we get the same result using the corr2 executable:
-    lens_cat.write(os.path.join('data','ng_spherical_lens.dat'))
-    source_cat.write(os.path.join('data','ng_spherical_source.dat'))
-    import subprocess
-    p = subprocess.Popen( ["corr2","ng_spherical.params"] )
-    p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','ng_spherical.out'))
-    print 'ng.xi = ',ng.xi
-    print 'from corr2 output = ',corr2_output[:,2]
-    print 'ratio = ',corr2_output[:,2]/ng.xi
-    print 'diff = ',corr2_output[:,2]-ng.xi
-    numpy.testing.assert_almost_equal(corr2_output[:,2]/ng.xi, 1., decimal=3)
+    if __name__ == '__main__':
+        lens_cat.write(os.path.join('data','ng_spherical_lens.dat'))
+        source_cat.write(os.path.join('data','ng_spherical_source.dat'))
+        import subprocess
+        p = subprocess.Popen( ["corr2","ng_spherical.params"] )
+        p.communicate()
+        corr2_output = numpy.loadtxt(os.path.join('output','ng_spherical.out'))
+        print 'ng.xi = ',ng.xi
+        print 'from corr2 output = ',corr2_output[:,2]
+        print 'ratio = ',corr2_output[:,2]/ng.xi
+        print 'diff = ',corr2_output[:,2]-ng.xi
+        numpy.testing.assert_almost_equal(corr2_output[:,2]/ng.xi, 1., decimal=3)
 
-    print 'xi_im from corr2 output = ',corr2_output[:,3]
-    assert max(abs(corr2_output[:,3])) < 3.e-5
+        print 'xi_im from corr2 output = ',corr2_output[:,3]
+        assert max(abs(corr2_output[:,3])) < 3.e-5
 
 
 def test_ng():
@@ -315,22 +317,23 @@ def test_ng():
     assert max(abs(xi_im)) < 4.e-3
 
     # Check that we get the same result using the corr2 executable:
-    lens_cat.write(os.path.join('data','ng_lens.dat'))
-    source_cat.write(os.path.join('data','ng_source.dat'))
-    rand_cat.write(os.path.join('data','ng_rand.dat'))
-    import subprocess
-    p = subprocess.Popen( ["corr2","ng.params"] )
-    p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','ng.out'))
-    print 'ng.xi = ',ng.xi
-    print 'xi = ',xi
-    print 'from corr2 output = ',corr2_output[:,2]
-    print 'ratio = ',corr2_output[:,2]/xi
-    print 'diff = ',corr2_output[:,2]-xi
-    numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
+    if __name__ == '__main__':
+        lens_cat.write(os.path.join('data','ng_lens.dat'))
+        source_cat.write(os.path.join('data','ng_source.dat'))
+        rand_cat.write(os.path.join('data','ng_rand.dat'))
+        import subprocess
+        p = subprocess.Popen( ["corr2","ng.params"] )
+        p.communicate()
+        corr2_output = numpy.loadtxt(os.path.join('output','ng.out'))
+        print 'ng.xi = ',ng.xi
+        print 'xi = ',xi
+        print 'from corr2 output = ',corr2_output[:,2]
+        print 'ratio = ',corr2_output[:,2]/xi
+        print 'diff = ',corr2_output[:,2]-xi
+        numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
 
-    print 'xi_im from corr2 output = ',corr2_output[:,3]
-    assert max(abs(corr2_output[:,3])) < 4.e-3
+        print 'xi_im from corr2 output = ',corr2_output[:,3]
+        assert max(abs(corr2_output[:,3])) < 4.e-3
 
 
 if __name__ == '__main__':

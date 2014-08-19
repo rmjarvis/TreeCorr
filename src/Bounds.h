@@ -30,46 +30,47 @@ class Position<Flat>
 {
 
 public:
-    Position() : x(0.),y(0.) {}
-    Position(const Position<Flat>& rhs) : x(rhs.x), y(rhs.y) {}
+    Position() : _x(0.), _y(0.) {}
+    Position(const Position<Flat>& rhs) :  _x(rhs._x), _y(rhs._y) {}
     ~Position() {}
-    Position(double xin,double yin) : x(xin), y(yin) {}
+    Position(double x, double y) : _x(x), _y(y) {}
     Position& operator=(const Position<Flat>& rhs) 
-    { x = rhs.x; y = rhs.y; return *this; }
+    { _x = rhs._x; _y = rhs._y; return *this; }
 
-    double getX() const { return x; }
-    double getY() const { return y; }
-    double get(int split) const { return split==1 ? y : x; }
-    operator std::complex<double>() const { return std::complex<double>(x,y); }
+    double getX() const { return _x; }
+    double getY() const { return _y; }
+    double get(int split) const { return split==1 ? _y : _x; }
+    operator std::complex<double>() const { return std::complex<double>(_x,_y); }
 
-    double normSq() const { return x*x+y*y; }
+    double normSq() const { return _x*_x+_y*_y; }
     double norm() const { return sqrt(normSq()); }
+    void normalize() {}
 
     Position<Flat>& operator+=(const Position<Flat>& p2)
-    { x += p2.getX(); y += p2.getY(); return *this; }
+    { _x += p2.getX(); _y += p2.getY(); return *this; }
     Position<Flat>& operator-=(const Position<Flat>& p2)
-    { x -= p2.getX(); y -= p2.getY(); return *this; }
+    { _x -= p2.getX(); _y -= p2.getY(); return *this; }
     Position<Flat>& operator*=(double a)
-    { x *= a; y *= a; return *this; }
+    { _x *= a; _y *= a; return *this; }
     Position<Flat>& operator/=(double a)
-    { x /= a; y /= a; return *this; }
+    { _x /= a; _y /= a; return *this; }
 
     Position<Flat> operator+(const Position<Flat>& p2) const
-    { return Position<Flat>(x+p2.getX(),y+p2.getY()); }
+    { Position<Flat> p1 = *this; p1 += p2; return p1; }
     Position<Flat> operator-(const Position<Flat>& p2) const
-    { return Position<Flat>(x-p2.getX(),y-p2.getY()); }
+    { Position<Flat> p1 = *this; p1 -= p2; return p1; }
     Position<Flat> operator*(double a) const
-    { return Position<Flat>(x*a,y*a); }
+    { Position<Flat> p1 = *this; p1 *= a; return p1; }
     Position<Flat> operator/(double a) const
-    { return Position<Flat>(x/a,y/a); }
+    { Position<Flat> p1 = *this; p1 /= a; return p1; }
 
-    void read(std::istream& fin) { fin >> x >> y; }
+    void read(std::istream& fin) { fin >> _x >> _y; }
     void write(std::ostream& fout) const
-    { fout << getX() << " " << getY() << " "; }
+    { fout << _x << " " << _y << " "; }
 
 private:
 
-    double x,y;
+    double _x,_y;
 
 }; // Position<Flat>
 
@@ -101,46 +102,47 @@ class Bounds<Flat>
     // respectively using the += operators
 
 public:
-    Bounds(double x1, double x2, double y1, double y2):
-        defined(1),xmin(x1),xmax(x2),ymin(y1),ymax(y2) {}
-    Bounds(const Position<Flat>& pos):
-        defined(1),xmin(pos.getX()),xmax(pos.getX()),
-        ymin(pos.getY()),ymax(pos.getY()) {}
-    Bounds(): defined(0),xmin(0.),xmax(0.),ymin(0.),ymax(0.) {}
+    Bounds(double x1, double x2, double y1, double y2) :
+        _defined(1), _xmin(x1), _xmax(x2), _ymin(y1), _ymax(y2) {}
+    Bounds(const Position<Flat>& pos) :
+        _defined(1), _xmin(pos.getX()), _xmax(pos.getX()),
+        _ymin(pos.getY()), _ymax(pos.getY()) {}
+    Bounds() : _defined(0), _xmin(0.), _xmax(0.), _ymin(0.), _ymax(0.) {}
     ~Bounds() {}
-    double getXMin() const { return xmin; }
-    double getXMax() const { return xmax; }
-    double getYMin() const { return ymin; }
-    double getYMax() const { return ymax; }
-    bool isDefined() const { return defined; }
+    double getXMin() const { return _xmin; }
+    double getXMax() const { return _xmax; }
+    double getYMin() const { return _ymin; }
+    double getYMax() const { return _ymax; }
+    bool isDefined() const { return _defined; }
+
+    // Expand the bounds to include the given position.
     void operator+=(const Position<Flat>& pos)
-        // Expand the bounds to include the given position.
     {
-        if(defined) {
-            if(pos.getX() < xmin) xmin = pos.getX();
-            else if (pos.getX() > xmax) xmax = pos.getX();
-            if(pos.getY() < ymin) ymin = pos.getY();
-            else if (pos.getY() > ymax) ymax = pos.getY();
+        if (_defined) {
+            if (pos.getX() < _xmin) _xmin = pos.getX();
+            else if (pos.getX() > _xmax) _xmax = pos.getX();
+            if (pos.getY() < _ymin) _ymin = pos.getY();
+            else if (pos.getY() > _ymax) _ymax = pos.getY();
         } else {
-            xmin = xmax = pos.getX();
-            ymin = ymax = pos.getY();
-            defined = 1;
+            _xmin = _xmax = pos.getX();
+            _ymin = _ymax = pos.getY();
+            _defined = 1;
         }
     }
 
     void write(std::ostream& fout) const
-    { fout << xmin << ' ' << xmax << ' ' << ymin << ' ' << ymax << ' '; }
+    { fout << _xmin << ' ' << _xmax << ' ' << _ymin << ' ' << _ymax << ' '; }
     void read(std::istream& fin)
-    { fin >> xmin >> xmax >> ymin >> ymax; defined = true; }
+    { fin >> _xmin >> _xmax >> _ymin >> _ymax; _defined = true; }
 
     int getSplit()
-    { return (ymax-ymin) > (xmax-xmin) ? 1 : 0; }
+    { return (_ymax-_ymin) > (_xmax-_xmin) ? 1 : 0; }
     double getMiddle(int split)
-    { return split==1 ? (ymax+ymin)/2. : (xmax+xmin)/2.; }
+    { return split==1 ? (_ymax+_ymin)/2. : (_xmax+_xmin)/2.; }
 
 private:
-    bool defined;
-    double xmin,xmax,ymin,ymax;
+    bool _defined;
+    double _xmin,_xmax,_ymin,_ymax;
 
 };
 
@@ -162,18 +164,24 @@ class Position<Sphere>
 {
 
 public:
-    Position() : x(0.),y(0.),z(0.) {}
-    Position(const Position<Sphere>& rhs) : x(rhs.x),y(rhs.y),z(rhs.z) {}
+    Position() : _x(0.), _y(0.), _z(0.), _is3d(false) {}
+    Position(const Position<Sphere>& rhs) : 
+        _x(rhs._x), _y(rhs._y), _z(rhs._z), _is3d(rhs._is3d) {}
     ~Position() {}
-    Position(double xin,double yin,double zin) : x(xin),y(yin),z(zin) {}
+    Position(double x, double y, double z, bool is3d) :
+        _x(x), _y(y), _z(z), _is3d(is3d) {}
     Position<Sphere>& operator=(const Position<Sphere>& rhs) 
-    { x = rhs.getX(); y = rhs.getY(); z = rhs.getZ(); return *this; }
+    { _x = rhs.getX(); _y = rhs.getY(); _z = rhs.getZ(); _is3d = rhs.is3D(); return *this; }
 
     // Position<Sphere> can also be initialized with a Postion<Flat> object, which is 
     // taken to be RA, Dec, both in radians.  The <Sphere> position is then the 
     // corresponding point on the unit sphere.
-    Position(const Position<Flat>& rhs) { buildFromRaDec(rhs.getX(),rhs.getY()); }
-    Position(double ra, double dec) { buildFromRaDec(ra,dec); }
+    Position(const Position<Flat>& rhs) : _is3d(false) 
+    { buildFromRaDec(rhs.getX(), rhs.getY()); }
+    Position(double ra, double dec) : _is3d(false)
+    { buildFromRaDec(ra, dec); }
+    Position(double ra, double dec, double r) : _is3d(true)
+    { buildFromRaDec(ra, dec); _x*=r; _y*=r; _z*=r; }
 
     void buildFromRaDec(double ra, double dec)
     {
@@ -181,44 +189,49 @@ public:
         const double sinra = sin(ra);
         const double cosdec = cos(dec);
         const double sindec = sin(dec);
-        x = cosdec * cosra;
-        y = cosdec * sinra;
-        z = sindec;
+        _x = cosdec * cosra;
+        _y = cosdec * sinra;
+        _z = sindec;
     }
 
-    double getX() const { return x; }
-    double getY() const { return y; }
-    double getZ() const { return z; }
-    double get(int split) const { return split==2 ? z : split==1 ? y : x; }
+    double getX() const { return _x; }
+    double getY() const { return _y; }
+    double getZ() const { return _z; }
+    bool is3D() const { return _is3d; }
+    double get(int split) const { return split==2 ? _z : split==1 ? _y : _x; }
 
-    double normSq() const { return x*x+y*y+z*z; }
+    double normSq() const { return _x*_x + _y*_y + _z*_z; }
     double norm() const { return sqrt(normSq()); }
 
+    // If appropriate, put the position back on the unit sphere.
+    void normalize() { if (!_is3d) *this /= norm(); }
+
     Position<Sphere>& operator+=(const Position<Sphere>& p2)
-    { x += p2.getX(); y += p2.getY(); z += p2.getZ(); return *this; }
+    { _x += p2.getX(); _y += p2.getY(); _z += p2.getZ(); return *this; }
     Position<Sphere>& operator-=(const Position<Sphere>& p2)
-    { x -= p2.getX(); y -= p2.getY(); z -= p2.getZ(); return *this; }
+    { _x -= p2.getX(); _y -= p2.getY(); _z -= p2.getZ(); return *this; }
     Position<Sphere>& operator*=(double a)
-    { x *= a; y *= a; z *= a; return *this; }
+    { _x *= a; _y *= a; _z *= a; return *this; }
     Position<Sphere>& operator/=(double a)
-    { x /= a; y /= a; z /= a; return *this; }
+    { _x /= a; _y /= a; _z /= a; return *this; }
 
     Position<Sphere> operator+(const Position<Sphere>& p2) const
-    { return Position<Sphere>(x+p2.getX(),y+p2.getY(),z+p2.getZ()); }
+    { Position<Sphere> p1 = *this; p1 += p2; return p1; }
     Position<Sphere> operator-(const Position<Sphere>& p2) const
-    { return Position<Sphere>(x-p2.getX(),y-p2.getY(),z-p2.getZ()); }
+    { Position<Sphere> p1 = *this; p1 -= p2; return p1; }
     Position<Sphere> operator*(double a) const
-    { return Position<Sphere>(x*a,y*a,z*a); }
+    { Position<Sphere> p1 = *this; p1 *= a; return p1; }
     Position<Sphere> operator/(double a) const
-    { return Position<Sphere>(x/a,y/a,z/a); }
+    { Position<Sphere> p1 = *this; p1 /= a; return p1; }
 
     void read(std::istream& fin) 
-    { fin >> x >> y >> z; }
+    { fin >> _x >> _y >> _z >> _is3d; }
     void write(std::ostream& fout) const
-    { fout << x << " " << y << " " << z << " "; }
+    { fout << _x << " " << _y << " " << _z << " " << _is3d << " "; }
 
 private:
-    double x,y,z;
+    double _x,_y,_z;
+    bool _is3d;
 
 }; // Position<Sphere>
 
@@ -228,63 +241,64 @@ class Bounds<Sphere>
 
 public:
     Bounds(double x1, double x2, double y1, double y2, double z1, double z2) :
-        defined(1),xmin(x1),xmax(x2),ymin(y1),ymax(y2),zmin(z1),zmax(z2) {}
+        _defined(1), _xmin(x1), _xmax(x2), _ymin(y1), _ymax(y2), _zmin(z1), _zmax(z2) {}
     Bounds(const Position<Sphere>& pos) :
-        defined(1),xmin(pos.getX()),xmax(pos.getX()),
-        ymin(pos.getY()),ymax(pos.getY()),
-        zmin(pos.getZ()),zmax(pos.getZ()) {}
+        _defined(1), _xmin(pos.getX()), _xmax(pos.getX()),
+        _ymin(pos.getY()), _ymax(pos.getY()),
+        _zmin(pos.getZ()), _zmax(pos.getZ()) {}
     Bounds() : 
-        defined(0),xmin(0.),xmax(0.),ymin(0.),ymax(0.), zmin(0.),zmax(0.) {}
+        _defined(0), _xmin(0.), _xmax(0.), _ymin(0.), _ymax(0.), _zmin(0.), _zmax(0.) {}
     ~Bounds() {}
-    double getXMin() const { return xmin; }
-    double getXMax() const { return xmax; }
-    double getYMin() const { return ymin; }
-    double getYMax() const { return ymax; }
-    double getZMin() const { return zmin; }
-    double getZMax() const { return zmax; }
-    bool isDefined() const { return defined; }
+    double getXMin() const { return _xmin; }
+    double getXMax() const { return _xmax; }
+    double getYMin() const { return _ymin; }
+    double getYMax() const { return _ymax; }
+    double getZMin() const { return _zmin; }
+    double getZMax() const { return _zmax; }
+    bool isDefined() const { return _defined; }
+
+    // Expand the bounds to include the given position.
     void operator+=(const Position<Sphere>& pos)
-        // Expand the bounds to include the given position.
     {
-        if(defined) {
-            if(pos.getX() < xmin) xmin = pos.getX();
-            else if (pos.getX() > xmax) xmax = pos.getX();
-            if(pos.getY() < ymin) ymin = pos.getY();
-            else if (pos.getY() > ymax) ymax = pos.getY();
-            if(pos.getZ() < zmin) zmin = pos.getZ();
-            else if (pos.getZ() > zmax) zmax = pos.getZ();
+        if (_defined) {
+            if (pos.getX() < _xmin) _xmin = pos.getX();
+            else if (pos.getX() > _xmax) _xmax = pos.getX();
+            if (pos.getY() < _ymin) _ymin = pos.getY();
+            else if (pos.getY() > _ymax) _ymax = pos.getY();
+            if (pos.getZ() < _zmin) _zmin = pos.getZ();
+            else if (pos.getZ() > _zmax) _zmax = pos.getZ();
         } else {
-            xmin = xmax = pos.getX();
-            ymin = ymax = pos.getY();
-            zmin = zmax = pos.getZ();
-            defined = 1;
+            _xmin = _xmax = pos.getX();
+            _ymin = _ymax = pos.getY();
+            _zmin = _zmax = pos.getZ();
+            _defined = 1;
         }
     }
 
     void write(std::ostream& fout) const
     { 
-        fout << xmin << ' ' << xmax << ' ' << ymin << ' ' << ymax << 
-            ' ' << zmin << ' ' << zmax << ' '; 
+        fout << _xmin << ' ' << _xmax << ' ' << _ymin << ' ' << _ymax << 
+            ' ' << _zmin << ' ' << _zmax << ' '; 
     }
     void read(std::istream& fin)
-    { fin >> xmin >> xmax >> ymin >> ymax >> zmin >> zmax; defined = true; }
+    { fin >> _xmin >> _xmax >> _ymin >> _ymax >> _zmin >> _zmax; _defined = true; }
 
     int getSplit()
     { 
-        double xrange = xmax-xmin;
-        double yrange = ymax-ymin;
-        double zrange = zmax-zmin;
+        double xrange = _xmax-_xmin;
+        double yrange = _ymax-_ymin;
+        double zrange = _zmax-_zmin;
         return yrange > xrange ?
             ( zrange > yrange ? 2 : 1 ) : 
             ( zrange > xrange ? 2 : 0 );
     }
 
     double getMiddle(int split)
-    { return split==2 ? (zmax+zmin)/2. : split==1 ? (ymax+ymin)/2. : (xmax+xmin)/2.; }
+    { return split==2 ? (_zmax+_zmin)/2. : split==1 ? (_ymax+_ymin)/2. : (_xmax+_xmin)/2.; }
 
 private:
-    bool defined;
-    double xmin,xmax,ymin,ymax,zmin,zmax;
+    bool _defined;
+    double _xmin,_xmax,_ymin,_ymax,_zmin,_zmax;
 
 };
 

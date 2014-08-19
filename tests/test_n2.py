@@ -39,12 +39,6 @@ def test_n2():
     numpy.random.seed(8675309)
     x = numpy.random.normal(0,s, (ngal,) )
     y = numpy.random.normal(0,s, (ngal,) )
-    # I don't think this matters, but let's keep the point in our box.
-    if False:
-    #while any(abs(x) > L/2) or any(abs(y) > L/2):
-        mask = numpy.where(numpy.logical_or(abs(x) > L/2,abs(y) > L/2))[0]
-        x[mask] = numpy.random.normal(0,s, (len(mask),) )
-        y[mask] = numpy.random.normal(0,s, (len(mask),) )
 
     cat = treecorr.Catalog(x=x, y=y, x_units='arcmin', y_units='arcmin')
     dd = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
@@ -93,17 +87,18 @@ def test_n2():
     assert max(abs(simple_xi - true_xi)/true_xi) < 0.1
 
     # Check that we get the same result using the corr2 executable:
-    cat.write(os.path.join('data','n2_data.dat'))
-    rand.write(os.path.join('data','n2_rand.dat'))
-    import subprocess
-    p = subprocess.Popen( ["corr2","n2.params"] )
-    p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','n2.out'))
-    print 'xi = ',xi
-    print 'from corr2 output = ',corr2_output[:,2]
-    print 'ratio = ',corr2_output[:,2]/xi
-    print 'diff = ',corr2_output[:,2]-xi
-    numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
+    if __name__ == '__main__':
+        cat.write(os.path.join('data','n2_data.dat'))
+        rand.write(os.path.join('data','n2_rand.dat'))
+        import subprocess
+        p = subprocess.Popen( ["corr2","n2.params"] )
+        p.communicate()
+        corr2_output = numpy.loadtxt(os.path.join('output','n2.out'))
+        print 'xi = ',xi
+        print 'from corr2 output = ',corr2_output[:,2]
+        print 'ratio = ',corr2_output[:,2]/xi
+        print 'diff = ',corr2_output[:,2]-xi
+        numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
 
 
 if __name__ == '__main__':

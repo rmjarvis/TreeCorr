@@ -35,9 +35,9 @@ Installation
 
 The installation is very simple:
 
-1. Dependencies: All dependencies should be installed automatically for you by setup.py,
-   so you should not need to worry about these.  But if you are interested,
-   the dependencies are:
+1. Dependencies: All dependencies should be installed automatically for you by
+   setup.py, so you should not need to worry about these.  But if you are
+   interested, the dependencies are:
     - numpy
     - fitsio: TreeCorr can use either fitsio or pyfits (now part of astropy),
       so it will only install fitsio if none of these are present on your
@@ -59,12 +59,20 @@ The installation is very simple:
 
         python setup.py install --prefix=/your/home/directory
 
-This will install the executable `corr2` at
+   This will install the executable `corr2` at
 
-    /your/home/directory/bin/corr2
+        /your/home/directory/bin/corr2
 
-It will also install the Python module called treecorr which you can use
-from within Python.
+   It will also install the Python module called treecorr which you can use
+   from within Python.
+
+5. (optional) If you want to run the unit tests, you can do the following:
+
+        cd tests
+        nosetests
+
+   They aren't super fast, since I use around 1 million galaxies for many of
+   the tests.  The whole thing should take around 5-10 minutes.
 
 
 Two-point Correlations

@@ -20,7 +20,7 @@ class Field
 {
 public:
     // Note: for M=Sphere, x,y here are really ra,dec.
-    Field(double* x, double* y, double* g1, double* g2, double* k, double* w,
+    Field(double* x, double* y, double* r, double* g1, double* g2, double* k, double* w,
           long nobj, double minsep, double maxsep, double b, int sm_int);
     ~Field();
 
@@ -44,7 +44,8 @@ template <int DC, int M>
 class SimpleField
 {
 public:
-    SimpleField(double* x, double* y, double* g1, double* g2, double* k, double* w, long nobj);
+    SimpleField(double* x, double* y, double* r, double* g1, double* g2, double* k, double* w,
+                long nobj);
     ~SimpleField();
 
     long getNObj() const { return long(_cells.size()); }
@@ -58,28 +59,22 @@ private:
 extern "C" {
 
     extern void* BuildGFieldFlat(double* x, double* y, double* g1, double* g2, double* w,
-                                 long nobj, double minsep, double maxsep, double b, int sm);
-
-    extern void* BuildGFieldSphere(double* ra, double* dec, double* g1, double* g2, double* w,
-                                   long nobj, double minsep, double maxsep, double b, int sm);
-
-
-    extern void* BuildGFieldFlat(double* x, double* y, double* g1, double* g2, double* w,
                                  long nobj, double minsep, double maxsep, double b, int sm_int);
 
-    extern void* BuildGFieldSphere(double* ra, double* dec, double* g1, double* g2, double* w,
+    extern void* BuildGFieldSphere(double* ra, double* dec, double* r,
+                                   double* g1, double* g2, double* w,
                                    long nobj, double minsep, double maxsep, double b, int sm_int);
 
     extern void* BuildKFieldFlat(double* x, double* y, double* k, double* w,
                                  long nobj, double minsep, double maxsep, double b, int sm_int);
 
-    extern void* BuildKFieldSphere(double* ra, double* dec, double* k, double* w,
+    extern void* BuildKFieldSphere(double* ra, double* dec, double* r, double* k, double* w,
                                    long nobj, double minsep, double maxsep, double b, int sm_int);
 
     extern void* BuildNFieldFlat(double* x, double* y, double* w,
                                  long nobj, double minsep, double maxsep, double b, int sm_int);
 
-    extern void* BuildNFieldSphere(double* ra, double* dec, double* w,
+    extern void* BuildNFieldSphere(double* ra, double* dec, double* r, double* w,
                                    long nobj, double minsep, double maxsep, double b, int sm_int);
 
     extern void DestroyGFieldFlat(void* field);
@@ -96,25 +91,27 @@ extern "C" {
 
 
 
-    extern void* BuildGSimpleFieldFlat(double* x, double* y, double* g1, double* g2, double* w,
-                                       long nobj);
+    extern void* BuildGSimpleFieldFlat(double* x, double* y,
+                                       double* g1, double* g2, double* w, long nobj);
 
-    extern void* BuildGSimpleFieldSphere(double* ra, double* dec, double* g1, double* g2, double* w,
-                                         long nobj);
+    extern void* BuildGSimpleFieldSphere(double* ra, double* dec, double* r,
+                                         double* g1, double* g2, double* w, long nobj);
 
-    extern void* BuildGSimpleFieldFlat(double* x, double* y, double* g1, double* g2, double* w,
-                                       long nobj);
+    extern void* BuildGSimpleFieldFlat(double* x, double* y,
+                                       double* g1, double* g2, double* w, long nobj);
 
-    extern void* BuildGSimpleFieldSphere(double* ra, double* dec, double* g1, double* g2, double* w,
-                                         long nobj);
+    extern void* BuildGSimpleFieldSphere(double* ra, double* dec, double* r,
+                                         double* g1, double* g2, double* w, long nobj);
 
-    extern void* BuildKSimpleFieldFlat(double* x, double* y, double* k, double* w, long nobj);
+    extern void* BuildKSimpleFieldFlat(double* x, double* y,
+                                       double* k, double* w, long nobj);
 
-    extern void* BuildKSimpleFieldSphere(double* ra, double* dec, double* k, double* w, long nobj);
+    extern void* BuildKSimpleFieldSphere(double* ra, double* dec, double* r,
+                                         double* k, double* w, long nobj);
 
     extern void* BuildNSimpleFieldFlat(double* x, double* y, double* w, long nobj);
 
-    extern void* BuildNSimpleFieldSphere(double* ra, double* dec, double* w, long nobj);
+    extern void* BuildNSimpleFieldSphere(double* ra, double* dec, double* r, double* w, long nobj);
 
     extern void DestroyGSimpleFieldFlat(void* field);
 

@@ -136,6 +136,34 @@ def test_g2():
     print 'diff = ',corr2_output2[:,2]-mxsq
     numpy.testing.assert_almost_equal(corr2_output2[:,2]/mxsq, 1., decimal=3)
 
+    # Also check the Schneider version.  The math isn't quite as nice here, but it is tractable.
+    # Map^2(R) = 576 pi gamma0^2 r0^6/(L^2 R^10) exp(-R^2/2r0^2)
+    #            x (I0(R^2/2r0^2) R^2 (R^4 + 96 r0^4) - 16 I1(R^2/2r0^2) r0^2 (R^4 + 24 r0^4)
+    try:
+        from scipy.special import i0,i1
+        x = 0.5*r**2/r0**2
+        true_mapsq = 576.*numpy.pi * gamma0**2 * r0**6 / (L**2 * r**10) * numpy.exp(-x)
+        true_mapsq *= i0(x) * r**2 * (r**4 + 96.*r0**4) - 16.*i1(x) * r0**2 * (r**4 + 24.*r0**4)
+
+        mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq('Schneider')
+        print 'Schneider mapsq = ',mapsq
+        print 'true_mapsq = ',true_mapsq
+        print 'ratio = ',mapsq/true_mapsq
+        print 'diff = ',mapsq-true_mapsq
+        print 'max diff = ',max(abs(mapsq - true_mapsq))
+        print 'max diff[20:] = ',max(abs(mapsq[20:] - true_mapsq[20:]))
+        # This one stay ratty longer, so we need to skip the first 20 and also loosen the
+        # test a bit.
+        assert max(abs(mapsq[20:]-true_mapsq[20:])) < 7.e-8
+        print 'mxsq = ',mxsq
+        print 'max = ',max(abs(mxsq))
+        print 'max[20:] = ',max(abs(mxsq[20:]))
+        assert max(abs(mxsq[20:])) < 7.e-8
+
+    except ImportError:
+        # Don't require scipy if the user doesn't have it.
+        print 'Skipping tests of Schneider aperture mass, since scipy.special not available.'
+
 
 def test_spherical():
     # This is the same field we used for test_g2, but put into spherical coords.

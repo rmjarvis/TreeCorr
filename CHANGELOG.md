@@ -20,22 +20,24 @@ API changes:
   themselves if they want, so it seems unnecessary.  Plus, the way it
   did the smoothing is actually a pretty bad way to do it.  Better to just
   get rid of that option entirely.
-- Changed the handling of file_name and file_name2 slightly.  Before, the
-  two files for a heterogeneous cross-correlation (i.e. NG, NK, or KG) could
-  be specified with just file_name using 2 entries.  Now these need to be
-  listed as separate key words with file_name and file_name2.
-- Removed the do_auto_corr and do_cross_corr options.  These were too
-  confusing, so the current behavior is equivalent to setting
+- Changed the handling of file_name and file_name2 a bit.  Before, cross-
+  correlations could be done by giving both file names as `file_name` in
+  a list.  For anything but the simplest applications, this could get
+  confusing in terms of how other parameters were handled.  So now, you
+  should always use both file_name and file_name2 for cross-correlations.
+- Removed the do_auto_corr and do_cross_corr options.  These were
+  similarly confusing, so the current behavior is equivalent to setting
   do_auto_corr=True and do_cross_corr=True.  i.e. A list of files is
   conceptually equivalent to having everything in a single file.
   If you want to do something more complicated, you should now use the
   python interface to get precisely the pairings that you want.
-- Removed the project options from the corr2 parameters.  That option
+- Removed the project option from the corr2 parameters.  That option
   was really only for me to debug the spherical trig code, but since that
-  is working, there is really no reason for anyone to use it, so I do
-  not want users to see this option and think it is a good idea.  If you
-  really want to though, the functionality still exists at the python
-  layer, so you can do the projections yourself there.
+  is working, there is really no reason for anyone to use it.  I do
+  not want users to see this option and think it is a good idea or necessary
+  for spherical coordinates.  If you really want to though, the functionality
+  still exists at the python layer, so you can do the projections yourself
+  there.
 - Added another verbosity level between what was 0 and 1.  Now we have:
     0 - Errors only (equivalent to old 0)
     1 - Warnings (new default verbosity)
@@ -44,9 +46,40 @@ API changes:
 - Added a configuration parameter, output_dots, which says whether to output
   the progress dots during the calculation in the C++ layer.  By default
   this is turned on if verbose is 2 or 3, and off otherwise.
+
+
+New features:
+-------------
+
+Of course, making this a python module is the main new feature with this
+version.  From the python layer, you can now have much more control over the
+calculation.  For more information, please see:
+
+  https://github.com/rmjarvis/TreeCorr/wiki/Guide-to-using-TreeCorr-in-Python
+
+You can also use the python help command to get more information about particular
+classes or functions to read their doc strings.
+
+Some highlights of the new functionality:
+
+- Can construct a Catalog directly from numpy arrays, rather than necessarily
+  reading the catalog from a file.
+- Can access the calculated correlation functions directly as a numpy arrays,
+  rather than necessarily writing them to a file.
+- The catalogs and constructed trees remain available to be used multiple times,
+  which can be a huge efficiency gain for some applications, since you can
+  cut out the I/O steps.
+- The pairs of galaxies to be processed can be customized as desired.  For
+  example, if you have several observations of the same field, you can cross-
+  correlate shear measurements from different exposures and skip the auto-
+  correlations to avoid some of the systematic errors.
+
+Other new features:
+
 - Added the option of giving weights to N fields, just like we allow for shear
   and kappa fields.  The weights are ignored for NN correlations, but they
   can be useful for NG or NK.
+
 
 Changes in the output files:
 ----------------------------

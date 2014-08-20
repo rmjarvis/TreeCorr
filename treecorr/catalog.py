@@ -335,7 +335,7 @@ class Catalog(object):
             else:
                 data = pandas.read_csv(file_name, comment=comment_marker, delimiter=delimiter,
                                        header=None, skiprows=skip)
-            data = data.values
+            data = data.dropna(axis=0).values
         except ImportError:
             self.logger.warn("Unable to import pandas..  Using numpy.genfromtxt instead.")
             self.logger.warn("Installing pandas is recommended for increased speed when "+

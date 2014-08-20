@@ -33,7 +33,7 @@ BinnedCorr2<DC1,DC2>::BinnedCorr2(
     double* xi0, double* xi1, double* xi2, double* xi3,
     double* meanlogr, double* weight, double* npairs) :
     _minsep(minsep), _maxsep(maxsep), _nbins(nbins), _binsize(binsize), _b(b),
-    _metric(-1),
+    _metric(-1), _owns_data(false),
     _xi(xi0,xi1,xi2,xi3), _meanlogr(meanlogr), _weight(weight), _npairs(npairs)
 {
     // Some helpful variables we can calculate once here.
@@ -42,6 +42,35 @@ BinnedCorr2<DC1,DC2>::BinnedCorr2(
     _minsepsq = _minsep*_minsep;
     _maxsepsq = _maxsep*_maxsep;
     _bsq = _b * _b;
+}
+
+template <int DC1, int DC2>
+BinnedCorr2<DC1,DC2>::BinnedCorr2(const BinnedCorr2<DC1,DC2>& rhs, bool copy_data) :
+    _minsep(rhs._minsep), _maxsep(rhs._maxsep), _nbins(rhs._nbins),
+    _binsize(rhs._binsize), _b(rhs._b),
+    _logminsep(rhs._logminsep), _halfminsep(rhs._halfminsep),
+    _minsepsq(rhs._minsepsq), _maxsepsq(rhs._maxsepsq), _bsq(rhs._bsq),
+    _metric(rhs._metric), _owns_data(true),
+    _xi(0,0,0,0), _weight(0)
+{
+    _xi.new_data(_nbins);
+    _meanlogr = new double[_nbins];
+    if (rhs._weight) _weight = new double[_nbins];
+    _npairs = new double[_nbins];
+
+    if (copy_data) *this = rhs;
+    else clear();
+}
+
+template <int DC1, int DC2>
+BinnedCorr2<DC1,DC2>::~BinnedCorr2()
+{
+    if (_owns_data) {
+        _xi.delete_data(_nbins);
+        delete [] _meanlogr; _meanlogr = 0;
+        if (_weight) delete [] _weight; _weight = 0;
+        delete [] _npairs; _npairs = 0;
+    }
 }
 
 // BinnedCorr2::process2 is invalid if DC1 != DC2, so this helper struct lets us only call 
@@ -63,11 +92,9 @@ template <int DC1, int DC2>
 void BinnedCorr2<DC1,DC2>::clear()
 {
     _xi.clear(_nbins);
-    for (int i=0; i<_nbins; ++i) {
-        _meanlogr[i] = 0.;
-        if (_weight) _weight[i] = 0.;
-        _npairs[i] = 0.;
-    }
+    for (int i=0; i<_nbins; ++i) _meanlogr[i] = 0.;
+    if (_weight) for (int i=0; i<_nbins; ++i) _weight[i] = 0.;
+    for (int i=0; i<_nbins; ++i) _npairs[i] = 0.;
 }
 
 template <int DC1, int DC2> template <int M>
@@ -83,8 +110,7 @@ void BinnedCorr2<DC1,DC2>::process(const Field<DC1,M>& field, bool dots)
 #pragma omp parallel 
     {
         // Give each thread their own copy of the data vector to fill in.
-        BinnedCorr2<DC1,DC2> bc2(*this);
-        bc2.clear();
+        BinnedCorr2<DC1,DC2> bc2(*this,false);
 #else
         BinnedCorr2<DC1,DC2>& bc2 = *this;
 #endif
@@ -111,8 +137,6 @@ void BinnedCorr2<DC1,DC2>::process(const Field<DC1,M>& field, bool dots)
         // Accumulate the results
 #pragma omp critical
         {
-            Assert(_metric == -1 || bc2._metric == -1 || _metric == bc2._metric);
-            if (bc2._metric != -1) _metric = bc2._metric;
             *this += bc2;
         }
     }
@@ -137,8 +161,7 @@ void BinnedCorr2<DC1,DC2>::process(const Field<DC1,M>& field1, const Field<DC2,M
 #pragma omp parallel 
     {
         // Give each thread their own copy of the data vector to fill in.
-        BinnedCorr2<DC1,DC2> bc2(*this);
-        bc2.clear();
+        BinnedCorr2<DC1,DC2> bc2(*this,false);
 #else
         BinnedCorr2<DC1,DC2>& bc2 = *this;
 #endif
@@ -164,8 +187,6 @@ void BinnedCorr2<DC1,DC2>::process(const Field<DC1,M>& field1, const Field<DC2,M
         // Accumulate the results
 #pragma omp critical
         {
-            Assert(_metric == -1 || bc2._metric == -1 || _metric == bc2._metric);
-            if (bc2._metric != -1) _metric = bc2._metric;
             *this += bc2;
         }
     }
@@ -192,8 +213,7 @@ void BinnedCorr2<DC1,DC2>::processPairwise(
 #pragma omp parallel 
     {
         // Give each thread their own copy of the data vector to fill in.
-        BinnedCorr2<DC1,DC2> bc2(*this);
-        bc2.clear();
+        BinnedCorr2<DC1,DC2> bc2(*this,false);
 #else
         BinnedCorr2<DC1,DC2>& bc2 = *this;
 #endif
@@ -634,9 +654,9 @@ void BinnedCorr2<DC1,DC2>::operator+=(const BinnedCorr2<DC1,DC2>& rhs)
 {
     Assert(rhs._nbins == _nbins);
     _xi.add(rhs._xi,_nbins);
-    for (int i=0; i<_nbins; ++i) _meanlogr[i] = rhs._meanlogr[i];
-    if (_weight) for (int i=0; i<_nbins; ++i) _weight[i] = rhs._weight[i];
-    for (int i=0; i<_nbins; ++i) _npairs[i] = rhs._npairs[i];
+    for (int i=0; i<_nbins; ++i) _meanlogr[i] += rhs._meanlogr[i];
+    if (_weight) for (int i=0; i<_nbins; ++i) _weight[i] += rhs._weight[i];
+    for (int i=0; i<_nbins; ++i) _npairs[i] += rhs._npairs[i];
 }
 
 //

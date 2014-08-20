@@ -42,9 +42,9 @@ void SetupTopLevelCells(
     std::vector<double>& top_sizesq,
     std::vector<size_t>& top_start, std::vector<size_t>& top_end)
 {
-    dbg<<"Start SetupTopLevelCells: start,end = "<<start<<','<<end<<std::endl;
-    dbg<<"maxsizesq = "<<maxsizesq<<std::endl;
-    dbg<<"celldata has "<<celldata.size()<<" entries\n";
+    xdbg<<"Start SetupTopLevelCells: start,end = "<<start<<','<<end<<std::endl;
+    xdbg<<"maxsizesq = "<<maxsizesq<<std::endl;
+    xdbg<<"celldata has "<<celldata.size()<<" entries\n";
     // The structure of this is very similar to the Cell constructor.
     // The difference is that here we only construct a new Cell (and do the corresponding
     // calculation of the averages) if the size is small enough.  At that point, the 
@@ -151,6 +151,11 @@ Field<DC,M>::Field(
     dbg<<"r = "<<r<<std::endl;
     std::vector<CellData<DC,M>*> celldata;
     celldata.reserve(nobj);
+    //xdbg<<"First values are: x,y = "<<x[0]<<"  "<<y[0]<<std::endl;
+    //if (r) { xdbg<<"r = "<<r[0]<<std::endl; }
+    //xdbg<<"g1,g2 = "<<g1[0]<<','<<g2[0]<<std::endl;
+    //xdbg<<"k = "<<k[0]<<std::endl;
+    //xdbg<<"w = "<<w[0]<<std::endl;
     if (r) {
         for(int i=0;i<nobj;++i) 
             if (w[i] != 0.)

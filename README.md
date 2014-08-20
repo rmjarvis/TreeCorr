@@ -4,8 +4,8 @@ TreeCorr
 TreeCorr is a package for efficiently computing 2-point correlation functions.
 
 - The code is hosted at https://github.com/rmjarvis/TreeCorr
-- It can compute correlations of regular number counts, scalar quantities such as
-  convergence or CMB temperature fluctutations, or shears.
+- It can compute correlations of regular number counts, weak lensing shears, or
+  scalar quantities such as convergence or CMB temperature fluctutations.
 - 2-point correlations may be auto-correlations or cross-correlations.  This
   includes shear-shear, count-shear, count-count, kappa-kappa, etc.  (Any
   combination of shear, kappa, and counts.)

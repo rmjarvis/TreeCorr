@@ -79,6 +79,11 @@ Other new features:
 - Added the option of giving weights to N fields, just like we allow for shear
   and kappa fields.  The weights are ignored for NN correlations, but they
   can be useful for NG or NK.
+- Added the ability to do correlations in 3D, rather than just in angular 
+  coordinates.  This is only available in conjunction with ra,dec coordinates.
+  If you include an `r_col`, this will be the distance to each object.  Then
+  the separations between objects will be done in 3D using whatever units you
+  use for r (MPc for instance).
 
 
 Changes in the output files:

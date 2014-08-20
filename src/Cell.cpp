@@ -275,8 +275,8 @@ Cell<DC,M>::Cell(CellData<DC,M>* ave, double sizesq,
     _size(sqrt(sizesq)), _sizesq(sizesq), _data(ave), _left(0), _right(0)
 {
     Assert(sizesq >= 0.);
-    xdbg<<"Make cell starting with ave = "<<*ave<<std::endl;
-    xdbg<<"size = "<<_size<<std::endl;
+    //xdbg<<"Make cell starting with ave = "<<*ave<<std::endl;
+    //xdbg<<"size = "<<_size<<std::endl;
     Assert(vdata.size()>0);
     Assert(end <= vdata.size());
     Assert(end > start);

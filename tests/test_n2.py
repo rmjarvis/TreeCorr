@@ -16,22 +16,104 @@ import numpy
 import treecorr
 import os
 
+def test_direct_count():
+    # If the catalogs are small enough, we can do a direct count of the number of pairs
+    # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
+
+    ngal = 100
+    s = 10.
+    numpy.random.seed(8675309)
+    x1 = numpy.random.normal(0,s, (ngal,) )
+    y1 = numpy.random.normal(0,s, (ngal,) )
+    cat1 = treecorr.Catalog(x=x1, y=y1)
+    x2 = numpy.random.normal(0,s, (ngal,) )
+    y2 = numpy.random.normal(0,s, (ngal,) )
+    cat2 = treecorr.Catalog(x=x2, y=y2)
+
+    min_sep = 1.
+    max_sep = 50.
+    nbins = 50
+    dd = treecorr.N2Correlation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    dd.process(cat1, cat2)
+    print 'dd.npairs = ',dd.npairs
+
+    log_min_sep = numpy.log(min_sep)
+    log_max_sep = numpy.log(max_sep)
+    true_npairs = numpy.zeros(nbins)
+    bin_size = (log_max_sep - log_min_sep) / nbins
+    for i in range(ngal):
+        for j in range(ngal):
+            rsq = (x1[i]-x2[j])**2 + (y1[i]-y2[j])**2
+            logr = 0.5 * numpy.log(rsq)
+            k = int(numpy.floor( (logr-log_min_sep) / bin_size ))
+            if k < 0: continue
+            if k >= nbins: continue
+            true_npairs[k] += 1
+
+    print 'true_npairs = ',true_npairs
+    print 'diff = ',dd.npairs - true_npairs
+    numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+
+def test_direct_3d():
+    # This is the same as the above test, but using the 3d correlations
+
+    ngal = 100
+    s = 10.
+    numpy.random.seed(8675309)
+    x1 = numpy.random.normal(312, s, (ngal,) )
+    y1 = numpy.random.normal(728, s, (ngal,) )
+    z1 = numpy.random.normal(-932, s, (ngal,) )
+    r1 = numpy.sqrt( x1*x1 + y1*y1 + z1*z1 )
+    dec1 = numpy.arcsin(z1/r1)
+    ra1 = numpy.arctan2(y1,x1)
+    cat1 = treecorr.Catalog(ra=ra1, dec=dec1, r=r1, ra_units='rad', dec_units='rad')
+
+    x2 = numpy.random.normal(312, s, (ngal,) )
+    y2 = numpy.random.normal(728, s, (ngal,) )
+    z2 = numpy.random.normal(-932, s, (ngal,) )
+    r2 = numpy.sqrt( x2*x2 + y2*y2 + z2*z2 )
+    dec2 = numpy.arcsin(z2/r2)
+    ra2 = numpy.arctan2(y2,x2)
+    cat2 = treecorr.Catalog(ra=ra2, dec=dec2, r=r2, ra_units='rad', dec_units='rad')
+
+    min_sep = 1.
+    max_sep = 50.
+    nbins = 50
+    dd = treecorr.N2Correlation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    dd.process(cat1, cat2)
+    print 'dd.npairs = ',dd.npairs
+
+    log_min_sep = numpy.log(min_sep)
+    log_max_sep = numpy.log(max_sep)
+    true_npairs = numpy.zeros(nbins)
+    bin_size = (log_max_sep - log_min_sep) / nbins
+    for i in range(ngal):
+        for j in range(ngal):
+            rsq = (x1[i]-x2[j])**2 + (y1[i]-y2[j])**2 + (z1[i]-z2[j])**2
+            logr = 0.5 * numpy.log(rsq)
+            k = int(numpy.floor( (logr-log_min_sep) / bin_size ))
+            if k < 0: continue
+            if k >= nbins: continue
+            true_npairs[k] += 1
+
+    print 'true_npairs = ',true_npairs
+    print 'diff = ',dd.npairs - true_npairs
+    numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+
 def test_n2():
-    # Use n(r) = A exp(-r^2/2s^2)
+    # Use a simple probability distribution for the galaxies:
     #
-    # The Fourier transform is: n~(k) = 2 pi A s^2 exp(-s^2 k^2/2) / L^2
-    # P(k) = (1/2pi) <|n~(k)|^2> = 2 pi A^2 (s/L)^4 exp(-s^2 k^2)
+    # n(r) = (2pi s^2)^-1 exp(-r^2/2s^2)
+    #
+    # The Fourier transform is: n~(k) = exp(-s^2 k^2/2)
+    # P(k) = <|n~(k)|^2> = exp(-s^2 k^2)
     # xi(r) = (1/2pi) int( dk k P(k) J0(kr) ) 
-    #       = pi A^2 (s/L)^2 exp(-r^2/2s^2/4)
+    #       = 1/(4 pi s^2) exp(-r^2/4s^2)
     #
-    # Note that this time, A is not arbitrary.  n(r) needs to integrate to L^2.
-    # So A = (L/s)^2 / 2pi
-    # xi(r) = 1/4pi (L/s)^2 exp(-r^2/2s^2/4)
-    # 
-    # Also, we need to correct for the uniform density background, so the real result
-    # is this minus 1.
+    # However, we need to correct for the uniform density background, so the real result
+    # is this minus 1/L^2 divided by 1/L^2.  So:
     #
-    # xi(r) = 1/4pi (L/s)^2 exp(-r^2/2s^2/4) - 1
+    # xi(r) = 1/4pi (L/s)^2 exp(-r^2/4s^2) - 1
 
     ngal = 1000000
     s = 10.
@@ -76,9 +158,6 @@ def test_n2():
 
     simple_xi, varxi = dd.calculateXi(rr)
     print 'simple xi = ',simple_xi
-    #print 'true_xi = ',true_xi
-    #print 'ratio = ',simple_xi / true_xi
-    #print 'diff = ',simple_xi - true_xi
     print 'max rel diff = ',max(abs((simple_xi - true_xi)/true_xi))
     # The simple calculation (i.e. dd/rr-1, rather than (dd-2dr+rr)/rr as above) is only 
     # slightly less accurate in this case.  Probably because the mask is simple (a box), so
@@ -101,5 +180,90 @@ def test_n2():
         numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
 
 
+def test_3d():
+    # For this one, build a Gaussian cloud around some random point in 3D space and do the 
+    # correlation function in 3D.
+    #
+    # Use n(r) = (2pi s^2)^-3/2 exp(-r^2/2s^2)
+    #
+    # The 3D Fourier transform is: n~(k) = exp(-s^2 k^2/2)
+    # P(k) = <|n~(k)|^2> = exp(-s^2 k^2)
+    # xi(r) = 1/2pi^2 int( dk k^2 P(k) j0(kr) )
+    #       = 1/(8 pi^3/2) 1/s^3 exp(-r^2/4s^2)
+    #
+    # And as before, we need to correct for the randoms, so the final xi(r) is
+    #
+    # xi(r) = 1/(8 pi^3/2) (L/s)^3 exp(-r^2/4s^2) - 1
+
+    ngal = 100000
+    xcen = 823  # Mpc maybe?
+    ycen = 342
+    zcen = -672
+    s = 10.
+    L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+    numpy.random.seed(8675309)
+    x = numpy.random.normal(xcen, s, (ngal,) )
+    y = numpy.random.normal(ycen, s, (ngal,) )
+    z = numpy.random.normal(zcen, s, (ngal,) )
+
+    r = numpy.sqrt(x*x+y*y+z*z)
+    dec = numpy.arcsin(z/r) / treecorr.degrees
+    ra = numpy.arctan2(y,x) / treecorr.degrees
+
+    cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='deg', dec_units='deg')
+    dd = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    dd.process(cat)
+    print 'dd.npairs = ',dd.npairs
+
+    nrand = 5 * ngal
+    rx = (numpy.random.random_sample(nrand)-0.5) * L + xcen
+    ry = (numpy.random.random_sample(nrand)-0.5) * L + ycen
+    rz = (numpy.random.random_sample(nrand)-0.5) * L + zcen
+    rr = numpy.sqrt(rx*rx+ry*ry+rz*rz)
+    rdec = numpy.arcsin(rz/rr) / treecorr.degrees
+    rra = numpy.arctan2(ry,rx) / treecorr.degrees
+    rand = treecorr.Catalog(ra=rra, dec=rdec, r=rr, ra_units='deg', dec_units='deg')
+    rr = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    rr.process(rand)
+    print 'rr.npairs = ',rr.npairs
+
+    dr = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    dr.process(cat,rand)
+    print 'dr.npairs = ',dr.npairs
+
+    r = numpy.exp(dd.meanlogr)
+    true_xi = 1./(8.*numpy.pi**1.5) * (L/s)**3 * numpy.exp(-0.25*r**2/s**2) - 1.
+
+    xi, varxi = dd.calculateXi(rr,dr)
+    print 'xi = ',xi
+    print 'true_xi = ',true_xi
+    print 'ratio = ',xi / true_xi
+    print 'diff = ',xi - true_xi
+    print 'max rel diff = ',max(abs((xi - true_xi)/true_xi))
+    assert max(abs(xi - true_xi)/true_xi) < 0.1
+
+    simple_xi, varxi = dd.calculateXi(rr)
+    print 'simple xi = ',simple_xi
+    print 'max rel diff = ',max(abs((simple_xi - true_xi)/true_xi))
+    assert max(abs(simple_xi - true_xi)/true_xi) < 0.1
+
+    # Check that we get the same result using the corr2 executable:
+    if __name__ == '__main__':
+        cat.write(os.path.join('data','n2_3d_data.dat'))
+        rand.write(os.path.join('data','n2_3d_rand.dat'))
+        import subprocess
+        p = subprocess.Popen( ["corr2","n2_3d.params"] )
+        p.communicate()
+        corr2_output = numpy.loadtxt(os.path.join('output','n2_3d.out'))
+        print 'xi = ',xi
+        print 'from corr2 output = ',corr2_output[:,2]
+        print 'ratio = ',corr2_output[:,2]/xi
+        print 'diff = ',corr2_output[:,2]-xi
+        numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
+
+
 if __name__ == '__main__':
+    test_direct_count()
+    test_direct_3d()
     test_n2()
+    test_3d()

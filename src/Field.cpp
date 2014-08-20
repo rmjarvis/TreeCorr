@@ -36,15 +36,14 @@ bool XDEBUG = false;
 // to build the actual Cells.
 template <int DC, int M>
 void SetupTopLevelCells(
-    std::vector<CellData<DC,M>*>& celldata,
-    double minsizesq, double maxsizesq,
+    std::vector<CellData<DC,M>*>& celldata, double maxsizesq, double bsq,
     SplitMethod sm, size_t start, size_t end,
     std::vector<CellData<DC,M>*>& top_data,
     std::vector<double>& top_sizesq,
     std::vector<size_t>& top_start, std::vector<size_t>& top_end)
 {
     dbg<<"Start SetupTopLevelCells: start,end = "<<start<<','<<end<<std::endl;
-    dbg<<"minsizesq = "<<minsizesq<<", maxsizesq = "<<maxsizesq<<std::endl;
+    dbg<<"maxsizesq = "<<maxsizesq<<std::endl;
     dbg<<"celldata has "<<celldata.size()<<" entries\n";
     // The structure of this is very similar to the Cell constructor.
     // The difference is that here we only construct a new Cell (and do the corresponding
@@ -59,6 +58,9 @@ void SetupTopLevelCells(
         sizesq = 0.;
     } else {
         ave = new CellData<DC,M>(celldata,start,end);
+        xdbg<<"ave pos = "<<ave->getPos()<<std::endl;
+        xdbg<<"n = "<<ave->getN()<<std::endl;
+        xdbg<<"w = "<<ave->getW()<<std::endl;
         sizesq = CalculateSizeSq(ave->getPos(),celldata,start,end);
         xdbg<<"size = "<<sqrt(sizesq)<<std::endl;
     }
@@ -71,49 +73,73 @@ void SetupTopLevelCells(
         top_start.push_back(start);
         top_end.push_back(end);
     } else {
+        // We want to stop splitting if size <= b * maxsep, but this check makes sure that
+        // maxsep is the largest possible separation of interest.  It could be the histograms
+        // maxsep value, which is what the initial call to SetupTopLevelCells calculations,
+        // but it could also be 2*size of the first cell.  So check here to see if we need
+        // to make maxsizesq larger.
+        // This can only happen on the first call, but it's not too much overhead, so it's not
+        // worth doing something special to avoid this check on subsequent calls.
+        double temp = 4. * bsq * sizesq;
+        if (temp > maxsizesq) maxsizesq = temp;
+
         size_t mid = SplitData(celldata,sm,start,end,ave->getPos());
         xdbg<<"Too big.  Recurse with mid = "<<mid<<std::endl;
-        SetupTopLevelCells(celldata, minsizesq, maxsizesq, sm, start, mid,
+        SetupTopLevelCells(celldata, maxsizesq, bsq, sm, start, mid,
                            top_data, top_sizesq, top_start, top_end);
-        SetupTopLevelCells(celldata, minsizesq, maxsizesq, sm, mid, end,
+        SetupTopLevelCells(celldata, maxsizesq, bsq, sm, mid, end,
                            top_data, top_sizesq, top_start, top_end);
     }
 }
 
 // Specialize for all the different kinds of CellData possibilities.
 template <int DC, int M>
-CellData<DC,M>* BuildCellData(double x, double y, double r,
-                              double g1, double g2, double, double w);
+CellData<DC,M>* BuildCellData(double x, double y, double g1, double g2, double, double w);
 
 template <>
-CellData<GData,Flat>* BuildCellData(double x, double y, double ,
-                                    double g1, double g2, double, double w)
+CellData<GData,Flat>* BuildCellData(double x, double y, double g1, double g2, double, double w)
 { return new CellData<GData,Flat>(Position<Flat>(x,y), std::complex<double>(g1,g2), w); }
 
 template <>
-CellData<GData,Sphere>* BuildCellData(double ra, double dec, double r,
-                                      double g1, double g2, double, double w)
+CellData<GData,Sphere>* BuildCellData(double ra, double dec, double g1, double g2, double, double w)
 { return new CellData<GData,Sphere>(Position<Sphere>(ra,dec), std::complex<double>(g1,g2), w); }
 
 template <>
-CellData<KData,Flat>* BuildCellData(double x, double y, double ,
-                                    double , double , double k, double w)
+CellData<KData,Flat>* BuildCellData(double x, double y, double , double , double k, double w)
 { return new CellData<KData,Flat>(Position<Flat>(x,y), k, w); }
 
 template <>
-CellData<KData,Sphere>* BuildCellData(double ra, double dec, double r,
-                                      double , double , double k, double w)
+CellData<KData,Sphere>* BuildCellData(double ra, double dec, double , double , double k, double w)
 { return new CellData<KData,Sphere>(Position<Sphere>(ra,dec), k, w); }
 
 template <>
-CellData<NData,Flat>* BuildCellData(double x, double y, double ,
-                                    double , double , double, double w)
+CellData<NData,Flat>* BuildCellData(double x, double y, double , double , double, double w)
 { return new CellData<NData,Flat>(Position<Flat>(x,y), w); }
 
 template <>
-CellData<NData,Sphere>* BuildCellData(double ra, double dec, double r,
-                                      double , double , double, double w)
+CellData<NData,Sphere>* BuildCellData(double ra, double dec, double , double , double, double w)
 { return new CellData<NData,Sphere>(Position<Sphere>(ra,dec), w); }
+
+// For the 3D ones, we use a default implementation for when M=Flat, since we don't need those.
+template <int DC, int M>
+CellData<DC,M>* BuildCellData(
+    double x, double y, double r, double g1, double g2, double, double w)
+{ return 0; }
+
+template <>
+CellData<GData,Sphere>* BuildCellData(
+    double ra, double dec, double r, double g1, double g2, double, double w)
+{ return new CellData<GData,Sphere>(Position<Sphere>(ra,dec,r), std::complex<double>(g1,g2), w); }
+
+template <>
+CellData<KData,Sphere>* BuildCellData(
+    double ra, double dec, double r, double , double , double k, double w)
+{ return new CellData<KData,Sphere>(Position<Sphere>(ra,dec,r), k, w); }
+
+template <>
+CellData<NData,Sphere>* BuildCellData(
+    double ra, double dec, double r, double , double , double, double w)
+{ return new CellData<NData,Sphere>(Position<Sphere>(ra,dec,r), w); }
 
 
 template <int DC, int M>
@@ -122,6 +148,7 @@ Field<DC,M>::Field(
     long nobj, double minsep, double maxsep, double b, int sm_int)
 {
     dbg<<"Starting to Build Field with "<<nobj<<" objects\n";
+    dbg<<"r = "<<r<<std::endl;
     std::vector<CellData<DC,M>*> celldata;
     celldata.reserve(nobj);
     if (r) {
@@ -131,7 +158,7 @@ Field<DC,M>::Field(
     } else {
         for(int i=0;i<nobj;++i) 
             if (w[i] != 0.)
-                celldata.push_back(BuildCellData<DC,M>(x[i],y[i],0.,g1[i],g2[i],k[i],w[i]));
+                celldata.push_back(BuildCellData<DC,M>(x[i],y[i],g1[i],g2[i],k[i],w[i]));
     }
     dbg<<"Built celldata with "<<celldata.size()<<" entries\n";
 
@@ -146,13 +173,18 @@ Field<DC,M>::Field(
     //      s = 0.5 * b * minsep / (1+1.5 b)
     //        = b * minsep / (2+3b)
     double minsize = minsep * b / (2.+3.*b);
+    xdbg<<"minsize = "<<minsize<<std::endl;
     double minsizesq = minsize * minsize;
     xdbg<<"minsizesq = "<<minsizesq<<std::endl;
 
     // The maximum size cell that will be useful is one where a cell of size s will
     // be split at the maximum separation even if the other size = 0.
     // i.e. s = b * maxsep
+    // However, the maxsep here is not necessarily the maxsep that we will use for the bins.
+    // It is the maximum separation of any two cells.  So on the first pass to SetupTopLevelCells,
+    // we'll update this to make sure maxsizesq >= bsq * sizesq.
     double maxsize = maxsep * b;
+    xdbg<<"maxsize = "<<maxsize<<std::endl;
     double maxsizesq = maxsize * maxsize;
     xdbg<<"maxsizesq = "<<maxsizesq<<std::endl;
 
@@ -183,7 +215,7 @@ Field<DC,M>::Field(
         std::vector<size_t> top_end;
 
         // Setup the top level cells:
-        SetupTopLevelCells(celldata,minsizesq,maxsizesq,sm,0,celldata.size(),
+        SetupTopLevelCells(celldata,maxsizesq,b*b,sm,0,celldata.size(),
                            top_data,top_sizesq,top_start,top_end);
         const ptrdiff_t n = top_data.size();
         dbg<<"Field has "<<n<<" top-level nodes.  Building lower nodes...\n";
@@ -221,7 +253,7 @@ SimpleField<DC,M>::SimpleField(
     } else {
         for(long i=0;i<nobj;++i)
             if (w[i] != 0.) 
-                celldata.push_back(BuildCellData<DC,M>(x[i],y[i],0.,g1[i],g2[i],k[i],w[i]));
+                celldata.push_back(BuildCellData<DC,M>(x[i],y[i],g1[i],g2[i],k[i],w[i]));
     }
     dbg<<"Built celldata with "<<celldata.size()<<" entries\n";
 

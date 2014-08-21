@@ -101,10 +101,13 @@ Bug fixes:
 - Fixed a bug in text file input where sometimes the data from two rows
   was treated as a single row with twice as many values.
 - Fixed a (related) bug in how randoms are read in that they no longer need
-  to have all the columns as the data files if it has more than just positions.
-  Just the positions in the random files need to have the same column numbers
-  or names as in the data files.
+  to have all the columns that the data files have if they include more than
+  just positions.  The positions in the random files need to have the same
+  column numbers or names as in the data files, but the other columns may be
+  omitted.
 - Fixed a compiler error that started with recent versions of g++.
 - Fixed what I believe was a bug in how the sigma columns for NN correlation 
   functions was calculated.  I believe it was too small by a factor of sqrt(2)
   for auto-correlations.
+- Removed extraneous debugging output that was being written to the g2 output 
+  file in version 2.6.

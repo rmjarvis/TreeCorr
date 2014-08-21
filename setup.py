@@ -122,7 +122,7 @@ except ImportError:
         dependencies += ['fitsio']
 
 setup(name="TreeCorr", 
-      version="3.0",
+      version="3.0.0",
       author="Mike Jarvis",
       author_email="michael@jarvis.net",
       description="Python module for computing 2-point correlation functions",

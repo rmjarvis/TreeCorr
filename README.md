@@ -35,12 +35,22 @@ Installation
 
 The easiest way to install TreeCorr is with pip:
 
-    pip install TreeCorr
+    sudo pip install TreeCorr
 
 If you have previously installed TreeCorr, and want to upgrade to a new
 released version, you should do:
 
-    pip install TreeCorr --upgrade
+    sudo pip install TreeCorr --upgrade
+
+To install TreeCorr on a system where you do not have sudo privileges,
+you can do:
+
+    pip install TreeCorr --install-option="--prefix=~"
+
+NB: There is also a `--user` option with `pip install`, which installs into
+~/.local.  This is fine for the python module, but it puts the `corr2`
+executable into ~/.local/bin, which is probably not in your path.  The above
+command will instead install `corr2` into ~/bin.
 
 
 If you would rather download the tarball and install TreeCorr yourself,

@@ -66,12 +66,17 @@ that is also relatively straightforward:
     - pandas: This package significantly speeds up the reading of ASCII
       input catalogs over the numpy functions loadtxt or genfromtxt.
 
-2. Download the zip file of the current code from:
+2. Download the zip file or tarball of the current code from:
 
    https://github.com/rmjarvis/TreeCorr/releases/tag/v3.0.2
 
-3. Unzip the archive.  It will unzip into the directory TreeCorr-3.0.2
-   Change to that directory:
+3. Unzip the archive with either of the following (depending on which kind
+   of archive you downloaded):
+
+        unzip TreeCorr-3.0.2.zip
+        tar xvzf TreeCorr-3.0.2.tar.gz
+
+   It will unzip into the directory TreeCorr-3.0.2. Change to that directory:
 
         cd TreeCorr-3.0.2
 
@@ -123,7 +128,7 @@ name of a configuration file:
 
     corr2 config_file
 
-A sample configuration file is provided, called sample.params, and see the
+A sample configuration file is provided, called sample.params.  See the
 TreeCorr wiki page
 
 https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters

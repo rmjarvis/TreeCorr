@@ -71,8 +71,9 @@ The installation is very simple:
         cd tests
         nosetests
 
-   They aren't super fast, since I use around 1 million galaxies for many of
-   the tests.  The whole thing should take around 5-10 minutes.
+   They do take a bit of time to run, since I use around 1 million galaxies
+   for many of the tests.  On the order of 5-10 minutes when using a single
+   core, or less when OpenMP is enabled.
 
 
 Two-point Correlations

@@ -4,11 +4,13 @@ import glob
 try:
     from setuptools import setup, Extension
     from setuptools.command.build_ext import build_ext
-    from setuptools.sysconfig import get_config_vars
 except ImportError:
     print 'Unable to import setuptools.  Using distutils instead.'
     from distutils.core import setup, Extension
     from distutils.command.build_ext import build_ext
+try:
+    from sysconfig import get_config_vars
+except:
     from distutils.sysconfig import get_config_vars
 
 py_version = "%d.%d"%sys.version_info[0:2]

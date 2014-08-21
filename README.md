@@ -33,7 +33,18 @@ file `TreeCorr_LICENSE` with the distribution.  See that file for details.
 Installation
 ------------
 
-The installation is very simple:
+The easiest way to install TreeCorr is with pip:
+
+    pip install TreeCorr
+
+If you have previously installed TreeCorr, and want to upgrade to a new
+released version, you should do:
+
+    pip install TreeCorr --upgrade
+
+
+If you would rather download the tarball and install TreeCorr yourself,
+that is also relatively straightforward:
 
 1. Dependencies: All dependencies should be installed automatically for you by
    setup.py, so you should not need to worry about these.  But if you are
@@ -47,12 +58,12 @@ The installation is very simple:
 
 2. Download the zip file of the current code from:
 
-   https://github.com/rmjarvis/TreeCorr/archive/master.zip
+   https://github.com/rmjarvis/TreeCorr/releases/tag/v3.0.0
 
-3. Unzip the archive.  It will unzip into the directory TreeCorr-master.
+3. Unzip the archive.  It will unzip into the directory TreeCorr-3.0.0
    Change to that directory:
 
-        cd TreeCorr-master
+        cd TreeCorr-3.0.0
 
 4. Install with the normal setup.py options.  Typically this would be the
    command

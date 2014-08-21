@@ -97,7 +97,8 @@ class my_builder( build_ext ):
         if lopt.has_key(comp_type):
             for e in self.extensions:
                 e.extra_link_args = lopt[ comp_type ]
-        e.include_dirs = ['include']
+        for e in self.extensions:
+            e.include_dirs = ['include']
         build_ext.build_extensions(self)
 
 ext=Extension("treecorr._treecorr",
@@ -121,13 +122,13 @@ except ImportError:
         dependencies += ['fitsio']
 
 setup(name="TreeCorr", 
-      version="3.0.1",
+      version="3.0.2",
       author="Mike Jarvis",
       author_email="michael@jarvis.net",
       description="Python module for computing 2-point correlation functions",
       license = "BSD License",
       url="https://github.com/rmjarvis/TreeCorr",
-      download_url="https://github.com/rmjarvis/TreeCorr/releases/tag/v3.0.1.zip",
+      download_url="https://github.com/rmjarvis/TreeCorr/releases/tag/v3.0.2.zip",
       packages=['treecorr'],
       ext_modules=[ext],
       install_requires=dependencies,

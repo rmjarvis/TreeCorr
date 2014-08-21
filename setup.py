@@ -92,11 +92,13 @@ class my_builder( build_ext ):
         comp_type = get_compiler(cc)
         print 'Using compiler %s, which is %s'%(cc,comp_type)
         if copt.has_key(comp_type):
-           for e in self.extensions:
-               e.extra_compile_args = copt[ comp_type ]
+            for e in self.extensions:
+                e.extra_compile_args = copt[ comp_type ]
+                e.include_dirs = ['include']
         if lopt.has_key(comp_type):
             for e in self.extensions:
                 e.extra_link_args = lopt[ comp_type ]
+                e.include_dirs = ['include']
         build_ext.build_extensions(self)
 
 ext=Extension("treecorr._treecorr",

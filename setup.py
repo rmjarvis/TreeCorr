@@ -6,6 +6,7 @@ try:
     from setuptools.command.build_ext import build_ext
     from setuptools.sysconfig import get_config_vars
 except ImportError:
+    print 'Unable to import setuptools.  Using distutils instead.'
     from distutils.core import setup, Extension
     from distutils.command.build_ext import build_ext
     from distutils.sysconfig import get_config_vars

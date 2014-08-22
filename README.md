@@ -10,7 +10,8 @@ TreeCorr is a package for efficiently computing 2-point correlation functions.
   includes shear-shear, count-shear, count-count, kappa-kappa, etc.  (Any
   combination of shear, kappa, and counts.)
 - 2-point functions can be done with correct curved-sky calculation using
-  RA, Dec coordinates or on a Euclidean tangent plane.
+  RA, Dec coordinates, on a Euclidean tangent plane, or in 3D using RA, Dec
+  and a distance.
 - The front end is in Python, which can be used as a Python module or as a 
   standalone executable using configuration files.
 - The actual computation of the correlation functions is done in C++ using ball

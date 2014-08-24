@@ -195,7 +195,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         If rg is None, the simple correlation function <gamma_T> is returned.
         If rg is not None, then a compensated calculation is done: <gamma_T> = (dg - rg)
 
-        return (xi, xi_im, varxi)
+        :returns: (xi, xi_im, varxi)
         """
         if rg is None:
             return self.xi, self.xi_im, self.varxi
@@ -238,7 +238,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
             Tx(s) = 18/Pi s^2 arccos(s/s) - 3/40Pi s^3 sqrt(4-s^2) (196 - 74s^2 + 14s^4 - s^6)
 
-        returns (nmap, nmx, varnmap)
+        :returns: (nmap, nmx, varnmap)
         """
         if m2_uform is None:
             m2_uform = self.config.get('m2_uform','Crittenden')

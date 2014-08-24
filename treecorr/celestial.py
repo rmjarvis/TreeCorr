@@ -72,8 +72,8 @@ class CelestialCoord(object):
 
         >>> coord = treecorr.CelestialCoord(ra, dec)
 
-    @param ra       The right ascension in radians.
-    @param dec      The declination in radian.
+    :param ra:       The right ascension in radians.
+    :param dec:      The declination in radian.
     """
     def __init__(self, ra, dec):
         self._ra = ra
@@ -239,7 +239,7 @@ class CelestialCoord(object):
 
         The distance or angle errors increase with distance from the projection point of course.
 
-        @returns (u,v) in radians as a tuple.
+        :returns: (u,v) in radians as a tuple.
         """
         if projection not in [ 'lambert', 'stereographic', 'gnomonic', 'postel' ]:
             raise ValueError('Unknown projection ' + projection)
@@ -421,7 +421,7 @@ class CelestialCoord(object):
         J = ( dra/du cos(dec)  dra/dv cos(dec) )
             (    ddec/du          ddec/dv      )
 
-        @returns the matrix as a tuple (J00, J01, J10, J11)
+        :returns: the matrix as a tuple (J00, J01, J10, J11)
         """
         if projection not in [ 'lambert', 'stereographic', 'gnomonic', 'postel' ]:
             raise ValueError('Unknown projection ' + projection)
@@ -556,7 +556,7 @@ class CelestialCoord(object):
         precess from the current epoch to 1950.  The current epoch is assumed to be 2000
         by default, but you may also specify a different value with the epoch parameter.
 
-        @returns the longitude and latitude as a tuple (el, b) in radians.
+        :returns: the longitude and latitude as a tuple (el, b) in radians.
         """
         # cf. Lang, Astrophysical Formulae, page 13
         # cos(b) cos(el-33) = cos(dec) cos(ra-282.25)

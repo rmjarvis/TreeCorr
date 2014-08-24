@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# treecorr documentation build configuration file, created by
+# TreeCorr documentation build configuration file, created by
 # sphinx-quickstart on Fri Aug 22 15:15:50 2014.
 #
 # This file is execfile()d with the current directory set to its
@@ -46,7 +46,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'treecorr'
+project = u'TreeCorr'
 copyright = u'2014, Mike Jarvis'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -70,7 +70,7 @@ release = ''
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+#exclude_patterns = ['_build']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -199,7 +199,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'treecorr.tex', u'treecorr Documentation',
+  ('index', 'TreeCorr.tex', u'TreeCorr Documentation',
    u'Mike Jarvis', 'manual'),
 ]
 
@@ -229,7 +229,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'treecorr', u'treecorr Documentation',
+    ('index', 'TreeCorr', u'TreeCorr Documentation',
      [u'Mike Jarvis'], 1)
 ]
 
@@ -243,8 +243,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'treecorr', u'treecorr Documentation',
-   u'Mike Jarvis', 'treecorr', 'One line description of project.',
+  ('index', 'TreeCorr', u'TreeCorr Documentation',
+   u'Mike Jarvis', 'TreeCorr', 'One line description of project.',
    'Miscellaneous'),
 ]
 
@@ -264,13 +264,13 @@ texinfo_documents = [
 # -- Options for Epub output ----------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u'treecorr'
+epub_title = u'TreeCorr'
 epub_author = u'Mike Jarvis'
 epub_publisher = u'Mike Jarvis'
 epub_copyright = u'2014, Mike Jarvis'
 
 # The basename for the epub file. It defaults to the project name.
-#epub_basename = u'treecorr'
+#epub_basename = u'TreeCorr'
 
 # The HTML theme for the epub output. Since the default themes are not optimized
 # for small screen space, using the same theme for HTML and epub output is

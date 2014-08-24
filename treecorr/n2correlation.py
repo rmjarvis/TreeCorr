@@ -210,7 +210,7 @@ class N2Correlation(treecorr.BinnedCorr2):
         if dr is given and rd is None, then (nn - 2dr + rr)/rr is used.
         If dr and rd are both given, then (nn - dr - rd + rr)/rr is used.
 
-        returns (xi, varxi)
+        :returns: (xi, varxi)
         """
         # Each random npairs value needs to be rescaled by the ratio of total possible pairs.
         if rr.tot == 0:
@@ -280,7 +280,7 @@ class N2Correlation(treecorr.BinnedCorr2):
         This is used by NGCorrelation.writeNorm.  See that function and also 
         G2Correlation.calculateMapSq() for more details.
 
-        returns (nsq, varnsq)
+        :returns: (nsq, varnsq)
         """
         if m2_uform is None:
             m2_uform = self.config.get('m2_uform','Crittenden')

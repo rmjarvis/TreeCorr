@@ -269,7 +269,7 @@ class G2Correlation(treecorr.BinnedCorr2):
 
         cf Schneider, et al (2001): http://xxx.lanl.gov/abs/astro-ph/0112441
 
-        returns (mapsq, mapsq_im, mxsq, mxsq_im, varmapsq)
+        :returns: (mapsq, mapsq_im, mxsq, mxsq_im, varmapsq)
         """
         if m2_uform is None:
             m2_uform = self.config.get('m2_uform','Crittenden')
@@ -331,8 +331,8 @@ class G2Correlation(treecorr.BinnedCorr2):
         The default behavior is not to compute the E/B versions.  They are calculated if
         eb is set to True.
 
-        returns (gamsq, vargamsq)                                if eb == False
-                (gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e)  if eb == True
+        :returns: (gamsq, vargamsq)                                if eb == False
+                  (gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e)  if eb == True
         """
         r = numpy.exp(self.logr)
         meanr = numpy.exp(self.meanlogr) # Use the actual mean r for each bin

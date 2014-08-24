@@ -58,10 +58,11 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
     The usage pattern is as follows:
 
-        nk = treecorr.NKCorrelation(config)
-        nk.process(cat1,cat2)   # Compute the cross-correlation function.
-        nk.write(file_name)     # Write out to a file.
-        xi = nk.xi              # Or access the correlation function directly.
+        >>> nk = treecorr.NKCorrelation(config)
+        >>> nk.process(cat1,cat2)   # Compute the cross-correlation function.
+        >>> nk.write(file_name)     # Write out to a file.
+        >>> xi = nk.xi              # Or access the correlation function directly.
+
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
@@ -190,7 +191,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         If rk is None, the simple correlation function <kappa> is returned.
         If rk is not None, then a compensated calculation is done: <kappa> = (dk - rk)
 
-        returns a tuple (xi, varxi)
+        :returns: a tuple (xi, varxi)
         """
         if rk is None:
             return self.xi, self.varxi

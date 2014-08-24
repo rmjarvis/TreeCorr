@@ -888,7 +888,7 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
             is_rand = 'rand' in key
         else:
             is_rand = 'rand' in list_key
-    if not isinstance(file_names,list): file_names = [ file_names ]
+    if not isinstance(file_names,list): file_names = file_names.split()
     return [ Catalog(file_name, config, num, logger, is_rand) for file_name in file_names ]
 
 

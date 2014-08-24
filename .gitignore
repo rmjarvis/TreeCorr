@@ -26,3 +26,4 @@ build
 
 .*.swp
 *.pyc
+gh-pages

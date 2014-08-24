@@ -269,8 +269,82 @@ def test_contiguous():
 
     numpy.testing.assert_equal(ng.xi, ng_float.xi)
 
+def test_list():
+    # Test different ways to read in a list of catalog names.
+    # This is based on the bug report for Issue #10.
+
+    nobj = 5000
+    numpy.random.seed(8675309)
+
+    x_list = []
+    y_list = []
+    file_names = []
+    ncats = 3
+
+    for k in range(ncats):
+        x = numpy.random.random_sample(nobj)
+        y = numpy.random.random_sample(nobj)
+        file_name = os.path.join('data','test_list%d.dat'%k)
+
+        with open(file_name, 'w') as fid:
+            # These are intentionally in a different order from the order we parse them.
+            fid.write('# ra,dec,x,y,k,g1,g2,w,flag\n')
+            for i in range(nobj):
+                fid.write(('%.8f %.8f\n')%(x[i],y[i]))
+        x_list.append(x)
+        y_list.append(y)
+        file_names.append(file_name)
+
+    # Start with file_name being a list:
+    config = {
+        'x_col' : 1,
+        'y_col' : 2,
+        'file_name' : file_names
+    }
+
+    cats = treecorr.read_catalogs(config, key='file_name')
+    numpy.testing.assert_equal(len(cats), ncats)
+    for k in range(ncats):
+        numpy.testing.assert_almost_equal(cats[k].x, x_list[k])
+        numpy.testing.assert_almost_equal(cats[k].y, y_list[k])
+
+    # Next check that the list can be just a string with spaces between names:
+    config['file_name'] = " ".join(file_names)
+
+    # Also check that it is ok to include file_list to read_catalogs.
+    cats = treecorr.read_catalogs(config, 'file_name', 'file_list')
+    numpy.testing.assert_equal(len(cats), ncats)
+    for k in range(ncats):
+        numpy.testing.assert_almost_equal(cats[k].x, x_list[k])
+        numpy.testing.assert_almost_equal(cats[k].y, y_list[k])
+
+    # Next check that having the names in a file_list file works:
+    list_name = os.path.join('data','test_list.txt')
+    with open(list_name, 'w') as fid:
+        for name in file_names:
+            fid.write(name + '\n')
+    del config['file_name']
+    config['file_list'] = list_name
+
+    cats = treecorr.read_catalogs(config, 'file_name', 'file_list')
+    numpy.testing.assert_equal(len(cats), ncats)
+    for k in range(ncats):
+        numpy.testing.assert_almost_equal(cats[k].x, x_list[k])
+        numpy.testing.assert_almost_equal(cats[k].y, y_list[k])
+
+    # Also, should be allowed to omit file_name arg:
+    cats = treecorr.read_catalogs(config, list_key='file_list')
+    numpy.testing.assert_equal(len(cats), ncats)
+    for k in range(ncats):
+        numpy.testing.assert_almost_equal(cats[k].x, x_list[k])
+        numpy.testing.assert_almost_equal(cats[k].y, y_list[k])
+
+
+
+
 if __name__ == '__main__':
     test_ascii()
     test_fits()
     test_direct()
     test_contiguous()
+    test_list()

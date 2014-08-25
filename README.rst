@@ -1,5 +1,3 @@
-TreeCorr
-========
 
 TreeCorr is a package for efficiently computing 2-point correlation functions.
 
@@ -60,6 +58,7 @@ that is also relatively straightforward:
 1. Dependencies: All dependencies should be installed automatically for you by
    setup.py, so you should not need to worry about these.  But if you are
    interested, the dependencies are:
+
     - numpy
     - fitsio: TreeCorr can use either fitsio or pyfits (now part of astropy),
       so it will only install fitsio if none of these are present on your
@@ -108,17 +107,22 @@ Two-point Correlations
 
 This software is able to compute several varieties of two-point correlations:
 
-- NN = the normal two point correlation function of things like 2dF that
-     correlate the galaxy counts at each position.
-- NG = correlation of counts with shear.  This is what is often called
-     galaxy-galaxy lensing.
-- GG = two-point shear correlation function.
-- NK = correlation of counts with kappa.  While kappa is nominally the lensing
-     convergence, it could really be any scalar quantity, like temperature,
-     size, etc.
-- KG = correlation of convergence with shear.  Like the NG calculation, but 
-     weighting the pairs by the convergence values the foreground points.
-- KK = two-point kappa correlation function.
+:NN:  the normal two point correlation function of things like 2dF that
+      correlate the galaxy counts at each position.
+
+:NG:  correlation of counts with shear.  This is what is often called
+      galaxy-galaxy lensing.
+
+:GG:  two-point shear correlation function.
+
+:NK:  correlation of counts with kappa.  While kappa is nominally the lensing
+      convergence, it could really be any scalar quantity, like temperature,
+      size, etc.
+
+:KG:  correlation of convergence with shear.  Like the NG calculation, but 
+      weighting the pairs by the convergence values the foreground points.
+
+:KK:  two-point kappa correlation function.
 
 
 Running corr2

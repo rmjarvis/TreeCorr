@@ -14,6 +14,7 @@
 
 import sys
 import os
+import treecorr
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -30,11 +31,15 @@ sys.path.insert(0, os.path.abspath('../treecorr'))
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.viewcode',
 ]
 
+# cf. http://stackoverflow.com/questions/2701998/sphinx-autodoc-is-not-automatic-enough
+autosummay_generate = True
+
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+#templates_path = ['_templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'

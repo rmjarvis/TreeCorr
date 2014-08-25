@@ -3,21 +3,19 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to TreeCorr's documentation!
-====================================
-.. include:: ../README.rst
 
-
-Contents:
+TreeCorr Documentation
+======================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
 
-   treecorr
-
-
-Indices and tables
-==================
+   overview
+   catalog
+   correlation
+   field
+   celestial
+   corr2
 
 * :ref:`genindex`
 * :ref:`modindex`

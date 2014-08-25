@@ -48,26 +48,27 @@ class G2Correlation(treecorr.BinnedCorr2):
 
     It holds the following attributes:
 
-        logr        The nominal center of the bin in log(r).
-        meanlogr    The (weighted) mean value of log(r) for the pairs in each bin.
-                    If there are no pairs in a bin, then logr will be used instead.
-        xip         The correlation function, xi_plus(r).
-        xim         The correlation funciton, xi_minus(r).
-        xip_im      The imaginary part of xi_plus(r).
-        xim_im      The imaginary part of xi_plus(r).
-        varxi       The variance of xip and xim, only including the shape noise propagated
-                    into the final correlation.  This does not include sample variance, so
-                    it is always an underestimate of the actual variance.
-        weight      The total weight in each bin.
-        npairs      The number of pairs going into each bin.
+    :logr:        The nominal center of the bin in log(r).
+    :meanlogr:    The (weighted) mean value of log(r) for the pairs in each bin.
+                  If there are no pairs in a bin, then logr will be used instead.
+    :xip:         The correlation function, xi_plus(r).
+    :xim:         The correlation funciton, xi_minus(r).
+    :xip_im:      The imaginary part of xi_plus(r).
+    :xim_im:      The imaginary part of xi_plus(r).
+    :varxi:       The variance of xip and xim, only including the shape noise propagated
+                  into the final correlation.  This does not include sample variance, so
+                  it is always an underestimate of the actual variance.
+    :weight:      The total weight in each bin.
+    :npairs:      The number of pairs going into each bin.
 
     The usage pattern is as follows:
 
-        gg = treecorr.G2Correlation(config)
-        gg.process(cat1)        # For auto-correlation.
-        gg.process(cat1,cat2)   # For cross-correlation.
-        gg.write(file_name)     # Write out to a file.
-        xip = gg.xip            # Or access the correlation function directly.
+        >>> gg = treecorr.G2Correlation(config)
+        >>> gg.process(cat1)        # For auto-correlation.
+        >>> gg.process(cat1,cat2)   # For cross-correlation.
+        >>> gg.write(file_name)     # Write out to a file.
+        >>> xip = gg.xip            # Or access the correlation function directly.
+
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
@@ -243,14 +244,15 @@ class G2Correlation(treecorr.BinnedCorr2):
     def calculateMapSq(self, m2_uform=None):
         """Calculate the aperture mass statistics from the correlation function.
 
-        <Map^2>(R) = int_r=0..rmax [1/2 (r/R)^2 dlogr (T+(r/R) xi+(r) + T-(r/R) xi-(r)) ]
-        <Mx^2>(R)  = int_r=0..rmax [1/2 (r/R)^2 dlogr (T+(r/R) xi+(r) - T-(r/R) xi-(r)) ]
+        ::
+            <Map^2>(R) = int_r=0..rmax [ 1/2 (r/R)^2 dlogr (T+(r/R) xi+(r) + T-(r/R) xi-(r)) ]
+            <Mx^2>(R)  = int_r=0..rmax [ 1/2 (r/R)^2 dlogr (T+(r/R) xi+(r) - T-(r/R) xi-(r)) ]
 
         The m2_uform parameter sets which definition of the aperture mass to use.
         The default is to look in the config dict that was used to build the catalog,
         or use 'Crittenden' if it is not specified.
 
-        If m2_uform == 'Crittenden':
+        If m2_uform == 'Crittenden'::
 
             U(r) = 1/2Pi (1-r^2) exp(-r^2/2)
             Q(r) = 1/4Pi r^2 exp(-r^2/2)
@@ -258,16 +260,16 @@ class G2Correlation(treecorr.BinnedCorr2):
             T-(s) = s^4/128 exp(-s^2/4)
             rmax = infinity
 
-        If m2_uform == 'Schneider':
+        If m2_uform == 'Schneider'::
 
             U(r) = 9/Pi (1-r^2) (1/3-r^2)
             Q(r) = 6/Pi r^2 (1-r^2)
-            T+(s) = 12/5Pi (2-15s^2) arccos(s/2)
+            T+(s) = 12/5Pi (2-15s^2) arccos(s/2) \\
                       + 1/(100Pi) s sqrt(4-s^2) (120 + 2320s^2 - 754s^4 + 132s^6 - 9s^8)
             T-(s) = 3/70Pi s^3 (4-s^2)^(7/2)
             rmax = 2R
 
-        cf Schneider, et al (2001): http://xxx.lanl.gov/abs/astro-ph/0112441
+        cf. Schneider, et al (2001): http://xxx.lanl.gov/abs/astro-ph/0112441
 
         :returns: (mapsq, mapsq_im, mxsq, mxsq_im, varmapsq)
         """
@@ -318,13 +320,15 @@ class G2Correlation(treecorr.BinnedCorr2):
     def calculateGamSq(self, eb=False):
         """Calculate the tophat shear variance from the correlation function.
 
-        <Gam^2>(R) = int_r=0..2R [s^2 dlogr S+(s) xi+(r)]
-        <Gam^2_E>(R) = int_r=0..2R [1/2 s^2 dlogr (S+(s) xi+(r) + S-(s) xi-(r)]
-        <Gam^2_B>(R) = int_r=0..2R [1/2 s^2 dlogr (S+(s) xi+(r) - S-(s) xi-(r)]
+        ::
+            <Gam^2>(R) = int_r=0..2R [s^2 dlogr S+(s) xi+(r)]
+            <Gam^2_E>(R) = int_r=0..2R [1/2 s^2 dlogr (S+(s) xi+(r) + S-(s) xi-(r)]
+            <Gam^2_B>(R) = int_r=0..2R [1/2 s^2 dlogr (S+(s) xi+(r) - S-(s) xi-(r)]
 
-        S+(s) = 1/Pi * (4*arccos(s/2) - s sqrt(4-s^2) )
-        S-(s) = (s<=2):  1/(Pi s^4) * ( s sqrt(4-s^2) (6-s^2) - 8(3-s^2) arcsin(s/2) )
-                (s>=2):  4(s^2-3)/s^4
+        ::
+            S+(s) = 1/Pi * (4*arccos(s/2) - s sqrt(4-s^2) )
+            S-(s) (s<=2):  1/(Pi s^4) * ( s sqrt(4-s^2) (6-s^2) - 8(3-s^2) arcsin(s/2) )
+            .     (s>=2):  4(s^2-3)/s^4
 
         cf Schneider, et al, 2001: http://adsabs.harvard.edu/abs/2002A%26A...389..729S
 

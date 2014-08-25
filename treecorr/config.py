@@ -99,6 +99,7 @@ def check_config(config, params):
     """Check (and update) a config dict to conform to the given parameter rules.
     The params dict has an entry for each valid config parameter whose value is a tuple
     with the following items:
+
      - type
      - can be a list?
      - default value

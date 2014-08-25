@@ -10,6 +10,9 @@
 # 2. Redistributions in binary form must reproduce the above copyright notice,
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
+"""
+.. module:: catalog
+"""
 
 import treecorr
 import numpy
@@ -38,7 +41,7 @@ class Catalog(object):
 
     The usual way to build this is using a config dict:
     
-        >>> cat = treecorr.Catalog(file_name, config, num=0)
+    >>> cat = treecorr.Catalog(file_name, config, num=0)
 
     This uses the information in the config dict to read the input file, which may be either
     a FITS catalog or an ASCII catalog.  Normally the distinction is made according to the
@@ -61,8 +64,8 @@ class Catalog(object):
     data vectors in python and then want to compute the correlation function.  The syntax for this
     is:
 
-        >>> cat = treecorr.Catalog(g1=g1, g2=g2, ra=ra, dec=dec,
-                                   ra_units=ra_units, dec_units=dec_units)
+    >>> cat = treecorr.Catalog(g1=g1, g2=g2, ra=ra, dec=dec,
+                               ra_units=ra_units, dec_units=dec_units)
 
     Each of these data vectors should be a numpy array.  For x,y, the units fields are optional,
     in which case the units are assumed to be arcsec.  But for ra,dec they are required.
@@ -71,26 +74,30 @@ class Catalog(object):
     (ra,dec) must be given.  The others are optional, although if g1 or g2 is given, the other
     must also be given.  Flags may be included by setting w=0 for those objects.
 
-    A Catalog object will have available the following attributes:
+    Attributes:
+    
+        A Catalog object will have available the following attributes:
 
-        x           The x positions, if defined, as a numpy array. (None otherwise)
-        y           The y positions, if defined, as a numpy array. (None otherwise)
-        ra          The right ascension, if defined, as a numpy array. (None otherwise)
-        dec         The declination, if defined, as a numpy array. (None otherwise)
-        r           The distance, if defined, as a numpy array. (None otherwise)
-        w           The weights, as a numpy array. (All 1's if no weight column provided.)
-        g1          The g1 component of the shear, if defined, as a numpy array. (None otherwise)
-        g2          The g2 component of the shear, if defined, as a numpy array. (None otherwise)
-        k           The convergence, kappa, if defined, as a numpy array. (None otherwise)
+        :x:      The x positions, if defined, as a numpy array. (None otherwise)
+        :y:      The y positions, if defined, as a numpy array. (None otherwise)
+        :ra:     The right ascension, if defined, as a numpy array. (None otherwise)
+        :dec:    The declination, if defined, as a numpy array. (None otherwise)
+        :r:      The distance, if defined, as a numpy array. (None otherwise)
+        :w:      The weights, as a numpy array. (All 1's if no weight column provided.)
+        :g1:     The g1 component of the shear, if defined, as a numpy array. (None otherwise)
+        :g2:     The g2 component of the shear, if defined, as a numpy array. (None otherwise)
+        :k:      The convergence, kappa, if defined, as a numpy array. (None otherwise)
 
-        nobj        The number of objects with non-zero weight
-        sumw        The sum of the weights
-        varg        The shear variance (aka shape noise)
-        vark        The kappa variance
-        name        When constructed from a file, this will be the file_name.  It is only used as
-                    a reference name in logging output  after construction, so if you construct it 
-                    from data vectors directly, it will be ''.  You may assign to it if you want to
-                    give this catalog a specific name.
+        :nobj:   The number of objects with non-zero weight
+        :sumw:   The sum of the weights
+        :varg:   The shear variance (aka shape noise) (0 if g1,g2 are not defined)
+        :vark:   The kappa variance (0 if k is not defined)
+
+        :name:   When constructed from a file, this will be the file_name.  It is only used as
+                 a reference name in logging output  after construction, so if you construct it 
+                 from data vectors directly, it will be ''.  You may assign to it if you want to
+                 give this catalog a specific name.
+
     """
     def __init__(self, file_name=None, config=None, num=0, logger=None, is_rand=False,
                  x=None, y=None, ra=None, dec=None, r=None, w=None, flag=None,

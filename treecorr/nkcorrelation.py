@@ -46,15 +46,15 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
     It holds the following attributes:
 
-        logr        The nominal center of the bin in log(r).
-        meanlogr    The (weighted) mean value of log(r) for the pairs in each bin.
-                    If there are no pairs in a bin, then logr will be used instead.
-        xi          The correlation function, xi(r).
-        varxi       The variance of xi, only including the shot noise propagated into the
-                    final correlation.  This does not include sample variance, so it is
-                    always an underestimate of the actual variance.
-        weight      The total weight in each bin.
-        npairs      The number of pairs going into each bin.
+    :logr:        The nominal center of the bin in log(r).
+    :meanlogr:    The (weighted) mean value of log(r) for the pairs in each bin.
+                  If there are no pairs in a bin, then logr will be used instead.
+    :xi:          The correlation function, xi(r).
+    :varxi:       The variance of xi, only including the shot noise propagated into the
+                  final correlation.  This does not include sample variance, so it is
+                  always an underestimate of the actual variance.
+    :weight:      The total weight in each bin.
+    :npairs:      The number of pairs going into each bin.
 
     The usage pattern is as follows:
 

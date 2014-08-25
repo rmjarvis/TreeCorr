@@ -52,23 +52,24 @@ class K2Correlation(treecorr.BinnedCorr2):
 
     It holds the following attributes:
 
-        logr        The nominal center of the bin in log(r).
-        meanlogr    The (weighted) mean value of log(r) for the pairs in each bin.
-                    If there are no pairs in a bin, then logr will be used instead.
-        xi          The correlation function, xi(r).
-        varxi       The variance of xi, only including the shot noise propagated into the
-                    final correlation.  This does not include sample variance, so it is always
-                    an underestimate of the actual variance.
-        weight      The total weight in each bin.
-        npairs      The number of pairs going into each bin.
+    :logr:        The nominal center of the bin in log(r).
+    :meanlogr:    The (weighted) mean value of log(r) for the pairs in each bin.
+                  If there are no pairs in a bin, then logr will be used instead.
+    :xi:          The correlation function, xi(r).
+    :varxi:       The variance of xi, only including the shot noise propagated into the
+                  final correlation.  This does not include sample variance, so it is always
+                  an underestimate of the actual variance.
+    :weight:      The total weight in each bin.
+    :npairs:      The number of pairs going into each bin.
 
     The usage pattern is as follows:
 
-        kk = treecorr.K2Correlation(config)
-        kk.process(cat1)        # For auto-correlation.
-        kk.process(cat1,cat2)   # For cross-correlation.
-        kk.write(file_name)     # Write out to a file.
-        xi = kk.xi              # Or access the correlation function directly.
+        >>> kk = treecorr.K2Correlation(config)
+        >>> kk.process(cat1)        # For auto-correlation.
+        >>> kk.process(cat1,cat2)   # For cross-correlation.
+        >>> kk.write(file_name)     # Write out to a file.
+        >>> xi = kk.xi              # Or access the correlation function directly.
+
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)

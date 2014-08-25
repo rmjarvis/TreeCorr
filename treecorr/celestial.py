@@ -10,9 +10,6 @@
 # 2. Redistributions in binary form must reproduce the above copyright notice,
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
-"""@file celestial.py
-The CelestialCoord class describing coordinates on the celestial sphere.
-"""
 
 # Note: This file was original written for GalSim.  But since I was the author
 # of it there, I can republish it here under the TreeCorr license too.  I've
@@ -55,6 +52,7 @@ class CelestialCoord(object):
         - a stereographic projection, which preserves angles
         - a gnomonic projection, which makes all great circles straight lines
         - a Postel projection, which preserves distances from the tangent point
+
     See the project() and deproject() functions for details.
 
     You can also precess a coordinate from one epoch to another and get galactic coordinates
@@ -66,8 +64,8 @@ class CelestialCoord(object):
     We don't use either of these for anything within TreeCorr, but I had the code to do it
     lying around, so I included it here in case someone might find it useful.
 
-    Initialization
-    --------------
+    *Initialization:*
+
     A CelestialCoord object is initialized with the following command:
 
         >>> coord = treecorr.CelestialCoord(ra, dec)

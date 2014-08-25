@@ -32,12 +32,12 @@ class BinnedCorr2(object):
     helper functions that derived classes can use to help perform their calculations.  See
     the derived classes for more details:
 
-        G2Correlation - handles shear-shear correlation functions
-        N2Correlation - handles count-count correlation functions
-        K2Correlation - handles kappa-kappa correlation functions
-        NGCorrelation - handles count-shear correlation functions
-        NKCorrelation - handles count-kappa correlation functions
-        KGCorrelation - handles kappa-shear correlation functions
+    - ``G2Correlation`` handles shear-shear correlation functions
+    - ``N2Correlation`` handles count-count correlation functions
+    - ``K2Correlation`` handles kappa-kappa correlation functions
+    - ``NGCorrelation`` handles count-shear correlation functions
+    - ``NKCorrelation`` handles count-kappa correlation functions
+    - ``KGCorrelation`` handles kappa-shear correlation functions
 
     Note that when we refer to kappa in the correlation function, that is because I
     come from a weak lensing perspective.  But really any scalar quantity may be used
@@ -51,10 +51,10 @@ class BinnedCorr2(object):
     Exactly three of the following 4 parameters are required either in the config dict or
     in kwargs:
 
-        nbins - How many bins to use
-        bin_size - The width of the bins in log(separation)
-        min_sep - The minimum separation; the left edge of the first bin
-        max_sep - The maximum separation; the right edge of the last bin
+    :param nbins:     How many bins to use
+    :param bin_size:  The width of the bins in log(separation)
+    :param min_sep:   The minimum separation; the left edge of the first bin
+    :param max_sep:   The maximum separation; the right edge of the last bin
 
     Any three of these may be provided.  The fourth number will be calculated from them.
 

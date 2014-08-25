@@ -48,23 +48,24 @@ class N2Correlation(treecorr.BinnedCorr2):
 
     It holds the following attributes:
 
-        logr        The nominal center of the bin in log(r).
-        meanlogr    The (weighted) mean value of log(r) for the pairs in each bin.
-                    If there are no pairs in a bin, then logr will be used instead.
-        npairs      The number of pairs going into each bin.
-        tot         The total number of pairs processed, which is used to normalize
-                    the randoms if they have a different number of pairs.
+    :logr:        The nominal center of the bin in log(r).
+    :meanlogr:    The (weighted) mean value of log(r) for the pairs in each bin.
+                  If there are no pairs in a bin, then logr will be used instead.
+    :npairs:      The number of pairs going into each bin.
+    :tot:         The total number of pairs processed, which is used to normalize
+                  the randoms if they have a different number of pairs.
 
     The usage pattern is as follows:
 
-        nn = treecorr.N2Correlation(config)
-        nn.process(cat1)        # For auto-correlation.
-        nn.process(cat1,cat2)   # For cross-correlation.
-        rr.process...           # Likewise for random-random correlations
-        dr.process...           # If desired, also do data-random correlations
-        rd.process...           # For cross-correlations, also do the reverse.
-        nn.write(file_name,rr,dr,rd)         # Write out to a file.
-        xi,varxi = nn.calculateXi(rr,dr,rd)  # Or get the calculated correlation function directly.
+        >>> nn = treecorr.N2Correlation(config)
+        >>> nn.process(cat1)        # For auto-correlation.
+        >>> nn.process(cat1,cat2)   # For cross-correlation.
+        >>> rr.process...           # Likewise for random-random correlations
+        >>> dr.process...           # If desired, also do data-random correlations
+        >>> rd.process...           # For cross-correlations, also do the reverse.
+        >>> nn.write(file_name,rr,dr,rd)         # Write out to a file.
+        >>> xi,varxi = nn.calculateXi(rr,dr,rd)  # Or get the correlation function directly.
+
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)

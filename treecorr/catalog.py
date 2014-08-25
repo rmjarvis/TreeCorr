@@ -887,6 +887,11 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
         list_file = config[list_key]
         with open(list_file,'r') as fin:
             file_names = [ f.strip() for f in fin ]
+        if len(file_names) == 0:
+            if logger:
+                logger.warn('Warning: %s provided, but no names were read from the file %s',
+                            list_key, list_file)
+            return []
     else:
         # If this key was required (i.e. file_name) then let the caller check this.
         return []
@@ -895,7 +900,12 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
             is_rand = 'rand' in key
         else:
             is_rand = 'rand' in list_key
-    if not isinstance(file_names,list): file_names = [ file_names ]
+    if not isinstance(file_names,list): 
+        file_names = file_names.split()
+        if len(file_names) == 0:
+            if logger:
+                logger.warn('Warning: %s provided, but it seems to be an empty string',key)
+            return []
     return [ Catalog(file_name, config, num, logger, is_rand) for file_name in file_names ]
 
 

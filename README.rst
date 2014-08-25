@@ -172,6 +172,11 @@ Python.  For more information, see the wiki page:
 
 https://github.com/rmjarvis/TreeCorr/wiki/Guide-to-using-TreeCorr-in-Python
 
+Sphinx documentation based on the doc strings can be found at:
+
+http://rmjarvis.github.io/TreeCorr/html/index.html
+
+
 Reporting bugs
 --------------
 

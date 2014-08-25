@@ -16,7 +16,6 @@
 # made a few (slight) modifications from the GalSim version.
 
 
-# The value of various angle units in radians for easy conversion.
 angle_units = {
     'arcsec' : 4.84813681109537e-6,
     'arcmin' : 2.90888208665722e-4,
@@ -24,13 +23,21 @@ angle_units = {
     'hour' : 2.61799387799149e-1,
     'rad' : 1.,
 }
+"""The value of various angle units in radians for easy conversion.
 
-# Convenient shorthand:
-arcsec = angle_units['arcsec']
-arcmin = angle_units['arcmin']
-degrees = angle_units['deg']
-hours = angle_units['hour']
-radians = angle_units['rad']
+Note that there are also shorthand equivalents for these.  e.g. Either::
+
+    4. * treecorr.angle_units['arcsec']
+    4. * treecorr.arcsec
+
+would represent 4 arcsec in radians.
+"""
+
+arcsec = angle_units['arcsec']  #: 1 arcsec in radians
+arcmin = angle_units['arcmin']  #: 1 arcmin in radians
+degrees = angle_units['deg']    #: 1 degree in radians
+hours = angle_units['hour']     #: 1 hour of angle in radians
+radians = angle_units['rad']    #: 1 radian in radians
 
 class CelestialCoord(object):
     """This class defines a position on the celestial sphere, normally given by

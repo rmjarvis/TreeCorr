@@ -8,8 +8,8 @@ The CelestialCoord class
     :members:
     :undoc-members:
 
-Other utilities related to celestial coordinates
-------------------------------------------------
+Angular units
+-------------
 
 .. automodule:: treecorr.celestial
     :members:

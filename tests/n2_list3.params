@@ -1,0 +1,15 @@
+
+file_name = data/n2_list_datax.dat
+rand_file_list = data/n2_list_rand_files.txt
+
+x_col = 1
+y_col = 2
+
+verbose = 2
+
+min_sep = 1.
+max_sep = 25.
+bin_size = 0.10
+
+n2_file_name = output/n2_list3.out
+n2_statistic = simple

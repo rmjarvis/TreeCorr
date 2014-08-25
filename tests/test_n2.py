@@ -262,8 +262,125 @@ def test_3d():
         numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
 
 
+def test_list():
+    # Test that we can use a list of files for either data or rand or both.
+
+    nobj = 5000
+    numpy.random.seed(8675309)
+
+    ncats = 3
+    data_cats = []
+    rand_cats = []
+
+    s = 10.
+    L = 50. * s
+    numpy.random.seed(8675309)
+
+    x = numpy.random.normal(0,s, (nobj,ncats) )
+    y = numpy.random.normal(0,s, (nobj,ncats) )
+    data_cats = [ treecorr.Catalog(x=x[:,k],y=y[:,k]) for k in range(ncats) ]
+    rx = (numpy.random.random_sample((nobj,ncats))-0.5) * L
+    ry = (numpy.random.random_sample((nobj,ncats))-0.5) * L
+    rand_cats = [ treecorr.Catalog(x=rx[:,k],y=ry[:,k]) for k in range(ncats) ]
+
+    dd = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    dd.process(data_cats)
+    print 'dd.npairs = ',dd.npairs
+
+    rr = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    rr.process(rand_cats)
+    print 'rr.npairs = ',rr.npairs
+
+    xi, varxi = dd.calculateXi(rr)
+    print 'xi = ',xi
+
+    # Now do the same thing with one big catalog for each.
+    ddx = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    rrx = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    data_catx = treecorr.Catalog(x=x.reshape( (nobj*ncats,) ), y=y.reshape( (nobj*ncats,) ))
+    rand_catx = treecorr.Catalog(x=rx.reshape( (nobj*ncats,) ), y=ry.reshape( (nobj*ncats,) ))
+    ddx.process(data_catx)
+    rrx.process(rand_catx)
+    xix, varxix = ddx.calculateXi(rrx)
+
+    print 'ddx.npairs = ',ddx.npairs
+    print 'rrx.npairs = ',rrx.npairs
+    print 'xix = ',xix
+    print 'ratio = ',xi/xix
+    print 'diff = ',xi-xix
+    numpy.testing.assert_almost_equal(xix/xi, 1., decimal=2)
+
+    # Check that we get the same result using the corr2 executable:
+    file_list = []
+    rand_file_list = []
+    for k in range(ncats):
+        file_name = os.path.join('data','n2_list_data%d.dat'%k)
+        with open(file_name, 'w') as fid:
+            for i in range(nobj):
+                fid.write(('%.8f %.8f\n')%(x[i,k],y[i,k]))
+        file_list.append(file_name)
+
+        rand_file_name = os.path.join('data','n2_list_rand%d.dat'%k)
+        with open(rand_file_name, 'w') as fid:
+            for i in range(nobj):
+                fid.write(('%.8f %.8f\n')%(rx[i,k],ry[i,k]))
+        rand_file_list.append(rand_file_name)
+
+    list_name = os.path.join('data','n2_list_data_files.txt')
+    with open(list_name, 'w') as fid:
+        for file_name in file_list:
+            fid.write('%s\n'%file_name)
+    rand_list_name = os.path.join('data','n2_list_rand_files.txt')
+    with open(rand_list_name, 'w') as fid:
+        for file_name in rand_file_list:
+            fid.write('%s\n'%file_name)
+
+    file_namex = os.path.join('data','n2_list_datax.dat')
+    with open(file_namex, 'w') as fid:
+        for k in range(ncats):
+            for i in range(nobj):
+                fid.write(('%.8f %.8f\n')%(x[i,k],y[i,k]))
+
+    rand_file_namex = os.path.join('data','n2_list_randx.dat')
+    with open(rand_file_namex, 'w') as fid:
+        for k in range(ncats):
+            for i in range(nobj):
+                fid.write(('%.8f %.8f\n')%(rx[i,k],ry[i,k]))
+
+    import subprocess
+    p = subprocess.Popen( ["corr2","n2_list1.params"] )
+    p.communicate()
+    corr2_output = numpy.loadtxt(os.path.join('output','n2_list1.out'))
+    print 'xi = ',xi
+    print 'from corr2 output = ',corr2_output[:,2]
+    print 'ratio = ',corr2_output[:,2]/xi
+    print 'diff = ',corr2_output[:,2]-xi
+    numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
+
+    import subprocess
+    p = subprocess.Popen( ["corr2","n2_list2.params"] )
+    p.communicate()
+    corr2_output = numpy.loadtxt(os.path.join('output','n2_list2.out'))
+    print 'xi = ',xi
+    print 'from corr2 output = ',corr2_output[:,2]
+    print 'ratio = ',corr2_output[:,2]/xi
+    print 'diff = ',corr2_output[:,2]-xi
+    numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=2)
+
+    import subprocess
+    p = subprocess.Popen( ["corr2","n2_list3.params"] )
+    p.communicate()
+    corr2_output = numpy.loadtxt(os.path.join('output','n2_list3.out'))
+    print 'xi = ',xi
+    print 'from corr2 output = ',corr2_output[:,2]
+    print 'ratio = ',corr2_output[:,2]/xi
+    print 'diff = ',corr2_output[:,2]-xi
+    numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=2)
+
+
 if __name__ == '__main__':
     test_direct_count()
     test_direct_3d()
     test_n2()
     test_3d()
+    test_list()

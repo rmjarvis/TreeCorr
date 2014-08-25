@@ -340,8 +340,6 @@ def test_list():
         numpy.testing.assert_almost_equal(cats[k].y, y_list[k])
 
 
-
-
 if __name__ == '__main__':
     test_ascii()
     test_fits()

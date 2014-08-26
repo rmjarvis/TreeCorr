@@ -15,10 +15,10 @@
 version = '3.0.2'
 
 from .celestial import CelestialCoord, angle_units, arcsec, arcmin, degrees, hours, radians
-from .config import read_config
+from .config import read_config, set_omp_threads
 from .corr2 import corr2, print_corr2_params
 from .catalog import Catalog, read_catalogs, calculateVarG, calculateVarK
-from .binnedcorr2 import BinnedCorr2, SetOMPThreads
+from .binnedcorr2 import BinnedCorr2
 from .g2correlation import G2Correlation
 from .n2correlation import N2Correlation
 from .k2correlation import K2Correlation

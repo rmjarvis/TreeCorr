@@ -190,8 +190,12 @@ class Catalog(object):
         # Apply flips if requested
         flip_g1 = treecorr.config.get_from_list(self.config,'flip_g1',num,bool,False)
         flip_g2 = treecorr.config.get_from_list(self.config,'flip_g2',num,bool,False)
-        if flip_g1: self.g1 = -self.g1
-        if flip_g2: self.g2 = -self.g2
+        if flip_g1: 
+            self.logger.info("   Flipping sign of g1.")
+            self.g1 = -self.g1
+        if flip_g2:
+            self.logger.info("   Flipping sign of g2.")
+            self.g2 = -self.g2
 
         # Convert the flag to a weight
         if self.flag is not None:

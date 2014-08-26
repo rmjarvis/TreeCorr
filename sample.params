@@ -31,8 +31,9 @@ file_name = file.dat
 # cross-correlation between the two sets of values.
 #file_name2 = file2.dat
 
-# You can also have file_name and/or file_name2 be lists of files, in which case, it will
-# do all the cross-correlations between the first list and the second.
+# You can also have file_name and/or file_name2 be lists of files, in which case,
+# it will treat them as parts of a single large field.  This may be convenient
+# if you have several observations that tile an area on the sky.
 #file_name = file1a.dat file1b.dat
 
 # For doing density correlation functions, you need to specify random files
@@ -45,8 +46,8 @@ rand_file_name = rand1.dat rand2.dat rand3.dat
 
 
 # The default file type is normally ASCII.
-# However, if the file name includes ".fit" in it, then a fits binary table 
-# is assumed.
+# However, if the file name extension starts with ".fit" in it, then a fits
+# binary table is assumed.
 #
 # You can override this behavior using file_type.
 # Allowed values are ASCII or FITS
@@ -66,7 +67,7 @@ w_col = 5
 # All distances on the sky include a "units" parameter to specify what in units the values
 # are specified.  So for x_col and y_col, we also have x_units and y_units.
 # Options for units are radians, hours, degrees, arcmin, arcsec.
-# If omitted, arcsec is assumed.
+# If omitted, radians is assumed.
 x_units = arcsec
 y_units = arcsec
 
@@ -81,6 +82,7 @@ y_units = arcsec
 #dec_col = DEC
 #g1_col = GAMMA1
 #g2_col = GAMMA2
+#w_col = WEIGHT
 
 # Sometimes there are issues with the sign conventions of gamma.  If you need to flip 
 # the sign of g1 or g2, you may do that with flip_g1 or flip_g2 (or both).
@@ -105,6 +107,8 @@ bin_size = 0.10
 
 # sep_units specifies the units to use for min_sep and max_sep.
 # It is also the units of R in the output file.
+# If omitted, radians is assumed.  (So when using x,y, you can just omit both
+# this and x_units,y_units, and the units will match up and can be arbitrary.)
 sep_units = arcmin
 
 
@@ -128,6 +132,7 @@ m2_file_name = m2.out
 
 # For count-count correlations, the output file name is given by n2_file_name.
 #n2_file_name = n2.out
+
 
 ####
 #### Miscellaneous parameters

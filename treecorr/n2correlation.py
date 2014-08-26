@@ -43,17 +43,17 @@ _treecorr.ProcessPairwiseNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, ci
 
 
 class N2Correlation(treecorr.BinnedCorr2):
-    """This class handles the calculation and storage of a 2-point shear-shear correlation
-    function.
+    """This class handles the calculation and storage of a 2-point count-count correlation
+    function.  i.e. the regular density correlation function.
 
     It holds the following attributes:
 
-    :logr:        The nominal center of the bin in log(r).
-    :meanlogr:    The (weighted) mean value of log(r) for the pairs in each bin.
-                  If there are no pairs in a bin, then logr will be used instead.
-    :npairs:      The number of pairs going into each bin.
-    :tot:         The total number of pairs processed, which is used to normalize
-                  the randoms if they have a different number of pairs.
+        :logr:      The nominal center of the bin in log(r).
+        :meanlogr:  The (weighted) mean value of log(r) for the pairs in each bin.
+                    If there are no pairs in a bin, then logr will be used instead.
+        :npairs:    The number of pairs going into each bin.
+        :tot:       The total number of pairs processed, which is used to normalize
+                    the randoms if they have a different number of pairs.
 
     The usage pattern is as follows:
 

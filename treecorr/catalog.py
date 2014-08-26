@@ -74,9 +74,7 @@ class Catalog(object):
     (ra,dec) must be given.  The others are optional, although if g1 or g2 is given, the other
     must also be given.  Flags may be included by setting w=0 for those objects.
 
-    Attributes:
-    
-        A Catalog object will have available the following attributes:
+    A Catalog object will have available the following attributes:
 
         :x:      The x positions, if defined, as a numpy array. (None otherwise)
         :y:      The y positions, if defined, as a numpy array. (None otherwise)

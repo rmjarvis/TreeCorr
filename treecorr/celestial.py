@@ -46,7 +46,7 @@ class CelestialCoord(object):
     Mostly this class exists to enforce the units when a position is really a location on
     the celestial sphere rather than using PositionD as we normally do for positions.
     In that role, it can be considered a lightweight wrapper around two angles, `ra` and `dec`.
-    They are accessible as `coord.ra` and `coord.dec`.
+    They are accessible as ``coord.ra`` and ``coord.dec``.
 
     However, there are a few useful functions that we provide.
 
@@ -134,7 +134,8 @@ class CelestialCoord(object):
 
 
     def angleBetween(self, coord1, coord2):
-        """Find the open angle at the location of the current coord between `coord1` and `coord2`.
+        """Find the open angle at the location of the current coord between ``coord1`` and
+        ``coord2``.
         """
         # Call A = coord1, B = coord2, C = self
         # Then we are looking for the angle ACB.
@@ -166,8 +167,8 @@ class CelestialCoord(object):
 
 
     def area(self, coord1, coord2):
-        """Find the area of the spherical triangle defined by the current coord, `coord1`,
-        and `coord2`, returning the area in steradians.
+        """Find the area of the spherical triangle defined by the current coord, ``coord1``,
+        and ``coord2``, returning the area in steradians.
         """
         # The area of a spherical triangle is defined by the "spherical excess", E.
         # There are several formulae for E:
@@ -219,28 +220,28 @@ class CelestialCoord(object):
 
     def project(self, other, projection='lambert'):
         """Use the currect coord as the center point of a tangent plane projection to project
-        the `other` coordinate onto that plane.
+        the ``other`` coordinate onto that plane.
 
         This function returns the position (u,v) in the Euclidean coordinate system defined by
         a tangent plane projection around the current coordinate, with +v pointing north and
         +u pointing west.
 
-        There are currently four options for the projection, which you can specify with the
-        optional `projection` keyword argument:
+        There are currently four options for the projection, which you can specify as a string
+        value for the ``projection`` keyword argument:
 
-            'lambert' [default] uses a Lambert azimuthal projection, which preserves
-                    area, but not angles.  For more information, see
-                    http://mathworld.wolfram.com/LambertAzimuthalEqual-AreaProjection.html
-            'stereographic' uses a stereographic proejection, which preserves angles, but
-                    not area.  For more information, see
-                    http://mathworld.wolfram.com/StereographicProjection.html
-            'gnomonic' uses a gnomonic projection (i.e. a projection from the center of the
-                    sphere), which has the property that all great circles become straight 
-                    lines.  For more information, see
-                    http://mathworld.wolfram.com/GnomonicProjection.html
-            'postel' uses a Postel equidistant proejection, which preserves distances from
-                    the projection point, but not area or angles.  For more information, see
-                    http://mathworld.wolfram.com/AzimuthalEquidistantProjection.html
+            :lambert:       [default] uses a Lambert azimuthal projection, which preserves
+                            area, but not angles.  For more information, see
+                            http://mathworld.wolfram.com/LambertAzimuthalEqual-AreaProjection.html
+            :stereographic: uses a stereographic proejection, which preserves angles, but
+                            not area.  For more information, see
+                            http://mathworld.wolfram.com/StereographicProjection.html
+            :gnomonic:      uses a gnomonic projection (i.e. a projection from the center of the
+                            sphere), which has the property that all great circles become straight 
+                            lines.  For more information, see
+                            http://mathworld.wolfram.com/GnomonicProjection.html
+            :postel:        uses a Postel equidistant proejection, which preserves distances from
+                            the projection point, but not area or angles.  For more information, see
+                            http://mathworld.wolfram.com/AzimuthalEquidistantProjection.html
 
         The distance or angle errors increase with distance from the projection point of course.
 
@@ -305,13 +306,13 @@ class CelestialCoord(object):
 
 
     def project_rad(self, ra, dec, projection):
-        """This is basically identical to the project() function except that the input `ra`, `dec`
-        are given in radians rather than packaged as a CelestialCoord object.
+        """This is basically identical to the project() function except that the input ``ra``,
+        ``dec`` are given in radians rather than packaged as a CelestialCoord object.
 
         Also, the output is returned as a tuple (x,y), rather than packaged as a PositionD object.
 
-        The main advantage to this is that it will work if `ra` and `dec` are NumPy arrays, in which
-        case the output `x`, `y` will also be NumPy arrays.
+        The main advantage to this is that it will work if ``ra`` and ``dec`` are NumPy arrays,
+        in which case the output ``x``, ``y`` will also be NumPy arrays.
         """
         if projection not in [ 'lambert', 'stereographic', 'gnomonic', 'postel' ]:
             raise ValueError('Unknown projection ' + projection)
@@ -405,12 +406,12 @@ class CelestialCoord(object):
 
 
     def deproject_rad(self, u, v, projection='lambert'):
-        """This is basically identical to the deproject() function except that the output `ra`,
-        `dec` are returned as a tuple (ra, dec) in radians rather than packaged as a CelestialCoord
-        object.
+        """This is basically identical to the deproject() function except that the output ``ra``,
+        ``dec`` are returned as a tuple (ra, dec) in radians rather than packaged as a 
+        CelestialCoord object.
 
-        The main advantage to this is that it will work if `u` and `v` are NumPy arrays, in which 
-        case the output `ra`, `dec` will also be NumPy arrays.
+        The main advantage to this is that it will work if ``u`` and ``v`` are NumPy arrays,
+        in which case the output ``ra``, ``dec`` will also be NumPy arrays.
         """
         if projection not in [ 'lambert', 'stereographic', 'gnomonic', 'postel' ]:
             raise ValueError('Unknown projection ' + projection)

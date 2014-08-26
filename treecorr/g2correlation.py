@@ -48,18 +48,18 @@ class G2Correlation(treecorr.BinnedCorr2):
 
     It holds the following attributes:
 
-    :logr:        The nominal center of the bin in log(r).
-    :meanlogr:    The (weighted) mean value of log(r) for the pairs in each bin.
-                  If there are no pairs in a bin, then logr will be used instead.
-    :xip:         The correlation function, xi_plus(r).
-    :xim:         The correlation funciton, xi_minus(r).
-    :xip_im:      The imaginary part of xi_plus(r).
-    :xim_im:      The imaginary part of xi_plus(r).
-    :varxi:       The variance of xip and xim, only including the shape noise propagated
-                  into the final correlation.  This does not include sample variance, so
-                  it is always an underestimate of the actual variance.
-    :weight:      The total weight in each bin.
-    :npairs:      The number of pairs going into each bin.
+        :logr:      The nominal center of the bin in log(r).
+        :meanlogr:  The (weighted) mean value of log(r) for the pairs in each bin.
+                    If there are no pairs in a bin, then logr will be used instead.
+        :xip:       The correlation function, xi_plus(r).
+        :xim:       The correlation funciton, xi_minus(r).
+        :xip_im:    The imaginary part of xi_plus(r).
+        :xim_im:    The imaginary part of xi_plus(r).
+        :varxi:     The variance of xip and xim, only including the shape noise propagated
+                    into the final correlation.  This does not include sample variance, so
+                    it is always an underestimate of the actual variance.
+        :weight:    The total weight in each bin.
+        :npairs:    The number of pairs going into each bin.
 
     The usage pattern is as follows:
 

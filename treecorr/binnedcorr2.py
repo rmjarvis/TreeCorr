@@ -32,12 +32,12 @@ class BinnedCorr2(object):
     helper functions that derived classes can use to help perform their calculations.  See
     the derived classes for more details:
 
-    - ``G2Correlation`` handles shear-shear correlation functions
-    - ``N2Correlation`` handles count-count correlation functions
-    - ``K2Correlation`` handles kappa-kappa correlation functions
-    - ``NGCorrelation`` handles count-shear correlation functions
-    - ``NKCorrelation`` handles count-kappa correlation functions
-    - ``KGCorrelation`` handles kappa-shear correlation functions
+    - :class:`~treecorr.G2Correlation` handles shear-shear correlation functions
+    - :class:`~treecorr.N2Correlation` handles count-count correlation functions
+    - :class:`~treecorr.K2Correlation` handles kappa-kappa correlation functions
+    - :class:`~treecorr.NGCorrelation` handles count-shear correlation functions
+    - :class:`~treecorr.NKCorrelation` handles count-kappa correlation functions
+    - :class:`~treecorr.KGCorrelation` handles kappa-shear correlation functions
 
     Note that when we refer to kappa in the correlation function, that is because I
     come from a weak lensing perspective.  But really any scalar quantity may be used

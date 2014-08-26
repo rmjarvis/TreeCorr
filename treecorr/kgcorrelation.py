@@ -41,21 +41,21 @@ _treecorr.ProcessPairwiseKGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, ci
 
 
 class KGCorrelation(treecorr.BinnedCorr2):
-    """This class handles the calculation and storage of a 2-point shear-shear correlation
+    """This class handles the calculation and storage of a 2-point kappa-shear correlation
     function.
 
     It holds the following attributes:
 
-    :logr:        The nominal center of the bin in log(r).
-    :meanlogr:    The (weighted) mean value of log(r) for the pairs in each bin.
-                  If there are no pairs in a bin, then logr will be used instead.
-    :xi:          The correlation function, xi(r) = <kappa gamma_T>.
-    :xi_im:       The imaginary part of xi(r).
-    :varxi:       The variance of xi, only including the shape noise propagated into the
-                  final correlation.  This does not include sample variance, so it is always
-                  an underestimate of the actual variance.
-    :weight:      The total weight in each bin.
-    :npairs:      The number of pairs going into each bin.
+        :logr:      The nominal center of the bin in log(r).
+        :meanlogr:  The (weighted) mean value of log(r) for the pairs in each bin.
+                    If there are no pairs in a bin, then logr will be used instead.
+        :xi:        The correlation function, xi(r) = <kappa gamma_T>.
+        :xi_im:     The imaginary part of xi(r).
+        :varxi:     The variance of xi, only including the shape noise propagated into the
+                    final correlation.  This does not include sample variance, so it is always
+                    an underestimate of the actual variance.
+        :weight:    The total weight in each bin.
+        :npairs:    The number of pairs going into each bin.
 
     The usage pattern is as follows:
 

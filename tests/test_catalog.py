@@ -154,6 +154,31 @@ def test_ascii():
     numpy.testing.assert_almost_equal(cat7.w[flags < 16], w[flags < 16])
     numpy.testing.assert_almost_equal(cat7.w[flags >= 16], 0.)
 
+    # Check flip_g1, flip_g2
+    del config['delimiter']
+    del config['comment_marker']
+    config['flip_g1'] = True
+    cat8 = treecorr.Catalog(file_name, config)
+    numpy.testing.assert_almost_equal(cat8.g1, -g1)
+    numpy.testing.assert_almost_equal(cat8.g2, g2)
+
+    config['flip_g2'] = 'true'
+    cat8 = treecorr.Catalog(file_name, config)
+    numpy.testing.assert_almost_equal(cat8.g1, -g1)
+    numpy.testing.assert_almost_equal(cat8.g2, -g2)
+
+    config['flip_g1'] = 'n'
+    config['flip_g2'] = 'yes'
+    cat8 = treecorr.Catalog(file_name, config)
+    numpy.testing.assert_almost_equal(cat8.g1, g1)
+    numpy.testing.assert_almost_equal(cat8.g2, -g2)
+
+    # Check overriding values with kwargs
+    cat8 = treecorr.Catalog(file_name, config, flip_g1=True, flip_g2=False)
+    numpy.testing.assert_almost_equal(cat8.g1, -g1)
+    numpy.testing.assert_almost_equal(cat8.g2, g2)
+
+
  
 def test_fits():
     get_aardvark()

@@ -19,3 +19,4 @@ Bug fixes:
 - Allowed verbose parameter to correctly reset the logging verbosity on calls to Catalog, etc.
   It used to only get set correctly on the first call, so if later values of verbose were
   different, they did not work right.
+- Fixed some errors in the sample.params file.

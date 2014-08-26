@@ -237,6 +237,7 @@ def test_contiguous():
     source_data = numpy.array([
             (0.0380569697547, 0.0142782758818, 0.330845443464, -0.111049332655),
             (-0.0261291090735, 0.0863787933931, 0.122954685209, 0.40260430406),
+            (-0.0261291090735, 0.0863787933931, 0.122954685209, 0.40260430406),
             (0.125086697534, 0.0283621046495, -0.208159531309, 0.142491564101),
             (0.0457709426026, -0.0299249486373, -0.0406555089425, 0.24515956887),
             (-0.00338578248926, 0.0460291122935, 0.363057738173, -0.524536297555)],
@@ -266,8 +267,20 @@ def test_contiguous():
     ng.process(cat1,cat2)
     ng_float = treecorr.NGCorrelation(config)
     ng_float.process(cat1,cat2_float)
-
     numpy.testing.assert_equal(ng.xi, ng_float.xi)
+
+    # While we're at it, check that non-1d inputs work, but emit a warning.
+    if __name__ == '__main__':
+        v = 1
+    else:
+        v = 0
+    cat2_non1d = treecorr.Catalog(ra=source_data['ra'].reshape(3,2), ra_units='deg',
+                                  dec=source_data['dec'].reshape(1,1,1,6), dec_units='deg',
+                                  g1=source_data['g1'].reshape(6,1),
+                                  g2=source_data['g2'].reshape(1,6), verbose=v)
+    ng.process(cat1,cat2_non1d)
+    numpy.testing.assert_equal(ng.xi, ng_float.xi)
+
 
 def test_list():
     # Test different ways to read in a list of catalog names.

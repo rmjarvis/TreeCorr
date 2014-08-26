@@ -9,6 +9,8 @@ New features:
 -------------
 
 - Added a warning if a file_list does not have any entries.
+- Added a warning if Catalog is passed an input array that is not 1-d, and automatically
+  reshape it to 1-d.
 
 Bug fixes:
 ----------

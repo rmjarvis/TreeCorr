@@ -162,9 +162,11 @@ class BinnedCorr2(object):
 
         prec = treecorr.config.get(self.config,'precision',int,4)
         width = prec+8
+        # Note: python 2.6 needs the numbers, so can't just do "{:^%d}"*ncol
+        # Also, I have the first one be 1 shorter to allow space for the initial #.
         header_form = "{0:^%d}"%(width-1)
         for i in range(1,ncol):
-            header_form += ".{%d:^%d}"%(i,width)
+            header_form += " {%d:^%d}"%(i,width)
         header = header_form.format(*headers)
         fmt = '%%%d.%de'%(width,prec)
         try:

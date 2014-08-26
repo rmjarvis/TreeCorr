@@ -236,3 +236,21 @@ def merge_config(config, kwargs):
     return config
 
 
+import os
+import numpy
+import ctypes
+_treecorr = numpy.ctypeslib.load_library('_treecorr',os.path.dirname(__file__))
+_treecorr.SetOMPThreads.restype = ctypes.c_int
+_treecorr.SetOMPThreads.argtypes = [ ctypes.c_int ]
+
+def set_omp_threads(num_threads):
+    """Set the number of OpenMP threads to use in the C++ layer.
+
+    :param num_threads: The target number of threads to use
+    :returns:           The  number of threads OpenMP reports that it will use.  Typically this
+                        matches the input, but OpenMP reserves the right not to comply with
+                        the requested number of threads.
+    """
+    return _treecorr.SetOMPThreads(num_threads)
+
+

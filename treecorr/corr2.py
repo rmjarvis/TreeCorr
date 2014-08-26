@@ -215,7 +215,7 @@ def corr2(config, logger=None):
         import multiprocessing
         num_threads = multiprocessing.cpu_count()
     if num_threads > 1:
-        num_threads = treecorr.SetOMPThreads(num_threads)
+        num_threads = treecorr.set_omp_threads(num_threads)
         if num_threads > 1:
             logger.info('Using %d threads.',num_threads)
         elif 'num_threads' in config:

@@ -14,8 +14,14 @@
 import treecorr
 
 def parse_variable(config, v):
+    """Parse a configuration variable from a string that should look like 'key = value'
+    and write that value to config[key].
+
+    :param config:  The configuration dict to wich to write the key,value pair
+    :param v:       A string of the form 'key = value'
+    """
     if '=' not in v:
-        raise ValueError('Improper variable specificationi: %s.  Use syntax: item = value.'%v)
+        raise ValueError('Improper variable specificationi: %s.  Use syntax: key = value.'%v)
     key, value = v.split('=',1)
     key = key.strip()
     # Cut off any trailing comment
@@ -32,6 +38,17 @@ def parse_variable(config, v):
 
 
 def parse_bool(value):
+    """Parse a value as a boolean.
+
+    Valid string values for True are: 'true', 'yes', 't', 'y'
+    Valid string values for False are: 'false', 'no', 'f', 'n', 'none'
+    Capitalization is ignored.
+
+    If value is a number, it is converted to a bool in the usual way.
+
+    :param value:   The value to parse.
+    :returns:       The value converted to a bool.
+    """
     if isinstance(value,str):
         if value.strip().upper() in [ 'TRUE', 'YES', 'T', 'Y' ]:
             return True
@@ -51,7 +68,16 @@ def parse_bool(value):
             raise ValueError("Unable to parse %s as a bool."%value)
 
 def parse_unit(value):
-    """Get the appropriate unit, allowing the value to merely start with one of the unit names.
+    """Parse the input value as a string that should be one of our valid angle units in
+    the treecorr.angle_units dict.
+
+    The value is allowed to merely start with one of the unit names.  So 'deg', 'degree',
+    'degrees' all convert to 'deg' which is the key in the angle_units dict.
+    The return value in this case would be treecorr.angle_units['deg'], which has the 
+    value pi/180.
+
+    :param value:   The unit as a string value to parse.
+    :returns:       The given unit in radians.
     """
     for unit in treecorr.angle_units.keys():
         if value.startswith(unit): return treecorr.angle_units[unit]
@@ -60,6 +86,8 @@ def parse_unit(value):
 
 def read_config(file_name):
     """Read a configuration dict from a file.
+
+    :param file_name:   The file name from which the configuration dict should be read.
     """
     config = dict()
     with open(file_name) as fin:
@@ -75,12 +103,17 @@ def read_config(file_name):
     return config
 
 
-def setup_logger(verbose, log_file):
+def setup_logger(verbose, log_file=None):
     """Parse the integer verbosity level from the command line args into a logging_level string
 
     Note: This will update the verbosity if a previous call to setup_logger used a different
     value for verbose.  However, it will not update the handler to use a different log_file
     or switch between using a log_file and stdout.
+
+    :param verbose:     An integer indicating what verbosity level to use.
+    :param log_file:    If given, a file name to which to write the logging output.
+                        If omitted or None, then output to stdout.
+    :returns:           The logging.Logger object to use.
     """
     import logging
     logging_levels = {  0: logging.CRITICAL,
@@ -108,13 +141,17 @@ def check_config(config, params):
     The params dict has an entry for each valid config parameter whose value is a tuple
     with the following items:
 
-     - type
-     - can be a list?
-     - default value
-     - valid values
-     - description (Multiple entries here are allowed for longer strings)
+    - type
+    - can be a list?
+    - default value
+    - valid values
+    - description (Multiple entries here are allowed for longer strings)
 
-    Returns the updated config dict.
+    The file corr2.py has a list of parameters for the corr2 program.
+
+    :param config:  The config dict to check.
+    :param params:  A dict of valid parameters with information about each one.
+    :returns:       The updated config dict.
     """
     for key in config:
         # Check that this is a valid key
@@ -157,8 +194,10 @@ def check_config(config, params):
 
 
 def print_params(params):
-    """List the information about the valid parameters, given by the given params dict.
+    """Print the information about the valid parameters, given by the given params dict.
     See check_config for the structure of the params dict.
+
+    :param params:  A dict of valid parameters with information about each one.
     """
     max_len = max(len(key) for key in params)
     for key in params:
@@ -183,7 +222,18 @@ def print_params(params):
 
 
 def convert(value, value_type, key):
-    if value_type == str and 'unit' in key:
+    """Convert the given value to the given type.
+    
+    The key helps determine what kind of conversion should be performed.
+    Specifically if 'unit' is in the key value, then a unit conversion is done.
+    Otherwise, it just parses 
+
+    :param value:       The input value to be converted.  Usually a string.
+    :param value_type:  The type to convert to.
+    :param key:         The key for this value.  Only used to see if it includes 'unit'.
+    :returns:           The converted value.
+    """
+    if 'unit' in key:
         return parse_unit(value)
     elif value_type == bool:
         return parse_bool(value)
@@ -192,6 +242,18 @@ def convert(value, value_type, key):
 
 def get_from_list(config, key, num, value_type=str, default=None):
     """A helper function to get a key from config that is allowed to be a list
+
+    Some of the config values are allowed to be lists of values, in which case we take the 
+    ``num`` item from the list.  If they are not a list, then the given value is used for 
+    all values of ``num``.
+
+    :param config:      The configuration dict from which to get the key value.
+    :param key:         What key to get from config.
+    :param num:         Which number element to use if the item is a list.
+    :param value_type:  What type should the value be converted to. (default: str)
+    :param default:     What value should be used if the key is not in the config dict.
+                        (default: None)
+    :returns:           The specified value, converted as needed.
     """
     if key in config:
         values = config[key]
@@ -213,6 +275,13 @@ def get_from_list(config, key, num, value_type=str, default=None):
 
 def get(config, key, value_type=str, default=None):
     """A helper function to get a key from config converting to a particular type
+
+    :param config:      The configuration dict from which to get the key value.
+    :param key:         Which key to get from config.
+    :param value_type:  Which type should the value be converted to. (default: str)
+    :param default:     What value should be used if the key is not in the config dict.
+                        (default: None)
+    :returns:           The specified value, converted as needed.
     """
     if key in config:
         value = config[key]
@@ -223,10 +292,22 @@ def get(config, key, value_type=str, default=None):
         return default
 
 def merge_config(config, kwargs):
-    if config is None: config = {}
+    """Merge in the values from kwargs into config.
+
+    If either of these is None, then the other one is returned.
+    If they are both dicts, then the values in kwargs take precedence over ones in config
+    if there are any keys that are in both.
+
+    Note: neither input dict will be modified in this process.
+
+    :param config:      The root config
+    :param kwargs:      A second dict with more or updated values
+    :returns:           The merged dict
+    """
+
     if kwargs:
-        import copy
-        if config is not None:
+        if config:
+            import copy
             config = copy.copy(config)
             config.update(kwargs)
         else: 

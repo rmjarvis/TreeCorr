@@ -160,16 +160,16 @@ class Catalog(object):
                 if ra is None or dec is None:
                     raise AttributeError("ra and dec must both be provided")
             self.name = ''
-            if x is not None: self.x = numpy.array(x,dtype=float)
-            if y is not None: self.y = numpy.array(y,dtype=float)
-            if ra is not None: self.ra = numpy.array(ra,dtype=float)
-            if dec is not None: self.dec = numpy.array(dec,dtype=float)
-            if r is not None: self.r = numpy.array(r,dtype=float)
-            if w is not None: self.w = numpy.array(w,dtype=float)
-            if flag is not None: self.flag = numpy.array(flag,dtype=int)
-            if g1 is not None: self.g1 = numpy.array(g1,dtype=float)
-            if g2 is not None: self.g2 = numpy.array(g2,dtype=float)
-            if k is not None: self.k = numpy.array(k,dtype=float)
+            self.x = self.makeArray(x,'x')
+            self.y = self.makeArray(y,'y')
+            self.ra = self.makeArray(ra,'ra')
+            self.dec = self.makeArray(dec,'dec')
+            self.r = self.makeArray(r,'r')
+            self.w = self.makeArray(w,'w')
+            self.flag = self.makeArray(flag,'flag',int)
+            self.g1 = self.makeArray(g1,'g1')
+            self.g2 = self.makeArray(g2,'g2')
+            self.k = self.makeArray(k,'k')
 
 
         # Apply units to x,y,ra,dec
@@ -236,9 +236,9 @@ class Catalog(object):
         if self.dec is not None: self.dec = self.dec[start:end]
         if self.r is not None: self.r = self.r[start:end]
         if self.w is not None: self.w = self.w[start:end]
-        if self.k is not None: self.k = self.k[start:end]
         if self.g1 is not None: self.g1 = self.g1[start:end]
         if self.g2 is not None: self.g2 = self.g2[start:end]
+        if self.k is not None: self.k = self.k[start:end]
 
         # Check that all columns have the same length:
         if self.x is not None: 
@@ -304,6 +304,20 @@ class Catalog(object):
             self.w = numpy.ones( (self.nobj) )
 
         self.logger.info("   nobj = %d",nobj)
+
+
+    def makeArray(self, col, col_str, dtype=float):
+        """Turn the input column into a numpy array if it wasn't already.
+        Also make sure the input in 1-d.
+        """
+        if col is not None:
+            col = numpy.array(col,dtype=dtype)
+            if len(col.shape) != 1:
+                s = col.shape
+                col = col.reshape(-1)
+                self.logger.warn("Warning: Input %s column was not 1-d.",col_str)
+                self.logger.warn("         Reshaping from %s to %s",s,col.shape)
+        return col
 
 
     def checkForNaN(self, col, col_str):

@@ -15,8 +15,7 @@ import treecorr
 
 def parse_variable(config, v):
     if '=' not in v:
-        print 'trying to parse: ',v
-        raise ValueError('Improper variable specification.  Use syntax: item = value.')
+        raise ValueError('Improper variable specificationi: %s.  Use syntax: item = value.'%v)
     key, value = v.split('=',1)
     key = key.strip()
     # Cut off any trailing comment
@@ -78,6 +77,10 @@ def read_config(file_name):
 
 def setup_logger(verbose, log_file):
     """Parse the integer verbosity level from the command line args into a logging_level string
+
+    Note: This will update the verbosity if a previous call to setup_logger used a different
+    value for verbose.  However, it will not update the handler to use a different log_file
+    or switch between using a log_file and stdout.
     """
     import logging
     logging_levels = {  0: logging.CRITICAL,
@@ -87,12 +90,17 @@ def setup_logger(verbose, log_file):
     logging_level = logging_levels[verbose]
 
     # Setup logging to go to sys.stdout or (if requested) to an output file
-    if log_file is None:
-        import sys
-        logging.basicConfig(format="%(message)s", level=logging_level, stream=sys.stdout)
-    else:
-        logging.basicConfig(format="%(message)s", level=logging_level, filename=log_file)
-    return logging.getLogger('treecorr')
+    logger = logging.getLogger('treecorr')
+    if len(logger.handlers) == 0:  # only add handler once!
+        if log_file is None:
+            handle = logging.StreamHandler()
+        else:
+            handle = logging.FileHandler(log_file)
+        formatter = logging.Formatter('%(message)s')  # Simple text output
+        handle.setFormatter(formatter)
+        logger.addHandler(handle)
+    logger.setLevel(logging_level)
+    return logger
 
  
 def check_config(config, params):

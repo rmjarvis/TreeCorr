@@ -47,6 +47,7 @@ def parse_bool(value):
     If value is a number, it is converted to a bool in the usual way.
 
     :param value:   The value to parse.
+
     :returns:       The value converted to a bool.
     """
     if isinstance(value,str):
@@ -77,6 +78,7 @@ def parse_unit(value):
     value pi/180.
 
     :param value:   The unit as a string value to parse.
+
     :returns:       The given unit in radians.
     """
     for unit in treecorr.angle_units.keys():
@@ -113,6 +115,7 @@ def setup_logger(verbose, log_file=None):
     :param verbose:     An integer indicating what verbosity level to use.
     :param log_file:    If given, a file name to which to write the logging output.
                         If omitted or None, then output to stdout.
+
     :returns:           The logging.Logger object to use.
     """
     import logging
@@ -136,7 +139,7 @@ def setup_logger(verbose, log_file=None):
     return logger
 
  
-def check_config(config, params):
+def check_config(config, params, aliases=None, logger=None):
     """Check (and update) a config dict to conform to the given parameter rules.
     The params dict has an entry for each valid config parameter whose value is a tuple
     with the following items:
@@ -151,9 +154,23 @@ def check_config(config, params):
 
     :param config:  The config dict to check.
     :param params:  A dict of valid parameters with information about each one.
-    :returns:       The updated config dict.
+    :param aliases: A dict of deprecated parameters that are still aliases for new names.
+                    (default: None)
+    :param logger:  If desired, a logger object for logging any warnings here. (default: None)
+
+    :returns:       The updated config dict.  The input config may be modified by this function.
     """
     for key in config:
+        # Check if this is a deprecated alias
+        if aliases and key in aliases:
+            if logger:
+                logger.warn("The parameter %s is deprecated.  You should use %s instead.",
+                            key, aliases[key])
+            new_key = aliases[key]
+            config[new_key] = config[key]
+            del config[key]
+            key = new_key
+
         # Check that this is a valid key
         if key not in params:
             raise AttributeError("Invalid parameter %s found in config dict."%key)
@@ -231,6 +248,7 @@ def convert(value, value_type, key):
     :param value:       The input value to be converted.  Usually a string.
     :param value_type:  The type to convert to.
     :param key:         The key for this value.  Only used to see if it includes 'unit'.
+
     :returns:           The converted value.
     """
     if 'unit' in key:
@@ -253,6 +271,7 @@ def get_from_list(config, key, num, value_type=str, default=None):
     :param value_type:  What type should the value be converted to. (default: str)
     :param default:     What value should be used if the key is not in the config dict.
                         (default: None)
+
     :returns:           The specified value, converted as needed.
     """
     if key in config:
@@ -281,6 +300,7 @@ def get(config, key, value_type=str, default=None):
     :param value_type:  Which type should the value be converted to. (default: str)
     :param default:     What value should be used if the key is not in the config dict.
                         (default: None)
+
     :returns:           The specified value, converted as needed.
     """
     if key in config:
@@ -302,6 +322,7 @@ def merge_config(config, kwargs):
 
     :param config:      The root config
     :param kwargs:      A second dict with more or updated values
+
     :returns:           The merged dict
     """
 
@@ -328,6 +349,7 @@ def set_omp_threads(num_threads):
     """Set the number of OpenMP threads to use in the C++ layer.
 
     :param num_threads: The target number of threads to use
+
     :returns:           The  number of threads OpenMP reports that it will use.  Typically this
                         matches the input, but OpenMP reserves the right not to comply with
                         the requested number of threads.

@@ -16,4 +16,4 @@ max_sep = 50.
 bin_size = 0.10
 sep_units = arcmin
 
-k2_file_name = output/kk.out
+kk_file_name = output/kk.out

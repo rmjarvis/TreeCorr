@@ -143,8 +143,8 @@ for the complete documentation about the allowed parameters.
 You can also specify parameters on the command line after the name of 
 the configuration file. e.g.:
 
-    corr2 config_file file_name=file1.dat g2_file_name=file1.out
-    corr2 config_file file_name=file2.dat g2_file_name=file2.out
+    corr2 config_file file_name=file1.dat gg_file_name=file1.out
+    corr2 config_file file_name=file2.dat gg_file_name=file2.out
     ...
 
 This can be useful when running the program from a script for lots of input 
@@ -160,10 +160,10 @@ for the configuration parameters:
     >>> import treecorr
     >>> config = treecorr.read_config(config_file)
     >>> config['file_name'] = 'file1.dat'
-    >>> config['g2_file_name'] = 'file1.out'
+    >>> config['gg_file_name'] = 'file1.out'
     >>> treecorr.corr2(config)
     >>> config['file_name'] = 'file2.dat'
-    >>> config['g2_file_name'] = 'file2.out'
+    >>> config['gg_file_name'] = 'file2.out'
     >>> treecorr.corr2(config)
 
 However, the Python module gives you much more flexibility in how to specify

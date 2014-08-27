@@ -1080,7 +1080,7 @@ def calculateVarK(cat_list):
 def isGColRequired(config, num):
     """A quick helper function that checks whether we need to bother reading the g1,g2 columns.
 
-    It checks the config dict for the output file names g2_file_name, ng_file_name (only if
+    It checks the config dict for the output file names gg_file_name, ng_file_name (only if
     num == 1), etc.  If the output files indicate that we don't need the g1/g2 columns, then
     we don't need to raise an error if the g1_col or g2_col is invalid.
     
@@ -1099,7 +1099,7 @@ def isGColRequired(config, num):
                     False if not.
 
     """
-    return ( 'g2_file_name' in config
+    return ( 'gg_file_name' in config
              or 'm2_file_name' in config
              or 'norm_file_name' in config
              or (num==1 and 'ng_file_name' in config)
@@ -1121,7 +1121,7 @@ def isKColRequired(config, num):
                     False if not.
 
     """
-    return ( 'k2_file_name' in config
+    return ( 'kk_file_name' in config
              or (num==0 and 'kg_file_name' in config)
              or (num==1 and 'nk_file_name' in config) )
 

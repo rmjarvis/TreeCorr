@@ -42,7 +42,7 @@ def parse_args():
     parser.add_argument(
         'variables', type=str, nargs='*',
         help='additional variables or modifications to variables in the config file. ' +
-        'e.g. `corr2 g2.params g2_file_name=run03.out`')
+        'e.g. `corr2 gg.params gg_file_name=run03.out`')
     parser.add_argument(
         '-v', '--verbosity', type=int, action='store', default=None, choices=(0, 1, 2, 3),
         help='integer verbosity level: min=0, max=3 [default=1]')

@@ -13,6 +13,12 @@ API changes:
   the GG notation throughout the code and documentation, most critically
   in these class names. (#9)
 
+- Changed the config parameters g2_file_name -> gg_file_name, n2_file_name ->
+  nn_file_name, and k2_file_name -> kk_file_name for the same reason as
+  above.  In this case though, I kept the old parameter names as valid
+  aliases for the new names.  With verbose >= 1, you will get a warning
+  about the name change, but it will still work. (#9)
+
 
 Changes to output files:
 ------------------------

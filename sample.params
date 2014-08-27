@@ -120,18 +120,18 @@ sep_units = arcmin
 # output file(s) you specify.  It will do the calculation(s) relevant for each
 # output file you set.
 
-# For shear-shear correlations, the output file name is given by ee_file_name.
-g2_file_name = g2.out
+# For shear-shear correlations, the output file name is given by gg_file_name.
+gg_file_name = gg.out
 
 # The code can compute the mass aperture statistic from the two-point shear correlation 
-# function if you specify mm_file_name.
+# function if you specify m2_file_name.
 m2_file_name = m2.out
 
 # For count-shear correlations, the output file name is given by ng_file_name.
-#ng_file_name = ne.out
+#ng_file_name = ng.out
 
-# For count-count correlations, the output file name is given by n2_file_name.
-#n2_file_name = n2.out
+# For count-count correlations, the output file name is given by nn_file_name.
+#nn_file_name = nn.out
 
 
 ####

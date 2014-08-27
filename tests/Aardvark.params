@@ -18,4 +18,4 @@ max_sep = 400
 nbins = 100
 sep_units = arcmin
 
-g2_file_name = output/Aardvark.out
+gg_file_name = output/Aardvark.out

@@ -14,4 +14,4 @@ max_sep = 25.
 bin_size = 0.10
 sep_units = arcmin
 
-n2_file_name = output/nn.out
+nn_file_name = output/nn.out

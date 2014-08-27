@@ -11,5 +11,5 @@ min_sep = 1.
 max_sep = 25.
 bin_size = 0.10
 
-n2_file_name = output/nn_list1.out
-n2_statistic = simple
+nn_file_name = output/nn_list1.out
+nn_statistic = simple

@@ -99,6 +99,7 @@ class NField(object):
 
         >>> nfield = cat.getNField(min_sep, max_sep, b)
 
+    :param cat:             The catalog from which to make the field.
     :param min_sep:         The minimum separation between points that will be needed.
     :param max_sep:         The maximum separation between points that will be needed.
     :param b:               The b parameter that will be used for the correlation function.
@@ -160,6 +161,7 @@ class KField(object):
 
         >>> kfield = cat.getKField(min_sep, max_sep, b)
 
+    :param cat:             The catalog from which to make the field.
     :param min_sep:         The minimum separation between points that will be needed.
     :param max_sep:         The maximum separation between points that will be needed.
     :param b:               The b parameter that will be used for the correlation function.
@@ -222,6 +224,7 @@ class GField(object):
 
         >>> gfield = cat.getGField(min_sep, max_sep, b)
 
+    :param cat:             The catalog from which to make the field.
     :param min_sep:         The minimum separation between points that will be needed.
     :param max_sep:         The maximum separation between points that will be needed.
     :param b:               The b parameter that will be used for the correlation function.
@@ -284,6 +287,7 @@ class NSimpleField(object):
 
         >>> nfield = cat.getNSimpleField()
 
+    :param cat:             The catalog from which to make the field.
     :param logger:          A logger file if desired (default: None)
     """
     def __init__(self, cat, logger=None):
@@ -331,6 +335,7 @@ class KSimpleField(object):
 
         >>> kfield = cat.getKSimpleField()
 
+    :param cat:             The catalog from which to make the field.
     :param logger:          A logger file if desired (default: None)
     """
     def __init__(self, cat, logger=None):
@@ -379,6 +384,7 @@ class GSimpleField(object):
 
         >>> gfield = cat.getGSimpleField()
 
+    :param cat:             The catalog from which to make the field.
     :param logger:          A logger file if desired (default: None)
     """
     def __init__(self, cat, logger=None):

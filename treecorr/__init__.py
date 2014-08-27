@@ -19,9 +19,9 @@ from .config import read_config, set_omp_threads
 from .corr2 import corr2, print_corr2_params
 from .catalog import Catalog, read_catalogs, calculateVarG, calculateVarK
 from .binnedcorr2 import BinnedCorr2
-from .g2correlation import G2Correlation
-from .n2correlation import N2Correlation
-from .k2correlation import K2Correlation
+from .ggcorrelation import GGCorrelation
+from .nncorrelation import NNCorrelation
+from .kkcorrelation import KKCorrelation
 from .ngcorrelation import NGCorrelation
 from .nkcorrelation import NKCorrelation
 from .kgcorrelation import KGCorrelation

@@ -1,5 +1,5 @@
 
-file_name = data/g2.dat
+file_name = data/gg.dat
 
 x_col = 1
 y_col = 2
@@ -17,5 +17,5 @@ max_sep = 100.
 bin_size = 0.10
 sep_units = arcmin
 
-g2_file_name = output/g2.out
-m2_file_name = output/g2_m2.out
+g2_file_name = output/gg.out
+m2_file_name = output/gg_m2.out

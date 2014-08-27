@@ -132,7 +132,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         :param cat1:     The first catalog to process
         :param cat2:     The second catalog to process
         """
-        self.logger.info('Starting process G2 pairwise-correlations for cats %s, %s.',
+        self.logger.info('Starting process KG pairwise-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
         f1 = cat1.getKSimpleField()
         f2 = cat2.getGSimpleField()

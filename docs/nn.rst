@@ -2,7 +2,7 @@
 NN: Count-count correlations
 ----------------------------
 
-.. autoclass:: treecorr.N2Correlation
+.. autoclass:: treecorr.NNCorrelation
     :members:
     :undoc-members:
     :show-inheritance:

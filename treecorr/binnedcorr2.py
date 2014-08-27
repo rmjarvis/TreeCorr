@@ -22,9 +22,9 @@ class BinnedCorr2(object):
     helper functions that derived classes can use to help perform their calculations.  See
     the derived classes for more details:
 
-    - :class:`~treecorr.G2Correlation` handles shear-shear correlation functions
-    - :class:`~treecorr.N2Correlation` handles count-count correlation functions
-    - :class:`~treecorr.K2Correlation` handles kappa-kappa correlation functions
+    - :class:`~treecorr.GGCorrelation` handles shear-shear correlation functions
+    - :class:`~treecorr.NNCorrelation` handles count-count correlation functions
+    - :class:`~treecorr.KKCorrelation` handles kappa-kappa correlation functions
     - :class:`~treecorr.NGCorrelation` handles count-shear correlation functions
     - :class:`~treecorr.NKCorrelation` handles count-kappa correlation functions
     - :class:`~treecorr.KGCorrelation` handles kappa-shear correlation functions

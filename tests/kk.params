@@ -1,5 +1,5 @@
 
-file_name = data/k2.dat
+file_name = data/kk.dat
 
 x_col = 1
 y_col = 2
@@ -16,4 +16,4 @@ max_sep = 50.
 bin_size = 0.10
 sep_units = arcmin
 
-k2_file_name = output/k2.out
+k2_file_name = output/kk.out

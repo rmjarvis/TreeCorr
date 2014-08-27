@@ -240,7 +240,7 @@ def corr2(config, logger=None):
     # Do g2 correlation function if necessary
     if 'g2_file_name' in config or 'm2_file_name' in config:
         logger.info("Start g2 calculations...")
-        gg = treecorr.G2Correlation(config,logger)
+        gg = treecorr.GGCorrelation(config,logger)
         gg.process(cat1,cat2)
         logger.info("Done g2 calculations.")
         if 'g2_file_name' in config:
@@ -273,18 +273,18 @@ def corr2(config, logger=None):
             ng.writeNMap(config['nm_file_name'], rg)
 
         if 'norm_file_name' in config:
-            gg = treecorr.G2Correlation(config,logger)
+            gg = treecorr.GGCorrelation(config,logger)
             gg.process(cat2)
             logger.info("Done gg calculation for norm")
-            nn = treecorr.N2Correlation(config,logger)
+            nn = treecorr.NNCorrelation(config,logger)
             nn.process(cat1)
             logger.info("Done nn calculation for norm")
-            rr = treecorr.N2Correlation(config,logger)
+            rr = treecorr.NNCorrelation(config,logger)
             rr.process(rand1)
             logger.info("Done rr calculation for norm")
             nr = None
             if config['n2_statistic'] == 'compensated':
-                nr = treecorr.N2Correlation(config,logger)
+                nr = treecorr.NNCorrelation(config,logger)
                 nr.process(cat1,rand1)
                 logger.info("Done nr calculation for norm")
             ng.writeNorm(config['norm_file_name'],gg,nn,rr,nr,rg)
@@ -296,31 +296,31 @@ def corr2(config, logger=None):
         if len(cat2) > 0 and len(rand2) == 0:
             raise AttributeError("rand_file_name2 is required for n2 cross-correlation")
         logger.info("Start n2 calculations...")
-        nn = treecorr.N2Correlation(config,logger)
+        nn = treecorr.NNCorrelation(config,logger)
         nn.process(cat1,cat2)
         logger.info("Done n2 calculations.")
 
         nr = None
         rn = None
         if len(cat2) == 0:
-            rr = treecorr.N2Correlation(config,logger)
+            rr = treecorr.NNCorrelation(config,logger)
             rr.process(rand1)
             logger.info("Done r2 calculations.")
 
             if config['n2_statistic'] == 'compensated':
-                nr = treecorr.N2Correlation(config,logger)
+                nr = treecorr.NNCorrelation(config,logger)
                 nr.process(cat1,rand1)
                 logger.info("Done nr calculations.")
         else:
-            rr = treecorr.N2Correlation(config,logger)
+            rr = treecorr.NNCorrelation(config,logger)
             rr.process(rand1,rand2)
             logger.info("Done r2 calculations.")
 
             if config['n2_statistic'] == 'compensated':
-                nr = treecorr.N2Correlation(config,logger)
+                nr = treecorr.NNCorrelation(config,logger)
                 nr.process(cat1,rand2)
                 logger.info("Done nr calculations.")
-                rn = treecorr.N2Correlation(config,logger)
+                rn = treecorr.NNCorrelation(config,logger)
                 rn.process(rand1,cat2)
                 logger.info("Done rn calculations.")
         nn.write(config['n2_file_name'],rr,nr,rn)
@@ -328,7 +328,7 @@ def corr2(config, logger=None):
     # Do k2 correlation function if necessary
     if 'k2_file_name' in config:
         logger.info("Start k2 calculations...")
-        kk = treecorr.K2Correlation(config,logger)
+        kk = treecorr.KKCorrelation(config,logger)
         kk.process(cat1,cat2)
         logger.info("Done k2 calculations.")
         kk.write(config['k2_file_name'])

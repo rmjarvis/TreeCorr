@@ -1,6 +1,6 @@
 
-file_list = data/n2_list_data_files.txt
-rand_file_name = data/n2_list_randx.dat
+file_list = data/nn_list_data_files.txt
+rand_file_name = data/nn_list_randx.dat
 
 x_col = 1
 y_col = 2
@@ -11,5 +11,5 @@ min_sep = 1.
 max_sep = 25.
 bin_size = 0.10
 
-n2_file_name = output/n2_list2.out
+n2_file_name = output/nn_list2.out
 n2_statistic = simple

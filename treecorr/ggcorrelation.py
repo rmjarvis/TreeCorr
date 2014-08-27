@@ -42,7 +42,7 @@ _treecorr.ProcessPairwiseGGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, 
 _treecorr.ProcessPairwiseGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
-class G2Correlation(treecorr.BinnedCorr2):
+class GGCorrelation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point shear-shear correlation
     function.
 
@@ -63,7 +63,7 @@ class G2Correlation(treecorr.BinnedCorr2):
 
     The usage pattern is as follows:
 
-        >>> gg = treecorr.G2Correlation(config)
+        >>> gg = treecorr.GGCorrelation(config)
         >>> gg.process(cat)         # For auto-correlation.
         >>> gg.process(cat1,cat2)   # For cross-correlation.
         >>> gg.write(file_name)     # Write out to a file.
@@ -114,7 +114,7 @@ class G2Correlation(treecorr.BinnedCorr2):
 
         :param cat:     The catalog to process
         """
-        self.logger.info('Starting process G2 auto-correlations for cat %s.',cat.name)
+        self.logger.info('Starting process GG auto-correlations for cat %s.',cat.name)
         field = cat.getGField(self.min_sep,self.max_sep,self.b,self.split_method)
 
         if field.sphere:
@@ -134,7 +134,7 @@ class G2Correlation(treecorr.BinnedCorr2):
         :param cat1:     The first catalog to process
         :param cat2:     The second catalog to process
         """
-        self.logger.info('Starting process G2 cross-correlations for cats %s, %s.',
+        self.logger.info('Starting process GG cross-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
         f1 = cat1.getGField(self.min_sep,self.max_sep,self.b,self.split_method)
         f2 = cat2.getGField(self.min_sep,self.max_sep,self.b,self.split_method)
@@ -160,7 +160,7 @@ class G2Correlation(treecorr.BinnedCorr2):
         :param cat1:     The first catalog to process
         :param cat2:     The second catalog to process
         """
-        self.logger.info('Starting process G2 pairwise-correlations for cats %s, %s.',
+        self.logger.info('Starting process GG pairwise-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
         f1 = cat1.getGSimpleField()
         f2 = cat2.getGSimpleField()
@@ -254,7 +254,7 @@ class G2Correlation(treecorr.BinnedCorr2):
 
         :param file_name:   The name of the file to write to.
         """
-        self.logger.info('Writing G2 correlations to %s',file_name)
+        self.logger.info('Writing GG correlations to %s',file_name)
         
         self.gen_write(
             file_name,
@@ -426,7 +426,7 @@ class G2Correlation(treecorr.BinnedCorr2):
         :param file_name:   The name of the file to write to.
         :param m2_uform:    Which form to use for the aperture mass.  (default: None)
         """
-        self.logger.info('Writing Map^2 from G2 correlations to %s',file_name)
+        self.logger.info('Writing Map^2 from GG correlations to %s',file_name)
 
         mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = self.calculateMapSq(m2_uform=m2_uform)
         gamsq, vargamsq = self.calculateGamSq()

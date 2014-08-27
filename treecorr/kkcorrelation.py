@@ -42,7 +42,7 @@ _treecorr.ProcessPairwiseKKSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, 
 _treecorr.ProcessPairwiseKKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
-class K2Correlation(treecorr.BinnedCorr2):
+class KKCorrelation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point kappa-kappa correlation
     function.
 
@@ -64,7 +64,7 @@ class K2Correlation(treecorr.BinnedCorr2):
 
     The usage pattern is as follows:
 
-        >>> kk = treecorr.K2Correlation(config)
+        >>> kk = treecorr.KKCorrelation(config)
         >>> kk.process(cat)         # For auto-correlation.
         >>> kk.process(cat1,cat2)   # For cross-correlation.
         >>> kk.write(file_name)     # Write out to a file.
@@ -109,7 +109,7 @@ class K2Correlation(treecorr.BinnedCorr2):
 
         :param cat:     The catalog to process
         """
-        self.logger.info('Starting process K2 auto-correlations for cat %s.',cat.name)
+        self.logger.info('Starting process KK auto-correlations for cat %s.',cat.name)
         field = cat.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
 
         if field.sphere:
@@ -129,7 +129,7 @@ class K2Correlation(treecorr.BinnedCorr2):
         :param cat1:     The first catalog to process
         :param cat2:     The second catalog to process
         """
-        self.logger.info('Starting process K2 cross-correlations for cats %s, %s.',
+        self.logger.info('Starting process KK cross-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
         f1 = cat1.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
         f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
@@ -155,7 +155,7 @@ class K2Correlation(treecorr.BinnedCorr2):
         :param cat1:     The first catalog to process
         :param cat2:     The second catalog to process
         """
-        self.logger.info('Starting process G2 pairwise-correlations for cats %s, %s.',
+        self.logger.info('Starting process KK pairwise-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
         f1 = cat1.getKSimpleField()
         f2 = cat2.getKSimpleField()
@@ -243,7 +243,7 @@ class K2Correlation(treecorr.BinnedCorr2):
 
         :param file_name:   The name of the file to write to.
         """
-        self.logger.info('Writing K2 correlations to %s',file_name)
+        self.logger.info('Writing KK correlations to %s',file_name)
          
         self.gen_write(
             file_name,

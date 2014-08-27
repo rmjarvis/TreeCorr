@@ -1,5 +1,5 @@
-corr2
-=====
+The corr2 driver script
+=======================
 
 The corr2 function from python
 ------------------------------

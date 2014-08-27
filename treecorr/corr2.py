@@ -190,6 +190,10 @@ def corr2(config, logger=None):
 
     Optionally a logger parameter maybe given, in which case it is used for logging.
     If not given, the logging will be based on the verbose and log_file parameters.
+
+    :param config:  The configuration dict which defines what to do.
+    :param logger:  If desired, a logger object for logging. (default: None, in which case
+                    one will be built according to the config dict's verbose level.)
     """
     # Check that config doesn't have any extra parameters.
     # (Such values are probably typos.)

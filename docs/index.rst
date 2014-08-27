@@ -12,8 +12,8 @@ TreeCorr Documentation
 
    overview
    catalog
-   correlation
    field
+   correlation
    celestial
    corr2
 

@@ -85,7 +85,7 @@ _treecorr.DestroyGSimpleFieldSphere.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyGSimpleFieldFlat.argtypes = [ cvoid_ptr ]
 
 
-def parse_split_method(split_method):
+def _parse_split_method(split_method):
     if split_method == 'middle': return cint(0)
     elif split_method == 'median': return cint(1)
     else: return cint(2)
@@ -98,43 +98,26 @@ class NField(object):
     An NField is typically created from a Catalog object using
 
         >>> nfield = cat.getNField(min_sep, max_sep, b)
+
+    :param min_sep:         The minimum separation between points that will be needed.
+    :param max_sep:         The maximum separation between points that will be needed.
+    :param b:               The b parameter that will be used for the correlation function.
+                            This should be bin_size * bin_slop.
+    :param split_method:    Which split method to use ('mean', 'median', or 'middle')
+                            (default: 'mean')
+    :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, min_sep=None, max_sep=None, b=None, logger=None, config=None,
-                 **kwargs):
-        self.config = treecorr.config.merge_config(config,kwargs)
-        if logger is not None:
-            self.logger = logger
-        else:
-            self.logger = treecorr.config.setup_logger(
-                    treecorr.config.get(self.config,'verbose',int,0),
-                    self.config.get('log_file',None))
-        self.logger.info('Building NField from cat %s',cat.name)
+    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', logger=None):
+        if logger:
+            logger.info('Building NField from cat %s',cat.name)
 
-        split_method = self.config.get('split_method','mean')
-        if split_method not in ['middle', 'median', 'mean']:
-            raise ValueError("Invalid split_method %s"%split_method)
-
-        if min_sep is None:
-            if 'min_sep' not in self.config:
-                raise AttributeError("min_sep is required")
-            min_sep = self.config['min_sep']
-        if max_sep is None:
-            if 'max_sep' not in self.config:
-                raise AttributeError("min_sep is required")
-            max_sep = self.config['max_sep']
-        if b is None:
-            if 'bin_size' not in self.config:
-                raise AttributeError("b or bin_size is required")
-            bin_size = self.config['bin_size']
-            b = bin_size * self.config.get('bin_slop',1.)
-            
         self.min_sep = min_sep
         self.max_sep = max_sep
         self.b = b
         self.split_method = split_method
 
         w = cat.w.ctypes.data_as(cdouble_ptr)
-        sm = parse_split_method(split_method)
+        sm = _parse_split_method(split_method)
 
         self.sphere = (cat.x is None)
 
@@ -147,13 +130,15 @@ class NField(object):
             else:
                 r = cat.r.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildNFieldSphere(ra,dec,r,w,cat.nobj,min_sep,max_sep,b,sm)
-            self.logger.debug('Finished building NField Sphere')
+            if logger:
+                logger.debug('Finished building NField Sphere')
         else:
             # Then build field with flat sky approximation
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildNFieldFlat(x,y,w,cat.nobj,min_sep,max_sep,b,sm)
-            self.logger.debug('Finished building NField Flat')
+            if logger:
+                logger.debug('Finished building NField Flat')
 
 
     def __del__(self):
@@ -174,36 +159,19 @@ class KField(object):
     A KField is typically created from a Catalog object using
 
         >>> kfield = cat.getKField(min_sep, max_sep, b)
+
+    :param min_sep:         The minimum separation between points that will be needed.
+    :param max_sep:         The maximum separation between points that will be needed.
+    :param b:               The b parameter that will be used for the correlation function.
+                            This should be bin_size * bin_slop.
+    :param split_method:    Which split method to use ('mean', 'median', or 'middle')
+                            (default: 'mean')
+    :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, min_sep=None, max_sep=None, b=None, logger=None, config=None,
-                 **kwargs):
-        self.config = treecorr.config.merge_config(config,kwargs)
-        if logger is not None:
-            self.logger = logger
-        else:
-            self.logger = treecorr.config.setup_logger(
-                    treecorr.config.get(self.config,'verbose',int,0),
-                    self.config.get('log_file',None))
-        self.logger.info('Building KField from cat %s',cat.name)
+    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', logger=None):
+        if logger:
+            logger.info('Building KField from cat %s',cat.name)
 
-        split_method = self.config.get('split_method','mean')
-        if split_method not in ['middle', 'median', 'mean']:
-            raise ValueError("Invalid split_method %s"%split_method)
-
-        if min_sep is None:
-            if 'min_sep' not in self.config:
-                raise AttributeError("min_sep is required")
-            min_sep = self.config['min_sep']
-        if max_sep is None:
-            if 'max_sep' not in self.config:
-                raise AttributeError("min_sep is required")
-            max_sep = self.config['max_sep']
-        if b is None:
-            if 'bin_size' not in self.config:
-                raise AttributeError("b or bin_size is required")
-            bin_size = self.config['bin_size']
-            b = bin_size * self.config.get('bin_slop',1.)
-         
         self.min_sep = min_sep
         self.max_sep = max_sep
         self.b = b
@@ -211,7 +179,7 @@ class KField(object):
 
         k = cat.k.ctypes.data_as(cdouble_ptr)
         w = cat.w.ctypes.data_as(cdouble_ptr)
-        sm = parse_split_method(split_method)
+        sm = _parse_split_method(split_method)
 
         self.sphere = (cat.x is None)
 
@@ -224,13 +192,15 @@ class KField(object):
             else:
                 r = cat.r.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildKFieldSphere(ra,dec,r,k,w,cat.nobj,min_sep,max_sep,b,sm)
-            self.logger.debug('Finished building KField Sphere')
+            if logger:
+                logger.debug('Finished building KField Sphere')
         else:
             # Then build field with flat sky approximation
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildKFieldFlat(x,y,k,w,cat.nobj,min_sep,max_sep,b,sm)
-            self.logger.debug('Finished building KField Flat')
+            if logger:
+                logger.debug('Finished building KField Flat')
 
 
     def __del__(self):
@@ -251,36 +221,19 @@ class GField(object):
     A GField is typically created from a Catalog object using
 
         >>> gfield = cat.getGField(min_sep, max_sep, b)
+
+    :param min_sep:         The minimum separation between points that will be needed.
+    :param max_sep:         The maximum separation between points that will be needed.
+    :param b:               The b parameter that will be used for the correlation function.
+                            This should be bin_size * bin_slop.
+    :param split_method:    Which split method to use ('mean', 'median', or 'middle')
+                            (default: 'mean')
+    :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, min_sep=None, max_sep=None, b=None, logger=None, config=None,
-                 **kwargs):
-        self.config = treecorr.config.merge_config(config,kwargs)
-        if logger is not None:
-            self.logger = logger
-        else:
-            self.logger = treecorr.config.setup_logger(
-                    treecorr.config.get(self.config,'verbose',int,0),
-                    self.config.get('log_file',None))
-        self.logger.info('Building GField from cat %s',cat.name)
+    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', logger=None):
+        if logger:
+            logger.info('Building GField from cat %s',cat.name)
 
-        split_method = self.config.get('split_method','mean')
-        if split_method not in ['middle', 'median', 'mean']:
-            raise ValueError("Invalid split_method %s"%split_method)
-
-        if min_sep is None:
-            if 'min_sep' not in self.config:
-                raise AttributeError("min_sep is required")
-            min_sep = self.config['min_sep']
-        if max_sep is None:
-            if 'max_sep' not in self.config:
-                raise AttributeError("min_sep is required")
-            max_sep = self.config['max_sep']
-        if b is None:
-            if 'bin_size' not in self.config:
-                raise AttributeError("b or bin_size is required")
-            bin_size = self.config['bin_size']
-            b = bin_size * self.config.get('bin_slop',1.)
-         
         self.min_sep = min_sep
         self.max_sep = max_sep
         self.b = b
@@ -289,7 +242,7 @@ class GField(object):
         g1 = cat.g1.ctypes.data_as(cdouble_ptr)
         g2 = cat.g2.ctypes.data_as(cdouble_ptr)
         w = cat.w.ctypes.data_as(cdouble_ptr)
-        sm = parse_split_method(split_method)
+        sm = _parse_split_method(split_method)
 
         self.sphere = (cat.x is None)
 
@@ -302,13 +255,15 @@ class GField(object):
             else:
                 r = cat.r.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildGFieldSphere(ra,dec,r,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm)
-            self.logger.debug('Finished building GField Sphere')
+            if logger:
+                logger.debug('Finished building GField Sphere')
         else:
             # Then build field with flat sky approximation
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildGFieldFlat(x,y,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm)
-            self.logger.debug('Finished building GField Flat')
+            if logger:
+                logger.debug('Finished building GField Flat')
 
 
     def __del__(self):
@@ -328,16 +283,12 @@ class NSimpleField(object):
     An NSimpleField is typically created from a Catalog object using
 
         >>> nfield = cat.getNSimpleField()
+
+    :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, logger=None, config=None, **kwargs):
-        self.config = treecorr.config.merge_config(config,kwargs)
-        if logger is not None:
-            self.logger = logger
-        else:
-            self.logger = treecorr.config.setup_logger(
-                    treecorr.config.get(self.config,'verbose',int,0),
-                    self.config.get('log_file',None))
-        self.logger.info('Building NSimpleField from cat %s',cat.name)
+    def __init__(self, cat, logger=None):
+        if logger:
+            logger.info('Building NSimpleField from cat %s',cat.name)
 
         w = cat.w.ctypes.data_as(cdouble_ptr)
 
@@ -352,13 +303,15 @@ class NSimpleField(object):
             else:
                 r = cat.r.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildNSimpleFieldSphere(ra,dec,r,w,cat.nobj)
-            self.logger.debug('Finished building NSimpleField Sphere')
+            if logger:
+                logger.debug('Finished building NSimpleField Sphere')
         else:
             # Then build field with flat sky approximation
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildNSimpleFieldFlat(x,y,w,cat.nobj)
-            self.logger.debug('Finished building NSimpleField Flat')
+            if logger:
+                logger.debug('Finished building NSimpleField Flat')
 
 
 
@@ -380,16 +333,12 @@ class KSimpleField(object):
     A KSimpleField is typically created from a Catalog object using
 
         >>> kfield = cat.getKSimpleField()
+
+    :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, logger=None, config=None, **kwargs):
-        self.config = treecorr.config.merge_config(config,kwargs)
-        if logger is not None:
-            self.logger = logger
-        else:
-            self.logger = treecorr.config.setup_logger(
-                    treecorr.config.get(self.config,'verbose',int,0),
-                    self.config.get('log_file',None))
-        self.logger.info('Building KSimpleField from cat %s',cat.name)
+    def __init__(self, cat, logger=None):
+        if logger:
+            logger.info('Building KSimpleField from cat %s',cat.name)
 
         k = cat.k.ctypes.data_as(cdouble_ptr)
         w = cat.w.ctypes.data_as(cdouble_ptr)
@@ -405,13 +354,15 @@ class KSimpleField(object):
             else:
                 r = cat.r.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildKSimpleFieldSphere(ra,dec,r,k,w,cat.nobj)
-            self.logger.debug('Finished building KSimpleField Sphere')
+            if logger:
+                logger.debug('Finished building KSimpleField Sphere')
         else:
             # Then build field with flat sky approximation
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildKSimpleFieldFlat(x,y,k,w,cat.nobj)
-            self.logger.debug('Finished building KSimpleField Flat')
+            if logger:
+                logger.debug('Finished building KSimpleField Flat')
 
 
     def __del__(self):
@@ -432,16 +383,12 @@ class GSimpleField(object):
     A GSimpleField is typically created from a Catalog object using
 
         >>> gfield = cat.getGSimpleField()
+
+    :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, logger=None, config=None, **kwargs):
-        self.config = treecorr.config.merge_config(config,kwargs)
-        if logger is not None:
-            self.logger = logger
-        else:
-            self.logger = treecorr.config.setup_logger(
-                    treecorr.config.get(self.config,'verbose',int,0),
-                    self.config.get('log_file',None))
-        self.logger.info('Building GSimpleField from cat %s',cat.name)
+    def __init__(self, cat, logger=None):
+        if logger:
+            logger.info('Building GSimpleField from cat %s',cat.name)
 
         g1 = cat.g1.ctypes.data_as(cdouble_ptr)
         g2 = cat.g2.ctypes.data_as(cdouble_ptr)
@@ -458,13 +405,15 @@ class GSimpleField(object):
             else:
                 r = cat.r.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildGSimpleFieldSphere(ra,dec,r,g1,g2,w,cat.nobj)
-            self.logger.debug('Finished building GSimpleField Sphere')
+            if logger:
+                logger.debug('Finished building GSimpleField Sphere')
         else:
             # Then build field with flat sky approximation
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildGSimpleFieldFlat(x,y,g1,g2,w,cat.nobj)
-            self.logger.debug('Finished building GSimpleField Flat')
+            if logger:
+                logger.debug('Finished building GSimpleField Flat')
 
 
     def __del__(self):

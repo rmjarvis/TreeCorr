@@ -115,6 +115,10 @@ class BinnedCorr2(object):
         self.logger.info("nbins = %d, min,max sep = %e..%e radians, bin_size = %f",
                          self.nbins,self.min_sep,self.max_sep,self.bin_size)
 
+        self.split_method = self.config.get('split_method','mean')
+        if self.split_method not in ['middle', 'median', 'mean']:
+            raise ValueError("Invalid split_method %s"%self.split_method)
+
         self.bin_slop = treecorr.config.get(self.config,'bin_slop',float,1.0)
         self.b = self.bin_size * self.bin_slop
         # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size

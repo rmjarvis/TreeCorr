@@ -17,31 +17,13 @@
 import treecorr
 import numpy
 
-def isKColRequired(config, num):
-    """A quick helper function that checks whether we need to bother reading the k column.
-    """
-    return ( 'k2_file_name' in config
-             or (num==0 and 'kg_file_name' in config)
-             or (num==1 and 'nk_file_name' in config) )
-
-def isGColRequired(config, num):
-    """A quick helper function that checks whether we need to bother reading the g1,g2 columns.
-    """
-    return ( 'g2_file_name' in config
-             or 'm2_file_name' in config
-             or 'norm_file_name' in config
-             or (num==1 and 'ng_file_name' in config)
-             or (num==1 and 'nm_file_name' in config)
-             or (num==1 and 'kg_file_name' in config) )
-
-
 class Catalog(object):
     """A classs storing the catalog information for a particular set of objects
     to be correlated in some way.
 
     The usual way to build this is using a config dict:
     
-    >>> cat = treecorr.Catalog(file_name, config, num=0)
+        >>> cat = treecorr.Catalog(file_name, config, num=0)
 
     This uses the information in the config dict to read the input file, which may be either
     a FITS catalog or an ASCII catalog.  Normally the distinction is made according to the
@@ -59,13 +41,20 @@ class Catalog(object):
     first elements of these vectors (i.e. no g1 or g2 columns), and for the second file, you
     would use num=1 to use columsn 3 and 4.
 
+    You may also specify any any configuration parameters as kwargs to the Catalog constructor
+    if you prefer to either add parameters that are not present in the config dict or to supersede
+    values in the config dict.  You can even provide all parameters as kwargs and omit the config
+    dict entirely:
+
+        >>> cat1 = treecorr.Catalog(file_name, config, flip_g1=True)
+        >>> cat2 = treecorr.Catalog(file_name, ra_col=1, dec_col=2, ra_units='deg', dec_units='deg')
+
     An alternate way to build a Catalog is to provide the data vectors by hand.  This may
     be more convenient when using this as part of a longer script where you are building the
     data vectors in python and then want to compute the correlation function.  The syntax for this
     is:
 
-    >>> cat = treecorr.Catalog(g1=g1, g2=g2, ra=ra, dec=dec,
-                               ra_units=ra_units, dec_units=dec_units)
+        >>> cat = treecorr.Catalog(g1=g1, g2=g2, ra=ra, dec=dec, ra_units='hour', dec_units='deg')
 
     Each of these data vectors should be a numpy array.  For x,y, the units fields are optional,
     in which case the units are assumed to be arcsec.  But for ra,dec they are required.
@@ -96,6 +85,29 @@ class Catalog(object):
                  from data vectors directly, it will be ''.  You may assign to it if you want to
                  give this catalog a specific name.
 
+    :param file_name:   The name of the catalog file to be read in. (default: None, in which case
+                        the columns need to be entered directly with ``x``, ```y``, etc.)
+    :param config:      The configuration dict which defines attributes about how to read the file.
+                        Any kwargs that are not those listed here will be added to the config, 
+                        so you can even omit the config dict and just enter all parameters you
+                        want as kwargs.  (default: None) 
+    :param num:         Which number catalog are we reading.  e.g. for NG correlations the catalog
+                        for the N has num=0, the one for G has num=1. (default: 0)
+    :param logger:      If desired, a logger object for logging. (default: None, in which case
+                        one will be built according to the config dict's verbose level.)
+    :param is_rand:     If this is a random file, then setting is_rand to True will let them
+                        skip k_col, g1_col, and g2_col if they were set for the main catalog.
+                        (default: False)
+    :param x:           The x column (default: None)
+    :param y:           The y column (default: None)
+    :param ra:          The ra column (default: None)
+    :param dec:         The dec column (default: None)
+    :param r:           The r column (default: None)
+    :param w:           The w column (default: None)
+    :param flag:        The flag column (default: None)
+    :param g1:          The g1 column (default: None)
+    :param g2:          The g2 column (default: None)
+    :param k:           The k column (default: None)
     """
     def __init__(self, file_name=None, config=None, num=0, logger=None, is_rand=False,
                  x=None, y=None, ra=None, dec=None, r=None, w=None, flag=None,
@@ -309,6 +321,12 @@ class Catalog(object):
     def makeArray(self, col, col_str, dtype=float):
         """Turn the input column into a numpy array if it wasn't already.
         Also make sure the input in 1-d.
+
+        :param col:     The input column to be converted into a numpy array.
+        :param col_str: The name of the column.  Used only as information in logging output.
+        :param dtype:   The dtype for the returned array.  (default: float)
+
+        :returns:       The column converted to a 1-d numpy array.
         """
         if col is not None:
             col = numpy.array(col,dtype=dtype)
@@ -321,6 +339,11 @@ class Catalog(object):
 
 
     def checkForNaN(self, col, col_str):
+        """Check if the column has any NaNs.  If so, set those rows to have w[k]=0.
+
+        :param col:     The input column to check.
+        :param col_str: The name of the column.  Used only as information in logging output.
+        """
         if col is not None and any(numpy.isnan(col)):
             index = numpy.where(numpy.isnan(col))[0]
             self.logger.warn("Warning: NaNs found in %s column.  Skipping rows %s.",
@@ -332,6 +355,10 @@ class Catalog(object):
 
     def read_ascii(self, file_name, num=0, is_rand=False):
         """Read the catalog from an ASCII file
+
+        :param file_name:   The name of the file to read in.
+        :param num:         Which number catalog are we reading. (default: 0)
+        :param is_rand:     Is this a random catalog? (default: False)
         """
         import numpy
         comment_marker = self.config.get('comment_marker','#')
@@ -464,6 +491,10 @@ class Catalog(object):
 
     def read_fits(self, file_name, num=0, is_rand=False):
         """Read the catalog from a FITS file
+
+        :param file_name:   The name of the file to read in.
+        :param num:         Which number catalog are we reading. (default: 0)
+        :param is_rand:     Is this a random catalog? (default: False)
         """
         # Get the column names
         x_col = treecorr.config.get_from_list(self.config,'x_col',num,str,'0')
@@ -522,6 +553,24 @@ class Catalog(object):
     def read_fitsio(self, file_name, num, is_rand,
                     x_col, y_col, ra_col, dec_col, r_col, w_col, flag_col,
                     g1_col, g2_col, k_col):
+        """Read the catalog from a FITS file using the fitsio package
+
+        This is normally not called directly.  Use :meth:`~treecorr.Catalog.read_fits` instead.
+
+        :param file_name:   The name of the file to read in.
+        :param num:         Which number catalog are we reading.
+        :param is_rand:     Is this a random catalog?
+        :param x_col:       The name for x_col
+        :param y_col:       The name for y_col
+        :param ra_col:      The name for ra_col
+        :param dec_col:     The name for dec_col
+        :param r_col:       The name for r_col
+        :param w_col:       The name for w_col
+        :param flag_col:    The name for flat_col
+        :param g1_col:      The name for g1_col
+        :param g2_col:      The name for g2_col
+        :param k_col:       The name for k_col
+        """
         import fitsio
 
         hdu = treecorr.config.get_from_list(self.config,'hdu',num,int,1)
@@ -578,7 +627,7 @@ class Catalog(object):
             if is_rand: return
 
             # Read g1,g2
-            if g1_col != '0' and g2_col != '0':
+            if g1_col != '0':
                 g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
                 g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
                 if (g1_col not in fits[g1_hdu].get_colnames() or
@@ -612,6 +661,24 @@ class Catalog(object):
     def read_pyfits(self, file_name, num, is_rand,
                     x_col, y_col, ra_col, dec_col, r_col, w_col, flag_col,
                     g1_col, g2_col, k_col):
+        """Read the catalog from a FITS file using the pyfits or astropy.io package
+
+        This is normally not called directly.  Use :meth:`~treecorr.Catalog.read_fits` instead.
+
+        :param file_name:   The name of the file to read in.
+        :param num:         Which number catalog are we reading.
+        :param is_rand:     Is this a random catalog?
+        :param x_col:       The name for x_col
+        :param y_col:       The name for y_col
+        :param ra_col:      The name for ra_col
+        :param dec_col:     The name for dec_col
+        :param r_col:       The name for r_col
+        :param w_col:       The name for w_col
+        :param flag_col:    The name for flat_col
+        :param g1_col:      The name for g1_col
+        :param g2_col:      The name for g2_col
+        :param k_col:       The name for k_col
+        """
         try:
             import astropy.io.fits as pyfits
         except:
@@ -702,10 +769,20 @@ class Catalog(object):
                     self.logger.debug('read k = %s',str(self.k))
 
 
-    def getNField(self, min_sep, max_sep, b, logger=None, config=None):
+    def getNField(self, min_sep, max_sep, b, split_method='mean', logger=None):
         """Return an NField based on the positions in this catalog.
 
         The NField object is cached, so this is efficient to call multiple times.
+
+        :param min_sep:         The minimum separation between points that will be needed.
+        :param max_sep:         The maximum separation between points that will be needed.
+        :param b:               The b parameter that will be used for the correlation function.
+                                This should be bin_size * bin_slop.
+        :param split_method:    Which split method to use ('mean', 'median', or 'middle')
+                                (default: 'mean')
+        :param logger:          A logger file if desired (default: self.logger)
+
+        :returns:               A :class:`~treecorr.NField` object
         """
         if (not hasattr(self,'nfield') 
             or min_sep != self.nfield.min_sep
@@ -714,17 +791,25 @@ class Catalog(object):
 
             if logger is None:
                 logger = self.logger
-            if config is None:
-                config = self.config
-            self.nfield = treecorr.NField(self,min_sep,max_sep,b,logger,config)
+            self.nfield = treecorr.NField(self,min_sep,max_sep,b,logger)
 
         return self.nfield
 
 
-    def getKField(self, min_sep, max_sep, b, logger=None, config=None):
+    def getKField(self, min_sep, max_sep, b, split_method='mean', logger=None):
         """Return a KField based on the k values in this catalog.
 
         The KField object is cached, so this is efficient to call multiple times.
+
+        :param min_sep:         The minimum separation between points that will be needed.
+        :param max_sep:         The maximum separation between points that will be needed.
+        :param b:               The b parameter that will be used for the correlation function.
+                                This should be bin_size * bin_slop.
+        :param split_method:    Which split method to use ('mean', 'median', or 'middle')
+                                (default: 'mean')
+        :param logger:          A logger file if desired (default: self.logger)
+
+        :returns:               A :class:`~treecorr.KField` object
         """
         if (not hasattr(self,'kfield') 
             or min_sep != self.kfield.min_sep
@@ -735,17 +820,25 @@ class Catalog(object):
                 raise AttributeError("k are not defined.")
             if logger is None:
                 logger = self.logger
-            if config is None:
-                config = self.config
-            self.kfield = treecorr.KField(self,min_sep,max_sep,b,logger,config)
+            self.kfield = treecorr.KField(self,min_sep,max_sep,b,logger)
 
         return self.kfield
 
 
-    def getGField(self, min_sep, max_sep, b, logger=None, config=None):
+    def getGField(self, min_sep, max_sep, b, split_method='mean', logger=None):
         """Return a GField based on the g1,g2 values in this catalog.
 
         The GField object is cached, so this is efficient to call multiple times.
+
+        :param min_sep:         The minimum separation between points that will be needed.
+        :param max_sep:         The maximum separation between points that will be needed.
+        :param b:               The b parameter that will be used for the correlation function.
+                                This should be bin_size * bin_slop.
+        :param split_method:    Which split method to use ('mean', 'median', or 'middle')
+                                (default: 'mean')
+        :param logger:          A logger file if desired (default: self.logger)
+
+        :returns:               A :class:`~treecorr.GField` object
         """
         if (not hasattr(self,'gfield') 
             or min_sep != self.gfield.min_sep
@@ -756,58 +849,62 @@ class Catalog(object):
                 raise AttributeError("g1,g2 are not defined.")
             if logger is None:
                 logger = self.logger
-            if config is None:
-                config = self.config
-            self.gfield = treecorr.GField(self,min_sep,max_sep,b,logger,config)
+            self.gfield = treecorr.GField(self,min_sep,max_sep,b,logger)
 
         return self.gfield
 
 
-    def getNSimpleField(self, logger=None, config=None):
+    def getNSimpleField(self, logger=None):
         """Return an NSimpleField based on the positions in this catalog.
 
         The NSimpleField object is cached, so this is efficient to call multiple times.
+
+        :param logger:          A logger file if desired (default: self.logger)
+
+        :returns:               A :class:`~treecorr.NSimpleField` object
         """
         if not hasattr(self,'nsimplefield'):
             if logger is None:
                 logger = self.logger
-            if config is None:
-                config = self.config
-            self.nsimplefield = treecorr.NSimpleField(self,logger,config)
+            self.nsimplefield = treecorr.NSimpleField(self,logger)
 
         return self.nsimplefield
 
 
-    def getKSimpleField(self, logger=None, config=None):
+    def getKSimpleField(self, logger=None):
         """Return a KSimpleField based on the k values in this catalog.
 
         The KSimpleField object is cached, so this is efficient to call multiple times.
+
+        :param logger:          A logger file if desired (default: self.logger)
+
+        :returns:               A :class:`~treecorr.KSimpleField` object
         """
         if not hasattr(self,'ksimplefield'):
             if self.k is None:
                 raise AttributeError("k are not defined.")
             if logger is None:
                 logger = self.logger
-            if config is None:
-                config = self.config
-            self.ksimplefield = treecorr.KSimpleField(self,logger,config)
+            self.ksimplefield = treecorr.KSimpleField(self,logger)
 
         return self.ksimplefield
 
 
-    def getGSimpleField(self, logger=None, config=None):
+    def getGSimpleField(self, logger=None):
         """Return a GSimpleField based on the g1,g2 values in this catalog.
 
         The GSimpleField object is cached, so this is efficient to call multiple times.
+
+        :param logger:          A logger file if desired (default: self.logger)
+
+        :returns:               A :class:`~treecorr.GSimpleField` object
         """
         if not hasattr(self,'gsimplefield'):
             if self.g1 is None or self.g2 is None:
                 raise AttributeError("g1,g2 are not defined.")
             if logger is None:
                 logger = self.logger
-            if config is None:
-                config = self.config
-            self.gsimplefield = treecorr.GSimpleField(self,logger,config)
+            self.gsimplefield = treecorr.GSimpleField(self,logger)
 
         return self.gsimplefield
 
@@ -822,6 +919,8 @@ class Catalog(object):
                                        ra_units='hours', dec_units='degrees')
             >>> cat.ra_units = treecorr.degrees
             >>> cat.write('new_cat.dat')
+
+        :param file_name:   The name of the file to write to.
         """
         import numpy
 
@@ -888,7 +987,25 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
 
     num indicates which key to use if any of the fields like x_col, flip_g1, etc. are lists.
     The default is 0, which means to use the first item in the list if they are lists.
+
+    :param config:      The configuration dict to use for the appropriate parameters
+    :param key:         Which key name to use for the file names. e.g. 'file_name' (default: None)
+    :param list_key:    Which key name to use for the name of a list file. e.g. 'file_list'.
+                        Either key or list_key is required.  (default: None)
+    :param num:         Which number catalog does this correspond to. e.g. file_name should use
+                        num=0, file_name2 should use num=1.  (default: 0)
+    :param logger:      If desired, a logger object for logging. (default: None, in which case
+                        one will be built according to the config dict's verbose level.)
+    :param is_rand:     If this is a random file, then setting is_rand to True will let them
+                        skip k_col, g1_col, and g2_col if they were set for the main catalog.
+                        (default: False)
+
+    :returns:           A list of Catalogs
     """
+    if logger is None:
+        logger = treecorr.config.setup_logger(
+                treecorr.config.get(config,'verbose',int,0), config.get('log_file',None))
+
     if key is None and list_key is None:
         raise AttributeError("Must provide either %s or %s."%(key,list_key))
     if key is not None and key in config:
@@ -900,9 +1017,8 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
         with open(list_file,'r') as fin:
             file_names = [ f.strip() for f in fin ]
         if len(file_names) == 0:
-            if logger:
-                logger.warn('Warning: %s provided, but no names were read from the file %s',
-                            list_key, list_file)
+            logger.warn('Warning: %s provided, but no names were read from the file %s',
+                        list_key, list_file)
             return []
     else:
         # If this key was required (i.e. file_name) then let the caller check this.
@@ -915,8 +1031,7 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
     if not isinstance(file_names,list): 
         file_names = file_names.split()
         if len(file_names) == 0:
-            if logger:
-                logger.warn('Warning: %s provided, but it seems to be an empty string',key)
+            logger.warn('Warning: %s provided, but it seems to be an empty string',key)
             return []
     return [ Catalog(file_name, config, num, logger, is_rand) for file_name in file_names ]
 
@@ -925,7 +1040,11 @@ def calculateVarG(cat_list):
     """Calculate the overall shear variance from a list of catalogs.
         
     The catalogs are assumed to be equivalent, so this is just the average shear
-    variance weighted by the number of objects in each catalog.
+    variance (per component) weighted by the number of objects in each catalog.
+
+    :param cat_list:    A Catalog or a list of Catalogs for which to calculate the shear variance.
+
+    :returns:           The shear variance per component, aka shape noise.
     """
     if len(cat_list) == 1:
         return cat_list[0].varg
@@ -942,6 +1061,10 @@ def calculateVarK(cat_list):
         
     The catalogs are assumed to be equivalent, so this is just the average kappa
     variance weighted by the number of objects in each catalog.
+
+    :param cat_list:    A Catalog or a list of Catalogs for which to calculate the kappa variance.
+
+    :returns:           The kappa variance
     """
     if len(cat_list) == 1:
         return cat_list[0].vark
@@ -952,5 +1075,54 @@ def calculateVarK(cat_list):
             vark += cat.vark * cat.nobj
             ntot += cat.nobj
         return vark / ntot
+
+
+def isGColRequired(config, num):
+    """A quick helper function that checks whether we need to bother reading the g1,g2 columns.
+
+    It checks the config dict for the output file names g2_file_name, ng_file_name (only if
+    num == 1), etc.  If the output files indicate that we don't need the g1/g2 columns, then
+    we don't need to raise an error if the g1_col or g2_col is invalid.
+    
+    This makes it easier to specify columns. e.g. for an NG correlation function, the 
+    first catalog does not need to have the gamma columns, and typically wouldn't.  So
+    if you specify g1_col=5, g2_col=6, say, and the first catalog does not have these columns,
+    you would normally get an error. 
+    
+    But instead, we check that the calculation is going to be NG from the presence of an
+    ng_file_name parameter, and we let the would-be error pass.
+
+    :param config:  The configuration file to check.
+    :param num:     Which number catalog are we working on.
+
+    :returns:       True if some output file requires this catalog to have valid g1/g2 columns,
+                    False if not.
+
+    """
+    return ( 'g2_file_name' in config
+             or 'm2_file_name' in config
+             or 'norm_file_name' in config
+             or (num==1 and 'ng_file_name' in config)
+             or (num==1 and 'nm_file_name' in config)
+             or (num==1 and 'kg_file_name' in config) )
+
+
+
+def isKColRequired(config, num):
+    """A quick helper function that checks whether we need to bother reading the k column.
+
+    The logic here is the same as for :func:`~treecorr.catalog.isGColRequired`, but we check
+    for output files that require the kappa column rather than gamma.
+
+    :param config:  The configuration file to check.
+    :param num:     Which number catalog are we working on.
+
+    :returns:       True if some output file requires this catalog to have valid g1/g2 columns,
+                    False if not.
+
+    """
+    return ( 'k2_file_name' in config
+             or (num==0 and 'kg_file_name' in config)
+             or (num==1 and 'nk_file_name' in config) )
 
 

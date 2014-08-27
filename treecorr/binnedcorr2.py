@@ -41,16 +41,23 @@ class BinnedCorr2(object):
     Exactly three of the following 4 parameters are required either in the config dict or
     in kwargs:
 
-    :param nbins:     How many bins to use
-    :param bin_size:  The width of the bins in log(separation)
-    :param min_sep:   The minimum separation; the left edge of the first bin
-    :param max_sep:   The maximum separation; the right edge of the last bin
+        :nbins:     How many bins to use
+        :bin_size:  The width of the bins in log(separation)
+        :min_sep:   The minimum separation; the left edge of the first bin
+        :max_sep:   The maximum separation; the right edge of the last bin
 
     Any three of these may be provided.  The fourth number will be calculated from them.
 
     Note that if bin_size, min_sep, and max_sep are specified, then the nominal number of
     bins is not necessarily and integer.  In this case, nbins will be rounded up to the 
     next higher integer, and max_sep will be updated to account for this.
+
+    :param config:      The configuration dict which defines attributes about how to read the file.
+                        Any kwargs that are not those listed here will be added to the config, 
+                        so you can even omit the config dict and just enter all parameters you
+                        want as kwargs.  (default: None) 
+    :param logger:      If desired, a logger object for logging. (default: None, in which case
+                        one will be built according to the config dict's verbose level.)
     """
     def __init__(self, config=None, logger=None, **kwargs):
         import math
@@ -142,8 +149,9 @@ class BinnedCorr2(object):
 
         We do this basic functionality a lot, so put the code to do it in one place.
 
-        headers should be a list of strings.
-        columns should be a list of numpy arrays.
+        :param file_name:   The name of the file to write to.
+        :param headers:     A list of strings to use for the header strings of each column.
+        :param columns:     A list of numpy arrays with the data to write.
         """
         import numpy
         if len(headers) != len(columns):

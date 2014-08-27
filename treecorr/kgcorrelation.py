@@ -64,6 +64,12 @@ class KGCorrelation(treecorr.BinnedCorr2):
         >>> kg.write(file_name)     # Write out to a file.
         >>> xi = kg.xi              # Or access the correlation function directly.
 
+    :param config:      The configuration dict which defines attributes about how to read the file.
+                        Any kwargs that are not those listed here will be added to the config, 
+                        so you can even omit the config dict and just enter all parameters you
+                        want as kwargs.  (default: None) 
+    :param logger:      If desired, a logger object for logging. (default: None, in which case
+                        one will be built according to the config dict's verbose level.)
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
@@ -96,6 +102,9 @@ class KGCorrelation(treecorr.BinnedCorr2):
         the calculation by dividing by the total weight at the end.  After
         calling this function as often as desired, the finalize() command will
         finish the calculation.
+
+        :param cat1:     The first catalog to process
+        :param cat2:     The second catalog to process
         """
         self.logger.info('Starting process KG cross-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
@@ -119,6 +128,9 @@ class KGCorrelation(treecorr.BinnedCorr2):
         the calculation by dividing by the total weight at the end.  After
         calling this function as often as desired, the finalize() command will
         finish the calculation.
+
+        :param cat1:     The first catalog to process
+        :param cat2:     The second catalog to process
         """
         self.logger.info('Starting process G2 pairwise-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
@@ -140,6 +152,9 @@ class KGCorrelation(treecorr.BinnedCorr2):
         The process_cross command accumulates values in each bin, so it can be called
         multiple times if appropriate.  Afterwards, this command finishes the calculation
         by dividing each column by the total weight.
+
+        :param vark:    The kappa variance for the first field.
+        :param varg:    The shear variance per component for the second field.
         """
         mask1 = self.npairs != 0
         mask2 = self.npairs == 0
@@ -172,6 +187,9 @@ class KGCorrelation(treecorr.BinnedCorr2):
 
         Both arguments may be lists, in which case all items in the list are used 
         for that element of the correlation.
+
+        :param cat1:    A catalog or list of catalogs for the K field.
+        :param cat2:    A catalog or list of catalogs for the G field.
         """
         import math
         self.clear()
@@ -193,6 +211,8 @@ class KGCorrelation(treecorr.BinnedCorr2):
 
     def write(self, file_name):
         """Write the correlation function to the file, file_name.
+
+        :param file_name:   The name of the file to write to.
         """
         self.logger.info('Writing KG correlations to %s',file_name)
         

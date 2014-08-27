@@ -65,6 +65,12 @@ class NGCorrelation(treecorr.BinnedCorr2):
         >>> ng.write(file_name)     # Write out to a file.
         >>> xi = gg.xi              # Or access the correlation function directly.
 
+    :param config:      The configuration dict which defines attributes about how to read the file.
+                        Any kwargs that are not those listed here will be added to the config, 
+                        so you can even omit the config dict and just enter all parameters you
+                        want as kwargs.  (default: None) 
+    :param logger:      If desired, a logger object for logging. (default: None, in which case
+                        one will be built according to the config dict's verbose level.)
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
@@ -97,6 +103,9 @@ class NGCorrelation(treecorr.BinnedCorr2):
         the calculation by dividing by the total weight at the end.  After
         calling this function as often as desired, the finalize() command will
         finish the calculation.
+
+        :param cat1:     The first catalog to process
+        :param cat2:     The second catalog to process
         """
         self.logger.info('Starting process NG cross-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
@@ -120,6 +129,9 @@ class NGCorrelation(treecorr.BinnedCorr2):
         the calculation by dividing by the total weight at the end.  After
         calling this function as often as desired, the finalize() command will
         finish the calculation.
+
+        :param cat1:     The first catalog to process
+        :param cat2:     The second catalog to process
         """
         self.logger.info('Starting process G2 pairwise-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
@@ -141,6 +153,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         The process_cross command accumulates values in each bin, so it can be called
         multiple times if appropriate.  Afterwards, this command finishes the calculation
         by dividing each column by the total weight.
+
+        :param varg:    The shear variance per component for the second field.
         """
         mask1 = self.npairs != 0
         mask2 = self.npairs == 0
@@ -173,6 +187,9 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         Both arguments may be lists, in which case all items in the list are used 
         for that element of the correlation.
+
+        :param cat1:    A catalog or list of catalogs for the N field.
+        :param cat2:    A catalog or list of catalogs for the G field.
         """
         import math
         self.clear()
@@ -197,7 +214,10 @@ class NGCorrelation(treecorr.BinnedCorr2):
         If rg is None, the simple correlation function <gamma_T> is returned.
         If rg is not None, then a compensated calculation is done: <gamma_T> = (dg - rg)
 
-        :returns: (xi, xi_im, varxi)
+        :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
+                            (default: None)
+
+        :returns:           (xi, xi_im, varxi) as a tuple.
         """
         if rg is None:
             return self.xi, self.xi_im, self.varxi
@@ -210,6 +230,10 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         If rg is None, the simple correlation function <gamma_T> is used.
         If rg is not None, then a compensated calculation is done: <gamma_T> = (dg - rg)
+
+        :param file_name:   The name of the file to write to.
+        :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
+                            (default: None)
         """
         self.logger.info('Writing NG correlations to %s',file_name)
     
@@ -240,7 +264,13 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
             Tx(s) = 18/Pi s^2 arccos(s/s) - 3/40Pi s^3 sqrt(4-s^2) (196 - 74s^2 + 14s^4 - s^6)
 
-        :returns: (nmap, nmx, varnmap)
+        :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
+                            (default: None)
+        :param m2_uform:    Which form to use for the aperture mass.  (default: None, in which
+                            case it looks in the object's config file for config['mu_uform'],
+                            or 'Crittenden' if it is not provided.)
+
+        :returns:           (nmap, nmx, varnmap) as a tuple
         """
         if m2_uform is None:
             m2_uform = self.config.get('m2_uform','Crittenden')
@@ -285,6 +315,11 @@ class NGCorrelation(treecorr.BinnedCorr2):
         if rg is provided, the compensated calculation will be used for xi.
 
         See calculateNMap for an explanation of the m2_uform parameter.
+
+        :param file_name:   The name of the file to write to.
+        :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
+                            (default: None)
+        :param m2_uform:    Which form to use for the aperture mass.  (default: None)
         """
         self.logger.info('Writing NMap from NG correlations to %s',file_name)
 
@@ -310,6 +345,18 @@ class NGCorrelation(treecorr.BinnedCorr2):
         if dr is provided, the compensated calculation will be used for N^2.
 
         See calculateNMap for an explanation of the m2_uform parameter.
+
+        :param file_name:   The name of the file to write to.
+        :param gg:          A G2Correlation object for the shear-shear correlation function
+                            of the G field.
+        :param dd:          An N2Correlation object for the count-count correlation function
+                            of the N field.
+        :param rr:          An N2Correlation object for the random-random pairs.
+        :param dr:          An N2Correlation object for the data-random pairs, if desired, in which
+                            case the Landy-Szalay estimator will be calculated.  (default: None)
+        :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
+                            (default: None)
+        :param m2_uform:    Which form to use for the aperture mass.  (default: None)
         """
         self.logger.info('Writing Norm from NG correlations to %s',file_name)
 

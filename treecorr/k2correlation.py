@@ -65,11 +65,17 @@ class K2Correlation(treecorr.BinnedCorr2):
     The usage pattern is as follows:
 
         >>> kk = treecorr.K2Correlation(config)
-        >>> kk.process(cat1)        # For auto-correlation.
+        >>> kk.process(cat)         # For auto-correlation.
         >>> kk.process(cat1,cat2)   # For cross-correlation.
         >>> kk.write(file_name)     # Write out to a file.
         >>> xi = kk.xi              # Or access the correlation function directly.
 
+    :param config:      The configuration dict which defines attributes about how to read the file.
+                        Any kwargs that are not those listed here will be added to the config, 
+                        so you can even omit the config dict and just enter all parameters you
+                        want as kwargs.  (default: None) 
+    :param logger:      If desired, a logger object for logging. (default: None, in which case
+                        one will be built according to the config dict's verbose level.)
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
@@ -93,16 +99,18 @@ class K2Correlation(treecorr.BinnedCorr2):
             _treecorr.DestroyKKCorr(self.corr)
 
 
-    def process_auto(self, cat1):
+    def process_auto(self, cat):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
         the calculation by dividing by the total weight at the end.  After
         calling this function as often as desired, the finalize() command will
         finish the calculation.
+
+        :param cat:     The catalog to process
         """
-        self.logger.info('Starting process K2 auto-correlations for cat %s.',cat1.name)
-        field = cat1.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
+        self.logger.info('Starting process K2 auto-correlations for cat %s.',cat.name)
+        field = cat.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
 
         if field.sphere:
             _treecorr.ProcessAutoKKSphere(self.corr, field.data, self.output_dots)
@@ -117,6 +125,9 @@ class K2Correlation(treecorr.BinnedCorr2):
         the calculation by dividing by the total weight at the end.  After
         calling this function as often as desired, the finalize() command will
         finish the calculation.
+
+        :param cat1:     The first catalog to process
+        :param cat2:     The second catalog to process
         """
         self.logger.info('Starting process K2 cross-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
@@ -140,6 +151,9 @@ class K2Correlation(treecorr.BinnedCorr2):
         the calculation by dividing by the total weight at the end.  After
         calling this function as often as desired, the finalize() command will
         finish the calculation.
+
+        :param cat1:     The first catalog to process
+        :param cat2:     The second catalog to process
         """
         self.logger.info('Starting process G2 pairwise-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
@@ -161,6 +175,9 @@ class K2Correlation(treecorr.BinnedCorr2):
         The process_auto and process_cross commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
         finishes the calculation by dividing each column by the total weight.
+
+        :param vark1:   The kappa variance for the first field.
+        :param vark2:   The kappa variance for the second field.
         """
         mask1 = self.npairs != 0
         mask2 = self.npairs == 0
@@ -194,6 +211,10 @@ class K2Correlation(treecorr.BinnedCorr2):
 
         Both arguments may be lists, in which case all items in the list are used 
         for that element of the correlation.
+
+        :param cat1:    A catalog or list of catalogs for the first K field.
+        :param cat2:    A catalog or list of catalogs for the second K field, if any.
+                        (default: None)
         """
         import math
         self.clear()
@@ -219,6 +240,8 @@ class K2Correlation(treecorr.BinnedCorr2):
 
     def write(self, file_name):
         """Write the correlation function to the file, file_name.
+
+        :param file_name:   The name of the file to write to.
         """
         self.logger.info('Writing K2 correlations to %s',file_name)
          

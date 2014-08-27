@@ -86,7 +86,7 @@ class Catalog(object):
                  give this catalog a specific name.
 
     :param file_name:   The name of the catalog file to be read in. (default: None, in which case
-                        the columns need to be entered directly with ``x``, ```y``, etc.)
+                        the columns need to be entered directly with `x`, `y`, etc.)
     :param config:      The configuration dict which defines attributes about how to read the file.
                         Any kwargs that are not those listed here will be added to the config, 
                         so you can even omit the config dict and just enter all parameters you

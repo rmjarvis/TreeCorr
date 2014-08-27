@@ -249,8 +249,12 @@ class NGCorrelation(treecorr.BinnedCorr2):
     def calculateNMap(self, rg=None, m2_uform=None):
         """Calculate the aperture mass statistics from the correlation function.
 
-        <NMap>(R) = int_r=0..2R [s^2 dlogr Tx(s) <gammaT>(r)]
-        <NMx>(R)  = int_r=0..2R [s^2 dlogr Tx(s) <gammaX>(r)]
+        .. math::
+
+            \\langle N M_{ap} \\rangle(R) &= \\int_{0}^{rmax} \\frac{r dr}{R^2} 
+            T_\\times\\left(\\frac{r}{R}\\right) \\Re\\xi(r) \\\\
+            \\langle N M_{\\times} \\rangle(R) &= \\int_{0}^{rmax} \\frac{r dr}{R^2}
+            T_\\times\\left(\\frac{r}{R}\\right) \\Im\\xi(r)
 
         The m2_uform parameter sets which definition of the aperture mass to use.
         The default is to look in the config dict that was used to build the catalog,
@@ -258,11 +262,20 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         If m2_uform == 'Crittenden':
 
-            Tx(s) = s^2/128 (12-s^2) exp(-s^2/4)
+        .. math::
+
+            T_\\times(s) = \\frac{s^2}{128} (12-s^2) \\exp(-s^2/4)
 
         If m2_uform == 'Schneider':
 
-            Tx(s) = 18/Pi s^2 arccos(s/s) - 3/40Pi s^3 sqrt(4-s^2) (196 - 74s^2 + 14s^4 - s^6)
+        .. math::
+
+            T_\\times(s) = \\frac{18}{\\pi} s^2 \\arccos(s/2) -
+            \\frac{3}{40\\pi} s^3 \\sqrt{4-s^2} (196 - 74s^2 + 14s^4 - s^6)
+
+        cf. Schneider, et al (2001): http://xxx.lanl.gov/abs/astro-ph/0112441
+        These formulae are not in there, but the derivation is similar to the derivations
+        of T+ and T- in that paper.
 
         :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
                             (default: None)
@@ -334,15 +347,16 @@ class NGCorrelation(treecorr.BinnedCorr2):
     def writeNorm(self, file_name, gg, dd, rr, dr=None, rg=None, m2_uform=None):
         """Write the normalized aperture mass cross-correlation to the file, file_name.
 
-        The combination <NMap>^2 / <Map^2> <N_ap^2> is related to r^2, the galaxy-mass
-        correlation coefficient.
+        The combination :math:`\\langle N M_{ap}\\rangle^2 / \\langle M_{ap}^2\\rangle
+        \\langle N_{ap}^2\\rangle` is related to :math:`r`, the galaxy-mass correlation 
+        coefficient.  Similarly, :math:`\\langle N_{ap}^2\\rangle / \\langle M_{ap}^2\\rangle`
+        is related to :math:`b`, the galaxy bias parameter.  cf. Hoekstra et al, 2002: 
+        http://adsabs.harvard.edu/abs/2002ApJ...577..604H
 
-        Similarly, <N_ap^2> / <Map^2> is related to b^2, the galaxy bias parameter.
-
-        cf. Hoekstra et al, 2002: http://adsabs.harvard.edu/abs/2002ApJ...577..604H
+        This function computes these combinations and outputs them to a file.
 
         if rg is provided, the compensated calculation will be used for NMap.
-        if dr is provided, the compensated calculation will be used for N^2.
+        if dr is provided, the compensated calculation will be used for Nap^2.
 
         See calculateNMap for an explanation of the m2_uform parameter.
 

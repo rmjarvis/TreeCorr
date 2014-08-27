@@ -31,12 +31,13 @@ sys.path.insert(0, os.path.abspath('../treecorr'))
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
+    'sphinx.ext.mathjax',
+    #'sphinx.ext.autosummary',
     'sphinx.ext.viewcode',
 ]
 
 # cf. http://stackoverflow.com/questions/2701998/sphinx-autodoc-is-not-automatic-enough
-autosummay_generate = True
+#autosummay_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
 #templates_path = ['_templates']

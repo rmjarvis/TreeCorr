@@ -267,30 +267,39 @@ class G2Correlation(treecorr.BinnedCorr2):
     def calculateMapSq(self, m2_uform=None):
         """Calculate the aperture mass statistics from the correlation function.
 
-        ::
-            <Map^2>(R) = int_r=0..rmax [ 1/2 (r/R)^2 dlogr (T+(r/R) xi+(r) + T-(r/R) xi-(r)) ]
-            <Mx^2>(R)  = int_r=0..rmax [ 1/2 (r/R)^2 dlogr (T+(r/R) xi+(r) - T-(r/R) xi-(r)) ]
+        .. math::
+
+            \\langle M_{ap}^2 \\rangle(R) &= \\int_{0}^{rmax} \\frac{r dr}{2R^2}
+            \\left [ T_+\\left(\\frac{r}{R}\\right) \\xi_+(r) + 
+            T_-\\left(\\frac{r}{R}\\right) \\xi_-(r) \\right] \\\\
+            \\langle M_\\times^2 \\rangle(R) &= \\int_{0}^{rmax} \\frac{r dr}{2R^2}
+            \\left [ T_+\\left(\\frac{r}{R}\\right) \\xi_+(r) - 
+            T_-\\left(\\frac{r}{R}\\right) \\xi_-(r) \\right]
 
         The m2_uform parameter sets which definition of the aperture mass to use.
         The default is to look in the config dict that was used to build the catalog,
         or use 'Crittenden' if it is not specified.
 
-        If m2_uform == 'Crittenden'::
+        If m2_uform == 'Crittenden':
 
-            U(r) = 1/2Pi (1-r^2) exp(-r^2/2)
-            Q(r) = 1/4Pi r^2 exp(-r^2/2)
-            T+(s) = (s^4 - 16s^2 + 32)/128 exp(-s^2/4)
-            T-(s) = s^4/128 exp(-s^2/4)
-            rmax = infinity
+        .. math::
 
-        If m2_uform == 'Schneider'::
+            U(r) &= \\frac{1}{2\\pi} (1-r^2) \\exp(-r^2/2) \\\\
+            Q(r) &= \\frac{1}{4\\pi} r^2 \\exp(-r^2/2) \\\\
+            T_+(s) &= \\frac{s^4 - 16s^2 + 32}{128} \\exp(-s^2/4) \\\\
+            T_-(s) &= \\frac{s^4}{128} \\exp(-s^2/4) \\\\
+            rmax &= \\infty
 
-            U(r) = 9/Pi (1-r^2) (1/3-r^2)
-            Q(r) = 6/Pi r^2 (1-r^2)
-            T+(s) = 12/5Pi (2-15s^2) arccos(s/2) \\
-                      + 1/(100Pi) s sqrt(4-s^2) (120 + 2320s^2 - 754s^4 + 132s^6 - 9s^8)
-            T-(s) = 3/70Pi s^3 (4-s^2)^(7/2)
-            rmax = 2R
+        If m2_uform == 'Schneider':
+
+        .. math::
+
+            U(r) &= \\frac{9}{\\pi} (1-r^2) (1/3-r^2) \\\\
+            Q(r) &= \\frac{6}{\\pi} r^2 (1-r^2) \\\\
+            T_+(s) &= \\frac{12}{5\\pi} (2-15s^2) \\arccos(s/2)
+            + \\frac{1}{100\\pi} s \\sqrt{4-s^2} (120 + 2320s^2 - 754s^4 + 132s^6 - 9s^8) \\\\
+            T_-(s) &= \\frac{3}{70\\pi} s^3 (4-s^2)^{7/2} \\\\
+            rmax &= 2R
 
         cf. Schneider, et al (2001): http://xxx.lanl.gov/abs/astro-ph/0112441
 
@@ -347,15 +356,21 @@ class G2Correlation(treecorr.BinnedCorr2):
     def calculateGamSq(self, eb=False):
         """Calculate the tophat shear variance from the correlation function.
 
-        ::
-            <Gam^2>(R) = int_r=0..2R [s^2 dlogr S+(s) xi+(r)]
-            <Gam^2_E>(R) = int_r=0..2R [1/2 s^2 dlogr (S+(s) xi+(r) + S-(s) xi-(r)]
-            <Gam^2_B>(R) = int_r=0..2R [1/2 s^2 dlogr (S+(s) xi+(r) - S-(s) xi-(r)]
+        .. math::
 
-        ::
-            S+(s) = 1/Pi * (4*arccos(s/2) - s sqrt(4-s^2) )
-            S-(s) (s<=2):  1/(Pi s^4) * ( s sqrt(4-s^2) (6-s^2) - 8(3-s^2) arcsin(s/2) )
-            .     (s>=2):  4(s^2-3)/s^4
+            \\langle \\gamma^2 \\rangle(R) &= \\int_0^{2R} \\frac{r dr}{R^2} S_+(s) \\xi_+(r) \\\\
+            \\langle \\gamma^2 \\rangle_E(R) &= \\int_0^{2R} \\frac{r dr}{2 R^2}
+            \\left [ S_+\\left(\\frac{r}{R}\\right) \\xi_+(r) +
+            S_-\\left(\\frac{r}{R}\\right) \\xi_-(r) \\right ] \\\\
+            \\langle \\gamma^2 \\rangle_B(R) &= \\int_0^{2R} \\frac{r dr}{2 R^2}
+            \\left [ S_+\\left(\\frac{r}{R}\\right) \\xi_+(r) -
+            S_-\\left(\\frac{r}{R}\\right) \\xi_-(r) \\right ] \\\\
+
+            S_+(s) &= \\frac{1}{\\pi} \\left(4 \\arccos(s/2) - s \\sqrt{4-s^2} \\right) \\\\
+            S_-(s) &= \\begin{cases}
+            s<=2, & [ s \\sqrt{4-s^2} (6-s^2) - 8(3-s^2) \\arcsin(s/2) ] / (\\pi s^4) \\\\
+            s>=2, & 4(s^2-3)/(s^4)
+            \\end{cases}
 
         cf Schneider, et al, 2001: http://adsabs.harvard.edu/abs/2002A%26A...389..729S
 
@@ -366,8 +381,8 @@ class G2Correlation(treecorr.BinnedCorr2):
         :param eb:  Whether to include the E/B decomposition as well as the total <Gam^2>.
                     (default: False)
 
-        :returns:   (gamsq, vargamsq) if ``eb == False`` or
-                    (gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e)  if ``eb == True``
+        :returns:   (gamsq, vargamsq) if `eb == False` or
+                    (gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e)  if `eb == True`
         """
         r = numpy.exp(self.logr)
         meanr = numpy.exp(self.meanlogr) # Use the actual mean r for each bin

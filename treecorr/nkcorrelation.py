@@ -96,8 +96,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Starting process NK cross-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
-        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b)
-        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b)
+        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method)
+        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")

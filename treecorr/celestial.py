@@ -78,14 +78,10 @@ class CelestialCoord(object):
         self._x = None  # Indicate that x,y,z are not set yet.
 
     @property
-    def ra(self): 
-        """The Right Ascension in radians (read-only)""" 
-        return self._ra
+    def ra(self): return self._ra
 
     @property
-    def dec(self):
-        """The Declination in radians (read-only)""" 
-        return self._dec
+    def dec(self): return self._dec
 
 
     def _set_aux(self):

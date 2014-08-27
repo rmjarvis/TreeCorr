@@ -37,7 +37,6 @@ Other utilities related to corr2
 
 .. automodule:: treecorr.corr2
     :members:
-    :undoc-members:
     :exclude-members: corr2
 
 
@@ -45,6 +44,5 @@ Utilities related to the configuration dict
 -------------------------------------------
 
 .. automodule:: treecorr.config
-    :undoc-members:
     :members:
 

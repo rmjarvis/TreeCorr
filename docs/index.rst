@@ -16,6 +16,7 @@ TreeCorr Documentation
    correlation
    celestial
    corr2
+   history
 
 * :ref:`genindex`
 * :ref:`modindex`

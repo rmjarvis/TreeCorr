@@ -1,6 +1,6 @@
 
-file_name = data/n2_3d_data.dat
-rand_file_name = data/n2_3d_rand.dat
+file_name = data/nn_3d_data.dat
+rand_file_name = data/nn_3d_rand.dat
 
 ra_col = 1
 dec_col = 2
@@ -14,4 +14,4 @@ min_sep = 1.
 max_sep = 25.
 bin_size = 0.10
 
-n2_file_name = output/n2_3d.out
+n2_file_name = output/nn_3d.out

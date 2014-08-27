@@ -5,6 +5,14 @@ Changes from 3.0 to 3.1
 API changes:
 ------------
 
+- Changed class names G2Correlation -> GGCorrelation, N2Correlation ->
+  NNCorrelation, and K2Correlation->KKCorrelation.  I realized that I had
+  been kind of inconsistent in my use of G2 vs GG to mean the two-point
+  shear correaltion.  Considering that g1,g2 are the shear components, I 
+  think the former may be confusing, so I changed everything to use 
+  the GG notation throughout the code and documentation, most critically
+  in these class names. (#9)
+
 
 Changes to output files:
 ------------------------

@@ -28,20 +28,20 @@ def test_constant():
     kappa = A * numpy.ones(ngal)
 
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
-    k2 = treecorr.K2Correlation(bin_size=0.1, min_sep=0.1, max_sep=10., sep_units='arcmin')
-    k2.process(cat)
-    print 'k2.xi = ',k2.xi
-    numpy.testing.assert_almost_equal(k2.xi, A**2, decimal=10)
+    kk = treecorr.KKCorrelation(bin_size=0.1, min_sep=0.1, max_sep=10., sep_units='arcmin')
+    kk.process(cat)
+    print 'kk.xi = ',kk.xi
+    numpy.testing.assert_almost_equal(kk.xi, A**2, decimal=10)
 
     # Now add some noise to the values. It should still work, but at slightly lower accuracy.
     kappa += 0.001 * (numpy.random.random_sample(ngal)-0.5)
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
-    k2.process(cat)
-    print 'k2.xi = ',k2.xi
-    numpy.testing.assert_almost_equal(k2.xi, A**2, decimal=6)
+    kk.process(cat)
+    print 'kk.xi = ',kk.xi
+    numpy.testing.assert_almost_equal(kk.xi, A**2, decimal=6)
 
 
-def test_k2():
+def test_kk():
     # cf. http://adsabs.harvard.edu/abs/2002A%26A...389..729S for the basic formulae I use here.
     #
     # Use kappa(r) = A exp(-r^2/2s^2)
@@ -65,32 +65,32 @@ def test_k2():
     kappa = A * numpy.exp(-r2/2.)
 
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
-    k2 = treecorr.K2Correlation(bin_size=0.1, min_sep=1., max_sep=50., sep_units='arcmin',
+    kk = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=50., sep_units='arcmin',
                                 verbose=2)
-    k2.process(cat)
-    r = numpy.exp(k2.meanlogr)
+    kk.process(cat)
+    r = numpy.exp(kk.meanlogr)
     true_xi = numpy.pi * A**2 * (s/L)**2 * numpy.exp(-0.25*r**2/s**2)
-    print 'k2.xi = ',k2.xi
+    print 'kk.xi = ',kk.xi
     print 'true_xi = ',true_xi
-    print 'ratio = ',k2.xi / true_xi
-    print 'diff = ',k2.xi - true_xi
-    print 'max diff = ',max(abs(k2.xi - true_xi))
-    assert max(abs(k2.xi - true_xi)) < 5.e-7
+    print 'ratio = ',kk.xi / true_xi
+    print 'diff = ',kk.xi - true_xi
+    print 'max diff = ',max(abs(kk.xi - true_xi))
+    assert max(abs(kk.xi - true_xi)) < 5.e-7
 
     # Check that we get the same result using the corr2 executable:
     if __name__ == '__main__':
-        cat.write(os.path.join('data','k2.dat'))
+        cat.write(os.path.join('data','kk.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","k2.params"] )
+        p = subprocess.Popen( ["corr2","kk.params"] )
         p.communicate()
-        corr2_output = numpy.loadtxt(os.path.join('output','k2.out'))
-        print 'k2.xi = ',k2.xi
+        corr2_output = numpy.loadtxt(os.path.join('output','kk.out'))
+        print 'kk.xi = ',kk.xi
         print 'from corr2 output = ',corr2_output[:,2]
-        print 'ratio = ',corr2_output[:,2]/k2.xi
-        print 'diff = ',corr2_output[:,2]-k2.xi
-        numpy.testing.assert_almost_equal(corr2_output[:,2]/k2.xi, 1., decimal=3)
+        print 'ratio = ',corr2_output[:,2]/kk.xi
+        print 'diff = ',corr2_output[:,2]-kk.xi
+        numpy.testing.assert_almost_equal(corr2_output[:,2]/kk.xi, 1., decimal=3)
 
 
 if __name__ == '__main__':
     test_constant()
-    test_k2()
+    test_kk()

@@ -133,7 +133,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         :param cat1:     The first catalog to process
         :param cat2:     The second catalog to process
         """
-        self.logger.info('Starting process G2 pairwise-correlations for cats %s, %s.',
+        self.logger.info('Starting process NG pairwise-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
         f1 = cat1.getNSimpleField()
         f2 = cat2.getGSimpleField()
@@ -361,12 +361,12 @@ class NGCorrelation(treecorr.BinnedCorr2):
         See calculateNMap for an explanation of the m2_uform parameter.
 
         :param file_name:   The name of the file to write to.
-        :param gg:          A G2Correlation object for the shear-shear correlation function
+        :param gg:          A GGCorrelation object for the shear-shear correlation function
                             of the G field.
-        :param dd:          An N2Correlation object for the count-count correlation function
+        :param dd:          An NNCorrelation object for the count-count correlation function
                             of the N field.
-        :param rr:          An N2Correlation object for the random-random pairs.
-        :param dr:          An N2Correlation object for the data-random pairs, if desired, in which
+        :param rr:          An NNCorrelation object for the random-random pairs.
+        :param dr:          An NNCorrelation object for the data-random pairs, if desired, in which
                             case the Landy-Szalay estimator will be calculated.  (default: None)
         :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
                             (default: None)

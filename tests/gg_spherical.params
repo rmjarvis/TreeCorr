@@ -1,5 +1,5 @@
 
-file_name = data/g2_spherical.dat
+file_name = data/gg_spherical.dat
 
 ra_col = 1
 dec_col = 2
@@ -17,4 +17,4 @@ max_sep = 100.
 bin_size = 0.10
 sep_units = arcmin
 
-g2_file_name = output/g2_spherical.out
+g2_file_name = output/gg_spherical.out

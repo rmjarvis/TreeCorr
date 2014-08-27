@@ -2,7 +2,7 @@
 GG: Shear-shear correlations
 ----------------------------
 
-.. autoclass:: treecorr.G2Correlation
+.. autoclass:: treecorr.GGCorrelation
     :members:
     :undoc-members:
     :show-inheritance:

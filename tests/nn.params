@@ -1,6 +1,6 @@
 
-file_name = data/n2_data.dat
-rand_file_name = data/n2_rand.dat
+file_name = data/nn_data.dat
+rand_file_name = data/nn_rand.dat
 
 x_col = 1
 y_col = 2
@@ -14,4 +14,4 @@ max_sep = 25.
 bin_size = 0.10
 sep_units = arcmin
 
-n2_file_name = output/n2.out
+n2_file_name = output/nn.out

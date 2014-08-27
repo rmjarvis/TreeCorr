@@ -19,7 +19,7 @@ import os
 from test_helper import get_aardvark
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
 
-def test_g2():
+def test_gg():
     # cf. http://adsabs.harvard.edu/abs/2002A%26A...389..729S for the basic formulae I use here.
     #
     # Use gamma_t(r) = gamma0 r^2/r0^2 exp(-r^2/2r0^2)
@@ -46,7 +46,7 @@ def test_g2():
     g2 = -gamma0 * numpy.exp(-r2/2.) * (2.*x*y)/r0**2
 
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
-    gg = treecorr.G2Correlation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
+    gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
                                 verbose=2)
     gg.process(cat)
     r = numpy.exp(gg.meanlogr)
@@ -100,11 +100,11 @@ def test_g2():
 
     # Check that we get the same result using the corr2 executable:
     if __name__ == '__main__':
-        cat.write(os.path.join('data','g2.dat'))
+        cat.write(os.path.join('data','gg.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","g2.params"] )
+        p = subprocess.Popen( ["corr2","gg.params"] )
         p.communicate()
-        corr2_output = numpy.loadtxt(os.path.join('output','g2.out'))
+        corr2_output = numpy.loadtxt(os.path.join('output','gg.out'))
         print 'gg.xip = ',gg.xip
         print 'from corr2 output = ',corr2_output[:,2]
         print 'ratio = ',corr2_output[:,2]/gg.xip
@@ -124,7 +124,7 @@ def test_g2():
         print 'max err = ',max(abs(corr2_output[:,5]))
         assert max(abs(corr2_output[:,5])) < 1.e-7
 
-        corr2_output2 = numpy.loadtxt(os.path.join('output','g2_m2.out'))
+        corr2_output2 = numpy.loadtxt(os.path.join('output','gg_m2.out'))
         print 'mapsq = ',mapsq
         print 'from corr2 output = ',corr2_output2[:,1]
         print 'ratio = ',corr2_output2[:,1]/mapsq
@@ -169,7 +169,7 @@ def test_g2():
 
 
 def test_spherical():
-    # This is the same field we used for test_g2, but put into spherical coords.
+    # This is the same field we used for test_gg, but put into spherical coords.
     # We do the spherical trig by hand using the obvious formulae, rather than the clever
     # optimizations that are used by the TreeCorr code, thus serving as a useful test of
     # the latter.
@@ -187,7 +187,7 @@ def test_spherical():
     r = numpy.sqrt(r2)
     theta = arctan2(y,x)
 
-    gg = treecorr.G2Correlation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
+    gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
                                 verbose=2)
     r1 = numpy.exp(gg.logr) * treecorr.arcmin
     temp = numpy.pi/16. * gamma0**2 * (r0/L)**2 * numpy.exp(-0.25*r1**2/r0**2)
@@ -246,7 +246,7 @@ def test_spherical():
 
         cat = treecorr.Catalog(ra=ra, dec=dec, g1=g1_sph, g2=g2_sph, ra_units='rad', 
                                dec_units='rad')
-        gg = treecorr.G2Correlation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
+        gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
                                     verbose=2)
         gg.process(cat)
 
@@ -301,11 +301,11 @@ def test_spherical():
 
     # Check that we get the same result using the corr2 executable:
     if __name__ == '__main__':
-        cat.write(os.path.join('data','g2_spherical.dat'))
+        cat.write(os.path.join('data','gg_spherical.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","g2_spherical.params"] )
+        p = subprocess.Popen( ["corr2","gg_spherical.params"] )
         p.communicate()
-        corr2_output = numpy.loadtxt(os.path.join('output','g2_spherical.out'))
+        corr2_output = numpy.loadtxt(os.path.join('output','gg_spherical.out'))
         print 'gg.xip = ',gg.xip
         print 'from corr2 output = ',corr2_output[:,2]
         print 'ratio = ',corr2_output[:,2]/gg.xip
@@ -335,7 +335,7 @@ def test_aardvark():
     file_name = os.path.join('data','Aardvark.fit')
     config = treecorr.read_config('Aardvark.params')
     cat1 = treecorr.Catalog(file_name, config)
-    gg = treecorr.G2Correlation(config)
+    gg = treecorr.GGCorrelation(config)
     gg.process(cat1)
 
     direct_file_name = os.path.join('data','Aardvark.direct')
@@ -414,10 +414,10 @@ def test_aardvark():
     assert max(abs(corr2_output[:,5])) < 1.e-7
 
     # As bin_slop decreases, the agreement should get even better.
-    # This test is slow, so only do it if running test_g2.py directly.
+    # This test is slow, so only do it if running test_gg.py directly.
     if __name__ == '__main__':
         config['bin_slop'] = 0.2
-        gg = treecorr.G2Correlation(config)
+        gg = treecorr.GGCorrelation(config)
         gg.process(cat1)
 
         #print 'gg.xip = ',gg.xip
@@ -435,6 +435,6 @@ def test_aardvark():
 
  
 if __name__ == '__main__':
-    test_g2()
+    test_gg()
     test_spherical()
     test_aardvark()

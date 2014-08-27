@@ -33,7 +33,7 @@ def test_direct_count():
     min_sep = 1.
     max_sep = 50.
     nbins = 50
-    dd = treecorr.N2Correlation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
     dd.process(cat1, cat2)
     print 'dd.npairs = ',dd.npairs
 
@@ -79,7 +79,7 @@ def test_direct_3d():
     min_sep = 1.
     max_sep = 50.
     nbins = 50
-    dd = treecorr.N2Correlation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
     dd.process(cat1, cat2)
     print 'dd.npairs = ',dd.npairs
 
@@ -100,7 +100,7 @@ def test_direct_3d():
     print 'diff = ',dd.npairs - true_npairs
     numpy.testing.assert_array_equal(dd.npairs, true_npairs)
 
-def test_n2():
+def test_nn():
     # Use a simple probability distribution for the galaxies:
     #
     # n(r) = (2pi s^2)^-1 exp(-r^2/2s^2)
@@ -123,7 +123,7 @@ def test_n2():
     y = numpy.random.normal(0,s, (ngal,) )
 
     cat = treecorr.Catalog(x=x, y=y, x_units='arcmin', y_units='arcmin')
-    dd = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+    dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     dd.process(cat)
     print 'dd.npairs = ',dd.npairs
@@ -132,12 +132,12 @@ def test_n2():
     rx = (numpy.random.random_sample(nrand)-0.5) * L
     ry = (numpy.random.random_sample(nrand)-0.5) * L
     rand = treecorr.Catalog(x=rx,y=ry, x_units='arcmin', y_units='arcmin')
-    rr = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+    rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     rr.process(rand)
     print 'rr.npairs = ',rr.npairs
 
-    dr = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+    dr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     dr.process(cat,rand)
     print 'dr.npairs = ',dr.npairs
@@ -167,12 +167,12 @@ def test_n2():
 
     # Check that we get the same result using the corr2 executable:
     if __name__ == '__main__':
-        cat.write(os.path.join('data','n2_data.dat'))
-        rand.write(os.path.join('data','n2_rand.dat'))
+        cat.write(os.path.join('data','nn_data.dat'))
+        rand.write(os.path.join('data','nn_rand.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","n2.params"] )
+        p = subprocess.Popen( ["corr2","nn.params"] )
         p.communicate()
-        corr2_output = numpy.loadtxt(os.path.join('output','n2.out'))
+        corr2_output = numpy.loadtxt(os.path.join('output','nn.out'))
         print 'xi = ',xi
         print 'from corr2 output = ',corr2_output[:,2]
         print 'ratio = ',corr2_output[:,2]/xi
@@ -211,7 +211,7 @@ def test_3d():
     ra = numpy.arctan2(y,x) / treecorr.degrees
 
     cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='deg', dec_units='deg')
-    dd = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
     dd.process(cat)
     print 'dd.npairs = ',dd.npairs
 
@@ -223,11 +223,11 @@ def test_3d():
     rdec = numpy.arcsin(rz/rr) / treecorr.degrees
     rra = numpy.arctan2(ry,rx) / treecorr.degrees
     rand = treecorr.Catalog(ra=rra, dec=rdec, r=rr, ra_units='deg', dec_units='deg')
-    rr = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
     rr.process(rand)
     print 'rr.npairs = ',rr.npairs
 
-    dr = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    dr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
     dr.process(cat,rand)
     print 'dr.npairs = ',dr.npairs
 
@@ -249,12 +249,12 @@ def test_3d():
 
     # Check that we get the same result using the corr2 executable:
     if __name__ == '__main__':
-        cat.write(os.path.join('data','n2_3d_data.dat'))
-        rand.write(os.path.join('data','n2_3d_rand.dat'))
+        cat.write(os.path.join('data','nn_3d_data.dat'))
+        rand.write(os.path.join('data','nn_3d_rand.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","n2_3d.params"] )
+        p = subprocess.Popen( ["corr2","nn_3d.params"] )
         p.communicate()
-        corr2_output = numpy.loadtxt(os.path.join('output','n2_3d.out'))
+        corr2_output = numpy.loadtxt(os.path.join('output','nn_3d.out'))
         print 'xi = ',xi
         print 'from corr2 output = ',corr2_output[:,2]
         print 'ratio = ',corr2_output[:,2]/xi
@@ -283,11 +283,11 @@ def test_list():
     ry = (numpy.random.random_sample((nobj,ncats))-0.5) * L
     rand_cats = [ treecorr.Catalog(x=rx[:,k],y=ry[:,k]) for k in range(ncats) ]
 
-    dd = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
     dd.process(data_cats)
     print 'dd.npairs = ',dd.npairs
 
-    rr = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
     rr.process(rand_cats)
     print 'rr.npairs = ',rr.npairs
 
@@ -295,8 +295,8 @@ def test_list():
     print 'xi = ',xi
 
     # Now do the same thing with one big catalog for each.
-    ddx = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
-    rrx = treecorr.N2Correlation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    ddx = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    rrx = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
     data_catx = treecorr.Catalog(x=x.reshape( (nobj*ncats,) ), y=y.reshape( (nobj*ncats,) ))
     rand_catx = treecorr.Catalog(x=rx.reshape( (nobj*ncats,) ), y=ry.reshape( (nobj*ncats,) ))
     ddx.process(data_catx)
@@ -314,43 +314,43 @@ def test_list():
     file_list = []
     rand_file_list = []
     for k in range(ncats):
-        file_name = os.path.join('data','n2_list_data%d.dat'%k)
+        file_name = os.path.join('data','nn_list_data%d.dat'%k)
         with open(file_name, 'w') as fid:
             for i in range(nobj):
                 fid.write(('%.8f %.8f\n')%(x[i,k],y[i,k]))
         file_list.append(file_name)
 
-        rand_file_name = os.path.join('data','n2_list_rand%d.dat'%k)
+        rand_file_name = os.path.join('data','nn_list_rand%d.dat'%k)
         with open(rand_file_name, 'w') as fid:
             for i in range(nobj):
                 fid.write(('%.8f %.8f\n')%(rx[i,k],ry[i,k]))
         rand_file_list.append(rand_file_name)
 
-    list_name = os.path.join('data','n2_list_data_files.txt')
+    list_name = os.path.join('data','nn_list_data_files.txt')
     with open(list_name, 'w') as fid:
         for file_name in file_list:
             fid.write('%s\n'%file_name)
-    rand_list_name = os.path.join('data','n2_list_rand_files.txt')
+    rand_list_name = os.path.join('data','nn_list_rand_files.txt')
     with open(rand_list_name, 'w') as fid:
         for file_name in rand_file_list:
             fid.write('%s\n'%file_name)
 
-    file_namex = os.path.join('data','n2_list_datax.dat')
+    file_namex = os.path.join('data','nn_list_datax.dat')
     with open(file_namex, 'w') as fid:
         for k in range(ncats):
             for i in range(nobj):
                 fid.write(('%.8f %.8f\n')%(x[i,k],y[i,k]))
 
-    rand_file_namex = os.path.join('data','n2_list_randx.dat')
+    rand_file_namex = os.path.join('data','nn_list_randx.dat')
     with open(rand_file_namex, 'w') as fid:
         for k in range(ncats):
             for i in range(nobj):
                 fid.write(('%.8f %.8f\n')%(rx[i,k],ry[i,k]))
 
     import subprocess
-    p = subprocess.Popen( ["corr2","n2_list1.params"] )
+    p = subprocess.Popen( ["corr2","nn_list1.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','n2_list1.out'))
+    corr2_output = numpy.loadtxt(os.path.join('output','nn_list1.out'))
     print 'xi = ',xi
     print 'from corr2 output = ',corr2_output[:,2]
     print 'ratio = ',corr2_output[:,2]/xi
@@ -358,9 +358,9 @@ def test_list():
     numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
 
     import subprocess
-    p = subprocess.Popen( ["corr2","n2_list2.params"] )
+    p = subprocess.Popen( ["corr2","nn_list2.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','n2_list2.out'))
+    corr2_output = numpy.loadtxt(os.path.join('output','nn_list2.out'))
     print 'xi = ',xi
     print 'from corr2 output = ',corr2_output[:,2]
     print 'ratio = ',corr2_output[:,2]/xi
@@ -368,9 +368,9 @@ def test_list():
     numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=2)
 
     import subprocess
-    p = subprocess.Popen( ["corr2","n2_list3.params"] )
+    p = subprocess.Popen( ["corr2","nn_list3.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','n2_list3.out'))
+    corr2_output = numpy.loadtxt(os.path.join('output','nn_list3.out'))
     print 'xi = ',xi
     print 'from corr2 output = ',corr2_output[:,2]
     print 'ratio = ',corr2_output[:,2]/xi
@@ -381,6 +381,6 @@ def test_list():
 if __name__ == '__main__':
     test_direct_count()
     test_direct_3d()
-    test_n2()
+    test_nn()
     test_3d()
     test_list()

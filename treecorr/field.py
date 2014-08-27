@@ -313,8 +313,6 @@ class NSimpleField(object):
             if logger:
                 logger.debug('Finished building NSimpleField Flat')
 
-
-
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
@@ -327,8 +325,7 @@ class NSimpleField(object):
 
 
 class KSimpleField(object):
-    """This class stores the kappa field in a tree structure from which it is efficient
-    to compute the two-point correlation functions.  
+    """This class stores the kappa field as a list, skipping all the tree stuff.
 
     A KSimpleField is typically created from a Catalog object using
 
@@ -364,7 +361,6 @@ class KSimpleField(object):
             if logger:
                 logger.debug('Finished building KSimpleField Flat')
 
-
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
@@ -377,8 +373,7 @@ class KSimpleField(object):
 
 
 class GSimpleField(object):
-    """This class stores the shear field in a tree structure from which it is efficient
-    to compute the two-point correlation functions.  
+    """This class stores the shear field as a list, skipping all the tree stuff.
 
     A GSimpleField is typically created from a Catalog object using
 
@@ -414,7 +409,6 @@ class GSimpleField(object):
             self.data = _treecorr.BuildGSimpleFieldFlat(x,y,g1,g2,w,cat.nobj)
             if logger:
                 logger.debug('Finished building GSimpleField Flat')
-
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it

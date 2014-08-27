@@ -58,7 +58,7 @@ class N2Correlation(treecorr.BinnedCorr2):
     The usage pattern is as follows:
 
         >>> nn = treecorr.N2Correlation(config)
-        >>> nn.process(cat1)        # For auto-correlation.
+        >>> nn.process(cat)         # For auto-correlation.
         >>> nn.process(cat1,cat2)   # For cross-correlation.
         >>> rr.process...           # Likewise for random-random correlations
         >>> dr.process...           # If desired, also do data-random correlations
@@ -66,6 +66,12 @@ class N2Correlation(treecorr.BinnedCorr2):
         >>> nn.write(file_name,rr,dr,rd)         # Write out to a file.
         >>> xi,varxi = nn.calculateXi(rr,dr,rd)  # Or get the correlation function directly.
 
+    :param config:      The configuration dict which defines attributes about how to read the file.
+                        Any kwargs that are not those listed here will be added to the config, 
+                        so you can even omit the config dict and just enter all parameters you
+                        want as kwargs.  (default: None) 
+    :param logger:      If desired, a logger object for logging. (default: None, in which case
+                        one will be built according to the config dict's verbose level.)
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
@@ -87,21 +93,23 @@ class N2Correlation(treecorr.BinnedCorr2):
             _treecorr.DestroyNNCorr(self.corr)
 
 
-    def process_auto(self, cat1):
+    def process_auto(self, cat):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the auto-correlation for the given catalog.  After
         calling this function as often as desired, the finalize() command will
         finish the calculation of meanlogr.
+
+        :param cat:      The catalog to process
         """
-        self.logger.info('Starting process N2 auto-correlations for cat %s.',cat1.name)
-        field = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method)
+        self.logger.info('Starting process N2 auto-correlations for cat %s.',cat.name)
+        field = cat.getNField(self.min_sep,self.max_sep,self.b,self.split_method)
 
         if field.sphere:
             _treecorr.ProcessAutoNNSphere(self.corr, field.data, self.output_dots)
         else:
             _treecorr.ProcessAutoNNFlat(self.corr, field.data, self.output_dots)
-        self.tot += 0.5 * cat1.nobj**2
+        self.tot += 0.5 * cat.nobj**2
 
 
     def process_cross(self, cat1, cat2):
@@ -110,6 +118,9 @@ class N2Correlation(treecorr.BinnedCorr2):
         This accumulates the cross-correlation for the given catalogs.  After
         calling this function as often as desired, the finalize() command will
         finish the calculation of meanlogr.
+
+        :param cat1:     The first catalog to process
+        :param cat2:     The second catalog to process
         """
         self.logger.info('Starting process N2 cross-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
@@ -134,6 +145,9 @@ class N2Correlation(treecorr.BinnedCorr2):
         the calculation by dividing by the total weight at the end.  After
         calling this function as often as desired, the finalize() command will
         finish the calculation.
+
+        :param cat1:     The first catalog to process
+        :param cat2:     The second catalog to process
         """
         self.logger.info('Starting process G2 pairwise-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
@@ -185,6 +199,10 @@ class N2Correlation(treecorr.BinnedCorr2):
 
         Both arguments may be lists, in which case all items in the list are used 
         for that element of the correlation.
+
+        :param cat1:    A catalog or list of catalogs for the first N field.
+        :param cat2:    A catalog or list of catalogs for the second N field, if any.
+                        (default: None)
         """
         self.clear()
         if not isinstance(cat1,list): cat1 = [cat1]
@@ -211,7 +229,13 @@ class N2Correlation(treecorr.BinnedCorr2):
         if dr is given and rd is None, then (nn - 2dr + rr)/rr is used.
         If dr and rd are both given, then (nn - dr - rd + rr)/rr is used.
 
-        :returns: (xi, varxi)
+        :param rr:          An N2Correlation object for the random-random pairs.
+        :param dr:          An N2Correlation object for the data-random pairs, if desired, in which
+                            case the Landy-Szalay estimator will be calculated.  (default: None)
+        :param rd:          An N2Correlation object for the random-data pairs, if desired and 
+                            different from dr.  (default: None, which mean use rd=dr)
+                        
+        :returns:           (xi, varxi) as a tuple
         """
         # Each random npairs value needs to be rescaled by the ratio of total possible pairs.
         if rr.tot == 0:
@@ -252,6 +276,13 @@ class N2Correlation(treecorr.BinnedCorr2):
         If dr is None, the simple correlation function (nn - rr)/rr is used.
         if dr is given and rd is None, then (nn - 2dr + rr)/rr is used.
         If dr and rd are both given, then (nn - dr - rd + rr)/rr is used.
+
+        :param file_name:   The name of the file to write to.
+        :param rr:          An N2Correlation object for the random-random pairs.
+        :param dr:          An N2Correlation object for the data-random pairs, if desired, in which
+                            case the Landy-Szalay estimator will be calculated.  (default: None)
+        :param rd:          An N2Correlation object for the random-data pairs, if desired and 
+                            different from dr.  (default: None, which mean use rd=dr)
         """
         self.logger.info('Writing N2 correlations to %s',file_name)
         
@@ -280,6 +311,13 @@ class N2Correlation(treecorr.BinnedCorr2):
 
         This is used by NGCorrelation.writeNorm.  See that function and also 
         G2Correlation.calculateMapSq() for more details.
+
+        :param rr:          An N2Correlation object for the random-random pairs.
+        :param dr:          An N2Correlation object for the data-random pairs, if desired, in which
+                            case the Landy-Szalay estimator will be calculated.  (default: None)
+        :param rd:          An N2Correlation object for the random-data pairs, if desired and 
+                            different from dr.  (default: None, which mean use rd=dr)
+        :param m2_uform:    Which form to use for the aperture mass.  (default: None)
 
         :returns: (nsq, varnsq)
         """

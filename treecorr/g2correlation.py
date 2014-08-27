@@ -64,11 +64,17 @@ class G2Correlation(treecorr.BinnedCorr2):
     The usage pattern is as follows:
 
         >>> gg = treecorr.G2Correlation(config)
-        >>> gg.process(cat1)        # For auto-correlation.
+        >>> gg.process(cat)         # For auto-correlation.
         >>> gg.process(cat1,cat2)   # For cross-correlation.
         >>> gg.write(file_name)     # Write out to a file.
         >>> xip = gg.xip            # Or access the correlation function directly.
 
+    :param config:      The configuration dict which defines attributes about how to read the file.
+                        Any kwargs that are not those listed here will be added to the config, 
+                        so you can even omit the config dict and just enter all parameters you
+                        want as kwargs.  (default: None) 
+    :param logger:      If desired, a logger object for logging. (default: None, in which case
+                        one will be built according to the config dict's verbose level.)
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
@@ -98,16 +104,18 @@ class G2Correlation(treecorr.BinnedCorr2):
             _treecorr.DestroyGGCorr(self.corr)
 
 
-    def process_auto(self, cat1):
+    def process_auto(self, cat):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
         the calculation by dividing by the total weight at the end.  After
         calling this function as often as desired, the finalize() command will
         finish the calculation.
+
+        :param cat:     The catalog to process
         """
-        self.logger.info('Starting process G2 auto-correlations for cat %s.',cat1.name)
-        field = cat1.getGField(self.min_sep,self.max_sep,self.b,self.split_method)
+        self.logger.info('Starting process G2 auto-correlations for cat %s.',cat.name)
+        field = cat.getGField(self.min_sep,self.max_sep,self.b,self.split_method)
 
         if field.sphere:
             _treecorr.ProcessAutoGGSphere(self.corr, field.data, self.output_dots)
@@ -122,6 +130,9 @@ class G2Correlation(treecorr.BinnedCorr2):
         the calculation by dividing by the total weight at the end.  After
         calling this function as often as desired, the finalize() command will
         finish the calculation.
+
+        :param cat1:     The first catalog to process
+        :param cat2:     The second catalog to process
         """
         self.logger.info('Starting process G2 cross-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
@@ -145,6 +156,9 @@ class G2Correlation(treecorr.BinnedCorr2):
         the calculation by dividing by the total weight at the end.  After
         calling this function as often as desired, the finalize() command will
         finish the calculation.
+
+        :param cat1:     The first catalog to process
+        :param cat2:     The second catalog to process
         """
         self.logger.info('Starting process G2 pairwise-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
@@ -166,6 +180,9 @@ class G2Correlation(treecorr.BinnedCorr2):
         The process_auto and process_cross commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
         finishes the calculation by dividing each column by the total weight.
+
+        :param varg1:   The shear variance per component for the first field.
+        :param varg2:   The shear variance per component for the second field.
         """
         mask1 = self.npairs != 0
         mask2 = self.npairs == 0
@@ -205,6 +222,10 @@ class G2Correlation(treecorr.BinnedCorr2):
 
         Both arguments may be lists, in which case all items in the list are used 
         for that element of the correlation.
+
+        :param cat1:    A catalog or list of catalogs for the first G field.
+        :param cat2:    A catalog or list of catalogs for the second G field, if any.
+                        (default: None)
         """
         import math
         self.clear()
@@ -230,6 +251,8 @@ class G2Correlation(treecorr.BinnedCorr2):
 
     def write(self, file_name):
         """Write the correlation function to the file, file_name.
+
+        :param file_name:   The name of the file to write to.
         """
         self.logger.info('Writing G2 correlations to %s',file_name)
         
@@ -271,7 +294,11 @@ class G2Correlation(treecorr.BinnedCorr2):
 
         cf. Schneider, et al (2001): http://xxx.lanl.gov/abs/astro-ph/0112441
 
-        :returns: (mapsq, mapsq_im, mxsq, mxsq_im, varmapsq)
+        :param m2_uform:    Which form to use for the aperture mass.  (default: None, in which
+                            case it looks in the object's config file for config['mu_uform'],
+                            or 'Crittenden' if it is not provided.)
+
+        :returns:           (mapsq, mapsq_im, mxsq, mxsq_im, varmapsq) as a tuple
         """
         if m2_uform is None:
             m2_uform = self.config.get('m2_uform','Crittenden')
@@ -335,8 +362,12 @@ class G2Correlation(treecorr.BinnedCorr2):
         The default behavior is not to compute the E/B versions.  They are calculated if
         eb is set to True.
 
-        :returns: (gamsq, vargamsq)                                if eb == False
-                  (gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e)  if eb == True
+        
+        :param eb:  Whether to include the E/B decomposition as well as the total <Gam^2>.
+                    (default: False)
+
+        :returns:   (gamsq, vargamsq) if ``eb == False`` or
+                    (gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e)  if ``eb == True``
         """
         r = numpy.exp(self.logr)
         meanr = numpy.exp(self.meanlogr) # Use the actual mean r for each bin
@@ -376,6 +407,9 @@ class G2Correlation(treecorr.BinnedCorr2):
         file, file_name.
 
         See calculateMapSq for an explanation of the m2_uform parameter.
+
+        :param file_name:   The name of the file to write to.
+        :param m2_uform:    Which form to use for the aperture mass.  (default: None)
         """
         self.logger.info('Writing Map^2 from G2 correlations to %s',file_name)
 

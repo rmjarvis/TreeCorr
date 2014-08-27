@@ -244,8 +244,8 @@ def get_from_list(config, key, num, value_type=str, default=None):
     """A helper function to get a key from config that is allowed to be a list
 
     Some of the config values are allowed to be lists of values, in which case we take the 
-    ``num`` item from the list.  If they are not a list, then the given value is used for 
-    all values of ``num``.
+    `num` item from the list.  If they are not a list, then the given value is used for 
+    all values of `num`.
 
     :param config:      The configuration dict from which to get the key value.
     :param key:         What key to get from config.

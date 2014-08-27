@@ -105,7 +105,7 @@ class CelestialCoord(object):
         The return value is in radians.
 
         :param other:   Another `CelestialCoord` object.
-        :returns:       The great circle distance in radians between this coord and ``other``.
+        :returns:       The great circle distance in radians between this coord and `other`.
         """
         # The easiest way to do this in a way that is stable for small separations
         # is to calculate the (x,y,z) position on the unit sphere corresponding to each
@@ -134,8 +134,8 @@ class CelestialCoord(object):
 
 
     def angleBetween(self, coord1, coord2):
-        """Find the open angle at the location of the current coord between ``coord1`` and
-        ``coord2``.
+        """Find the open angle at the location of the current coord between `coord1` and
+        `coord2`.
 
         :param coord1:  Another `CelestialCoord` object.
         :param coord2:  A third `CelestialCoord` object.
@@ -171,8 +171,8 @@ class CelestialCoord(object):
 
 
     def area(self, coord1, coord2):
-        """Find the area of the spherical triangle defined by the current coord, ``coord1``,
-        and ``coord2``, returning the area in steradians.
+        """Find the area of the spherical triangle defined by the current coordinate, `coord1`,
+        and `coord2`, returning the area in steradians.
 
         :param coord1:  Another `CelestialCoord` object.
         :param coord2:  A third `CelestialCoord` object.
@@ -229,14 +229,14 @@ class CelestialCoord(object):
 
     def project(self, other, projection='lambert'):
         """Use the currect coord as the center point of a tangent plane projection to project
-        the ``other`` coordinate onto that plane.
+        the `other` coordinate onto that plane.
 
         This function returns the position (u,v) in the Euclidean coordinate system defined by
         a tangent plane projection around the current coordinate, with +v pointing north and
         +u pointing west.
 
         There are currently four options for the projection, which you can specify as a string
-        value for the ``projection`` keyword argument:
+        value for the `projection` keyword argument:
 
         - 'lambert' Uses a Lambert azimuthal projection, which preserves the area of small
           patches, but not the angles between points in these patches.  For more information, see
@@ -317,11 +317,11 @@ class CelestialCoord(object):
 
     def project_rad(self, ra, dec, projection):
         """This is basically identical to the :meth:`~treecorr.CelestialCoord.project` method 
-        except that the input ``ra``, ``dec`` are given in radians rather than packaged as a 
+        except that the input `ra`, `dec` are given in radians rather than packaged as a 
         `CelestialCoord` object.
 
-        The main advantage to this is that it will work if ``ra`` and ``dec`` are NumPy arrays,
-        in which case the output ``x``, ``y`` will also be NumPy arrays.
+        The main advantage to this is that it will work if `ra` and `dec` are NumPy arrays,
+        in which case the output `x`, `y` will also be NumPy arrays.
 
         See the doc for :meth:`~treecorr.CelestialCoord.project` for more information about the 
         kinds of projection.
@@ -431,12 +431,12 @@ class CelestialCoord(object):
 
 
     def deproject_rad(self, u, v, projection='lambert'):
-        """This is basically identical to the deproject() function except that the output ``ra``,
-        ``dec`` are returned as a tuple (ra, dec) in radians rather than packaged as a 
+        """This is basically identical to the deproject() function except that the output `ra`,
+        `dec` are returned as a tuple (ra, dec) in radians rather than packaged as a 
         `CelestialCoord` object.
 
-        The main advantage to this is that it will work if ``u`` and ``v`` are NumPy arrays,
-        in which case the output ``ra``, ``dec`` will also be NumPy arrays.
+        The main advantage to this is that it will work if `u` and `v` are NumPy arrays,
+        in which case the output `ra`, `dec` will also be NumPy arrays.
 
         See the doc for :meth:`~treecorr.CelestialCoord.project` for more information about the 
         kinds of projection.

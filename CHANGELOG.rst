@@ -1,5 +1,5 @@
-Changes from 3.0 to 3.1
-=======================
+Changes from version 3.0 to 3.1
+===============================
 
 
 API changes:

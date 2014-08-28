@@ -123,6 +123,7 @@ int main() {
     return 0;
 }
 """
+    import tempfile
     cpp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.cpp')
     cpp_file.write(cpp_code)
     cpp_file.close()

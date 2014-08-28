@@ -222,11 +222,15 @@ def corr2(config, logger=None):
 
     # Set the number of threads
     num_threads = config.get('num_threads',0)
+    logger.debug('From config dict, num_threads = %d',num_threads)
     if num_threads <= 0:
         import multiprocessing
         num_threads = multiprocessing.cpu_count()
+        logger.debug('multiprocessing.cpu_count() = %d',num_threads)
     if num_threads > 1:
+        logger.debug('Telling OpenMP to use %d threads',num_threads)
         num_threads = treecorr.set_omp_threads(num_threads)
+        logger.debug('OpenMP reports that it will use %d threads',num_threads)
         if num_threads > 1:
             logger.info('Using %d threads.',num_threads)
         elif 'num_threads' in config:

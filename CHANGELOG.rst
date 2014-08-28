@@ -12,7 +12,6 @@ API changes:
   think the former may be confusing, so I changed everything to use 
   the GG notation throughout the code and documentation, most critically
   in these class names. (#9)
-
 - Changed the config parameters g2_file_name -> gg_file_name, n2_file_name ->
   nn_file_name, and k2_file_name -> kk_file_name for the same reason as
   above.  In this case though, I kept the old parameter names as valid
@@ -39,6 +38,9 @@ New features:
 Bug fixes:
 ----------
 
+- Fixed how setup.py checks what kind of compiler is being used when the
+  when the compiler is called simply 'cc'.  It should now detect gcc more
+  reliably and so use OpenMP on those systems. (#7)
 - Fixed an error in the handling of file_name as a list of file names. (#10)
 - Allowed verbose parameter to correctly reset the logging verbosity on calls
   to Catalog, etc.  It used to only get set correctly on the first call, so if

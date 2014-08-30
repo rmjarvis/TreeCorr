@@ -11,7 +11,7 @@ The corr2 executable
 
 Also installed with TreeCorr is an executable script, called corr2.
 The script takes one required command-line argument, which is the 
-name of a configuration file:
+name of a configuration file::
 
     corr2 config_file
 
@@ -23,7 +23,7 @@ https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters
 for the complete documentation about the allowed parameters.
 
 You can also specify parameters on the command line after the name of 
-the configuration file. e.g.:
+the configuration file. e.g.::
 
     corr2 config_file file_name=file1.dat gg_file_name=file1.out
     corr2 config_file file_name=file2.dat gg_file_name=file2.out

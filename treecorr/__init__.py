@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 
-version = '3.1.0'
+version = '3.2'
 
 from .celestial import CelestialCoord, angle_units, arcsec, arcmin, degrees, hours, radians
 from .config import read_config, set_omp_threads

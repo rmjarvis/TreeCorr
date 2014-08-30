@@ -14,8 +14,9 @@ Checklist for making a new release:
 - git tag -a vM.m.r -m MESSAGE
 - git push --tags
 - python setup.py sdist upload
-- git checkout -b releases/M.m.r
-- git push -u origin releases/M.m.r
+- From another directory try out pip install TreeCorr --upgrade
+- git checkout -b releases/M.m
+- git push -u origin releases/M.m
 - Back in master, update version number to M.(m+1) (i.e. no .r)
 - Add tagged CHANGELOG blob to the history page in the docs.
 - Clear out CHANGELOG.rst

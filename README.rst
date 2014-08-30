@@ -92,6 +92,26 @@ that is also relatively straightforward:
    It will also install the Python module called treecorr which you can use
    from within Python.
 
+   .. note::
+
+        There is a bug with numpy that it sometimes doesn't install correctly
+        when included as a setup.py dependency:
+            https://github.com/numpy/numpy/issues/1458  
+        The bug was marked closed in 2012, but I've gotten it with the latest
+        numpy version 1.8.2.  Installation failed with a traceback that ended
+        with::
+
+            File "/private/tmp/easy_install-xl4gri/numpy-1.8.2/numpy/core/setup.py", line 631, in configuration
+
+            AttributeError: 'Configuration' object has no attribute 'add_define_macros'
+
+        The workaround if this happens for you seems to be to install numpy
+        separately with::
+
+            easy_install numpy
+
+        Then the normal TreeCorr installation should work correctly.
+
 5. (optional) If you want to run the unit tests, you can do the following:
 
         cd tests

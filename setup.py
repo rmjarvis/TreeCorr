@@ -218,11 +218,15 @@ except ImportError:
     except ImportError:
         dependencies += ['fitsio']
 
+with open('README.rst') as file:
+    long_description = file.read()
+
 setup(name="TreeCorr", 
       version="3.0.2",
       author="Mike Jarvis",
       author_email="michael@jarvis.net",
       description="Python module for computing 2-point correlation functions",
+      long_description=long_description,
       license = "BSD License",
       url="https://github.com/rmjarvis/TreeCorr",
       download_url="https://github.com/rmjarvis/TreeCorr/releases/tag/v3.0.2.zip",

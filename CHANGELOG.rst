@@ -32,15 +32,14 @@ Changes to output files:
 
 - Removed the extra dots I put in the headers of the output files.  They were
   meant to help visually separate the columns, but it confuses some automatic
-  parsers (like astropy as pointed out by Joe Zuntz).  (#14)
+  parsers (like astropy as pointed out by Joe Zuntz). (#14)
 
 
 New features:
 -------------
 
 - Switched the documentation to use Restructured Text markup and put the
-  documentation online using Sphinx:
-  http://rmjarvis.github.io/TreeCorr/html/index.html (#9)
+  documentation online using Sphinx. (#9)
 - Added a warning if a file_list does not have any entries. (#10)
 - Added a warning if Catalog is passed an input array that is not 1-d.
   If will also automatically reshape it to 1-d. (#11)

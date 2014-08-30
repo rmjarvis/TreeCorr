@@ -32,17 +32,17 @@ file `TreeCorr_LICENSE` with the distribution.  See that file for details.
 Installation
 ------------
 
-The easiest way to install TreeCorr is with pip:
+The easiest way to install TreeCorr is with pip::
 
     sudo pip install TreeCorr
 
 If you have previously installed TreeCorr, and want to upgrade to a new
-released version, you should do:
+released version, you should do::
 
     sudo pip install TreeCorr --upgrade
 
 To install TreeCorr on a system where you do not have sudo privileges,
-you can do:
+you can do::
 
     pip install TreeCorr --install-option="--prefix=~"
 
@@ -71,21 +71,21 @@ that is also relatively straightforward:
    https://github.com/rmjarvis/TreeCorr/releases/tag/v3.0.2
 
 3. Unzip the archive with either of the following (depending on which kind
-   of archive you downloaded):
+   of archive you downloaded)::
 
         unzip TreeCorr-3.0.2.zip
         tar xvzf TreeCorr-3.0.2.tar.gz
 
-   It will unzip into the directory TreeCorr-3.0.2. Change to that directory:
+   It will unzip into the directory TreeCorr-3.0.2. Change to that directory::
 
         cd TreeCorr-3.0.2
 
 4. Install with the normal setup.py options.  Typically this would be the
-   command
+   command::
 
         python setup.py install --prefix=/your/home/directory
 
-   This will install the executable `corr2` at
+   This will install the executable `corr2` at::
 
         /your/home/directory/bin/corr2
 
@@ -112,7 +112,9 @@ that is also relatively straightforward:
 
         Then the normal TreeCorr installation should work correctly.
 
-5. (optional) If you want to run the unit tests, you can do the following:
+
+
+5. (optional) If you want to run the unit tests, you can do the following::
 
         cd tests
         nosetests
@@ -149,7 +151,7 @@ Running corr2
 -------------
 
 The executable corr2 takes one required command-line argument, which is the 
-name of a configuration file:
+name of a configuration file::
 
     corr2 config_file
 
@@ -161,7 +163,7 @@ https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters
 for the complete documentation about the allowed parameters.
 
 You can also specify parameters on the command line after the name of 
-the configuration file. e.g.:
+the configuration file. e.g.::
 
     corr2 config_file file_name=file1.dat gg_file_name=file1.out
     corr2 config_file file_name=file2.dat gg_file_name=file2.out
@@ -175,7 +177,7 @@ Using the Python module
 -----------------------
 
 The same functionality can be achieved from within Python using a Python dict
-for the configuration parameters:
+for the configuration parameters::
 
     >>> import treecorr
     >>> config = treecorr.read_config(config_file)

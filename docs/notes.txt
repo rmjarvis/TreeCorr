@@ -1,0 +1,21 @@
+This file just contains some notes to myself about various things.
+
+Checklist for making a new release:
+
+- Run test suite on as many machines as possible.
+- Update the version number to the new M.m.r value.
+  - README.rst
+  - setup.py
+  - __init__.py
+- Read over the CHANGELOG.rst file and edit as needed.
+- Update the wiki pages to incorporate any changes as needed.
+- In docs directory, run update_docs
+- In gh-pages directory, commit and push new docs.
+- git tag -a vM.m.r -m MESSAGE
+- git push --tags
+- python setup.py sdist upload
+- git checkout -b releases/M.m.r
+- git push -u origin releases/M.m.r
+- Back in master, update version number to M.(m+1) (i.e. no .r)
+- Add tagged CHANGELOG blob to the history page in the docs.
+- Clear out CHANGELOG.rst

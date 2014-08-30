@@ -20,3 +20,4 @@ Checklist for making a new release:
 - Back in master, update version number to M.(m+1) (i.e. no .r)
 - Add tagged CHANGELOG blob to the history page in the docs.
 - Clear out CHANGELOG.rst
+- Change github home page to point to releases/M.m

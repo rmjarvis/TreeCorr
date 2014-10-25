@@ -434,7 +434,43 @@ def test_aardvark():
         assert max(abs(xim_err)) < 1.e-8
 
  
+def test_shuffle():
+    # Check that the code is insensitive to shuffling the input data vectors.
+
+    # Might as well use the same function as above, although I reduce L a bit.
+    ngal = 10000
+    gamma0 = 0.05
+    r0 = 10.
+    L = 5. * r0
+    numpy.random.seed(8675309)
+    x = (numpy.random.random_sample(ngal)-0.5) * L
+    y = (numpy.random.random_sample(ngal)-0.5) * L
+    r2 = (x**2 + y**2)/r0**2
+    g1 = -gamma0 * numpy.exp(-r2/2.) * (x**2-y**2)/r0**2
+    g2 = -gamma0 * numpy.exp(-r2/2.) * (2.*x*y)/r0**2
+
+    cat_u = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
+    gg_u = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=30., verbose=2)
+    gg_u.process(cat_u)
+
+    # Put these in a single 2d array so we can easily use numpy.random.shuffle
+    data = numpy.array( [x, y, g1, g2] ).T
+    print 'data = ',data
+    numpy.random.shuffle(data)
+
+    cat_s = treecorr.Catalog(x=data[:,0], y=data[:,1], g1=data[:,2], g2=data[:,3])
+    gg_s = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=30., verbose=2)
+    gg_s.process(cat_s)
+
+    print 'gg_u.xip = ',gg_u.xip
+    print 'gg_s.xip = ',gg_s.xip
+    print 'ratio = ',gg_u.xip / gg_s.xip
+    print 'diff = ',gg_u.xip - gg_s.xip
+    print 'max diff = ',max(abs(gg_u.xip - gg_s.xip))
+    assert max(abs(gg_u.xip - gg_s.xip)) < 1.e-14
+
 if __name__ == '__main__':
     test_gg()
     test_spherical()
     test_aardvark()
+    test_shuffle()

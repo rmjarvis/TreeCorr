@@ -75,6 +75,9 @@ class GGCorrelation(treecorr.BinnedCorr2):
                         want as kwargs.  (default: None) 
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
+
+    Other parameters are allowed to be either in the config dict or as a named kwarg.
+    See the documentation for BinnedCorr2 for details.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
@@ -83,6 +86,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.xim = numpy.zeros(self.nbins, dtype=float)
         self.xip_im = numpy.zeros(self.nbins, dtype=float)
         self.xim_im = numpy.zeros(self.nbins, dtype=float)
+        self.varxi = numpy.zeros(self.nbins, dtype=float)
+        self.meanlogr = numpy.zeros(self.nbins, dtype=float)
+        self.weight = numpy.zeros(self.nbins, dtype=float)
+        self.npairs = numpy.zeros(self.nbins, dtype=float)
 
         xip = self.xip.ctypes.data_as(cdouble_ptr)
         xipi = self.xip_im.ctypes.data_as(cdouble_ptr)
@@ -303,9 +310,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         cf. Schneider, et al (2001): http://xxx.lanl.gov/abs/astro-ph/0112441
 
-        :param m2_uform:    Which form to use for the aperture mass.  (default: None, in which
-                            case it looks in the object's config file for config['mu_uform'],
-                            or 'Crittenden' if it is not provided.)
+        The following parameter may be given either in the constructor (in either the config 
+        file or as a named kwarg) or here as a named kwarg.
+
+        :param m2_uform:    Which form to use for the aperture mass, as described above. 
+                            (default: 'Crittenden')
 
         :returns:           (mapsq, mapsq_im, mxsq, mxsq_im, varmapsq) as a tuple
         """

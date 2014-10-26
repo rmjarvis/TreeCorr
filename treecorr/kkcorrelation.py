@@ -76,11 +76,18 @@ class KKCorrelation(treecorr.BinnedCorr2):
                         want as kwargs.  (default: None) 
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
+
+    Other parameters are allowed to be either in the config dict or as a named kwarg.
+    See the documentation for BinnedCorr2 for details.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
         self.xi = numpy.zeros(self.nbins, dtype=float)
+        self.varxi = numpy.zeros(self.nbins, dtype=float)
+        self.meanlogr = numpy.zeros(self.nbins, dtype=float)
+        self.weight = numpy.zeros(self.nbins, dtype=float)
+        self.npairs = numpy.zeros(self.nbins, dtype=float)
 
         xi = self.xi.ctypes.data_as(cdouble_ptr)
         meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)

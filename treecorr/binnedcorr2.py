@@ -38,26 +38,63 @@ class BinnedCorr2(object):
     use one or if you want to change some parameters from what are in a config dict,
     then you can use normal kwargs, which take precedence over anything in the config dict.
 
-    Exactly three of the following 4 parameters are required either in the config dict or
-    in kwargs:
-
-        :nbins:     How many bins to use
-        :bin_size:  The width of the bins in log(separation)
-        :min_sep:   The minimum separation; the left edge of the first bin
-        :max_sep:   The maximum separation; the right edge of the last bin
-
-    Any three of these may be provided.  The fourth number will be calculated from them.
-
-    Note that if bin_size, min_sep, and max_sep are specified, then the nominal number of
-    bins is not necessarily and integer.  In this case, nbins will be rounded up to the 
-    next higher integer, and max_sep will be updated to account for this.
-
     :param config:      The configuration dict which defines attributes about how to read the file.
                         Any kwargs that are not those listed here will be added to the config, 
                         so you can even omit the config dict and just enter all parameters you
                         want as kwargs.  (default: None) 
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
+
+    The following parameters may be given either in the config dict or as a named kwarg:
+
+    :param nbins:       How many bins to use. (Exactly three of nbins, bin_size, min_sep, max_sep
+                        are required. If nbins is not given, it will be calculated from the values
+                        of the other three, rounding up to the next highest integer. In this case,
+                        max_sep will be readjusted to account for this rounding up.)
+    :param bin_size:    The width of the bins in log(separation). (Exactly three of nbins, 
+                        bin_size, min_sep, max_sep are required.  If bin_size is not given, it will
+                        be calculated from the values of the other three.)
+    :param min_sep:     The minimum separation in units of sep_units, if relevant. (Exactly three
+                        of nbins, bin_size, min_sep, max_sep are required.  If min_sep is not
+                        given, it will be calculated from the values of the other three.)
+    :param max_seps:    The maximum separation in units of sep_units, if relevant. (Exactly three
+                        of nbins, bin_size, min_sep, max_sep are required.  If max_sep is not
+                        given, it will be calculated from the values of the other three.  If nbins
+                        is not given, then max_sep will be adjusted as needed to allow nbins to be
+                        an integer value.)
+    :param sep_units:   The units to use for the separation values, given as a string.  This 
+                        includes both min_sep and max_sep above, as well as the units of the 
+                        output R column.  Valid options are arcsec, arcmin, degrees, hours,
+                        radians.  (default: radians)
+    :param bin_slop:    How much slop to allow in the placement of pairs in the bins.
+                        If bin_slop = 1, then the bin into which a particular pair is placed may
+                        be incorrect by at most 1.0 bin widths.  (default: None, which means to
+                        use bin_slop=1 if bin_size <= 0.1, or 0.1/bin_size if bin_size > 0.1.
+                        This mean the error will be at most 0.1 in log(sep), which has been found
+                        to yield good results for most application.
+    :param verbose:     If no logger is provided, this will optionally specify a logging level to
+                        use.
+                        - 0 means no logging output (default)
+                        - 1 means to output warnings only
+                        - 2 means to output various progress information
+                        - 3 means to output extensive debugging information
+    :param log_file:    If no logger is provided, this will specify a file to write the logging
+                        output.  (default: None; i.e. output to standard output)
+    :param output_dots: Whether to output progress dots during the calcualtion of the correlation
+                        function. (default: False unless verbose is given and >= 2, in which case
+                        True)
+    :param split_method:  How to split the cells in the tree when building the tree structure.
+                        Options are:
+                        - mean: Use the arithmetic mean of the coordinate being split. (default)
+                        - median: Use the median of the coordinate being split.
+                        - middle: Use the middle of the range; i.e. the average of the minimum and
+                          maximum value.
+    :param precision:   The precision to use for the output values. This should be an integer,
+                        which specifies how many digits to write. (default: 4)
+    :param pairwise:    Whether to use a different kind of calculation for cross correlations
+                        whereby corresponding items in the two catalogs are correlated pairwise
+                        rather than the usual case of every item in one catalog being correlated
+                        with every item in the other catalog. (default: False)
     """
     def __init__(self, config=None, logger=None, **kwargs):
         import math
@@ -73,7 +110,7 @@ class BinnedCorr2(object):
         if 'output_dots' in self.config:
             self.output_dots = treecorr.config.get(self.config,'output_dots',bool)
         elif 'verbose' in self.config:
-            self.output_dots = treecorr.config.get(self.config,'verbose',int) >= 2
+            self.output_dots = treecorr.config.get(self.config,'verbose',int,0) >= 2
         else:
             self.output_dots = False
 
@@ -125,6 +162,8 @@ class BinnedCorr2(object):
         self.split_method = self.config.get('split_method','mean')
         if self.split_method not in ['middle', 'median', 'mean']:
             raise ValueError("Invalid split_method %s"%self.split_method)
+        self.logger.debug("Using split_method = %s",self.split_method)
+
         self.bin_slop = treecorr.config.get(self.config,'bin_slop',float,-1.0)
         if self.bin_slop < 0.0:
             if self.bin_size <= 0.1:
@@ -150,11 +189,6 @@ class BinnedCorr2(object):
         # And correct the units:
         self.logr -= self.log_sep_units
 
-        # All correlation functions use these, so go ahead and set them up here.
-        self.meanlogr = numpy.zeros( (self.nbins, ) )
-        self.varxi = numpy.zeros( (self.nbins, ) )
-        self.weight = numpy.zeros( (self.nbins, ) )
-        self.npairs = numpy.zeros( (self.nbins, ) )
 
 
     def gen_write(self, file_name, headers, columns):

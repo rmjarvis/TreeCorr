@@ -72,10 +72,15 @@ class NNCorrelation(treecorr.BinnedCorr2):
                         want as kwargs.  (default: None) 
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
+
+    Other parameters are allowed to be either in the config dict or as a named kwarg.
+    See the documentation for BinnedCorr2 for details.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
+        self.meanlogr = numpy.zeros(self.nbins, dtype=float)
+        self.npairs = numpy.zeros(self.nbins, dtype=float)
         self.tot = 0.
 
         meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
@@ -317,7 +322,12 @@ class NNCorrelation(treecorr.BinnedCorr2):
                             case the Landy-Szalay estimator will be calculated.  (default: None)
         :param rd:          An NNCorrelation object for the random-data pairs, if desired and 
                             different from dr.  (default: None, which mean use rd=dr)
-        :param m2_uform:    Which form to use for the aperture mass.  (default: None)
+
+        The following parameter may be given either in the constructor (in either the config 
+        file or as a named kwarg) or here as a named kwarg.
+
+        :param m2_uform:    Which form to use for the aperture mass, as described above.
+                            (default: 'Crittenden')
 
         :returns: (nsq, varnsq)
         """

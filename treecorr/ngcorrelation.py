@@ -71,12 +71,19 @@ class NGCorrelation(treecorr.BinnedCorr2):
                         want as kwargs.  (default: None) 
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
+
+    Other parameters are allowed to be either in the config dict or as a named kwarg.
+    See the documentation for BinnedCorr2 for details.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
         self.xi = numpy.zeros(self.nbins, dtype=float)
         self.xi_im = numpy.zeros(self.nbins, dtype=float)
+        self.varxi = numpy.zeros(self.nbins, dtype=float)
+        self.meanlogr = numpy.zeros(self.nbins, dtype=float)
+        self.weight = numpy.zeros(self.nbins, dtype=float)
+        self.npairs = numpy.zeros(self.nbins, dtype=float)
 
         xi = self.xi.ctypes.data_as(cdouble_ptr)
         xi_im = self.xi_im.ctypes.data_as(cdouble_ptr)
@@ -279,9 +286,12 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
                             (default: None)
-        :param m2_uform:    Which form to use for the aperture mass.  (default: None, in which
-                            case it looks in the object's config file for config['mu_uform'],
-                            or 'Crittenden' if it is not provided.)
+
+        The following parameter may be given either in the constructor (in either the config 
+        file or as a named kwarg) or here as a named kwarg.
+
+        :param m2_uform:    Which form to use for the aperture mass, as described above.
+                            (default: 'Crittenden')
 
         :returns:           (nmap, nmx, varnmap) as a tuple
         """

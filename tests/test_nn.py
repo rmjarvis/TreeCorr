@@ -16,6 +16,183 @@ import numpy
 import treecorr
 import os
 
+def test_binnedcorr2():
+    import math
+    # Test some basic properties of the base class
+
+    # Check the different ways to set up the binning:
+    # Omit bin_size
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20)
+    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    assert nn.min_sep == 5.
+    assert nn.max_sep == 20.
+    assert nn.nbins == 20
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, math.log(nn.max_sep/nn.min_sep))
+    print 'logr = ',nn.logr
+    numpy.testing.assert_almost_equal(nn.logr[0], math.log(nn.min_sep) + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.logr[-1], math.log(nn.max_sep) - 0.5*nn.bin_size)
+    assert len(nn.logr) == nn.nbins
+
+    # Omit min_sep
+    nn = treecorr.NNCorrelation(max_sep=20, nbins=20, bin_size=0.1)
+    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    assert nn.bin_size == 0.1
+    assert nn.max_sep == 20.
+    assert nn.nbins == 20
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, math.log(nn.max_sep/nn.min_sep))
+    numpy.testing.assert_almost_equal(nn.logr[0], math.log(nn.min_sep) + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.logr[-1], math.log(nn.max_sep) - 0.5*nn.bin_size)
+    assert len(nn.logr) == nn.nbins
+
+    # Omit max_sep
+    nn = treecorr.NNCorrelation(min_sep=5, nbins=20, bin_size=0.1)
+    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    assert nn.bin_size == 0.1
+    assert nn.min_sep == 5.
+    assert nn.nbins == 20
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, math.log(nn.max_sep/nn.min_sep))
+    numpy.testing.assert_almost_equal(nn.logr[0], math.log(nn.min_sep) + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.logr[-1], math.log(nn.max_sep) - 0.5*nn.bin_size)
+    assert len(nn.logr) == nn.nbins
+
+    # Omit nbins
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1)
+    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    assert nn.bin_size == 0.1
+    assert nn.min_sep == 5.
+    assert nn.max_sep >= 20.
+    assert nn.max_sep <= 20.*math.exp(nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, math.log(nn.max_sep/nn.min_sep))
+    numpy.testing.assert_almost_equal(nn.logr[0], math.log(nn.min_sep) + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.logr[-1], math.log(nn.max_sep) - 0.5*nn.bin_size)
+    assert len(nn.logr) == nn.nbins
+
+    # Check the use of sep_units
+    # radians
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='radians')
+    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    assert nn.min_sep == 5.
+    assert nn.max_sep == 20.
+    assert nn.nbins == 20
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, math.log(nn.max_sep/nn.min_sep))
+    numpy.testing.assert_almost_equal(nn.logr[0], math.log(5) + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.logr[-1], math.log(20) - 0.5*nn.bin_size)
+    assert len(nn.logr) == nn.nbins
+
+    # arcsec
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcsec')
+    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    numpy.testing.assert_almost_equal(nn.min_sep, 5. * math.pi/180/3600)
+    numpy.testing.assert_almost_equal(nn.max_sep, 20. * math.pi/180/3600)
+    assert nn.nbins == 20
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, math.log(nn.max_sep/nn.min_sep))
+    # Note that logr is in the separation units, not radians.
+    numpy.testing.assert_almost_equal(nn.logr[0], math.log(5) + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.logr[-1], math.log(20) - 0.5*nn.bin_size)
+    assert len(nn.logr) == nn.nbins
+
+    # arcmin
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcmin')
+    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    numpy.testing.assert_almost_equal(nn.min_sep, 5. * math.pi/180/60)
+    numpy.testing.assert_almost_equal(nn.max_sep, 20. * math.pi/180/60)
+    assert nn.nbins == 20
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, math.log(nn.max_sep/nn.min_sep))
+    numpy.testing.assert_almost_equal(nn.logr[0], math.log(5) + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.logr[-1], math.log(20) - 0.5*nn.bin_size)
+    assert len(nn.logr) == nn.nbins
+
+    # degrees
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='degrees')
+    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    numpy.testing.assert_almost_equal(nn.min_sep, 5. * math.pi/180)
+    numpy.testing.assert_almost_equal(nn.max_sep, 20. * math.pi/180)
+    assert nn.nbins == 20
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, math.log(nn.max_sep/nn.min_sep))
+    numpy.testing.assert_almost_equal(nn.logr[0], math.log(5) + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.logr[-1], math.log(20) - 0.5*nn.bin_size)
+    assert len(nn.logr) == nn.nbins
+
+    # hours
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='hours')
+    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    numpy.testing.assert_almost_equal(nn.min_sep, 5. * math.pi/12)
+    numpy.testing.assert_almost_equal(nn.max_sep, 20. * math.pi/12)
+    assert nn.nbins == 20
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, math.log(nn.max_sep/nn.min_sep))
+    numpy.testing.assert_almost_equal(nn.logr[0], math.log(5) + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.logr[-1], math.log(20) - 0.5*nn.bin_size)
+    assert len(nn.logr) == nn.nbins
+
+    # Check bin_slop
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1)
+    print nn.bin_size,nn.bin_slop,nn.b
+    assert nn.bin_size == 0.1
+    assert nn.bin_slop == 1.0
+    numpy.testing.assert_almost_equal(nn.b, 0.1)
+
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=1.0)
+    print nn.bin_size,nn.bin_slop,nn.b
+    assert nn.bin_size == 0.1
+    assert nn.bin_slop == 1.0
+    numpy.testing.assert_almost_equal(nn.b, 0.1)
+
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=0.2)
+    print nn.bin_size,nn.bin_slop,nn.b
+    assert nn.bin_size == 0.1
+    assert nn.bin_slop == 0.2
+    numpy.testing.assert_almost_equal(nn.b, 0.02)
+
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=0.0)
+    print nn.bin_size,nn.bin_slop,nn.b
+    assert nn.bin_size == 0.1
+    assert nn.bin_slop == 0.0
+    assert nn.b == 0.0
+
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=2.0)
+    print nn.bin_size,nn.bin_slop,nn.b
+    assert nn.bin_size == 0.1
+    assert nn.bin_slop == 2.0
+    numpy.testing.assert_almost_equal(nn.b, 0.2)
+
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.4, bin_slop=1.0)
+    print nn.bin_size,nn.bin_slop,nn.b
+    assert nn.bin_size == 0.4
+    assert nn.bin_slop == 1.0
+    numpy.testing.assert_almost_equal(nn.b, 0.4)
+
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.4)
+    print nn.bin_size,nn.bin_slop,nn.b
+    assert nn.bin_size == 0.4
+    numpy.testing.assert_almost_equal(nn.b, 0.1)
+    numpy.testing.assert_almost_equal(nn.bin_slop, 0.25)
+
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.4, bin_slop=0.1)
+    print nn.bin_size,nn.bin_slop,nn.b
+    assert nn.bin_size == 0.4
+    assert nn.bin_slop == 0.1
+    numpy.testing.assert_almost_equal(nn.b, 0.04)
+
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.05, bin_slop=1.0)
+    print nn.bin_size,nn.bin_slop,nn.b
+    assert nn.bin_size == 0.05
+    assert nn.bin_slop == 1.0
+    numpy.testing.assert_almost_equal(nn.b, 0.05)
+
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.05)
+    print nn.bin_size,nn.bin_slop,nn.b
+    assert nn.bin_size == 0.05
+    assert nn.bin_slop == 1.0
+    numpy.testing.assert_almost_equal(nn.b, 0.05)
+
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.05, bin_slop=3)
+    print nn.bin_size,nn.bin_slop,nn.b
+    assert nn.bin_size == 0.05
+    assert nn.bin_slop == 3.0
+    numpy.testing.assert_almost_equal(nn.b, 0.15)
+
+
+
 def test_direct_count():
     # If the catalogs are small enough, we can do a direct count of the number of pairs
     # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
@@ -379,6 +556,7 @@ def test_list():
 
 
 if __name__ == '__main__':
+    test_binnedcorr2()
     test_direct_count()
     test_direct_3d()
     test_nn()

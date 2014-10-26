@@ -124,8 +124,9 @@ corr2_valid_params = {
             'The size of the output bins in log(sep).'),
     'sep_units' : (str, False, None, treecorr.angle_units.keys(),
             'The units to use for min_sep and max_sep.  Also the units of the output r columns'),
-    'bin_slop' : (float, False, 1, None,
-            'The fraction of a bin width by which it is ok to let the pairs miss the correct bin.'),
+    'bin_slop' : (float, False, None, None,
+            'The fraction of a bin width by which it is ok to let the pairs miss the correct bin.',
+            'The default is to use 1 if bin_size <= 0.1, or 0.1/bin_size if bin_size > 0.1.'),
 
     # Parameters about the output file(s)
 

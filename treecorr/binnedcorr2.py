@@ -125,9 +125,22 @@ class BinnedCorr2(object):
         self.split_method = self.config.get('split_method','mean')
         if self.split_method not in ['middle', 'median', 'mean']:
             raise ValueError("Invalid split_method %s"%self.split_method)
-
-        self.bin_slop = treecorr.config.get(self.config,'bin_slop',float,1.0)
+        self.bin_slop = treecorr.config.get(self.config,'bin_slop',float,-1.0)
+        if self.bin_slop < 0.0:
+            if self.bin_size <= 0.1:
+                self.bin_slop = 1.0
+            else:
+                self.bin_slop = 0.1/self.bin_size
         self.b = self.bin_size * self.bin_slop
+        if self.b > 0.100001:  # Add some numerical slop
+            self.logger.warn("Using bin_slop = %f, bin_size = %f",self.bin_slop,self.bin_size)
+            self.logger.warn("The b parameter is bin_slop * bin_size = %f",self.b)
+            self.logger.warn("It is generally recommended to use b <= 0.1 for most applications.")
+            self.logger.warn("Larger values of this b parameter may result in significant"+
+                             "inaccuracies.")
+        else:
+            self.logger.debug("Using bin_slop = %f, b = %f",self.bin_slop,self.b)
+
         # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
         self.logr = numpy.linspace(start=0, stop=self.nbins*self.bin_size, 
                                    num=self.nbins, endpoint=False)

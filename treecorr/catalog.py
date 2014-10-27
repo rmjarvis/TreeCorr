@@ -29,22 +29,22 @@ class Catalog(object):
     a FITS catalog or an ASCII catalog.  Normally the distinction is made according to the
     file_name's extension, but it can also be set explicitly with config['file_type'].
 
-    See https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters
-    for a complete list of all of the relevant configuration parameters.  In particular,
+    See also https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters
+    for complete descriptions of all of the relevant configuration parameters.  In particular,
     the first section "Parameters about the input file".
 
     The num parameter is either 0 or 1 (default 0), which specifies whether this corresponds
     to the first or second file in the configuration file.  e.g. if you are doing an NG
     correlation function, then the first file is not required to have g1_col, g2_col set.
-    Thus, you would define these as something like `g1_col = 0 3` and `g2_col = 0 4`.
+    Thus, you could define these as something like `g1_col = 0 3` and `g2_col = 0 4`.
     Then when reading the first file, you would use num=0 to indicate that you want to use the
     first elements of these vectors (i.e. no g1 or g2 columns), and for the second file, you
     would use num=1 to use columsn 3 and 4.
 
-    You may also specify any any configuration parameters as kwargs to the Catalog constructor
-    if you prefer to either add parameters that are not present in the config dict or to supersede
-    values in the config dict.  You can even provide all parameters as kwargs and omit the config
-    dict entirely:
+    You may also specify any configuration parameters as kwargs to the Catalog constructor if you
+    prefer to either add parameters that are not present in the config dict or to supersede values
+    in the config dict.  You can even provide all parameters as kwargs and omit the config dict
+    entirely:
 
         >>> cat1 = treecorr.Catalog(file_name, config, flip_g1=True)
         >>> cat2 = treecorr.Catalog(file_name, ra_col=1, dec_col=2, ra_units='deg', dec_units='deg')
@@ -98,16 +98,111 @@ class Catalog(object):
     :param is_rand:     If this is a random file, then setting is_rand to True will let them
                         skip k_col, g1_col, and g2_col if they were set for the main catalog.
                         (default: False)
-    :param x:           The x column (default: None)
-    :param y:           The y column (default: None)
-    :param ra:          The ra column (default: None)
-    :param dec:         The dec column (default: None)
-    :param r:           The r column (default: None)
-    :param w:           The w column (default: None)
-    :param flag:        The flag column (default: None)
-    :param g1:          The g1 column (default: None)
-    :param g2:          The g2 column (default: None)
-    :param k:           The k column (default: None)
+    :param x:           The x values. (default: None; When providing values directly, either x,y
+                        are required or ra,dec are required.)
+    :param y:           The y values. (default: None; When providing values directly, either x,y
+                        are required or ra,dec are required.)
+    :param ra:          The RA values. (default: None; When providing values directly, either x,y
+                        are required or ra,dec are required.)
+    :param dec:         The Dec values. (default: None; When providing values directly, either x,y
+                        are required or ra,dec are required.)
+    :param r:           The r values (the distances of each source from Earth). Note that r is
+                        invalid in conjunction with x,y. (default: None)
+    :param w:           The weight values. (default: None)
+    :param flag:        The flag values.  Rows with flag != 0 (or flag & ~okflag != 0) will be
+                        given a weight of 0. (default: None)
+    :param g1:          The g1 values. (g1,g2 may represent any spinor field.) (default: None)
+    :param g2:          The g2 values. (g1,g2 may represent any spinor field.) (default: None)
+    :param k:           The kappa values. (This may represent any scalar field.) (default: None)
+
+    The following parameters may be given either in the config dict or as named kwargs:
+
+    :param file_type:   What kind of file is the input file. Valid options are 'ASCII' or 'FITS'
+                        (default: if the file_name extension starts with .fit, then use 'FITS',
+                        else 'ASCII')
+    :param delimiter:   For ASCII files, what delimiter to use between values. (default: None,
+                        which means any whitespace)
+    :param comment_marker: For ASCII files, what token indicates a comment line. (default: '#')
+    :param hdu:         For FITS files, which hdu to read. (default: 1)
+    :param first_row:   Which row to take as the first row to be used. (default: 1)
+    :param last_row:    Which row to take as the last row to be used. (default: -1, which means
+                        the last row in the file)
+    :param x_col:       The column to use for the x values. This should be an integer for ASCII
+                        files or a string for FITS files. (default: 0 or '0', which means not to
+                        read in this column. When reading from a file, either x_col and y_col are
+                        required or ra_col and dec_col are required.)
+    :param y_col:       The column to use for the y values. This should be an integer for ASCII
+                        files or a string for FITS files. (default: 0 or '0', which means not to
+                        read in this column. When reading from a file, either x_col and y_col are
+                        required or ra_col and dec_col are required.)
+    :param ra_col:      The column to use for the ra values. This should be an integer for ASCII
+                        files or a string for FITS files. (default: 0 or '0', which means not to
+                        read in this column. When reading from a file, either x_col and y_col are
+                        required or ra_col and dec_col are required.)
+    :param dec_col:     The column to use for the dec values. This should be an integer for ASCII
+                        files or a string for FITS files. (default: 0 or '0', which means not to
+                        read in this column. When reading from a file, either x_col and y_col are
+                        required or ra_col and dec_col are required.)
+    :param x_units:     The units to use for the x values, given as a string.  Valid options are
+                        arcsec, arcmin, degrees, hours, radians.  (default: radians, although 
+                        with (x,y) positions, you can often just ignore the units, and the output
+                        separations will be in whatever units x and y are in.)
+    :param y_units:     The units to use for the y values, given as a string.  Valid options are
+                        arcsec, arcmin, degrees, hours, radians.  (default: radians, although 
+                        with (x,y) positions, you can often just ignore the units, and the output
+                        separations will be in whatever units x and y are in.)
+    :param ra_units:    The units to use for the ra values, given as a string.  Valid options are
+                        arcsec, arcmin, degrees, hours, radians. (required when using ra_col or
+                        providing ra directly)
+    :param dec_units:   The units to use for the dec values, given as a string.  Valid options are
+                        arcsec, arcmin, degrees, hours, radians. (required when using dec_col or
+                        providing dec directly)
+    :param r_col:       The column to use for the r values. This should be an integer for ASCII
+                        files or a string for FITS files.  Note that r_col is invalid in 
+                        conjunction with x_col/y_col. (default: 0 or '0', which means not to
+                        read in this column.)
+    :param g1_col:       The column to use for the g1 values. This should be an integer for ASCII
+                        files or a string for FITS files. (default: 0 or '0', which means not to
+                        read in this column.)
+    :param g2_col:       The column to use for the g2 values. This should be an integer for ASCII
+                        files or a string for FITS files. (default: 0 or '0', which means not to
+                        read in this column.)
+    :param k_col:       The column to use for the kappa values. This should be an integer for ASCII
+                        files or a string for FITS files. (default: 0 or '0', which means not to
+                        read in this column.)
+    :param w_col:       The column to use for the weight values. This should be an integer for
+                        ASCII files or a string for FITS files. (default: 0 or '0', which means not
+                        to read in this column.)
+    :param flag_col:    The column to use for the flag values. This should be an integer for ASCII
+                        files or a string for FITS files. Any row with flag != 0 (or technically
+                        flag & ~ok_flag != 0) will be given a weight of 0. (default: 0 or '0',
+                        which means not to read in this column.)
+    :param ignore_flag: Which flags should be ignored. (default: all non-zero flags are ignored.
+                        Equivalent to ignore_flag = ~0.)
+    :param ok_flag:     Which flags should be considered ok. (default: 0.  i.e. all non-zero flags
+                        are ignored.)
+    :param flip_g1:     Whtether to flip the sign of the input g1 values. (default: False)
+    :param flip_g2:     Whtether to flip the sign of the input g2 values. (default: False)
+    :param x_hdu:       Which hdu to use for the x values. (default: hdu)
+    :param y_hdu:       Which hdu to use for the y values. (default: hdu)
+    :param ra_hdu:      Which hdu to use for the ra values. (default: hdu)
+    :param dec_hdu:     Which hdu to use for the dec values. (default: hdu)
+    :param r_hdu:       Which hdu to use for the r values. (default: hdu)
+    :param g1_hdu:      Which hdu to use for the g1 values. (default: hdu)
+    :param g2_hdu:      Which hdu to use for the g2 values. (default: hdu)
+    :param k_hdu:       Which hdu to use for the k values. (default: hdu)
+    :param w_hdu:       Which hdu to use for the w values. (default: hdu)
+    :param flag_hdu:    Which hdu to use for the flag values. (default: hdu)
+    :param verbose:     If no logger is provided, this will optionally specify a logging level to
+                        use.
+                        - 0 means no logging output (default)
+                        - 1 means to output warnings only
+                        - 2 means to output various progress information
+                        - 3 means to output extensive debugging information
+    :param log_file:    If no logger is provided, this will specify a file to write the logging
+                        output.  (default: None; i.e. output to standard output)
+    :param cat_precision: The precision to use when writing a Catalog to an ASCII file. This should
+                        be an integer, which specifies how many digits to write. (default: 16)
     """
     def __init__(self, file_name=None, config=None, num=0, logger=None, is_rand=False,
                  x=None, y=None, ra=None, dec=None, r=None, w=None, flag=None,
@@ -156,8 +251,10 @@ class Catalog(object):
             # Read the input file
             if file_type == 'FITS':
                 self.read_fits(file_name,num,is_rand)
-            else:
+            elif file_type == 'ASCII':
                 self.read_ascii(file_name,num,is_rand)
+            else:
+                raise ValueError("Invalid file_type %s"%file_type)
 
         # Second style -- pass in the vectors directly
         else:

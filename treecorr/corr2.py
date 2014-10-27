@@ -222,21 +222,9 @@ def corr2(config, logger=None):
         config['output_dots'] = True
 
     # Set the number of threads
-    num_threads = config.get('num_threads',0)
+    num_threads = config.get('num_threads',None)
     logger.debug('From config dict, num_threads = %d',num_threads)
-    if num_threads <= 0:
-        import multiprocessing
-        num_threads = multiprocessing.cpu_count()
-        logger.debug('multiprocessing.cpu_count() = %d',num_threads)
-    if num_threads > 1:
-        logger.debug('Telling OpenMP to use %d threads',num_threads)
-        num_threads = treecorr.set_omp_threads(num_threads)
-        logger.debug('OpenMP reports that it will use %d threads',num_threads)
-        if num_threads > 1:
-            logger.info('Using %d threads.',num_threads)
-        elif 'num_threads' in config:
-            # Only warn if the user specifically asked for num_threads != 1.
-            logger.warn('Unable to use multiple threads, since OpenMP is not enabled.')
+    treecorr.set_omp_threads(num_threads, logger)
 
     # Read in the input files.  Each of these is a list.
     cat1 = treecorr.read_catalogs(config, 'file_name', 'file_list', 0, logger)

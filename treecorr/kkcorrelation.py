@@ -120,6 +120,9 @@ class KKCorrelation(treecorr.BinnedCorr2):
         :param cat:     The catalog to process
         """
         self.logger.info('Starting process KK auto-correlations for cat %s.',cat.name)
+
+        self._set_num_threads()
+
         field = cat.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
 
         if field.sphere:
@@ -141,6 +144,9 @@ class KKCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Starting process KK cross-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
+
+        self._set_num_threads()
+
         f1 = cat1.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
         f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
 
@@ -167,6 +173,9 @@ class KKCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Starting process KK pairwise-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
+
+        self._set_num_threads()
+
         f1 = cat1.getKSimpleField()
         f2 = cat2.getKSimpleField()
 

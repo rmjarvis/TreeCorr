@@ -115,6 +115,9 @@ class NKCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Starting process NK cross-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
+
+        self._set_num_threads()
+
         f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method)
         f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
 
@@ -141,6 +144,9 @@ class NKCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Starting process NK pairwise-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
+
+        self._set_num_threads()
+
         f1 = cat1.getNSimpleField()
         f2 = cat2.getKSimpleField()
 

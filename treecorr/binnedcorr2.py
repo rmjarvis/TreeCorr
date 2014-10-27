@@ -95,6 +95,8 @@ class BinnedCorr2(object):
                         whereby corresponding items in the two catalogs are correlated pairwise
                         rather than the usual case of every item in one catalog being correlated
                         with every item in the other catalog. (default: False)
+    :param num_threads: How many OpenMP threads to use during the calculations.  (default: 0,
+                        which means to query the number of cpu cores and use that many threads.)
     """
     def __init__(self, config=None, logger=None, **kwargs):
         import math
@@ -249,3 +251,7 @@ class BinnedCorr2(object):
                 for c2 in cat2:
                     self.process_cross(c1,c2)
  
+    def _set_num_threads(self):
+        num_threads = self.config.get('num_threads',None)
+        self.logger.debug('Set num_threads = %d',num_threads)
+        treecorr.set_omp_threads(num_threads, self.logger)

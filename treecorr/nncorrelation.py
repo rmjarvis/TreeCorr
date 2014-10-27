@@ -55,6 +55,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
         :tot:       The total number of pairs processed, which is used to normalize
                     the randoms if they have a different number of pairs.
 
+    If sep_units are given (either in the config dict or as a named kwarg) then logr and meanlogr
+    both take r to be in these units.  i.e. exp(logr) will have R in units of sep_units.
+
     The usage pattern is as follows:
 
         >>> nn = treecorr.NNCorrelation(config)

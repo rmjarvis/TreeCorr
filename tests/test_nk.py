@@ -133,10 +133,10 @@ def test_nk():
         numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
 
     # Check the fits write option
-    out_file_name = os.path.join('output','nk_out1.fits')
-    nk.write(out_file_name)
+    out_file_name1 = os.path.join('output','nk_out1.fits')
+    nk.write(out_file_name1)
     import fitsio
-    data = fitsio.read(out_file_name)
+    data = fitsio.read(out_file_name1)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(nk.logr))
     numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(nk.meanlogr))
     numpy.testing.assert_almost_equal(data['<kappa>'], nk.xi)
@@ -144,15 +144,25 @@ def test_nk():
     numpy.testing.assert_almost_equal(data['weight'], nk.weight)
     numpy.testing.assert_almost_equal(data['npairs'], nk.npairs)
 
-    out_file_name = os.path.join('output','nk_out2.fits')
-    nk.write(out_file_name, rk)
-    data = fitsio.read(out_file_name)
+    out_file_name2 = os.path.join('output','nk_out2.fits')
+    nk.write(out_file_name2, rk)
+    data = fitsio.read(out_file_name2)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(nk.logr))
     numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(nk.meanlogr))
     numpy.testing.assert_almost_equal(data['<kappa>'], xi)
     numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(varxi))
     numpy.testing.assert_almost_equal(data['weight'], nk.weight)
     numpy.testing.assert_almost_equal(data['npairs'], nk.npairs)
+    
+    # Check the read function
+    nk2 = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+    nk2.read(out_file_name1)
+    numpy.testing.assert_almost_equal(nk2.logr, nk.logr)
+    numpy.testing.assert_almost_equal(nk2.meanlogr, nk.meanlogr)
+    numpy.testing.assert_almost_equal(nk2.xi, nk.xi)
+    numpy.testing.assert_almost_equal(nk2.varxi, nk.varxi)
+    numpy.testing.assert_almost_equal(nk2.weight, nk.weight)
+    numpy.testing.assert_almost_equal(nk2.npairs, nk.npairs)
 
 
 if __name__ == '__main__':

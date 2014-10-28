@@ -38,6 +38,10 @@ New features:
   If an output file name has an extension that starts with '.fit', then it will
   write a FITS binary table, rather than an ASCII file.  Or you can specify the
   file type with the file_type parameter. (#22)
+- Added a read() function to the Correlation classes to read data back in from
+  and output file.  The combination of this with the FITS write lets you save a
+  Correlation object to disk and recover it without loss of information.  This
+  can be used to split a problem up to be run on multiple machines. (#23)
 
 
 Bug fixes:

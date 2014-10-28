@@ -337,6 +337,31 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.gen_write(file_name, col_names, columns, file_type=file_type)
 
 
+    def read(self, file_name, file_type=None):
+        """Read in values from a file.
+
+        This should be a file that was written by TreeCorr, preferably a FITS file, so there
+        is no loss of information.
+
+        Warning: The NNCorrelation object should be constructed with the same configuration 
+        parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+        checked by the read function.
+
+        :param file_name:   The name of the file to read in.
+        :param file_type:   The type of file ('ASCII' or 'FITS').  (default: determine the type
+                            automatically from the extension of file_name.)
+        """
+        self.logger.info('Reading NN correlations from %s',file_name)
+
+        data = self.gen_read(file_name, file_type=file_type)
+        self.logr = numpy.log(data['R_nom'])
+        self.meanlogr = numpy.log(data['<R>'])
+        if 'npairs' in data.dtype.names:
+            self.npairs = data['npairs']
+        else:
+            self.npairs = data['DD']
+
+
     def calculateNapSq(self, rr, dr=None, rd=None, m2_uform=None):
         """Calculate the correlary to the aperture mass statistics for counts.
 

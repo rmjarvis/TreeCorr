@@ -258,3 +258,29 @@ class NKCorrelation(treecorr.BinnedCorr2):
               xi, numpy.sqrt(varxi), self.weight, self.npairs ],
             file_type=file_type)
 
+
+    def read(self, file_name, file_type=None):
+        """Read in values from a file.
+
+        This should be a file that was written by TreeCorr, preferably a FITS file, so there
+        is no loss of information.
+
+        Warning: The NKCorrelation object should be constructed with the same configuration 
+        parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+        checked by the read function.
+
+        :param file_name:   The name of the file to read in.
+        :param file_type:   The type of file ('ASCII' or 'FITS').  (default: determine the type
+                            automatically from the extension of file_name.)
+        """
+        self.logger.info('Reading NK correlations from %s',file_name)
+
+        data = self.gen_read(file_name, file_type=file_type)
+        self.logr = numpy.log(data['R_nom'])
+        self.meanlogr = numpy.log(data['<R>'])
+        self.xi = data['<kappa>']
+        self.varxi = data['sigma']**2
+        self.weight = data['weight']
+        self.npairs = data['npairs']
+
+

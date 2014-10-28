@@ -357,17 +357,17 @@ def test_nn():
         numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
 
     # Check the fits write option
-    out_file_name = os.path.join('output','nn_out1.fits')
-    dd.write(out_file_name)
+    out_file_name1 = os.path.join('output','nn_out1.fits')
+    dd.write(out_file_name1)
     import fitsio
-    data = fitsio.read(out_file_name)
+    data = fitsio.read(out_file_name1)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(dd.logr))
     numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(dd.meanlogr))
     numpy.testing.assert_almost_equal(data['npairs'], dd.npairs)
 
-    out_file_name = os.path.join('output','nn_out2.fits')
-    dd.write(out_file_name, rr)
-    data = fitsio.read(out_file_name)
+    out_file_name2 = os.path.join('output','nn_out2.fits')
+    dd.write(out_file_name2, rr)
+    data = fitsio.read(out_file_name2)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(dd.logr))
     numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(dd.meanlogr))
     numpy.testing.assert_almost_equal(data['xi'], simple_xi)
@@ -375,9 +375,9 @@ def test_nn():
     numpy.testing.assert_almost_equal(data['DD'], dd.npairs)
     numpy.testing.assert_almost_equal(data['RR'], rr.npairs * (dd.tot / rr.tot))
 
-    out_file_name = os.path.join('output','nn_out3.fits')
-    dd.write(out_file_name, rr, dr)
-    data = fitsio.read(out_file_name)
+    out_file_name3 = os.path.join('output','nn_out3.fits')
+    dd.write(out_file_name3, rr, dr)
+    data = fitsio.read(out_file_name3)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(dd.logr))
     numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(dd.meanlogr))
     numpy.testing.assert_almost_equal(data['xi'], xi)
@@ -386,6 +386,19 @@ def test_nn():
     numpy.testing.assert_almost_equal(data['RR'], rr.npairs * (dd.tot / rr.tot))
     numpy.testing.assert_almost_equal(data['DR'], dr.npairs * (dd.tot / dr.tot))
     numpy.testing.assert_almost_equal(data['RD'], dr.npairs * (dd.tot / dr.tot))
+
+    # Check the read function
+    dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+    dd2.read(out_file_name1)
+    numpy.testing.assert_almost_equal(dd2.logr, dd.logr)
+    numpy.testing.assert_almost_equal(dd2.meanlogr, dd.meanlogr)
+    numpy.testing.assert_almost_equal(dd2.npairs, dd.npairs)
+
+    dd2.read(out_file_name3)
+    numpy.testing.assert_almost_equal(dd2.logr, dd.logr)
+    numpy.testing.assert_almost_equal(dd2.meanlogr, dd.meanlogr)
+    numpy.testing.assert_almost_equal(dd2.npairs, dd.npairs)
+
 
 
 def test_3d():

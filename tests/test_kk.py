@@ -102,6 +102,16 @@ def test_kk():
     numpy.testing.assert_almost_equal(data['weight'], kk.weight)
     numpy.testing.assert_almost_equal(data['npairs'], kk.npairs)
 
+    # Check the read function
+    kk2 = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin')
+    kk2.read(out_file_name)
+    numpy.testing.assert_almost_equal(kk2.logr, kk.logr)
+    numpy.testing.assert_almost_equal(kk2.meanlogr, kk.meanlogr)
+    numpy.testing.assert_almost_equal(kk2.xi, kk.xi)
+    numpy.testing.assert_almost_equal(kk2.varxi, kk.varxi)
+    numpy.testing.assert_almost_equal(kk2.weight, kk.weight)
+    numpy.testing.assert_almost_equal(kk2.npairs, kk.npairs)
+
 
 if __name__ == '__main__':
     test_constant()

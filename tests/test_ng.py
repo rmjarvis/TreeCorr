@@ -336,10 +336,10 @@ def test_ng():
         assert max(abs(corr2_output[:,3])) < 4.e-3
 
     # Check the fits write option
-    out_file_name = os.path.join('output','ng_out1.fits')
-    ng.write(out_file_name)
+    out_file_name1 = os.path.join('output','ng_out1.fits')
+    ng.write(out_file_name1)
     import fitsio
-    data = fitsio.read(out_file_name)
+    data = fitsio.read(out_file_name1)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ng.logr))
     numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(ng.meanlogr))
     numpy.testing.assert_almost_equal(data['<gamT>'], ng.xi)
@@ -348,9 +348,9 @@ def test_ng():
     numpy.testing.assert_almost_equal(data['weight'], ng.weight)
     numpy.testing.assert_almost_equal(data['npairs'], ng.npairs)
 
-    out_file_name = os.path.join('output','ng_out2.fits')
-    ng.write(out_file_name, rg)
-    data = fitsio.read(out_file_name)
+    out_file_name2 = os.path.join('output','ng_out2.fits')
+    ng.write(out_file_name2, rg)
+    data = fitsio.read(out_file_name2)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ng.logr))
     numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(ng.meanlogr))
     numpy.testing.assert_almost_equal(data['<gamT>'], xi)
@@ -358,6 +358,18 @@ def test_ng():
     numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(varxi))
     numpy.testing.assert_almost_equal(data['weight'], ng.weight)
     numpy.testing.assert_almost_equal(data['npairs'], ng.npairs)
+
+    # Check the read function
+    ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+    ng2.read(out_file_name1)
+    numpy.testing.assert_almost_equal(ng2.logr, ng.logr)
+    numpy.testing.assert_almost_equal(ng2.meanlogr, ng.meanlogr)
+    numpy.testing.assert_almost_equal(ng2.xi, ng.xi)
+    numpy.testing.assert_almost_equal(ng2.xi_im, ng.xi_im)
+    numpy.testing.assert_almost_equal(ng2.varxi, ng.varxi)
+    numpy.testing.assert_almost_equal(ng2.weight, ng.weight)
+    numpy.testing.assert_almost_equal(ng2.npairs, ng.npairs)
+
 
 
 if __name__ == '__main__':

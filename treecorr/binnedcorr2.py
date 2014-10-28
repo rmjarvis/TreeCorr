@@ -192,14 +192,13 @@ class BinnedCorr2(object):
         self.logr -= self.log_sep_units
 
 
-
     def gen_write(self, file_name, col_names, columns, file_type=None):
         """Write some columns to an output file with the given column names.
 
         We do this basic functionality a lot, so put the code to do it in one place.
 
         :param file_name:   The name of the file to write to.
-        :param col_names:   A list of strings to use for the header strings of each column.
+        :param col_names:   A list of columns names for the given columns.
         :param columns:     A list of numpy arrays with the data to write.
         :param file_type:   Which kind of file to write to. (default: determine from the file_name
                             extension)
@@ -225,11 +224,13 @@ class BinnedCorr2(object):
         else:
             raise ValueError("Invalid file_type %s"%file_type)
 
+
     def gen_write_ascii(self, file_name, col_names, columns):
         """Write some columns to an output ASCII file with the given column names.
 
         :param file_name:   The name of the file to write to.
-        :param col_names:   A list of strings to use for the header strings of each column.
+        :param col_names:   A list of columns names for the given columns.  These will be written
+                            in a header comment line at the top of the output file.
         :param columns:     A list of numpy arrays with the data to write.
         """
         import numpy
@@ -261,7 +262,7 @@ class BinnedCorr2(object):
         """Write some columns to an output FITS file with the given column names.
 
         :param file_name:   The name of the file to write to.
-        :param col_names:   A list of strings to use for the header strings of each column.
+        :param col_names:   A list of columns names for the given columns.
         :param columns:     A list of numpy arrays with the data to write.
         """
         import fitsio
@@ -272,6 +273,42 @@ class BinnedCorr2(object):
             data[name] = col
 
         fitsio.write(file_name, data, clobber=True)
+
+
+    def gen_read(self, file_name, file_type=None):
+        """Read some columns from an input file.
+
+        We do this basic functionality a lot, so put the code to do it in one place.
+        Note that the input file is expected to have been written by TreeCorr using the 
+        gen_write function, so we don't have a lot of flexibility in the input structure.
+
+        :param file_name:   The name of the file to read.
+        :param file_type:   Which kind of file to write to. (default: determine from the file_name
+                            extension)
+
+        :returns: a numpy ndarray with named columns
+        """
+        import numpy
+        # Figure out which file type the catalog is
+        if file_type is None:
+            import os
+            name, ext = os.path.splitext(file_name)
+            if ext.lower().startswith('.fit'):
+                file_type = 'FITS'
+            else:
+                file_type = 'ASCII'
+            self.logger.info("file_type assumed to be %s from the file name.",file_type)
+
+        if file_type == 'FITS':
+            import fitsio
+            data = fitsio.read(file_name)
+        elif file_type == 'ASCII':
+            import numpy
+            data = numpy.genfromtxt(file_name, names=True)
+        else:
+            raise ValueError("Invalid file_type %s"%file_type)
+
+        return data
 
 
     def _process_all_auto(self, cat1):
@@ -296,6 +333,7 @@ class BinnedCorr2(object):
                 for c2 in cat2:
                     self.process_cross(c1,c2)
  
+
     def _set_num_threads(self):
         num_threads = self.config.get('num_threads',None)
         self.logger.debug('Set num_threads = %d',num_threads)

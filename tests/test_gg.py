@@ -152,6 +152,19 @@ def test_gg():
     numpy.testing.assert_almost_equal(data['weight'], gg.weight)
     numpy.testing.assert_almost_equal(data['npairs'], gg.npairs)
 
+    # Check the read function
+    gg2 = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin')
+    gg2.read(out_file_name)
+    numpy.testing.assert_almost_equal(gg2.logr, gg.logr)
+    numpy.testing.assert_almost_equal(gg2.meanlogr, gg.meanlogr)
+    numpy.testing.assert_almost_equal(gg2.xip, gg.xip)
+    numpy.testing.assert_almost_equal(gg2.xim, gg.xim)
+    numpy.testing.assert_almost_equal(gg2.xip_im, gg.xip_im)
+    numpy.testing.assert_almost_equal(gg2.xim_im, gg.xim_im)
+    numpy.testing.assert_almost_equal(gg2.varxi, gg.varxi)
+    numpy.testing.assert_almost_equal(gg2.weight, gg.weight)
+    numpy.testing.assert_almost_equal(gg2.npairs, gg.npairs)
+
     # Also check the Schneider version.  The math isn't quite as nice here, but it is tractable
     # using a different formula than I used above:
     # Map^2(R) = int k P(k) W(kR) dk

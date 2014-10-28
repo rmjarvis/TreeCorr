@@ -286,6 +286,34 @@ class GGCorrelation(treecorr.BinnedCorr2):
             file_type=file_type)
 
 
+    def read(self, file_name, file_type=None):
+        """Read in values from a file.
+
+        This should be a file that was written by TreeCorr, preferably a FITS file, so there
+        is no loss of information.
+
+        Warning: The GGCorrelation object should be constructed with the same configuration 
+        parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+        checked by the read function.
+
+        :param file_name:   The name of the file to read in.
+        :param file_type:   The type of file ('ASCII' or 'FITS').  (default: determine the type
+                            automatically from the extension of file_name.)
+        """
+        self.logger.info('Reading GG correlations from %s',file_name)
+
+        data = self.gen_read(file_name, file_type=file_type)
+        self.logr = numpy.log(data['R_nom'])
+        self.meanlogr = numpy.log(data['<R>'])
+        self.xip = data['xi+']
+        self.xim = data['xi-']
+        self.xip_im = data['xi+_im']
+        self.xim_im = data['xi-_im']
+        self.varxi = data['sigma_xi']**2
+        self.weight = data['weight']
+        self.npairs = data['npairs']
+
+
     def calculateMapSq(self, m2_uform=None):
         """Calculate the aperture mass statistics from the correlation function.
 

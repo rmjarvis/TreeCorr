@@ -338,33 +338,26 @@ def test_ng():
     # Check the fits write option
     out_file_name = os.path.join('output','ng_out1.fits')
     ng.write(out_file_name)
-    try:
-        import fitsio
-        data = fitsio.read(out_file_name)
-        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ng.logr))
-        numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(ng.meanlogr))
-        numpy.testing.assert_almost_equal(data['<gamT>'], ng.xi)
-        numpy.testing.assert_almost_equal(data['<gamX>'], ng.xi_im)
-        numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(ng.varxi))
-        numpy.testing.assert_almost_equal(data['weight'], ng.weight)
-        numpy.testing.assert_almost_equal(data['npairs'], ng.npairs)
-    except ImportError:
-        print 'Unable to import fitsio.  Skipping fits tests.'
+    import fitsio
+    data = fitsio.read(out_file_name)
+    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ng.logr))
+    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(ng.meanlogr))
+    numpy.testing.assert_almost_equal(data['<gamT>'], ng.xi)
+    numpy.testing.assert_almost_equal(data['<gamX>'], ng.xi_im)
+    numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(ng.varxi))
+    numpy.testing.assert_almost_equal(data['weight'], ng.weight)
+    numpy.testing.assert_almost_equal(data['npairs'], ng.npairs)
 
     out_file_name = os.path.join('output','ng_out2.fits')
     ng.write(out_file_name, rg)
-    try:
-        import fitsio
-        data = fitsio.read(out_file_name)
-        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ng.logr))
-        numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(ng.meanlogr))
-        numpy.testing.assert_almost_equal(data['<gamT>'], xi)
-        numpy.testing.assert_almost_equal(data['<gamX>'], xi_im)
-        numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(varxi))
-        numpy.testing.assert_almost_equal(data['weight'], ng.weight)
-        numpy.testing.assert_almost_equal(data['npairs'], ng.npairs)
-    except ImportError:
-        print 'Unable to import fitsio.  Skipping fits tests.'
+    data = fitsio.read(out_file_name)
+    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ng.logr))
+    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(ng.meanlogr))
+    numpy.testing.assert_almost_equal(data['<gamT>'], xi)
+    numpy.testing.assert_almost_equal(data['<gamX>'], xi_im)
+    numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(varxi))
+    numpy.testing.assert_almost_equal(data['weight'], ng.weight)
+    numpy.testing.assert_almost_equal(data['npairs'], ng.npairs)
 
 
 if __name__ == '__main__':

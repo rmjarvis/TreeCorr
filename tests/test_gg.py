@@ -140,20 +140,17 @@ def test_gg():
     # Check the fits write option
     out_file_name = os.path.join('output','gg_out.fits')
     gg.write(out_file_name)
-    try:
-        import fitsio
-        data = fitsio.read(out_file_name)
-        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(gg.logr))
-        numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(gg.meanlogr))
-        numpy.testing.assert_almost_equal(data['xi+'], gg.xip)
-        numpy.testing.assert_almost_equal(data['xi-'], gg.xim)
-        numpy.testing.assert_almost_equal(data['xi+_im'], gg.xip_im)
-        numpy.testing.assert_almost_equal(data['xi-_im'], gg.xim_im)
-        numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(gg.varxi))
-        numpy.testing.assert_almost_equal(data['weight'], gg.weight)
-        numpy.testing.assert_almost_equal(data['npairs'], gg.npairs)
-    except ImportError:
-        print 'Unable to import fitsio.  Skipping fits tests.'
+    import fitsio
+    data = fitsio.read(out_file_name)
+    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(gg.logr))
+    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(gg.meanlogr))
+    numpy.testing.assert_almost_equal(data['xi+'], gg.xip)
+    numpy.testing.assert_almost_equal(data['xi-'], gg.xim)
+    numpy.testing.assert_almost_equal(data['xi+_im'], gg.xip_im)
+    numpy.testing.assert_almost_equal(data['xi-_im'], gg.xim_im)
+    numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(gg.varxi))
+    numpy.testing.assert_almost_equal(data['weight'], gg.weight)
+    numpy.testing.assert_almost_equal(data['npairs'], gg.npairs)
 
     # Also check the Schneider version.  The math isn't quite as nice here, but it is tractable
     # using a different formula than I used above:

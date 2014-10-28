@@ -264,28 +264,6 @@ class BinnedCorr2(object):
         :param col_names:   A list of strings to use for the header strings of each column.
         :param columns:     A list of numpy arrays with the data to write.
         """
-        try:
-            self._gen_write_fitsio(file_name, col_names, columns)
-        except ImportError:
-            self._gen_write_pyfits(file_name, col_names, columns)
-
-
-    def _gen_write_pyfits(self, file_name, col_names, columns):
-        import pyfits
-
-        cols = pyfits.ColDefs([
-            pyfits.Column(name=name, format='E', array=col) 
-            for (name, col) in zip(col_names, columns) ])
-
-        # Depending on the version of pyfits, one of these should work:
-        try:
-            tbhdu = pyfits.BinTableHDU.from_columns(cols)
-        except:
-            tbhdu = pyfits.new_table(cols)
-        tbhdu.writeto(file_name, clobber=True)
-
-
-    def _gen_write_fitsio(self, file_name, col_names, columns):
         import fitsio
         import numpy
 

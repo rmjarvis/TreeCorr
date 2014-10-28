@@ -193,20 +193,48 @@ class BinnedCorr2(object):
 
 
 
-    def gen_write(self, file_name, headers, columns):
-        """Write some columns to an output file with the given headers.
+    def gen_write(self, file_name, col_names, columns, file_type=None):
+        """Write some columns to an output file with the given column names.
 
         We do this basic functionality a lot, so put the code to do it in one place.
 
         :param file_name:   The name of the file to write to.
-        :param headers:     A list of strings to use for the header strings of each column.
+        :param col_names:   A list of strings to use for the header strings of each column.
+        :param columns:     A list of numpy arrays with the data to write.
+        :param file_type:   Which kind of file to write to. (default: determine from the file_name
+                            extension)
+        """
+        import numpy
+        if len(col_names) != len(columns):
+            raise ValueError("col_names and columns are not the same length.")
+
+        # Figure out which file type the catalog is
+        if file_type is None:
+            import os
+            name, ext = os.path.splitext(file_name)
+            if ext.lower().startswith('.fit'):
+                file_type = 'FITS'
+            else:
+                file_type = 'ASCII'
+            self.logger.info("file_type assumed to be %s from the file name.",file_type)
+
+        if file_type == 'FITS':
+            self.gen_write_fits(file_name, col_names, columns)
+        elif file_type == 'ASCII':
+            self.gen_write_ascii(file_name, col_names, columns)
+        else:
+            raise ValueError("Invalid file_type %s"%file_type)
+
+    def gen_write_ascii(self, file_name, col_names, columns):
+        """Write some columns to an output ASCII file with the given column names.
+
+        :param file_name:   The name of the file to write to.
+        :param col_names:   A list of strings to use for the header strings of each column.
         :param columns:     A list of numpy arrays with the data to write.
         """
         import numpy
-        if len(headers) != len(columns):
-            raise ValueError("headers and columns are not the same length.")
     
-        ncol = len(headers)
+        ncol = len(col_names)
         data = numpy.empty( (self.nbins, ncol) )
         for i,col in enumerate(columns):
             data[:,i] = col
@@ -218,7 +246,7 @@ class BinnedCorr2(object):
         header_form = "{0:^%d}"%(width-1)
         for i in range(1,ncol):
             header_form += " {%d:^%d}"%(i,width)
-        header = header_form.format(*headers)
+        header = header_form.format(*col_names)
         fmt = '%%%d.%de'%(width,prec)
         try:
             numpy.savetxt(file_name, data, fmt=fmt, header=header)
@@ -227,6 +255,45 @@ class BinnedCorr2(object):
             with open(file_name, 'w') as fid:
                 fid.write('#' + header + '\n')
                 numpy.savetxt(fid, data, fmt=fmt) 
+
+
+    def gen_write_fits(self, file_name, col_names, columns):
+        """Write some columns to an output FITS file with the given column names.
+
+        :param file_name:   The name of the file to write to.
+        :param col_names:   A list of strings to use for the header strings of each column.
+        :param columns:     A list of numpy arrays with the data to write.
+        """
+        try:
+            self._gen_write_fitsio(file_name, col_names, columns)
+        except ImportError:
+            self._gen_write_pyfits(file_name, col_names, columns)
+
+
+    def _gen_write_pyfits(self, file_name, col_names, columns):
+        import pyfits
+
+        cols = pyfits.ColDefs([
+            pyfits.Column(name=name, format='E', array=col) 
+            for (name, col) in zip(col_names, columns) ])
+
+        # Depending on the version of pyfits, one of these should work:
+        try:
+            tbhdu = pyfits.BinTableHDU.from_columns(cols)
+        except:
+            tbhdu = pyfits.new_table(cols)
+        tbhdu.writeto(file_name, clobber=True)
+
+
+    def _gen_write_fitsio(self, file_name, col_names, columns):
+        import fitsio
+        import numpy
+
+        data = numpy.empty(self.nbins, dtype=[ (name,'f8') for name in col_names ])
+        for (name, col) in zip(col_names, columns):
+            data[name] = col
+
+        fitsio.write(file_name, data, clobber=True)
 
 
     def _process_all_auto(self, cat1):

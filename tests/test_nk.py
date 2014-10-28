@@ -132,6 +132,35 @@ def test_nk():
         print 'diff = ',corr2_output[:,2]-xi
         numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
 
+    # Check the fits write option
+    out_file_name = os.path.join('output','nk_out1.fits')
+    nk.write(out_file_name)
+    try:
+        import fitsio
+        data = fitsio.read(out_file_name)
+        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(nk.logr))
+        numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(nk.meanlogr))
+        numpy.testing.assert_almost_equal(data['<kappa>'], nk.xi)
+        numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(nk.varxi))
+        numpy.testing.assert_almost_equal(data['weight'], nk.weight)
+        numpy.testing.assert_almost_equal(data['npairs'], nk.npairs)
+    except ImportError:
+        print 'Unable to import fitsio.  Skipping fits tests.'
+
+    out_file_name = os.path.join('output','nk_out2.fits')
+    nk.write(out_file_name, rk)
+    try:
+        import fitsio
+        data = fitsio.read(out_file_name)
+        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(nk.logr))
+        numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(nk.meanlogr))
+        numpy.testing.assert_almost_equal(data['<kappa>'], xi)
+        numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(varxi))
+        numpy.testing.assert_almost_equal(data['weight'], nk.weight)
+        numpy.testing.assert_almost_equal(data['npairs'], nk.npairs)
+    except ImportError:
+        print 'Unable to import fitsio.  Skipping fits tests.'
+
 
 if __name__ == '__main__':
     test_single()

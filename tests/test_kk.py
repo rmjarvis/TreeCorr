@@ -90,6 +90,21 @@ def test_kk():
         print 'diff = ',corr2_output[:,2]-kk.xi
         numpy.testing.assert_almost_equal(corr2_output[:,2]/kk.xi, 1., decimal=3)
 
+    # Check the fits write option
+    out_file_name = os.path.join('output','kk_out.fits')
+    kk.write(out_file_name)
+    try:
+        import fitsio
+        data = fitsio.read(out_file_name)
+        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(kk.logr))
+        numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(kk.meanlogr))
+        numpy.testing.assert_almost_equal(data['xi'], kk.xi)
+        numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(kk.varxi))
+        numpy.testing.assert_almost_equal(data['weight'], kk.weight)
+        numpy.testing.assert_almost_equal(data['npairs'], kk.npairs)
+    except ImportError:
+        print 'Unable to import fitsio.  Skipping fits tests.'
+
 
 if __name__ == '__main__':
     test_constant()

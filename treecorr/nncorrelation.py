@@ -49,7 +49,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
     It holds the following attributes:
 
         :logr:      The nominal center of the bin in log(r).
-        :meanlogr:  The (weighted) mean value of log(r) for the pairs in each bin.
+        :meanlogr:  The mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
         :npairs:    The number of pairs going into each bin.
         :tot:       The total number of pairs processed, which is used to normalize
@@ -155,9 +155,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
 
-        This accumulates the weighted sums into the bins, but does not finalize
-        the calculation by dividing by the total weight at the end.  After
-        calling this function as often as desired, the finalize() command will
+        This accumulates the sums into the bins, but does not finalize the calculation.
+        After calling this function as often as desired, the finalize() command will
         finish the calculation.
 
         :param cat1:     The first catalog to process
@@ -186,7 +185,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         The process_auto and process_cross commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation of meanlogr by dividing each column by the total weight.
+        finishes the calculation of meanlogr by dividing by the total npairs.
         """
         mask1 = self.npairs != 0
         mask2 = self.npairs == 0
@@ -286,7 +285,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         return xi, varxi
 
 
-    def write(self, file_name, rr, dr=None, rd=None):
+    def write(self, file_name, rr=None, dr=None, rd=None):
         """Write the correlation function to the file, file_name.
 
         rr is the NNCorrelation function for random points.
@@ -294,8 +293,12 @@ class NNCorrelation(treecorr.BinnedCorr2):
         if dr is given and rd is None, then (nn - 2dr + rr)/rr is used.
         If dr and rd are both given, then (nn - dr - rd + rr)/rr is used.
 
+        Normally, at least rr should be provided, but if this is also None, then only the 
+        basic accumulated number of pairs are output (along with the separation columns).
+
         :param file_name:   The name of the file to write to.
-        :param rr:          An NNCorrelation object for the random-random pairs.
+        :param rr:          An NNCorrelation object for the random-random pairs. (default: None,
+                            in which case, no xi or varxi columns will be output)
         :param dr:          An NNCorrelation object for the data-random pairs, if desired, in which
                             case the Landy-Szalay estimator will be calculated.  (default: None)
         :param rd:          An NNCorrelation object for the random-data pairs, if desired and 
@@ -303,24 +306,33 @@ class NNCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Writing NN correlations to %s',file_name)
         
-        xi, varxi = self.calculateXi(rr,dr,rd)
+        col_names = [ 'R_nom','<R>' ]
+        columns = [ numpy.exp(self.logr), numpy.exp(self.meanlogr) ]
+        if rr is None:
+            col_names += [ 'npairs' ]
+            columns += [ self.npairs ]
+            if dr is not None:
+                raise AttributeError("rr must be provided if dr is not None")
+            if rd is not None:
+                raise AttributeError("rr must be provided if rd is not None")
+        else:
+            xi, varxi = self.calculateXi(rr,dr,rd)
 
-        headers = ['R_nom','<R>','xi','sigma_xi','DD','RR']
-        columns = [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
-                    xi, numpy.sqrt(varxi),
-                    self.npairs, rr.npairs * (self.tot/rr.tot) ]
+            col_names += [ 'xi','sigma_xi','DD','RR' ]
+            columns += [ xi, numpy.sqrt(varxi),
+                         self.npairs, rr.npairs * (self.tot/rr.tot) ]
 
-        if dr is not None or rd is not None:
-            if dr is None: dr = rd
-            if rd is None: rd = dr
-            if dr.tot == 0:
-                raise RuntimeError("dr has tot=0.")
-            if rd.tot == 0:
-                raise RuntimeError("rd has tot=0.")
-            headers += ['DR','RD']
-            columns += [ dr.npairs * (self.tot/dr.tot), rd.npairs * (self.tot/rd.tot) ]
+            if dr is not None or rd is not None:
+                if dr is None: dr = rd
+                if rd is None: rd = dr
+                if dr.tot == 0:
+                    raise RuntimeError("dr has tot=0.")
+                if rd.tot == 0:
+                    raise RuntimeError("rd has tot=0.")
+                col_names += ['DR','RD']
+                columns += [ dr.npairs * (self.tot/dr.tot), rd.npairs * (self.tot/rd.tot) ]
 
-        self.gen_write(file_name, headers, columns)
+        self.gen_write(file_name, col_names, columns)
 
 
     def calculateNapSq(self, rr, dr=None, rd=None, m2_uform=None):

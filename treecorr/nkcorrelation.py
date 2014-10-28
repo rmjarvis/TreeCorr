@@ -235,7 +235,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
             return self.xi - rk.xi, self.varxi + rk.varxi
 
 
-    def write(self, file_name, rk=None):
+    def write(self, file_name, rk=None, file_type=None):
         """Write the correlation function to the file, file_name.
 
         If rk is None, the simple correlation function <kappa>(R) is used.
@@ -244,6 +244,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
         :param file_name:   The name of the file to write to.
         :param rk:          An NKCorrelation using random locations as the lenses, if desired. 
                             (default: None)
+        :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
+                            the type automatically from the extension of file_name.)
         """
         self.logger.info('Writing NK correlations to %s',file_name)
 
@@ -253,5 +255,6 @@ class NKCorrelation(treecorr.BinnedCorr2):
             file_name,
             ['R_nom','<R>','<kappa>','sigma','weight','npairs'],
             [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
-              xi, numpy.sqrt(varxi), self.weight, self.npairs ] )
+              xi, numpy.sqrt(varxi), self.weight, self.npairs ],
+            file_type=file_type)
 

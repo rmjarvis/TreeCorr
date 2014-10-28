@@ -285,7 +285,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         return xi, varxi
 
 
-    def write(self, file_name, rr=None, dr=None, rd=None):
+    def write(self, file_name, rr=None, dr=None, rd=None, file_type=None):
         """Write the correlation function to the file, file_name.
 
         rr is the NNCorrelation function for random points.
@@ -303,6 +303,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
                             case the Landy-Szalay estimator will be calculated.  (default: None)
         :param rd:          An NNCorrelation object for the random-data pairs, if desired and 
                             different from dr.  (default: None, which mean use rd=dr)
+        :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
+                            the type automatically from the extension of file_name.)
         """
         self.logger.info('Writing NN correlations to %s',file_name)
         
@@ -332,7 +334,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
                 col_names += ['DR','RD']
                 columns += [ dr.npairs * (self.tot/dr.tot), rd.npairs * (self.tot/rd.tot) ]
 
-        self.gen_write(file_name, col_names, columns)
+        self.gen_write(file_name, col_names, columns, file_type=file_type)
 
 
     def calculateNapSq(self, rr, dr=None, rd=None, m2_uform=None):

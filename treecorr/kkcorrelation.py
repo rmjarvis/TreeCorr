@@ -257,10 +257,12 @@ class KKCorrelation(treecorr.BinnedCorr2):
         self.finalize(vark1,vark2)
 
 
-    def write(self, file_name):
+    def write(self, file_name, file_type=None):
         """Write the correlation function to the file, file_name.
 
         :param file_name:   The name of the file to write to.
+        :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
+                            the type automatically from the extension of file_name.)
         """
         self.logger.info('Writing KK correlations to %s',file_name)
          
@@ -268,5 +270,6 @@ class KKCorrelation(treecorr.BinnedCorr2):
             file_name,
             ['R_nom','<R>','xi','sigma_xi','weight','npairs'],
             [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
-              self.xi, numpy.sqrt(self.varxi), self.weight, self.npairs ] )
+              self.xi, numpy.sqrt(self.varxi), self.weight, self.npairs ],
+            file_type=file_type)
 

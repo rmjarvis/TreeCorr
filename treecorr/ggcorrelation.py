@@ -268,10 +268,12 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.finalize(varg1,varg2)
 
 
-    def write(self, file_name):
+    def write(self, file_name, file_type=None):
         """Write the correlation function to the file, file_name.
 
         :param file_name:   The name of the file to write to.
+        :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
+                            the type automatically from the extension of file_name.)
         """
         self.logger.info('Writing GG correlations to %s',file_name)
         
@@ -280,7 +282,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
             ['R_nom','<R>','xi+','xi-','xi+_im','xi-_im','sigma_xi','weight','npairs'],
             [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
               self.xip, self.xim, self.xip_im, self.xim_im, numpy.sqrt(self.varxi),
-              self.weight, self.npairs ] )
+              self.weight, self.npairs ],
+            file_type=file_type)
 
 
     def calculateMapSq(self, m2_uform=None):
@@ -438,7 +441,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         return gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e
 
 
-    def writeMapSq(self, file_name, m2_uform=None):
+    def writeMapSq(self, file_name, m2_uform=None, file_type=None):
         """Write the aperture mass statistics based on the correlation function to the
         file, file_name.
 
@@ -446,6 +449,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         :param file_name:   The name of the file to write to.
         :param m2_uform:    Which form to use for the aperture mass.  (default: None)
+        :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
+                            the type automatically from the extension of file_name.)
         """
         self.logger.info('Writing Map^2 from GG correlations to %s',file_name)
 
@@ -457,6 +462,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
             ['R','<Map^2>','<Mx^2>','<MMx>(a)','<MMx>(b)','sig_map','<Gam^2>','sig_gam'],
             [ numpy.exp(self.logr),
               mapsq, mxsq, mapsq_im, -mxsq_im, numpy.sqrt(varmapsq),
-              gamsq, numpy.sqrt(vargamsq) ] )
+              gamsq, numpy.sqrt(vargamsq) ],
+            file_type=file_type)
 
 

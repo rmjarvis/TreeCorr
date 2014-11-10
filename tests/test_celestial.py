@@ -118,17 +118,17 @@ def test_angle():
     north_pole = treecorr.CelestialCoord(0.,pi/2.)  # north pole
     south_pole = treecorr.CelestialCoord(0.,-pi/2.) # south pole
 
-    numpy.testing.assert_almost_equal(north_pole.angleBetween(eq1,eq2), 1.)
-    numpy.testing.assert_almost_equal(north_pole.angleBetween(eq2,eq1), -1.)
-    numpy.testing.assert_almost_equal(north_pole.angleBetween(eq2,eq3), pi-1.)
-    numpy.testing.assert_almost_equal(north_pole.angleBetween(eq3,eq2), 1.-pi)
-    numpy.testing.assert_almost_equal(south_pole.angleBetween(eq1,eq2), -1.)
-    numpy.testing.assert_almost_equal(south_pole.angleBetween(eq2,eq1), 1.)
-    numpy.testing.assert_almost_equal(south_pole.angleBetween(eq2,eq3), 1.-pi)
-    numpy.testing.assert_almost_equal(south_pole.angleBetween(eq3,eq2), pi-1.)
+    numpy.testing.assert_almost_equal(north_pole.angleBetween(eq1,eq2), -1.)
+    numpy.testing.assert_almost_equal(north_pole.angleBetween(eq2,eq1), 1.)
+    numpy.testing.assert_almost_equal(north_pole.angleBetween(eq2,eq3), 1.-pi)
+    numpy.testing.assert_almost_equal(north_pole.angleBetween(eq3,eq2), pi-1.)
+    numpy.testing.assert_almost_equal(south_pole.angleBetween(eq1,eq2), 1.)
+    numpy.testing.assert_almost_equal(south_pole.angleBetween(eq2,eq1), -1.)
+    numpy.testing.assert_almost_equal(south_pole.angleBetween(eq2,eq3), pi-1.)
+    numpy.testing.assert_almost_equal(south_pole.angleBetween(eq3,eq2), 1.-pi)
 
-    numpy.testing.assert_almost_equal(eq1.angleBetween(north_pole,eq2), -pi/2.)
-    numpy.testing.assert_almost_equal(eq2.angleBetween(north_pole,eq1), pi/2.)
+    numpy.testing.assert_almost_equal(eq1.angleBetween(north_pole,eq2), pi/2.)
+    numpy.testing.assert_almost_equal(eq2.angleBetween(north_pole,eq1), -pi/2.)
 
     numpy.testing.assert_almost_equal(north_pole.area(eq1,eq2), 1.)
     numpy.testing.assert_almost_equal(north_pole.area(eq2,eq1), 1.)

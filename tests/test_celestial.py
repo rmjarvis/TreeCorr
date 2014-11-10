@@ -439,6 +439,42 @@ def test_galactic():
     numpy.testing.assert_almost_equal(el, pi, decimal=3)
     numpy.testing.assert_almost_equal(b, 0., decimal=3)
 
+    # Now test with some random values using this NASA website to get the correct answers:
+    # http://lambda.gsfc.nasa.gov/toolbox/tb_coordconv.cfm
+    # While I'm at it, they also give me eclipticc coords, so test those as well.
+    coord1 = treecorr.CelestialCoord(13.234 * treecorr.degrees, -73.438 * treecorr.degrees)
+    el, b = coord1.galactic()
+    print 'coord1 = ',coord1
+    print 'el, b = ',el/treecorr.degrees, b/treecorr.degrees
+    numpy.testing.assert_almost_equal(el, (302.78430-360.) * treecorr.degrees, decimal=5)
+    numpy.testing.assert_almost_equal(b, -43.68987 * treecorr.degrees, decimal=5)
+    lam, beta = coord1.ecliptic()
+    print 'lam, beta = ',lam,beta
+    print 'lam, beta = ',lam/treecorr.degrees, beta/treecorr.degrees
+    numpy.testing.assert_almost_equal(lam, (310.80568-360.) * treecorr.degrees, decimal=5)
+    numpy.testing.assert_almost_equal(beta, -64.87384 * treecorr.degrees, decimal=5)
+
+    coord2_1950 = treecorr.CelestialCoord(122.93 * treecorr.degrees, 16.01 * treecorr.degrees)
+    coord2_2000 = coord2_1950.precess(1950., 2000.)
+    print 'coord2_1950 = ',coord2_1950
+    print 'coord2_2000 = ',coord2_2000
+    numpy.testing.assert_almost_equal(coord2_2000.ra, 123.63697 * treecorr.degrees, decimal=5)
+    numpy.testing.assert_almost_equal(coord2_2000.dec, 15.85722 * treecorr.degrees, decimal=5)
+    el, b = coord2_1950.galactic(epoch=1950.)
+    print 'el, b = ',el/treecorr.degrees, b/treecorr.degrees
+    numpy.testing.assert_almost_equal(el, 207.37010 * treecorr.degrees, decimal=5)
+    numpy.testing.assert_almost_equal(b, 25.35929 * treecorr.degrees, decimal=5)
+    lam, beta = coord2_2000.ecliptic()
+    print 'lam, beta = ',lam,beta
+    print 'lam, beta = ',lam/treecorr.degrees, beta/treecorr.degrees
+    numpy.testing.assert_almost_equal(lam, 122.28162 * treecorr.degrees, decimal=5)
+    numpy.testing.assert_almost_equal(beta, -3.89215 * treecorr.degrees, decimal=5)
+    lam, beta = coord2_1950.ecliptic(epoch=1950)
+    print 'lam, beta = ',lam,beta
+    print 'lam, beta = ',lam/treecorr.degrees, beta/treecorr.degrees
+    numpy.testing.assert_almost_equal(lam, 121.58348 * treecorr.degrees, decimal=5)
+    numpy.testing.assert_almost_equal(beta, -3.89734 * treecorr.degrees, decimal=5)
+
 if __name__ == '__main__':
     test_angle_units()
     test_distance()

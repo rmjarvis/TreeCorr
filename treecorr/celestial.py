@@ -634,37 +634,37 @@ class CelestialCoord(object):
 
         return (el, b)
 
-    def ecliptic(self):
+    def ecliptic(self, epoch=2000.):
         """Get the longitude and latitude in ecliptic coordinates corresponding to this position.
 
-        The formulae for this are quite straightforward.  It requires just a single parameter for
-        the transformation, the obliquity of the ecliptic (the Earth's axial tilt).  This routine
-        gives results that agree with a pre-existing online calculator,
-        http://lambda.gsfc.nasa.gov/toolbox/tb_coordconv.cfm, to very good precision, but it's not
-        perfect.  Based on the pattern of the errors, it seems that that converter has a more
-        precise value for the axial tilt.  However, this routine is not currently being used for
-        really precise calculations, so a percent error is tolerable.  If you need really high
-        accuracy then this routine would require improvements (not just higher precision on the
-        axial tilt but also including its very slight time dependence).
-
-        @returns the longitude and latitude as a tuple (lambda, beta), given as Angle instances.
+        :param epoch:   The epoch to assume for the current coordinates (default: 2000)
+        :returns:       The longitude and latitude as a tuple (lambda, beta) in radians.
         """
         import math
 
-        # We are going to work in terms of the (x, y, z) projections.
         self._set_aux()
 
-        ep = 23.4*galsim.degrees # obliquity of the ecliptic, epsilon
-        cos_ep = math.cos(ep.rad())
-        sin_ep = math.sin(ep.rad())
+        # From http://en.wikipedia.org/wiki/Axial_tilt
+        # ep = 23deg 26m +
+        #      (21.406 + T(-46.836769 + T(−0.0001831 + T(0.00200340 + T(−0.576e−6 - 4.34e−8 T) s
+        ep = 84381.406  # = 23d 26m 21.406s in arcsec
+        if epoch != 2000.:
+            T = (epoch - 2000.) / 100.
+            ep += T*(-46.836769 + T*(-0.0001831 + T*(0.0020034 + T*(-0.576e-6 - T*4.34e-8))))
+        ep *= arcsec
 
-        # Coordinate transformation here, from celestial to ecliptic:
-        x_ecl = self._x
-        y_ecl = cos_ep*self._y + sin_ep*self._z
-        z_ecl = -sin_ep*self._y + cos_ep*self._z
+        # cf. http://en.wikipedia.org/wiki/Ecliptic_coordinate_system
+        # xe = x
+        # ye = cos(ep) y + sin(ep) z
+        # ze = -sin(ep) y + cos(ep) z
+        cos_ep = math.cos(ep)
+        sin_ep = math.sin(ep)
+        xe = self._x
+        ye = cos_ep*self._y + sin_ep*self._z
+        ze = -sin_ep*self._y + cos_ep*self._z
 
-        beta = math.asin(z_ecl)*galsim.radians
-        lam = math.atan2(y_ecl, x_ecl)*galsim.radians
+        beta = math.asin(ze)
+        lam = math.atan2(ye, xe)
 
         return (lam, beta)
 

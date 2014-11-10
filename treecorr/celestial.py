@@ -637,7 +637,11 @@ class CelestialCoord(object):
     def ecliptic(self, epoch=2000.):
         """Get the longitude and latitude in ecliptic coordinates corresponding to this position.
 
-        :param epoch:   The epoch to assume for the current coordinates (default: 2000)
+        Note that the ecliptic coordinate system precesses with time.  This function takes
+        an optional epoch parameter to indicate what epoch to use for both the input coordinates
+        and the output ecliptic coordinates.
+
+        :param epoch:   The epoch to assume for the coordinates (default: 2000).
         :returns:       The longitude and latitude as a tuple (lambda, beta) in radians.
         """
         import math

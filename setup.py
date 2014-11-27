@@ -4,17 +4,21 @@ import glob
 try:
     from setuptools import setup, Extension
     from setuptools.command.build_ext import build_ext
+    import setuptools
+    print "Using setuptools version",setuptools.__version__
 except ImportError:
     print 'Unable to import setuptools.  Using distutils instead.'
     from distutils.core import setup, Extension
     from distutils.command.build_ext import build_ext
+    import distutils
+    print "Using distutils version",distutils.__version__
 try:
     from sysconfig import get_config_vars
 except:
     from distutils.sysconfig import get_config_vars
 
-py_version = "%d.%d"%sys.version_info[0:2]
-print 'Python version = ',py_version
+print 'Python version = ',sys.version
+py_version = "%d.%d"%sys.version_info[0:2]  # we check things based on the major.minor version.
 
 scripts = ['corr2']
 scripts = [ os.path.join('scripts',f) for f in scripts ]
@@ -50,6 +54,9 @@ def get_compiler(cc):
     import subprocess
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines = p.stdout.readlines()
+    print 'compiler version: '
+    for line in lines:
+        print line.strip()
     if 'clang' in lines[0]:
         # Supposedly, clang will support openmp in version 3.5.  Let's go with that for now...
         # If the version is reports >= 3.5, let's call it gcc, rather than clang to get

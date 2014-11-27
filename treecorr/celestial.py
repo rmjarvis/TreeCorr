@@ -650,7 +650,7 @@ class CelestialCoord(object):
 
         # From http://en.wikipedia.org/wiki/Axial_tilt
         # ep = 23deg 26m +
-        #      (21.406 + T(-46.836769 + T(−0.0001831 + T(0.00200340 + T(−0.576e−6 - 4.34e−8 T) s
+        #      (21.406 + T(-46.836769 + T(-0.0001831 + T(0.00200340 + T(-0.576e-6 - 4.34e-8 T) s
         ep = 84381.406  # = 23d 26m 21.406s in arcsec
         if epoch != 2000.:
             T = (epoch - 2000.) / 100.

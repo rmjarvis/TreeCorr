@@ -1,0 +1,356 @@
+This directory has several programs that computer 2 and 3 point
+correlation functions.  
+
+For the two-point correlation functions, there are three varieties:
+NN = the normal two point correlation function of things like 2dF that
+     correlate the galaxy counts at each position.
+NE = correlation of counts with shear.  This is what is often called
+     galaxy-galaxy lensing.
+EE = two-point shear correlation function.
+
+For the three-point correlations, there are four varieties:
+NNN = three-point correlation of galaxy counts
+NNE = counts - counts - shear
+NEE = count - shear - shear
+EEE = three-point shear correlation function.
+
+The executables are:
+
+corrnn - Does the NN function
+corrnn3d - Does the NN function in (x,y,z) rather than (x,y)
+corrne - Does the NE function
+corree - Does the EE function
+corree_multi - Does the EE function for multiple exposures of each galaxy,
+               skipping correlations of two galaxies observed in the same
+	       exposure.
+corr_norm - Does NN, NE and EE, and also outputs some normalized ratios of
+            combinations of these of interest in weak lensing.
+
+corrnnna - Does the NNN function with algorithm "a"
+correeea - Does the EEE function with algorithm "a"
+correeeb - Does the EEE function with algorithm "b"
+
+I don't actually have versions that do the NNE or NEE correlations, 
+although it looks like I started working on the NEE.  But the existing
+code for CorrNEEa.cpp doesn't compile, and apparently needs some work.
+
+For the three point function, I have two algorithms, labeled a and b.
+The b algorithm is more complicated, but is faster for sufficiently
+large N
+
+The rest of this readme file is split into 5 sections:
+Input, Output, Parameters, Running the Program, and Debugging.
+
+CAVEAT: The error estimates for all quantities have not 
+been tested, so don't necessarily trust them too much.  
+They are all based on propagating the shape noise error
+through the calculation, which I believe is somewhat 
+accurate, but I wouldn't be too surprised if they were
+way off even for just the shape noise.  And they certainly
+don't include any sample variance or anything like that.
+I calculate the real errors based on field-to-field 
+variation instead which includes sample variance, so 
+I haven't even looked to see if the quoted errors are 
+in the right ballpark.
+
+
+********
+I. Input
+********
+
+Most of the programs take an input file (or files) in the following format:
+
+x y e1 e2 w (all doubles)
+....  [ngal lines]
+
+
+x and y refer to the coordinates of the galaxy, which
+  are taken to be in arcsec.
+e1,e2 are the ellipticity vector.
+w is some weight for the galaxy.
+
+If you don't want to weight your data, just use 1.0 for
+the 5th column.  (Or you can modify the code to not use
+weights which would speed it up slightly.)
+
+The programs corrnn and corrnnna, which don't use the e1,e2 values 
+expect a different input format.  Simply:
+
+x y
+...  [ngal lines]
+
+The 3d version, corrnn3d expects:
+
+x y z
+...  [ngal lines]
+
+
+And the program that does multiple exposures, corree_multi has an additional
+column indicating which exposure each measurement comes from (as an integer
+id number).
+
+exposure_id x y e1 e2 w
+...  [ngal lines]
+
+
+Typically, the name of the input file is given as the first command
+line argument.  e.g. "corree data.in" 
+
+For corree, you can optionally add a second filename, in which case the
+correlation is a cross-correlation of one set of shears in the first file
+with another set in the second file.  This might be two different redshift
+bins for example.
+
+Other programs, like corrne require two file names.  In the case of 
+corrne, the N part is called the bright sample, and the E part is called
+the faint sample, since this correlation is typically done on counts of
+foreground (bright) lens galaxies with the shapes of background (faint)
+galaxies.
+
+Finally, the pure count correlations, corrnn and corrnnna, take a 
+datafile for the actual data, and then a file that lists the number and
+names of files to use for the random samples.  This file should look like:
+
+nrandom
+random_file_1
+random_file_2
+random_file_3
+....
+
+where each random_file takes the same format as the data file.
+
+
+**********
+II. Output
+**********
+
+Each program creates one or more output files.  The first line of
+each of these output files says what the columns are. 
+
+For example, the output of corrnn is nn.out, and its columns are 
+listed as:
+
+R  omega  sig  dd  dr  rr
+
+R is the separation in arcmin
+omega is the NE correlation function
+sig is the 1-sigma error bar for omega
+dd,dr,rr give the 3 direct numbers from which omega was calculated as
+    omega = (dd-2dr+rr)/rr
+
+
+The output of corree is e2.out and m2.out.  The columsn of e2.out are given
+as:
+
+R(')  xi+  sig_xi+  xi-  sig_xi-  xi+_im  sig_xi+im  xi-_im  sig_xi-im  
+R_sm(')  xi+_sm  sig_xi+sm  xi-_sm  sig_xi-sm  weight  npairs
+
+xi+,- are the standard xi_+ and xi_- shear correlation functions.  
+These are formally complex, so the imaginary components are listed two,
+which should be consistent with zero for real gravitational shear.
+There is also a smoothed version of the correlations which plots nicer.
+The  total weight used in each bin and the number of pairs is also given.
+
+m2.out shows the coversion from the normal correlation function to a 
+mass aperture statistic.  It's columms are: 
+
+R(')  <Map^2>  sig_map  <Mx^2>  sig_mx  <MMx>  sig_mmx  <zero>  sig_zero 
+<Gam^2>  sig_gam
+
+Map^2 is the variance of the aperture mass as a function of radius R.
+Mx^2 is the B-mode, which should be zero for gravitational shear.
+MMx is the E-B cross correlation, which should also be zero.
+zero is another combination which should trivially be zero for any
+   field that has some simple parity properties.
+Gam^2 is the variance of the average shear in apertures, which is 
+   also calculated from the correlation function in a similar way.
+
+For the three point functions, the correlation functions are not simply 
+a function of separation, R.  Instead it is a function of triangle sizes
+and shapes.  We parametrize the triangles by three numbers:
+If d1 >= d2 >= d3 are the three side lengths,
+r = d3
+u = d3/d2            0 <= u <= 1
+v = +-(d1-d2)/d3    -1 <= v <= 1
+
+The sign of v is taken to be positive if 1,2,3 are in counter-clockwise
+order and negative if they are clockwise.
+See Jarvis, Bernstein & Jain (2004) [JBJ] for more details.
+
+The columns for e3.out are:
+
+r(bincenter,arcmin) r(mean,arcmin) u(bincenter) u(mean)
+v(bincenter) v(mean)
+real(Gam_0) sigma imag(Gam_0) sigma
+real(Gam_1) sigma imag(Gam_1) sigma
+real(Gam_2) sigma imag(Gam_2) sigma
+real(Gam_3) sigma imag(Gam_3) sigma
+weight ntri
+
+For these bins, we output both the supposed center of the
+bins (in R,u,v) as well as the actual mean of the 
+triangles that were placed in the bin.  
+You will find that for low u values especially, these
+can be very different.  Basically there are an awful
+lot of triangles with u ~= 0, so the lowest u bin tends
+to have a very low mean value.
+Gam_i are Gamma_i as defined in JBJ with the triangle
+oriented such that R (called s in section 3 of that 
+paper) is parallel to the x-axis.  This is equivalent
+to the notation alpha_i = arg(s), used in JBJ.
+Finally, the last two columns are the total weight
+and the number of triangles in the bin.
+
+
+The file m3.out contains the Map^3 data as calculated
+from the correlation functions as per JBJ.
+
+The columns are:
+
+R(arcmin) <Map^3> sigma <Map^2Mx> sigma <MapMx^2> sigma
+<Mx^3> sigma <M^3>(complex)  <M^2M*>(complex)
+
+R is the aperture radius in arcmin
+Map^3, etc. are calculated using the integrals from JBJ.
+The last four columns are the raw complex quantities
+<M^3> and <M^2M*> from which the previous values are
+calculated.  (Again see JBJ for this conversion.)
+This was mostly useful for debugging purposes, but 
+they have been left in nonetheless.
+
+There is also a program called e3_m3 which redoes the
+calculation converting the three-point correlation function
+into the aperture mass skewness (i.e. Map^3).  This is because
+the three-point measurement takes a _long_ time.  So it is 
+nice to be able to do the quick skewness calculation 
+over again with different parameters or something without 
+having to redo the full measurement from scratch.
+
+
+***************
+III. Parameters
+***************
+
+Each program's main file is called Corr*.cpp, and near the top
+there are some parameters that govern how the algorithm works.
+There are probably only a few parameters that you may want to change:
+
+minsep, maxsep
+
+For the two point function, these are simply the
+minimum and maximum separations you want to consider.
+For the three point function, they refer to the 
+smallest side of the triangle (R or d3 in the 
+above notation).  Appropriate values will depend on the 
+density and size of the survey you are using.
+
+binsize
+
+This is the size of the bins in ln(R) and (for
+the three point case) u and v.  
+We recommend either 0.05 or 0.1.
+Smaller values will be more accurate (since the 
+correlation functions are effectively smoothed by 
+the bin size.  Larger values will run faster.
+See JBJ for the empirical scaling in time and 
+memory to decide what value you want to use.
+
+binslop
+
+We recommend you leave this parameter equal to 1.0.
+It defines the amount on allowed slop in number of
+bins.  But if you want higher accuracy, you are 
+better off leaving this equal to 1 and lowering 
+binsize.  The running time scales according to 
+the product binsize*binslop, so there is no benefit
+to lowering binslop.  Just lower binsize.
+
+smoothscale 
+
+The final parameter you might want to change is
+smoothscale, which is found near the top of the
+code CorrIO.cpp.  For the e2.out output, we smooth
+the correlation function using a tophat filter
+in the ln(R) bins.  The width of the filter is
+2*ln(smoothscale).  That is, if smoothscale = 2, 
+we smooth from R/2 to 2R.
+
+
+***********************
+IV. Running the Program
+***********************
+
+There is a makefile included in the tar file, so to compile
+the code, you may be able to just type make.  
+The makefile has lines for either g++ or icpc.  Just make sure
+the right lines are commented out for what you want to use.
+Or change these lines for your own compiler.
+
+To run e3m on the file data.txt, (see section I for
+the required input format) simply type:
+
+e3m < data.txt
+
+
+I haven't bothered making binsize a command line
+argument, so currently you have to recompile the
+code to change that (or any other parameter).
+It might be slightly faster this way, since the 
+compiler can treat const double's just like literals,
+but I doubt it makes a measurable difference.
+Mostly I just never bothered.  Sorry.
+
+
+************
+V. Debugging
+************
+
+Hopefully you won't need to do this, but if you do
+there are some lines in the code to make it easier.
+
+First, there are some simple diagnostic lines which 
+are output to stdout (by default -- see the line
+defining dbgout near the beginning of main to change
+this to write to a file) to tell you how far along the code 
+is in the run.  If the code crashes this will be the first
+indication of where it may have gone wrong.
+
+Second, there are Assert statements interspersed
+throughout the code which try to assert what is required
+to be true at various places.  The lines which use 
+the simple Assert are pretty quick to run (ie. no
+calculations, usually just a>b type checks).  But there 
+are a bunch of other lines which try to assert more
+complicated conditions.  These are the XAssert lines.
+You can turn these on by switching the uncommented line
+from:
+#define XAssert(s)
+to:
+#define XAssert(s) Assert(s)
+
+Third, if it is crashing pretty early in the code
+and you want to know which function it is in when
+it crashes, you can change XDEBUG to true, and also change 
+outputsize to 0, which will output a debugging line at
+the start and end of essentially every function as it recurses
+over and over.  This dumps a lot of lines to the screen
+(or file), so if you think you need this, probably
+go to the final option instead.
+
+Finally, you if your data produces an error, I'd like
+to fix my copy of the code, so please email me either
+the bugfix that you find.  Or if you can't (or don't
+want to) figure out what is wrong, email me the 
+input file you were using, and what values of the 
+above parameters you used.
+
+Email me at mjarvis@physics.upenn.edu
+or michael@jarvis.net.
+
+Also, if you have any questions about any of this or 
+something in the code, feel free to email me 
+at the same address.
+
+Peace,
+Mike Jarvis
+

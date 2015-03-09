@@ -101,14 +101,12 @@ int main(int argc, char *argv[])
 
     dbg<<"Read gals\n";
     Read(fin,minsep,binsize,data);
-    if (!fin) myerror(std::string("reading file ")+argv[1]);
     NCell field(data);
 
     dbg<<"ngals = "<<data.size()<<std::endl;
     dbg << "Read rand fields\n";
     int nrandfields;
     randlistfin >> nrandfields;
-    if (!randlistfin) myerror(std::string("reading randlistfile ")+argv[2]);
     if (!(nrandfields > 0)) myerror("no random fields");
     std::vector<std::vector<NCellData> > randdata(nrandfields);
     std::vector<NCell*> randfield(nrandfields);
@@ -118,7 +116,6 @@ int main(int argc, char *argv[])
         if (!randlistfin) myerror(std::string("reading randlistfile ")+argv[2]);
         std::ifstream randfin(randfieldname.c_str());
         Read(randfin,minsep,binsize,randdata[n]);
-        if (!randfin) myerror("reading randfile "+randfieldname);
         randfield[n] = new NCell(randdata[n]);
     }
 

@@ -166,8 +166,8 @@ int main(int argc, char* argv[])
         nrbins,
         std::vector<std::vector<BinData3<3,3,3> > >(
             nubins,std::vector<BinData3<3,3,3> >(nvbins)));
-    //  Process3(data,minsep,maxsep,*wholefield);
-    Process111(data,minsep,maxsep,*wholefield,*wholefield,*wholefield);
+    Process3(data,minsep,maxsep,*wholefield);
+    //Process111(data,minsep,maxsep,*wholefield,*wholefield,*wholefield);
 
     FinalizeProcess(data,vare);
     dbg<<"done processing\n";

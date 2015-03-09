@@ -96,7 +96,6 @@ int main(int argc, char* argv[])
 
     dbg << "Read gals\n";
     Read(fin,minsep,binsize,data);
-    if (!fin) myerror("reading file ",argv[1]);
     NCell wholefield(data);
 
     dbg << "ngals = "<<data.size();
@@ -114,7 +113,6 @@ int main(int argc, char* argv[])
         if (!randlistfin) myerror("reading randlistfile ",argv[2]);
         std::ifstream randfin(randfieldname.c_str());
         Read(randfin,minsep,binsize,randdata[i]);
-        if (!randfin) myerror("reading randfile ",randfieldname.c_str());
         randfield[i] = new NCell(randdata[i]);
     }
 

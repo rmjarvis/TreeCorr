@@ -217,17 +217,14 @@ int main(int argc, char* argv[])
 
     dbg << "Read bright gals\n";
     Read(brightfin,minsep,binsize,brightdata);
-    if (!brightfin) myerror("reading brightfile ",argv[1]);
     NCell brightfield(brightdata);
 
     dbg << "Read faint gals\n";
     Read(faintfin,minsep,binsize,faintdata,vare);
-    if (!faintfin) myerror("reading faintfile ",argv[2]);
     Cell faintfield(faintdata);
 
     dbg << "Read stars\n";
     Read(starfin,minsep,binsize,stardata);
-    if (!starfin) myerror("reading starfile ",argv[3]);
     NCell starfield(stardata);
 
     dbg << "bright size = "<<brightdata.size();
@@ -247,7 +244,6 @@ int main(int argc, char* argv[])
         if (!randlistfin) myerror("reading randlistfile ",argv[4]);
         std::ifstream randfin(randfieldname.c_str());
         Read(randfin,minsep,binsize,randdata[i]);
-        if (!randfin) myerror("reading randfile ",randfieldname.c_str());
         randfield[i] = new NCell(randdata[i]);
     }
 

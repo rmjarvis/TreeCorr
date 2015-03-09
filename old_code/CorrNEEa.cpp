@@ -177,12 +177,10 @@ int main()
 
     dbg<<"Read bright gals\n";
     Read(brightfin,minsep,binsize,brightdata);
-    if (!brightfin) myerror("reading brightfile ",argv[1]);
     NCell brightfield(brightdata);
 
     dbg<<"Read faint gals\n";
     Read(faintfin,minsep,binsize,faintdata,vare);
-    if (!faintfin) myerror("reading faintfile ",argv[2]);
     Cell faintfield(faintdata);
 
     dbg<<"ngals: bright = "<<brightdata.size();

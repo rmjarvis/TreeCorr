@@ -1,3 +1,9 @@
+Changes from version 3.1.0 to 3.1.1
+===================================
+
+- Turned off some C++-layer debugging lines that I had accidentally left on.
+
+
 Changes from version 3.0 to 3.1
 ===============================
 

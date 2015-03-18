@@ -222,14 +222,14 @@ with open('README.rst') as file:
     long_description = file.read()
 
 setup(name="TreeCorr", 
-      version="3.1.0",
+      version="3.1.1",
       author="Mike Jarvis",
       author_email="michael@jarvis.net",
       description="Python module for computing 2-point correlation functions",
       long_description=long_description,
       license = "BSD License",
       url="https://github.com/rmjarvis/TreeCorr",
-      download_url="https://github.com/rmjarvis/TreeCorr/releases/tag/v3.1.0.zip",
+      download_url="https://github.com/rmjarvis/TreeCorr/releases/tag/v3.1.1.zip",
       packages=['treecorr'],
       ext_modules=[ext],
       install_requires=dependencies,

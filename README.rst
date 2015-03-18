@@ -68,17 +68,17 @@ that is also relatively straightforward:
 
 2. Download the zip file or tarball of the current code from:
 
-   https://github.com/rmjarvis/TreeCorr/releases/tag/v3.1.0
+   https://github.com/rmjarvis/TreeCorr/releases/tag/v3.1.1
 
 3. Unzip the archive with either of the following (depending on which kind
    of archive you downloaded)::
 
-        unzip TreeCorr-3.1.0.zip
-        tar xvzf TreeCorr-3.1.0.tar.gz
+        unzip TreeCorr-3.1.1.zip
+        tar xvzf TreeCorr-3.1.1.tar.gz
 
-   It will unzip into the directory TreeCorr-3.1.0. Change to that directory::
+   It will unzip into the directory TreeCorr-3.1.1. Change to that directory::
 
-        cd TreeCorr-3.1.0
+        cd TreeCorr-3.1.1
 
 4. Install with the normal setup.py options.  Typically this would be the
    command::

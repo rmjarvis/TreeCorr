@@ -14,6 +14,7 @@
 
 version = '3.2'
 
+from . import util
 from .celestial import CelestialCoord, angle_units, arcsec, arcmin, degrees, hours, radians
 from .config import read_config, set_omp_threads
 from .corr2 import corr2, print_corr2_params
@@ -26,3 +27,4 @@ from .ngcorrelation import NGCorrelation
 from .nkcorrelation import NKCorrelation
 from .kgcorrelation import KGCorrelation
 from .field import NField, KField, GField, NSimpleField, KSimpleField, GSimpleField
+

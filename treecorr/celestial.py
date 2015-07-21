@@ -15,6 +15,9 @@
 # of it there, I can republish it here under the TreeCorr license too.  I've
 # made a few (slight) modifications from the GalSim version.
 
+"""
+.. module:: celestial
+"""
 
 angle_units = {
     'arcsec' : 4.84813681109537e-6,

@@ -11,6 +11,9 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
+"""
+.. module:: kkcorrelation
+"""
 
 import treecorr
 import numpy

@@ -11,6 +11,9 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
+"""
+.. module:: nncorrelation
+"""
 
 import treecorr
 import numpy
@@ -241,9 +244,11 @@ class NNCorrelation(treecorr.BinnedCorr2):
         cross-correlations: data-random and random-data, given as dr and rd.
 
         rr is the NNCorrelation function for random points.
-        If dr is None, the simple correlation function (nn/rr - 1) is used.
-        if dr is given and rd is None, then (nn - 2dr + rr)/rr is used.
-        If dr and rd are both given, then (nn - dr - rd + rr)/rr is used.
+        If dr is None, the simple correlation function (dd/rr - 1) is used.
+        if dr is given and rd is None, then (dd - 2dr + rr)/rr is used.
+        If dr and rd are both given, then (dd - dr - rd + rr)/rr is used.
+
+        where dd is self, the data NN correlation function.
 
         :param rr:          An NNCorrelation object for the random-random pairs.
         :param dr:          An NNCorrelation object for the data-random pairs, if desired, in which
@@ -262,13 +267,19 @@ class NNCorrelation(treecorr.BinnedCorr2):
             if rd is None:
                 xi = (self.npairs - rr.npairs * rrw)
             else:
+                if rd.tot == 0:
+                    raise RuntimeError("rd has tot=0.")
                 rdw = self.tot / rd.tot
                 xi = (self.npairs - 2.*rd.npairs * rdw + rr.npairs * rrw)
         else:
+            if dr.tot == 0:
+                raise RuntimeError("dr has tot=0.")
             drw = self.tot / dr.tot
             if rd is None:
                 xi = (self.npairs - 2.*dr.npairs * drw + rr.npairs * rrw)
             else:
+                if rd.tot == 0:
+                    raise RuntimeError("rd has tot=0.")
                 rdw = self.tot / rd.tot
                 xi = (self.npairs - rd.npairs * rdw - dr.npairs * drw + rr.npairs * rrw)
         if any(rr.npairs == 0):
@@ -289,9 +300,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
         """Write the correlation function to the file, file_name.
 
         rr is the NNCorrelation function for random points.
-        If dr is None, the simple correlation function (nn - rr)/rr is used.
-        if dr is given and rd is None, then (nn - 2dr + rr)/rr is used.
-        If dr and rd are both given, then (nn - dr - rd + rr)/rr is used.
+        If dr is None, the simple correlation function (dd - rr)/rr is used.
+        if dr is given and rd is None, then (dd - 2dr + rr)/rr is used.
+        If dr and rd are both given, then (dd - dr - rd + rr)/rr is used.
 
         Normally, at least rr should be provided, but if this is also None, then only the 
         basic accumulated number of pairs are output (along with the separation columns).
@@ -327,10 +338,6 @@ class NNCorrelation(treecorr.BinnedCorr2):
             if dr is not None or rd is not None:
                 if dr is None: dr = rd
                 if rd is None: rd = dr
-                if dr.tot == 0:
-                    raise RuntimeError("dr has tot=0.")
-                if rd.tot == 0:
-                    raise RuntimeError("rd has tot=0.")
                 col_names += ['DR','RD']
                 columns += [ dr.npairs * (self.tot/dr.tot), rd.npairs * (self.tot/rd.tot) ]
 

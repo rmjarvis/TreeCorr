@@ -11,6 +11,10 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
+"""
+.. module:: config
+"""
+
 import treecorr
 
 def parse_variable(config, v):

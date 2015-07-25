@@ -15,6 +15,8 @@
 .. module:: binnedcorr3
 """
 
+import treecorr
+
 class BinnedCorr3(object):
     """This class stores the results of a 3-point correlation calculation, along with some
     ancillary data.
@@ -178,12 +180,14 @@ class BinnedCorr3(object):
         if 'nubins' not in self.config:
             self.min_u = float(self.config.get('min_u', 0.))
             self.max_u = float(self.config.get('max_u', 1.))
-            self.ubin_size = float(self.config.get('ubin_size', bin_size))
+            self.ubin_size = float(self.config.get('ubin_size', self.bin_size))
             if self.min_u >= self.max_u:
                 raise ValueError("max_u must be larger than min_u")
             self.nubins = int(math.ceil((self.max_u-self.min_u)/self.ubin_size))
             self.min_u = self.max_u - self.nubins*self.ubin_size
-            if self.min_u < 0.: self.min_u = 0.
+            if self.min_u < 0.:
+                self.min_u = 0.
+                self.ubin_size = (self.max_u-self.min_u)/self.nubins
         elif 'ubin_size' not in self.config:
             self.min_u = float(self.config.get('min_u', 0.))
             self.max_u = float(self.config.get('max_u', 1.))
@@ -198,7 +202,9 @@ class BinnedCorr3(object):
             if self.ubin_size * (self.nubins-1) >= 1.:
                 raise ValueError("Cannot specify ubin_size * nubins > 1.")
             self.min_u = self.max_u - self.nubins*self.ubin_size
-            if self.min_u < 0.: self.min_u = 0.
+            if self.min_u < 0.:
+                self.min_u = 0.
+                self.ubin_size = (self.max_u-self.min_u)/self.nubins
         else:
             if 'max_u' in self.config:
                 raise AttributeError("Only 3 of min_u, max_u, ubin_size, nubins are allowed.")
@@ -208,18 +214,21 @@ class BinnedCorr3(object):
             if self.ubin_size * (self.nubins-1) >= 1.:
                 raise ValueError("Cannot specify ubin_size * nubins > 1.")
             self.max_u = self.min_u + self.nubins*self.ubin_size
-            if self.max_u > 1.: self.max_u = 1.
+            if self.max_u > 1.: 
+                self.max_u = 1.
+                self.ubin_size = (self.max_u-self.min_u)/self.nubins
 
         if 'nvbins' not in self.config:
             self.min_v = float(self.config.get('min_v', -1.))
             self.max_v = float(self.config.get('max_v', 1.))
-            self.vbin_size = float(self.config.get('vbin_size', bin_size))
+            self.vbin_size = float(self.config.get('vbin_size', self.bin_size))
             if self.min_v >= self.max_v:
                 raise ValueError("max_v must be larger than min_v")
             self.nvbins = int(math.ceil((self.max_v-self.min_v)/self.vbin_size))
             # If one of min_v or max_v is specified, keep it exact.
-            # Otherwise expand both values out as needed.
+            # Otherwise expand both values out as needed.  Also, make sure nvbins is even.
             if ('min_v' in self.config) == ('max_v' in self.config):
+                if self.nvbins % 2 == 1: self.nvbins += 1
                 cen = (self.min_v + self.max_v)/2.
                 self.min_v = cen - self.nvbins*self.vbin_size/2.
                 self.max_v = cen + self.nvbins*self.vbin_size/2.
@@ -227,8 +236,11 @@ class BinnedCorr3(object):
                 self.max_v = self.min_v + self.nvbins*self.vbin_size
             else:
                 self.min_v = self.max_v - self.nvbins*self.vbin_size
-            if self.min_v < -1.: self.min_v = -1.
-            if self.max_v > 1.: self.max_v = 1.
+            if self.min_v < -1.: 
+                self.min_v = -1.
+            if self.max_v > 1.: 
+                self.max_v = 1.
+            self.vbin_size = (self.max_v-self.min_v)/self.nvbins
         elif 'vbin_size' not in self.config:
             self.min_v = float(self.config.get('min_v', -1.))
             self.max_v = float(self.config.get('max_v', 1.))
@@ -241,27 +253,26 @@ class BinnedCorr3(object):
             self.vbin_size = float(self.config['vbin_size'])
             if self.vbin_size * (self.nvbins-1) >= 1.:
                 raise ValueError("Cannot specify vbin_size * nvbins > 1.")
-            self.max_v = self.nvbins*self.vbins_size
+            self.max_v = self.nvbins*self.vbin_size
             if self.max_v > 1.: self.max_v = 1.
             self.min_v = -self.max_v
+            self.vbin_size = (self.max_v-self.min_v)/self.nvbins
         elif 'min_v' in self.config:
             if 'max_v' in self.config:
                 raise AttributeError("Only 3 of min_v, max_v, vbin_size, nvbins are allowed.")
-            self.min_v = int(self.config['min_v'])
+            self.min_v = float(self.config['min_v'])
             self.nvbins = int(self.config['nvbins'])
             self.vbin_size = float(self.config['vbin_size'])
-            if self.min_v + self.vbin_size * (self.nvbins) > 1.:
+            self.max_v = self.min_v + self.nvbins*self.vbin_size
+            if self.max_v > 1.:
                 raise ValueError("Cannot specify min_v + vbin_size * nvbins > 1.")
-            self.max_v = self.min_v + self.nvbins*self.vbins_size
-            if self.max_v > 1.: self.max_v = 1.
         else:
-            self.max_v = int(self.config['max_v'])
+            self.max_v = float(self.config['max_v'])
             self.nvbins = int(self.config['nvbins'])
             self.vbin_size = float(self.config['vbin_size'])
-            if self.max_v - self.vbin_size * (self.nvbins) < -1.:
+            self.min_v = self.max_v - self.nvbins*self.vbin_size
+            if self.min_v < -1.:
                 raise ValueError("Cannot specify max_v - vbin_size * nvbins < -1.")
-            self.min_v = self.max_v - self.nvbins*self.vbins_size
-            if self.min_v < -1.: self.min_v = -1.
 
         self.split_method = self.config.get('split_method','mean')
         if self.split_method not in ['middle', 'median', 'mean']:
@@ -272,9 +283,23 @@ class BinnedCorr3(object):
         if self.bin_slop < 0.0:
             if self.bin_size <= 0.1:
                 self.bin_slop = 1.0
+                self.b = self.bin_size
             else:
-                self.bin_slop = 0.1/self.bin_size
-        self.b = self.bin_size * self.bin_slop
+                self.bin_slop = 0.1/self.bin_size  # The stored bin_slop corresponds to lnr bins.
+                self.b = 0.1
+            if self.ubin_size <= 0.1:
+                self.bu = self.ubin_size
+            else:
+                self.bu = 0.1
+            if self.vbin_size <= 0.1:
+                self.bv = self.vbin_size
+            else:
+                self.bv = 0.1
+        else:
+            self.b = self.bin_size * self.bin_slop
+            self.bu = self.ubin_size * self.bin_slop
+            self.bv = self.vbin_size * self.bin_slop
+
         if self.b > 0.100001:  # Add some numerical slop
             self.logger.warn("Using bin_slop = %f, bin_size = %f",self.bin_slop,self.bin_size)
             self.logger.warn("The b parameter is bin_slop * bin_size = %f",self.b)
@@ -283,6 +308,7 @@ class BinnedCorr3(object):
                              "inaccuracies.")
         else:
             self.logger.debug("Using bin_slop = %f, b = %f",self.bin_slop,self.b)
+            self.logger.debug("bu = %f, bv = %f",self.bu,self.bv)
 
         # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
         self.logr = numpy.linspace(start=0, stop=self.nbins*self.bin_size, 
@@ -303,7 +329,7 @@ class BinnedCorr3(object):
 
 
     gen_write = treecorr.util.gen_write
-    gen_read = treecorr.util.gen_ascii
+    gen_read = treecorr.util.gen_read
 
     def _process_all_auto(self, cat1):
         for c1 in cat1:

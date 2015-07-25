@@ -32,15 +32,15 @@ cdouble = ctypes.c_double
 cdouble_ptr = ctypes.POINTER(cdouble)
 cvoid_ptr = ctypes.c_void_p
 
-_treecorr.BuildNNNCorr.restype = cvoid_ptr
-_treecorr.BuildNNNCorr.argtypes = [
-    cdouble, cdouble, cint, cdouble, cdouble,
-    cdouble_ptr, cdouble_ptr ]
-_treecorr.DestroyNNNCorr.argtypes = [ cvoid_ptr ]
-#_treecorr.ProcessAutoNNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessAutoNNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-#_treecorr.ProcessCrossNNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-#_treecorr.ProcessCrossNNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+#_treecorr.BuildNNNCorr.restype = cvoid_ptr
+#_treecorr.BuildNNNCorr.argtypes = [
+#    cdouble, cdouble, cint, cdouble, cdouble,
+#    cdouble_ptr, cdouble_ptr ]
+#_treecorr.DestroyNNNCorr.argtypes = [ cvoid_ptr ]
+##_treecorr.ProcessAutoNNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
+#_treecorr.ProcessAutoNNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
+##_treecorr.ProcessCrossNNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+##_treecorr.ProcessCrossNNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
 class NNNCorrelation(treecorr.BinnedCorr3):
@@ -99,19 +99,21 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
         ntri = self.ntri.ctypes.data_as(cdouble_ptr)
 
-        self.corr = _treecorr.BuildNNNCorr(
-                self.min_sep,self.max_sep,self.nbins,self.bin_size,
-                self.min_u,self.max_u,self.nubins,self.ubin_size,
-                self.min_v,self.max_v,self.nvbins,self.vbin_size,
-                self.b, meanlogr, ntri);
+        if False:
+            self.corr = _treecorr.BuildNNNCorr(
+                    self.min_sep,self.max_sep,self.nbins,self.bin_size,
+                    self.min_u,self.max_u,self.nubins,self.ubin_size,
+                    self.min_v,self.max_v,self.nvbins,self.vbin_size,
+                    self.b, meanlogr, ntri);
         self.logger.debug('Finished building NNNCorr')
 
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
-        if hasattr(self,'data'):    # In case __init__ failed to get that far
-            _treecorr.DestroyNNNCorr(self.corr)
+        if False:
+            if hasattr(self,'data'):    # In case __init__ failed to get that far
+                _treecorr.DestroyNNNCorr(self.corr)
 
 
     def process_auto(self, cat):

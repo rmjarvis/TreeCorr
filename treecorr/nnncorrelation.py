@@ -32,15 +32,17 @@ cdouble = ctypes.c_double
 cdouble_ptr = ctypes.POINTER(cdouble)
 cvoid_ptr = ctypes.c_void_p
 
-#_treecorr.BuildNNNCorr.restype = cvoid_ptr
-#_treecorr.BuildNNNCorr.argtypes = [
-#    cdouble, cdouble, cint, cdouble, cdouble,
-#    cdouble_ptr, cdouble_ptr ]
-#_treecorr.DestroyNNNCorr.argtypes = [ cvoid_ptr ]
-##_treecorr.ProcessAutoNNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-#_treecorr.ProcessAutoNNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-##_treecorr.ProcessCrossNNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-##_treecorr.ProcessCrossNNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.BuildNNNCorr.restype = cvoid_ptr
+_treecorr.BuildNNNCorr.argtypes = [
+    cdouble, cdouble, cint, cdouble, cdouble,
+    cdouble, cdouble, cint, cdouble, cdouble,
+    cdouble, cdouble, cint, cdouble, cdouble,
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
+_treecorr.DestroyNNNCorr.argtypes = [ cvoid_ptr ]
+_treecorr.ProcessAutoNNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessAutoNNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
+#_treecorr.ProcessCrossNNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+#_treecorr.ProcessCrossNNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
 class NNNCorrelation(treecorr.BinnedCorr3):
@@ -55,7 +57,9 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         :meanlogr:  The mean value of log(r) for the triangle in each bin.
                     If there are no triangles in a bin, then logr will be used instead.
         :meanu:     The mean value of u for the triangle in each bin.
-                    If there are no tri in a bin, then logr will be used instead.
+                    If there are no tri in a bin, then u will be used instead.
+        :meanv:     The mean value of v for the triangle in each bin.
+                    If there are no tri in a bin, then v will be used instead.
         :ntri:      The number of tri going into each bin.
         :tot:       The total number of tri processed, which is used to normalize
                     the randoms if they have a different number of tri.
@@ -93,18 +97,22 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         shape = (self.nbins, self.nubins, self.nvbins)
         self.meanlogr = numpy.zeros(shape, dtype=float)
+        self.meanu = numpy.zeros(shape, dtype=float)
+        self.meanv = numpy.zeros(shape, dtype=float)
         self.ntri = numpy.zeros(shape, dtype=float)
         self.tot = 0.
 
         meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
+        meanu = self.meanu.ctypes.data_as(cdouble_ptr)
+        meanv = self.meanv.ctypes.data_as(cdouble_ptr)
         ntri = self.ntri.ctypes.data_as(cdouble_ptr)
 
         if False:
             self.corr = _treecorr.BuildNNNCorr(
-                    self.min_sep,self.max_sep,self.nbins,self.bin_size,
-                    self.min_u,self.max_u,self.nubins,self.ubin_size,
-                    self.min_v,self.max_v,self.nvbins,self.vbin_size,
-                    self.b, meanlogr, ntri);
+                    self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                    self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
+                    self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
+                    meanlogr, meanu, meanv, ntri);
         self.logger.debug('Finished building NNNCorr')
 
 
@@ -121,7 +129,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         This accumulates the auto-correlation for the given catalog.  After
         calling this function as often as desired, the finalize() command will
-        finish the calculation of meanlogr.
+        finish the calculation of meanlogr, meanu, meanv.
 
         :param cat:      The catalog to process
         """
@@ -145,7 +153,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         This accumulates the cross-correlation for the given catalogs.  After
         calling this function as often as desired, the finalize() command will
-        finish the calculation of meanlogr.
+        finish the calculation of meanlogr, meanu, meanv.
 
         :param cat1:     The first catalog to process
         :param cat2:     The second catalog to process
@@ -174,7 +182,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         This accumulates the cross-correlation for the given catalogs.  After
         calling this function as often as desired, the finalize() command will
-        finish the calculation of meanlogr.
+        finish the calculation of meanlogr, meanu, meanv.
 
         :param cat1:     The first catalog to process
         :param cat2:     The second catalog to process
@@ -204,24 +212,30 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         The process_auto and process_cross commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation of meanlogr by dividing by the total ntri.
+        finishes the calculation of meanlogr, meanu, meanv by dividing by the total ntri.
         """
         mask1 = self.ntri != 0
         mask2 = self.ntri == 0
 
         self.meanlogr[mask1] /= self.ntri[mask1]
+        self.meanu[mask1] /= self.ntri[mask1]
+        self.meanv[mask1] /= self.ntri[mask1]
 
         # Update the units of meanlogr
         self.meanlogr[mask1] -= self.log_sep_units
 
         # Use meanlogr when available, but set to nominal when no triangles in bin.
         self.meanlogr[mask2] = self.logr[mask2]
+        self.meanu[mask2] = self.logr[mask2]
+        self.meanv[mask2] = self.logr[mask2]
 
 
     def clear(self):
         """Clear the data vectors
         """
         self.meanlogr[:] = 0.
+        self.meanu[:] = 0.
+        self.meanv[:] = 0.
         self.ntri[:] = 0.
         self.tot = 0.
 

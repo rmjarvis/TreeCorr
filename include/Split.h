@@ -19,7 +19,7 @@
 template <class CellType1, class CellType2>
 inline void CalcSplit(
     bool& split1, bool& split2, const CellType1& c1, 
-    const CellType2& c2, const double d, const double b)
+    const CellType2& c2, const double d, const double s1ps2, const double b)
 {
     // This function determines whether either input cell needs to be
     // split.  It is written as a template so that the second cell
@@ -77,8 +77,7 @@ inline void CalcSplit(
             split2 = s2 > maxs;
             if (!split1 && !split2) {
                 // If both are small, need to check the sum.
-                double sum = c1.getSize()+c2.getSize();
-                if (sum > maxs) {
+                if (s1ps2 > maxs) {
                     double modmax = splitfactor*maxs;
                     split1 = true;
                     split2 = (s2 > modmax);
@@ -99,7 +98,7 @@ inline void CalcSplit(
 template <class CellType1, class CellType2>
 inline void CalcSplitSq(
     bool& split1, bool& split2, const CellType1& c1, 
-    const CellType2& c2, const double dsq, const double bsq)
+    const CellType2& c2, const double dsq, const double s1ps2, const double bsq)
 {
     // The same as above, but when we know the distance squared rather
     // than just the distance.  We get some speed up by saving the 
@@ -109,7 +108,7 @@ inline void CalcSplitSq(
     const double s2sq = c2.getSizeSq();
     if (s2sq > s1sq) {
         // Make s1 the larger value.
-        CalcSplitSq(split2,split1,c2,c1,dsq,bsq);
+        CalcSplitSq(split2,split1,c2,c1,dsq,s1ps2,bsq);
     } else if (s1sq > 4.*s2sq) {
         // If one cell is more than 2x the size of the other, only split that one.
         if (!split1) {
@@ -122,9 +121,7 @@ inline void CalcSplitSq(
             split2 = s2sq > maxssq;
             if (!split1 && !split2) {
                 // If both are small, need to check the sum.
-                double sumsq = c1.getSize()+c2.getSize();
-                sumsq *= sumsq;
-                if (sumsq > maxssq) {
+                if (s1ps2*s1ps2 > maxssq) {
                     double modmax = splitfactorsq*maxssq;
                     split1 = true;
                     split2 = (s2sq > modmax);

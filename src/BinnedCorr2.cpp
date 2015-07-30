@@ -95,6 +95,7 @@ void BinnedCorr2<DC1,DC2>::clear()
     for (int i=0; i<_nbins; ++i) _meanlogr[i] = 0.;
     if (_weight) for (int i=0; i<_nbins; ++i) _weight[i] = 0.;
     for (int i=0; i<_nbins; ++i) _npairs[i] = 0.;
+    _metric = -1;
 }
 
 template <int DC1, int DC2> template <int M>
@@ -273,7 +274,7 @@ void BinnedCorr2<DC1,DC2>::process11(const Cell<DC1,M>& c1, const Cell<DC2,M>& c
 
     // See if need to split:
     bool split1=false, split2=false;
-    CalcSplitSq(split1,split2,c1,c2,dsq,_bsq);
+    CalcSplitSq(split1,split2,c1,c2,dsq,s1ps2,_bsq);
 
     if (split1) {
         if (split2) {

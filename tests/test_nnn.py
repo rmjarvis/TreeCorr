@@ -352,6 +352,15 @@ def test_binnedcorr3():
     numpy.testing.assert_almost_equal(nnn.bin_slop, 1.0) # The stored bin_slop is just for lnr
 
 
+def is_ccw(x1,y1, x2,y2, x3,y3):
+    # Calculate the cross product of 1->2 with 1->3
+    x2 -= x1
+    x3 -= x1
+    y2 -= y1
+    y3 -= y1
+    return x2*y3-x3*y2 > 0.
+
+    
 def test_direct_count():
     # If the catalogs are small enough, we can do a direct count of the number of pairs
     # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
@@ -365,30 +374,71 @@ def test_direct_count():
     x2 = numpy.random.normal(0,s, (ngal,) )
     y2 = numpy.random.normal(0,s, (ngal,) )
     cat2 = treecorr.Catalog(x=x2, y=y2)
+    x3 = numpy.random.normal(0,s, (ngal,) )
+    y3 = numpy.random.normal(0,s, (ngal,) )
+    cat3 = treecorr.Catalog(x=x3, y=y3)
 
     min_sep = 1.
     max_sep = 50.
     nbins = 50
-    dd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
-    dd.process(cat1, cat2)
-    print 'dd.npairs = ',dd.npairs
+    nubins = 10
+    nvbins = 20
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  nubins=nubins, nvbins=nvbins, bin_slop=0.)
+
+    # First test auto-correlation
+    ddd.process(cat1)
+    print 'ddd.npairs = ',ddd.npairs
 
     log_min_sep = numpy.log(min_sep)
     log_max_sep = numpy.log(max_sep)
-    true_npairs = numpy.zeros(nbins)
+    true_npairs = numpy.zeros( (nbins, nubins, nvbins) )
     bin_size = (log_max_sep - log_min_sep) / nbins
+    ubin_size = 1.0 / nubins
+    vbin_size = 2.0 / nvbins
     for i in range(ngal):
         for j in range(ngal):
-            rsq = (x1[i]-x2[j])**2 + (y1[i]-y2[j])**2
-            logr = 0.5 * numpy.log(rsq)
-            k = int(numpy.floor( (logr-log_min_sep) / bin_size ))
-            if k < 0: continue
-            if k >= nbins: continue
-            true_npairs[k] += 1
+            for k in range(ngal):
+                dij = numpy.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
+                dik = numpy.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[j])**2)
+                djk = numpy.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[j])**2)
+                ccw = True
+                if dij < dik:
+                    if dik < djk:
+                        d3 = dij; d2 = dik; d1 = djk;
+                        ccw = is_ccw(x1[i],y1[i],x2[j],y2[j],x3[k],y3[k])
+                    elif dij < djk:
+                        d3 = dij; d2 = djk; d1 = dik;
+                        ccw = is_ccw(x2[j],y2[j],x1[i],y1[i],x3[k],y3[k])
+                    else:
+                        d3 = djk; d2 = dij; d1 = dik;
+                        ccw = is_ccw(x2[j],y2[j],x3[k],y3[k],x1[i],y1[i])
+                else:
+                    if dij < djk:
+                        d3 = dik; d2 = dij; d1 = djk;
+                        ccw = is_ccw(x1[i],y1[i],x3[k],y3[k],x2[j],y2[j])
+                    elif dik < djk:
+                        d3 = dik; d2 = djk; d1 = dij;
+                        ccw = is_ccw(x3[k],y3[k],x1[i],y1[i],x2[j],y2[j])
+                    else:
+                        d3 = djk; d2 = dik; d1 = dij;
+                        ccw = is_ccw(x3[k],y3[k],x2[j],y2[j],x1[i],y1[i])
+
+                r = d3
+                u = d3/d2
+                v = (d1-d2)/d3
+                if not ccw: 
+                    v = -v
+                kr = int(numpy.floor( (numpy.log(r)-log_min_sep) / bin_size ))
+                ku = int(numpy.floor( u / ubin_size ))
+                kv = int(numpy.floor( (v+1.0) / vbin_size ))
+                if kr < 0: continue
+                if kr >= nbins: continue
+                true_npairs[kr,ku,kv] += 1
 
     print 'true_npairs = ',true_npairs
-    print 'diff = ',dd.npairs - true_npairs
-    numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+    print 'diff = ',ddd.npairs - true_npairs
+    numpy.testing.assert_array_equal(ddd.npairs, true_npairs)
 
 def test_direct_3d():
     # This is the same as the above test, but using the 3d correlations
@@ -760,7 +810,7 @@ def test_list():
 
 if __name__ == '__main__':
     test_binnedcorr3()
-    #test_direct_count()
+    test_direct_count()
     #test_direct_3d()
     #test_nnn()
     #test_3d()

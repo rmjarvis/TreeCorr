@@ -107,21 +107,19 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         meanv = self.meanv.ctypes.data_as(cdouble_ptr)
         ntri = self.ntri.ctypes.data_as(cdouble_ptr)
 
-        if False:
-            self.corr = _treecorr.BuildNNNCorr(
-                    self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
-                    self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
-                    self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
-                    meanlogr, meanu, meanv, ntri);
+        self.corr = _treecorr.BuildNNNCorr(
+                self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
+                self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
+                meanlogr, meanu, meanv, ntri);
         self.logger.debug('Finished building NNNCorr')
 
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
-        if False:
-            if hasattr(self,'data'):    # In case __init__ failed to get that far
-                _treecorr.DestroyNNNCorr(self.corr)
+        if hasattr(self,'data'):    # In case __init__ failed to get that far
+            _treecorr.DestroyNNNCorr(self.corr)
 
 
     def process_auto(self, cat):
@@ -137,15 +135,13 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         self._set_num_threads()
 
-        field = cat.getNField(self.min_sep,self.max_sep,self.b,self.split_method)
+        field = cat.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
 
         if field.sphere:
-            raise NotImplemented("No spherical NNN yet.")
-            #_treecorr.ProcessAutoNNNSphere(self.corr, field.data, self.output_dots)
+            _treecorr.ProcessAutoNNNSphere(self.corr, field.data, self.output_dots)
         else:
             _treecorr.ProcessAutoNNNFlat(self.corr, field.data, self.output_dots)
         self.tot += (1./6.) * cat.nobj**3
-
 
     def process_cross21(self, cat1, cat2):
         """Process two catalogs, accumulating the 3pt cross-correlation, where two of the 
@@ -164,8 +160,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         self._set_num_threads()
 
-        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method)
-        f2 = cat2.getNField(self.min_sep,self.max_sep,self.b,self.split_method)
+        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
+        f2 = cat2.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
@@ -194,8 +190,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         self._set_num_threads()
 
-        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method)
-        f2 = cat2.getNField(self.min_sep,self.max_sep,self.b,self.split_method)
+        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
+        f2 = cat2.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")

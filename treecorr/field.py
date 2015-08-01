@@ -34,30 +34,30 @@ cdouble_ptr = ctypes.POINTER(cdouble)
 # Define the restypes and argtypes for the C functions:
 _treecorr.BuildNFieldSphere.restype = cvoid_ptr
 _treecorr.BuildNFieldSphere.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
 _treecorr.BuildNFieldFlat.restype = cvoid_ptr
 _treecorr.BuildNFieldFlat.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
 _treecorr.DestroyNFieldSphere.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyNFieldFlat.argtypes = [ cvoid_ptr ]
 
 _treecorr.BuildKFieldSphere.restype = cvoid_ptr
 _treecorr.BuildKFieldSphere.argtypes = [
-    cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint ]
+    cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
 _treecorr.BuildKFieldFlat.restype = cvoid_ptr
 _treecorr.BuildKFieldFlat.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
 _treecorr.DestroyKFieldSphere.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyKFieldFlat.argtypes = [ cvoid_ptr ]
 
 _treecorr.BuildGFieldSphere.restype = cvoid_ptr
 _treecorr.BuildGFieldSphere.argtypes = [
     cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, cdouble_ptr,
-    clong, cdouble, cdouble, cdouble, cint ]
+    clong, cdouble, cdouble, cdouble, cint, cint ]
 _treecorr.BuildGFieldFlat.restype = cvoid_ptr
 _treecorr.BuildGFieldFlat.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
-    clong, cdouble, cdouble, cdouble, cint ]
+    clong, cdouble, cdouble, cdouble, cint, cint ]
 _treecorr.DestroyGFieldSphere.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyGFieldFlat.argtypes = [ cvoid_ptr ]
 
@@ -108,9 +108,11 @@ class NField(object):
                             This should be bin_size * bin_slop.
     :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                             (default: 'mean')
+    :param max_top:         The maximum number of top layers to use when setting up the
+                            field. (default: 10)
     :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', logger=None):
+    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', max_top=10, logger=None):
         if logger:
             logger.info('Building NField from cat %s',cat.name)
 
@@ -132,14 +134,14 @@ class NField(object):
                 r = None
             else:
                 r = cat.r.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildNFieldSphere(ra,dec,r,w,cat.nobj,min_sep,max_sep,b,sm)
+            self.data = _treecorr.BuildNFieldSphere(ra,dec,r,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
             if logger:
                 logger.debug('Finished building NField Sphere')
         else:
             # Then build field with flat sky approximation
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildNFieldFlat(x,y,w,cat.nobj,min_sep,max_sep,b,sm)
+            self.data = _treecorr.BuildNFieldFlat(x,y,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
             if logger:
                 logger.debug('Finished building NField Flat')
 
@@ -170,9 +172,11 @@ class KField(object):
                             This should be bin_size * bin_slop.
     :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                             (default: 'mean')
+    :param max_top:         The maximum number of top layers to use when setting up the
+                            field. (default: 10)
     :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', logger=None):
+    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', max_top=10, logger=None):
         if logger:
             logger.info('Building KField from cat %s',cat.name)
 
@@ -195,14 +199,14 @@ class KField(object):
                 r = None
             else:
                 r = cat.r.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildKFieldSphere(ra,dec,r,k,w,cat.nobj,min_sep,max_sep,b,sm)
+            self.data = _treecorr.BuildKFieldSphere(ra,dec,r,k,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
             if logger:
                 logger.debug('Finished building KField Sphere')
         else:
             # Then build field with flat sky approximation
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildKFieldFlat(x,y,k,w,cat.nobj,min_sep,max_sep,b,sm)
+            self.data = _treecorr.BuildKFieldFlat(x,y,k,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
             if logger:
                 logger.debug('Finished building KField Flat')
 
@@ -233,9 +237,11 @@ class GField(object):
                             This should be bin_size * bin_slop.
     :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                             (default: 'mean')
+    :param max_top:         The maximum number of top layers to use when setting up the
+                            field. (default: 10)
     :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', logger=None):
+    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', max_top=10, logger=None):
         if logger:
             logger.info('Building GField from cat %s',cat.name)
 
@@ -259,14 +265,14 @@ class GField(object):
                 r = None
             else:
                 r = cat.r.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildGFieldSphere(ra,dec,r,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm)
+            self.data = _treecorr.BuildGFieldSphere(ra,dec,r,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
             if logger:
                 logger.debug('Finished building GField Sphere')
         else:
             # Then build field with flat sky approximation
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildGFieldFlat(x,y,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm)
+            self.data = _treecorr.BuildGFieldFlat(x,y,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
             if logger:
                 logger.debug('Finished building GField Flat')
 

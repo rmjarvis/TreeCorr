@@ -362,7 +362,7 @@ def is_ccw(x1,y1, x2,y2, x3,y3):
 
     
 def test_direct_count():
-    # If the catalogs are small enough, we can do a direct count of the number of pairs
+    # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
 
     ngal = 100
@@ -371,37 +371,38 @@ def test_direct_count():
     x1 = numpy.random.normal(0,s, (ngal,) )
     y1 = numpy.random.normal(0,s, (ngal,) )
     cat1 = treecorr.Catalog(x=x1, y=y1)
-    x2 = numpy.random.normal(0,s, (ngal,) )
-    y2 = numpy.random.normal(0,s, (ngal,) )
-    cat2 = treecorr.Catalog(x=x2, y=y2)
-    x3 = numpy.random.normal(0,s, (ngal,) )
-    y3 = numpy.random.normal(0,s, (ngal,) )
-    cat3 = treecorr.Catalog(x=x3, y=y3)
 
     min_sep = 1.
     max_sep = 50.
     nbins = 50
     nubins = 10
     nvbins = 20
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                  nubins=nubins, nvbins=nvbins, bin_slop=0.)
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
+                                  nvbins=nvbins, bin_slop=0., verbose=3)
 
     # First test auto-correlation
     ddd.process(cat1)
-    print 'ddd.npairs = ',ddd.npairs
+    #print 'ddd.ntri = ',ddd.ntri
+    x2 = x1
+    x3 = x1
+    y2 = y1
+    y3 = y1
 
     log_min_sep = numpy.log(min_sep)
     log_max_sep = numpy.log(max_sep)
-    true_npairs = numpy.zeros( (nbins, nubins, nvbins) )
+    true_ntri = numpy.zeros( (nbins, nubins, nvbins) )
     bin_size = (log_max_sep - log_min_sep) / nbins
     ubin_size = 1.0 / nubins
     vbin_size = 2.0 / nvbins
     for i in range(ngal):
-        for j in range(ngal):
-            for k in range(ngal):
-                dij = numpy.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
-                dik = numpy.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[j])**2)
-                djk = numpy.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[j])**2)
+        for j in range(i+1,ngal):
+            for k in range(j+1,ngal):
+                dij = numpy.sqrt((x1[i]-x1[j])**2 + (y1[i]-y2[j])**2)
+                dik = numpy.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2)
+                djk = numpy.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2)
+                if dij == 0.: continue
+                if dik == 0.: continue
+                if djk == 0.: continue
                 ccw = True
                 if dij < dik:
                     if dik < djk:
@@ -424,7 +425,7 @@ def test_direct_count():
                         d3 = djk; d2 = dik; d1 = dij;
                         ccw = is_ccw(x3[k],y3[k],x2[j],y2[j],x1[i],y1[i])
 
-                r = d3
+                r = d2
                 u = d3/d2
                 v = (d1-d2)/d3
                 if not ccw: 
@@ -434,11 +435,36 @@ def test_direct_count():
                 kv = int(numpy.floor( (v+1.0) / vbin_size ))
                 if kr < 0: continue
                 if kr >= nbins: continue
-                true_npairs[kr,ku,kv] += 1
+                true_ntri[kr,ku,kv] += 1
 
-    print 'true_npairs = ',true_npairs
-    print 'diff = ',ddd.npairs - true_npairs
-    numpy.testing.assert_array_equal(ddd.npairs, true_npairs)
+    #print 'true_ntri => ',true_ntri
+    #print 'diff = ',ddd.ntri - true_ntri
+    numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
+                                  nvbins=nvbins, bin_slop=1.e-16, verbose=3)
+    ddd.process(cat1)
+    #print 'ddd.ntri = ',ddd.ntri
+    #print 'diff = ',ddd.ntri - true_ntri
+    numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # And again with no top-level recursion
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
+                                  nvbins=nvbins, bin_slop=1.e-16, verbose=3, max_top=0)
+    ddd.process(cat1)
+    #print 'ddd.ntri = ',ddd.ntri
+    #print 'diff = ',ddd.ntri - true_ntri
+    numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # Next test where 2 are the same crossed to a third that is different.
+    x2 = numpy.random.normal(0,s, (ngal,) )
+    y2 = numpy.random.normal(0,s, (ngal,) )
+    cat2 = treecorr.Catalog(x=x2, y=y2)
+    x3 = numpy.random.normal(0,s, (ngal,) )
+    y3 = numpy.random.normal(0,s, (ngal,) )
+    cat3 = treecorr.Catalog(x=x3, y=y3)
+
 
 def test_direct_3d():
     # This is the same as the above test, but using the 3d correlations
@@ -465,13 +491,14 @@ def test_direct_3d():
     min_sep = 1.
     max_sep = 50.
     nbins = 50
-    dd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    dd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+                                 verbose=3)
     dd.process(cat1, cat2)
-    print 'dd.npairs = ',dd.npairs
+    print 'dd.ntri = ',dd.ntri
 
     log_min_sep = numpy.log(min_sep)
     log_max_sep = numpy.log(max_sep)
-    true_npairs = numpy.zeros(nbins)
+    true_ntri = numpy.zeros(nbins)
     bin_size = (log_max_sep - log_min_sep) / nbins
     for i in range(ngal):
         for j in range(ngal):
@@ -480,11 +507,11 @@ def test_direct_3d():
             k = int(numpy.floor( (logr-log_min_sep) / bin_size ))
             if k < 0: continue
             if k >= nbins: continue
-            true_npairs[k] += 1
+            true_ntri[k] += 1
 
-    print 'true_npairs = ',true_npairs
-    print 'diff = ',dd.npairs - true_npairs
-    numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+    print 'true_ntri = ',true_ntri
+    print 'diff = ',dd.ntri - true_ntri
+    numpy.testing.assert_array_equal(dd.ntri, true_ntri)
 
 def test_nnn():
     # Use a simple probability distribution for the galaxies:
@@ -512,7 +539,7 @@ def test_nnn():
     dd = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     dd.process(cat)
-    print 'dd.npairs = ',dd.npairs
+    print 'dd.ntri = ',dd.ntri
 
     nrand = 5 * ngal
     rx = (numpy.random.random_sample(nrand)-0.5) * L
@@ -521,12 +548,12 @@ def test_nnn():
     rr = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     rr.process(rand)
-    print 'rr.npairs = ',rr.npairs
+    print 'rr.ntri = ',rr.ntri
 
     dr = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     dr.process(cat,rand)
-    print 'dr.npairs = ',dr.npairs
+    print 'dr.ntri = ',dr.ntri
 
     r = numpy.exp(dd.meanlogr)
     true_xi = 0.25/numpy.pi * (L/s)**2 * numpy.exp(-0.25*r**2/s**2) - 1.
@@ -572,7 +599,7 @@ def test_nnn():
     data = fitsio.read(out_file_name1)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(dd.logr))
     numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(dd.meanlogr))
-    numpy.testing.assert_almost_equal(data['npairs'], dd.npairs)
+    numpy.testing.assert_almost_equal(data['ntri'], dd.ntri)
 
     out_file_name2 = os.path.join('output','nnn_out2.fits')
     dd.write(out_file_name2, rr)
@@ -581,8 +608,8 @@ def test_nnn():
     numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(dd.meanlogr))
     numpy.testing.assert_almost_equal(data['xi'], simple_xi)
     numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(simple_varxi))
-    numpy.testing.assert_almost_equal(data['DD'], dd.npairs)
-    numpy.testing.assert_almost_equal(data['RR'], rr.npairs * (dd.tot / rr.tot))
+    numpy.testing.assert_almost_equal(data['DD'], dd.ntri)
+    numpy.testing.assert_almost_equal(data['RR'], rr.ntri * (dd.tot / rr.tot))
 
     out_file_name3 = os.path.join('output','nnn_out3.fits')
     dd.write(out_file_name3, rr, dr)
@@ -591,22 +618,22 @@ def test_nnn():
     numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(dd.meanlogr))
     numpy.testing.assert_almost_equal(data['xi'], xi)
     numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(varxi))
-    numpy.testing.assert_almost_equal(data['DD'], dd.npairs)
-    numpy.testing.assert_almost_equal(data['RR'], rr.npairs * (dd.tot / rr.tot))
-    numpy.testing.assert_almost_equal(data['DR'], dr.npairs * (dd.tot / dr.tot))
-    numpy.testing.assert_almost_equal(data['RD'], dr.npairs * (dd.tot / dr.tot))
+    numpy.testing.assert_almost_equal(data['DD'], dd.ntri)
+    numpy.testing.assert_almost_equal(data['RR'], rr.ntri * (dd.tot / rr.tot))
+    numpy.testing.assert_almost_equal(data['DR'], dr.ntri * (dd.tot / dr.tot))
+    numpy.testing.assert_almost_equal(data['RD'], dr.ntri * (dd.tot / dr.tot))
 
     # Check the read function
     dd2 = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
     dd2.read(out_file_name1)
     numpy.testing.assert_almost_equal(dd2.logr, dd.logr)
     numpy.testing.assert_almost_equal(dd2.meanlogr, dd.meanlogr)
-    numpy.testing.assert_almost_equal(dd2.npairs, dd.npairs)
+    numpy.testing.assert_almost_equal(dd2.ntri, dd.ntri)
 
     dd2.read(out_file_name3)
     numpy.testing.assert_almost_equal(dd2.logr, dd.logr)
     numpy.testing.assert_almost_equal(dd2.meanlogr, dd.meanlogr)
-    numpy.testing.assert_almost_equal(dd2.npairs, dd.npairs)
+    numpy.testing.assert_almost_equal(dd2.ntri, dd.ntri)
 
 
 
@@ -643,7 +670,7 @@ def test_3d():
     cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='deg', dec_units='deg')
     dd = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
     dd.process(cat)
-    print 'dd.npairs = ',dd.npairs
+    print 'dd.ntri = ',dd.ntri
 
     nrand = 5 * ngal
     rx = (numpy.random.random_sample(nrand)-0.5) * L + xcen
@@ -655,11 +682,11 @@ def test_3d():
     rand = treecorr.Catalog(ra=rra, dec=rdec, r=rr, ra_units='deg', dec_units='deg')
     rr = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
     rr.process(rand)
-    print 'rr.npairs = ',rr.npairs
+    print 'rr.ntri = ',rr.ntri
 
     dr = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
     dr.process(cat,rand)
-    print 'dr.npairs = ',dr.npairs
+    print 'dr.ntri = ',dr.ntri
 
     r = numpy.exp(dd.meanlogr)
     true_xi = 1./(8.*numpy.pi**1.5) * (L/s)**3 * numpy.exp(-0.25*r**2/s**2) - 1.
@@ -715,11 +742,11 @@ def test_list():
 
     dd = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
     dd.process(data_cats)
-    print 'dd.npairs = ',dd.npairs
+    print 'dd.ntri = ',dd.ntri
 
     rr = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
     rr.process(rand_cats)
-    print 'rr.npairs = ',rr.npairs
+    print 'rr.ntri = ',rr.ntri
 
     xi, varxi = dd.calculateXi(rr)
     print 'xi = ',xi
@@ -733,8 +760,8 @@ def test_list():
     rrx.process(rand_catx)
     xix, varxix = ddx.calculateXi(rrx)
 
-    print 'ddx.npairs = ',ddx.npairs
-    print 'rrx.npairs = ',rrx.npairs
+    print 'ddx.ntri = ',ddx.ntri
+    print 'rrx.ntri = ',rrx.ntri
     print 'xix = ',xix
     print 'ratio = ',xi/xix
     print 'diff = ',xi-xix
@@ -809,7 +836,7 @@ def test_list():
 
 
 if __name__ == '__main__':
-    test_binnedcorr3()
+    #test_binnedcorr3()
     test_direct_count()
     #test_direct_3d()
     #test_nnn()

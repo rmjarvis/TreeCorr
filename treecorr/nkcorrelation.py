@@ -121,8 +121,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         self._set_num_threads()
 
-        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method)
-        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
+        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
+        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")

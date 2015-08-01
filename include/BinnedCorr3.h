@@ -95,6 +95,7 @@ protected:
     double _bv;
     double _logminsep;
     double _halfminsep;
+    double _halfmind3;
     double _minsepsq;
     double _maxsepsq;
     double _minusq;
@@ -375,8 +376,8 @@ extern "C" {
 #endif
 
     extern void ProcessAutoNNNFlat(void* corr, void* field, int dots);
+    extern void ProcessAutoNNNSphere(void* corr, void* field, int dots);
 #if 0
-    extern void ProcessAutoNNSphere(void* corr, void* field, int dots);
     extern void ProcessAutoKKFlat(void* corr, void* field, int dots);
     extern void ProcessAutoKKSphere(void* corr, void* field, int dots);
     extern void ProcessAutoGGFlat(void* corr, void* field, int dots);

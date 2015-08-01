@@ -21,7 +21,7 @@ class Field
 public:
     // Note: for M=Sphere, x,y here are really ra,dec.
     Field(double* x, double* y, double* r, double* g1, double* g2, double* k, double* w,
-          long nobj, double minsep, double maxsep, double b, int sm_int);
+          long nobj, double minsep, double maxsep, double b, int sm_int, int maxtop);
     ~Field();
 
     long getNObj() const { return _nobj; }
@@ -59,23 +59,29 @@ private:
 extern "C" {
 
     extern void* BuildGFieldFlat(double* x, double* y, double* g1, double* g2, double* w,
-                                 long nobj, double minsep, double maxsep, double b, int sm_int);
+                                 long nobj, double minsep, double maxsep, double b, int sm_int,
+                                 int maxtop);
 
     extern void* BuildGFieldSphere(double* ra, double* dec, double* r,
                                    double* g1, double* g2, double* w,
-                                   long nobj, double minsep, double maxsep, double b, int sm_int);
+                                   long nobj, double minsep, double maxsep, double b, int sm_int,
+                                   int maxtop);
 
     extern void* BuildKFieldFlat(double* x, double* y, double* k, double* w,
-                                 long nobj, double minsep, double maxsep, double b, int sm_int);
+                                 long nobj, double minsep, double maxsep, double b, int sm_int,
+                                 int maxtop);
 
     extern void* BuildKFieldSphere(double* ra, double* dec, double* r, double* k, double* w,
-                                   long nobj, double minsep, double maxsep, double b, int sm_int);
+                                   long nobj, double minsep, double maxsep, double b, int sm_int,
+                                   int maxtop);
 
     extern void* BuildNFieldFlat(double* x, double* y, double* w,
-                                 long nobj, double minsep, double maxsep, double b, int sm_int);
+                                 long nobj, double minsep, double maxsep, double b, int sm_int,
+                                 int maxtop);
 
     extern void* BuildNFieldSphere(double* ra, double* dec, double* r, double* w,
-                                   long nobj, double minsep, double maxsep, double b, int sm_int);
+                                   long nobj, double minsep, double maxsep, double b, int sm_int,
+                                   int maxtop);
 
     extern void DestroyGFieldFlat(void* field);
 

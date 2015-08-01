@@ -92,6 +92,9 @@ class BinnedCorr2(object):
                         - median: Use the median of the coordinate being split.
                         - middle: Use the middle of the range; i.e. the average of the minimum and
                           maximum value.
+    :param max_top:     The maximum number of top layers to use when setting up the field. 
+                        The top-level cells are the cells where each calculation job starts.
+                        There will typically be of order 2^max_top top-level cells. (default: 10)
     :param precision:   The precision to use for the output values. This should be an integer,
                         which specifies how many digits to write. (default: 4)
     :param pairwise:    Whether to use a different kind of calculation for cross correlations
@@ -168,6 +171,8 @@ class BinnedCorr2(object):
         if self.split_method not in ['middle', 'median', 'mean']:
             raise ValueError("Invalid split_method %s"%self.split_method)
         self.logger.debug("Using split_method = %s",self.split_method)
+
+        self.max_top = treecorr.config.get(self.config,'max_top',int,10)
 
         self.bin_slop = treecorr.config.get(self.config,'bin_slop',float,-1.0)
         if self.bin_slop < 0.0:

@@ -165,11 +165,11 @@ inline bool Check(
     // Checks that d1,d2,d3 are correct for the three Cells given.
     // Used as a debugging check.
     bool ok=true;
-    if (Dist(c3.getData()->pos,c2.getData()->pos)-d1 > 0.0001) 
+    if (Dist(c3.getData().getPos(),c2.getData().getPos())-d1 > 0.0001) 
     { std::cerr<<"d1\n"; ok = false; }
-    if (Dist(c1.getData()->pos,c3.getData()->pos)-d2 > 0.0001) 
+    if (Dist(c1.getData().getPos(),c3.getData().getPos())-d2 > 0.0001) 
     { std::cerr<<"d2\n"; ok = false; }
-    if (Dist(c2.getData()->pos,c1.getData()->pos)-d3 > 0.0001) 
+    if (Dist(c2.getData().getPos(),c1.getData().getPos())-d3 > 0.0001) 
     { std::cerr<<"d3\n"; ok = false; }
     if (d1 > d2+d3+0.0001) { std::cerr<<"sum d1\n"; ok = false; }
     if (d2 > d1+d3+0.0001) { std::cerr<<"sum d2\n"; ok = false; }

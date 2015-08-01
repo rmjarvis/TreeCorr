@@ -117,7 +117,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         self._set_num_threads()
 
-        field = cat.getNField(self.min_sep,self.max_sep,self.b,self.split_method)
+        field = cat.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
 
         if field.sphere:
             _treecorr.ProcessAutoNNSphere(self.corr, field.data, self.output_dots)
@@ -141,8 +141,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         self._set_num_threads()
 
-        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method)
-        f2 = cat2.getNField(self.min_sep,self.max_sep,self.b,self.split_method)
+        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
+        f2 = cat2.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")

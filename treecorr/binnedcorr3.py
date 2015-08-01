@@ -109,6 +109,9 @@ class BinnedCorr3(object):
                         - median: Use the median of the coordinate being split.
                         - middle: Use the middle of the range; i.e. the average of the minimum and
                           maximum value.
+    :param max_top:     The maximum number of top layers to use when setting up the field. 
+                        The top-level cells are the cells where each calculation job starts.
+                        There will typically be of order 2^max_top top-level cells. (default: 10)
     :param precision:   The precision to use for the output values. This should be an integer,
                         which specifies how many digits to write. (default: 4)
     :param num_threads: How many OpenMP threads to use during the calculations.  (default: 0,
@@ -279,6 +282,8 @@ class BinnedCorr3(object):
             raise ValueError("Invalid split_method %s"%self.split_method)
         self.logger.debug("Using split_method = %s",self.split_method)
 
+        self.max_top = treecorr.config.get(self.config,'max_top',int,10)
+
         self.bin_slop = treecorr.config.get(self.config,'bin_slop',float,-1.0)
         if self.bin_slop < 0.0:
             if self.bin_size <= 0.1:
@@ -311,22 +316,29 @@ class BinnedCorr3(object):
             self.logger.debug("bu = %f, bv = %f",self.bu,self.bv)
 
         # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
-        self.logr = numpy.linspace(start=0, stop=self.nbins*self.bin_size, 
+        self.logr1d = numpy.linspace(start=0, stop=self.nbins*self.bin_size, 
                                    num=self.nbins, endpoint=False)
         # Offset by the position of the center of the first bin.
-        self.logr += math.log(self.min_sep) + 0.5*self.bin_size
+        self.logr1d += math.log(self.min_sep) + 0.5*self.bin_size
 
         # And correct the units:
-        self.logr -= self.log_sep_units
+        self.logr1d -= self.log_sep_units
 
-        self.u = numpy.linspace(start=0, stop=self.nubins*self.ubin_size, 
+        self.u1d = numpy.linspace(start=0, stop=self.nubins*self.ubin_size, 
                                 num=self.nubins, endpoint=False)
-        self.u += self.min_u + 0.5*self.ubin_size
+        self.u1d += self.min_u + 0.5*self.ubin_size
 
-        self.v = numpy.linspace(start=0, stop=self.nvbins*self.vbin_size, 
+        self.v1d = numpy.linspace(start=0, stop=self.nvbins*self.vbin_size, 
                                 num=self.nvbins, endpoint=False)
-        self.v += self.min_v + 0.5*self.vbin_size
+        self.v1d += self.min_v + 0.5*self.vbin_size
 
+        shape = (self.nbins, self.nubins, self.nvbins)
+        self.logr = numpy.tile(self.logr1d[:, numpy.newaxis, numpy.newaxis],
+                               (1, self.nubins, self.nvbins))
+        self.u = numpy.tile(self.u1d[numpy.newaxis, :, numpy.newaxis],
+                            (self.nbins, 1, self.nvbins))
+        self.v = numpy.tile(self.v1d[numpy.newaxis, numpy.newaxis, :],
+                            (self.nbins, self.nubins, 1))
 
     gen_write = treecorr.util.gen_write
     gen_read = treecorr.util.gen_read
@@ -359,5 +371,8 @@ class BinnedCorr3(object):
 
     def _set_num_threads(self):
         num_threads = self.config.get('num_threads',None)
-        self.logger.debug('Set num_threads = %d',num_threads)
+        if num_threads is None:
+            self.logger.debug('Set num_threads automatically from ncpu')
+        else:
+            self.logger.debug('Set num_threads = %d',num_threads)
         treecorr.set_omp_threads(num_threads, self.logger)

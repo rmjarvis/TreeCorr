@@ -47,6 +47,7 @@ BinnedCorr3<DC1,DC2,DC3>::BinnedCorr3(
     _ntot = _nbins * _nuv;
     _logminsep = log(_minsep);
     _halfminsep = 0.5*_minsep;
+    _halfmind3 = 0.5*_minsep*_minu;
     _minsepsq = _minsep*_minsep;
     _maxsepsq = _maxsep*_maxsep;
     _minusq = _minu*_minu;
@@ -67,7 +68,7 @@ BinnedCorr3<DC1,DC2,DC3>::BinnedCorr3(const BinnedCorr3<DC1,DC2,DC3>& rhs, bool 
     _minv(rhs._minv), _maxv(rhs._maxv), _nvbins(rhs._nvbins),
     _vbinsize(rhs._vbinsize), _bv(rhs._bv),
     _nuv(rhs._nuv), _ntot(rhs._ntot),
-    _logminsep(rhs._logminsep), _halfminsep(rhs._halfminsep),
+    _logminsep(rhs._logminsep), _halfminsep(rhs._halfminsep), _halfmind3(rhs._halfmind3),
     _minsepsq(rhs._minsepsq), _maxsepsq(rhs._maxsepsq), _bsq(rhs._bsq),
     _metric(rhs._metric), _owns_data(true),
     _zeta(0,0,0,0,0,0,0,0), _weight(0)
@@ -245,8 +246,12 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field1, const Field<D
 // Does all triangles with 3 points in c123
 template <int DC1, int DC2, int DC3> template <int M>
 void BinnedCorr3<DC1,DC2,DC3>::process3(const Cell<DC1,M>* c123)
-{ 
-    if (c123->getSize() < _halfminsep) return;
+{
+    xdbg<<"Process3: c123 = "<<c123->getData().getPos()<<"  "<<"  "<<c123->getSize()<<"  "<<c123->getData().getN()<<std::endl;
+    if (c123->getSize() < _halfminsep) {
+        xdbg<<"    size < halfminsep.  return\n";
+        return;
+    }
 
     Assert(c123->getLeft());
     Assert(c123->getRight());
@@ -261,7 +266,16 @@ void BinnedCorr3<DC1,DC2,DC3>::process3(const Cell<DC1,M>* c123)
 template <int DC1, int DC2, int DC3> template <int M>
 void BinnedCorr3<DC1,DC2,DC3>::process21S(const Cell<DC1,M>* c12, const Cell<DC1,M>* c3)
 {
-    if (c12->getSize() < _halfminsep) return;
+    xdbg<<"Process21: c12 = "<<c12->getData().getPos()<<"  "<<"  "<<c12->getSize()<<"  "<<c12->getData().getN()<<std::endl;
+    xdbg<<"           c3  = "<<c3->getData().getPos()<<"  "<<"  "<<c3->getSize()<<"  "<<c3->getData().getN()<<std::endl;
+    if (c12->getSize() == 0.) {
+        xdbg<<"    size == 0.  return\n";
+        return;
+    }
+    if (c12->getSize() < _halfmind3) {
+        xdbg<<"    size < halfminsep * umin.  return\n";
+        return;
+    }
 
     Assert(c12->getLeft());
     Assert(c12->getRight());
@@ -321,6 +335,10 @@ void BinnedCorr3<DC1,DC2,DC3>::process111S(
 {
     // Calculate the distances if they aren't known yet, and sort so that d3 < d2 < d1
     Sort3(c1,c2,c3,d1sq,d2sq,d3sq);
+    xdbg<<"Process111: c1 = "<<c1->getData().getPos()<<"  "<<"  "<<c1->getSize()<<"  "<<c1->getData().getN()<<std::endl;
+    xdbg<<"            c2 = "<<c2->getData().getPos()<<"  "<<"  "<<c2->getSize()<<"  "<<c2->getData().getN()<<std::endl;
+    xdbg<<"            c3 = "<<c3->getData().getPos()<<"  "<<"  "<<c3->getSize()<<"  "<<c3->getData().getN()<<std::endl;
+    xdbg<<"            d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
     Assert(d1sq >= d2sq);
     Assert(d2sq >= d3sq);
 
@@ -335,7 +353,10 @@ void BinnedCorr3<DC1,DC2,DC3>::process111S(
     if (d2sq < _minsepsq && s1ps3 < _minsep && d2sq < SQR(_minsep - s1ps3)) {
         // Then d2 + s1+s3 < minsep
         // Probably we can stop now, but check d3
-        if (s1ps2 < _minsep && d3sq < SQR(_minsep - s1ps2)) return;
+        if (s1ps2 < _minsep && d3sq < SQR(_minsep - s1ps2)) {
+            xdbg<<"d2 cannot be as large as minsep\n";
+            return;
+        }
         // If this didn't pass, then it's pretty unlikely that d1 will, so just move on.
     }
     // Similarly, we can abort if all possible triangles will have d2 > maxsep.
@@ -343,7 +364,10 @@ void BinnedCorr3<DC1,DC2,DC3>::process111S(
     if (d2sq >= _maxsepsq && d2sq >= SQR(_maxsep + s1ps3)) {
         // Then d2 - s1 - s3 >= maxsep
         // Probably we can stop now, but check d1
-        if (s2ps3 < _minsep && d1sq > SQR(_maxsep - s2ps3)) return;
+        if (s2ps3 < _minsep && d1sq > SQR(_maxsep - s2ps3)) {
+            xdbg<<"d2 cannot be as small as maxsep\n";
+            return;
+        }
         // And again, it's pretty unlikely that d3 will pass, so just move on.
     }
 
@@ -433,9 +457,11 @@ void BinnedCorr3<DC1,DC2,DC3>::process111S(
                 Assert(c3->getRight());
                 process111S(c1,c2,c3->getLeft(),0.,0.,d3sq);
                 process111S(c1,c2,c3->getRight(),0.,0.,d3sq);
-            } else if (d1sq >= _minsepsq && d1sq <= _maxsepsq) {
+            } else if (d2sq >= _minsepsq && d2sq <= _maxsepsq) {
                 // don't split any
                 processUS(c1,c2,c3,d1sq,d2sq,d3sq,d2);
+            } else {
+                xdbg<<"d2 not within minsep .. maxsep\n";
             }
         }
     }
@@ -452,9 +478,10 @@ void BinnedCorr3<DC1,DC2,DC3>::processUS(
     Assert(d1sq >= d2sq);
     Assert(d2sq >= d3sq);
     XAssert(std::abs(d2*d2 - d2sq) < 1.e-10);
-    XAssert(c1->getAllSize() + c3->getAllSize() < d2 * _b);
-    XAssert(NoSplit(c1,c3,d2,_b));
-    XAssert(Check(c1,c2,c3,sqrt(d1sq),sqrt(d2sq),sqrt(d3sq)));
+    XAssert(c1->getAllSize() + c3->getAllSize() <= d2 * _b);
+    XAssert(NoSplit(*c1,*c3,d2,_b));
+    XAssert(Check(*c1,*c2,*c3,sqrt(d1sq),sqrt(d2sq),sqrt(d3sq)));
+    xdbg<<"            u = "<<sqrt(d3sq)/sqrt(d2sq)<<std::endl;
 
     const double s1ps3 = c1->getAllSize()+c3->getAllSize();
     const double s1ps2 = c1->getAllSize()+c2->getAllSize();
@@ -466,6 +493,7 @@ void BinnedCorr3<DC1,DC2,DC3>::processUS(
     // (d3+s1+s2) < minu * (d2-s1-s3)
     // d3 < minu * (d2-s1-s3) - (s1+s2)
     if (_minu > 0. && d3sq < _minusq*d2sq && d3sq < SQR(_minu * (d2-s1ps3) - s1ps2)) {
+        xdbg<<"u cannot be as large as minu\n";
         return;
     }
     // If the user sets a maxu < 1, then we can abort if no possible triangle can have
@@ -476,6 +504,7 @@ void BinnedCorr3<DC1,DC2,DC3>::processUS(
     // d3 > maxu * (d2+s1+s3) + (s1+s2)
     //
     if (_maxu < 1. && d3sq >= _maxusq*d2sq && d3sq >= SQR(_maxu * (d2+s1ps3) + s1ps2)) {
+        xdbg<<"u cannot be as small as maxu\n";
         return;
     }
 
@@ -513,10 +542,15 @@ void BinnedCorr3<DC1,DC2,DC3>::processUS(
             // don't split any
             double d3 = sqrt(d3sq);
             double u = d3/d2;
-            if (u < _minu || u >= _maxu) return;
+            if (u < _minu || u >= _maxu) {
+                xdbg<<"u not in minu .. maxu\n";
+                return;
+            }
             double d1 = sqrt(d1sq);
 
             double logr = log(d2);
+            xdbg<<"            logr = "<<logr<<std::endl;
+            xdbg<<"            u = "<<u<<std::endl;
             const int kr = int(floor((logr-_logminsep)/_binsize));
             Assert(kr >= 0);
             Assert(kr < _nbins);
@@ -524,7 +558,7 @@ void BinnedCorr3<DC1,DC2,DC3>::processUS(
             Assert(ku >= 0);
             if (ku >= _nubins) {
                 // Rounding error can allow this.
-                XAssert((u-_minu)/_ubinsize - ku < 1.e-10)
+                XAssert((u-_minu)/_ubinsize - ku < 1.e-10);
                 Assert(ku==_nubins);
                 --ku; 
             }
@@ -553,9 +587,9 @@ void BinnedCorr3<DC1,DC2,DC3>::processVS(
     Assert(d1 >= d2);
     Assert(index >= 0);
     Assert(index < _ntot);
-    XAssert(NoSplit(c1,c3,d2,_b));
-    XAssert(NoSplit(c1,c2,d2,_bu));
-    XAssert(Check(c1,c2,c3,d1,d2,d3));
+    XAssert(NoSplit(*c1,*c3,d2,_b));
+    XAssert(NoSplit(*c1,*c2,d2,_bu));
+    XAssert(Check(*c1,*c2,*c3,d1,d2,d3));
     XAssert(std::abs(d1*d1-d1sq) < 1.e-10);
     XAssert(std::abs(d2*d2-d2sq) < 1.e-10);
     XAssert(std::abs(d3*d3-d3sq) < 1.e-10);
@@ -686,9 +720,13 @@ void BinnedCorr3<DC1,DC2,DC3>::processVS(
             } else {
                 // No splits required.
                 double v = (d1-d2)/d3;
-                if (CCW(c1->getData().getPos(), c2->getData().getPos(), c3->getData().getPos()))
+                xdbg<<"            v = "<<v<<std::endl;
+                if (!CCW(c1->getData().getPos(), c2->getData().getPos(), c3->getData().getPos()))
                     v = -v;
-                if (v < _minv || v >= _maxv) return;
+                if (v < _minv || v >= _maxv) {
+                    xdbg<<"v not in minv .. maxv\n";
+                    return;
+                }
 
                 int kv = int(floor((v-_minv)/_vbinsize));
                 Assert(kv >= 0);
@@ -844,13 +882,11 @@ void BinnedCorr3<DC1,DC2,DC3>::directProcessV(
     const double d1, const double d2, const double d3,
     const double logr, const double u, const double v, const int index)
 {
-    XAssert(dsq >= _minsepsq);
-    XAssert(dsq < _maxsepsq);
-    XAssert(c1.getSize()+c2.getSize() < sqrt(dsq)*_b + 0.0001);
-
     double nnn = double(c1.getData().getN()) * double(c2.getData().getN()) *
         double(c3.getData().getN());
     _ntri[index] += nnn;
+    xdbg<<"            index = "<<index<<std::endl;
+    xdbg<<"            nnn = "<<nnn<<std::endl;
 
     DirectHelper<DC1,DC2,DC3>::ProcessZeta(c1,c2,c3,d1,d2,d3,_zeta,index);
 
@@ -893,6 +929,8 @@ void* BuildNNNCorr(double minsep, double maxsep, int nbins, double binsize, doub
                    double minv, double maxv, int nvbins, double vbinsize, double bv,
                    double* meanlogr, double* meanu, double* meanv, double* ntri)
 {
+    dbgout = &std::cout;
+    XDEBUG = true;
     dbg<<"Start BuildNNCorr\n";
     void* corr = static_cast<void*>(new BinnedCorr3<NData,NData,NData>(
             minsep, maxsep, nbins, binsize, b,

@@ -126,7 +126,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         self._set_num_threads()
 
-        field = cat.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
+        field = cat.getKField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
 
         if field.sphere:
             _treecorr.ProcessAutoKKSphere(self.corr, field.data, self.output_dots)
@@ -150,8 +150,8 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         self._set_num_threads()
 
-        f1 = cat1.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
-        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
+        f1 = cat1.getKField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
+        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")

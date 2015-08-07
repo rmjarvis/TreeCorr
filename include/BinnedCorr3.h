@@ -44,28 +44,29 @@ public:
     template <int M>
     void process(const Field<DC1, M>& field, bool dots);
     template <int M>
-    void process(const Field<DC1, M>& field1, const Field<DC2, M>& field2, bool dots);
+    void process(const Field<DC1, M>& field1, const Field<DC2, M>& field2, 
+                 const Field<DC3, M>& field3, bool dots);
 
     // Main worker functions for calculating the result
     template <int M>
     void process3(const Cell<DC1,M>* c123);
 
-    template <int M>
-    void process21S(const Cell<DC1,M>* c12, const Cell<DC1,M>* c3);
+    template <bool sort, int M>
+    void process21(const Cell<DC1,M>* c12, const Cell<DC3,M>* c3);
 
-    template <int M>
-    void process111S(const Cell<DC1,M>* c1, const Cell<DC1,M>* c2, const Cell<DC1,M>* c3,
-                     double d1sq=0., double d2sq=0., double d3sq=0.);
+    template <bool sort, int M>
+    void process111(const Cell<DC1,M>* c1, const Cell<DC2,M>* c2, const Cell<DC3,M>* c3,
+                    double d1sq=0., double d2sq=0., double d3sq=0.);
 
-    template <int M>
-    void processUS(const Cell<DC1,M>* c1, const Cell<DC1,M>* c2, const Cell<DC1,M>* c3,
-                   const double d1sq, const double d2sq, const double d3sq, const double d2);
+    template <bool sort, int M>
+    void processU(const Cell<DC1,M>* c1, const Cell<DC2,M>* c2, const Cell<DC3,M>* c3,
+                  const double d1sq, const double d2sq, const double d3sq, const double d2);
 
-    template <int M>
-    void processVS(const Cell<DC1,M>* c1, const Cell<DC1,M>* c2, const Cell<DC1,M>* c3,
-                   const double d1sq, const double d2sq, const double d3sq,
-                   const double d1, const double d2, const double d3,
-                   const double logr, const double u, const int index);
+    template <bool sort, int M>
+    void processV(const Cell<DC1,M>* c1, const Cell<DC2,M>* c2, const Cell<DC3,M>* c3,
+                  const double d1sq, const double d2sq, const double d3sq,
+                  const double d1, const double d2, const double d3,
+                  const double logr, const double u, const int index);
 
     template <int M>
     void directProcessV(const Cell<DC1,M>& c1, const Cell<DC2,M>& c2, const Cell<DC3,M>& c3,

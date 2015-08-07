@@ -361,16 +361,16 @@ def is_ccw(x1,y1, x2,y2, x3,y3):
     return x2*y3-x3*y2 > 0.
 
     
-def test_direct_count():
+def test_direct_count_auto():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
 
     ngal = 100
     s = 10.
     numpy.random.seed(8675309)
-    x1 = numpy.random.normal(0,s, (ngal,) )
-    y1 = numpy.random.normal(0,s, (ngal,) )
-    cat1 = treecorr.Catalog(x=x1, y=y1)
+    x = numpy.random.normal(0,s, (ngal,) )
+    y = numpy.random.normal(0,s, (ngal,) )
+    cat1 = treecorr.Catalog(x=x, y=y)
 
     min_sep = 1.
     max_sep = 50.
@@ -379,14 +379,8 @@ def test_direct_count():
     nvbins = 20
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
                                   nvbins=nvbins, bin_slop=0., verbose=3)
-
-    # First test auto-correlation
     ddd.process(cat1)
     #print 'ddd.ntri = ',ddd.ntri
-    x2 = x1
-    x3 = x1
-    y2 = y1
-    y3 = y1
 
     log_min_sep = numpy.log(min_sep)
     log_max_sep = numpy.log(max_sep)
@@ -397,9 +391,9 @@ def test_direct_count():
     for i in range(ngal):
         for j in range(i+1,ngal):
             for k in range(j+1,ngal):
-                dij = numpy.sqrt((x1[i]-x1[j])**2 + (y1[i]-y2[j])**2)
-                dik = numpy.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2)
-                djk = numpy.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2)
+                dij = numpy.sqrt((x[i]-x[j])**2 + (y[i]-y[j])**2)
+                dik = numpy.sqrt((x[i]-x[k])**2 + (y[i]-y[k])**2)
+                djk = numpy.sqrt((x[j]-x[k])**2 + (y[j]-y[k])**2)
                 if dij == 0.: continue
                 if dik == 0.: continue
                 if djk == 0.: continue
@@ -407,23 +401,23 @@ def test_direct_count():
                 if dij < dik:
                     if dik < djk:
                         d3 = dij; d2 = dik; d1 = djk;
-                        ccw = is_ccw(x1[i],y1[i],x2[j],y2[j],x3[k],y3[k])
+                        ccw = is_ccw(x[i],y[i],x[j],y[j],x[k],y[k])
                     elif dij < djk:
                         d3 = dij; d2 = djk; d1 = dik;
-                        ccw = is_ccw(x2[j],y2[j],x1[i],y1[i],x3[k],y3[k])
+                        ccw = is_ccw(x[j],y[j],x[i],y[i],x[k],y[k])
                     else:
                         d3 = djk; d2 = dij; d1 = dik;
-                        ccw = is_ccw(x2[j],y2[j],x3[k],y3[k],x1[i],y1[i])
+                        ccw = is_ccw(x[j],y[j],x[k],y[k],x[i],y[i])
                 else:
                     if dij < djk:
                         d3 = dik; d2 = dij; d1 = djk;
-                        ccw = is_ccw(x1[i],y1[i],x3[k],y3[k],x2[j],y2[j])
+                        ccw = is_ccw(x[i],y[i],x[k],y[k],x[j],y[j])
                     elif dik < djk:
                         d3 = dik; d2 = djk; d1 = dij;
-                        ccw = is_ccw(x3[k],y3[k],x1[i],y1[i],x2[j],y2[j])
+                        ccw = is_ccw(x[k],y[k],x[i],y[i],x[j],y[j])
                     else:
                         d3 = djk; d2 = dik; d1 = dij;
-                        ccw = is_ccw(x3[k],y3[k],x2[j],y2[j],x1[i],y1[i])
+                        ccw = is_ccw(x[k],y[k],x[j],y[j],x[i],y[i])
 
                 r = d2
                 u = d3/d2
@@ -457,13 +451,82 @@ def test_direct_count():
     #print 'diff = ',ddd.ntri - true_ntri
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
-    # Next test where 2 are the same crossed to a third that is different.
+
+def test_direct_count_cross():
+    # If the catalogs are small enough, we can do a direct count of the number of triangles
+    # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
+
+    ngal = 100
+    s = 10.
+    numpy.random.seed(8675309)
+    x1 = numpy.random.normal(0,s, (ngal,) )
+    y1 = numpy.random.normal(0,s, (ngal,) )
+    cat1 = treecorr.Catalog(x=x1, y=y1)
     x2 = numpy.random.normal(0,s, (ngal,) )
     y2 = numpy.random.normal(0,s, (ngal,) )
     cat2 = treecorr.Catalog(x=x2, y=y2)
     x3 = numpy.random.normal(0,s, (ngal,) )
     y3 = numpy.random.normal(0,s, (ngal,) )
     cat3 = treecorr.Catalog(x=x3, y=y3)
+
+    min_sep = 1.
+    max_sep = 50.
+    nbins = 50
+    nubins = 10
+    nvbins = 20
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
+                                  nvbins=nvbins, bin_slop=0., verbose=3)
+    ddd.process(cat1, cat2, cat3)
+    #print 'ddd.ntri = ',ddd.ntri
+
+    log_min_sep = numpy.log(min_sep)
+    log_max_sep = numpy.log(max_sep)
+    true_ntri = numpy.zeros( (nbins, nubins, nvbins) )
+    bin_size = (log_max_sep - log_min_sep) / nbins
+    ubin_size = 1.0 / nubins
+    vbin_size = 2.0 / nvbins
+    for i in range(ngal):
+        for j in range(ngal):
+            for k in range(ngal):
+                d3 = numpy.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
+                d2 = numpy.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2)
+                d1 = numpy.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2)
+                if d3 == 0.: continue
+                if d2 == 0.: continue
+                if d1 == 0.: continue
+                if d1 < d2 or d2 < d3: continue;
+                ccw = is_ccw(x1[i],y1[i],x2[j],y2[j],x3[k],y3[k])
+                r = d2
+                u = d3/d2
+                v = (d1-d2)/d3
+                if not ccw: 
+                    v = -v
+                kr = int(numpy.floor( (numpy.log(r)-log_min_sep) / bin_size ))
+                ku = int(numpy.floor( u / ubin_size ))
+                kv = int(numpy.floor( (v+1.0) / vbin_size ))
+                if kr < 0: continue
+                if kr >= nbins: continue
+                true_ntri[kr,ku,kv] += 1
+
+    #print 'true_ntri => ',true_ntri
+    #print 'diff = ',ddd.ntri - true_ntri
+    numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
+                                  nvbins=nvbins, bin_slop=1.e-16, verbose=3)
+    ddd.process(cat1, cat2, cat3)
+    #print 'ddd.ntri = ',ddd.ntri
+    #print 'diff = ',ddd.ntri - true_ntri
+    numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # And again with no top-level recursion
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
+                                  nvbins=nvbins, bin_slop=1.e-16, verbose=3, max_top=0)
+    ddd.process(cat1, cat2, cat3)
+    #print 'ddd.ntri = ',ddd.ntri
+    #print 'diff = ',ddd.ntri - true_ntri
+    numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
 
 def test_direct_3d():
@@ -837,7 +900,8 @@ def test_list():
 
 if __name__ == '__main__':
     #test_binnedcorr3()
-    test_direct_count()
+    #test_direct_count_auto()
+    test_direct_count_cross()
     #test_direct_3d()
     #test_nnn()
     #test_3d()

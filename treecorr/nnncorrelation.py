@@ -154,23 +154,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         :param cat1:     The first catalog to process
         :param cat2:     The second catalog to process
         """
-        raise NotImplemented("No cross NNN yet.")
-        self.logger.info('Starting process NN cross-correlations for cats %s, %s.',
-                         cat1.name, cat2.name)
-
-        self._set_num_threads()
-
-        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
-        f2 = cat2.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
-
-        if f1.sphere != f2.sphere:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-
-        if f1.sphere:
-            _treecorr.ProcessCrossNNSphere(self.corr, f1.data, f2.data, self.output_dots)
-        else:
-            _treecorr.ProcessCrossNNFlat(self.corr, f1.data, f2.data, self.output_dots)
-        self.tot += 0.5 * cat1.nobj**2 * cat2.nobj
+        raise NotImplemented("No partial cross NNN yet.")
 
 
     def process_cross(self, cat1, cat2, cat3):
@@ -184,7 +168,6 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         :param cat2:     The second catalog to process
         :param cat3:     The third catalog to process
         """
-        raise NotImplemented("No cross NNN yet.")
         self.logger.info('Starting process NN cross-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
 
@@ -192,19 +175,20 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
         f2 = cat2.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
+        f3 = cat3.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
 
-        if f1.sphere != f2.sphere:
+        if f1.sphere != f2.sphere or f1.sphere != f3.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            _treecorr.ProcessCrossNNSphere(self.corr, f1.data, f2.data, self.output_dots)
+            _treecorr.ProcessCrossNNSphere(self.corr, f1.data, f2.data, f3.data, self.output_dots)
         else:
-            _treecorr.ProcessCrossNNFlat(self.corr, f1.data, f2.data, self.output_dots)
-        self.tot += cat1.nobj * cat2.nobj * cat3.nobj
+            _treecorr.ProcessCrossNNFlat(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+        self.tot += cat1.nobj * cat2.nobj * cat3.nobj / 6.0
 
 
     def finalize(self):
-        """Finalize the calculation of the correlation function.
+        """Finalize the calculations of meanlogr, meanu, meanv.
 
         The process_auto and process_cross commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
@@ -237,20 +221,27 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
 
     def process(self, cat1, cat2=None, cat3=None):
-        """Compute the correlation function.
+        """Accumulate the number of triangles of points between cat1, cat2, and cat3.
 
         If only 1 argument is given, then compute an auto-correlation function.
         If 2 arguments are given, then compute a cross-correlation function with the 
-            first catalog taking two corners of the triangles.
+            first catalog taking two corners of the triangles. (Not implemented yet.)
         If 3 arguments are given, then compute a cross-correlation function.
 
-        Both arguments may be lists, in which case all items in the list are used 
+        All arguments may be lists, in which case all items in the list are used 
         for that element of the correlation.
+
+        Note: For a correlation of multiple catalogs, it matters which corner of the
+        triangle comes from which catalog.  The final accumulation will have 
+        d1 > d2 > d3 where d1 is between two points in cat2,cat3; d2 is between 
+        points in cat1,cat3; and d3 is between points in cat1,cat2.  To accumulate
+        all the possible triangles between three catalogs, you should call this
+        multiple times with the different catalogs in different positions.
 
         :param cat1:    A catalog or list of catalogs for the first N field.
         :param cat2:    A catalog or list of catalogs for the second N field, if any.
                         (default: None)
-        :param cat3:    A catalog or list of catalogs for the second N field, if any.
+        :param cat3:    A catalog or list of catalogs for the third N field, if any.
                         (default: None)
         """
         self.clear()
@@ -259,14 +250,19 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         if cat3 is not None and not isinstance(cat3,list): cat3 = [cat3]
         if len(cat1) == 0:
             raise ValueError("No catalogs provided for cat1")
+        if cat2 is not None and len(cat2) == 0:
+            cat2 = None
+        if cat3 is not None and len(cat3) == 0:
+            cat3 = None
         if cat2 is None and cat3 is not None:
-            raise AttributeError("Must provide cat2 if cat3 is given.")
+            raise NotImplemented("No partial cross NNN yet.")
+        if cat3 is None and cat2 is not None:
+            raise NotImplemented("No partial cross NNN yet.")
 
-        if cat2 is None or len(cat2) == 0:
+        if cat2 is None and cat3 is None:
             self._process_all_auto(cat1)
-        elif cat3 is None or len(cat3) == 0:
-            self._process_all_cross21(cat1,cat2)
         else:
+            assert cat2 is not None and cat3 is not None
             self._process_all_cross(cat1,cat2,cat3)
         self.finalize()
 

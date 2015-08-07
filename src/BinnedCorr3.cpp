@@ -110,33 +110,34 @@ void BinnedCorr3<DC1,DC2,DC3>::clear()
 }
 
 // BinnedCorr3::process3 is invalid if DC1 != DC2 or DC3, so this helper struct lets us only call 
-// process3, process21S and process111S when DC1 == DC2 == DC3
+// process3, process21 and process111 when DC1 == DC2 == DC3
 template <int DC1, int DC2, int DC3, int M>
 struct ProcessHelper
 {
     static void process3(BinnedCorr3<DC1,DC2,DC3>& , const Cell<DC1,M>* ) {}
-    static void process21S(BinnedCorr3<DC1,DC2,DC3>& , const Cell<DC1,M>*, const Cell<DC3,M>* ) {}
-    static void process111S(BinnedCorr3<DC1,DC2,DC3>& , const Cell<DC1,M>*, const Cell<DC3,M>* ) {}
+    static void process21(BinnedCorr3<DC1,DC2,DC3>& , const Cell<DC1,M>*, const Cell<DC3,M>* ) {}
+    static void process111(BinnedCorr3<DC1,DC2,DC3>& , const Cell<DC1,M>*, const Cell<DC2,M>*,
+                           const Cell<DC3,M>* ) {}
 };
 
 template <int DC1, int DC3, int M>
 struct ProcessHelper<DC1,DC1,DC3,M>
 {
     static void process3(BinnedCorr3<DC1,DC1,DC3>& b, const Cell<DC1,M>* ) {}
-    static void process21S(BinnedCorr3<DC1,DC1,DC3>& b, const Cell<DC1,M>* , const Cell<DC3,M>* ) {}
-    static void process111S(BinnedCorr3<DC1,DC1,DC3>& b, const Cell<DC1,M>* , const Cell<DC1,M>*,
-                            const Cell<DC3,M>* ) {}
+    static void process21(BinnedCorr3<DC1,DC1,DC3>& b, const Cell<DC1,M>* , const Cell<DC3,M>* ) {}
+    static void process111(BinnedCorr3<DC1,DC1,DC3>& b, const Cell<DC1,M>* , const Cell<DC1,M>*,
+                           const Cell<DC3,M>* ) {}
 };
 
 template <int DC, int M>
 struct ProcessHelper<DC,DC,DC,M>
 {
     static void process3(BinnedCorr3<DC,DC,DC>& b, const Cell<DC,M>* c123) { b.process3(c123); }
-    static void process21S(BinnedCorr3<DC,DC,DC>& b, const Cell<DC,M>* c12, const Cell<DC,M>* c3) 
-    { b.process21S(c12,c3); }
-    static void process111S(BinnedCorr3<DC,DC,DC>& b, const Cell<DC,M>* c1, const Cell<DC,M>* c2,
+    static void process21(BinnedCorr3<DC,DC,DC>& b, const Cell<DC,M>* c12, const Cell<DC,M>* c3) 
+    { b.template process21<true>(c12,c3); }
+    static void process111(BinnedCorr3<DC,DC,DC>& b, const Cell<DC,M>* c1, const Cell<DC,M>* c2,
                             const Cell<DC,M>* c3) 
-    { b.process111S(c1,c2,c3); }
+    { b.template process111<true>(c1,c2,c3); }
 };
 
 template <int DC1, int DC2, int DC3> template <int M>
@@ -172,11 +173,11 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field, bool dots)
             ProcessHelper<DC1,DC2,DC3,M>::process3(bc3,c1);
             for (int j=i+1;j<n1;++j) {
                 const Cell<DC1,M>* c2 = field.getCells()[j];
-                ProcessHelper<DC1,DC2,DC3,M>::process21S(bc3,c1,c2);
-                ProcessHelper<DC1,DC2,DC3,M>::process21S(bc3,c2,c1);
+                ProcessHelper<DC1,DC2,DC3,M>::process21(bc3,c1,c2);
+                ProcessHelper<DC1,DC2,DC3,M>::process21(bc3,c2,c1);
                 for (int k=j+1;k<n1;++k) {
                     const Cell<DC1,M>* c3 = field.getCells()[k];
-                    ProcessHelper<DC1,DC2,DC3,M>::process111S(bc3,c1,c2,c3);
+                    ProcessHelper<DC1,DC2,DC3,M>::process111(bc3,c1,c2,c3);
                 }
             }
         }
@@ -191,19 +192,21 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field, bool dots)
     if (dots) std::cout<<std::endl;
 }
 
-#if 0
 template <int DC1, int DC2, int DC3> template <int M>
 void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field1, const Field<DC2,M>& field2,
-                                   bool dots)
+                                       const Field<DC3,M>& field3, bool dots)
 {
     Assert(_metric == -1 || _metric == M);
     _metric = M;
     const long n1 = field1.getNTopLevel();
     const long n2 = field2.getNTopLevel();
+    const long n3 = field3.getNTopLevel();
     xdbg<<"field1 has "<<n1<<" top level nodes\n";
     xdbg<<"field2 has "<<n2<<" top level nodes\n";
+    xdbg<<"field3 has "<<n3<<" top level nodes\n";
     Assert(n1 > 0);
     Assert(n2 > 0);
+    Assert(n3 > 0);
 
 #ifdef _OPENMP
 #pragma omp parallel 
@@ -225,10 +228,13 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field1, const Field<D
                 //dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
                 if (dots) std::cout<<'.'<<std::flush;
             }
-            const Cell<DC1,M>& c1 = *field1.getCells()[i];
+            const Cell<DC1,M>* c1 = field1.getCells()[i];
             for (int j=0;j<n2;++j) {
-                const Cell<DC2,M>& c2 = *field2.getCells()[j];
-                bc3.process11(c1,c2);
+                const Cell<DC2,M>* c2 = field2.getCells()[j];
+                for (int k=0;k<n3;++k) {
+                    const Cell<DC3,M>* c3 = field3.getCells()[k];
+                    bc3.template process111<false>(c1,c2,c3);
+                }
             }
         }
 #ifdef _OPENMP
@@ -241,7 +247,6 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field1, const Field<D
 #endif
     if (dots) std::cout<<std::endl;
 }
-#endif
 
 // Does all triangles with 3 points in c123
 template <int DC1, int DC2, int DC3> template <int M>
@@ -257,14 +262,14 @@ void BinnedCorr3<DC1,DC2,DC3>::process3(const Cell<DC1,M>* c123)
     Assert(c123->getRight());
     process3(c123->getLeft()); 
     process3(c123->getRight()); 
-    process21S(c123->getLeft(),c123->getRight()); 
-    process21S(c123->getRight(),c123->getLeft()); 
+    process21<true>(c123->getLeft(),c123->getRight()); 
+    process21<true>(c123->getRight(),c123->getLeft()); 
 }
 
 // Does all triangles with two points in c12 and 3rd point in c3
 // This version is allowed to swap the positions of points 1,2,3
-template <int DC1, int DC2, int DC3> template <int M>
-void BinnedCorr3<DC1,DC2,DC3>::process21S(const Cell<DC1,M>* c12, const Cell<DC1,M>* c3)
+template <int DC1, int DC2, int DC3> template <bool sort, int M>
+void BinnedCorr3<DC1,DC2,DC3>::process21(const Cell<DC1,M>* c12, const Cell<DC3,M>* c3)
 {
     xdbg<<"Process21: c12 = "<<c12->getData().getPos()<<"  "<<"  "<<c12->getSize()<<"  "<<c12->getData().getN()<<std::endl;
     xdbg<<"           c3  = "<<c3->getData().getPos()<<"  "<<"  "<<c3->getSize()<<"  "<<c3->getData().getN()<<std::endl;
@@ -279,62 +284,218 @@ void BinnedCorr3<DC1,DC2,DC3>::process21S(const Cell<DC1,M>* c12, const Cell<DC1
 
     Assert(c12->getLeft());
     Assert(c12->getRight());
-    process21S(c12->getLeft(),c3);
-    process21S(c12->getRight(),c3);
-    process111S(c12->getLeft(),c12->getRight(),c3);
+    process21<true>(c12->getLeft(),c3);
+    process21<true>(c12->getRight(),c3);
+    process111<true>(c12->getLeft(),c12->getRight(),c3);
 }
 
-template <int DC, int M>
-void Sort3(const Cell<DC,M>*& c1, const Cell<DC,M>*& c2, const Cell<DC,M>*& c3,
-           double& d1sq, double& d2sq, double& d3sq)
+// A helper to calculate the distances and possibly sort the points.
+template <int DC1, int DC2, int DC3, bool sort, int M>
+struct SortHelper
 {
-    if (d1sq == 0.) d1sq = DistSq(c2->getData().getPos(), c3->getData().getPos());
-    if (d2sq == 0.) d2sq = DistSq(c1->getData().getPos(), c3->getData().getPos());
-    if (d3sq == 0.) d3sq = DistSq(c1->getData().getPos(), c2->getData().getPos());
+    static void sort3(
+        const Cell<DC1,M>*& c1, const Cell<DC2,M>*& c2, const Cell<DC3,M>*& c3,
+        double& d1sq, double& d2sq, double& d3sq)
+    {
+        if (d1sq == 0.) d1sq = DistSq(c2->getData().getPos(), c3->getData().getPos());
+        if (d2sq == 0.) d2sq = DistSq(c1->getData().getPos(), c3->getData().getPos());
+        if (d3sq == 0.) d3sq = DistSq(c1->getData().getPos(), c2->getData().getPos());
+    }
+    static bool stop111(
+        double d1sq, double d2sq, double d3sq,
+        double s2ps3, double s1ps3, double s1ps2,
+        double minsep, double minsepsq, double maxsep, double maxsepsq)
+    {
+        // Since we aren't sorting here, we may not have d1 > d2 > d3.
+        // We want to abort the recursion if there are no triangles in the given positions
+        // where d1 will be the largest, d2 the middle, and d3 the smallest.
 
-    // Need to end up with d3 < d2 < d1
-    if (d1sq < d2sq) {
-        if (d2sq < d3sq) {
-            // 123 -> 321
-            std::swap(c1,c3);
-            std::swap(d1sq,d3sq);
-        } else if (d1sq < d3sq) {
-            // 132 -> 321
-            std::swap(c1,c3);
-            std::swap(d1sq,d3sq);
-            std::swap(c1,c2);
-            std::swap(d1sq,d2sq);
-        } else {
-            // 312 -> 321
-            std::swap(c1,c2);
-            std::swap(d1sq,d2sq);
+        // First, if the smallest d3 is larger than either the largest d1 or the largest d2,
+        // then it can't be the smallest side.
+        // i.e. if d3 - s1ps2 > d1 + s2ps3
+        // d3 > d1 + s1ps2 + s2ps3
+        // d3^2 > d1^2 + (2d1 (s1ps2 + s2ps3) + (s1ps2+s2ps3)^2)
+        //      > d1^2 + (s1ps2+s2ps3)^2  (We'll refine this later after we take sqrts.)
+        if (d3sq > d1sq && d3sq > d1sq + SQR(s1ps2+s2ps3)) {
+            xdbg<<"d1 cannot be as large as d3\n";
+            return true;
         }
-    } else {
-        if (d1sq < d3sq) {
-            // 213 -> 321
-            std::swap(c2,c3);
-            std::swap(d2sq,d3sq);
-            std::swap(c1,c2);
-            std::swap(d1sq,d2sq);
-        } else if (d2sq < d3sq) {
-            // 231 -> 321
-            std::swap(c2,c3);
-            std::swap(d2sq,d3sq);
+
+        // Likewise for d2.
+        if (d3sq > d2sq && d3sq > d2sq + SQR(s1ps3+s2ps3)) {
+            xdbg<<"d2 cannot be as large as d3\n";
+            return true;
+        }
+
+        // Similar for d1 being the largest.
+        // if d1 + s2ps3 < d2 - s1ps3
+        // d2 > d1 + s2ps3 + s1ps3
+        if (d2sq > d1sq && d2sq > d1sq + SQR(s2ps3+s1ps3)) {
+            xdbg<<"d1 cannot be as large as d2\n";
+            return true;
+        }
+
+        // If all possible triangles will have d2 < minsep, then abort the recursion here.
+        // i.e. if  d2 + s1 + s3 < minsep
+        // Since we aren't sorting, we only need to check the actual d2 value.
+        if (d2sq < minsepsq && s1ps3 < minsep && d2sq < SQR(minsep - s1ps3)) {
+            xdbg<<"d2 cannot be as large as minsep\n";
+            return true;
+        }
+
+        // Similarly, we can abort if all possible triangles will have d2 > maxsep.
+        // i.e. if  d2 - s1 - s3 >= maxsep
+        if (d2sq >= maxsepsq && d2sq >= SQR(maxsep + s1ps3)) {
+            xdbg<<"d2 cannot be as small as maxsep\n";
+            return true;
+        }
+
+        return false;
+    }
+    static bool stopU(
+        double d1sq, double d2sq, double d3sq, double d2,
+        double s1ps3, double s1ps2,
+        double minu, double minusq, double maxu, double maxusq)
+    {
+        // Now that we have d2 (rather than just d2sq), some of the checks become a bit tighter.
+        if (d3sq > d2sq && d3sq > SQR(d2 + s1ps3 + s1ps2)) {
+            xdbg<<"d2 cannot be as large as d3\n";
+            return true;
+        }
+        if (d2sq > d1sq && d2 > s1ps2 + s1ps2 && d1sq < SQR(d2 - s1ps3 + s1ps2)) {
+            xdbg<<"d1 cannot be as large as d2\n";
+            return true;
+        }
+
+        // The next two are the same as the sorting stopU tests:
+        // If the user sets minu > 0, then we can abort if no possible triangle can have 
+        // u = d3/d2 as large as this.
+        if (minu > 0. && d3sq < minusq*d2sq && d3sq < SQR(minu * (d2-s1ps3) - s1ps2)) {
+            xdbg<<"u cannot be as large as minu\n";
+            return true;
+        }
+        // If the user sets a maxu < 1, then we can abort if no possible triangle can have
+        // u as small as this.
+        if (maxu < 1. && d3sq >= maxusq*d2sq && d3sq >= SQR(maxu * (d2+s1ps3) + s1ps2)) {
+            xdbg<<"u cannot be as small as maxu\n";
+            return true;
+        }
+        return false;
+    }
+};
+
+// This one has sort = true, so the points get sorted, and always returns true.
+template <int DC, int M>
+struct SortHelper<DC,DC,DC,true,M>
+{
+    static void sort3(
+        const Cell<DC,M>*& c1, const Cell<DC,M>*& c2, const Cell<DC,M>*& c3,
+        double& d1sq, double& d2sq, double& d3sq)
+    {
+        if (d1sq == 0.) d1sq = DistSq(c2->getData().getPos(), c3->getData().getPos());
+        if (d2sq == 0.) d2sq = DistSq(c1->getData().getPos(), c3->getData().getPos());
+        if (d3sq == 0.) d3sq = DistSq(c1->getData().getPos(), c2->getData().getPos());
+
+        // Need to end up with d3 < d2 < d1
+        if (d1sq < d2sq) {
+            if (d2sq < d3sq) {
+                // 123 -> 321
+                std::swap(c1,c3);
+                std::swap(d1sq,d3sq);
+            } else if (d1sq < d3sq) {
+                // 132 -> 321
+                std::swap(c1,c3);
+                std::swap(d1sq,d3sq);
+                std::swap(c1,c2);
+                std::swap(d1sq,d2sq);
+            } else {
+                // 312 -> 321
+                std::swap(c1,c2);
+                std::swap(d1sq,d2sq);
+            }
         } else {
-            // 321 -> 321
+            if (d1sq < d3sq) {
+                // 213 -> 321
+                std::swap(c2,c3);
+                std::swap(d2sq,d3sq);
+                std::swap(c1,c2);
+                std::swap(d1sq,d2sq);
+            } else if (d2sq < d3sq) {
+                // 231 -> 321
+                std::swap(c2,c3);
+                std::swap(d2sq,d3sq);
+            } else {
+                // 321 -> 321
+            }
         }
     }
-}
+    static bool stop111(
+        double d1sq, double d2sq, double d3sq,
+        double s2ps3, double s1ps3, double s1ps2,
+        double minsep, double minsepsq, double maxsep, double maxsepsq)
+    {
+        // If all possible triangles will have d2 < minsep, then abort the recursion here.
+        // This means at least two sides must have d + sps < minsep.
+        if (d2sq < minsepsq && s1ps3 < minsep && d2sq < SQR(minsep - s1ps3)) {
+            // Then d2 + s1+s3 < minsep
+            // Probably we can stop now, but check d3
+            if (s1ps2 < minsep && d3sq < SQR(minsep - s1ps2)) {
+                xdbg<<"d2 cannot be as large as minsep\n";
+                return true;
+            }
+            // If this didn't pass, then it's pretty unlikely that d1 will, so just move on.
+        }
+        // Similarly, we can abort if all possible triangles will have d2 > maxsep.
+        // This means at least two sides must have d - sps > maxsep.
+        if (d2sq >= maxsepsq && d2sq >= SQR(maxsep + s1ps3)) {
+            // Then d2 - s1 - s3 >= maxsep
+            // Probably we can stop now, but check d1
+            if (s2ps3 < maxsep && d1sq > SQR(maxsep - s2ps3)) {
+                xdbg<<"d2 cannot be as small as maxsep\n";
+                return true;
+            }
+            // And again, it's pretty unlikely that d3 will pass, so just move on.
+        }
+        return false;
+    }
+    static bool stopU(
+        double d1sq, double d2sq, double d3sq, double d2,
+        double s1ps3, double s1ps2,
+        double minu, double minusq, double maxu, double maxusq)
+    {
+        // If the user sets minu > 0, then we can abort if no possible triangle can have 
+        // u = d3/d2 as large as this.
+        // The maximum possible u from our triangle is (d3+s1+s2) / (d2-s1-s3).
+        // Abort if (d3+s1+s2) / (d2-s1-s3) < minu
+        // (d3+s1+s2) < minu * (d2-s1-s3)
+        // d3 < minu * (d2-s1-s3) - (s1+s2)
+        if (minu > 0. && d3sq < minusq*d2sq && d3sq < SQR(minu * (d2-s1ps3) - s1ps2)) {
+            xdbg<<"u cannot be as large as minu\n";
+            return true;
+        }
+        // If the user sets a maxu < 1, then we can abort if no possible triangle can have
+        // u as small as this.
+        // The minimum possible u from our triangle is (d3-s1-s2) / (d2+s1+s3).
+        // Abort if (d3-s1-s2) / (d2+s1+s3) > maxu
+        // (d3-s1-s2) > maxu * (d2+s1+s3)
+        // d3 > maxu * (d2+s1+s3) + (s1+s2)
+        if (maxu < 1. && d3sq >= maxusq*d2sq && d3sq >= SQR(maxu * (d2+s1ps3) + s1ps2)) {
+            xdbg<<"u cannot be as small as maxu\n";
+            return true;
+        }
+        return false;
+    }
+};
 
 // Does all triangles with 1 point each in c1, c2, c3
-// This version is allowed to swap the positions of points 1,2,3
-template <int DC1, int DC2, int DC3> template <int M>
-void BinnedCorr3<DC1,DC2,DC3>::process111S(
-    const Cell<DC1,M>* c1, const Cell<DC1,M>* c2, const Cell<DC1,M>* c3,
+template <int DC1, int DC2, int DC3> template <bool sort, int M>
+void BinnedCorr3<DC1,DC2,DC3>::process111(
+    const Cell<DC1,M>* c1, const Cell<DC2,M>* c2, const Cell<DC3,M>* c3,
     double d1sq, double d2sq, double d3sq)
 {
     // Calculate the distances if they aren't known yet, and sort so that d3 < d2 < d1
-    Sort3(c1,c2,c3,d1sq,d2sq,d3sq);
+    SortHelper<DC1,DC2,DC3,sort,M>::sort3(c1,c2,c3,d1sq,d2sq,d3sq);
+
     xdbg<<"Process111: c1 = "<<c1->getData().getPos()<<"  "<<"  "<<c1->getSize()<<"  "<<c1->getData().getN()<<std::endl;
     xdbg<<"            c2 = "<<c2->getData().getPos()<<"  "<<"  "<<c2->getSize()<<"  "<<c2->getData().getN()<<std::endl;
     xdbg<<"            c3 = "<<c3->getData().getPos()<<"  "<<"  "<<c3->getSize()<<"  "<<c3->getData().getN()<<std::endl;
@@ -348,28 +509,8 @@ void BinnedCorr3<DC1,DC2,DC3>::process111S(
     const double s2ms1 = c2->getAllSize()-c1->getAllSize();
     const double s2ms3 = c2->getAllSize()-c3->getAllSize();
 
-    // If all possible triangles will have d2 < minsep, then we can abort the recursion here.
-    // This means at least two sides must have d + sps < minsep.
-    if (d2sq < _minsepsq && s1ps3 < _minsep && d2sq < SQR(_minsep - s1ps3)) {
-        // Then d2 + s1+s3 < minsep
-        // Probably we can stop now, but check d3
-        if (s1ps2 < _minsep && d3sq < SQR(_minsep - s1ps2)) {
-            xdbg<<"d2 cannot be as large as minsep\n";
-            return;
-        }
-        // If this didn't pass, then it's pretty unlikely that d1 will, so just move on.
-    }
-    // Similarly, we can abort if all possible triangles will have d2 > maxsep.
-    // This means at least two sides must have d - sps > maxsep.
-    if (d2sq >= _maxsepsq && d2sq >= SQR(_maxsep + s1ps3)) {
-        // Then d2 - s1 - s3 >= maxsep
-        // Probably we can stop now, but check d1
-        if (s2ps3 < _minsep && d1sq > SQR(_maxsep - s2ps3)) {
-            xdbg<<"d2 cannot be as small as maxsep\n";
-            return;
-        }
-        // And again, it's pretty unlikely that d3 will pass, so just move on.
-    }
+    if (SortHelper<DC1,DC2,DC3,sort,M>::stop111(
+            d1sq,d2sq,d3sq,s2ps3,s1ps3,s1ps2,_minsep,_minsepsq,_maxsep,_maxsepsq)) return;
 
     // For 1,3 decide whether to split on the noraml criteria with s1+s3/d2 < b
     bool split1 = false, split3 = false;
@@ -393,24 +534,24 @@ void BinnedCorr3<DC1,DC2,DC3>::process111S(
                 Assert(c2->getRight());
                 Assert(c3->getLeft());
                 Assert(c3->getRight());
-                process111S(c1->getLeft(),c2->getLeft(),c3->getLeft());
-                process111S(c1->getLeft(),c2->getLeft(),c3->getRight());
-                process111S(c1->getLeft(),c2->getRight(),c3->getLeft());
-                process111S(c1->getLeft(),c2->getRight(),c3->getRight());
-                process111S(c1->getRight(),c2->getLeft(),c3->getLeft());
-                process111S(c1->getRight(),c2->getLeft(),c3->getRight());
-                process111S(c1->getRight(),c2->getRight(),c3->getLeft());
-                process111S(c1->getRight(),c2->getRight(),c3->getRight());
+                process111<sort>(c1->getLeft(),c2->getLeft(),c3->getLeft());
+                process111<sort>(c1->getLeft(),c2->getLeft(),c3->getRight());
+                process111<sort>(c1->getLeft(),c2->getRight(),c3->getLeft());
+                process111<sort>(c1->getLeft(),c2->getRight(),c3->getRight());
+                process111<sort>(c1->getRight(),c2->getLeft(),c3->getLeft());
+                process111<sort>(c1->getRight(),c2->getLeft(),c3->getRight());
+                process111<sort>(c1->getRight(),c2->getRight(),c3->getLeft());
+                process111<sort>(c1->getRight(),c2->getRight(),c3->getRight());
              } else {
                 // split 1,2
                 Assert(c1->getLeft());
                 Assert(c1->getRight());
                 Assert(c2->getLeft());
                 Assert(c2->getRight());
-                process111S(c1->getLeft(),c2->getLeft(),c3);
-                process111S(c1->getLeft(),c2->getRight(),c3);
-                process111S(c1->getRight(),c2->getLeft(),c3);
-                process111S(c1->getRight(),c2->getRight(),c3);
+                process111<sort>(c1->getLeft(),c2->getLeft(),c3);
+                process111<sort>(c1->getLeft(),c2->getRight(),c3);
+                process111<sort>(c1->getRight(),c2->getLeft(),c3);
+                process111<sort>(c1->getRight(),c2->getRight(),c3);
             }
         } else {
             if (split3) {
@@ -419,16 +560,16 @@ void BinnedCorr3<DC1,DC2,DC3>::process111S(
                 Assert(c1->getRight());
                 Assert(c3->getLeft());
                 Assert(c3->getRight());
-                process111S(c1->getLeft(),c2,c3->getLeft());
-                process111S(c1->getLeft(),c2,c3->getRight());
-                process111S(c1->getRight(),c2,c3->getLeft());
-                process111S(c1->getRight(),c2,c3->getRight());
+                process111<sort>(c1->getLeft(),c2,c3->getLeft());
+                process111<sort>(c1->getLeft(),c2,c3->getRight());
+                process111<sort>(c1->getRight(),c2,c3->getLeft());
+                process111<sort>(c1->getRight(),c2,c3->getRight());
             } else {
                 // split 1 only
                 Assert(c1->getLeft());
                 Assert(c1->getRight());
-                process111S(c1->getLeft(),c2,c3,d1sq);
-                process111S(c1->getRight(),c2,c3,d1sq);
+                process111<sort>(c1->getLeft(),c2,c3,d1sq);
+                process111<sort>(c1->getRight(),c2,c3,d1sq);
             }
         }
     } else {
@@ -439,133 +580,182 @@ void BinnedCorr3<DC1,DC2,DC3>::process111S(
                 Assert(c2->getRight());
                 Assert(c3->getLeft());
                 Assert(c3->getRight());
-                process111S(c1,c2->getLeft(),c3->getLeft());
-                process111S(c1,c2->getLeft(),c3->getRight());
-                process111S(c1,c2->getRight(),c3->getLeft());
-                process111S(c1,c2->getRight(),c3->getRight());
+                process111<sort>(c1,c2->getLeft(),c3->getLeft());
+                process111<sort>(c1,c2->getLeft(),c3->getRight());
+                process111<sort>(c1,c2->getRight(),c3->getLeft());
+                process111<sort>(c1,c2->getRight(),c3->getRight());
             } else {
                 // split 2 only
                 Assert(c2->getLeft());
                 Assert(c2->getRight());
-                process111S(c1,c2->getLeft(),c3,0.,d2sq);
-                process111S(c1,c2->getRight(),c3,0.,d2sq);
+                process111<sort>(c1,c2->getLeft(),c3,0.,d2sq);
+                process111<sort>(c1,c2->getRight(),c3,0.,d2sq);
             }
         } else {
             if (split3) {
                 // split 3 only
                 Assert(c3->getLeft());
                 Assert(c3->getRight());
-                process111S(c1,c2,c3->getLeft(),0.,0.,d3sq);
-                process111S(c1,c2,c3->getRight(),0.,0.,d3sq);
-            } else if (d2sq >= _minsepsq && d2sq <= _maxsepsq) {
-                // don't split any
-                processUS(c1,c2,c3,d1sq,d2sq,d3sq,d2);
+                process111<sort>(c1,c2,c3->getLeft(),0.,0.,d3sq);
+                process111<sort>(c1,c2,c3->getRight(),0.,0.,d3sq);
             } else {
-                xdbg<<"d2 not within minsep .. maxsep\n";
+                // don't split any
+                processU<sort>(c1,c2,c3,d1sq,d2sq,d3sq,d2);
             }
         }
     }
 }
 
-// Preconditions: (s2+s3)/d1 < b
-//                d1 > d2 > d3
-// This version is allowed to swap the positions of points 1,2,3.
-template <int DC1, int DC2, int DC3> template <int M>
-void BinnedCorr3<DC1,DC2,DC3>::processUS(
-    const Cell<DC1,M>* c1, const Cell<DC1,M>* c2, const Cell<DC1,M>* c3,
+// Preconditions: (s1+s3)/d2 < b
+template <int DC1, int DC2, int DC3> template <bool sort, int M>
+void BinnedCorr3<DC1,DC2,DC3>::processU(
+    const Cell<DC1,M>* c1, const Cell<DC2,M>* c2, const Cell<DC3,M>* c3,
     const double d1sq, const double d2sq, const double d3sq, const double d2)
 {
-    Assert(d1sq >= d2sq);
-    Assert(d2sq >= d3sq);
+    Assert(!sort || d1sq >= d2sq);
+    Assert(!sort || d2sq >= d3sq);
     XAssert(std::abs(d2*d2 - d2sq) < 1.e-10);
     XAssert(c1->getAllSize() + c3->getAllSize() <= d2 * _b);
     XAssert(NoSplit(*c1,*c3,d2,_b));
     XAssert(Check(*c1,*c2,*c3,sqrt(d1sq),sqrt(d2sq),sqrt(d3sq)));
     xdbg<<"            u = "<<sqrt(d3sq)/sqrt(d2sq)<<std::endl;
 
-    const double s1ps3 = c1->getAllSize()+c3->getAllSize();
-    const double s1ps2 = c1->getAllSize()+c2->getAllSize();
-    
-    // If the user sets minu > 0, then we can abort if no possible triangle can have 
-    // u = d3/d2 as large as this.
-    // The maximum possible u from our triangle is (d3+s1+s2) / (d2-s1-s3).
-    // Abort if (d3+s1+s2) / (d2-s1-s3) < minu
-    // (d3+s1+s2) < minu * (d2-s1-s3)
-    // d3 < minu * (d2-s1-s3) - (s1+s2)
-    if (_minu > 0. && d3sq < _minusq*d2sq && d3sq < SQR(_minu * (d2-s1ps3) - s1ps2)) {
-        xdbg<<"u cannot be as large as minu\n";
-        return;
-    }
-    // If the user sets a maxu < 1, then we can abort if no possible triangle can have
-    // u as small as this.
-    // The minimum possible u from our triangle is (d3-s1-s2) / (d2+s1+s3).
-    // Abort if (d3-s1-s2) / (d2+s1+s3) > maxu
-    // (d3-s1-s2) > maxu * (d2+s1+s3)
-    // d3 > maxu * (d2+s1+s3) + (s1+s2)
-    //
-    if (_maxu < 1. && d3sq >= _maxusq*d2sq && d3sq >= SQR(_maxu * (d2+s1ps3) + s1ps2)) {
-        xdbg<<"u cannot be as small as maxu\n";
-        return;
-    }
+    const double s1 = c1->getAllSize();
+    const double s2 = c2->getAllSize();
+    const double s3 = c3->getAllSize();
+    const double s1ps3 = s1 + s3;
+    const double s1ps2 = s1 + s2;
 
+    if (SortHelper<DC1,DC2,DC3,sort,M>::stopU(
+            d1sq,d2sq,d3sq,d2,s1ps3,s1ps2,_minu,_minusq,_maxu,_maxusq)) return;
+
+    bool split1=false, split2=false, split3=false;
+    if (!sort && (d3sq > d2sq || d2sq > d1sq)) {
+        // If we aren't sorting the sides, then d3 is not necessarily less than d2
+        // (nor d2 less than d1).  If this is the case, we always want to split something,
+        // since we don't actually have a valid u here.
+        // Split the largest one at least.
+        if (s1 > s2)
+            if (s1 > s3)
+                split1 = true;
+            else
+                split3 = true;
+        else
+            if (s2 > s3)
+                split2 = true;
+            else
+                split3 = true;
+        // Also split any that can directly lead to a swap of two that are out of order
+        // d2 + s1 < d3 - s1
+        if (d3sq > d2sq && d3sq > SQR(d2 + 2.*s1)) split1 = true;
+        // d1 + s3 < d2 - s3
+        if (d1sq < d2sq && (d2 < 2.*s3 ||  d1sq < SQR(d2 - 2.*s3))) split3 = true;
+    }
+        
     // We don't need to split c1,c3 for d2 but we might need to split c1,c2 for d3.
     // u = d3 / d2
     // du = d(d3) / d2 = (s1+s2)/d2
     // du < bu -> same split calculation as before, but with d2, not d3, and _bu instead of _b.
-    bool split1=false, split2=false;
     CalcSplitSq(split1,split2,*c1,*c2,d2sq,s1ps2,_busq);
 
-    // Whenever we split here, go back to process111S since we might need to reorder the points.
+    // Whenever we split here, go back to process111 since we might need to reorder the points.
+    // And we definitely need to recalculate the distances.
     if (split1) {
         if (split2) {
-            Assert(c2->getLeft());
-            Assert(c2->getRight());
-            Assert(c1->getLeft());
-            Assert(c1->getRight());
-            process111S(c1->getLeft(),c2->getLeft(),c3);
-            process111S(c1->getLeft(),c2->getRight(),c3);
-            process111S(c1->getRight(),c2->getLeft(),c3);
-            process111S(c1->getRight(),c2->getRight(),c3);
+            if (split3) {
+                Assert(c1->getLeft());
+                Assert(c1->getRight());
+                Assert(c2->getLeft());
+                Assert(c2->getRight());
+                Assert(c3->getLeft());
+                Assert(c3->getRight());
+                process111<sort>(c1->getLeft(),c2->getLeft(),c3->getLeft());
+                process111<sort>(c1->getLeft(),c2->getLeft(),c3->getRight());
+                process111<sort>(c1->getLeft(),c2->getRight(),c3->getLeft());
+                process111<sort>(c1->getLeft(),c2->getRight(),c3->getRight());
+                process111<sort>(c1->getRight(),c2->getLeft(),c3->getLeft());
+                process111<sort>(c1->getRight(),c2->getLeft(),c3->getRight());
+                process111<sort>(c1->getRight(),c2->getRight(),c3->getLeft());
+                process111<sort>(c1->getRight(),c2->getRight(),c3->getRight());
+             } else {
+                Assert(c1->getLeft());
+                Assert(c1->getRight());
+                Assert(c2->getLeft());
+                Assert(c2->getRight());
+                process111<sort>(c1->getLeft(),c2->getLeft(),c3);
+                process111<sort>(c1->getLeft(),c2->getRight(),c3);
+                process111<sort>(c1->getRight(),c2->getLeft(),c3);
+                process111<sort>(c1->getRight(),c2->getRight(),c3);
+            }
         } else {
-            Assert(c1->getLeft());
-            Assert(c1->getRight());
-            process111S(c1->getLeft(),c2,c3,d1sq);
-            process111S(c1->getRight(),c2,c3,d1sq);
+            if (split3) {
+                Assert(c1->getLeft());
+                Assert(c1->getRight());
+                Assert(c3->getLeft());
+                Assert(c3->getRight());
+                process111<sort>(c1->getLeft(),c2,c3->getLeft());
+                process111<sort>(c1->getLeft(),c2,c3->getRight());
+                process111<sort>(c1->getRight(),c2,c3->getLeft());
+                process111<sort>(c1->getRight(),c2,c3->getRight());
+            } else {
+                Assert(c1->getLeft());
+                Assert(c1->getRight());
+                process111<sort>(c1->getLeft(),c2,c3,d1sq);
+                process111<sort>(c1->getRight(),c2,c3,d1sq);
+            }
         }
     } else {
         if (split2) {
-            Assert(c2->getLeft());
-            Assert(c2->getRight());
-            process111S(c1,c2->getLeft(),c3,0.,d2sq);
-            process111S(c1,c2->getRight(),c3,0.,d2sq);
+            if (split3) {
+                Assert(c2->getLeft());
+                Assert(c2->getRight());
+                Assert(c3->getLeft());
+                Assert(c3->getRight());
+                process111<sort>(c1,c2->getLeft(),c3->getLeft());
+                process111<sort>(c1,c2->getLeft(),c3->getRight());
+                process111<sort>(c1,c2->getRight(),c3->getLeft());
+                process111<sort>(c1,c2->getRight(),c3->getRight());
+            } else {
+                Assert(c2->getLeft());
+                Assert(c2->getRight());
+                process111<sort>(c1,c2->getLeft(),c3,0.,d2sq);
+                process111<sort>(c1,c2->getRight(),c3,0.,d2sq);
+            }
         } else {
-            // don't split any
-            double d3 = sqrt(d3sq);
-            double u = d3/d2;
-            if (u < _minu || u >= _maxu) {
-                xdbg<<"u not in minu .. maxu\n";
-                return;
-            }
-            double d1 = sqrt(d1sq);
+            if (split3) {
+                Assert(c3->getLeft());
+                Assert(c3->getRight());
+                process111<sort>(c1,c2,c3->getLeft(),0.,0.,d3sq);
+                process111<sort>(c1,c2,c3->getRight(),0.,0.,d3sq);
+            } else {
+                // don't split any
+                double d3 = sqrt(d3sq);
+                double u = d3/d2;
+                if (u < _minu || u >= _maxu) {
+                    xdbg<<"u not in minu .. maxu\n";
+                    return;
+                }
+                double d1 = sqrt(d1sq);
 
-            double logr = log(d2);
-            xdbg<<"            logr = "<<logr<<std::endl;
-            xdbg<<"            u = "<<u<<std::endl;
-            const int kr = int(floor((logr-_logminsep)/_binsize));
-            Assert(kr >= 0);
-            Assert(kr < _nbins);
-            int ku = int(floor((u-_minu)/_ubinsize));
-            Assert(ku >= 0);
-            if (ku >= _nubins) {
-                // Rounding error can allow this.
-                XAssert((u-_minu)/_ubinsize - ku < 1.e-10);
-                Assert(ku==_nubins);
-                --ku; 
+                double logr = log(d2);
+                xdbg<<"            logr = "<<logr<<std::endl;
+                xdbg<<"            u = "<<u<<std::endl;
+                const int kr = int(floor((logr-_logminsep)/_binsize));
+                Assert(kr >= 0);
+                Assert(kr < _nbins);
+                int ku = int(floor((u-_minu)/_ubinsize));
+                Assert(ku >= 0);
+                if (ku >= _nubins) {
+                    // Rounding error can allow this.
+                    XAssert((u-_minu)/_ubinsize - ku < 1.e-10);
+                    Assert(ku==_nubins);
+                    --ku; 
+                }
+                Assert(ku >= 0);
+                Assert(ku < _nubins);
+                int index = kr * _nuv + ku * _nvbins;
+                processV<sort>(c1,c2,c3,d1sq,d2sq,d3sq,d1,d2,d3,logr,u,index);
             }
-            Assert(ku >= 0);
-            Assert(ku < _nubins);
-            int index = kr * _nuv + ku * _nvbins;
-            processVS(c1,c2,c3,d1sq,d2sq,d3sq,d1,d2,d3,logr,u,index);
         }
     }
 }
@@ -574,9 +764,9 @@ void BinnedCorr3<DC1,DC2,DC3>::processUS(
 //                (s1+s2)/d1 < bu
 //                d1 > d2 > d3
 // This version is allowed to swap the positions of points 1,2,3
-template <int DC1, int DC2, int DC3> template <int M>
-void BinnedCorr3<DC1,DC2,DC3>::processVS(
-    const Cell<DC1,M>* c1, const Cell<DC1,M>* c2, const Cell<DC1,M>* c3,
+template <int DC1, int DC2, int DC3> template <bool sort, int M>
+void BinnedCorr3<DC1,DC2,DC3>::processV(
+    const Cell<DC1,M>* c1, const Cell<DC2,M>* c2, const Cell<DC3,M>* c3,
     const double d1sq, const double d2sq, const double d3sq,
     const double d1, const double d2, const double d3,
     const double logr, const double u, const int index)
@@ -595,7 +785,8 @@ void BinnedCorr3<DC1,DC2,DC3>::processVS(
     XAssert(std::abs(d3*d3-d3sq) < 1.e-10);
     XAssert(std::abs(u-d3/d2) < 1.e-10);
 
-    // I don't currently do any checks related to _minv, _maxv.  Not sure how important they are.
+    // I don't currently do any checks related to _minv, _maxv.
+    // Not sure how important they are.
     // But there could be some gain to checking that here.  Or maybe even earlier.
     
     // v is a bit complicated.
@@ -659,23 +850,23 @@ void BinnedCorr3<DC1,DC2,DC3>::processVS(
                 Assert(c2->getRight());
                 Assert(c3->getLeft());
                 Assert(c3->getRight());
-                process111S(c1->getLeft(),c2->getLeft(),c3->getLeft());
-                process111S(c1->getLeft(),c2->getLeft(),c3->getRight());
-                process111S(c1->getLeft(),c2->getRight(),c3->getLeft());
-                process111S(c1->getLeft(),c2->getRight(),c3->getRight());
-                process111S(c1->getRight(),c2->getLeft(),c3->getLeft());
-                process111S(c1->getRight(),c2->getLeft(),c3->getRight());
-                process111S(c1->getRight(),c2->getRight(),c3->getLeft());
-                process111S(c1->getRight(),c2->getRight(),c3->getRight());
+                process111<sort>(c1->getLeft(),c2->getLeft(),c3->getLeft());
+                process111<sort>(c1->getLeft(),c2->getLeft(),c3->getRight());
+                process111<sort>(c1->getLeft(),c2->getRight(),c3->getLeft());
+                process111<sort>(c1->getLeft(),c2->getRight(),c3->getRight());
+                process111<sort>(c1->getRight(),c2->getLeft(),c3->getLeft());
+                process111<sort>(c1->getRight(),c2->getLeft(),c3->getRight());
+                process111<sort>(c1->getRight(),c2->getRight(),c3->getLeft());
+                process111<sort>(c1->getRight(),c2->getRight(),c3->getRight());
              } else {
                 Assert(c1->getLeft());
                 Assert(c1->getRight());
                 Assert(c2->getLeft());
                 Assert(c2->getRight());
-                process111S(c1->getLeft(),c2->getLeft(),c3);
-                process111S(c1->getLeft(),c2->getRight(),c3);
-                process111S(c1->getRight(),c2->getLeft(),c3);
-                process111S(c1->getRight(),c2->getRight(),c3);
+                process111<sort>(c1->getLeft(),c2->getLeft(),c3);
+                process111<sort>(c1->getLeft(),c2->getRight(),c3);
+                process111<sort>(c1->getRight(),c2->getLeft(),c3);
+                process111<sort>(c1->getRight(),c2->getRight(),c3);
             }
         } else {
             if (split3) {
@@ -683,15 +874,15 @@ void BinnedCorr3<DC1,DC2,DC3>::processVS(
                 Assert(c1->getRight());
                 Assert(c3->getLeft());
                 Assert(c3->getRight());
-                process111S(c1->getLeft(),c2,c3->getLeft());
-                process111S(c1->getLeft(),c2,c3->getRight());
-                process111S(c1->getRight(),c2,c3->getLeft());
-                process111S(c1->getRight(),c2,c3->getRight());
+                process111<sort>(c1->getLeft(),c2,c3->getLeft());
+                process111<sort>(c1->getLeft(),c2,c3->getRight());
+                process111<sort>(c1->getRight(),c2,c3->getLeft());
+                process111<sort>(c1->getRight(),c2,c3->getRight());
             } else {
                 Assert(c1->getLeft());
                 Assert(c1->getRight());
-                process111S(c1->getLeft(),c2,c3,d1sq);
-                process111S(c1->getRight(),c2,c3,d1sq);
+                process111<sort>(c1->getLeft(),c2,c3,d1sq);
+                process111<sort>(c1->getRight(),c2,c3,d1sq);
             }
         }
     } else {
@@ -701,22 +892,22 @@ void BinnedCorr3<DC1,DC2,DC3>::processVS(
                 Assert(c2->getRight());
                 Assert(c3->getLeft());
                 Assert(c3->getRight());
-                process111S(c1,c2->getLeft(),c3->getLeft());
-                process111S(c1,c2->getLeft(),c3->getRight());
-                process111S(c1,c2->getRight(),c3->getLeft());
-                process111S(c1,c2->getRight(),c3->getRight());
+                process111<sort>(c1,c2->getLeft(),c3->getLeft());
+                process111<sort>(c1,c2->getLeft(),c3->getRight());
+                process111<sort>(c1,c2->getRight(),c3->getLeft());
+                process111<sort>(c1,c2->getRight(),c3->getRight());
             } else {
                 Assert(c2->getLeft());
                 Assert(c2->getRight());
-                process111S(c1,c2->getLeft(),c3,0.,d2sq);
-                process111S(c1,c2->getRight(),c3,0.,d2sq);
+                process111<sort>(c1,c2->getLeft(),c3,0.,d2sq);
+                process111<sort>(c1,c2->getRight(),c3,0.,d2sq);
             }
         } else {
             if (split3) {
                 Assert(c3->getLeft());
                 Assert(c3->getRight());
-                process111S(c1,c2,c3->getLeft(),0.,0.,d3sq);
-                process111S(c1,c2,c3->getRight(),0.,0.,d3sq);
+                process111<sort>(c1,c2,c3->getLeft(),0.,0.,d3sq);
+                process111<sort>(c1,c2,c3->getRight(),0.,0.,d3sq);
             } else {
                 // No splits required.
                 double v = (d1-d2)/d3;
@@ -1098,23 +1289,25 @@ void ProcessAutoGGSphere(void* corr, void* field, int dots)
 }
 #endif
 
-#if 0
-void ProcessCrossNNNFlat(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNNNFlat(void* corr, void* field1, void* field2, void* field3, int dots)
 {
-    dbg<<"Start ProcessCrossNNFlat\n";
-    static_cast<BinnedCorr3<NData,NData>*>(corr)->process(
+    dbg<<"Start ProcessCrossNNNFlat\n";
+    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process(
         *static_cast<Field<NData,Flat>*>(field1),
-        *static_cast<Field<NData,Flat>*>(field2),dots);
+        *static_cast<Field<NData,Flat>*>(field2),
+        *static_cast<Field<NData,Flat>*>(field3),dots);
 }
 
-void ProcessCrossNNSphere(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNNNSphere(void* corr, void* field1, void* field2, void* field3, int dots)
 {
-    dbg<<"Start ProcessCrossNNSphere\n";
-    static_cast<BinnedCorr3<NData,NData>*>(corr)->process(
+    dbg<<"Start ProcessCrossNNNSphere\n";
+    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process(
         *static_cast<Field<NData,Sphere>*>(field1),
-        *static_cast<Field<NData,Sphere>*>(field2),dots);
+        *static_cast<Field<NData,Sphere>*>(field2),
+        *static_cast<Field<NData,Sphere>*>(field3),dots);
 }
 
+#if 0
 void ProcessCrossNKFlat(void* corr, void* field1, void* field2, int dots)
 {
     dbg<<"Start ProcessCrossNKFlat\n";

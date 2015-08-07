@@ -21,8 +21,8 @@
 #endif
 
 // Switch these for more time-consuming Assert statements
-#define XAssert(x) Assert(x)
-//#define XAssert(x)
+//#define XAssert(x) Assert(x)
+#define XAssert(x)
 
 template <typename T>
 inline T SQR(T x) { return x * x; }
@@ -165,11 +165,15 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field, bool dots)
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-            {
-                //dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
-                if (dots) std::cout<<'.'<<std::flush;
-            }
             const Cell<DC1,M>* c1 = field.getCells()[i];
+            {
+                if (dots) std::cout<<'.'<<std::flush;
+#ifdef _OPENMP
+                dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
+#endif
+                xdbg<<"field = \n";
+                if (dbgout && XDEBUG) c1->WriteTree(*dbgout);
+            }
             ProcessHelper<DC1,DC2,DC3,M>::process3(bc3,c1);
             for (int j=i+1;j<n1;++j) {
                 const Cell<DC1,M>* c2 = field.getCells()[j];
@@ -196,6 +200,8 @@ template <int DC1, int DC2, int DC3> template <int M>
 void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field1, const Field<DC2,M>& field2,
                                        const Field<DC3,M>& field3, bool dots)
 {
+    xdbg<<"_metric = "<<_metric<<std::endl;
+    xdbg<<"M = "<<M<<std::endl;
     Assert(_metric == -1 || _metric == M);
     _metric = M;
     const long n1 = field1.getNTopLevel();
@@ -207,6 +213,26 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field1, const Field<D
     Assert(n1 > 0);
     Assert(n2 > 0);
     Assert(n3 > 0);
+    if (dbgout && XDEBUG) {
+        xdbg<<"field1: \n";
+        for (int i=0;i<n1;++i) {
+            xdbg<<"node "<<i<<std::endl;
+            const Cell<DC1,M>* c1 = field1.getCells()[i];
+            c1->WriteTree(*dbgout);
+        }
+        xdbg<<"field2: \n";
+        for (int i=0;i<n2;++i) {
+            xdbg<<"node "<<i<<std::endl;
+            const Cell<DC2,M>* c2 = field2.getCells()[i];
+            c2->WriteTree(*dbgout);
+        }
+        xdbg<<"field3: \n";
+        for (int i=0;i<n3;++i) {
+            xdbg<<"node "<<i<<std::endl;
+            const Cell<DC3,M>* c3 = field3.getCells()[i];
+            c3->WriteTree(*dbgout);
+        }
+    }
 
 #ifdef _OPENMP
 #pragma omp parallel 
@@ -225,8 +251,10 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field1, const Field<D
 #pragma omp critical
 #endif
             {
-                //dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
                 if (dots) std::cout<<'.'<<std::flush;
+#ifdef _OPENMP
+                dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
+#endif
             }
             const Cell<DC1,M>* c1 = field1.getCells()[i];
             for (int j=0;j<n2;++j) {
@@ -314,15 +342,16 @@ struct SortHelper
         // then it can't be the smallest side.
         // i.e. if d3 - s1ps2 > d1 + s2ps3
         // d3 > d1 + s1ps2 + s2ps3
-        // d3^2 > d1^2 + (2d1 (s1ps2 + s2ps3) + (s1ps2+s2ps3)^2)
-        //      > d1^2 + (s1ps2+s2ps3)^2  (We'll refine this later after we take sqrts.)
-        if (d3sq > d1sq && d3sq > d1sq + SQR(s1ps2+s2ps3)) {
+        // d3^2 > (d1 + (s1ps2+s2ps3))^2
+        // Lemma: (x+y)^2 < 2x^2 + 2y^2
+        // d3^2 > 2d1^2 + 2(s1ps2+s2ps3)^2  (We'll refine this later after we take sqrts.)
+        if (d3sq > d1sq && d3sq > 2.*d1sq + 2.*SQR(s1ps2+s2ps3)) {
             xdbg<<"d1 cannot be as large as d3\n";
             return true;
         }
 
         // Likewise for d2.
-        if (d3sq > d2sq && d3sq > d2sq + SQR(s1ps3+s2ps3)) {
+        if (d3sq > d2sq && d3sq > 2.*d2sq + 2.*SQR(s1ps3+s1ps2)) {
             xdbg<<"d2 cannot be as large as d3\n";
             return true;
         }
@@ -330,7 +359,7 @@ struct SortHelper
         // Similar for d1 being the largest.
         // if d1 + s2ps3 < d2 - s1ps3
         // d2 > d1 + s2ps3 + s1ps3
-        if (d2sq > d1sq && d2sq > d1sq + SQR(s2ps3+s1ps3)) {
+        if (d2sq > d1sq && d2sq > 2.*d1sq + 2.*SQR(s2ps3+s1ps3)) {
             xdbg<<"d1 cannot be as large as d2\n";
             return true;
         }
@@ -354,7 +383,7 @@ struct SortHelper
     }
     static bool stopU(
         double d1sq, double d2sq, double d3sq, double d2,
-        double s1ps3, double s1ps2,
+        double s2ps3, double s1ps3, double s1ps2,
         double minu, double minusq, double maxu, double maxusq)
     {
         // Now that we have d2 (rather than just d2sq), some of the checks become a bit tighter.
@@ -362,7 +391,7 @@ struct SortHelper
             xdbg<<"d2 cannot be as large as d3\n";
             return true;
         }
-        if (d2sq > d1sq && d2 > s1ps2 + s1ps2 && d1sq < SQR(d2 - s1ps3 + s1ps2)) {
+        if (d2sq > d1sq && d2 > s1ps3 + s2ps3 && d1sq < SQR(d2 - s1ps3 - s2ps3)) {
             xdbg<<"d1 cannot be as large as d2\n";
             return true;
         }
@@ -460,7 +489,7 @@ struct SortHelper<DC,DC,DC,true,M>
     }
     static bool stopU(
         double d1sq, double d2sq, double d3sq, double d2,
-        double s1ps3, double s1ps2,
+        double, double s1ps3, double s1ps2,
         double minu, double minusq, double maxu, double maxusq)
     {
         // If the user sets minu > 0, then we can abort if no possible triangle can have 
@@ -500,8 +529,8 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
     xdbg<<"            c2 = "<<c2->getData().getPos()<<"  "<<"  "<<c2->getSize()<<"  "<<c2->getData().getN()<<std::endl;
     xdbg<<"            c3 = "<<c3->getData().getPos()<<"  "<<"  "<<c3->getSize()<<"  "<<c3->getData().getN()<<std::endl;
     xdbg<<"            d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
-    Assert(d1sq >= d2sq);
-    Assert(d2sq >= d3sq);
+    Assert(!sort || d1sq >= d2sq);
+    Assert(!sort || d2sq >= d3sq);
 
     const double s1ps2 = c1->getAllSize()+c2->getAllSize();
     const double s2ps3 = c2->getAllSize()+c3->getAllSize();
@@ -523,6 +552,8 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
     double d2 = sqrt(d2sq);
     bool split2 = ( (s2ms3 > 0. && d3sq > SQR(d2 - s2ms3)) ||
                     (s2ms1 > 0. && d1sq < SQR(d2 + s2ms1)) );
+
+    xdbg<<"r: split = "<<split1<<" "<<split2<<" "<<split3<<std::endl;
 
     if (split1) {
         if (split2) {
@@ -625,9 +656,10 @@ void BinnedCorr3<DC1,DC2,DC3>::processU(
     const double s3 = c3->getAllSize();
     const double s1ps3 = s1 + s3;
     const double s1ps2 = s1 + s2;
+    const double s2ps3 = s2 + s3;
 
     if (SortHelper<DC1,DC2,DC3,sort,M>::stopU(
-            d1sq,d2sq,d3sq,d2,s1ps3,s1ps2,_minu,_minusq,_maxu,_maxusq)) return;
+            d1sq,d2sq,d3sq,d2,s2ps3,s1ps3,s1ps2,_minu,_minusq,_maxu,_maxusq)) return;
 
     bool split1=false, split2=false, split3=false;
     if (!sort && (d3sq > d2sq || d2sq > d1sq)) {
@@ -657,6 +689,8 @@ void BinnedCorr3<DC1,DC2,DC3>::processU(
     // du = d(d3) / d2 = (s1+s2)/d2
     // du < bu -> same split calculation as before, but with d2, not d3, and _bu instead of _b.
     CalcSplitSq(split1,split2,*c1,*c2,d2sq,s1ps2,_busq);
+
+    xdbg<<"u: split = "<<split1<<" "<<split2<<" "<<split3<<std::endl;
 
     // Whenever we split here, go back to process111 since we might need to reorder the points.
     // And we definitely need to recalculate the distances.
@@ -840,6 +874,8 @@ void BinnedCorr3<DC1,DC2,DC3>::processV(
     bool split2 = c2->getSize() > 0.5*_sqrttwobv * d3;
     const double s1ps2 = c1->getAllSize()+c2->getAllSize();
     CalcSplitSq(split1,split2,*c1,*c2,d3sq,s1ps2,_bvsq * 3./16. / onemvsq);
+
+    xdbg<<"v: split = "<<split1<<" "<<split2<<" "<<split3<<std::endl;
 
     if (split1) {
         if (split2) {
@@ -1120,8 +1156,6 @@ void* BuildNNNCorr(double minsep, double maxsep, int nbins, double binsize, doub
                    double minv, double maxv, int nvbins, double vbinsize, double bv,
                    double* meanlogr, double* meanu, double* meanv, double* ntri)
 {
-    dbgout = &std::cout;
-    XDEBUG = true;
     dbg<<"Start BuildNNCorr\n";
     void* corr = static_cast<void*>(new BinnedCorr3<NData,NData,NData>(
             minsep, maxsep, nbins, binsize, b,

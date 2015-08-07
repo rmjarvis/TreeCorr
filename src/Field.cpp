@@ -18,10 +18,10 @@
 #include "dbg.h"
 
 // To turn on debugging statements, set dbgout to &std::cerr or some other stream.
-//std::ostream* dbgout=0;
-std::ostream* dbgout=&std::cerr;
+std::ostream* dbgout=0;
+//std::ostream* dbgout=&std::cerr;
 // For even more debugging, set this to true.
-bool XDEBUG = true;
+bool XDEBUG = false;
 // Note: You will also need to compile with 
 //     python setup.py build --debug`
 //     python setup.py install 

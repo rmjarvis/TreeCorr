@@ -41,8 +41,8 @@ _treecorr.BuildNNNCorr.argtypes = [
 _treecorr.DestroyNNNCorr.argtypes = [ cvoid_ptr ]
 _treecorr.ProcessAutoNNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessAutoNNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-#_treecorr.ProcessCrossNNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-#_treecorr.ProcessCrossNNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossNNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossNNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
 class NNNCorrelation(treecorr.BinnedCorr3):
@@ -181,9 +181,9 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            _treecorr.ProcessCrossNNSphere(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+            _treecorr.ProcessCrossNNNSphere(self.corr, f1.data, f2.data, f3.data, self.output_dots)
         else:
-            _treecorr.ProcessCrossNNFlat(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+            _treecorr.ProcessCrossNNNFlat(self.corr, f1.data, f2.data, f3.data, self.output_dots)
         self.tot += cat1.nobj * cat2.nobj * cat3.nobj / 6.0
 
 

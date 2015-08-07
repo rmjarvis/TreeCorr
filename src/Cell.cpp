@@ -319,6 +319,22 @@ std::vector<const Cell<DC,M>*> Cell<DC,M>::getAllLeaves() const
     return ret;
 }
 
+template <int DC, int M>
+void Cell<DC,M>::Write(std::ostream& os) const
+{
+    os<<getData().getPos()<<"  "<<getSize()<<"  "<<getData().getN();
+}
+
+template <int DC, int M>
+void Cell<DC,M>::WriteTree(std::ostream& os, int indent) const
+{
+    os<<std::string(indent*2,'.')<<*this<<std::endl;
+    if (getLeft()) {
+        getLeft()->WriteTree(os, indent+1);
+        getRight()->WriteTree(os, indent+1);
+    }
+}
+
 template class CellData<NData,Flat>;
 template class CellData<NData,Sphere>;
 template class CellData<KData,Flat>;

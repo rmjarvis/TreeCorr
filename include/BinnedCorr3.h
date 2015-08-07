@@ -385,19 +385,19 @@ extern "C" {
     extern void ProcessAutoGGSphere(void* corr, void* field, int dots);
 #endif
 
+    extern void ProcessCrossNNNFlat(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossNNNSphere(void* corr, void* field1, void* field2, void* field3, int dots);
 #if 0
-    extern void ProcessCrossNNFlat(void* corr, void* field1, void* field2, int dots);
-    extern void ProcessCrossNNSphere(void* corr, void* field1, void* field2, int dots);
-    extern void ProcessCrossNKFlat(void* corr, void* field1, void* field2, int dots);
-    extern void ProcessCrossNKSphere(void* corr, void* field1, void* field2, int dots);
-    extern void ProcessCrossNGFlat(void* corr, void* field1, void* field2, int dots);
-    extern void ProcessCrossNGSphere(void* corr, void* field1, void* field2, int dots);
-    extern void ProcessCrossKKFlat(void* corr, void* field1, void* field2, int dots);
-    extern void ProcessCrossKKSphere(void* corr, void* field1, void* field2, int dots);
-    extern void ProcessCrossKGFlat(void* corr, void* field1, void* field2, int dots);
-    extern void ProcessCrossKGSphere(void* corr, void* field1, void* field2, int dots);
-    extern void ProcessCrossGGFlat(void* corr, void* field1, void* field2, int dots);
-    extern void ProcessCrossGGSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossNKFlat(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossNKSphere(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossNGFlat(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossNGSphere(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossKKFlat(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossKKSphere(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossKGFlat(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossKGSphere(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossGGFlat(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossGGSphere(void* corr, void* field1, void* field2, void* field3, int dots);
 #endif
 }
 

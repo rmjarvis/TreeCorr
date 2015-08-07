@@ -325,11 +325,11 @@ class BinnedCorr3(object):
         self.logr1d -= self.log_sep_units
 
         self.u1d = numpy.linspace(start=0, stop=self.nubins*self.ubin_size, 
-                                num=self.nubins, endpoint=False)
+                                  num=self.nubins, endpoint=False)
         self.u1d += self.min_u + 0.5*self.ubin_size
 
         self.v1d = numpy.linspace(start=0, stop=self.nvbins*self.vbin_size, 
-                                num=self.nvbins, endpoint=False)
+                                  num=self.nvbins, endpoint=False)
         self.v1d += self.min_v + 0.5*self.vbin_size
 
         shape = (self.nbins, self.nubins, self.nvbins)

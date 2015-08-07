@@ -24,16 +24,28 @@ def test_binnedcorr3():
         numpy.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
         numpy.testing.assert_almost_equal(nnn.ubin_size * nnn.nubins, nnn.max_u-nnn.min_u)
         numpy.testing.assert_almost_equal(nnn.vbin_size * nnn.nvbins, nnn.max_v-nnn.min_v)
-        print 'logr = ',nnn.logr
-        numpy.testing.assert_almost_equal(nnn.logr[0], math.log(nnn.min_sep) + 0.5*nnn.bin_size)
-        numpy.testing.assert_almost_equal(nnn.logr[-1], math.log(nnn.max_sep) - 0.5*nnn.bin_size)
+        print 'logr = ',nnn.logr1d
+        numpy.testing.assert_equal(nnn.logr1d.shape, (nnn.nbins,) )
+        numpy.testing.assert_almost_equal(nnn.logr1d[0], math.log(nnn.min_sep) + 0.5*nnn.bin_size)
+        numpy.testing.assert_almost_equal(nnn.logr1d[-1], math.log(nnn.max_sep) - 0.5*nnn.bin_size)
+        numpy.testing.assert_equal(nnn.logr.shape, (nnn.nbins, nnn.nubins, nnn.nvbins) )
+        numpy.testing.assert_almost_equal(nnn.logr[:,0,0], nnn.logr1d)
+        numpy.testing.assert_almost_equal(nnn.logr[:,-1,-1], nnn.logr1d)
         assert len(nnn.logr) == nnn.nbins
-        print 'u = ',nnn.u
-        numpy.testing.assert_almost_equal(nnn.u[0], nnn.min_u + 0.5*nnn.ubin_size)
-        numpy.testing.assert_almost_equal(nnn.u[-1], nnn.max_u - 0.5*nnn.ubin_size)
-        print 'v = ',nnn.v
-        numpy.testing.assert_almost_equal(nnn.v[0], nnn.min_v + 0.5*nnn.vbin_size)
-        numpy.testing.assert_almost_equal(nnn.v[-1], nnn.max_v - 0.5*nnn.vbin_size)
+        print 'u = ',nnn.u1d
+        numpy.testing.assert_equal(nnn.u1d.shape, (nnn.nubins,) )
+        numpy.testing.assert_almost_equal(nnn.u1d[0], nnn.min_u + 0.5*nnn.ubin_size)
+        numpy.testing.assert_almost_equal(nnn.u1d[-1], nnn.max_u - 0.5*nnn.ubin_size)
+        numpy.testing.assert_equal(nnn.u.shape, (nnn.nbins, nnn.nubins, nnn.nvbins) )
+        numpy.testing.assert_almost_equal(nnn.u[0,:,0], nnn.u1d)
+        numpy.testing.assert_almost_equal(nnn.u[-1,:,-1], nnn.u1d)
+        print 'v = ',nnn.v1d
+        numpy.testing.assert_equal(nnn.v1d.shape, (nnn.nvbins,) )
+        numpy.testing.assert_almost_equal(nnn.v1d[0], nnn.min_v + 0.5*nnn.vbin_size)
+        numpy.testing.assert_almost_equal(nnn.v1d[-1], nnn.max_v - 0.5*nnn.vbin_size)
+        numpy.testing.assert_equal(nnn.v.shape, (nnn.nbins, nnn.nubins, nnn.nvbins) )
+        numpy.testing.assert_almost_equal(nnn.v[0,0,:], nnn.v1d)
+        numpy.testing.assert_almost_equal(nnn.v[-1,-1,:], nnn.v1d)
 
     def check_defaultuv(nnn):
         assert nnn.min_u == 0.
@@ -508,7 +520,7 @@ def test_direct_count_cross():
                 if kr >= nbins: continue
                 true_ntri[kr,ku,kv] += 1
 
-    #print 'true_ntri => ',true_ntri
+    #print 'true_ntri = ',true_ntri
     #print 'diff = ',ddd.ntri - true_ntri
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
@@ -516,7 +528,7 @@ def test_direct_count_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
                                   nvbins=nvbins, bin_slop=1.e-16, verbose=3)
     ddd.process(cat1, cat2, cat3)
-    #print 'ddd.ntri = ',ddd.ntri
+    #print 'binslop > 0: ddd.ntri = ',ddd.ntri
     #print 'diff = ',ddd.ntri - true_ntri
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
@@ -524,7 +536,8 @@ def test_direct_count_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
                                   nvbins=nvbins, bin_slop=1.e-16, verbose=3, max_top=0)
     ddd.process(cat1, cat2, cat3)
-    #print 'ddd.ntri = ',ddd.ntri
+    #print 'max_top = 0: ddd.ntri = ',ddd.ntri
+    #print 'true_ntri = ',true_ntri
     #print 'diff = ',ddd.ntri - true_ntri
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
@@ -899,8 +912,8 @@ def test_list():
 
 
 if __name__ == '__main__':
-    #test_binnedcorr3()
-    #test_direct_count_auto()
+    test_binnedcorr3()
+    test_direct_count_auto()
     test_direct_count_cross()
     #test_direct_3d()
     #test_nnn()

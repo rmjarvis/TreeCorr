@@ -382,7 +382,7 @@ def test_direct_count_auto():
     numpy.random.seed(8675309)
     x = numpy.random.normal(0,s, (ngal,) )
     y = numpy.random.normal(0,s, (ngal,) )
-    cat1 = treecorr.Catalog(x=x, y=y)
+    cat = treecorr.Catalog(x=x, y=y)
 
     min_sep = 1.
     max_sep = 50.
@@ -391,7 +391,7 @@ def test_direct_count_auto():
     nvbins = 20
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
                                   nvbins=nvbins, bin_slop=0., verbose=3)
-    ddd.process(cat1)
+    ddd.process(cat)
     #print 'ddd.ntri = ',ddd.ntri
 
     log_min_sep = numpy.log(min_sep)
@@ -450,7 +450,7 @@ def test_direct_count_auto():
     # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
                                   nvbins=nvbins, bin_slop=1.e-16, verbose=3)
-    ddd.process(cat1)
+    ddd.process(cat)
     #print 'ddd.ntri = ',ddd.ntri
     #print 'diff = ',ddd.ntri - true_ntri
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
@@ -458,7 +458,7 @@ def test_direct_count_auto():
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
                                   nvbins=nvbins, bin_slop=1.e-16, verbose=3, max_top=0)
-    ddd.process(cat1)
+    ddd.process(cat)
     #print 'ddd.ntri = ',ddd.ntri
     #print 'diff = ',ddd.ntri - true_ntri
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
@@ -542,7 +542,120 @@ def test_direct_count_cross():
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
 
-def test_direct_3d():
+def is_ccw_3d(x1,y1,z1, x2,y2,z2, x3,y3,z3):
+    # Calculate the cross product of 1->2 with 1->3
+    x2 -= x1
+    x3 -= x1
+    y2 -= y1
+    y3 -= y1
+    z2 -= z1
+    z3 -= z1
+
+    # The cross product:
+    x = y2*z3-y3*z2
+    y = z2*x3-z3*x2
+    z = x2*y3-x3*y2
+
+    # ccw if the cross product is in the opposite direction of (x1,y1,z1) from (0,0,0)
+    return x*x1 + y*y1 + z*z1 < 0.
+
+def test_direct_3d_auto():
+    # This is the same as the above test, but using the 3d correlations
+
+    ngal = 100
+    s = 10.
+    numpy.random.seed(8675309)
+    x = numpy.random.normal(312, s, (ngal,) )
+    y = numpy.random.normal(728, s, (ngal,) )
+    z = numpy.random.normal(-932, s, (ngal,) )
+    r = numpy.sqrt( x*x + y*y + z*z )
+    dec = numpy.arcsin(z/r)
+    ra = numpy.arctan2(y,x)
+    cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='rad', dec_units='rad')
+
+    min_sep = 1.
+    max_sep = 50.
+    nbins = 50
+    nubins = 10
+    nvbins = 20
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
+                                  nvbins=nvbins, bin_slop=0., verbose=3)
+    ddd.process(cat)
+    #print 'ddd.ntri = ',ddd.ntri
+
+    log_min_sep = numpy.log(min_sep)
+    log_max_sep = numpy.log(max_sep)
+    true_ntri = numpy.zeros( (nbins, nubins, nvbins) )
+    bin_size = (log_max_sep - log_min_sep) / nbins
+    ubin_size = 1.0 / nubins
+    vbin_size = 2.0 / nvbins
+    for i in range(ngal):
+        for j in range(i+1,ngal):
+            for k in range(j+1,ngal):
+                dij = numpy.sqrt((x[i]-x[j])**2 + (y[i]-y[j])**2 + (z[i]-z[j])**2)
+                dik = numpy.sqrt((x[i]-x[k])**2 + (y[i]-y[k])**2 + (z[i]-z[k])**2)
+                djk = numpy.sqrt((x[j]-x[k])**2 + (y[j]-y[k])**2 + (z[j]-z[k])**2)
+                if dij == 0.: continue
+                if dik == 0.: continue
+                if djk == 0.: continue
+                ccw = True
+
+                if dij < dik:
+                    if dik < djk:
+                        d3 = dij; d2 = dik; d1 = djk;
+                        ccw = is_ccw_3d(x[i],y[i],z[i],x[j],y[j],z[j],x[k],y[k],z[k])
+                    elif dij < djk:
+                        d3 = dij; d2 = djk; d1 = dik;
+                        ccw = is_ccw_3d(x[j],y[j],z[j],x[i],y[i],z[i],x[k],y[k],z[k])
+                    else:
+                        d3 = djk; d2 = dij; d1 = dik;
+                        ccw = is_ccw_3d(x[j],y[j],z[j],x[k],y[k],z[k],x[i],y[i],z[i])
+                else:
+                    if dij < djk:
+                        d3 = dik; d2 = dij; d1 = djk;
+                        ccw = is_ccw_3d(x[i],y[i],z[i],x[k],y[k],z[k],x[j],y[j],z[j])
+                    elif dik < djk:
+                        d3 = dik; d2 = djk; d1 = dij;
+                        ccw = is_ccw_3d(x[k],y[k],z[k],x[i],y[i],z[i],x[j],y[j],z[j])
+                    else:
+                        d3 = djk; d2 = dik; d1 = dij;
+                        ccw = is_ccw_3d(x[k],y[k],z[k],x[j],y[j],z[j],x[i],y[i],z[i])
+
+                r = d2
+                u = d3/d2
+                v = (d1-d2)/d3
+                if not ccw: 
+                    v = -v
+                kr = int(numpy.floor( (numpy.log(r)-log_min_sep) / bin_size ))
+                ku = int(numpy.floor( u / ubin_size ))
+                kv = int(numpy.floor( (v+1.0) / vbin_size ))
+                if kr < 0: continue
+                if kr >= nbins: continue
+                true_ntri[kr,ku,kv] += 1
+
+    #print 'true_ntri => ',true_ntri
+    #print 'diff = ',ddd.ntri - true_ntri
+    numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
+                                  nvbins=nvbins, bin_slop=1.e-16, verbose=3)
+    ddd.process(cat)
+    #print 'ddd.ntri = ',ddd.ntri
+    #print 'diff = ',ddd.ntri - true_ntri
+    numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # And again with no top-level recursion
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
+                                  nvbins=nvbins, bin_slop=1.e-16, verbose=3, max_top=0)
+    ddd.process(cat)
+    #print 'ddd.ntri = ',ddd.ntri
+    #print 'true_ntri => ',true_ntri
+    #print 'diff = ',ddd.ntri - true_ntri
+    numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+
+def test_direct_3d_cross():
     # This is the same as the above test, but using the 3d correlations
 
     ngal = 100
@@ -564,30 +677,77 @@ def test_direct_3d():
     ra2 = numpy.arctan2(y2,x2)
     cat2 = treecorr.Catalog(ra=ra2, dec=dec2, r=r2, ra_units='rad', dec_units='rad')
 
+    x3 = numpy.random.normal(312, s, (ngal,) )
+    y3 = numpy.random.normal(728, s, (ngal,) )
+    z3 = numpy.random.normal(-932, s, (ngal,) )
+    r3 = numpy.sqrt( x3*x3 + y3*y3 + z3*z3 )
+    dec3 = numpy.arcsin(z3/r3)
+    ra3 = numpy.arctan2(y3,x3)
+    cat3 = treecorr.Catalog(ra=ra3, dec=dec3, r=r3, ra_units='rad', dec_units='rad')
+
     min_sep = 1.
     max_sep = 50.
     nbins = 50
-    dd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
-                                 verbose=3)
-    dd.process(cat1, cat2)
-    print 'dd.ntri = ',dd.ntri
+    nubins = 10
+    nvbins = 20
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
+                                  nvbins=nvbins, bin_slop=0., verbose=3)
+    ddd.process(cat1, cat2, cat3)
+    #print 'ddd.ntri = ',ddd.ntri
 
     log_min_sep = numpy.log(min_sep)
     log_max_sep = numpy.log(max_sep)
-    true_ntri = numpy.zeros(nbins)
+    true_ntri = numpy.zeros( (nbins, nubins, nvbins) )
     bin_size = (log_max_sep - log_min_sep) / nbins
+    ubin_size = 1.0 / nubins
+    vbin_size = 2.0 / nvbins
     for i in range(ngal):
         for j in range(ngal):
-            rsq = (x1[i]-x2[j])**2 + (y1[i]-y2[j])**2 + (z1[i]-z2[j])**2
-            logr = 0.5 * numpy.log(rsq)
-            k = int(numpy.floor( (logr-log_min_sep) / bin_size ))
-            if k < 0: continue
-            if k >= nbins: continue
-            true_ntri[k] += 1
+            for k in range(ngal):
+                d1sq = (x2[j]-x3[k])**2 + (y2[j]-y3[k])**2 + (z2[j]-z3[k])**2
+                d2sq = (x1[i]-x3[k])**2 + (y1[i]-y3[k])**2 + (z1[i]-z3[k])**2
+                d3sq = (x1[i]-x2[j])**2 + (y1[i]-y2[j])**2 + (z1[i]-z2[j])**2
+                d1 = numpy.sqrt(d1sq)
+                d2 = numpy.sqrt(d2sq)
+                d3 = numpy.sqrt(d3sq)
+                if d3 == 0.: continue
+                if d2 == 0.: continue
+                if d1 == 0.: continue
+                if d1 < d2 or d2 < d3: continue;
+                ccw = is_ccw_3d(x1[i],y1[i],z1[i],x2[j],y2[j],z2[j],x3[k],y3[k],z3[k])
+                r = d2
+                u = d3/d2
+                v = (d1-d2)/d3
+                if not ccw: 
+                    v = -v
+                kr = int(numpy.floor( (numpy.log(r)-log_min_sep) / bin_size ))
+                ku = int(numpy.floor( u / ubin_size ))
+                kv = int(numpy.floor( (v+1.0) / vbin_size ))
+                if kr < 0: continue
+                if kr >= nbins: continue
+                true_ntri[kr,ku,kv] += 1
 
-    print 'true_ntri = ',true_ntri
-    print 'diff = ',dd.ntri - true_ntri
-    numpy.testing.assert_array_equal(dd.ntri, true_ntri)
+    #print 'true_ntri = ',true_ntri
+    #print 'diff = ',ddd.ntri - true_ntri
+    numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
+                                  nvbins=nvbins, bin_slop=1.e-16, verbose=3)
+    ddd.process(cat1, cat2, cat3)
+    #print 'binslop > 0: ddd.ntri = ',ddd.ntri
+    #print 'diff = ',ddd.ntri - true_ntri
+    numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # And again with no top-level recursion
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
+                                  nvbins=nvbins, bin_slop=1.e-16, verbose=3, max_top=0)
+    ddd.process(cat1, cat2, cat3)
+    #print 'max_top = 0: ddd.ntri = ',ddd.ntri
+    #print 'true_ntri = ',true_ntri
+    #print 'diff = ',ddd.ntri - true_ntri
+    numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
+
 
 def test_nnn():
     # Use a simple probability distribution for the galaxies:
@@ -915,7 +1075,8 @@ if __name__ == '__main__':
     test_binnedcorr3()
     test_direct_count_auto()
     test_direct_count_cross()
-    #test_direct_3d()
+    test_direct_3d_auto()
+    test_direct_3d_cross()
     #test_nnn()
     #test_3d()
     #test_list()

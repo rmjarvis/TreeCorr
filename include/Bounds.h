@@ -334,7 +334,7 @@ inline bool CCW(const Position<Sphere>& p1, const Position<Sphere>& p2, const Po
     double cx = y2*z3 - y3*z2;
     double cy = z2*x3 - z3*x2;
     double cz = x2*y3 - x3*y2;
-    return cx*x2 + cy*y2 + cz*z2 < 0.;
+    return cx*p1.getX() + cy*p1.getY() + cz*p1.getZ() < 0.;
 }
 
 

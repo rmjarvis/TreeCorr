@@ -172,7 +172,9 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field, bool dots)
                 dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
 #endif
                 xdbg<<"field = \n";
+#ifndef NDEBUG
                 if (dbgout && XDEBUG) c1->WriteTree(*dbgout);
+#endif
             }
             ProcessHelper<DC1,DC2,DC3,M>::process3(bc3,c1);
             for (int j=i+1;j<n1;++j) {
@@ -213,6 +215,7 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field1, const Field<D
     Assert(n1 > 0);
     Assert(n2 > 0);
     Assert(n3 > 0);
+#ifndef NDEBUG
     if (dbgout && XDEBUG) {
         xdbg<<"field1: \n";
         for (int i=0;i<n1;++i) {
@@ -233,6 +236,7 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field1, const Field<D
             c3->WriteTree(*dbgout);
         }
     }
+#endif
 
 #ifdef _OPENMP
 #pragma omp parallel 
@@ -479,7 +483,7 @@ struct SortHelper<DC,DC,DC,true,M>
         if (d2sq >= maxsepsq && d2sq >= SQR(maxsep + s1ps3)) {
             // Then d2 - s1 - s3 >= maxsep
             // Probably we can stop now, but check d1
-            if (s2ps3 < maxsep && d1sq > SQR(maxsep - s2ps3)) {
+            if (s2ps3 < maxsep && d1sq > SQR(maxsep + s2ps3)) {
                 xdbg<<"d2 cannot be as small as maxsep\n";
                 return true;
             }

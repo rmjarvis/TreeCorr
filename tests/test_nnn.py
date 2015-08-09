@@ -387,10 +387,16 @@ def test_direct_count_auto():
     min_sep = 1.
     max_sep = 50.
     nbins = 50
+    min_u = 0.13
+    max_u = 0.89
     nubins = 10
+    min_v = -0.83
+    max_v = 0.59
     nvbins = 20
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
-                                  nvbins=nvbins, bin_slop=0., verbose=3)
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0., verbose=3)
     ddd.process(cat)
     #print 'ddd.ntri = ',ddd.ntri
 
@@ -398,8 +404,8 @@ def test_direct_count_auto():
     log_max_sep = numpy.log(max_sep)
     true_ntri = numpy.zeros( (nbins, nubins, nvbins) )
     bin_size = (log_max_sep - log_min_sep) / nbins
-    ubin_size = 1.0 / nubins
-    vbin_size = 2.0 / nvbins
+    ubin_size = (max_u-min_u) / nubins
+    vbin_size = (max_v-min_v) / nvbins
     for i in range(ngal):
         for j in range(i+1,ngal):
             for k in range(j+1,ngal):
@@ -437,10 +443,14 @@ def test_direct_count_auto():
                 if not ccw: 
                     v = -v
                 kr = int(numpy.floor( (numpy.log(r)-log_min_sep) / bin_size ))
-                ku = int(numpy.floor( u / ubin_size ))
-                kv = int(numpy.floor( (v+1.0) / vbin_size ))
+                ku = int(numpy.floor( (u-min_u) / ubin_size ))
+                kv = int(numpy.floor( (v-min_v) / vbin_size ))
                 if kr < 0: continue
                 if kr >= nbins: continue
+                if ku < 0: continue
+                if ku >= nubins: continue
+                if kv < 0: continue
+                if kv >= nvbins: continue
                 true_ntri[kr,ku,kv] += 1
 
     #print 'true_ntri => ',true_ntri
@@ -448,16 +458,20 @@ def test_direct_count_auto():
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
-                                  nvbins=nvbins, bin_slop=1.e-16, verbose=3)
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=1.e-16, verbose=3)
     ddd.process(cat)
     #print 'ddd.ntri = ',ddd.ntri
     #print 'diff = ',ddd.ntri - true_ntri
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And again with no top-level recursion
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
-                                  nvbins=nvbins, bin_slop=1.e-16, verbose=3, max_top=0)
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=1.e-16, verbose=3, max_top=0)
     ddd.process(cat)
     #print 'ddd.ntri = ',ddd.ntri
     #print 'diff = ',ddd.ntri - true_ntri
@@ -484,10 +498,16 @@ def test_direct_count_cross():
     min_sep = 1.
     max_sep = 50.
     nbins = 50
+    min_u = 0.13
+    max_u = 0.89
     nubins = 10
+    min_v = -0.83
+    max_v = 0.59
     nvbins = 20
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
-                                  nvbins=nvbins, bin_slop=0., verbose=3)
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0., verbose=3)
     ddd.process(cat1, cat2, cat3)
     #print 'ddd.ntri = ',ddd.ntri
 
@@ -495,8 +515,8 @@ def test_direct_count_cross():
     log_max_sep = numpy.log(max_sep)
     true_ntri = numpy.zeros( (nbins, nubins, nvbins) )
     bin_size = (log_max_sep - log_min_sep) / nbins
-    ubin_size = 1.0 / nubins
-    vbin_size = 2.0 / nvbins
+    ubin_size = (max_u-min_u) / nubins
+    vbin_size = (max_v-min_v) / nvbins
     for i in range(ngal):
         for j in range(ngal):
             for k in range(ngal):
@@ -514,10 +534,14 @@ def test_direct_count_cross():
                 if not ccw: 
                     v = -v
                 kr = int(numpy.floor( (numpy.log(r)-log_min_sep) / bin_size ))
-                ku = int(numpy.floor( u / ubin_size ))
-                kv = int(numpy.floor( (v+1.0) / vbin_size ))
+                ku = int(numpy.floor( (u-min_u) / ubin_size ))
+                kv = int(numpy.floor( (v-min_v) / vbin_size ))
                 if kr < 0: continue
                 if kr >= nbins: continue
+                if ku < 0: continue
+                if ku >= nubins: continue
+                if kv < 0: continue
+                if kv >= nvbins: continue
                 true_ntri[kr,ku,kv] += 1
 
     #print 'true_ntri = ',true_ntri
@@ -525,16 +549,20 @@ def test_direct_count_cross():
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
-                                  nvbins=nvbins, bin_slop=1.e-16, verbose=3)
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=1.e-16, verbose=3)
     ddd.process(cat1, cat2, cat3)
     #print 'binslop > 0: ddd.ntri = ',ddd.ntri
     #print 'diff = ',ddd.ntri - true_ntri
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And again with no top-level recursion
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
-                                  nvbins=nvbins, bin_slop=1.e-16, verbose=3, max_top=0)
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=1.e-16, verbose=3, max_top=0)
     ddd.process(cat1, cat2, cat3)
     #print 'max_top = 0: ddd.ntri = ',ddd.ntri
     #print 'true_ntri = ',true_ntri
@@ -576,10 +604,16 @@ def test_direct_3d_auto():
     min_sep = 1.
     max_sep = 50.
     nbins = 50
+    min_u = 0.13
+    max_u = 0.89
     nubins = 10
+    min_v = -0.83
+    max_v = 0.59
     nvbins = 20
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
-                                  nvbins=nvbins, bin_slop=0., verbose=3)
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0., verbose=3)
     ddd.process(cat)
     #print 'ddd.ntri = ',ddd.ntri
 
@@ -587,8 +621,8 @@ def test_direct_3d_auto():
     log_max_sep = numpy.log(max_sep)
     true_ntri = numpy.zeros( (nbins, nubins, nvbins) )
     bin_size = (log_max_sep - log_min_sep) / nbins
-    ubin_size = 1.0 / nubins
-    vbin_size = 2.0 / nvbins
+    ubin_size = (max_u-min_u) / nubins
+    vbin_size = (max_v-min_v) / nvbins
     for i in range(ngal):
         for j in range(i+1,ngal):
             for k in range(j+1,ngal):
@@ -627,10 +661,14 @@ def test_direct_3d_auto():
                 if not ccw: 
                     v = -v
                 kr = int(numpy.floor( (numpy.log(r)-log_min_sep) / bin_size ))
-                ku = int(numpy.floor( u / ubin_size ))
-                kv = int(numpy.floor( (v+1.0) / vbin_size ))
+                ku = int(numpy.floor( (u-min_u) / ubin_size ))
+                kv = int(numpy.floor( (v-min_v) / vbin_size ))
                 if kr < 0: continue
                 if kr >= nbins: continue
+                if ku < 0: continue
+                if ku >= nubins: continue
+                if kv < 0: continue
+                if kv >= nvbins: continue
                 true_ntri[kr,ku,kv] += 1
 
     #print 'true_ntri => ',true_ntri
@@ -638,16 +676,20 @@ def test_direct_3d_auto():
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
-                                  nvbins=nvbins, bin_slop=1.e-16, verbose=3)
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=1.e-16, verbose=3)
     ddd.process(cat)
     #print 'ddd.ntri = ',ddd.ntri
     #print 'diff = ',ddd.ntri - true_ntri
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And again with no top-level recursion
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
-                                  nvbins=nvbins, bin_slop=1.e-16, verbose=3, max_top=0)
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=1.e-16, verbose=3, max_top=0)
     ddd.process(cat)
     #print 'ddd.ntri = ',ddd.ntri
     #print 'true_ntri => ',true_ntri
@@ -688,10 +730,16 @@ def test_direct_3d_cross():
     min_sep = 1.
     max_sep = 50.
     nbins = 50
+    min_u = 0.13
+    max_u = 0.89
     nubins = 10
+    min_v = -0.83
+    max_v = 0.59
     nvbins = 20
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
-                                  nvbins=nvbins, bin_slop=0., verbose=3)
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0., verbose=3)
     ddd.process(cat1, cat2, cat3)
     #print 'ddd.ntri = ',ddd.ntri
 
@@ -699,8 +747,8 @@ def test_direct_3d_cross():
     log_max_sep = numpy.log(max_sep)
     true_ntri = numpy.zeros( (nbins, nubins, nvbins) )
     bin_size = (log_max_sep - log_min_sep) / nbins
-    ubin_size = 1.0 / nubins
-    vbin_size = 2.0 / nvbins
+    ubin_size = (max_u-min_u) / nubins
+    vbin_size = (max_v-min_v) / nvbins
     for i in range(ngal):
         for j in range(ngal):
             for k in range(ngal):
@@ -721,10 +769,14 @@ def test_direct_3d_cross():
                 if not ccw: 
                     v = -v
                 kr = int(numpy.floor( (numpy.log(r)-log_min_sep) / bin_size ))
-                ku = int(numpy.floor( u / ubin_size ))
-                kv = int(numpy.floor( (v+1.0) / vbin_size ))
+                ku = int(numpy.floor( (u-min_u) / ubin_size ))
+                kv = int(numpy.floor( (v-min_v) / vbin_size ))
                 if kr < 0: continue
                 if kr >= nbins: continue
+                if ku < 0: continue
+                if ku >= nubins: continue
+                if kv < 0: continue
+                if kv >= nvbins: continue
                 true_ntri[kr,ku,kv] += 1
 
     #print 'true_ntri = ',true_ntri
@@ -732,16 +784,20 @@ def test_direct_3d_cross():
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
-                                  nvbins=nvbins, bin_slop=1.e-16, verbose=3)
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=1.e-16, verbose=3)
     ddd.process(cat1, cat2, cat3)
     #print 'binslop > 0: ddd.ntri = ',ddd.ntri
     #print 'diff = ',ddd.ntri - true_ntri
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And again with no top-level recursion
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, nubins=nubins,
-                                  nvbins=nvbins, bin_slop=1.e-16, verbose=3, max_top=0)
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=1.e-16, verbose=3, max_top=0)
     ddd.process(cat1, cat2, cat3)
     #print 'max_top = 0: ddd.ntri = ',ddd.ntri
     #print 'true_ntri = ',true_ntri

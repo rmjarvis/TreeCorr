@@ -148,6 +148,7 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field, bool dots)
     _metric = M;
     const long n1 = field.getNTopLevel();
     xdbg<<"field has "<<n1<<" top level nodes\n";
+    if (dots) std::cout<<"Starting "<<n1<<" jobs:\n"<<std::flush;
     Assert(n1 > 0);
 #ifdef _OPENMP
 #pragma omp parallel 
@@ -238,6 +239,7 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field1, const Field<D
     }
 #endif
 
+    if (dots) std::cout<<"Starting "<<n1<<" jobs:\n"<<std::flush;
 #ifdef _OPENMP
 #pragma omp parallel 
     {
@@ -671,21 +673,22 @@ void BinnedCorr3<DC1,DC2,DC3>::processU(
         // (nor d2 less than d1).  If this is the case, we always want to split something,
         // since we don't actually have a valid u here.
         // Split the largest one at least.
-        if (s1 > s2)
-            if (s1 > s3)
+        if (s1 > s2) {
+            if (s1 > s3) 
                 split1 = true;
-            else
+            else if (s3 > 0) 
                 split3 = true;
-        else
-            if (s2 > s3)
+        } else {
+            if (s2 > s3) 
                 split2 = true;
-            else
+            else if (s3 > 0) 
                 split3 = true;
+        }
         // Also split any that can directly lead to a swap of two that are out of order
         // d2 + s1 < d3 - s1
-        if (d3sq > d2sq && d3sq > SQR(d2 + 2.*s1)) split1 = true;
+        if (d3sq > d2sq && s1 > 0 && d3sq > SQR(d2 + 2.*s1)) split1 = true;
         // d1 + s3 < d2 - s3
-        if (d1sq < d2sq && (d2 < 2.*s3 ||  d1sq < SQR(d2 - 2.*s3))) split3 = true;
+        if (d1sq < d2sq && s3 > 0 && (d2 < 2.*s3 ||  d1sq < SQR(d2 - 2.*s3))) split3 = true;
     }
         
     // We don't need to split c1,c3 for d2 but we might need to split c1,c2 for d3.
@@ -767,32 +770,9 @@ void BinnedCorr3<DC1,DC2,DC3>::processU(
                 process111<sort>(c1,c2,c3->getRight(),0.,0.,d3sq);
             } else {
                 // don't split any
-                double d3 = sqrt(d3sq);
-                double u = d3/d2;
-                if (u < _minu || u >= _maxu) {
-                    xdbg<<"u not in minu .. maxu\n";
-                    return;
-                }
                 double d1 = sqrt(d1sq);
-
-                double logr = log(d2);
-                xdbg<<"            logr = "<<logr<<std::endl;
-                xdbg<<"            u = "<<u<<std::endl;
-                const int kr = int(floor((logr-_logminsep)/_binsize));
-                Assert(kr >= 0);
-                Assert(kr < _nbins);
-                int ku = int(floor((u-_minu)/_ubinsize));
-                Assert(ku >= 0);
-                if (ku >= _nubins) {
-                    // Rounding error can allow this.
-                    XAssert((u-_minu)/_ubinsize - ku < 1.e-10);
-                    Assert(ku==_nubins);
-                    --ku; 
-                }
-                Assert(ku >= 0);
-                Assert(ku < _nubins);
-                int index = kr * _nuv + ku * _nvbins;
-                processV<sort>(c1,c2,c3,d1sq,d2sq,d3sq,d1,d2,d3,logr,u,index);
+                double d3 = sqrt(d3sq);
+                processV<sort>(c1,c2,c3,d1sq,d2sq,d3sq,d1,d2,d3);
             }
         }
     }
@@ -806,22 +786,18 @@ template <int DC1, int DC2, int DC3> template <bool sort, int M>
 void BinnedCorr3<DC1,DC2,DC3>::processV(
     const Cell<DC1,M>* c1, const Cell<DC2,M>* c2, const Cell<DC3,M>* c3,
     const double d1sq, const double d2sq, const double d3sq,
-    const double d1, const double d2, const double d3,
-    const double logr, const double u, const int index)
+    const double d1, const double d2, const double d3)
 {
     Assert(d2sq >= d3sq);
     Assert(d1sq >= d2sq);
     Assert(d2 >= d3);
     Assert(d1 >= d2);
-    Assert(index >= 0);
-    Assert(index < _ntot);
     XAssert(NoSplit(*c1,*c3,d2,_b));
     XAssert(NoSplit(*c1,*c2,d2,_bu));
     XAssert(Check(*c1,*c2,*c3,d1,d2,d3));
     XAssert(std::abs(d1*d1-d1sq) < 1.e-10);
     XAssert(std::abs(d2*d2-d2sq) < 1.e-10);
     XAssert(std::abs(d3*d3-d3sq) < 1.e-10);
-    XAssert(std::abs(u-d3/d2) < 1.e-10);
 
     // I don't currently do any checks related to _minv, _maxv.
     // Not sure how important they are.
@@ -859,7 +835,7 @@ void BinnedCorr3<DC1,DC2,DC3>::processV(
     double s3overd2 = c3->getSize()/d2;
     double v = (d1-d2)/d3;
     const double onemvsq = 1.-SQR(v);
-    const bool split3 = s3overd2 > _sqrttwobv || SQR(s3overd2) > 0.5625 * _bvsq / onemvsq;
+    const bool split3 = s3overd2 > _sqrttwobv || SQR(s3overd2) * onemvsq > 0.5625 * _bvsq;
 
     // 2. How does v change for different pairs of points within c1,c2?
     //
@@ -876,8 +852,11 @@ void BinnedCorr3<DC1,DC2,DC3>::processV(
     // Need to split if 2sin^2(dtheta) > b
     bool split1 = c1->getSize() > 0.5*_sqrttwobv * d3;
     bool split2 = c2->getSize() > 0.5*_sqrttwobv * d3;
-    const double s1ps2 = c1->getAllSize()+c2->getAllSize();
-    CalcSplitSq(split1,split2,*c1,*c2,d3sq,s1ps2,_bvsq * 3./16. / onemvsq);
+    
+    if (onemvsq > 1.e-2) {
+        const double s1ps2 = c1->getAllSize()+c2->getAllSize();
+        CalcSplitSq(split1,split2,*c1,*c2,d3sq,s1ps2,_bvsq * 3./16. / onemvsq);
+    }
 
     xdbg<<"v: split = "<<split1<<" "<<split2<<" "<<split3<<std::endl;
 
@@ -950,8 +929,18 @@ void BinnedCorr3<DC1,DC2,DC3>::processV(
                 process111<sort>(c1,c2,c3->getRight(),0.,0.,d3sq);
             } else {
                 // No splits required.
-                double v = (d1-d2)/d3;
-                xdbg<<"            v = "<<v<<std::endl;
+                // Now we can check to make sure the final d2, u, v are in the right ranges.
+                if (d2 < _minsep || d2 >= _maxsep) {
+                    xdbg<<"d2 not in minsep .. maxsep\n";
+                    return;
+                }
+
+                double u = d3/d2;
+                if (u < _minu || u >= _maxu) {
+                    xdbg<<"u not in minu .. maxu\n";
+                    return;
+                }
+
                 if (!CCW(c1->getData().getPos(), c2->getData().getPos(), c3->getData().getPos()))
                     v = -v;
                 if (v < _minv || v >= _maxv) {
@@ -959,10 +948,39 @@ void BinnedCorr3<DC1,DC2,DC3>::processV(
                     return;
                 }
 
+                double logr = log(d2);
+                xdbg<<"            logr = "<<logr<<std::endl;
+                xdbg<<"            u = "<<u<<std::endl;
+                xdbg<<"            v = "<<v<<std::endl;
+
+                const int kr = int(floor((logr-_logminsep)/_binsize));
+                Assert(kr >= 0);
+                Assert(kr < _nbins);
+
+                int ku = int(floor((u-_minu)/_ubinsize));
+                if (ku >= _nubins) {
+                    // Rounding error can allow this.
+                    XAssert((u-_minu)/_ubinsize - ku < 1.e-10);
+                    Assert(ku==_nubins);
+                    --ku; 
+                }
+                Assert(ku >= 0);
+                Assert(ku < _nubins);
+
                 int kv = int(floor((v-_minv)/_vbinsize));
+                if (kv >= _nvbins) {
+                    // Rounding error can allow this.
+                    XAssert((v-_minv)/_vbinsize - kv < 1.e-10);
+                    Assert(kv==_nvbins);
+                    --kv; 
+                }
                 Assert(kv >= 0);
                 Assert(kv < _nvbins);
-                directProcessV(*c1,*c2,*c3,d1,d2,d3,logr,u,v,index+kv);
+
+                int index = kr * _nuv + ku * _nvbins + kv;
+                Assert(index >= 0);
+                Assert(index < _ntot);
+                directProcessV(*c1,*c2,*c3,d1,d2,d3,logr,u,v,index);
             }
         }
     }
@@ -1167,7 +1185,7 @@ void* BuildNNNCorr(double minsep, double maxsep, int nbins, double binsize, doub
             minv, maxv, nvbins, vbinsize, bv,
             0, 0, 0, 0, 0, 0, 0, 0,
             meanlogr, meanu, meanv, 0, ntri));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
@@ -1181,7 +1199,7 @@ void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, doubl
             minsep, maxsep, nbins, binsize, b,
             zeta, 0, 0, 0,
             meanlogr, weight, ntri));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
@@ -1194,7 +1212,7 @@ void* BuildNGCorr(double minsep, double maxsep, int nbins, double binsize, doubl
             minsep, maxsep, nbins, binsize, b,
             zeta, zeta_im, 0, 0,
             meanlogr, weight, ntri));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
@@ -1207,7 +1225,7 @@ void* BuildKKCorr(double minsep, double maxsep, int nbins, double binsize, doubl
             minsep, maxsep, nbins, binsize, b,
             zeta, 0, 0, 0,
             meanlogr, weight, ntri));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
@@ -1220,7 +1238,7 @@ void* BuildKGCorr(double minsep, double maxsep, int nbins, double binsize, doubl
             minsep, maxsep, nbins, binsize, b,
             zeta, zeta_im, 0, 0,
             meanlogr, weight, ntri));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
@@ -1233,7 +1251,7 @@ void* BuildGGCorr(double minsep, double maxsep, int nbins, double binsize, doubl
             minsep, maxsep, nbins, binsize, b,
             zetap, zetap_im, zetam, zetam_im,
             meanlogr, weight, ntri));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 #endif
@@ -1241,7 +1259,7 @@ void* BuildGGCorr(double minsep, double maxsep, int nbins, double binsize, doubl
 void DestroyNNNCorr(void* corr)
 {
     dbg<<"Start DestroyNNNCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr3<NData,NData,NData>*>(corr);
 }
 
@@ -1249,35 +1267,35 @@ void DestroyNNNCorr(void* corr)
 void DestroyNKCorr(void* corr)
 {
     dbg<<"Start DestroyNKCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr3<NData,KData>*>(corr);
 }
 
 void DestroyNGCorr(void* corr)
 {
     dbg<<"Start DestroyNGCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr3<NData,GData>*>(corr);
 }
 
 void DestroyKKCorr(void* corr)
 {
     dbg<<"Start DestroyKKCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr3<KData,KData>*>(corr);
 }
 
 void DestroyKGCorr(void* corr)
 {
     dbg<<"Start DestroyKGCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr3<KData,GData>*>(corr);
 }
 
 void DestroyGGCorr(void* corr)
 {
     dbg<<"Start DestroyGGCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr3<GData,GData>*>(corr);
 }
 #endif

@@ -253,8 +253,6 @@ Cell<DC,M>::Cell(std::vector<CellData<DC,M>*>& vdata,
 
         _sizesq = CalculateSizeSq(_data->getPos(),vdata,start,end);
         Assert(_sizesq >= 0.);
-        _size = sqrt(_sizesq);
-        //xdbg<<"size = "<<_size<<std::endl;
 
         if (_sizesq > minsizesq) {
             size_t mid = SplitData(vdata,sm,start,end,_data->getPos());
@@ -264,6 +262,15 @@ Cell<DC,M>::Cell(std::vector<CellData<DC,M>*>& vdata,
             } catch (std::bad_alloc) {
                 myerror("out of memory - cannot create new Cell");
             }
+            _size = sqrt(_sizesq);
+            //xdbg<<"size = "<<_size<<std::endl;
+        } else {
+            // This shouldn't be necessary for 2-point, but 3-point calculations sometimes
+            // have triangles that have two sides that are almost the same, so splits can
+            // go arbitrarily small to switch which one is d1,d2 or d2,d3.  This isn't 
+            // actually an important distinction, so just abort that by calling the size
+            // exactly zero.
+            _size = _sizesq = 0.;
         }
     }
 }

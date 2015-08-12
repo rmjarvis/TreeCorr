@@ -44,6 +44,10 @@ lopt =  {
     'unknown' : [],
 }
 
+if "--debug" in sys.argv:
+    copt['gcc'].append('-g')
+    copt['icc'].append('-g')
+    copt['clang'].append('-g')
 
 def get_compiler(cc):
     """Try to figure out which kind of compiler this really is.

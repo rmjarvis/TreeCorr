@@ -282,7 +282,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
                     raise RuntimeError("rd has tot=0.")
                 rdw = self.tot / rd.tot
                 xi = (self.npairs - rd.npairs * rdw - dr.npairs * drw + rr.npairs * rrw)
-        if any(rr.npairs == 0):
+        if numpy.any(rr.npairs == 0):
             self.logger.warn("Warning: Some bins for the randoms had no pairs.")
             self.logger.warn("         Probably max_sep is larger than your field.")
         mask1 = rr.npairs != 0

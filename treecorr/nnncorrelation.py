@@ -135,7 +135,10 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         self._set_num_threads()
 
-        field = cat.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
+        min_size = self.min_sep * self.min_u
+        max_size = 2.*self.max_sep 
+        b = numpy.max( (self.b, self.bu, self.bv) )
+        field = cat.getNField(min_size,max_size,b,self.split_method,self.max_top)
 
         if field.sphere:
             _treecorr.ProcessAutoNNNSphere(self.corr, field.data, self.output_dots)
@@ -213,10 +216,10 @@ class NNNCorrelation(treecorr.BinnedCorr3):
     def clear(self):
         """Clear the data vectors
         """
-        self.meanlogr[:] = 0.
-        self.meanu[:] = 0.
-        self.meanv[:] = 0.
-        self.ntri[:] = 0.
+        self.meanlogr[:,:,:] = 0.
+        self.meanu[:,:,:] = 0.
+        self.meanv[:,:,:] = 0.
+        self.ntri[:,:,:] = 0.
         self.tot = 0.
 
 
@@ -308,7 +311,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                 rrd is None or ddr is None):
                 raise AttributeError("Must provide all 6 combinations rdr, drr, etc.")
 
-        rrrw = self.tot / rr.tot
+        rrrw = self.tot / rrr.tot
         if rrd is None:
             zeta = (self.ntri - rrr.ntri * rrrw)
         elif rdr is None:
@@ -318,7 +321,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                 raise RuntimeError("ddr has tot=0.")
             rrdw = self.tot / rrd.tot
             ddrw = self.tot / ddr.tot
-            zeta = (self.ntri - 3.*rrd.ntri * rrdw + ddr.ntri * ddrw - rrr.ntri * rrrw)
+            zeta = (self.ntri - 3.*rrd.ntri * rrdw + 3.*ddr.ntri * ddrw - rrr.ntri * rrrw)
         else:
             if rrd.tot == 0:
                 raise RuntimeError("rrd has tot=0.")
@@ -340,7 +343,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             rddw = self.tot / rdd.tot
             zeta = (self.ntri - rrd.ntri * rrdw - rdr.ntri * rdrw - drr.ntr * nrrw +
                     ddr.ntri * ddrw + drd.ntri * drdw + rdd.ntri * rddw - rrr.ntri * rrrw)
-        if any(rrr.ntri == 0):
+        if numpy.any(rrr.ntri == 0):
             self.logger.warn("Warning: Some bins for the randoms had no tri.")
             self.logger.warn("         Probably max_sep is larger than your field.")
         mask1 = rrr.ntri != 0
@@ -354,8 +357,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         return zeta, varzeta
 
 
-    def write(self, file_name, rrr=None, rrd=None, ddr=None,
-                      rdr=None, drr=None, drd=None, rdd=None, file_type=None):
+    def write(self, file_name, rrr=None, drr=None, ddr=None,
+                      rdr=None, rrd=None, drd=None, rdd=None, file_type=None):
         """Write the correlation function to the file, file_name.
 
         Normally, at least rrr should be provided, but if this is None, then only the 
@@ -367,21 +370,21 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         1. The simplest formula to use is (ddd-rrr)/rrr.
            In this case, only rrr needs to be given, the NNNCorrelation of a random field.
 
-        2. For auto-correlations, a better formula is (ddd-3ddr+3rrd-rrr)/rrr.
-           In this case, ddr and rrd calculate the triangles where two points come from either
+        2. For auto-correlations, a better formula is (ddd-3ddr+3drr-rrr)/rrr.
+           In this case, ddr and drr calculate the triangles where two points come from either
            the data or the randoms, respectively.
 
         3. Finally, if the data correlation function is correlating two or three different
            kinds of things, then there are different "Randoms" for each of them.
            In this case, you need to do a different calculation for each of the three
-           data values: (ddd-ddr-drd-rdd+rrd+rdr+drr-rrr)/rrr.
+           data values: (ddd-ddr-drd-rdd+drr+rdr+rrd-rrr)/rrr.
 
         :param file_name:   The name of the file to write to.
         :param rrr:         An NNNCorrelation object for the random field. (default: None)
-        :param rrd:         RRD if desired. (default: None)
-        :param ddr:         DDR if desired. (default: None)
+        :param drr:         RRD if desired. (default: None)
+        :param ddr:         RDD if desired. (default: None)
         :param rdr:         RDR if desired. (default: None)
-        :param drr:         DRR if desired. (default: None)
+        :param rrd:         RRD if desired. (default: None)
         :param drd:         DRD if desired. (default: None)
         :param rdd:         RDD if desired. (default: None)
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
@@ -395,12 +398,12 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         if rrr is None:
             col_names += [ 'ntri' ]
             columns += [ self.ntri ]
-            if rrd is not None:
-                raise AttributeError("rrr must be provided if rrd is not None")
-            if rdr is not None:
-                raise AttributeError("rrr must be provided if rdd is not None")
             if drr is not None:
                 raise AttributeError("rrr must be provided if drr is not None")
+            if rdr is not None:
+                raise AttributeError("rrr must be provided if rdd is not None")
+            if rrd is not None:
+                raise AttributeError("rrr must be provided if rrd is not None")
             if ddr is not None:
                 raise AttributeError("rrr must be provided if ddr is not None")
             if drd is not None:
@@ -408,20 +411,20 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             if rdd is not None:
                 raise AttributeError("rrr must be provided if rdd is not None")
         else:
-            zeta, varzeta = self.calculateZeta(rrr,rrd,ddr,rdr,drr,drd,rdd)
+            zeta, varzeta = self.calculateZeta(rrr,drr,ddr,rdr,rrd,drd,rdd)
 
             col_names += [ 'zeta','sigma_zeta','DDD','RRR' ]
             columns += [ zeta, numpy.sqrt(varzeta),
                          self.ntri, rrr.ntri * (self.tot/rrr.tot) ]
 
-            if rrd is not None and rdr is None:
-                col_names += ['DDR','RRD']
-                columns += [ ddr.ntri * (self.tot/ddr.tot), rrd.ntri * (self.tot/rrd.tot) ]
+            if drr is not None and rdr is None:
+                col_names += ['DDR','DRR']
+                columns += [ ddr.ntri * (self.tot/ddr.tot), drr.ntri * (self.tot/drr.tot) ]
             elif rdr is not None:
-                col_names += ['DDR','DRD','RDD','RRD','RDR','DRR']
+                col_names += ['DDR','DRD','RDD','DRR','RDR','RRD']
                 columns += [ ddr.ntri * (self.tot/ddr.tot), drd.ntri * (self.tot/drd.tot),
-                             rdd.ntri * (self.tot/rdd.tot), rrd.ntri * (self.tot/rrd.tot),
-                             rdr.ntri * (self.tot/rdr.tot), drr.ntri * (self.tot/drr.tot) ]
+                             rdd.ntri * (self.tot/rdd.tot), drr.ntri * (self.tot/drr.tot),
+                             rdr.ntri * (self.tot/rdr.tot), rrd.ntri * (self.tot/rrd.tot) ]
 
         self.gen_write(file_name, col_names, columns, file_type=file_type)
 
@@ -443,15 +446,16 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.logger.info('Reading NNN correlations from %s',file_name)
 
         data = self.gen_read(file_name, file_type=file_type)
-        self.logr = numpy.log(data['R_nom'])
-        self.u = data['u_nom']
-        self.v = data['v_nom']
-        self.meanlogr = numpy.log(data['<R>'])
-        self.meanu = data['<u>']
-        self.meanv = data['<v>']
+        s = self.logr.shape
+        self.logr = numpy.log(data['R_nom']).reshape(s)
+        self.u = data['u_nom'].reshape(s)
+        self.v = data['v_nom'].reshape(s)
+        self.meanlogr = numpy.log(data['<R>']).reshape(s)
+        self.meanu = data['<u>'].reshape(s)
+        self.meanv = data['<v>'].reshape(s)
         if 'ntri' in data.dtype.names:
-            self.ntri = data['ntri']
+            self.ntri = data['ntri'].reshape(s)
         else:
-            self.ntri = data['DDD']
+            self.ntri = data['DDD'].reshape(s)
 
 

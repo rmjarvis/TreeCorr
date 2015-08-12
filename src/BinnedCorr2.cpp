@@ -674,7 +674,7 @@ void* BuildNNCorr(double minsep, double maxsep, int nbins, double binsize, doubl
             minsep, maxsep, nbins, binsize, b,
             0, 0, 0, 0,
             meanlogr, 0, npairs));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
@@ -687,7 +687,7 @@ void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, doubl
             minsep, maxsep, nbins, binsize, b,
             xi, 0, 0, 0,
             meanlogr, weight, npairs));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
@@ -700,7 +700,7 @@ void* BuildNGCorr(double minsep, double maxsep, int nbins, double binsize, doubl
             minsep, maxsep, nbins, binsize, b,
             xi, xi_im, 0, 0,
             meanlogr, weight, npairs));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
@@ -713,7 +713,7 @@ void* BuildKKCorr(double minsep, double maxsep, int nbins, double binsize, doubl
             minsep, maxsep, nbins, binsize, b,
             xi, 0, 0, 0,
             meanlogr, weight, npairs));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
@@ -726,7 +726,7 @@ void* BuildKGCorr(double minsep, double maxsep, int nbins, double binsize, doubl
             minsep, maxsep, nbins, binsize, b,
             xi, xi_im, 0, 0,
             meanlogr, weight, npairs));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
@@ -739,49 +739,49 @@ void* BuildGGCorr(double minsep, double maxsep, int nbins, double binsize, doubl
             minsep, maxsep, nbins, binsize, b,
             xip, xip_im, xim, xim_im,
             meanlogr, weight, npairs));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
 void DestroyNNCorr(void* corr)
 {
     dbg<<"Start DestroyNNCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr2<NData,NData>*>(corr);
 }
 
 void DestroyNKCorr(void* corr)
 {
     dbg<<"Start DestroyNKCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr2<NData,KData>*>(corr);
 }
 
 void DestroyNGCorr(void* corr)
 {
     dbg<<"Start DestroyNGCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr2<NData,GData>*>(corr);
 }
 
 void DestroyKKCorr(void* corr)
 {
     dbg<<"Start DestroyKKCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr2<KData,KData>*>(corr);
 }
 
 void DestroyKGCorr(void* corr)
 {
     dbg<<"Start DestroyKGCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr2<KData,GData>*>(corr);
 }
 
 void DestroyGGCorr(void* corr)
 {
     dbg<<"Start DestroyGGCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr2<GData,GData>*>(corr);
 }
 

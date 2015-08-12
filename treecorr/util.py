@@ -29,6 +29,12 @@ def gen_write(self, file_name, col_names, columns, file_type=None):
     import numpy
     if len(col_names) != len(columns):
         raise ValueError("col_names and columns are not the same length.")
+    if len(columns) == 0:
+        raise ValueError("len(columns) == 0")
+    for col in columns[1:]:
+        if col.shape != columns[0].shape:
+            raise ValueError("columns are not all the same shape")
+    columns = [ col.flatten() for col in columns ]
 
     # Figure out which file type the catalog is
     if file_type is None:
@@ -60,7 +66,7 @@ def gen_write_ascii(self, file_name, col_names, columns):
     import treecorr
     
     ncol = len(col_names)
-    data = numpy.empty( (self.nbins, ncol) )
+    data = numpy.empty( (len(columns[0]), ncol) )
     for i,col in enumerate(columns):
         data[:,i] = col
 
@@ -91,7 +97,7 @@ def gen_write_fits(self, file_name, col_names, columns):
     import fitsio
     import numpy
 
-    data = numpy.empty(self.nbins, dtype=[ (name,'f8') for name in col_names ])
+    data = numpy.empty(len(columns[0]), dtype=[ (name,'f8') for name in col_names ])
     for (name, col) in zip(col_names, columns):
         data[name] = col
 

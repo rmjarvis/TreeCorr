@@ -811,121 +811,180 @@ def test_nnn():
     # n(r) = (2pi s^2)^-1 exp(-r^2/2s^2)
     #
     # The Fourier transform is: n~(k) = exp(-s^2 k^2/2)
-    # P(k) = <|n~(k)|^2> = exp(-s^2 k^2)
-    # xi(r) = (1/2pi) int( dk k P(k) J0(kr) ) 
-    #       = 1/(4 pi s^2) exp(-r^2/4s^2)
+    # B(k1,k2) = <n~(k1) n~(k2) n~(-k1-k2)>
+    #          = exp(-s^2 (|k1|^2 + |k2|^2 - k1.k2))
+    #          = exp(-s^2 (|k1|^2 + |k2|^2 + |k3|^2)/2)
+    #
+    # zeta(r1,r2) = (1/2pi)^4 int(d^2k1 int(d^2k2 exp(ik1.x1) exp(ik2.x2) B(k1,k2) ))
+    #             = exp(-(x1^2 + y1^2 + x2^2 + y2^2 - x1x2 - y1y2)/3s^2) / 12 pi^2 s^4
+    #             = exp(-(d1^2 + d2^2 + d3^2)/6s^2) / 12 pi^2 s^4
+    #
+    # This is also derivable as:
+    # zeta(r1,r2) = int(dx int(dy n(x,y) n(x+x1,y+y1) n(x+x2,y+y2)))
+    # which is also analytically integrable and gives the same answer.
     #
     # However, we need to correct for the uniform density background, so the real result
-    # is this minus 1/L^2 divided by 1/L^2.  So:
+    # is this minus 1/L^4 divided by 1/L^4.  So:
     #
-    # xi(r) = 1/4pi (L/s)^2 exp(-r^2/4s^2) - 1
+    # zeta(r1,r2) = 1/12pi (L/s)^4 exp(-r^2/6s^2) - 1
 
-    ngal = 1000000
+    # Doing the full correlation function takes a long time.  Here, we just test a small range
+    # of separations and a moderate range for u, v, which gives us a variety of triangle lengths.
+    ngal = 20000
     s = 10.
     L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
     numpy.random.seed(8675309)
     x = numpy.random.normal(0,s, (ngal,) )
     y = numpy.random.normal(0,s, (ngal,) )
+    min_sep = 11.
+    max_sep = 13.
+    nbins = 2
+    min_u = 0.6
+    max_u = 0.9
+    nubins = 3
+    min_v = -0.7
+    max_v = 0.7
+    nvbins = 10
 
     cat = treecorr.Catalog(x=x, y=y, x_units='arcmin', y_units='arcmin')
-    dd = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                verbose=2)
-    dd.process(cat)
-    print 'dd.ntri = ',dd.ntri
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                  nubins=nubins, nvbins=nvbins,
+                                  sep_units='arcmin', verbose=3)
+    ddd.process(cat)
+    print 'ddd.ntri = ',ddd.ntri
 
-    nrand = 5 * ngal
+    nrand = 2 * ngal
     rx = (numpy.random.random_sample(nrand)-0.5) * L
     ry = (numpy.random.random_sample(nrand)-0.5) * L
     rand = treecorr.Catalog(x=rx,y=ry, x_units='arcmin', y_units='arcmin')
-    rr = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                verbose=2)
-    rr.process(rand)
-    print 'rr.ntri = ',rr.ntri
+    rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                  nubins=nubins, nvbins=nvbins,
+                                  sep_units='arcmin', verbose=3)
+    rrr.process(rand)
+    print 'rrr.ntri = ',rrr.ntri
 
-    dr = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                verbose=2)
-    dr.process(cat,rand)
-    print 'dr.ntri = ',dr.ntri
+    r = numpy.exp(ddd.meanlogr)
+    u = ddd.meanu
+    v = ddd.meanv
+    d2 = r
+    d3 = u * r
+    d1 = numpy.abs(v) * d3 + d2
+    print 'rnom = ',numpy.exp(ddd.logr)
+    print 'unom = ',ddd.u
+    print 'vnom = ',ddd.v
+    print 'r = ',r
+    print 'u = ',u
+    print 'v = ',v
+    print 'd2 = ',d2
+    print 'd3 = ',d3
+    print 'd1 = ',d1
+    true_zeta = (1./(12.*numpy.pi**2)) * (L/s)**4 * numpy.exp(-(d1**2+d2**2+d3**2)/(6.*s**2)) - 1.
 
-    r = numpy.exp(dd.meanlogr)
-    true_xi = 0.25/numpy.pi * (L/s)**2 * numpy.exp(-0.25*r**2/s**2) - 1.
+    if False:
+        ddr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                      min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                      nubins=nubins, nvbins=nvbins,
+                                      sep_units='arcmin', verbose=3)
+        ddr.process(cat,cat,rand)
+        print 'ddr.ntri = ',ddr.ntri
 
-    xi, varxi = dd.calculateXi(rr,dr)
-    print 'xi = ',xi
-    print 'true_xi = ',true_xi
-    print 'ratio = ',xi / true_xi
-    print 'diff = ',xi - true_xi
-    print 'max rel diff = ',max(abs((xi - true_xi)/true_xi))
-    # This isn't super accurate.  But the agreement improves as L increase, so I think it is 
-    # merely a matter of the finite field and the integrals going to infinity.  (Sort of, since
-    # we still have L in there.)
-    assert max(abs(xi - true_xi)/true_xi) < 0.1
+        drr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                      min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                      nubins=nubins, nvbins=nvbins,
+                                      sep_units='arcmin', verbose=3)
+        drr.process(cat,rand,rand)
+        print 'drr.ntri = ',drr.ntri
 
-    simple_xi, simple_varxi = dd.calculateXi(rr)
-    print 'simple xi = ',simple_xi
-    print 'max rel diff = ',max(abs((simple_xi - true_xi)/true_xi))
-    # The simple calculation (i.e. dd/rr-1, rather than (dd-2dr+rr)/rr as above) is only 
+        zeta, varzeta = ddd.calculateZeta(rrr,drr,ddr)
+        print 'zeta = ',zeta
+        print 'true_zeta = ',true_zeta
+        print 'ratio = ',zeta / true_zeta
+        print 'diff = ',zeta - true_zeta
+        print 'max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))
+        assert numpy.max(numpy.abs(zeta - true_zeta)/true_zeta) < 0.1
+
+    simple_zeta, simple_varzeta = ddd.calculateZeta(rrr)
+    print 'simple zeta = ',simple_zeta
+    print 'true_zeta = ',true_zeta
+    print 'ratio = ',simple_zeta / true_zeta
+    print 'diff = ',simple_zeta - true_zeta
+    print 'max rel diff = ',numpy.max(numpy.abs((simple_zeta - true_zeta)/true_zeta))
+    # The simple calculation (i.e. ddd/rrr-1, rather than (ddd-3ddr+3drr-rrr)/rrr as above) is only 
     # slightly less accurate in this case.  Probably because the mask is simple (a box), so
     # the difference is relatively minor.  The error is slightly higher in this case, but testing
     # that it is everywhere < 0.1 is still appropriate.
-    assert max(abs(simple_xi - true_xi)/true_xi) < 0.1
+    assert numpy.max(numpy.abs(simple_zeta - true_zeta)/true_zeta) < 0.1
 
     # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
+    #if __name__ == '__main__':
+    if False:
         cat.write(os.path.join('data','nnn_data.dat'))
         rand.write(os.path.join('data','nnn_rand.dat'))
         import subprocess
         p = subprocess.Popen( ["corr2","nnn.params"] )
         p.communicate()
         corr2_output = numpy.loadtxt(os.path.join('output','nnn.out'))
-        print 'xi = ',xi
+        print 'zeta = ',zeta
         print 'from corr2 output = ',corr2_output[:,2]
-        print 'ratio = ',corr2_output[:,2]/xi
-        print 'diff = ',corr2_output[:,2]-xi
-        numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
+        print 'ratio = ',corr2_output[:,2]/zeta
+        print 'diff = ',corr2_output[:,2]-zeta
+        numpy.testing.assert_almost_equal(corr2_output[:,2]/zeta, 1., decimal=3)
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','nnn_out1.fits')
-    dd.write(out_file_name1)
+    ddd.write(out_file_name1)
     import fitsio
     data = fitsio.read(out_file_name1)
-    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(dd.logr))
-    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(dd.meanlogr))
-    numpy.testing.assert_almost_equal(data['ntri'], dd.ntri)
+    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ddd.logr).flatten())
+    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(ddd.meanlogr).flatten())
+    numpy.testing.assert_almost_equal(data['ntri'], ddd.ntri.flatten())
 
     out_file_name2 = os.path.join('output','nnn_out2.fits')
-    dd.write(out_file_name2, rr)
+    ddd.write(out_file_name2, rrr)
     data = fitsio.read(out_file_name2)
-    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(dd.logr))
-    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(dd.meanlogr))
-    numpy.testing.assert_almost_equal(data['xi'], simple_xi)
-    numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(simple_varxi))
-    numpy.testing.assert_almost_equal(data['DD'], dd.ntri)
-    numpy.testing.assert_almost_equal(data['RR'], rr.ntri * (dd.tot / rr.tot))
+    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ddd.logr).flatten())
+    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(ddd.meanlogr).flatten())
+    numpy.testing.assert_almost_equal(data['zeta'], simple_zeta.flatten())
+    numpy.testing.assert_almost_equal(data['sigma_zeta'], numpy.sqrt(simple_varzeta).flatten())
+    numpy.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
+    numpy.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
 
-    out_file_name3 = os.path.join('output','nnn_out3.fits')
-    dd.write(out_file_name3, rr, dr)
-    data = fitsio.read(out_file_name3)
-    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(dd.logr))
-    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(dd.meanlogr))
-    numpy.testing.assert_almost_equal(data['xi'], xi)
-    numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(varxi))
-    numpy.testing.assert_almost_equal(data['DD'], dd.ntri)
-    numpy.testing.assert_almost_equal(data['RR'], rr.ntri * (dd.tot / rr.tot))
-    numpy.testing.assert_almost_equal(data['DR'], dr.ntri * (dd.tot / dr.tot))
-    numpy.testing.assert_almost_equal(data['RD'], dr.ntri * (dd.tot / dr.tot))
+    if False:
+        out_file_name3 = os.path.join('output','nnn_out3.fits')
+        ddd.write(out_file_name3, rrr, drr, ddr)
+        data = fitsio.read(out_file_name3)
+        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ddd.logr).flatten())
+        numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(ddd.meanlogr).flatten())
+        numpy.testing.assert_almost_equal(data['zeta'], zeta.flatten())
+        numpy.testing.assert_almost_equal(data['sigma_zeta'], numpy.sqrt(varzeta).flatten())
+        numpy.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
+        numpy.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+        numpy.testing.assert_almost_equal(data['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
+        numpy.testing.assert_almost_equal(data['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
 
     # Check the read function
-    dd2 = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
-    dd2.read(out_file_name1)
-    numpy.testing.assert_almost_equal(dd2.logr, dd.logr)
-    numpy.testing.assert_almost_equal(dd2.meanlogr, dd.meanlogr)
-    numpy.testing.assert_almost_equal(dd2.ntri, dd.ntri)
+    # Note: These don't need the flatten. The read function should reshape them to the right shape.
+    ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                   nubins=nubins, nvbins=nvbins,
+                                   sep_units='arcmin', verbose=3)
+    ddd2.read(out_file_name1)
+    numpy.testing.assert_almost_equal(ddd2.logr, ddd.logr)
+    numpy.testing.assert_almost_equal(ddd2.meanlogr, ddd.meanlogr)
+    numpy.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
 
-    dd2.read(out_file_name3)
-    numpy.testing.assert_almost_equal(dd2.logr, dd.logr)
-    numpy.testing.assert_almost_equal(dd2.meanlogr, dd.meanlogr)
-    numpy.testing.assert_almost_equal(dd2.ntri, dd.ntri)
+    ddd2.read(out_file_name2)
+    numpy.testing.assert_almost_equal(ddd2.logr, ddd.logr)
+    numpy.testing.assert_almost_equal(ddd2.meanlogr, ddd.meanlogr)
+    numpy.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
+
+    if False:
+        ddd2.read(out_file_name3)
+        numpy.testing.assert_almost_equal(ddd2.logr, ddd.logr)
+        numpy.testing.assert_almost_equal(ddd2.meanlogr, ddd.meanlogr)
+        numpy.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
 
 
 
@@ -944,7 +1003,7 @@ def test_3d():
     #
     # xi(r) = 1/(8 pi^3/2) (L/s)^3 exp(-r^2/4s^2) - 1
 
-    ngal = 100000
+    ngal = 5000
     xcen = 823  # Mpc maybe?
     ycen = 342
     zcen = -672
@@ -960,7 +1019,7 @@ def test_3d():
     ra = numpy.arctan2(y,x) / treecorr.degrees
 
     cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='deg', dec_units='deg')
-    dd = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    dd = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=3)
     dd.process(cat)
     print 'dd.ntri = ',dd.ntri
 
@@ -972,11 +1031,11 @@ def test_3d():
     rdec = numpy.arcsin(rz/rr) / treecorr.degrees
     rra = numpy.arctan2(ry,rx) / treecorr.degrees
     rand = treecorr.Catalog(ra=rra, dec=rdec, r=rr, ra_units='deg', dec_units='deg')
-    rr = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    rr = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=3)
     rr.process(rand)
     print 'rr.ntri = ',rr.ntri
 
-    dr = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    dr = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=3)
     dr.process(cat,rand)
     print 'dr.ntri = ',dr.ntri
 
@@ -988,16 +1047,17 @@ def test_3d():
     print 'true_xi = ',true_xi
     print 'ratio = ',xi / true_xi
     print 'diff = ',xi - true_xi
-    print 'max rel diff = ',max(abs((xi - true_xi)/true_xi))
-    assert max(abs(xi - true_xi)/true_xi) < 0.1
+    print 'max rel diff = ',numpy.max(numpy.abs((xi - true_xi)/true_xi))
+    assert numpy.max(numpy.abs(xi - true_xi)/true_xi) < 0.1
 
     simple_xi, varxi = dd.calculateXi(rr)
     print 'simple xi = ',simple_xi
-    print 'max rel diff = ',max(abs((simple_xi - true_xi)/true_xi))
-    assert max(abs(simple_xi - true_xi)/true_xi) < 0.1
+    print 'max rel diff = ',numpy.max(numpy.abs((simple_xi - true_xi)/true_xi))
+    assert numpy.max(numpy.abs(simple_xi - true_xi)/true_xi) < 0.1
 
     # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
+    #if __name__ == '__main__':
+    if False:
         cat.write(os.path.join('data','nnn_3d_data.dat'))
         rand.write(os.path.join('data','nnn_3d_rand.dat'))
         import subprocess
@@ -1032,11 +1092,11 @@ def test_list():
     ry = (numpy.random.random_sample((nobj,ncats))-0.5) * L
     rand_cats = [ treecorr.Catalog(x=rx[:,k],y=ry[:,k]) for k in range(ncats) ]
 
-    dd = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    dd = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=3)
     dd.process(data_cats)
     print 'dd.ntri = ',dd.ntri
 
-    rr = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    rr = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=3)
     rr.process(rand_cats)
     print 'rr.ntri = ',rr.ntri
 
@@ -1044,8 +1104,8 @@ def test_list():
     print 'xi = ',xi
 
     # Now do the same thing with one big catalog for each.
-    ddx = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
-    rrx = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    ddx = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=3)
+    rrx = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=3)
     data_catx = treecorr.Catalog(x=x.reshape( (nobj*ncats,) ), y=y.reshape( (nobj*ncats,) ))
     rand_catx = treecorr.Catalog(x=rx.reshape( (nobj*ncats,) ), y=ry.reshape( (nobj*ncats,) ))
     ddx.process(data_catx)
@@ -1128,11 +1188,11 @@ def test_list():
 
 
 if __name__ == '__main__':
-    test_binnedcorr3()
-    test_direct_count_auto()
-    test_direct_count_cross()
-    test_direct_3d_auto()
-    test_direct_3d_cross()
-    #test_nnn()
+    #test_binnedcorr3()
+    #test_direct_count_auto()
+    #test_direct_count_cross()
+    #test_direct_3d_auto()
+    #test_direct_3d_cross()
+    test_nnn()
     #test_3d()
     #test_list()

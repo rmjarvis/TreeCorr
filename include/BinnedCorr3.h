@@ -65,8 +65,7 @@ public:
     template <bool sort, int M>
     void processV(const Cell<DC1,M>* c1, const Cell<DC2,M>* c2, const Cell<DC3,M>* c3,
                   const double d1sq, const double d2sq, const double d3sq,
-                  const double d1, const double d2, const double d3,
-                  const double logr, const double u, const int index);
+                  const double d1, const double d2, const double d3);
 
     template <int M>
     void directProcessV(const Cell<DC1,M>& c1, const Cell<DC2,M>& c2, const Cell<DC3,M>& c3,

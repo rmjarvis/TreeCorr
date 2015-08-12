@@ -852,7 +852,7 @@ def test_nnn():
                                   nubins=nubins, nvbins=nvbins,
                                   sep_units='arcmin', verbose=3)
     ddd.process(cat)
-    print 'ddd.ntri = ',ddd.ntri
+    #print 'ddd.ntri = ',ddd.ntri
 
     nrand = 2 * ngal
     rx = (numpy.random.random_sample(nrand)-0.5) * L
@@ -863,7 +863,7 @@ def test_nnn():
                                   nubins=nubins, nvbins=nvbins,
                                   sep_units='arcmin', verbose=3)
     rrr.process(rand)
-    print 'rrr.ntri = ',rrr.ntri
+    #print 'rrr.ntri = ',rrr.ntri
 
     r = numpy.exp(ddd.meanlogr)
     u = ddd.meanu
@@ -871,39 +871,16 @@ def test_nnn():
     d2 = r
     d3 = u * r
     d1 = numpy.abs(v) * d3 + d2
-    print 'rnom = ',numpy.exp(ddd.logr)
-    print 'unom = ',ddd.u
-    print 'vnom = ',ddd.v
-    print 'r = ',r
-    print 'u = ',u
-    print 'v = ',v
-    print 'd2 = ',d2
-    print 'd3 = ',d3
-    print 'd1 = ',d1
+    #print 'rnom = ',numpy.exp(ddd.logr)
+    #print 'unom = ',ddd.u
+    #print 'vnom = ',ddd.v
+    #print 'r = ',r
+    #print 'u = ',u
+    #print 'v = ',v
+    #print 'd2 = ',d2
+    #print 'd3 = ',d3
+    #print 'd1 = ',d1
     true_zeta = (1./(12.*numpy.pi**2)) * (L/s)**4 * numpy.exp(-(d1**2+d2**2+d3**2)/(6.*s**2)) - 1.
-
-    if False:
-        ddr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                      min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                      nubins=nubins, nvbins=nvbins,
-                                      sep_units='arcmin', verbose=3)
-        ddr.process(cat,cat,rand)
-        print 'ddr.ntri = ',ddr.ntri
-
-        drr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                      min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                      nubins=nubins, nvbins=nvbins,
-                                      sep_units='arcmin', verbose=3)
-        drr.process(cat,rand,rand)
-        print 'drr.ntri = ',drr.ntri
-
-        zeta, varzeta = ddd.calculateZeta(rrr,drr,ddr)
-        print 'zeta = ',zeta
-        print 'true_zeta = ',true_zeta
-        print 'ratio = ',zeta / true_zeta
-        print 'diff = ',zeta - true_zeta
-        print 'max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))
-        assert numpy.max(numpy.abs(zeta - true_zeta)/true_zeta) < 0.1
 
     simple_zeta, simple_varzeta = ddd.calculateZeta(rrr)
     print 'simple zeta = ',simple_zeta
@@ -926,7 +903,7 @@ def test_nnn():
         p = subprocess.Popen( ["corr2","nnn.params"] )
         p.communicate()
         corr2_output = numpy.loadtxt(os.path.join('output','nnn.out'))
-        print 'zeta = ',zeta
+        print 'zeta = ',simple_zeta
         print 'from corr2 output = ',corr2_output[:,2]
         print 'ratio = ',corr2_output[:,2]/zeta
         print 'diff = ',corr2_output[:,2]-zeta
@@ -951,19 +928,6 @@ def test_nnn():
     numpy.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
     numpy.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
 
-    if False:
-        out_file_name3 = os.path.join('output','nnn_out3.fits')
-        ddd.write(out_file_name3, rrr, drr, ddr)
-        data = fitsio.read(out_file_name3)
-        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ddd.logr).flatten())
-        numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(ddd.meanlogr).flatten())
-        numpy.testing.assert_almost_equal(data['zeta'], zeta.flatten())
-        numpy.testing.assert_almost_equal(data['sigma_zeta'], numpy.sqrt(varzeta).flatten())
-        numpy.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
-        numpy.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
-        numpy.testing.assert_almost_equal(data['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
-        numpy.testing.assert_almost_equal(data['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
-
     # Check the read function
     # Note: These don't need the flatten. The read function should reshape them to the right shape.
     ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -980,7 +944,47 @@ def test_nnn():
     numpy.testing.assert_almost_equal(ddd2.meanlogr, ddd.meanlogr)
     numpy.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
 
-    if False:
+    # Test compensated zeta
+    # Note: I don't think this is actually right. The error is more like 0.075, rather than 
+    #       0.05 for simple. I think the problem is that DDR is not nearly zero like DRR and RRR.
+    #       It has the 2pt correlation still. So I'm not sure if this is really the right thing
+    #       to do for the compensated zeta.  Still, it does pass the test, since the values are
+    #       so large that the DDR result is much less than DDD.
+    if __name__ == '__main__':
+        ddr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                      min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                      nubins=nubins, nvbins=nvbins,
+                                      sep_units='arcmin', verbose=3)
+        ddr.process(cat,cat,rand)
+        #print 'ddr.ntri = ',ddr.ntri
+
+        drr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                      min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                      nubins=nubins, nvbins=nvbins,
+                                      sep_units='arcmin', verbose=3)
+        drr.process(cat,rand,rand)
+        #print 'drr.ntri = ',drr.ntri
+
+        zeta, varzeta = ddd.calculateZeta(rrr,drr,ddr)
+        print 'compensated zeta = ',zeta
+        print 'true_zeta = ',true_zeta
+        print 'ratio = ',zeta / true_zeta
+        print 'diff = ',zeta - true_zeta
+        print 'max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))
+        assert numpy.max(numpy.abs(zeta - true_zeta)/true_zeta) < 0.1
+
+        out_file_name3 = os.path.join('output','nnn_out3.fits')
+        ddd.write(out_file_name3, rrr, drr, ddr)
+        data = fitsio.read(out_file_name3)
+        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ddd.logr).flatten())
+        numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(ddd.meanlogr).flatten())
+        numpy.testing.assert_almost_equal(data['zeta'], zeta.flatten())
+        numpy.testing.assert_almost_equal(data['sigma_zeta'], numpy.sqrt(varzeta).flatten())
+        numpy.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
+        numpy.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+        numpy.testing.assert_almost_equal(data['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
+        numpy.testing.assert_almost_equal(data['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
+
         ddd2.read(out_file_name3)
         numpy.testing.assert_almost_equal(ddd2.logr, ddd.logr)
         numpy.testing.assert_almost_equal(ddd2.meanlogr, ddd.meanlogr)

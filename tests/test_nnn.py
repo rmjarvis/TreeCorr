@@ -24,7 +24,7 @@ def test_binnedcorr3():
         numpy.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
         numpy.testing.assert_almost_equal(nnn.ubin_size * nnn.nubins, nnn.max_u-nnn.min_u)
         numpy.testing.assert_almost_equal(nnn.vbin_size * nnn.nvbins, nnn.max_v-nnn.min_v)
-        print 'logr = ',nnn.logr1d
+        #print 'logr = ',nnn.logr1d
         numpy.testing.assert_equal(nnn.logr1d.shape, (nnn.nbins,) )
         numpy.testing.assert_almost_equal(nnn.logr1d[0], math.log(nnn.min_sep) + 0.5*nnn.bin_size)
         numpy.testing.assert_almost_equal(nnn.logr1d[-1], math.log(nnn.max_sep) - 0.5*nnn.bin_size)
@@ -32,14 +32,14 @@ def test_binnedcorr3():
         numpy.testing.assert_almost_equal(nnn.logr[:,0,0], nnn.logr1d)
         numpy.testing.assert_almost_equal(nnn.logr[:,-1,-1], nnn.logr1d)
         assert len(nnn.logr) == nnn.nbins
-        print 'u = ',nnn.u1d
+        #print 'u = ',nnn.u1d
         numpy.testing.assert_equal(nnn.u1d.shape, (nnn.nubins,) )
         numpy.testing.assert_almost_equal(nnn.u1d[0], nnn.min_u + 0.5*nnn.ubin_size)
         numpy.testing.assert_almost_equal(nnn.u1d[-1], nnn.max_u - 0.5*nnn.ubin_size)
         numpy.testing.assert_equal(nnn.u.shape, (nnn.nbins, nnn.nubins, nnn.nvbins) )
         numpy.testing.assert_almost_equal(nnn.u[0,:,0], nnn.u1d)
         numpy.testing.assert_almost_equal(nnn.u[-1,:,-1], nnn.u1d)
-        print 'v = ',nnn.v1d
+        #print 'v = ',nnn.v1d
         numpy.testing.assert_equal(nnn.v1d.shape, (nnn.nvbins,) )
         numpy.testing.assert_almost_equal(nnn.v1d[0], nnn.min_v + 0.5*nnn.vbin_size)
         numpy.testing.assert_almost_equal(nnn.v1d[-1], nnn.max_v - 0.5*nnn.vbin_size)
@@ -58,9 +58,9 @@ def test_binnedcorr3():
     # Check the different ways to set up the binning:
     # Omit bin_size
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20)
-    print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
-    print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
-    print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
+    #print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
+    #print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
+    #print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
@@ -70,9 +70,9 @@ def test_binnedcorr3():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20,
                                   min_u=0.2, max_u=0.9, nubins=12,
                                   min_v=-0.2, max_v=0.2, nvbins=4)
-    print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
-    print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
-    print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
+    #print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
+    #print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
+    #print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
@@ -86,9 +86,9 @@ def test_binnedcorr3():
 
     # Omit min_sep
     nnn = treecorr.NNNCorrelation(max_sep=20, nbins=20, bin_size=0.1)
-    print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
-    print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
-    print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
+    #print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
+    #print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
+    #print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
     assert nnn.bin_size == 0.1
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
@@ -98,9 +98,9 @@ def test_binnedcorr3():
     nnn = treecorr.NNNCorrelation(max_sep=20, nbins=20, bin_size=0.1,
                                   max_u=0.9, nubins=3, ubin_size=0.05,
                                   max_v=0.2, nvbins=4, vbin_size=0.05)
-    print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
-    print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
-    print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
+    #print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
+    #print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
+    #print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
     assert nnn.bin_size == 0.1
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
@@ -114,9 +114,9 @@ def test_binnedcorr3():
 
     # Omit max_sep
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=20, bin_size=0.1)
-    print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
-    print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
-    print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
+    #print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
+    #print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
+    #print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
     assert nnn.bin_size == 0.1
     assert nnn.min_sep == 5.
     assert nnn.nbins == 20
@@ -126,9 +126,9 @@ def test_binnedcorr3():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=20, bin_size=0.1,
                                   min_u=0.7, nubins=4, ubin_size=0.05,
                                   min_v=-0.2, nvbins=4, vbin_size=0.05)
-    print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
-    print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
-    print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
+    #print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
+    #print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
+    #print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
     assert nnn.min_sep == 5.
     assert nnn.bin_size == 0.1
     assert nnn.nbins == 20
@@ -142,9 +142,9 @@ def test_binnedcorr3():
 
     # Omit nbins
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1)
-    print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
-    print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
-    print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
+    #print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
+    #print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
+    #print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
     assert nnn.bin_size == 0.1
     assert nnn.min_sep == 5.
     assert nnn.max_sep >= 20.  # Expanded a bit.
@@ -155,9 +155,9 @@ def test_binnedcorr3():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   min_u=0.2, max_u=0.9, ubin_size=0.03,
                                   min_v=-0.2, max_v=0.2, vbin_size=0.07)
-    print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
-    print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
-    print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
+    #print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
+    #print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
+    #print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
     assert nnn.min_sep == 5.
     assert nnn.max_sep >= 20.
     assert nnn.max_sep < 20. * numpy.exp(nnn.bin_size)
@@ -176,9 +176,9 @@ def test_binnedcorr3():
     # Check the use of sep_units
     # radians
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='radians')
-    print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
-    print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
-    print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
+    #print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
+    #print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
+    #print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
@@ -187,9 +187,9 @@ def test_binnedcorr3():
 
     # arcsec
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcsec')
-    print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
-    print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
-    print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
+    #print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
+    #print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
+    #print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
     numpy.testing.assert_almost_equal(nnn.min_sep, 5. * math.pi/180/3600)
     numpy.testing.assert_almost_equal(nnn.max_sep, 20. * math.pi/180/3600)
     assert nnn.nbins == 20
@@ -202,9 +202,9 @@ def test_binnedcorr3():
 
     # arcmin
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcmin')
-    print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
-    print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
-    print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
+    #print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
+    #print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
+    #print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
     numpy.testing.assert_almost_equal(nnn.min_sep, 5. * math.pi/180/60)
     numpy.testing.assert_almost_equal(nnn.max_sep, 20. * math.pi/180/60)
     assert nnn.nbins == 20
@@ -216,9 +216,9 @@ def test_binnedcorr3():
 
     # degrees
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='degrees')
-    print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
-    print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
-    print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
+    #print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
+    #print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
+    #print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
     numpy.testing.assert_almost_equal(nnn.min_sep, 5. * math.pi/180)
     numpy.testing.assert_almost_equal(nnn.max_sep, 20. * math.pi/180)
     assert nnn.nbins == 20
@@ -230,9 +230,9 @@ def test_binnedcorr3():
 
     # hours
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='hours')
-    print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
-    print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
-    print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
+    #print nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins
+    #print nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins
+    #print nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins
     numpy.testing.assert_almost_equal(nnn.min_sep, 5. * math.pi/12)
     numpy.testing.assert_almost_equal(nnn.max_sep, 20. * math.pi/12)
     assert nnn.nbins == 20
@@ -247,9 +247,9 @@ def test_binnedcorr3():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   min_u=0.2, max_u=0.9, ubin_size=0.03,
                                   min_v=-0.2, max_v=0.2, vbin_size=0.07)
-    print nnn.bin_size,nnn.bin_slop,nnn.b
-    print nnn.ubin_size,nnn.bu
-    print nnn.vbin_size,nnn.bv
+    #print nnn.bin_size,nnn.bin_slop,nnn.b
+    #print nnn.ubin_size,nnn.bu
+    #print nnn.vbin_size,nnn.bv
     assert nnn.bin_slop == 1.0
     assert nnn.bin_size == 0.1
     assert nnn.ubin_size == 0.03
@@ -262,9 +262,9 @@ def test_binnedcorr3():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=1.0,
                                   min_u=0.2, max_u=0.9, ubin_size=0.03,
                                   min_v=-0.2, max_v=0.2, vbin_size=0.07)
-    print nnn.bin_size,nnn.bin_slop,nnn.b
-    print nnn.ubin_size,nnn.bu
-    print nnn.vbin_size,nnn.bv
+    #print nnn.bin_size,nnn.bin_slop,nnn.b
+    #print nnn.ubin_size,nnn.bu
+    #print nnn.vbin_size,nnn.bv
     assert nnn.bin_slop == 1.0
     assert nnn.bin_size == 0.1
     assert nnn.ubin_size == 0.03
@@ -277,9 +277,9 @@ def test_binnedcorr3():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=0.2,
                                   min_u=0.2, max_u=0.9, ubin_size=0.03,
                                   min_v=-0.2, max_v=0.2, vbin_size=0.07)
-    print nnn.bin_size,nnn.bin_slop,nnn.b
-    print nnn.ubin_size,nnn.bu
-    print nnn.vbin_size,nnn.bv
+    #print nnn.bin_size,nnn.bin_slop,nnn.b
+    #print nnn.ubin_size,nnn.bu
+    #print nnn.vbin_size,nnn.bv
     assert nnn.bin_slop == 0.2
     assert nnn.bin_size == 0.1
     assert nnn.ubin_size == 0.03
@@ -292,9 +292,9 @@ def test_binnedcorr3():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=0.0,
                                   min_u=0.2, max_u=0.9, ubin_size=0.03,
                                   min_v=-0.2, max_v=0.2, vbin_size=0.07)
-    print nnn.bin_size,nnn.bin_slop,nnn.b
-    print nnn.ubin_size,nnn.bu
-    print nnn.vbin_size,nnn.bv
+    #print nnn.bin_size,nnn.bin_slop,nnn.b
+    #print nnn.ubin_size,nnn.bu
+    #print nnn.vbin_size,nnn.bv
     assert nnn.bin_slop == 0.0
     assert nnn.bin_size == 0.1
     assert nnn.ubin_size == 0.03
@@ -307,9 +307,9 @@ def test_binnedcorr3():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=2.0,
                                   min_u=0.2, max_u=0.9, ubin_size=0.03,
                                   min_v=-0.2, max_v=0.2, vbin_size=0.07)
-    print nnn.bin_size,nnn.bin_slop,nnn.b
-    print nnn.ubin_size,nnn.bu
-    print nnn.vbin_size,nnn.bv
+    #print nnn.bin_size,nnn.bin_slop,nnn.b
+    #print nnn.ubin_size,nnn.bu
+    #print nnn.vbin_size,nnn.bv
     assert nnn.bin_slop == 2.0
     assert nnn.bin_size == 0.1
     assert nnn.ubin_size == 0.03
@@ -322,9 +322,9 @@ def test_binnedcorr3():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.4, bin_slop=1.0,
                                   min_u=0.2, max_u=0.9, ubin_size=0.03,
                                   min_v=-0.2, max_v=0.2, vbin_size=0.07)
-    print nnn.bin_size,nnn.bin_slop,nnn.b
-    print nnn.ubin_size,nnn.bu
-    print nnn.vbin_size,nnn.bv
+    #print nnn.bin_size,nnn.bin_slop,nnn.b
+    #print nnn.ubin_size,nnn.bu
+    #print nnn.vbin_size,nnn.bv
     assert nnn.bin_slop == 1.0
     assert nnn.bin_size == 0.4
     assert nnn.ubin_size == 0.03
@@ -337,9 +337,9 @@ def test_binnedcorr3():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.4,
                                   min_u=0.2, max_u=0.9, ubin_size=0.03,
                                   min_v=-0.2, max_v=0.2, vbin_size=0.07)
-    print nnn.bin_size,nnn.bin_slop,nnn.b
-    print nnn.ubin_size,nnn.bu
-    print nnn.vbin_size,nnn.bv
+    #print nnn.bin_size,nnn.bin_slop,nnn.b
+    #print nnn.ubin_size,nnn.bu
+    #print nnn.vbin_size,nnn.bv
     assert nnn.bin_size == 0.4
     assert nnn.ubin_size == 0.03
     assert nnn.vbin_size == 0.07
@@ -352,9 +352,9 @@ def test_binnedcorr3():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.05,
                                   min_u=0.2, max_u=0.9, ubin_size=0.3,
                                   min_v=-0.2, max_v=0.2, vbin_size=0.17)
-    print nnn.bin_size,nnn.bin_slop,nnn.b
-    print nnn.ubin_size,nnn.bu
-    print nnn.vbin_size,nnn.bv
+    #print nnn.bin_size,nnn.bin_slop,nnn.b
+    #print nnn.ubin_size,nnn.bu
+    #print nnn.vbin_size,nnn.bv
     assert nnn.bin_size == 0.05
     assert nnn.ubin_size == 0.3
     assert nnn.vbin_size == 0.17
@@ -393,6 +393,7 @@ def test_direct_count_auto():
     min_v = -0.83
     max_v = 0.59
     nvbins = 20
+
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
@@ -464,6 +465,7 @@ def test_direct_count_auto():
                                   bin_slop=1.e-16, verbose=3)
     ddd.process(cat)
     #print 'ddd.ntri = ',ddd.ntri
+    #print 'true_ntri => ',true_ntri
     #print 'diff = ',ddd.ntri - true_ntri
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
@@ -474,6 +476,7 @@ def test_direct_count_auto():
                                   bin_slop=1.e-16, verbose=3, max_top=0)
     ddd.process(cat)
     #print 'ddd.ntri = ',ddd.ntri
+    #print 'true_ntri => ',true_ntri
     #print 'diff = ',ddd.ntri - true_ntri
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
@@ -504,6 +507,7 @@ def test_direct_count_cross():
     min_v = -0.83
     max_v = 0.59
     nvbins = 20
+
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
@@ -826,7 +830,7 @@ def test_nnn():
     # However, we need to correct for the uniform density background, so the real result
     # is this minus 1/L^4 divided by 1/L^4.  So:
     #
-    # zeta(r1,r2) = 1/12pi (L/s)^4 exp(-r^2/6s^2) - 1
+    # zeta(r1,r2) = 1/(12 pi^2) (L/s)^4 exp(-(d1^2+d2^2+d3^2)/6s^2) - 1
 
     # Doing the full correlation function takes a long time.  Here, we just test a small range
     # of separations and a moderate range for u, v, which gives us a variety of triangle lengths.
@@ -882,17 +886,17 @@ def test_nnn():
     #print 'd1 = ',d1
     true_zeta = (1./(12.*numpy.pi**2)) * (L/s)**4 * numpy.exp(-(d1**2+d2**2+d3**2)/(6.*s**2)) - 1.
 
-    simple_zeta, simple_varzeta = ddd.calculateZeta(rrr)
-    print 'simple zeta = ',simple_zeta
+    zeta, varzeta = ddd.calculateZeta(rrr)
+    print 'zeta = ',zeta
     print 'true_zeta = ',true_zeta
-    print 'ratio = ',simple_zeta / true_zeta
-    print 'diff = ',simple_zeta - true_zeta
-    print 'max rel diff = ',numpy.max(numpy.abs((simple_zeta - true_zeta)/true_zeta))
+    print 'ratio = ',zeta / true_zeta
+    print 'diff = ',zeta - true_zeta
+    print 'max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))
     # The simple calculation (i.e. ddd/rrr-1, rather than (ddd-3ddr+3drr-rrr)/rrr as above) is only 
     # slightly less accurate in this case.  Probably because the mask is simple (a box), so
     # the difference is relatively minor.  The error is slightly higher in this case, but testing
     # that it is everywhere < 0.1 is still appropriate.
-    assert numpy.max(numpy.abs(simple_zeta - true_zeta)/true_zeta) < 0.1
+    assert numpy.max(numpy.abs(zeta - true_zeta)/true_zeta) < 0.1
 
     # Check that we get the same result using the corr2 executable:
     #if __name__ == '__main__':
@@ -923,8 +927,8 @@ def test_nnn():
     data = fitsio.read(out_file_name2)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ddd.logr).flatten())
     numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(ddd.meanlogr).flatten())
-    numpy.testing.assert_almost_equal(data['zeta'], simple_zeta.flatten())
-    numpy.testing.assert_almost_equal(data['sigma_zeta'], numpy.sqrt(simple_varzeta).flatten())
+    numpy.testing.assert_almost_equal(data['zeta'], zeta.flatten())
+    numpy.testing.assert_almost_equal(data['sigma_zeta'], numpy.sqrt(varzeta).flatten())
     numpy.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
     numpy.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
 

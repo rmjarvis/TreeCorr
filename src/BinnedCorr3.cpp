@@ -307,12 +307,44 @@ void BinnedCorr3<DC1,DC2,DC3>::process21(const Cell<DC1,M>* c12, const Cell<DC3,
 {
     xdbg<<"Process21: c12 = "<<c12->getData().getPos()<<"  "<<"  "<<c12->getSize()<<"  "<<c12->getData().getN()<<std::endl;
     xdbg<<"           c3  = "<<c3->getData().getPos()<<"  "<<"  "<<c3->getSize()<<"  "<<c3->getData().getN()<<std::endl;
+
+    // Some trivial stoppers:
     if (c12->getSize() == 0.) {
         xdbg<<"    size == 0.  return\n";
         return;
     }
     if (c12->getSize() < _halfmind3) {
         xdbg<<"    size < halfminsep * umin.  return\n";
+        return;
+    }
+
+    double d2sq = DistSq(c12->getData().getPos(), c3->getData().getPos());
+    double s12 = c12->getSize();
+    double s3 = c3->getSize();
+    double s12ps3 = s12 + s3;
+
+    // If all possible triangles will have d2 < minsep, then abort the recursion here.
+    // i.e. if  d2 + s1 + s3 < minsep
+    // Since we aren't sorting, we only need to check the actual d2 value.
+    if (d2sq < _minsepsq && s12ps3 < _minsep && d2sq < SQR(_minsep - s12ps3)) {
+        xdbg<<"    d2 cannot be as large as minsep\n";
+        return;
+    }
+
+    // Similarly, we can abort if all possible triangles will have d2 > maxsep.
+    // i.e. if  d2 - s1 - s3 >= maxsep
+    if (d2sq >= _maxsepsq && d2sq >= SQR(_maxsep + s12ps3)) {
+        xdbg<<"    d2 cannot be as small as maxsep\n";
+        return;
+    }
+
+    // If the user has set a minu > 0, then we may be able to stop here for that.
+    // The maximum possible u value at this point is 2s12 / (d2 - s12 - s3)
+    // If this is less than minu, we can stop.
+    // 2s12 < minu * (d2 - s12 - s3)
+    // minu * d2 > 2s12 + minu * (s12 + s3)
+    if (d2sq > SQR(s12 + s3) && _minusq * d2sq > SQR(2.*s12 + _minu * (s12 + s3))) {
+        xdbg<<"    u cannot be as large as minu\n";
         return;
     }
 
@@ -324,6 +356,7 @@ void BinnedCorr3<DC1,DC2,DC3>::process21(const Cell<DC1,M>* c12, const Cell<DC3,
 }
 
 // A helper to calculate the distances and possibly sort the points.
+// First the sort = false case.
 template <int DC1, int DC2, int DC3, bool sort, int M>
 struct SortHelper
 {
@@ -336,28 +369,29 @@ struct SortHelper
         if (d3sq == 0.) d3sq = DistSq(c1->getData().getPos(), c2->getData().getPos());
     }
     static bool stop111(
-        double d1sq, double d2sq, double d3sq,
+        double d1sq, double d2sq, double d3sq, double d2,
         double s2ps3, double s1ps3, double s1ps2,
-        double minsep, double minsepsq, double maxsep, double maxsepsq)
+        double minsep, double minsepsq, double maxsep, double maxsepsq,
+        double minu, double minusq, double maxu, double maxusq)
     {
         // Since we aren't sorting here, we may not have d1 > d2 > d3.
         // We want to abort the recursion if there are no triangles in the given positions
         // where d1 will be the largest, d2 the middle, and d3 the smallest.
-
+        
         // First, if the smallest d3 is larger than either the largest d1 or the largest d2,
         // then it can't be the smallest side.
         // i.e. if d3 - s1ps2 > d1 + s2ps3
         // d3 > d1 + s1ps2 + s2ps3
         // d3^2 > (d1 + (s1ps2+s2ps3))^2
         // Lemma: (x+y)^2 < 2x^2 + 2y^2
-        // d3^2 > 2d1^2 + 2(s1ps2+s2ps3)^2  (We'll refine this later after we take sqrts.)
+        // d3^2 > 2d1^2 + 2(s1ps2+s2ps3)^2  (We only need that here, since we don't have d1,d3.)
         if (d3sq > d1sq && d3sq > 2.*d1sq + 2.*SQR(s1ps2+s2ps3)) {
             xdbg<<"d1 cannot be as large as d3\n";
             return true;
         }
 
         // Likewise for d2.
-        if (d3sq > d2sq && d3sq > 2.*d2sq + 2.*SQR(s1ps3+s1ps2)) {
+        if (d3sq > d2sq && d3sq > SQR(d2 + s1ps3 + s1ps2)) {
             xdbg<<"d2 cannot be as large as d3\n";
             return true;
         }
@@ -365,7 +399,7 @@ struct SortHelper
         // Similar for d1 being the largest.
         // if d1 + s2ps3 < d2 - s1ps3
         // d2 > d1 + s2ps3 + s1ps3
-        if (d2sq > d1sq && d2sq > 2.*d1sq + 2.*SQR(s2ps3+s1ps3)) {
+        if (d2sq > d1sq && d2 > s1ps3 + s2ps3 && d1sq < SQR(d2 - s1ps3 - s2ps3)) {
             xdbg<<"d1 cannot be as large as d2\n";
             return true;
         }
@@ -385,36 +419,30 @@ struct SortHelper
             return true;
         }
 
-        return false;
-    }
-    static bool stopU(
-        double d1sq, double d2sq, double d3sq, double d2,
-        double s2ps3, double s1ps3, double s1ps2,
-        double minu, double minusq, double maxu, double maxusq)
-    {
-        // Now that we have d2 (rather than just d2sq), some of the checks become a bit tighter.
-        if (d3sq > d2sq && d3sq > SQR(d2 + s1ps3 + s1ps2)) {
-            xdbg<<"d2 cannot be as large as d3\n";
-            return true;
-        }
-        if (d2sq > d1sq && d2 > s1ps3 + s2ps3 && d1sq < SQR(d2 - s1ps3 - s2ps3)) {
-            xdbg<<"d1 cannot be as large as d2\n";
-            return true;
-        }
-
-        // The next two are the same as the sorting stopU tests:
         // If the user sets minu > 0, then we can abort if no possible triangle can have 
         // u = d3/d2 as large as this.
-        if (minu > 0. && d3sq < minusq*d2sq && d3sq < SQR(minu * (d2-s1ps3) - s1ps2)) {
-            xdbg<<"u cannot be as large as minu\n";
-            return true;
+        // The maximum possible u from our triangle is (d3+s1+s2) / (d2-s1-s3).
+        // Abort if (d3+s1+s2) / (d2-s1-s3) < minu
+        // (d3+s1+s2) < minu * (d2-s1-s3)
+        // d3 < minu * (d2-s1-s3) - (s1+s2)
+        if (minu > 0. && d3sq < minusq*d2sq && d2 > s1ps3) {
+            double temp = minu * (d2-s1ps3);
+            if (temp > s1ps2 && d3sq < SQR(temp - s1ps2)) {
+                xdbg<<"u cannot be as large as minu\n";
+                return true;
+            }
         }
         // If the user sets a maxu < 1, then we can abort if no possible triangle can have
         // u as small as this.
+        // The minimum possible u from our triangle is (d3-s1-s2) / (d2+s1+s3).
+        // Abort if (d3-s1-s2) / (d2+s1+s3) > maxu
+        // (d3-s1-s2) > maxu * (d2+s1+s3)
+        // d3 > maxu * (d2+s1+s3) + (s1+s2)
         if (maxu < 1. && d3sq >= maxusq*d2sq && d3sq >= SQR(maxu * (d2+s1ps3) + s1ps2)) {
             xdbg<<"u cannot be as small as maxu\n";
             return true;
         }
+
         return false;
     }
 };
@@ -465,49 +493,53 @@ struct SortHelper<DC,DC,DC,true,M>
         }
     }
     static bool stop111(
-        double d1sq, double d2sq, double d3sq,
+        double d1sq, double d2sq, double d3sq, double d2,
         double s2ps3, double s1ps3, double s1ps2,
-        double minsep, double minsepsq, double maxsep, double maxsepsq)
+        double minsep, double minsepsq, double maxsep, double maxsepsq,
+        double minu, double minusq, double maxu, double maxusq)
     {
         // If all possible triangles will have d2 < minsep, then abort the recursion here.
         // This means at least two sides must have d + sps < minsep.
-        if (d2sq < minsepsq && s1ps3 < minsep && d2sq < SQR(minsep - s1ps3)) {
-            // Then d2 + s1+s3 < minsep
-            // Probably we can stop now, but check d3
-            if (s1ps2 < minsep && d3sq < SQR(minsep - s1ps2)) {
-                xdbg<<"d2 cannot be as large as minsep\n";
-                return true;
-            }
-            // If this didn't pass, then it's pretty unlikely that d1 will, so just move on.
+        // Probably if d2 + s1+s3 < minsep, we can stop, but also check d3:
+        // Probably we can stop now, but check d3
+        // If these don't pass, then it's pretty unlikely that d1 will, so don't bother with that.
+        if (d2sq < minsepsq && s1ps3 < minsep && s1ps2 < minsep && 
+            (s1ps3 == 0. || d2sq < SQR(minsep - s1ps3)) && 
+            (s1ps2 == 0. || d3sq < SQR(minsep - s1ps2)) ) {
+            xdbg<<"d2 cannot be as large as minsep\n";
+            return true;
         }
+
         // Similarly, we can abort if all possible triangles will have d2 > maxsep.
         // This means at least two sides must have d - sps > maxsep.
-        if (d2sq >= maxsepsq && d2sq >= SQR(maxsep + s1ps3)) {
-            // Then d2 - s1 - s3 >= maxsep
-            // Probably we can stop now, but check d1
-            if (s2ps3 < maxsep && d1sq > SQR(maxsep + s2ps3)) {
-                xdbg<<"d2 cannot be as small as maxsep\n";
-                return true;
-            }
-            // And again, it's pretty unlikely that d3 will pass, so just move on.
+        // Again, d2 - s1 - s3 >= maxsep is not sufficient.  Also check d1.
+        // And again, it's pretty unlikely that d3 needs to be checked if first 2 pass.
+        if (d2sq >= maxsepsq && s2ps3 < maxsep &&
+            (s1ps3 == 0. || d2sq >= SQR(maxsep + s1ps3)) && 
+            (s2ps3 == 0. || d1sq >= SQR(maxsep + s2ps3))) {
+            xdbg<<"d2 cannot be as small as maxsep\n";
+            return true;
         }
-        return false;
-    }
-    static bool stopU(
-        double d1sq, double d2sq, double d3sq, double d2,
-        double, double s1ps3, double s1ps2,
-        double minu, double minusq, double maxu, double maxusq)
-    {
+
         // If the user sets minu > 0, then we can abort if no possible triangle can have 
         // u = d3/d2 as large as this.
         // The maximum possible u from our triangle is (d3+s1+s2) / (d2-s1-s3).
         // Abort if (d3+s1+s2) / (d2-s1-s3) < minu
         // (d3+s1+s2) < minu * (d2-s1-s3)
         // d3 < minu * (d2-s1-s3) - (s1+s2)
-        if (minu > 0. && d3sq < minusq*d2sq && d3sq < SQR(minu * (d2-s1ps3) - s1ps2)) {
-            xdbg<<"u cannot be as large as minu\n";
-            return true;
+        if (minu > 0. && d3sq < minusq*d2sq && d2 > s1ps3) {
+            double temp = minu * (d2-s1ps3);
+            if (temp > s1ps2 && d3sq < SQR(temp - s1ps2)) {
+                // However, d2 might not really be the middle leg.  So check d1 as well.
+                double minusq_d1sq = minusq * d1sq;
+                if (d3sq < minusq_d1sq && d1sq > 2.*SQR(s2ps3) &&
+                    minusq_d1sq > 2.*d3sq + 2.*SQR(s1ps2 + minu * s2ps3)) {
+                    xdbg<<"u cannot be as large as minu\n";
+                    return true;
+                }
+            }
         }
+
         // If the user sets a maxu < 1, then we can abort if no possible triangle can have
         // u as small as this.
         // The minimum possible u from our triangle is (d3-s1-s2) / (d2+s1+s3).
@@ -515,9 +547,17 @@ struct SortHelper<DC,DC,DC,true,M>
         // (d3-s1-s2) > maxu * (d2+s1+s3)
         // d3 > maxu * (d2+s1+s3) + (s1+s2)
         if (maxu < 1. && d3sq >= maxusq*d2sq && d3sq >= SQR(maxu * (d2+s1ps3) + s1ps2)) {
-            xdbg<<"u cannot be as small as maxu\n";
-            return true;
+            // This time, just make sure no other side could become the smallest side.
+            // d3 - s1-s2 < d2 - s1-s3
+            // d3 - s1-s2 < d1 - s2-s3
+            if ( d2sq > SQR(s1ps3) && d1sq > SQR(s2ps3) &&
+                 (s1ps2 > s1ps3 || d3sq <= SQR(d2 - s1ps3 + s1ps2)) &&
+                 (s1ps2 > s2ps3 || d1sq >= 2.*d3sq + 2.*SQR(s2ps3 - s1ps2)) ) {
+                xdbg<<"u cannot be as small as maxu\n";
+                return true;
+            }
         }
+
         return false;
     }
 };
@@ -538,14 +578,18 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
     Assert(!sort || d1sq >= d2sq);
     Assert(!sort || d2sq >= d3sq);
 
-    const double s1ps2 = c1->getAllSize()+c2->getAllSize();
-    const double s2ps3 = c2->getAllSize()+c3->getAllSize();
-    const double s1ps3 = c1->getAllSize()+c3->getAllSize();
-    const double s2ms1 = c2->getAllSize()-c1->getAllSize();
-    const double s2ms3 = c2->getAllSize()-c3->getAllSize();
+    const double s1 = c1->getAllSize();
+    const double s2 = c2->getAllSize();
+    const double s3 = c3->getAllSize();
+    const double s1ps3 = s1 + s3;
+    const double s1ps2 = s1 + s2;
+    const double s2ps3 = s2 + s3;
+    const double d2 = sqrt(d2sq);
 
-    if (SortHelper<DC1,DC2,DC3,sort,M>::stop111(
-            d1sq,d2sq,d3sq,s2ps3,s1ps3,s1ps2,_minsep,_minsepsq,_maxsep,_maxsepsq)) return;
+    if (SortHelper<DC1,DC2,DC3,sort,M>::stop111(d1sq,d2sq,d3sq,d2,s2ps3,s1ps3,s1ps2,
+                                                _minsep,_minsepsq,_maxsep,_maxsepsq,
+                                                _minu,_minusq,_maxu,_maxusq)) 
+        return;
 
     // For 1,3 decide whether to split on the noraml criteria with s1+s3/d2 < b
     bool split1 = false, split3 = false;
@@ -555,11 +599,115 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
     // if d1 could become smaller than the current smallest possible d2.
     // i.e. if d3 + s1 + s2 > d2 + s1 + s3 => d3 > d2 - s2 + s3
     //      or d1 - s2 - s3 < d2 - s1 - s3 => d1 < d2 + s2 - s1
-    double d2 = sqrt(d2sq);
+    const double s2ms1 = s2 - s1;
+    const double s2ms3 = s2 - s3;
     bool split2 = ( (s2ms3 > 0. && d3sq > SQR(d2 - s2ms3)) ||
                     (s2ms1 > 0. && d1sq < SQR(d2 + s2ms1)) );
 
     xdbg<<"r: split = "<<split1<<" "<<split2<<" "<<split3<<std::endl;
+
+    // Now check for splits related to the u value.
+    if (!sort && (d3sq > d2sq || d2sq > d1sq)) {
+        // If we aren't sorting the sides, then d3 is not necessarily less than d2
+        // (nor d2 less than d1).  If this is the case, we always want to split something,
+        // since we don't actually have a valid u here.
+        // Split the largest one at least.
+        if (s1 > s2) {
+            if (s1 > s3) 
+                split1 = true;
+            else if (s3 > 0) 
+                split3 = true;
+        } else {
+            if (s2 > s3) 
+                split2 = true;
+            else if (s3 > 0) 
+                split3 = true;
+        }
+        // Also split any that can directly lead to a swap of two that are out of order
+        // d2 + s1 < d3 - s1
+        if (d3sq > d2sq && s1 > 0 && d3sq > SQR(d2 + 2.*s1)) split1 = true;
+        // d1 + s3 < d2 - s3
+        if (d1sq < d2sq && s3 > 0 && (d2 < 2.*s3 ||  d1sq < SQR(d2 - 2.*s3))) split3 = true;
+    }
+        
+    // We don't need to split c1,c3 for d2 but we might need to split c1,c2 for d3.
+    // u = d3 / d2
+    // du = d(d3) / d2 = (s1+s2)/d2
+    // du < bu -> same split calculation as before, but with d2, not d3, and _bu instead of _b.
+    CalcSplitSq(split1,split2,*c1,*c2,d2sq,s1ps2,_busq);
+
+    xdbg<<"u: split = "<<split1<<" "<<split2<<" "<<split3<<std::endl;
+
+
+    // Finally the splits related to v.
+    // I don't currently do any checks related to _minv, _maxv.
+    // Not sure how important they are.
+    // But there could be some gain to checking that here.
+    
+    // v is a bit complicated.
+    // Consider the angle bisector of d1,d2.  Call this line z.
+    // Then let phi = the angle between d1 (or d2) and z
+    // And let theta = the (acute) angle between d3 and z
+    // Then projecting d1,d2,d3 onto z, one finds:
+    // d1 cos phi - d2 cos phi = d3 cos theta
+    // v = (d1-d2)/d3 = cos theta / cos phi
+    //
+    // 1. How does v change for different points within cell c3?
+    //
+    // Note that phi < 30 degrees, so cos phi won't make much
+    // of a difference here.
+    // The biggest change in v from moving c3 is in theta:
+    // dv = |dv/dtheta| dtheta = |sin(theta)|/cos(phi) (s3/z)
+    // dv < b -> s3/z |sin(theta)|/cos(phi) < b
+    // 
+    // v >= cos(theta), so sqrt(1-v^2) <= sin(theta)
+    // Also, z cos(phi) >= 3/4 d2  (where the 3/4 is the case where theta=90, phi=30 deg.)
+    //
+    // So s3 * sqrt(1-v^2) / (0.75 d2) < b
+    // s3/d2 < 0.75 b / sqrt(1-v^2)
+    //
+    // In the limit as v -> 1, the triangle collapses, and the differential doesn't 
+    // really work (theta == 0).  So here we calculate what triangle could happen from
+    // c3 moving by up to a distance of s3:
+    // dv = 1-cos(dtheta) = 1-cos(s3/z) ~= 1/2(s3/z)^2 < 1/2(s3/d2)^2
+    // So in this case, s3/d2 < sqrt(2b)
+    // In general we require both to be true.
+
+    // These may be set here and then used below, but only if we aren't splitting already.
+    double d1,d3,v,onemvsq; 
+
+    if (!(split1 && split2 && split3)) {
+        d1 = sqrt(d1sq);
+        d3 = sqrt(d3sq);
+        v = (d1-d2)/d3;
+        onemvsq = 1.-SQR(v);
+    }
+
+    if (!split3) {
+        split3 = s3 > _sqrttwobv * d2 || SQR(s3) * onemvsq > 0.5625 * _bvsq * d2sq;
+    }
+
+    // 2. How does v change for different pairs of points within c1,c2?
+    //
+    // These two cells mostly serve to twist the line d3.
+    // We make the approximation that the angle bisector hits d3 near the middle.
+    // Then dtheta = (s1+s2)/(d3/2).  
+    // Then from the same kind of derivation as above, we get
+    // |sin(theta)|/cos(phi) 2(s1+s2)/d3 < b
+    // (s1+s2)/d3 < sqrt(3)/4 b / sqrt(1-v^2)
+    //
+    // And again, in the limit where v -> 1, the approximations fail, so we need to look
+    // directly at how the collapsed triangle opens up.
+    // For each one, sin(dtheta) ~= s/(d3/2)
+    // Need to split if 2sin^2(dtheta) > b
+    if (!split1) split1 = s1 > 0.5*_sqrttwobv * d3;
+    if (!split2) split2 = s2 > 0.5*_sqrttwobv * d3;
+    
+    if (!(split1 && split2) && onemvsq > 1.e-2) {
+        CalcSplitSq(split1,split2,*c1,*c2,d3sq,s1ps2,_bvsq * 3./16. / onemvsq);
+    }
+
+    xdbg<<"v: split = "<<split1<<" "<<split2<<" "<<split3<<std::endl;
 
     if (split1) {
         if (split2) {
@@ -636,298 +784,6 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
                 process111<sort>(c1,c2,c3->getLeft(),0.,0.,d3sq);
                 process111<sort>(c1,c2,c3->getRight(),0.,0.,d3sq);
             } else {
-                // don't split any
-                processU<sort>(c1,c2,c3,d1sq,d2sq,d3sq,d2);
-            }
-        }
-    }
-}
-
-// Preconditions: (s1+s3)/d2 < b
-template <int DC1, int DC2, int DC3> template <bool sort, int M>
-void BinnedCorr3<DC1,DC2,DC3>::processU(
-    const Cell<DC1,M>* c1, const Cell<DC2,M>* c2, const Cell<DC3,M>* c3,
-    const double d1sq, const double d2sq, const double d3sq, const double d2)
-{
-    Assert(!sort || d1sq >= d2sq);
-    Assert(!sort || d2sq >= d3sq);
-    XAssert(std::abs(d2*d2 - d2sq) < 1.e-10);
-    XAssert(c1->getAllSize() + c3->getAllSize() <= d2 * _b);
-    XAssert(NoSplit(*c1,*c3,d2,_b));
-    XAssert(Check(*c1,*c2,*c3,sqrt(d1sq),sqrt(d2sq),sqrt(d3sq)));
-    xdbg<<"            u = "<<sqrt(d3sq)/sqrt(d2sq)<<std::endl;
-
-    const double s1 = c1->getAllSize();
-    const double s2 = c2->getAllSize();
-    const double s3 = c3->getAllSize();
-    const double s1ps3 = s1 + s3;
-    const double s1ps2 = s1 + s2;
-    const double s2ps3 = s2 + s3;
-
-    if (SortHelper<DC1,DC2,DC3,sort,M>::stopU(
-            d1sq,d2sq,d3sq,d2,s2ps3,s1ps3,s1ps2,_minu,_minusq,_maxu,_maxusq)) return;
-
-    bool split1=false, split2=false, split3=false;
-    if (!sort && (d3sq > d2sq || d2sq > d1sq)) {
-        // If we aren't sorting the sides, then d3 is not necessarily less than d2
-        // (nor d2 less than d1).  If this is the case, we always want to split something,
-        // since we don't actually have a valid u here.
-        // Split the largest one at least.
-        if (s1 > s2) {
-            if (s1 > s3) 
-                split1 = true;
-            else if (s3 > 0) 
-                split3 = true;
-        } else {
-            if (s2 > s3) 
-                split2 = true;
-            else if (s3 > 0) 
-                split3 = true;
-        }
-        // Also split any that can directly lead to a swap of two that are out of order
-        // d2 + s1 < d3 - s1
-        if (d3sq > d2sq && s1 > 0 && d3sq > SQR(d2 + 2.*s1)) split1 = true;
-        // d1 + s3 < d2 - s3
-        if (d1sq < d2sq && s3 > 0 && (d2 < 2.*s3 ||  d1sq < SQR(d2 - 2.*s3))) split3 = true;
-    }
-        
-    // We don't need to split c1,c3 for d2 but we might need to split c1,c2 for d3.
-    // u = d3 / d2
-    // du = d(d3) / d2 = (s1+s2)/d2
-    // du < bu -> same split calculation as before, but with d2, not d3, and _bu instead of _b.
-    CalcSplitSq(split1,split2,*c1,*c2,d2sq,s1ps2,_busq);
-
-    xdbg<<"u: split = "<<split1<<" "<<split2<<" "<<split3<<std::endl;
-
-    // Whenever we split here, go back to process111 since we might need to reorder the points.
-    // And we definitely need to recalculate the distances.
-    if (split1) {
-        if (split2) {
-            if (split3) {
-                Assert(c1->getLeft());
-                Assert(c1->getRight());
-                Assert(c2->getLeft());
-                Assert(c2->getRight());
-                Assert(c3->getLeft());
-                Assert(c3->getRight());
-                process111<sort>(c1->getLeft(),c2->getLeft(),c3->getLeft());
-                process111<sort>(c1->getLeft(),c2->getLeft(),c3->getRight());
-                process111<sort>(c1->getLeft(),c2->getRight(),c3->getLeft());
-                process111<sort>(c1->getLeft(),c2->getRight(),c3->getRight());
-                process111<sort>(c1->getRight(),c2->getLeft(),c3->getLeft());
-                process111<sort>(c1->getRight(),c2->getLeft(),c3->getRight());
-                process111<sort>(c1->getRight(),c2->getRight(),c3->getLeft());
-                process111<sort>(c1->getRight(),c2->getRight(),c3->getRight());
-             } else {
-                Assert(c1->getLeft());
-                Assert(c1->getRight());
-                Assert(c2->getLeft());
-                Assert(c2->getRight());
-                process111<sort>(c1->getLeft(),c2->getLeft(),c3);
-                process111<sort>(c1->getLeft(),c2->getRight(),c3);
-                process111<sort>(c1->getRight(),c2->getLeft(),c3);
-                process111<sort>(c1->getRight(),c2->getRight(),c3);
-            }
-        } else {
-            if (split3) {
-                Assert(c1->getLeft());
-                Assert(c1->getRight());
-                Assert(c3->getLeft());
-                Assert(c3->getRight());
-                process111<sort>(c1->getLeft(),c2,c3->getLeft());
-                process111<sort>(c1->getLeft(),c2,c3->getRight());
-                process111<sort>(c1->getRight(),c2,c3->getLeft());
-                process111<sort>(c1->getRight(),c2,c3->getRight());
-            } else {
-                Assert(c1->getLeft());
-                Assert(c1->getRight());
-                process111<sort>(c1->getLeft(),c2,c3,d1sq);
-                process111<sort>(c1->getRight(),c2,c3,d1sq);
-            }
-        }
-    } else {
-        if (split2) {
-            if (split3) {
-                Assert(c2->getLeft());
-                Assert(c2->getRight());
-                Assert(c3->getLeft());
-                Assert(c3->getRight());
-                process111<sort>(c1,c2->getLeft(),c3->getLeft());
-                process111<sort>(c1,c2->getLeft(),c3->getRight());
-                process111<sort>(c1,c2->getRight(),c3->getLeft());
-                process111<sort>(c1,c2->getRight(),c3->getRight());
-            } else {
-                Assert(c2->getLeft());
-                Assert(c2->getRight());
-                process111<sort>(c1,c2->getLeft(),c3,0.,d2sq);
-                process111<sort>(c1,c2->getRight(),c3,0.,d2sq);
-            }
-        } else {
-            if (split3) {
-                Assert(c3->getLeft());
-                Assert(c3->getRight());
-                process111<sort>(c1,c2,c3->getLeft(),0.,0.,d3sq);
-                process111<sort>(c1,c2,c3->getRight(),0.,0.,d3sq);
-            } else {
-                // don't split any
-                double d1 = sqrt(d1sq);
-                double d3 = sqrt(d3sq);
-                processV<sort>(c1,c2,c3,d1sq,d2sq,d3sq,d1,d2,d3);
-            }
-        }
-    }
-}
-
-// Preconditions: (s2+s3)/d1 < b
-//                (s1+s2)/d1 < bu
-//                d1 > d2 > d3
-// This version is allowed to swap the positions of points 1,2,3
-template <int DC1, int DC2, int DC3> template <bool sort, int M>
-void BinnedCorr3<DC1,DC2,DC3>::processV(
-    const Cell<DC1,M>* c1, const Cell<DC2,M>* c2, const Cell<DC3,M>* c3,
-    const double d1sq, const double d2sq, const double d3sq,
-    const double d1, const double d2, const double d3)
-{
-    Assert(d2sq >= d3sq);
-    Assert(d1sq >= d2sq);
-    Assert(d2 >= d3);
-    Assert(d1 >= d2);
-    XAssert(NoSplit(*c1,*c3,d2,_b));
-    XAssert(NoSplit(*c1,*c2,d2,_bu));
-    XAssert(Check(*c1,*c2,*c3,d1,d2,d3));
-    XAssert(std::abs(d1*d1-d1sq) < 1.e-10);
-    XAssert(std::abs(d2*d2-d2sq) < 1.e-10);
-    XAssert(std::abs(d3*d3-d3sq) < 1.e-10);
-
-    // I don't currently do any checks related to _minv, _maxv.
-    // Not sure how important they are.
-    // But there could be some gain to checking that here.  Or maybe even earlier.
-    
-    // v is a bit complicated.
-    // Consider the angle bisector of d1,d2.  Call this line z.
-    // Then let phi = the angle between d1 (or d2) and z
-    // And let theta = the (acute) angle between d3 and z
-    // Then projecting d1,d2,d3 onto z, one finds:
-    // d1 cos phi - d2 cos phi = d3 cos theta
-    // v = (d1-d2)/d3 = cos theta / cos phi
-    //
-    // 1. How does v change for different points within cell c3?
-    //
-    // Note that phi < 30 degrees, so cos phi won't make much
-    // of a difference here.
-    // The biggest change in v from moving c3 is in theta:
-    // dv = |dv/dtheta| dtheta = |sin(theta)|/cos(phi) (s3/z)
-    // dv < b -> s3/z |sin(theta)|/cos(phi) < b
-    // 
-    // v >= cos(theta), so sqrt(1-v^2) <= sin(theta)
-    // Also, z cos(phi) >= 3/4 d2  (where the 3/4 is the case where theta=90, phi=30 deg.)
-    //
-    // So s3 * sqrt(1-v^2) / (0.75 d2) < b
-    // s3/d2 < 0.75 b / sqrt(1-v^2)
-    //
-    // In the limit as v -> 1, the triangle collapses, and the differential doesn't 
-    // really work (theta == 0).  So here we calculate what triangle could happen from
-    // c3 moving by up to a distance of s3:
-    // dv = 1-cos(dtheta) = 1-cos(s3/z) ~= 1/2(s3/z)^2 < 1/2(s3/d2)^2
-    // So in this case, s3/d2 < sqrt(2b)
-    // In general we require both to be true.
-
-    double s3overd2 = c3->getSize()/d2;
-    double v = (d1-d2)/d3;
-    const double onemvsq = 1.-SQR(v);
-    const bool split3 = s3overd2 > _sqrttwobv || SQR(s3overd2) * onemvsq > 0.5625 * _bvsq;
-
-    // 2. How does v change for different pairs of points within c1,c2?
-    //
-    // These two cells mostly serve to twist the line d3.
-    // We make the approximation that the angle bisector hits d3 near the middle.
-    // Then dtheta = (s1+s2)/(d3/2).  
-    // Then from the same kind of derivation as above, we get
-    // |sin(theta)|/cos(phi) 2(s1+s2)/d3 < b
-    // (s1+s2)/d3 < sqrt(3)/4 b / sqrt(1-v^2)
-    //
-    // And again, in the limit where v -> 1, the approximations fail, so we need to look
-    // directly at how the collapsed triangle opens up.
-    // For each one, sin(dtheta) ~= s/(d3/2)
-    // Need to split if 2sin^2(dtheta) > b
-    bool split1 = c1->getSize() > 0.5*_sqrttwobv * d3;
-    bool split2 = c2->getSize() > 0.5*_sqrttwobv * d3;
-    
-    if (onemvsq > 1.e-2) {
-        const double s1ps2 = c1->getAllSize()+c2->getAllSize();
-        CalcSplitSq(split1,split2,*c1,*c2,d3sq,s1ps2,_bvsq * 3./16. / onemvsq);
-    }
-
-    xdbg<<"v: split = "<<split1<<" "<<split2<<" "<<split3<<std::endl;
-
-    if (split1) {
-        if (split2) {
-            if (split3) {
-                Assert(c1->getLeft());
-                Assert(c1->getRight());
-                Assert(c2->getLeft());
-                Assert(c2->getRight());
-                Assert(c3->getLeft());
-                Assert(c3->getRight());
-                process111<sort>(c1->getLeft(),c2->getLeft(),c3->getLeft());
-                process111<sort>(c1->getLeft(),c2->getLeft(),c3->getRight());
-                process111<sort>(c1->getLeft(),c2->getRight(),c3->getLeft());
-                process111<sort>(c1->getLeft(),c2->getRight(),c3->getRight());
-                process111<sort>(c1->getRight(),c2->getLeft(),c3->getLeft());
-                process111<sort>(c1->getRight(),c2->getLeft(),c3->getRight());
-                process111<sort>(c1->getRight(),c2->getRight(),c3->getLeft());
-                process111<sort>(c1->getRight(),c2->getRight(),c3->getRight());
-             } else {
-                Assert(c1->getLeft());
-                Assert(c1->getRight());
-                Assert(c2->getLeft());
-                Assert(c2->getRight());
-                process111<sort>(c1->getLeft(),c2->getLeft(),c3);
-                process111<sort>(c1->getLeft(),c2->getRight(),c3);
-                process111<sort>(c1->getRight(),c2->getLeft(),c3);
-                process111<sort>(c1->getRight(),c2->getRight(),c3);
-            }
-        } else {
-            if (split3) {
-                Assert(c1->getLeft());
-                Assert(c1->getRight());
-                Assert(c3->getLeft());
-                Assert(c3->getRight());
-                process111<sort>(c1->getLeft(),c2,c3->getLeft());
-                process111<sort>(c1->getLeft(),c2,c3->getRight());
-                process111<sort>(c1->getRight(),c2,c3->getLeft());
-                process111<sort>(c1->getRight(),c2,c3->getRight());
-            } else {
-                Assert(c1->getLeft());
-                Assert(c1->getRight());
-                process111<sort>(c1->getLeft(),c2,c3,d1sq);
-                process111<sort>(c1->getRight(),c2,c3,d1sq);
-            }
-        }
-    } else {
-        if (split2) {
-            if (split3) {
-                Assert(c2->getLeft());
-                Assert(c2->getRight());
-                Assert(c3->getLeft());
-                Assert(c3->getRight());
-                process111<sort>(c1,c2->getLeft(),c3->getLeft());
-                process111<sort>(c1,c2->getLeft(),c3->getRight());
-                process111<sort>(c1,c2->getRight(),c3->getLeft());
-                process111<sort>(c1,c2->getRight(),c3->getRight());
-            } else {
-                Assert(c2->getLeft());
-                Assert(c2->getRight());
-                process111<sort>(c1,c2->getLeft(),c3,0.,d2sq);
-                process111<sort>(c1,c2->getRight(),c3,0.,d2sq);
-            }
-        } else {
-            if (split3) {
-                Assert(c3->getLeft());
-                Assert(c3->getRight());
-                process111<sort>(c1,c2,c3->getLeft(),0.,0.,d3sq);
-                process111<sort>(c1,c2,c3->getRight(),0.,0.,d3sq);
-            } else {
                 // No splits required.
                 // Now we can check to make sure the final d2, u, v are in the right ranges.
                 if (d2 < _minsep || d2 >= _maxsep) {
@@ -980,7 +836,7 @@ void BinnedCorr3<DC1,DC2,DC3>::processV(
                 int index = kr * _nuv + ku * _nvbins + kv;
                 Assert(index >= 0);
                 Assert(index < _ntot);
-                directProcessV(*c1,*c2,*c3,d1,d2,d3,logr,u,v,index);
+                directProcess111(*c1,*c2,*c3,d1,d2,d3,logr,u,v,index);
             }
         }
     }
@@ -1126,7 +982,7 @@ struct DirectHelper2<NData, NData, NData>
 };
 
 template <int DC1, int DC2, int DC3> template <int M>
-void BinnedCorr3<DC1,DC2,DC3>::directProcessV(
+void BinnedCorr3<DC1,DC2,DC3>::directProcess111(
     const Cell<DC1,M>& c1, const Cell<DC2,M>& c2, const Cell<DC3,M>& c3,
     const double d1, const double d2, const double d3,
     const double logr, const double u, const double v, const int index)

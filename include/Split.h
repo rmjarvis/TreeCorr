@@ -47,6 +47,8 @@ inline void CalcSplit(
     // given above.  I don't know if this value is also best for
     // 3 point uses, but it's probably reasonably close.
 
+    // Quick return
+    if (split1 && split2) return;
 
     const double splitfactor = 0.585;
     // The split factor helps determine whether to split

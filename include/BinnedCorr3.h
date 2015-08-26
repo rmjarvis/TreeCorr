@@ -58,19 +58,10 @@ public:
     void process111(const Cell<DC1,M>* c1, const Cell<DC2,M>* c2, const Cell<DC3,M>* c3,
                     double d1sq=0., double d2sq=0., double d3sq=0.);
 
-    template <bool sort, int M>
-    void processU(const Cell<DC1,M>* c1, const Cell<DC2,M>* c2, const Cell<DC3,M>* c3,
-                  const double d1sq, const double d2sq, const double d3sq, const double d2);
-
-    template <bool sort, int M>
-    void processV(const Cell<DC1,M>* c1, const Cell<DC2,M>* c2, const Cell<DC3,M>* c3,
-                  const double d1sq, const double d2sq, const double d3sq,
-                  const double d1, const double d2, const double d3);
-
     template <int M>
-    void directProcessV(const Cell<DC1,M>& c1, const Cell<DC2,M>& c2, const Cell<DC3,M>& c3,
-                        const double d1, const double d2, const double d3,
-                        const double logr, const double u, const double v, const int index);
+    void directProcess111(const Cell<DC1,M>& c1, const Cell<DC2,M>& c2, const Cell<DC3,M>& c3,
+                          const double d1, const double d2, const double d3,
+                          const double logr, const double u, const double v, const int index);
 
     // Note: op= only copies _data.  Not all the params.
     void operator=(const BinnedCorr3<DC1,DC2,DC3>& rhs);

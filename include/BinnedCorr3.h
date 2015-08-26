@@ -91,8 +91,8 @@ protected:
     double _maxsepsq;
     double _minusq;
     double _maxusq;
-    double _minvsq;
-    double _maxvsq;
+    double _minabsv;
+    double _maxabsv;
     double _bsq;
     double _busq;
     double _bvsq;

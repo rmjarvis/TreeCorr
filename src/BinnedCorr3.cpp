@@ -43,8 +43,6 @@ BinnedCorr3<DC1,DC2,DC3>::BinnedCorr3(
     _meanlogr(meanlogr), _meanu(meanu), _meanv(meanv), _weight(weight), _ntri(ntri)
 {
     // Some helpful variables we can calculate once here.
-    _nuv = _nubins * _nvbins;
-    _ntot = _nbins * _nuv;
     _logminsep = log(_minsep);
     _halfminsep = 0.5*_minsep;
     _halfmind3 = 0.5*_minsep*_minu;
@@ -52,26 +50,31 @@ BinnedCorr3<DC1,DC2,DC3>::BinnedCorr3(
     _maxsepsq = _maxsep*_maxsep;
     _minusq = _minu*_minu;
     _maxusq = _maxu*_maxu;
-    _minvsq = _minv*_minv;
-    _maxvsq = _maxv*_maxv;
+    _minabsv = _maxv * _minv < 0. ? 0. : std::min(std::abs(_maxv),std::abs(_minv));
+    _maxabsv = std::max(std::abs(_maxv),std::abs(_minv));
     _bsq = _b * _b;
     _busq = _bu * _bu;
     _bvsq = _bv * _bv;
     _sqrttwobv = sqrt(2. * _bv);
+    _nuv = _nubins * _nvbins;
+    _ntot = _nbins * _nuv;
 }
 
 template <int DC1, int DC2, int DC3>
 BinnedCorr3<DC1,DC2,DC3>::BinnedCorr3(const BinnedCorr3<DC1,DC2,DC3>& rhs, bool copy_data) :
     _minsep(rhs._minsep), _maxsep(rhs._maxsep), _nbins(rhs._nbins),
+    _binsize(rhs._binsize), _b(rhs._b),
     _minu(rhs._minu), _maxu(rhs._maxu), _nubins(rhs._nubins),
     _ubinsize(rhs._ubinsize), _bu(rhs._bu),
     _minv(rhs._minv), _maxv(rhs._maxv), _nvbins(rhs._nvbins),
     _vbinsize(rhs._vbinsize), _bv(rhs._bv),
-    _nuv(rhs._nuv), _ntot(rhs._ntot),
     _logminsep(rhs._logminsep), _halfminsep(rhs._halfminsep), _halfmind3(rhs._halfmind3),
-    _minsepsq(rhs._minsepsq), _maxsepsq(rhs._maxsepsq), _bsq(rhs._bsq),
-    _metric(rhs._metric), _owns_data(true),
-    _zeta(0,0,0,0,0,0,0,0), _weight(0)
+    _minsepsq(rhs._minsepsq), _maxsepsq(rhs._maxsepsq), 
+    _minusq(rhs._minusq), _maxusq(rhs._maxusq), 
+    _minabsv(rhs._minabsv), _maxabsv(rhs._maxabsv),
+    _bsq(rhs._bsq), _busq(rhs._busq), _bvsq(rhs._bvsq), _sqrttwobv(rhs._sqrttwobv),
+    _metric(rhs._metric), _nuv(rhs._nuv), _ntot(rhs._ntot),
+    _owns_data(true), _zeta(0,0,0,0,0,0,0,0), _weight(0)
 {
     _zeta.new_data(_ntot);
     _meanlogr = new double[_ntot];
@@ -370,36 +373,39 @@ struct SortHelper
     }
     static bool stop111(
         double d1sq, double d2sq, double d3sq, double d2,
-        double s2ps3, double s1ps3, double s1ps2,
+        double s1, double s2, double s3,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
-        double minu, double minusq, double maxu, double maxusq)
+        double minu, double minusq, double maxu, double maxusq,
+        double minabsv, double maxabsv)
     {
+        double sums = s1+s2+s3;
+
         // Since we aren't sorting here, we may not have d1 > d2 > d3.
         // We want to abort the recursion if there are no triangles in the given positions
         // where d1 will be the largest, d2 the middle, and d3 the smallest.
         
         // First, if the smallest d3 is larger than either the largest d1 or the largest d2,
         // then it can't be the smallest side.
-        // i.e. if d3 - s1ps2 > d1 + s2ps3
-        // d3 > d1 + s1ps2 + s2ps3
-        // d3^2 > (d1 + (s1ps2+s2ps3))^2
+        // i.e. if d3 - s1-s2 > d1 + s2+s3
+        // d3 > d1 + s1+s2 + s2+s3
+        // d3^2 > (d1 + s1+2s2+s3))^2
         // Lemma: (x+y)^2 < 2x^2 + 2y^2
-        // d3^2 > 2d1^2 + 2(s1ps2+s2ps3)^2  (We only need that here, since we don't have d1,d3.)
-        if (d3sq > d1sq && d3sq > 2.*d1sq + 2.*SQR(s1ps2+s2ps3)) {
+        // d3^2 > 2d1^2 + 2(s1+2s2+s3)^2  (We only need that here, since we don't have d1,d3.)
+        if (d3sq > d1sq && d3sq > 2.*d1sq + 2.*SQR(sums + s2)) {
             xdbg<<"d1 cannot be as large as d3\n";
             return true;
         }
 
         // Likewise for d2.
-        if (d3sq > d2sq && d3sq > SQR(d2 + s1ps3 + s1ps2)) {
+        if (d3sq > d2sq && d3sq > SQR(d2 + sums + s1)) {
             xdbg<<"d2 cannot be as large as d3\n";
             return true;
         }
 
         // Similar for d1 being the largest.
-        // if d1 + s2ps3 < d2 - s1ps3
-        // d2 > d1 + s2ps3 + s1ps3
-        if (d2sq > d1sq && d2 > s1ps3 + s2ps3 && d1sq < SQR(d2 - s1ps3 - s2ps3)) {
+        // if d1 + s2+s3 < d2 - s1-s3
+        // d2 > d1 + s2+s3 + s1+s3
+        if (d2sq > d1sq && d2 > sums + s3 && d1sq < SQR(d2 - sums - s3)) {
             xdbg<<"d1 cannot be as large as d2\n";
             return true;
         }
@@ -407,14 +413,14 @@ struct SortHelper
         // If all possible triangles will have d2 < minsep, then abort the recursion here.
         // i.e. if  d2 + s1 + s3 < minsep
         // Since we aren't sorting, we only need to check the actual d2 value.
-        if (d2sq < minsepsq && s1ps3 < minsep && d2sq < SQR(minsep - s1ps3)) {
+        if (d2sq < minsepsq && s1+s3 < minsep && d2sq < SQR(minsep - s1 - s3)) {
             xdbg<<"d2 cannot be as large as minsep\n";
             return true;
         }
 
         // Similarly, we can abort if all possible triangles will have d2 > maxsep.
         // i.e. if  d2 - s1 - s3 >= maxsep
-        if (d2sq >= maxsepsq && d2sq >= SQR(maxsep + s1ps3)) {
+        if (d2sq >= maxsepsq && d2sq >= SQR(maxsep + s1 + s3)) {
             xdbg<<"d2 cannot be as small as maxsep\n";
             return true;
         }
@@ -425,21 +431,41 @@ struct SortHelper
         // Abort if (d3+s1+s2) / (d2-s1-s3) < minu
         // (d3+s1+s2) < minu * (d2-s1-s3)
         // d3 < minu * (d2-s1-s3) - (s1+s2)
-        if (minu > 0. && d3sq < minusq*d2sq && d2 > s1ps3) {
-            double temp = minu * (d2-s1ps3);
-            if (temp > s1ps2 && d3sq < SQR(temp - s1ps2)) {
+        if (minu > 0. && d3sq < minusq*d2sq && d2 > s1 +s3) {
+            double temp = minu * (d2-s1-s3);
+            if (temp > s1 + s2 && d3sq < SQR(temp - s1 - s2)) {
                 xdbg<<"u cannot be as large as minu\n";
                 return true;
             }
         }
+
         // If the user sets a maxu < 1, then we can abort if no possible triangle can have
         // u as small as this.
         // The minimum possible u from our triangle is (d3-s1-s2) / (d2+s1+s3).
         // Abort if (d3-s1-s2) / (d2+s1+s3) > maxu
         // (d3-s1-s2) > maxu * (d2+s1+s3)
         // d3 > maxu * (d2+s1+s3) + (s1+s2)
-        if (maxu < 1. && d3sq >= maxusq*d2sq && d3sq >= SQR(maxu * (d2+s1ps3) + s1ps2)) {
+        if (maxu < 1. && d3sq >= maxusq*d2sq && d3sq >= SQR(maxu * (d2 + s1 + s3) + s1 + s2)) {
             xdbg<<"u cannot be as small as maxu\n";
+            return true;
+        }
+
+        // If the user sets minv, maxv to be near 0, then we can abort if no possible triangle
+        // can have v = (d1-d2)/d3 as small in absolute value as either of these.
+        // |v| is |d1-d2|/d3.  The minimum numerator is a bit non-obvious.  
+        // The easy part is from c1, c2.  These can shrink |d1-d2| by s1+s2.
+        // The edge of c3 can shrink |d1-d2| by at most another s3, assuming d3 < d2, so the
+        // angle at c3 is acute.  i.e. it's not 2s3 as one might naively assume.
+        // Thus, the minimum possible |v| from our triangle is (|d1-d2|-(s1+s2+s3)) / (d3+s1+s2).
+        // Abort if (d1-d2-s1-s2-s3) / (d3+s1+s2) > maxabsv
+        // (d1-d2-s1-s2-s3) > maxabsv * (d3+s1+s2)
+        // d1 > maxabsv d3 + d2+s1+s2+s3 + maxabsv*(s1+s2)
+        // Here, rather than using the lemma that (x+y)^2 < 2x^2 + 2y^2,
+        // we can instead realize that d3 < d2, so just check if
+        // d1 > maxabsv d2 + d2+s1+s2+s3 + maxabsv*(s1+s2)
+        // The main advantage of this check is when d3 ~= d2 anyway, so this is effective.
+        if (maxabsv < 1. && d1sq > SQR((1.+maxabsv)*d2 + sums + maxabsv * (s1+s2))) {
+            xdbg<<"v cannot be as small as maxabsv\n";
             return true;
         }
 
@@ -494,18 +520,19 @@ struct SortHelper<DC,DC,DC,true,M>
     }
     static bool stop111(
         double d1sq, double d2sq, double d3sq, double d2,
-        double s2ps3, double s1ps3, double s1ps2,
+        double s1, double s2, double s3,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
-        double minu, double minusq, double maxu, double maxusq)
+        double minu, double minusq, double maxu, double maxusq,
+        double minabsv, double maxabsv)
     {
         // If all possible triangles will have d2 < minsep, then abort the recursion here.
         // This means at least two sides must have d + (s+s) < minsep.
         // Probably if d2 + s1+s3 < minsep, we can stop, but also check d3.
         // If one of these don't pass, then it's pretty unlikely that d1 will, so don't bother
         // checking that one.
-        if (d2sq < minsepsq && s1ps3 < minsep && s1ps2 < minsep && 
-            (s1ps3 == 0. || d2sq < SQR(minsep - s1ps3)) && 
-            (s1ps2 == 0. || d3sq < SQR(minsep - s1ps2)) ) {
+        if (d2sq < minsepsq && s1+s3 < minsep && s1+s2 < minsep && 
+            (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3)) && 
+            (s1+s2 == 0. || d3sq < SQR(minsep - s1-s2)) ) {
             xdbg<<"d2 cannot be as large as minsep\n";
             return true;
         }
@@ -516,8 +543,8 @@ struct SortHelper<DC,DC,DC,true,M>
         // And again, it's pretty unlikely that d3 needs to be checked if one of the first
         // two don't pass.
         if (d2sq >= maxsepsq &&
-            (s1ps3 == 0. || d2sq >= SQR(maxsep + s1ps3)) && 
-            (s2ps3 == 0. || d1sq >= SQR(maxsep + s2ps3))) {
+            (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3)) && 
+            (s2+s3 == 0. || d1sq >= SQR(maxsep + s2+s3))) {
             xdbg<<"d2 cannot be as small as maxsep\n";
             return true;
         }
@@ -528,13 +555,13 @@ struct SortHelper<DC,DC,DC,true,M>
         // Abort if (d3+s1+s2) / (d2-s1-s3) < minu
         // (d3+s1+s2) < minu * (d2-s1-s3)
         // d3 < minu * (d2-s1-s3) - (s1+s2)
-        if (minu > 0. && d3sq < minusq*d2sq && d2 > s1ps3) {
-            double temp = minu * (d2-s1ps3);
-            if (temp > s1ps2 && d3sq < SQR(temp - s1ps2)) {
+        if (minu > 0. && d3sq < minusq*d2sq && d2 > s1+s3) {
+            double temp = minu * (d2-s1-s3);
+            if (temp > s1+s2 && d3sq < SQR(temp - s1-s2)) {
                 // However, d2 might not really be the middle leg.  So check d1 as well.
                 double minusq_d1sq = minusq * d1sq;
-                if (d3sq < minusq_d1sq && d1sq > 2.*SQR(s2ps3) &&
-                    minusq_d1sq > 2.*d3sq + 2.*SQR(s1ps2 + minu * s2ps3)) {
+                if (d3sq < minusq_d1sq && d1sq > 2.*SQR(s2+s3) &&
+                    minusq_d1sq > 2.*d3sq + 2.*SQR(s1+s2 + minu * (s2+s3))) {
                     xdbg<<"u cannot be as large as minu\n";
                     return true;
                 }
@@ -547,16 +574,30 @@ struct SortHelper<DC,DC,DC,true,M>
         // Abort if (d3-s1-s2) / (d2+s1+s3) > maxu
         // (d3-s1-s2) > maxu * (d2+s1+s3)
         // d3 > maxu * (d2+s1+s3) + (s1+s2)
-        if (maxu < 1. && d3sq >= maxusq*d2sq && d3sq >= SQR(maxu * (d2+s1ps3) + s1ps2)) {
+        if (maxu < 1. && d3sq >= maxusq*d2sq && d3sq >= SQR(maxu * (d2+s1+s3) + s1+s2)) {
             // This time, just make sure no other side could become the smallest side.
             // d3 - s1-s2 < d2 - s1-s3
             // d3 - s1-s2 < d1 - s2-s3
-            if ( d2sq > SQR(s1ps3) && d1sq > SQR(s2ps3) &&
-                 (s1ps2 > s1ps3 || d3sq <= SQR(d2 - s1ps3 + s1ps2)) &&
-                 (s1ps2 > s2ps3 || d1sq >= 2.*d3sq + 2.*SQR(s2ps3 - s1ps2)) ) {
+            if ( d2sq > SQR(s1+s3) && d1sq > SQR(s2+s3) &&
+                 (s2 > s3 || d3sq <= SQR(d2 - s3 + s2)) &&
+                 (s1 > s3 || d1sq >= 2.*d3sq + 2.*SQR(s3 - s1)) ) {
                 xdbg<<"u cannot be as small as maxu\n";
                 return true;
             }
+        }
+
+        // If the user sets minv, maxv to be near 0, then we can abort if no possible triangle
+        // can have v = (d1-d2)/d3 as small in absolute value as either of these.
+        // d1 > maxabsv d3 + d2+s1+s2+s3 + maxabsv*(s1+s2)
+        // As before, use the fact that d3 < d2, so check
+        // d1 > maxabsv d2 + d2+s1+s2+s3 + maxabsv*(s1+s2)
+        double sums = s1+s2+s3;
+        if (maxabsv < 1. && d1sq > SQR((1.+maxabsv)*d2 + sums + maxabsv * (s1+s2))) {
+            // We don't need any extra checks here related to the possibility of the sides
+            // switching roles, since if this condition is true, than d1 has to be the largest
+            // side no matter what.  d1-s2 > d2+s1
+            xdbg<<"v cannot be as small as maxabsv\n";
+            return true;
         }
 
         return false;
@@ -582,19 +623,16 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
     const double s1 = c1->getAllSize();
     const double s2 = c2->getAllSize();
     const double s3 = c3->getAllSize();
-    const double s1ps3 = s1 + s3;
-    const double s1ps2 = s1 + s2;
-    const double s2ps3 = s2 + s3;
     const double d2 = sqrt(d2sq);
 
-    if (SortHelper<DC1,DC2,DC3,sort,M>::stop111(d1sq,d2sq,d3sq,d2,s2ps3,s1ps3,s1ps2,
+    if (SortHelper<DC1,DC2,DC3,sort,M>::stop111(d1sq,d2sq,d3sq,d2,s1,s2,s3,
                                                 _minsep,_minsepsq,_maxsep,_maxsepsq,
-                                                _minu,_minusq,_maxu,_maxusq)) 
+                                                _minu,_minusq,_maxu,_maxusq,_minabsv,_maxabsv)) 
         return;
 
     // For 1,3 decide whether to split on the noraml criteria with s1+s3/d2 < b
     bool split1 = false, split3 = false;
-    CalcSplitSq(split1,split3,*c1,*c3,d2sq,s1ps3,_bsq);
+    CalcSplitSq(split1,split3,*c1,*c3,d2sq,s1+s3,_bsq);
 
     // For 2, split if it's possible for d3 to become larger than the largest possible d2 or 
     // if d1 could become smaller than the current smallest possible d2.
@@ -635,7 +673,7 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
     // u = d3 / d2
     // du = d(d3) / d2 = (s1+s2)/d2
     // du < bu -> same split calculation as before, but with d2, not d3, and _bu instead of _b.
-    CalcSplitSq(split1,split2,*c1,*c2,d2sq,s1ps2,_busq);
+    CalcSplitSq(split1,split2,*c1,*c2,d2sq,s1+s2,_busq);
 
     xdbg<<"u: split = "<<split1<<" "<<split2<<" "<<split3<<std::endl;
 
@@ -705,7 +743,7 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
     if (!split2) split2 = s2 > 0.5*_sqrttwobv * d3;
     
     if (!(split1 && split2) && onemvsq > 1.e-2) {
-        CalcSplitSq(split1,split2,*c1,*c2,d3sq,s1ps2,_bvsq * 3./16. / onemvsq);
+        CalcSplitSq(split1,split2,*c1,*c2,d3sq,s1+s2,_bvsq * 3./16. / onemvsq);
     }
 
     xdbg<<"v: split = "<<split1<<" "<<split2<<" "<<split3<<std::endl;

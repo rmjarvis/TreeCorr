@@ -18,6 +18,7 @@ from . import util
 from .celestial import CelestialCoord, angle_units, arcsec, arcmin, degrees, hours, radians
 from .config import read_config, set_omp_threads
 from .corr2 import corr2, print_corr2_params
+from .corr3 import corr3, print_corr3_params
 from .catalog import Catalog, read_catalogs, calculateVarG, calculateVarK
 from .binnedcorr2 import BinnedCorr2
 from .ggcorrelation import GGCorrelation

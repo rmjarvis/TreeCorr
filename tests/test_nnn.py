@@ -898,20 +898,19 @@ def test_nnn():
     # that it is everywhere < 0.1 is still appropriate.
     assert numpy.max(numpy.abs(zeta - true_zeta)/true_zeta) < 0.1
 
-    # Check that we get the same result using the corr2 executable:
-    #if __name__ == '__main__':
-    if False:
+    # Check that we get the same result using the corr3 executable:
+    if __name__ == '__main__':
         cat.write(os.path.join('data','nnn_data.dat'))
         rand.write(os.path.join('data','nnn_rand.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","nnn.params"] )
+        p = subprocess.Popen( ["corr3","nnn.params"] )
         p.communicate()
-        corr2_output = numpy.loadtxt(os.path.join('output','nnn.out'))
-        print 'zeta = ',simple_zeta
-        print 'from corr2 output = ',corr2_output[:,2]
-        print 'ratio = ',corr2_output[:,2]/zeta
-        print 'diff = ',corr2_output[:,2]-zeta
-        numpy.testing.assert_almost_equal(corr2_output[:,2]/zeta, 1., decimal=3)
+        corr3_output = numpy.loadtxt(os.path.join('output','nnn.out'))
+        print 'zeta = ',zeta
+        print 'from corr3 output = ',corr3_output[:,6]
+        print 'ratio = ',corr3_output[:,6]/zeta.flatten()
+        print 'diff = ',corr3_output[:,6]-zeta.flatten()
+        numpy.testing.assert_almost_equal(corr3_output[:,6]/zeta.flatten(), 1., decimal=3)
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','nnn_out1.fits')
@@ -1063,20 +1062,20 @@ def test_3d():
     print 'max rel diff = ',numpy.max(numpy.abs((simple_xi - true_xi)/true_xi))
     assert numpy.max(numpy.abs(simple_xi - true_xi)/true_xi) < 0.1
 
-    # Check that we get the same result using the corr2 executable:
+    # Check that we get the same result using the corr3 executable:
     #if __name__ == '__main__':
     if False:
         cat.write(os.path.join('data','nnn_3d_data.dat'))
         rand.write(os.path.join('data','nnn_3d_rand.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","nnn_3d.params"] )
+        p = subprocess.Popen( ["corr3","nnn_3d.params"] )
         p.communicate()
-        corr2_output = numpy.loadtxt(os.path.join('output','nnn_3d.out'))
+        corr3_output = numpy.loadtxt(os.path.join('output','nnn_3d.out'))
         print 'xi = ',xi
-        print 'from corr2 output = ',corr2_output[:,2]
-        print 'ratio = ',corr2_output[:,2]/xi
-        print 'diff = ',corr2_output[:,2]-xi
-        numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
+        print 'from corr3 output = ',corr3_output[:,2]
+        print 'ratio = ',corr3_output[:,2]/xi
+        print 'diff = ',corr3_output[:,2]-xi
+        numpy.testing.assert_almost_equal(corr3_output[:,2]/xi, 1., decimal=3)
 
 
 def test_list():
@@ -1127,7 +1126,7 @@ def test_list():
     print 'diff = ',xi-xix
     numpy.testing.assert_almost_equal(xix/xi, 1., decimal=2)
 
-    # Check that we get the same result using the corr2 executable:
+    # Check that we get the same result using the corr3 executable:
     file_list = []
     rand_file_list = []
     for k in range(ncats):
@@ -1165,34 +1164,34 @@ def test_list():
                 fid.write(('%.8f %.8f\n')%(rx[i,k],ry[i,k]))
 
     import subprocess
-    p = subprocess.Popen( ["corr2","nnn_list1.params"] )
+    p = subprocess.Popen( ["corr3","nnn_list1.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','nnn_list1.out'))
+    corr3_output = numpy.loadtxt(os.path.join('output','nnn_list1.out'))
     print 'xi = ',xi
-    print 'from corr2 output = ',corr2_output[:,2]
-    print 'ratio = ',corr2_output[:,2]/xi
-    print 'diff = ',corr2_output[:,2]-xi
-    numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
+    print 'from corr3 output = ',corr3_output[:,2]
+    print 'ratio = ',corr3_output[:,2]/xi
+    print 'diff = ',corr3_output[:,2]-xi
+    numpy.testing.assert_almost_equal(corr3_output[:,2]/xi, 1., decimal=3)
 
     import subprocess
-    p = subprocess.Popen( ["corr2","nnn_list2.params"] )
+    p = subprocess.Popen( ["corr3","nnn_list2.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','nnn_list2.out'))
+    corr3_output = numpy.loadtxt(os.path.join('output','nnn_list2.out'))
     print 'xi = ',xi
-    print 'from corr2 output = ',corr2_output[:,2]
-    print 'ratio = ',corr2_output[:,2]/xi
-    print 'diff = ',corr2_output[:,2]-xi
-    numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=2)
+    print 'from corr3 output = ',corr3_output[:,2]
+    print 'ratio = ',corr3_output[:,2]/xi
+    print 'diff = ',corr3_output[:,2]-xi
+    numpy.testing.assert_almost_equal(corr3_output[:,2]/xi, 1., decimal=2)
 
     import subprocess
-    p = subprocess.Popen( ["corr2","nnn_list3.params"] )
+    p = subprocess.Popen( ["corr3","nnn_list3.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','nnn_list3.out'))
+    corr3_output = numpy.loadtxt(os.path.join('output','nnn_list3.out'))
     print 'xi = ',xi
-    print 'from corr2 output = ',corr2_output[:,2]
-    print 'ratio = ',corr2_output[:,2]/xi
-    print 'diff = ',corr2_output[:,2]-xi
-    numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=2)
+    print 'from corr3 output = ',corr3_output[:,2]
+    print 'ratio = ',corr3_output[:,2]/xi
+    print 'diff = ',corr3_output[:,2]-xi
+    numpy.testing.assert_almost_equal(corr3_output[:,2]/xi, 1., decimal=2)
 
 
 if __name__ == '__main__':

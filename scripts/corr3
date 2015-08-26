@@ -1,0 +1,106 @@
+#!/usr/bin/env python
+# Copyright (c) 2003-2014 by Mike Jarvis
+#
+# TreeCorr is free software: redistribution and use in source and binary forms,
+# with or without modification, are permitted provided that the following
+# conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+#    list of conditions, and the disclaimer given in the accompanying LICENSE
+#    file.
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions, and the disclaimer given in the documentation
+#    and/or other materials provided with the distribution.
+
+
+import sys
+import treecorr
+
+def parse_args():
+    """Handle the command line arguments to corr3 executable.
+
+    Returns the args as an argparse.Namespace object.
+    
+    It will have the following fields:
+
+        args.config_file
+        args.variables
+        args.verbosity
+        args.log_file
+        args.version
+    """
+    import argparse
+
+    version_str = "TreeCorr version %s"%treecorr.version
+    description = "Efficient code for computing 3-point correlation functions.\n"
+    description += "See https://github.com/rmjarvis/TreeCorr for documentation."
+
+    parser = argparse.ArgumentParser(description=description, add_help=True, epilog=version_str)
+    parser.add_argument(
+        'config_file', type=str, nargs='?',
+        help='the configuration file')
+    parser.add_argument(
+        'variables', type=str, nargs='*',
+        help='additional variables or modifications to variables in the config file. ' +
+        'e.g. `corr3 gg.params gg_file_name=run03.out`')
+    parser.add_argument(
+        '-v', '--verbosity', type=int, action='store', default=None, choices=(0, 1, 2, 3),
+        help='integer verbosity level: min=0, max=3 [default=1]')
+    parser.add_argument(
+        '-l', '--log_file', type=str, action='store', default=None,
+        help='filename for storing logging output [default is to stream to stdout]')
+    parser.add_argument(
+        '--version', action='store_const', default=False, const=True,
+        help='show the version of TreeCorr')
+
+    args = parser.parse_args()
+
+    if args.config_file == None:
+        if args.version:
+            print version_str
+        else:
+            parser.print_help()
+        sys.exit()
+    elif args.version:
+        print version_str
+
+    return args
+
+
+def main():
+    args = parse_args()
+
+    # Read the config file
+    config = treecorr.config.read_config(args.config_file)
+
+    # Create a logger with the given verbosity and log_file
+    verbose = args.verbosity
+    log_file = args.log_file
+    if verbose is None:
+        verbose = int(config.get('verbose',1))
+    if log_file is None:
+        log_file = config.get('log_file',None)
+    logger = treecorr.config.setup_logger(verbose,log_file)
+
+    logger.debug('Successfully read config file %s'%args.config_file)
+
+    # Add the additional variables to the config file
+    redo_logger = False
+    for v in args.variables:
+        logger.debug('Parsing additional variable: %s',v)
+        treecorr.config.parse_variable(config, v)
+        if v.startswith('verbose') or v.startswith('log_file'):
+            redo_logger = True
+
+    # Make sure command line verbose or log_file gets processed correctly.
+    if redo_logger:
+        if 'verbose' in config: verbose = int(config['verbose'])
+        if 'log_file' in config: log_file = config['log_file']
+        logger = treecorr.config.setup_logger(verbose,log_file)
+
+    # Run the corr3 function
+    treecorr.corr3(config, logger)
+
+if __name__ == '__main__':
+    main()
+

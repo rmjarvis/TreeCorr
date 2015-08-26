@@ -994,28 +994,37 @@ def test_nnn():
         numpy.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
 
 
-
 def test_3d():
     # For this one, build a Gaussian cloud around some random point in 3D space and do the 
     # correlation function in 3D.
     #
-    # Use n(r) = (2pi s^2)^-3/2 exp(-r^2/2s^2)
-    #
     # The 3D Fourier transform is: n~(k) = exp(-s^2 k^2/2)
-    # P(k) = <|n~(k)|^2> = exp(-s^2 k^2)
-    # xi(r) = 1/2pi^2 int( dk k^2 P(k) j0(kr) )
-    #       = 1/(8 pi^3/2) 1/s^3 exp(-r^2/4s^2)
+    # B(k1,k2) = <n~(k1) n~(k2) n~(-k1-k2)>
+    #          = exp(-s^2 (|k1|^2 + |k2|^2 - k1.k2))
+    #          = exp(-s^2 (|k1|^2 + |k2|^2 + |k3|^2)/2)
+    # as before, except now k1,k2 are 3d vectors, not 2d.
     #
-    # And as before, we need to correct for the randoms, so the final xi(r) is
+    # zeta(r1,r2) = (1/2pi)^4 int(d^2k1 int(d^2k2 exp(ik1.x1) exp(ik2.x2) B(k1,k2) ))
+    #             = exp(-(x1^2 + y1^2 + x2^2 + y2^2 - x1x2 - y1y2)/3s^2) / 12 pi^2 s^4
+    #             = exp(-(d1^2 + d2^2 + d3^2)/6s^2) / 24 sqrt(3) pi^3 s^6
     #
-    # xi(r) = 1/(8 pi^3/2) (L/s)^3 exp(-r^2/4s^2) - 1
+    # And again, this is also derivable as:
+    # zeta(r1,r2) = int(dx int(dy int(dz n(x,y,z) n(x+x1,y+y1,z+z1) n(x+x2,y+y2,z+z2)))
+    # which is also analytically integrable and gives the same answer.
+    #
+    # However, we need to correct for the uniform density background, so the real result
+    # is this minus 1/L^6 divided by 1/L^6.  So:
+    #
+    # zeta(r1,r2) = 1/(24 sqrt(3) pi^3) (L/s)^4 exp(-(d1^2+d2^2+d3^2)/6s^2) - 1
 
+    # Doing the full correlation function takes a long time.  Here, we just test a small range
+    # of separations and a moderate range for u, v, which gives us a variety of triangle lengths.
     ngal = 5000
     xcen = 823  # Mpc maybe?
     ycen = 342
     zcen = -672
     s = 10.
-    L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+    L = 50. * s  # Smaller since we have 3 dimensions, so this is plenty.
     numpy.random.seed(8675309)
     x = numpy.random.normal(xcen, s, (ngal,) )
     y = numpy.random.normal(ycen, s, (ngal,) )
@@ -1025,57 +1034,81 @@ def test_3d():
     dec = numpy.arcsin(z/r) / treecorr.degrees
     ra = numpy.arctan2(y,x) / treecorr.degrees
 
-    cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='deg', dec_units='deg')
-    dd = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=3)
-    dd.process(cat)
-    print 'dd.ntri = ',dd.ntri
+    min_sep = 10.
+    max_sep = 25.
+    nbins = 10
+    min_u = 0.9
+    max_u = 1.0
+    nubins = 1
+    min_v = -0.1
+    max_v = 0.1
+    nvbins = 1
 
-    nrand = 5 * ngal
+    cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='deg', dec_units='deg')
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                  nubins=nubins, nvbins=nvbins, verbose=3)
+    ddd.process(cat)
+    print 'ddd.ntri = ',ddd.ntri
+
+    nrand = 10 * ngal
     rx = (numpy.random.random_sample(nrand)-0.5) * L + xcen
     ry = (numpy.random.random_sample(nrand)-0.5) * L + ycen
     rz = (numpy.random.random_sample(nrand)-0.5) * L + zcen
     rr = numpy.sqrt(rx*rx+ry*ry+rz*rz)
     rdec = numpy.arcsin(rz/rr) / treecorr.degrees
     rra = numpy.arctan2(ry,rx) / treecorr.degrees
+
     rand = treecorr.Catalog(ra=rra, dec=rdec, r=rr, ra_units='deg', dec_units='deg')
-    rr = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=3)
-    rr.process(rand)
-    print 'rr.ntri = ',rr.ntri
+    rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                  nubins=nubins, nvbins=nvbins, verbose=3)
+    rrr.process(rand)
+    print 'rrr.ntri = ',rrr.ntri
 
-    dr = treecorr.NNNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=3)
-    dr.process(cat,rand)
-    print 'dr.ntri = ',dr.ntri
+    r = numpy.exp(ddd.meanlogr)
+    u = ddd.meanu
+    v = ddd.meanv
+    d2 = r
+    d3 = u * r
+    d1 = numpy.abs(v) * d3 + d2
+    #print 'rnom = ',numpy.exp(ddd.logr)
+    #print 'unom = ',ddd.u
+    #print 'vnom = ',ddd.v
+    #print 'r = ',r
+    #print 'u = ',u
+    #print 'v = ',v
+    #print 'd2 = ',d2
+    #print 'd3 = ',d3
+    #print 'd1 = ',d1
+    true_zeta = ((1./(24.*numpy.sqrt(3)*numpy.pi**3)) * (L/s)**6 *
+                 numpy.exp(-(d1**2+d2**2+d3**2)/(6.*s**2)) - 1.)
 
-    r = numpy.exp(dd.meanlogr)
-    true_xi = 1./(8.*numpy.pi**1.5) * (L/s)**3 * numpy.exp(-0.25*r**2/s**2) - 1.
-
-    xi, varxi = dd.calculateXi(rr,dr)
-    print 'xi = ',xi
-    print 'true_xi = ',true_xi
-    print 'ratio = ',xi / true_xi
-    print 'diff = ',xi - true_xi
-    print 'max rel diff = ',numpy.max(numpy.abs((xi - true_xi)/true_xi))
-    assert numpy.max(numpy.abs(xi - true_xi)/true_xi) < 0.1
-
-    simple_xi, varxi = dd.calculateXi(rr)
-    print 'simple xi = ',simple_xi
-    print 'max rel diff = ',numpy.max(numpy.abs((simple_xi - true_xi)/true_xi))
-    assert numpy.max(numpy.abs(simple_xi - true_xi)/true_xi) < 0.1
+    zeta, varzeta = ddd.calculateZeta(rrr)
+    print 'zeta = ',zeta
+    print 'true_zeta = ',true_zeta
+    print 'ratio = ',zeta / true_zeta
+    print 'diff = ',zeta - true_zeta
+    print 'max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))
+    # The simple calculation (i.e. ddd/rrr-1, rather than (ddd-3ddr+3drr-rrr)/rrr as above) is only 
+    # slightly less accurate in this case.  Probably because the mask is simple (a box), so
+    # the difference is relatively minor.  The error is slightly higher in this case, but testing
+    # that it is everywhere < 0.1 is still appropriate.
+    assert numpy.max(numpy.abs(zeta - true_zeta)/true_zeta) < 0.1
 
     # Check that we get the same result using the corr3 executable:
-    #if __name__ == '__main__':
-    if False:
+    if __name__ == '__main__':
         cat.write(os.path.join('data','nnn_3d_data.dat'))
         rand.write(os.path.join('data','nnn_3d_rand.dat'))
         import subprocess
         p = subprocess.Popen( ["corr3","nnn_3d.params"] )
         p.communicate()
         corr3_output = numpy.loadtxt(os.path.join('output','nnn_3d.out'))
-        print 'xi = ',xi
-        print 'from corr3 output = ',corr3_output[:,2]
-        print 'ratio = ',corr3_output[:,2]/xi
-        print 'diff = ',corr3_output[:,2]-xi
-        numpy.testing.assert_almost_equal(corr3_output[:,2]/xi, 1., decimal=3)
+        print 'zeta = ',zeta
+        print 'from corr3 output = ',corr3_output[:,6]
+        print 'ratio = ',corr3_output[:,6]/zeta.flatten()
+        print 'diff = ',corr3_output[:,6]-zeta.flatten()
+        numpy.testing.assert_almost_equal(corr3_output[:,6]/zeta.flatten(), 1., decimal=3)
 
 
 def test_list():
@@ -1200,6 +1233,6 @@ if __name__ == '__main__':
     #test_direct_count_cross()
     #test_direct_3d_auto()
     #test_direct_3d_cross()
-    test_nnn()
-    #test_3d()
+    #test_nnn()
+    test_3d()
     #test_list()

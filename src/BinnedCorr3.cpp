@@ -499,10 +499,10 @@ struct SortHelper<DC,DC,DC,true,M>
         double minu, double minusq, double maxu, double maxusq)
     {
         // If all possible triangles will have d2 < minsep, then abort the recursion here.
-        // This means at least two sides must have d + sps < minsep.
-        // Probably if d2 + s1+s3 < minsep, we can stop, but also check d3:
-        // Probably we can stop now, but check d3
-        // If these don't pass, then it's pretty unlikely that d1 will, so don't bother with that.
+        // This means at least two sides must have d + (s+s) < minsep.
+        // Probably if d2 + s1+s3 < minsep, we can stop, but also check d3.
+        // If one of these don't pass, then it's pretty unlikely that d1 will, so don't bother
+        // checking that one.
         if (d2sq < minsepsq && s1ps3 < minsep && s1ps2 < minsep && 
             (s1ps3 == 0. || d2sq < SQR(minsep - s1ps3)) && 
             (s1ps2 == 0. || d3sq < SQR(minsep - s1ps2)) ) {
@@ -511,10 +511,11 @@ struct SortHelper<DC,DC,DC,true,M>
         }
 
         // Similarly, we can abort if all possible triangles will have d2 > maxsep.
-        // This means at least two sides must have d - sps > maxsep.
+        // This means at least two sides must have d - (s+s) > maxsep.
         // Again, d2 - s1 - s3 >= maxsep is not sufficient.  Also check d1.
-        // And again, it's pretty unlikely that d3 needs to be checked if first 2 pass.
-        if (d2sq >= maxsepsq && s2ps3 < maxsep &&
+        // And again, it's pretty unlikely that d3 needs to be checked if one of the first
+        // two don't pass.
+        if (d2sq >= maxsepsq &&
             (s1ps3 == 0. || d2sq >= SQR(maxsep + s1ps3)) && 
             (s2ps3 == 0. || d1sq >= SQR(maxsep + s2ps3))) {
             xdbg<<"d2 cannot be as small as maxsep\n";

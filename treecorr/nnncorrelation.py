@@ -131,7 +131,10 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         :param cat:      The catalog to process
         """
-        self.logger.info('Starting process NNN auto-correlations for cat %s.',cat.name)
+        if cat.name == '':
+            self.logger.info('Starting process NNN auto-correlations')
+        else:
+            self.logger.info('Starting process NNN auto-correlations for cat %s.', cat.name)
 
         self._set_num_threads()
 
@@ -171,8 +174,11 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         :param cat2:     The second catalog to process
         :param cat3:     The third catalog to process
         """
-        self.logger.info('Starting process NN cross-correlations for cats %s, %s.',
-                         cat1.name, cat2.name)
+        if cat1.name == '' and cat2.name == '' and cat3.name == '':
+            self.logger.info('Starting process NNN cross-correlations')
+        else:
+            self.logger.info('Starting process NNN cross-correlations for cats %s, %s, %s.',
+                             cat1.name, cat2.name, cat3.name)
 
         self._set_num_threads()
 
@@ -344,7 +350,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             zeta = (self.ntri - rrd.ntri * rrdw - rdr.ntri * rdrw - drr.ntr * nrrw +
                     ddr.ntri * ddrw + drd.ntri * drdw + rdd.ntri * rddw - rrr.ntri * rrrw)
         if numpy.any(rrr.ntri == 0):
-            self.logger.warn("Warning: Some bins for the randoms had no tri.")
+            self.logger.warn("Warning: Some bins for the randoms had no triangles.")
             self.logger.warn("         Probably max_sep is larger than your field.")
         mask1 = rrr.ntri != 0
         mask2 = rrr.ntri == 0

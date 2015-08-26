@@ -123,6 +123,7 @@ class BinnedCorr2(object):
             self.output_dots = False
 
         self.sep_units = treecorr.config.get(self.config,'sep_units',str,'radians')
+        self.sep_unit_name = self.config.get('sep_units','')
         self.log_sep_units = math.log(self.sep_units)
         if 'nbins' not in self.config:
             if 'max_sep' not in self.config:
@@ -164,8 +165,13 @@ class BinnedCorr2(object):
             self.nbins = int(self.config['nbins'])
             self.bin_size = float(self.config['bin_size'])
             self.min_sep = self.max_sep*math.exp(-self.nbins*self.bin_size)
-        self.logger.info("nbins = %d, min,max sep = %e..%e radians, bin_size = %f",
-                         self.nbins,self.min_sep,self.max_sep,self.bin_size)
+        if self.sep_unit_name == '':
+            self.logger.info("nbins = %d, min,max sep = %g..%g, bin_size = %g",
+                             self.nbins,self.min_sep,self.max_sep,self.bin_size)
+        else:
+            self.logger.info("nbins = %d, min,max sep = %g..%g %s, bin_size = %g",
+                             self.nbins,self.min_sep/self.sep_units,self.max_sep/self.sep_units,
+                             self.sep_unit_name,self.bin_size)
 
         self.split_method = self.config.get('split_method','mean')
         if self.split_method not in ['middle', 'median', 'mean']:
@@ -182,13 +188,13 @@ class BinnedCorr2(object):
                 self.bin_slop = 0.1/self.bin_size
         self.b = self.bin_size * self.bin_slop
         if self.b > 0.100001:  # Add some numerical slop
-            self.logger.warn("Using bin_slop = %f, bin_size = %f",self.bin_slop,self.bin_size)
-            self.logger.warn("The b parameter is bin_slop * bin_size = %f",self.b)
+            self.logger.warn("Using bin_slop = %g, bin_size = %g",self.bin_slop,self.bin_size)
+            self.logger.warn("The b parameter is bin_slop * bin_size = %g",self.b)
             self.logger.warn("It is generally recommended to use b <= 0.1 for most applications.")
             self.logger.warn("Larger values of this b parameter may result in significant"+
                              "inaccuracies.")
         else:
-            self.logger.debug("Using bin_slop = %f, b = %f",self.bin_slop,self.b)
+            self.logger.debug("Using bin_slop = %g, b = %g",self.bin_slop,self.b)
 
         # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
         self.logr = numpy.linspace(start=0, stop=self.nbins*self.bin_size, 

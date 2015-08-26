@@ -120,8 +120,11 @@ class NGCorrelation(treecorr.BinnedCorr2):
         :param cat1:     The first catalog to process
         :param cat2:     The second catalog to process
         """
-        self.logger.info('Starting process NG cross-correlations for cats %s, %s.',
-                         cat1.name, cat2.name)
+        if cat1.name == '' and cat2.name == '':
+            self.logger.info('Starting process NG cross-correlations')
+        else:
+            self.logger.info('Starting process NG cross-correlations for cats %s, %s.',
+                             cat1.name, cat2.name)
 
         self._set_num_threads()
 
@@ -149,8 +152,11 @@ class NGCorrelation(treecorr.BinnedCorr2):
         :param cat1:     The first catalog to process
         :param cat2:     The second catalog to process
         """
-        self.logger.info('Starting process NG pairwise-correlations for cats %s, %s.',
-                         cat1.name, cat2.name)
+        if cat1.name == '' and cat2.name == '':
+            self.logger.info('Starting process NG pairwise-correlations')
+        else:
+            self.logger.info('Starting process NG pairwise-correlations for cats %s, %s.',
+                             cat1.name, cat2.name)
 
         self._set_num_threads()
 

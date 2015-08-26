@@ -282,6 +282,9 @@ class BinnedCorr3(object):
             self.min_v = self.max_v - self.nvbins*self.vbin_size
             if self.min_v < -1.:
                 raise ValueError("Cannot specify max_v - vbin_size * nvbins < -1.")
+        self.logger.info("u = %g..%g, bin_size = %g, v = %g..%g, bin_size = %g",
+                         self.min_u, self.max_u, self.ubin_size, 
+                         self.min_v, self.max_v, self.vbin_size)
 
         self.split_method = self.config.get('split_method','mean')
         if self.split_method not in ['middle', 'median', 'mean']:

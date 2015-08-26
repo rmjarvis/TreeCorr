@@ -179,10 +179,10 @@ class BinnedCorr3(object):
             self.bin_size = float(self.config['bin_size'])
             self.min_sep = self.max_sep*math.exp(-self.nbins*self.bin_size)
         if self.sep_unit_name == '':
-            self.logger.info("nbins = %d, min,max sep = %g..%g, bin_size = %g",
+            self.logger.info("r: nbins = %d, min,max sep = %g..%g, bin_size = %g",
                              self.nbins,self.min_sep,self.max_sep,self.bin_size)
         else:
-            self.logger.info("nbins = %d, min,max sep = %g..%g %s, bin_size = %g",
+            self.logger.info("r: nbins = %d, min,max sep = %g..%g %s, bin_size = %g",
                              self.nbins,self.min_sep/self.sep_units,self.max_sep/self.sep_units,
                              self.sep_unit_name,self.bin_size)
 
@@ -226,6 +226,8 @@ class BinnedCorr3(object):
             if self.max_u > 1.: 
                 self.max_u = 1.
                 self.ubin_size = (self.max_u-self.min_u)/self.nubins
+        self.logger.info("u: nbins = %d, min,max = %g..%g, bin_size = %g",
+                         self.nubins,self.min_u,self.max_u,self.ubin_size)
 
         if 'nvbins' not in self.config:
             self.min_v = float(self.config.get('min_v', -1.))
@@ -282,9 +284,8 @@ class BinnedCorr3(object):
             self.min_v = self.max_v - self.nvbins*self.vbin_size
             if self.min_v < -1.:
                 raise ValueError("Cannot specify max_v - vbin_size * nvbins < -1.")
-        self.logger.info("u = %g..%g, bin_size = %g, v = %g..%g, bin_size = %g",
-                         self.min_u, self.max_u, self.ubin_size, 
-                         self.min_v, self.max_v, self.vbin_size)
+        self.logger.info("v: nbins = %d, min,max = %g..%g, bin_size = %g",
+                         self.nvbins,self.min_v,self.max_v,self.vbin_size)
 
         self.split_method = self.config.get('split_method','mean')
         if self.split_method not in ['middle', 'median', 'mean']:

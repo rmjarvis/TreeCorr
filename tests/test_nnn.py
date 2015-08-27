@@ -1264,11 +1264,11 @@ def test_list():
 
 
 if __name__ == '__main__':
-    #test_binnedcorr3()
-    #test_direct_count_auto()
-    #test_direct_count_cross()
-    #test_direct_3d_auto()
-    #test_direct_3d_cross()
-    #test_nnn()
-    #test_3d()
+    test_binnedcorr3()
+    test_direct_count_auto()
+    test_direct_count_cross()
+    test_direct_3d_auto()
+    test_direct_3d_cross()
+    test_nnn()
+    test_3d()
     test_list()

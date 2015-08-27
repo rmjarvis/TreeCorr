@@ -210,10 +210,8 @@ class BinnedCorr2(object):
     gen_read = treecorr.util.gen_read
 
     def _process_all_auto(self, cat1):
-        for c1 in cat1:
-            self.process_auto(c1)
-
         for i,c1 in enumerate(cat1):
+            self.process_auto(c1)
             for c2 in cat1[i+1:]:
                 self.process_cross(c1,c2)
 

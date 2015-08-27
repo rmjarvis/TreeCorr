@@ -863,9 +863,9 @@ def test_nnn():
     min_u = 0.6
     max_u = 0.9
     nubins = 3
-    min_v = -0.7
-    max_v = 0.7
-    nvbins = 10
+    min_v = 0.5
+    max_v = 0.9
+    nvbins = 5
 
     cat = treecorr.Catalog(x=x, y=y, x_units='arcmin', y_units='arcmin')
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,

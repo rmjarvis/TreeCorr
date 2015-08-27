@@ -16,9 +16,9 @@ sep_units = arcmin
 min_u = 0.6
 max_u = 0.9
 nubins = 3
-min_v = -0.7
-max_v = 0.7
-nvbins = 10
+min_v = 0.5
+max_v = 0.9
+nvbins = 5
 
 nnn_statistic = simple
 nnn_file_name = output/nnn.out

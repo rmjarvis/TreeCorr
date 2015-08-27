@@ -93,6 +93,8 @@ protected:
     double _maxusq;
     double _minabsv;
     double _maxabsv;
+    double _minabsvsq;
+    double _maxabsvsq;
     double _bsq;
     double _busq;
     double _bvsq;

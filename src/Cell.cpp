@@ -296,6 +296,8 @@ Cell<DC,M>::Cell(CellData<DC,M>* ave, double sizesq,
         } catch (std::bad_alloc) {
             myerror("out of memory - cannot create new Cell");
         }
+    } else {
+        _size = _sizesq = 0.;
     }
 }
 

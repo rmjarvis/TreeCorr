@@ -46,7 +46,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
     It holds the following attributes:
 
-        :logr:      The nominal center of the bin in log(r).
+        :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
         :meanlogr:  The (weighted) mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
         :xi:        The correlation function, xi(r).

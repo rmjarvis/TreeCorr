@@ -728,7 +728,7 @@ class Catalog(object):
                     self.logger.debug('read k = %s',str(self.k))
 
  
-    def getNField(self, min_sep, max_sep, b, split_method='mean', logger=None):
+    def getNField(self, min_sep, max_sep, b, split_method='mean', perp=False, logger=None):
         """Return an NField based on the positions in this catalog.
 
         The NField object is cached, so this is efficient to call multiple times.
@@ -739,6 +739,8 @@ class Catalog(object):
                                 This should be bin_size * bin_slop.
         :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                                 (default: 'mean')
+        :param perp:            Whether to use the perpendicular distance rather than the 3d 
+                                separation (for catalogs with 3d positions) (default: False)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.NField` object
@@ -746,16 +748,18 @@ class Catalog(object):
         if (not hasattr(self,'nfield') 
             or min_sep != self.nfield.min_sep
             or max_sep != self.nfield.max_sep
+            or split_method != self.nfield.split_method
+            or perp != self.nfield.perp
             or b != self.nfield.b):
 
             if logger is None:
                 logger = self.logger
-            self.nfield = treecorr.NField(self,min_sep,max_sep,b,logger)
+            self.nfield = treecorr.NField(self,min_sep,max_sep,b,split_method,perp,logger)
 
         return self.nfield
 
 
-    def getKField(self, min_sep, max_sep, b, split_method='mean', logger=None):
+    def getKField(self, min_sep, max_sep, b, split_method='mean', perp=False, logger=None):
         """Return a KField based on the k values in this catalog.
 
         The KField object is cached, so this is efficient to call multiple times.
@@ -766,6 +770,8 @@ class Catalog(object):
                                 This should be bin_size * bin_slop.
         :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                                 (default: 'mean')
+        :param perp:            Whether to use the perpendicular distance rather than the 3d 
+                                separation (for catalogs with 3d positions) (default: False)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.KField` object
@@ -773,18 +779,20 @@ class Catalog(object):
         if (not hasattr(self,'kfield') 
             or min_sep != self.kfield.min_sep
             or max_sep != self.kfield.max_sep
+            or split_method != self.kfield.split_method
+            or perp != self.kfield.perp
             or b != self.kfield.b):
 
             if self.k is None:
                 raise AttributeError("k are not defined.")
             if logger is None:
                 logger = self.logger
-            self.kfield = treecorr.KField(self,min_sep,max_sep,b,logger)
+            self.kfield = treecorr.KField(self,min_sep,max_sep,b,split_method,perp,logger)
 
         return self.kfield
 
 
-    def getGField(self, min_sep, max_sep, b, split_method='mean', logger=None):
+    def getGField(self, min_sep, max_sep, b, split_method='mean', perp=False, logger=None):
         """Return a GField based on the g1,g2 values in this catalog.
 
         The GField object is cached, so this is efficient to call multiple times.
@@ -795,6 +803,8 @@ class Catalog(object):
                                 This should be bin_size * bin_slop.
         :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                                 (default: 'mean')
+        :param perp:            Whether to use the perpendicular distance rather than the 3d 
+                                separation (for catalogs with 3d positions) (default: False)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.GField` object
@@ -802,68 +812,79 @@ class Catalog(object):
         if (not hasattr(self,'gfield') 
             or min_sep != self.gfield.min_sep
             or max_sep != self.gfield.max_sep
+            or split_method != self.gfield.split_method
+            or perp != self.gfield.perp
             or b != self.gfield.b):
 
             if self.g1 is None or self.g2 is None:
                 raise AttributeError("g1,g2 are not defined.")
             if logger is None:
                 logger = self.logger
-            self.gfield = treecorr.GField(self,min_sep,max_sep,b,logger)
+            self.gfield = treecorr.GField(self,min_sep,max_sep,b,split_method,perp,logger)
 
         return self.gfield
 
 
-    def getNSimpleField(self, logger=None):
+    def getNSimpleField(self, perp=False, logger=None):
         """Return an NSimpleField based on the positions in this catalog.
 
         The NSimpleField object is cached, so this is efficient to call multiple times.
 
+        :param perp:            Whether to use the perpendicular distance rather than the 3d 
+                                separation (for catalogs with 3d positions) (default: False)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.NSimpleField` object
         """
-        if not hasattr(self,'nsimplefield'):
+        if (not hasattr(self,'nsimplefield')
+            or perp != self.nfield.perp):
             if logger is None:
                 logger = self.logger
-            self.nsimplefield = treecorr.NSimpleField(self,logger)
+            self.nsimplefield = treecorr.NSimpleField(self,perp,logger)
 
         return self.nsimplefield
 
 
-    def getKSimpleField(self, logger=None):
+    def getKSimpleField(self, perp=False, logger=None):
         """Return a KSimpleField based on the k values in this catalog.
 
         The KSimpleField object is cached, so this is efficient to call multiple times.
 
+        :param perp:            Whether to use the perpendicular distance rather than the 3d 
+                                separation (for catalogs with 3d positions) (default: False)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.KSimpleField` object
         """
-        if not hasattr(self,'ksimplefield'):
+        if (not hasattr(self,'ksimplefield')
+            or perp != self.kfield.perp):
             if self.k is None:
                 raise AttributeError("k are not defined.")
             if logger is None:
                 logger = self.logger
-            self.ksimplefield = treecorr.KSimpleField(self,logger)
+            self.ksimplefield = treecorr.KSimpleField(self,perp,logger)
 
         return self.ksimplefield
 
 
-    def getGSimpleField(self, logger=None):
+    def getGSimpleField(self, perp=False, logger=None):
         """Return a GSimpleField based on the g1,g2 values in this catalog.
 
         The GSimpleField object is cached, so this is efficient to call multiple times.
 
+        :param perp:            Whether to use the perpendicular distance rather than the 3d 
+                                separation (for catalogs with 3d positions) (default: False)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.GSimpleField` object
         """
-        if not hasattr(self,'gsimplefield'):
+        if (not hasattr(self,'gsimplefield')
+            or perp != self.gfield.perp):
             if self.g1 is None or self.g2 is None:
                 raise AttributeError("g1,g2 are not defined.")
             if logger is None:
                 logger = self.logger
-            self.gsimplefield = treecorr.GSimpleField(self,logger)
+            self.gsimplefield = treecorr.GSimpleField(self,perp,logger)
 
         return self.gsimplefield
 

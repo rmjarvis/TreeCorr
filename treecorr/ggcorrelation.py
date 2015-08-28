@@ -117,7 +117,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
             _treecorr.DestroyGGCorr(self.corr)
 
 
-    def process_auto(self, cat):
+    def process_auto(self, cat, perp=False):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
@@ -126,12 +126,14 @@ class GGCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
 
         :param cat:     The catalog to process
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         self.logger.info('Starting process GG auto-correlations for cat %s.',cat.name)
 
         self._set_num_threads()
 
-        field = cat.getGField(self.min_sep,self.max_sep,self.b,self.split_method)
+        field = cat.getGField(self.min_sep,self.max_sep,self.b,self.split_method,perp)
 
         if field.sphere:
             if field.perp:
@@ -142,7 +144,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
             _treecorr.ProcessAutoGGFlat(self.corr, field.data, self.output_dots)
 
 
-    def process_cross(self, cat1, cat2):
+    def process_cross(self, cat1, cat2, perp=False):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
@@ -150,20 +152,20 @@ class GGCorrelation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
 
-        :param cat1:     The first catalog to process
-        :param cat2:     The second catalog to process
+        :param cat1:    The first catalog to process
+        :param cat2:    The second catalog to process
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         self.logger.info('Starting process GG cross-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
 
         self._set_num_threads()
 
-        f1 = cat1.getGField(self.min_sep,self.max_sep,self.b,self.split_method)
-        f2 = cat2.getGField(self.min_sep,self.max_sep,self.b,self.split_method)
+        f1 = cat1.getGField(self.min_sep,self.max_sep,self.b,self.split_method,perp)
+        f2 = cat2.getGField(self.min_sep,self.max_sep,self.b,self.split_method,perp)
 
         if f1.sphere != f2.sphere:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if f1.perp != f2.perp:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
@@ -175,7 +177,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
             _treecorr.ProcessCrossGGFlat(self.corr, f1.data, f2.data, self.output_dots)
 
 
-    def process_pairwise(self, cat1, cat2):
+    def process_pairwise(self, cat1, cat2, perp=False):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
 
@@ -184,20 +186,20 @@ class GGCorrelation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
 
-        :param cat1:     The first catalog to process
-        :param cat2:     The second catalog to process
+        :param cat1:    The first catalog to process
+        :param cat2:    The second catalog to process
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         self.logger.info('Starting process GG pairwise-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
 
         self._set_num_threads()
 
-        f1 = cat1.getGSimpleField()
-        f2 = cat2.getGSimpleField()
+        f1 = cat1.getGSimpleField(perp)
+        f2 = cat2.getGSimpleField(perp)
 
         if f1.sphere != f2.sphere:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if f1.perp != f2.perp:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
@@ -249,7 +251,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.npairs[:] = 0
 
 
-    def process(self, cat1, cat2=None):
+    def process(self, cat1, cat2=None, perp=False):
         """Compute the correlation function.
 
         If only 1 argument is given, then compute an auto-correlation function.
@@ -261,6 +263,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
         :param cat1:    A catalog or list of catalogs for the first G field.
         :param cat2:    A catalog or list of catalogs for the second G field, if any.
                         (default: None)
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         import math
         self.clear()
@@ -274,13 +278,13 @@ class GGCorrelation(treecorr.BinnedCorr2):
             varg1 = treecorr.calculateVarG(cat1)
             varg2 = varg1
             self.logger.info("varg = %f: sig_sn (per component) = %f",varg1,math.sqrt(varg1))
-            self._process_all_auto(cat1)
+            self._process_all_auto(cat1, perp)
         else:
             varg1 = treecorr.calculateVarG(cat1)
             varg2 = treecorr.calculateVarG(cat2)
             self.logger.info("varg1 = %f: sig_sn (per component) = %f",varg1,math.sqrt(varg1))
             self.logger.info("varg2 = %f: sig_sn (per component) = %f",varg2,math.sqrt(varg2))
-            self._process_all_cross(cat1,cat2)
+            self._process_all_cross(cat1,cat2, perp)
         self.finalize(varg1,varg2)
 
 

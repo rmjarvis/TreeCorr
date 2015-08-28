@@ -104,7 +104,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
             _treecorr.DestroyNKCorr(self.corr)
 
 
-    def process_cross(self, cat1, cat2):
+    def process_cross(self, cat1, cat2, perp=False):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
@@ -112,16 +112,18 @@ class NKCorrelation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
 
-        :param cat1:     The first catalog to process
-        :param cat2:     The second catalog to process
+        :param cat1:    The first catalog to process
+        :param cat2:    The second catalog to process
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         self.logger.info('Starting process NK cross-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
 
         self._set_num_threads()
 
-        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method)
-        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
+        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,perp)
+        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method,perp)
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
@@ -137,7 +139,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
             _treecorr.ProcessCrossNKFlat(self.corr, f1.data, f2.data, self.output_dots)
 
 
-    def process_pairwise(self, cat1, cat2):
+    def process_pairwise(self, cat1, cat2, perp=False):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
 
@@ -146,16 +148,18 @@ class NKCorrelation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
 
-        :param cat1:     The first catalog to process
-        :param cat2:     The second catalog to process
+        :param cat1:    The first catalog to process
+        :param cat2:    The second catalog to process
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         self.logger.info('Starting process NK pairwise-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
 
         self._set_num_threads()
 
-        f1 = cat1.getNSimpleField()
-        f2 = cat2.getKSimpleField()
+        f1 = cat1.getNSimpleField(perp)
+        f2 = cat2.getKSimpleField(perp)
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
@@ -204,7 +208,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.npairs[:] = 0
 
 
-    def process(self, cat1, cat2):
+    def process(self, cat1, cat2, perp=False):
         """Compute the correlation function.
 
         Both arguments may be lists, in which case all items in the list are used 
@@ -212,6 +216,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         :param cat1:    A catalog or list of catalogs for the N field.
         :param cat2:    A catalog or list of catalogs for the K field.
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         import math
         self.clear()
@@ -225,7 +231,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         vark = treecorr.calculateVarK(cat2)
         self.logger.info("vark = %f: sig_k = %f",vark,math.sqrt(vark))
-        self._process_all_cross(cat1,cat2)
+        self._process_all_cross(cat1,cat2,perp)
         self.finalize(vark)
 
 

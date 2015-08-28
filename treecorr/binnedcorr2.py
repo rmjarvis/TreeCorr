@@ -311,27 +311,27 @@ class BinnedCorr2(object):
         return data
 
 
-    def _process_all_auto(self, cat1):
+    def _process_all_auto(self, cat1, perp):
         for c1 in cat1:
-            self.process_auto(c1)
+            self.process_auto(c1,perp)
 
         for i,c1 in enumerate(cat1):
             for c2 in cat1[i+1:]:
-                self.process_cross(c1,c2)
+                self.process_cross(c1,c2,perp)
 
 
-    def _process_all_cross(self, cat1, cat2):
+    def _process_all_cross(self, cat1, cat2, perp):
         if treecorr.config.get(self.config,'pairwise',bool,False):
             if len(cat1) != len(cat2):
                 raise RuntimeError("Number of files for 1 and 2 must be equal for pairwise.")
             for c1,c2 in zip(cat1,cat2):
                 if c1.nobj != c2.nobj:
                     raise RuntimeError("Number of objects must be equal for pairwise.")
-                self.process_pairwise(c1,c2)
+                self.process_pairwise(c1,c2,perp)
         else:
             for c1 in cat1:
                 for c2 in cat2:
-                    self.process_cross(c1,c2)
+                    self.process_cross(c1,c2,perp)
  
 
     def _set_num_threads(self):

@@ -112,7 +112,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
             _treecorr.DestroyKKCorr(self.corr)
 
 
-    def process_auto(self, cat):
+    def process_auto(self, cat, perp=False):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
@@ -121,12 +121,14 @@ class KKCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
 
         :param cat:     The catalog to process
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         self.logger.info('Starting process KK auto-correlations for cat %s.',cat.name)
 
         self._set_num_threads()
 
-        field = cat.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
+        field = cat.getKField(self.min_sep,self.max_sep,self.b,self.split_method,perp)
 
         if field.sphere:
             if field.perp:
@@ -137,7 +139,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
             _treecorr.ProcessAutoKKFlat(self.corr, field.data, self.output_dots)
 
 
-    def process_cross(self, cat1, cat2):
+    def process_cross(self, cat1, cat2, perp=False):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
@@ -145,20 +147,20 @@ class KKCorrelation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
 
-        :param cat1:     The first catalog to process
-        :param cat2:     The second catalog to process
+        :param cat1:    The first catalog to process
+        :param cat2:    The second catalog to process
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         self.logger.info('Starting process KK cross-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
 
         self._set_num_threads()
 
-        f1 = cat1.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
-        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
+        f1 = cat1.getKField(self.min_sep,self.max_sep,self.b,self.split_method,perp)
+        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method,perp)
 
         if f1.sphere != f2.sphere:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if f1.perp != f2.perp:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
@@ -170,7 +172,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
             _treecorr.ProcessCrossKKFlat(self.corr, f1.data, f2.data, self.output_dots)
 
 
-    def process_pairwise(self, cat1, cat2):
+    def process_pairwise(self, cat1, cat2, perp=False):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
 
@@ -179,20 +181,20 @@ class KKCorrelation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
 
-        :param cat1:     The first catalog to process
-        :param cat2:     The second catalog to process
+        :param cat1:    The first catalog to process
+        :param cat2:    The second catalog to process
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         self.logger.info('Starting process KK pairwise-correlations for cats %s, %s.',
                          cat1.name, cat2.name)
 
         self._set_num_threads()
 
-        f1 = cat1.getKSimpleField()
-        f2 = cat2.getKSimpleField()
+        f1 = cat1.getKSimpleField(perp)
+        f2 = cat2.getKSimpleField(perp)
 
         if f1.sphere != f2.sphere:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if f1.perp != f2.perp:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
@@ -238,7 +240,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         self.npairs[:] = 0
 
 
-    def process(self, cat1, cat2=None):
+    def process(self, cat1, cat2=None, perp=False):
         """Compute the correlation function.
 
         If only 1 argument is given, then compute an auto-correlation function.
@@ -250,6 +252,8 @@ class KKCorrelation(treecorr.BinnedCorr2):
         :param cat1:    A catalog or list of catalogs for the first K field.
         :param cat2:    A catalog or list of catalogs for the second K field, if any.
                         (default: None)
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         import math
         self.clear()
@@ -263,13 +267,13 @@ class KKCorrelation(treecorr.BinnedCorr2):
             vark1 = treecorr.calculateVarK(cat1)
             vark2 = vark1
             self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
-            self._process_all_auto(cat1)
+            self._process_all_auto(cat1,perp)
         else:
             vark1 = treecorr.calculateVarK(cat1)
             vark2 = treecorr.calculateVarK(cat2)
             self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
             self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
-            self._process_all_cross(cat1,cat2)
+            self._process_all_cross(cat1,cat2,perp)
         self.finalize(vark1,vark2)
 
 

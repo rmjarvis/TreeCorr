@@ -82,6 +82,15 @@ inline double DistSq(const Position<Flat>& p1, const Position<Flat>& p2)
 inline double Dist(const Position<Flat>& p1, const Position<Flat>& p2)
 { return sqrt(DistSq(p1,p2)); }
 
+inline bool CCW(const Position<Flat>& p1, const Position<Flat>& p2, const Position<Flat>& p3)
+{
+    // If cross product r21 x r31 > 0, then the points are counter-clockwise.
+    double x2 = p2.getX() - p1.getX();
+    double y2 = p2.getY() - p1.getY();
+    double x3 = p3.getX() - p1.getX();
+    double y3 = p3.getY() - p1.getY();
+    return (x2*y3 - x3*y2) > 0.;
+}
 template <int M>
 inline std::ostream& operator<<(std::ostream& os, const Position<M>& pos)
 { pos.write(os); return os; }
@@ -309,6 +318,24 @@ inline double DistSq(const Position<Sphere>& p1, const Position<Sphere>& p2)
 }
 inline double Dist(const Position<Sphere>& p1, const Position<Sphere>& p2)
 { return sqrt(DistSq(p1,p2)); }
+
+inline bool CCW(const Position<Sphere>& p1, const Position<Sphere>& p2, const Position<Sphere>& p3)
+{
+    // Now it's slightly more complicated, since the points are in three dimensions.  We do
+    // the same thing, computing the cross product with respect to point p1.  Then if the 
+    // cross product points back toward Earth, the points are viewed as counter-clockwise.
+    // We check this last point by the dot product with p1.
+    double x2 = p2.getX() - p1.getX();
+    double y2 = p2.getY() - p1.getY();
+    double z2 = p2.getZ() - p1.getZ();
+    double x3 = p3.getX() - p1.getX();
+    double y3 = p3.getY() - p1.getY();
+    double z3 = p3.getZ() - p1.getZ();
+    double cx = y2*z3 - y3*z2;
+    double cy = z2*x3 - z3*x2;
+    double cz = x2*y3 - x3*y2;
+    return cx*p1.getX() + cy*p1.getY() + cz*p1.getZ() < 0.;
+}
 
 
 #endif

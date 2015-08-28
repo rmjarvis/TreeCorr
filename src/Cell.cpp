@@ -253,8 +253,6 @@ Cell<DC,M>::Cell(std::vector<CellData<DC,M>*>& vdata,
 
         _sizesq = CalculateSizeSq(_data->getPos(),vdata,start,end);
         Assert(_sizesq >= 0.);
-        _size = sqrt(_sizesq);
-        //xdbg<<"size = "<<_size<<std::endl;
 
         if (_sizesq > minsizesq) {
             size_t mid = SplitData(vdata,sm,start,end,_data->getPos());
@@ -264,6 +262,15 @@ Cell<DC,M>::Cell(std::vector<CellData<DC,M>*>& vdata,
             } catch (std::bad_alloc) {
                 myerror("out of memory - cannot create new Cell");
             }
+            _size = sqrt(_sizesq);
+            //xdbg<<"size = "<<_size<<std::endl;
+        } else {
+            // This shouldn't be necessary for 2-point, but 3-point calculations sometimes
+            // have triangles that have two sides that are almost the same, so splits can
+            // go arbitrarily small to switch which one is d1,d2 or d2,d3.  This isn't 
+            // actually an important distinction, so just abort that by calling the size
+            // exactly zero.
+            _size = _sizesq = 0.;
         }
     }
 }
@@ -289,6 +296,8 @@ Cell<DC,M>::Cell(CellData<DC,M>* ave, double sizesq,
         } catch (std::bad_alloc) {
             myerror("out of memory - cannot create new Cell");
         }
+    } else {
+        _size = _sizesq = 0.;
     }
 }
 
@@ -317,6 +326,22 @@ std::vector<const Cell<DC,M>*> Cell<DC,M>::getAllLeaves() const
         ret.push_back(this);
     }
     return ret;
+}
+
+template <int DC, int M>
+void Cell<DC,M>::Write(std::ostream& os) const
+{
+    os<<getData().getPos()<<"  "<<getSize()<<"  "<<getData().getN();
+}
+
+template <int DC, int M>
+void Cell<DC,M>::WriteTree(std::ostream& os, int indent) const
+{
+    os<<std::string(indent*2,'.')<<*this<<std::endl;
+    if (getLeft()) {
+        getLeft()->WriteTree(os, indent+1);
+        getRight()->WriteTree(os, indent+1);
+    }
 }
 
 template class CellData<NData,Flat>;

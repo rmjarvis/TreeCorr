@@ -95,6 +95,7 @@ void BinnedCorr2<DC1,DC2>::clear()
     for (int i=0; i<_nbins; ++i) _meanlogr[i] = 0.;
     if (_weight) for (int i=0; i<_nbins; ++i) _weight[i] = 0.;
     for (int i=0; i<_nbins; ++i) _npairs[i] = 0.;
+    _metric = -1;
 }
 
 template <int DC1, int DC2> template <int M>
@@ -273,7 +274,7 @@ void BinnedCorr2<DC1,DC2>::process11(const Cell<DC1,M>& c1, const Cell<DC2,M>& c
 
     // See if need to split:
     bool split1=false, split2=false;
-    CalcSplitSq(split1,split2,c1,c2,dsq,_bsq);
+    CalcSplitSq(split1,split2,c1,c2,dsq,s1ps2,_bsq);
 
     if (split1) {
         if (split2) {
@@ -673,7 +674,7 @@ void* BuildNNCorr(double minsep, double maxsep, int nbins, double binsize, doubl
             minsep, maxsep, nbins, binsize, b,
             0, 0, 0, 0,
             meanlogr, 0, npairs));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
@@ -686,7 +687,7 @@ void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, doubl
             minsep, maxsep, nbins, binsize, b,
             xi, 0, 0, 0,
             meanlogr, weight, npairs));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
@@ -699,7 +700,7 @@ void* BuildNGCorr(double minsep, double maxsep, int nbins, double binsize, doubl
             minsep, maxsep, nbins, binsize, b,
             xi, xi_im, 0, 0,
             meanlogr, weight, npairs));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
@@ -712,7 +713,7 @@ void* BuildKKCorr(double minsep, double maxsep, int nbins, double binsize, doubl
             minsep, maxsep, nbins, binsize, b,
             xi, 0, 0, 0,
             meanlogr, weight, npairs));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
@@ -725,7 +726,7 @@ void* BuildKGCorr(double minsep, double maxsep, int nbins, double binsize, doubl
             minsep, maxsep, nbins, binsize, b,
             xi, xi_im, 0, 0,
             meanlogr, weight, npairs));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
@@ -738,49 +739,49 @@ void* BuildGGCorr(double minsep, double maxsep, int nbins, double binsize, doubl
             minsep, maxsep, nbins, binsize, b,
             xip, xip_im, xim, xim_im,
             meanlogr, weight, npairs));
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
 void DestroyNNCorr(void* corr)
 {
     dbg<<"Start DestroyNNCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr2<NData,NData>*>(corr);
 }
 
 void DestroyNKCorr(void* corr)
 {
     dbg<<"Start DestroyNKCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr2<NData,KData>*>(corr);
 }
 
 void DestroyNGCorr(void* corr)
 {
     dbg<<"Start DestroyNGCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr2<NData,GData>*>(corr);
 }
 
 void DestroyKKCorr(void* corr)
 {
     dbg<<"Start DestroyKKCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr2<KData,KData>*>(corr);
 }
 
 void DestroyKGCorr(void* corr)
 {
     dbg<<"Start DestroyKGCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr2<KData,GData>*>(corr);
 }
 
 void DestroyGGCorr(void* corr)
 {
     dbg<<"Start DestroyGGCorr\n";
-    dbg<<"corr = "<<corr<<std::endl;
+    xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr2<GData,GData>*>(corr);
 }
 

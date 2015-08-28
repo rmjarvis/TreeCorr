@@ -20,7 +20,7 @@ except:
 print 'Python version = ',sys.version
 py_version = "%d.%d"%sys.version_info[0:2]  # we check things based on the major.minor version.
 
-scripts = ['corr2']
+scripts = ['corr2', 'corr3']
 scripts = [ os.path.join('scripts',f) for f in scripts ]
 
 sources = glob.glob(os.path.join('src','*.cpp'))
@@ -44,6 +44,10 @@ lopt =  {
     'unknown' : [],
 }
 
+if "--debug" in sys.argv:
+    copt['gcc'].append('-g')
+    copt['icc'].append('-g')
+    copt['clang'].append('-g')
 
 def get_compiler(cc):
     """Try to figure out which kind of compiler this really is.

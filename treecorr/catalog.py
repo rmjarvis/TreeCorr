@@ -10,6 +10,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright notice,
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
+
 """
 .. module:: catalog
 """
@@ -313,6 +314,11 @@ class Catalog(object):
         self.g1 = None
         self.g2 = None
         self.k = None
+
+        # Some dicts to store fields that get made.  Indexed by the args used to make the fields.
+        self.nfields = {}
+        self.kfields = {}
+        self.gfields = {}
 
         # First style -- read from a file
         if file_name is not None:
@@ -814,7 +820,7 @@ class Catalog(object):
                     self.logger.debug('read k = %s',str(self.k))
 
  
-    def getNField(self, min_sep, max_sep, b, split_method='mean', logger=None):
+    def getNField(self, min_sep, max_sep, b, split_method='mean', max_top=10, logger=None):
         """Return an NField based on the positions in this catalog.
 
         The NField object is cached, so this is efficient to call multiple times.
@@ -825,23 +831,25 @@ class Catalog(object):
                                 This should be bin_size * bin_slop.
         :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                                 (default: 'mean')
+        :param max_top:         The maximum number of top layers to use when setting up the
+                                field. (default: 10)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.NField` object
         """
-        if (not hasattr(self,'nfield') 
-            or min_sep != self.nfield.min_sep
-            or max_sep != self.nfield.max_sep
-            or b != self.nfield.b):
-
+        args = (min_sep, max_sep, b, split_method, max_top)
+        if args in self.nfields:
+            nfield = self.nfields[args]
+        else:
             if logger is None:
                 logger = self.logger
-            self.nfield = treecorr.NField(self,min_sep,max_sep,b,logger)
+            nfield = treecorr.NField(self,*args,logger=logger)
+            self.nfields[args] = nfield
 
-        return self.nfield
+        return nfield
 
 
-    def getKField(self, min_sep, max_sep, b, split_method='mean', logger=None):
+    def getKField(self, min_sep, max_sep, b, split_method='mean', max_top=10, logger=None):
         """Return a KField based on the k values in this catalog.
 
         The KField object is cached, so this is efficient to call multiple times.
@@ -852,25 +860,27 @@ class Catalog(object):
                                 This should be bin_size * bin_slop.
         :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                                 (default: 'mean')
+        :param max_top:         The maximum number of top layers to use when setting up the
+                                field. (default: 10)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.KField` object
         """
-        if (not hasattr(self,'kfield') 
-            or min_sep != self.kfield.min_sep
-            or max_sep != self.kfield.max_sep
-            or b != self.kfield.b):
-
-            if self.k is None:
-                raise AttributeError("k are not defined.")
+        args = (min_sep, max_sep, b, split_method, max_top)
+        if args in self.kfields:
+            kfield = self.kfields[args]
+        else:
             if logger is None:
                 logger = self.logger
-            self.kfield = treecorr.KField(self,min_sep,max_sep,b,logger)
+            if self.k is None:
+                raise AttributeError("k is not defined.")
+            kfield = treecorr.KField(self,*args,logger=logger)
+            self.kfields[args] = kfield
 
-        return self.kfield
+        return kfield
 
 
-    def getGField(self, min_sep, max_sep, b, split_method='mean', logger=None):
+    def getGField(self, min_sep, max_sep, b, split_method='mean', max_top=10, logger=None):
         """Return a GField based on the g1,g2 values in this catalog.
 
         The GField object is cached, so this is efficient to call multiple times.
@@ -881,22 +891,24 @@ class Catalog(object):
                                 This should be bin_size * bin_slop.
         :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                                 (default: 'mean')
+        :param max_top:         The maximum number of top layers to use when setting up the
+                                field. (default: 10)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.GField` object
         """
-        if (not hasattr(self,'gfield') 
-            or min_sep != self.gfield.min_sep
-            or max_sep != self.gfield.max_sep
-            or b != self.gfield.b):
-
-            if self.g1 is None or self.g2 is None:
-                raise AttributeError("g1,g2 are not defined.")
+        args = (min_sep, max_sep, b, split_method, max_top)
+        if args in self.gfields:
+            gfield = self.gfields[args]
+        else:
             if logger is None:
                 logger = self.logger
-            self.gfield = treecorr.GField(self,min_sep,max_sep,b,logger)
+            if self.g1 is None or self.g2 is None:
+                raise AttributeError("g1,g2 are not defined.")
+            gfield = treecorr.GField(self,*args,logger=logger)
+            self.gfields[args] = gfield
 
-        return self.gfield
+        return gfield
 
 
     def getNSimpleField(self, logger=None):

@@ -11,6 +11,10 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
+"""
+.. module:: config
+"""
+
 import treecorr
 
 def parse_variable(config, v):
@@ -366,7 +370,7 @@ def set_omp_threads(num_threads, logger=None):
             logger.debug('OpenMP reports that it will use %d threads',num_threads)
             if num_threads > 1:
                 logger.info('Using %d threads.',num_threads)
-            elif input_num_threads != 1:
+            elif input_num_threads is not None and input_num_threads != 1:
                 # Only warn if the user specifically asked for num_threads != 1.
                 logger.warn('Unable to use multiple threads, since OpenMP is not enabled.')
     return num_threads

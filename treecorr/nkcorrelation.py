@@ -11,6 +11,9 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
+"""
+.. module:: nkcorrelation
+"""
 
 import treecorr
 import numpy
@@ -113,13 +116,16 @@ class NKCorrelation(treecorr.BinnedCorr2):
         :param cat1:     The first catalog to process
         :param cat2:     The second catalog to process
         """
-        self.logger.info('Starting process NK cross-correlations for cats %s, %s.',
-                         cat1.name, cat2.name)
+        if cat1.name == '' and cat2.name == '':
+            self.logger.info('Starting process NK cross-correlations')
+        else:
+            self.logger.info('Starting process NK cross-correlations for cats %s, %s.',
+                             cat1.name, cat2.name)
 
         self._set_num_threads()
 
-        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method)
-        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
+        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
+        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
@@ -142,8 +148,11 @@ class NKCorrelation(treecorr.BinnedCorr2):
         :param cat1:     The first catalog to process
         :param cat2:     The second catalog to process
         """
-        self.logger.info('Starting process NK pairwise-correlations for cats %s, %s.',
-                         cat1.name, cat2.name)
+        if cat1.name == '' and cat2.name == '':
+            self.logger.info('Starting process NK pairwise-correlations')
+        else:
+            self.logger.info('Starting process NK pairwise-correlations for cats %s, %s.',
+                             cat1.name, cat2.name)
 
         self._set_num_threads()
 

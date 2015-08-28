@@ -198,6 +198,9 @@ public:
     long countLeaves() const;
     std::vector<const Cell<DC,M>*> getAllLeaves() const;
 
+    void Write(std::ostream& os) const;
+    void WriteTree(std::ostream& os, int indent=0) const;
+
 protected:
 
     float _size;
@@ -217,5 +220,9 @@ template <int DC, int M>
 size_t SplitData(
     std::vector<CellData<DC,M>*>& vdata, SplitMethod sm, 
     size_t start, size_t end, const Position<M>& meanpos);
+
+template <int DC, int M>
+inline std::ostream& operator<<(std::ostream& os, const Cell<DC,M>& c)
+{ c.Write(os); return os; }
 
 #endif

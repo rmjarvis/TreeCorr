@@ -11,6 +11,9 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
+"""
+.. module:: binnedcorr2
+"""
 
 import treecorr
 
@@ -57,7 +60,7 @@ class BinnedCorr2(object):
     :param min_sep:     The minimum separation in units of sep_units, if relevant. (Exactly three
                         of nbins, bin_size, min_sep, max_sep are required.  If min_sep is not
                         given, it will be calculated from the values of the other three.)
-    :param max_seps:    The maximum separation in units of sep_units, if relevant. (Exactly three
+    :param max_sep:     The maximum separation in units of sep_units, if relevant. (Exactly three
                         of nbins, bin_size, min_sep, max_sep are required.  If max_sep is not
                         given, it will be calculated from the values of the other three.  If nbins
                         is not given, then max_sep will be adjusted as needed to allow nbins to be
@@ -89,6 +92,9 @@ class BinnedCorr2(object):
                         - median: Use the median of the coordinate being split.
                         - middle: Use the middle of the range; i.e. the average of the minimum and
                           maximum value.
+    :param max_top:     The maximum number of top layers to use when setting up the field. 
+                        The top-level cells are the cells where each calculation job starts.
+                        There will typically be of order 2^max_top top-level cells. (default: 10)
     :param precision:   The precision to use for the output values. This should be an integer,
                         which specifies how many digits to write. (default: 4)
     :param pairwise:    Whether to use a different kind of calculation for cross correlations
@@ -151,6 +157,7 @@ class BinnedCorr2(object):
             self.output_dots = False
 
         self.sep_units = treecorr.config.get(self.config,'sep_units',str,'radians')
+        self.sep_unit_name = self.config.get('sep_units','')
         self.log_sep_units = math.log(self.sep_units)
         if 'nbins' not in self.config:
             if 'max_sep' not in self.config:
@@ -192,13 +199,20 @@ class BinnedCorr2(object):
             self.nbins = int(self.config['nbins'])
             self.bin_size = float(self.config['bin_size'])
             self.min_sep = self.max_sep*math.exp(-self.nbins*self.bin_size)
-        self.logger.info("nbins = %d, min,max sep = %e..%e radians, bin_size = %f",
-                         self.nbins,self.min_sep,self.max_sep,self.bin_size)
+        if self.sep_unit_name == '':
+            self.logger.info("nbins = %d, min,max sep = %g..%g, bin_size = %g",
+                             self.nbins,self.min_sep,self.max_sep,self.bin_size)
+        else:
+            self.logger.info("nbins = %d, min,max sep = %g..%g %s, bin_size = %g",
+                             self.nbins,self.min_sep/self.sep_units,self.max_sep/self.sep_units,
+                             self.sep_unit_name,self.bin_size)
 
         self.split_method = self.config.get('split_method','mean')
         if self.split_method not in ['middle', 'median', 'mean']:
             raise ValueError("Invalid split_method %s"%self.split_method)
         self.logger.debug("Using split_method = %s",self.split_method)
+
+        self.max_top = treecorr.config.get(self.config,'max_top',int,10)
 
         self.bin_slop = treecorr.config.get(self.config,'bin_slop',float,-1.0)
         if self.bin_slop < 0.0:
@@ -208,13 +222,13 @@ class BinnedCorr2(object):
                 self.bin_slop = 0.1/self.bin_size
         self.b = self.bin_size * self.bin_slop
         if self.b > 0.100001:  # Add some numerical slop
-            self.logger.warn("Using bin_slop = %f, bin_size = %f",self.bin_slop,self.bin_size)
-            self.logger.warn("The b parameter is bin_slop * bin_size = %f",self.b)
+            self.logger.warn("Using bin_slop = %g, bin_size = %g",self.bin_slop,self.bin_size)
+            self.logger.warn("The b parameter is bin_slop * bin_size = %g",self.b)
             self.logger.warn("It is generally recommended to use b <= 0.1 for most applications.")
             self.logger.warn("Larger values of this b parameter may result in significant"+
                              "inaccuracies.")
         else:
-            self.logger.debug("Using bin_slop = %f, b = %f",self.bin_slop,self.b)
+            self.logger.debug("Using bin_slop = %g, b = %g",self.bin_slop,self.b)
 
         # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
         self.logr = numpy.linspace(start=0, stop=self.nbins*self.bin_size, 
@@ -226,130 +240,12 @@ class BinnedCorr2(object):
         self.logr -= self.log_sep_units
 
 
-    def gen_write(self, file_name, col_names, columns, file_type=None):
-        """Write some columns to an output file with the given column names.
-
-        We do this basic functionality a lot, so put the code to do it in one place.
-
-        :param file_name:   The name of the file to write to.
-        :param col_names:   A list of columns names for the given columns.
-        :param columns:     A list of numpy arrays with the data to write.
-        :param file_type:   Which kind of file to write to. (default: determine from the file_name
-                            extension)
-        """
-        import numpy
-        if len(col_names) != len(columns):
-            raise ValueError("col_names and columns are not the same length.")
-
-        # Figure out which file type the catalog is
-        if file_type is None:
-            import os
-            name, ext = os.path.splitext(file_name)
-            if ext.lower().startswith('.fit'):
-                file_type = 'FITS'
-            else:
-                file_type = 'ASCII'
-            self.logger.info("file_type assumed to be %s from the file name.",file_type)
-
-        if file_type == 'FITS':
-            self.gen_write_fits(file_name, col_names, columns)
-        elif file_type == 'ASCII':
-            self.gen_write_ascii(file_name, col_names, columns)
-        else:
-            raise ValueError("Invalid file_type %s"%file_type)
-
-
-    def gen_write_ascii(self, file_name, col_names, columns):
-        """Write some columns to an output ASCII file with the given column names.
-
-        :param file_name:   The name of the file to write to.
-        :param col_names:   A list of columns names for the given columns.  These will be written
-                            in a header comment line at the top of the output file.
-        :param columns:     A list of numpy arrays with the data to write.
-        """
-        import numpy
-    
-        ncol = len(col_names)
-        data = numpy.empty( (self.nbins, ncol) )
-        for i,col in enumerate(columns):
-            data[:,i] = col
-
-        prec = treecorr.config.get(self.config,'precision',int,4)
-        width = prec+8
-        # Note: python 2.6 needs the numbers, so can't just do "{:^%d}"*ncol
-        # Also, I have the first one be 1 shorter to allow space for the initial #.
-        header_form = "{0:^%d}"%(width-1)
-        for i in range(1,ncol):
-            header_form += " {%d:^%d}"%(i,width)
-        header = header_form.format(*col_names)
-        fmt = '%%%d.%de'%(width,prec)
-        try:
-            numpy.savetxt(file_name, data, fmt=fmt, header=header)
-        except (AttributeError, TypeError):
-            # header was added with version 1.7, so do it by hand if not available.
-            with open(file_name, 'w') as fid:
-                fid.write('#' + header + '\n')
-                numpy.savetxt(fid, data, fmt=fmt) 
-
-
-    def gen_write_fits(self, file_name, col_names, columns):
-        """Write some columns to an output FITS file with the given column names.
-
-        :param file_name:   The name of the file to write to.
-        :param col_names:   A list of columns names for the given columns.
-        :param columns:     A list of numpy arrays with the data to write.
-        """
-        import fitsio
-        import numpy
-
-        data = numpy.empty(self.nbins, dtype=[ (name,'f8') for name in col_names ])
-        for (name, col) in zip(col_names, columns):
-            data[name] = col
-
-        fitsio.write(file_name, data, clobber=True)
-
-
-    def gen_read(self, file_name, file_type=None):
-        """Read some columns from an input file.
-
-        We do this basic functionality a lot, so put the code to do it in one place.
-        Note that the input file is expected to have been written by TreeCorr using the 
-        gen_write function, so we don't have a lot of flexibility in the input structure.
-
-        :param file_name:   The name of the file to read.
-        :param file_type:   Which kind of file to write to. (default: determine from the file_name
-                            extension)
-
-        :returns: a numpy ndarray with named columns
-        """
-        import numpy
-        # Figure out which file type the catalog is
-        if file_type is None:
-            import os
-            name, ext = os.path.splitext(file_name)
-            if ext.lower().startswith('.fit'):
-                file_type = 'FITS'
-            else:
-                file_type = 'ASCII'
-            self.logger.info("file_type assumed to be %s from the file name.",file_type)
-
-        if file_type == 'FITS':
-            import fitsio
-            data = fitsio.read(file_name)
-        elif file_type == 'ASCII':
-            import numpy
-            data = numpy.genfromtxt(file_name, names=True)
-        else:
-            raise ValueError("Invalid file_type %s"%file_type)
-
-        return data
-
+    gen_write = treecorr.util.gen_write
+    gen_read = treecorr.util.gen_read
 
     def _process_all_auto(self, cat1):
-        for c1 in cat1:
-            self.process_auto(c1)
-
         for i,c1 in enumerate(cat1):
+            self.process_auto(c1)
             for c2 in cat1[i+1:]:
                 self.process_cross(c1,c2)
 

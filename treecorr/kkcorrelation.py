@@ -11,6 +11,9 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
+"""
+.. module:: kkcorrelation
+"""
 
 import treecorr
 import numpy
@@ -119,11 +122,14 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         :param cat:     The catalog to process
         """
-        self.logger.info('Starting process KK auto-correlations for cat %s.',cat.name)
+        if cat.name == '':
+            self.logger.info('Starting process KK auto-correlations')
+        else:
+            self.logger.info('Starting process KK auto-correlations for cat %s.', cat.name)
 
         self._set_num_threads()
 
-        field = cat.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
+        field = cat.getKField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
 
         if field.sphere:
             _treecorr.ProcessAutoKKSphere(self.corr, field.data, self.output_dots)
@@ -142,13 +148,16 @@ class KKCorrelation(treecorr.BinnedCorr2):
         :param cat1:     The first catalog to process
         :param cat2:     The second catalog to process
         """
-        self.logger.info('Starting process KK cross-correlations for cats %s, %s.',
-                         cat1.name, cat2.name)
+        if cat1.name == '' and cat2.name == '':
+            self.logger.info('Starting process KK cross-correlations')
+        else:
+            self.logger.info('Starting process KK cross-correlations for cats %s, %s.',
+                             cat1.name, cat2.name)
 
         self._set_num_threads()
 
-        f1 = cat1.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
-        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method)
+        f1 = cat1.getKField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
+        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
@@ -171,8 +180,11 @@ class KKCorrelation(treecorr.BinnedCorr2):
         :param cat1:     The first catalog to process
         :param cat2:     The second catalog to process
         """
-        self.logger.info('Starting process KK pairwise-correlations for cats %s, %s.',
-                         cat1.name, cat2.name)
+        if cat1.name == '' and cat2.name == '':
+            self.logger.info('Starting process KK pairwise-correlations')
+        else:
+            self.logger.info('Starting process KK pairwise-correlations for cats %s, %s.',
+                             cat1.name, cat2.name)
 
         self._set_num_threads()
 

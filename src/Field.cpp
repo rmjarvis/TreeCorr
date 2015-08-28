@@ -314,8 +314,7 @@ SimpleField<DC,M>::~SimpleField()
 //
 
 void* BuildGFieldFlat(double* x, double* y, double* g1, double* g2, double* w,
-                      long nobj, double minsep, double maxsep, double b, int sm_int,
-                      int maxtop)
+                      long nobj, double minsep, double maxsep, double b, int sm_int, int maxtop)
 {
     dbg<<"Start BuildGFieldFlat\n";
     // Use w for k in this call to make sure k[i] is valid and won't seg fault.
@@ -326,8 +325,7 @@ void* BuildGFieldFlat(double* x, double* y, double* g1, double* g2, double* w,
     return static_cast<void*>(field);
 }
 void* BuildGFieldSphere(double* ra, double* dec, double* r, double* g1, double* g2, double* w,
-                        long nobj, double minsep, double maxsep, double b, int sm_int,
-                        int maxtop)
+                        long nobj, double minsep, double maxsep, double b, int sm_int, int maxtop)
 {
     dbg<<"Start BuildGFieldSphere\n";
     Field<GData,Sphere>* field = new Field<GData,Sphere>(ra, dec, r, g1, g2, w, w, nobj,
@@ -336,18 +334,17 @@ void* BuildGFieldSphere(double* ra, double* dec, double* r, double* g1, double* 
     return static_cast<void*>(field);
 }
 void* BuildGFieldPerp(double* ra, double* dec, double* r, double* g1, double* g2, double* w,
-                      long nobj, double minsep, double maxsep, double b, int sm_int)
+                      long nobj, double minsep, double maxsep, double b, int sm_int, int maxtop)
 {
     dbg<<"Start BuildGFieldPerp\n";
     Field<GData,Perp>* field = new Field<GData,Perp>(ra, dec, r, g1, g2, w, w, nobj,
-                                                     minsep, maxsep, b, sm_int);
+                                                     minsep, maxsep, b, sm_int, maxtop);
     dbg<<"field = "<<field<<std::endl;
     return static_cast<void*>(field);
 }
 
 void* BuildKFieldFlat(double* x, double* y, double* k, double* w,
-                      long nobj, double minsep, double maxsep, double b, int sm_int,
-                      int maxtop)
+                      long nobj, double minsep, double maxsep, double b, int sm_int, int maxtop)
 {
     dbg<<"Start BuildKFieldFlat\n";
     Field<KData,Flat>* field = new Field<KData,Flat>(x, y, 0, w, w, k, w, nobj,
@@ -356,8 +353,7 @@ void* BuildKFieldFlat(double* x, double* y, double* k, double* w,
     return static_cast<void*>(field);
 }
 void* BuildKFieldSphere(double* ra, double* dec, double* r, double* k, double* w,
-                        long nobj, double minsep, double maxsep, double b, int sm_int,
-                        int maxtop)
+                        long nobj, double minsep, double maxsep, double b, int sm_int, int maxtop)
 {
     dbg<<"Start BuildKFieldSphere\n";
     Field<KData,Sphere>* field = new Field<KData,Sphere>(ra, dec, r, w, w, k, w, nobj,
@@ -366,18 +362,17 @@ void* BuildKFieldSphere(double* ra, double* dec, double* r, double* k, double* w
     return static_cast<void*>(field);
 }
 void* BuildKFieldPerp(double* ra, double* dec, double* r, double* k, double* w,
-                      long nobj, double minsep, double maxsep, double b, int sm_int)
+                      long nobj, double minsep, double maxsep, double b, int sm_int, int maxtop)
 {
     dbg<<"Start BuildKFieldPerp\n";
     Field<KData,Perp>* field = new Field<KData,Perp>(ra, dec, r, w, w, k, w, nobj,
-                                                     minsep, maxsep, b, sm_int);
+                                                     minsep, maxsep, b, sm_int, maxtop);
     dbg<<"field = "<<field<<std::endl;
     return static_cast<void*>(field);
 }
 
 void* BuildNFieldFlat(double* x, double* y, double* w,
-                      long nobj, double minsep, double maxsep, double b, int sm_int,
-                      int maxtop)
+                      long nobj, double minsep, double maxsep, double b, int sm_int, int maxtop)
 {
     dbg<<"Start BuildNFieldFlat\n";
     Field<NData,Flat>* field = new Field<NData,Flat>(x, y, 0, w, w, w, w, nobj, 
@@ -386,8 +381,7 @@ void* BuildNFieldFlat(double* x, double* y, double* w,
     return static_cast<void*>(field);
 }
 void* BuildNFieldSphere(double* ra, double* dec, double* r, double* w,
-                        long nobj, double minsep, double maxsep, double b, int sm_int,
-                        int maxtop)
+                        long nobj, double minsep, double maxsep, double b, int sm_int, int maxtop)
 {
     dbg<<"Start BuildNFieldSphere\n";
     Field<NData,Sphere>* field = new Field<NData,Sphere>(ra, dec, r, w, w, w, w, nobj,
@@ -396,11 +390,11 @@ void* BuildNFieldSphere(double* ra, double* dec, double* r, double* w,
     return static_cast<void*>(field);
 }
 void* BuildNFieldPerp(double* ra, double* dec, double* r, double* w,
-                      long nobj, double minsep, double maxsep, double b, int sm_int)
+                      long nobj, double minsep, double maxsep, double b, int sm_int, int maxtop)
 {
     dbg<<"Start BuildNFieldPerp\n";
     Field<NData,Perp>* field = new Field<NData,Perp>(ra, dec, r, w, w, w, w, nobj,
-                                                     minsep, maxsep, b, sm_int);
+                                                     minsep, maxsep, b, sm_int, maxtop);
     dbg<<"field = "<<field<<std::endl;
     return static_cast<void*>(field);
 }

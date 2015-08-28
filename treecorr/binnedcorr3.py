@@ -117,10 +117,58 @@ class BinnedCorr3(object):
     :param num_threads: How many OpenMP threads to use during the calculations.  (default: 0,
                         which means to query the number of cpu cores and use that many threads.)
     """
+    _valid_params = {
+        'nbins' : (int, False, None, None,
+                'The number of output bins to use for sep dimension.'),
+        'bin_size' : (float, False, None, None,
+                'The size of the output bins in log(sep).'),
+        'min_sep' : (float, False, None, None,
+                'The minimum separation to include in the output.'),
+        'max_sep' : (float, False, None, None,
+                'The maximum separation to include in the output.'),
+        'sep_units' : (str, False, None, treecorr.angle_units.keys(),
+                'The units to use for min_sep and max_sep.  Also the units of the output r columns'),
+        'bin_slop' : (float, False, None, None,
+                'The fraction of a bin width by which it is ok to let the pairs miss the correct bin.',
+                'The default is to use 1 if bin_size <= 0.1, or 0.1/bin_size if bin_size > 0.1.'),
+        'nubins' : (int, False, None, None,
+                'The number of output bins to use for u dimension.'),
+        'ubin_size' : (float, False, None, None,
+                'The size of the output bins in u.'),
+        'min_u' : (float, False, None, None,
+                'The minimum u to include in the output.'),
+        'max_u' : (float, False, None, None,
+                'The maximum u to include in the output.'),
+        'nvbins' : (int, False, None, None,
+                'The number of output bins to use for v dimension.'),
+        'vbin_size' : (float, False, None, None,
+                'The size of the output bins in v.'),
+        'min_v' : (float, False, None, None,
+                'The minimum v to include in the output.'),
+        'max_v' : (float, False, None, None,
+                'The maximum v to include in the output.'),
+        'verbose' : (int, False, 1, [0, 1, 2, 3],
+                'How verbose the code should be during processing. ',
+                '0 = Errors Only, 1 = Warnings, 2 = Progress, 3 = Debugging'),
+        'log_file' : (str, False, None, None,
+                'If desired, an output file for the logging output.',
+                'The default is to write the output to stdout.'),
+        'output_dots' : (bool, False, None, None,
+                'Whether to output dots to the stdout during the C++-level computation.',
+                'The default is True if verbose >= 2 and there is no log_file.  Else False.'),
+        'split_method' : (str, False, 'mean', ['mean', 'median', 'middle'],
+                'Which method to use for splitting cells.'),
+        'max_top' : (int, False, 10, None,
+                'The maximum number of top layers to use when setting up the field.'),
+        'precision' : (int, False, 4, None,
+                'The number of digits after the decimal in the output.'),
+        'num_threads' : (int, False, None, None,
+                'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
+    }
     def __init__(self, config=None, logger=None, **kwargs):
         import math
         import numpy
-        self.config = treecorr.config.merge_config(config,kwargs)
+        self.config = treecorr.config.merge_config(config,kwargs,BinnedCorr3._valid_params)
         if logger is None:
             self.logger = treecorr.config.setup_logger(
                     treecorr.config.get(self.config,'verbose',int,0),

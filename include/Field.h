@@ -59,53 +59,36 @@ private:
 extern "C" {
 
     extern void* BuildGFieldFlat(double* x, double* y, double* g1, double* g2, double* w,
-<<<<<<< HEAD
                                  long nobj, double minsep, double maxsep, double b, int sm_int,
                                  int maxtop);
-
     extern void* BuildGFieldSphere(double* ra, double* dec, double* r,
                                    double* g1, double* g2, double* w,
                                    long nobj, double minsep, double maxsep, double b, int sm_int,
                                    int maxtop);
-
-    extern void* BuildKFieldFlat(double* x, double* y, double* k, double* w,
-                                 long nobj, double minsep, double maxsep, double b, int sm_int,
-                                 int maxtop);
-
-    extern void* BuildKFieldSphere(double* ra, double* dec, double* r, double* k, double* w,
-                                   long nobj, double minsep, double maxsep, double b, int sm_int,
-                                   int maxtop);
-
-    extern void* BuildNFieldFlat(double* x, double* y, double* w,
-                                 long nobj, double minsep, double maxsep, double b, int sm_int,
-                                 int maxtop);
-
-    extern void* BuildNFieldSphere(double* ra, double* dec, double* r, double* w,
-                                   long nobj, double minsep, double maxsep, double b, int sm_int,
-                                   int maxtop);
-=======
-                                 long nobj, double minsep, double maxsep, double b, int sm_int);
-    extern void* BuildGFieldSphere(double* ra, double* dec, double* r,
-                                   double* g1, double* g2, double* w,
-                                   long nobj, double minsep, double maxsep, double b, int sm_int);
     extern void* BuildGFieldPerp(double* ra, double* dec, double* r,
                                  double* g1, double* g2, double* w,
-                                 long nobj, double minsep, double maxsep, double b, int sm_int);
+                                 long nobj, double minsep, double maxsep, double b, int sm_int,
+                                 int maxtop);
 
     extern void* BuildKFieldFlat(double* x, double* y, double* k, double* w,
-                                 long nobj, double minsep, double maxsep, double b, int sm_int);
+                                 long nobj, double minsep, double maxsep, double b, int sm_int,
+                                 int maxtop);
     extern void* BuildKFieldSphere(double* ra, double* dec, double* r, double* k, double* w,
-                                   long nobj, double minsep, double maxsep, double b, int sm_int);
+                                   long nobj, double minsep, double maxsep, double b, int sm_int,
+                                   int maxtop);
     extern void* BuildKFieldPerp(double* ra, double* dec, double* r, double* k, double* w,
-                                 long nobj, double minsep, double maxsep, double b, int sm_int);
+                                 long nobj, double minsep, double maxsep, double b, int sm_int,
+                                 int maxtop);
 
     extern void* BuildNFieldFlat(double* x, double* y, double* w,
-                                 long nobj, double minsep, double maxsep, double b, int sm_int);
+                                 long nobj, double minsep, double maxsep, double b, int sm_int,
+                                 int maxtop);
     extern void* BuildNFieldSphere(double* ra, double* dec, double* r, double* w,
-                                   long nobj, double minsep, double maxsep, double b, int sm_int);
+                                   long nobj, double minsep, double maxsep, double b, int sm_int,
+                                   int maxtop);
     extern void* BuildNFieldPerp(double* ra, double* dec, double* r, double* w,
-                                 long nobj, double minsep, double maxsep, double b, int sm_int);
->>>>>>> #17
+                                 long nobj, double minsep, double maxsep, double b, int sm_int,
+                                 int maxtop);
 
     extern void DestroyGFieldFlat(void* field);
     extern void DestroyGFieldSphere(void* field);

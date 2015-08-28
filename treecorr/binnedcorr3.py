@@ -354,52 +354,52 @@ class BinnedCorr3(object):
     gen_write = treecorr.util.gen_write
     gen_read = treecorr.util.gen_read
 
-    def _process_all_auto(self, cat1):
+    def _process_all_auto(self, cat1, perp):
         # I'm not sure which of these is more intuitive, but both are correct...
         if True:
             for c1 in cat1:
-                self.process_auto(c1)
+                self.process_auto(c1, perp)
                 for c2 in cat1:
                     if c2 is not c1:
-                        self.process_cross(c1,c1,c2)
-                        self.process_cross(c1,c2,c1)
-                        self.process_cross(c2,c1,c1)
+                        self.process_cross(c1,c1,c2, perp)
+                        self.process_cross(c1,c2,c1, perp)
+                        self.process_cross(c2,c1,c1, perp)
                         for c3 in cat1:
                             if c3 is not c1 and c3 is not c2:
-                                self.process_cross(c1,c2,c3)
+                                self.process_cross(c1,c2,c3, perp)
         else:
             for i,c1 in enumerate(cat1):
                 self.process_auto(c1)
                 for j,c2 in enumerate(cat1[i+1:]):
-                    self.process_cross(c1,c1,c2)
-                    self.process_cross(c1,c2,c1)
-                    self.process_cross(c2,c1,c1)
-                    self.process_cross(c1,c2,c2)
-                    self.process_cross(c2,c1,c2)
-                    self.process_cross(c2,c2,c1)
+                    self.process_cross(c1,c1,c2, perp)
+                    self.process_cross(c1,c2,c1, perp)
+                    self.process_cross(c2,c1,c1, perp)
+                    self.process_cross(c1,c2,c2, perp)
+                    self.process_cross(c2,c1,c2, perp)
+                    self.process_cross(c2,c2,c1, perp)
                     for c3 in cat1[i+j+1:]:
-                        self.process_cross(c1,c2,c3)
-                        self.process_cross(c1,c3,c2)
-                        self.process_cross(c2,c1,c3)
-                        self.process_cross(c2,c3,c1)
-                        self.process_cross(c3,c1,c2)
-                        self.process_cross(c3,c2,c1)
+                        self.process_cross(c1,c2,c3, perp)
+                        self.process_cross(c1,c3,c2, perp)
+                        self.process_cross(c2,c1,c3, perp)
+                        self.process_cross(c2,c3,c1, perp)
+                        self.process_cross(c3,c1,c2, perp)
+                        self.process_cross(c3,c2,c1, perp)
 
 
-    def _process_all_cross21(self, cat1, cat2):
+    def _process_all_cross21(self, cat1, cat2, perp):
         for c1 in cat1:
             for c2 in cat2:
-                self.process_cross(c1,c1,c2)
+                self.process_cross(c1,c1,c2, perp)
             for c3 in cat1:
                 if c3 is not c1:
-                    self.process_cross(c1,c3,c2)
-                    self.process_cross(c3,c1,c2)
+                    self.process_cross(c1,c3,c2, perp)
+                    self.process_cross(c3,c1,c2, perp)
 
-    def _process_all_cross(self, cat1, cat2, cat3):
+    def _process_all_cross(self, cat1, cat2, cat3, perp):
         for c1 in cat1:
             for c2 in cat2:
                 for c3 in cat3:
-                    self.process_cross(c1,c2,c3)
+                    self.process_cross(c1,c2,c3, perp)
  
 
     def _set_num_threads(self):

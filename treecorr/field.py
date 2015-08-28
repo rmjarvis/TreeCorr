@@ -32,59 +32,89 @@ cint = ctypes.c_int
 cdouble_ptr = ctypes.POINTER(cdouble)
 
 # Define the restypes and argtypes for the C functions:
-_treecorr.BuildNFieldSphere.restype = cvoid_ptr
-_treecorr.BuildNFieldSphere.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
 _treecorr.BuildNFieldFlat.restype = cvoid_ptr
 _treecorr.BuildNFieldFlat.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
-_treecorr.DestroyNFieldSphere.argtypes = [ cvoid_ptr ]
-_treecorr.DestroyNFieldFlat.argtypes = [ cvoid_ptr ]
+_treecorr.BuildNFieldSphere.restype = cvoid_ptr
+_treecorr.BuildNFieldSphere.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
+_treecorr.BuildNFieldPerp.restype = cvoid_ptr
+_treecorr.BuildNFieldPerp.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
 
-_treecorr.BuildKFieldSphere.restype = cvoid_ptr
-_treecorr.BuildKFieldSphere.argtypes = [
-    cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
+_treecorr.DestroyNFieldFlat.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyNFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyNFieldPerp.argtypes = [ cvoid_ptr ]
+
 _treecorr.BuildKFieldFlat.restype = cvoid_ptr
 _treecorr.BuildKFieldFlat.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
-_treecorr.DestroyKFieldSphere.argtypes = [ cvoid_ptr ]
-_treecorr.DestroyKFieldFlat.argtypes = [ cvoid_ptr ]
+_treecorr.BuildKFieldSphere.restype = cvoid_ptr
+_treecorr.BuildKFieldSphere.argtypes = [
+    cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
+_treecorr.BuildKFieldPerp.restype = cvoid_ptr
+_treecorr.BuildKFieldPerp.argtypes = [
+    cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
 
+_treecorr.DestroyKFieldFlat.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyKFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyKFieldPerp.argtypes = [ cvoid_ptr ]
+
+_treecorr.BuildGFieldFlat.restype = cvoid_ptr
+_treecorr.BuildGFieldFlat.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    clong, cdouble, cdouble, cdouble, cint ]
 _treecorr.BuildGFieldSphere.restype = cvoid_ptr
 _treecorr.BuildGFieldSphere.argtypes = [
     cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, cdouble_ptr,
     clong, cdouble, cdouble, cdouble, cint, cint ]
-_treecorr.BuildGFieldFlat.restype = cvoid_ptr
-_treecorr.BuildGFieldFlat.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
+_treecorr.BuildGFieldPerp.restype = cvoid_ptr
+_treecorr.BuildGFieldPerp.argtypes = [
+    cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, cdouble_ptr,
     clong, cdouble, cdouble, cdouble, cint, cint ]
-_treecorr.DestroyGFieldSphere.argtypes = [ cvoid_ptr ]
-_treecorr.DestroyGFieldFlat.argtypes = [ cvoid_ptr ]
 
-_treecorr.BuildNSimpleFieldSphere.restype = cvoid_ptr
-_treecorr.BuildNSimpleFieldSphere.argtypes = [ cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+_treecorr.DestroyGFieldFlat.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyGFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyGFieldPerp.argtypes = [ cvoid_ptr ]
+
 _treecorr.BuildNSimpleFieldFlat.restype = cvoid_ptr
 _treecorr.BuildNSimpleFieldFlat.argtypes = [ cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
-_treecorr.DestroyNSimpleFieldSphere.argtypes = [ cvoid_ptr ]
-_treecorr.DestroyNSimpleFieldFlat.argtypes = [ cvoid_ptr ]
+_treecorr.BuildNSimpleFieldSphere.restype = cvoid_ptr
+_treecorr.BuildNSimpleFieldSphere.argtypes = [ cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+_treecorr.BuildNSimpleFieldPerp.restype = cvoid_ptr
+_treecorr.BuildNSimpleFieldPerp.argtypes = [ cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
 
-_treecorr.BuildKSimpleFieldSphere.restype = cvoid_ptr
-_treecorr.BuildKSimpleFieldSphere.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+_treecorr.DestroyNSimpleFieldFlat.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyNSimpleFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyNSimpleFieldPerp.argtypes = [ cvoid_ptr ]
+
 _treecorr.BuildKSimpleFieldFlat.restype = cvoid_ptr
 _treecorr.BuildKSimpleFieldFlat.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
-_treecorr.DestroyKSimpleFieldSphere.argtypes = [ cvoid_ptr ]
-_treecorr.DestroyKSimpleFieldFlat.argtypes = [ cvoid_ptr ]
+_treecorr.BuildKSimpleFieldSphere.restype = cvoid_ptr
+_treecorr.BuildKSimpleFieldSphere.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+_treecorr.BuildKSimpleFieldPerp.restype = cvoid_ptr
+_treecorr.BuildKSimpleFieldPerp.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
 
-_treecorr.BuildGSimpleFieldSphere.restype = cvoid_ptr
-_treecorr.BuildGSimpleFieldSphere.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+_treecorr.DestroyKSimpleFieldFlat.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyKSimpleFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyKSimpleFieldPerp.argtypes = [ cvoid_ptr ]
+
 _treecorr.BuildGSimpleFieldFlat.restype = cvoid_ptr
 _treecorr.BuildGSimpleFieldFlat.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
-_treecorr.DestroyGSimpleFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.BuildGSimpleFieldSphere.restype = cvoid_ptr
+_treecorr.BuildGSimpleFieldSphere.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+_treecorr.BuildGSimpleFieldPerp.restype = cvoid_ptr
+_treecorr.BuildGSimpleFieldPerp.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+
 _treecorr.DestroyGSimpleFieldFlat.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyGSimpleFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyGSimpleFieldPerp.argtypes = [ cvoid_ptr ]
 
 
 def _parse_split_method(split_method):
@@ -108,11 +138,14 @@ class NField(object):
                             This should be bin_size * bin_slop.
     :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                             (default: 'mean')
+    :param perp:            Whether to use the perpendicular distance rather than the 3d separation
+                            (for catalogs with 3d positions) (default: False)
     :param max_top:         The maximum number of top layers to use when setting up the
                             field. (default: 10)
     :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', max_top=10, logger=None):
+    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', perp=False, max_top=10,
+                 logger=None):
         if logger:
             logger.info('Building NField from cat %s',cat.name)
 
@@ -125,6 +158,7 @@ class NField(object):
         sm = _parse_split_method(split_method)
 
         self.sphere = (cat.x is None)
+        self.perp = perp
 
         if self.sphere:
             # Then build field for spherical coordinates
@@ -134,9 +168,14 @@ class NField(object):
                 r = None
             else:
                 r = cat.r.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildNFieldSphere(ra,dec,r,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
-            if logger:
-                logger.debug('Finished building NField Sphere')
+            if self.perp:
+                self.data = _treecorr.BuildNFieldPerp(ra,dec,r,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
+                if logger:
+                    logger.debug('Finished building NField Perp')
+            else:
+                self.data = _treecorr.BuildNFieldSphere(ra,dec,r,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
+                if logger:
+                    logger.debug('Finished building NField Sphere')
         else:
             # Then build field with flat sky approximation
             x = cat.x.ctypes.data_as(cdouble_ptr)
@@ -152,7 +191,10 @@ class NField(object):
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             if self.sphere:
-                _treecorr.DestroyNFieldSphere(self.data)
+                if self.perp:
+                    _treecorr.DestroyNFieldPerp(self.data)
+                else:
+                    _treecorr.DestroyNFieldSphere(self.data)
             else:
                 _treecorr.DestroyNFieldFlat(self.data)
 
@@ -172,11 +214,14 @@ class KField(object):
                             This should be bin_size * bin_slop.
     :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                             (default: 'mean')
+    :param perp:            Whether to use the perpendicular distance rather than the 3d separation
+                            (for catalogs with 3d positions) (default: False)
     :param max_top:         The maximum number of top layers to use when setting up the
                             field. (default: 10)
     :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', max_top=10, logger=None):
+    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', perp=False, max_top=10,
+                 logger=None):
         if logger:
             logger.info('Building KField from cat %s',cat.name)
 
@@ -190,6 +235,7 @@ class KField(object):
         sm = _parse_split_method(split_method)
 
         self.sphere = (cat.x is None)
+        self.perp = perp
 
         if self.sphere:
             # Then build field for spherical coordinates
@@ -199,9 +245,14 @@ class KField(object):
                 r = None
             else:
                 r = cat.r.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildKFieldSphere(ra,dec,r,k,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
-            if logger:
-                logger.debug('Finished building KField Sphere')
+            if self.perp:
+                self.data = _treecorr.BuildKFieldPerp(ra,dec,r,k,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
+                if logger:
+                    logger.debug('Finished building KField Perp')
+            else:
+                self.data = _treecorr.BuildKFieldSphere(ra,dec,r,k,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
+                if logger:
+                    logger.debug('Finished building KField Sphere')
         else:
             # Then build field with flat sky approximation
             x = cat.x.ctypes.data_as(cdouble_ptr)
@@ -217,7 +268,10 @@ class KField(object):
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             if self.sphere:
-                _treecorr.DestroyKFieldSphere(self.data)
+                if self.perp:
+                    _treecorr.DestroyKFieldPerp(self.data)
+                else:
+                    _treecorr.DestroyKFieldSphere(self.data)
             else:
                 _treecorr.DestroyKFieldFlat(self.data)
 
@@ -237,11 +291,14 @@ class GField(object):
                             This should be bin_size * bin_slop.
     :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                             (default: 'mean')
+    :param perp:            Whether to use the perpendicular distance rather than the 3d separation
+                            (for catalogs with 3d positions) (default: False)
     :param max_top:         The maximum number of top layers to use when setting up the
                             field. (default: 10)
     :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', max_top=10, logger=None):
+    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', perp=False, max_top=10,
+                 logger=None):
         if logger:
             logger.info('Building GField from cat %s',cat.name)
 
@@ -256,6 +313,7 @@ class GField(object):
         sm = _parse_split_method(split_method)
 
         self.sphere = (cat.x is None)
+        self.perp = perp
 
         if self.sphere:
             # Then build field for spherical coordinates
@@ -265,9 +323,14 @@ class GField(object):
                 r = None
             else:
                 r = cat.r.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildGFieldSphere(ra,dec,r,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
-            if logger:
-                logger.debug('Finished building GField Sphere')
+            if self.perp:
+                self.data = _treecorr.BuildGFieldPerp(ra,dec,r,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
+                if logger:
+                    logger.debug('Finished building GField Perp')
+            else:
+                self.data = _treecorr.BuildGFieldSphere(ra,dec,r,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
+                if logger:
+                    logger.debug('Finished building GField Sphere')
         else:
             # Then build field with flat sky approximation
             x = cat.x.ctypes.data_as(cdouble_ptr)
@@ -283,7 +346,10 @@ class GField(object):
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             if self.sphere:
-                _treecorr.DestroyGFieldSphere(self.data)
+                if self.perp:
+                    _treecorr.DestroyGFieldPerp(self.data)
+                else:
+                    _treecorr.DestroyGFieldSphere(self.data)
             else:
                 _treecorr.DestroyGFieldFlat(self.data)
 
@@ -296,15 +362,18 @@ class NSimpleField(object):
         >>> nfield = cat.getNSimpleField()
 
     :param cat:             The catalog from which to make the field.
+    :param perp:            Whether to use the perpendicular distance rather than the 3d separation
+                            (for catalogs with 3d positions) (default: False)
     :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, logger=None):
+    def __init__(self, cat, perp=False, logger=None):
         if logger:
             logger.info('Building NSimpleField from cat %s',cat.name)
 
         w = cat.w.ctypes.data_as(cdouble_ptr)
 
         self.sphere = (cat.x is None)
+        self.perp = perp
 
         if self.sphere:
             # Then build field for spherical coordinates
@@ -314,9 +383,14 @@ class NSimpleField(object):
                 r = None
             else:
                 r = cat.r.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildNSimpleFieldSphere(ra,dec,r,w,cat.nobj)
-            if logger:
-                logger.debug('Finished building NSimpleField Sphere')
+            if self.perp:
+                self.data = _treecorr.BuildNSimpleFieldPerp(ra,dec,r,w,cat.nobj)
+                if logger:
+                    logger.debug('Finished building NSimpleField Perp')
+            else:
+                self.data = _treecorr.BuildNSimpleFieldSphere(ra,dec,r,w,cat.nobj)
+                if logger:
+                    logger.debug('Finished building NSimpleField Sphere')
         else:
             # Then build field with flat sky approximation
             x = cat.x.ctypes.data_as(cdouble_ptr)
@@ -331,7 +405,10 @@ class NSimpleField(object):
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             if self.sphere:
-                _treecorr.DestroyNSimpleFieldSphere(self.data)
+                if self.perp:
+                    _treecorr.DestroyNSimpleFieldPerp(self.data)
+                else:
+                    _treecorr.DestroyNSimpleFieldSphere(self.data)
             else:
                 _treecorr.DestroyNSimpleFieldFlat(self.data)
 
@@ -344,9 +421,11 @@ class KSimpleField(object):
         >>> kfield = cat.getKSimpleField()
 
     :param cat:             The catalog from which to make the field.
+    :param perp:            Whether to use the perpendicular distance rather than the 3d separation
+                            (for catalogs with 3d positions) (default: False)
     :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, logger=None):
+    def __init__(self, cat, perp=False, logger=None):
         if logger:
             logger.info('Building KSimpleField from cat %s',cat.name)
 
@@ -354,6 +433,7 @@ class KSimpleField(object):
         w = cat.w.ctypes.data_as(cdouble_ptr)
 
         self.sphere = (cat.x is None)
+        self.perp = perp
 
         if self.sphere:
             # Then build field for spherical coordinates
@@ -363,9 +443,14 @@ class KSimpleField(object):
                 r = None
             else:
                 r = cat.r.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildKSimpleFieldSphere(ra,dec,r,k,w,cat.nobj)
-            if logger:
-                logger.debug('Finished building KSimpleField Sphere')
+            if self.perp:
+                self.data = _treecorr.BuildKSimpleFieldPerp(ra,dec,r,k,w,cat.nobj)
+                if logger:
+                    logger.debug('Finished building KSimpleField Perp')
+            else:
+                self.data = _treecorr.BuildKSimpleFieldSphere(ra,dec,r,k,w,cat.nobj)
+                if logger:
+                    logger.debug('Finished building KSimpleField Sphere')
         else:
             # Then build field with flat sky approximation
             x = cat.x.ctypes.data_as(cdouble_ptr)
@@ -380,7 +465,10 @@ class KSimpleField(object):
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             if self.sphere:
-                _treecorr.DestroyKSimpleFieldSphere(self.data)
+                if self.perp:
+                    _treecorr.DestroyKSimpleFieldPerp(self.data)
+                else:
+                    _treecorr.DestroyKSimpleFieldSphere(self.data)
             else:
                 _treecorr.DestroyKSimpleFieldFlat(self.data)
 
@@ -393,9 +481,11 @@ class GSimpleField(object):
         >>> gfield = cat.getGSimpleField()
 
     :param cat:             The catalog from which to make the field.
+    :param perp:            Whether to use the perpendicular distance rather than the 3d separation
+                            (for catalogs with 3d positions) (default: False)
     :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, logger=None):
+    def __init__(self, cat, perp=False, logger=None):
         if logger:
             logger.info('Building GSimpleField from cat %s',cat.name)
 
@@ -404,6 +494,7 @@ class GSimpleField(object):
         w = cat.w.ctypes.data_as(cdouble_ptr)
 
         self.sphere = (cat.x is None)
+        self.perp = perp
 
         if self.sphere:
             # Then build field for spherical coordinates
@@ -413,9 +504,14 @@ class GSimpleField(object):
                 r = None
             else:
                 r = cat.r.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildGSimpleFieldSphere(ra,dec,r,g1,g2,w,cat.nobj)
-            if logger:
-                logger.debug('Finished building GSimpleField Sphere')
+            if self.perp:
+                self.data = _treecorr.BuildGSimpleFieldPerp(ra,dec,r,g1,g2,w,cat.nobj)
+                if logger:
+                    logger.debug('Finished building GSimpleField Perp')
+            else:
+                self.data = _treecorr.BuildGSimpleFieldSphere(ra,dec,r,g1,g2,w,cat.nobj)
+                if logger:
+                    logger.debug('Finished building GSimpleField Sphere')
         else:
             # Then build field with flat sky approximation
             x = cat.x.ctypes.data_as(cdouble_ptr)
@@ -430,7 +526,10 @@ class GSimpleField(object):
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             if self.sphere:
-                _treecorr.DestroyGSimpleFieldSphere(self.data)
+                if self.perp:
+                    _treecorr.DestroyGSimpleFieldPerp(self.data)
+                else:
+                    _treecorr.DestroyGSimpleFieldSphere(self.data)
             else:
                 _treecorr.DestroyGSimpleFieldFlat(self.data)
 

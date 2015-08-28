@@ -277,6 +277,53 @@ def test_direct_3d():
     print 'diff = ',dd.npairs - true_npairs
     numpy.testing.assert_array_equal(dd.npairs, true_npairs)
 
+def test_direct_perp():
+    # This is the same as the above test, but using the perpendicular distance metric
+
+    ngal = 100
+    s = 10.
+    numpy.random.seed(8675309)
+    x1 = numpy.random.normal(312, s, (ngal,) )
+    y1 = numpy.random.normal(728, s, (ngal,) )
+    z1 = numpy.random.normal(-932, s, (ngal,) )
+    r1 = numpy.sqrt( x1*x1 + y1*y1 + z1*z1 )
+    dec1 = numpy.arcsin(z1/r1)
+    ra1 = numpy.arctan2(y1,x1)
+    cat1 = treecorr.Catalog(ra=ra1, dec=dec1, r=r1, ra_units='rad', dec_units='rad')
+
+    x2 = numpy.random.normal(312, s, (ngal,) )
+    y2 = numpy.random.normal(728, s, (ngal,) )
+    z2 = numpy.random.normal(-932, s, (ngal,) )
+    r2 = numpy.sqrt( x2*x2 + y2*y2 + z2*z2 )
+    dec2 = numpy.arcsin(z2/r2)
+    ra2 = numpy.arctan2(y2,x2)
+    cat2 = treecorr.Catalog(ra=ra2, dec=dec2, r=r2, ra_units='rad', dec_units='rad')
+
+    min_sep = 1.
+    max_sep = 50.
+    nbins = 50
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    dd.process(cat1, cat2, perp=True)
+    print 'dd.npairs = ',dd.npairs
+
+    log_min_sep = numpy.log(min_sep)
+    log_max_sep = numpy.log(max_sep)
+    true_npairs = numpy.zeros(nbins)
+    bin_size = (log_max_sep - log_min_sep) / nbins
+    for i in range(ngal):
+        for j in range(ngal):
+            rsq = (x1[i]-x2[j])**2 + (y1[i]-y2[j])**2 + (z1[i]-z2[j])**2
+            rsq -= (r1[i] - r2[j])**2
+            logr = 0.5 * numpy.log(rsq)
+            k = int(numpy.floor( (logr-log_min_sep) / bin_size ))
+            if k < 0: continue
+            if k >= nbins: continue
+            true_npairs[k] += 1
+
+    print 'true_npairs = ',true_npairs
+    print 'diff = ',dd.npairs - true_npairs
+    numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+
 def test_nn():
     # Use a simple probability distribution for the galaxies:
     #
@@ -603,6 +650,7 @@ if __name__ == '__main__':
     test_binnedcorr2()
     test_direct_count()
     test_direct_3d()
+    test_direct_perp()
     test_nn()
     test_3d()
     test_list()

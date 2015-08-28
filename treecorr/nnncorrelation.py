@@ -41,8 +41,10 @@ _treecorr.BuildNNNCorr.argtypes = [
 _treecorr.DestroyNNNCorr.argtypes = [ cvoid_ptr ]
 _treecorr.ProcessAutoNNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessAutoNNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessAutoNNNPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossNNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossNNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossNNNPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
 class NNNCorrelation(treecorr.BinnedCorr3):
@@ -122,14 +124,16 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             _treecorr.DestroyNNNCorr(self.corr)
 
 
-    def process_auto(self, cat):
+    def process_auto(self, cat, perp=False):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the auto-correlation for the given catalog.  After
         calling this function as often as desired, the finalize() command will
         finish the calculation of meanlogr, meanu, meanv.
 
-        :param cat:      The catalog to process
+        :param cat:     The catalog to process
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         if cat.name == '':
             self.logger.info('Starting process NNN auto-correlations')
@@ -141,15 +145,18 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         min_size = self.min_sep * self.min_u
         max_size = 2.*self.max_sep 
         b = numpy.max( (self.b, self.bu, self.bv) )
-        field = cat.getNField(min_size,max_size,b,self.split_method,self.max_top)
+        field = cat.getNField(min_size,max_size,b,self.split_method,perp,self.max_top)
 
         if field.sphere:
-            _treecorr.ProcessAutoNNNSphere(self.corr, field.data, self.output_dots)
+            if field.perp:
+                _treecorr.ProcessAutoNNNPerp(self.corr, field.data, self.output_dots)
+            else:
+                _treecorr.ProcessAutoNNNSphere(self.corr, field.data, self.output_dots)
         else:
             _treecorr.ProcessAutoNNNFlat(self.corr, field.data, self.output_dots)
         self.tot += (1./6.) * cat.nobj**3
 
-    def process_cross21(self, cat1, cat2):
+    def process_cross21(self, cat1, cat2, perp=False):
         """Process two catalogs, accumulating the 3pt cross-correlation, where two of the 
         points in each triangle come from the first catalog, and one from the second.
 
@@ -157,22 +164,26 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         calling this function as often as desired, the finalize() command will
         finish the calculation of meanlogr, meanu, meanv.
 
-        :param cat1:     The first catalog to process
-        :param cat2:     The second catalog to process
+        :param cat1:    The first catalog to process
+        :param cat2:    The second catalog to process
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         raise NotImplemented("No partial cross NNN yet.")
 
 
-    def process_cross(self, cat1, cat2, cat3):
+    def process_cross(self, cat1, cat2, cat3, perp=False):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs.  After
         calling this function as often as desired, the finalize() command will
         finish the calculation of meanlogr, meanu, meanv.
 
-        :param cat1:     The first catalog to process
-        :param cat2:     The second catalog to process
-        :param cat3:     The third catalog to process
+        :param cat1:    The first catalog to process
+        :param cat2:    The second catalog to process
+        :param cat3:    The third catalog to process
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         if cat1.name == '' and cat2.name == '' and cat3.name == '':
             self.logger.info('Starting process NNN cross-correlations')
@@ -182,15 +193,18 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         self._set_num_threads()
 
-        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
-        f2 = cat2.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
-        f3 = cat3.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
+        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
+        f2 = cat2.getNField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
+        f3 = cat3.getNField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
 
         if f1.sphere != f2.sphere or f1.sphere != f3.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            _treecorr.ProcessCrossNNNSphere(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+            if f1.perp:
+                _treecorr.ProcessCrossNNNPerp(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+            else:
+                _treecorr.ProcessCrossNNNSphere(self.corr, f1.data, f2.data, f3.data, self.output_dots)
         else:
             _treecorr.ProcessCrossNNNFlat(self.corr, f1.data, f2.data, f3.data, self.output_dots)
         self.tot += cat1.nobj * cat2.nobj * cat3.nobj / 6.0
@@ -229,7 +243,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.tot = 0.
 
 
-    def process(self, cat1, cat2=None, cat3=None):
+    def process(self, cat1, cat2=None, cat3=None, perp=False):
         """Accumulate the number of triangles of points between cat1, cat2, and cat3.
 
         If only 1 argument is given, then compute an auto-correlation function.
@@ -252,6 +266,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                         (default: None)
         :param cat3:    A catalog or list of catalogs for the third N field, if any.
                         (default: None)
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         self.clear()
         if not isinstance(cat1,list): cat1 = [cat1]
@@ -269,10 +285,10 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             raise NotImplemented("No partial cross NNN yet.")
 
         if cat2 is None and cat3 is None:
-            self._process_all_auto(cat1)
+            self._process_all_auto(cat1, perp)
         else:
             assert cat2 is not None and cat3 is not None
-            self._process_all_cross(cat1,cat2,cat3)
+            self._process_all_cross(cat1,cat2,cat3, perp)
         self.finalize()
 
 

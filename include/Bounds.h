@@ -19,8 +19,11 @@
 
 //---------------------------------------------------------------------------
 
-// We use a code for the metric to use -- flat-sky or spherical geometry.
-enum Metric { Flat=1, Sphere=2 };
+// We use a code for the metric to use:
+// Flat = flat-sky approximation using (x,y)
+// Sphere = spherical geometry using (ra,dec,r) -> (x,y,z)
+// Perp = 3D, but using the perpendicular component of the separation as the distance
+enum Metric { Flat=1, Sphere=2, Perp=3 };
 
 template <int M>
 class Position;
@@ -319,6 +322,7 @@ inline double DistSq(const Position<Sphere>& p1, const Position<Sphere>& p2)
 inline double Dist(const Position<Sphere>& p1, const Position<Sphere>& p2)
 { return sqrt(DistSq(p1,p2)); }
 
+<<<<<<< HEAD
 inline bool CCW(const Position<Sphere>& p1, const Position<Sphere>& p2, const Position<Sphere>& p3)
 {
     // Now it's slightly more complicated, since the points are in three dimensions.  We do
@@ -337,5 +341,69 @@ inline bool CCW(const Position<Sphere>& p1, const Position<Sphere>& p2, const Po
     return cx*p1.getX() + cy*p1.getY() + cz*p1.getZ() < 0.;
 }
 
+=======
+template <>
+class Position<Perp> : public Position<Sphere> 
+{
+public:
+    Position() : Position<Sphere>(0.,0.,0.,true) {}
+    Position(const Position<Perp>& rhs) : Position<Sphere>(rhs) {}
+    ~Position() {}
+    Position(double x, double y, double z, bool) : Position<Sphere>(x,y,z,true) {}
+    Position(double ra, double dec, double r) : Position<Sphere>(ra,dec,r) {}
+    Position<Perp>& operator=(const Position<Perp>& rhs) 
+    { Position<Sphere>::operator=(rhs); return *this; }
+
+    Position<Perp>& operator+=(const Position<Perp>& p2)
+    { Position<Sphere>::operator+=(p2); return *this; }
+    Position<Perp>& operator-=(const Position<Perp>& p2)
+    { Position<Sphere>::operator-=(p2); return *this; }
+    Position<Perp>& operator*=(double a)
+    { Position<Sphere>::operator*=(a); return *this; }
+    Position<Perp>& operator/=(double a)
+    { Position<Sphere>::operator/=(a); return *this; }
+
+    Position<Perp> operator+(const Position<Perp>& p2) const
+    { Position<Perp> p1 = *this; p1 += p2; return p1; }
+    Position<Perp> operator-(const Position<Perp>& p2) const
+    { Position<Perp> p1 = *this; p1 -= p2; return p1; }
+    Position<Perp> operator*(double a) const
+    { Position<Perp> p1 = *this; p1 *= a; return p1; }
+    Position<Perp> operator/(double a) const
+    { Position<Perp> p1 = *this; p1 /= a; return p1; }
+
+}; // Position<Perp>
+
+template <>
+class Bounds<Perp> : public Bounds<Sphere>
+{
+
+public:
+    Bounds() {}
+    Bounds(double x1, double x2, double y1, double y2, double z1, double z2) :
+        Bounds<Sphere>(x1,x2,y1,y2,z1,z2) {}
+    Bounds(const Position<Perp>& pos) : Bounds<Sphere>(pos) {}
+    ~Bounds() {}
+
+    // Expand the bounds to include the given position.
+    void operator+=(const Position<Perp>& pos)
+    { Bounds<Sphere>::operator+=(pos); }
+
+};
+
+inline double DistSq(const Position<Perp>& p1, const Position<Perp>& p2)
+{ 
+    // r_perp^2 + r_parallel^2 = d^2
+    Position<Perp> r = p1-p2;
+    double dsq = r.getX()*r.getX() + r.getY()*r.getY() + r.getZ()*r.getZ(); 
+    double r1sq = p1.getX()*p1.getX() + p1.getY()*p1.getY() + p1.getZ()*p1.getZ(); 
+    double r2sq = p2.getX()*p2.getX() + p2.getY()*p2.getY() + p2.getZ()*p2.getZ(); 
+    // r_parallel^2 = (r1-r2)^2 = r1^2 + r2^2 - 2r1r2
+    double rparsq = r1sq + r2sq - 2.*sqrt(r1sq*r2sq);
+    return dsq - rparsq;
+}
+inline double Dist(const Position<Perp>& p1, const Position<Perp>& p2)
+{ return sqrt(DistSq(p1,p2)); }
+>>>>>>> #17
 
 #endif

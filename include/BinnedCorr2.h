@@ -241,36 +241,51 @@ extern "C" {
 
     extern void ProcessAutoNNFlat(void* corr, void* field, int dots);
     extern void ProcessAutoNNSphere(void* corr, void* field, int dots);
+    extern void ProcessAutoNNPerp(void* corr, void* field, int dots);
     extern void ProcessAutoKKFlat(void* corr, void* field, int dots);
     extern void ProcessAutoKKSphere(void* corr, void* field, int dots);
+    extern void ProcessAutoKKPerp(void* corr, void* field, int dots);
     extern void ProcessAutoGGFlat(void* corr, void* field, int dots);
     extern void ProcessAutoGGSphere(void* corr, void* field, int dots);
+    extern void ProcessAutoGGPerp(void* corr, void* field, int dots);
 
     extern void ProcessCrossNNFlat(void* corr, void* field1, void* field2, int dots);
     extern void ProcessCrossNNSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossNNPerp(void* corr, void* field1, void* field2, int dots);
     extern void ProcessCrossNKFlat(void* corr, void* field1, void* field2, int dots);
     extern void ProcessCrossNKSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossNKPerp(void* corr, void* field1, void* field2, int dots);
     extern void ProcessCrossNGFlat(void* corr, void* field1, void* field2, int dots);
     extern void ProcessCrossNGSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossNGPerp(void* corr, void* field1, void* field2, int dots);
     extern void ProcessCrossKKFlat(void* corr, void* field1, void* field2, int dots);
     extern void ProcessCrossKKSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossKKPerp(void* corr, void* field1, void* field2, int dots);
     extern void ProcessCrossKGFlat(void* corr, void* field1, void* field2, int dots);
     extern void ProcessCrossKGSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossKGPerp(void* corr, void* field1, void* field2, int dots);
     extern void ProcessCrossGGFlat(void* corr, void* field1, void* field2, int dots);
     extern void ProcessCrossGGSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessCrossGGPerp(void* corr, void* field1, void* field2, int dots);
 
     extern void ProcessPairwiseNNFlat(void* corr, void* field1, void* field2, int dots);
     extern void ProcessPairwiseNNSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessPairwiseNNPerp(void* corr, void* field1, void* field2, int dots);
     extern void ProcessPairwiseNKFlat(void* corr, void* field1, void* field2, int dots);
     extern void ProcessPairwiseNKSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessPairwiseNKPerp(void* corr, void* field1, void* field2, int dots);
     extern void ProcessPairwiseNGFlat(void* corr, void* field1, void* field2, int dots);
     extern void ProcessPairwiseNGSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessPairwiseNGPerp(void* corr, void* field1, void* field2, int dots);
     extern void ProcessPairwiseKKFlat(void* corr, void* field1, void* field2, int dots);
     extern void ProcessPairwiseKKSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessPairwiseKKPerp(void* corr, void* field1, void* field2, int dots);
     extern void ProcessPairwiseKGFlat(void* corr, void* field1, void* field2, int dots);
     extern void ProcessPairwiseKGSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessPairwiseKGPerp(void* corr, void* field1, void* field2, int dots);
     extern void ProcessPairwiseGGFlat(void* corr, void* field1, void* field2, int dots);
     extern void ProcessPairwiseGGSphere(void* corr, void* field1, void* field2, int dots);
+    extern void ProcessPairwiseGGPerp(void* corr, void* field1, void* field2, int dots);
 
     extern int SetOMPThreads(int num_threads);
 }

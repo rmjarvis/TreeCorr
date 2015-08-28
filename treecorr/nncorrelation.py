@@ -37,12 +37,15 @@ _treecorr.BuildNNCorr.argtypes = [
     cdouble, cdouble, cint, cdouble, cdouble,
     cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyNNCorr.argtypes = [ cvoid_ptr ]
-_treecorr.ProcessAutoNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessAutoNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessAutoNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessAutoNNPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessPairwiseNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossNNPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseNNPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
 class NNCorrelation(treecorr.BinnedCorr2):
@@ -104,14 +107,16 @@ class NNCorrelation(treecorr.BinnedCorr2):
             _treecorr.DestroyNNCorr(self.corr)
 
 
-    def process_auto(self, cat):
+    def process_auto(self, cat, perp=False):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the auto-correlation for the given catalog.  After
         calling this function as often as desired, the finalize() command will
         finish the calculation of meanlogr.
 
-        :param cat:      The catalog to process
+        :param cat:     The catalog to process
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         if cat.name == '':
             self.logger.info('Starting process NN auto-correlations')
@@ -120,24 +125,29 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         self._set_num_threads()
 
-        field = cat.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
+        field = cat.getNField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
 
         if field.sphere:
-            _treecorr.ProcessAutoNNSphere(self.corr, field.data, self.output_dots)
+            if field.perp:
+                _treecorr.ProcessAutoNNPerp(self.corr, field.data, self.output_dots)
+            else:
+                _treecorr.ProcessAutoNNSphere(self.corr, field.data, self.output_dots)
         else:
             _treecorr.ProcessAutoNNFlat(self.corr, field.data, self.output_dots)
         self.tot += 0.5 * cat.nobj**2
 
 
-    def process_cross(self, cat1, cat2):
+    def process_cross(self, cat1, cat2, perp=False):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs.  After
         calling this function as often as desired, the finalize() command will
         finish the calculation of meanlogr.
 
-        :param cat1:     The first catalog to process
-        :param cat2:     The second catalog to process
+        :param cat1:    The first catalog to process
+        :param cat2:    The second catalog to process
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process NN cross-correlations')
@@ -147,20 +157,25 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         self._set_num_threads()
 
-        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
-        f2 = cat2.getNField(self.min_sep,self.max_sep,self.b,self.split_method,self.max_top)
+        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
+        f2 = cat2.getNField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+        if f1.perp != f2.perp:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            _treecorr.ProcessCrossNNSphere(self.corr, f1.data, f2.data, self.output_dots)
+            if f1.perp:
+                _treecorr.ProcessCrossNNPerp(self.corr, f1.data, f2.data, self.output_dots)
+            else:
+                _treecorr.ProcessCrossNNSphere(self.corr, f1.data, f2.data, self.output_dots)
         else:
             _treecorr.ProcessCrossNNFlat(self.corr, f1.data, f2.data, self.output_dots)
         self.tot += cat1.nobj*cat2.nobj
 
 
-    def process_pairwise(self, cat1, cat2):
+    def process_pairwise(self, cat1, cat2, perp=False):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
 
@@ -168,8 +183,10 @@ class NNCorrelation(treecorr.BinnedCorr2):
         After calling this function as often as desired, the finalize() command will
         finish the calculation.
 
-        :param cat1:     The first catalog to process
-        :param cat2:     The second catalog to process
+        :param cat1:    The first catalog to process
+        :param cat2:    The second catalog to process
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process NN pairwise-correlations')
@@ -179,14 +196,19 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         self._set_num_threads()
 
-        f1 = cat1.getNSimpleField()
-        f2 = cat2.getNSimpleField()
+        f1 = cat1.getNSimpleField(perp)
+        f2 = cat2.getNSimpleField(perp)
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+        if f1.perp != f2.perp:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            _treecorr.ProcessPairwiseNNSphere(self.corr, f1.data, f2.data, self.output_dots)
+            if f1.perp:
+                _treecorr.ProcessPairwiseNNPerp(self.corr, f1.data, f2.data, self.output_dots)
+            else:
+                _treecorr.ProcessPairwiseNNSphere(self.corr, f1.data, f2.data, self.output_dots)
         else:
             _treecorr.ProcessPairwiseNNFlat(self.corr, f1.data, f2.data, self.output_dots)
         self.tot += cat1.nobj
@@ -219,7 +241,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.tot = 0.
 
 
-    def process(self, cat1, cat2=None):
+    def process(self, cat1, cat2=None, perp=False):
         """Compute the correlation function.
 
         If only 1 argument is given, then compute an auto-correlation function.
@@ -231,6 +253,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
         :param cat1:    A catalog or list of catalogs for the first N field.
         :param cat2:    A catalog or list of catalogs for the second N field, if any.
                         (default: None)
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
         """
         self.clear()
         if not isinstance(cat1,list): cat1 = [cat1]
@@ -239,9 +263,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
             raise ValueError("No catalogs provided for cat1")
 
         if cat2 is None or len(cat2) == 0:
-            self._process_all_auto(cat1)
+            self._process_all_auto(cat1,perp)
         else:
-            self._process_all_cross(cat1,cat2)
+            self._process_all_cross(cat1,cat2,perp)
         self.finalize()
 
 

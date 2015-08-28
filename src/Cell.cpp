@@ -92,13 +92,13 @@ void CellData<GData,Flat>::finishAverages(
     _wg = dwg;
 }
 
-template <>
-void CellData<GData,Sphere>::finishAverages(
-    const std::vector<CellData<GData,Sphere>*>& vdata, size_t start, size_t end) 
+template <int M>
+std::complex<double> ParallelTransportShift(const std::vector<CellData<GData,M>*>& vdata,
+                                            const Position<M>& center, size_t start, size_t end) 
 {
     // For the average shear, we need to parallel transport each one to the center
     // to account for the different coordinate systems for each measurement.
-    //xdbg<<"Finish Averages for Center = "<<pos<<std::endl;
+    //xdbg<<"Finish Averages for Center = "<<center<<std::endl;
     std::complex<double> dwg=0.;
     for(size_t i=start;i<end;++i) {
         //xxdbg<<"Project shear "<<(vdata[i]->wg/vdata[i]->w)<<" at point "<<vdata[i]->getPos()<<std::endl;
@@ -106,9 +106,9 @@ void CellData<GData,Sphere>::finishAverages(
         // The difference is that here, we just rotate the single shear by
         // (Pi-A-B).  See the comments in ProjectShear2 for understanding
         // the initial bit where we calculate A,B.
-        double x1 = _pos.getX(); 
-        double y1 = _pos.getY(); 
-        double z1 = _pos.getZ(); 
+        double x1 = center.getX(); 
+        double y1 = center.getY(); 
+        double z1 = center.getZ(); 
         double x2 = vdata[i]->getPos().getX(); 
         double y2 = vdata[i]->getPos().getY(); 
         double z2 = vdata[i]->getPos().getZ(); 
@@ -138,8 +138,24 @@ void CellData<GData,Sphere>::finishAverages(
             dwg += vdata[i]->getWG() * exp2ibeta;
         }
     }
-    _wg = dwg;
+    return dwg;
 }
+
+// These two need to do the same thing, so pull it out into the above function.
+template <>
+void CellData<GData,Sphere>::finishAverages(
+    const std::vector<CellData<GData,Sphere>*>& vdata, size_t start, size_t end) 
+{
+    _wg = ParallelTransportShift(vdata,_pos,start,end);
+}
+
+template <>
+void CellData<GData,Perp>::finishAverages(
+    const std::vector<CellData<GData,Perp>*>& vdata, size_t start, size_t end) 
+{
+    _wg = ParallelTransportShift(vdata,_pos,start,end);
+}
+
 
 //
 // Cell
@@ -346,39 +362,48 @@ void Cell<DC,M>::WriteTree(std::ostream& os, int indent) const
 
 template class CellData<NData,Flat>;
 template class CellData<NData,Sphere>;
+template class CellData<NData,Perp>;
 template class CellData<KData,Flat>;
 template class CellData<KData,Sphere>;
+template class CellData<KData,Perp>;
 template class CellData<GData,Flat>;
 template class CellData<GData,Sphere>;
+template class CellData<GData,Perp>;
 
 template class Cell<NData,Flat>;
 template class Cell<NData,Sphere>;
+template class Cell<NData,Perp>;
 template class Cell<KData,Flat>;
 template class Cell<KData,Sphere>;
+template class Cell<KData,Perp>;
 template class Cell<GData,Flat>;
 template class Cell<GData,Sphere>;
+template class Cell<GData,Perp>;
 
 template double CalculateSizeSq(
-    const Position<Flat>& cen,
-    const std::vector<CellData<NData,Flat>*>& vdata,
+    const Position<Flat>& cen, const std::vector<CellData<NData,Flat>*>& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
-    const Position<Sphere>& cen,
-    const std::vector<CellData<NData,Sphere>*>& vdata,
+    const Position<Sphere>& cen, const std::vector<CellData<NData,Sphere>*>& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
-    const Position<Flat>& cen,
-    const std::vector<CellData<KData,Flat>*>& vdata,
+    const Position<Perp>& cen, const std::vector<CellData<NData,Perp>*>& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
-    const Position<Sphere>& cen,
-    const std::vector<CellData<KData,Sphere>*>& vdata,
+    const Position<Flat>& cen, const std::vector<CellData<KData,Flat>*>& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
-    const Position<Flat>& cen,
-    const std::vector<CellData<GData,Flat>*>& vdata,
+    const Position<Sphere>& cen, const std::vector<CellData<KData,Sphere>*>& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
-    const Position<Sphere>& cen,
-    const std::vector<CellData<GData,Sphere>*>& vdata,
+    const Position<Perp>& cen, const std::vector<CellData<KData,Perp>*>& vdata,
+    size_t start, size_t end);
+template double CalculateSizeSq(
+    const Position<Flat>& cen, const std::vector<CellData<GData,Flat>*>& vdata,
+    size_t start, size_t end);
+template double CalculateSizeSq(
+    const Position<Sphere>& cen, const std::vector<CellData<GData,Sphere>*>& vdata,
+    size_t start, size_t end);
+template double CalculateSizeSq(
+    const Position<Perp>& cen, const std::vector<CellData<GData,Perp>*>& vdata,
     size_t start, size_t end);

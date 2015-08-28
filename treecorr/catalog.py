@@ -1008,7 +1008,7 @@ class Catalog(object):
         width = prec+8
         header_form = "{0:^%d}"%(width-1)
         for i in range(1,ncol):
-            header_form += ".{%d:^%d}"%(i,width)
+            header_form += " {%d:^%d}"%(i,width)
         header = header_form.format(*col_names)
         fmt = '%%%d.%de'%(width,prec)
         try:

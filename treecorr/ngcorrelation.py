@@ -34,10 +34,12 @@ _treecorr.BuildNGCorr.argtypes = [
     cdouble, cdouble, cint, cdouble, cdouble,
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyNGCorr.argtypes = [ cvoid_ptr ]
-_treecorr.ProcessCrossNGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossNGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessPairwiseNGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossNGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossNGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseNGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseNGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseNGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
 class NGCorrelation(treecorr.BinnedCorr2):
@@ -127,9 +129,14 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+        if f1.perp != f2.perp:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            _treecorr.ProcessCrossNGSphere(self.corr, f1.data, f2.data, self.output_dots)
+            if f1.perp:
+                _treecorr.ProcessCrossNGPerp(self.corr, f1.data, f2.data, self.output_dots)
+            else:
+                _treecorr.ProcessCrossNGSphere(self.corr, f1.data, f2.data, self.output_dots)
         else:
             _treecorr.ProcessCrossNGFlat(self.corr, f1.data, f2.data, self.output_dots)
 
@@ -156,9 +163,14 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+        if f1.perp != f2.perp:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            _treecorr.ProcessPairwiseNGSphere(self.corr, f1.data, f2.data, self.output_dots)
+            if f1.perp:
+                _treecorr.ProcessPairwiseNGPerp(self.corr, f1.data, f2.data, self.output_dots)
+            else:
+                _treecorr.ProcessPairwiseNGSphere(self.corr, f1.data, f2.data, self.output_dots)
         else:
             _treecorr.ProcessPairwiseNGFlat(self.corr, f1.data, f2.data, self.output_dots)
 

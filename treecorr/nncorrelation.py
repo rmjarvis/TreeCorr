@@ -34,12 +34,15 @@ _treecorr.BuildNNCorr.argtypes = [
     cdouble, cdouble, cint, cdouble, cdouble,
     cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyNNCorr.argtypes = [ cvoid_ptr ]
-_treecorr.ProcessAutoNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessAutoNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessAutoNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessAutoNNPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessPairwiseNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossNNPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseNNPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
 class NNCorrelation(treecorr.BinnedCorr2):
@@ -117,7 +120,10 @@ class NNCorrelation(treecorr.BinnedCorr2):
         field = cat.getNField(self.min_sep,self.max_sep,self.b,self.split_method)
 
         if field.sphere:
-            _treecorr.ProcessAutoNNSphere(self.corr, field.data, self.output_dots)
+            if field.perp:
+                _treecorr.ProcessAutoNNPerp(self.corr, field.data, self.output_dots)
+            else:
+                _treecorr.ProcessAutoNNSphere(self.corr, field.data, self.output_dots)
         else:
             _treecorr.ProcessAutoNNFlat(self.corr, field.data, self.output_dots)
         self.tot += 0.5 * cat.nobj**2
@@ -143,9 +149,14 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+        if f1.perp != f2.perp:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            _treecorr.ProcessCrossNNSphere(self.corr, f1.data, f2.data, self.output_dots)
+            if f1.perp:
+                _treecorr.ProcessCrossNNPerp(self.corr, f1.data, f2.data, self.output_dots)
+            else:
+                _treecorr.ProcessCrossNNSphere(self.corr, f1.data, f2.data, self.output_dots)
         else:
             _treecorr.ProcessCrossNNFlat(self.corr, f1.data, f2.data, self.output_dots)
         self.tot += cat1.nobj*cat2.nobj
@@ -172,9 +183,14 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+        if f1.perp != f2.perp:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            _treecorr.ProcessPairwiseNNSphere(self.corr, f1.data, f2.data, self.output_dots)
+            if f1.perp:
+                _treecorr.ProcessPairwiseNNPerp(self.corr, f1.data, f2.data, self.output_dots)
+            else:
+                _treecorr.ProcessPairwiseNNSphere(self.corr, f1.data, f2.data, self.output_dots)
         else:
             _treecorr.ProcessPairwiseNNFlat(self.corr, f1.data, f2.data, self.output_dots)
         self.tot += cat1.nobj

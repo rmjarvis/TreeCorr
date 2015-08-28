@@ -34,10 +34,12 @@ _treecorr.BuildNKCorr.argtypes = [
     cdouble, cdouble, cint, cdouble, cdouble,
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyNKCorr.argtypes = [ cvoid_ptr ]
-_treecorr.ProcessCrossNKSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossNKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessPairwiseNKSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossNKSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossNKPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseNKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseNKSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseNKPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
 class NKCorrelation(treecorr.BinnedCorr2):
@@ -123,9 +125,14 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+        if f1.perp != f2.perp:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            _treecorr.ProcessCrossNKSphere(self.corr, f1.data, f2.data, self.output_dots)
+            if f1.perp:
+                _treecorr.ProcessCrossNKPerp(self.corr, f1.data, f2.data, self.output_dots)
+            else:
+                _treecorr.ProcessCrossNKSphere(self.corr, f1.data, f2.data, self.output_dots)
         else:
             _treecorr.ProcessCrossNKFlat(self.corr, f1.data, f2.data, self.output_dots)
 
@@ -152,9 +159,14 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+        if f1.perp != f2.perp:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            _treecorr.ProcessPairwiseNKSphere(self.corr, f1.data, f2.data, self.output_dots)
+            if f1.perp:
+                _treecorr.ProcessPairwiseNKPerp(self.corr, f1.data, f2.data, self.output_dots)
+            else:
+                _treecorr.ProcessPairwiseNKSphere(self.corr, f1.data, f2.data, self.output_dots)
         else:
             _treecorr.ProcessPairwiseNKFlat(self.corr, f1.data, f2.data, self.output_dots)
 

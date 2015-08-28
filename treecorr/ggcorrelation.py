@@ -34,12 +34,15 @@ _treecorr.BuildGGCorr.argtypes = [
     cdouble, cdouble, cint, cdouble, cdouble,
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyGGCorr.argtypes = [ cvoid_ptr ]
-_treecorr.ProcessAutoGGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint  ]
 _treecorr.ProcessAutoGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint  ]
-_treecorr.ProcessCrossGGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessAutoGGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint  ]
+_treecorr.ProcessAutoGGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cint  ]
 _treecorr.ProcessCrossGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessPairwiseGGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossGGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossGGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseGGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseGGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
 class GGCorrelation(treecorr.BinnedCorr2):
@@ -131,7 +134,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
         field = cat.getGField(self.min_sep,self.max_sep,self.b,self.split_method)
 
         if field.sphere:
-            _treecorr.ProcessAutoGGSphere(self.corr, field.data, self.output_dots)
+            if field.perp:
+                _treecorr.ProcessAutoGGPerp(self.corr, field.data, self.output_dots)
+            else:
+                _treecorr.ProcessAutoGGSphere(self.corr, field.data, self.output_dots)
         else:
             _treecorr.ProcessAutoGGFlat(self.corr, field.data, self.output_dots)
 
@@ -157,9 +163,14 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+        if f1.perp != f2.perp:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            _treecorr.ProcessCrossGGSphere(self.corr, f1.data, f2.data, self.output_dots)
+            if f1.perp:
+                _treecorr.ProcessCrossGGPerp(self.corr, f1.data, f2.data, self.output_dots)
+            else:
+                _treecorr.ProcessCrossGGSphere(self.corr, f1.data, f2.data, self.output_dots)
         else:
             _treecorr.ProcessCrossGGFlat(self.corr, f1.data, f2.data, self.output_dots)
 
@@ -186,9 +197,14 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+        if f1.perp != f2.perp:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            _treecorr.ProcessPairwiseGGSphere(self.corr, f1.data, f2.data, self.output_dots)
+            if f1.perp:
+                _treecorr.ProcessPairwiseGGPerp(self.corr, f1.data, f2.data, self.output_dots)
+            else:
+                _treecorr.ProcessPairwiseGGSphere(self.corr, f1.data, f2.data, self.output_dots)
         else:
             _treecorr.ProcessPairwiseGGFlat(self.corr, f1.data, f2.data, self.output_dots)
 

@@ -25,12 +25,13 @@ bool XDEBUG = false;
 
 // Most of the functionality for building Cells and doing the correlation functions is the
 // same regardless of which kind of Cell we have (N, K, G) or which kind of positions we
-// are using (Flat, Sphere).  So most of the C++ code uses templates.  
+// are using (Flat, Sphere, Perp).  So most of the C++ code uses templates.  
 // DC = GData for shear 
 //      KData for kappa
 //      NData for counts
 // M = Flat for flat-sky coordinates
-//     Sphere for spherical coordinates
+//     Sphere for spherical coordinates (or 3d coordinates)
+//     Perp for 3d coordinates, but using the perpendicular component for the distance
 
 // This function just works on the top level data to figure out which data goes into
 // each top-level Cell.  It is building up the top_* vectors, which can then be used
@@ -94,8 +95,10 @@ void SetupTopLevelCells(
 }
 
 // Specialize for all the different kinds of CellData possibilities.
+// M=Perp doesn't have a 2d version, so it will use this default implementation.
 template <int DC, int M>
-CellData<DC,M>* BuildCellData(double x, double y, double g1, double g2, double, double w);
+CellData<DC,M>* BuildCellData(double x, double y, double g1, double g2, double, double w)
+{ return 0; }
 
 template <>
 CellData<GData,Flat>* BuildCellData(double x, double y, double g1, double g2, double, double w)
@@ -123,8 +126,7 @@ CellData<NData,Sphere>* BuildCellData(double ra, double dec, double , double , d
 
 // For the 3D ones, we use a default implementation for when M=Flat, since we don't need those.
 template <int DC, int M>
-CellData<DC,M>* BuildCellData(
-    double x, double y, double r, double g1, double g2, double, double w)
+CellData<DC,M>* BuildCellData(double x, double y, double r, double g1, double g2, double, double w)
 { return 0; }
 
 template <>
@@ -133,14 +135,29 @@ CellData<GData,Sphere>* BuildCellData(
 { return new CellData<GData,Sphere>(Position<Sphere>(ra,dec,r), std::complex<double>(g1,g2), w); }
 
 template <>
+CellData<GData,Perp>* BuildCellData(
+    double ra, double dec, double r, double g1, double g2, double, double w)
+{ return new CellData<GData,Perp>(Position<Perp>(ra,dec,r), std::complex<double>(g1,g2), w); }
+
+template <>
 CellData<KData,Sphere>* BuildCellData(
     double ra, double dec, double r, double , double , double k, double w)
 { return new CellData<KData,Sphere>(Position<Sphere>(ra,dec,r), k, w); }
 
 template <>
+CellData<KData,Perp>* BuildCellData(
+    double ra, double dec, double r, double , double , double k, double w)
+{ return new CellData<KData,Perp>(Position<Perp>(ra,dec,r), k, w); }
+
+template <>
 CellData<NData,Sphere>* BuildCellData(
     double ra, double dec, double r, double , double , double, double w)
 { return new CellData<NData,Sphere>(Position<Sphere>(ra,dec,r), w); }
+
+template <>
+CellData<NData,Perp>* BuildCellData(
+    double ra, double dec, double r, double , double , double, double w)
+{ return new CellData<NData,Perp>(Position<Perp>(ra,dec,r), w); }
 
 
 template <int DC, int M>
@@ -297,13 +314,21 @@ void* BuildGFieldFlat(double* x, double* y, double* g1, double* g2, double* w,
     dbg<<"field = "<<field<<std::endl;
     return static_cast<void*>(field);
 }
-
 void* BuildGFieldSphere(double* ra, double* dec, double* r, double* g1, double* g2, double* w,
                         long nobj, double minsep, double maxsep, double b, int sm_int)
 {
     dbg<<"Start BuildGFieldSphere\n";
     Field<GData,Sphere>* field = new Field<GData,Sphere>(ra, dec, r, g1, g2, w, w, nobj,
                                                          minsep, maxsep, b, sm_int);
+    dbg<<"field = "<<field<<std::endl;
+    return static_cast<void*>(field);
+}
+void* BuildGFieldPerp(double* ra, double* dec, double* r, double* g1, double* g2, double* w,
+                      long nobj, double minsep, double maxsep, double b, int sm_int)
+{
+    dbg<<"Start BuildGFieldPerp\n";
+    Field<GData,Perp>* field = new Field<GData,Perp>(ra, dec, r, g1, g2, w, w, nobj,
+                                                     minsep, maxsep, b, sm_int);
     dbg<<"field = "<<field<<std::endl;
     return static_cast<void*>(field);
 }
@@ -317,13 +342,21 @@ void* BuildKFieldFlat(double* x, double* y, double* k, double* w,
     dbg<<"field = "<<field<<std::endl;
     return static_cast<void*>(field);
 }
-
 void* BuildKFieldSphere(double* ra, double* dec, double* r, double* k, double* w,
                         long nobj, double minsep, double maxsep, double b, int sm_int)
 {
     dbg<<"Start BuildKFieldSphere\n";
     Field<KData,Sphere>* field = new Field<KData,Sphere>(ra, dec, r, w, w, k, w, nobj,
                                                          minsep, maxsep, b, sm_int);
+    dbg<<"field = "<<field<<std::endl;
+    return static_cast<void*>(field);
+}
+void* BuildKFieldPerp(double* ra, double* dec, double* r, double* k, double* w,
+                      long nobj, double minsep, double maxsep, double b, int sm_int)
+{
+    dbg<<"Start BuildKFieldPerp\n";
+    Field<KData,Perp>* field = new Field<KData,Perp>(ra, dec, r, w, w, k, w, nobj,
+                                                     minsep, maxsep, b, sm_int);
     dbg<<"field = "<<field<<std::endl;
     return static_cast<void*>(field);
 }
@@ -337,13 +370,21 @@ void* BuildNFieldFlat(double* x, double* y, double* w,
     dbg<<"field = "<<field<<std::endl;
     return static_cast<void*>(field);
 }
-
 void* BuildNFieldSphere(double* ra, double* dec, double* r, double* w,
                         long nobj, double minsep, double maxsep, double b, int sm_int)
 {
     dbg<<"Start BuildNFieldSphere\n";
     Field<NData,Sphere>* field = new Field<NData,Sphere>(ra, dec, r, w, w, w, w, nobj,
                                                          minsep, maxsep, b, sm_int);
+    dbg<<"field = "<<field<<std::endl;
+    return static_cast<void*>(field);
+}
+void* BuildNFieldPerp(double* ra, double* dec, double* r, double* w,
+                      long nobj, double minsep, double maxsep, double b, int sm_int)
+{
+    dbg<<"Start BuildNFieldPerp\n";
+    Field<NData,Perp>* field = new Field<NData,Perp>(ra, dec, r, w, w, w, w, nobj,
+                                                     minsep, maxsep, b, sm_int);
     dbg<<"field = "<<field<<std::endl;
     return static_cast<void*>(field);
 }
@@ -354,12 +395,17 @@ void DestroyGFieldFlat(void* field)
     dbg<<"field = "<<field<<std::endl;
     delete static_cast<Field<GData,Flat>*>(field);
 }
-
 void DestroyGFieldSphere(void* field)
 {
     dbg<<"Start DestroyGFieldSphere\n";
     dbg<<"field = "<<field<<std::endl;
     delete static_cast<Field<GData,Sphere>*>(field);
+}
+void DestroyGFieldPerp(void* field)
+{
+    dbg<<"Start DestroyGFieldPerp\n";
+    dbg<<"field = "<<field<<std::endl;
+    delete static_cast<Field<GData,Perp>*>(field);
 }
 
 void DestroyKFieldFlat(void* field)
@@ -368,12 +414,17 @@ void DestroyKFieldFlat(void* field)
     dbg<<"field = "<<field<<std::endl;
     delete static_cast<Field<KData,Flat>*>(field);
 }
-
 void DestroyKFieldSphere(void* field)
 {
     dbg<<"Start DestroyKFieldSphere\n";
     dbg<<"field = "<<field<<std::endl;
     delete static_cast<Field<KData,Sphere>*>(field);
+}
+void DestroyKFieldPerp(void* field)
+{
+    dbg<<"Start DestroyKFieldPerp\n";
+    dbg<<"field = "<<field<<std::endl;
+    delete static_cast<Field<KData,Perp>*>(field);
 }
 
 void DestroyNFieldFlat(void* field)
@@ -382,15 +433,18 @@ void DestroyNFieldFlat(void* field)
     dbg<<"field = "<<field<<std::endl;
     delete static_cast<Field<NData,Flat>*>(field);
 }
-
 void DestroyNFieldSphere(void* field)
 {
     dbg<<"Start DestroyNFieldSphere\n";
     dbg<<"field = "<<field<<std::endl;
     delete static_cast<Field<NData,Sphere>*>(field);
 }
-
-
+void DestroyNFieldPerp(void* field)
+{
+    dbg<<"Start DestroyNFieldPerp\n";
+    dbg<<"field = "<<field<<std::endl;
+    delete static_cast<Field<NData,Perp>*>(field);
+}
 
 
 void* BuildGSimpleFieldFlat(double* x, double* y, double* g1, double* g2, double* w, long nobj)
@@ -402,11 +456,19 @@ void* BuildGSimpleFieldFlat(double* x, double* y, double* g1, double* g2, double
     dbg<<"field = "<<field<<std::endl;
     return static_cast<void*>(field);
 }
-
-void* BuildGSimpleFieldSphere(double* ra, double* dec, double* r, double* g1, double* g2, double* w, long nobj)
+void* BuildGSimpleFieldSphere(double* ra, double* dec, double* r, double* g1, double* g2, double* w,
+                              long nobj)
 {
     dbg<<"Start BuildGSimpleFieldSphere\n";
     SimpleField<GData,Sphere>* field = new SimpleField<GData,Sphere>(ra, dec, r, g1, g2, w, w, nobj);
+    dbg<<"field = "<<field<<std::endl;
+    return static_cast<void*>(field);
+}
+void* BuildGSimpleFieldPerp(double* ra, double* dec, double* r, double* g1, double* g2, double* w,
+                            long nobj)
+{
+    dbg<<"Start BuildGSimpleFieldPerp\n";
+    SimpleField<GData,Perp>* field = new SimpleField<GData,Perp>(ra, dec, r, g1, g2, w, w, nobj);
     dbg<<"field = "<<field<<std::endl;
     return static_cast<void*>(field);
 }
@@ -418,11 +480,17 @@ void* BuildKSimpleFieldFlat(double* x, double* y, double* k, double* w, long nob
     dbg<<"field = "<<field<<std::endl;
     return static_cast<void*>(field);
 }
-
 void* BuildKSimpleFieldSphere(double* ra, double* dec, double* r, double* k, double* w, long nobj)
 {
     dbg<<"Start BuildKSimpleFieldSphere\n";
     SimpleField<KData,Sphere>* field = new SimpleField<KData,Sphere>(ra, dec, r, w, w, k, w, nobj);
+    dbg<<"field = "<<field<<std::endl;
+    return static_cast<void*>(field);
+}
+void* BuildKSimpleFieldPerp(double* ra, double* dec, double* r, double* k, double* w, long nobj)
+{
+    dbg<<"Start BuildKSimpleFieldPerp\n";
+    SimpleField<KData,Perp>* field = new SimpleField<KData,Perp>(ra, dec, r, w, w, k, w, nobj);
     dbg<<"field = "<<field<<std::endl;
     return static_cast<void*>(field);
 }
@@ -434,11 +502,17 @@ void* BuildNSimpleFieldFlat(double* x, double* y, double* w, long nobj)
     dbg<<"field = "<<field<<std::endl;
     return static_cast<void*>(field);
 }
-
 void* BuildNSimpleFieldSphere(double* ra, double* dec, double* r, double* w, long nobj)
 {
     dbg<<"Start BuildNSimpleFieldSphere\n";
     SimpleField<NData,Sphere>* field = new SimpleField<NData,Sphere>(ra, dec, r, w, w, w, w, nobj);
+    dbg<<"field = "<<field<<std::endl;
+    return static_cast<void*>(field);
+}
+void* BuildNSimpleFieldPerp(double* ra, double* dec, double* r, double* w, long nobj)
+{
+    dbg<<"Start BuildNSimpleFieldPerp\n";
+    SimpleField<NData,Perp>* field = new SimpleField<NData,Perp>(ra, dec, r, w, w, w, w, nobj);
     dbg<<"field = "<<field<<std::endl;
     return static_cast<void*>(field);
 }
@@ -449,12 +523,17 @@ void DestroyGSimpleFieldFlat(void* field)
     dbg<<"field = "<<field<<std::endl;
     delete static_cast<SimpleField<GData,Flat>*>(field);
 }
-
 void DestroyGSimpleFieldSphere(void* field)
 {
     dbg<<"Start DestroyGSimpleFieldSphere\n";
     dbg<<"field = "<<field<<std::endl;
     delete static_cast<SimpleField<GData,Sphere>*>(field);
+}
+void DestroyGSimpleFieldPerp(void* field)
+{
+    dbg<<"Start DestroyGSimpleFieldPerp\n";
+    dbg<<"field = "<<field<<std::endl;
+    delete static_cast<SimpleField<GData,Perp>*>(field);
 }
 
 void DestroyKSimpleFieldFlat(void* field)
@@ -463,12 +542,17 @@ void DestroyKSimpleFieldFlat(void* field)
     dbg<<"field = "<<field<<std::endl;
     delete static_cast<SimpleField<KData,Flat>*>(field);
 }
-
 void DestroyKSimpleFieldSphere(void* field)
 {
     dbg<<"Start DestroyKSimpleFieldSphere\n";
     dbg<<"field = "<<field<<std::endl;
     delete static_cast<SimpleField<KData,Sphere>*>(field);
+}
+void DestroyKSimpleFieldPerp(void* field)
+{
+    dbg<<"Start DestroyKSimpleFieldPerp\n";
+    dbg<<"field = "<<field<<std::endl;
+    delete static_cast<SimpleField<KData,Perp>*>(field);
 }
 
 void DestroyNSimpleFieldFlat(void* field)
@@ -477,12 +561,17 @@ void DestroyNSimpleFieldFlat(void* field)
     dbg<<"field = "<<field<<std::endl;
     delete static_cast<SimpleField<NData,Flat>*>(field);
 }
-
 void DestroyNSimpleFieldSphere(void* field)
 {
     dbg<<"Start DestroyNSimpleFieldSphere\n";
     dbg<<"field = "<<field<<std::endl;
     delete static_cast<SimpleField<NData,Sphere>*>(field);
+}
+void DestroyNSimpleFieldPerp(void* field)
+{
+    dbg<<"Start DestroyNSimpleFieldPerp\n";
+    dbg<<"field = "<<field<<std::endl;
+    delete static_cast<SimpleField<NData,Perp>*>(field);
 }
 
 

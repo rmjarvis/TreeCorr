@@ -204,11 +204,97 @@ class Catalog(object):
     :param cat_precision: The precision to use when writing a Catalog to an ASCII file. This should
                         be an integer, which specifies how many digits to write. (default: 16)
     """
+    # Dict describing the valid kwarg parameters, what types they are, and a description:
+    # Each value is a tuple with the following elements:
+    #    type
+    #    may_be_list
+    #    default value
+    #    list of valid values
+    #    description
+    _valid_params = {
+        'file_type' : (str, False, None, ['ASCII', 'FITS'],
+                'The file type of the input files. The default is to use the file name extension.'),
+        'delimiter' : (str, True, None, None,
+                'The delimeter between values in an ASCII catalog. The default is any whitespace.'),
+        'comment_marker' : (str, True, '#', None,
+                'The first (non-whitespace) character of comment lines in an input ASCII catalog.'),
+        'first_row' : (int, True, 1, None,
+                'The first row to use from the input catalog'),
+        'last_row' : (int, True, -1, None,
+                'The last row to use from the input catalog.  The default is to use all of them.'),
+        'x_col' : (str, True, '0', None,
+                'Which column to use for x. Should be an integer for ASCII catalogs.'),
+        'y_col' : (str, True, '0', None,
+                'Which column to use for y. Should be an integer for ASCII catalogs.'),
+        'ra_col' : (str, True, '0', None,
+                'Which column to use for ra. Should be an integer for ASCII catalogs.'),
+        'dec_col' : (str, True, '0', None,
+                'Which column to use for dec. Should be an integer for ASCII catalogs.'),
+        'r_col' : (str, True, '0', None,
+                'Which column to use for r.  Only valid with ra,dec. ',
+                'Should be an integer for ASCII catalogs.'),
+        'x_units' : (str, True, None, treecorr.angle_units.keys(),
+                'The units of x values.'),
+        'y_units' : (str, True, None, treecorr.angle_units.keys(),
+                'The units of y values.'),
+        'ra_units' : (str, True, None, treecorr.angle_units.keys(),
+                'The units of ra values. Required when using ra_col.'),
+        'dec_units' : (str, True, None, treecorr.angle_units.keys(),
+                'The units of dec values. Required when using dec_col.'),
+        'g1_col' : (str, True, '0', None,
+                'Which column to use for g1. Should be an integer for ASCII catalogs.'),
+        'g2_col' : (str, True, '0', None,
+                'Which column to use for g2. Should be an integer for ASCII catalogs.'),
+        'k_col' : (str, True, '0', None,
+                'Which column to use for kappa. Should be an integer for ASCII catalogs. '),
+        'w_col' : (str, True, '0', None,
+                'Which column to use for weight. Should be an integer for ASCII catalogs.'),
+        'flag_col' : (str, True, '0', None,
+                'Which column to use for flag. Should be an integer for ASCII catalogs.'),
+        'ignore_flag': (int, True, None, None,
+                'Ignore objects with flag & ignore_flag != 0 (bitwise &)'),
+        'ok_flag': (int, True, 0, None,
+                'Ignore objects with flag & ~ok_flag != 0 (bitwise &, ~)'),
+        'hdu': (int, True, 1, None,
+                'Which HDU in a fits file to use rather than hdu=1'),
+        'x_hdu': (int, True, None, None,
+                'Which HDU to use for the x_col. default is the global hdu value.'),
+        'y_hdu': (int, True, None, None,
+                'Which HDU to use for the y_col. default is the global hdu value.'),
+        'ra_hdu': (int, True, None, None,
+                'Which HDU to use for the ra_col. default is the global hdu value.'),
+        'dec_hdu': (int, True, None, None,
+                'Which HDU to use for the dec_col. default is the global hdu value.'),
+        'r_hdu': (int, True, None, None,
+                'Which HDU to use for the r_col. default is the global hdu value.'),
+        'g1_hdu': (int, True, None, None,
+                'Which HDU to use for the g1_col. default is the global hdu value.'),
+        'g2_hdu': (int, True, None, None,
+                'Which HDU to use for the g2_col. default is the global hdu value.'),
+        'k_hdu': (int, True, None, None,
+                'Which HDU to use for the k_col. default is the global hdu value.'),
+        'w_hdu': (int, True, None, None,
+                'Which HDU to use for the w_col. default is the global hdu value.'),
+        'flag_hdu': (int, True, None, None,
+                'Which HDU to use for the flag_col. default is the global hdu value.'),
+        'flip_g1' : (bool, True, False, None,
+                'Whether to flip the sign of g1'),
+        'flip_g2' : (bool, True, False, None,
+                'Whether to flip the sign of g2'),
+        'verbose' : (int, False, 1, [0, 1, 2, 3],
+                'How verbose the code should be during processing. ',
+                '0 = Errors Only, 1 = Warnings, 2 = Progress, 3 = Debugging'),
+        'log_file' : (str, False, None, None,
+                'If desired, an output file for the logging output.',
+                'The default is to write the output to stdout.'),
+        'cat_precision' : (int, False, 16, None,
+                'The number of digits after the decimal in the output.'),
+    }
     def __init__(self, file_name=None, config=None, num=0, logger=None, is_rand=False,
                  x=None, y=None, ra=None, dec=None, r=None, w=None, flag=None,
                  g1=None, g2=None, k=None, **kwargs):
 
-        self.config = treecorr.config.merge_config(config,kwargs)
+        self.config = treecorr.config.merge_config(config,kwargs,Catalog._valid_params)
         if logger is not None:
             self.logger = logger
         else:

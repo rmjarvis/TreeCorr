@@ -173,7 +173,7 @@ def check_config(config, params, aliases=None, logger=None):
 
         # Check that this is a valid key
         if key not in params:
-            raise AttributeError("Invalid parameter %s found in config dict."%key)
+            raise AttributeError("Invalid parameter %s."%key)
 
         value_type, may_be_list, default_value, valid_values = params[key][:4]
 
@@ -311,31 +311,28 @@ def get(config, key, value_type=str, default=None):
     else:
         return default
 
-def merge_config(config, kwargs):
+def merge_config(config, kwargs, valid_params):
     """Merge in the values from kwargs into config.
 
     If either of these is None, then the other one is returned.
     If they are both dicts, then the values in kwargs take precedence over ones in config
-    if there are any keys that are in both.
+    if there are any keys that are in both.  Also, the kwargs dict will be modified in this case.
 
-    Note: neither input dict will be modified in this process.
+    :param config:          The root config (will not be modified)
+    :param kwargs:          A second dict with more or updated values
+    :param valid_params:    A dict of valid parameters that are allowed for this usage.
+                            The config dict is allowed to have extra items, but kwargs is not.
 
-    :param config:      The root config
-    :param kwargs:      A second dict with more or updated values
-
-    :returns:           The merged dict
+    :returns:               The merged dict, including only items that are in valid_params.
     """
-
-    if kwargs:
-        if config:
-            import copy
-            config = copy.copy(config)
-            config.update(kwargs)
-        else: 
-            config = kwargs
-    if config is None:
-        config = {}
-    return config
+    if kwargs is None:
+        kwargs = {}
+    if config:
+        for key, value in config.iteritems():
+            if key in valid_params and key not in kwargs:
+                kwargs[key] = value
+    check_config(kwargs, valid_params)
+    return kwargs
 
 
 import os

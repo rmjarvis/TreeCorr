@@ -246,7 +246,7 @@ def corr2(config, logger=None):
         if 'gg_file_name' in config:
             gg.write(config['gg_file_name'])
         if 'm2_file_name' in config:
-            gg.writeMapSq(config['m2_file_name'])
+            gg.writeMapSq(config['m2_file_name'], m2_uform=config['m2_uform'])
 
     # Do NG correlation function if necessary
     if 'ng_file_name' in config or 'nm_file_name' in config or 'norm_file_name' in config:
@@ -270,7 +270,7 @@ def corr2(config, logger=None):
         if 'ng_file_name' in config:
             ng.write(config['ng_file_name'], rg)
         if 'nm_file_name' in config:
-            ng.writeNMap(config['nm_file_name'], rg)
+            ng.writeNMap(config['nm_file_name'], rg, m2_uform=config['m2_uform'])
 
         if 'norm_file_name' in config:
             gg = treecorr.GGCorrelation(config,logger)
@@ -287,7 +287,7 @@ def corr2(config, logger=None):
                 dr = treecorr.NNCorrelation(config,logger)
                 dr.process(cat1,rand1)
                 logger.info("Done DR calculation for norm")
-            ng.writeNorm(config['norm_file_name'],gg,dd,rr,dr,rg)
+            ng.writeNorm(config['norm_file_name'],gg,dd,rr,dr,rg,m2_uform=config['m2_uform'])
 
     # Do NN correlation function if necessary
     if 'nn_file_name' in config:

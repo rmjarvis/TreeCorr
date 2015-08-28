@@ -373,17 +373,11 @@ class NNCorrelation(treecorr.BinnedCorr2):
                             case the Landy-Szalay estimator will be calculated.  (default: None)
         :param rd:          An NNCorrelation object for the random-data pairs, if desired and 
                             different from dr.  (default: None, which mean use rd=dr)
-
-        The following parameter may be given either in the constructor (in either the config 
-        file or as a named kwarg) or here as a named kwarg.
-
         :param m2_uform:    Which form to use for the aperture mass, as described above.
                             (default: 'Crittenden')
 
         :returns: (nsq, varnsq)
         """
-        if m2_uform is None:
-            m2_uform = self.config.get('m2_uform','Crittenden')
         if m2_uform not in ['Crittenden', 'Schneider']:
             raise ValueError("Invalid m2_uform")
 

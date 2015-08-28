@@ -327,8 +327,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
             T_-\\left(\\frac{r}{R}\\right) \\xi_-(r) \\right]
 
         The m2_uform parameter sets which definition of the aperture mass to use.
-        The default is to look in the config dict that was used to build the catalog,
-        or use 'Crittenden' if it is not specified.
+        The default is to use 'Crittenden'.
 
         If m2_uform == 'Crittenden':
 
@@ -353,16 +352,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         cf. Schneider, et al (2001): http://xxx.lanl.gov/abs/astro-ph/0112441
 
-        The following parameter may be given either in the constructor (in either the config 
-        file or as a named kwarg) or here as a named kwarg.
-
         :param m2_uform:    Which form to use for the aperture mass, as described above. 
                             (default: 'Crittenden')
 
         :returns:           (mapsq, mapsq_im, mxsq, mxsq_im, varmapsq) as a tuple
         """
-        if m2_uform is None:
-            m2_uform = self.config.get('m2_uform','Crittenden')
         if m2_uform not in ['Crittenden', 'Schneider']:
             raise ValueError("Invalid m2_uform")
 

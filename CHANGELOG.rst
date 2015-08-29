@@ -1,7 +1,7 @@
 Changes from version 3.1 to 3.2
 ===============================
 
-The numbers at the ends of each item below indicate which issue is connected
+The numbers at the ends of some items below indicate which issue is connected
 with the change:
 
 https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+3.2%22+is%3Aclosed
@@ -33,10 +33,9 @@ API changes:
 New features:
 -------------
 
-- Added the option of calling `NNCorrelation.write()` with no `rr` parameter.
-  In this case, it will just write a column with the number of pairs (along
-  with the regular separation columns), rather than calculate the correlation 
-  function.
+- Added three point functions.  So far just NNN, KKK, and GGG. (#3, #4, #33)
+- Added ability to use the perpendicular component of the distance as the
+  separation metric. (#17)
 - Added the ability for the Correlation classes to write FITS binary tables.
   If an output file name has an extension that starts with '.fit', then it will
   write a FITS binary table, rather than an ASCII file.  Or you can specify the
@@ -45,6 +44,10 @@ New features:
   and output file.  The combination of this with the FITS write lets you save a
   Correlation object to disk and recover it without loss of information.  This
   can be used to split a problem up to be run on multiple machines. (#23)
+- Added the option of calling `NNCorrelation.write()` with no `rr` parameter.
+  In this case, it will just write a column with the number of pairs (along
+  with the regular separation columns), rather than calculate the correlation 
+  function.
 - Added ability to write Catalogs to either FITS or ASCII files.
 
 

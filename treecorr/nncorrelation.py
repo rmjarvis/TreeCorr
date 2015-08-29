@@ -91,14 +91,14 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.meanlogr = numpy.zeros(self.nbins, dtype=float)
         self.npairs = numpy.zeros(self.nbins, dtype=float)
         self.tot = 0.
-
-        meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
-        npairs = self.npairs.ctypes.data_as(cdouble_ptr)
-
-        self.corr = _treecorr.BuildNNCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
-                                          meanlogr,npairs);
+        self._build_corr()
         self.logger.debug('Finished building NNCorr')
 
+    def _build_corr(self):
+        meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
+        npairs = self.npairs.ctypes.data_as(cdouble_ptr)
+        self.corr = _treecorr.BuildNNCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                                          meanlogr,npairs);
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -106,6 +106,25 @@ class NNCorrelation(treecorr.BinnedCorr2):
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             _treecorr.DestroyNNCorr(self.corr)
 
+    def copy(self):
+        import copy
+        return copy.deepcopy(self)
+
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        del d['corr']
+        del d['logger']  # Oh well.  This is just lost in the copy.  Can't be pickled.
+        return d
+
+    def __setstate__(self):
+        self.__dict__ = d
+        self._build_corr()
+        self.logger = treecorr.config.setup_logger(
+                treecorr.config.get(self.config,'verbose',int,0),
+                self.config.get('log_file',None))
+
+    def __repr__(self):
+        return 'NNCorrelation(config=%r)'%self.config
 
     def process_auto(self, cat, perp=False):
         """Process a single catalog, accumulating the auto-correlation.
@@ -240,6 +259,25 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.npairs[:] = 0.
         self.tot = 0.
 
+    def __iadd__(self, other):
+        """Add a second NNCorrelation's data to this one.
+
+        Note: For this to make sense, both Correlation objects should have been using
+        process_auto and/or process_cross, and they should not have had finalize called yet.
+        Then, after adding them together, you should call finalize on the sum.
+        """
+        if not isinstance(other, NNCorrelation):
+            raise AttributeError("Can only add another NNCorrelation object")
+        if not (self.nbins == other.nbins and
+                self.min_sep == other.min_sep and
+                self.max_sep == other.max_sep):
+            raise ValueError("NNCorrelation to be added is not compatible with this one.")
+
+        self.meanlogr[:] += other.meanlogr[:]
+        self.npairs[:] += other.npairs[:]
+        self.tot += other.tot
+        return self
+
 
     def process(self, cat1, cat2=None, perp=False):
         """Compute the correlation function.
@@ -352,8 +390,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Writing NN correlations to %s',file_name)
         
-        col_names = [ 'R_nom','<R>' ]
-        columns = [ numpy.exp(self.logr), numpy.exp(self.meanlogr) ]
+        col_names = [ 'R_nom','<R>','<logR>' ]
+        columns = [ numpy.exp(self.logr), numpy.exp(self.meanlogr), self.meanlogr ]
         if rr is None:
             col_names += [ 'npairs' ]
             columns += [ self.npairs ]
@@ -398,7 +436,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         data = treecorr.util.gen_read(file_name, file_type=file_type)
         self.logr = numpy.log(data['R_nom'])
-        self.meanlogr = numpy.log(data['<R>'])
+        self.meanlogr = data['<logR>']
         if 'npairs' in data.dtype.names:
             self.npairs = data['npairs']
         else:

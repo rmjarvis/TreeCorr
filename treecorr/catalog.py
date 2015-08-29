@@ -545,7 +545,6 @@ class Catalog(object):
                 self.w = numpy.ones_like(col)
             self.w[index] = 0
 
-
     def read_ascii(self, file_name, num=0, is_rand=False):
         """Read the catalog from an ASCII file
 
@@ -1035,7 +1034,23 @@ class Catalog(object):
         treecorr.util.gen_write(
             file_name, col_names, columns, prec=prec, file_type=file_type, logger=self.logger)
 
+    def copy(self):
+        import copy
+        return copy.deepcopy(self)
 
+    def __repr__(self):
+        s = 'Catalog('
+        if self.x is not None: s += 'x='+repr(self.x)+','
+        if self.y is not None: s += 'y='+repr(self.y)+','
+        if self.ra is not None: s += 'ra='+repr(self.ra)+','
+        if self.dec is not None: s += 'dec='+repr(self.dec)+','
+        if self.r is not None: s += 'r='+repr(self.r)+','
+        if self.w is not None: s += 'w='+repr(self.w)+','
+        if self.g1 is not None: s += 'g1='+repr(self.g1)+','
+        if self.g2 is not None: s += 'g2='+repr(self.g2)+','
+        if self.k is not None: s += 'k='+repr(self.k)+','
+        # remove the last ','
+        s = s[:-1] + ')'
 
 def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=None):
     """Read in a list of catalogs for the given key.
@@ -1108,7 +1123,9 @@ def calculateVarG(cat_list):
 
     :returns:           The shear variance per component, aka shape noise.
     """
-    if len(cat_list) == 1:
+    if isinstance(cat_list,Catalog):
+        return cat_list.varg
+    elif len(cat_list) == 1:
         return cat_list[0].varg
     else:
         varg = 0
@@ -1128,7 +1145,9 @@ def calculateVarK(cat_list):
 
     :returns:           The kappa variance
     """
-    if len(cat_list) == 1:
+    if isinstance(cat_list,Catalog):
+        return cat_list.vark
+    elif len(cat_list) == 1:
         return cat_list[0].vark
     else:
         vark = 0

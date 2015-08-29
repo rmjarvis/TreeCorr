@@ -92,17 +92,17 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.meanlogr = numpy.zeros(self.nbins, dtype=float)
         self.weight = numpy.zeros(self.nbins, dtype=float)
         self.npairs = numpy.zeros(self.nbins, dtype=float)
+        self._build_corr()
+        self.logger.debug('Finished building NGCorr')
 
+    def _build_corr(self):
         xi = self.xi.ctypes.data_as(cdouble_ptr)
         xi_im = self.xi_im.ctypes.data_as(cdouble_ptr)
         meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
         weight = self.weight.ctypes.data_as(cdouble_ptr)
         npairs = self.npairs.ctypes.data_as(cdouble_ptr)
-
         self.corr = _treecorr.BuildNGCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                                           xi,xi_im,meanlogr,weight,npairs);
-        self.logger.debug('Finished building NGCorr')
-
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -110,6 +110,25 @@ class NGCorrelation(treecorr.BinnedCorr2):
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             _treecorr.DestroyNGCorr(self.corr)
 
+    def copy(self):
+        import copy
+        return copy.deepcopy(self)
+
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        del d['corr']
+        del d['logger']  # Oh well.  This is just lost in the copy.  Can't be pickled.
+        return d
+
+    def __setstate__(self,d):
+        self.__dict__ = d
+        self._build_corr()
+        self.logger = treecorr.config.setup_logger(
+                treecorr.config.get(self.config,'verbose',int,0),
+                self.config.get('log_file',None))
+
+    def __repr__(self):
+        return 'NGCorrelation(config=%r)'%self.config
 
     def process_cross(self, cat1, cat2, perp=False):
         """Process a single pair of catalogs, accumulating the cross-correlation.
@@ -214,9 +233,32 @@ class NGCorrelation(treecorr.BinnedCorr2):
         """
         self.xi[:] = 0
         self.xi_im[:] = 0
+        self.varxi[:] = 0
         self.meanlogr[:] = 0
         self.weight[:] = 0
         self.npairs[:] = 0
+
+    def __iadd__(self, other):
+        """Add a second GGCorrelation's data to this one.
+
+        Note: For this to make sense, both Correlation objects should have been using 
+        process_cross, and they should not have had finalize called yet.
+        Then, after adding them together, you should call finalize on the sum.
+        """
+        if not isinstance(other, NGCorrelation):
+            raise AttributeError("Can only add another NGCorrelation object")
+        if not (self.nbins == other.nbins and
+                self.min_sep == other.min_sep and
+                self.max_sep == other.max_sep):
+            raise ValueError("NGCorrelation to be added is not compatible with this one.")
+
+        self.xi[:] += other.xi[:]
+        self.xi_im[:] += other.xi_im[:]
+        self.varxi[:] += other.varxi[:]
+        self.meanlogr[:] += other.meanlogr[:]
+        self.weight[:] += other.weight[:]
+        self.npairs[:] += other.npairs[:]
+        return self
 
 
     def process(self, cat1, cat2, perp=False):
@@ -280,11 +322,11 @@ class NGCorrelation(treecorr.BinnedCorr2):
     
         xi, xi_im, varxi = self.calculateXi(rg)
         prec = self.config.get('precision', 4)
-         
+
         treecorr.util.gen_write(
             file_name,
-            ['R_nom','<R>','<gamT>','<gamX>','sigma','weight','npairs'],
-            [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
+            ['R_nom','<R>','<logR>','<gamT>','<gamX>','sigma','weight','npairs'],
+            [ numpy.exp(self.logr), numpy.exp(self.meanlogr), self.meanlogr,
               xi, xi_im, numpy.sqrt(varxi), self.weight, self.npairs ],
             prec=prec, file_type=file_type, logger=self.logger)
 
@@ -307,7 +349,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         data = treecorr.util.gen_read(file_name, file_type=file_type)
         self.logr = numpy.log(data['R_nom'])
-        self.meanlogr = numpy.log(data['<R>'])
+        self.meanlogr = data['<logR>']
         self.xi = data['<gamT>']
         self.xi_im = data['<gamX>']
         self.varxi = data['sigma']**2

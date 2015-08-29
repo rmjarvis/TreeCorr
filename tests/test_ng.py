@@ -62,13 +62,13 @@ def test_single():
         p.communicate()
         corr2_output = numpy.loadtxt(os.path.join('output','ng_single.out'))
         print 'ng.xi = ',ng.xi
-        print 'from corr2 output = ',corr2_output[:,2]
-        print 'ratio = ',corr2_output[:,2]/ng.xi
-        print 'diff = ',corr2_output[:,2]-ng.xi
-        numpy.testing.assert_almost_equal(corr2_output[:,2]/ng.xi, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output[:,3]
+        print 'ratio = ',corr2_output[:,3]/ng.xi
+        print 'diff = ',corr2_output[:,3]-ng.xi
+        numpy.testing.assert_almost_equal(corr2_output[:,3]/ng.xi, 1., decimal=3)
 
-        print 'xi_im from corr2 output = ',corr2_output[:,3]
-        assert max(abs(corr2_output[:,3])) < 3.e-5
+        print 'xi_im from corr2 output = ',corr2_output[:,4]
+        assert max(abs(corr2_output[:,4])) < 3.e-5
 
 
 def test_pairwise():
@@ -118,13 +118,13 @@ def test_pairwise():
         p.communicate()
         corr2_output = numpy.loadtxt(os.path.join('output','ng_pairwise.out'))
         print 'ng.xi = ',ng.xi
-        print 'from corr2 output = ',corr2_output[:,2]
-        print 'ratio = ',corr2_output[:,2]/ng.xi
-        print 'diff = ',corr2_output[:,2]-ng.xi
-        numpy.testing.assert_almost_equal(corr2_output[:,2]/ng.xi, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output[:,3]
+        print 'ratio = ',corr2_output[:,3]/ng.xi
+        print 'diff = ',corr2_output[:,3]-ng.xi
+        numpy.testing.assert_almost_equal(corr2_output[:,3]/ng.xi, 1., decimal=3)
 
-        print 'xi_im from corr2 output = ',corr2_output[:,3]
-        assert max(abs(corr2_output[:,3])) < 3.e-5
+        print 'xi_im from corr2 output = ',corr2_output[:,4]
+        assert max(abs(corr2_output[:,4])) < 3.e-5
 
 
 def test_spherical():
@@ -245,13 +245,13 @@ def test_spherical():
         p.communicate()
         corr2_output = numpy.loadtxt(os.path.join('output','ng_spherical.out'))
         print 'ng.xi = ',ng.xi
-        print 'from corr2 output = ',corr2_output[:,2]
-        print 'ratio = ',corr2_output[:,2]/ng.xi
-        print 'diff = ',corr2_output[:,2]-ng.xi
-        numpy.testing.assert_almost_equal(corr2_output[:,2]/ng.xi, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output[:,3]
+        print 'ratio = ',corr2_output[:,3]/ng.xi
+        print 'diff = ',corr2_output[:,3]-ng.xi
+        numpy.testing.assert_almost_equal(corr2_output[:,3]/ng.xi, 1., decimal=3)
 
-        print 'xi_im from corr2 output = ',corr2_output[:,3]
-        assert max(abs(corr2_output[:,3])) < 3.e-5
+        print 'xi_im from corr2 output = ',corr2_output[:,4]
+        assert max(abs(corr2_output[:,4])) < 3.e-5
 
 
 def test_ng():
@@ -327,13 +327,13 @@ def test_ng():
         corr2_output = numpy.loadtxt(os.path.join('output','ng.out'))
         print 'ng.xi = ',ng.xi
         print 'xi = ',xi
-        print 'from corr2 output = ',corr2_output[:,2]
-        print 'ratio = ',corr2_output[:,2]/xi
-        print 'diff = ',corr2_output[:,2]-xi
-        numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output[:,3]
+        print 'ratio = ',corr2_output[:,3]/xi
+        print 'diff = ',corr2_output[:,3]-xi
+        numpy.testing.assert_almost_equal(corr2_output[:,3]/xi, 1., decimal=3)
 
-        print 'xi_im from corr2 output = ',corr2_output[:,3]
-        assert max(abs(corr2_output[:,3])) < 4.e-3
+        print 'xi_im from corr2 output = ',corr2_output[:,4]
+        assert max(abs(corr2_output[:,4])) < 4.e-3
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','ng_out1.fits')
@@ -371,9 +371,83 @@ def test_ng():
     numpy.testing.assert_almost_equal(ng2.npairs, ng.npairs)
 
 
+def test_pieces():
+    # Test that we can do the calculation in pieces and recombine the results
+
+    ncats = 3
+    data_cats = []
+
+    nlens = 1000
+    nsource = 30000
+    gamma0 = 0.05
+    r0 = 10.
+    L = 50. * r0
+    numpy.random.seed(8675309)
+    xl = (numpy.random.random_sample(nlens)-0.5) * L
+    yl = (numpy.random.random_sample(nlens)-0.5) * L
+    xs = (numpy.random.random_sample( (nsource,ncats) )-0.5) * L
+    ys = (numpy.random.random_sample( (nsource,ncats) )-0.5) * L
+    g1 = numpy.zeros( (nsource,ncats) )
+    g2 = numpy.zeros( (nsource,ncats) )
+    w = numpy.random.random_sample( (nsource,ncats) ) + 0.5
+    for x,y in zip(xl,yl):
+        dx = xs-x
+        dy = ys-y
+        r2 = dx**2 + dy**2
+        gammat = gamma0 * numpy.exp(-0.5*r2/r0**2)
+        g1 += -gammat * (dx**2-dy**2)/r2
+        g2 += -gammat * (2.*dx*dy)/r2
+
+    lens_cat = treecorr.Catalog(x=xl, y=yl, x_units='arcmin', y_units='arcmin')
+    source_cats = [ treecorr.Catalog(x=xs[:,k], y=ys[:,k], g1=g1[:,k], g2=g2[:,k], w=w[:,k],
+                                     x_units='arcmin', y_units='arcmin') for k in range(ncats) ]
+    full_source_cat = treecorr.Catalog(x=xs.flatten(), y=ys.flatten(), w=w.flatten(),
+                                       g1=g1.flatten(), g2=g2.flatten(),
+                                       x_units='arcmin', y_units='arcmin')
+
+    for k in range(ncats):
+        # These could each be done on different machines in a real world application.
+        ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+                                    verbose=2)
+        # These should use process_cross, not process, since we don't want to call finalize.
+        ng.process_cross(lens_cat, source_cats[k])
+        ng.write(os.path.join('output','ng_piece%d.fits'%k))
+
+    full_ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+                                     verbose=2)
+    full_ng.process(lens_cat, full_source_cat)
+
+    pieces_ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+    for k in range(ncats):
+        ng = pieces_ng.copy()
+        ng.read(os.path.join('output','ng_piece%d.fits'%k))
+        pieces_ng += ng
+
+    varg = treecorr.calculateVarG(source_cats)
+    pieces_ng.finalize(varg)
+
+    print 'max error in meanlogr = ',numpy.max(pieces_ng.meanlogr - full_ng.meanlogr),
+    print '    max meanlogr = ',numpy.max(full_ng.meanlogr)
+    print 'max error in npairs = ',numpy.max(pieces_ng.npairs - full_ng.npairs),
+    print '    max npairs = ',numpy.max(full_ng.npairs)
+    print 'max error in weight = ',numpy.max(pieces_ng.weight - full_ng.weight),
+    print '    max weight = ',numpy.max(full_ng.weight)
+    print 'max error in xi = ',numpy.max(pieces_ng.xi - full_ng.xi),
+    print '    max xi = ',numpy.max(full_ng.xi)
+    print 'max error in xi_im = ',numpy.max(pieces_ng.xi_im - full_ng.xi_im),
+    print '    max xi_im = ',numpy.max(full_ng.xi_im)
+    print 'max error in varxi = ',numpy.max(pieces_ng.varxi - full_ng.varxi),
+    print '    max varxi = ',numpy.max(full_ng.varxi)
+    numpy.testing.assert_almost_equal(pieces_ng.meanlogr, full_ng.meanlogr, decimal=4)
+    numpy.testing.assert_almost_equal(pieces_ng.npairs*1.e-5, full_ng.npairs*1.e-5, decimal=2)
+    numpy.testing.assert_almost_equal(pieces_ng.weight*1.e-5, full_ng.weight*1.e-5, decimal=2)
+    numpy.testing.assert_almost_equal(pieces_ng.xi*1.e2, full_ng.xi*1.e2, decimal=2)
+    numpy.testing.assert_almost_equal(pieces_ng.xi_im*1.e2, full_ng.xi_im*1.e2, decimal=2)
+    numpy.testing.assert_almost_equal(pieces_ng.varxi*1.e6, full_ng.varxi*1.e6, decimal=3)
 
 if __name__ == '__main__':
     test_single()
     test_pairwise()
     test_spherical()
     test_ng()
+    test_pieces()

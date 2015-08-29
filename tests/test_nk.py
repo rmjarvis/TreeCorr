@@ -56,10 +56,10 @@ def test_single():
         p.communicate()
         corr2_output = numpy.loadtxt(os.path.join('output','nk_single.out'))
         print 'nk.xi = ',nk.xi
-        print 'from corr2 output = ',corr2_output[:,2]
-        print 'ratio = ',corr2_output[:,2]/nk.xi
-        print 'diff = ',corr2_output[:,2]-nk.xi
-        numpy.testing.assert_almost_equal(corr2_output[:,2]/nk.xi, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output[:,3]
+        print 'ratio = ',corr2_output[:,3]/nk.xi
+        print 'diff = ',corr2_output[:,3]-nk.xi
+        numpy.testing.assert_almost_equal(corr2_output[:,3]/nk.xi, 1., decimal=3)
 
 
 def test_nk():
@@ -127,10 +127,10 @@ def test_nk():
         corr2_output = numpy.loadtxt(os.path.join('output','nk.out'))
         print 'nk.xi = ',nk.xi
         print 'xi = ',xi
-        print 'from corr2 output = ',corr2_output[:,2]
-        print 'ratio = ',corr2_output[:,2]/xi
-        print 'diff = ',corr2_output[:,2]-xi
-        numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output[:,3]
+        print 'ratio = ',corr2_output[:,3]/xi
+        print 'diff = ',corr2_output[:,3]-xi
+        numpy.testing.assert_almost_equal(corr2_output[:,3]/xi, 1., decimal=3)
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','nk_out1.fits')

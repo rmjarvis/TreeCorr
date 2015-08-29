@@ -41,10 +41,9 @@ class BinnedCorr2(object):
     use one or if you want to change some parameters from what are in a config dict,
     then you can use normal kwargs, which take precedence over anything in the config dict.
 
-    :param config:      The configuration dict which defines attributes about how to read the file.
-                        Any kwargs that are not those listed here will be added to the config, 
-                        so you can even omit the config dict and just enter all parameters you
-                        want as kwargs.  (default: None) 
+    :param config:      A configuration dict that can be used to pass in the below kwargs if
+                        desired.  This dict is allowed to have addition entries in addition
+                        to those listed below, which are ignored here. (default: NoneP
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 

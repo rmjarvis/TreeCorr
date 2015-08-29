@@ -103,19 +103,19 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.meanv = numpy.zeros(shape, dtype=float)
         self.ntri = numpy.zeros(shape, dtype=float)
         self.tot = 0.
+        self._build_corr()
+        self.logger.debug('Finished building NNNCorr')
 
+    def _build_corr(self):
         meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
         meanu = self.meanu.ctypes.data_as(cdouble_ptr)
         meanv = self.meanv.ctypes.data_as(cdouble_ptr)
         ntri = self.ntri.ctypes.data_as(cdouble_ptr)
-
         self.corr = _treecorr.BuildNNNCorr(
                 self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                 self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                 self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
                 meanlogr, meanu, meanv, ntri);
-        self.logger.debug('Finished building NNNCorr')
-
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -123,6 +123,25 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             _treecorr.DestroyNNNCorr(self.corr)
 
+    def copy(self):
+        import copy
+        return copy.deepcopy(self)
+
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        del d['corr']
+        del d['logger']  # Oh well.  This is just lost in the copy.  Can't be pickled.
+        return d
+
+    def __setstate__(self):
+        self.__dict__ = d
+        self._build_corr()
+        self.logger = treecorr.config.setup_logger(
+                treecorr.config.get(self.config,'verbose',int,0),
+                self.config.get('log_file',None))
+
+    def __repr__(self):
+        return 'NNNCorrelation(config=%r)'%self.config
 
     def process_auto(self, cat, perp=False):
         """Process a single catalog, accumulating the auto-correlation.
@@ -241,6 +260,33 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.meanv[:,:,:] = 0.
         self.ntri[:,:,:] = 0.
         self.tot = 0.
+
+    def __iadd__(self, other):
+        """Add a second NNNCorrelation's data to this one.
+
+        Note: For this to make sense, both Correlation objects should have been using
+        process_auto and/or process_cross, and they should not have had finalize called yet.
+        Then, after adding them together, you should call finalize on the sum.
+        """
+        if not isinstance(other, NNNCorrelation):
+            raise AttributeError("Can only add another NNNCorrelation object")
+        if not (self.nbins == other.nbins and
+                self.min_sep == other.min_sep and
+                self.max_sep == other.max_sep and
+                self.nubins == other.nubins and
+                self.min_u == other.min_u and
+                self.max_u == other.max_u and
+                self.nvbins == other.nvbins and
+                self.min_v == other.min_v and
+                self.max_v == other.max_v):
+            raise ValueError("NNNCorrelation to be added is not compatible with this one.")
+
+        self.meanlogr[:] += other.meanlogr[:]
+        self.meanu[:] += other.meanu[:]
+        self.meanv[:] += other.meanv[:]
+        self.ntri[:] += other.ntri[:]
+        self.tot += other.tot
+        return self
 
 
     def process(self, cat1, cat2=None, cat3=None, perp=False):
@@ -414,9 +460,9 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         """
         self.logger.info('Writing NNN correlations to %s',file_name)
         
-        col_names = [ 'R_nom', 'u_nom', 'v_nom', '<R>', '<u>', '<v>' ]
+        col_names = [ 'R_nom', 'u_nom', 'v_nom', '<R>', '<logR>', '<u>', '<v>' ]
         columns = [ numpy.exp(self.logr), self.u, self.v,
-                    numpy.exp(self.meanlogr), self.meanu, self.meanv ]
+                    numpy.exp(self.meanlogr), self.meanlogr, self.meanu, self.meanv ]
         if rrr is None:
             col_names += [ 'ntri' ]
             columns += [ self.ntri ]
@@ -475,7 +521,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.logr = numpy.log(data['R_nom']).reshape(s)
         self.u = data['u_nom'].reshape(s)
         self.v = data['v_nom'].reshape(s)
-        self.meanlogr = numpy.log(data['<R>']).reshape(s)
+        self.meanlogr = data['<logR>'].reshape(s)
         self.meanu = data['<u>'].reshape(s)
         self.meanv = data['<v>'].reshape(s)
         if 'ntri' in data.dtype.names:

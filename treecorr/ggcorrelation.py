@@ -78,15 +78,14 @@ class GGCorrelation(treecorr.BinnedCorr2):
         >>> gg.write(file_name)     # Write out to a file.
         >>> xip = gg.xip            # Or access the correlation function directly.
 
-    :param config:      The configuration dict which defines attributes about how to read the file.
-                        Any kwargs that are not those listed here will be added to the config, 
-                        so you can even omit the config dict and just enter all parameters you
-                        want as kwargs.  (default: None) 
+    :param config:      A configuration dict that can be used to pass in kwargs if desired.
+                        This dict is allowed to have addition entries in addition to those listed
+                        in :BinnedCorr2:, which are ignored here. (default: None)
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    Other parameters are allowed to be either in the config dict or as a named kwarg.
-    See the documentation for BinnedCorr2 for details.
+    See the documentation for :BinnedCorr2: for the list of other allowed kwargs, which may
+    be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
@@ -99,7 +98,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.meanlogr = numpy.zeros(self.nbins, dtype=float)
         self.weight = numpy.zeros(self.nbins, dtype=float)
         self.npairs = numpy.zeros(self.nbins, dtype=float)
+        self._build_corr()
+        self.logger.debug('Finished building GGCorr')
 
+    def _build_corr(self):
         xip = self.xip.ctypes.data_as(cdouble_ptr)
         xipi = self.xip_im.ctypes.data_as(cdouble_ptr)
         xim = self.xim.ctypes.data_as(cdouble_ptr)
@@ -107,18 +109,34 @@ class GGCorrelation(treecorr.BinnedCorr2):
         meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
         weight = self.weight.ctypes.data_as(cdouble_ptr)
         npairs = self.npairs.ctypes.data_as(cdouble_ptr)
-
         self.corr = _treecorr.BuildGGCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                                           xip,xipi,xim,ximi,meanlogr,weight,npairs);
-        self.logger.debug('Finished building GGCorr')
  
-
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             _treecorr.DestroyGGCorr(self.corr)
 
+    def copy(self):
+        import copy
+        return copy.deepcopy(self)
+
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        del d['corr']
+        del d['logger']  # Oh well.  This is just lost in the copy.  Can't be pickled.
+        return d
+
+    def __setstate__(self):
+        self.__dict__ = d
+        self._build_corr()
+        self.logger = treecorr.config.setup_logger(
+                treecorr.config.get(self.config,'verbose',int,0),
+                self.config.get('log_file',None))
+
+    def __repr__(self):
+        return 'GGCorrelation(config=%r)'%self.config
 
     def process_auto(self, cat, perp=False):
         """Process a single catalog, accumulating the auto-correlation.
@@ -263,6 +281,30 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.npairs[:] = 0
 
 
+    def __iadd__(self, other):
+        """Add a second GGCorrelation's data to this one.
+
+        Note: For this to make sense, both Correlation objects should have been using
+        process_auto and/or process_cross, and they should not have had finalize called yet.
+        Then, after adding them together, you should call finalize on the sum.
+        """
+        if not isinstance(other, GGCorrelation):
+            raise AttributeError("Can only add another GGCorrelation object")
+        if not (self.nbins == other.nbins and
+                self.min_sep == other.min_sep and
+                self.max_sep == other.max_sep):
+            raise ValueError("GGCorrelation to be added is not compatible with this one.")
+
+        self.xip[:] += other.xip[:]
+        self.xim[:] += other.xim[:]
+        self.xip_im[:] += other.xip_im[:]
+        self.xim_im[:] += other.xim_im[:]
+        self.meanlogr[:] += other.meanlogr[:]
+        self.weight[:] += other.weight[:]
+        self.npairs[:] += other.npairs[:]
+        return self
+
+
     def process(self, cat1, cat2=None, perp=False):
         """Compute the correlation function.
 
@@ -312,8 +354,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
         
         treecorr.util.gen_write(
             file_name,
-            ['R_nom','<R>','xi+','xi-','xi+_im','xi-_im','sigma_xi','weight','npairs'],
-            [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
+            ['R_nom','<R>','<logR>','xi+','xi-','xi+_im','xi-_im','sigma_xi','weight','npairs'],
+            [ numpy.exp(self.logr), numpy.exp(self.meanlogr), self.meanlogr,
               self.xip, self.xim, self.xip_im, self.xim_im, numpy.sqrt(self.varxi),
               self.weight, self.npairs ],
             prec=prec, file_type=file_type, logger=self.logger)
@@ -337,7 +379,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         data = treecorr.util.gen_read(file_name, file_type=file_type)
         self.logr = numpy.log(data['R_nom'])
-        self.meanlogr = numpy.log(data['<R>'])
+        self.meanlogr = data['<logR>']
         self.xip = data['xi+']
         self.xim = data['xi-']
         self.xip_im = data['xi+_im']

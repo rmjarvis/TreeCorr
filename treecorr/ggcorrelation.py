@@ -308,14 +308,15 @@ class GGCorrelation(treecorr.BinnedCorr2):
                             the type automatically from the extension of file_name.)
         """
         self.logger.info('Writing GG correlations to %s',file_name)
+        prec = self.config.get('precision', 4)
         
-        self.gen_write(
+        treecorr.util.gen_write(
             file_name,
             ['R_nom','<R>','xi+','xi-','xi+_im','xi-_im','sigma_xi','weight','npairs'],
             [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
               self.xip, self.xim, self.xip_im, self.xim_im, numpy.sqrt(self.varxi),
               self.weight, self.npairs ],
-            file_type=file_type)
+            prec=prec, file_type=file_type, logger=self.logger)
 
 
     def read(self, file_name, file_type=None):
@@ -334,7 +335,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Reading GG correlations from %s',file_name)
 
-        data = self.gen_read(file_name, file_type=file_type)
+        data = treecorr.util.gen_read(file_name, file_type=file_type)
         self.logr = numpy.log(data['R_nom'])
         self.meanlogr = numpy.log(data['<R>'])
         self.xip = data['xi+']
@@ -511,12 +512,12 @@ class GGCorrelation(treecorr.BinnedCorr2):
         mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = self.calculateMapSq(m2_uform=m2_uform)
         gamsq, vargamsq = self.calculateGamSq()
 
-        self.gen_write(
+        treecorr.util.gen_write(
             file_name,
             ['R','<Map^2>','<Mx^2>','<MMx>(a)','<MMx>(b)','sig_map','<Gam^2>','sig_gam'],
             [ numpy.exp(self.logr),
               mapsq, mxsq, mapsq_im, -mxsq_im, numpy.sqrt(varmapsq),
               gamsq, numpy.sqrt(vargamsq) ],
-            file_type=file_type)
+            file_type=file_type, logger=self.logger)
 
 

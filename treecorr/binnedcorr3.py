@@ -399,9 +399,6 @@ class BinnedCorr3(object):
         self.v = numpy.tile(self.v1d[numpy.newaxis, numpy.newaxis, :],
                             (self.nbins, self.nubins, 1))
 
-    gen_write = treecorr.util.gen_write
-    gen_read = treecorr.util.gen_read
-
     def _process_all_auto(self, cat1, perp):
         # I'm not sure which of these is more intuitive, but both are correct...
         if True:

@@ -242,9 +242,6 @@ class BinnedCorr2(object):
         self.logr -= self.log_sep_units
 
 
-    gen_write = treecorr.util.gen_write
-    gen_read = treecorr.util.gen_read
-
     def _process_all_auto(self, cat1, perp):
         for i,c1 in enumerate(cat1):
             self.process_auto(c1,perp)

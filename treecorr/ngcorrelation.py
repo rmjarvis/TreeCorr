@@ -279,13 +279,14 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.logger.info('Writing NG correlations to %s',file_name)
     
         xi, xi_im, varxi = self.calculateXi(rg)
+        prec = self.config.get('precision', 4)
          
-        self.gen_write(
+        treecorr.util.gen_write(
             file_name,
             ['R_nom','<R>','<gamT>','<gamX>','sigma','weight','npairs'],
             [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
               xi, xi_im, numpy.sqrt(varxi), self.weight, self.npairs ],
-            file_type=file_type)
+            prec=prec, file_type=file_type, logger=self.logger)
 
 
     def read(self, file_name, file_type=None):
@@ -304,7 +305,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Reading NG correlations from %s',file_name)
 
-        data = self.gen_read(file_name, file_type=file_type)
+        data = treecorr.util.gen_read(file_name, file_type=file_type)
         self.logr = numpy.log(data['R_nom'])
         self.meanlogr = numpy.log(data['<R>'])
         self.xi = data['<gamT>']
@@ -404,11 +405,11 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         nmap, nmx, varnmap = self.calculateNMap(rg=rg, m2_uform=m2_uform)
  
-        self.gen_write(
+        treecorr.util.gen_write(
             file_name,
             ['R','<NMap>','<NMx>','sig_nmap'],
             [ numpy.exp(self.logr), nmap, nmx, numpy.sqrt(varnmap) ],
-            file_type=file_type)
+            prec=prec, file_type=file_type, logger=self.logger)
 
 
     def writeNorm(self, file_name, gg, dd, rr, dr=None, rg=None, m2_uform=None, file_type=None):
@@ -452,7 +453,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         nnnorm = nsq / mapsq
         varnnnorm = nnnorm**2 * (varnsq / nsq**2 + varmapsq / mapsq**2)
  
-        self.gen_write(
+        treecorr.util.gen_write(
             file_name,
             [ 'R',
               '<NMap>','<NMx>','sig_nmap',
@@ -462,5 +463,5 @@ class NGCorrelation(treecorr.BinnedCorr2):
               nmap, nmx, numpy.sqrt(varnmap),
               nsq, numpy.sqrt(varnsq), mapsq, numpy.sqrt(varmapsq), 
               nmnorm, numpy.sqrt(varnmnorm), nnnorm, numpy.sqrt(varnnnorm) ],
-            file_type=file_type)
+            prec=prec, file_type=file_type, logger=self.logger)
 

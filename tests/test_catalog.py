@@ -377,6 +377,65 @@ def test_list():
         numpy.testing.assert_almost_equal(cats[k].x, x_list[k])
         numpy.testing.assert_almost_equal(cats[k].y, y_list[k])
 
+def test_write():
+    # Test that writing a Catalog to a file and then reading it back in works correctly
+    ngal = 20000
+    s = 10.
+    numpy.random.seed(8675309)
+    x = numpy.random.normal(222,50, (ngal,) )
+    y = numpy.random.normal(138,20, (ngal,) )
+    w = numpy.random.normal(1.3, 0.1, (ngal,) )
+
+    ra = numpy.random.normal(11.34, 0.9, (ngal,) )
+    dec = numpy.random.normal(-48.12, 4.3, (ngal,) )
+    r = numpy.random.normal(1024, 230, (ngal,) )
+
+    k = numpy.random.normal(0,s, (ngal,) )
+    g1 = numpy.random.normal(0,s, (ngal,) )
+    g2 = numpy.random.normal(0,s, (ngal,) )
+
+    cat1 = treecorr.Catalog(x=x, y=y)
+    cat2 = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='hour', dec_units='deg',
+                            w=w, g1=g1, g2=g2, k=k)
+
+    # Test ASCII output
+    cat1.write(os.path.join('output','cat1.dat'))
+    cat1_asc = treecorr.Catalog(os.path.join('output','cat1.dat'), file_type='ASCII',
+                                x_col=1, y_col=2)
+    numpy.testing.assert_almost_equal(cat1_asc.x, x)
+    numpy.testing.assert_almost_equal(cat1_asc.y, y)
+
+    cat2.write(os.path.join('output','cat2.dat'), file_type='ASCII')
+    cat2_asc = treecorr.Catalog(os.path.join('output','cat2.dat'), ra_col=1, dec_col=2, 
+                                r_col=3, w_col=4, g1_col=5, g2_col=6, k_col=7, 
+                                ra_units='rad', dec_units='rad')
+    numpy.testing.assert_almost_equal(cat2_asc.ra, ra)
+    numpy.testing.assert_almost_equal(cat2_asc.dec, dec)
+    numpy.testing.assert_almost_equal(cat2_asc.r, r)
+    numpy.testing.assert_almost_equal(cat2_asc.w, w)
+    numpy.testing.assert_almost_equal(cat2_asc.g1, g1)
+    numpy.testing.assert_almost_equal(cat2_asc.g2, g2)
+    numpy.testing.assert_almost_equal(cat2_asc.k, k)
+
+    # Test FITS output
+    cat1.write(os.path.join('output','cat1.fits'), file_type='FITS')
+    cat1_fits = treecorr.Catalog(os.path.join('output','cat1.fits'),
+                                 x_col='x', y_col='y')
+    numpy.testing.assert_almost_equal(cat1_fits.x, x)
+    numpy.testing.assert_almost_equal(cat1_fits.y, y)
+
+    cat2.write(os.path.join('output','cat2.fits'))
+    cat2_fits = treecorr.Catalog(os.path.join('output','cat2.fits'), ra_col='ra', dec_col='dec', 
+                                 r_col='r', w_col='w', g1_col='g1', g2_col='g2', k_col='k', 
+                                 ra_units='rad', dec_units='rad', file_type='FITS')
+    numpy.testing.assert_almost_equal(cat2_fits.ra, ra)
+    numpy.testing.assert_almost_equal(cat2_fits.dec, dec)
+    numpy.testing.assert_almost_equal(cat2_fits.r, r)
+    numpy.testing.assert_almost_equal(cat2_fits.w, w)
+    numpy.testing.assert_almost_equal(cat2_fits.g1, g1)
+    numpy.testing.assert_almost_equal(cat2_fits.g2, g2)
+    numpy.testing.assert_almost_equal(cat2_fits.k, k)
+
 
 if __name__ == '__main__':
     test_ascii()
@@ -384,3 +443,4 @@ if __name__ == '__main__':
     test_direct()
     test_contiguous()
     test_list()
+    test_write()

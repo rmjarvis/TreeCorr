@@ -981,8 +981,8 @@ class Catalog(object):
 
         return self.gsimplefield
 
-    def write(self, file_name):
-        """Write the catalog to a file.  Currently only ASCII output is supported.
+    def write(self, file_name, file_type=None):
+        """Write the catalog to a file.
 
         Note that the x,y,ra,dec columns are output using the same units as were used when
         building the Catalog.  If you want to use a different unit, you can set the catalog's
@@ -994,9 +994,12 @@ class Catalog(object):
             >>> cat.write('new_cat.dat')
 
         :param file_name:   The name of the file to write to.
+        :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
+                            the type automatically from the extension of file_name.)
         """
+        self.logger.info('Writing NN correlations to %s',file_name)
         import numpy
-
+ 
         col_names = []
         columns = []
         if self.x is not None:
@@ -1027,25 +1030,11 @@ class Catalog(object):
             col_names.append('k')
             columns.append(self.k)
 
-        ncol = len(col_names)
-        data = numpy.empty( (self.nobj, ncol) )
-        for i,col in enumerate(columns):
-            data[:,i] = col
-
         prec = treecorr.config.get(self.config,'cat_precision',int,16)
-        width = prec+8
-        header_form = "{0:^%d}"%(width-1)
-        for i in range(1,ncol):
-            header_form += " {%d:^%d}"%(i,width)
-        header = header_form.format(*col_names)
-        fmt = '%%%d.%de'%(width,prec)
-        try:
-            numpy.savetxt(file_name, data, fmt=fmt, header=header)
-        except (AttributeError, TypeError):
-            # header was added with version 1.7, so do it by hand if not available.
-            with open(file_name, 'w') as fid:
-                fid.write('#' + header + '\n')
-                numpy.savetxt(fid, data, fmt=fmt) 
+
+        treecorr.util.gen_write(
+            file_name, col_names, columns, prec=prec, file_type=file_type, logger=self.logger)
+
 
 
 def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=None):

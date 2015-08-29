@@ -277,13 +277,14 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.logger.info('Writing NK correlations to %s',file_name)
 
         xi, varxi = self.calculateXi(rk)
+        prec = self.config.get('precision', 4)
 
-        self.gen_write(
+        treecorr.util.gen_write(
             file_name,
             ['R_nom','<R>','<kappa>','sigma','weight','npairs'],
             [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
               xi, numpy.sqrt(varxi), self.weight, self.npairs ],
-            file_type=file_type)
+            prec=prec, file_type=file_type, logger=self.logger)
 
 
     def read(self, file_name, file_type=None):
@@ -302,7 +303,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Reading NK correlations from %s',file_name)
 
-        data = self.gen_read(file_name, file_type=file_type)
+        data = treecorr.util.gen_read(file_name, file_type=file_type)
         self.logr = numpy.log(data['R_nom'])
         self.meanlogr = numpy.log(data['<R>'])
         self.xi = data['<kappa>']

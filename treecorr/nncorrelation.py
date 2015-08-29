@@ -374,7 +374,10 @@ class NNCorrelation(treecorr.BinnedCorr2):
                 col_names += ['DR','RD']
                 columns += [ dr.npairs * (self.tot/dr.tot), rd.npairs * (self.tot/rd.tot) ]
 
-        self.gen_write(file_name, col_names, columns, file_type=file_type)
+        prec = self.config.get('precision', 4)
+
+        treecorr.util.gen_write(
+            file_name, col_names, columns, prec=prec, file_type=file_type, logger=self.logger)
 
 
     def read(self, file_name, file_type=None):
@@ -393,7 +396,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Reading NN correlations from %s',file_name)
 
-        data = self.gen_read(file_name, file_type=file_type)
+        data = treecorr.util.gen_read(file_name, file_type=file_type)
         self.logr = numpy.log(data['R_nom'])
         self.meanlogr = numpy.log(data['<R>'])
         if 'npairs' in data.dtype.names:

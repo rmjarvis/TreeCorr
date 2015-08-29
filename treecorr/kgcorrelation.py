@@ -258,13 +258,14 @@ class KGCorrelation(treecorr.BinnedCorr2):
                             the type automatically from the extension of file_name.)
         """
         self.logger.info('Writing KG correlations to %s',file_name)
+        prec = self.config.get('precision', 4)
         
-        self.gen_write(
+        treecorr.util.gen_write(
             file_name,
             ['R_nom','<R>','<kgammaT>','<kgammaX>','sigma','weight','npairs'],
             [ numpy.exp(self.logr), numpy.exp(self.meanlogr),
               self.xi, self.xi_im, numpy.sqrt(self.varxi), self.weight, self.npairs ],
-            file_type=file_type)
+            prec=prec, file_type=file_type, logger=self.logger)
 
 
     def read(self, file_name, file_type=None):
@@ -283,7 +284,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Reading KG correlations from %s',file_name)
 
-        data = self.gen_read(file_name, file_type=file_type)
+        data = treecorr.util.gen_read(file_name, file_type=file_type)
         self.logr = numpy.log(data['R_nom'])
         self.meanlogr = numpy.log(data['<R>'])
         self.xi = data['<kgammaT>']

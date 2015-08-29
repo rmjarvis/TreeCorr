@@ -25,6 +25,9 @@ API changes:
   can be significant inaccuracies in the resulting correlation function.  So
   now, if bin_slop is unspecified, it is set to 0.1/bin_size if bin_size > 0.1,
   or just 1.0 if bin_size <= 0.1. (#15)
+- Removed option of giving m2_uform parameter in the config dict or kwargs
+  when constructing a `GGCorrelation` object.  Now this needs to be specified
+  when doing anything that uses it (e.g. `calculateMapSq`).
 
 
 New features:
@@ -42,6 +45,7 @@ New features:
   and output file.  The combination of this with the FITS write lets you save a
   Correlation object to disk and recover it without loss of information.  This
   can be used to split a problem up to be run on multiple machines. (#23)
+- Added ability to write Catalogs to either FITS or ASCII files.
 
 
 Bug fixes:

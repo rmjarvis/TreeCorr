@@ -15,7 +15,7 @@
 .. module:: util
 """
 
-def gen_write(self, file_name, col_names, columns, file_type=None):
+def gen_write(file_name, col_names, columns, prec=4, file_type=None, logger=None):
     """Write some columns to an output file with the given column names.
 
     We do this basic functionality a lot, so put the code to do it in one place.
@@ -23,8 +23,10 @@ def gen_write(self, file_name, col_names, columns, file_type=None):
     :param file_name:   The name of the file to write to.
     :param col_names:   A list of columns names for the given columns.
     :param columns:     A list of numpy arrays with the data to write.
+    :param prec:        Output precision for ASCII. (default: 4)
     :param file_type:   Which kind of file to write to. (default: determine from the file_name
                         extension)
+    :param logger:      If desired, a logger object for logging. (default: None)
     """
     import numpy
     if len(col_names) != len(columns):
@@ -44,23 +46,25 @@ def gen_write(self, file_name, col_names, columns, file_type=None):
             file_type = 'FITS'
         else:
             file_type = 'ASCII'
-        self.logger.info("file_type assumed to be %s from the file name.",file_type)
+        if logger:
+            logger.info("file_type assumed to be %s from the file name.",file_type)
 
     if file_type == 'FITS':
-        gen_write_fits(self, file_name, col_names, columns)
+        gen_write_fits(file_name, col_names, columns)
     elif file_type == 'ASCII':
-        gen_write_ascii(self, file_name, col_names, columns)
+        gen_write_ascii(file_name, col_names, columns, prec=prec)
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 
 
-def gen_write_ascii(self, file_name, col_names, columns):
+def gen_write_ascii(file_name, col_names, columns, prec=4):
     """Write some columns to an output ASCII file with the given column names.
 
     :param file_name:   The name of the file to write to.
     :param col_names:   A list of columns names for the given columns.  These will be written
                         in a header comment line at the top of the output file.
     :param columns:     A list of numpy arrays with the data to write.
+    :param prec:        Output precision for ASCII. (default: 4)
     """
     import numpy
     import treecorr
@@ -70,7 +74,6 @@ def gen_write_ascii(self, file_name, col_names, columns):
     for i,col in enumerate(columns):
         data[:,i] = col
 
-    prec = treecorr.config.get(self.config,'precision',int,4)
     width = prec+8
     # Note: python 2.6 needs the numbers, so can't just do "{:^%d}"*ncol
     # Also, I have the first one be 1 shorter to allow space for the initial #.
@@ -88,7 +91,7 @@ def gen_write_ascii(self, file_name, col_names, columns):
             numpy.savetxt(fid, data, fmt=fmt) 
 
 
-def gen_write_fits(self, file_name, col_names, columns):
+def gen_write_fits(file_name, col_names, columns):
     """Write some columns to an output FITS file with the given column names.
     :param file_name:   The name of the file to write to.
     :param col_names:   A list of columns names for the given columns.
@@ -104,7 +107,7 @@ def gen_write_fits(self, file_name, col_names, columns):
     fitsio.write(file_name, data, clobber=True)
 
 
-def gen_read(self, file_name, file_type=None):
+def gen_read(file_name, file_type=None, logger=None):
     """Read some columns from an input file.
 
     We do this basic functionality a lot, so put the code to do it in one place.
@@ -114,6 +117,7 @@ def gen_read(self, file_name, file_type=None):
     :param file_name:   The name of the file to read.
     :param file_type:   Which kind of file to write to. (default: determine from the file_name
                         extension)
+    :param logger:      If desired, a logger object for logging. (default: None)
 
     :returns: a numpy ndarray with named columns
     """
@@ -126,7 +130,8 @@ def gen_read(self, file_name, file_type=None):
             file_type = 'FITS'
         else:
             file_type = 'ASCII'
-        self.logger.info("file_type assumed to be %s from the file name.",file_type)
+        if logger:
+            logger.info("file_type assumed to be %s from the file name.",file_type)
 
     if file_type == 'FITS':
         import fitsio

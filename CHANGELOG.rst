@@ -31,6 +31,11 @@ API changes:
   1, since most of the columns have been bumped 1 column to the right.
   (While you're at it, you should switch to accessing them by column name
   instead, maybe via the FITS I/O option...) (#28)
+- Changed xi+ and xi- column names in the GG output files to xip and xim.  The
+  former names didn't work well with numpy.genfromtxt(... names=True), since
+  it removes punctuation, so the resulting names became ambiguous.
+  Note: Even though there was no problem with the old names in FITS files,
+  I changed the names there as well to be consistent.
 - Removed option of giving m2_uform parameter in the config dict or kwargs
   when constructing a `GGCorrelation` object.  Now this needs to be specified
   when doing anything that uses it (e.g. `calculateMapSq`).

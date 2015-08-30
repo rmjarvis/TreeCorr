@@ -363,7 +363,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         
         treecorr.util.gen_write(
             file_name,
-            ['R_nom','<R>','<logR>','xi+','xi-','xi+_im','xi-_im','sigma_xi','weight','npairs'],
+            ['R_nom','<R>','<logR>','xip','xim','xip_im','xim_im','sigma_xi','weight','npairs'],
             [ numpy.exp(self.logr), self.meanr, self.meanlogr,
               self.xip, self.xim, self.xip_im, self.xim_im, numpy.sqrt(self.varxi),
               self.weight, self.npairs ],
@@ -390,10 +390,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.logr = numpy.log(data['R_nom'])
         self.meanr = data['<R>']
         self.meanlogr = data['<logR>']
-        self.xip = data['xi+']
-        self.xim = data['xi-']
-        self.xip_im = data['xi+_im']
-        self.xim_im = data['xi-_im']
+        self.xip = data['xip']
+        self.xim = data['xim']
+        self.xip_im = data['xip_im']
+        self.xim_im = data['xim_im']
         self.varxi = data['sigma_xi']**2
         self.weight = data['weight']
         self.npairs = data['npairs']
@@ -564,7 +564,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         treecorr.util.gen_write(
             file_name,
-            ['R','<Map^2>','<Mx^2>','<MMx>(a)','<MMx>(b)','sig_map','<Gam^2>','sig_gam'],
+            ['R','<Mapsq>','<Mxsq>','<MMx>(a)','<MMx>(b)','sig_map','<Gamsq>','sig_gam'],
             [ numpy.exp(self.logr),
               mapsq, mxsq, mapsq_im, -mxsq_im, numpy.sqrt(varmapsq),
               gamsq, numpy.sqrt(vargamsq) ],

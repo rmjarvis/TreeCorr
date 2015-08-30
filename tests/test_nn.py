@@ -402,12 +402,12 @@ def test_nn():
         import subprocess
         p = subprocess.Popen( ["corr2","nn.params"] )
         p.communicate()
-        corr2_output = numpy.loadtxt(os.path.join('output','nn.out'))
+        corr2_output = numpy.genfromtxt(os.path.join('output','nn.out'),names=True)
         print 'xi = ',xi
-        print 'from corr2 output = ',corr2_output[:,3]
-        print 'ratio = ',corr2_output[:,3]/xi
-        print 'diff = ',corr2_output[:,3]-xi
-        numpy.testing.assert_almost_equal(corr2_output[:,3]/xi, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output['xi']
+        print 'ratio = ',corr2_output['xi']/xi
+        print 'diff = ',corr2_output['xi']-xi
+        numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=3)
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','nn_out1.fits')
@@ -537,12 +537,12 @@ def test_3d():
         import subprocess
         p = subprocess.Popen( ["corr2","nn_3d.params"] )
         p.communicate()
-        corr2_output = numpy.loadtxt(os.path.join('output','nn_3d.out'))
+        corr2_output = numpy.genfromtxt(os.path.join('output','nn_3d.out'),names=True)
         print 'xi = ',xi
-        print 'from corr2 output = ',corr2_output[:,3]
-        print 'ratio = ',corr2_output[:,3]/xi
-        print 'diff = ',corr2_output[:,3]-xi
-        numpy.testing.assert_almost_equal(corr2_output[:,3]/xi, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output['xi']
+        print 'ratio = ',corr2_output['xi']/xi
+        print 'diff = ',corr2_output['xi']-xi
+        numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=3)
 
 
 def test_list():
@@ -633,32 +633,32 @@ def test_list():
     import subprocess
     p = subprocess.Popen( ["corr2","nn_list1.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','nn_list1.out'))
+    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list1.out'),names=True)
     print 'xi = ',xi
-    print 'from corr2 output = ',corr2_output[:,3]
-    print 'ratio = ',corr2_output[:,3]/xi
-    print 'diff = ',corr2_output[:,3]-xi
-    numpy.testing.assert_almost_equal(corr2_output[:,3]/xi, 1., decimal=3)
+    print 'from corr2 output = ',corr2_output['xi']
+    print 'ratio = ',corr2_output['xi']/xi
+    print 'diff = ',corr2_output['xi']-xi
+    numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=3)
 
     import subprocess
     p = subprocess.Popen( ["corr2","nn_list2.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','nn_list2.out'))
+    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list2.out'),names=True)
     print 'xi = ',xi
-    print 'from corr2 output = ',corr2_output[:,3]
-    print 'ratio = ',corr2_output[:,3]/xi
-    print 'diff = ',corr2_output[:,3]-xi
-    numpy.testing.assert_almost_equal(corr2_output[:,3]/xi, 1., decimal=2)
+    print 'from corr2 output = ',corr2_output['xi']
+    print 'ratio = ',corr2_output['xi']/xi
+    print 'diff = ',corr2_output['xi']-xi
+    numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
 
     import subprocess
     p = subprocess.Popen( ["corr2","nn_list3.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','nn_list3.out'))
+    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list3.out'),names=True)
     print 'xi = ',xi
-    print 'from corr2 output = ',corr2_output[:,3]
-    print 'ratio = ',corr2_output[:,3]/xi
-    print 'diff = ',corr2_output[:,3]-xi
-    numpy.testing.assert_almost_equal(corr2_output[:,3]/xi, 1., decimal=2)
+    print 'from corr2 output = ',corr2_output['xi']
+    print 'ratio = ',corr2_output['xi']/xi
+    print 'diff = ',corr2_output['xi']-xi
+    numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
 
 
 if __name__ == '__main__':

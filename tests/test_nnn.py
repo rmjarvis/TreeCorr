@@ -931,12 +931,12 @@ def test_nnn():
         import subprocess
         p = subprocess.Popen( ["corr3","nnn.params"] )
         p.communicate()
-        corr3_output = numpy.loadtxt(os.path.join('output','nnn.out'))
+        corr3_output = numpy.genfromtxt(os.path.join('output','nnn.out'), names=True)
         print 'zeta = ',zeta
-        print 'from corr3 output = ',corr3_output[:,11]
-        print 'ratio = ',corr3_output[:,11]/zeta.flatten()
-        print 'diff = ',corr3_output[:,11]-zeta.flatten()
-        numpy.testing.assert_almost_equal(corr3_output[:,11]/zeta.flatten(), 1., decimal=3)
+        print 'from corr3 output = ',corr3_output['zeta']
+        print 'ratio = ',corr3_output['zeta']/zeta.flatten()
+        print 'diff = ',corr3_output['zeta']-zeta.flatten()
+        numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=3)
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','nnn_out1.fits')
@@ -1181,12 +1181,12 @@ def test_3d():
         import subprocess
         p = subprocess.Popen( ["corr3","nnn_3d.params"] )
         p.communicate()
-        corr3_output = numpy.loadtxt(os.path.join('output','nnn_3d.out'))
+        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_3d.out'), names=True)
         print 'zeta = ',zeta.flatten()
-        print 'from corr3 output = ',corr3_output[:,11]
-        print 'ratio = ',corr3_output[:,11]/zeta.flatten()
-        print 'diff = ',corr3_output[:,11]-zeta.flatten()
-        numpy.testing.assert_almost_equal(corr3_output[:,11]/zeta.flatten(), 1., decimal=3)
+        print 'from corr3 output = ',corr3_output['zeta']
+        print 'ratio = ',corr3_output['zeta']/zeta.flatten()
+        print 'diff = ',corr3_output['zeta']-zeta.flatten()
+        numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=3)
 
 
 def test_list():
@@ -1296,32 +1296,32 @@ def test_list():
     import subprocess
     p = subprocess.Popen( ["corr3","nnn_list1.params"] )
     p.communicate()
-    corr3_output = numpy.loadtxt(os.path.join('output','nnn_list1.out'))
+    corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list1.out'), names=True)
     print 'zeta = ',zeta
-    print 'from corr3 output = ',corr3_output[:,11]
-    print 'ratio = ',corr3_output[:,11]/zeta.flatten()
-    print 'diff = ',corr3_output[:,11]-zeta.flatten()
-    numpy.testing.assert_almost_equal(corr3_output[:,11]/zeta.flatten(), 1., decimal=3)
+    print 'from corr3 output = ',corr3_output['zeta']
+    print 'ratio = ',corr3_output['zeta']/zeta.flatten()
+    print 'diff = ',corr3_output['zeta']-zeta.flatten()
+    numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=3)
 
     import subprocess
     p = subprocess.Popen( ["corr3","nnn_list2.params"] )
     p.communicate()
-    corr3_output = numpy.loadtxt(os.path.join('output','nnn_list2.out'))
+    corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list2.out'), names=True)
     print 'zeta = ',zeta
-    print 'from corr3 output = ',corr3_output[:,11]
-    print 'ratio = ',corr3_output[:,11]/zeta.flatten()
-    print 'diff = ',corr3_output[:,11]-zeta.flatten()
-    numpy.testing.assert_almost_equal(corr3_output[:,11]/zeta.flatten(), 1., decimal=1)
+    print 'from corr3 output = ',corr3_output['zeta']
+    print 'ratio = ',corr3_output['zeta']/zeta.flatten()
+    print 'diff = ',corr3_output['zeta']-zeta.flatten()
+    numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=1)
 
     import subprocess
     p = subprocess.Popen( ["corr3","nnn_list3.params"] )
     p.communicate()
-    corr3_output = numpy.loadtxt(os.path.join('output','nnn_list3.out'))
+    corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list3.out'), names=True)
     print 'zeta = ',zeta
-    print 'from corr3 output = ',corr3_output[:,11]
-    print 'ratio = ',corr3_output[:,11]/zeta.flatten()
-    print 'diff = ',corr3_output[:,11]-zeta.flatten()
-    numpy.testing.assert_almost_equal(corr3_output[:,11]/zeta.flatten(), 1., decimal=1)
+    print 'from corr3 output = ',corr3_output['zeta']
+    print 'ratio = ',corr3_output['zeta']/zeta.flatten()
+    print 'diff = ',corr3_output['zeta']-zeta.flatten()
+    numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=1)
 
 
 if __name__ == '__main__':

@@ -109,38 +109,38 @@ def test_gg():
         import subprocess
         p = subprocess.Popen( ["corr2","gg.params"] )
         p.communicate()
-        corr2_output = numpy.loadtxt(os.path.join('output','gg.out'))
+        corr2_output = numpy.genfromtxt(os.path.join('output','gg.out'), names=True)
         print 'gg.xip = ',gg.xip
-        print 'from corr2 output = ',corr2_output[:,3]
-        print 'ratio = ',corr2_output[:,3]/gg.xip
-        print 'diff = ',corr2_output[:,3]-gg.xip
-        numpy.testing.assert_almost_equal(corr2_output[:,3]/gg.xip, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output['xip']
+        print 'ratio = ',corr2_output['xip']/gg.xip
+        print 'diff = ',corr2_output['xip']-gg.xip
+        numpy.testing.assert_almost_equal(corr2_output['xip']/gg.xip, 1., decimal=3)
 
         print 'gg.xim = ',gg.xim
-        print 'from corr2 output = ',corr2_output[:,4]
-        print 'ratio = ',corr2_output[:,4]/gg.xim
-        print 'diff = ',corr2_output[:,4]-gg.xim
-        numpy.testing.assert_almost_equal(corr2_output[:,4]/gg.xim, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output['xim']
+        print 'ratio = ',corr2_output['xim']/gg.xim
+        print 'diff = ',corr2_output['xim']-gg.xim
+        numpy.testing.assert_almost_equal(corr2_output['xim']/gg.xim, 1., decimal=3)
 
-        print 'xip_im from corr2 output = ',corr2_output[:,5]
-        print 'max err = ',max(abs(corr2_output[:,5]))
-        assert max(abs(corr2_output[:,5])) < 2.e-7
-        print 'xim_im from corr2 output = ',corr2_output[:,6]
-        print 'max err = ',max(abs(corr2_output[:,6]))
-        assert max(abs(corr2_output[:,6])) < 1.e-7
+        print 'xip_im from corr2 output = ',corr2_output['xip_im']
+        print 'max err = ',max(abs(corr2_output['xip_im']))
+        assert max(abs(corr2_output['xip_im'])) < 2.e-7
+        print 'xim_im from corr2 output = ',corr2_output['xim_im']
+        print 'max err = ',max(abs(corr2_output['xim_im']))
+        assert max(abs(corr2_output['xim_im'])) < 1.e-7
 
-        corr2_output2 = numpy.loadtxt(os.path.join('output','gg_m2.out'))
+        corr2_output2 = numpy.genfromtxt(os.path.join('output','gg_m2.out'), names=True)
         print 'mapsq = ',mapsq
-        print 'from corr2 output = ',corr2_output2[:,1]
-        print 'ratio = ',corr2_output2[:,1]/mapsq
-        print 'diff = ',corr2_output2[:,1]-mapsq
-        numpy.testing.assert_almost_equal(corr2_output2[:,1]/mapsq, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output2['Mapsq']
+        print 'ratio = ',corr2_output2['Mapsq']/mapsq
+        print 'diff = ',corr2_output2['Mapsq']-mapsq
+        numpy.testing.assert_almost_equal(corr2_output2['Mapsq']/mapsq, 1., decimal=3)
 
         print 'mxsq = ',mxsq
-        print 'from corr2 output = ',corr2_output2[:,2]
-        print 'ratio = ',corr2_output2[:,2]/mxsq
-        print 'diff = ',corr2_output2[:,2]-mxsq
-        numpy.testing.assert_almost_equal(corr2_output2[:,2]/mxsq, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output2['Mxsq']
+        print 'ratio = ',corr2_output2['Mxsq']/mxsq
+        print 'diff = ',corr2_output2['Mxsq']-mxsq
+        numpy.testing.assert_almost_equal(corr2_output2['Mxsq']/mxsq, 1., decimal=3)
 
     # Check the fits write option
     out_file_name = os.path.join('output','gg_out.fits')
@@ -150,10 +150,10 @@ def test_gg():
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(gg.logr))
     numpy.testing.assert_almost_equal(data['<R>'], gg.meanr)
     numpy.testing.assert_almost_equal(data['<logR>'], gg.meanlogr)
-    numpy.testing.assert_almost_equal(data['xi+'], gg.xip)
-    numpy.testing.assert_almost_equal(data['xi-'], gg.xim)
-    numpy.testing.assert_almost_equal(data['xi+_im'], gg.xip_im)
-    numpy.testing.assert_almost_equal(data['xi-_im'], gg.xim_im)
+    numpy.testing.assert_almost_equal(data['xip'], gg.xip)
+    numpy.testing.assert_almost_equal(data['xim'], gg.xim)
+    numpy.testing.assert_almost_equal(data['xip_im'], gg.xip_im)
+    numpy.testing.assert_almost_equal(data['xim_im'], gg.xim_im)
     numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(gg.varxi))
     numpy.testing.assert_almost_equal(data['weight'], gg.weight)
     numpy.testing.assert_almost_equal(data['npairs'], gg.npairs)
@@ -340,24 +340,24 @@ def test_spherical():
         import subprocess
         p = subprocess.Popen( ["corr2","gg_spherical.params"] )
         p.communicate()
-        corr2_output = numpy.loadtxt(os.path.join('output','gg_spherical.out'))
+        corr2_output = numpy.genfromtxt(os.path.join('output','gg_spherical.out'), names=True)
         print 'gg.xip = ',gg.xip
-        print 'from corr2 output = ',corr2_output[:,3]
-        print 'ratio = ',corr2_output[:,3]/gg.xip
-        print 'diff = ',corr2_output[:,3]-gg.xip
-        numpy.testing.assert_almost_equal(corr2_output[:,3]/gg.xip, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output['xip']
+        print 'ratio = ',corr2_output['xip']/gg.xip
+        print 'diff = ',corr2_output['xip']-gg.xip
+        numpy.testing.assert_almost_equal(corr2_output['xip']/gg.xip, 1., decimal=3)
 
         print 'gg.xim = ',gg.xim
-        print 'from corr2 output = ',corr2_output[:,4]
-        print 'ratio = ',corr2_output[:,4]/gg.xim
-        print 'diff = ',corr2_output[:,4]-gg.xim
-        numpy.testing.assert_almost_equal(corr2_output[:,4]/gg.xim, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output['xim']
+        print 'ratio = ',corr2_output['xim']/gg.xim
+        print 'diff = ',corr2_output['xim']-gg.xim
+        numpy.testing.assert_almost_equal(corr2_output['xim']/gg.xim, 1., decimal=3)
 
-        print 'xip_im from corr2 output = ',corr2_output[:,5]
-        assert max(abs(corr2_output[:,5])) < 3.e-7
+        print 'xip_im from corr2 output = ',corr2_output['xip_im']
+        assert max(abs(corr2_output['xip_im'])) < 3.e-7
 
-        print 'xim_im from corr2 output = ',corr2_output[:,6]
-        assert max(abs(corr2_output[:,6])) < 2.e-7
+        print 'xim_im from corr2 output = ',corr2_output['xim_im']
+        assert max(abs(corr2_output['xim_im'])) < 2.e-7
 
 
 
@@ -374,7 +374,7 @@ def test_aardvark():
     gg.process(cat1)
 
     direct_file_name = os.path.join('data','Aardvark.direct')
-    direct_data = numpy.loadtxt(direct_file_name)
+    direct_data = numpy.genfromtxt(direct_file_name)
     direct_xip = direct_data[:,3]
     direct_xim = direct_data[:,4]
 
@@ -405,7 +405,7 @@ def test_aardvark():
     # spaced in log of the chord distance, rather than the great circle distance.
 
     bs0_file_name = os.path.join('data','Aardvark.bs0')
-    bs0_data = numpy.loadtxt(bs0_file_name)
+    bs0_data = numpy.genfromtxt(bs0_file_name)
     bs0_xip = bs0_data[:,2]
     bs0_xim = bs0_data[:,3]
 
@@ -428,25 +428,25 @@ def test_aardvark():
     import subprocess
     p = subprocess.Popen( ["corr2","Aardvark.params"] )
     p.communicate()
-    corr2_output = numpy.loadtxt(os.path.join('output','Aardvark.out'))
+    corr2_output = numpy.genfromtxt(os.path.join('output','Aardvark.out'), names=True)
     print 'gg.xip = ',gg.xip
-    print 'from corr2 output = ',corr2_output[:,3]
-    print 'ratio = ',corr2_output[:,3]/gg.xip
-    print 'diff = ',corr2_output[:,3]-gg.xip
-    numpy.testing.assert_almost_equal(corr2_output[:,3]/gg.xip, 1., decimal=3)
+    print 'from corr2 output = ',corr2_output['xip']
+    print 'ratio = ',corr2_output['xip']/gg.xip
+    print 'diff = ',corr2_output['xip']-gg.xip
+    numpy.testing.assert_almost_equal(corr2_output['xip']/gg.xip, 1., decimal=3)
 
     print 'gg.xim = ',gg.xim
-    print 'from corr2 output = ',corr2_output[:,4]
-    print 'ratio = ',corr2_output[:,4]/gg.xim
-    print 'diff = ',corr2_output[:,4]-gg.xim
-    numpy.testing.assert_almost_equal(corr2_output[:,4]/gg.xim, 1., decimal=3)
+    print 'from corr2 output = ',corr2_output['xim']
+    print 'ratio = ',corr2_output['xim']/gg.xim
+    print 'diff = ',corr2_output['xim']-gg.xim
+    numpy.testing.assert_almost_equal(corr2_output['xim']/gg.xim, 1., decimal=3)
 
-    print 'xip_im from corr2 output = ',corr2_output[:,5]
-    print 'max err = ',max(abs(corr2_output[:,5]))
-    assert max(abs(corr2_output[:,5])) < 3.e-7
-    print 'xim_im from corr2 output = ',corr2_output[:,6]
-    print 'max err = ',max(abs(corr2_output[:,6]))
-    assert max(abs(corr2_output[:,6])) < 1.e-7
+    print 'xip_im from corr2 output = ',corr2_output['xip_im']
+    print 'max err = ',max(abs(corr2_output['xip_im']))
+    assert max(abs(corr2_output['xip_im'])) < 3.e-7
+    print 'xim_im from corr2 output = ',corr2_output['xim_im']
+    print 'max err = ',max(abs(corr2_output['xim_im']))
+    assert max(abs(corr2_output['xim_im'])) < 1.e-7
 
     # As bin_slop decreases, the agreement should get even better.
     # This test is slow, so only do it if running test_gg.py directly.

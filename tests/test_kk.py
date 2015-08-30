@@ -88,12 +88,12 @@ def test_kk():
         import subprocess
         p = subprocess.Popen( ["corr2","kk.params"] )
         p.communicate()
-        corr2_output = numpy.loadtxt(os.path.join('output','kk.out'))
+        corr2_output = numpy.genfromtxt(os.path.join('output','kk.out'), names=True)
         print 'kk.xi = ',kk.xi
-        print 'from corr2 output = ',corr2_output[:,3]
-        print 'ratio = ',corr2_output[:,3]/kk.xi
-        print 'diff = ',corr2_output[:,3]-kk.xi
-        numpy.testing.assert_almost_equal(corr2_output[:,3]/kk.xi, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output['xi']
+        print 'ratio = ',corr2_output['xi']/kk.xi
+        print 'diff = ',corr2_output['xi']-kk.xi
+        numpy.testing.assert_almost_equal(corr2_output['xi']/kk.xi, 1., decimal=3)
 
     # Check the fits write option
     out_file_name = os.path.join('output','kk_out.fits')

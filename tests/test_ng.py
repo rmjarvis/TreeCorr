@@ -64,15 +64,15 @@ def test_single():
         import subprocess
         p = subprocess.Popen( ["corr2","ng_single.params"] )
         p.communicate()
-        corr2_output = numpy.loadtxt(os.path.join('output','ng_single.out'))
+        corr2_output = numpy.genfromtxt(os.path.join('output','ng_single.out'),names=True)
         print 'ng.xi = ',ng.xi
-        print 'from corr2 output = ',corr2_output[:,3]
-        print 'ratio = ',corr2_output[:,3]/ng.xi
-        print 'diff = ',corr2_output[:,3]-ng.xi
-        numpy.testing.assert_almost_equal(corr2_output[:,3]/ng.xi, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output['gamT']
+        print 'ratio = ',corr2_output['gamT']/ng.xi
+        print 'diff = ',corr2_output['gamT']-ng.xi
+        numpy.testing.assert_almost_equal(corr2_output['gamT']/ng.xi, 1., decimal=3)
 
-        print 'xi_im from corr2 output = ',corr2_output[:,4]
-        assert max(abs(corr2_output[:,4])) < 3.e-5
+        print 'xi_im from corr2 output = ',corr2_output['gamX']
+        assert max(abs(corr2_output['gamX'])) < 3.e-5
 
 
 def test_pairwise():
@@ -120,15 +120,15 @@ def test_pairwise():
         import subprocess
         p = subprocess.Popen( ["corr2","ng_pairwise.params"] )
         p.communicate()
-        corr2_output = numpy.loadtxt(os.path.join('output','ng_pairwise.out'))
+        corr2_output = numpy.genfromtxt(os.path.join('output','ng_pairwise.out'),names=True)
         print 'ng.xi = ',ng.xi
-        print 'from corr2 output = ',corr2_output[:,3]
-        print 'ratio = ',corr2_output[:,3]/ng.xi
-        print 'diff = ',corr2_output[:,3]-ng.xi
-        numpy.testing.assert_almost_equal(corr2_output[:,3]/ng.xi, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output['gamT']
+        print 'ratio = ',corr2_output['gamT']/ng.xi
+        print 'diff = ',corr2_output['gamT']-ng.xi
+        numpy.testing.assert_almost_equal(corr2_output['gamT']/ng.xi, 1., decimal=3)
 
-        print 'xi_im from corr2 output = ',corr2_output[:,4]
-        assert max(abs(corr2_output[:,4])) < 3.e-5
+        print 'xi_im from corr2 output = ',corr2_output['gamX']
+        assert max(abs(corr2_output['gamX'])) < 3.e-5
 
 
 def test_spherical():
@@ -247,15 +247,15 @@ def test_spherical():
         import subprocess
         p = subprocess.Popen( ["corr2","ng_spherical.params"] )
         p.communicate()
-        corr2_output = numpy.loadtxt(os.path.join('output','ng_spherical.out'))
+        corr2_output = numpy.genfromtxt(os.path.join('output','ng_spherical.out'),names=True)
         print 'ng.xi = ',ng.xi
-        print 'from corr2 output = ',corr2_output[:,3]
-        print 'ratio = ',corr2_output[:,3]/ng.xi
-        print 'diff = ',corr2_output[:,3]-ng.xi
-        numpy.testing.assert_almost_equal(corr2_output[:,3]/ng.xi, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output['gamT']
+        print 'ratio = ',corr2_output['gamT']/ng.xi
+        print 'diff = ',corr2_output['gamT']-ng.xi
+        numpy.testing.assert_almost_equal(corr2_output['gamT']/ng.xi, 1., decimal=3)
 
-        print 'xi_im from corr2 output = ',corr2_output[:,4]
-        assert max(abs(corr2_output[:,4])) < 3.e-5
+        print 'xi_im from corr2 output = ',corr2_output['gamX']
+        assert max(abs(corr2_output['gamX'])) < 3.e-5
 
 
 def test_ng():
@@ -328,16 +328,16 @@ def test_ng():
         import subprocess
         p = subprocess.Popen( ["corr2","ng.params"] )
         p.communicate()
-        corr2_output = numpy.loadtxt(os.path.join('output','ng.out'))
+        corr2_output = numpy.genfromtxt(os.path.join('output','ng.out'),names=True)
         print 'ng.xi = ',ng.xi
         print 'xi = ',xi
-        print 'from corr2 output = ',corr2_output[:,3]
-        print 'ratio = ',corr2_output[:,3]/xi
-        print 'diff = ',corr2_output[:,3]-xi
-        numpy.testing.assert_almost_equal(corr2_output[:,3]/xi, 1., decimal=3)
+        print 'from corr2 output = ',corr2_output['gamT']
+        print 'ratio = ',corr2_output['gamT']/xi
+        print 'diff = ',corr2_output['gamT']-xi
+        numpy.testing.assert_almost_equal(corr2_output['gamT']/xi, 1., decimal=3)
 
-        print 'xi_im from corr2 output = ',corr2_output[:,4]
-        assert max(abs(corr2_output[:,4])) < 4.e-3
+        print 'xi_im from corr2 output = ',corr2_output['gamX']
+        assert max(abs(corr2_output['gamX'])) < 4.e-3
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','ng_out1.fits')

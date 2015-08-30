@@ -303,7 +303,7 @@ def test_direct_perp():
     max_sep = 50.
     nbins = 50
     dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
-    dd.process(cat1, cat2, perp=True)
+    dd.process(cat1, cat2, metric='Rperp')
     print 'dd.npairs = ',dd.npairs
 
     log_min_sep = numpy.log(min_sep)

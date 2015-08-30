@@ -130,7 +130,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
     def __repr__(self):
         return 'NNCorrelation(config=%r)'%self.config
 
-    def process_auto(self, cat, perp=False):
+    def process_auto(self, cat, metric='Euclidean'):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the auto-correlation for the given catalog.  After
@@ -138,20 +138,26 @@ class NNCorrelation(treecorr.BinnedCorr2):
         finish the calculation of meanr, meanlogr.
 
         :param cat:     The catalog to process
-        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
-                        (for catalogs with 3d positions) (default: False)
+        :param metric:  Which metric to use.  See the doc string for :process: for details.
+                        (default: 'Euclidean')
         """
         if cat.name == '':
             self.logger.info('Starting process NN auto-correlations')
         else:
             self.logger.info('Starting process NN auto-correlations for cat %s.', cat.name)
 
+        if metric not in ['Euclidean', 'Rperp']:
+            raise ValueError("Invalid metric.")
+        if metric == 'Rperp' and not cat.is3d():
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+
         self._set_num_threads()
 
+        perp = (metric == 'Rperp')
         field = cat.getNField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
 
         if field.sphere:
-            if field.perp:
+            if perp:
                 _treecorr.ProcessAutoNNPerp(self.corr, field.data, self.output_dots)
             else:
                 _treecorr.ProcessAutoNNSphere(self.corr, field.data, self.output_dots)
@@ -160,7 +166,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.tot += 0.5 * cat.nobj**2
 
 
-    def process_cross(self, cat1, cat2, perp=False):
+    def process_cross(self, cat1, cat2, metric='Euclidean'):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs.  After
@@ -169,8 +175,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         :param cat1:    The first catalog to process
         :param cat2:    The second catalog to process
-        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
-                        (for catalogs with 3d positions) (default: False)
+        :param metric:  Which metric to use.  See the doc string for :process: for details.
+                        (default: 'Euclidean')
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process NN cross-correlations')
@@ -178,18 +184,24 @@ class NNCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process NN cross-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
+        if metric not in ['Euclidean', 'Rperp']:
+            raise ValueError("Invalid metric.")
+        if cat1.is3d() != cat2.is3d():
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+        if metric == 'Rperp' and not cat1.is3d():
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+
         self._set_num_threads()
 
+        perp = (metric == 'Rperp')
         f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
         f2 = cat2.getNField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if f1.perp != f2.perp:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            if f1.perp:
+            if perp:
                 _treecorr.ProcessCrossNNPerp(self.corr, f1.data, f2.data, self.output_dots)
             else:
                 _treecorr.ProcessCrossNNSphere(self.corr, f1.data, f2.data, self.output_dots)
@@ -198,7 +210,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.tot += cat1.nobj*cat2.nobj
 
 
-    def process_pairwise(self, cat1, cat2, perp=False):
+    def process_pairwise(self, cat1, cat2, metric='Euclidean'):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
 
@@ -208,8 +220,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         :param cat1:    The first catalog to process
         :param cat2:    The second catalog to process
-        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
-                        (for catalogs with 3d positions) (default: False)
+        :param metric:  Which metric to use.  See the doc string for :process: for details.
+                        (default: 'Euclidean')
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process NN pairwise-correlations')
@@ -217,18 +229,24 @@ class NNCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process NN pairwise-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
+        if metric not in ['Euclidean', 'Rperp']:
+            raise ValueError("Invalid metric.")
+        if cat1.is3d() != cat2.is3d():
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+        if metric == 'Rperp' and not cat1.is3d():
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+
         self._set_num_threads()
 
+        perp = (metric == 'Rperp')
         f1 = cat1.getNSimpleField(perp)
         f2 = cat2.getNSimpleField(perp)
 
         if f1.sphere != f2.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if f1.perp != f2.perp:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            if f1.perp:
+            if perp:
                 _treecorr.ProcessPairwiseNNPerp(self.corr, f1.data, f2.data, self.output_dots)
             else:
                 _treecorr.ProcessPairwiseNNSphere(self.corr, f1.data, f2.data, self.output_dots)
@@ -288,7 +306,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         return self
 
 
-    def process(self, cat1, cat2=None, perp=False):
+    def process(self, cat1, cat2=None, metric='Euclidean'):
         """Compute the correlation function.
 
         If only 1 argument is given, then compute an auto-correlation function.
@@ -300,8 +318,14 @@ class NNCorrelation(treecorr.BinnedCorr2):
         :param cat1:    A catalog or list of catalogs for the first N field.
         :param cat2:    A catalog or list of catalogs for the second N field, if any.
                         (default: None)
-        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
-                        (for catalogs with 3d positions) (default: False)
+        :param metric:  Which metric to use for distance measurements.  Options are:
+                        - 'Euclidean' = straight line Euclidean distance between two points.
+                          For spherical coordinates (ra,dec without r), this is the chord
+                          distance between points on the unit sphere.
+                        - 'Rperp' = the perpendicular component of the distance. For two points
+                          with distance from Earth r1,r2, if d is the normal Euclidean distance
+                          and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
+                        (default: 'Euclidean')
         """
         self.clear()
         if not isinstance(cat1,list): cat1 = [cat1]
@@ -310,9 +334,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
             raise ValueError("No catalogs provided for cat1")
 
         if cat2 is None or len(cat2) == 0:
-            self._process_all_auto(cat1,perp)
+            self._process_all_auto(cat1,metric)
         else:
-            self._process_all_cross(cat1,cat2,perp)
+            self._process_all_cross(cat1,cat2,metric)
         self.finalize()
 
 

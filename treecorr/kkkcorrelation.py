@@ -157,7 +157,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
     def __repr__(self):
         return 'KKKCorrelation(config=%r)'%self.config
 
-    def process_auto(self, cat, perp=False):
+    def process_auto(self, cat, metric='Euclidean'):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the auto-correlation for the given catalog.  After
@@ -165,30 +165,36 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         finish the calculation of meand1, meanlogd1, etc.
 
         :param cat:     The catalog to process
-        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
-                        (for catalogs with 3d positions) (default: False)
+        :param metric:  Which metric to use.  See the doc string for :process: for details.
+                        (default: 'Euclidean')
         """
         if cat.name == '':
             self.logger.info('Starting process KKK auto-correlations')
         else:
             self.logger.info('Starting process KKK auto-correlations for cat %s.', cat.name)
 
+        if metric not in ['Euclidean', 'Rperp']:
+            raise ValueError("Invalid metric.")
+        if metric == 'Rperp' and not cat.is3d():
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+
         self._set_num_threads()
 
         min_size = self.min_sep * self.min_u
         max_size = 2.*self.max_sep 
         b = numpy.max( (self.b, self.bu, self.bv) )
+        perp = (metric == 'Rperp')
         field = cat.getKField(min_size,max_size,b,self.split_method,perp,self.max_top)
 
         if field.sphere:
-            if field.perp:
+            if perp:
                 _treecorr.ProcessAutoKKKPerp(self.corr, field.data, self.output_dots)
             else:
                 _treecorr.ProcessAutoKKKSphere(self.corr, field.data, self.output_dots)
         else:
             _treecorr.ProcessAutoKKKFlat(self.corr, field.data, self.output_dots)
 
-    def process_cross21(self, cat1, cat2, perp=False):
+    def process_cross21(self, cat1, cat2, metric='Euclidean'):
         """Process two catalogs, accumulating the 3pt cross-correlation, where two of the 
         points in each triangle come from the first catalog, and one from the second.
 
@@ -198,13 +204,13 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
         :param cat1:    The first catalog to process
         :param cat2:    The second catalog to process
-        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
-                        (for catalogs with 3d positions) (default: False)
+        :param metric:  Which metric to use.  See the doc string for :process: for details.
+                        (default: 'Euclidean')
         """
         raise NotImplemented("No partial cross KKK yet.")
 
 
-    def process_cross(self, cat1, cat2, cat3, perp=False):
+    def process_cross(self, cat1, cat2, cat3, metric='Euclidean'):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs.  After
@@ -223,17 +229,28 @@ class KKKCorrelation(treecorr.BinnedCorr3):
             self.logger.info('Starting process KKK cross-correlations for cats %s, %s, %s.',
                              cat1.name, cat2.name, cat3.name)
 
+        if metric not in ['Euclidean', 'Rperp']:
+            raise ValueError("Invalid metric.")
+        if cat1.is3d() != cat2.is3d() or cat1.is3d() != cat3.is3d():
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+        if metric == 'Rperp' and not cat1.is3d():
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+
         self._set_num_threads()
 
-        f1 = cat1.getKField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
-        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
-        f3 = cat3.getKField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
+        min_size = self.min_sep * self.min_u
+        max_size = 2.*self.max_sep 
+        b = numpy.max( (self.b, self.bu, self.bv) )
+        perp = (metric == 'Rperp')
+        f1 = cat1.getKField(min_size,max_size,b,self.split_method,perp,self.max_top)
+        f2 = cat2.getKField(min_size,max_size,b,self.split_method,perp,self.max_top)
+        f3 = cat3.getKField(min_size,max_size,b,self.split_method,perp,self.max_top)
 
         if f1.sphere != f2.sphere or f1.sphere != f3.sphere:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            if f1.perp:
+            if perp:
                 _treecorr.ProcessCrossKKKPerp(self.corr, f1.data, f2.data, f3.data, self.output_dots)
             else:
                 _treecorr.ProcessCrossKKKSphere(self.corr, f1.data, f2.data, f3.data, self.output_dots)
@@ -337,7 +354,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         return self
 
 
-    def process(self, cat1, cat2=None, cat3=None, perp=False):
+    def process(self, cat1, cat2=None, cat3=None, metric='Euclidean'):
         """Accumulate the number of triangles of points between cat1, cat2, and cat3.
 
         If only 1 argument is given, then compute an auto-correlation function.
@@ -360,8 +377,14 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                         (default: None)
         :param cat3:    A catalog or list of catalogs for the third N field, if any.
                         (default: None)
-        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
-                        (for catalogs with 3d positions) (default: False)
+        :param metric:  Which metric to use for distance measurements.  Options are:
+                        - 'Euclidean' = straight line Euclidean distance between two points.
+                          For spherical coordinates (ra,dec without r), this is the chord
+                          distance between points on the unit sphere.
+                        - 'Rperp' = the perpendicular component of the distance. For two points
+                          with distance from Earth r1,r2, if d is the normal Euclidean distance
+                          and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
+                        (default: 'Euclidean')
         """
         import math
         self.clear()
@@ -384,7 +407,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
             vark2 = vark1
             vark3 = vark1
             self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
-            self._process_all_auto(cat1, perp)
+            self._process_all_auto(cat1, metric)
         else:
             assert cat2 is not None and cat3 is not None
             vark1 = treecorr.calculateVarK(cat1)
@@ -393,7 +416,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
             self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
             self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
             self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
-            self._process_all_cross(cat1,cat2,cat3, perp)
+            self._process_all_cross(cat1,cat2,cat3, metric)
         self.finalize(vark1,vark2,vark3)
 
 

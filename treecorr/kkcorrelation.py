@@ -138,7 +138,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
     def __repr__(self):
         return 'KKCorrelation(config=%r)'%self.config
 
-    def process_auto(self, cat, perp=False):
+    def process_auto(self, cat, metric='Euclidean'):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
@@ -147,20 +147,26 @@ class KKCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
 
         :param cat:     The catalog to process
-        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
-                        (for catalogs with 3d positions) (default: False)
+        :param metric:  Which metric to use.  See the doc string for :process: for details.
+                        (default: 'Euclidean')
         """
         if cat.name == '':
             self.logger.info('Starting process KK auto-correlations')
         else:
             self.logger.info('Starting process KK auto-correlations for cat %s.', cat.name)
 
+        if metric not in ['Euclidean', 'Rperp']:
+            raise ValueError("Invalid metric.")
+        if metric == 'Rperp' and not cat.is3d():
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+
         self._set_num_threads()
 
+        perp = (metric == 'Rperp')
         field = cat.getKField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
 
         if field.sphere:
-            if field.perp:
+            if perp:
                 _treecorr.ProcessAutoKKPerp(self.corr, field.data, self.output_dots)
             else:
                 _treecorr.ProcessAutoKKSphere(self.corr, field.data, self.output_dots)
@@ -168,7 +174,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
             _treecorr.ProcessAutoKKFlat(self.corr, field.data, self.output_dots)
 
 
-    def process_cross(self, cat1, cat2, perp=False):
+    def process_cross(self, cat1, cat2, metric='Euclidean'):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
@@ -178,8 +184,8 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         :param cat1:    The first catalog to process
         :param cat2:    The second catalog to process
-        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
-                        (for catalogs with 3d positions) (default: False)
+        :param metric:  Which metric to use.  See the doc string for :process: for details.
+                        (default: 'Euclidean')
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process KK cross-correlations')
@@ -187,8 +193,16 @@ class KKCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process KK cross-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
+        if metric not in ['Euclidean', 'Rperp']:
+            raise ValueError("Invalid metric.")
+        if cat1.is3d() != cat2.is3d():
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+        if metric == 'Rperp' and not cat1.is3d():
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+
         self._set_num_threads()
 
+        perp = (metric == 'Rperp')
         f1 = cat1.getKField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
         f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
 
@@ -196,7 +210,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            if f1.perp:
+            if perp:
                 _treecorr.ProcessCrossKKPerp(self.corr, f1.data, f2.data, self.output_dots)
             else:
                 _treecorr.ProcessCrossKKSphere(self.corr, f1.data, f2.data, self.output_dots)
@@ -204,7 +218,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
             _treecorr.ProcessCrossKKFlat(self.corr, f1.data, f2.data, self.output_dots)
 
 
-    def process_pairwise(self, cat1, cat2, perp=False):
+    def process_pairwise(self, cat1, cat2, metric='Euclidean'):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
 
@@ -215,8 +229,8 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         :param cat1:    The first catalog to process
         :param cat2:    The second catalog to process
-        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
-                        (for catalogs with 3d positions) (default: False)
+        :param metric:  Which metric to use.  See the doc string for :process: for details.
+                        (default: 'Euclidean')
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process KK pairwise-correlations')
@@ -224,8 +238,16 @@ class KKCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process KK pairwise-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
+        if metric not in ['Euclidean', 'Rperp']:
+            raise ValueError("Invalid metric.")
+        if cat1.is3d() != cat2.is3d():
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+        if metric == 'Rperp' and not cat1.is3d():
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+
         self._set_num_threads()
 
+        perp = (metric == 'Rperp')
         f1 = cat1.getKSimpleField(perp)
         f2 = cat2.getKSimpleField(perp)
 
@@ -233,7 +255,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         if f1.sphere:
-            if f1.perp:
+            if perp:
                 _treecorr.ProcessPairwiseKKPerp(self.corr, f1.data, f2.data, self.output_dots)
             else:
                 _treecorr.ProcessPairwiseKKSphere(self.corr, f1.data, f2.data, self.output_dots)
@@ -300,7 +322,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         return self
 
 
-    def process(self, cat1, cat2=None, perp=False):
+    def process(self, cat1, cat2=None, metric='Euclidean'):
         """Compute the correlation function.
 
         If only 1 argument is given, then compute an auto-correlation function.
@@ -312,8 +334,14 @@ class KKCorrelation(treecorr.BinnedCorr2):
         :param cat1:    A catalog or list of catalogs for the first K field.
         :param cat2:    A catalog or list of catalogs for the second K field, if any.
                         (default: None)
-        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
-                        (for catalogs with 3d positions) (default: False)
+        :param metric:  Which metric to use for distance measurements.  Options are:
+                        - 'Euclidean' = straight line Euclidean distance between two points.
+                          For spherical coordinates (ra,dec without r), this is the chord
+                          distance between points on the unit sphere.
+                        - 'Rperp' = the perpendicular component of the distance. For two points
+                          with distance from Earth r1,r2, if d is the normal Euclidean distance
+                          and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
+                        (default: 'Euclidean')
         """
         import math
         self.clear()
@@ -327,13 +355,13 @@ class KKCorrelation(treecorr.BinnedCorr2):
             vark1 = treecorr.calculateVarK(cat1)
             vark2 = vark1
             self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
-            self._process_all_auto(cat1,perp)
+            self._process_all_auto(cat1,metric)
         else:
             vark1 = treecorr.calculateVarK(cat1)
             vark2 = treecorr.calculateVarK(cat2)
             self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
             self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
-            self._process_all_cross(cat1,cat2,perp)
+            self._process_all_cross(cat1,cat2,metric)
         self.finalize(vark1,vark2)
 
 

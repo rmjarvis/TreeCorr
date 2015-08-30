@@ -515,6 +515,11 @@ class Catalog(object):
         self.logger.info("   nobj = %d",nobj)
 
 
+    def is3d(self):
+        """Does the catalog have 3d positions (ra,dec,r)?"""
+        return self.ra is not None and self.dec is not None and self.r is not None
+
+
     def makeArray(self, col, col_str, dtype=float):
         """Turn the input column into a numpy array if it wasn't already.
         Also make sure the input in 1-d.

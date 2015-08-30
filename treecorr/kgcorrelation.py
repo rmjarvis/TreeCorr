@@ -218,14 +218,14 @@ class KGCorrelation(treecorr.BinnedCorr2):
         :param vark:    The kappa variance for the first field.
         :param varg:    The shear variance per component for the second field.
         """
-        mask1 = self.npairs != 0
-        mask2 = self.npairs == 0
+        mask1 = self.weight != 0
+        mask2 = self.weight == 0
 
         self.xi[mask1] /= self.weight[mask1]
         self.xi_im[mask1] /= self.weight[mask1]
         self.meanr[mask1] /= self.weight[mask1]
         self.meanlogr[mask1] /= self.weight[mask1]
-        self.varxi[mask1] = vark * varg / self.npairs[mask1]
+        self.varxi[mask1] = vark * varg / self.weight[mask1]
 
         # Update the units of meanr, meanlogr
         self.meanr[mask1] /= self.sep_units

@@ -255,8 +255,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
         :param varg1:   The shear variance per component for the first field.
         :param varg2:   The shear variance per component for the second field.
         """
-        mask1 = self.npairs != 0
-        mask2 = self.npairs == 0
+        mask1 = self.weight != 0
+        mask2 = self.weight == 0
 
         self.xip[mask1] /= self.weight[mask1]
         self.xim[mask1] /= self.weight[mask1]
@@ -264,7 +264,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.xim_im[mask1] /= self.weight[mask1]
         self.meanr[mask1] /= self.weight[mask1]
         self.meanlogr[mask1] /= self.weight[mask1]
-        self.varxi[mask1] = varg1 * varg2 / self.npairs[mask1]
+        self.varxi[mask1] = varg1 * varg2 / self.weight[mask1]
 
         # Update the units of meanr, meanlogr
         self.meanr[mask1] /= self.sep_units

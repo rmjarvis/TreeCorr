@@ -79,7 +79,11 @@ class Catalog(object):
         :nobj:   The number of objects with non-zero weight
         :sumw:   The sum of the weights
         :varg:   The shear variance (aka shape noise) (0 if g1,g2 are not defined)
+                 Note: If there are weights, this is really sum(w^2 |g|^2)/sum(w), which is
+                 more like <w> * varg.  In finalize, we divide this by the weight in each bin,
+                 so this is the right quantity to use there.
         :vark:   The kappa variance (0 if k is not defined)
+                 Note: If there are weights, this is really sum(w^2 kappa^2)/sum(w)
 
         :name:   When constructed from a file, this will be the file_name.  It is only used as
                  a reference name in logging output  after construction, so if you construct it 
@@ -487,12 +491,12 @@ class Catalog(object):
             if self.g1 is not None:
                 self.varg = numpy.sum(self.w**2 * (self.g1**2 + self.g2**2))
                 # The 2 is because we need the variance _per componenet_.
-                self.varg /= 2.*self.sumw**2/self.nobj
+                self.varg /= 2.*self.sumw
             else:
                 self.varg = 0.
             if self.k is not None:
                 self.vark = numpy.sum(self.w**2 * self.k**2)
-                self.vark /= self.sumw**2/self.nobj
+                self.vark /= self.sumw
             else:
                 self.vark = 0.
         else:
@@ -1129,11 +1133,11 @@ def calculateVarG(cat_list):
         return cat_list[0].varg
     else:
         varg = 0
-        ntot = 0
+        sumw = 0
         for cat in cat_list:
-            varg += cat.varg * cat.nobj
-            ntot += cat.nobj
-        return varg / ntot
+            varg += cat.varg * cat.sumw
+            sumw += cat.sumw
+        return varg / sumw
 
 def calculateVarK(cat_list):
     """Calculate the overall kappa variance from a list of catalogs.
@@ -1151,11 +1155,11 @@ def calculateVarK(cat_list):
         return cat_list[0].vark
     else:
         vark = 0
-        ntot = 0
+        sumw = 0
         for cat in cat_list:
-            vark += cat.vark * cat.nobj
-            ntot += cat.nobj
-        return vark / ntot
+            sumw += cat.vark * cat.sumw
+            sumw += cat.sumw
+        return vark / sumw
 
 
 def isGColRequired(config, num):

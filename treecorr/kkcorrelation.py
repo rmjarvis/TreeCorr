@@ -251,13 +251,13 @@ class KKCorrelation(treecorr.BinnedCorr2):
         :param vark1:   The kappa variance for the first field.
         :param vark2:   The kappa variance for the second field.
         """
-        mask1 = self.npairs != 0
-        mask2 = self.npairs == 0
+        mask1 = self.weight != 0
+        mask2 = self.weight == 0
 
         self.xi[mask1] /= self.weight[mask1]
         self.meanr[mask1] /= self.weight[mask1]
         self.meanlogr[mask1] /= self.weight[mask1]
-        self.varxi[mask1] = vark1 * vark2 / self.npairs[mask1]
+        self.varxi[mask1] = vark1 * vark2 / self.weight[mask1]
 
         # Update the units of meanlogr
         self.meanr[mask1] /= self.sep_units

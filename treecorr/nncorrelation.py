@@ -55,6 +55,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
     It holds the following attributes:
 
         :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
+        :meanr:     The (weighted) mean value of r for the pairs in each bin.
+                    If there are no pairs in a bin, then exp(logr) will be used instead.
         :meanlogr:  The mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
         :npairs:    The number of pairs going into each bin.
@@ -88,6 +90,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
+        self.meanr = numpy.zeros(self.nbins, dtype=float)
         self.meanlogr = numpy.zeros(self.nbins, dtype=float)
         self.npairs = numpy.zeros(self.nbins, dtype=float)
         self.tot = 0.
@@ -95,10 +98,11 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.logger.debug('Finished building NNCorr')
 
     def _build_corr(self):
+        meanr = self.meanr.ctypes.data_as(cdouble_ptr)
         meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
         npairs = self.npairs.ctypes.data_as(cdouble_ptr)
         self.corr = _treecorr.BuildNNCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
-                                          meanlogr,npairs);
+                                          meanr,meanlogr,npairs);
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -131,7 +135,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         This accumulates the auto-correlation for the given catalog.  After
         calling this function as often as desired, the finalize() command will
-        finish the calculation of meanlogr.
+        finish the calculation of meanr, meanlogr.
 
         :param cat:     The catalog to process
         :param perp:    Whether to use the perpendicular distance rather than the 3d separation
@@ -161,7 +165,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         This accumulates the cross-correlation for the given catalogs.  After
         calling this function as often as desired, the finalize() command will
-        finish the calculation of meanlogr.
+        finish the calculation of meanr, meanlogr.
 
         :param cat1:    The first catalog to process
         :param cat2:    The second catalog to process
@@ -238,23 +242,27 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         The process_auto and process_cross commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation of meanlogr by dividing by the total npairs.
+        finishes the calculation of meanr, meanlogr by dividing by the total npairs.
         """
         mask1 = self.npairs != 0
         mask2 = self.npairs == 0
 
+        self.meanr[mask1] /= self.npairs[mask1]
         self.meanlogr[mask1] /= self.npairs[mask1]
 
-        # Update the units of meanlogr
+        # Update the units of meanr, meanlogr
+        self.meanr[mask1] /= self.sep_units
         self.meanlogr[mask1] -= self.log_sep_units
 
-        # Use meanlogr when available, but set to nominal when no pairs in bin.
+        # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
+        self.meanr[mask2] = numpy.exp(self.logr[mask2])
         self.meanlogr[mask2] = self.logr[mask2]
 
 
     def clear(self):
         """Clear the data vectors
         """
+        self.meanr[:] = 0.
         self.meanlogr[:] = 0.
         self.npairs[:] = 0.
         self.tot = 0.
@@ -273,6 +281,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
                 self.max_sep == other.max_sep):
             raise ValueError("NNCorrelation to be added is not compatible with this one.")
 
+        self.meanr[:] += other.meanr[:]
         self.meanlogr[:] += other.meanlogr[:]
         self.npairs[:] += other.npairs[:]
         self.tot += other.tot
@@ -391,7 +400,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.logger.info('Writing NN correlations to %s',file_name)
         
         col_names = [ 'R_nom','<R>','<logR>' ]
-        columns = [ numpy.exp(self.logr), numpy.exp(self.meanlogr), self.meanlogr ]
+        columns = [ numpy.exp(self.logr), self.meanr, self.meanlogr ]
         if rr is None:
             col_names += [ 'npairs' ]
             columns += [ self.npairs ]
@@ -436,6 +445,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         data = treecorr.util.gen_read(file_name, file_type=file_type)
         self.logr = numpy.log(data['R_nom'])
+        self.meanr = data['<R>']
         self.meanlogr = data['<logR>']
         if 'npairs' in data.dtype.names:
             self.npairs = data['npairs']
@@ -464,8 +474,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         # Make s a matrix, so we can eventually do the integral by doing a matrix product.
         r = numpy.exp(self.logr)
-        meanr = numpy.exp(self.meanlogr) # Use the actual mean r for each bin
-        s = numpy.outer(1./r, meanr)  
+        s = numpy.outer(1./r, self.meanr)  
         ssq = s*s
         if m2_uform == 'Crittenden':
             exp_factor = numpy.exp(-ssq/4.)

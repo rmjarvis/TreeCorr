@@ -53,6 +53,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
     It holds the following attributes:
 
         :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
+        :meanr:     The (weighted) mean value of r for the pairs in each bin.
+                    If there are no pairs in a bin, then exp(logr) will be used instead.
         :meanlogr:  The (weighted) mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
         :xi:        The correlation function, xi(r) = <gamma_T>.
@@ -89,6 +91,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.xi = numpy.zeros(self.nbins, dtype=float)
         self.xi_im = numpy.zeros(self.nbins, dtype=float)
         self.varxi = numpy.zeros(self.nbins, dtype=float)
+        self.meanr = numpy.zeros(self.nbins, dtype=float)
         self.meanlogr = numpy.zeros(self.nbins, dtype=float)
         self.weight = numpy.zeros(self.nbins, dtype=float)
         self.npairs = numpy.zeros(self.nbins, dtype=float)
@@ -98,11 +101,12 @@ class NGCorrelation(treecorr.BinnedCorr2):
     def _build_corr(self):
         xi = self.xi.ctypes.data_as(cdouble_ptr)
         xi_im = self.xi_im.ctypes.data_as(cdouble_ptr)
+        meanr = self.meanr.ctypes.data_as(cdouble_ptr)
         meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
         weight = self.weight.ctypes.data_as(cdouble_ptr)
         npairs = self.npairs.ctypes.data_as(cdouble_ptr)
         self.corr = _treecorr.BuildNGCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
-                                          xi,xi_im,meanlogr,weight,npairs);
+                                          xi,xi_im,meanr,meanlogr,weight,npairs);
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -217,13 +221,16 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         self.xi[mask1] /= self.weight[mask1]
         self.xi_im[mask1] /= self.weight[mask1]
+        self.meanr[mask1] /= self.weight[mask1]
         self.meanlogr[mask1] /= self.weight[mask1]
         self.varxi[mask1] = varg / self.npairs[mask1]
 
-        # Update the units of meanlogr
+        # Update the units of meanr, meanlogr
+        self.meanr[mask1] /= self.sep_units
         self.meanlogr[mask1] -= self.log_sep_units
 
-        # Use meanlogr when available, but set to nominal when no pairs in bin.
+        # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
+        self.meanr[mask2] = numpy.exp(self.logr[mask2])
         self.meanlogr[mask2] = self.logr[mask2]
         self.varxi[mask2] = 0.
 
@@ -234,6 +241,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.xi[:] = 0
         self.xi_im[:] = 0
         self.varxi[:] = 0
+        self.meanr[:] = 0
         self.meanlogr[:] = 0
         self.weight[:] = 0
         self.npairs[:] = 0
@@ -255,6 +263,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.xi[:] += other.xi[:]
         self.xi_im[:] += other.xi_im[:]
         self.varxi[:] += other.varxi[:]
+        self.meanr[:] += other.meanr[:]
         self.meanlogr[:] += other.meanlogr[:]
         self.weight[:] += other.weight[:]
         self.npairs[:] += other.npairs[:]
@@ -326,7 +335,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         treecorr.util.gen_write(
             file_name,
             ['R_nom','<R>','<logR>','<gamT>','<gamX>','sigma','weight','npairs'],
-            [ numpy.exp(self.logr), numpy.exp(self.meanlogr), self.meanlogr,
+            [ numpy.exp(self.logr), self.meanr, self.meanlogr,
               xi, xi_im, numpy.sqrt(varxi), self.weight, self.npairs ],
             prec=prec, file_type=file_type, logger=self.logger)
 
@@ -349,6 +358,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         data = treecorr.util.gen_read(file_name, file_type=file_type)
         self.logr = numpy.log(data['R_nom'])
+        self.meanr = data['<R>']
         self.meanlogr = data['<logR>']
         self.xi = data['<gamT>']
         self.xi_im = data['<gamX>']
@@ -399,8 +409,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         # Make s a matrix, so we can eventually do the integral by doing a matrix product.
         r = numpy.exp(self.logr)
-        meanr = numpy.exp(self.meanlogr) # Use the actual mean r for each bin
-        s = numpy.outer(1./r, meanr)  
+        s = numpy.outer(1./r, self.meanr)  
         ssq = s*s
         if m2_uform == 'Crittenden':
             exp_factor = numpy.exp(-ssq/4.)

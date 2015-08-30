@@ -875,6 +875,19 @@ def test_nnn():
     ddd.process(cat)
     #print 'ddd.ntri = ',ddd.ntri
 
+    # log(<d>) != <logd>, but it should be close:
+    print 'meanlogd1 - log(meand1) = ',ddd.meanlogd1 - numpy.log(ddd.meand1)
+    print 'meanlogd2 - log(meand2) = ',ddd.meanlogd2 - numpy.log(ddd.meand2)
+    print 'meanlogd3 - log(meand3) = ',ddd.meanlogd3 - numpy.log(ddd.meand3)
+    print 'meanlogd3 - meanlogd2 - log(meanu) = ',ddd.meanlogd3 - ddd.meanlogd2 - numpy.log(ddd.meanu)
+    print 'log(meand1-meand2) - meanlogd3 - log(meanv) = ',numpy.log(ddd.meand1-ddd.meand2) - ddd.meanlogd3 - numpy.log(ddd.meanv)
+    numpy.testing.assert_almost_equal(ddd.meanlogd1, numpy.log(ddd.meand1), decimal=3)
+    numpy.testing.assert_almost_equal(ddd.meanlogd2, numpy.log(ddd.meand2), decimal=3)
+    numpy.testing.assert_almost_equal(ddd.meanlogd3, numpy.log(ddd.meand3), decimal=3)
+    numpy.testing.assert_almost_equal(ddd.meanlogd3-ddd.meanlogd2, numpy.log(ddd.meanu), decimal=3)
+    numpy.testing.assert_almost_equal(numpy.log(ddd.meand1-ddd.meand2)-ddd.meanlogd3, 
+                                      numpy.log(ddd.meanv), decimal=3)
+
     nrand = 2 * ngal
     rx = (numpy.random.random_sample(nrand)-0.5) * L
     ry = (numpy.random.random_sample(nrand)-0.5) * L
@@ -886,21 +899,15 @@ def test_nnn():
     rrr.process(rand)
     #print 'rrr.ntri = ',rrr.ntri
 
-    r = numpy.exp(ddd.meanlogr)
-    u = ddd.meanu
-    v = ddd.meanv
-    d2 = r
-    d3 = u * r
-    d1 = numpy.abs(v) * d3 + d2
+    d1 = numpy.exp(ddd.meanlogd1)
+    d2 = numpy.exp(ddd.meanlogd2)
+    d3 = numpy.exp(ddd.meanlogd3)
     #print 'rnom = ',numpy.exp(ddd.logr)
     #print 'unom = ',ddd.u
     #print 'vnom = ',ddd.v
-    #print 'r = ',r
-    #print 'u = ',u
-    #print 'v = ',v
+    #print 'd1 = ',d1
     #print 'd2 = ',d2
     #print 'd3 = ',d3
-    #print 'd1 = ',d1
     true_zeta = (1./(12.*numpy.pi**2)) * (L/s)**4 * numpy.exp(-(d1**2+d2**2+d3**2)/(6.*s**2)) - 1.
 
     zeta, varzeta = ddd.calculateZeta(rrr)
@@ -913,7 +920,9 @@ def test_nnn():
     # slightly less accurate in this case.  Probably because the mask is simple (a box), so
     # the difference is relatively minor.  The error is slightly higher in this case, but testing
     # that it is everywhere < 0.1 is still appropriate.
-    assert numpy.max(numpy.abs(zeta - true_zeta)/true_zeta) < 0.1
+    assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)) < 0.1
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta)), 
+                                      numpy.log(numpy.abs(true_zeta)), decimal=1)
 
     # Check that we get the same result using the corr3 executable:
     if __name__ == '__main__':
@@ -924,10 +933,10 @@ def test_nnn():
         p.communicate()
         corr3_output = numpy.loadtxt(os.path.join('output','nnn.out'))
         print 'zeta = ',zeta
-        print 'from corr3 output = ',corr3_output[:,6]
-        print 'ratio = ',corr3_output[:,6]/zeta.flatten()
-        print 'diff = ',corr3_output[:,6]-zeta.flatten()
-        numpy.testing.assert_almost_equal(corr3_output[:,6]/zeta.flatten(), 1., decimal=3)
+        print 'from corr3 output = ',corr3_output[:,11]
+        print 'ratio = ',corr3_output[:,11]/zeta.flatten()
+        print 'diff = ',corr3_output[:,11]-zeta.flatten()
+        numpy.testing.assert_almost_equal(corr3_output[:,11]/zeta.flatten(), 1., decimal=3)
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','nnn_out1.fits')
@@ -935,14 +944,32 @@ def test_nnn():
     import fitsio
     data = fitsio.read(out_file_name1)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ddd.logr).flatten())
-    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(ddd.meanlogr).flatten())
+    numpy.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
+    numpy.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
+    numpy.testing.assert_almost_equal(data['<d1>'], ddd.meand1.flatten())
+    numpy.testing.assert_almost_equal(data['<logd1>'], ddd.meanlogd1.flatten())
+    numpy.testing.assert_almost_equal(data['<d2>'], ddd.meand2.flatten())
+    numpy.testing.assert_almost_equal(data['<logd2>'], ddd.meanlogd2.flatten())
+    numpy.testing.assert_almost_equal(data['<d3>'], ddd.meand3.flatten())
+    numpy.testing.assert_almost_equal(data['<logd3>'], ddd.meanlogd3.flatten())
+    numpy.testing.assert_almost_equal(data['<u>'], ddd.meanu.flatten())
+    numpy.testing.assert_almost_equal(data['<v>'], ddd.meanv.flatten())
     numpy.testing.assert_almost_equal(data['ntri'], ddd.ntri.flatten())
 
     out_file_name2 = os.path.join('output','nnn_out2.fits')
     ddd.write(out_file_name2, rrr)
     data = fitsio.read(out_file_name2)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ddd.logr).flatten())
-    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(ddd.meanlogr).flatten())
+    numpy.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
+    numpy.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
+    numpy.testing.assert_almost_equal(data['<d1>'], ddd.meand1.flatten())
+    numpy.testing.assert_almost_equal(data['<logd1>'], ddd.meanlogd1.flatten())
+    numpy.testing.assert_almost_equal(data['<d2>'], ddd.meand2.flatten())
+    numpy.testing.assert_almost_equal(data['<logd2>'], ddd.meanlogd2.flatten())
+    numpy.testing.assert_almost_equal(data['<d3>'], ddd.meand3.flatten())
+    numpy.testing.assert_almost_equal(data['<logd3>'], ddd.meanlogd3.flatten())
+    numpy.testing.assert_almost_equal(data['<u>'], ddd.meanu.flatten())
+    numpy.testing.assert_almost_equal(data['<v>'], ddd.meanv.flatten())
     numpy.testing.assert_almost_equal(data['zeta'], zeta.flatten())
     numpy.testing.assert_almost_equal(data['sigma_zeta'], numpy.sqrt(varzeta).flatten())
     numpy.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
@@ -956,12 +983,30 @@ def test_nnn():
                                    sep_units='arcmin', verbose=3)
     ddd2.read(out_file_name1)
     numpy.testing.assert_almost_equal(ddd2.logr, ddd.logr)
-    numpy.testing.assert_almost_equal(ddd2.meanlogr, ddd.meanlogr)
+    numpy.testing.assert_almost_equal(ddd2.u, ddd.u)
+    numpy.testing.assert_almost_equal(ddd2.v, ddd.v)
+    numpy.testing.assert_almost_equal(ddd2.meand1, ddd.meand1)
+    numpy.testing.assert_almost_equal(ddd2.meanlogd1, ddd.meanlogd1)
+    numpy.testing.assert_almost_equal(ddd2.meand2, ddd.meand2)
+    numpy.testing.assert_almost_equal(ddd2.meanlogd2, ddd.meanlogd2)
+    numpy.testing.assert_almost_equal(ddd2.meand3, ddd.meand3)
+    numpy.testing.assert_almost_equal(ddd2.meanlogd3, ddd.meanlogd3)
+    numpy.testing.assert_almost_equal(ddd2.meanu, ddd.meanu)
+    numpy.testing.assert_almost_equal(ddd2.meanv, ddd.meanv)
     numpy.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
 
     ddd2.read(out_file_name2)
     numpy.testing.assert_almost_equal(ddd2.logr, ddd.logr)
-    numpy.testing.assert_almost_equal(ddd2.meanlogr, ddd.meanlogr)
+    numpy.testing.assert_almost_equal(ddd2.u, ddd.u)
+    numpy.testing.assert_almost_equal(ddd2.v, ddd.v)
+    numpy.testing.assert_almost_equal(ddd2.meand1, ddd.meand1)
+    numpy.testing.assert_almost_equal(ddd2.meanlogd1, ddd.meanlogd1)
+    numpy.testing.assert_almost_equal(ddd2.meand2, ddd.meand2)
+    numpy.testing.assert_almost_equal(ddd2.meanlogd2, ddd.meanlogd2)
+    numpy.testing.assert_almost_equal(ddd2.meand3, ddd.meand3)
+    numpy.testing.assert_almost_equal(ddd2.meanlogd3, ddd.meanlogd3)
+    numpy.testing.assert_almost_equal(ddd2.meanu, ddd.meanu)
+    numpy.testing.assert_almost_equal(ddd2.meanv, ddd.meanv)
     numpy.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
 
     # Test compensated zeta
@@ -991,13 +1036,24 @@ def test_nnn():
         print 'ratio = ',zeta / true_zeta
         print 'diff = ',zeta - true_zeta
         print 'max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))
-        assert numpy.max(numpy.abs(zeta - true_zeta)/true_zeta) < 0.1
+        assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)) < 0.1
+        numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta)), 
+                                          numpy.log(numpy.abs(true_zeta)), decimal=1)
 
         out_file_name3 = os.path.join('output','nnn_out3.fits')
         ddd.write(out_file_name3, rrr, drr, ddr)
         data = fitsio.read(out_file_name3)
         numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ddd.logr).flatten())
-        numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(ddd.meanlogr).flatten())
+        numpy.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
+        numpy.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
+        numpy.testing.assert_almost_equal(data['<d1>'], ddd.meand1.flatten())
+        numpy.testing.assert_almost_equal(data['<logd1>'], ddd.meanlogd1.flatten())
+        numpy.testing.assert_almost_equal(data['<d2>'], ddd.meand2.flatten())
+        numpy.testing.assert_almost_equal(data['<logd2>'], ddd.meanlogd2.flatten())
+        numpy.testing.assert_almost_equal(data['<d3>'], ddd.meand3.flatten())
+        numpy.testing.assert_almost_equal(data['<logd3>'], ddd.meanlogd3.flatten())
+        numpy.testing.assert_almost_equal(data['<u>'], ddd.meanu.flatten())
+        numpy.testing.assert_almost_equal(data['<v>'], ddd.meanv.flatten())
         numpy.testing.assert_almost_equal(data['zeta'], zeta.flatten())
         numpy.testing.assert_almost_equal(data['sigma_zeta'], numpy.sqrt(varzeta).flatten())
         numpy.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
@@ -1007,7 +1063,16 @@ def test_nnn():
 
         ddd2.read(out_file_name3)
         numpy.testing.assert_almost_equal(ddd2.logr, ddd.logr)
-        numpy.testing.assert_almost_equal(ddd2.meanlogr, ddd.meanlogr)
+        numpy.testing.assert_almost_equal(ddd2.u, ddd.u)
+        numpy.testing.assert_almost_equal(ddd2.v, ddd.v)
+        numpy.testing.assert_almost_equal(ddd2.meand1, ddd.meand1)
+        numpy.testing.assert_almost_equal(ddd2.meanlogd1, ddd.meanlogd1)
+        numpy.testing.assert_almost_equal(ddd2.meand2, ddd.meand2)
+        numpy.testing.assert_almost_equal(ddd2.meanlogd2, ddd.meanlogd2)
+        numpy.testing.assert_almost_equal(ddd2.meand3, ddd.meand3)
+        numpy.testing.assert_almost_equal(ddd2.meanlogd3, ddd.meanlogd3)
+        numpy.testing.assert_almost_equal(ddd2.meanu, ddd.meanu)
+        numpy.testing.assert_almost_equal(ddd2.meanv, ddd.meanv)
         numpy.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
 
 
@@ -1052,13 +1117,13 @@ def test_3d():
     ra = numpy.arctan2(y,x) / treecorr.degrees
 
     min_sep = 10.
-    max_sep = 25.
-    nbins = 10
+    max_sep = 20.
+    nbins = 8
     min_u = 0.9
     max_u = 1.0
     nubins = 1
-    min_v = -0.1
-    max_v = 0.1
+    min_v = -0.05
+    max_v = 0.05
     nvbins = 1
 
     cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='deg', dec_units='deg')
@@ -1066,9 +1131,9 @@ def test_3d():
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins, verbose=3)
     ddd.process(cat)
-    print 'ddd.ntri = ',ddd.ntri
+    print 'ddd.ntri = ',ddd.ntri.flatten()
 
-    nrand = 10 * ngal
+    nrand = 20 * ngal
     rx = (numpy.random.random_sample(nrand)-0.5) * L + xcen
     ry = (numpy.random.random_sample(nrand)-0.5) * L + ycen
     rz = (numpy.random.random_sample(nrand)-0.5) * L + zcen
@@ -1081,37 +1146,33 @@ def test_3d():
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins, verbose=3)
     rrr.process(rand)
-    print 'rrr.ntri = ',rrr.ntri
+    print 'rrr.ntri = ',rrr.ntri.flatten()
 
-    r = numpy.exp(ddd.meanlogr)
-    u = ddd.meanu
-    v = ddd.meanv
-    d2 = r
-    d3 = u * r
-    d1 = numpy.abs(v) * d3 + d2
-    #print 'rnom = ',numpy.exp(ddd.logr)
-    #print 'unom = ',ddd.u
-    #print 'vnom = ',ddd.v
-    #print 'r = ',r
-    #print 'u = ',u
-    #print 'v = ',v
-    #print 'd2 = ',d2
-    #print 'd3 = ',d3
-    #print 'd1 = ',d1
+    d1 = numpy.exp(ddd.meanlogd1)
+    d2 = numpy.exp(ddd.meanlogd2)
+    d3 = numpy.exp(ddd.meanlogd3)
+    print 'rnom = ',numpy.exp(ddd.logr).flatten()
+    print 'unom = ',ddd.u.flatten()
+    print 'vnom = ',ddd.v.flatten()
+    print 'd1 = ',d1.flatten()
+    print 'd2 = ',d2.flatten()
+    print 'd3 = ',d3.flatten()
     true_zeta = ((1./(24.*numpy.sqrt(3)*numpy.pi**3)) * (L/s)**6 *
                  numpy.exp(-(d1**2+d2**2+d3**2)/(6.*s**2)) - 1.)
 
     zeta, varzeta = ddd.calculateZeta(rrr)
-    print 'zeta = ',zeta
-    print 'true_zeta = ',true_zeta
-    print 'ratio = ',zeta / true_zeta
-    print 'diff = ',zeta - true_zeta
+    print 'zeta = ',zeta.flatten()
+    print 'true_zeta = ',true_zeta.flatten()
+    print 'ratio = ',(zeta / true_zeta).flatten()
+    print 'diff = ',(zeta - true_zeta).flatten()
     print 'max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))
     # The simple calculation (i.e. ddd/rrr-1, rather than (ddd-3ddr+3drr-rrr)/rrr as above) is only 
     # slightly less accurate in this case.  Probably because the mask is simple (a box), so
     # the difference is relatively minor.  The error is slightly higher in this case, but testing
     # that it is everywhere < 0.1 is still appropriate.
-    assert numpy.max(numpy.abs(zeta - true_zeta)/true_zeta) < 0.1
+    assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)) < 0.1
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta)), 
+                                      numpy.log(numpy.abs(true_zeta)), decimal=1)
 
     # Check that we get the same result using the corr3 executable:
     if __name__ == '__main__':
@@ -1121,11 +1182,11 @@ def test_3d():
         p = subprocess.Popen( ["corr3","nnn_3d.params"] )
         p.communicate()
         corr3_output = numpy.loadtxt(os.path.join('output','nnn_3d.out'))
-        print 'zeta = ',zeta
-        print 'from corr3 output = ',corr3_output[:,6]
-        print 'ratio = ',corr3_output[:,6]/zeta.flatten()
-        print 'diff = ',corr3_output[:,6]-zeta.flatten()
-        numpy.testing.assert_almost_equal(corr3_output[:,6]/zeta.flatten(), 1., decimal=3)
+        print 'zeta = ',zeta.flatten()
+        print 'from corr3 output = ',corr3_output[:,11]
+        print 'ratio = ',corr3_output[:,11]/zeta.flatten()
+        print 'diff = ',corr3_output[:,11]-zeta.flatten()
+        numpy.testing.assert_almost_equal(corr3_output[:,11]/zeta.flatten(), 1., decimal=3)
 
 
 def test_list():
@@ -1237,30 +1298,30 @@ def test_list():
     p.communicate()
     corr3_output = numpy.loadtxt(os.path.join('output','nnn_list1.out'))
     print 'zeta = ',zeta
-    print 'from corr3 output = ',corr3_output[:,6]
-    print 'ratio = ',corr3_output[:,6]/zeta.flatten()
-    print 'diff = ',corr3_output[:,6]-zeta.flatten()
-    numpy.testing.assert_almost_equal(corr3_output[:,6]/zeta.flatten(), 1., decimal=3)
+    print 'from corr3 output = ',corr3_output[:,11]
+    print 'ratio = ',corr3_output[:,11]/zeta.flatten()
+    print 'diff = ',corr3_output[:,11]-zeta.flatten()
+    numpy.testing.assert_almost_equal(corr3_output[:,11]/zeta.flatten(), 1., decimal=3)
 
     import subprocess
     p = subprocess.Popen( ["corr3","nnn_list2.params"] )
     p.communicate()
     corr3_output = numpy.loadtxt(os.path.join('output','nnn_list2.out'))
     print 'zeta = ',zeta
-    print 'from corr3 output = ',corr3_output[:,6]
-    print 'ratio = ',corr3_output[:,6]/zeta.flatten()
-    print 'diff = ',corr3_output[:,6]-zeta.flatten()
-    numpy.testing.assert_almost_equal(corr3_output[:,6]/zeta.flatten(), 1., decimal=1)
+    print 'from corr3 output = ',corr3_output[:,11]
+    print 'ratio = ',corr3_output[:,11]/zeta.flatten()
+    print 'diff = ',corr3_output[:,11]-zeta.flatten()
+    numpy.testing.assert_almost_equal(corr3_output[:,11]/zeta.flatten(), 1., decimal=1)
 
     import subprocess
     p = subprocess.Popen( ["corr3","nnn_list3.params"] )
     p.communicate()
     corr3_output = numpy.loadtxt(os.path.join('output','nnn_list3.out'))
     print 'zeta = ',zeta
-    print 'from corr3 output = ',corr3_output[:,6]
-    print 'ratio = ',corr3_output[:,6]/zeta.flatten()
-    print 'diff = ',corr3_output[:,6]-zeta.flatten()
-    numpy.testing.assert_almost_equal(corr3_output[:,6]/zeta.flatten(), 1., decimal=1)
+    print 'from corr3 output = ',corr3_output[:,11]
+    print 'ratio = ',corr3_output[:,11]/zeta.flatten()
+    print 'diff = ',corr3_output[:,11]-zeta.flatten()
+    numpy.testing.assert_almost_equal(corr3_output[:,11]/zeta.flatten(), 1., decimal=1)
 
 
 if __name__ == '__main__':

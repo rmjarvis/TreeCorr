@@ -32,7 +32,7 @@ public:
 
     BinnedCorr2(double minsep, double maxsep, int nbins, double binsize, double b,
                 double* xi0, double* xi1, double* xi2, double* xi3,
-                double* meanlogr, double* weight, double* npairs);
+                double* meanr, double* meanlogr, double* weight, double* npairs);
     BinnedCorr2(const BinnedCorr2& rhs, bool copy_data=true);
     ~BinnedCorr2();
 
@@ -83,6 +83,7 @@ protected:
     // The different correlation functions have different numbers of arrays for xi, 
     // so encapsulate that difference with a templated XiData class.
     XiData<DC1,DC2> _xi;
+    double* _meanr;
     double* _meanlogr;
     double* _weight;
     double* _npairs;
@@ -215,22 +216,22 @@ struct XiData<NData, NData>
 extern "C" {
 
     extern void* BuildNNCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                             double* meanlogr, double* npairs);
+                             double* meanr, double* meanlogr, double* npairs);
     extern void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                              double* xi,
-                             double* meanlogr, double* weight, double* npairs);
+                             double* meanr, double* meanlogr, double* weight, double* npairs);
     extern void* BuildNGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                              double* xi, double* xi_im,
-                             double* meanlogr, double* weight, double* npairs);
+                             double* meanr, double* meanlogr, double* weight, double* npairs);
     extern void* BuildKKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                              double* xi,
-                             double* meanlogr, double* weight, double* npairs);
+                             double* meanr, double* meanlogr, double* weight, double* npairs);
     extern void* BuildKGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                              double* xi, double* xi_im,
-                             double* meanlogr, double* weight, double* npairs);
+                             double* meanr, double* meanlogr, double* weight, double* npairs);
     extern void* BuildGGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                              double* xip, double* xip_im, double* xim, double* xim_im,
-                             double* meanlogr, double* weight, double* npairs);
+                             double* meanr, double* meanlogr, double* weight, double* npairs);
 
     extern void DestroyNNCorr(void* corr);
     extern void DestroyNKCorr(void* corr);

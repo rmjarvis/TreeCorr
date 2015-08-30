@@ -25,12 +25,12 @@ API changes:
   can be significant inaccuracies in the resulting correlation function.  So
   now, if bin_slop is unspecified, it is set to 0.1/bin_size if bin_size > 0.1,
   or just 1.0 if bin_size <= 0.1. (#15)
-- Changed the <R> column in the output to actually be <R> (it had actually been
-  exp(<logR>) and added <logR> column.  This means if you were accessing the
+- Changed the <R> column in the output to actually be <R> (it used to really
+  be exp(<logR>) and added <logR> column.  This means if you were accessing the
   output columsn by column number, you will need to change your code to add
   1, since most of the columns have been bumped 1 column to the right.
   (While you're at it, you should switch to accessing them by column name
-  instead...) (#28)
+  instead, maybe via the FITS I/O option...) (#28)
 - Removed option of giving m2_uform parameter in the config dict or kwargs
   when constructing a `GGCorrelation` object.  Now this needs to be specified
   when doing anything that uses it (e.g. `calculateMapSq`).

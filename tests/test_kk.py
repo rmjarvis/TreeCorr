@@ -68,7 +68,12 @@ def test_kk():
     kk = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=50., sep_units='arcmin',
                                 verbose=2)
     kk.process(cat)
-    r = numpy.exp(kk.meanlogr)
+
+    # log(<R>) != <logR>, but it should be close:
+    print 'meanlogr - log(meanr) = ',kk.meanlogr - numpy.log(kk.meanr)
+    numpy.testing.assert_almost_equal(kk.meanlogr, numpy.log(kk.meanr), decimal=3)
+
+    r = kk.meanr
     true_xi = numpy.pi * A**2 * (s/L)**2 * numpy.exp(-0.25*r**2/s**2)
     print 'kk.xi = ',kk.xi
     print 'true_xi = ',true_xi
@@ -96,7 +101,8 @@ def test_kk():
     import fitsio
     data = fitsio.read(out_file_name)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(kk.logr))
-    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(kk.meanlogr))
+    numpy.testing.assert_almost_equal(data['<R>'], kk.meanr)
+    numpy.testing.assert_almost_equal(data['<logR>'], kk.meanlogr)
     numpy.testing.assert_almost_equal(data['xi'], kk.xi)
     numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(kk.varxi))
     numpy.testing.assert_almost_equal(data['weight'], kk.weight)
@@ -106,6 +112,7 @@ def test_kk():
     kk2 = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin')
     kk2.read(out_file_name)
     numpy.testing.assert_almost_equal(kk2.logr, kk.logr)
+    numpy.testing.assert_almost_equal(kk2.meanr, kk.meanr)
     numpy.testing.assert_almost_equal(kk2.meanlogr, kk.meanlogr)
     numpy.testing.assert_almost_equal(kk2.xi, kk.xi)
     numpy.testing.assert_almost_equal(kk2.varxi, kk.varxi)

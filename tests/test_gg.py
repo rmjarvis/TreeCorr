@@ -49,7 +49,12 @@ def test_gg():
     gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
                                 verbose=2)
     gg.process(cat)
-    r = numpy.exp(gg.meanlogr)
+
+    # log(<R>) != <logR>, but it should be close:
+    print 'meanlogr - log(meanr) = ',gg.meanlogr - numpy.log(gg.meanr)
+    numpy.testing.assert_almost_equal(gg.meanlogr, numpy.log(gg.meanr), decimal=3)
+
+    r = gg.meanr
     temp = numpy.pi/16. * gamma0**2 * (r0/L)**2 * numpy.exp(-0.25*r**2/r0**2)
     true_xip = temp * (r**4 - 16.*r**2*r0**2 + 32.*r0**4)/r0**4
     true_xim = temp * r**4/r0**4
@@ -143,7 +148,8 @@ def test_gg():
     import fitsio
     data = fitsio.read(out_file_name)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(gg.logr))
-    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(gg.meanlogr))
+    numpy.testing.assert_almost_equal(data['<R>'], gg.meanr)
+    numpy.testing.assert_almost_equal(data['<logR>'], gg.meanlogr)
     numpy.testing.assert_almost_equal(data['xi+'], gg.xip)
     numpy.testing.assert_almost_equal(data['xi-'], gg.xim)
     numpy.testing.assert_almost_equal(data['xi+_im'], gg.xip_im)
@@ -156,6 +162,7 @@ def test_gg():
     gg2 = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin')
     gg2.read(out_file_name)
     numpy.testing.assert_almost_equal(gg2.logr, gg.logr)
+    numpy.testing.assert_almost_equal(gg2.meanr, gg.meanr)
     numpy.testing.assert_almost_equal(gg2.meanlogr, gg.meanlogr)
     numpy.testing.assert_almost_equal(gg2.xip, gg.xip)
     numpy.testing.assert_almost_equal(gg2.xim, gg.xim)

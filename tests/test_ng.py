@@ -41,7 +41,11 @@ def test_single():
                                 verbose=2)
     ng.process(lens_cat, source_cat)
 
-    r = numpy.exp(ng.meanlogr)
+    # log(<R>) != <logR>, but it should be close:
+    print 'meanlogr - log(meanr) = ',ng.meanlogr - numpy.log(ng.meanr)
+    numpy.testing.assert_almost_equal(ng.meanlogr, numpy.log(ng.meanr), decimal=3)
+
+    r = ng.meanr
     true_gt = gamma0 * numpy.exp(-0.5*r**2/r0**2)
 
     print 'ng.xi = ',ng.xi
@@ -94,7 +98,7 @@ def test_pairwise():
                                 verbose=2, pairwise=True)
     ng.process(lens_cat, source_cat)
 
-    r = numpy.exp(ng.meanlogr)
+    r = ng.meanr
     true_gt = gamma0 * numpy.exp(-0.5*r**2/r0**2)
 
     print 'ng.xi = ',ng.xi
@@ -284,7 +288,7 @@ def test_ng():
                                 verbose=2)
     ng.process(lens_cat, source_cat)
 
-    r = numpy.exp(ng.meanlogr)
+    r = ng.meanr
     true_gt = gamma0 * numpy.exp(-0.5*r**2/r0**2)
 
     print 'ng.xi = ',ng.xi
@@ -341,7 +345,8 @@ def test_ng():
     import fitsio
     data = fitsio.read(out_file_name1)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ng.logr))
-    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(ng.meanlogr))
+    numpy.testing.assert_almost_equal(data['<R>'], ng.meanr)
+    numpy.testing.assert_almost_equal(data['<logR>'], ng.meanlogr)
     numpy.testing.assert_almost_equal(data['<gamT>'], ng.xi)
     numpy.testing.assert_almost_equal(data['<gamX>'], ng.xi_im)
     numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(ng.varxi))
@@ -352,7 +357,8 @@ def test_ng():
     ng.write(out_file_name2, rg)
     data = fitsio.read(out_file_name2)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ng.logr))
-    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(ng.meanlogr))
+    numpy.testing.assert_almost_equal(data['<R>'], ng.meanr)
+    numpy.testing.assert_almost_equal(data['<logR>'], ng.meanlogr)
     numpy.testing.assert_almost_equal(data['<gamT>'], xi)
     numpy.testing.assert_almost_equal(data['<gamX>'], xi_im)
     numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(varxi))
@@ -363,6 +369,7 @@ def test_ng():
     ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
     ng2.read(out_file_name1)
     numpy.testing.assert_almost_equal(ng2.logr, ng.logr)
+    numpy.testing.assert_almost_equal(ng2.meanr, ng.meanr)
     numpy.testing.assert_almost_equal(ng2.meanlogr, ng.meanlogr)
     numpy.testing.assert_almost_equal(ng2.xi, ng.xi)
     numpy.testing.assert_almost_equal(ng2.xi_im, ng.xi_im)
@@ -426,6 +433,8 @@ def test_pieces():
     varg = treecorr.calculateVarG(source_cats)
     pieces_ng.finalize(varg)
 
+    print 'max error in meanr = ',numpy.max(pieces_ng.meanr - full_ng.meanr),
+    print '    max meanr = ',numpy.max(full_ng.meanr)
     print 'max error in meanlogr = ',numpy.max(pieces_ng.meanlogr - full_ng.meanlogr),
     print '    max meanlogr = ',numpy.max(full_ng.meanlogr)
     print 'max error in npairs = ',numpy.max(pieces_ng.npairs - full_ng.npairs),
@@ -438,6 +447,7 @@ def test_pieces():
     print '    max xi_im = ',numpy.max(full_ng.xi_im)
     print 'max error in varxi = ',numpy.max(pieces_ng.varxi - full_ng.varxi),
     print '    max varxi = ',numpy.max(full_ng.varxi)
+    numpy.testing.assert_almost_equal(pieces_ng.meanr, full_ng.meanr, decimal=2)
     numpy.testing.assert_almost_equal(pieces_ng.meanlogr, full_ng.meanlogr, decimal=4)
     numpy.testing.assert_almost_equal(pieces_ng.npairs*1.e-5, full_ng.npairs*1.e-5, decimal=2)
     numpy.testing.assert_almost_equal(pieces_ng.weight*1.e-5, full_ng.weight*1.e-5, decimal=2)

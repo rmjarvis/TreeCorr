@@ -11,13 +11,13 @@ dec_units = deg
 verbose = 2
 
 min_sep = 10.
-max_sep = 25.
-nbins = 10
+max_sep = 20.
+nbins = 8
 min_u = 0.9
 max_u = 1.0
 nubins = 1
-min_v = -0.1
-max_v = 0.1
+min_v = -0.05
+max_v = 0.05
 nvbins = 1
 
 nnn_statistic = simple

@@ -352,6 +352,10 @@ def test_nn():
     dd.process(cat)
     print 'dd.npairs = ',dd.npairs
 
+    # log(<R>) != <logR>, but it should be close:
+    print 'meanlogr - log(meanr) = ',dd.meanlogr - numpy.log(dd.meanr)
+    numpy.testing.assert_almost_equal(dd.meanlogr, numpy.log(dd.meanr), decimal=3)
+
     nrand = 5 * ngal
     rx = (numpy.random.random_sample(nrand)-0.5) * L
     ry = (numpy.random.random_sample(nrand)-0.5) * L
@@ -366,7 +370,7 @@ def test_nn():
     dr.process(cat,rand)
     print 'dr.npairs = ',dr.npairs
 
-    r = numpy.exp(dd.meanlogr)
+    r = dd.meanr
     true_xi = 0.25/numpy.pi * (L/s)**2 * numpy.exp(-0.25*r**2/s**2) - 1.
 
     xi, varxi = dd.calculateXi(rr,dr)
@@ -379,6 +383,8 @@ def test_nn():
     # merely a matter of the finite field and the integrals going to infinity.  (Sort of, since
     # we still have L in there.)
     assert max(abs(xi - true_xi)/true_xi) < 0.1
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi)), 
+                                      numpy.log(numpy.abs(true_xi)), decimal=1)
 
     simple_xi, simple_varxi = dd.calculateXi(rr)
     print 'simple xi = ',simple_xi
@@ -409,14 +415,16 @@ def test_nn():
     import fitsio
     data = fitsio.read(out_file_name1)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(dd.logr))
-    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(dd.meanlogr))
+    numpy.testing.assert_almost_equal(data['<R>'], dd.meanr)
+    numpy.testing.assert_almost_equal(data['<logR>'], dd.meanlogr)
     numpy.testing.assert_almost_equal(data['npairs'], dd.npairs)
 
     out_file_name2 = os.path.join('output','nn_out2.fits')
     dd.write(out_file_name2, rr)
     data = fitsio.read(out_file_name2)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(dd.logr))
-    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(dd.meanlogr))
+    numpy.testing.assert_almost_equal(data['<R>'], dd.meanr)
+    numpy.testing.assert_almost_equal(data['<logR>'], dd.meanlogr)
     numpy.testing.assert_almost_equal(data['xi'], simple_xi)
     numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(simple_varxi))
     numpy.testing.assert_almost_equal(data['DD'], dd.npairs)
@@ -426,7 +434,8 @@ def test_nn():
     dd.write(out_file_name3, rr, dr)
     data = fitsio.read(out_file_name3)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(dd.logr))
-    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(dd.meanlogr))
+    numpy.testing.assert_almost_equal(data['<R>'], dd.meanr)
+    numpy.testing.assert_almost_equal(data['<logR>'], dd.meanlogr)
     numpy.testing.assert_almost_equal(data['xi'], xi)
     numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(varxi))
     numpy.testing.assert_almost_equal(data['DD'], dd.npairs)
@@ -438,11 +447,13 @@ def test_nn():
     dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
     dd2.read(out_file_name1)
     numpy.testing.assert_almost_equal(dd2.logr, dd.logr)
+    numpy.testing.assert_almost_equal(dd2.meanr, dd.meanr)
     numpy.testing.assert_almost_equal(dd2.meanlogr, dd.meanlogr)
     numpy.testing.assert_almost_equal(dd2.npairs, dd.npairs)
 
     dd2.read(out_file_name3)
     numpy.testing.assert_almost_equal(dd2.logr, dd.logr)
+    numpy.testing.assert_almost_equal(dd2.meanr, dd.meanr)
     numpy.testing.assert_almost_equal(dd2.meanlogr, dd.meanlogr)
     numpy.testing.assert_almost_equal(dd2.npairs, dd.npairs)
 
@@ -499,7 +510,7 @@ def test_3d():
     dr.process(cat,rand)
     print 'dr.npairs = ',dr.npairs
 
-    r = numpy.exp(dd.meanlogr)
+    r = dd.meanr
     true_xi = 1./(8.*numpy.pi**1.5) * (L/s)**3 * numpy.exp(-0.25*r**2/s**2) - 1.
 
     xi, varxi = dd.calculateXi(rr,dr)
@@ -509,11 +520,15 @@ def test_3d():
     print 'diff = ',xi - true_xi
     print 'max rel diff = ',max(abs((xi - true_xi)/true_xi))
     assert max(abs(xi - true_xi)/true_xi) < 0.1
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi)), 
+                                      numpy.log(numpy.abs(true_xi)), decimal=1)
 
     simple_xi, varxi = dd.calculateXi(rr)
     print 'simple xi = ',simple_xi
     print 'max rel diff = ',max(abs((simple_xi - true_xi)/true_xi))
     assert max(abs(simple_xi - true_xi)/true_xi) < 0.1
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(simple_xi)), 
+                                      numpy.log(numpy.abs(true_xi)), decimal=1)
 
     # Check that we get the same result using the corr2 executable:
     if __name__ == '__main__':

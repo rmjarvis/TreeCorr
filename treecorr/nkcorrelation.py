@@ -52,6 +52,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
     It holds the following attributes:
 
         :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
+        :meanr:     The (weighted) mean value of r for the pairs in each bin.
+                    If there are no pairs in a bin, then exp(logr) will be used instead.
         :meanlogr:  The (weighted) mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
         :xi:        The correlation function, xi(r).
@@ -86,6 +88,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         self.xi = numpy.zeros(self.nbins, dtype=float)
         self.varxi = numpy.zeros(self.nbins, dtype=float)
+        self.meanr = numpy.zeros(self.nbins, dtype=float)
         self.meanlogr = numpy.zeros(self.nbins, dtype=float)
         self.weight = numpy.zeros(self.nbins, dtype=float)
         self.npairs = numpy.zeros(self.nbins, dtype=float)
@@ -94,11 +97,12 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
     def _build_corr(self):
         xi = self.xi.ctypes.data_as(cdouble_ptr)
+        meanr = self.meanr.ctypes.data_as(cdouble_ptr)
         meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
         weight = self.weight.ctypes.data_as(cdouble_ptr)
         npairs = self.npairs.ctypes.data_as(cdouble_ptr)
         self.corr = _treecorr.BuildNKCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
-                                          xi,meanlogr,weight,npairs);
+                                          xi,meanr,meanlogr,weight,npairs);
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -216,13 +220,16 @@ class NKCorrelation(treecorr.BinnedCorr2):
         mask2 = self.npairs == 0
 
         self.xi[mask1] /= self.weight[mask1]
+        self.meanr[mask1] /= self.weight[mask1]
         self.meanlogr[mask1] /= self.weight[mask1]
         self.varxi[mask1] = vark / self.npairs[mask1]
 
-        # Update the units of meanlogr
+        # Update the units of meanr, meanlogr
+        self.meanr[mask1] /= self.sep_units
         self.meanlogr[mask1] -= self.log_sep_units
 
-        # Use meanlogr when available, but set to nominal when no pairs in bin.
+        # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
+        self.meanr[mask2] = numpy.exp(self.logr[mask2])
         self.meanlogr[mask2] = self.logr[mask2]
         self.varxi[mask2] = 0.
 
@@ -231,6 +238,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         """Clear the data vectors
         """
         self.xi[:] = 0
+        self.meanr[:] = 0
         self.meanlogr[:] = 0
         self.weight[:] = 0
         self.npairs[:] = 0
@@ -250,6 +258,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
             raise ValueError("NKCorrelation to be added is not compatible with this one.")
 
         self.xi[:] += other.xi[:]
+        self.meanr[:] += other.meanr[:]
         self.meanlogr[:] += other.meanlogr[:]
         self.weight[:] += other.weight[:]
         self.npairs[:] += other.npairs[:]
@@ -320,8 +329,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         treecorr.util.gen_write(
             file_name,
-            ['R_nom','<R>','<logR>','<kappa>','sigma','weight','npairs','meanlogr'],
-            [ numpy.exp(self.logr), numpy.exp(self.meanlogr), self.meanlogr,
+            ['R_nom','<R>','<logR>','<kappa>','sigma','weight','npairs'],
+            [ numpy.exp(self.logr), self.meanr, self.meanlogr,
               xi, numpy.sqrt(varxi), self.weight, self.npairs ],
             prec=prec, file_type=file_type, logger=self.logger)
 
@@ -344,6 +353,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         data = treecorr.util.gen_read(file_name, file_type=file_type)
         self.logr = numpy.log(data['R_nom'])
+        self.meanr = data['<R>']
         self.meanlogr = data['<logR>']
         self.xi = data['<kappa>']
         self.varxi = data['sigma']**2

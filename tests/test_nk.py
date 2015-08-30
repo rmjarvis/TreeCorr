@@ -37,7 +37,7 @@ def test_single():
                                 verbose=2)
     nk.process(lens_cat, source_cat)
 
-    r = numpy.exp(nk.meanlogr)
+    r = nk.meanr
     true_k = kappa0 * numpy.exp(-0.5*r**2/r0**2) * (1.-0.5*r**2/r0**2)
 
     print 'nk.xi = ',nk.xi
@@ -88,7 +88,11 @@ def test_nk():
                                 verbose=2)
     nk.process(lens_cat, source_cat)
 
-    r = numpy.exp(nk.meanlogr)
+    # log(<R>) != <logR>, but it should be close:
+    print 'meanlogr - log(meanr) = ',nk.meanlogr - numpy.log(nk.meanr)
+    numpy.testing.assert_almost_equal(nk.meanlogr, numpy.log(nk.meanr), decimal=3)
+
+    r = nk.meanr
     true_k = kappa0 * numpy.exp(-0.5*r**2/r0**2) * (1.-0.5*r**2/r0**2)
 
     print 'nk.xi = ',nk.xi
@@ -138,7 +142,8 @@ def test_nk():
     import fitsio
     data = fitsio.read(out_file_name1)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(nk.logr))
-    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(nk.meanlogr))
+    numpy.testing.assert_almost_equal(data['<R>'], nk.meanr)
+    numpy.testing.assert_almost_equal(data['<logR>'], nk.meanlogr)
     numpy.testing.assert_almost_equal(data['<kappa>'], nk.xi)
     numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(nk.varxi))
     numpy.testing.assert_almost_equal(data['weight'], nk.weight)
@@ -148,7 +153,8 @@ def test_nk():
     nk.write(out_file_name2, rk)
     data = fitsio.read(out_file_name2)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(nk.logr))
-    numpy.testing.assert_almost_equal(data['<R>'], numpy.exp(nk.meanlogr))
+    numpy.testing.assert_almost_equal(data['<R>'], nk.meanr)
+    numpy.testing.assert_almost_equal(data['<logR>'], nk.meanlogr)
     numpy.testing.assert_almost_equal(data['<kappa>'], xi)
     numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(varxi))
     numpy.testing.assert_almost_equal(data['weight'], nk.weight)
@@ -158,6 +164,7 @@ def test_nk():
     nk2 = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
     nk2.read(out_file_name1)
     numpy.testing.assert_almost_equal(nk2.logr, nk.logr)
+    numpy.testing.assert_almost_equal(nk2.meanr, nk.meanr)
     numpy.testing.assert_almost_equal(nk2.meanlogr, nk.meanlogr)
     numpy.testing.assert_almost_equal(nk2.xi, nk.xi)
     numpy.testing.assert_almost_equal(nk2.varxi, nk.varxi)

@@ -55,6 +55,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
     It holds the following attributes:
 
         :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
+        :meanr:     The (weighted) mean value of r for the pairs in each bin.
+                    If there are no pairs in a bin, then exp(logr) will be used instead.
         :meanlogr:  The (weighted) mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
         :xip:       The correlation function, xi_plus(r).
@@ -95,6 +97,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.xip_im = numpy.zeros(self.nbins, dtype=float)
         self.xim_im = numpy.zeros(self.nbins, dtype=float)
         self.varxi = numpy.zeros(self.nbins, dtype=float)
+        self.meanr = numpy.zeros(self.nbins, dtype=float)
         self.meanlogr = numpy.zeros(self.nbins, dtype=float)
         self.weight = numpy.zeros(self.nbins, dtype=float)
         self.npairs = numpy.zeros(self.nbins, dtype=float)
@@ -106,11 +109,12 @@ class GGCorrelation(treecorr.BinnedCorr2):
         xipi = self.xip_im.ctypes.data_as(cdouble_ptr)
         xim = self.xim.ctypes.data_as(cdouble_ptr)
         ximi = self.xim_im.ctypes.data_as(cdouble_ptr)
+        meanr = self.meanr.ctypes.data_as(cdouble_ptr)
         meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
         weight = self.weight.ctypes.data_as(cdouble_ptr)
         npairs = self.npairs.ctypes.data_as(cdouble_ptr)
         self.corr = _treecorr.BuildGGCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
-                                          xip,xipi,xim,ximi,meanlogr,weight,npairs);
+                                          xip,xipi,xim,ximi,meanr,meanlogr,weight,npairs);
  
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -258,13 +262,16 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.xim[mask1] /= self.weight[mask1]
         self.xip_im[mask1] /= self.weight[mask1]
         self.xim_im[mask1] /= self.weight[mask1]
+        self.meanr[mask1] /= self.weight[mask1]
         self.meanlogr[mask1] /= self.weight[mask1]
         self.varxi[mask1] = varg1 * varg2 / self.npairs[mask1]
 
-        # Update the units of meanlogr
+        # Update the units of meanr, meanlogr
+        self.meanr[mask1] /= self.sep_units
         self.meanlogr[mask1] -= self.log_sep_units
 
-        # Use meanlogr when available, but set to nominal when no pairs in bin.
+        # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
+        self.meanr[mask2] = numpy.exp(self.logr[mask2])
         self.meanlogr[mask2] = self.logr[mask2]
         self.varxi[mask2] = 0.
 
@@ -276,6 +283,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.xim[:] = 0
         self.xip_im[:] = 0
         self.xim_im[:] = 0
+        self.meanr[:] = 0
         self.meanlogr[:] = 0
         self.weight[:] = 0
         self.npairs[:] = 0
@@ -299,6 +307,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.xim[:] += other.xim[:]
         self.xip_im[:] += other.xip_im[:]
         self.xim_im[:] += other.xim_im[:]
+        self.meanr[:] += other.meanr[:]
         self.meanlogr[:] += other.meanlogr[:]
         self.weight[:] += other.weight[:]
         self.npairs[:] += other.npairs[:]
@@ -355,7 +364,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         treecorr.util.gen_write(
             file_name,
             ['R_nom','<R>','<logR>','xi+','xi-','xi+_im','xi-_im','sigma_xi','weight','npairs'],
-            [ numpy.exp(self.logr), numpy.exp(self.meanlogr), self.meanlogr,
+            [ numpy.exp(self.logr), self.meanr, self.meanlogr,
               self.xip, self.xim, self.xip_im, self.xim_im, numpy.sqrt(self.varxi),
               self.weight, self.npairs ],
             prec=prec, file_type=file_type, logger=self.logger)
@@ -379,6 +388,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         data = treecorr.util.gen_read(file_name, file_type=file_type)
         self.logr = numpy.log(data['R_nom'])
+        self.meanr = data['<R>']
         self.meanlogr = data['<logR>']
         self.xip = data['xi+']
         self.xim = data['xi-']
@@ -437,8 +447,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         # Make s a matrix, so we can eventually do the integral by doing a matrix product.
         r = numpy.exp(self.logr)
-        meanr = numpy.exp(self.meanlogr) # Use the actual mean r for each bin
-        s = numpy.outer(1./r, meanr)  
+        s = numpy.outer(1./r, self.meanr)
         ssq = s*s
         if m2_uform == 'Crittenden':
             exp_factor = numpy.exp(-ssq/4.)
@@ -506,8 +515,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
                     (gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e)  if `eb == True`
         """
         r = numpy.exp(self.logr)
-        meanr = numpy.exp(self.meanlogr) # Use the actual mean r for each bin
-        s = numpy.outer(1./r, meanr)  
+        s = numpy.outer(1./r, self.meanr)  
         ssq = s*s
         Sp = numpy.zeros_like(s)
         sa = s[s<2]

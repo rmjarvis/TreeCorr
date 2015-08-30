@@ -35,7 +35,9 @@ public:
                 double minv, double maxv, int nvbins, double vbinsize, double bv,
                 double* zeta0, double* zeta1, double* zeta2, double* zeta3,
                 double* zeta4, double* zeta5, double* zeta6, double* zeta7,
-                double* meanlogr, double* meanu, double* meanv, double* weight, double* ntri);
+                double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
+                double* meand3, double* meanlogd3, double* meanu, double* meanv,
+                double* weight, double* ntri);
     BinnedCorr3(const BinnedCorr3& rhs, bool copy_data=true);
     ~BinnedCorr3();
 
@@ -112,7 +114,12 @@ protected:
     // The different correlation functions have different numbers of arrays for zeta, 
     // so encapsulate that difference with a templated ZetaData class.
     ZetaData<DC1,DC2,DC3> _zeta;
-    double* _meanlogr;
+    double* _meand1;
+    double* _meanlogd1;
+    double* _meand2;
+    double* _meanlogd2;
+    double* _meand3;
+    double* _meanlogd3;
     double* _meanu;
     double* _meanv;
     double* _weight;
@@ -330,33 +337,45 @@ extern "C" {
     extern void* BuildNNNCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                               double minu, double maxu, int nubins, double ubinsize, double bu,
                               double minv, double maxv, int nvbins, double vbinsize, double bv,
-                              double* meanlogr, double* meanu, double* meanv, double* ntri);
+                              double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
+                              double* meand3, double* meanlogd3, double* meanu, double* meanv,
+                              double* ntri);
 #if 0
     extern void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                               double minu, double maxu, int nubins, double ubinsize, double bu,
                               double minv, double maxv, int nvbins, double vbinsize, double bv,
                               double* zeta,
-                              double* meanlogr, double* meanu, double* meanv, double* ntri);
+                              double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
+                              double* meand3, double* meanlogd3, double* meanu, double* meanv,
+                              double* weight, double* ntri);
     extern void* BuildNGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                               double minu, double maxu, int nubins, double ubinsize, double bu,
                               double minv, double maxv, int nvbins, double vbinsize, double bv,
                               double* zeta, double* zeta_im,
-                              double* meanlogr, double* meanu, double* meanv, double* ntri);
+                              double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
+                              double* meand3, double* meanlogd3, double* meanu, double* meanv,
+                              double* weight, double* ntri);
     extern void* BuildKKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                               double minu, double maxu, int nubins, double ubinsize, double bu,
                               double minv, double maxv, int nvbins, double vbinsize, double bv,
                               double* zeta,
-                              double* meanlogr, double* meanu, double* meanv, double* ntri);
+                              double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
+                              double* meand3, double* meanlogd3, double* meanu, double* meanv,
+                              double* weight, double* ntri);
     extern void* BuildKGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                               double minu, double maxu, int nubins, double ubinsize, double bu,
                               double minv, double maxv, int nvbins, double vbinsize, double bv,
                               double* zeta, double* zeta_im,
-                              double* meanlogr, double* meanu, double* meanv, double* ntri);
+                              double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
+                              double* meand3, double* meanlogd3, double* meanu, double* meanv,
+                              double* weight, double* ntri);
     extern void* BuildGGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                               double minu, double maxu, int nubins, double ubinsize, double bu,
                               double minv, double maxv, int nvbins, double vbinsize, double bv,
                               double* zetap, double* zetap_im, double* zetam, double* zetam_im,
-                              double* meanlogr, double* meanu, double* meanv, double* ntri);
+                              double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
+                              double* meand3, double* meanlogd3, double* meanu, double* meanv,
+                              double* weight, double* ntri);
 #endif
 
     extern void DestroyNNNCorr(void* corr);

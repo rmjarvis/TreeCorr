@@ -56,15 +56,17 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         :logr:      The nominal center of the bin in log(r).
         :u:         The nominal center of the bin in u.
         :v:         The nominal center of the bin in v.
-        :meanlogr:  The mean value of log(r) for the triangle in each bin.
-                    If there are no triangles in a bin, then logr will be used instead.
-        :meanu:     The mean value of u for the triangle in each bin.
-                    If there are no tri in a bin, then u will be used instead.
-        :meanv:     The mean value of v for the triangle in each bin.
-                    If there are no tri in a bin, then v will be used instead.
-        :ntri:      The number of tri going into each bin.
-        :tot:       The total number of tri processed, which is used to normalize
-                    the randoms if they have a different number of tri.
+        :meand1:    The (weighted) mean value of d1 for the triangles in each bin.
+        :meanlogd1: The mean value of log(d1) for the triangles in each bin.
+        :meand2:    The (weighted) mean value of d2 (aka r) for the triangles in each bin.
+        :meanlogd2: The mean value of log(d2) for the triangles in each bin.
+        :meand2:    The (weighted) mean value of d3 for the triangles in each bin.
+        :meanlogd2: The mean value of log(d3) for the triangles in each bin.
+        :meanu:     The mean value of u for the triangles in each bin.
+        :meanv:     The mean value of v for the triangles in each bin.
+        :ntri:      The number of triangles going into each bin.
+        :tot:       The total number of triangles processed, which is used to normalize
+                    the randoms if they have a different number of triangles.
 
     If sep_units are given (either in the config dict or as a named kwarg) then logr and meanlogr
     both take r to be in these units.  i.e. exp(logr) will have R in units of sep_units.
@@ -98,7 +100,12 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
 
         shape = (self.nbins, self.nubins, self.nvbins)
-        self.meanlogr = numpy.zeros(shape, dtype=float)
+        self.meand1 = numpy.zeros(shape, dtype=float)
+        self.meanlogd1 = numpy.zeros(shape, dtype=float)
+        self.meand2 = numpy.zeros(shape, dtype=float)
+        self.meanlogd2 = numpy.zeros(shape, dtype=float)
+        self.meand3 = numpy.zeros(shape, dtype=float)
+        self.meanlogd3 = numpy.zeros(shape, dtype=float)
         self.meanu = numpy.zeros(shape, dtype=float)
         self.meanv = numpy.zeros(shape, dtype=float)
         self.ntri = numpy.zeros(shape, dtype=float)
@@ -107,7 +114,12 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.logger.debug('Finished building NNNCorr')
 
     def _build_corr(self):
-        meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
+        meand1 = self.meand1.ctypes.data_as(cdouble_ptr)
+        meanlogd1 = self.meanlogd1.ctypes.data_as(cdouble_ptr)
+        meand2 = self.meand2.ctypes.data_as(cdouble_ptr)
+        meanlogd2 = self.meanlogd2.ctypes.data_as(cdouble_ptr)
+        meand3 = self.meand3.ctypes.data_as(cdouble_ptr)
+        meanlogd3 = self.meanlogd3.ctypes.data_as(cdouble_ptr)
         meanu = self.meanu.ctypes.data_as(cdouble_ptr)
         meanv = self.meanv.ctypes.data_as(cdouble_ptr)
         ntri = self.ntri.ctypes.data_as(cdouble_ptr)
@@ -115,7 +127,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                 self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                 self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                 self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
-                meanlogr, meanu, meanv, ntri);
+                meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, ntri);
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -148,7 +160,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         This accumulates the auto-correlation for the given catalog.  After
         calling this function as often as desired, the finalize() command will
-        finish the calculation of meanlogr, meanu, meanv.
+        finish the calculation of meand1, meanlogd1, etc.
 
         :param cat:     The catalog to process
         :param perp:    Whether to use the perpendicular distance rather than the 3d separation
@@ -181,7 +193,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         This accumulates the cross-correlation for the given catalogs.  After
         calling this function as often as desired, the finalize() command will
-        finish the calculation of meanlogr, meanu, meanv.
+        finish the calculation of meand1, meanlogd1, etc.
 
         :param cat1:    The first catalog to process
         :param cat2:    The second catalog to process
@@ -196,7 +208,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         This accumulates the cross-correlation for the given catalogs.  After
         calling this function as often as desired, the finalize() command will
-        finish the calculation of meanlogr, meanu, meanv.
+        finish the calculation of meand1, meanlogd1, etc.
 
         :param cat1:    The first catalog to process
         :param cat2:    The second catalog to process
@@ -230,7 +242,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
 
     def finalize(self):
-        """Finalize the calculations of meanlogr, meanu, meanv.
+        """Finalize the calculation of meand1, meanlogd1, etc.
 
         The process_auto and process_cross commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
@@ -239,23 +251,43 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         mask1 = self.ntri != 0
         mask2 = self.ntri == 0
 
-        self.meanlogr[mask1] /= self.ntri[mask1]
+        self.meand1[mask1] /= self.ntri[mask1]
+        self.meanlogd1[mask1] /= self.ntri[mask1]
+        self.meand2[mask1] /= self.ntri[mask1]
+        self.meanlogd2[mask1] /= self.ntri[mask1]
+        self.meand3[mask1] /= self.ntri[mask1]
+        self.meanlogd3[mask1] /= self.ntri[mask1]
         self.meanu[mask1] /= self.ntri[mask1]
         self.meanv[mask1] /= self.ntri[mask1]
 
-        # Update the units of meanlogr
-        self.meanlogr[mask1] -= self.log_sep_units
+        # Update the units
+        self.meand1[mask1] /= self.sep_units
+        self.meanlogd1[mask1] -= self.log_sep_units
+        self.meand2[mask1] /= self.sep_units
+        self.meanlogd2[mask1] -= self.log_sep_units
+        self.meand3[mask1] /= self.sep_units
+        self.meanlogd3[mask1] -= self.log_sep_units
 
         # Use meanlogr when available, but set to nominal when no triangles in bin.
-        self.meanlogr[mask2] = self.logr[mask2]
-        self.meanu[mask2] = self.logr[mask2]
-        self.meanv[mask2] = self.logr[mask2]
+        self.meand2[mask2] = numpy.exp(self.logr[mask2])
+        self.meanlogd2[mask2] = self.logr[mask2]
+        self.meanu[mask2] = self.u[mask2]
+        self.meanv[mask2] = self.v[mask2]
+        self.meand3[mask2] = self.u[mask2] * self.meand2[mask2]
+        self.meanlogd3[mask2] = numpy.log(self.meand3[mask2])
+        self.meand1[mask2] = self.v[mask2] * self.meand3[mask2] + self.meand2[mask2]
+        self.meanlogd1[mask2] = numpy.log(self.meand1[mask2])
 
 
     def clear(self):
         """Clear the data vectors
         """
-        self.meanlogr[:,:,:] = 0.
+        self.meand1[:,:,:] = 0.
+        self.meanlogd1[:,:,:] = 0.
+        self.meand2[:,:,:] = 0.
+        self.meanlogd2[:,:,:] = 0.
+        self.meand3[:,:,:] = 0.
+        self.meanlogd3[:,:,:] = 0.
         self.meanu[:,:,:] = 0.
         self.meanv[:,:,:] = 0.
         self.ntri[:,:,:] = 0.
@@ -281,7 +313,12 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                 self.max_v == other.max_v):
             raise ValueError("NNNCorrelation to be added is not compatible with this one.")
 
-        self.meanlogr[:] += other.meanlogr[:]
+        self.meand1[:] += other.meand1[:]
+        self.meanlogd1[:] += other.meanlogd1[:]
+        self.meand2[:] += other.meand2[:]
+        self.meanlogd2[:] += other.meanlogd2[:]
+        self.meand3[:] += other.meand3[:]
+        self.meanlogd3[:] += other.meanlogd3[:]
         self.meanu[:] += other.meanu[:]
         self.meanv[:] += other.meanv[:]
         self.ntri[:] += other.ntri[:]
@@ -460,9 +497,11 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         """
         self.logger.info('Writing NNN correlations to %s',file_name)
         
-        col_names = [ 'R_nom', 'u_nom', 'v_nom', '<R>', '<logR>', '<u>', '<v>' ]
+        col_names = [ 'R_nom', 'u_nom', 'v_nom', '<d1>', '<logd1>', '<d2>', '<logd2>',
+                      '<d3>', '<logd3>', '<u>', '<v>' ]
         columns = [ numpy.exp(self.logr), self.u, self.v,
-                    numpy.exp(self.meanlogr), self.meanlogr, self.meanu, self.meanv ]
+                    self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
+                    self.meand3, self.meanlogd3, self.meanu, self.meanv ]
         if rrr is None:
             col_names += [ 'ntri' ]
             columns += [ self.ntri ]
@@ -521,7 +560,12 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.logr = numpy.log(data['R_nom']).reshape(s)
         self.u = data['u_nom'].reshape(s)
         self.v = data['v_nom'].reshape(s)
-        self.meanlogr = data['<logR>'].reshape(s)
+        self.meand1 = data['<d1>'].reshape(s)
+        self.meanlogd1 = data['<logd1>'].reshape(s)
+        self.meand2 = data['<d2>'].reshape(s)
+        self.meanlogd2 = data['<logd2>'].reshape(s)
+        self.meand3 = data['<d3>'].reshape(s)
+        self.meanlogd3 = data['<logd3>'].reshape(s)
         self.meanu = data['<u>'].reshape(s)
         self.meanv = data['<v>'].reshape(s)
         if 'ntri' in data.dtype.names:

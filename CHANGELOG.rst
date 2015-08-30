@@ -46,7 +46,7 @@ New features:
 
 - Added three point functions.  So far just NNN, KKK, and GGG. (#3, #4, #33)
 - Added ability to use the perpendicular component of the distance as the
-  separation metric. (#17)
+  separation metric with `process(cat, metric='Rperp')` (#17)
 - Added the ability for the Correlation classes to write FITS binary tables.
   If an output file name has an extension that starts with '.fit', then it will
   write a FITS binary table, rather than an ASCII file.  Or you can specify the

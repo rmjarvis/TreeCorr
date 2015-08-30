@@ -133,7 +133,7 @@ struct ZetaData // This works for NNK, NKK, KKK
         zeta(zeta0) {}
 
     void new_data(int n) { zeta = new double[n]; }
-    void delete_data(int n) { delete [] zeta; zeta = 0; }
+    void delete_data() { delete [] zeta; zeta = 0; }
     void copy(const ZetaData<DC1,DC2,DC3>& rhs, int n) 
     { for (int i=0; i<n; ++i) zeta[i] = rhs.zeta[i]; }
     void add(const ZetaData<DC1,DC2,DC3>& rhs, int n) 
@@ -161,7 +161,7 @@ struct ZetaData<DC1, DC2, GData> // This works for NNG, NKG, KKG
         zeta = new double[n]; 
         zeta_im = new double[n]; 
     }
-    void delete_data(int n) 
+    void delete_data() 
     {
         delete [] zeta; zeta = 0; 
         delete [] zeta_im; zeta_im = 0; 
@@ -201,7 +201,7 @@ struct ZetaData<DC1, GData, GData> // This works for NGG, KGG
         zetam = new double[n]; 
         zetam_im = new double[n]; 
     }
-    void delete_data(int n) 
+    void delete_data() 
     {
         delete [] zetap; zetap = 0; 
         delete [] zetap_im; zetap_im = 0; 
@@ -258,7 +258,7 @@ struct ZetaData<GData, GData, GData>
         zeta3 = new double[n]; 
         zeta3_im = new double[n]; 
     }
-    void delete_data(int n) 
+    void delete_data() 
     {
         delete [] zeta0; zeta0 = 0; 
         delete [] zeta0_im; zeta0_im = 0; 
@@ -323,7 +323,7 @@ struct ZetaData<NData, NData, NData>
 {
     ZetaData(double* , double* , double* , double*, double*, double*, double*, double * ) {}
     void new_data(int n) {}
-    void delete_data(int n) {}
+    void delete_data() {}
     void copy(const ZetaData<NData,NData,NData>& rhs, int n) {}
     void add(const ZetaData<NData,NData,NData>& rhs, int n) {}
     void clear(int n) {}
@@ -340,84 +340,85 @@ extern "C" {
                               double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
                               double* meand3, double* meanlogd3, double* meanu, double* meanv,
                               double* ntri);
+    extern void* BuildKKKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                              double minu, double maxu, int nubins, double ubinsize, double bu,
+                              double minv, double maxv, int nvbins, double vbinsize, double bv,
+                              double* zeta,
+                              double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
+                              double* meand3, double* meanlogd3, double* meanu, double* meanv,
+                              double* weight, double* ntri);
 #if 0
-    extern void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+    extern void* BuildGGGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                              double minu, double maxu, int nubins, double ubinsize, double bu,
+                              double minv, double maxv, int nvbins, double vbinsize, double bv,
+                              double* gam0, double* gam0_im, double* gam1, double* gam1_im,
+                              double* gam2, double* gam2_im, double* gam2, double* gam2_im,
+                              double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
+                              double* meand3, double* meanlogd3, double* meanu, double* meanv,
+                              double* weight, double* ntri);
+    extern void* BuildNNKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                               double minu, double maxu, int nubins, double ubinsize, double bu,
                               double minv, double maxv, int nvbins, double vbinsize, double bv,
                               double* zeta,
                               double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
                               double* meand3, double* meanlogd3, double* meanu, double* meanv,
                               double* weight, double* ntri);
-    extern void* BuildNGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+    extern void* BuildNNGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                               double minu, double maxu, int nubins, double ubinsize, double bu,
                               double minv, double maxv, int nvbins, double vbinsize, double bv,
                               double* zeta, double* zeta_im,
                               double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
                               double* meand3, double* meanlogd3, double* meanu, double* meanv,
                               double* weight, double* ntri);
-    extern void* BuildKKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                              double minu, double maxu, int nubins, double ubinsize, double bu,
-                              double minv, double maxv, int nvbins, double vbinsize, double bv,
-                              double* zeta,
-                              double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
-                              double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                              double* weight, double* ntri);
-    extern void* BuildKGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+    extern void* BuildKKGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                               double minu, double maxu, int nubins, double ubinsize, double bu,
                               double minv, double maxv, int nvbins, double vbinsize, double bv,
                               double* zeta, double* zeta_im,
-                              double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
-                              double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                              double* weight, double* ntri);
-    extern void* BuildGGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                              double minu, double maxu, int nubins, double ubinsize, double bu,
-                              double minv, double maxv, int nvbins, double vbinsize, double bv,
-                              double* zetap, double* zetap_im, double* zetam, double* zetam_im,
                               double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
                               double* meand3, double* meanlogd3, double* meanu, double* meanv,
                               double* weight, double* ntri);
 #endif
 
     extern void DestroyNNNCorr(void* corr);
+    extern void DestroyKKKCorr(void* corr);
 #if 0
-    extern void DestroyNKCorr(void* corr);
-    extern void DestroyNGCorr(void* corr);
-    extern void DestroyKKCorr(void* corr);
-    extern void DestroyKGCorr(void* corr);
-    extern void DestroyGGCorr(void* corr);
+    extern void DestroyGGGCorr(void* corr);
+    extern void DestroyNNKCorr(void* corr);
+    extern void DestroyNNGCorr(void* corr);
+    extern void DestroyKKGCorr(void* corr);
 #endif
 
     extern void ProcessAutoNNNFlat(void* corr, void* field, int dots);
     extern void ProcessAutoNNNSphere(void* corr, void* field, int dots);
     extern void ProcessAutoNNNPerp(void* corr, void* field, int dots);
+    extern void ProcessAutoKKKFlat(void* corr, void* field, int dots);
+    extern void ProcessAutoKKKSphere(void* corr, void* field, int dots);
+    extern void ProcessAutoKKKPerp(void* corr, void* field, int dots);
 #if 0
-    extern void ProcessAutoKKFlat(void* corr, void* field, int dots);
-    extern void ProcessAutoKKSphere(void* corr, void* field, int dots);
-    extern void ProcessAutoKKPerp(void* corr, void* field, int dots);
-    extern void ProcessAutoGGFlat(void* corr, void* field, int dots);
-    extern void ProcessAutoGGSphere(void* corr, void* field, int dots);
-    extern void ProcessAutoGGPerp(void* corr, void* field, int dots);
+    extern void ProcessAutoGGGFlat(void* corr, void* field, int dots);
+    extern void ProcessAutoGGGSphere(void* corr, void* field, int dots);
+    extern void ProcessAutoGGGPerp(void* corr, void* field, int dots);
 #endif
 
     extern void ProcessCrossNNNFlat(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossNNNSphere(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossNNNPerp(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossKKKFlat(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossKKKSphere(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossKKKPerp(void* corr, void* field1, void* field2, void* field3, int dots);
 #if 0
-    extern void ProcessCrossNKFlat(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossNKSphere(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossNKPerp(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossNGFlat(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossNGSphere(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossNGPerp(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossKKFlat(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossKKSphere(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossKKPerp(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossKGFlat(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossKGSphere(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossKGPerp(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossGGFlat(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossGGSphere(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossGGPerp(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossGGGFlat(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossGGGSphere(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossGGGPerp(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossNNKFlat(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossNNKSphere(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossNNKPerp(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossNNGFlat(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossNNGSphere(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossNNGPerp(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossKKGFlat(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossKKGSphere(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossKKGPerp(void* corr, void* field1, void* field2, void* field3, int dots);
 #endif
 }
 

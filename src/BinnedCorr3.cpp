@@ -103,7 +103,7 @@ template <int DC1, int DC2, int DC3>
 BinnedCorr3<DC1,DC2,DC3>::~BinnedCorr3()
 {
     if (_owns_data) {
-        _zeta.delete_data(_nbins);
+        _zeta.delete_data();
         delete [] _meand1; _meand1 = 0;
         delete [] _meanlogd1; _meanlogd1 = 0;
         delete [] _meand2; _meand2 = 0;
@@ -174,6 +174,7 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field, bool dots)
     const long n1 = field.getNTopLevel();
     xdbg<<"field has "<<n1<<" top level nodes\n";
     if (dots) std::cout<<"Starting "<<n1<<" jobs:\n"<<std::flush;
+    dbg<<"zeta[0] = "<<_zeta<<std::endl;
     Assert(n1 > 0);
 #ifdef _OPENMP
 #pragma omp parallel 
@@ -222,6 +223,7 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field, bool dots)
     }
 #endif
     if (dots) std::cout<<std::endl;
+    dbg<<"zeta[0] -> "<<_zeta<<std::endl;
 }
 
 template <int DC1, int DC2, int DC3> template <int M>
@@ -949,6 +951,20 @@ struct DirectHelper<NData,NData,NData>
         ZetaData<NData,NData,NData>& , int )
     {}
 };
+
+template <>
+struct DirectHelper<KData,KData,KData>
+{
+    template <int M>
+    static void ProcessZeta(
+        const Cell<KData,M>& c1, const Cell<KData,M>& c2, const Cell<KData,M>& c3,
+        const double , const double , const double ,
+        ZetaData<KData,KData,KData>& zeta, int index)
+    { 
+        zeta.zeta[index] += c1.getData().getWK() * c2.getData().getWK() * c3.getData().getWK(); 
+        xdbg<<"            zeta -> "<<zeta.zeta[index]<<std::endl;
+    }
+};
  
 #if 0
 template <>
@@ -982,17 +998,7 @@ struct DirectHelper<NData,GData>
     }
 };
 
-template <>
-struct DirectHelper<KData,KData>
-{
-    template <int M>
-    static void ProcessZeta(
-        const Cell<KData,M>& c1, const Cell<KData,M>& c2,
-        const double d1, const double d2, const double d3,
-        ZetaData<KData,KData>& zeta, int index)
-    { zeta.zeta[index] += c1.getData().getWK() * c2.getData().getWK(); }
-};
- 
+
 template <>
 struct DirectHelper<KData,GData>
 {
@@ -1153,7 +1159,7 @@ void* BuildNNNCorr(double minsep, double maxsep, int nbins, double binsize, doub
                    double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
                    double* meand3, double* meanlogd3, double* meanu, double* meanv, double* ntri)
 {
-    dbg<<"Start BuildNNCorr\n";
+    dbg<<"Start BuildNNNCorr\n";
     void* corr = static_cast<void*>(new BinnedCorr3<NData,NData,NData>(
             minsep, maxsep, nbins, binsize, b,
             minu, maxu, nubins, ubinsize, bu,
@@ -1164,14 +1170,35 @@ void* BuildNNNCorr(double minsep, double maxsep, int nbins, double binsize, doub
     return corr;
 }
 
-#if 0
-void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                  double* zeta,
-                  double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                  double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                  double* weight, double* ntri)
+void* BuildKKKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                   double minu, double maxu, int nubins, double ubinsize, double bu,
+                   double minv, double maxv, int nvbins, double vbinsize, double bv,
+                   double* zeta,
+                   double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
+                   double* meand3, double* meanlogd3, double* meanu, double* meanv,
+                   double* weight, double* ntri)
 {
-    dbg<<"Start BuildNKCorr\n";
+    dbg<<"Start BuildKKKCorr\n";
+    void* corr = static_cast<void*>(new BinnedCorr3<KData,KData,KData>(
+            minsep, maxsep, nbins, binsize, b,
+            minu, maxu, nubins, ubinsize, bu,
+            minv, maxv, nvbins, vbinsize, bv,
+            zeta, 0, 0, 0, 0, 0, 0, 0,
+            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, weight, ntri));
+    xdbg<<"corr = "<<corr<<std::endl;
+    return corr;
+}
+
+#if 0
+void* BuildNNKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                   double minu, double maxu, int nubins, double ubinsize, double bu,
+                   double minv, double maxv, int nvbins, double vbinsize, double bv,
+                   double* zeta,
+                   double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
+                   double* meand3, double* meanlogd3, double* meanu, double* meanv,
+                   double* weight, double* ntri)
+{
+    dbg<<"Start BuildNNKCorr\n";
     void* corr = static_cast<void*>(new BinnedCorr3<NData,KData>(
             minsep, maxsep, nbins, binsize, b,
             zeta, 0, 0, 0,
@@ -1180,13 +1207,15 @@ void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, doubl
     return corr;
 }
 
-void* BuildNGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                  double* zeta, double* zeta_im,
-                  double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                  double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                  double* weight, double* ntri)
+void* BuildNNGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                   double minu, double maxu, int nubins, double ubinsize, double bu,
+                   double minv, double maxv, int nvbins, double vbinsize, double bv,
+                   double* zeta, double* zeta_im,
+                   double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
+                   double* meand3, double* meanlogd3, double* meanu, double* meanv,
+                   double* weight, double* ntri)
 {
-    dbg<<"Start BuildNGCorr\n";
+    dbg<<"Start BuildNNGCorr\n";
     void* corr = static_cast<void*>(new BinnedCorr3<NData,GData>(
             minsep, maxsep, nbins, binsize, b,
             zeta, zeta_im, 0, 0,
@@ -1195,28 +1224,15 @@ void* BuildNGCorr(double minsep, double maxsep, int nbins, double binsize, doubl
     return corr;
 }
 
-void* BuildKKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                  double* zeta,
-                  double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                  double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                  double* weight, double* ntri)
+void* BuildKKGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                   double minu, double maxu, int nubins, double ubinsize, double bu,
+                   double minv, double maxv, int nvbins, double vbinsize, double bv,
+                   double* zeta, double* zeta_im,
+                   double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
+                   double* meand3, double* meanlogd3, double* meanu, double* meanv,
+                   double* weight, double* ntri)
 {
-    dbg<<"Start BuildKKCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr3<KData,KData>(
-            minsep, maxsep, nbins, binsize, b,
-            zeta, 0, 0, 0,
-            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, weight, ntri));
-    xdbg<<"corr = "<<corr<<std::endl;
-    return corr;
-}
-
-void* BuildKGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                  double* zeta, double* zeta_im,
-                  double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                  double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                  double* weight, double* ntri)
-{
-    dbg<<"Start BuildKGCorr\n";
+    dbg<<"Start BuildKKGCorr\n";
     void* corr = static_cast<void*>(new BinnedCorr3<KData,GData>(
             minsep, maxsep, nbins, binsize, b,
             zeta, zeta_im, 0, 0,
@@ -1225,13 +1241,15 @@ void* BuildKGCorr(double minsep, double maxsep, int nbins, double binsize, doubl
     return corr;
 }
 
-void* BuildGGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                  double* zetap, double* zetap_im, double* zetam, double* zetam_im,
-                  double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                  double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                  double* weight, double* ntri)
+void* BuildGGGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                   double minu, double maxu, int nubins, double ubinsize, double bu,
+                   double minv, double maxv, int nvbins, double vbinsize, double bv,
+                   double* zetap, double* zetap_im, double* zetam, double* zetam_im,
+                   double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
+                   double* meand3, double* meanlogd3, double* meanu, double* meanv,
+                   double* weight, double* ntri)
 {
-    dbg<<"Start BuildGGCorr\n";
+    dbg<<"Start BuildGGGCorr\n";
     void* corr = static_cast<void*>(new BinnedCorr3<GData,GData>(
             minsep, maxsep, nbins, binsize, b,
             zetap, zetap_im, zetam, zetam_im,
@@ -1248,38 +1266,38 @@ void DestroyNNNCorr(void* corr)
     delete static_cast<BinnedCorr3<NData,NData,NData>*>(corr);
 }
 
-#if 0
-void DestroyNKCorr(void* corr)
+void DestroyKKKCorr(void* corr)
 {
-    dbg<<"Start DestroyNKCorr\n";
+    dbg<<"Start DestroyKKKCorr\n";
+    xdbg<<"corr = "<<corr<<std::endl;
+    delete static_cast<BinnedCorr3<KData,KData,KData>*>(corr);
+}
+
+#if 0
+void DestroyNNKCorr(void* corr)
+{
+    dbg<<"Start DestroyNNKCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr3<NData,KData>*>(corr);
 }
 
-void DestroyNGCorr(void* corr)
+void DestroyNNGCorr(void* corr)
 {
-    dbg<<"Start DestroyNGCorr\n";
+    dbg<<"Start DestroyNNGCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr3<NData,GData>*>(corr);
 }
 
-void DestroyKKCorr(void* corr)
+void DestroyKKGCorr(void* corr)
 {
-    dbg<<"Start DestroyKKCorr\n";
-    xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr3<KData,KData>*>(corr);
-}
-
-void DestroyKGCorr(void* corr)
-{
-    dbg<<"Start DestroyKGCorr\n";
+    dbg<<"Start DestroyKKGCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr3<KData,GData>*>(corr);
 }
 
-void DestroyGGCorr(void* corr)
+void DestroyGGGCorr(void* corr)
 {
-    dbg<<"Start DestroyGGCorr\n";
+    dbg<<"Start DestroyGGGCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr3<GData,GData>*>(corr);
 }
@@ -1305,42 +1323,42 @@ void ProcessAutoNNNPerp(void* corr, void* field, int dots)
         *static_cast<Field<NData,Perp>*>(field),dots);
 }
 
-#if 0
-void ProcessAutoKKFlat(void* corr, void* field, int dots)
+void ProcessAutoKKKFlat(void* corr, void* field, int dots)
 {
-    dbg<<"Start ProcessAutoKKFlat\n";
-    static_cast<BinnedCorr3<KData,KData>*>(corr)->process(
+    dbg<<"Start ProcessAutoKKKFlat\n";
+    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process(
         *static_cast<Field<KData,Flat>*>(field),dots);
 }
-void ProcessAutoKKSphere(void* corr, void* field, int dots)
+void ProcessAutoKKKSphere(void* corr, void* field, int dots)
 {
-    dbg<<"Start ProcessAutoKKSphere\n";
-    static_cast<BinnedCorr3<KData,KData>*>(corr)->process(
+    dbg<<"Start ProcessAutoKKKSphere\n";
+    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process(
         *static_cast<Field<KData,Sphere>*>(field),dots);
 }
-void ProcessAutoKKPerp(void* corr, void* field, int dots)
+void ProcessAutoKKKPerp(void* corr, void* field, int dots)
 {
-    dbg<<"Start ProcessAutoKKPerp\n";
-    static_cast<BinnedCorr3<KData,KData>*>(corr)->process(
+    dbg<<"Start ProcessAutoKKKPerp\n";
+    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process(
         *static_cast<Field<KData,Perp>*>(field),dots);
 }
 
+#if 0
 void ProcessAutoGGFlat(void* corr, void* field, int dots)
 {
-    dbg<<"Start ProcessAutoGGFlat\n";
-    static_cast<BinnedCorr3<GData,GData>*>(corr)->process(
+    dbg<<"Start ProcessAutoGGGFlat\n";
+    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process(
         *static_cast<Field<GData,Flat>*>(field),dots);
 }
 void ProcessAutoGGSphere(void* corr, void* field, int dots)
 {
-    dbg<<"Start ProcessAutoGGSphere\n";
-    static_cast<BinnedCorr3<GData,GData>*>(corr)->process(
+    dbg<<"Start ProcessAutoGGGSphere\n";
+    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process(
         *static_cast<Field<GData,Sphere>*>(field),dots);
 }
 void ProcessAutoGGPerp(void* corr, void* field, int dots)
 {
-    dbg<<"Start ProcessAutoGGPerp\n";
-    static_cast<BinnedCorr3<GData,GData>*>(corr)->process(
+    dbg<<"Start ProcessAutoGGGPerp\n";
+    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process(
         *static_cast<Field<GData,Perp>*>(field),dots);
 }
 #endif
@@ -1370,115 +1388,130 @@ void ProcessCrossNNNPerp(void* corr, void* field1, void* field2, void* field3, i
         *static_cast<Field<NData,Perp>*>(field3),dots);
 }
 
+void ProcessCrossKKKFlat(void* corr, void* field1, void* field2, void* field3, int dots)
+{
+    dbg<<"Start ProcessCrossKKKFlat\n";
+    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process(
+        *static_cast<Field<KData,Flat>*>(field1),
+        *static_cast<Field<KData,Flat>*>(field2),
+        *static_cast<Field<KData,Flat>*>(field3),dots);
+}
+void ProcessCrossKKKSphere(void* corr, void* field1, void* field2, void* field3, int dots)
+{
+    dbg<<"Start ProcessCrossKKKSphere\n";
+    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process(
+        *static_cast<Field<KData,Sphere>*>(field1),
+        *static_cast<Field<KData,Sphere>*>(field2),
+        *static_cast<Field<KData,Sphere>*>(field3),dots);
+}
+void ProcessCrossKKKPerp(void* corr, void* field1, void* field2, void* field3, int dots)
+{
+    dbg<<"Start ProcessCrossKKKPerp\n";
+    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process(
+        *static_cast<Field<KData,Perp>*>(field1),
+        *static_cast<Field<KData,Perp>*>(field2),
+        *static_cast<Field<KData,Perp>*>(field3),dots);
+}
+
 #if 0
-void ProcessCrossNKFlat(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNNKFlat(void* corr, void* field1, void* field2, void* field3, int dots)
 {
-    dbg<<"Start ProcessCrossNKFlat\n";
-    static_cast<BinnedCorr3<NData,KData>*>(corr)->process(
+    dbg<<"Start ProcessCrossNNKFlat\n";
+    static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process(
         *static_cast<Field<NData,Flat>*>(field1),
-        *static_cast<Field<KData,Flat>*>(field2),dots);
+        *static_cast<Field<NData,Flat>*>(field2),
+        *static_cast<Field<KData,Flat>*>(field3),dots);
 }
-void ProcessCrossNKSphere(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNNKSphere(void* corr, void* field1, void* field2, void* field3, int dots)
 {
-    dbg<<"Start ProcessCrossNKSphere\n";
-    static_cast<BinnedCorr3<NData,KData>*>(corr)->process(
+    dbg<<"Start ProcessCrossNNKSphere\n";
+    static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process(
         *static_cast<Field<NData,Sphere>*>(field1),
-        *static_cast<Field<KData,Sphere>*>(field2),dots);
+        *static_cast<Field<NData,Sphere>*>(field2),
+        *static_cast<Field<KData,Sphere>*>(field3),dots);
 }
-void ProcessCrossNKPerp(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNNKPerp(void* corr, void* field1, void* field2, void* field3, int dots)
 {
-    dbg<<"Start ProcessCrossNKPerp\n";
-    static_cast<BinnedCorr3<NData,KData>*>(corr)->process(
+    dbg<<"Start ProcessCrossNNKPerp\n";
+    static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process(
         *static_cast<Field<NData,Perp>*>(field1),
-        *static_cast<Field<KData,Perp>*>(field2),dots);
+        *static_cast<Field<NData,Perp>*>(field2),
+        *static_cast<Field<KData,Perp>*>(field3),dots);
 }
 
-void ProcessCrossNGFlat(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNNGFlat(void* corr, void* field1, void* field2, void* field3, int dots)
 {
-    dbg<<"Start ProcessCrossNGFlat\n";
-    static_cast<BinnedCorr3<NData,GData>*>(corr)->process(
+    dbg<<"Start ProcessCrossNNGFlat\n";
+    static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process(
         *static_cast<Field<NData,Flat>*>(field1),
-        *static_cast<Field<GData,Flat>*>(field2),dots);
+        *static_cast<Field<NData,Flat>*>(field2),
+        *static_cast<Field<GData,Flat>*>(field3),dots);
 }
-void ProcessCrossNGSphere(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNNGSphere(void* corr, void* field1, void* field2, void* field3, int dots)
 {
-    dbg<<"Start ProcessCrossNGSphere\n";
-    static_cast<BinnedCorr3<NData,GData>*>(corr)->process(
+    dbg<<"Start ProcessCrossNNGSphere\n";
+    static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process(
         *static_cast<Field<NData,Sphere>*>(field1),
-        *static_cast<Field<GData,Sphere>*>(field2),dots);
+        *static_cast<Field<NData,Sphere>*>(field2),
+        *static_cast<Field<GData,Sphere>*>(field3),dots);
 }
-void ProcessCrossNGPerp(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNNGPerp(void* corr, void* field1, void* field2, void* field3, int dots)
 {
-    dbg<<"Start ProcessCrossNGPerp\n";
-    static_cast<BinnedCorr3<NData,GData>*>(corr)->process(
+    dbg<<"Start ProcessCrossNNGPerp\n";
+    static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process(
         *static_cast<Field<NData,Perp>*>(field1),
-        *static_cast<Field<GData,Perp>*>(field2),dots);
+        *static_cast<Field<NData,Perp>*>(field2),
+        *static_cast<Field<GData,Perp>*>(field3),dots);
 }
 
-void ProcessCrossKKFlat(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossKKGFlat(void* corr, void* field1, void* field2, void* field3, int dots)
 {
-    dbg<<"Start ProcessCrossKKFlat\n";
-    static_cast<BinnedCorr3<KData,KData>*>(corr)->process(
+    dbg<<"Start ProcessCrossKKGFlat\n";
+    static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process(
         *static_cast<Field<KData,Flat>*>(field1),
-        *static_cast<Field<KData,Flat>*>(field2),dots);
+        *static_cast<Field<KData,Flat>*>(field2),
+        *static_cast<Field<GData,Flat>*>(field3),dots);
 }
-void ProcessCrossKKSphere(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossKKGSphere(void* corr, void* field1, void* field2, void* field3, int dots)
 {
-    dbg<<"Start ProcessCrossKKSphere\n";
-    static_cast<BinnedCorr3<KData,KData>*>(corr)->process(
+    dbg<<"Start ProcessCrossKKGSphere\n";
+    static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process(
         *static_cast<Field<KData,Sphere>*>(field1),
-        *static_cast<Field<KData,Sphere>*>(field2),dots);
+        *static_cast<Field<KData,Sphere>*>(field2),
+        *static_cast<Field<GData,Sphere>*>(field3),dots);
 }
-void ProcessCrossKKPerp(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossKKGPerp(void* corr, void* field1, void* field2, void* field3, int dots)
 {
-    dbg<<"Start ProcessCrossKKPerp\n";
-    static_cast<BinnedCorr3<KData,KData>*>(corr)->process(
+    dbg<<"Start ProcessCrossKKGPerp\n";
+    static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process(
         *static_cast<Field<KData,Perp>*>(field1),
-        *static_cast<Field<KData,Perp>*>(field2),dots);
+        *static_cast<Field<KData,Perp>*>(field2),
+        *static_cast<Field<GData,Perp>*>(field3),dots);
 }
 
-void ProcessCrossKGFlat(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossGGGFlat(void* corr, void* field1, void* field2, void* field3, int dots)
 {
-    dbg<<"Start ProcessCrossKGFlat\n";
-    static_cast<BinnedCorr3<KData,GData>*>(corr)->process(
-        *static_cast<Field<KData,Flat>*>(field1),
-        *static_cast<Field<GData,Flat>*>(field2),dots);
-}
-void ProcessCrossKGSphere(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessCrossKGSphere\n";
-    static_cast<BinnedCorr3<KData,GData>*>(corr)->process(
-        *static_cast<Field<KData,Sphere>*>(field1),
-        *static_cast<Field<GData,Sphere>*>(field2),dots);
-}
-void ProcessCrossKGPerp(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessCrossKGPerp\n";
-    static_cast<BinnedCorr3<KData,GData>*>(corr)->process(
-        *static_cast<Field<KData,Perp>*>(field1),
-        *static_cast<Field<GData,Perp>*>(field2),dots);
-}
-
-void ProcessCrossGGFlat(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessCrossGGFlat\n";
+    dbg<<"Start ProcessCrossGGGFlat\n";
     static_cast<BinnedCorr3<GData,GData>*>(corr)->process(
         *static_cast<Field<GData,Flat>*>(field1),
-        *static_cast<Field<GData,Flat>*>(field2),dots);
+        *static_cast<Field<GData,Flat>*>(field2),
+        *static_cast<Field<GData,Flat>*>(field3),dots);
 }
-void ProcessCrossGGSphere(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossGGGSphere(void* corr, void* field1, void* field2, void* field3, int dots)
 {
-    dbg<<"Start ProcessCrossGGSphere\n";
+    dbg<<"Start ProcessCrossGGGSphere\n";
     static_cast<BinnedCorr3<GData,GData>*>(corr)->process(
         *static_cast<Field<GData,Sphere>*>(field1),
-        *static_cast<Field<GData,Sphere>*>(field2),dots);
+        *static_cast<Field<GData,Sphere>*>(field2),
+        *static_cast<Field<GData,Sphere>*>(field3),dots);
 }
-void ProcessCrossGGPerp(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossGGGPerp(void* corr, void* field1, void* field2, void* field3, int dots)
 {
-    dbg<<"Start ProcessCrossGGPerp\n";
+    dbg<<"Start ProcessCrossGGGPerp\n";
     static_cast<BinnedCorr3<GData,GData>*>(corr)->process(
         *static_cast<Field<GData,Perp>*>(field1),
-        *static_cast<Field<GData,Perp>*>(field2),dots);
+        *static_cast<Field<GData,Perp>*>(field2),
+        *static_cast<Field<GData,Perp>*>(field3),dots);
 }
 #endif
 

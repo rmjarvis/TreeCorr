@@ -1,0 +1,456 @@
+# Copyright (c) 2003-2014 by Mike Jarvis
+#
+# TreeCorr is free software: redistribution and use in source and binary forms,
+# with or without modification, are permitted provided that the following
+# conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+#    list of conditions, and the disclaimer given in the accompanying LICENSE
+#    file.
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions, and the disclaimer given in the documentation
+#    and/or other materials provided with the distribution.
+
+"""
+.. module:: nnncorrelation
+"""
+
+import treecorr
+import numpy
+
+# Start by loading up the relevant C functions using ctypes
+import ctypes
+import os
+
+# The numpy version of this function tries to be more portable than the native
+# ctypes.cdll.LoadLibary or cdtypes.CDLL functions.
+_treecorr = numpy.ctypeslib.load_library('_treecorr',os.path.dirname(__file__))
+
+# some useful aliases
+cint = ctypes.c_int
+cdouble = ctypes.c_double
+cdouble_ptr = ctypes.POINTER(cdouble)
+cvoid_ptr = ctypes.c_void_p
+
+_treecorr.BuildKKKCorr.restype = cvoid_ptr
+_treecorr.BuildKKKCorr.argtypes = [
+    cdouble, cdouble, cint, cdouble, cdouble,
+    cdouble, cdouble, cint, cdouble, cdouble,
+    cdouble, cdouble, cint, cdouble, cdouble,
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
+_treecorr.DestroyKKKCorr.argtypes = [ cvoid_ptr ]
+_treecorr.ProcessAutoKKKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessAutoKKKSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessAutoKKKPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossKKKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossKKKSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossKKKPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+
+
+class KKKCorrelation(treecorr.BinnedCorr3):
+    """This class handles the calculation and storage of a 2-point count-count correlation
+    function.  i.e. the regular density correlation function.
+
+    It holds the following attributes:
+
+        :logr:      The nominal center of the bin in log(r).
+        :u:         The nominal center of the bin in u.
+        :v:         The nominal center of the bin in v.
+        :meand1:    The (weighted) mean value of d1 for the triangles in each bin.
+        :meanlogd1: The mean value of log(d1) for the triangles in each bin.
+        :meand2:    The (weighted) mean value of d2 (aka r) for the triangles in each bin.
+        :meanlogd2: The mean value of log(d2) for the triangles in each bin.
+        :meand2:    The (weighted) mean value of d3 for the triangles in each bin.
+        :meanlogd2: The mean value of log(d3) for the triangles in each bin.
+        :meanu:     The mean value of u for the triangles in each bin.
+        :meanv:     The mean value of v for the triangles in each bin.
+        :zeta:      The correlation function, zeta(r,u,v).
+        :varzeta:   The variance of zeta, only including the shot noise propagated into the
+                    final correlation.  This does not include sample variance, so it is always
+                    an underestimate of the actual variance.
+        :weight:    The total weight in each bin.
+        :ntri:      The number of triangles going into each bin.
+
+    If sep_units are given (either in the config dict or as a named kwarg) then logr and meanlogr
+    both take r to be in these units.  i.e. exp(logr) will have R in units of sep_units.
+
+    The usage pattern is as follows:
+
+        >>> kkk = treecorr.KKKCorrelation(config)
+        >>> kkk.process(cat)              # For auto-correlation.
+        >>> kkk.process(cat1,cat2,cat3)   # For cross-correlation.
+        >>> kkk.write(file_name)          # Write out to a file.
+        >>> zeta = kkk.zeta               # To access zeta directly.
+
+    :param config:      The configuration dict which defines attributes about how to read the file.
+                        Any kwargs that are not those listed here will be added to the config, 
+                        so you can even omit the config dict and just enter all parameters you
+                        want as kwargs.  (default: None) 
+    :param logger:      If desired, a logger object for logging. (default: None, in which case
+                        one will be built according to the config dict's verbose level.)
+
+    Other parameters are allowed to be either in the config dict or as a named kwarg.
+    See the documentation for BinnedCorr3 for details.
+    """
+    def __init__(self, config=None, logger=None, **kwargs):
+        treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
+
+        shape = (self.nbins, self.nubins, self.nvbins)
+        self.zeta = numpy.zeros(shape, dtype=float)
+        self.varzeta = numpy.zeros(shape, dtype=float)
+        self.meand1 = numpy.zeros(shape, dtype=float)
+        self.meanlogd1 = numpy.zeros(shape, dtype=float)
+        self.meand2 = numpy.zeros(shape, dtype=float)
+        self.meanlogd2 = numpy.zeros(shape, dtype=float)
+        self.meand3 = numpy.zeros(shape, dtype=float)
+        self.meanlogd3 = numpy.zeros(shape, dtype=float)
+        self.meanu = numpy.zeros(shape, dtype=float)
+        self.meanv = numpy.zeros(shape, dtype=float)
+        self.weight = numpy.zeros(shape, dtype=float)
+        self.ntri = numpy.zeros(shape, dtype=float)
+        self._build_corr()
+        self.logger.debug('Finished building KKKCorr')
+
+    def _build_corr(self):
+        zeta = self.zeta.ctypes.data_as(cdouble_ptr)
+        meand1 = self.meand1.ctypes.data_as(cdouble_ptr)
+        meanlogd1 = self.meanlogd1.ctypes.data_as(cdouble_ptr)
+        meand2 = self.meand2.ctypes.data_as(cdouble_ptr)
+        meanlogd2 = self.meanlogd2.ctypes.data_as(cdouble_ptr)
+        meand3 = self.meand3.ctypes.data_as(cdouble_ptr)
+        meanlogd3 = self.meanlogd3.ctypes.data_as(cdouble_ptr)
+        meanu = self.meanu.ctypes.data_as(cdouble_ptr)
+        meanv = self.meanv.ctypes.data_as(cdouble_ptr)
+        weight = self.weight.ctypes.data_as(cdouble_ptr)
+        ntri = self.ntri.ctypes.data_as(cdouble_ptr)
+        self.corr = _treecorr.BuildKKKCorr(
+                self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
+                self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
+                zeta, 
+                meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, 
+                weight, ntri);
+
+    def __del__(self):
+        # Using memory allocated from the C layer means we have to explicitly deallocate it
+        # rather than being able to rely on the Python memory manager.
+        if hasattr(self,'corr'):    # In case __init__ failed to get that far
+            _treecorr.DestroyKKKCorr(self.corr)
+
+    def copy(self):
+        import copy
+        return copy.deepcopy(self)
+
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        del d['corr']
+        del d['logger']  # Oh well.  This is just lost in the copy.  Can't be pickled.
+        return d
+
+    def __setstate__(self):
+        self.__dict__ = d
+        self._build_corr()
+        self.logger = treecorr.config.setup_logger(
+                treecorr.config.get(self.config,'verbose',int,0),
+                self.config.get('log_file',None))
+
+    def __repr__(self):
+        return 'KKKCorrelation(config=%r)'%self.config
+
+    def process_auto(self, cat, perp=False):
+        """Process a single catalog, accumulating the auto-correlation.
+
+        This accumulates the auto-correlation for the given catalog.  After
+        calling this function as often as desired, the finalize() command will
+        finish the calculation of meand1, meanlogd1, etc.
+
+        :param cat:     The catalog to process
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
+        """
+        if cat.name == '':
+            self.logger.info('Starting process KKK auto-correlations')
+        else:
+            self.logger.info('Starting process KKK auto-correlations for cat %s.', cat.name)
+
+        self._set_num_threads()
+
+        min_size = self.min_sep * self.min_u
+        max_size = 2.*self.max_sep 
+        b = numpy.max( (self.b, self.bu, self.bv) )
+        field = cat.getKField(min_size,max_size,b,self.split_method,perp,self.max_top)
+
+        if field.sphere:
+            if field.perp:
+                _treecorr.ProcessAutoKKKPerp(self.corr, field.data, self.output_dots)
+            else:
+                _treecorr.ProcessAutoKKKSphere(self.corr, field.data, self.output_dots)
+        else:
+            _treecorr.ProcessAutoKKKFlat(self.corr, field.data, self.output_dots)
+
+    def process_cross21(self, cat1, cat2, perp=False):
+        """Process two catalogs, accumulating the 3pt cross-correlation, where two of the 
+        points in each triangle come from the first catalog, and one from the second.
+
+        This accumulates the cross-correlation for the given catalogs.  After
+        calling this function as often as desired, the finalize() command will
+        finish the calculation of meand1, meanlogd1, etc.
+
+        :param cat1:    The first catalog to process
+        :param cat2:    The second catalog to process
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
+        """
+        raise NotImplemented("No partial cross KKK yet.")
+
+
+    def process_cross(self, cat1, cat2, cat3, perp=False):
+        """Process a set of three catalogs, accumulating the 3pt cross-correlation.
+
+        This accumulates the cross-correlation for the given catalogs.  After
+        calling this function as often as desired, the finalize() command will
+        finish the calculation of meand1, meanlogd1, etc.
+
+        :param cat1:    The first catalog to process
+        :param cat2:    The second catalog to process
+        :param cat3:    The third catalog to process
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
+        """
+        if cat1.name == '' and cat2.name == '' and cat3.name == '':
+            self.logger.info('Starting process KKK cross-correlations')
+        else:
+            self.logger.info('Starting process KKK cross-correlations for cats %s, %s, %s.',
+                             cat1.name, cat2.name, cat3.name)
+
+        self._set_num_threads()
+
+        f1 = cat1.getKField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
+        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
+        f3 = cat3.getKField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
+
+        if f1.sphere != f2.sphere or f1.sphere != f3.sphere:
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+
+        if f1.sphere:
+            if f1.perp:
+                _treecorr.ProcessCrossKKKPerp(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+            else:
+                _treecorr.ProcessCrossKKKSphere(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+        else:
+            _treecorr.ProcessCrossKKKFlat(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+
+
+    def finalize(self, vark1, vark2, vark3):
+        """Finalize the calculation of the correlation function.
+
+        The process_auto and process_cross commands accumulate values in each bin,
+        so they can be called multiple times if appropriate.  Afterwards, this command
+        finishes the calculation by dividing by the total weight.
+
+        :param vark1:   The kappa variance for the first field.
+        :param vark2:   The kappa variance for the second field.
+        :param vark3:   The kappa variance for the third field.
+        """
+        mask1 = self.weight != 0
+        mask2 = self.weight == 0
+
+        self.zeta[mask1] /= self.weight[mask1]
+        self.varzeta[mask1] = vark1 * vark2 * vark3 / self.weight[mask1]
+        self.meand1[mask1] /= self.weight[mask1]
+        self.meanlogd1[mask1] /= self.weight[mask1]
+        self.meand2[mask1] /= self.weight[mask1]
+        self.meanlogd2[mask1] /= self.weight[mask1]
+        self.meand3[mask1] /= self.weight[mask1]
+        self.meanlogd3[mask1] /= self.weight[mask1]
+        self.meanu[mask1] /= self.weight[mask1]
+        self.meanv[mask1] /= self.weight[mask1]
+
+        # Update the units
+        self.meand1[mask1] /= self.sep_units
+        self.meanlogd1[mask1] -= self.log_sep_units
+        self.meand2[mask1] /= self.sep_units
+        self.meanlogd2[mask1] -= self.log_sep_units
+        self.meand3[mask1] /= self.sep_units
+        self.meanlogd3[mask1] -= self.log_sep_units
+
+        # Use meanlogr when available, but set to nominal when no triangles in bin.
+        self.varzeta[mask2] = 0.
+        self.meand2[mask2] = numpy.exp(self.logr[mask2])
+        self.meanlogd2[mask2] = self.logr[mask2]
+        self.meanu[mask2] = self.u[mask2]
+        self.meanv[mask2] = self.v[mask2]
+        self.meand3[mask2] = self.u[mask2] * self.meand2[mask2]
+        self.meanlogd3[mask2] = numpy.log(self.meand3[mask2])
+        self.meand1[mask2] = self.v[mask2] * self.meand3[mask2] + self.meand2[mask2]
+        self.meanlogd1[mask2] = numpy.log(self.meand1[mask2])
+
+
+    def clear(self):
+        """Clear the data vectors
+        """
+        self.zeta[:,:,:] = 0.
+        self.varzeta[:,:,:] = 0.
+        self.meand1[:,:,:] = 0.
+        self.meanlogd1[:,:,:] = 0.
+        self.meand2[:,:,:] = 0.
+        self.meanlogd2[:,:,:] = 0.
+        self.meand3[:,:,:] = 0.
+        self.meanlogd3[:,:,:] = 0.
+        self.meanu[:,:,:] = 0.
+        self.meanv[:,:,:] = 0.
+        self.weight[:,:,:] = 0.
+        self.ntri[:,:,:] = 0.
+
+    def __iadd__(self, other):
+        """Add a second KKKCorrelation's data to this one.
+
+        Note: For this to make sense, both Correlation objects should have been using
+        process_auto and/or process_cross, and they should not have had finalize called yet.
+        Then, after adding them together, you should call finalize on the sum.
+        """
+        if not isinstance(other, KKKCorrelation):
+            raise AttributeError("Can only add another KKKCorrelation object")
+        if not (self.nbins == other.nbins and
+                self.min_sep == other.min_sep and
+                self.max_sep == other.max_sep and
+                self.nubins == other.nubins and
+                self.min_u == other.min_u and
+                self.max_u == other.max_u and
+                self.nvbins == other.nvbins and
+                self.min_v == other.min_v and
+                self.max_v == other.max_v):
+            raise ValueError("KKKCorrelation to be added is not compatible with this one.")
+
+        self.zeta[:] += other.zeta[:]
+        self.varzeta[:] += other.varzeta[:]
+        self.meand1[:] += other.meand1[:]
+        self.meanlogd1[:] += other.meanlogd1[:]
+        self.meand2[:] += other.meand2[:]
+        self.meanlogd2[:] += other.meanlogd2[:]
+        self.meand3[:] += other.meand3[:]
+        self.meanlogd3[:] += other.meanlogd3[:]
+        self.meanu[:] += other.meanu[:]
+        self.meanv[:] += other.meanv[:]
+        self.weight[:] += other.weight[:]
+        self.ntri[:] += other.ntri[:]
+        return self
+
+
+    def process(self, cat1, cat2=None, cat3=None, perp=False):
+        """Accumulate the number of triangles of points between cat1, cat2, and cat3.
+
+        If only 1 argument is given, then compute an auto-correlation function.
+        If 2 arguments are given, then compute a cross-correlation function with the 
+            first catalog taking two corners of the triangles. (Not implemented yet.)
+        If 3 arguments are given, then compute a cross-correlation function.
+
+        All arguments may be lists, in which case all items in the list are used 
+        for that element of the correlation.
+
+        Note: For a correlation of multiple catalogs, it matters which corner of the
+        triangle comes from which catalog.  The final accumulation will have 
+        d1 > d2 > d3 where d1 is between two points in cat2,cat3; d2 is between 
+        points in cat1,cat3; and d3 is between points in cat1,cat2.  To accumulate
+        all the possible triangles between three catalogs, you should call this
+        multiple times with the different catalogs in different positions.
+
+        :param cat1:    A catalog or list of catalogs for the first N field.
+        :param cat2:    A catalog or list of catalogs for the second N field, if any.
+                        (default: None)
+        :param cat3:    A catalog or list of catalogs for the third N field, if any.
+                        (default: None)
+        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
+                        (for catalogs with 3d positions) (default: False)
+        """
+        import math
+        self.clear()
+        if not isinstance(cat1,list): cat1 = [cat1]
+        if cat2 is not None and not isinstance(cat2,list): cat2 = [cat2]
+        if cat3 is not None and not isinstance(cat3,list): cat3 = [cat3]
+        if len(cat1) == 0:
+            raise ValueError("No catalogs provided for cat1")
+        if cat2 is not None and len(cat2) == 0:
+            cat2 = None
+        if cat3 is not None and len(cat3) == 0:
+            cat3 = None
+        if cat2 is None and cat3 is not None:
+            raise NotImplemented("No partial cross KKK yet.")
+        if cat3 is None and cat2 is not None:
+            raise NotImplemented("No partial cross KKK yet.")
+
+        if cat2 is None and cat3 is None:
+            vark1 = treecorr.calculateVarK(cat1)
+            vark2 = vark1
+            vark3 = vark1
+            self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
+            self._process_all_auto(cat1, perp)
+        else:
+            assert cat2 is not None and cat3 is not None
+            vark1 = treecorr.calculateVarK(cat1)
+            vark2 = treecorr.calculateVarK(cat2)
+            vark3 = treecorr.calculateVarK(cat3)
+            self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
+            self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
+            self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
+            self._process_all_cross(cat1,cat2,cat3, perp)
+        self.finalize(vark1,vark2,vark3)
+
+
+    def write(self, file_name, rrr=None, drr=None, ddr=None,
+                      rdr=None, rrd=None, drd=None, rdd=None, file_type=None):
+        """Write the correlation function to the file, file_name.
+
+        :param file_name:   The name of the file to write to.
+        :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
+                            the type automatically from the extension of file_name.)
+        """
+        self.logger.info('Writing KKK correlations to %s',file_name)
+        
+        col_names = [ 'R_nom', 'u_nom', 'v_nom', '<d1>', '<logd1>', '<d2>', '<logd2>',
+                      '<d3>', '<logd3>', '<u>', '<v>', 'zeta', 'sigma_zeta', 'weight', 'ntri' ]
+        columns = [ numpy.exp(self.logr), self.u, self.v,
+                    self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
+                    self.meand3, self.meanlogd3, self.meanu, self.meanv,
+                    self.zeta, numpy.sqrt(self.varzeta), self.weight, self.ntri ]
+        prec = self.config.get('precision', 4)
+
+        treecorr.util.gen_write(
+            file_name, col_names, columns, prec=prec, file_type=file_type, logger=self.logger)
+
+
+    def read(self, file_name, file_type=None):
+        """Read in values from a file.
+
+        This should be a file that was written by TreeCorr, preferably a FITS file, so there
+        is no loss of information.
+
+        Warning: The KKKCorrelation object should be constructed with the same configuration 
+        parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+        checked by the read function.
+
+        :param file_name:   The name of the file to read in.
+        :param file_type:   The type of file ('ASCII' or 'FITS').  (default: determine the type
+                            automatically from the extension of file_name.)
+        """
+        self.logger.info('Reading KKK correlations from %s',file_name)
+
+        data = treecorr.util.gen_read(file_name, file_type=file_type)
+        s = self.logr.shape
+        self.logr = numpy.log(data['R_nom']).reshape(s)
+        self.u = data['u_nom'].reshape(s)
+        self.v = data['v_nom'].reshape(s)
+        self.meand1 = data['<d1>'].reshape(s)
+        self.meanlogd1 = data['<logd1>'].reshape(s)
+        self.meand2 = data['<d2>'].reshape(s)
+        self.meanlogd2 = data['<logd2>'].reshape(s)
+        self.meand3 = data['<d3>'].reshape(s)
+        self.meanlogd3 = data['<logd3>'].reshape(s)
+        self.meanu = data['<u>'].reshape(s)
+        self.meanv = data['<v>'].reshape(s)
+        self.zeta = data['zeta'].reshape(s)
+        self.varzeta = data['sigma_zeta'].reshape(s)**2
+        self.weight = data['weight'].reshape(s)
+        self.ntri = data['ntri'].reshape(s)
+
+

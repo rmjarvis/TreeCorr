@@ -107,7 +107,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
-        if hasattr(self,'data'):    # In case __init__ failed to get that far
+        if hasattr(self,'corr'):    # In case __init__ failed to get that far
             _treecorr.DestroyNNCorr(self.corr)
 
     def copy(self):

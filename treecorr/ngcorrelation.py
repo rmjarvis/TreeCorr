@@ -38,10 +38,10 @@ _treecorr.BuildNGCorr.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyNGCorr.argtypes = [ cvoid_ptr ]
 _treecorr.ProcessCrossNGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossNGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossNG3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossNGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseNGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessPairwiseNGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseNG3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseNGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
@@ -155,27 +155,20 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
-        if cat1.is3d() != cat2.is3d():
+        if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and not cat1.is3d():
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads()
 
-        perp = (metric == 'Rperp')
-        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
-        f2 = cat2.getGField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
+        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
+        f2 = cat2.getGField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
 
-        if f1.sphere != f2.sphere:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-
-        if f1.sphere:
-            if perp:
-                _treecorr.ProcessCrossNGPerp(self.corr, f1.data, f2.data, self.output_dots)
-            else:
-                _treecorr.ProcessCrossNGSphere(self.corr, f1.data, f2.data, self.output_dots)
-        else:
+        if f1.flat:
             _treecorr.ProcessCrossNGFlat(self.corr, f1.data, f2.data, self.output_dots)
+        elif f1.perp:
+            _treecorr.ProcessCrossNGPerp(self.corr, f1.data, f2.data, self.output_dots)
+        else:
+            _treecorr.ProcessCrossNG3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def process_pairwise(self, cat1, cat2, metric='Euclidean'):
@@ -200,27 +193,20 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
-        if cat1.is3d() != cat2.is3d():
+        if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and not cat1.is3d():
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads()
 
-        perp = (metric == 'Rperp')
-        f1 = cat1.getNSimpleField(perp)
-        f2 = cat2.getGSimpleField(perp)
+        f1 = cat1.getNSimpleField(metric)
+        f2 = cat2.getGSimpleField(metric)
 
-        if f1.sphere != f2.sphere:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-
-        if f1.sphere:
-            if perp:
-                _treecorr.ProcessPairwiseNGPerp(self.corr, f1.data, f2.data, self.output_dots)
-            else:
-                _treecorr.ProcessPairwiseNGSphere(self.corr, f1.data, f2.data, self.output_dots)
-        else:
+        if f1.flat:
             _treecorr.ProcessPairwiseNGFlat(self.corr, f1.data, f2.data, self.output_dots)
+        elif f1.perp:
+            _treecorr.ProcessPairwiseNGPerp(self.corr, f1.data, f2.data, self.output_dots)
+        else:
+            _treecorr.ProcessPairwiseNG3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def finalize(self, varg):

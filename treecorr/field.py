@@ -35,85 +35,85 @@ cdouble_ptr = ctypes.POINTER(cdouble)
 _treecorr.BuildNFieldFlat.restype = cvoid_ptr
 _treecorr.BuildNFieldFlat.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
-_treecorr.BuildNFieldSphere.restype = cvoid_ptr
-_treecorr.BuildNFieldSphere.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
+_treecorr.BuildNField3D.restype = cvoid_ptr
+_treecorr.BuildNField3D.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint, cint ]
 _treecorr.BuildNFieldPerp.restype = cvoid_ptr
 _treecorr.BuildNFieldPerp.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
 
 _treecorr.DestroyNFieldFlat.argtypes = [ cvoid_ptr ]
-_treecorr.DestroyNFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyNField3D.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyNFieldPerp.argtypes = [ cvoid_ptr ]
 
 _treecorr.BuildKFieldFlat.restype = cvoid_ptr
 _treecorr.BuildKFieldFlat.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
-_treecorr.BuildKFieldSphere.restype = cvoid_ptr
-_treecorr.BuildKFieldSphere.argtypes = [
-    cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
+_treecorr.BuildKField3D.restype = cvoid_ptr
+_treecorr.BuildKField3D.argtypes = [
+    cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint, cint ]
 _treecorr.BuildKFieldPerp.restype = cvoid_ptr
 _treecorr.BuildKFieldPerp.argtypes = [
     cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
 
 _treecorr.DestroyKFieldFlat.argtypes = [ cvoid_ptr ]
-_treecorr.DestroyKFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyKField3D.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyKFieldPerp.argtypes = [ cvoid_ptr ]
 
 _treecorr.BuildGFieldFlat.restype = cvoid_ptr
 _treecorr.BuildGFieldFlat.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
     clong, cdouble, cdouble, cdouble, cint ]
-_treecorr.BuildGFieldSphere.restype = cvoid_ptr
-_treecorr.BuildGFieldSphere.argtypes = [
+_treecorr.BuildGField3D.restype = cvoid_ptr
+_treecorr.BuildGField3D.argtypes = [
     cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, cdouble_ptr,
-    clong, cdouble, cdouble, cdouble, cint, cint ]
+    clong, cdouble, cdouble, cdouble, cint, cint, cint ]
 _treecorr.BuildGFieldPerp.restype = cvoid_ptr
 _treecorr.BuildGFieldPerp.argtypes = [
     cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, cdouble_ptr,
     clong, cdouble, cdouble, cdouble, cint, cint ]
 
 _treecorr.DestroyGFieldFlat.argtypes = [ cvoid_ptr ]
-_treecorr.DestroyGFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyGField3D.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyGFieldPerp.argtypes = [ cvoid_ptr ]
 
 _treecorr.BuildNSimpleFieldFlat.restype = cvoid_ptr
 _treecorr.BuildNSimpleFieldFlat.argtypes = [ cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
-_treecorr.BuildNSimpleFieldSphere.restype = cvoid_ptr
-_treecorr.BuildNSimpleFieldSphere.argtypes = [ cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+_treecorr.BuildNSimpleField3D.restype = cvoid_ptr
+_treecorr.BuildNSimpleField3D.argtypes = [ cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
 _treecorr.BuildNSimpleFieldPerp.restype = cvoid_ptr
 _treecorr.BuildNSimpleFieldPerp.argtypes = [ cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
 
 _treecorr.DestroyNSimpleFieldFlat.argtypes = [ cvoid_ptr ]
-_treecorr.DestroyNSimpleFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyNSimpleField3D.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyNSimpleFieldPerp.argtypes = [ cvoid_ptr ]
 
 _treecorr.BuildKSimpleFieldFlat.restype = cvoid_ptr
 _treecorr.BuildKSimpleFieldFlat.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
-_treecorr.BuildKSimpleFieldSphere.restype = cvoid_ptr
-_treecorr.BuildKSimpleFieldSphere.argtypes = [
+_treecorr.BuildKSimpleField3D.restype = cvoid_ptr
+_treecorr.BuildKSimpleField3D.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
 _treecorr.BuildKSimpleFieldPerp.restype = cvoid_ptr
 _treecorr.BuildKSimpleFieldPerp.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
 
 _treecorr.DestroyKSimpleFieldFlat.argtypes = [ cvoid_ptr ]
-_treecorr.DestroyKSimpleFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyKSimpleField3D.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyKSimpleFieldPerp.argtypes = [ cvoid_ptr ]
 
 _treecorr.BuildGSimpleFieldFlat.restype = cvoid_ptr
 _treecorr.BuildGSimpleFieldFlat.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
-_treecorr.BuildGSimpleFieldSphere.restype = cvoid_ptr
-_treecorr.BuildGSimpleFieldSphere.argtypes = [
+_treecorr.BuildGSimpleField3D.restype = cvoid_ptr
+_treecorr.BuildGSimpleField3D.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
 _treecorr.BuildGSimpleFieldPerp.restype = cvoid_ptr
 _treecorr.BuildGSimpleFieldPerp.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
 
 _treecorr.DestroyGSimpleFieldFlat.argtypes = [ cvoid_ptr ]
-_treecorr.DestroyGSimpleFieldSphere.argtypes = [ cvoid_ptr ]
+_treecorr.DestroyGSimpleField3D.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyGSimpleFieldPerp.argtypes = [ cvoid_ptr ]
 
 
@@ -138,65 +138,75 @@ class NField(object):
                             This should be bin_size * bin_slop.
     :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                             (default: 'mean')
-    :param perp:            Whether to use the perpendicular distance rather than the 3d separation
-                            (for catalogs with 3d positions) (default: False)
+    :param metric:          Which metric to use for distance measurements.  Options are:
+                            - 'Euclidean' = straight line Euclidean distance between two points.
+                            For spherical coordinates (ra,dec without r), this is the chord
+                            distance between points on the unit sphere.
+                            - 'Rperp' = the perpendicular component of the distance. For two points
+                            with distance from Earth r1,r2, if d is the normal Euclidean distance
+                            and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
+                            (default: 'Euclidean')
     :param max_top:         The maximum number of top layers to use when setting up the
                             field. (default: 10)
     :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', perp=False, max_top=10,
-                 logger=None):
+    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', metric='Euclidean',
+                 max_top=10, logger=None):
         if logger:
             logger.info('Building NField from cat %s',cat.name)
+
+        if metric not in ['Euclidean', 'Rperp']:
+            raise ValueError("Invalid metric.")
+        if metric == 'Rperp' and cat.coords != '3d':
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self.min_sep = min_sep
         self.max_sep = max_sep
         self.b = b
         self.split_method = split_method
+        self.metric = metric
 
         w = cat.w.ctypes.data_as(cdouble_ptr)
         sm = _parse_split_method(split_method)
 
-        self.sphere = (cat.x is None)
-        self.perp = perp
-
-        if self.sphere:
-            # Then build field for spherical coordinates
-            ra = cat.ra.ctypes.data_as(cdouble_ptr)
-            dec = cat.dec.ctypes.data_as(cdouble_ptr)
-            if cat.r is None:
-                r = None
-            else:
-                r = cat.r.ctypes.data_as(cdouble_ptr)
-            if self.perp:
-                self.data = _treecorr.BuildNFieldPerp(ra,dec,r,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
-                if logger:
-                    logger.debug('Finished building NField Perp')
-            else:
-                self.data = _treecorr.BuildNFieldSphere(ra,dec,r,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
-                if logger:
-                    logger.debug('Finished building NField Sphere')
-        else:
-            # Then build field with flat sky approximation
+        if cat.coords == 'flat':
+            self.flat = True
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildNFieldFlat(x,y,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
             if logger:
-                logger.debug('Finished building NField Flat')
-
+                logger.debug('Finished building NField 2D')
+        else:
+            self.flat = False
+            x = cat.x.ctypes.data_as(cdouble_ptr)
+            y = cat.y.ctypes.data_as(cdouble_ptr)
+            z = cat.z.ctypes.data_as(cdouble_ptr)
+            if cat.coords == 'spherical':
+                spher = 1
+            else:
+                spher = 0
+            if self.metric == 'Rperp':
+                self.data = _treecorr.BuildNFieldPerp(x,y,z,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
+                self.perp = True
+                if logger:
+                    logger.debug('Finished building NField Perp')
+            else:
+                self.data = _treecorr.BuildNField3D(x,y,z,w,cat.nobj,min_sep,max_sep,b,sm,max_top,spher)
+                self.perp = False
+                if logger:
+                    logger.debug('Finished building NField 3D')
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
-            if self.sphere:
-                if self.perp:
-                    _treecorr.DestroyNFieldPerp(self.data)
-                else:
-                    _treecorr.DestroyNFieldSphere(self.data)
-            else:
+            if self.flat:
                 _treecorr.DestroyNFieldFlat(self.data)
+            elif self.perp:
+                _treecorr.DestroyNFieldPerp(self.data)
+            else:
+                _treecorr.DestroyNField3D(self.data)
 
 
 class KField(object):
@@ -214,52 +224,64 @@ class KField(object):
                             This should be bin_size * bin_slop.
     :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                             (default: 'mean')
-    :param perp:            Whether to use the perpendicular distance rather than the 3d separation
-                            (for catalogs with 3d positions) (default: False)
+    :param metric:          Which metric to use for distance measurements.  Options are:
+                            - 'Euclidean' = straight line Euclidean distance between two points.
+                            For spherical coordinates (ra,dec without r), this is the chord
+                            distance between points on the unit sphere.
+                            - 'Rperp' = the perpendicular component of the distance. For two points
+                            with distance from Earth r1,r2, if d is the normal Euclidean distance
+                            and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
+                            (default: 'Euclidean')
     :param max_top:         The maximum number of top layers to use when setting up the
                             field. (default: 10)
     :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', perp=False, max_top=10,
-                 logger=None):
+    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', metric='Euclidean',
+                 max_top=10, logger=None):
         if logger:
             logger.info('Building KField from cat %s',cat.name)
+
+        if metric not in ['Euclidean', 'Rperp']:
+            raise ValueError("Invalid metric.")
+        if metric == 'Rperp' and cat.coords != '3d':
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self.min_sep = min_sep
         self.max_sep = max_sep
         self.b = b
         self.split_method = split_method
+        self.metric = metric
 
         k = cat.k.ctypes.data_as(cdouble_ptr)
         w = cat.w.ctypes.data_as(cdouble_ptr)
         sm = _parse_split_method(split_method)
 
-        self.sphere = (cat.x is None)
-        self.perp = perp
-
-        if self.sphere:
-            # Then build field for spherical coordinates
-            ra = cat.ra.ctypes.data_as(cdouble_ptr)
-            dec = cat.dec.ctypes.data_as(cdouble_ptr)
-            if cat.r is None:
-                r = None
-            else:
-                r = cat.r.ctypes.data_as(cdouble_ptr)
-            if self.perp:
-                self.data = _treecorr.BuildKFieldPerp(ra,dec,r,k,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
-                if logger:
-                    logger.debug('Finished building KField Perp')
-            else:
-                self.data = _treecorr.BuildKFieldSphere(ra,dec,r,k,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
-                if logger:
-                    logger.debug('Finished building KField Sphere')
-        else:
-            # Then build field with flat sky approximation
+        if cat.coords == 'flat':
+            self.flat = True
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildKFieldFlat(x,y,k,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
             if logger:
                 logger.debug('Finished building KField Flat')
+        else:
+            self.flat = False
+            x = cat.x.ctypes.data_as(cdouble_ptr)
+            y = cat.y.ctypes.data_as(cdouble_ptr)
+            z = cat.z.ctypes.data_as(cdouble_ptr)
+            if cat.coords == 'spherical':
+                spher = 1
+            else:
+                spher = 0
+            if self.metric == 'Rperp':
+                self.data = _treecorr.BuildKFieldPerp(x,y,z,k,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
+                self.perp = True
+                if logger:
+                    logger.debug('Finished building KField Perp')
+            else:
+                self.data = _treecorr.BuildKField3D(x,y,z,k,w,cat.nobj,min_sep,max_sep,b,sm,max_top,spher)
+                self.perp = False
+                if logger:
+                    logger.debug('Finished building KField 3D')
 
 
     def __del__(self):
@@ -267,13 +289,12 @@ class KField(object):
         # rather than being able to rely on the Python memory manager.
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
-            if self.sphere:
-                if self.perp:
-                    _treecorr.DestroyKFieldPerp(self.data)
-                else:
-                    _treecorr.DestroyKFieldSphere(self.data)
-            else:
+            if self.flat:
                 _treecorr.DestroyKFieldFlat(self.data)
+            elif self.perp:
+                _treecorr.DestroyKFieldPerp(self.data)
+            else:
+                _treecorr.DestroyKField3D(self.data)
 
 
 class GField(object):
@@ -291,53 +312,65 @@ class GField(object):
                             This should be bin_size * bin_slop.
     :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                             (default: 'mean')
-    :param perp:            Whether to use the perpendicular distance rather than the 3d separation
-                            (for catalogs with 3d positions) (default: False)
+    :param metric:          Which metric to use for distance measurements.  Options are:
+                            - 'Euclidean' = straight line Euclidean distance between two points.
+                            For spherical coordinates (ra,dec without r), this is the chord
+                            distance between points on the unit sphere.
+                            - 'Rperp' = the perpendicular component of the distance. For two points
+                            with distance from Earth r1,r2, if d is the normal Euclidean distance
+                            and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
+                            (default: 'Euclidean')
     :param max_top:         The maximum number of top layers to use when setting up the
                             field. (default: 10)
     :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', perp=False, max_top=10,
-                 logger=None):
+    def __init__(self, cat, min_sep, max_sep, b, split_method='mean', metric='Euclidean',
+                 max_top=10, logger=None):
         if logger:
             logger.info('Building GField from cat %s',cat.name)
+
+        if metric not in ['Euclidean', 'Rperp']:
+            raise ValueError("Invalid metric.")
+        if metric == 'Rperp' and cat.coords != '3d':
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self.min_sep = min_sep
         self.max_sep = max_sep
         self.b = b
         self.split_method = split_method
+        self.metric = metric
 
         g1 = cat.g1.ctypes.data_as(cdouble_ptr)
         g2 = cat.g2.ctypes.data_as(cdouble_ptr)
         w = cat.w.ctypes.data_as(cdouble_ptr)
         sm = _parse_split_method(split_method)
 
-        self.sphere = (cat.x is None)
-        self.perp = perp
-
-        if self.sphere:
-            # Then build field for spherical coordinates
-            ra = cat.ra.ctypes.data_as(cdouble_ptr)
-            dec = cat.dec.ctypes.data_as(cdouble_ptr)
-            if cat.r is None:
-                r = None
-            else:
-                r = cat.r.ctypes.data_as(cdouble_ptr)
-            if self.perp:
-                self.data = _treecorr.BuildGFieldPerp(ra,dec,r,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
-                if logger:
-                    logger.debug('Finished building GField Perp')
-            else:
-                self.data = _treecorr.BuildGFieldSphere(ra,dec,r,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
-                if logger:
-                    logger.debug('Finished building GField Sphere')
-        else:
-            # Then build field with flat sky approximation
+        if cat.coords == 'flat':
+            self.flat = True
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildGFieldFlat(x,y,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
             if logger:
                 logger.debug('Finished building GField Flat')
+        else: 
+            self.flat = False
+            x = cat.x.ctypes.data_as(cdouble_ptr)
+            y = cat.y.ctypes.data_as(cdouble_ptr)
+            z = cat.z.ctypes.data_as(cdouble_ptr)
+            if cat.coords == 'spherical':
+                spher = 1
+            else:
+                spher = 0
+            if self.metric == 'Rperp':
+                self.data = _treecorr.BuildGFieldPerp(x,y,z,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
+                self.perp = True
+                if logger:
+                    logger.debug('Finished building GField Perp')
+            else:
+                self.data = _treecorr.BuildGField3D(x,y,z,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm,max_top,spher)
+                self.perp = False
+                if logger:
+                    logger.debug('Finished building GField 3D')
 
 
     def __del__(self):
@@ -345,13 +378,12 @@ class GField(object):
         # rather than being able to rely on the Python memory manager.
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
-            if self.sphere:
-                if self.perp:
-                    _treecorr.DestroyGFieldPerp(self.data)
-                else:
-                    _treecorr.DestroyGFieldSphere(self.data)
-            else:
+            if self.flat:
                 _treecorr.DestroyGFieldFlat(self.data)
+            elif self.perp:
+                _treecorr.DestroyGFieldPerp(self.data)
+            else:
+                _treecorr.DestroyGField3D(self.data)
 
 
 class NSimpleField(object):
@@ -362,55 +394,67 @@ class NSimpleField(object):
         >>> nfield = cat.getNSimpleField()
 
     :param cat:             The catalog from which to make the field.
-    :param perp:            Whether to use the perpendicular distance rather than the 3d separation
-                            (for catalogs with 3d positions) (default: False)
+    :param metric:          Which metric to use for distance measurements.  Options are:
+                            - 'Euclidean' = straight line Euclidean distance between two points.
+                            For spherical coordinates (ra,dec without r), this is the chord
+                            distance between points on the unit sphere.
+                            - 'Rperp' = the perpendicular component of the distance. For two points
+                            with distance from Earth r1,r2, if d is the normal Euclidean distance
+                            and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
+                            (default: 'Euclidean')
     :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, perp=False, logger=None):
+    def __init__(self, cat, metric='Euclidean', logger=None):
         if logger:
             logger.info('Building NSimpleField from cat %s',cat.name)
 
+        if metric not in ['Euclidean', 'Rperp']:
+            raise ValueError("Invalid metric.")
+        if metric == 'Rperp' and cat.coords != '3d':
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+
         w = cat.w.ctypes.data_as(cdouble_ptr)
 
-        self.sphere = (cat.x is None)
-        self.perp = perp
+        self.metric = metric
 
-        if self.sphere:
-            # Then build field for spherical coordinates
-            ra = cat.ra.ctypes.data_as(cdouble_ptr)
-            dec = cat.dec.ctypes.data_as(cdouble_ptr)
-            if cat.r is None:
-                r = None
-            else:
-                r = cat.r.ctypes.data_as(cdouble_ptr)
-            if self.perp:
-                self.data = _treecorr.BuildNSimpleFieldPerp(ra,dec,r,w,cat.nobj)
-                if logger:
-                    logger.debug('Finished building NSimpleField Perp')
-            else:
-                self.data = _treecorr.BuildNSimpleFieldSphere(ra,dec,r,w,cat.nobj)
-                if logger:
-                    logger.debug('Finished building NSimpleField Sphere')
-        else:
-            # Then build field with flat sky approximation
+        if cat.coords == 'flat':
+            self.flat = True
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildNSimpleFieldFlat(x,y,w,cat.nobj)
             if logger:
                 logger.debug('Finished building NSimpleField Flat')
+        else:
+            self.flat = False
+            x = cat.x.ctypes.data_as(cdouble_ptr)
+            y = cat.y.ctypes.data_as(cdouble_ptr)
+            z = cat.z.ctypes.data_as(cdouble_ptr)
+            if cat.coords == 'spherical':
+                spher = 1
+            else:
+                spher = 0
+            if self.metric == 'Rperp':
+                self.data = _treecorr.BuildNSimpleFieldPerp(x,y,z,w,cat.nobj)
+                self.perp = True
+                if logger:
+                    logger.debug('Finished building NSimpleField Perp')
+            else:
+                self.data = _treecorr.BuildNSimpleField3D(x,y,z,w,cat.nobj,spher)
+                self.perp = False
+                if logger:
+                    logger.debug('Finished building NSimpleField 3D')
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
-            if self.sphere:
-                if self.perp:
-                    _treecorr.DestroyNSimpleFieldPerp(self.data)
-                else:
-                    _treecorr.DestroyNSimpleFieldSphere(self.data)
-            else:
+            if self.flat:
                 _treecorr.DestroyNSimpleFieldFlat(self.data)
+            elif self.perp:
+                _treecorr.DestroyNSimpleFieldPerp(self.data)
+            else:
+                _treecorr.DestroyNSimpleField3D(self.data)
 
 
 class KSimpleField(object):
@@ -421,56 +465,68 @@ class KSimpleField(object):
         >>> kfield = cat.getKSimpleField()
 
     :param cat:             The catalog from which to make the field.
-    :param perp:            Whether to use the perpendicular distance rather than the 3d separation
-                            (for catalogs with 3d positions) (default: False)
+    :param metric:          Which metric to use for distance measurements.  Options are:
+                            - 'Euclidean' = straight line Euclidean distance between two points.
+                            For spherical coordinates (ra,dec without r), this is the chord
+                            distance between points on the unit sphere.
+                            - 'Rperp' = the perpendicular component of the distance. For two points
+                            with distance from Earth r1,r2, if d is the normal Euclidean distance
+                            and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
+                            (default: 'Euclidean')
     :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, perp=False, logger=None):
+    def __init__(self, cat, metric='Euclidean', logger=None):
         if logger:
             logger.info('Building KSimpleField from cat %s',cat.name)
+
+        if metric not in ['Euclidean', 'Rperp']:
+            raise ValueError("Invalid metric.")
+        if metric == 'Rperp' and cat.coords != '3d':
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         k = cat.k.ctypes.data_as(cdouble_ptr)
         w = cat.w.ctypes.data_as(cdouble_ptr)
 
-        self.sphere = (cat.x is None)
-        self.perp = perp
+        self.metric = metric
 
-        if self.sphere:
-            # Then build field for spherical coordinates
-            ra = cat.ra.ctypes.data_as(cdouble_ptr)
-            dec = cat.dec.ctypes.data_as(cdouble_ptr)
-            if cat.r is None:
-                r = None
-            else:
-                r = cat.r.ctypes.data_as(cdouble_ptr)
-            if self.perp:
-                self.data = _treecorr.BuildKSimpleFieldPerp(ra,dec,r,k,w,cat.nobj)
-                if logger:
-                    logger.debug('Finished building KSimpleField Perp')
-            else:
-                self.data = _treecorr.BuildKSimpleFieldSphere(ra,dec,r,k,w,cat.nobj)
-                if logger:
-                    logger.debug('Finished building KSimpleField Sphere')
-        else:
-            # Then build field with flat sky approximation
+        if cat.coords == 'flat':
+            self.flat = True
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildKSimpleFieldFlat(x,y,k,w,cat.nobj)
             if logger:
                 logger.debug('Finished building KSimpleField Flat')
+        else:
+            self.flat = False
+            x = cat.x.ctypes.data_as(cdouble_ptr)
+            y = cat.y.ctypes.data_as(cdouble_ptr)
+            z = cat.z.ctypes.data_as(cdouble_ptr)
+            if cat.coords == 'spherical':
+                spher = 1
+            else:
+                spher = 0
+            if self.metric == 'Rperp':
+                self.data = _treecorr.BuildKSimpleFieldPerp(x,y,z,k,w,cat.nobj)
+                self.perp = True
+                if logger:
+                    logger.debug('Finished building KSimpleField Perp')
+            else:
+                self.data = _treecorr.BuildKSimpleField3D(x,y,z,k,w,cat.nobj,spher)
+                self.perp = False
+                if logger:
+                    logger.debug('Finished building KSimpleField 3D')
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
-            if self.sphere:
-                if self.perp:
-                    _treecorr.DestroyKSimpleFieldPerp(self.data)
-                else:
-                    _treecorr.DestroyKSimpleFieldSphere(self.data)
-            else:
+            if self.flat:
                 _treecorr.DestroyKSimpleFieldFlat(self.data)
+            elif self.perp:
+                _treecorr.DestroyKSimpleFieldPerp(self.data)
+            else:
+                _treecorr.DestroyKSimpleField3D(self.data)
 
 
 class GSimpleField(object):
@@ -481,55 +537,67 @@ class GSimpleField(object):
         >>> gfield = cat.getGSimpleField()
 
     :param cat:             The catalog from which to make the field.
-    :param perp:            Whether to use the perpendicular distance rather than the 3d separation
-                            (for catalogs with 3d positions) (default: False)
+    :param metric:          Which metric to use for distance measurements.  Options are:
+                            - 'Euclidean' = straight line Euclidean distance between two points.
+                            For spherical coordinates (ra,dec without r), this is the chord
+                            distance between points on the unit sphere.
+                            - 'Rperp' = the perpendicular component of the distance. For two points
+                            with distance from Earth r1,r2, if d is the normal Euclidean distance
+                            and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
+                            (default: 'Euclidean')
     :param logger:          A logger file if desired (default: None)
     """
-    def __init__(self, cat, perp=False, logger=None):
+    def __init__(self, cat, metric='Euclidean', logger=None):
         if logger:
             logger.info('Building GSimpleField from cat %s',cat.name)
+
+        if metric not in ['Euclidean', 'Rperp']:
+            raise ValueError("Invalid metric.")
+        if metric == 'Rperp' and cat.coords != '3d':
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         g1 = cat.g1.ctypes.data_as(cdouble_ptr)
         g2 = cat.g2.ctypes.data_as(cdouble_ptr)
         w = cat.w.ctypes.data_as(cdouble_ptr)
 
-        self.sphere = (cat.x is None)
-        self.perp = perp
+        self.metric = metric
 
-        if self.sphere:
-            # Then build field for spherical coordinates
-            ra = cat.ra.ctypes.data_as(cdouble_ptr)
-            dec = cat.dec.ctypes.data_as(cdouble_ptr)
-            if cat.r is None:
-                r = None
-            else:
-                r = cat.r.ctypes.data_as(cdouble_ptr)
-            if self.perp:
-                self.data = _treecorr.BuildGSimpleFieldPerp(ra,dec,r,g1,g2,w,cat.nobj)
-                if logger:
-                    logger.debug('Finished building GSimpleField Perp')
-            else:
-                self.data = _treecorr.BuildGSimpleFieldSphere(ra,dec,r,g1,g2,w,cat.nobj)
-                if logger:
-                    logger.debug('Finished building GSimpleField Sphere')
-        else:
-            # Then build field with flat sky approximation
+        if cat.coords == 'flat':
+            self.flat = True
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
             self.data = _treecorr.BuildGSimpleFieldFlat(x,y,g1,g2,w,cat.nobj)
             if logger:
                 logger.debug('Finished building GSimpleField Flat')
+        else:
+            self.flat = False
+            x = cat.x.ctypes.data_as(cdouble_ptr)
+            y = cat.y.ctypes.data_as(cdouble_ptr)
+            z = cat.z.ctypes.data_as(cdouble_ptr)
+            if cat.coords == 'spherical':
+                spher = 1
+            else:
+                spher = 0
+            if self.metric == 'Rperp':
+                self.data = _treecorr.BuildGSimpleFieldPerp(x,y,z,g1,g2,w,cat.nobj)
+                self.perp = True
+                if logger:
+                    logger.debug('Finished building GSimpleField Perp')
+            else:
+                self.data = _treecorr.BuildGSimpleField3D(x,y,z,g1,g2,w,cat.nobj,spher)
+                self.perp = False
+                if logger:
+                    logger.debug('Finished building GSimpleField 3D')
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
-            if self.sphere:
-                if self.perp:
-                    _treecorr.DestroyGSimpleFieldPerp(self.data)
-                else:
-                    _treecorr.DestroyGSimpleFieldSphere(self.data)
-            else:
+            if self.flat:
                 _treecorr.DestroyGSimpleFieldFlat(self.data)
+            elif self.perp:
+                _treecorr.DestroyGSimpleFieldPerp(self.data)
+            else:
+                _treecorr.DestroyGSimpleField3D(self.data)
 

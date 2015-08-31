@@ -86,6 +86,18 @@ class CelestialCoord(object):
     @property
     def dec(self): return self._dec
 
+    @staticmethod
+    def radec_to_xyz(ra, dec):
+        "Convert ra, dec to 3D x,y,z coordinates on the unit sphere."
+        import numpy
+        cosdec = numpy.cos(dec)
+        sindec = numpy.sin(dec)
+        cosra = numpy.cos(ra)
+        sinra = numpy.sin(ra)
+        x = cosdec * cosra
+        y = cosdec * sinra
+        z = sindec
+        return x,y,z
 
     def _set_aux(self):
         if self._x is None:

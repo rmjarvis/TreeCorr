@@ -62,6 +62,8 @@ New features:
   with the regular separation columns), rather than calculate the correlation 
   function.
 - Added ability to write Catalogs to either FITS or ASCII files.
+- Added ability to specify 3D coordinates with (x,y,z) in addition to using
+  (ra,dec,r).
 
 
 Bug fixes:

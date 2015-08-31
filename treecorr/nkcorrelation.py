@@ -38,10 +38,10 @@ _treecorr.BuildNKCorr.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyNKCorr.argtypes = [ cvoid_ptr ]
 _treecorr.ProcessCrossNKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossNKSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossNK3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossNKPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseNKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessPairwiseNKSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseNK3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseNKPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
@@ -151,27 +151,20 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
-        if cat1.is3d() != cat2.is3d():
+        if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and not cat1.is3d():
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads()
 
-        perp = (metric == 'Rperp')
-        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
-        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
+        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
+        f2 = cat2.getKField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
 
-        if f1.sphere != f2.sphere:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-
-        if f1.sphere:
-            if perp:
-                _treecorr.ProcessCrossNKPerp(self.corr, f1.data, f2.data, self.output_dots)
-            else:
-                _treecorr.ProcessCrossNKSphere(self.corr, f1.data, f2.data, self.output_dots)
-        else:
+        if f1.flat:
             _treecorr.ProcessCrossNKFlat(self.corr, f1.data, f2.data, self.output_dots)
+        elif f1.perp:
+            _treecorr.ProcessCrossNKPerp(self.corr, f1.data, f2.data, self.output_dots)
+        else:
+            _treecorr.ProcessCrossNK3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def process_pairwise(self, cat1, cat2, metric='Euclidean'):
@@ -196,27 +189,20 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
-        if cat1.is3d() != cat2.is3d():
+        if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and not cat1.is3d():
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads()
 
-        perp = (metric == 'Rperp')
-        f1 = cat1.getNSimpleField(perp)
-        f2 = cat2.getKSimpleField(perp)
+        f1 = cat1.getNSimpleField(metric)
+        f2 = cat2.getKSimpleField(metric)
 
-        if f1.sphere != f2.sphere:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-
-        if f1.sphere:
-            if perp:
-                _treecorr.ProcessPairwiseNKPerp(self.corr, f1.data, f2.data, self.output_dots)
-            else:
-                _treecorr.ProcessPairwiseNKSphere(self.corr, f1.data, f2.data, self.output_dots)
-        else:
+        if f1.flat:
             _treecorr.ProcessPairwiseNKFlat(self.corr, f1.data, f2.data, self.output_dots)
+        elif f1.perp:
+            _treecorr.ProcessPairwiseNKPerp(self.corr, f1.data, f2.data, self.output_dots)
+        else:
+            _treecorr.ProcessPairwiseNK3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def finalize(self, vark):

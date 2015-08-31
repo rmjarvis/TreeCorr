@@ -90,6 +90,12 @@ class Catalog(object):
                  from data vectors directly, it will be ''.  You may assign to it if you want to
                  give this catalog a specific name.
 
+        :coords: What kind of coordinate system is defined for this catalog?
+                 The possibilities for this attribute are:
+                 'flat' = 2-dimensional flat coordinates.  Set when x,y are given.
+                 'spherical' = spherical coordinates.  Set when ra,dec are given.
+                 '3d' = 3-dimensional coordinates.  Set when x,y,z or ra,dec,r are given.
+
     :param file_name:   The name of the catalog file to be read in. (default: None, in which case
                         the columns need to be entered directly with `x`, `y`, etc.)
     :param config:      The configuration dict which defines attributes about how to read the file.
@@ -107,6 +113,7 @@ class Catalog(object):
                         are required or ra,dec are required.)
     :param y:           The y values. (default: None; When providing values directly, either x,y
                         are required or ra,dec are required.)
+    :param z:           The z values, if doing 3d positions. (default: None)
     :param ra:          The RA values. (default: None; When providing values directly, either x,y
                         are required or ra,dec are required.)
     :param dec:         The Dec values. (default: None; When providing values directly, either x,y
@@ -148,6 +155,10 @@ class Catalog(object):
                         files or a string for FITS files. (default: 0 or '0', which means not to
                         read in this column. When reading from a file, either x_col and y_col are
                         required or ra_col and dec_col are required.)
+    :param r_col:       The column to use for the r values. This should be an integer for ASCII
+                        files or a string for FITS files.  Note that r_col is invalid in 
+                        conjunction with x_col/y_col. (default: 0 or '0', which means not to
+                        read in this column.)
     :param x_units:     The units to use for the x values, given as a string.  Valid options are
                         arcsec, arcmin, degrees, hours, radians.  (default: radians, although 
                         with (x,y) positions, you can often just ignore the units, and the output
@@ -162,10 +173,6 @@ class Catalog(object):
     :param dec_units:   The units to use for the dec values, given as a string.  Valid options are
                         arcsec, arcmin, degrees, hours, radians. (required when using dec_col or
                         providing dec directly)
-    :param r_col:       The column to use for the r values. This should be an integer for ASCII
-                        files or a string for FITS files.  Note that r_col is invalid in 
-                        conjunction with x_col/y_col. (default: 0 or '0', which means not to
-                        read in this column.)
     :param g1_col:       The column to use for the g1 values. This should be an integer for ASCII
                         files or a string for FITS files. (default: 0 or '0', which means not to
                         read in this column.)
@@ -296,7 +303,7 @@ class Catalog(object):
                 'The number of digits after the decimal in the output.'),
     }
     def __init__(self, file_name=None, config=None, num=0, logger=None, is_rand=False,
-                 x=None, y=None, ra=None, dec=None, r=None, w=None, flag=None,
+                 x=None, y=None, z=None, ra=None, dec=None, r=None, w=None, flag=None,
                  g1=None, g2=None, k=None, **kwargs):
 
         self.config = treecorr.config.merge_config(config,kwargs,Catalog._valid_params)
@@ -310,6 +317,7 @@ class Catalog(object):
         # Start with everything set to None.  Overwrite as appropriate.
         self.x = None
         self.y = None
+        self.z = None
         self.ra = None
         self.dec = None
         self.r = None
@@ -323,6 +331,9 @@ class Catalog(object):
         self.nfields = {}
         self.kfields = {}
         self.gfields = {}
+        self.nsimplefields = {}
+        self.ksimplefields = {}
+        self.gsimplefields = {}
 
         # First style -- read from a file
         if file_name is not None:
@@ -367,6 +378,7 @@ class Catalog(object):
             self.name = ''
             self.x = self.makeArray(x,'x')
             self.y = self.makeArray(y,'y')
+            self.z = self.makeArray(z,'z')
             self.ra = self.makeArray(ra,'ra')
             self.dec = self.makeArray(dec,'dec')
             self.r = self.makeArray(r,'r')
@@ -387,6 +399,9 @@ class Catalog(object):
             self.y_units = treecorr.config.get_from_list(self.config,'y_units',num,str,'radians')
             self.x *= self.x_units
             self.y *= self.y_units
+            if self.z is not None:
+                self.z_units = treecorr.config.get_from_list(self.config,'z_units',num,str,'radians')
+                self.z *= self.z_units
         else:
             if not self.config.get('ra_units',None):
                 raise ValueError("ra_units is required when using ra, dec")
@@ -441,6 +456,7 @@ class Catalog(object):
         self.logger.debug('start..end = %d..%d',start,end)
         if self.x is not None: self.x = self.x[start:end]
         if self.y is not None: self.y = self.y[start:end]
+        if self.z is not None: self.z = self.z[start:end]
         if self.ra is not None: self.ra = self.ra[start:end]
         if self.dec is not None: self.dec = self.dec[start:end]
         if self.r is not None: self.r = self.r[start:end]
@@ -460,6 +476,8 @@ class Catalog(object):
                 raise ValueError("ra and dec have different numbers of elements")
         if nobj == 0:
             raise RuntimeError("Catalog has no objects!")
+        if self.z is not None and len(self.z) != nobj: 
+            raise ValueError("z has the wrong numbers of elements")
         if self.r is not None and len(self.r) != nobj:
             raise ValueError("r has the wrong numbers of elements")
         if self.w is not None and len(self.w) != nobj:
@@ -474,6 +492,7 @@ class Catalog(object):
         # Check for NaN's:
         self.checkForNaN(self.x,'x')
         self.checkForNaN(self.y,'y')
+        self.checkForNaN(self.z,'z')
         self.checkForNaN(self.ra,'ra')
         self.checkForNaN(self.dec,'dec')
         self.checkForNaN(self.r,'r')
@@ -512,12 +531,27 @@ class Catalog(object):
                 self.vark = 0.
             self.w = numpy.ones( (self.nobj) )
 
+        if self.ra is not None:
+            # Should have already been checked above, so just use assert here.
+            assert self.x is None
+            assert self.y is None
+            assert self.z is None
+            self.x, self.y, self.z = treecorr.CelestialCoord.radec_to_xyz(self.ra, self.dec)
+            if self.r is None:
+                self.coords = 'spherical'
+            else:
+                self.x *= self.r
+                self.y *= self.r
+                self.z *= self.r
+                self.coords = '3d'
+            self.x_units = self.y_units = self.z_units = 1.
+        else:
+            if self.z is None:
+                self.coords = 'flat'
+            else:
+                self.coords = '3d'
+
         self.logger.info("   nobj = %d",nobj)
-
-
-    def is3d(self):
-        """Does the catalog have 3d positions (ra,dec,r)?"""
-        return self.ra is not None and self.dec is not None and self.r is not None
 
 
     def makeArray(self, col, col_str, dtype=float):
@@ -602,6 +636,7 @@ class Catalog(object):
         # Get the column numbers or names
         x_col = treecorr.config.get_from_list(self.config,'x_col',num,int,0)
         y_col = treecorr.config.get_from_list(self.config,'y_col',num,int,0)
+        z_col = treecorr.config.get_from_list(self.config,'z_col',num,int,0)
         ra_col = treecorr.config.get_from_list(self.config,'ra_col',num,int,0)
         dec_col = treecorr.config.get_from_list(self.config,'dec_col',num,int,0)
         r_col = treecorr.config.get_from_list(self.config,'r_col',num,int,0)
@@ -630,6 +665,9 @@ class Catalog(object):
             self.logger.debug('read x = %s',str(self.x))
             self.y = data[:,y_col-1].astype(float)
             self.logger.debug('read y = %s',str(self.y))
+            if z_col != 0:
+                self.z = data[:,z_col-1].astype(float)
+                self.logger.debug('read r = %s',str(self.r))
         elif ra_col != 0 or dec_col != 0:
             if ra_col <= 0 or ra_col > ncols:
                 raise AttributeError("ra_col missing or invalid for file %s"%file_name)
@@ -759,6 +797,12 @@ class Catalog(object):
                 self.logger.debug('read x = %s',str(self.x))
                 self.y = fits[y_hdu].read_column(y_col).astype(float)
                 self.logger.debug('read y = %s',str(self.y))
+                if z_col != '0':
+                    z_hdu = treecorr.config.get_from_list(self.config,'z_hdu',num,int,hdu)
+                    if z_col not in fits[z_hdu].get_colnames():
+                        raise AttributeError("z_col is invalid for file %s"%file_name)
+                    self.z = fits[z_hdu].read_column(z_col).astype(float)
+                    self.logger.debug('read z = %s',str(self.z))
             else:
                 ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
                 dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
@@ -828,7 +872,7 @@ class Catalog(object):
                     self.logger.debug('read k = %s',str(self.k))
 
  
-    def getNField(self, min_sep, max_sep, b, split_method='mean', perp=False, max_top=10,
+    def getNField(self, min_sep, max_sep, b, split_method='mean', metric='Euclidean', max_top=10,
                   logger=None):
         """Return an NField based on the positions in this catalog.
 
@@ -840,15 +884,21 @@ class Catalog(object):
                                 This should be bin_size * bin_slop.
         :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                                 (default: 'mean')
-        :param perp:            Whether to use the perpendicular distance rather than the 3d 
-                                separation (for catalogs with 3d positions) (default: False)
+        :param metric:          Which metric to use for distance measurements.  Options are:
+                                - 'Euclidean' = straight line Euclidean distance between two points.
+                                For spherical coordinates (ra,dec without r), this is the chord
+                                distance between points on the unit sphere.
+                                - 'Rperp' = the perpendicular component of the distance. For two 
+                                points with distance from Earth r1,r2, if d is the normal Euclidean
+                                distance and Rparallel = |r1 - r2|, then Rperp^2 = d^2-Rparallel^2.
+                                (default: 'Euclidean')
         :param max_top:         The maximum number of top layers to use when setting up the
                                 field. (default: 10)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.NField` object
         """
-        args = (min_sep, max_sep, b, split_method, perp, max_top)
+        args = (min_sep, max_sep, b, split_method, metric, max_top)
         if args in self.nfields:
             nfield = self.nfields[args]
         else:
@@ -856,11 +906,10 @@ class Catalog(object):
                 logger = self.logger
             nfield = treecorr.NField(self,*args,logger=logger)
             self.nfields[args] = nfield
-
         return nfield
 
 
-    def getKField(self, min_sep, max_sep, b, split_method='mean', perp=False, max_top=10,
+    def getKField(self, min_sep, max_sep, b, split_method='mean', metric='Euclidean', max_top=10,
                   logger=None):
         """Return a KField based on the k values in this catalog.
 
@@ -872,15 +921,21 @@ class Catalog(object):
                                 This should be bin_size * bin_slop.
         :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                                 (default: 'mean')
-        :param perp:            Whether to use the perpendicular distance rather than the 3d 
-                                separation (for catalogs with 3d positions) (default: False)
+        :param metric:          Which metric to use for distance measurements.  Options are:
+                                - 'Euclidean' = straight line Euclidean distance between two points.
+                                For spherical coordinates (ra,dec without r), this is the chord
+                                distance between points on the unit sphere.
+                                - 'Rperp' = the perpendicular component of the distance. For two 
+                                points with distance from Earth r1,r2, if d is the normal Euclidean
+                                distance and Rparallel = |r1 - r2|, then Rperp^2 = d^2-Rparallel^2.
+                                (default: 'Euclidean')
         :param max_top:         The maximum number of top layers to use when setting up the
                                 field. (default: 10)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.KField` object
         """
-        args = (min_sep, max_sep, b, split_method, perp, max_top)
+        args = (min_sep, max_sep, b, split_method, metric, max_top)
         if args in self.kfields:
             kfield = self.kfields[args]
         else:
@@ -893,7 +948,7 @@ class Catalog(object):
         return kfield
 
 
-    def getGField(self, min_sep, max_sep, b, split_method='mean', perp=False, max_top=10,
+    def getGField(self, min_sep, max_sep, b, split_method='mean', metric='Euclidean', max_top=10,
                   logger=None):
         """Return a GField based on the g1,g2 values in this catalog.
 
@@ -905,15 +960,21 @@ class Catalog(object):
                                 This should be bin_size * bin_slop.
         :param split_method:    Which split method to use ('mean', 'median', or 'middle')
                                 (default: 'mean')
-        :param perp:            Whether to use the perpendicular distance rather than the 3d 
-                                separation (for catalogs with 3d positions) (default: False)
+        :param metric:          Which metric to use for distance measurements.  Options are:
+                                - 'Euclidean' = straight line Euclidean distance between two points.
+                                For spherical coordinates (ra,dec without r), this is the chord
+                                distance between points on the unit sphere.
+                                - 'Rperp' = the perpendicular component of the distance. For two 
+                                points with distance from Earth r1,r2, if d is the normal Euclidean
+                                distance and Rparallel = |r1 - r2|, then Rperp^2 = d^2-Rparallel^2.
+                                (default: 'Euclidean')
         :param max_top:         The maximum number of top layers to use when setting up the
                                 field. (default: 10)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.GField` object
         """
-        args = (min_sep, max_sep, b, split_method, perp, max_top)
+        args = (min_sep, max_sep, b, split_method, metric, max_top)
         if args in self.gfields:
             gfield = self.gfields[args]
         else:
@@ -926,27 +987,34 @@ class Catalog(object):
         return gfield
 
 
-    def getNSimpleField(self, perp=False, logger=None):
+    def getNSimpleField(self, metric='Euclidean', logger=None):
         """Return an NSimpleField based on the positions in this catalog.
 
         The NSimpleField object is cached, so this is efficient to call multiple times.
 
-        :param perp:            Whether to use the perpendicular distance rather than the 3d 
-                                separation (for catalogs with 3d positions) (default: False)
+        :param metric:          Which metric to use for distance measurements.  Options are:
+                                - 'Euclidean' = straight line Euclidean distance between two points.
+                                For spherical coordinates (ra,dec without r), this is the chord
+                                distance between points on the unit sphere.
+                                - 'Rperp' = the perpendicular component of the distance. For two 
+                                points with distance from Earth r1,r2, if d is the normal Euclidean
+                                distance and Rparallel = |r1 - r2|, then Rperp^2 = d^2-Rparallel^2.
+                                (default: 'Euclidean')
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.NSimpleField` object
         """
-        if (not hasattr(self,'nsimplefield')
-            or perp != self.nfield.perp):
+        args = (metric, )
+        if args in self.nsimplefields:
+            nsimplefield = self.nsimplefields[args]
+        else:
             if logger is None:
                 logger = self.logger
-            self.nsimplefield = treecorr.NSimpleField(self,perp,logger)
-
+            self.nsimplefield = treecorr.NSimpleField(self,*args,logger=logger)
         return self.nsimplefield
 
 
-    def getKSimpleField(self, perp=False, logger=None):
+    def getKSimpleField(self, metric='Euclidean', logger=None):
         """Return a KSimpleField based on the k values in this catalog.
 
         The KSimpleField object is cached, so this is efficient to call multiple times.
@@ -957,36 +1025,40 @@ class Catalog(object):
 
         :returns:               A :class:`~treecorr.KSimpleField` object
         """
-        if (not hasattr(self,'ksimplefield')
-            or perp != self.kfield.perp):
-            if self.k is None:
-                raise AttributeError("k are not defined.")
+        args = (metric, )
+        if args in self.ksimplefields:
+            ksimplefield = self.ksimplefields[args]
+        else:
             if logger is None:
                 logger = self.logger
-            self.ksimplefield = treecorr.KSimpleField(self,perp,logger)
-
+            self.ksimplefield = treecorr.KSimpleField(self,*args,logger=logger)
         return self.ksimplefield
 
 
-    def getGSimpleField(self, perp=False, logger=None):
+    def getGSimpleField(self, metric='Euclidean', logger=None):
         """Return a GSimpleField based on the g1,g2 values in this catalog.
 
         The GSimpleField object is cached, so this is efficient to call multiple times.
 
-        :param perp:            Whether to use the perpendicular distance rather than the 3d 
-                                separation (for catalogs with 3d positions) (default: False)
+        :param metric:          Which metric to use for distance measurements.  Options are:
+                                - 'Euclidean' = straight line Euclidean distance between two points.
+                                For spherical coordinates (ra,dec without r), this is the chord
+                                distance between points on the unit sphere.
+                                - 'Rperp' = the perpendicular component of the distance. For two 
+                                points with distance from Earth r1,r2, if d is the normal Euclidean
+                                distance and Rparallel = |r1 - r2|, then Rperp^2 = d^2-Rparallel^2.
+                                (default: 'Euclidean')
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.GSimpleField` object
         """
-        if (not hasattr(self,'gsimplefield')
-            or perp != self.gfield.perp):
-            if self.g1 is None or self.g2 is None:
-                raise AttributeError("g1,g2 are not defined.")
+        args = (metric, )
+        if args in self.gsimplefields:
+            gsimplefield = self.gsimplefields[args]
+        else:
             if logger is None:
                 logger = self.logger
-            self.gsimplefield = treecorr.GSimpleField(self,perp,logger)
-
+            self.gsimplefield = treecorr.GSimpleField(self,*args,logger=logger)
         return self.gsimplefield
 
     def write(self, file_name, file_type=None):
@@ -1010,21 +1082,22 @@ class Catalog(object):
  
         col_names = []
         columns = []
-        if self.x is not None:
-            col_names.append('x')
-            columns.append(self.x / self.x_units)
-        if self.y is not None:
-            col_names.append('y')
-            columns.append(self.y / self.y_units)
         if self.ra is not None:
             col_names.append('ra')
             columns.append(self.ra / self.ra_units)
-        if self.dec is not None:
             col_names.append('dec')
             columns.append(self.dec / self.dec_units)
-        if self.r is not None:
-            col_names.append('r')
-            columns.append(self.r)
+            if self.r is not None:
+                col_names.append('r')
+                columns.append(self.r)
+        else:
+            col_names.append('x')
+            columns.append(self.x / self.x_units)
+            col_names.append('y')
+            columns.append(self.y / self.y_units)
+            if self.z is not None:
+                col_names.append('z')
+                columns.append(self.z / self.z_units)
         if self.w is not None:
             col_names.append('w')
             columns.append(self.w)
@@ -1051,6 +1124,7 @@ class Catalog(object):
         s = 'Catalog('
         if self.x is not None: s += 'x='+repr(self.x)+','
         if self.y is not None: s += 'y='+repr(self.y)+','
+        if self.z is not None: s += 'z='+repr(self.z)+','
         if self.ra is not None: s += 'ra='+repr(self.ra)+','
         if self.dec is not None: s += 'dec='+repr(self.dec)+','
         if self.r is not None: s += 'r='+repr(self.r)+','

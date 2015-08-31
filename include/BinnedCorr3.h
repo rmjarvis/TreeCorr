@@ -389,35 +389,35 @@ extern "C" {
 #endif
 
     extern void ProcessAutoNNNFlat(void* corr, void* field, int dots);
-    extern void ProcessAutoNNNSphere(void* corr, void* field, int dots);
+    extern void ProcessAutoNNN3D(void* corr, void* field, int dots);
     extern void ProcessAutoNNNPerp(void* corr, void* field, int dots);
     extern void ProcessAutoKKKFlat(void* corr, void* field, int dots);
-    extern void ProcessAutoKKKSphere(void* corr, void* field, int dots);
+    extern void ProcessAutoKKK3D(void* corr, void* field, int dots);
     extern void ProcessAutoKKKPerp(void* corr, void* field, int dots);
 #if 0
     extern void ProcessAutoGGGFlat(void* corr, void* field, int dots);
-    extern void ProcessAutoGGGSphere(void* corr, void* field, int dots);
+    extern void ProcessAutoGGG3D(void* corr, void* field, int dots);
     extern void ProcessAutoGGGPerp(void* corr, void* field, int dots);
 #endif
 
     extern void ProcessCrossNNNFlat(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossNNNSphere(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossNNN3D(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossNNNPerp(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossKKKFlat(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossKKKSphere(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossKKK3D(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossKKKPerp(void* corr, void* field1, void* field2, void* field3, int dots);
 #if 0
     extern void ProcessCrossGGGFlat(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossGGGSphere(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossGGG3D(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossGGGPerp(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossNNKFlat(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossNNKSphere(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossNNK3D(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossNNKPerp(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossNNGFlat(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossNNGSphere(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossNNG3D(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossNNGPerp(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossKKGFlat(void* corr, void* field1, void* field2, void* field3, int dots);
-    extern void ProcessCrossKKGSphere(void* corr, void* field1, void* field2, void* field3, int dots);
+    extern void ProcessCrossKKG3D(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossKKGPerp(void* corr, void* field1, void* field2, void* field3, int dots);
 #endif
 }

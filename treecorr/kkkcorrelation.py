@@ -40,10 +40,10 @@ _treecorr.BuildKKKCorr.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyKKKCorr.argtypes = [ cvoid_ptr ]
 _treecorr.ProcessAutoKKKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessAutoKKKSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessAutoKKK3D.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessAutoKKKPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossKKKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossKKKSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossKKK3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossKKKPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
@@ -175,24 +175,20 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
-        if metric == 'Rperp' and not cat.is3d():
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads()
 
         min_size = self.min_sep * self.min_u
         max_size = 2.*self.max_sep 
         b = numpy.max( (self.b, self.bu, self.bv) )
-        perp = (metric == 'Rperp')
-        field = cat.getKField(min_size,max_size,b,self.split_method,perp,self.max_top)
+        field = cat.getKField(min_size,max_size,b,self.split_method,metric,self.max_top)
 
-        if field.sphere:
-            if perp:
-                _treecorr.ProcessAutoKKKPerp(self.corr, field.data, self.output_dots)
-            else:
-                _treecorr.ProcessAutoKKKSphere(self.corr, field.data, self.output_dots)
-        else:
+        if field.flat:
             _treecorr.ProcessAutoKKKFlat(self.corr, field.data, self.output_dots)
+        elif field.perp:
+            _treecorr.ProcessAutoKKKPerp(self.corr, field.data, self.output_dots)
+        else:
+            _treecorr.ProcessAutoKKK3D(self.corr, field.data, self.output_dots)
 
     def process_cross21(self, cat1, cat2, metric='Euclidean'):
         """Process two catalogs, accumulating the 3pt cross-correlation, where two of the 
@@ -220,8 +216,8 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         :param cat1:    The first catalog to process
         :param cat2:    The second catalog to process
         :param cat3:    The third catalog to process
-        :param perp:    Whether to use the perpendicular distance rather than the 3d separation
-                        (for catalogs with 3d positions) (default: False)
+        :param metric:  Which metric to use.  See the doc string for :process: for details.
+                        (default: 'Euclidean')
         """
         if cat1.name == '' and cat2.name == '' and cat3.name == '':
             self.logger.info('Starting process KKK cross-correlations')
@@ -231,31 +227,24 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
-        if cat1.is3d() != cat2.is3d() or cat1.is3d() != cat3.is3d():
+        if cat1.coords != cat2.coords or cat1.coords != cat3.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and not cat1.is3d():
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads()
 
         min_size = self.min_sep * self.min_u
         max_size = 2.*self.max_sep 
         b = numpy.max( (self.b, self.bu, self.bv) )
-        perp = (metric == 'Rperp')
-        f1 = cat1.getKField(min_size,max_size,b,self.split_method,perp,self.max_top)
-        f2 = cat2.getKField(min_size,max_size,b,self.split_method,perp,self.max_top)
-        f3 = cat3.getKField(min_size,max_size,b,self.split_method,perp,self.max_top)
+        f1 = cat1.getKField(min_size,max_size,b,self.split_method,metric,self.max_top)
+        f2 = cat2.getKField(min_size,max_size,b,self.split_method,metric,self.max_top)
+        f3 = cat3.getKField(min_size,max_size,b,self.split_method,metric,self.max_top)
 
-        if f1.sphere != f2.sphere or f1.sphere != f3.sphere:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-
-        if f1.sphere:
-            if perp:
-                _treecorr.ProcessCrossKKKPerp(self.corr, f1.data, f2.data, f3.data, self.output_dots)
-            else:
-                _treecorr.ProcessCrossKKKSphere(self.corr, f1.data, f2.data, f3.data, self.output_dots)
-        else:
+        if f1.flat:
             _treecorr.ProcessCrossKKKFlat(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+        elif f1.perp:
+            _treecorr.ProcessCrossKKKPerp(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+        else:
+            _treecorr.ProcessCrossKKK3D(self.corr, f1.data, f2.data, f3.data, self.output_dots)
 
 
     def finalize(self, vark1, vark2, vark3):

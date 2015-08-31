@@ -40,10 +40,10 @@ _treecorr.BuildNNNCorr.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyNNNCorr.argtypes = [ cvoid_ptr ]
 _treecorr.ProcessAutoNNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessAutoNNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessAutoNNN3D.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessAutoNNNPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossNNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossNNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossNNN3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossNNNPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
@@ -173,24 +173,20 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
-        if metric == 'Rperp' and not cat.is3d():
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads()
 
         min_size = self.min_sep * self.min_u
         max_size = 2.*self.max_sep 
         b = numpy.max( (self.b, self.bu, self.bv) )
-        perp = (metric == 'Rperp')
-        field = cat.getNField(min_size,max_size,b,self.split_method,perp,self.max_top)
+        field = cat.getNField(min_size,max_size,b,self.split_method,metric,self.max_top)
 
-        if field.sphere:
-            if perp:
-                _treecorr.ProcessAutoNNNPerp(self.corr, field.data, self.output_dots)
-            else:
-                _treecorr.ProcessAutoNNNSphere(self.corr, field.data, self.output_dots)
-        else:
+        if field.flat:
             _treecorr.ProcessAutoNNNFlat(self.corr, field.data, self.output_dots)
+        elif field.perp:
+            _treecorr.ProcessAutoNNNPerp(self.corr, field.data, self.output_dots)
+        else:
+            _treecorr.ProcessAutoNNN3D(self.corr, field.data, self.output_dots)
         self.tot += (1./6.) * cat.nobj**3
 
     def process_cross21(self, cat1, cat2, metric='Euclidean'):
@@ -230,31 +226,24 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
-        if cat1.is3d() != cat2.is3d() or cat1.is3d() != cat3.is3d():
+        if cat1.coords != cat2.coords or cat1.coords != cat3.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and not cat1.is3d():
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads()
 
         min_size = self.min_sep * self.min_u
         max_size = 2.*self.max_sep 
         b = numpy.max( (self.b, self.bu, self.bv) )
-        perp = (metric == 'Rperp')
-        f1 = cat1.getNField(min_size,max_size,b,self.split_method,perp,self.max_top)
-        f2 = cat2.getNField(min_size,max_size,b,self.split_method,perp,self.max_top)
-        f3 = cat3.getNField(min_size,max_size,b,self.split_method,perp,self.max_top)
+        f1 = cat1.getNField(min_size,max_size,b,self.split_method,metric,self.max_top)
+        f2 = cat2.getNField(min_size,max_size,b,self.split_method,metric,self.max_top)
+        f3 = cat3.getNField(min_size,max_size,b,self.split_method,metric,self.max_top)
 
-        if f1.sphere != f2.sphere or f1.sphere != f3.sphere:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-
-        if f1.sphere:
-            if perp:
-                _treecorr.ProcessCrossNNNPerp(self.corr, f1.data, f2.data, f3.data, self.output_dots)
-            else:
-                _treecorr.ProcessCrossNNNSphere(self.corr, f1.data, f2.data, f3.data, self.output_dots)
-        else:
+        if f1.flat:
             _treecorr.ProcessCrossNNNFlat(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+        elif f1.perp:
+            _treecorr.ProcessCrossNNNPerp(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+        else:
+            _treecorr.ProcessCrossNNN3D(self.corr, f1.data, f2.data, f3.data, self.output_dots)
         self.tot += cat1.nobj * cat2.nobj * cat3.nobj / 6.0
 
 

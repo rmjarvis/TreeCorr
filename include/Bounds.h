@@ -21,7 +21,7 @@
 
 // We use a code for the metric to use:
 // Flat = flat-sky approximation using (x,y)
-// Sphere = spherical geometry using (ra,dec,r) -> (x,y,z)
+// Sphere = spherical geometry using (ra,dec,r) or (x,y,z)
 // Perp = 3D, but using the perpendicular component of the separation as the distance
 enum Metric { Flat=1, Sphere=2, Perp=3 };
 
@@ -176,47 +176,26 @@ class Position<Sphere>
 {
 
 public:
-    Position() : _x(0.), _y(0.), _z(0.), _is3d(false) {}
+    Position() : _x(0.), _y(0.), _z(0.), _spher(false) {}
     Position(const Position<Sphere>& rhs) : 
-        _x(rhs._x), _y(rhs._y), _z(rhs._z), _is3d(rhs._is3d) {}
+        _x(rhs._x), _y(rhs._y), _z(rhs._z), _spher(rhs._spher) {}
     ~Position() {}
-    Position(double x, double y, double z, bool is3d) :
-        _x(x), _y(y), _z(z), _is3d(is3d) {}
+    Position(double x, double y, double z, bool spher) :
+        _x(x), _y(y), _z(z), _spher(spher) {}
     Position<Sphere>& operator=(const Position<Sphere>& rhs) 
-    { _x = rhs.getX(); _y = rhs.getY(); _z = rhs.getZ(); _is3d = rhs.is3D(); return *this; }
-
-    // Position<Sphere> can also be initialized with a Postion<Flat> object, which is 
-    // taken to be RA, Dec, both in radians.  The <Sphere> position is then the 
-    // corresponding point on the unit sphere.
-    Position(const Position<Flat>& rhs) : _is3d(false) 
-    { buildFromRaDec(rhs.getX(), rhs.getY()); }
-    Position(double ra, double dec) : _is3d(false)
-    { buildFromRaDec(ra, dec); }
-    Position(double ra, double dec, double r) : _is3d(true)
-    { buildFromRaDec(ra, dec); _x*=r; _y*=r; _z*=r; }
-
-    void buildFromRaDec(double ra, double dec)
-    {
-        const double cosra = cos(ra);
-        const double sinra = sin(ra);
-        const double cosdec = cos(dec);
-        const double sindec = sin(dec);
-        _x = cosdec * cosra;
-        _y = cosdec * sinra;
-        _z = sindec;
-    }
+    { _x = rhs.getX(); _y = rhs.getY(); _z = rhs.getZ(); _spher = rhs.isSpher(); return *this; }
 
     double getX() const { return _x; }
     double getY() const { return _y; }
     double getZ() const { return _z; }
-    bool is3D() const { return _is3d; }
+    bool isSpher() const { return _spher; }
     double get(int split) const { return split==2 ? _z : split==1 ? _y : _x; }
 
     double normSq() const { return _x*_x + _y*_y + _z*_z; }
     double norm() const { return sqrt(normSq()); }
 
     // If appropriate, put the position back on the unit sphere.
-    void normalize() { if (!_is3d) *this /= norm(); }
+    void normalize() { if (_spher) *this /= norm(); }
 
     Position<Sphere>& operator+=(const Position<Sphere>& p2)
     { _x += p2.getX(); _y += p2.getY(); _z += p2.getZ(); return *this; }
@@ -237,13 +216,13 @@ public:
     { Position<Sphere> p1 = *this; p1 /= a; return p1; }
 
     void read(std::istream& fin) 
-    { fin >> _x >> _y >> _z >> _is3d; }
+    { fin >> _x >> _y >> _z >> _spher; }
     void write(std::ostream& fout) const
-    { fout << _x << " " << _y << " " << _z << " " << _is3d << " "; }
+    { fout << _x << " " << _y << " " << _z << " " << _spher << " "; }
 
 private:
     double _x,_y,_z;
-    bool _is3d;
+    bool _spher;
 
 }; // Position<Sphere>
 
@@ -347,8 +326,7 @@ public:
     Position() : Position<Sphere>(0.,0.,0.,true) {}
     Position(const Position<Perp>& rhs) : Position<Sphere>(rhs) {}
     ~Position() {}
-    Position(double x, double y, double z, bool) : Position<Sphere>(x,y,z,true) {}
-    Position(double ra, double dec, double r) : Position<Sphere>(ra,dec,r) {}
+    Position(double x, double y, double z, bool spher) : Position<Sphere>(x,y,z,spher) {}
     Position<Perp>& operator=(const Position<Perp>& rhs) 
     { Position<Sphere>::operator=(rhs); return *this; }
 

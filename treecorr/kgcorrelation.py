@@ -38,10 +38,10 @@ _treecorr.BuildKGCorr.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyKGCorr.argtypes = [ cvoid_ptr ]
 _treecorr.ProcessCrossKGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossKGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossKG3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossKGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseKGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessPairwiseKGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseKG3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseKGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
@@ -154,27 +154,20 @@ class KGCorrelation(treecorr.BinnedCorr2):
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
-        if cat1.is3d() != cat2.is3d():
+        if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and not cat1.is3d():
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads()
 
-        perp = (metric == 'Rperp')
-        f1 = cat1.getKField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
-        f2 = cat2.getGField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
+        f1 = cat1.getKField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
+        f2 = cat2.getGField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
 
-        if f1.sphere != f2.sphere:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-
-        if f1.sphere:
-            if perp:
-                _treecorr.ProcessCrossKGPerp(self.corr, f1.data, f2.data, self.output_dots)
-            else:
-                _treecorr.ProcessCrossKGSphere(self.corr, f1.data, f2.data, self.output_dots)
-        else:
+        if f1.flat:
             _treecorr.ProcessCrossKGFlat(self.corr, f1.data, f2.data, self.output_dots)
+        elif f1.perp:
+            _treecorr.ProcessCrossKGPerp(self.corr, f1.data, f2.data, self.output_dots)
+        else:
+            _treecorr.ProcessCrossKG3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def process_pairwise(self, cat1, cat2, metric='Euclidean'):
@@ -199,27 +192,20 @@ class KGCorrelation(treecorr.BinnedCorr2):
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
-        if metric == 'Rperp' and not cat.is3d():
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
-        if cat1.is3d() != cat2.is3d():
+        if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
         self._set_num_threads()
 
-        perp = (metric == 'Rperp')
-        f1 = cat1.getKSimpleField(perp)
-        f2 = cat2.getGSimpleField(perp)
+        f1 = cat1.getKSimpleField(metric)
+        f2 = cat2.getGSimpleField(metric)
 
-        if f1.sphere != f2.sphere:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-
-        if f1.sphere:
-            if perp:
-                _treecorr.ProcessPairwiseKGPerp(self.corr, f1.data, f2.data, self.output_dots)
-            else:
-                _treecorr.ProcessPairwiseKGSphere(self.corr, f1.data, f2.data, self.output_dots)
-        else:
+        if f1.flat:
             _treecorr.ProcessPairwiseKGFlat(self.corr, f1.data, f2.data, self.output_dots)
+        elif f1.perp:
+            _treecorr.ProcessPairwiseKGPerp(self.corr, f1.data, f2.data, self.output_dots)
+        else:
+            _treecorr.ProcessPairwiseKG3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def finalize(self, vark, varg):

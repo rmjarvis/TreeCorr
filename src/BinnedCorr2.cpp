@@ -846,9 +846,9 @@ void ProcessAutoNNFlat(void* corr, void* field, int dots)
     static_cast<BinnedCorr2<NData,NData>*>(corr)->process(
         *static_cast<Field<NData,Flat>*>(field),dots);
 }
-void ProcessAutoNNSphere(void* corr, void* field, int dots)
+void ProcessAutoNN3D(void* corr, void* field, int dots)
 {
-    dbg<<"Start ProcessAutoNNSphere\n";
+    dbg<<"Start ProcessAutoNN3D\n";
     static_cast<BinnedCorr2<NData,NData>*>(corr)->process(
         *static_cast<Field<NData,Sphere>*>(field),dots);
 }
@@ -865,9 +865,9 @@ void ProcessAutoKKFlat(void* corr, void* field, int dots)
     static_cast<BinnedCorr2<KData,KData>*>(corr)->process(
         *static_cast<Field<KData,Flat>*>(field),dots);
 }
-void ProcessAutoKKSphere(void* corr, void* field, int dots)
+void ProcessAutoKK3D(void* corr, void* field, int dots)
 {
-    dbg<<"Start ProcessAutoKKSphere\n";
+    dbg<<"Start ProcessAutoKK3D\n";
     static_cast<BinnedCorr2<KData,KData>*>(corr)->process(
         *static_cast<Field<KData,Sphere>*>(field),dots);
 }
@@ -884,9 +884,9 @@ void ProcessAutoGGFlat(void* corr, void* field, int dots)
     static_cast<BinnedCorr2<GData,GData>*>(corr)->process(
         *static_cast<Field<GData,Flat>*>(field),dots);
 }
-void ProcessAutoGGSphere(void* corr, void* field, int dots)
+void ProcessAutoGG3D(void* corr, void* field, int dots)
 {
-    dbg<<"Start ProcessAutoGGSphere\n";
+    dbg<<"Start ProcessAutoGG3D\n";
     static_cast<BinnedCorr2<GData,GData>*>(corr)->process(
         *static_cast<Field<GData,Sphere>*>(field),dots);
 }
@@ -904,9 +904,9 @@ void ProcessCrossNNFlat(void* corr, void* field1, void* field2, int dots)
         *static_cast<Field<NData,Flat>*>(field1),
         *static_cast<Field<NData,Flat>*>(field2),dots);
 }
-void ProcessCrossNNSphere(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNN3D(void* corr, void* field1, void* field2, int dots)
 {
-    dbg<<"Start ProcessCrossNNSphere\n";
+    dbg<<"Start ProcessCrossNN3D\n";
     static_cast<BinnedCorr2<NData,NData>*>(corr)->process(
         *static_cast<Field<NData,Sphere>*>(field1),
         *static_cast<Field<NData,Sphere>*>(field2),dots);
@@ -926,9 +926,9 @@ void ProcessCrossNKFlat(void* corr, void* field1, void* field2, int dots)
         *static_cast<Field<NData,Flat>*>(field1),
         *static_cast<Field<KData,Flat>*>(field2),dots);
 }
-void ProcessCrossNKSphere(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNK3D(void* corr, void* field1, void* field2, int dots)
 {
-    dbg<<"Start ProcessCrossNKSphere\n";
+    dbg<<"Start ProcessCrossNK3D\n";
     static_cast<BinnedCorr2<NData,KData>*>(corr)->process(
         *static_cast<Field<NData,Sphere>*>(field1),
         *static_cast<Field<KData,Sphere>*>(field2),dots);
@@ -948,9 +948,9 @@ void ProcessCrossNGFlat(void* corr, void* field1, void* field2, int dots)
         *static_cast<Field<NData,Flat>*>(field1),
         *static_cast<Field<GData,Flat>*>(field2),dots);
 }
-void ProcessCrossNGSphere(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNG3D(void* corr, void* field1, void* field2, int dots)
 {
-    dbg<<"Start ProcessCrossNGSphere\n";
+    dbg<<"Start ProcessCrossNG3D\n";
     static_cast<BinnedCorr2<NData,GData>*>(corr)->process(
         *static_cast<Field<NData,Sphere>*>(field1),
         *static_cast<Field<GData,Sphere>*>(field2),dots);
@@ -970,9 +970,9 @@ void ProcessCrossKKFlat(void* corr, void* field1, void* field2, int dots)
         *static_cast<Field<KData,Flat>*>(field1),
         *static_cast<Field<KData,Flat>*>(field2),dots);
 }
-void ProcessCrossKKSphere(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossKK3D(void* corr, void* field1, void* field2, int dots)
 {
-    dbg<<"Start ProcessCrossKKSphere\n";
+    dbg<<"Start ProcessCrossKK3D\n";
     static_cast<BinnedCorr2<KData,KData>*>(corr)->process(
         *static_cast<Field<KData,Sphere>*>(field1),
         *static_cast<Field<KData,Sphere>*>(field2),dots);
@@ -992,9 +992,9 @@ void ProcessCrossKGFlat(void* corr, void* field1, void* field2, int dots)
         *static_cast<Field<KData,Flat>*>(field1),
         *static_cast<Field<GData,Flat>*>(field2),dots);
 }
-void ProcessCrossKGSphere(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossKG3D(void* corr, void* field1, void* field2, int dots)
 {
-    dbg<<"Start ProcessCrossKGSphere\n";
+    dbg<<"Start ProcessCrossKG3D\n";
     static_cast<BinnedCorr2<KData,GData>*>(corr)->process(
         *static_cast<Field<KData,Sphere>*>(field1),
         *static_cast<Field<GData,Sphere>*>(field2),dots);
@@ -1014,9 +1014,9 @@ void ProcessCrossGGFlat(void* corr, void* field1, void* field2, int dots)
         *static_cast<Field<GData,Flat>*>(field1),
         *static_cast<Field<GData,Flat>*>(field2),dots);
 }
-void ProcessCrossGGSphere(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossGG3D(void* corr, void* field1, void* field2, int dots)
 {
-    dbg<<"Start ProcessCrossGGSphere\n";
+    dbg<<"Start ProcessCrossGG3D\n";
     static_cast<BinnedCorr2<GData,GData>*>(corr)->process(
         *static_cast<Field<GData,Sphere>*>(field1),
         *static_cast<Field<GData,Sphere>*>(field2),dots);
@@ -1036,9 +1036,9 @@ void ProcessPairwiseNNFlat(void* corr, void* field1, void* field2, int dots)
         *static_cast<SimpleField<NData,Flat>*>(field1),
         *static_cast<SimpleField<NData,Flat>*>(field2),dots);
 }
-void ProcessPairwiseNNSphere(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseNN3D(void* corr, void* field1, void* field2, int dots)
 {
-    dbg<<"Start ProcessPairwiseNNSphere\n";
+    dbg<<"Start ProcessPairwiseNN3D\n";
     static_cast<BinnedCorr2<NData,NData>*>(corr)->processPairwise(
         *static_cast<SimpleField<NData,Sphere>*>(field1),
         *static_cast<SimpleField<NData,Sphere>*>(field2),dots);
@@ -1058,9 +1058,9 @@ void ProcessPairwiseNKFlat(void* corr, void* field1, void* field2, int dots)
         *static_cast<SimpleField<NData,Flat>*>(field1),
         *static_cast<SimpleField<KData,Flat>*>(field2),dots);
 }
-void ProcessPairwiseNKSphere(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseNK3D(void* corr, void* field1, void* field2, int dots)
 {
-    dbg<<"Start ProcessPairwiseNKSphere\n";
+    dbg<<"Start ProcessPairwiseNK3D\n";
     static_cast<BinnedCorr2<NData,KData>*>(corr)->processPairwise(
         *static_cast<SimpleField<NData,Sphere>*>(field1),
         *static_cast<SimpleField<KData,Sphere>*>(field2),dots);
@@ -1080,9 +1080,9 @@ void ProcessPairwiseNGFlat(void* corr, void* field1, void* field2, int dots)
         *static_cast<SimpleField<NData,Flat>*>(field1),
         *static_cast<SimpleField<GData,Flat>*>(field2),dots);
 }
-void ProcessPairwiseNGSphere(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseNG3D(void* corr, void* field1, void* field2, int dots)
 {
-    dbg<<"Start ProcessPairwiseNGSphere\n";
+    dbg<<"Start ProcessPairwiseNG3D\n";
     static_cast<BinnedCorr2<NData,GData>*>(corr)->processPairwise(
         *static_cast<SimpleField<NData,Sphere>*>(field1),
         *static_cast<SimpleField<GData,Sphere>*>(field2),dots);
@@ -1102,9 +1102,9 @@ void ProcessPairwiseKKFlat(void* corr, void* field1, void* field2, int dots)
         *static_cast<SimpleField<KData,Flat>*>(field1),
         *static_cast<SimpleField<KData,Flat>*>(field2),dots);
 }
-void ProcessPairwiseKKSphere(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseKK3D(void* corr, void* field1, void* field2, int dots)
 {
-    dbg<<"Start ProcessPairwiseKKSphere\n";
+    dbg<<"Start ProcessPairwiseKK3D\n";
     static_cast<BinnedCorr2<KData,KData>*>(corr)->processPairwise(
         *static_cast<SimpleField<KData,Sphere>*>(field1),
         *static_cast<SimpleField<KData,Sphere>*>(field2),dots);
@@ -1124,9 +1124,9 @@ void ProcessPairwiseKGFlat(void* corr, void* field1, void* field2, int dots)
         *static_cast<SimpleField<KData,Flat>*>(field1),
         *static_cast<SimpleField<GData,Flat>*>(field2),dots);
 }
-void ProcessPairwiseKGSphere(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseKG3D(void* corr, void* field1, void* field2, int dots)
 {
-    dbg<<"Start ProcessPairwiseKGSphere\n";
+    dbg<<"Start ProcessPairwiseKG3D\n";
     static_cast<BinnedCorr2<KData,GData>*>(corr)->processPairwise(
         *static_cast<SimpleField<KData,Sphere>*>(field1),
         *static_cast<SimpleField<GData,Sphere>*>(field2),dots);
@@ -1146,9 +1146,9 @@ void ProcessPairwiseGGFlat(void* corr, void* field1, void* field2, int dots)
         *static_cast<SimpleField<GData,Flat>*>(field1),
         *static_cast<SimpleField<GData,Flat>*>(field2),dots);
 }
-void ProcessPairwiseGGSphere(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseGG3D(void* corr, void* field1, void* field2, int dots)
 {
-    dbg<<"Start ProcessPairwiseGGSphere\n";
+    dbg<<"Start ProcessPairwiseGG3D\n";
     static_cast<BinnedCorr2<GData,GData>*>(corr)->processPairwise(
         *static_cast<SimpleField<GData,Sphere>*>(field1),
         *static_cast<SimpleField<GData,Sphere>*>(field2),dots);

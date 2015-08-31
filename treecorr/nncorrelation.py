@@ -38,13 +38,13 @@ _treecorr.BuildNNCorr.argtypes = [
     cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyNNCorr.argtypes = [ cvoid_ptr ]
 _treecorr.ProcessAutoNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessAutoNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessAutoNN3D.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessAutoNNPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossNN3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossNNPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessPairwiseNNSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseNN3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseNNPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
@@ -148,21 +148,17 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
-        if metric == 'Rperp' and not cat.is3d():
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads()
 
-        perp = (metric == 'Rperp')
-        field = cat.getNField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
+        field = cat.getNField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
 
-        if field.sphere:
-            if perp:
-                _treecorr.ProcessAutoNNPerp(self.corr, field.data, self.output_dots)
-            else:
-                _treecorr.ProcessAutoNNSphere(self.corr, field.data, self.output_dots)
-        else:
+        if field.flat:
             _treecorr.ProcessAutoNNFlat(self.corr, field.data, self.output_dots)
+        elif field.perp:
+            _treecorr.ProcessAutoNNPerp(self.corr, field.data, self.output_dots)
+        else:
+            _treecorr.ProcessAutoNN3D(self.corr, field.data, self.output_dots)
         self.tot += 0.5 * cat.nobj**2
 
 
@@ -186,27 +182,20 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
-        if cat1.is3d() != cat2.is3d():
+        if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and not cat1.is3d():
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads()
 
-        perp = (metric == 'Rperp')
-        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
-        f2 = cat2.getNField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
+        f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
+        f2 = cat2.getNField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
 
-        if f1.sphere != f2.sphere:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-
-        if f1.sphere:
-            if perp:
-                _treecorr.ProcessCrossNNPerp(self.corr, f1.data, f2.data, self.output_dots)
-            else:
-                _treecorr.ProcessCrossNNSphere(self.corr, f1.data, f2.data, self.output_dots)
-        else:
+        if f1.flat:
             _treecorr.ProcessCrossNNFlat(self.corr, f1.data, f2.data, self.output_dots)
+        elif f1.perp:
+            _treecorr.ProcessCrossNNPerp(self.corr, f1.data, f2.data, self.output_dots)
+        else:
+            _treecorr.ProcessCrossNN3D(self.corr, f1.data, f2.data, self.output_dots)
         self.tot += cat1.nobj*cat2.nobj
 
 
@@ -231,27 +220,20 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
-        if cat1.is3d() != cat2.is3d():
+        if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and not cat1.is3d():
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads()
 
-        perp = (metric == 'Rperp')
-        f1 = cat1.getNSimpleField(perp)
-        f2 = cat2.getNSimpleField(perp)
+        f1 = cat1.getNSimpleField(metric)
+        f2 = cat2.getNSimpleField(metric)
 
-        if f1.sphere != f2.sphere:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-
-        if f1.sphere:
-            if perp:
-                _treecorr.ProcessPairwiseNNPerp(self.corr, f1.data, f2.data, self.output_dots)
-            else:
-                _treecorr.ProcessPairwiseNNSphere(self.corr, f1.data, f2.data, self.output_dots)
-        else:
+        if f1.flat:
             _treecorr.ProcessPairwiseNNFlat(self.corr, f1.data, f2.data, self.output_dots)
+        elif f1.perp:
+            _treecorr.ProcessPairwiseNNPerp(self.corr, f1.data, f2.data, self.output_dots)
+        else:
+            _treecorr.ProcessPairwiseNN3D(self.corr, f1.data, f2.data, self.output_dots)
         self.tot += cat1.nobj
 
 

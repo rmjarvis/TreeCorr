@@ -38,13 +38,13 @@ _treecorr.BuildGGCorr.argtypes = [
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyGGCorr.argtypes = [ cvoid_ptr ]
 _treecorr.ProcessAutoGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint  ]
-_treecorr.ProcessAutoGGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cint  ]
+_treecorr.ProcessAutoGG3D.argtypes = [ cvoid_ptr, cvoid_ptr, cint  ]
 _treecorr.ProcessAutoGGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cint  ]
 _treecorr.ProcessCrossGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossGGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessCrossGG3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossGGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessPairwiseGGSphere.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
+_treecorr.ProcessPairwiseGG3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessPairwiseGGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 
 
@@ -161,21 +161,17 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
-        if metric == 'Rperp' and not cat.is3d():
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads()
 
-        perp = (metric == 'Rperp')
-        field = cat.getGField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
+        field = cat.getGField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
 
-        if field.sphere:
-            if perp:
-                _treecorr.ProcessAutoGGPerp(self.corr, field.data, self.output_dots)
-            else:
-                _treecorr.ProcessAutoGGSphere(self.corr, field.data, self.output_dots)
-        else:
+        if field.flat:
             _treecorr.ProcessAutoGGFlat(self.corr, field.data, self.output_dots)
+        elif field.perp:
+            _treecorr.ProcessAutoGGPerp(self.corr, field.data, self.output_dots)
+        else:
+            _treecorr.ProcessAutoGG3D(self.corr, field.data, self.output_dots)
 
 
     def process_cross(self, cat1, cat2, metric='Euclidean'):
@@ -199,27 +195,20 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
-        if cat1.is3d() != cat2.is3d():
+        if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and not cat1.is3d():
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads()
 
-        perp = (metric == 'Rperp')
         f1 = cat1.getGField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
         f2 = cat2.getGField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
 
-        if f1.sphere != f2.sphere:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-
-        if f1.sphere:
-            if perp:
-                _treecorr.ProcessCrossGGPerp(self.corr, f1.data, f2.data, self.output_dots)
-            else:
-                _treecorr.ProcessCrossGGSphere(self.corr, f1.data, f2.data, self.output_dots)
-        else:
+        if f1.flat:
             _treecorr.ProcessCrossGGFlat(self.corr, f1.data, f2.data, self.output_dots)
+        elif f1.perp:
+            _treecorr.ProcessCrossGGPerp(self.corr, f1.data, f2.data, self.output_dots)
+        else:
+            _treecorr.ProcessCrossGG3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def process_pairwise(self, cat1, cat2, metric=None):
@@ -244,27 +233,20 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
-        if cat1.is3d() != cat2.is3d():
+        if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and not cat1.is3d():
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads()
 
-        perp = (metric == 'Rperp')
         f1 = cat1.getGSimpleField(perp)
         f2 = cat2.getGSimpleField(perp)
 
-        if f1.sphere != f2.sphere:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-
-        if f1.sphere:
-            if perp:
-                _treecorr.ProcessPairwiseGGPerp(self.corr, f1.data, f2.data, self.output_dots)
-            else:
-                _treecorr.ProcessPairwiseGGSphere(self.corr, f1.data, f2.data, self.output_dots)
-        else:
+        if f1.flat:
             _treecorr.ProcessPairwiseGGFlat(self.corr, f1.data, f2.data, self.output_dots)
+        elif f1.perp:
+            _treecorr.ProcessPairwiseGGPerp(self.corr, f1.data, f2.data, self.output_dots)
+        else:
+            _treecorr.ProcessPairwiseGG3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def finalize(self, varg1, varg2):
@@ -367,8 +349,6 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
-        if metric == 'Rperp' and not cat.is3d():
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         if cat2 is None or len(cat2) == 0:
             varg1 = treecorr.calculateVarG(cat1)

@@ -104,6 +104,8 @@ class BinnedCorr2(object):
                         which means to query the number of cpu cores and use that many threads.)
                         Note that this won't work if the system's C compiler is clang, such as
                         on MacOS systems.
+    :param m2_uform:    The default functional form to use for aperture mass calculations.  See
+                        :GGCorrelation.calculateMapSq: for more details. (default: 'Crittenden')
     """
     _valid_params = {
         'nbins' : (int, False, None, None,
@@ -138,6 +140,8 @@ class BinnedCorr2(object):
                 'Whether to do a pair-wise cross-correlation '),
         'num_threads' : (int, False, None, None,
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
+        'm2_uform' : (str, False, 'Crittenden', ['Crittenden', 'Schneider'],
+                'The function form of the mass aperture.'),
     }
     def __init__(self, config=None, logger=None, **kwargs):
         import math

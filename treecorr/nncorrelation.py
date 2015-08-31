@@ -475,6 +475,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         :returns: (nsq, varnsq)
         """
+        if m2_uform is None:
+            m2_uform = treecorr.config.get(self.config,'m2_uform',str,'Crittenden')
         if m2_uform not in ['Crittenden', 'Schneider']:
             raise ValueError("Invalid m2_uform")
 

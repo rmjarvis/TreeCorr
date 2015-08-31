@@ -455,6 +455,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         :returns:           (mapsq, mapsq_im, mxsq, mxsq_im, varmapsq) as a tuple
         """
+        if m2_uform is None:
+            m2_uform = treecorr.config.get(self.config,'m2_uform',str,'Crittenden')
         if m2_uform not in ['Crittenden', 'Schneider']:
             raise ValueError("Invalid m2_uform")
 

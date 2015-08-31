@@ -36,9 +36,6 @@ API changes:
   it removes punctuation, so the resulting names became ambiguous.
   Note: Even though there was no problem with the old names in FITS files,
   I changed the names there as well to be consistent.
-- Removed option of giving m2_uform parameter in the config dict or kwargs
-  when constructing a `GGCorrelation` object.  Now this needs to be specified
-  when doing anything that uses it (e.g. `calculateMapSq`).
 
 
 New features:

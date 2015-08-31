@@ -412,6 +412,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         :returns:           (nmap, nmx, varnmap) as a tuple
         """
+        if m2_uform is None:
+            m2_uform = treecorr.config.get(self.config,'m2_uform',str,'Crittenden')
         if m2_uform not in ['Crittenden', 'Schneider']:
             raise ValueError("Invalid m2_uform")
 
@@ -456,7 +458,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         :param file_name:   The name of the file to write to.
         :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
                             (default: None)
-        :param m2_uform:    Which form to use for the aperture mass.  (default: None)
+        :param m2_uform:    Which form to use for the aperture mass.  (default: 'Crittenden')
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
         """
@@ -497,7 +499,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
                             case the Landy-Szalay estimator will be calculated.  (default: None)
         :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
                             (default: None)
-        :param m2_uform:    Which form to use for the aperture mass.  (default: None)
+        :param m2_uform:    Which form to use for the aperture mass.  (default: 'Crittenden')
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
         """

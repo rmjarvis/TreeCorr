@@ -66,9 +66,7 @@ New features:
 Bug fixes:
 ----------
 
-- Changed the `process` functions to check for a 'num_threads' parameter in
-  the config dict.  The 'num_threads' had been checked only when loading the 
-  config dict from a file, which meant that there was no obvious way to change
-  the number of threads in the python layer.  Now having that parameter in 
-  the config dict does the right thing in all the places where it is
-  relevant. (#21)
+- Added a `num_threads` parameter to the various `process` functions.  The
+  'num_threads' parameter had been checked only when loading the config dict
+  from a file, which meant that there was no obvious way to change the number
+  of threads in the python layer. This is now possible. (#21)

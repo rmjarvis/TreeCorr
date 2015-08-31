@@ -157,7 +157,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
     def __repr__(self):
         return 'KKKCorrelation(config=%r)'%self.config
 
-    def process_auto(self, cat, metric='Euclidean'):
+    def process_auto(self, cat, metric='Euclidean', num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the auto-correlation for the given catalog.  After
@@ -167,6 +167,11 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         :param cat:     The catalog to process
         :param metric:  Which metric to use.  See the doc string for :process: for details.
                         (default: 'Euclidean')
+        :param num_threads: How many OpenMP threads to use during the calculation.  
+                        (default: None, which means to first check for a num_threads parameter
+                        in self.config, then default to querying the number of cpu cores and 
+                        try to use that many threads.)  Note that this won't work if the system's
+                        C compiler is clang, such as on MacOS systems.
         """
         if cat.name == '':
             self.logger.info('Starting process KKK auto-correlations')
@@ -176,7 +181,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
 
-        self._set_num_threads()
+        self._set_num_threads(num_threads)
 
         min_size = self.min_sep * self.min_u
         max_size = 2.*self.max_sep 
@@ -190,7 +195,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         else:
             _treecorr.ProcessAutoKKK3D(self.corr, field.data, self.output_dots)
 
-    def process_cross21(self, cat1, cat2, metric='Euclidean'):
+    def process_cross21(self, cat1, cat2, metric='Euclidean', num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where two of the 
         points in each triangle come from the first catalog, and one from the second.
 
@@ -202,11 +207,16 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         :param cat2:    The second catalog to process
         :param metric:  Which metric to use.  See the doc string for :process: for details.
                         (default: 'Euclidean')
+        :param num_threads: How many OpenMP threads to use during the calculation.  
+                        (default: None, which means to first check for a num_threads parameter
+                        in self.config, then default to querying the number of cpu cores and 
+                        try to use that many threads.)  Note that this won't work if the system's
+                        C compiler is clang, such as on MacOS systems.
         """
         raise NotImplemented("No partial cross KKK yet.")
 
 
-    def process_cross(self, cat1, cat2, cat3, metric='Euclidean'):
+    def process_cross(self, cat1, cat2, cat3, metric='Euclidean', num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs.  After
@@ -218,6 +228,11 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         :param cat3:    The third catalog to process
         :param metric:  Which metric to use.  See the doc string for :process: for details.
                         (default: 'Euclidean')
+        :param num_threads: How many OpenMP threads to use during the calculation.  
+                        (default: None, which means to first check for a num_threads parameter
+                        in self.config, then default to querying the number of cpu cores and 
+                        try to use that many threads.)  Note that this won't work if the system's
+                        C compiler is clang, such as on MacOS systems.
         """
         if cat1.name == '' and cat2.name == '' and cat3.name == '':
             self.logger.info('Starting process KKK cross-correlations')
@@ -230,7 +245,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         if cat1.coords != cat2.coords or cat1.coords != cat3.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
-        self._set_num_threads()
+        self._set_num_threads(num_threads)
 
         min_size = self.min_sep * self.min_u
         max_size = 2.*self.max_sep 
@@ -343,7 +358,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         return self
 
 
-    def process(self, cat1, cat2=None, cat3=None, metric='Euclidean'):
+    def process(self, cat1, cat2=None, cat3=None, metric='Euclidean', num_threads=None):
         """Accumulate the number of triangles of points between cat1, cat2, and cat3.
 
         If only 1 argument is given, then compute an auto-correlation function.
@@ -374,6 +389,11 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                           with distance from Earth r1,r2, if d is the normal Euclidean distance
                           and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
                         (default: 'Euclidean')
+        :param num_threads: How many OpenMP threads to use during the calculation.  
+                        (default: None, which means to first check for a num_threads parameter
+                        in self.config, then default to querying the number of cpu cores and 
+                        try to use that many threads.)  Note that this won't work if the system's
+                        C compiler is clang, such as on MacOS systems.
         """
         import math
         self.clear()
@@ -396,7 +416,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
             vark2 = vark1
             vark3 = vark1
             self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
-            self._process_all_auto(cat1, metric)
+            self._process_all_auto(cat1, metric, num_threads)
         else:
             assert cat2 is not None and cat3 is not None
             vark1 = treecorr.calculateVarK(cat1)
@@ -405,7 +425,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
             self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
             self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
             self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
-            self._process_all_cross(cat1,cat2,cat3, metric)
+            self._process_all_cross(cat1,cat2,cat3, metric, num_threads)
         self.finalize(vark1,vark2,vark3)
 
 

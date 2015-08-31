@@ -399,56 +399,57 @@ class BinnedCorr3(object):
         self.v = numpy.tile(self.v1d[numpy.newaxis, numpy.newaxis, :],
                             (self.nbins, self.nubins, 1))
 
-    def _process_all_auto(self, cat1, perp):
+    def _process_all_auto(self, cat1, metric, num_threads):
         # I'm not sure which of these is more intuitive, but both are correct...
         if True:
             for c1 in cat1:
-                self.process_auto(c1, perp)
+                self.process_auto(c1, metric, num_threads)
                 for c2 in cat1:
                     if c2 is not c1:
-                        self.process_cross(c1,c1,c2, perp)
-                        self.process_cross(c1,c2,c1, perp)
-                        self.process_cross(c2,c1,c1, perp)
+                        self.process_cross(c1,c1,c2, metric, num_threads)
+                        self.process_cross(c1,c2,c1, metric, num_threads)
+                        self.process_cross(c2,c1,c1, metric, num_threads)
                         for c3 in cat1:
                             if c3 is not c1 and c3 is not c2:
-                                self.process_cross(c1,c2,c3, perp)
+                                self.process_cross(c1,c2,c3, metric, num_threads)
         else:
             for i,c1 in enumerate(cat1):
                 self.process_auto(c1)
                 for j,c2 in enumerate(cat1[i+1:]):
-                    self.process_cross(c1,c1,c2, perp)
-                    self.process_cross(c1,c2,c1, perp)
-                    self.process_cross(c2,c1,c1, perp)
-                    self.process_cross(c1,c2,c2, perp)
-                    self.process_cross(c2,c1,c2, perp)
-                    self.process_cross(c2,c2,c1, perp)
+                    self.process_cross(c1,c1,c2, metric, num_threads)
+                    self.process_cross(c1,c2,c1, metric, num_threads)
+                    self.process_cross(c2,c1,c1, metric, num_threads)
+                    self.process_cross(c1,c2,c2, metric, num_threads)
+                    self.process_cross(c2,c1,c2, metric, num_threads)
+                    self.process_cross(c2,c2,c1, metric, num_threads)
                     for c3 in cat1[i+j+1:]:
-                        self.process_cross(c1,c2,c3, perp)
-                        self.process_cross(c1,c3,c2, perp)
-                        self.process_cross(c2,c1,c3, perp)
-                        self.process_cross(c2,c3,c1, perp)
-                        self.process_cross(c3,c1,c2, perp)
-                        self.process_cross(c3,c2,c1, perp)
+                        self.process_cross(c1,c2,c3, metric, num_threads)
+                        self.process_cross(c1,c3,c2, metric, num_threads)
+                        self.process_cross(c2,c1,c3, metric, num_threads)
+                        self.process_cross(c2,c3,c1, metric, num_threads)
+                        self.process_cross(c3,c1,c2, metric, num_threads)
+                        self.process_cross(c3,c2,c1, metric, num_threads)
 
 
-    def _process_all_cross21(self, cat1, cat2, perp):
+    def _process_all_cross21(self, cat1, cat2, metric, num_threads):
         for c1 in cat1:
             for c2 in cat2:
-                self.process_cross(c1,c1,c2, perp)
+                self.process_cross(c1,c1,c2, metric, num_threads)
             for c3 in cat1:
                 if c3 is not c1:
-                    self.process_cross(c1,c3,c2, perp)
-                    self.process_cross(c3,c1,c2, perp)
+                    self.process_cross(c1,c3,c2, metric, num_threads)
+                    self.process_cross(c3,c1,c2, metric, num_threads)
 
-    def _process_all_cross(self, cat1, cat2, cat3, perp):
+    def _process_all_cross(self, cat1, cat2, cat3, metric, num_threads):
         for c1 in cat1:
             for c2 in cat2:
                 for c3 in cat3:
-                    self.process_cross(c1,c2,c3, perp)
+                    self.process_cross(c1,c2,c3, metric, num_threads)
  
 
-    def _set_num_threads(self):
-        num_threads = self.config.get('num_threads',None)
+    def _set_num_threads(self, num_threads):
+        if num_threads is None:
+            num_threads = self.config.get('num_threads',None)
         if num_threads is None:
             self.logger.debug('Set num_threads automatically from ncpu')
         else:

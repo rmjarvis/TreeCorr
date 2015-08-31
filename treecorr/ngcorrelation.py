@@ -134,7 +134,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
     def __repr__(self):
         return 'NGCorrelation(config=%r)'%self.config
 
-    def process_cross(self, cat1, cat2, metric='Euclidean'):
+    def process_cross(self, cat1, cat2, metric='Euclidean', num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
@@ -146,6 +146,11 @@ class NGCorrelation(treecorr.BinnedCorr2):
         :param cat2:    The second catalog to process
         :param metric:  Which metric to use.  See the doc string for :process: for details.
                         (default: 'Euclidean')
+        :param num_threads: How many OpenMP threads to use during the calculation.  
+                        (default: None, which means to first check for a num_threads parameter
+                        in self.config, then default to querying the number of cpu cores and 
+                        try to use that many threads.)  Note that this won't work if the system's
+                        C compiler is clang, such as on MacOS systems.
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process NG cross-correlations')
@@ -158,7 +163,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
-        self._set_num_threads()
+        self._set_num_threads(num_threads)
 
         f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
         f2 = cat2.getGField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
@@ -171,7 +176,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
             _treecorr.ProcessCrossNG3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
-    def process_pairwise(self, cat1, cat2, metric='Euclidean'):
+    def process_pairwise(self, cat1, cat2, metric='Euclidean', num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
 
@@ -184,6 +189,11 @@ class NGCorrelation(treecorr.BinnedCorr2):
         :param cat2:    The second catalog to process
         :param metric:  Which metric to use.  See the doc string for :process: for details.
                         (default: 'Euclidean')
+        :param num_threads: How many OpenMP threads to use during the calculation.  
+                        (default: None, which means to first check for a num_threads parameter
+                        in self.config, then default to querying the number of cpu cores and 
+                        try to use that many threads.)  Note that this won't work if the system's
+                        C compiler is clang, such as on MacOS systems.
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process NG pairwise-correlations')
@@ -196,7 +206,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
-        self._set_num_threads()
+        self._set_num_threads(num_threads)
 
         f1 = cat1.getNSimpleField(metric)
         f2 = cat2.getGSimpleField(metric)
@@ -272,7 +282,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         return self
 
 
-    def process(self, cat1, cat2, metric='Euclidean'):
+    def process(self, cat1, cat2, metric='Euclidean', num_threads=None):
         """Compute the correlation function.
 
         Both arguments may be lists, in which case all items in the list are used 
@@ -288,6 +298,11 @@ class NGCorrelation(treecorr.BinnedCorr2):
                           with distance from Earth r1,r2, if d is the normal Euclidean distance
                           and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
                         (default: 'Euclidean')
+        :param num_threads: How many OpenMP threads to use during the calculation.  
+                        (default: None, which means to first check for a num_threads parameter
+                        in self.config, then default to querying the number of cpu cores and 
+                        try to use that many threads.)  Note that this won't work if the system's
+                        C compiler is clang, such as on MacOS systems.
         """
         import math
         self.clear()
@@ -301,7 +316,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         varg = treecorr.calculateVarG(cat2)
         self.logger.info("varg = %f: sig_sn (per component) = %f",varg,math.sqrt(varg))
-        self._process_all_cross(cat1,cat2,metric)
+        self._process_all_cross(cat1,cat2,metric,num_threads)
         self.finalize(varg)
 
 

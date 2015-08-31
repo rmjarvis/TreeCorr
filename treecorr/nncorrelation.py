@@ -130,7 +130,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
     def __repr__(self):
         return 'NNCorrelation(config=%r)'%self.config
 
-    def process_auto(self, cat, metric='Euclidean'):
+    def process_auto(self, cat, metric='Euclidean', num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the auto-correlation for the given catalog.  After
@@ -140,6 +140,11 @@ class NNCorrelation(treecorr.BinnedCorr2):
         :param cat:     The catalog to process
         :param metric:  Which metric to use.  See the doc string for :process: for details.
                         (default: 'Euclidean')
+        :param num_threads: How many OpenMP threads to use during the calculation.  
+                        (default: None, which means to first check for a num_threads parameter
+                        in self.config, then default to querying the number of cpu cores and 
+                        try to use that many threads.)  Note that this won't work if the system's
+                        C compiler is clang, such as on MacOS systems.
         """
         if cat.name == '':
             self.logger.info('Starting process NN auto-correlations')
@@ -149,7 +154,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
 
-        self._set_num_threads()
+        self._set_num_threads(num_threads)
 
         field = cat.getNField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
 
@@ -162,7 +167,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.tot += 0.5 * cat.nobj**2
 
 
-    def process_cross(self, cat1, cat2, metric='Euclidean'):
+    def process_cross(self, cat1, cat2, metric='Euclidean', num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs.  After
@@ -173,6 +178,11 @@ class NNCorrelation(treecorr.BinnedCorr2):
         :param cat2:    The second catalog to process
         :param metric:  Which metric to use.  See the doc string for :process: for details.
                         (default: 'Euclidean')
+        :param num_threads: How many OpenMP threads to use during the calculation.  
+                        (default: None, which means to first check for a num_threads parameter
+                        in self.config, then default to querying the number of cpu cores and 
+                        try to use that many threads.)  Note that this won't work if the system's
+                        C compiler is clang, such as on MacOS systems.
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process NN cross-correlations')
@@ -185,7 +195,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
-        self._set_num_threads()
+        self._set_num_threads(num_threads)
 
         f1 = cat1.getNField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
         f2 = cat2.getNField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
@@ -199,7 +209,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.tot += cat1.nobj*cat2.nobj
 
 
-    def process_pairwise(self, cat1, cat2, metric='Euclidean'):
+    def process_pairwise(self, cat1, cat2, metric='Euclidean', num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
 
@@ -211,6 +221,11 @@ class NNCorrelation(treecorr.BinnedCorr2):
         :param cat2:    The second catalog to process
         :param metric:  Which metric to use.  See the doc string for :process: for details.
                         (default: 'Euclidean')
+        :param num_threads: How many OpenMP threads to use during the calculation.  
+                        (default: None, which means to first check for a num_threads parameter
+                        in self.config, then default to querying the number of cpu cores and 
+                        try to use that many threads.)  Note that this won't work if the system's
+                        C compiler is clang, such as on MacOS systems.
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process NN pairwise-correlations')
@@ -223,7 +238,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
-        self._set_num_threads()
+        self._set_num_threads(num_threads)
 
         f1 = cat1.getNSimpleField(metric)
         f2 = cat2.getNSimpleField(metric)
@@ -288,7 +303,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         return self
 
 
-    def process(self, cat1, cat2=None, metric='Euclidean'):
+    def process(self, cat1, cat2=None, metric='Euclidean', num_threads=None):
         """Compute the correlation function.
 
         If only 1 argument is given, then compute an auto-correlation function.
@@ -308,6 +323,11 @@ class NNCorrelation(treecorr.BinnedCorr2):
                           with distance from Earth r1,r2, if d is the normal Euclidean distance
                           and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
                         (default: 'Euclidean')
+        :param num_threads: How many OpenMP threads to use during the calculation.  
+                        (default: None, which means to first check for a num_threads parameter
+                        in self.config, then default to querying the number of cpu cores and 
+                        try to use that many threads.)  Note that this won't work if the system's
+                        C compiler is clang, such as on MacOS systems.
         """
         self.clear()
         if not isinstance(cat1,list): cat1 = [cat1]
@@ -316,9 +336,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
             raise ValueError("No catalogs provided for cat1")
 
         if cat2 is None or len(cat2) == 0:
-            self._process_all_auto(cat1,metric)
+            self._process_all_auto(cat1,metric,num_threads)
         else:
-            self._process_all_cross(cat1,cat2,metric)
+            self._process_all_cross(cat1,cat2,metric,num_threads)
         self.finalize()
 
 

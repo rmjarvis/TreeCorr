@@ -142,7 +142,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
     def __repr__(self):
         return 'GGCorrelation(config=%r)'%self.config
 
-    def process_auto(self, cat, metric='Euclidean'):
+    def process_auto(self, cat, metric='Euclidean', num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
@@ -153,6 +153,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
         :param cat:     The catalog to process
         :param metric:  Which metric to use.  See the doc string for :process: for details.
                         (default: 'Euclidean')
+        :param num_threads: How many OpenMP threads to use during the calculation.  
+                        (default: None, which means to first check for a num_threads parameter
+                        in self.config, then default to querying the number of cpu cores and 
+                        try to use that many threads.)  Note that this won't work if the system's
+                        C compiler is clang, such as on MacOS systems.
         """
         if cat.name == '':
             self.logger.info('Starting process GG auto-correlations')
@@ -162,7 +167,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
 
-        self._set_num_threads()
+        self._set_num_threads(num_threads)
 
         field = cat.getGField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
 
@@ -174,7 +179,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
             _treecorr.ProcessAutoGG3D(self.corr, field.data, self.output_dots)
 
 
-    def process_cross(self, cat1, cat2, metric='Euclidean'):
+    def process_cross(self, cat1, cat2, metric='Euclidean', num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
@@ -186,6 +191,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
         :param cat2:    The second catalog to process
         :param metric:  Which metric to use.  See the doc string for :process: for details.
                         (default: 'Euclidean')
+        :param num_threads: How many OpenMP threads to use during the calculation.  
+                        (default: None, which means to first check for a num_threads parameter
+                        in self.config, then default to querying the number of cpu cores and 
+                        try to use that many threads.)  Note that this won't work if the system's
+                        C compiler is clang, such as on MacOS systems.
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process GG cross-correlations')
@@ -198,7 +208,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
-        self._set_num_threads()
+        self._set_num_threads(num_threads)
 
         f1 = cat1.getGField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
         f2 = cat2.getGField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
@@ -211,7 +221,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
             _treecorr.ProcessCrossGG3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
-    def process_pairwise(self, cat1, cat2, metric=None):
+    def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
 
@@ -224,6 +234,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
         :param cat2:    The second catalog to process
         :param metric:  Which metric to use.  See the doc string for :process: for details.
                         (default: 'Euclidean')
+        :param num_threads: How many OpenMP threads to use during the calculation.  
+                        (default: None, which means to first check for a num_threads parameter
+                        in self.config, then default to querying the number of cpu cores and 
+                        try to use that many threads.)  Note that this won't work if the system's
+                        C compiler is clang, such as on MacOS systems.
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process GG pairwise-correlations')
@@ -236,7 +251,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
-        self._set_num_threads()
+        self._set_num_threads(num_threads)
 
         f1 = cat1.getGSimpleField(perp)
         f2 = cat2.getGSimpleField(perp)
@@ -318,7 +333,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         return self
 
 
-    def process(self, cat1, cat2=None, metric='Euclidean'):
+    def process(self, cat1, cat2=None, metric='Euclidean', num_threads=None):
         """Compute the correlation function.
 
         If only 1 argument is given, then compute an auto-correlation function.
@@ -354,13 +369,13 @@ class GGCorrelation(treecorr.BinnedCorr2):
             varg1 = treecorr.calculateVarG(cat1)
             varg2 = varg1
             self.logger.info("varg = %f: sig_sn (per component) = %f",varg1,math.sqrt(varg1))
-            self._process_all_auto(cat1, metric)
+            self._process_all_auto(cat1, metric, num_threads)
         else:
             varg1 = treecorr.calculateVarG(cat1)
             varg2 = treecorr.calculateVarG(cat2)
             self.logger.info("varg1 = %f: sig_sn (per component) = %f",varg1,math.sqrt(varg1))
             self.logger.info("varg2 = %f: sig_sn (per component) = %f",varg2,math.sqrt(varg2))
-            self._process_all_cross(cat1,cat2, metric)
+            self._process_all_cross(cat1,cat2, metric, num_threads)
         self.finalize(varg1,varg2)
 
 

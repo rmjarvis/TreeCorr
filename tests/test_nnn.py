@@ -928,10 +928,6 @@ def test_nnn():
     print 'ratio = ',zeta / true_zeta
     print 'diff = ',zeta - true_zeta
     print 'max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))
-    # The simple calculation (i.e. ddd/rrr-1, rather than (ddd-3ddr+3drr-rrr)/rrr as above) is only 
-    # slightly less accurate in this case.  Probably because the mask is simple (a box), so
-    # the difference is relatively minor.  The error is slightly higher in this case, but testing
-    # that it is everywhere < 0.1 is still appropriate.
     assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)) < 0.1
     numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta)), 
                                       numpy.log(numpy.abs(true_zeta)), decimal=1)
@@ -1196,15 +1192,15 @@ def test_3d():
         print 'diff = ',corr3_output['zeta']-zeta.flatten()
         numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=3)
     
-    # Check that we get the same thing when using x,y,z rather than ra,dec,r
-    cat = treecorr.Catalog(x=x, y=y, z=z)
-    rand = treecorr.Catalog(x=rx, y=ry, z=rz)
-    ddd.process(cat)
-    rrr.process(rand)
-    zeta, varzeta = ddd.calculateZeta(rrr)
-    assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)) < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta)), 
-                                      numpy.log(numpy.abs(true_zeta)), decimal=1)
+        # Check that we get the same thing when using x,y,z rather than ra,dec,r
+        cat = treecorr.Catalog(x=x, y=y, z=z)
+        rand = treecorr.Catalog(x=rx, y=ry, z=rz)
+        ddd.process(cat)
+        rrr.process(rand)
+        zeta, varzeta = ddd.calculateZeta(rrr)
+        assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)) < 0.1
+        numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta)), 
+                                          numpy.log(numpy.abs(true_zeta)), decimal=1)
 
 
 def test_list():
@@ -1213,7 +1209,7 @@ def test_list():
     data_cats = []
     rand_cats = []
 
-    ngal = 5000
+    ngal = 3000
     s = 10.
     L = 50. * s
     numpy.random.seed(8675309)
@@ -1225,7 +1221,7 @@ def test_list():
     max_u = 0.3
     nubins = 3
     min_v = 0.5
-    max_v = 1.0
+    max_v = 0.9
     nvbins = 5
 
     x = numpy.random.normal(0,s, (ngal,ncats) )
@@ -1240,7 +1236,7 @@ def test_list():
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins, verbose=2)
     ddd.process(data_cats)
-    print 'ddd.ntri = ',ddd.ntri
+    print 'From multiple catalogs: ddd.ntri = ',ddd.ntri
 
     rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
@@ -1262,11 +1258,11 @@ def test_list():
     data_catx = treecorr.Catalog(x=x.reshape( (ngal*ncats,) ), y=y.reshape( (ngal*ncats,) ))
     rand_catx = treecorr.Catalog(x=rx.reshape( (nrand*ncats,) ), y=ry.reshape( (nrand*ncats,) ))
     dddx.process(data_catx)
+    print 'From single catalog: dddx.ntri = ',dddx.ntri
     rrrx.process(rand_catx)
+    print 'rrrx.ntri = ',rrrx.ntri
     zetax, varzetax = dddx.calculateZeta(rrrx)
 
-    print 'dddx.ntri = ',dddx.ntri
-    print 'rrrx.ntri = ',rrrx.ntri
     print 'zetax = ',zetax
     print 'ratio = ',zeta/zetax
     print 'diff = ',zeta-zetax
@@ -1274,72 +1270,61 @@ def test_list():
     # to how they characterize triangles especially when d1 ~= d2 or d2 ~= d3.
     numpy.testing.assert_almost_equal(zetax/zeta, 1., decimal=1)
 
-    # Check that we get the same result using the corr3 executable:
-    file_list = []
-    rand_file_list = []
-    for k in range(ncats):
-        file_name = os.path.join('data','nnn_list_data%d.dat'%k)
-        with open(file_name, 'w') as fid:
-            for i in range(ngal):
-                fid.write(('%.8f %.8f\n')%(x[i,k],y[i,k]))
-        file_list.append(file_name)
-
-        rand_file_name = os.path.join('data','nnn_list_rand%d.dat'%k)
-        with open(rand_file_name, 'w') as fid:
-            for i in range(nrand):
-                fid.write(('%.8f %.8f\n')%(rx[i,k],ry[i,k]))
-        rand_file_list.append(rand_file_name)
-
-    list_name = os.path.join('data','nnn_list_data_files.txt')
-    with open(list_name, 'w') as fid:
-        for file_name in file_list:
-            fid.write('%s\n'%file_name)
-    rand_list_name = os.path.join('data','nnn_list_rand_files.txt')
-    with open(rand_list_name, 'w') as fid:
-        for file_name in rand_file_list:
-            fid.write('%s\n'%file_name)
-
-    file_namex = os.path.join('data','nnn_list_datax.dat')
-    with open(file_namex, 'w') as fid:
+    if __name__ == "__main__":
+        # Check that we get the same result using the corr3 executable:
+        file_list = []
+        rand_file_list = []
         for k in range(ncats):
-            for i in range(ngal):
-                fid.write(('%.8f %.8f\n')%(x[i,k],y[i,k]))
+            file_name = os.path.join('data','nnn_list_data%d.dat'%k)
+            data_cats[k].write(file_name)
+            file_list.append(file_name)
 
-    rand_file_namex = os.path.join('data','nnn_list_randx.dat')
-    with open(rand_file_namex, 'w') as fid:
-        for k in range(ncats):
-            for i in range(nrand):
-                fid.write(('%.8f %.8f\n')%(rx[i,k],ry[i,k]))
+            rand_file_name = os.path.join('data','nnn_list_rand%d.dat'%k)
+            rand_cats[k].write(rand_file_name)
+            rand_file_list.append(rand_file_name)
 
-    import subprocess
-    p = subprocess.Popen( ["corr3","nnn_list1.params"] )
-    p.communicate()
-    corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list1.out'), names=True)
-    print 'zeta = ',zeta
-    print 'from corr3 output = ',corr3_output['zeta']
-    print 'ratio = ',corr3_output['zeta']/zeta.flatten()
-    print 'diff = ',corr3_output['zeta']-zeta.flatten()
-    numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=3)
+        list_name = os.path.join('data','nnn_list_data_files.txt')
+        with open(list_name, 'w') as fid:
+            for file_name in file_list:
+                fid.write('%s\n'%file_name)
+        rand_list_name = os.path.join('data','nnn_list_rand_files.txt')
+        with open(rand_list_name, 'w') as fid:
+            for file_name in rand_file_list:
+                fid.write('%s\n'%file_name)
 
-    import subprocess
-    p = subprocess.Popen( ["corr3","nnn_list2.params"] )
-    p.communicate()
-    corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list2.out'), names=True)
-    print 'zeta = ',zeta
-    print 'from corr3 output = ',corr3_output['zeta']
-    print 'ratio = ',corr3_output['zeta']/zeta.flatten()
-    print 'diff = ',corr3_output['zeta']-zeta.flatten()
-    numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=1)
+        file_namex = os.path.join('data','nnn_list_datax.dat')
+        data_catx.write(rand_file_name)
 
-    import subprocess
-    p = subprocess.Popen( ["corr3","nnn_list3.params"] )
-    p.communicate()
-    corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list3.out'), names=True)
-    print 'zeta = ',zeta
-    print 'from corr3 output = ',corr3_output['zeta']
-    print 'ratio = ',corr3_output['zeta']/zeta.flatten()
-    print 'diff = ',corr3_output['zeta']-zeta.flatten()
-    numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=1)
+        rand_file_namex = os.path.join('data','nnn_list_randx.dat')
+        rand_catx.write(rand_file_name)
+
+        import subprocess
+        p = subprocess.Popen( ["corr3","nnn_list1.params"] )
+        p.communicate()
+        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list1.out'), names=True)
+        print 'zeta = ',zeta
+        print 'from corr3 output = ',corr3_output['zeta']
+        print 'ratio = ',corr3_output['zeta']/zeta.flatten()
+        print 'diff = ',corr3_output['zeta']-zeta.flatten()
+        numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=3)
+
+        p = subprocess.Popen( ["corr3","nnn_list2.params"] )
+        p.communicate()
+        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list2.out'), names=True)
+        print 'zeta = ',zeta
+        print 'from corr3 output = ',corr3_output['zeta']
+        print 'ratio = ',corr3_output['zeta']/zeta.flatten()
+        print 'diff = ',corr3_output['zeta']-zeta.flatten()
+        numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=1)
+
+        p = subprocess.Popen( ["corr3","nnn_list3.params"] )
+        p.communicate()
+        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list3.out'), names=True)
+        print 'zeta = ',zeta
+        print 'from corr3 output = ',corr3_output['zeta']
+        print 'ratio = ',corr3_output['zeta']/zeta.flatten()
+        print 'diff = ',corr3_output['zeta']-zeta.flatten()
+        numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=1)
 
 
 if __name__ == '__main__':

@@ -578,4 +578,24 @@ void DestroyNSimpleFieldPerp(void* field)
     delete static_cast<SimpleField<NData,Perp>*>(field);
 }
 
+long GFieldFlatGetNTopLevel(void* field)
+{ return static_cast<Field<GData,Perp>*>(field)->getNTopLevel(); }
+long GField3DGetNTopLevel(void* field)
+{ return static_cast<Field<GData,Perp>*>(field)->getNTopLevel(); }
+long GFieldPerpGetNTopLevel(void* field)
+{ return static_cast<Field<GData,Perp>*>(field)->getNTopLevel(); }
+
+long KFieldFlatGetNTopLevel(void* field)
+{ return static_cast<Field<KData,Perp>*>(field)->getNTopLevel(); }
+long KField3DGetNTopLevel(void* field)
+{ return static_cast<Field<KData,Perp>*>(field)->getNTopLevel(); }
+long KFieldPerpGetNTopLevel(void* field)
+{ return static_cast<Field<KData,Perp>*>(field)->getNTopLevel(); }
+
+long NFieldFlatGetNTopLevel(void* field)
+{ return static_cast<Field<NData,Perp>*>(field)->getNTopLevel(); }
+long NField3DGetNTopLevel(void* field)
+{ return static_cast<Field<NData,Perp>*>(field)->getNTopLevel(); }
+long NFieldPerpGetNTopLevel(void* field)
+{ return static_cast<Field<NData,Perp>*>(field)->getNTopLevel(); }
 

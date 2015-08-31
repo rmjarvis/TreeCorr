@@ -19,7 +19,7 @@ import os
 def test_constant():
     # A fairly trivial test is to use a constant value of kappa everywhere.
 
-    ngal = 10000
+    ngal = 2000
     A = 0.05
     L = 100.
     numpy.random.seed(8675309)
@@ -30,8 +30,8 @@ def test_constant():
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
 
     min_sep = 10.
-    max_sep = 50.
-    nbins = 10
+    max_sep = 25.
+    nbins = 5
     min_u = 0.6
     max_u = 0.9
     nubins = 3
@@ -186,5 +186,5 @@ def test_kkk():
     numpy.testing.assert_almost_equal(kkk2.ntri, kkk.ntri)
 
 if __name__ == '__main__':
-    #test_constant()
+    test_constant()
     test_kkk()

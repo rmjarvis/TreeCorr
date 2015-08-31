@@ -14,7 +14,7 @@ min_u = 0
 max_u = 0.3
 nubins = 3
 min_v = 0.5
-max_v = 1.0
+max_v = 0.9
 nvbins = 5
 
 nnn_file_name = output/nnn_list3.out

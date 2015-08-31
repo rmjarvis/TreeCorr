@@ -171,6 +171,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         field = cat.getGField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
 
+        self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         if field.flat:
             _treecorr.ProcessAutoGGFlat(self.corr, field.data, self.output_dots)
         elif field.perp:
@@ -213,6 +214,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         f1 = cat1.getGField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
         f2 = cat2.getGField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
 
+        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         if f1.flat:
             _treecorr.ProcessCrossGGFlat(self.corr, f1.data, f2.data, self.output_dots)
         elif f1.perp:

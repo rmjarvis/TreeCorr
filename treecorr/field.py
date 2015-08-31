@@ -116,6 +116,24 @@ _treecorr.DestroyGSimpleFieldFlat.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyGSimpleField3D.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyGSimpleFieldPerp.argtypes = [ cvoid_ptr ]
 
+_treecorr.NFieldFlatGetNTopLevel.argtypes = [ cvoid_ptr ]
+_treecorr.NFieldFlatGetNTopLevel.restype = clong
+_treecorr.NField3DGetNTopLevel.argtypes = [ cvoid_ptr ]
+_treecorr.NField3DGetNTopLevel.restype = clong
+_treecorr.NFieldPerpGetNTopLevel.argtypes = [ cvoid_ptr ]
+_treecorr.NFieldPerpGetNTopLevel.restype = clong
+_treecorr.KFieldFlatGetNTopLevel.argtypes = [ cvoid_ptr ]
+_treecorr.KFieldFlatGetNTopLevel.restype = clong
+_treecorr.KField3DGetNTopLevel.argtypes = [ cvoid_ptr ]
+_treecorr.KField3DGetNTopLevel.restype = clong
+_treecorr.KFieldPerpGetNTopLevel.argtypes = [ cvoid_ptr ]
+_treecorr.KFieldPerpGetNTopLevel.restype = clong
+_treecorr.GFieldFlatGetNTopLevel.argtypes = [ cvoid_ptr ]
+_treecorr.GFieldFlatGetNTopLevel.restype = clong
+_treecorr.GField3DGetNTopLevel.argtypes = [ cvoid_ptr ]
+_treecorr.GField3DGetNTopLevel.restype = clong
+_treecorr.GFieldPerpGetNTopLevel.argtypes = [ cvoid_ptr ]
+_treecorr.GFieldPerpGetNTopLevel.restype = clong
 
 def _parse_split_method(split_method):
     if split_method == 'middle': return cint(0)
@@ -153,7 +171,10 @@ class NField(object):
     def __init__(self, cat, min_sep, max_sep, b, split_method='mean', metric='Euclidean',
                  max_top=10, logger=None):
         if logger:
-            logger.info('Building NField from cat %s',cat.name)
+            if cat.name != '':
+                logger.info('Building NField from cat %s',cat.name)
+            else:
+                logger.info('Building NField')
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
@@ -208,6 +229,16 @@ class NField(object):
             else:
                 _treecorr.DestroyNField3D(self.data)
 
+    @property
+    def nTopLevelNodes(self):
+        """The number of top-level nodes."""
+        if self.flat:
+            return _treecorr.NFieldFlatGetNTopLevel(self.data)
+        elif self.perp:
+            return _treecorr.NFieldPerpGetNTopLevel(self.data)
+        else:
+            return _treecorr.NField3DGetNTopLevel(self.data)
+
 
 class KField(object):
     """This class stores the kappa field in a tree structure from which it is efficient
@@ -239,7 +270,10 @@ class KField(object):
     def __init__(self, cat, min_sep, max_sep, b, split_method='mean', metric='Euclidean',
                  max_top=10, logger=None):
         if logger:
-            logger.info('Building KField from cat %s',cat.name)
+            if cat.name != '':
+                logger.info('Building KField from cat %s',cat.name)
+            else:
+                logger.info('Building KField')
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
@@ -296,6 +330,17 @@ class KField(object):
             else:
                 _treecorr.DestroyKField3D(self.data)
 
+    @property
+    def nTopLevelNodes(self):
+        """The number of top-level nodes."""
+        if self.flat:
+            return _treecorr.NFieldFlatGetNTopLevel(self.data)
+        elif self.perp:
+            return _treecorr.NFieldPerpGetNTopLevel(self.data)
+        else:
+            return _treecorr.NField3DGetNTopLevel(self.data)
+
+
 
 class GField(object):
     """This class stores the shear field in a tree structure from which it is efficient
@@ -327,7 +372,10 @@ class GField(object):
     def __init__(self, cat, min_sep, max_sep, b, split_method='mean', metric='Euclidean',
                  max_top=10, logger=None):
         if logger:
-            logger.info('Building GField from cat %s',cat.name)
+            if cat.name != '':
+                logger.info('Building GField from cat %s',cat.name)
+            else:
+                logger.info('Building GField')
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
@@ -385,6 +433,16 @@ class GField(object):
             else:
                 _treecorr.DestroyGField3D(self.data)
 
+    @property
+    def nTopLevelNodes(self):
+        """The number of top-level nodes."""
+        if self.flat:
+            return _treecorr.GFieldFlatGetNTopLevel(self.data)
+        elif self.perp:
+            return _treecorr.GFieldPerpGetNTopLevel(self.data)
+        else:
+            return _treecorr.GField3DGetNTopLevel(self.data)
+
 
 class NSimpleField(object):
     """This class stores the positions as a list, skipping all the tree stuff.
@@ -406,7 +464,10 @@ class NSimpleField(object):
     """
     def __init__(self, cat, metric='Euclidean', logger=None):
         if logger:
-            logger.info('Building NSimpleField from cat %s',cat.name)
+            if cat.name != '':
+                logger.info('Building NSimpleField from cat %s',cat.name)
+            else:
+                logger.info('Building NSimpleField')
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
@@ -477,7 +538,10 @@ class KSimpleField(object):
     """
     def __init__(self, cat, metric='Euclidean', logger=None):
         if logger:
-            logger.info('Building KSimpleField from cat %s',cat.name)
+            if cat.name != '':
+                logger.info('Building KSimpleField from cat %s',cat.name)
+            else:
+                logger.info('Building KSimpleField')
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
@@ -549,7 +613,10 @@ class GSimpleField(object):
     """
     def __init__(self, cat, metric='Euclidean', logger=None):
         if logger:
-            logger.info('Building GSimpleField from cat %s',cat.name)
+            if cat.name != '':
+                logger.info('Building GSimpleField from cat %s',cat.name)
+            else:
+                logger.info('Building GSimpleField')
 
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")

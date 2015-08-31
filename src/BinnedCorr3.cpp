@@ -173,7 +173,7 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field, bool dots)
     _metric = M;
     const long n1 = field.getNTopLevel();
     xdbg<<"field has "<<n1<<" top level nodes\n";
-    if (dots) std::cout<<"Starting "<<n1<<" jobs:\n"<<std::flush;
+    //if (dots) std::cout<<"Starting "<<n1<<" jobs:\n"<<std::flush;
     dbg<<"zeta[0] = "<<_zeta<<std::endl;
     Assert(n1 > 0);
 #ifdef _OPENMP
@@ -266,7 +266,7 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field1, const Field<D
     }
 #endif
 
-    if (dots) std::cout<<"Starting "<<n1<<" jobs:\n"<<std::flush;
+    //if (dots) std::cout<<"Starting "<<n1<<" jobs:\n"<<std::flush;
 #ifdef _OPENMP
 #pragma omp parallel 
     {

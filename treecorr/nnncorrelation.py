@@ -186,6 +186,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         b = numpy.max( (self.b, self.bu, self.bv) )
         field = cat.getNField(min_size,max_size,b,self.split_method,metric,self.max_top)
 
+        self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         if field.flat:
             _treecorr.ProcessAutoNNNFlat(self.corr, field.data, self.output_dots)
         elif field.perp:
@@ -253,6 +254,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         f2 = cat2.getNField(min_size,max_size,b,self.split_method,metric,self.max_top)
         f3 = cat3.getNField(min_size,max_size,b,self.split_method,metric,self.max_top)
 
+        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         if f1.flat:
             _treecorr.ProcessCrossNNNFlat(self.corr, f1.data, f2.data, f3.data, self.output_dots)
         elif f1.perp:

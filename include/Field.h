@@ -134,6 +134,15 @@ extern "C" {
     extern void DestroyNSimpleField3D(void* field);
     extern void DestroyNSimpleFieldPerp(void* field);
 
+    extern long GFieldFlatGetNTopLevel(void* field);
+    extern long GField3DGetNTopLevel(void* field);
+    extern long GFieldPerpGetNTopLevel(void* field);
+    extern long KFieldFlatGetNTopLevel(void* field);
+    extern long KField3DGetNTopLevel(void* field);
+    extern long KFieldPerpGetNTopLevel(void* field);
+    extern long NFieldFlatGetNTopLevel(void* field);
+    extern long NField3DGetNTopLevel(void* field);
+    extern long NFieldPerpGetNTopLevel(void* field);
 
 }
 

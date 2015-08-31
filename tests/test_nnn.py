@@ -1293,10 +1293,10 @@ def test_list():
                 fid.write('%s\n'%file_name)
 
         file_namex = os.path.join('data','nnn_list_datax.dat')
-        data_catx.write(rand_file_name)
+        data_catx.write(file_namex)
 
         rand_file_namex = os.path.join('data','nnn_list_randx.dat')
-        rand_catx.write(rand_file_name)
+        rand_catx.write(rand_file_namex)
 
         import subprocess
         p = subprocess.Popen( ["corr3","nnn_list1.params"] )

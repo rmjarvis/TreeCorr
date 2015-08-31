@@ -147,6 +147,9 @@ class Catalog(object):
                         files or a string for FITS files. (default: 0 or '0', which means not to
                         read in this column. When reading from a file, either x_col and y_col are
                         required or ra_col and dec_col are required.)
+    :param z_col:       The column to use for the z values. This should be an integer for ASCII
+                        files or a string for FITS files. (default: 0 or '0', which means not to
+                        read in this column.)
     :param ra_col:      The column to use for the ra values. This should be an integer for ASCII
                         files or a string for FITS files. (default: 0 or '0', which means not to
                         read in this column. When reading from a file, either x_col and y_col are
@@ -167,6 +170,10 @@ class Catalog(object):
                         arcsec, arcmin, degrees, hours, radians.  (default: radians, although 
                         with (x,y) positions, you can often just ignore the units, and the output
                         separations will be in whatever units x and y are in.)
+    :param z_units:     The units to use for the z values, given as a string.  Valid options are
+                        arcsec, arcmin, degrees, hours, radians.  (default: radians, although 
+                        when using x,y,z, it really doesn't make much sense to apply units, so
+                        you probably don't want to use this parameter.)
     :param ra_units:    The units to use for the ra values, given as a string.  Valid options are
                         arcsec, arcmin, degrees, hours, radians. (required when using ra_col or
                         providing ra directly)
@@ -197,6 +204,7 @@ class Catalog(object):
     :param flip_g2:     Whtether to flip the sign of the input g2 values. (default: False)
     :param x_hdu:       Which hdu to use for the x values. (default: hdu)
     :param y_hdu:       Which hdu to use for the y values. (default: hdu)
+    :param z_hdu:       Which hdu to use for the z values. (default: hdu)
     :param ra_hdu:      Which hdu to use for the ra values. (default: hdu)
     :param dec_hdu:     Which hdu to use for the dec values. (default: hdu)
     :param r_hdu:       Which hdu to use for the r values. (default: hdu)
@@ -238,6 +246,8 @@ class Catalog(object):
                 'Which column to use for x. Should be an integer for ASCII catalogs.'),
         'y_col' : (str, True, '0', None,
                 'Which column to use for y. Should be an integer for ASCII catalogs.'),
+        'z_col' : (str, True, '0', None,
+                'Which column to use for z. Should be an integer for ASCII catalogs.'),
         'ra_col' : (str, True, '0', None,
                 'Which column to use for ra. Should be an integer for ASCII catalogs.'),
         'dec_col' : (str, True, '0', None,
@@ -249,6 +259,8 @@ class Catalog(object):
                 'The units of x values.'),
         'y_units' : (str, True, None, treecorr.angle_units.keys(),
                 'The units of y values.'),
+        'z_units' : (str, True, None, treecorr.angle_units.keys(),
+                'The units of z values.'),
         'ra_units' : (str, True, None, treecorr.angle_units.keys(),
                 'The units of ra values. Required when using ra_col.'),
         'dec_units' : (str, True, None, treecorr.angle_units.keys(),
@@ -273,6 +285,8 @@ class Catalog(object):
                 'Which HDU to use for the x_col. default is the global hdu value.'),
         'y_hdu': (int, True, None, None,
                 'Which HDU to use for the y_col. default is the global hdu value.'),
+        'z_hdu': (int, True, None, None,
+                'Which HDU to use for the z_col. default is the global hdu value.'),
         'ra_hdu': (int, True, None, None,
                 'Which HDU to use for the ra_col. default is the global hdu value.'),
         'dec_hdu': (int, True, None, None,
@@ -387,7 +401,6 @@ class Catalog(object):
             self.g1 = self.makeArray(g1,'g1')
             self.g2 = self.makeArray(g2,'g2')
             self.k = self.makeArray(k,'k')
-
 
         # Apply units to x,y,ra,dec
         if self.x is not None:
@@ -740,6 +753,7 @@ class Catalog(object):
         # Get the column names
         x_col = treecorr.config.get_from_list(self.config,'x_col',num,str,'0')
         y_col = treecorr.config.get_from_list(self.config,'y_col',num,str,'0')
+        z_col = treecorr.config.get_from_list(self.config,'z_col',num,str,'0')
         ra_col = treecorr.config.get_from_list(self.config,'ra_col',num,str,'0')
         dec_col = treecorr.config.get_from_list(self.config,'dec_col',num,str,'0')
         r_col = treecorr.config.get_from_list(self.config,'r_col',num,str,'0')
@@ -1134,6 +1148,7 @@ class Catalog(object):
         if self.k is not None: s += 'k='+repr(self.k)+','
         # remove the last ','
         s = s[:-1] + ')'
+        return s
 
 def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=None):
     """Read in a list of catalogs for the given key.

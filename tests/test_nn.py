@@ -277,6 +277,13 @@ def test_direct_3d():
     print 'diff = ',dd.npairs - true_npairs
     numpy.testing.assert_array_equal(dd.npairs, true_npairs)
 
+    # Can also specify coords directly as x,y,z
+    cat1 = treecorr.Catalog(x=x1, y=y1, z=z1)
+    cat2 = treecorr.Catalog(x=x2, y=y2, z=z2)
+    dd.process(cat1, cat2)
+    numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+
+
 def test_direct_perp():
     # This is the same as the above test, but using the perpendicular distance metric
 
@@ -323,6 +330,13 @@ def test_direct_perp():
     print 'true_npairs = ',true_npairs
     print 'diff = ',dd.npairs - true_npairs
     numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+
+    # Can also specify coords directly as x,y,z
+    cat1 = treecorr.Catalog(x=x1, y=y1, z=z1)
+    cat2 = treecorr.Catalog(x=x2, y=y2, z=z2)
+    dd.process(cat1, cat2, metric='Rperp')
+    numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+
 
 def test_nn():
     # Use a simple probability distribution for the galaxies:
@@ -543,6 +557,17 @@ def test_3d():
         print 'ratio = ',corr2_output['xi']/xi
         print 'diff = ',corr2_output['xi']-xi
         numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=3)
+
+    # And repeat with Catalogs that use x,y,z
+    cat = treecorr.Catalog(x=x, y=y, z=z)
+    rand = treecorr.Catalog(x=rx, y=ry, z=rz)
+    dd.process(cat)
+    rr.process(rand)
+    dr.process(cat,rand)
+    xi, varxi = dd.calculateXi(rr,dr)
+    assert max(abs(xi - true_xi)/true_xi) < 0.1
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi)), 
+                                      numpy.log(numpy.abs(true_xi)), decimal=1)
 
 
 def test_list():

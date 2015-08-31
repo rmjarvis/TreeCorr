@@ -717,6 +717,11 @@ def test_direct_3d_auto():
     #print 'diff = ',ddd.ntri - true_ntri
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
+    # Also compare to using x,y,z rather than ra,dec,r
+    cat = treecorr.Catalog(x=x, y=y, z=z)
+    ddd.process(cat)
+    numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
+
 
 def test_direct_3d_cross():
     # This is the same as the above test, but using the 3d correlations
@@ -823,6 +828,13 @@ def test_direct_3d_cross():
     #print 'max_top = 0: ddd.ntri = ',ddd.ntri
     #print 'true_ntri = ',true_ntri
     #print 'diff = ',ddd.ntri - true_ntri
+    numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # Also compare to using x,y,z rather than ra,dec,r
+    cat1 = treecorr.Catalog(x=x1, y=y1, z=z1)
+    cat2 = treecorr.Catalog(x=x2, y=y2, z=z2)
+    cat3 = treecorr.Catalog(x=x3, y=y3, z=z3)
+    ddd.process(cat1, cat2, cat3)
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
 
@@ -1166,10 +1178,6 @@ def test_3d():
     print 'ratio = ',(zeta / true_zeta).flatten()
     print 'diff = ',(zeta - true_zeta).flatten()
     print 'max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))
-    # The simple calculation (i.e. ddd/rrr-1, rather than (ddd-3ddr+3drr-rrr)/rrr as above) is only 
-    # slightly less accurate in this case.  Probably because the mask is simple (a box), so
-    # the difference is relatively minor.  The error is slightly higher in this case, but testing
-    # that it is everywhere < 0.1 is still appropriate.
     assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)) < 0.1
     numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta)), 
                                       numpy.log(numpy.abs(true_zeta)), decimal=1)
@@ -1187,6 +1195,16 @@ def test_3d():
         print 'ratio = ',corr3_output['zeta']/zeta.flatten()
         print 'diff = ',corr3_output['zeta']-zeta.flatten()
         numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=3)
+    
+    # Check that we get the same thing when using x,y,z rather than ra,dec,r
+    cat = treecorr.Catalog(x=x, y=y, z=z)
+    rand = treecorr.Catalog(x=rx, y=ry, z=rz)
+    ddd.process(cat)
+    rrr.process(rand)
+    zeta, varzeta = ddd.calculateZeta(rrr)
+    assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)) < 0.1
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta)), 
+                                      numpy.log(numpy.abs(true_zeta)), decimal=1)
 
 
 def test_list():

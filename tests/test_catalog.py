@@ -25,8 +25,10 @@ def test_ascii():
     numpy.random.seed(8675309)
     x = numpy.random.random_sample(nobj)
     y = numpy.random.random_sample(nobj)
+    z = numpy.random.random_sample(nobj)
     ra = numpy.random.random_sample(nobj)
     dec = numpy.random.random_sample(nobj)
+    r = numpy.random.random_sample(nobj)
     w = numpy.random.random_sample(nobj)
     g1 = numpy.random.random_sample(nobj)
     g2 = numpy.random.random_sample(nobj)
@@ -40,14 +42,16 @@ def test_ascii():
     file_name = os.path.join('data','test.dat')
     with open(file_name, 'w') as fid:
         # These are intentionally in a different order from the order we parse them.
-        fid.write('# ra,dec,x,y,k,g1,g2,w,flag\n')
+        fid.write('# ra,dec,x,y,k,g1,g2,w,flag,z,r\n')
         for i in range(nobj):
-            fid.write((('%.8f '*8)+'%d\n')%(ra[i],dec[i],x[i],y[i],k[i],g1[i],g2[i],w[i],flags[i]))
+            fid.write((('%.8f '*10)+'%d\n')%(
+                ra[i],dec[i],x[i],y[i],k[i],g1[i],g2[i],w[i],z[i],r[i],flags[i]))
 
     # Check basic input
     config = {
         'x_col' : 3,
         'y_col' : 4,
+        'z_col' : 9,
         'x_units' : 'rad',
         'y_units' : 'rad',
         'w_col' : 8,
@@ -58,13 +62,14 @@ def test_ascii():
     cat1 = treecorr.Catalog(file_name, config)
     numpy.testing.assert_almost_equal(cat1.x, x)
     numpy.testing.assert_almost_equal(cat1.y, y)
+    numpy.testing.assert_almost_equal(cat1.z, z)
     numpy.testing.assert_almost_equal(cat1.w, w)
     numpy.testing.assert_almost_equal(cat1.g1, g1)
     numpy.testing.assert_almost_equal(cat1.g2, g2)
     numpy.testing.assert_almost_equal(cat1.k, k)
 
     # Check flags
-    config['flag_col'] = 9
+    config['flag_col'] = 11
     cat2 = treecorr.Catalog(file_name, config)
     numpy.testing.assert_almost_equal(cat2.w[flags==0], w[flags==0])
     numpy.testing.assert_almost_equal(cat2.w[flags!=0], 0.)
@@ -86,6 +91,7 @@ def test_ascii():
     # Check different units for x,y
     config['x_units'] = 'arcsec'
     config['y_units'] = 'arcsec'
+    del config['z_col']
     cat5 = treecorr.Catalog(file_name, config)
     numpy.testing.assert_almost_equal(cat5.x, x * (pi/180./3600.))
     numpy.testing.assert_almost_equal(cat5.y, y * (pi/180./3600.))
@@ -113,6 +119,7 @@ def test_ascii():
     del config['y_col']
     config['ra_col'] = 1
     config['dec_col'] = 2
+    config['r_col'] = 10
     config['ra_units'] = 'rad'
     config['dec_units'] = 'rad'
     cat6 = treecorr.Catalog(file_name, config)
@@ -141,7 +148,8 @@ def test_ascii():
         fid.write('% And we use a weird comment marker to boot.')
         fid.write('% ra,dec,x,y,k,g1,g2,w,flag\n')
         for i in range(nobj):
-            fid.write((('%.8f,'*8)+'%d\n')%(ra[i],dec[i],x[i],y[i],k[i],g1[i],g2[i],w[i],flags[i]))
+            fid.write((('%.8f,'*10)+'%d\n')%(
+                ra[i],dec[i],x[i],y[i],k[i],g1[i],g2[i],w[i],z[i],r[i],flags[i]))
             if i%100 == 0:
                 fid.write('%%%% Line %d\n'%i)
     config['delimiter'] = ','
@@ -149,6 +157,7 @@ def test_ascii():
     cat7 = treecorr.Catalog(csv_file_name, config)
     numpy.testing.assert_almost_equal(cat7.ra, ra * (pi/12.))
     numpy.testing.assert_almost_equal(cat7.dec, dec * (pi/180.))
+    numpy.testing.assert_almost_equal(cat7.r, r)
     numpy.testing.assert_almost_equal(cat7.g1, g1)
     numpy.testing.assert_almost_equal(cat7.g2, g2)
     numpy.testing.assert_almost_equal(cat7.w[flags < 16], w[flags < 16])
@@ -384,6 +393,7 @@ def test_write():
     numpy.random.seed(8675309)
     x = numpy.random.normal(222,50, (ngal,) )
     y = numpy.random.normal(138,20, (ngal,) )
+    z = numpy.random.normal(912,130, (ngal,) )
     w = numpy.random.normal(1.3, 0.1, (ngal,) )
 
     ra = numpy.random.normal(11.34, 0.9, (ngal,) )
@@ -394,16 +404,17 @@ def test_write():
     g1 = numpy.random.normal(0,s, (ngal,) )
     g2 = numpy.random.normal(0,s, (ngal,) )
 
-    cat1 = treecorr.Catalog(x=x, y=y)
+    cat1 = treecorr.Catalog(x=x, y=y, z=z)
     cat2 = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='hour', dec_units='deg',
                             w=w, g1=g1, g2=g2, k=k)
 
     # Test ASCII output
     cat1.write(os.path.join('output','cat1.dat'))
     cat1_asc = treecorr.Catalog(os.path.join('output','cat1.dat'), file_type='ASCII',
-                                x_col=1, y_col=2)
+                                x_col=1, y_col=2, z_col=3)
     numpy.testing.assert_almost_equal(cat1_asc.x, x)
     numpy.testing.assert_almost_equal(cat1_asc.y, y)
+    numpy.testing.assert_almost_equal(cat1_asc.z, z)
 
     cat2.write(os.path.join('output','cat2.dat'), file_type='ASCII')
     cat2_asc = treecorr.Catalog(os.path.join('output','cat2.dat'), ra_col=1, dec_col=2, 
@@ -420,9 +431,10 @@ def test_write():
     # Test FITS output
     cat1.write(os.path.join('output','cat1.fits'), file_type='FITS')
     cat1_fits = treecorr.Catalog(os.path.join('output','cat1.fits'),
-                                 x_col='x', y_col='y')
+                                 x_col='x', y_col='y', z_col='z')
     numpy.testing.assert_almost_equal(cat1_fits.x, x)
     numpy.testing.assert_almost_equal(cat1_fits.y, y)
+    numpy.testing.assert_almost_equal(cat1_fits.z, z)
 
     cat2.write(os.path.join('output','cat2.fits'))
     cat2_fits = treecorr.Catalog(os.path.join('output','cat2.fits'), ra_col='ra', dec_col='dec', 

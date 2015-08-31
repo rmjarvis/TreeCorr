@@ -107,9 +107,9 @@ def test_kkk():
     numpy.testing.assert_almost_equal(numpy.log(kkk.meand1-kkk.meand2)-kkk.meanlogd3, 
                                       numpy.log(numpy.abs(kkk.meanv)), decimal=3)
 
-    d1 = numpy.exp(kkk.meanlogd1)
-    d2 = numpy.exp(kkk.meanlogd2)
-    d3 = numpy.exp(kkk.meanlogd3)
+    d1 = kkk.meand1
+    d2 = kkk.meand2
+    d3 = kkk.meand3
     #print 'rnom = ',numpy.exp(kkk.logr)
     #print 'unom = ',kkk.u
     #print 'vnom = ',kkk.v
@@ -142,10 +142,10 @@ def test_kkk():
         numpy.testing.assert_almost_equal(corr3_output['zeta']/kkk.zeta.flatten(), 1., decimal=3)
 
     # Check the fits write option
-    out_file_name1 = os.path.join('output','kkk_out1.fits')
-    kkk.write(out_file_name1)
+    out_file_name = os.path.join('output','kkk_out.fits')
+    kkk.write(out_file_name)
     import fitsio
-    data = fitsio.read(out_file_name1)
+    data = fitsio.read(out_file_name)
     numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(kkk.logr).flatten())
     numpy.testing.assert_almost_equal(data['u_nom'], kkk.u.flatten())
     numpy.testing.assert_almost_equal(data['v_nom'], kkk.v.flatten())
@@ -168,7 +168,7 @@ def test_kkk():
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                    nubins=nubins, nvbins=nvbins,
                                    sep_units='arcmin', verbose=3)
-    kkk2.read(out_file_name1)
+    kkk2.read(out_file_name)
     numpy.testing.assert_almost_equal(kkk2.logr, kkk.logr)
     numpy.testing.assert_almost_equal(kkk2.u, kkk.u)
     numpy.testing.assert_almost_equal(kkk2.v, kkk.v)

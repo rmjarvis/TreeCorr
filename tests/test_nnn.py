@@ -911,9 +911,9 @@ def test_nnn():
     rrr.process(rand)
     #print 'rrr.ntri = ',rrr.ntri
 
-    d1 = numpy.exp(ddd.meanlogd1)
-    d2 = numpy.exp(ddd.meanlogd2)
-    d3 = numpy.exp(ddd.meanlogd3)
+    d1 = ddd.meand1
+    d2 = ddd.meand2
+    d3 = ddd.meand3
     #print 'rnom = ',numpy.exp(ddd.logr)
     #print 'unom = ',ddd.u
     #print 'vnom = ',ddd.v
@@ -1156,9 +1156,9 @@ def test_3d():
     rrr.process(rand)
     print 'rrr.ntri = ',rrr.ntri.flatten()
 
-    d1 = numpy.exp(ddd.meanlogd1)
-    d2 = numpy.exp(ddd.meanlogd2)
-    d3 = numpy.exp(ddd.meanlogd3)
+    d1 = ddd.meand1
+    d2 = ddd.meand2
+    d3 = ddd.meand3
     print 'rnom = ',numpy.exp(ddd.logr).flatten()
     print 'unom = ',ddd.u.flatten()
     print 'vnom = ',ddd.v.flatten()

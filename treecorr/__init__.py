@@ -31,3 +31,4 @@ from .field import NField, KField, GField, NSimpleField, KSimpleField, GSimpleFi
 from .binnedcorr3 import BinnedCorr3
 from .nnncorrelation import NNNCorrelation
 from .kkkcorrelation import KKKCorrelation
+from .gggcorrelation import GGGCorrelation

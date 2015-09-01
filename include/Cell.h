@@ -11,8 +11,9 @@
  *    this list of conditions, and the disclaimer given in the documentation
  *    and/or other materials provided with the distribution.
  */
-#ifndef Cell_H
-#define Cell_H
+
+#ifndef TreeCorr_Cell_H
+#define TreeCorr_Cell_H
 
 enum SplitMethod { MIDDLE, MEDIAN, MEAN };
 

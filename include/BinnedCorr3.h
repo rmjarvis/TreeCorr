@@ -11,8 +11,9 @@
  *    this list of conditions, and the disclaimer given in the documentation
  *    and/or other materials provided with the distribution.
  */
-#ifndef Corr3_H
-#define Corr3_H
+
+#ifndef TreeCorr_Corr3_H
+#define TreeCorr_Corr3_H
 
 #include <vector>
 #include <string>
@@ -244,78 +245,78 @@ struct ZetaData<GData, GData, GData>
 {
     ZetaData(double* z0, double* z1, double* z2, double* z3,
              double* z4, double* z5, double* z6, double* z7) :
-        zeta0(z0), zeta0_im(z1), zeta1(z2), zeta1_im(z3),
-        zeta2(z0), zeta2_im(z1), zeta3(z2), zeta3_im(z3) {}
+        gam0r(z0), gam0i(z1), gam1r(z2), gam1i(z3),
+        gam2r(z0), gam2i(z1), gam3r(z2), gam3i(z3) {}
 
     void new_data(int n) 
     {
-        zeta0 = new double[n]; 
-        zeta0_im = new double[n]; 
-        zeta1 = new double[n]; 
-        zeta1_im = new double[n]; 
-        zeta2 = new double[n]; 
-        zeta2_im = new double[n]; 
-        zeta3 = new double[n]; 
-        zeta3_im = new double[n]; 
+        gam0r = new double[n]; 
+        gam0i = new double[n]; 
+        gam1r = new double[n]; 
+        gam1i = new double[n]; 
+        gam2r = new double[n]; 
+        gam2i = new double[n]; 
+        gam3r = new double[n]; 
+        gam3i = new double[n]; 
     }
     void delete_data() 
     {
-        delete [] zeta0; zeta0 = 0; 
-        delete [] zeta0_im; zeta0_im = 0; 
-        delete [] zeta1; zeta1 = 0; 
-        delete [] zeta1_im; zeta1_im = 0; 
-        delete [] zeta2; zeta2 = 0; 
-        delete [] zeta2_im; zeta2_im = 0; 
-        delete [] zeta3; zeta3 = 0; 
-        delete [] zeta3_im; zeta3_im = 0; 
+        delete [] gam0r; gam0r = 0; 
+        delete [] gam0i; gam0i = 0; 
+        delete [] gam1r; gam1r = 0; 
+        delete [] gam1i; gam1i = 0; 
+        delete [] gam2r; gam2r = 0; 
+        delete [] gam2i; gam2i = 0; 
+        delete [] gam3r; gam3r = 0; 
+        delete [] gam3i; gam3i = 0; 
     }
     void copy(const ZetaData<GData,GData,GData>& rhs, int n) 
     { 
-        for (int i=0; i<n; ++i) zeta0[i] = rhs.zeta0[i]; 
-        for (int i=0; i<n; ++i) zeta0_im[i] = rhs.zeta0_im[i]; 
-        for (int i=0; i<n; ++i) zeta1[i] = rhs.zeta1[i]; 
-        for (int i=0; i<n; ++i) zeta1_im[i] = rhs.zeta1_im[i]; 
-        for (int i=0; i<n; ++i) zeta2[i] = rhs.zeta2[i]; 
-        for (int i=0; i<n; ++i) zeta2_im[i] = rhs.zeta2_im[i]; 
-        for (int i=0; i<n; ++i) zeta3[i] = rhs.zeta3[i]; 
-        for (int i=0; i<n; ++i) zeta3_im[i] = rhs.zeta3_im[i]; 
+        for (int i=0; i<n; ++i) gam0r[i] = rhs.gam0r[i]; 
+        for (int i=0; i<n; ++i) gam0i[i] = rhs.gam0i[i]; 
+        for (int i=0; i<n; ++i) gam1r[i] = rhs.gam1r[i]; 
+        for (int i=0; i<n; ++i) gam1i[i] = rhs.gam1i[i]; 
+        for (int i=0; i<n; ++i) gam2r[i] = rhs.gam2r[i]; 
+        for (int i=0; i<n; ++i) gam2i[i] = rhs.gam2i[i]; 
+        for (int i=0; i<n; ++i) gam3r[i] = rhs.gam3r[i]; 
+        for (int i=0; i<n; ++i) gam3i[i] = rhs.gam3i[i]; 
     }
     void add(const ZetaData<GData,GData,GData>& rhs, int n) 
     {
-        for (int i=0; i<n; ++i) zeta0[i] += rhs.zeta0[i]; 
-        for (int i=0; i<n; ++i) zeta0_im[i] += rhs.zeta0_im[i]; 
-        for (int i=0; i<n; ++i) zeta1[i] += rhs.zeta1[i]; 
-        for (int i=0; i<n; ++i) zeta1_im[i] += rhs.zeta1_im[i]; 
-        for (int i=0; i<n; ++i) zeta2[i] += rhs.zeta2[i]; 
-        for (int i=0; i<n; ++i) zeta2_im[i] += rhs.zeta2_im[i]; 
-        for (int i=0; i<n; ++i) zeta3[i] += rhs.zeta3[i]; 
-        for (int i=0; i<n; ++i) zeta3_im[i] += rhs.zeta3_im[i]; 
+        for (int i=0; i<n; ++i) gam0r[i] += rhs.gam0r[i]; 
+        for (int i=0; i<n; ++i) gam0i[i] += rhs.gam0i[i]; 
+        for (int i=0; i<n; ++i) gam1r[i] += rhs.gam1r[i]; 
+        for (int i=0; i<n; ++i) gam1i[i] += rhs.gam1i[i]; 
+        for (int i=0; i<n; ++i) gam2r[i] += rhs.gam2r[i]; 
+        for (int i=0; i<n; ++i) gam2i[i] += rhs.gam2i[i]; 
+        for (int i=0; i<n; ++i) gam3r[i] += rhs.gam3r[i]; 
+        for (int i=0; i<n; ++i) gam3i[i] += rhs.gam3i[i]; 
     }
     void clear(int n)
     { 
-        for (int i=0; i<n; ++i) zeta0[i] = 0.;
-        for (int i=0; i<n; ++i) zeta0_im[i] = 0.;
-        for (int i=0; i<n; ++i) zeta1[i] = 0.;
-        for (int i=0; i<n; ++i) zeta1_im[i] = 0.;
-        for (int i=0; i<n; ++i) zeta2[i] = 0.;
-        for (int i=0; i<n; ++i) zeta2_im[i] = 0.;
-        for (int i=0; i<n; ++i) zeta3[i] = 0.;
-        for (int i=0; i<n; ++i) zeta3_im[i] = 0.;
+        for (int i=0; i<n; ++i) gam0r[i] = 0.;
+        for (int i=0; i<n; ++i) gam0i[i] = 0.;
+        for (int i=0; i<n; ++i) gam1r[i] = 0.;
+        for (int i=0; i<n; ++i) gam1i[i] = 0.;
+        for (int i=0; i<n; ++i) gam2r[i] = 0.;
+        for (int i=0; i<n; ++i) gam2i[i] = 0.;
+        for (int i=0; i<n; ++i) gam3r[i] = 0.;
+        for (int i=0; i<n; ++i) gam3i[i] = 0.;
     }
     void write(std::ostream& os) const 
     { 
-        os << zeta0[0]<<','<<zeta0_im[0]<<','<<zeta1[0]<<','<<zeta1_im<<','<<
-            zeta2[0]<<','<<zeta2_im[0]<<','<<zeta3[0]<<','<<zeta3_im; 
+        os << gam0r[0]<<','<<gam0i[0]<<','<<gam1r[0]<<','<<gam1i<<','<<
+            gam2r[0]<<','<<gam2i[0]<<','<<gam3r[0]<<','<<gam3i; 
     }
 
-    double* zeta0;
-    double* zeta0_im;
-    double* zeta1;
-    double* zeta1_im;
-    double* zeta2;
-    double* zeta2_im;
-    double* zeta3;
-    double* zeta3_im;
+    double* gam0r;
+    double* gam0i;
+    double* gam1r;
+    double* gam1i;
+    double* gam2r;
+    double* gam2i;
+    double* gam3r;
+    double* gam3i;
 };
 
 template <>
@@ -347,15 +348,15 @@ extern "C" {
                               double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
                               double* meand3, double* meanlogd3, double* meanu, double* meanv,
                               double* weight, double* ntri);
-#if 0
     extern void* BuildGGGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                               double minu, double maxu, int nubins, double ubinsize, double bu,
                               double minv, double maxv, int nvbins, double vbinsize, double bv,
                               double* gam0, double* gam0_im, double* gam1, double* gam1_im,
-                              double* gam2, double* gam2_im, double* gam2, double* gam2_im,
+                              double* gam2, double* gam2_im, double* gam3, double* gam3_im,
                               double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
                               double* meand3, double* meanlogd3, double* meanu, double* meanv,
                               double* weight, double* ntri);
+#if 0
     extern void* BuildNNKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                               double minu, double maxu, int nubins, double ubinsize, double bu,
                               double minv, double maxv, int nvbins, double vbinsize, double bv,
@@ -381,8 +382,8 @@ extern "C" {
 
     extern void DestroyNNNCorr(void* corr);
     extern void DestroyKKKCorr(void* corr);
-#if 0
     extern void DestroyGGGCorr(void* corr);
+#if 0
     extern void DestroyNNKCorr(void* corr);
     extern void DestroyNNGCorr(void* corr);
     extern void DestroyKKGCorr(void* corr);
@@ -394,11 +395,9 @@ extern "C" {
     extern void ProcessAutoKKKFlat(void* corr, void* field, int dots);
     extern void ProcessAutoKKK3D(void* corr, void* field, int dots);
     extern void ProcessAutoKKKPerp(void* corr, void* field, int dots);
-#if 0
     extern void ProcessAutoGGGFlat(void* corr, void* field, int dots);
     extern void ProcessAutoGGG3D(void* corr, void* field, int dots);
     extern void ProcessAutoGGGPerp(void* corr, void* field, int dots);
-#endif
 
     extern void ProcessCrossNNNFlat(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossNNN3D(void* corr, void* field1, void* field2, void* field3, int dots);
@@ -406,10 +405,10 @@ extern "C" {
     extern void ProcessCrossKKKFlat(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossKKK3D(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossKKKPerp(void* corr, void* field1, void* field2, void* field3, int dots);
-#if 0
     extern void ProcessCrossGGGFlat(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossGGG3D(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossGGGPerp(void* corr, void* field1, void* field2, void* field3, int dots);
+#if 0
     extern void ProcessCrossNNKFlat(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossNNK3D(void* corr, void* field1, void* field2, void* field3, int dots);
     extern void ProcessCrossNNKPerp(void* corr, void* field1, void* field2, void* field3, int dots);

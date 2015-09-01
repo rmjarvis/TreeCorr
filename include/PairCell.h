@@ -11,8 +11,9 @@
  *    this list of conditions, and the disclaimer given in the documentation
  *    and/or other materials provided with the distribution.
  */
-#ifndef PAIRCELL_H
-#define PAIRCELL_H
+
+#ifndef TreeCorr_PairCell_H
+#define TreeCorr_PairCell_H
 
 #include "OldCell.h"
 

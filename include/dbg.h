@@ -11,10 +11,9 @@
  *    this list of conditions, and the disclaimer given in the documentation
  *    and/or other materials provided with the distribution.
  */
-//---------------------------------------------------------------------------
-#ifndef dbgH
-#define dbgH
-//---------------------------------------------------------------------------
+
+#ifndef TreeCorr_dbg_H
+#define TreeCorr_dbg_H
 
 /* Put the following in the main program file:
 

@@ -11,8 +11,9 @@
  *    this list of conditions, and the disclaimer given in the documentation
  *    and/or other materials provided with the distribution.
  */
-#ifndef Split_H
-#define Split_H
+
+#ifndef TreeCorr_Split_H
+#define TreeCorr_Split_H
 
 #include "Cell.h"
 

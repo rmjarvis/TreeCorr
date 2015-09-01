@@ -11,13 +11,11 @@
  *    this list of conditions, and the disclaimer given in the documentation
  *    and/or other materials provided with the distribution.
  */
-//---------------------------------------------------------------------------
-#ifndef BoundsH
-#define BoundsH
+
+#ifndef TreeCorr_Bounds_H
+#define TreeCorr_Bounds_H
 
 #include <complex>
-
-//---------------------------------------------------------------------------
 
 // We use a code for the metric to use:
 // Flat = flat-sky approximation using (x,y)

@@ -11,8 +11,9 @@
  *    this list of conditions, and the disclaimer given in the documentation
  *    and/or other materials provided with the distribution.
  */
-#ifndef Corr2_H
-#define Corr2_H
+
+#ifndef TreeCorr_Corr2_H
+#define TreeCorr_Corr2_H
 
 #include <vector>
 #include <string>

@@ -37,7 +37,9 @@ _treecorr.BuildNNNCorr.argtypes = [
     cdouble, cdouble, cint, cdouble, cdouble,
     cdouble, cdouble, cint, cdouble, cdouble,
     cdouble, cdouble, cint, cdouble, cdouble,
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    cdouble_ptr ]
 _treecorr.DestroyNNNCorr.argtypes = [ cvoid_ptr ]
 _treecorr.ProcessAutoNNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessAutoNNN3D.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]

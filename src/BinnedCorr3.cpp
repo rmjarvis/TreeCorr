@@ -15,6 +15,7 @@
 #include "dbg.h"
 #include "BinnedCorr3.h"
 #include "Split.h"
+#include "MetricHelper.h"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -966,26 +967,52 @@ struct DirectHelper<KData,KData,KData>
     }
 };
  
+template <>
+struct DirectHelper<GData,GData,GData>
+{
+    template <int M>
+    static void ProcessZeta(
+        const Cell<GData,M>& c1, const Cell<GData,M>& c2, const Cell<GData,M>& c3,
+        const double d1, const double d2, const double d3,
+        ZetaData<GData,GData,GData>& zeta, int index)
+    {
+        std::complex<double> g1, g2;
+        //MetricHelper<M>::ProjectShears(c1,c2,dsq,g1,g2);
+
+        // The complex products g1 g2 and g1 g2* share most of the calculations,
+        // so faster to do this manually.
+        double g1rg2r = g1.real() * g2.real();
+        double g1rg2i = g1.real() * g2.imag();
+        double g1ig2r = g1.imag() * g2.real();
+        double g1ig2i = g1.imag() * g2.imag();
+
+        zeta.gam0r[index] += g1rg2r + g1ig2i;       // g1 * conj(g2)
+        zeta.gam0i[index] += g1ig2r - g1rg2i;
+        zeta.gam1r[index] += g1rg2r - g1ig2i;       // g1 * g2
+        zeta.gam1i[index] += g1ig2r + g1rg2i;
+    }
+};
+
 #if 0
 template <>
-struct DirectHelper<NData,KData>
+struct DirectHelper<NData,NData,KData>
 {
     template <int M>
     static void ProcessZeta(
         const Cell<NData,M>& c1, const Cell<KData,M>& c2,
         const double d1, const double d2, const double d3,
-        ZetaData<NData,KData>& zeta, int index)
+        ZetaData<NData,NData,KData>& zeta, int index)
     { zeta.zeta[index] += c1.getData().getW() * c2.getData().getWK(); }
 };
  
 template <>
-struct DirectHelper<NData,GData>
+struct DirectHelper<NData,NData,GData>
 {
     template <int M>
     static void ProcessZeta(
         const Cell<NData,M>& c1, const Cell<GData,M>& c2,
         const double d1, const double d2, const double d3,
-        ZetaData<NData,GData>& zeta, int index)
+        ZetaData<NData,NData,GData>& zeta, int index)
     {
         std::complex<double> g2;
         MetricHelper<M>::ProjectShear(c1,c2,dsq,g2);
@@ -1000,13 +1027,13 @@ struct DirectHelper<NData,GData>
 
 
 template <>
-struct DirectHelper<KData,GData>
+struct DirectHelper<KData,KData,GData>
 {
     template <int M>
     static void ProcessZeta(
         const Cell<KData,M>& c1, const Cell<GData,M>& c2,
         const double d1, const double d2, const double d3,
-        ZetaData<KData,GData>& zeta, int index)
+        ZetaData<KData,KData,GData>& zeta, int index)
     {
         std::complex<double> g2;
         MetricHelper<M>::ProjectShear(c1,c2,dsq,g2);
@@ -1015,32 +1042,6 @@ struct DirectHelper<KData,GData>
         g2 *= -c1.getData().getWK();
         zeta.zeta[index] += real(g2);
         zeta.zeta_im[index] += imag(g2);
-    }
-};
- 
-template <>
-struct DirectHelper<GData,GData>
-{
-    template <int M>
-    static void ProcessZeta(
-        const Cell<GData,M>& c1, const Cell<GData,M>& c2,
-        const double d1, const double d2, const double d3,
-        ZetaData<GData,GData>& zeta, int index)
-    {
-        std::complex<double> g1, g2;
-        MetricHelper<M>::ProjectShears(c1,c2,dsq,g1,g2);
-
-        // The complex products g1 g2 and g1 g2* share most of the calculations,
-        // so faster to do this manually.
-        double g1rg2r = g1.real() * g2.real();
-        double g1rg2i = g1.real() * g2.imag();
-        double g1ig2r = g1.imag() * g2.real();
-        double g1ig2i = g1.imag() * g2.imag();
-
-        zeta.zetap[index] += g1rg2r + g1ig2i;       // g1 * conj(g2)
-        zeta.zetap_im[index] += g1ig2r - g1rg2i;
-        zeta.zetam[index] += g1rg2r - g1ig2i;       // g1 * g2
-        zeta.zetam_im[index] += g1ig2r + g1rg2i;
     }
 };
 #endif
@@ -1189,6 +1190,27 @@ void* BuildKKKCorr(double minsep, double maxsep, int nbins, double binsize, doub
     return corr;
 }
 
+
+void* BuildGGGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                   double minu, double maxu, int nubins, double ubinsize, double bu,
+                   double minv, double maxv, int nvbins, double vbinsize, double bv,
+                   double* gam0r, double* gam0i, double* gam1r, double* gam1i,
+                   double* gam2r, double* gam2i, double* gam3r, double* gam3i,
+                   double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
+                   double* meand3, double* meanlogd3, double* meanu, double* meanv,
+                   double* weight, double* ntri)
+{
+    dbg<<"Start BuildGGGCorr\n";
+    void* corr = static_cast<void*>(new BinnedCorr3<GData,GData,GData>(
+            minsep, maxsep, nbins, binsize, b,
+            minu, maxu, nubins, ubinsize, bu,
+            minv, maxv, nvbins, vbinsize, bv,
+            gam0r, gam0i, gam1r, gam1i, gam2r, gam2i, gam3r, gam3i,
+            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, weight, ntri));
+    xdbg<<"corr = "<<corr<<std::endl;
+    return corr;
+}
+
 #if 0
 void* BuildNNKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                    double minu, double maxu, int nubins, double ubinsize, double bu,
@@ -1199,9 +1221,11 @@ void* BuildNNKCorr(double minsep, double maxsep, int nbins, double binsize, doub
                    double* weight, double* ntri)
 {
     dbg<<"Start BuildNNKCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr3<NData,KData>(
+    void* corr = static_cast<void*>(new BinnedCorr3<NData,NData,KData>(
             minsep, maxsep, nbins, binsize, b,
-            zeta, 0, 0, 0,
+            minu, maxu, nubins, ubinsize, bu,
+            minv, maxv, nvbins, vbinsize, bv,
+            zeta, 0, 0, 0, 0, 0, 0, 0,
             meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, weight, ntri));
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
@@ -1216,9 +1240,11 @@ void* BuildNNGCorr(double minsep, double maxsep, int nbins, double binsize, doub
                    double* weight, double* ntri)
 {
     dbg<<"Start BuildNNGCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr3<NData,GData>(
+    void* corr = static_cast<void*>(new BinnedCorr3<NData,NData,GData>(
             minsep, maxsep, nbins, binsize, b,
-            zeta, zeta_im, 0, 0,
+            minu, maxu, nubins, ubinsize, bu,
+            minv, maxv, nvbins, vbinsize, bv,
+            zeta, zeta_im, 0, 0, 0, 0, 0, 0,
             meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, weight, ntri));
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
@@ -1233,26 +1259,11 @@ void* BuildKKGCorr(double minsep, double maxsep, int nbins, double binsize, doub
                    double* weight, double* ntri)
 {
     dbg<<"Start BuildKKGCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr3<KData,GData>(
+    void* corr = static_cast<void*>(new BinnedCorr3<KData,KData,GData>(
             minsep, maxsep, nbins, binsize, b,
-            zeta, zeta_im, 0, 0,
-            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, weight, ntri));
-    xdbg<<"corr = "<<corr<<std::endl;
-    return corr;
-}
-
-void* BuildGGGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                   double minu, double maxu, int nubins, double ubinsize, double bu,
-                   double minv, double maxv, int nvbins, double vbinsize, double bv,
-                   double* zetap, double* zetap_im, double* zetam, double* zetam_im,
-                   double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                   double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                   double* weight, double* ntri)
-{
-    dbg<<"Start BuildGGGCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr3<GData,GData>(
-            minsep, maxsep, nbins, binsize, b,
-            zetap, zetap_im, zetam, zetam_im,
+            minu, maxu, nubins, ubinsize, bu,
+            minv, maxv, nvbins, vbinsize, bv,
+            zeta, zeta_im, 0, 0, 0, 0, 0, 0,
             meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, weight, ntri));
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
@@ -1273,33 +1284,34 @@ void DestroyKKKCorr(void* corr)
     delete static_cast<BinnedCorr3<KData,KData,KData>*>(corr);
 }
 
+
+void DestroyGGGCorr(void* corr)
+{
+    dbg<<"Start DestroyGGGCorr\n";
+    xdbg<<"corr = "<<corr<<std::endl;
+    delete static_cast<BinnedCorr3<GData,GData,GData>*>(corr);
+}
+
 #if 0
 void DestroyNNKCorr(void* corr)
 {
     dbg<<"Start DestroyNNKCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr3<NData,KData>*>(corr);
+    delete static_cast<BinnedCorr3<NData,NData,KData>*>(corr);
 }
 
 void DestroyNNGCorr(void* corr)
 {
     dbg<<"Start DestroyNNGCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr3<NData,GData>*>(corr);
+    delete static_cast<BinnedCorr3<NData,NData,GData>*>(corr);
 }
 
 void DestroyKKGCorr(void* corr)
 {
     dbg<<"Start DestroyKKGCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr3<KData,GData>*>(corr);
-}
-
-void DestroyGGGCorr(void* corr)
-{
-    dbg<<"Start DestroyGGGCorr\n";
-    xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr3<GData,GData>*>(corr);
+    delete static_cast<BinnedCorr3<KData,KData,GData>*>(corr);
 }
 #endif
 
@@ -1342,26 +1354,24 @@ void ProcessAutoKKKPerp(void* corr, void* field, int dots)
         *static_cast<Field<KData,Perp>*>(field),dots);
 }
 
-#if 0
-void ProcessAutoGGFlat(void* corr, void* field, int dots)
+void ProcessAutoGGGFlat(void* corr, void* field, int dots)
 {
     dbg<<"Start ProcessAutoGGGFlat\n";
     static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process(
         *static_cast<Field<GData,Flat>*>(field),dots);
 }
-void ProcessAutoGG3D(void* corr, void* field, int dots)
+void ProcessAutoGGG3D(void* corr, void* field, int dots)
 {
     dbg<<"Start ProcessAutoGGG3D\n";
     static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process(
         *static_cast<Field<GData,Sphere>*>(field),dots);
 }
-void ProcessAutoGGPerp(void* corr, void* field, int dots)
+void ProcessAutoGGGPerp(void* corr, void* field, int dots)
 {
     dbg<<"Start ProcessAutoGGGPerp\n";
     static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process(
         *static_cast<Field<GData,Perp>*>(field),dots);
 }
-#endif
 
 void ProcessCrossNNNFlat(void* corr, void* field1, void* field2, void* field3, int dots)
 {
@@ -1411,6 +1421,31 @@ void ProcessCrossKKKPerp(void* corr, void* field1, void* field2, void* field3, i
         *static_cast<Field<KData,Perp>*>(field1),
         *static_cast<Field<KData,Perp>*>(field2),
         *static_cast<Field<KData,Perp>*>(field3),dots);
+}
+
+void ProcessCrossGGGFlat(void* corr, void* field1, void* field2, void* field3, int dots)
+{
+    dbg<<"Start ProcessCrossGGGFlat\n";
+    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process(
+        *static_cast<Field<GData,Flat>*>(field1),
+        *static_cast<Field<GData,Flat>*>(field2),
+        *static_cast<Field<GData,Flat>*>(field3),dots);
+}
+void ProcessCrossGGG3D(void* corr, void* field1, void* field2, void* field3, int dots)
+{
+    dbg<<"Start ProcessCrossGGG3D\n";
+    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process(
+        *static_cast<Field<GData,Sphere>*>(field1),
+        *static_cast<Field<GData,Sphere>*>(field2),
+        *static_cast<Field<GData,Sphere>*>(field3),dots);
+}
+void ProcessCrossGGGPerp(void* corr, void* field1, void* field2, void* field3, int dots)
+{
+    dbg<<"Start ProcessCrossGGGPerp\n";
+    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process(
+        *static_cast<Field<GData,Perp>*>(field1),
+        *static_cast<Field<GData,Perp>*>(field2),
+        *static_cast<Field<GData,Perp>*>(field3),dots);
 }
 
 #if 0
@@ -1486,31 +1521,6 @@ void ProcessCrossKKGPerp(void* corr, void* field1, void* field2, void* field3, i
     static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process(
         *static_cast<Field<KData,Perp>*>(field1),
         *static_cast<Field<KData,Perp>*>(field2),
-        *static_cast<Field<GData,Perp>*>(field3),dots);
-}
-
-void ProcessCrossGGGFlat(void* corr, void* field1, void* field2, void* field3, int dots)
-{
-    dbg<<"Start ProcessCrossGGGFlat\n";
-    static_cast<BinnedCorr3<GData,GData>*>(corr)->process(
-        *static_cast<Field<GData,Flat>*>(field1),
-        *static_cast<Field<GData,Flat>*>(field2),
-        *static_cast<Field<GData,Flat>*>(field3),dots);
-}
-void ProcessCrossGGG3D(void* corr, void* field1, void* field2, void* field3, int dots)
-{
-    dbg<<"Start ProcessCrossGGG3D\n";
-    static_cast<BinnedCorr3<GData,GData>*>(corr)->process(
-        *static_cast<Field<GData,Sphere>*>(field1),
-        *static_cast<Field<GData,Sphere>*>(field2),
-        *static_cast<Field<GData,Sphere>*>(field3),dots);
-}
-void ProcessCrossGGGPerp(void* corr, void* field1, void* field2, void* field3, int dots)
-{
-    dbg<<"Start ProcessCrossGGGPerp\n";
-    static_cast<BinnedCorr3<GData,GData>*>(corr)->process(
-        *static_cast<Field<GData,Perp>*>(field1),
-        *static_cast<Field<GData,Perp>*>(field2),
         *static_cast<Field<GData,Perp>*>(field3),dots);
 }
 #endif

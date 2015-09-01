@@ -11,8 +11,9 @@
  *    this list of conditions, and the disclaimer given in the documentation
  *    and/or other materials provided with the distribution.
  */
-#ifndef Process2_H
-#define Process2_H
+
+#ifndef TreeCorr_Process2_H
+#define TreeCorr_Process2_H
 
 template <class DataType, class CellType1, class CellType2>
 void Process11(

@@ -12,6 +12,9 @@
  *    and/or other materials provided with the distribution.
  */
 
+#ifndef TreeCorr_Field_H
+#define TreeCorr_Field_H
+
 #include "Cell.h"
 
 // The C++ class
@@ -146,3 +149,4 @@ extern "C" {
 
 }
 
+#endif

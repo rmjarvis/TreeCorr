@@ -207,6 +207,9 @@ class NField(object):
             else:
                 spher = 0
             if self.metric == 'Rperp':
+                # Go a bit smller than min_sep for Rperp metric, since the simple calculation of what 
+                # minimum size to use isn't exactly accurate in this case.
+                min_sep /= 2.
                 self.data = _treecorr.BuildNFieldPerp(x,y,z,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
                 self.perp = True
                 if logger:
@@ -307,6 +310,9 @@ class KField(object):
             else:
                 spher = 0
             if self.metric == 'Rperp':
+                # Go a bit smller than min_sep for Rperp metric, since the simple calculation of what 
+                # minimum size to use isn't exactly accurate in this case.
+                min_sep /= 2.
                 self.data = _treecorr.BuildKFieldPerp(x,y,z,k,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
                 self.perp = True
                 if logger:
@@ -410,6 +416,9 @@ class GField(object):
             else:
                 spher = 0
             if self.metric == 'Rperp':
+                # Go a bit smller than min_sep for Rperp metric, since the simple calculation of what 
+                # minimum size to use isn't exactly accurate in this case.
+                min_sep /= 2.
                 self.data = _treecorr.BuildGFieldPerp(x,y,z,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
                 self.perp = True
                 if logger:

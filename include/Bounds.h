@@ -17,6 +17,9 @@
 
 #include <complex>
 
+template <typename T>
+inline T SQR(T x) { return x * x; }
+
 // We use a code for the metric to use:
 // Flat = flat-sky approximation using (x,y)
 // Sphere = spherical geometry using (ra,dec,r) or (x,y,z)
@@ -92,6 +95,15 @@ inline bool CCW(const Position<Flat>& p1, const Position<Flat>& p2, const Positi
     double y3 = p3.getY() - p1.getY();
     return (x2*y3 - x3*y2) > 0.;
 }
+
+inline bool TooSmallDist(const Position<Flat>& , const Position<Flat>& , double s1ps2, 
+                           double dsq, double minsep, double minsepsq)
+{ return dsq < minsepsq && s1ps2 < minsep && dsq < SQR(minsep - s1ps2); }
+
+inline bool TooLargeDist(const Position<Flat>& , const Position<Flat>& , double s1ps2, 
+                           double dsq, double maxsep, double maxsepsq)
+{ return dsq >= maxsepsq && dsq >= SQR(maxsep + s1ps2); }
+
 template <int M>
 inline std::ostream& operator<<(std::ostream& os, const Position<M>& pos)
 { pos.write(os); return os; }
@@ -317,6 +329,14 @@ inline bool CCW(const Position<Sphere>& p1, const Position<Sphere>& p2, const Po
     return cx*p1.getX() + cy*p1.getY() + cz*p1.getZ() < 0.;
 }
 
+inline bool TooSmallDist(const Position<Sphere>& , const Position<Sphere>& , double s1ps2, 
+                           double dsq, double minsep, double minsepsq)
+{ return dsq < minsepsq && s1ps2 < minsep && dsq < SQR(minsep - s1ps2); }
+
+inline bool TooLargeDist(const Position<Sphere>& , const Position<Sphere>& , double s1ps2, 
+                           double dsq, double maxsep, double maxsepsq)
+{ return dsq >= maxsepsq && dsq >= SQR(maxsep + s1ps2); }
+
 template <>
 class Position<Perp> : public Position<Sphere> 
 {
@@ -392,6 +412,50 @@ inline bool CCW(const Position<Perp>& p1, const Position<Perp>& p2, const Positi
     double cy = z2*x3 - z3*x2;
     double cz = x2*y3 - x3*y2;
     return cx*p1.getX() + cy*p1.getY() + cz*p1.getZ() < 0.;
+}
+
+// This one is a bit subtle.  The maximum possible rp can be larger than just (rp + s1ps2).
+// The most extreme case is if the two cells are in opposite directions from Earth.
+// Of course, this won't happen too often in practice, but might as well use the 
+// most conservative case here.  In this case, the cell size can serve both to
+// increase d by s1ps2 and decrease |r1-r2| by s1ps2.  So rp can become
+// rp'^2 = (d+s1ps2)^2 - (rpar-s1ps2)^2
+//       = d^2 + 2d s1ps2 + s1ps2^2 - rpar^2 + 2rpar s1ps2 - s1ps2^2
+//       = rp^2 + 2(d+rpar) s1ps2
+// rp'^2 < minsep^2
+// rp^2 + 2(d + rpar) s1ps2 < minsepsq
+// 4 (d^2 + 2d rpar + rpar^2) s1ps2^2 < (minsepsq - rp^2)^2
+inline bool TooSmallDist(const Position<Perp>& p1, const Position<Perp>& p2, double s1ps2, 
+                         double dsq, double minsep, double minsepsq)
+
+{
+    // First a simple check that will work most of the time.
+    if (dsq >= minsepsq || s1ps2 >= minsep || dsq >= SQR(minsep - s1ps2)) return false;
+    // Now check the subtle case.
+    double r1sq = p1.getX()*p1.getX() + p1.getY()*p1.getY() + p1.getZ()*p1.getZ(); 
+    double r2sq = p2.getX()*p2.getX() + p2.getY()*p2.getY() + p2.getZ()*p2.getZ(); 
+    double rparsq = r1sq + r2sq - 2.*sqrt(r1sq*r2sq);
+    double d3sq = rparsq + dsq;  // The 3d distance.  Remember dsq is really rp^2.
+    return (d3sq + 2.*sqrt(d3sq * rparsq) + rparsq) * SQR(2.*s1ps2) < SQR(minsepsq - dsq);
+}
+
+// This one is similar.  The minimum possible rp can be smaller than just (rp - s1ps2).
+// rp'^2 = (d-s1ps2)^2 - (rpar+s1ps2)^2
+//       = d^2 - 2d s1ps2 + s1ps2^2 - rpar^2 - 2rpar s1ps2 - s1ps2^2
+//       = rp^2 - 2(d+rpar) s1ps2
+// rp'^2 > maxsep^2
+// rp^2 - 2(d + rpar) s1ps2 > maxsepsq
+// 4 (d^2 + 2d rpar + rpar^2) s1ps2^2 < (rp^2 - maxsepsq)^2
+inline bool TooLargeDist(const Position<Perp>& p1, const Position<Perp>& p2, double s1ps2,
+                           double dsq, double maxsep, double maxsepsq)
+{ 
+    if (dsq < maxsepsq || dsq < SQR(maxsep + s1ps2)) return false;
+    // Now check the subtle case.
+    double r1sq = p1.getX()*p1.getX() + p1.getY()*p1.getY() + p1.getZ()*p1.getZ(); 
+    double r2sq = p2.getX()*p2.getX() + p2.getY()*p2.getY() + p2.getZ()*p2.getZ(); 
+    double rparsq = r1sq + r2sq - 2.*sqrt(r1sq*r2sq);
+    double d3sq = rparsq + dsq;  // The 3d distance.  Remember dsq is really rp^2.
+    return (d3sq + 2.*sqrt(d3sq * rparsq) + rparsq) * SQR(2.*s1ps2) <= SQR(dsq - maxsepsq);
 }
 
 #endif

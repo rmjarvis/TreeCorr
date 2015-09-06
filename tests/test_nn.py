@@ -712,9 +712,6 @@ def test_perp_minmax():
 
 
 if __name__ == '__main__':
-    test_perp_minmax()
-    sys.exit()
-
     test_binnedcorr2()
     test_direct_count()
     test_direct_3d()

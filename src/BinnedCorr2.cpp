@@ -24,9 +24,6 @@
 //#define XAssert(x) Assert(x)
 #define XAssert(x)
 
-template <typename T>
-inline T SQR(T x) { return x * x; }
-
 template <int DC1, int DC2>
 BinnedCorr2<DC1,DC2>::BinnedCorr2(
     double minsep, double maxsep, int nbins, double binsize, double b,
@@ -268,8 +265,11 @@ void BinnedCorr2<DC1,DC2>::process11(const Cell<DC1,M>& c1, const Cell<DC2,M>& c
     const double dsq = DistSq(c1.getData().getPos(),c2.getData().getPos());
     const double s1ps2 = c1.getAllSize()+c2.getAllSize();
 
-    if (dsq < _minsepsq && s1ps2 < _minsep && dsq < SQR(_minsep - s1ps2)) return;
-    if (dsq >= _maxsepsq && dsq >= SQR(_maxsep + s1ps2)) return;
+    
+    if (TooSmallDist(c1.getData().getPos(), c2.getData().getPos(), s1ps2, dsq, _minsep, _minsepsq))
+        return;
+    if (TooLargeDist(c1.getData().getPos(), c2.getData().getPos(), s1ps2, dsq, _maxsep, _maxsepsq))
+        return;
 
     // See if need to split:
     bool split1=false, split2=false;

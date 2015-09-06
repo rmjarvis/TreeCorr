@@ -645,8 +645,76 @@ def test_list():
     print 'diff = ',corr2_output[:,2]-xi
     numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=2)
 
+def test_perp_minmax():
+    """This test is based on a bug report from Erika Wagoner where the lowest bins were 
+    getting spuriously high w(rp) values.  It stemmed from a subtlety about how large
+    rp can be compared to minsep.  The maximum rp is more than just rp + s1 + s2.
+    So this test checks that when the min and max are expanded a bit, the number of pairs
+    doesn't change much in the bins that used to be the min and max.
+    """
+    # Just use Erika's files for data and rand.  
+    config = {
+        'ra_col' : 1,
+        'dec_col' : 2,
+        'ra_units' : 'deg',
+        'dec_units' : 'deg',
+        'r_col' : 3,
+        'min_sep' : 40,
+        'bin_size' : 0.036652,
+        'nbins' : 50,
+        'verbose' : 3
+    }
+
+    dcat = treecorr.Catalog('data/nn_perp_data.dat', config)
+
+    dd1 = treecorr.NNCorrelation(config)
+    dd1.process(dcat, perp=True)
+
+    lower_min_sep = config['min_sep'] * numpy.exp(-2.*config['bin_size'])
+    more_nbins = config['nbins'] + 4
+    dd2 = treecorr.NNCorrelation(config, min_sep=lower_min_sep, nbins=more_nbins)
+    dd2.process(dcat, perp=True)
+
+    print 'dd1 npairs = ',dd1.npairs
+    print 'dd2 npairs = ',dd2.npairs[2:-2]
+    # First a basic sanity check.  The values not near the edge should be identical.
+    numpy.testing.assert_equal(dd1.npairs[2:-2], dd2.npairs[4:-4])
+    # The edge bins may differ slightly from the binning approximations (bin_slop and such),
+    # but the differences should be very small.  (When Erika reported the problem, the differences
+    # were a few percent, which ended up making a bit difference in the correlation function.)
+    numpy.testing.assert_almost_equal( dd1.npairs / dd2.npairs[2:-2], 1., decimal=4)
+
+    if __name__ == '__main__':
+        # If we're running from the command line, go ahead and finish the calculation
+        rcat = treecorr.Catalog('data/nn_perp_rand.dat', config)
+
+        rr1 = treecorr.NNCorrelation(config)
+        rr1.process(rcat, perp=True)
+        rr2 = treecorr.NNCorrelation(config, min_sep=lower_min_sep, nbins=more_nbins)
+        rr2.process(rcat, perp=True)
+        print 'rr1 npairs = ',rr1.npairs
+        print 'rr2 npairs = ',rr2.npairs[2:-2]
+        numpy.testing.assert_almost_equal( rr1.npairs / rr2.npairs[2:-2], 1., decimal=4)
+
+        dr1 = treecorr.NNCorrelation(config)
+        dr1.process(dcat, rcat, perp=True)
+        dr2 = treecorr.NNCorrelation(config, min_sep=lower_min_sep, nbins=more_nbins)
+        dr2.process(dcat, rcat, perp=True)
+        print 'dr1 npairs = ',dr1.npairs
+        print 'dr2 npairs = ',dr2.npairs[2:-2]
+        numpy.testing.assert_almost_equal( dr1.npairs / dr2.npairs[2:-2], 1., decimal=4)
+
+        xi1, varxi1 = dd1.calculateXi(rr1, dr1)
+        xi2, varxi2 = dd2.calculateXi(rr2, dr2)
+        print 'xi1 = ',xi1
+        print 'xi2 = ',xi2[2:-2]
+        numpy.testing.assert_almost_equal( xi1 / xi2[2:-2], 1., decimal=2)
+
 
 if __name__ == '__main__':
+    test_perp_minmax()
+    sys.exit()
+
     test_binnedcorr2()
     test_direct_count()
     test_direct_3d()
@@ -654,3 +722,4 @@ if __name__ == '__main__':
     test_nn()
     test_3d()
     test_list()
+    test_perp_minmax()

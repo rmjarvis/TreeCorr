@@ -269,10 +269,10 @@ Cell<DC,M>::Cell(std::vector<CellData<DC,M>*>& vdata,
 
         _sizesq = CalculateSizeSq(_data->getPos(),vdata,start,end);
         Assert(_sizesq >= 0.);
-        _size = sqrt(_sizesq);
         //xdbg<<"size = "<<_size<<std::endl;
 
         if (_sizesq > minsizesq) {
+            _size = sqrt(_sizesq);
             size_t mid = SplitData(vdata,sm,start,end,_data->getPos());
             try {
                 _left = new Cell<DC,M>(vdata,minsizesq,sm,start,mid);
@@ -280,6 +280,8 @@ Cell<DC,M>::Cell(std::vector<CellData<DC,M>*>& vdata,
             } catch (std::bad_alloc) {
                 myerror("out of memory - cannot create new Cell");
             }
+        } else {
+            _size = _sizesq = 0.;
         }
     }
 }
@@ -288,7 +290,7 @@ template <int DC, int M>
 Cell<DC,M>::Cell(CellData<DC,M>* ave, double sizesq,
                  std::vector<CellData<DC,M>*>& vdata, 
                  double minsizesq, SplitMethod sm, size_t start, size_t end) :
-    _size(sqrt(sizesq)), _sizesq(sizesq), _data(ave), _left(0), _right(0)
+    _sizesq(sizesq), _data(ave), _left(0), _right(0)
 {
     Assert(sizesq >= 0.);
     //xdbg<<"Make cell starting with ave = "<<*ave<<std::endl;
@@ -298,6 +300,7 @@ Cell<DC,M>::Cell(CellData<DC,M>* ave, double sizesq,
     Assert(end > start);
 
     if (_sizesq > minsizesq) {
+        _size = sqrt(_sizesq);
         size_t mid = SplitData(vdata,sm,start,end,_data->getPos());
         try {
             _left = new Cell<DC,M>(vdata,minsizesq,sm,start,mid);
@@ -305,6 +308,8 @@ Cell<DC,M>::Cell(CellData<DC,M>* ave, double sizesq,
         } catch (std::bad_alloc) {
             myerror("out of memory - cannot create new Cell");
         }
+    } else {
+        _size = _sizesq = 0.;
     }
 }
 

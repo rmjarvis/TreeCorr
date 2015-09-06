@@ -155,6 +155,11 @@ class NField(object):
         self.sphere = (cat.x is None)
         self.perp = perp
 
+        # Go a bit smller than min_sep for Rperp metric, since the simple calculation of what 
+        # minimum size to use isn't exactly accurate in this case.
+        if perp:
+            min_sep /= 2.
+
         if self.sphere:
             # Then build field for spherical coordinates
             ra = cat.ra.ctypes.data_as(cdouble_ptr)
@@ -228,6 +233,11 @@ class KField(object):
 
         self.sphere = (cat.x is None)
         self.perp = perp
+
+        # Go a bit smller than min_sep for Rperp metric, since the simple calculation of what 
+        # minimum size to use isn't exactly accurate in this case.
+        if perp:
+            min_sep /= 2.
 
         if self.sphere:
             # Then build field for spherical coordinates
@@ -303,6 +313,11 @@ class GField(object):
 
         self.sphere = (cat.x is None)
         self.perp = perp
+
+        # Go a bit smller than min_sep for Rperp metric, since the simple calculation of what 
+        # minimum size to use isn't exactly accurate in this case.
+        if perp:
+            min_sep /= 2.
 
         if self.sphere:
             # Then build field for spherical coordinates

@@ -336,5 +336,8 @@ class BinnedCorr2(object):
 
     def _set_num_threads(self):
         num_threads = self.config.get('num_threads',None)
-        self.logger.debug('Set num_threads = %d',num_threads)
+        if num_threads is not None:
+            self.logger.debug('Set num_threads = %d',num_threads)
+        else:
+            self.logger.debug('Set num_threads automatically')
         treecorr.set_omp_threads(num_threads, self.logger)

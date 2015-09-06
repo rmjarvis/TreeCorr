@@ -46,6 +46,23 @@ struct MetricHelper<Flat>
         g1 = c1.getData().getWG() * expm2iarg;
         g2 = c2.getData().getWG() * expm2iarg;
     }
+
+    static void ProjectShears(
+        const Cell<GData,Flat>& c1, const Cell<GData,Flat>& c2, const Cell<GData,Flat>& c3,
+        std::complex<double>& g1, std::complex<double>& g2, std::complex<double>& g3)
+    {
+        // Project given shears to the line connecting each to the centroid.
+        const Position<Flat>& p1 = c1.getData().getPos();
+        const Position<Flat>& p2 = c2.getData().getPos();
+        const Position<Flat>& p3 = c3.getData().getPos();
+        Position<Flat> cen = (p1 + p2 + p3)/3.;
+        std::complex<double> cr1(cen - p1);
+        std::complex<double> cr2(cen - p2);
+        std::complex<double> cr3(cen - p3);
+        g1 = c1.getData().getWG() * conj(cr1*cr1)/std::norm(cr1);
+        g2 = c2.getData().getWG() * conj(cr2*cr2)/std::norm(cr2);
+        g3 = c3.getData().getWG() * conj(cr3*cr3)/std::norm(cr3);
+    }
 };
 
 template <>
@@ -190,6 +207,33 @@ struct MetricHelper<Sphere>
         ProjectShear1(p1,p2,dsq,cross,crosssq,g1);
         ProjectShear2(p1,p2,dsq,cross,crosssq,g2);
     }
+    static void ProjectShears(
+        const Cell<GData,Sphere>& c1, const Cell<GData,Sphere>& c2, const Cell<GData,Sphere>& c3,
+        std::complex<double>& g1, std::complex<double>& g2, std::complex<double>& g3)
+    {
+        const Position<Sphere>& p1 = c1.getData().getPos();
+        const Position<Sphere>& p2 = c2.getData().getPos();
+        const Position<Sphere>& p3 = c3.getData().getPos();
+        Position<Sphere> cen = (p1 + p2 + p3)/3.;
+        g1 = c1.getData().getWG();
+        g2 = c2.getData().getWG();
+        g3 = c3.getData().getWG();
+
+        double cross = p1.getY()*cen.getX() - p1.getX()*cen.getY();
+        double crosssq = cross*cross;
+        double dsq = DistSq(p1,cen);
+        ProjectShear1(p1,cen,dsq,cross,crosssq,g1);
+
+        cross = p2.getY()*cen.getX() - p2.getX()*cen.getY();
+        crosssq = cross*cross;
+        dsq = DistSq(p2,cen);
+        ProjectShear1(p2,cen,dsq,cross,crosssq,g2);
+
+        cross = p3.getY()*cen.getX() - p3.getX()*cen.getY();
+        crosssq = cross*cross;
+        dsq = DistSq(p3,cen);
+        ProjectShear1(p3,cen,dsq,cross,crosssq,g3);
+    }
 };
 
 // The projections for Perp are the same as for Sphere.
@@ -231,6 +275,34 @@ struct MetricHelper<Perp>
         double crosssq = cross*cross;
         ProjectShear1(p1,p2,dsq,cross,crosssq,g1);
         ProjectShear2(p1,p2,dsq,cross,crosssq,g2);
+    }
+
+    static void ProjectShears(
+        const Cell<GData,Perp>& c1, const Cell<GData,Perp>& c2, const Cell<GData,Perp>& c3,
+        std::complex<double>& g1, std::complex<double>& g2, std::complex<double>& g3)
+    {
+        const Position<Perp>& p1 = c1.getData().getPos();
+        const Position<Perp>& p2 = c2.getData().getPos();
+        const Position<Perp>& p3 = c3.getData().getPos();
+        Position<Perp> cen = (p1 + p2 + p3)/3.;
+        g1 = c1.getData().getWG();
+        g2 = c2.getData().getWG();
+        g3 = c3.getData().getWG();
+
+        double cross = p1.getY()*cen.getX() - p1.getX()*cen.getY();
+        double crosssq = cross*cross;
+        double dsq = DistSq(p1,cen);
+        ProjectShear1(p1,cen,dsq,cross,crosssq,g1);
+
+        cross = p2.getY()*cen.getX() - p2.getX()*cen.getY();
+        crosssq = cross*cross;
+        dsq = DistSq(p2,cen);
+        ProjectShear1(p2,cen,dsq,cross,crosssq,g2);
+
+        cross = p3.getY()*cen.getX() - p3.getX()*cen.getY();
+        crosssq = cross*cross;
+        dsq = DistSq(p3,cen);
+        ProjectShear1(p3,cen,dsq,cross,crosssq,g3);
     }
 };
 

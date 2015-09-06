@@ -33,20 +33,20 @@ def test_ggg():
     #    q3 = -(x1+x2) - I (y1+y2)
     # then the result comes out as
     # 
-    # Gamma0 = 2/3 gamma0^3/L^2r0^4 Pi |q1|^2 |q2|^2 |q3|^2 exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2)
+    # Gamma0 = -2/3 gamma0^3/L^2r0^4 Pi |q1|^2 |q2|^2 |q3|^2 exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2)
     #
     # The other three are a bit more complicated.
     #
     # Gamma1 = int(int( g(x+x1,y+y1)* g(x+x2,y+y2) g(x-x1-x2,y-y1-y2) (x1+Iy1)^2/(x1^2+y1^2) 
     #                       (x2-Iy2)^2/(x2^2+y2^2) (x1+x2-I(y1+y2))^2/((x1+x2)^2+(y1+y2)^2)))
     # 
-    #        = 2/3 gamma0^3/L^2r0^4 Pi exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2) *
+    #        = -2/3 gamma0^3/L^2r0^4 Pi exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2) *
     #             ( |q1|^2 |q2|^2 |q3|^2 - 8/3 r0^2 q1^2 q2* q3* 
     #               + 8/9 r0^4 (q1^2 q2*^2 q3*^2)/(|q1|^2 |q2|^2 |q3|^2) (2q1^2-q2^2-q3^2) )
     # 
     # Gamm2 and Gamma3 are found from cyclic rotations of q1,q2,q3.
 
-    ngal = 100000
+    ngal = 300000
     gamma0 = 0.05
     r0 = 10.
     L = 30. * r0  # Not infinity, so this introduces some error.  Our integrals were to infinity.
@@ -57,12 +57,12 @@ def test_ggg():
     g1 = -gamma0 * numpy.exp(-r2/2.) * (x**2-y**2)/r0**2
     g2 = -gamma0 * numpy.exp(-r2/2.) * (2.*x*y)/r0**2
 
-    min_sep = 11.
-    max_sep = 15.
-    nbins = 5
+    min_sep = 15.
+    max_sep = 30.
+    nbins = 7
     min_u = 0.7
     max_u = 1.0
-    nubins = 5
+    nubins = 3
     min_v = -0.1
     max_v = 0.3
     nvbins = 4
@@ -75,11 +75,11 @@ def test_ggg():
     ggg.process(cat)
 
     # log(<d>) != <logd>, but it should be close:
-    print 'meanlogd1 - log(meand1) = ',ggg.meanlogd1 - numpy.log(ggg.meand1)
-    print 'meanlogd2 - log(meand2) = ',ggg.meanlogd2 - numpy.log(ggg.meand2)
-    print 'meanlogd3 - log(meand3) = ',ggg.meanlogd3 - numpy.log(ggg.meand3)
-    print 'meanlogd3 - meanlogd2 - log(meanu) = ',ggg.meanlogd3 - ggg.meanlogd2 - numpy.log(ggg.meanu)
-    print 'log(meand1-meand2) - meanlogd3 - log(meanv) = ',numpy.log(ggg.meand1-ggg.meand2) - ggg.meanlogd3 - numpy.log(numpy.abs(ggg.meanv))
+    #print 'meanlogd1 - log(meand1) = ',ggg.meanlogd1 - numpy.log(ggg.meand1)
+    #print 'meanlogd2 - log(meand2) = ',ggg.meanlogd2 - numpy.log(ggg.meand2)
+    #print 'meanlogd3 - log(meand3) = ',ggg.meanlogd3 - numpy.log(ggg.meand3)
+    #print 'meanlogd3 - meanlogd2 - log(meanu) = ',ggg.meanlogd3 - ggg.meanlogd2 - numpy.log(ggg.meanu)
+    #print 'log(meand1-meand2) - meanlogd3 - log(meanv) = ',numpy.log(ggg.meand1-ggg.meand2) - ggg.meanlogd3 - numpy.log(numpy.abs(ggg.meanv))
     numpy.testing.assert_almost_equal(ggg.meanlogd1, numpy.log(ggg.meand1), decimal=3)
     numpy.testing.assert_almost_equal(ggg.meanlogd2, numpy.log(ggg.meand2), decimal=3)
     numpy.testing.assert_almost_equal(ggg.meanlogd3, numpy.log(ggg.meand3), decimal=3)
@@ -90,54 +90,43 @@ def test_ggg():
     d1 = ggg.meand1
     d2 = ggg.meand2
     d3 = ggg.meand3
-    print 'rnom = ',numpy.exp(ggg.logr)
-    print 'unom = ',ggg.u
-    print 'vnom = ',ggg.v
-    print 'd1 = ',d1
-    print 'd2 = ',d2
-    print 'd3 = ',d3
+    #print 'rnom = ',numpy.exp(ggg.logr)
+    #print 'unom = ',ggg.u
+    #print 'vnom = ',ggg.v
+    #print 'd1 = ',d1
+    #print 'd2 = ',d2
+    #print 'd3 = ',d3
 
     # For q1,q2,q3, we can choose an orientation where c1 is at the origin, and d2 is horizontal.
     # Then let s be the "complex vector" from c1 to c3, which is just real.
     s = d2
-    print 's = ',s
     # And let t be from c1 to c2. t = |t| e^Iphi
     # |t| = d3. 
     # cos(phi) = (d2^2+d3^2-d1^2)/(2d2 d3)
     # |t| cos(phi) = (d2^2+d3^2-d1^2)/2d2
     # |t| sin(phi) = sqrt(|t|^2 - (|t|cos(phi))^2)
     tx = (d2**2 + d3**2 - d1**2)/(2.*d2)
-    print 'tx = ',tx
     ty = numpy.sqrt(d3**2 - tx**2)
-    print 'ty = ',ty
     # As arranged, if ty > 0, points 1,2,3 are clockwise, which is negative v.
     # So for bins with positive v, we need to flip the direction of ty.
     ty[ggg.meanv > 0] *= -1.
-    print 'ty => ',ty
     t = tx + 1j * ty
-    print 't = ',t
 
     q1 = (s + t)/3.
-    print 'q1 = ',q1
     q2 = q1 - s
-    print 'q2 = ',q2
     q3 = q1 - t
-    print 'q3 = ',q3
     nq1 = numpy.abs(q1)**2
-    print 'nq1 = ',nq1
     nq2 = numpy.abs(q2)**2
-    print 'nq2 = ',nq2
     nq3 = numpy.abs(q3)**2
-    print 'nq3 = ',nq3
 
-    # Gamma0 = 2/3 gamma0^3/L^2r0^4 Pi |q1|^2 |q2|^2 |q3|^2 exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2)
-    true_gam0 = ((2.*numpy.pi * gamma0**3)/(3.*numpy.pi * L**2 * r0**4) * 
+    # Gamma0 = -2/3 gamma0^3/L^2r0^4 Pi |q1|^2 |q2|^2 |q3|^2 exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2)
+    true_gam0 = ((-2.*numpy.pi * gamma0**3)/(3. * L**2 * r0**4) * 
                     numpy.exp(-(nq1+nq2+nq3)/(2.*r0**2)) * (nq1*nq2*nq3) )
 
-    # Gamma1 = 2/3 gamma0^3/L^2r0^4 Pi exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2) *
+    # Gamma1 = -2/3 gamma0^3/L^2r0^4 Pi exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2) *
     #             ( |q1|^2 |q2|^2 |q3|^2 - 8/3 r0^2 q1^2 q2* q3*
     #               + 8/9 r0^4 (q1^2 q2*^2 q3*^2)/(|q1|^2 |q2|^2 |q3|^2) (2q1^2-q2^2-q3^2) )
-    true_gam1 = ((2.*numpy.pi * gamma0**3)/(3.*numpy.pi * L**2 * r0**4) * 
+    true_gam1 = ((-2.*numpy.pi * gamma0**3)/(3. * L**2 * r0**4) * 
                     numpy.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
                     (nq1*nq2*nq3 - 8./3. * r0**2 * q1**2*nq2*nq3/(q2*q3) 
                      + 8./9. * r0**4 * (q1**2 * nq2**2 * nq3**2)/(nq1**2 * q2**2 * q3**2) *
@@ -149,15 +138,17 @@ def test_ggg():
     print 'ratio = ',ggg.gam0 / true_gam0
     print 'diff = ',ggg.gam0 - true_gam0
     print 'max rel diff = ',numpy.max(numpy.abs((ggg.gam0 - true_gam0)/true_gam0))
-    assert numpy.max(numpy.abs((ggg.gam0 - true_gam0)/true_gam0)) < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(ggg.gam0)), 
-                                      numpy.log(numpy.abs(true_gam0)), decimal=1)
     print 'gam1 = ',ggg.gam1
-    print 'true_gam0 = ',true_gam0
+    print 'true_gam1 = ',true_gam1
     print 'ratio = ',ggg.gam1 / true_gam1
     print 'diff = ',ggg.gam1 - true_gam1
     print 'max rel diff = ',numpy.max(numpy.abs((ggg.gam1 - true_gam1)/true_gam1))
-    assert numpy.max(numpy.abs((ggg.gam1 - true_gam1)/true_gam1)) < 0.1
+
+    assert numpy.max(numpy.abs((ggg.gam0 - true_gam0)/true_gam0)) < 0.5
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(ggg.gam0)), 
+                                      numpy.log(numpy.abs(true_gam0)), decimal=1)
+
+    assert numpy.max(numpy.abs((ggg.gam1 - true_gam1)/true_gam1)) < 0.5
     numpy.testing.assert_almost_equal(numpy.log(numpy.abs(ggg.gam1)), 
                                       numpy.log(numpy.abs(true_gam1)), decimal=1)
 

@@ -246,7 +246,7 @@ struct ZetaData<GData, GData, GData>
     ZetaData(double* z0, double* z1, double* z2, double* z3,
              double* z4, double* z5, double* z6, double* z7) :
         gam0r(z0), gam0i(z1), gam1r(z2), gam1i(z3),
-        gam2r(z0), gam2i(z1), gam3r(z2), gam3i(z3) {}
+        gam2r(z4), gam2i(z5), gam3r(z6), gam3i(z7) {}
 
     void new_data(int n) 
     {
@@ -305,8 +305,8 @@ struct ZetaData<GData, GData, GData>
     }
     void write(std::ostream& os) const 
     { 
-        os << gam0r[0]<<','<<gam0i[0]<<','<<gam1r[0]<<','<<gam1i<<','<<
-            gam2r[0]<<','<<gam2i[0]<<','<<gam3r[0]<<','<<gam3i; 
+        os << gam0r[0]<<','<<gam0i[0]<<','<<gam1r[0]<<','<<gam1i[0]<<','<<
+            gam2r[0]<<','<<gam2i[0]<<','<<gam3r[0]<<','<<gam3i[0]; 
     }
 
     double* gam0r;

@@ -976,20 +976,28 @@ struct DirectHelper<GData,GData,GData>
         const double d1, const double d2, const double d3,
         ZetaData<GData,GData,GData>& zeta, int index)
     {
-        std::complex<double> g1, g2;
-        //MetricHelper<M>::ProjectShears(c1,c2,dsq,g1,g2);
+        std::complex<double> g1, g2, g3;
+        MetricHelper<M>::ProjectShears(c1,c2,c3,g1,g2,g3);
 
         // The complex products g1 g2 and g1 g2* share most of the calculations,
         // so faster to do this manually.
-        double g1rg2r = g1.real() * g2.real();
-        double g1rg2i = g1.real() * g2.imag();
-        double g1ig2r = g1.imag() * g2.real();
-        double g1ig2i = g1.imag() * g2.imag();
+        //double g1rg2r = g1.real() * g2.real();
+        //double g1rg2i = g1.real() * g2.imag();
+        //double g1ig2r = g1.imag() * g2.real();
+        //double g1ig2i = g1.imag() * g2.imag();
+        std::complex<double> gam0 = g1 * g2 * g3;
+        std::complex<double> gam1 = std::conj(g1) * g2 * g3;
+        std::complex<double> gam2 = g1 * std::conj(g2) * g3;
+        std::complex<double> gam3 = g1 * g2 * std::conj(g3);
 
-        zeta.gam0r[index] += g1rg2r + g1ig2i;       // g1 * conj(g2)
-        zeta.gam0i[index] += g1ig2r - g1rg2i;
-        zeta.gam1r[index] += g1rg2r - g1ig2i;       // g1 * g2
-        zeta.gam1i[index] += g1ig2r + g1rg2i;
+        zeta.gam0r[index] += gam0.real();
+        zeta.gam0i[index] += gam0.imag();
+        zeta.gam1r[index] += gam1.real();
+        zeta.gam1i[index] += gam1.imag();
+        zeta.gam2r[index] += gam2.real();
+        zeta.gam2i[index] += gam2.imag();
+        zeta.gam3r[index] += gam3.real();
+        zeta.gam3i[index] += gam3.imag();
     }
 };
 

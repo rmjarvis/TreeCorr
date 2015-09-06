@@ -135,22 +135,22 @@ class GGGCorrelation(treecorr.BinnedCorr3):
     def gam3(self): return self.gam3r + 1j * self.gam3i
     @gam0.setter
     def gam0(self, g0): self.gam0r = g0.real; self.gam0i = g0.imag
-    @gam0.setter
+    @gam1.setter
     def gam1(self, g1): self.gam1r = g1.real; self.gam1i = g1.imag
-    @gam0.setter
+    @gam2.setter
     def gam2(self, g2): self.gam2r = g2.real; self.gam2i = g2.imag
-    @gam0.setter
+    @gam3.setter
     def gam3(self, g3): self.gam3r = g3.real; self.gam3i = g3.imag
 
     def _build_corr(self):
-        gam0r = self.gam0.real.ctypes.data_as(cdouble_ptr)
-        gam1r = self.gam0.real.ctypes.data_as(cdouble_ptr)
-        gam2r = self.gam0.real.ctypes.data_as(cdouble_ptr)
-        gam3r = self.gam0.real.ctypes.data_as(cdouble_ptr)
-        gam0i = self.gam0.real.ctypes.data_as(cdouble_ptr)
-        gam1i = self.gam0.real.ctypes.data_as(cdouble_ptr)
-        gam2i = self.gam0.real.ctypes.data_as(cdouble_ptr)
-        gam3i = self.gam0.real.ctypes.data_as(cdouble_ptr)
+        gam0r = self.gam0r.ctypes.data_as(cdouble_ptr)
+        gam0i = self.gam0i.ctypes.data_as(cdouble_ptr)
+        gam1r = self.gam1r.ctypes.data_as(cdouble_ptr)
+        gam1i = self.gam1i.ctypes.data_as(cdouble_ptr)
+        gam2r = self.gam2r.ctypes.data_as(cdouble_ptr)
+        gam2i = self.gam2i.ctypes.data_as(cdouble_ptr)
+        gam3r = self.gam3r.ctypes.data_as(cdouble_ptr)
+        gam3i = self.gam3i.ctypes.data_as(cdouble_ptr)
         meand1 = self.meand1.ctypes.data_as(cdouble_ptr)
         meanlogd1 = self.meanlogd1.ctypes.data_as(cdouble_ptr)
         meand2 = self.meand2.ctypes.data_as(cdouble_ptr)
@@ -316,10 +316,14 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         mask1 = self.weight != 0
         mask2 = self.weight == 0
 
-        self.gam0[mask1] /= self.weight[mask1]
-        self.gam1[mask1] /= self.weight[mask1]
-        self.gam2[mask1] /= self.weight[mask1]
-        self.gam3[mask1] /= self.weight[mask1]
+        self.gam0r[mask1] /= self.weight[mask1]
+        self.gam0i[mask1] /= self.weight[mask1]
+        self.gam1r[mask1] /= self.weight[mask1]
+        self.gam1i[mask1] /= self.weight[mask1]
+        self.gam2r[mask1] /= self.weight[mask1]
+        self.gam2i[mask1] /= self.weight[mask1]
+        self.gam3r[mask1] /= self.weight[mask1]
+        self.gam3i[mask1] /= self.weight[mask1]
         self.vargam[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
         self.meand1[mask1] /= self.weight[mask1]
         self.meanlogd1[mask1] /= self.weight[mask1]
@@ -353,10 +357,14 @@ class GGGCorrelation(treecorr.BinnedCorr3):
     def clear(self):
         """Clear the data vectors
         """
-        self.gam0[:,:,:] = 0.
-        self.gam1[:,:,:] = 0.
-        self.gam2[:,:,:] = 0.
-        self.gam3[:,:,:] = 0.
+        self.gam0r[:,:,:] = 0.
+        self.gam0i[:,:,:] = 0.
+        self.gam1r[:,:,:] = 0.
+        self.gam1i[:,:,:] = 0.
+        self.gam2r[:,:,:] = 0.
+        self.gam2i[:,:,:] = 0.
+        self.gam3r[:,:,:] = 0.
+        self.gam3i[:,:,:] = 0.
         self.vargam[:,:,:] = 0.
         self.meand1[:,:,:] = 0.
         self.meanlogd1[:,:,:] = 0.
@@ -389,10 +397,14 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                 self.max_v == other.max_v):
             raise ValueError("GGGCorrelation to be added is not compatible with this one.")
 
-        self.gam0[:] += other.gam0[:]
-        self.gam1[:] += other.gam1[:]
-        self.gam2[:] += other.gam2[:]
-        self.gam3[:] += other.gam3[:]
+        self.gam0r[:] += other.gam0r[:]
+        self.gam0i[:] += other.gam0i[:]
+        self.gam1r[:] += other.gam1r[:]
+        self.gam1i[:] += other.gam1i[:]
+        self.gam2r[:] += other.gam2r[:]
+        self.gam2i[:] += other.gam2i[:]
+        self.gam3r[:] += other.gam3r[:]
+        self.gam3i[:] += other.gam3i[:]
         self.vargam[:] += other.vargam[:]
         self.meand1[:] += other.meand1[:]
         self.meanlogd1[:] += other.meanlogd1[:]

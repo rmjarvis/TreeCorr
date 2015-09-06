@@ -67,10 +67,10 @@ def test_kkk():
     #             = 2/3 pi A^3 (s/L)^2 exp(-(x1^2 + y1^2 + x2^2 + y2^2 - x1x2 - y1y2)/3s^2)
     #             = 2/3 pi A^3 (s/L)^2 exp(-(d1^2 + d2^2 + d3^2)/6s^2)
 
-    ngal = 100000
+    ngal = 200000
     A = 0.05
     s = 10.
-    L = 30. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+    L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(ngal)-0.5) * L
     y = (numpy.random.random_sample(ngal)-0.5) * L
@@ -79,10 +79,10 @@ def test_kkk():
 
     min_sep = 11.
     max_sep = 15.
-    nbins = 5
+    nbins = 3
     min_u = 0.7
     max_u = 1.0
-    nubins = 5
+    nubins = 3
     min_v = -0.1
     max_v = 0.3
     nvbins = 4
@@ -116,6 +116,7 @@ def test_kkk():
     #print 'd1 = ',d1
     #print 'd2 = ',d2
     #print 'd3 = ',d3
+    L = L - 2.*d2
     true_zeta = (2.*numpy.pi/3) * A**3 * (s/L)**2 * numpy.exp(-(d1**2+d2**2+d3**2)/(6.*s**2))
 
     #print 'ntri = ',kkk.ntri

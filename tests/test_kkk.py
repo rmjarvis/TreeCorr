@@ -67,10 +67,19 @@ def test_kkk():
     #             = 2/3 pi A^3 (s/L)^2 exp(-(x1^2 + y1^2 + x2^2 + y2^2 - x1x2 - y1y2)/3s^2)
     #             = 2/3 pi A^3 (s/L)^2 exp(-(d1^2 + d2^2 + d3^2)/6s^2)
 
-    ngal = 200000
     A = 0.05
     s = 10.
-    L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+    if __name__ == '__main__':
+        ngal = 200000
+        L = 30. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+        digits = 3
+        req_factor = 1
+    else:
+        # Looser tests from nosetests that don't take so long to run.
+        ngal = 5000
+        L = 10. * s
+        digits = 2
+        req_factor = 5
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(ngal)-0.5) * L
     y = (numpy.random.random_sample(ngal)-0.5) * L
@@ -91,7 +100,7 @@ def test_kkk():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins,
-                                  sep_units='arcmin', verbose=3)
+                                  sep_units='arcmin', verbose=2)
     kkk.process(cat)
 
     # log(<d>) != <logd>, but it should be close:
@@ -116,6 +125,10 @@ def test_kkk():
     #print 'd1 = ',d1
     #print 'd2 = ',d2
     #print 'd3 = ',d3
+    # The L^2 term in the denominator of true_zeta is the area over which the integral is done.
+    # Since the centers of the triangles don't go to the edge of the box, we approximate the
+    # correct area by subtracting off 2d2 from L, which should give a slightly better estimate
+    # of the correct area to use here.
     L = L - 2.*d2
     true_zeta = (2.*numpy.pi/3) * A**3 * (s/L)**2 * numpy.exp(-(d1**2+d2**2+d3**2)/(6.*s**2))
 
@@ -125,9 +138,9 @@ def test_kkk():
     print 'ratio = ',kkk.zeta / true_zeta
     print 'diff = ',kkk.zeta - true_zeta
     print 'max rel diff = ',numpy.max(numpy.abs((kkk.zeta - true_zeta)/true_zeta))
-    assert numpy.max(numpy.abs((kkk.zeta - true_zeta)/true_zeta)) < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(kkk.zeta)), 
-                                      numpy.log(numpy.abs(true_zeta)), decimal=1)
+    assert numpy.max(numpy.abs((kkk.zeta - true_zeta)/true_zeta)) / req_factor < 0.1
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(kkk.zeta)) / req_factor, 
+                                      numpy.log(numpy.abs(true_zeta)) / req_factor, decimal=1)
 
     # Check that we get the same result using the corr3 executable:
     if __name__ == '__main__':
@@ -168,7 +181,7 @@ def test_kkk():
     kkk2 = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                    nubins=nubins, nvbins=nvbins,
-                                   sep_units='arcmin', verbose=3)
+                                   sep_units='arcmin', verbose=2)
     kkk2.read(out_file_name)
     numpy.testing.assert_almost_equal(kkk2.logr, kkk.logr)
     numpy.testing.assert_almost_equal(kkk2.u, kkk.u)

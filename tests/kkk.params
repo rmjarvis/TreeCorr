@@ -12,11 +12,11 @@ verbose = 2
 
 min_sep = 11.
 max_sep = 15.
-nbins = 5
+nbins = 3
 sep_units = arcmin
 min_u = 0.7
 max_u = 1.0
-nubins = 5
+nubins = 3
 min_v = -0.1
 max_v = 0.3
 nvbins = 4

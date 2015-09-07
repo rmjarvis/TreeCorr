@@ -863,9 +863,17 @@ def test_nnn():
 
     # Doing the full correlation function takes a long time.  Here, we just test a small range
     # of separations and a moderate range for u, v, which gives us a variety of triangle lengths.
-    ngal = 20000
     s = 10.
-    L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+    if __name__ == "__main__":
+        ngal = 20000
+        nrand = 2 * ngal
+        L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+        req_factor = 1
+    else:
+        ngal = 5000
+        nrand = ngal
+        L = 10. * s
+        req_factor = 5
     numpy.random.seed(8675309)
     x = numpy.random.normal(0,s, (ngal,) )
     y = numpy.random.normal(0,s, (ngal,) )
@@ -900,7 +908,6 @@ def test_nnn():
     numpy.testing.assert_almost_equal(numpy.log(ddd.meand1-ddd.meand2)-ddd.meanlogd3, 
                                       numpy.log(ddd.meanv), decimal=3)
 
-    nrand = 2 * ngal
     rx = (numpy.random.random_sample(nrand)-0.5) * L
     ry = (numpy.random.random_sample(nrand)-0.5) * L
     rand = treecorr.Catalog(x=rx,y=ry, x_units='arcmin', y_units='arcmin')
@@ -928,9 +935,9 @@ def test_nnn():
     print 'ratio = ',zeta / true_zeta
     print 'diff = ',zeta - true_zeta
     print 'max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))
-    assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)) < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta)), 
-                                      numpy.log(numpy.abs(true_zeta)), decimal=1)
+    assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))/req_factor < 0.1
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta))/req_factor, 
+                                      numpy.log(numpy.abs(true_zeta))/req_factor, decimal=1)
 
     # Check that we get the same result using the corr3 executable:
     if __name__ == '__main__':
@@ -1044,9 +1051,9 @@ def test_nnn():
         print 'ratio = ',zeta / true_zeta
         print 'diff = ',zeta - true_zeta
         print 'max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))
-        assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)) < 0.1
-        numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta)), 
-                                          numpy.log(numpy.abs(true_zeta)), decimal=1)
+        assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))/req_factor < 0.1
+        numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta))/req_factor, 
+                                          numpy.log(numpy.abs(true_zeta))/req_factor, decimal=1)
 
         out_file_name3 = os.path.join('output','nnn_out3.fits')
         ddd.write(out_file_name3, rrr, drr, ddr)
@@ -1109,12 +1116,20 @@ def test_3d():
 
     # Doing the full correlation function takes a long time.  Here, we just test a small range
     # of separations and a moderate range for u, v, which gives us a variety of triangle lengths.
-    ngal = 5000
     xcen = 823  # Mpc maybe?
     ycen = 342
     zcen = -672
     s = 10.
-    L = 50. * s  # Smaller since we have 3 dimensions, so this is plenty.
+    if __name__ == "__main__":
+        ngal = 5000
+        nrand = 20 * ngal
+        L = 50. * s
+        req_factor = 1
+    else:
+        ngal = 1000
+        nrand = 5 * ngal
+        L = 20. * s
+        req_factor = 5
     numpy.random.seed(8675309)
     x = numpy.random.normal(xcen, s, (ngal,) )
     y = numpy.random.normal(ycen, s, (ngal,) )
@@ -1141,7 +1156,6 @@ def test_3d():
     ddd.process(cat)
     print 'ddd.ntri = ',ddd.ntri.flatten()
 
-    nrand = 20 * ngal
     rx = (numpy.random.random_sample(nrand)-0.5) * L + xcen
     ry = (numpy.random.random_sample(nrand)-0.5) * L + ycen
     rz = (numpy.random.random_sample(nrand)-0.5) * L + zcen
@@ -1174,9 +1188,9 @@ def test_3d():
     print 'ratio = ',(zeta / true_zeta).flatten()
     print 'diff = ',(zeta - true_zeta).flatten()
     print 'max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))
-    assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)) < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta)), 
-                                      numpy.log(numpy.abs(true_zeta)), decimal=1)
+    assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))/req_factor < 0.1
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta))/req_factor, 
+                                      numpy.log(numpy.abs(true_zeta))/req_factor, decimal=1)
 
     # Check that we get the same result using the corr3 executable:
     if __name__ == '__main__':
@@ -1198,9 +1212,9 @@ def test_3d():
         ddd.process(cat)
         rrr.process(rand)
         zeta, varzeta = ddd.calculateZeta(rrr)
-        assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)) < 0.1
-        numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta)), 
-                                          numpy.log(numpy.abs(true_zeta)), decimal=1)
+        assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))/req_factor < 0.1
+        numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta))/req_factor, 
+                                          numpy.log(numpy.abs(true_zeta))/req_factor, decimal=1)
 
 
 def test_list():
@@ -1209,7 +1223,7 @@ def test_list():
     data_cats = []
     rand_cats = []
 
-    ngal = 3000
+    ngal = 1000
     s = 10.
     L = 50. * s
     numpy.random.seed(8675309)
@@ -1238,39 +1252,44 @@ def test_list():
     ddd.process(data_cats)
     print 'From multiple catalogs: ddd.ntri = ',ddd.ntri
 
-    rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                  min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                  nubins=nubins, nvbins=nvbins, verbose=2)
-    rrr.process(rand_cats)
-    print 'rrr.ntri = ',rrr.ntri
-
-    zeta, varzeta = ddd.calculateZeta(rrr)
-    print 'zeta = ',zeta
-
-    # Now do the same thing with one big catalog for each.
+    # Now do the same thing with one big catalog
     dddx = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                    nubins=nubins, nvbins=nvbins, verbose=2)
-    rrrx = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                   nubins=nubins, nvbins=nvbins, verbose=2)
-
     data_catx = treecorr.Catalog(x=x.reshape( (ngal*ncats,) ), y=y.reshape( (ngal*ncats,) ))
-    rand_catx = treecorr.Catalog(x=rx.reshape( (nrand*ncats,) ), y=ry.reshape( (nrand*ncats,) ))
     dddx.process(data_catx)
     print 'From single catalog: dddx.ntri = ',dddx.ntri
-    rrrx.process(rand_catx)
-    print 'rrrx.ntri = ',rrrx.ntri
-    zetax, varzetax = dddx.calculateZeta(rrrx)
-
-    print 'zetax = ',zetax
-    print 'ratio = ',zeta/zetax
-    print 'diff = ',zeta-zetax
     # Only test to 1 digit, since there are now differences between the auto and cross related
     # to how they characterize triangles especially when d1 ~= d2 or d2 ~= d3.
-    numpy.testing.assert_almost_equal(zetax/zeta, 1., decimal=1)
+    numpy.testing.assert_almost_equal(numpy.log(ddd.ntri), numpy.log(dddx.ntri), decimal=1)
 
+    # If we're running from nosetests, stop here.  That's a sufficient regression test.
+    # Otherwise continue to make sure that the full calculation works as expected including
+    # automatically running the multiple files from the corr3 executable with either just
+    # data, just rand or both as multiples.
     if __name__ == "__main__":
+        rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                  nubins=nubins, nvbins=nvbins, verbose=2)
+        rrr.process(rand_cats)
+        print 'rrr.ntri = ',rrr.ntri
+
+        rrrx = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                   nubins=nubins, nvbins=nvbins, verbose=2)
+        rand_catx = treecorr.Catalog(x=rx.reshape( (nrand*ncats,) ), y=ry.reshape( (nrand*ncats,) ))
+        rrrx.process(rand_catx)
+        print 'rrrx.ntri = ',rrrx.ntri
+        numpy.testing.assert_almost_equal(numpy.log(ddd.ntri), numpy.log(dddx.ntri), decimal=1)
+
+        zeta, varzeta = ddd.calculateZeta(rrr)
+        zetax, varzetax = dddx.calculateZeta(rrrx)
+        print 'zeta = ',zeta
+        print 'zetax = ',zetax
+        #print 'ratio = ',zeta/zetax
+        #print 'diff = ',zeta-zetax
+        numpy.testing.assert_almost_equal(zetax/zeta, 1., decimal=1)
+
         # Check that we get the same result using the corr3 executable:
         file_list = []
         rand_file_list = []

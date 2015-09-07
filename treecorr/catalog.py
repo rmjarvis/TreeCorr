@@ -1091,7 +1091,7 @@ class Catalog(object):
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
         """
-        self.logger.info('Writing NN correlations to %s',file_name)
+        self.logger.info('Writing catalog to %s',file_name)
         import numpy
  
         col_names = []

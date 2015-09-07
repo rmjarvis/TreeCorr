@@ -50,7 +50,7 @@ def test_constant():
     kappa += 0.001 * (numpy.random.random_sample(ngal)-0.5)
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     kkk.process(cat)
-    print 'kkk.zeta = ',kkk.zeta.flatten()
+    #print 'kkk.zeta = ',kkk.zeta.flatten()
     numpy.testing.assert_almost_equal(kkk.zeta, A**3, decimal=6)
 
 
@@ -72,13 +72,11 @@ def test_kkk():
     if __name__ == '__main__':
         ngal = 200000
         L = 30. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
-        digits = 3
         req_factor = 1
     else:
         # Looser tests from nosetests that don't take so long to run.
         ngal = 5000
         L = 10. * s
-        digits = 2
         req_factor = 5
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(ngal)-0.5) * L
@@ -135,8 +133,8 @@ def test_kkk():
     #print 'ntri = ',kkk.ntri
     print 'zeta = ',kkk.zeta
     print 'true_zeta = ',true_zeta
-    print 'ratio = ',kkk.zeta / true_zeta
-    print 'diff = ',kkk.zeta - true_zeta
+    #print 'ratio = ',kkk.zeta / true_zeta
+    #print 'diff = ',kkk.zeta - true_zeta
     print 'max rel diff = ',numpy.max(numpy.abs((kkk.zeta - true_zeta)/true_zeta))
     assert numpy.max(numpy.abs((kkk.zeta - true_zeta)/true_zeta)) / req_factor < 0.1
     numpy.testing.assert_almost_equal(numpy.log(numpy.abs(kkk.zeta)) / req_factor, 
@@ -149,10 +147,10 @@ def test_kkk():
         p = subprocess.Popen( ["corr3","kkk.params"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','kkk.out'), names=True)
-        print 'zeta = ',kkk.zeta
-        print 'from corr3 output = ',corr3_output['zeta']
-        print 'ratio = ',corr3_output['zeta']/kkk.zeta.flatten()
-        print 'diff = ',corr3_output['zeta']-kkk.zeta.flatten()
+        #print 'zeta = ',kkk.zeta
+        #print 'from corr3 output = ',corr3_output['zeta']
+        #print 'ratio = ',corr3_output['zeta']/kkk.zeta.flatten()
+        #print 'diff = ',corr3_output['zeta']-kkk.zeta.flatten()
         numpy.testing.assert_almost_equal(corr3_output['zeta']/kkk.zeta.flatten(), 1., decimal=3)
 
     # Check the fits write option

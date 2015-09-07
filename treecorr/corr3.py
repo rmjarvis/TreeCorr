@@ -162,6 +162,8 @@ corr3_valid_params = {
             'Which statistic to use for omega as the estimator fo the NN correlation function. '),
     'kkk_file_name' : (str, False, None, None,
             'The output filename for kappa-kappa-kappa correlation function.'),
+    'ggg_file_name' : (str, False, None, None,
+            'The output filename for gamma-gamma-gamma correlation function.'),
     #'ng_file_name' : (str, False, None, None,
             #'The output filename for point-shear correlation function.'),
     #'ng_statistic' : (str, False, None, ['compensated', 'simple'],
@@ -211,7 +213,7 @@ corr3_aliases = {
     'n3_file_name' : 'nnn_file_name',
     'n3_statistic' : 'nnn_statistic',
     'k3_file_name' : 'kkk_file_name',
-    #'g2_file_name' : 'gg_file_name',
+    'g3_file_name' : 'ggg_file_name',
 }
 
 def corr3(config, logger=None):
@@ -268,8 +270,7 @@ def corr3(config, logger=None):
     logger.info("Done reading input catalogs")
 
     # Do GGG correlation function if necessary
-    if False:
-    #if 'ggg_file_name' in config or 'm3_file_name' in config:
+    if 'ggg_file_name' in config: #or 'm3_file_name' in config:
         logger.info("Start GGG calculations...")
         ggg = treecorr.GGGCorrelation(config,logger)
         ggg.process(cat1,cat2,cat3)
@@ -278,31 +279,6 @@ def corr3(config, logger=None):
             ggg.write(config['ggg_file_name'])
         if 'm3_file_name' in config:
             ggg.writeMapSq(config['m3_file_name'])
-
-    # Do NNG correlation function if necessary
-    if False:
-    #if 'nng_file_name' in config or 'nnm_file_name' in config:
-        if len(cat3) == 0:
-            raise AttributeError("file_name3 is required for nng correlation")
-        logger.info("Start NNG calculations...")
-        nng = treecorr.NNGCorrelation(config,logger)
-        nng.process(cat1,cat2,cat3)
-        logger.info("Done NNG calculation.")
-
-        # The default ng_statistic is compensated _iff_ rand files are given.
-        rrg = None
-        if len(rand1) == 0:
-            if config.get('nng_statistic',None) == 'compensated':
-                raise AttributeError("rand_files is required for nng_statistic = compensated")
-        elif config.get('nng_statistic','compensated') == 'compensated':
-            rrg = treecorr.NNGCorrelation(config,logger)
-            rrg.process(rand1,rand1,cat2)
-            logger.info("Done RRG calculation.")
-
-        if 'nng_file_name' in config:
-            nng.write(config['nng_file_name'], rrg)
-        if 'nnm_file_name' in config:
-            nng.writeNNMap(config['nnm_file_name'], rrg)
 
     # Do NNN correlation function if necessary
     if 'nnn_file_name' in config:
@@ -371,6 +347,32 @@ def corr3(config, logger=None):
         kkk.process(cat1,cat2,cat3)
         logger.info("Done KKK calculations.")
         kkk.write(config['kkk_file_name'])
+
+    # Do NNG correlation function if necessary
+    if False:
+    #if 'nng_file_name' in config or 'nnm_file_name' in config:
+        if len(cat3) == 0:
+            raise AttributeError("file_name3 is required for nng correlation")
+        logger.info("Start NNG calculations...")
+        nng = treecorr.NNGCorrelation(config,logger)
+        nng.process(cat1,cat2,cat3)
+        logger.info("Done NNG calculation.")
+
+        # The default ng_statistic is compensated _iff_ rand files are given.
+        rrg = None
+        if len(rand1) == 0:
+            if config.get('nng_statistic',None) == 'compensated':
+                raise AttributeError("rand_files is required for nng_statistic = compensated")
+        elif config.get('nng_statistic','compensated') == 'compensated':
+            rrg = treecorr.NNGCorrelation(config,logger)
+            rrg.process(rand1,rand1,cat2)
+            logger.info("Done RRG calculation.")
+
+        if 'nng_file_name' in config:
+            nng.write(config['nng_file_name'], rrg)
+        if 'nnm_file_name' in config:
+            nng.writeNNMap(config['nnm_file_name'], rrg)
+
 
     # Do NNK correlation function if necessary
     if False:

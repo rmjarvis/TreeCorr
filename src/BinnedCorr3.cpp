@@ -25,9 +25,6 @@
 //#define XAssert(x) Assert(x)
 #define XAssert(x)
 
-template <typename T>
-inline T SQR(T x) { return x * x; }
-
 template <int DC1, int DC2, int DC3>
 BinnedCorr3<DC1,DC2,DC3>::BinnedCorr3(
     double minsep, double maxsep, int nbins, double binsize, double b,

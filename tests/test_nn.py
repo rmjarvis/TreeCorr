@@ -708,12 +708,12 @@ def test_perp_minmax():
     dcat = treecorr.Catalog('data/nn_perp_data.dat', config)
 
     dd1 = treecorr.NNCorrelation(config)
-    dd1.process(dcat, perp=True)
+    dd1.process(dcat, metric='Rperp')
 
     lower_min_sep = config['min_sep'] * numpy.exp(-2.*config['bin_size'])
     more_nbins = config['nbins'] + 4
     dd2 = treecorr.NNCorrelation(config, min_sep=lower_min_sep, nbins=more_nbins)
-    dd2.process(dcat, perp=True)
+    dd2.process(dcat, metric='Rperp')
 
     print 'dd1 npairs = ',dd1.npairs
     print 'dd2 npairs = ',dd2.npairs[2:-2]
@@ -729,17 +729,17 @@ def test_perp_minmax():
         rcat = treecorr.Catalog('data/nn_perp_rand.dat', config)
 
         rr1 = treecorr.NNCorrelation(config)
-        rr1.process(rcat, perp=True)
+        rr1.process(rcat, metric='Rperp')
         rr2 = treecorr.NNCorrelation(config, min_sep=lower_min_sep, nbins=more_nbins)
-        rr2.process(rcat, perp=True)
+        rr2.process(rcat, metric='Rperp')
         print 'rr1 npairs = ',rr1.npairs
         print 'rr2 npairs = ',rr2.npairs[2:-2]
         numpy.testing.assert_almost_equal( rr1.npairs / rr2.npairs[2:-2], 1., decimal=4)
 
         dr1 = treecorr.NNCorrelation(config)
-        dr1.process(dcat, rcat, perp=True)
+        dr1.process(dcat, rcat, metric='Rperp')
         dr2 = treecorr.NNCorrelation(config, min_sep=lower_min_sep, nbins=more_nbins)
-        dr2.process(dcat, rcat, perp=True)
+        dr2.process(dcat, rcat, metric='Rperp')
         print 'dr1 npairs = ',dr1.npairs
         print 'dr2 npairs = ',dr2.npairs[2:-2]
         numpy.testing.assert_almost_equal( dr1.npairs / dr2.npairs[2:-2], 1., decimal=4)

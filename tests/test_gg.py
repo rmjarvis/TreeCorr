@@ -34,10 +34,16 @@ def test_gg():
     # Note: I'm not sure I handled the L factors correctly, but the units at the end need
     # to be gamma^2, so it needs to be (r0/L)^2. 
 
-    ngal = 1000000
     gamma0 = 0.05
     r0 = 10.
-    L = 50. * r0  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+    if __name__ == "__main__":
+        ngal = 1000000
+        L = 50.*r0  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+        req_factor = 1
+    else:
+        ngal = 200000
+        L = 50.*r0
+        req_factor = 3
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(ngal)-0.5) * L
     y = (numpy.random.random_sample(ngal)-0.5) * L
@@ -64,18 +70,18 @@ def test_gg():
     print 'ratio = ',gg.xip / true_xip
     print 'diff = ',gg.xip - true_xip
     print 'max diff = ',max(abs(gg.xip - true_xip))
-    assert max(abs(gg.xip - true_xip)) < 3.e-7
+    assert max(abs(gg.xip - true_xip))/req_factor < 3.e-7
     print 'xip_im = ',gg.xip_im
-    assert max(abs(gg.xip_im)) < 2.e-7
+    assert max(abs(gg.xip_im))/req_factor < 2.e-7
 
     print 'gg.xim = ',gg.xim
     print 'true_xim = ',true_xim
     print 'ratio = ',gg.xim / true_xim
     print 'diff = ',gg.xim - true_xim
     print 'max diff = ',max(abs(gg.xim - true_xim))
-    assert max(abs(gg.xim - true_xim)) < 3.e-7
+    assert max(abs(gg.xim - true_xim))/req_factor < 3.e-7
     print 'xim_im = ',gg.xim_im
-    assert max(abs(gg.xim_im)) < 1.e-7
+    assert max(abs(gg.xim_im))/req_factor < 1.e-7
 
     # Check MapSq calculation:
     # cf. http://adsabs.harvard.edu/abs/2004MNRAS.352..338J
@@ -97,11 +103,11 @@ def test_gg():
     # agreement is pretty good if we skip the first 16 elements.
     # Well, it gets bad again at the end, but those values are small enough that they still
     # pass this test.
-    assert max(abs(mapsq[16:]-true_mapsq[16:])) < 3.e-8
+    assert max(abs(mapsq[16:]-true_mapsq[16:]))/req_factor < 3.e-8
     print 'mxsq = ',mxsq
     print 'max = ',max(abs(mxsq))
     print 'max[16:] = ',max(abs(mxsq[16:]))
-    assert max(abs(mxsq[16:])) < 3.e-8
+    assert max(abs(mxsq[16:]))/req_factor < 3.e-8
 
     # Check that we get the same result using the corr2 executable:
     if __name__ == '__main__':
@@ -124,10 +130,10 @@ def test_gg():
 
         print 'xip_im from corr2 output = ',corr2_output['xip_im']
         print 'max err = ',max(abs(corr2_output['xip_im']))
-        assert max(abs(corr2_output['xip_im'])) < 2.e-7
+        assert max(abs(corr2_output['xip_im']))/req_factor < 2.e-7
         print 'xim_im from corr2 output = ',corr2_output['xim_im']
         print 'max err = ',max(abs(corr2_output['xim_im']))
-        assert max(abs(corr2_output['xim_im'])) < 1.e-7
+        assert max(abs(corr2_output['xim_im']))/req_factor < 1.e-7
 
         corr2_output2 = numpy.genfromtxt(os.path.join('output','gg_m2.out'), names=True)
         print 'mapsq = ',mapsq
@@ -209,10 +215,16 @@ def test_spherical():
     # optimizations that are used by the TreeCorr code, thus serving as a useful test of
     # the latter.
 
-    nsource = 1000000
     gamma0 = 0.05
     r0 = 10. * treecorr.arcmin
-    L = 50. * r0
+    if __name__ == "__main__":
+        nsource = 1000000
+        L = 50.*r0  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+        req_factor = 1
+    else:
+        nsource = 200000
+        L = 50.*r0
+        req_factor = 3
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(nsource)-0.5) * L
     y = (numpy.random.random_sample(nsource)-0.5) * L
@@ -234,8 +246,8 @@ def test_spherical():
         ra0_list = [ 0., 1., 1.3, 232., 0. ]
         dec0_list = [ 0., -0.3, 1.3, -1.4, pi/2.-1.e-6 ]
     else:
-        ra0_list = [ 0., 1.]
-        dec0_list = [ 0., -0.3]
+        ra0_list = [ 232.]
+        dec0_list = [ -1.4 ]
 
     for ra0, dec0 in zip(ra0_list, dec0_list):
 
@@ -295,14 +307,14 @@ def test_spherical():
         # The math seems to be right, since the last one that gets all the way to the pole
         # works, so I'm not sure what is going on.  It's just a few bins that get a bit less
         # accurate.  Possibly worth investigating further at some point...
-        assert max(abs(gg.xip - true_xip)) < 3.e-7
+        assert max(abs(gg.xip - true_xip))/req_factor < 3.e-7
 
         print 'gg.xim = ',gg.xim
         print 'true_xim = ',true_xim
         print 'ratio = ',gg.xim / true_xim
         print 'diff = ',gg.xim - true_xim
         print 'max diff = ',max(abs(gg.xim - true_xim))
-        assert max(abs(gg.xim - true_xim)) < 2.e-7
+        assert max(abs(gg.xim - true_xim))/req_factor < 2.e-7
 
     # One more center that can be done very easily.  If the center is the north pole, then all
     # the tangential shears are pure (positive) g1.
@@ -322,8 +334,8 @@ def test_spherical():
     print 'ratio = ',gg.xip / true_xip
     print 'diff = ',gg.xip - true_xip
     print 'max diff = ',max(abs(gg.xip - true_xip))
-    assert max(abs(gg.xip - true_xip)) < 3.e-7
-    assert max(abs(gg.xip_im)) < 3.e-7
+    assert max(abs(gg.xip - true_xip))/req_factor < 3.e-7
+    assert max(abs(gg.xip_im))/req_factor < 3.e-7
 
     print 'gg.xim = ',gg.xim
     print 'gg.xim_im = ',gg.xim_im
@@ -331,8 +343,8 @@ def test_spherical():
     print 'ratio = ',gg.xim / true_xim
     print 'diff = ',gg.xim - true_xim
     print 'max diff = ',max(abs(gg.xim - true_xim))
-    assert max(abs(gg.xim - true_xim)) < 2.e-7
-    assert max(abs(gg.xim_im)) < 2.e-7
+    assert max(abs(gg.xim - true_xim))/req_factor < 2.e-7
+    assert max(abs(gg.xim_im))/req_factor < 2.e-7
 
     # Check that we get the same result using the corr2 executable:
     if __name__ == '__main__':
@@ -354,10 +366,10 @@ def test_spherical():
         numpy.testing.assert_almost_equal(corr2_output['xim']/gg.xim, 1., decimal=3)
 
         print 'xip_im from corr2 output = ',corr2_output['xip_im']
-        assert max(abs(corr2_output['xip_im'])) < 3.e-7
+        assert max(abs(corr2_output['xip_im']))/req_factor < 3.e-7
 
         print 'xim_im from corr2 output = ',corr2_output['xim_im']
-        assert max(abs(corr2_output['xim_im'])) < 2.e-7
+        assert max(abs(corr2_output['xim_im']))/req_factor < 2.e-7
 
 
 

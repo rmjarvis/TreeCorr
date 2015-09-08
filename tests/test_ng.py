@@ -157,9 +157,12 @@ def test_spherical():
     true_gt = gamma0 * numpy.exp(-0.5*r1**2/r0**2)
 
     # Test this around several central points
-    # (For now just one -- on the equator)
-    ra0_list = [ 0., 1., 1.3, 232., 0. ]
-    dec0_list = [ 0., -0.3, 1.3, -1.4, pi/2.-1.e-6 ]
+    if __name__ == '__main__':
+        ra0_list = [ 0., 1., 1.3, 232., 0. ]
+        dec0_list = [ 0., -0.3, 1.3, -1.4, pi/2.-1.e-6 ]
+    else:
+        ra0_list = [ 232 ]
+        dec0_list = [ -1.4 ]
     for ra0, dec0 in zip(ra0_list, dec0_list):
 
         # Use spherical triangle with A = point, B = (ra0,dec0), C = N. pole

@@ -353,9 +353,17 @@ def test_nn():
     #
     # xi(r) = 1/4pi (L/s)^2 exp(-r^2/4s^2) - 1
 
-    ngal = 1000000
     s = 10.
-    L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+    if __name__ == "__main__":
+        ngal = 1000000
+        nrand = 5 * ngal
+        L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+        req_factor = 1
+    else:
+        ngal = 100000
+        nrand = 2 * ngal
+        L = 20. * s
+        req_factor = 3
     numpy.random.seed(8675309)
     x = numpy.random.normal(0,s, (ngal,) )
     y = numpy.random.normal(0,s, (ngal,) )
@@ -370,7 +378,6 @@ def test_nn():
     print 'meanlogr - log(meanr) = ',dd.meanlogr - numpy.log(dd.meanr)
     numpy.testing.assert_almost_equal(dd.meanlogr, numpy.log(dd.meanr), decimal=3)
 
-    nrand = 5 * ngal
     rx = (numpy.random.random_sample(nrand)-0.5) * L
     ry = (numpy.random.random_sample(nrand)-0.5) * L
     rand = treecorr.Catalog(x=rx,y=ry, x_units='arcmin', y_units='arcmin')
@@ -396,9 +403,9 @@ def test_nn():
     # This isn't super accurate.  But the agreement improves as L increase, so I think it is 
     # merely a matter of the finite field and the integrals going to infinity.  (Sort of, since
     # we still have L in there.)
-    assert max(abs(xi - true_xi)/true_xi) < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi)), 
-                                      numpy.log(numpy.abs(true_xi)), decimal=1)
+    assert max(abs(xi - true_xi)/true_xi)/req_factor < 0.1
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi))/req_factor, 
+                                      numpy.log(numpy.abs(true_xi))/req_factor, decimal=1)
 
     simple_xi, simple_varxi = dd.calculateXi(rr)
     print 'simple xi = ',simple_xi
@@ -407,7 +414,7 @@ def test_nn():
     # slightly less accurate in this case.  Probably because the mask is simple (a box), so
     # the difference is relatively minor.  The error is slightly higher in this case, but testing
     # that it is everywhere < 0.1 is still appropriate.
-    assert max(abs(simple_xi - true_xi)/true_xi) < 0.1
+    assert max(abs(simple_xi - true_xi)/true_xi)/req_factor < 0.1
 
     # Check that we get the same result using the corr2 executable:
     if __name__ == '__main__':
@@ -488,12 +495,20 @@ def test_3d():
     #
     # xi(r) = 1/(8 pi^3/2) (L/s)^3 exp(-r^2/4s^2) - 1
 
-    ngal = 100000
     xcen = 823  # Mpc maybe?
     ycen = 342
     zcen = -672
     s = 10.
-    L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+    if __name__ == "__main__":
+        ngal = 100000
+        nrand = 5 * ngal
+        L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+        req_factor = 1
+    else:
+        ngal = 20000
+        nrand = 2 * ngal
+        L = 20. * s
+        req_factor = 3
     numpy.random.seed(8675309)
     x = numpy.random.normal(xcen, s, (ngal,) )
     y = numpy.random.normal(ycen, s, (ngal,) )
@@ -508,7 +523,6 @@ def test_3d():
     dd.process(cat)
     print 'dd.npairs = ',dd.npairs
 
-    nrand = 5 * ngal
     rx = (numpy.random.random_sample(nrand)-0.5) * L + xcen
     ry = (numpy.random.random_sample(nrand)-0.5) * L + ycen
     rz = (numpy.random.random_sample(nrand)-0.5) * L + zcen
@@ -533,16 +547,16 @@ def test_3d():
     print 'ratio = ',xi / true_xi
     print 'diff = ',xi - true_xi
     print 'max rel diff = ',max(abs((xi - true_xi)/true_xi))
-    assert max(abs(xi - true_xi)/true_xi) < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi)), 
-                                      numpy.log(numpy.abs(true_xi)), decimal=1)
+    assert max(abs(xi - true_xi)/true_xi)/req_factor < 0.1
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi))/req_factor, 
+                                      numpy.log(numpy.abs(true_xi))/req_factor, decimal=1)
 
     simple_xi, varxi = dd.calculateXi(rr)
     print 'simple xi = ',simple_xi
     print 'max rel diff = ',max(abs((simple_xi - true_xi)/true_xi))
-    assert max(abs(simple_xi - true_xi)/true_xi) < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(simple_xi)), 
-                                      numpy.log(numpy.abs(true_xi)), decimal=1)
+    assert max(abs(simple_xi - true_xi)/true_xi)/req_factor < 0.1
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(simple_xi))/req_factor, 
+                                      numpy.log(numpy.abs(true_xi))/req_factor, decimal=1)
 
     # Check that we get the same result using the corr2 executable:
     if __name__ == '__main__':
@@ -565,9 +579,9 @@ def test_3d():
     rr.process(rand)
     dr.process(cat,rand)
     xi, varxi = dd.calculateXi(rr,dr)
-    assert max(abs(xi - true_xi)/true_xi) < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi)), 
-                                      numpy.log(numpy.abs(true_xi)), decimal=1)
+    assert max(abs(xi - true_xi)/true_xi)/req_factor < 0.1
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi))/req_factor, 
+                                      numpy.log(numpy.abs(true_xi))/req_factor, decimal=1)
 
 
 def test_list():
@@ -702,8 +716,14 @@ def test_perp_minmax():
         'min_sep' : 40,
         'bin_size' : 0.036652,
         'nbins' : 50,
-        'verbose' : 3
+        'verbose' : 2
     }
+
+    # Speed up for nosetests runs
+    if __name__ != "__main__":
+        config['nbins'] = 5
+        config['min_sep'] = 20
+        config['bin_size'] = 0.1
 
     dcat = treecorr.Catalog('data/nn_perp_data.dat', config)
 

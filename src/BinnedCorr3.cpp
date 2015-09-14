@@ -118,17 +118,17 @@ BinnedCorr3<DC1,DC2,DC3>::~BinnedCorr3()
 template <int DC1, int DC2, int DC3>
 void BinnedCorr3<DC1,DC2,DC3>::clear()
 {
-    _zeta.clear(_nbins);
-    for (int i=0; i<_nbins; ++i) _meand1[i] = 0.;
-    for (int i=0; i<_nbins; ++i) _meanlogd1[i] = 0.;
-    for (int i=0; i<_nbins; ++i) _meand2[i] = 0.;
-    for (int i=0; i<_nbins; ++i) _meanlogd2[i] = 0.;
-    for (int i=0; i<_nbins; ++i) _meand3[i] = 0.;
-    for (int i=0; i<_nbins; ++i) _meanlogd3[i] = 0.;
-    for (int i=0; i<_nbins; ++i) _meanu[i] = 0.;
-    for (int i=0; i<_nbins; ++i) _meanv[i] = 0.;
-    if (_weight) for (int i=0; i<_nbins; ++i) _weight[i] = 0.;
-    for (int i=0; i<_nbins; ++i) _ntri[i] = 0.;
+    _zeta.clear(_ntot);
+    for (int i=0; i<_ntot; ++i) _meand1[i] = 0.;
+    for (int i=0; i<_ntot; ++i) _meanlogd1[i] = 0.;
+    for (int i=0; i<_ntot; ++i) _meand2[i] = 0.;
+    for (int i=0; i<_ntot; ++i) _meanlogd2[i] = 0.;
+    for (int i=0; i<_ntot; ++i) _meand3[i] = 0.;
+    for (int i=0; i<_ntot; ++i) _meanlogd3[i] = 0.;
+    for (int i=0; i<_ntot; ++i) _meanu[i] = 0.;
+    for (int i=0; i<_ntot; ++i) _meanv[i] = 0.;
+    if (_weight) for (int i=0; i<_ntot; ++i) _weight[i] = 0.;
+    for (int i=0; i<_ntot; ++i) _ntri[i] = 0.;
     _metric = -1;
 }
 
@@ -171,7 +171,6 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field, bool dots)
     _metric = M;
     const long n1 = field.getNTopLevel();
     xdbg<<"field has "<<n1<<" top level nodes\n";
-    //if (dots) std::cout<<"Starting "<<n1<<" jobs:\n"<<std::flush;
     dbg<<"zeta[0] = "<<_zeta<<std::endl;
     Assert(n1 > 0);
 #ifdef _OPENMP
@@ -264,7 +263,6 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field1, const Field<D
     }
 #endif
 
-    //if (dots) std::cout<<"Starting "<<n1<<" jobs:\n"<<std::flush;
 #ifdef _OPENMP
 #pragma omp parallel 
     {

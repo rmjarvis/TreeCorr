@@ -43,6 +43,7 @@ def test_constant():
                                   nubins=nubins, nvbins=nvbins,
                                   sep_units='arcmin', verbose=2)
     kkk.process(cat)
+    #kkk.process(cat, cat, cat)
     print 'kkk.zeta = ',kkk.zeta.flatten()
     numpy.testing.assert_almost_equal(kkk.zeta, A**3, decimal=10)
 

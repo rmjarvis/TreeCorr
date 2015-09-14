@@ -143,6 +143,8 @@ struct ZetaData // This works for NNK, NKK, KKK
     { for (int i=0; i<n; ++i) zeta[i] = 0.; }
     void write(std::ostream& os) const // Just used for debugging.  Print the first value.
     { os << zeta[0]; }
+    void write_full(std::ostream& os, int n) const
+    { for(int i=0;i<n;++i) os << zeta[i] <<" "; }
 
     double* zeta;
 };
@@ -184,6 +186,8 @@ struct ZetaData<DC1, DC2, GData> // This works for NNG, NKG, KKG
     }
     void write(std::ostream& os) const 
     { os << zeta[0]<<','<<zeta_im[0]; }
+    void write_full(std::ostream& os, int n) const
+    { for(int i=0;i<n;++i) os << zeta[i] <<" "; }
 
     double* zeta;
     double* zeta_im;
@@ -232,6 +236,8 @@ struct ZetaData<DC1, GData, GData> // This works for NGG, KGG
     }
     void write(std::ostream& os) const 
     { os << zetap[0]<<','<<zetap_im[0]<<','<<zetam[0]<<','<<zetam_im; }
+    void write_full(std::ostream& os, int n) const
+    { for(int i=0;i<n;++i) os << zetap[i] <<" "; }
 
     double* zetap;
     double* zetap_im;
@@ -308,6 +314,8 @@ struct ZetaData<GData, GData, GData>
         os << gam0r[0]<<','<<gam0i[0]<<','<<gam1r[0]<<','<<gam1i[0]<<','<<
             gam2r[0]<<','<<gam2i[0]<<','<<gam3r[0]<<','<<gam3i[0]; 
     }
+    void write_full(std::ostream& os, int n) const
+    { for(int i=0;i<n;++i) os << gam0r[i] <<" "; }
 
     double* gam0r;
     double* gam0i;
@@ -329,6 +337,7 @@ struct ZetaData<NData, NData, NData>
     void add(const ZetaData<NData,NData,NData>& rhs, int n) {}
     void clear(int n) {}
     void write(std::ostream& os) const {}
+    void write_full(std::ostream& os, int n) const {}
 };
 
 

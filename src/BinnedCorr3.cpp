@@ -187,10 +187,10 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field, bool dots)
 #pragma omp for schedule(dynamic)
 #endif
         for (int i=0;i<n1;++i) {
+            const Cell<DC1,M>* c1 = field.getCells()[i];
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-            const Cell<DC1,M>* c1 = field.getCells()[i];
             {
                 if (dots) std::cout<<'.'<<std::flush;
 #ifdef _OPENMP
@@ -767,7 +767,8 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
     // In general we require both to be true.
 
     // These may be set here and then used below, but only if we aren't splitting already.
-    double d1,d3,v,onemvsq; 
+    // Initialize them to zero to avoid compiler warnings.
+    double d1=0.,d3=0.,v=0.,onemvsq=0.; 
 
     if (!(split1 && split2 && split3)) {
         d1 = sqrt(d1sq);

@@ -43,15 +43,19 @@ def test_constant():
                                   nubins=nubins, nvbins=nvbins,
                                   sep_units='arcmin', verbose=2)
     kkk.process(cat)
-    #kkk.process(cat, cat, cat)
     print 'kkk.zeta = ',kkk.zeta.flatten()
+    numpy.testing.assert_almost_equal(kkk.zeta, A**3, decimal=10)
+
+    # Should also work as a cross-correlation
+    kkk.process(cat, cat, cat)
+    print 'as cross-correlation: kkk.zeta = ',kkk.zeta.flatten()
     numpy.testing.assert_almost_equal(kkk.zeta, A**3, decimal=10)
 
     # Now add some noise to the values. It should still work, but at slightly lower accuracy.
     kappa += 0.001 * (numpy.random.random_sample(ngal)-0.5)
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     kkk.process(cat)
-    #print 'kkk.zeta = ',kkk.zeta.flatten()
+    print 'with noise: kkk.zeta = ',kkk.zeta.flatten()
     numpy.testing.assert_almost_equal(kkk.zeta, A**3, decimal=6)
 
 

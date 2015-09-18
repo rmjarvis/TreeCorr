@@ -410,9 +410,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             self._process_all_cross(cat1,cat2,cat3, metric, num_threads)
         self.finalize()
 
-
-    def calculateZeta(self, rrr, rrd=None, ddr=None,
-                      rdr=None, drr=None, drd=None, rdd=None):
+    def calculateZeta(self, rrr, drr=None, ddr=None,
+                      rdr=None, rrd=None, drd=None, rdd=None):
         """Calculate the 3pt function given another 3pt function of random
         points using the same mask, and possibly cross correlations of the data and random.
 
@@ -431,29 +430,29 @@ class NNNCorrelation(treecorr.BinnedCorr3):
            data values: (ddd-ddr-drd-rdd+rrd+rdr+drr-rrr)/rrr.
 
         :param rrr:         An NNCorrelation object for the random field.
-        :param rrd:         RRD if desired. (default: None)
+        :param drr:         DRR if desired. (default: None)
         :param ddr:         DDR if desired. (default: None)
         :param rdr:         RDR if desired. (default: None)
-        :param drr:         DRR if desired. (default: None)
+        :param rrd:         RRD if desired. (default: None)
         :param drd:         DRD if desired. (default: None)
         :param rdd:         RDD if desired. (default: None)
-                            
+
         :returns:           (zeta, varzeta) as a tuple
         """
         # Each random ntri value needs to be rescaled by the ratio of total possible tri.
         if rrr.tot == 0:
             raise RuntimeError("rrr has tot=0.")
 
-        if rrd is not None or ddr is not None:
-            if rrd is None or ddr is None:
-                raise AttributeError("Must provide both rrd and ddr")
-        if rdr is not None or drr is not None or drd is not None or rdd is not None:
-            if (rdr is None or drr is None or drd is None or rdd is None or
-                rrd is None or ddr is None):
+        if drr is not None or ddr is not None:
+            if drr is None or ddr is None:
+                raise AttributeError("Must provide both drr and ddr")
+        if rdr is not None or rrd is not None or drd is not None or rdd is not None:
+            if (rdr is None or rrd is None or drd is None or rdd is None or
+                drr is None or ddr is None):
                 raise AttributeError("Must provide all 6 combinations rdr, drr, etc.")
 
         rrrw = self.tot / rrr.tot
-        if rrd is None:
+        if drr is None:
             zeta = (self.ntri - rrr.ntri * rrrw)
         elif rdr is None:
             if rrd.tot == 0:
@@ -522,8 +521,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         :param file_name:   The name of the file to write to.
         :param rrr:         An NNNCorrelation object for the random field. (default: None)
-        :param drr:         RRD if desired. (default: None)
-        :param ddr:         RDD if desired. (default: None)
+        :param drr:         DRR if desired. (default: None)
+        :param ddr:         DDR if desired. (default: None)
         :param rdr:         RDR if desired. (default: None)
         :param rrd:         RRD if desired. (default: None)
         :param drd:         DRD if desired. (default: None)

@@ -1,11 +1,13 @@
+from __future__ import print_function
 import sys
 import os
 import glob
+
 try:
     from setuptools import setup, Extension
     from setuptools.command.build_ext import build_ext
 except ImportError:
-    print 'Unable to import setuptools.  Using distutils instead.'
+    print('Unable to import setuptools.  Using distutils instead.')
     from distutils.core import setup, Extension
     from distutils.command.build_ext import build_ext
 try:
@@ -14,7 +16,7 @@ except:
     from distutils.sysconfig import get_config_vars
 
 py_version = "%d.%d"%sys.version_info[0:2]
-print 'Python version = ',py_version
+print('Python version = ',py_version)
 
 scripts = ['corr2']
 scripts = [ os.path.join('scripts',f) for f in scripts ]
@@ -50,11 +52,11 @@ def get_compiler(cc):
     import subprocess
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines = p.stdout.readlines()
-    if 'clang' in lines[0]:
+    if "clang" in lines[0].decode(encoding='UTF-8'):
         # Supposedly, clang will support openmp in version 3.5.  Let's go with that for now...
         # If the version is reports >= 3.5, let's call it gcc, rather than clang to get
         # the -fopenmp flag.
-        line = lines[1]
+        line = lines[1].decode(encoding='UTF-8')
         import re
         match = re.search(r'[0-9]+(\.[0-9]+)+', line)
         if match:
@@ -65,9 +67,9 @@ def get_compiler(cc):
             if vnum >= '3.5':
                 return 'gcc'
         return 'clang'
-    elif 'gcc' in lines[0]:
+    elif 'gcc' in lines[0].decode(encoding='UTF-8'):
         return 'gcc'
-    elif 'GCC' in lines[0]:
+    elif 'GCC' in lines[0].decode(encoding='UTF-8'):
         return 'gcc'
     elif 'clang' in cc:
         return 'clang'
@@ -189,9 +191,9 @@ class my_builder( build_ext ):
         cc = self.compiler.executables['compiler_cxx'][0]
         comp_type = get_compiler(cc)
         if cc == comp_type:
-            print 'Using compiler %s'%(cc)
+            print('Using compiler %s'%(cc))
         else:
-            print 'Using compiler %s, which is %s'%(cc,comp_type)
+            print('Using compiler %s, which is %s'%(cc,comp_type))
         for e in self.extensions:
             e.extra_compile_args = copt[ comp_type ]
             e.extra_link_args = lopt[ comp_type ]

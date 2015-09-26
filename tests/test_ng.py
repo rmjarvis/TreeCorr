@@ -12,6 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 
+from __future__ import print_function
 import numpy
 import treecorr
 import os
@@ -44,12 +45,12 @@ def test_single():
     r = numpy.exp(ng.meanlogr)
     true_gt = gamma0 * numpy.exp(-0.5*r**2/r0**2)
 
-    print 'ng.xi = ',ng.xi
-    print 'ng.xi_im = ',ng.xi_im
-    print 'true_gammat = ',true_gt
-    print 'ratio = ',ng.xi / true_gt
-    print 'diff = ',ng.xi - true_gt
-    print 'max diff = ',max(abs(ng.xi - true_gt))
+    print('ng.xi = ',ng.xi)
+    print('ng.xi_im = ',ng.xi_im)
+    print('true_gammat = ',true_gt)
+    print('ratio = ',ng.xi / true_gt)
+    print('diff = ',ng.xi - true_gt)
+    print('max diff = ',max(abs(ng.xi - true_gt)))
     assert max(abs(ng.xi - true_gt)) < 4.e-4
     assert max(abs(ng.xi_im)) < 3.e-5
 
@@ -61,13 +62,13 @@ def test_single():
         p = subprocess.Popen( ["corr2","ng_single.params"] )
         p.communicate()
         corr2_output = numpy.loadtxt(os.path.join('output','ng_single.out'))
-        print 'ng.xi = ',ng.xi
-        print 'from corr2 output = ',corr2_output[:,2]
-        print 'ratio = ',corr2_output[:,2]/ng.xi
-        print 'diff = ',corr2_output[:,2]-ng.xi
+        print('ng.xi = ',ng.xi)
+        print('from corr2 output = ',corr2_output[:,2])
+        print('ratio = ',corr2_output[:,2]/ng.xi)
+        print('diff = ',corr2_output[:,2]-ng.xi)
         numpy.testing.assert_almost_equal(corr2_output[:,2]/ng.xi, 1., decimal=3)
 
-        print 'xi_im from corr2 output = ',corr2_output[:,3]
+        print('xi_im from corr2 output = ',corr2_output[:,3])
         assert max(abs(corr2_output[:,3])) < 3.e-5
 
 
@@ -97,12 +98,12 @@ def test_pairwise():
     r = numpy.exp(ng.meanlogr)
     true_gt = gamma0 * numpy.exp(-0.5*r**2/r0**2)
 
-    print 'ng.xi = ',ng.xi
-    print 'ng.xi_im = ',ng.xi_im
-    print 'true_gammat = ',true_gt
-    print 'ratio = ',ng.xi / true_gt
-    print 'diff = ',ng.xi - true_gt
-    print 'max diff = ',max(abs(ng.xi - true_gt))
+    print('ng.xi = ',ng.xi)
+    print('ng.xi_im = ',ng.xi_im)
+    print('true_gammat = ',true_gt)
+    print('ratio = ',ng.xi / true_gt)
+    print('diff = ',ng.xi - true_gt)
+    print('max diff = ',max(abs(ng.xi - true_gt)))
     # I don't really understand why this comes out slightly less accurate.
     # I would have thought it would be slightly more accurate because it doesn't use the
     # approximations intrinsic to the tree calculation.
@@ -117,13 +118,13 @@ def test_pairwise():
         p = subprocess.Popen( ["corr2","ng_pairwise.params"] )
         p.communicate()
         corr2_output = numpy.loadtxt(os.path.join('output','ng_pairwise.out'))
-        print 'ng.xi = ',ng.xi
-        print 'from corr2 output = ',corr2_output[:,2]
-        print 'ratio = ',corr2_output[:,2]/ng.xi
-        print 'diff = ',corr2_output[:,2]-ng.xi
+        print('ng.xi = ',ng.xi)
+        print('from corr2 output = ',corr2_output[:,2])
+        print('ratio = ',corr2_output[:,2]/ng.xi)
+        print('diff = ',corr2_output[:,2]-ng.xi)
         numpy.testing.assert_almost_equal(corr2_output[:,2]/ng.xi, 1., decimal=3)
 
-        print 'xi_im from corr2 output = ',corr2_output[:,3]
+        print('xi_im from corr2 output = ',corr2_output[:,3])
         assert max(abs(corr2_output[:,3])) < 3.e-5
 
 
@@ -203,12 +204,12 @@ def test_spherical():
                                       ra_units='rad', dec_units='rad')
         ng.process(lens_cat, source_cat)
 
-        print 'ra0, dec0 = ',ra0,dec0
-        print 'ng.xi = ',ng.xi
-        print 'true_gammat = ',true_gt
-        print 'ratio = ',ng.xi / true_gt
-        print 'diff = ',ng.xi - true_gt
-        print 'max diff = ',max(abs(ng.xi - true_gt))
+        print('ra0, dec0 = ',ra0,dec0)
+        print('ng.xi = ',ng.xi)
+        print('true_gammat = ',true_gt)
+        print('ratio = ',ng.xi / true_gt)
+        print('diff = ',ng.xi - true_gt)
+        print('max diff = ',max(abs(ng.xi - true_gt)))
         # The 3rd and 4th centers are somewhat less accurate.  Not sure why.
         # The math seems to be right, since the last one that gets all the way to the pole
         # works, so I'm not sure what is going on.  It's just a few bins that get a bit less
@@ -227,12 +228,12 @@ def test_spherical():
                                   ra_units='rad', dec_units='rad')
     ng.process(lens_cat, source_cat)
 
-    print 'ng.xi = ',ng.xi
-    print 'ng.xi_im = ',ng.xi_im
-    print 'true_gammat = ',true_gt
-    print 'ratio = ',ng.xi / true_gt
-    print 'diff = ',ng.xi - true_gt
-    print 'max diff = ',max(abs(ng.xi - true_gt))
+    print('ng.xi = ',ng.xi)
+    print('ng.xi_im = ',ng.xi_im)
+    print('true_gammat = ',true_gt)
+    print('ratio = ',ng.xi / true_gt)
+    print('diff = ',ng.xi - true_gt)
+    print('max diff = ',max(abs(ng.xi - true_gt)))
     assert max(abs(ng.xi - true_gt)) < 1.e-3
     assert max(abs(ng.xi_im)) < 3.e-5
 
@@ -244,13 +245,13 @@ def test_spherical():
         p = subprocess.Popen( ["corr2","ng_spherical.params"] )
         p.communicate()
         corr2_output = numpy.loadtxt(os.path.join('output','ng_spherical.out'))
-        print 'ng.xi = ',ng.xi
-        print 'from corr2 output = ',corr2_output[:,2]
-        print 'ratio = ',corr2_output[:,2]/ng.xi
-        print 'diff = ',corr2_output[:,2]-ng.xi
+        print('ng.xi = ',ng.xi)
+        print('from corr2 output = ',corr2_output[:,2])
+        print('ratio = ',corr2_output[:,2]/ng.xi)
+        print('diff = ',corr2_output[:,2]-ng.xi)
         numpy.testing.assert_almost_equal(corr2_output[:,2]/ng.xi, 1., decimal=3)
 
-        print 'xi_im from corr2 output = ',corr2_output[:,3]
+        print('xi_im from corr2 output = ',corr2_output[:,3])
         assert max(abs(corr2_output[:,3])) < 3.e-5
 
 
@@ -287,12 +288,12 @@ def test_ng():
     r = numpy.exp(ng.meanlogr)
     true_gt = gamma0 * numpy.exp(-0.5*r**2/r0**2)
 
-    print 'ng.xi = ',ng.xi
-    print 'ng.xi_im = ',ng.xi_im
-    print 'true_gammat = ',true_gt
-    print 'ratio = ',ng.xi / true_gt
-    print 'diff = ',ng.xi - true_gt
-    print 'max diff = ',max(abs(ng.xi - true_gt))
+    print('ng.xi = ',ng.xi)
+    print('ng.xi_im = ',ng.xi_im)
+    print('true_gammat = ',true_gt)
+    print('ratio = ',ng.xi / true_gt)
+    print('diff = ',ng.xi - true_gt)
+    print('max diff = ',max(abs(ng.xi - true_gt)))
     assert max(abs(ng.xi - true_gt)) < 4.e-3
     assert max(abs(ng.xi_im)) < 4.e-3
 
@@ -303,14 +304,14 @@ def test_ng():
     rg = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     rg.process(rand_cat, source_cat)
-    print 'rg.xi = ',rg.xi
+    print('rg.xi = ',rg.xi)
     xi, xi_im, varxi = ng.calculateXi(rg)
-    print 'compensated xi = ',xi
-    print 'compensated xi_im = ',xi_im
-    print 'true_gammat = ',true_gt
-    print 'ratio = ',xi / true_gt
-    print 'diff = ',xi - true_gt
-    print 'max diff = ',max(abs(xi - true_gt))
+    print('compensated xi = ',xi)
+    print('compensated xi_im = ',xi_im)
+    print('true_gammat = ',true_gt)
+    print('ratio = ',xi / true_gt)
+    print('diff = ',xi - true_gt)
+    print('max diff = ',max(abs(xi - true_gt)))
     # It turns out this doesn't come out much better.  I think the imprecision is mostly just due
     # to the smallish number of lenses, not to edge effects
     assert max(abs(xi - true_gt)) < 4.e-3
@@ -325,14 +326,14 @@ def test_ng():
         p = subprocess.Popen( ["corr2","ng.params"] )
         p.communicate()
         corr2_output = numpy.loadtxt(os.path.join('output','ng.out'))
-        print 'ng.xi = ',ng.xi
-        print 'xi = ',xi
-        print 'from corr2 output = ',corr2_output[:,2]
-        print 'ratio = ',corr2_output[:,2]/xi
-        print 'diff = ',corr2_output[:,2]-xi
+        print('ng.xi = ',ng.xi)
+        print('xi = ',xi)
+        print('from corr2 output = ',corr2_output[:,2])
+        print('ratio = ',corr2_output[:,2]/xi)
+        print('diff = ',corr2_output[:,2]-xi)
         numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
 
-        print 'xi_im from corr2 output = ',corr2_output[:,3]
+        print('xi_im from corr2 output = ',corr2_output[:,3])
         assert max(abs(corr2_output[:,3])) < 4.e-3
 
 

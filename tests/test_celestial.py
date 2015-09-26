@@ -11,7 +11,7 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
-
+from __future__ import print_function
 import numpy
 import treecorr
 
@@ -98,12 +98,12 @@ def test_distance():
 
     # Note that the standard formula gets thsse wrong.  d comes back as 0.
     d = arccos(sin(0.342) * sin(0.342) + cos(0.342) * cos(0.342) * cos(1.7e-9))
-    print 'd(c6) = ',1.7e-9 * cos(0.342), c1.distanceTo(c6), d
+    print('d(c6) = ',1.7e-9 * cos(0.342), c1.distanceTo(c6), d)
     d = arccos(sin(0.342) * sin(0.342+1.9e-9) + cos(0.342) * cos(0.342+1.9e-9) * cos(0.))
-    print 'd(c7) = ',1.9e-9, c1.distanceTo(c7), d
+    print('d(c7) = ',1.9e-9, c1.distanceTo(c7), d)
     d = arccos(sin(0.342) * sin(0.342) + cos(0.342) * cos(0.342) * cos(1.2e-9))
     true_d = sqrt( (2.3e-9 * cos(0.342))**2 + 1.2e-9**2)
-    print 'd(c7) = ',true_d, c1.distanceTo(c8), d
+    print('d(c7) = ',true_d, c1.distanceTo(c8), d)
     numpy.testing.assert_almost_equal(c1.distanceTo(c6)/(1.7e-9 * cos(0.342)), 1.0)
     numpy.testing.assert_almost_equal(c1.distanceTo(c7)/1.9e-9, 1.0)
     numpy.testing.assert_almost_equal(c1.distanceTo(c8)/true_d, 1.0)
@@ -204,7 +204,7 @@ def test_projection():
     # The shoelace formula gives the area of a triangle given coordinates:
     # A = 1/2 abs( (x2-x1)*(y3-y1) - (x3-x1)*(y2-y1) )
     area = 0.5 * abs( (pB[0]-pA[0])*(pC[1]-pA[1]) - (pC[0]-pA[0])*(pB[1]-pA[1]) )
-    print 'lambert area = ',area,E
+    print('lambert area = ',area,E)
     numpy.testing.assert_almost_equal(area / E, 1, decimal=5)
 
     # Check that project_rad does the same thing
@@ -226,14 +226,14 @@ def test_projection():
     cosB = ((pC[0]-pB[0])*(pA[0]-pB[0]) + (pC[1]-pB[1])*(pA[1]-pB[1])) / (c*a)
     cosC = ((pA[0]-pC[0])*(pB[0]-pC[0]) + (pA[1]-pC[1])*(pB[1]-pC[1])) / (a*b)
 
-    print 'lambert cosA = ',cosA,cos(A)
-    print 'lambert cosB = ',cosB,cos(B)
-    print 'lambert cosC = ',cosC,cos(C)
+    print('lambert cosA = ',cosA,cos(A))
+    print('lambert cosB = ',cosB,cos(B))
+    print('lambert cosC = ',cosC,cos(C))
  
     # The deproject jacobian should tell us how the area changes
     dudx, dudy, dvdx, dvdy = center.deproject_jac(*pA, projection='lambert')
     jac_area = abs(dudx*dvdy - dudy*dvdx)
-    print 'lambert jac_area = ',jac_area,E/area
+    print('lambert jac_area = ',jac_area,E/area)
     numpy.testing.assert_almost_equal(jac_area, E/area, decimal=5)
 
 
@@ -254,9 +254,9 @@ def test_projection():
     cosB = ((pC[0]-pB[0])*(pA[0]-pB[0]) + (pC[1]-pB[1])*(pA[1]-pB[1])) / (c*a)
     cosC = ((pA[0]-pC[0])*(pB[0]-pC[0]) + (pA[1]-pC[1])*(pB[1]-pC[1])) / (a*b)
 
-    print 'stereographic cosA = ',cosA,cos(A)
-    print 'stereographic cosB = ',cosB,cos(B)
-    print 'stereographic cosC = ',cosC,cos(C)
+    print('stereographic cosA = ',cosA,cos(A))
+    print('stereographic cosB = ',cosB,cos(B))
+    print('stereographic cosC = ',cosC,cos(C))
     numpy.testing.assert_almost_equal(cosA,cos(A), decimal=5)
     numpy.testing.assert_almost_equal(cosB,cos(B), decimal=5)
     numpy.testing.assert_almost_equal(cosC,cos(C), decimal=5)
@@ -274,12 +274,12 @@ def test_projection():
 
     # The area is not preserved
     area = 0.5 * abs( (pB[0]-pA[0])*(pC[1]-pA[1]) - (pC[0]-pA[0])*(pB[1]-pA[1]) )
-    print 'stereographic area = ',area,E
+    print('stereographic area = ',area,E)
  
     # The deproject jacobian should tell us how the area changes
     dudx, dudy, dvdx, dvdy = center.deproject_jac(*pA, projection='stereographic')
     jac_area = abs(dudx*dvdy - dudy*dvdx)
-    print 'stereographic jac_area = ',jac_area,E/area
+    print('stereographic jac_area = ',jac_area,E/area)
     numpy.testing.assert_almost_equal(jac_area, E/area, decimal=5)
 
 
@@ -311,18 +311,18 @@ def test_projection():
     cosB = ((pC[0]-pB[0])*(pA[0]-pB[0]) + (pC[1]-pB[1])*(pA[1]-pB[1])) / (c*a)
     cosC = ((pA[0]-pC[0])*(pB[0]-pC[0]) + (pA[1]-pC[1])*(pB[1]-pC[1])) / (a*b)
 
-    print 'gnomonic cosA = ',cosA,cos(A)
-    print 'gnomonic cosB = ',cosB,cos(B)
-    print 'gnomonic cosC = ',cosC,cos(C)
+    print('gnomonic cosA = ',cosA,cos(A))
+    print('gnomonic cosB = ',cosB,cos(B))
+    print('gnomonic cosC = ',cosC,cos(C))
  
     # The area is not preserved
     area = 0.5 * abs( (pB[0]-pA[0])*(pC[1]-pA[1]) - (pC[0]-pA[0])*(pB[1]-pA[1]) )
-    print 'gnomonic area = ',area,E
+    print('gnomonic area = ',area,E)
 
     # The deproject jacobian should tell us how the area changes
     dudx, dudy, dvdx, dvdy = center.deproject_jac(*pA, projection='gnomonic')
     jac_area = abs(dudx*dvdy - dudy*dvdx)
-    print 'gnomonic jac_area = ',jac_area,E/area
+    print('gnomonic jac_area = ',jac_area,E/area)
     numpy.testing.assert_almost_equal(jac_area, E/area, decimal=5)
 
 
@@ -337,9 +337,9 @@ def test_projection():
     dA = sqrt( pA[0]**2 + pA[1]**2 )
     dB = sqrt( pB[0]**2 + pB[1]**2 )
     dC = sqrt( pC[0]**2 + pC[1]**2 )
-    print 'postel dA = ',dA,center.distanceTo(cA)
-    print 'postel dB = ',dB,center.distanceTo(cB)
-    print 'postel dC = ',dC,center.distanceTo(cC)
+    print('postel dA = ',dA,center.distanceTo(cA))
+    print('postel dB = ',dB,center.distanceTo(cB))
+    print('postel dC = ',dC,center.distanceTo(cC))
     numpy.testing.assert_almost_equal( dA, center.distanceTo(cA) )
     numpy.testing.assert_almost_equal( dB, center.distanceTo(cB) )
     numpy.testing.assert_almost_equal( dC, center.distanceTo(cC) )
@@ -363,18 +363,18 @@ def test_projection():
     cosB = ((pC[0]-pB[0])*(pA[0]-pB[0]) + (pC[1]-pB[1])*(pA[1]-pB[1])) / (c*a)
     cosC = ((pA[0]-pC[0])*(pB[0]-pC[0]) + (pA[1]-pC[1])*(pB[1]-pC[1])) / (a*b)
 
-    print 'postel cosA = ',cosA,cos(A)
-    print 'postel cosB = ',cosB,cos(B)
-    print 'postel cosC = ',cosC,cos(C)
+    print('postel cosA = ',cosA,cos(A))
+    print('postel cosB = ',cosB,cos(B))
+    print('postel cosC = ',cosC,cos(C))
  
     # The area is not preserved
     area = 0.5 * abs( (pB[0]-pA[0])*(pC[1]-pA[1]) - (pC[0]-pA[0])*(pB[1]-pA[1]) )
-    print 'postel area = ',area,E
+    print('postel area = ',area,E)
 
     # The deproject jacobian should tell us how the area changes
     dudx, dudy, dvdx, dvdy = center.deproject_jac(*pA, projection='postel')
     jac_area = abs(dudx*dvdy - dudy*dvdx)
-    print 'postel jac_area = ',jac_area,E/area
+    print('postel jac_area = ',jac_area,E/area)
     numpy.testing.assert_almost_equal(jac_area, E/area, decimal=5)
 
 
@@ -395,15 +395,15 @@ def test_precess():
     # http://www.bbastrodesigns.com/coordErrors.html
     dra_1950 = -(2. + 39.07/60.)/60. * treecorr.hours
     ddec_1950 = -(16. + 16.3/60.)/60. * treecorr.degrees
-    print 'delta from website: ',dra_1950,ddec_1950
-    print 'delta from precess: ',(c1.ra-orig.ra),(c1.dec-orig.dec)
+    print('delta from website: ',dra_1950,ddec_1950)
+    print('delta from precess: ',(c1.ra-orig.ra),(c1.dec-orig.dec))
     numpy.testing.assert_almost_equal(dra_1950, c1.ra-orig.ra, decimal=5)
     numpy.testing.assert_almost_equal(ddec_1950, c1.dec-orig.dec, decimal=5)
 
     dra_1900 = -(5. + 17.74/60.)/60. * treecorr.hours
     ddec_1900 = -(32. + 35.4/60.)/60. * treecorr.degrees
-    print 'delta from website: ',dra_1900,ddec_1900
-    print 'delta from precess: ',(c2.ra-orig.ra),(c2.dec-orig.dec)
+    print('delta from website: ',dra_1900,ddec_1900)
+    print('delta from precess: ',(c2.ra-orig.ra),(c2.dec-orig.dec))
     numpy.testing.assert_almost_equal(dra_1900, c2.ra-orig.ra, decimal=5)
     numpy.testing.assert_almost_equal(ddec_1900, c2.dec-orig.dec, decimal=5)
 
@@ -412,7 +412,7 @@ def test_galactic():
     # the galactic center is located at 17h:45.6m, -28.94d
     center = treecorr.CelestialCoord( (17.+45.6/60.) * treecorr.hours,
                                       -28.94 * treecorr.degrees )
-    print 'center.galactic = ',center.galactic()
+    print('center.galactic = ',center.galactic())
     el,b = center.galactic()
     numpy.testing.assert_almost_equal(el, 0., decimal=3)
     numpy.testing.assert_almost_equal(b, 0., decimal=3)
@@ -420,21 +420,21 @@ def test_galactic():
     # The north pole is at 12h:51.4m, 27.13d
     north = treecorr.CelestialCoord( (12.+51.4/60.) * treecorr.hours,
                                      27.13 * treecorr.degrees )
-    print 'north.galactic = ',north.galactic()
+    print('north.galactic = ',north.galactic())
     el,b = north.galactic()
     numpy.testing.assert_almost_equal(b, pi/2., decimal=3)
 
     # The south pole is at 0h:51.4m, -27.13d
     south = treecorr.CelestialCoord( (0.+51.4/60.) * treecorr.hours,
                                      -27.13 * treecorr.degrees )
-    print 'south.galactic = ',south.galactic()
+    print('south.galactic = ',south.galactic())
     el,b = south.galactic()
     numpy.testing.assert_almost_equal(b, -pi/2., decimal=3)
 
     # The anti-center is at 5h:42.6m, 28.92d
     anticenter = treecorr.CelestialCoord( (5.+45.6/60.) * treecorr.hours,
                                           28.94 * treecorr.degrees )
-    print 'anticenter.galactic = ',anticenter.galactic()
+    print('anticenter.galactic = ',anticenter.galactic())
     el,b = anticenter.galactic()
     numpy.testing.assert_almost_equal(el, pi, decimal=3)
     numpy.testing.assert_almost_equal(b, 0., decimal=3)

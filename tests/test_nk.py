@@ -11,6 +11,7 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
+from __future__ import print_function
 import numpy
 import treecorr
 import os
@@ -40,11 +41,11 @@ def test_single():
     r = numpy.exp(nk.meanlogr)
     true_k = kappa0 * numpy.exp(-0.5*r**2/r0**2) * (1.-0.5*r**2/r0**2)
 
-    print 'nk.xi = ',nk.xi
-    print 'true_kappa = ',true_k
-    print 'ratio = ',nk.xi / true_k
-    print 'diff = ',nk.xi - true_k
-    print 'max diff = ',max(abs(nk.xi - true_k))
+    print('nk.xi = ',nk.xi)
+    print('true_kappa = ',true_k)
+    print('ratio = ',nk.xi / true_k)
+    print('diff = ',nk.xi - true_k)
+    print('max diff = ',max(abs(nk.xi - true_k)))
     assert max(abs(nk.xi - true_k)) < 4.e-4
 
     # Check that we get the same result using the corr2 executable:
@@ -55,10 +56,10 @@ def test_single():
         p = subprocess.Popen( ["corr2","nk_single.params"] )
         p.communicate()
         corr2_output = numpy.loadtxt(os.path.join('output','nk_single.out'))
-        print 'nk.xi = ',nk.xi
-        print 'from corr2 output = ',corr2_output[:,2]
-        print 'ratio = ',corr2_output[:,2]/nk.xi
-        print 'diff = ',corr2_output[:,2]-nk.xi
+        print('nk.xi = ',nk.xi)
+        print('from corr2 output = ',corr2_output[:,2])
+        print('ratio = ',corr2_output[:,2]/nk.xi)
+        print('diff = ',corr2_output[:,2]-nk.xi)
         numpy.testing.assert_almost_equal(corr2_output[:,2]/nk.xi, 1., decimal=3)
 
 
@@ -91,11 +92,11 @@ def test_nk():
     r = numpy.exp(nk.meanlogr)
     true_k = kappa0 * numpy.exp(-0.5*r**2/r0**2) * (1.-0.5*r**2/r0**2)
 
-    print 'nk.xi = ',nk.xi
-    print 'true_kappa = ',true_k
-    print 'ratio = ',nk.xi / true_k
-    print 'diff = ',nk.xi - true_k
-    print 'max diff = ',max(abs(nk.xi - true_k))
+    print('nk.xi = ',nk.xi)
+    print('true_kappa = ',true_k)
+    print('ratio = ',nk.xi / true_k)
+    print('diff = ',nk.xi - true_k)
+    print('max diff = ',max(abs(nk.xi - true_k)))
     assert max(abs(nk.xi - true_k)) < 5.e-3
 
     nrand = nlens * 13
@@ -105,13 +106,13 @@ def test_nk():
     rk = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     rk.process(rand_cat, source_cat)
-    print 'rk.xi = ',rk.xi
+    print('rk.xi = ',rk.xi)
     xi, varxi = nk.calculateXi(rk)
-    print 'compensated xi = ',xi
-    print 'true_kappa = ',true_k
-    print 'ratio = ',xi / true_k
-    print 'diff = ',xi - true_k
-    print 'max diff = ',max(abs(xi - true_k))
+    print('compensated xi = ',xi)
+    print('true_kappa = ',true_k)
+    print('ratio = ',xi / true_k)
+    print('diff = ',xi - true_k)
+    print('max diff = ',max(abs(xi - true_k)))
     # It turns out this doesn't come out much better.  I think the imprecision is mostly just due
     # to the smallish number of lenses, not to edge effects
     assert max(abs(xi - true_k)) < 5.e-3
@@ -125,11 +126,11 @@ def test_nk():
         p = subprocess.Popen( ["corr2","nk.params"] )
         p.communicate()
         corr2_output = numpy.loadtxt(os.path.join('output','nk.out'))
-        print 'nk.xi = ',nk.xi
-        print 'xi = ',xi
-        print 'from corr2 output = ',corr2_output[:,2]
-        print 'ratio = ',corr2_output[:,2]/xi
-        print 'diff = ',corr2_output[:,2]-xi
+        print('nk.xi = ',nk.xi)
+        print('xi = ',xi)
+        print('from corr2 output = ',corr2_output[:,2])
+        print('ratio = ',corr2_output[:,2]/xi)
+        print('diff = ',corr2_output[:,2]-xi)
         numpy.testing.assert_almost_equal(corr2_output[:,2]/xi, 1., decimal=3)
 
 

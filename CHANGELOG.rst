@@ -1,3 +1,9 @@
+Changes from version 3.1.1 to 3.1.2
+===================================
+
+- Made code work for python3.
+
+
 Changes from version 3.1.0 to 3.1.1
 ===================================
 

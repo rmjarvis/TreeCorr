@@ -11,7 +11,7 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
-
+from __future__ import print_function
 import numpy
 import treecorr
 import os
@@ -281,10 +281,10 @@ def test_contiguous():
                                   g1=source_data['g1'].astype(float), 
                                   g2=source_data['g2'].astype(float))
 
-    print "dtypes of original arrays: ", [source_data[key].dtype for key in ['ra','dec','g1','g2']]
-    print "dtypes of cat2 arrays: ", [getattr(cat2,key).dtype for key in ['ra','dec','g1','g2']]
-    print "is original g2 array contiguous?", source_data['g2'].flags['C_CONTIGUOUS']
-    print "is cat2.g2 array contiguous?", cat2.g2.flags['C_CONTIGUOUS']
+    print("dtypes of original arrays: ", [source_data[key].dtype for key in ['ra','dec','g1','g2']])
+    print("dtypes of cat2 arrays: ", [getattr(cat2,key).dtype for key in ['ra','dec','g1','g2']])
+    print("is original g2 array contiguous?", source_data['g2'].flags['C_CONTIGUOUS'])
+    print("is cat2.g2 array contiguous?", cat2.g2.flags['C_CONTIGUOUS'])
     assert not source_data['g2'].flags['C_CONTIGUOUS']
     assert cat2.g2.flags['C_CONTIGUOUS']
 

@@ -52,13 +52,22 @@ def get_compiler(cc):
     import subprocess
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines = p.stdout.readlines()
-    if "clang" in lines[0].decode(encoding='UTF-8'):
+    try:
+        # Python3 needs this decode bit.
+        # Python2.7 doesn't need it, but it works fine.
+        line0 = lines[0].decode(encoding='UTF-8')
+        line1 = lines[1].decode(encoding='UTF-8')
+    except TypeError:
+        # Python2.6 throws a TypeError, so just use the lines as they are.
+        line0 = lines[0]
+        line1 = lines[1]
+
+    if "clang" in line0:
         # Supposedly, clang will support openmp in version 3.5.  Let's go with that for now...
         # If the version is reports >= 3.5, let's call it gcc, rather than clang to get
         # the -fopenmp flag.
-        line = lines[1].decode(encoding='UTF-8')
         import re
-        match = re.search(r'[0-9]+(\.[0-9]+)+', line)
+        match = re.search(r'[0-9]+(\.[0-9]+)+', line1)
         if match:
             version = match.group(0)
             # Get the version up to the first decimal
@@ -67,9 +76,9 @@ def get_compiler(cc):
             if vnum >= '3.5':
                 return 'gcc'
         return 'clang'
-    elif 'gcc' in lines[0].decode(encoding='UTF-8'):
+    elif 'gcc' in line0:
         return 'gcc'
-    elif 'GCC' in lines[0].decode(encoding='UTF-8'):
+    elif 'GCC' in line0:
         return 'gcc'
     elif 'clang' in cc:
         return 'clang'

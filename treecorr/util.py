@@ -97,14 +97,30 @@ def gen_write_fits(file_name, col_names, columns):
     :param col_names:   A list of columns names for the given columns.
     :param columns:     A list of numpy arrays with the data to write.
     """
-    import fitsio
     import numpy
 
-    data = numpy.empty(len(columns[0]), dtype=[ (name,'f8') for name in col_names ])
-    for (name, col) in zip(col_names, columns):
-        data[name] = col
+    try:
+        import fitsio
+        data = numpy.empty(len(columns[0]), dtype=[ (name,'f8') for name in col_names ])
+        for (name, col) in zip(col_names, columns):
+            data[name] = col
+        fitsio.write(file_name, data, clobber=True)
+    except ImportError:
+        try:
+            import astropy.io.fits as pyfits
+        except:
+            import pyfits
 
-    fitsio.write(file_name, data, clobber=True)
+        cols = pyfits.ColDefs([
+            pyfits.Column(name=name, format='D', array=col)
+            for (name, col) in zip(col_names, columns) ])
+
+        # Depending on the version of pyfits, one of these should work:
+        try:
+            tbhdu = pyfits.BinTableHDU.from_columns(cols)
+        except:
+            tbhdu = pyfits.new_table(cols)
+        tbhdu.writeto(file_name, clobber=True)
 
 
 def gen_read(file_name, file_type=None, logger=None):
@@ -134,8 +150,16 @@ def gen_read(file_name, file_type=None, logger=None):
             logger.info("file_type assumed to be %s from the file name.",file_type)
 
     if file_type == 'FITS':
-        import fitsio
-        data = fitsio.read(file_name)
+        try:
+            import fitsio
+            data = fitsio.read(file_name)
+        except ImportError:
+            try:
+                import astropy.io.fits as pyfits
+            except ImportError:
+                import pyfits
+            with pyfits.open(file_name) as f:
+                data = f[1].data
     elif file_type == 'ASCII':
         import numpy
         data = numpy.genfromtxt(file_name, names=True)

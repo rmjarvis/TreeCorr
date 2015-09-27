@@ -151,18 +151,21 @@ def test_gg():
     # Check the fits write option
     out_file_name = os.path.join('output','gg_out.fits')
     gg.write(out_file_name)
-    import fitsio
-    data = fitsio.read(out_file_name)
-    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(gg.logr))
-    numpy.testing.assert_almost_equal(data['<R>'], gg.meanr)
-    numpy.testing.assert_almost_equal(data['<logR>'], gg.meanlogr)
-    numpy.testing.assert_almost_equal(data['xip'], gg.xip)
-    numpy.testing.assert_almost_equal(data['xim'], gg.xim)
-    numpy.testing.assert_almost_equal(data['xip_im'], gg.xip_im)
-    numpy.testing.assert_almost_equal(data['xim_im'], gg.xim_im)
-    numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(gg.varxi))
-    numpy.testing.assert_almost_equal(data['weight'], gg.weight)
-    numpy.testing.assert_almost_equal(data['npairs'], gg.npairs)
+    try:
+        import fitsio
+        data = fitsio.read(out_file_name)
+        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(gg.logr))
+        numpy.testing.assert_almost_equal(data['<R>'], gg.meanr)
+        numpy.testing.assert_almost_equal(data['<logR>'], gg.meanlogr)
+        numpy.testing.assert_almost_equal(data['xip'], gg.xip)
+        numpy.testing.assert_almost_equal(data['xim'], gg.xim)
+        numpy.testing.assert_almost_equal(data['xip_im'], gg.xip_im)
+        numpy.testing.assert_almost_equal(data['xim_im'], gg.xim_im)
+        numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(gg.varxi))
+        numpy.testing.assert_almost_equal(data['weight'], gg.weight)
+        numpy.testing.assert_almost_equal(data['npairs'], gg.npairs)
+    except ImportError:
+        print('Unable to import fitsio.  Skipping fits tests.')
 
     # Check the read function
     gg2 = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin')

@@ -7,16 +7,6 @@ with the change:
 https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+3.2%22+is%3Aclosed
 
 
-Dependency change:
-------------------
-
-- Removed the option of using pyfits for the FITS I/O.  Now fitsio is a 
-  required dependency.  The installation procedure should handle this for you,
-  so this change shouldn't matter at all to you.  Because that is so easy, it
-  didn't seem worth maintaining two options for the FITS dependency.  In most
-  respects, fitsio is the better package, so I went with that one.
-
-
 API changes:
 ------------
 

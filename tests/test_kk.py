@@ -98,15 +98,18 @@ def test_kk():
     # Check the fits write option
     out_file_name = os.path.join('output','kk_out.fits')
     kk.write(out_file_name)
-    import fitsio
-    data = fitsio.read(out_file_name)
-    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(kk.logr))
-    numpy.testing.assert_almost_equal(data['<R>'], kk.meanr)
-    numpy.testing.assert_almost_equal(data['<logR>'], kk.meanlogr)
-    numpy.testing.assert_almost_equal(data['xi'], kk.xi)
-    numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(kk.varxi))
-    numpy.testing.assert_almost_equal(data['weight'], kk.weight)
-    numpy.testing.assert_almost_equal(data['npairs'], kk.npairs)
+    try:
+        import fitsio
+        data = fitsio.read(out_file_name)
+        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(kk.logr))
+        numpy.testing.assert_almost_equal(data['<R>'], kk.meanr)
+        numpy.testing.assert_almost_equal(data['<logR>'], kk.meanlogr)
+        numpy.testing.assert_almost_equal(data['xi'], kk.xi)
+        numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(kk.varxi))
+        numpy.testing.assert_almost_equal(data['weight'], kk.weight)
+        numpy.testing.assert_almost_equal(data['npairs'], kk.npairs)
+    except ImportError:
+        print('Unable to import fitsio.  Skipping fits tests.')
 
     # Check the read function
     kk2 = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin')

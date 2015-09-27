@@ -194,16 +194,19 @@ def test_kg():
     # Check the fits write option
     out_file_name1 = os.path.join('output','kg_out1.fits')
     kg.write(out_file_name1)
-    import fitsio
-    data = fitsio.read(out_file_name1)
-    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(kg.logr))
-    numpy.testing.assert_almost_equal(data['<R>'], kg.meanr)
-    numpy.testing.assert_almost_equal(data['<logR>'], kg.meanlogr)
-    numpy.testing.assert_almost_equal(data['<kgamT>'], kg.xi)
-    numpy.testing.assert_almost_equal(data['<kgamX>'], kg.xi_im)
-    numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(kg.varxi))
-    numpy.testing.assert_almost_equal(data['weight'], kg.weight)
-    numpy.testing.assert_almost_equal(data['npairs'], kg.npairs)
+    try:
+        import fitsio
+        data = fitsio.read(out_file_name1)
+        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(kg.logr))
+        numpy.testing.assert_almost_equal(data['<R>'], kg.meanr)
+        numpy.testing.assert_almost_equal(data['<logR>'], kg.meanlogr)
+        numpy.testing.assert_almost_equal(data['<kgamT>'], kg.xi)
+        numpy.testing.assert_almost_equal(data['<kgamX>'], kg.xi_im)
+        numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(kg.varxi))
+        numpy.testing.assert_almost_equal(data['weight'], kg.weight)
+        numpy.testing.assert_almost_equal(data['npairs'], kg.npairs)
+    except ImportError:
+        print('Unable to import fitsio.  Skipping fits tests.')
 
     # Check the read function
     kg2 = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')

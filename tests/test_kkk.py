@@ -11,7 +11,7 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
-
+from __future__ import print_function
 import numpy
 import treecorr
 import os
@@ -43,19 +43,19 @@ def test_constant():
                                   nubins=nubins, nvbins=nvbins,
                                   sep_units='arcmin', verbose=2)
     kkk.process(cat)
-    print 'kkk.zeta = ',kkk.zeta.flatten()
+    print('kkk.zeta = ',kkk.zeta.flatten()))
     numpy.testing.assert_almost_equal(kkk.zeta, A**3, decimal=10)
 
     # Should also work as a cross-correlation
     kkk.process(cat, cat, cat)
-    print 'as cross-correlation: kkk.zeta = ',kkk.zeta.flatten()
+    print('as cross-correlation: kkk.zeta = ',kkk.zeta.flatten()))
     numpy.testing.assert_almost_equal(kkk.zeta, A**3, decimal=10)
 
     # Now add some noise to the values. It should still work, but at slightly lower accuracy.
     kappa += 0.001 * (numpy.random.random_sample(ngal)-0.5)
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     kkk.process(cat)
-    print 'with noise: kkk.zeta = ',kkk.zeta.flatten()
+    print('with noise: kkk.zeta = ',kkk.zeta.flatten()))
     numpy.testing.assert_almost_equal(kkk.zeta, A**3, decimal=6)
 
 
@@ -107,11 +107,11 @@ def test_kkk():
     kkk.process(cat)
 
     # log(<d>) != <logd>, but it should be close:
-    #print 'meanlogd1 - log(meand1) = ',kkk.meanlogd1 - numpy.log(kkk.meand1)
-    #print 'meanlogd2 - log(meand2) = ',kkk.meanlogd2 - numpy.log(kkk.meand2)
-    #print 'meanlogd3 - log(meand3) = ',kkk.meanlogd3 - numpy.log(kkk.meand3)
-    #print 'meanlogd3 - meanlogd2 - log(meanu) = ',kkk.meanlogd3 - kkk.meanlogd2 - numpy.log(kkk.meanu)
-    #print 'log(meand1-meand2) - meanlogd3 - log(meanv) = ',numpy.log(kkk.meand1-kkk.meand2) - kkk.meanlogd3 - numpy.log(numpy.abs(kkk.meanv))
+    #print('meanlogd1 - log(meand1) = ',kkk.meanlogd1 - numpy.log(kkk.meand1)))
+    #print('meanlogd2 - log(meand2) = ',kkk.meanlogd2 - numpy.log(kkk.meand2)))
+    #print('meanlogd3 - log(meand3) = ',kkk.meanlogd3 - numpy.log(kkk.meand3)))
+    #print('meanlogd3 - meanlogd2 - log(meanu) = ',kkk.meanlogd3 - kkk.meanlogd2 - numpy.log(kkk.meanu)))
+    #print('log(meand1-meand2) - meanlogd3 - log(meanv) = ',numpy.log(kkk.meand1-kkk.meand2) - kkk.meanlogd3 - numpy.log(numpy.abs(kkk.meanv))))
     numpy.testing.assert_almost_equal(kkk.meanlogd1, numpy.log(kkk.meand1), decimal=3)
     numpy.testing.assert_almost_equal(kkk.meanlogd2, numpy.log(kkk.meand2), decimal=3)
     numpy.testing.assert_almost_equal(kkk.meanlogd3, numpy.log(kkk.meand3), decimal=3)
@@ -122,12 +122,12 @@ def test_kkk():
     d1 = kkk.meand1
     d2 = kkk.meand2
     d3 = kkk.meand3
-    #print 'rnom = ',numpy.exp(kkk.logr)
-    #print 'unom = ',kkk.u
-    #print 'vnom = ',kkk.v
-    #print 'd1 = ',d1
-    #print 'd2 = ',d2
-    #print 'd3 = ',d3
+    #print('rnom = ',numpy.exp(kkk.logr)))
+    #print('unom = ',kkk.u))
+    #print('vnom = ',kkk.v))
+    #print('d1 = ',d1))
+    #print('d2 = ',d2))
+    #print('d3 = ',d3))
     # The L^2 term in the denominator of true_zeta is the area over which the integral is done.
     # Since the centers of the triangles don't go to the edge of the box, we approximate the
     # correct area by subtracting off 2d2 from L, which should give a slightly better estimate
@@ -135,12 +135,12 @@ def test_kkk():
     L = L - 2.*d2
     true_zeta = (2.*numpy.pi/3) * A**3 * (s/L)**2 * numpy.exp(-(d1**2+d2**2+d3**2)/(6.*s**2))
 
-    #print 'ntri = ',kkk.ntri
-    print 'zeta = ',kkk.zeta
-    print 'true_zeta = ',true_zeta
-    #print 'ratio = ',kkk.zeta / true_zeta
-    #print 'diff = ',kkk.zeta - true_zeta
-    print 'max rel diff = ',numpy.max(numpy.abs((kkk.zeta - true_zeta)/true_zeta))
+    #print('ntri = ',kkk.ntri))
+    print('zeta = ',kkk.zeta))
+    print('true_zeta = ',true_zeta))
+    #print('ratio = ',kkk.zeta / true_zeta))
+    #print('diff = ',kkk.zeta - true_zeta))
+    print('max rel diff = ',numpy.max(numpy.abs((kkk.zeta - true_zeta)/true_zeta))))
     assert numpy.max(numpy.abs((kkk.zeta - true_zeta)/true_zeta)) / req_factor < 0.1
     numpy.testing.assert_almost_equal(numpy.log(numpy.abs(kkk.zeta)) / req_factor, 
                                       numpy.log(numpy.abs(true_zeta)) / req_factor, decimal=1)
@@ -152,10 +152,10 @@ def test_kkk():
         p = subprocess.Popen( ["corr3","kkk.params"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','kkk.out'), names=True)
-        #print 'zeta = ',kkk.zeta
-        #print 'from corr3 output = ',corr3_output['zeta']
-        #print 'ratio = ',corr3_output['zeta']/kkk.zeta.flatten()
-        #print 'diff = ',corr3_output['zeta']-kkk.zeta.flatten()
+        #print('zeta = ',kkk.zeta))
+        #print('from corr3 output = ',corr3_output['zeta']))
+        #print('ratio = ',corr3_output['zeta']/kkk.zeta.flatten()))
+        #print('diff = ',corr3_output['zeta']-kkk.zeta.flatten()))
         numpy.testing.assert_almost_equal(corr3_output['zeta']/kkk.zeta.flatten(), 1., decimal=3)
 
     # Check the fits write option

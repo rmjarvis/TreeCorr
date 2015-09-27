@@ -11,7 +11,7 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
-
+from __future__ import print_function
 import numpy
 import treecorr
 import os
@@ -43,18 +43,18 @@ def test_single():
     kg.process(lens_cat, source_cat)
 
     # log(<R>) != <logR>, but it should be close:
-    print 'meanlogr - log(meanr) = ',kg.meanlogr - numpy.log(kg.meanr)
+    print('meanlogr - log(meanr) = ',kg.meanlogr - numpy.log(kg.meanr))
     numpy.testing.assert_almost_equal(kg.meanlogr, numpy.log(kg.meanr), decimal=3)
 
     r = kg.meanr
     true_kgt = kappa * gamma0 * numpy.exp(-0.5*r**2/r0**2)
 
-    print 'kg.xi = ',kg.xi
-    print 'kg.xi_im = ',kg.xi_im
-    print 'true_gammat = ',true_kgt
-    print 'ratio = ',kg.xi / true_kgt
-    print 'diff = ',kg.xi - true_kgt
-    print 'max diff = ',max(abs(kg.xi - true_kgt))
+    print('kg.xi = ',kg.xi)
+    print('kg.xi_im = ',kg.xi_im)
+    print('true_gammat = ',true_kgt)
+    print('ratio = ',kg.xi / true_kgt)
+    print('diff = ',kg.xi - true_kgt)
+    print('max diff = ',max(abs(kg.xi - true_kgt)))
     assert max(abs(kg.xi - true_kgt)) < 4.e-4
     assert max(abs(kg.xi_im)) < 3.e-5
 
@@ -66,13 +66,13 @@ def test_single():
         p = subprocess.Popen( ["corr2","kg_single.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','kg_single.out'),names=True)
-        print 'kg.xi = ',kg.xi
-        print 'from corr2 output = ',corr2_output['kgamT']
-        print 'ratio = ',corr2_output['kgamT']/kg.xi
-        print 'diff = ',corr2_output['kgamT']-kg.xi
+        print('kg.xi = ',kg.xi)
+        print('from corr2 output = ',corr2_output['kgamT'])
+        print('ratio = ',corr2_output['kgamT']/kg.xi)
+        print('diff = ',corr2_output['kgamT']-kg.xi)
         numpy.testing.assert_almost_equal(corr2_output['kgamT']/kg.xi, 1., decimal=3)
 
-        print 'xi_im from corr2 output = ',corr2_output['kgamX']
+        print('xi_im from corr2 output = ',corr2_output['kgamX'])
         assert max(abs(corr2_output['kgamX'])) < 3.e-5
 
 
@@ -104,12 +104,12 @@ def test_pairwise():
     r = kg.meanr
     true_kgt = kappa * gamma0 * numpy.exp(-0.5*r**2/r0**2)
 
-    print 'kg.xi = ',kg.xi
-    print 'kg.xi_im = ',kg.xi_im
-    print 'true_gammat = ',true_kgt
-    print 'ratio = ',kg.xi / true_kgt
-    print 'diff = ',kg.xi - true_kgt
-    print 'max diff = ',max(abs(kg.xi - true_kgt))
+    print('kg.xi = ',kg.xi)
+    print('kg.xi_im = ',kg.xi_im)
+    print('true_gammat = ',true_kgt)
+    print('ratio = ',kg.xi / true_kgt)
+    print('diff = ',kg.xi - true_kgt)
+    print('max diff = ',max(abs(kg.xi - true_kgt)))
     assert max(abs(kg.xi - true_kgt)) < 4.e-4
     assert max(abs(kg.xi_im)) < 3.e-5
 
@@ -121,13 +121,13 @@ def test_pairwise():
         p = subprocess.Popen( ["corr2","kg_pairwise.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','kg_pairwise.out'),names=True)
-        print 'kg.xi = ',kg.xi
-        print 'from corr2 output = ',corr2_output['kgamT']
-        print 'ratio = ',corr2_output['kgamT']/kg.xi
-        print 'diff = ',corr2_output['kgamT']-kg.xi
+        print('kg.xi = ',kg.xi)
+        print('from corr2 output = ',corr2_output['kgamT'])
+        print('ratio = ',corr2_output['kgamT']/kg.xi)
+        print('diff = ',corr2_output['kgamT']-kg.xi)
         numpy.testing.assert_almost_equal(corr2_output['kgamT']/kg.xi, 1., decimal=3)
 
-        print 'xi_im from corr2 output = ',corr2_output['kgamX']
+        print('xi_im from corr2 output = ',corr2_output['kgamX'])
         assert max(abs(corr2_output['kgamX'])) < 3.e-5
 
 
@@ -165,12 +165,12 @@ def test_kg():
     r = kg.meanr
     true_gt = gamma0 * numpy.exp(-0.5*r**2/r0**2)
 
-    print 'kg.xi = ',kg.xi
-    print 'kg.xi_im = ',kg.xi_im
-    print 'true_gammat = ',true_gt
-    print 'ratio = ',kg.xi / true_gt
-    print 'diff = ',kg.xi - true_gt
-    print 'max diff = ',max(abs(kg.xi - true_gt))
+    print('kg.xi = ',kg.xi)
+    print('kg.xi_im = ',kg.xi_im)
+    print('true_gammat = ',true_gt)
+    print('ratio = ',kg.xi / true_gt)
+    print('diff = ',kg.xi - true_gt)
+    print('max diff = ',max(abs(kg.xi - true_gt)))
     assert max(abs(kg.xi - true_gt)) < 4.e-3
     assert max(abs(kg.xi_im)) < 4.e-3
 
@@ -182,13 +182,13 @@ def test_kg():
         p = subprocess.Popen( ["corr2","kg.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','kg.out'),names=True)
-        print 'kg.xi = ',kg.xi
-        print 'from corr2 output = ',corr2_output['kgamT']
-        print 'ratio = ',corr2_output['kgamT']/kg.xi
-        print 'diff = ',corr2_output['kgamT']-kg.xi
+        print('kg.xi = ',kg.xi)
+        print('from corr2 output = ',corr2_output['kgamT'])
+        print('ratio = ',corr2_output['kgamT']/kg.xi)
+        print('diff = ',corr2_output['kgamT']-kg.xi)
         numpy.testing.assert_almost_equal(corr2_output['kgamT']/kg.xi, 1., decimal=3)
 
-        print 'xi_im from corr2 output = ',corr2_output['kgamX']
+        print('xi_im from corr2 output = ',corr2_output['kgamX'])
         assert max(abs(corr2_output['kgamX'])) < 4.e-3
 
     # Check the fits write option

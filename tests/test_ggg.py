@@ -82,11 +82,11 @@ def test_ggg():
     ggg.process(cat)
 
     # log(<d>) != <logd>, but it should be close:
-    #print 'meanlogd1 - log(meand1) = ',ggg.meanlogd1 - numpy.log(ggg.meand1)
-    #print 'meanlogd2 - log(meand2) = ',ggg.meanlogd2 - numpy.log(ggg.meand2)
-    #print 'meanlogd3 - log(meand3) = ',ggg.meanlogd3 - numpy.log(ggg.meand3)
-    #print 'meanlogd3 - meanlogd2 - log(meanu) = ',ggg.meanlogd3 - ggg.meanlogd2 - numpy.log(ggg.meanu)
-    #print 'log(meand1-meand2) - meanlogd3 - log(meanv) = ',numpy.log(ggg.meand1-ggg.meand2) - ggg.meanlogd3 - numpy.log(numpy.abs(ggg.meanv))
+    #print('meanlogd1 - log(meand1) = ',ggg.meanlogd1 - numpy.log(ggg.meand1))
+    #print('meanlogd2 - log(meand2) = ',ggg.meanlogd2 - numpy.log(ggg.meand2))
+    #print('meanlogd3 - log(meand3) = ',ggg.meanlogd3 - numpy.log(ggg.meand3))
+    #print('meanlogd3 - meanlogd2 - log(meanu) = ',ggg.meanlogd3 - ggg.meanlogd2 - numpy.log(ggg.meanu))
+    #print('log(meand1-meand2) - meanlogd3 - log(meanv) = ',numpy.log(ggg.meand1-ggg.meand2) - ggg.meanlogd3 - numpy.log(numpy.abs(ggg.meanv)))
     numpy.testing.assert_almost_equal(ggg.meanlogd1, numpy.log(ggg.meand1), decimal=3)
     numpy.testing.assert_almost_equal(ggg.meanlogd2, numpy.log(ggg.meand2), decimal=3)
     numpy.testing.assert_almost_equal(ggg.meanlogd3, numpy.log(ggg.meand3), decimal=3)
@@ -97,12 +97,12 @@ def test_ggg():
     d1 = ggg.meand1
     d2 = ggg.meand2
     d3 = ggg.meand3
-    #print 'rnom = ',numpy.exp(ggg.logr)
-    #print 'unom = ',ggg.u
-    #print 'vnom = ',ggg.v
-    #print 'd1 = ',d1
-    #print 'd2 = ',d2
-    #print 'd3 = ',d3
+    #print('rnom = ',numpy.exp(ggg.logr))
+    #print('unom = ',ggg.u)
+    #print('vnom = ',ggg.v)
+    #print('d1 = ',d1)
+    #print('d2 = ',d2)
+    #print('d3 = ',d3)
 
     # For q1,q2,q3, we can choose an orientation where c1 is at the origin, and d2 is horizontal.
     # Then let s be the "complex vector" from c1 to c3, which is just real.
@@ -125,9 +125,9 @@ def test_ggg():
     nq1 = numpy.abs(q1)**2
     nq2 = numpy.abs(q2)**2
     nq3 = numpy.abs(q3)**2
-    #print 'q1 = ',q1
-    #print 'q2 = ',q2
-    #print 'q3 = ',q3
+    #print('q1 = ',q1)
+    #print('q2 = ',q2)
+    #print('q3 = ',q3)
 
     # The L^2 term in the denominator of true_zeta is the area over which the integral is done.
     # Since the centers of the triangles don't go to the edge of the box, we approximate the
@@ -161,12 +161,12 @@ def test_ggg():
                      + (8./9. * r0**4 * (nq1 * nq2 * q3**2)/(q1**2 * q2**2 * nq3) *
                          (2.*q3**2 - q1**2 - q2**2)) ))
 
-    #print 'ntri = ',ggg.ntri
-    print 'gam0 = ',ggg.gam0
-    print 'true_gam0 = ',true_gam0
-    #print 'ratio = ',ggg.gam0 / true_gam0
-    #print 'diff = ',ggg.gam0 - true_gam0
-    print 'max rel diff = ',numpy.max(numpy.abs((ggg.gam0 - true_gam0)/true_gam0))
+    #print('ntri = ',ggg.ntri)
+    print('gam0 = ',ggg.gam0)
+    print('true_gam0 = ',true_gam0)
+    #print('ratio = ',ggg.gam0 / true_gam0)
+    #print('diff = ',ggg.gam0 - true_gam0)
+    print('max rel diff = ',numpy.max(numpy.abs((ggg.gam0 - true_gam0)/true_gam0)))
     # The Gamma0 term is a bit worse than the others.  The accurracy improves as I increase the
     # number of objects, so I think it's just because of the smallish number of galaxies being
     # not super accurate.
@@ -174,29 +174,29 @@ def test_ggg():
     numpy.testing.assert_almost_equal(numpy.log(numpy.abs(ggg.gam0))/2./req_factor, 
                                       numpy.log(numpy.abs(true_gam0))/2./req_factor, decimal=1)
 
-    print 'gam1 = ',ggg.gam1
-    print 'true_gam1 = ',true_gam1
-    #print 'ratio = ',ggg.gam1 / true_gam1
-    #print 'diff = ',ggg.gam1 - true_gam1
-    print 'max rel diff = ',numpy.max(numpy.abs((ggg.gam1 - true_gam1)/true_gam1))
+    print('gam1 = ',ggg.gam1)
+    print('true_gam1 = ',true_gam1)
+    #print('ratio = ',ggg.gam1 / true_gam1)
+    #print('diff = ',ggg.gam1 - true_gam1)
+    print('max rel diff = ',numpy.max(numpy.abs((ggg.gam1 - true_gam1)/true_gam1)))
     assert numpy.max(numpy.abs((ggg.gam1 - true_gam1)/true_gam1))/req_factor < 0.1
     numpy.testing.assert_almost_equal(numpy.log(numpy.abs(ggg.gam1))/req_factor, 
                                       numpy.log(numpy.abs(true_gam1))/req_factor, decimal=1)
 
-    #print 'gam2 = ',ggg.gam2
-    #print 'true_gam2 = ',true_gam2
-    #print 'ratio = ',ggg.gam2 / true_gam2
-    #print 'diff = ',ggg.gam2 - true_gam2
-    #print 'max rel diff = ',numpy.max(numpy.abs((ggg.gam2 - true_gam2)/true_gam2))
+    #print('gam2 = ',ggg.gam2)
+    #print('true_gam2 = ',true_gam2)
+    #print('ratio = ',ggg.gam2 / true_gam2)
+    #print('diff = ',ggg.gam2 - true_gam2)
+    #print('max rel diff = ',numpy.max(numpy.abs((ggg.gam2 - true_gam2)/true_gam2)))
     assert numpy.max(numpy.abs((ggg.gam2 - true_gam2)/true_gam2))/req_factor < 0.1
     numpy.testing.assert_almost_equal(numpy.log(numpy.abs(ggg.gam2))/req_factor, 
                                       numpy.log(numpy.abs(true_gam2))/req_factor, decimal=1)
 
-    #print 'gam3 = ',ggg.gam3
-    #print 'true_gam3 = ',true_gam3
-    #print 'ratio = ',ggg.gam3 / true_gam3
-    #print 'diff = ',ggg.gam3 - true_gam3
-    #print 'max rel diff = ',numpy.max(numpy.abs((ggg.gam3 - true_gam3)/true_gam3))
+    #print('gam3 = ',ggg.gam3)
+    #print('true_gam3 = ',true_gam3)
+    #print('ratio = ',ggg.gam3 / true_gam3)
+    #print('diff = ',ggg.gam3 - true_gam3)
+    #print('max rel diff = ',numpy.max(numpy.abs((ggg.gam3 - true_gam3)/true_gam3)))
     assert numpy.max(numpy.abs((ggg.gam3 - true_gam3)/true_gam3))/req_factor < 0.1
     numpy.testing.assert_almost_equal(numpy.log(numpy.abs(ggg.gam3))/req_factor, 
                                       numpy.log(numpy.abs(true_gam3))/req_factor, decimal=1)
@@ -208,45 +208,45 @@ def test_ggg():
         p = subprocess.Popen( ["corr3","ggg.params"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','ggg.out'), names=True)
-        #print 'gam0r = ',ggg.gam0.real
-        #print 'from corr3 output = ',corr3_output['gam0r']
-        #print 'ratio = ',corr3_output['gam0r']/ggg.gam0r.flatten()
-        #print 'diff = ',corr3_output['gam0r']-ggg.gam0r.flatten()
+        #print('gam0r = ',ggg.gam0.real)
+        #print('from corr3 output = ',corr3_output['gam0r'])
+        #print('ratio = ',corr3_output['gam0r']/ggg.gam0r.flatten())
+        #print('diff = ',corr3_output['gam0r']-ggg.gam0r.flatten())
         numpy.testing.assert_almost_equal(corr3_output['gam0r']/ggg.gam0r.flatten(), 1., decimal=3)
-        #print 'gam0i = ',ggg.gam0.imag
-        #print 'from corr3 output = ',corr3_output['gam0i']
-        #print 'ratio = ',corr3_output['gam0i']/ggg.gam0i.flatten()
-        #print 'diff = ',corr3_output['gam0i']-ggg.gam0i.flatten()
+        #print('gam0i = ',ggg.gam0.imag)
+        #print('from corr3 output = ',corr3_output['gam0i'])
+        #print('ratio = ',corr3_output['gam0i']/ggg.gam0i.flatten())
+        #print('diff = ',corr3_output['gam0i']-ggg.gam0i.flatten())
         numpy.testing.assert_almost_equal(corr3_output['gam0i']/ggg.gam0i.flatten(), 1., decimal=3)
-        #print 'gam1r = ',ggg.gam1.real
-        #print 'from corr3 output = ',corr3_output['gam1r']
-        #print 'ratio = ',corr3_output['gam1r']/ggg.gam1r.flatten()
-        #print 'diff = ',corr3_output['gam1r']-ggg.gam1r.flatten()
+        #print('gam1r = ',ggg.gam1.real)
+        #print('from corr3 output = ',corr3_output['gam1r'])
+        #print('ratio = ',corr3_output['gam1r']/ggg.gam1r.flatten())
+        #print('diff = ',corr3_output['gam1r']-ggg.gam1r.flatten())
         numpy.testing.assert_almost_equal(corr3_output['gam1r']/ggg.gam1r.flatten(), 1., decimal=3)
-        #print 'gam1i = ',ggg.gam1.imag
-        #print 'from corr3 output = ',corr3_output['gam1i']
-        #print 'ratio = ',corr3_output['gam1i']/ggg.gam1i.flatten()
-        #print 'diff = ',corr3_output['gam1i']-ggg.gam1i.flatten()
+        #print('gam1i = ',ggg.gam1.imag)
+        #print('from corr3 output = ',corr3_output['gam1i'])
+        #print('ratio = ',corr3_output['gam1i']/ggg.gam1i.flatten())
+        #print('diff = ',corr3_output['gam1i']-ggg.gam1i.flatten())
         numpy.testing.assert_almost_equal(corr3_output['gam1i']/ggg.gam1i.flatten(), 1., decimal=3)
-        #print 'gam2r = ',ggg.gam2.real
-        #print 'from corr3 output = ',corr3_output['gam2r']
-        #print 'ratio = ',corr3_output['gam2r']/ggg.gam2r.flatten()
-        #print 'diff = ',corr3_output['gam2r']-ggg.gam2r.flatten()
+        #print('gam2r = ',ggg.gam2.real)
+        #print('from corr3 output = ',corr3_output['gam2r'])
+        #print('ratio = ',corr3_output['gam2r']/ggg.gam2r.flatten())
+        #print('diff = ',corr3_output['gam2r']-ggg.gam2r.flatten())
         numpy.testing.assert_almost_equal(corr3_output['gam2r']/ggg.gam2r.flatten(), 1., decimal=3)
-        #print 'gam2i = ',ggg.gam2.imag
-        #print 'from corr3 output = ',corr3_output['gam2i']
-        #print 'ratio = ',corr3_output['gam2i']/ggg.gam2i.flatten()
-        #print 'diff = ',corr3_output['gam2i']-ggg.gam2i.flatten()
+        #print('gam2i = ',ggg.gam2.imag)
+        #print('from corr3 output = ',corr3_output['gam2i'])
+        #print('ratio = ',corr3_output['gam2i']/ggg.gam2i.flatten())
+        #print('diff = ',corr3_output['gam2i']-ggg.gam2i.flatten())
         numpy.testing.assert_almost_equal(corr3_output['gam2i']/ggg.gam2i.flatten(), 1., decimal=3)
-        #print 'gam3r = ',ggg.gam3.real
-        #print 'from corr3 output = ',corr3_output['gam3r']
-        #print 'ratio = ',corr3_output['gam3r']/ggg.gam3r.flatten()
-        #print 'diff = ',corr3_output['gam3r']-ggg.gam3r.flatten()
+        #print('gam3r = ',ggg.gam3.real)
+        #print('from corr3 output = ',corr3_output['gam3r'])
+        #print('ratio = ',corr3_output['gam3r']/ggg.gam3r.flatten())
+        #print('diff = ',corr3_output['gam3r']-ggg.gam3r.flatten())
         numpy.testing.assert_almost_equal(corr3_output['gam3r']/ggg.gam3r.flatten(), 1., decimal=3)
-        #print 'gam3i = ',ggg.gam3.imag
-        #print 'from corr3 output = ',corr3_output['gam3i']
-        #print 'ratio = ',corr3_output['gam3i']/ggg.gam3i.flatten()
-        #print 'diff = ',corr3_output['gam3i']-ggg.gam3i.flatten()
+        #print('gam3i = ',ggg.gam3.imag)
+        #print('from corr3 output = ',corr3_output['gam3i'])
+        #print('ratio = ',corr3_output['gam3i']/ggg.gam3i.flatten())
+        #print('diff = ',corr3_output['gam3i']-ggg.gam3i.flatten())
         numpy.testing.assert_almost_equal(corr3_output['gam3i']/ggg.gam3i.flatten(), 1., decimal=3)
 
     # Check the fits write option

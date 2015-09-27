@@ -15,7 +15,9 @@
 .. module:: config
 """
 
+from __future__ import print_function
 import treecorr
+
 
 def parse_variable(config, v):
     """Parse a configuration variable from a string that should look like 'key = value'
@@ -224,22 +226,22 @@ def print_params(params):
     for key in params:
         value_type, may_be_list, default_value, valid_values = params[key][:4]
         description = params[key][4:]
-        print ("{0:<"+str(max_len)+"} {1}").format(key,description[0])
+        print(("{0:<"+str(max_len)+"} {1}").format(key,description[0]))
         for d in description[1:]:
-            print "                {0}".format(d)
+            print("                {0}".format(d))
 
         # str(value_type) looks like "<type 'float'>"
         # value_type.__name__ looks like 'float'
         if may_be_list:
-            print "                Type must be {0} or a list of {0}.".format(value_type.__name__)
+            print("                Type must be {0} or a list of {0}.".format(value_type.__name__))
         else:
-            print "                Type must be {0}.".format(value_type.__name__)
+            print("                Type must be {0}.".format(value_type.__name__))
 
         if valid_values is not None:
-            print "                Valid values are {0!s}".format(valid_values)
+            print("                Valid values are {0!s}".format(valid_values))
         if default_value is not None:
-            print "                Default value is {0!s}".format(default_value)
-        print
+            print("                Default value is {0!s}".format(default_value))
+        print()
 
 
 def convert(value, value_type, key):

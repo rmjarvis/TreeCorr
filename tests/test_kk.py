@@ -11,7 +11,7 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
-
+from __future__ import print_function
 import numpy
 import treecorr
 import os
@@ -30,14 +30,14 @@ def test_constant():
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     kk = treecorr.KKCorrelation(bin_size=0.1, min_sep=0.1, max_sep=10., sep_units='arcmin')
     kk.process(cat)
-    print 'kk.xi = ',kk.xi
+    print('kk.xi = ',kk.xi)
     numpy.testing.assert_almost_equal(kk.xi, A**2, decimal=10)
 
     # Now add some noise to the values. It should still work, but at slightly lower accuracy.
     kappa += 0.001 * (numpy.random.random_sample(ngal)-0.5)
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     kk.process(cat)
-    print 'kk.xi = ',kk.xi
+    print('kk.xi = ',kk.xi)
     numpy.testing.assert_almost_equal(kk.xi, A**2, decimal=6)
 
 
@@ -70,16 +70,16 @@ def test_kk():
     kk.process(cat)
 
     # log(<R>) != <logR>, but it should be close:
-    print 'meanlogr - log(meanr) = ',kk.meanlogr - numpy.log(kk.meanr)
+    print('meanlogr - log(meanr) = ',kk.meanlogr - numpy.log(kk.meanr))
     numpy.testing.assert_almost_equal(kk.meanlogr, numpy.log(kk.meanr), decimal=3)
 
     r = kk.meanr
     true_xi = numpy.pi * A**2 * (s/L)**2 * numpy.exp(-0.25*r**2/s**2)
-    print 'kk.xi = ',kk.xi
-    print 'true_xi = ',true_xi
-    print 'ratio = ',kk.xi / true_xi
-    print 'diff = ',kk.xi - true_xi
-    print 'max diff = ',max(abs(kk.xi - true_xi))
+    print('kk.xi = ',kk.xi)
+    print('true_xi = ',true_xi)
+    print('ratio = ',kk.xi / true_xi)
+    print('diff = ',kk.xi - true_xi)
+    print('max diff = ',max(abs(kk.xi - true_xi)))
     assert max(abs(kk.xi - true_xi)) < 5.e-7
 
     # Check that we get the same result using the corr2 executable:
@@ -89,10 +89,10 @@ def test_kk():
         p = subprocess.Popen( ["corr2","kk.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','kk.out'), names=True)
-        print 'kk.xi = ',kk.xi
-        print 'from corr2 output = ',corr2_output['xi']
-        print 'ratio = ',corr2_output['xi']/kk.xi
-        print 'diff = ',corr2_output['xi']-kk.xi
+        print('kk.xi = ',kk.xi)
+        print('from corr2 output = ',corr2_output['xi'])
+        print('ratio = ',corr2_output['xi']/kk.xi)
+        print('diff = ',corr2_output['xi']-kk.xi)
         numpy.testing.assert_almost_equal(corr2_output['xi']/kk.xi, 1., decimal=3)
 
     # Check the fits write option

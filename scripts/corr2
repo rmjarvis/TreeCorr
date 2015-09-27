@@ -12,7 +12,7 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
-
+from __future__ import print_function
 import sys
 import treecorr
 
@@ -57,12 +57,12 @@ def parse_args():
 
     if args.config_file == None:
         if args.version:
-            print version_str
+            print(version_str)
         else:
             parser.print_help()
         sys.exit()
     elif args.version:
-        print version_str
+        print(version_str)
 
     return args
 

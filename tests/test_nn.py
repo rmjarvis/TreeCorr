@@ -11,7 +11,7 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
-
+from __future__ import print_function
 import numpy
 import treecorr
 import os
@@ -23,19 +23,19 @@ def test_binnedcorr2():
     # Check the different ways to set up the binning:
     # Omit bin_size
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20)
-    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
     assert nn.min_sep == 5.
     assert nn.max_sep == 20.
     assert nn.nbins == 20
     numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, math.log(nn.max_sep/nn.min_sep))
-    print 'logr = ',nn.logr
+    print('logr = ',nn.logr)
     numpy.testing.assert_almost_equal(nn.logr[0], math.log(nn.min_sep) + 0.5*nn.bin_size)
     numpy.testing.assert_almost_equal(nn.logr[-1], math.log(nn.max_sep) - 0.5*nn.bin_size)
     assert len(nn.logr) == nn.nbins
 
     # Omit min_sep
     nn = treecorr.NNCorrelation(max_sep=20, nbins=20, bin_size=0.1)
-    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
     assert nn.bin_size == 0.1
     assert nn.max_sep == 20.
     assert nn.nbins == 20
@@ -46,7 +46,7 @@ def test_binnedcorr2():
 
     # Omit max_sep
     nn = treecorr.NNCorrelation(min_sep=5, nbins=20, bin_size=0.1)
-    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
     assert nn.bin_size == 0.1
     assert nn.min_sep == 5.
     assert nn.nbins == 20
@@ -57,7 +57,7 @@ def test_binnedcorr2():
 
     # Omit nbins
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1)
-    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
     assert nn.bin_size == 0.1
     assert nn.min_sep == 5.
     assert nn.max_sep >= 20.
@@ -70,7 +70,7 @@ def test_binnedcorr2():
     # Check the use of sep_units
     # radians
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='radians')
-    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
     assert nn.min_sep == 5.
     assert nn.max_sep == 20.
     assert nn.nbins == 20
@@ -81,7 +81,7 @@ def test_binnedcorr2():
 
     # arcsec
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcsec')
-    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
     numpy.testing.assert_almost_equal(nn.min_sep, 5. * math.pi/180/3600)
     numpy.testing.assert_almost_equal(nn.max_sep, 20. * math.pi/180/3600)
     assert nn.nbins == 20
@@ -93,7 +93,7 @@ def test_binnedcorr2():
 
     # arcmin
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcmin')
-    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
     numpy.testing.assert_almost_equal(nn.min_sep, 5. * math.pi/180/60)
     numpy.testing.assert_almost_equal(nn.max_sep, 20. * math.pi/180/60)
     assert nn.nbins == 20
@@ -104,7 +104,7 @@ def test_binnedcorr2():
 
     # degrees
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='degrees')
-    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
     numpy.testing.assert_almost_equal(nn.min_sep, 5. * math.pi/180)
     numpy.testing.assert_almost_equal(nn.max_sep, 20. * math.pi/180)
     assert nn.nbins == 20
@@ -115,7 +115,7 @@ def test_binnedcorr2():
 
     # hours
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='hours')
-    print nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
     numpy.testing.assert_almost_equal(nn.min_sep, 5. * math.pi/12)
     numpy.testing.assert_almost_equal(nn.max_sep, 20. * math.pi/12)
     assert nn.nbins == 20
@@ -126,67 +126,67 @@ def test_binnedcorr2():
 
     # Check bin_slop
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1)
-    print nn.bin_size,nn.bin_slop,nn.b
+    print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.1
     assert nn.bin_slop == 1.0
     numpy.testing.assert_almost_equal(nn.b, 0.1)
 
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=1.0)
-    print nn.bin_size,nn.bin_slop,nn.b
+    print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.1
     assert nn.bin_slop == 1.0
     numpy.testing.assert_almost_equal(nn.b, 0.1)
 
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=0.2)
-    print nn.bin_size,nn.bin_slop,nn.b
+    print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.1
     assert nn.bin_slop == 0.2
     numpy.testing.assert_almost_equal(nn.b, 0.02)
 
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=0.0)
-    print nn.bin_size,nn.bin_slop,nn.b
+    print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.1
     assert nn.bin_slop == 0.0
     assert nn.b == 0.0
 
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=2.0)
-    print nn.bin_size,nn.bin_slop,nn.b
+    print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.1
     assert nn.bin_slop == 2.0
     numpy.testing.assert_almost_equal(nn.b, 0.2)
 
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.4, bin_slop=1.0)
-    print nn.bin_size,nn.bin_slop,nn.b
+    print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.4
     assert nn.bin_slop == 1.0
     numpy.testing.assert_almost_equal(nn.b, 0.4)
 
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.4)
-    print nn.bin_size,nn.bin_slop,nn.b
+    print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.4
     numpy.testing.assert_almost_equal(nn.b, 0.1)
     numpy.testing.assert_almost_equal(nn.bin_slop, 0.25)
 
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.4, bin_slop=0.1)
-    print nn.bin_size,nn.bin_slop,nn.b
+    print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.4
     assert nn.bin_slop == 0.1
     numpy.testing.assert_almost_equal(nn.b, 0.04)
 
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.05, bin_slop=1.0)
-    print nn.bin_size,nn.bin_slop,nn.b
+    print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.05
     assert nn.bin_slop == 1.0
     numpy.testing.assert_almost_equal(nn.b, 0.05)
 
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.05)
-    print nn.bin_size,nn.bin_slop,nn.b
+    print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.05
     assert nn.bin_slop == 1.0
     numpy.testing.assert_almost_equal(nn.b, 0.05)
 
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.05, bin_slop=3)
-    print nn.bin_size,nn.bin_slop,nn.b
+    print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.05
     assert nn.bin_slop == 3.0
     numpy.testing.assert_almost_equal(nn.b, 0.15)
@@ -212,7 +212,7 @@ def test_direct_count():
     nbins = 50
     dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
     dd.process(cat1, cat2)
-    print 'dd.npairs = ',dd.npairs
+    print('dd.npairs = ',dd.npairs)
 
     log_min_sep = numpy.log(min_sep)
     log_max_sep = numpy.log(max_sep)
@@ -227,8 +227,8 @@ def test_direct_count():
             if k >= nbins: continue
             true_npairs[k] += 1
 
-    print 'true_npairs = ',true_npairs
-    print 'diff = ',dd.npairs - true_npairs
+    print('true_npairs = ',true_npairs)
+    print('diff = ',dd.npairs - true_npairs)
     numpy.testing.assert_array_equal(dd.npairs, true_npairs)
 
 def test_direct_3d():
@@ -258,7 +258,7 @@ def test_direct_3d():
     nbins = 50
     dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
     dd.process(cat1, cat2)
-    print 'dd.npairs = ',dd.npairs
+    print('dd.npairs = ',dd.npairs)
 
     log_min_sep = numpy.log(min_sep)
     log_max_sep = numpy.log(max_sep)
@@ -273,8 +273,8 @@ def test_direct_3d():
             if k >= nbins: continue
             true_npairs[k] += 1
 
-    print 'true_npairs = ',true_npairs
-    print 'diff = ',dd.npairs - true_npairs
+    print('true_npairs = ',true_npairs)
+    print('diff = ',dd.npairs - true_npairs)
     numpy.testing.assert_array_equal(dd.npairs, true_npairs)
 
     # Can also specify coords directly as x,y,z
@@ -311,7 +311,7 @@ def test_direct_perp():
     nbins = 50
     dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
     dd.process(cat1, cat2, metric='Rperp')
-    print 'dd.npairs = ',dd.npairs
+    print('dd.npairs = ',dd.npairs)
 
     log_min_sep = numpy.log(min_sep)
     log_max_sep = numpy.log(max_sep)
@@ -327,8 +327,8 @@ def test_direct_perp():
             if k >= nbins: continue
             true_npairs[k] += 1
 
-    print 'true_npairs = ',true_npairs
-    print 'diff = ',dd.npairs - true_npairs
+    print('true_npairs = ',true_npairs)
+    print('diff = ',dd.npairs - true_npairs)
     numpy.testing.assert_array_equal(dd.npairs, true_npairs)
 
     # Can also specify coords directly as x,y,z
@@ -372,10 +372,10 @@ def test_nn():
     dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     dd.process(cat)
-    print 'dd.npairs = ',dd.npairs
+    print('dd.npairs = ',dd.npairs)
 
     # log(<R>) != <logR>, but it should be close:
-    print 'meanlogr - log(meanr) = ',dd.meanlogr - numpy.log(dd.meanr)
+    print('meanlogr - log(meanr) = ',dd.meanlogr - numpy.log(dd.meanr))
     numpy.testing.assert_almost_equal(dd.meanlogr, numpy.log(dd.meanr), decimal=3)
 
     rx = (numpy.random.random_sample(nrand)-0.5) * L
@@ -384,22 +384,22 @@ def test_nn():
     rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     rr.process(rand)
-    print 'rr.npairs = ',rr.npairs
+    print('rr.npairs = ',rr.npairs)
 
     dr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 verbose=2)
     dr.process(cat,rand)
-    print 'dr.npairs = ',dr.npairs
+    print('dr.npairs = ',dr.npairs)
 
     r = dd.meanr
     true_xi = 0.25/numpy.pi * (L/s)**2 * numpy.exp(-0.25*r**2/s**2) - 1.
 
     xi, varxi = dd.calculateXi(rr,dr)
-    print 'xi = ',xi
-    print 'true_xi = ',true_xi
-    print 'ratio = ',xi / true_xi
-    print 'diff = ',xi - true_xi
-    print 'max rel diff = ',max(abs((xi - true_xi)/true_xi))
+    print('xi = ',xi)
+    print('true_xi = ',true_xi)
+    print('ratio = ',xi / true_xi)
+    print('diff = ',xi - true_xi)
+    print('max rel diff = ',max(abs((xi - true_xi)/true_xi)))
     # This isn't super accurate.  But the agreement improves as L increase, so I think it is 
     # merely a matter of the finite field and the integrals going to infinity.  (Sort of, since
     # we still have L in there.)
@@ -408,8 +408,8 @@ def test_nn():
                                       numpy.log(numpy.abs(true_xi))/req_factor, decimal=1)
 
     simple_xi, simple_varxi = dd.calculateXi(rr)
-    print 'simple xi = ',simple_xi
-    print 'max rel diff = ',max(abs((simple_xi - true_xi)/true_xi))
+    print('simple xi = ',simple_xi)
+    print('max rel diff = ',max(abs((simple_xi - true_xi)/true_xi)))
     # The simple calculation (i.e. dd/rr-1, rather than (dd-2dr+rr)/rr as above) is only 
     # slightly less accurate in this case.  Probably because the mask is simple (a box), so
     # the difference is relatively minor.  The error is slightly higher in this case, but testing
@@ -424,10 +424,10 @@ def test_nn():
         p = subprocess.Popen( ["corr2","nn.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','nn.out'),names=True)
-        print 'xi = ',xi
-        print 'from corr2 output = ',corr2_output['xi']
-        print 'ratio = ',corr2_output['xi']/xi
-        print 'diff = ',corr2_output['xi']-xi
+        print('xi = ',xi)
+        print('from corr2 output = ',corr2_output['xi'])
+        print('ratio = ',corr2_output['xi']/xi)
+        print('diff = ',corr2_output['xi']-xi)
         numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=3)
 
     # Check the fits write option
@@ -479,7 +479,6 @@ def test_nn():
     numpy.testing.assert_almost_equal(dd2.npairs, dd.npairs)
 
 
-
 def test_3d():
     # For this one, build a Gaussian cloud around some random point in 3D space and do the 
     # correlation function in 3D.
@@ -521,7 +520,7 @@ def test_3d():
     cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='deg', dec_units='deg')
     dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
     dd.process(cat)
-    print 'dd.npairs = ',dd.npairs
+    print('dd.npairs = ',dd.npairs)
 
     rx = (numpy.random.random_sample(nrand)-0.5) * L + xcen
     ry = (numpy.random.random_sample(nrand)-0.5) * L + ycen
@@ -532,28 +531,28 @@ def test_3d():
     rand = treecorr.Catalog(ra=rra, dec=rdec, r=rr, ra_units='deg', dec_units='deg')
     rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
     rr.process(rand)
-    print 'rr.npairs = ',rr.npairs
+    print('rr.npairs = ',rr.npairs)
 
     dr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
     dr.process(cat,rand)
-    print 'dr.npairs = ',dr.npairs
+    print('dr.npairs = ',dr.npairs)
 
     r = dd.meanr
     true_xi = 1./(8.*numpy.pi**1.5) * (L/s)**3 * numpy.exp(-0.25*r**2/s**2) - 1.
 
     xi, varxi = dd.calculateXi(rr,dr)
-    print 'xi = ',xi
-    print 'true_xi = ',true_xi
-    print 'ratio = ',xi / true_xi
-    print 'diff = ',xi - true_xi
-    print 'max rel diff = ',max(abs((xi - true_xi)/true_xi))
+    print('xi = ',xi)
+    print('true_xi = ',true_xi)
+    print('ratio = ',xi / true_xi)
+    print('diff = ',xi - true_xi)
+    print('max rel diff = ',max(abs((xi - true_xi)/true_xi)))
     assert max(abs(xi - true_xi)/true_xi)/req_factor < 0.1
     numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi))/req_factor, 
                                       numpy.log(numpy.abs(true_xi))/req_factor, decimal=1)
 
     simple_xi, varxi = dd.calculateXi(rr)
-    print 'simple xi = ',simple_xi
-    print 'max rel diff = ',max(abs((simple_xi - true_xi)/true_xi))
+    print('simple xi = ',simple_xi)
+    print('max rel diff = ',max(abs((simple_xi - true_xi)/true_xi)))
     assert max(abs(simple_xi - true_xi)/true_xi)/req_factor < 0.1
     numpy.testing.assert_almost_equal(numpy.log(numpy.abs(simple_xi))/req_factor, 
                                       numpy.log(numpy.abs(true_xi))/req_factor, decimal=1)
@@ -566,10 +565,10 @@ def test_3d():
         p = subprocess.Popen( ["corr2","nn_3d.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','nn_3d.out'),names=True)
-        print 'xi = ',xi
-        print 'from corr2 output = ',corr2_output['xi']
-        print 'ratio = ',corr2_output['xi']/xi
-        print 'diff = ',corr2_output['xi']-xi
+        print('xi = ',xi)
+        print('from corr2 output = ',corr2_output['xi'])
+        print('ratio = ',corr2_output['xi']/xi)
+        print('diff = ',corr2_output['xi']-xi)
         numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=3)
 
     # And repeat with Catalogs that use x,y,z
@@ -607,14 +606,14 @@ def test_list():
 
     dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
     dd.process(data_cats)
-    print 'dd.npairs = ',dd.npairs
+    print('dd.npairs = ',dd.npairs)
 
     rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
     rr.process(rand_cats)
-    print 'rr.npairs = ',rr.npairs
+    print('rr.npairs = ',rr.npairs)
 
     xi, varxi = dd.calculateXi(rr)
-    print 'xi = ',xi
+    print('xi = ',xi)
 
     # Now do the same thing with one big catalog for each.
     ddx = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
@@ -625,11 +624,11 @@ def test_list():
     rrx.process(rand_catx)
     xix, varxix = ddx.calculateXi(rrx)
 
-    print 'ddx.npairs = ',ddx.npairs
-    print 'rrx.npairs = ',rrx.npairs
-    print 'xix = ',xix
-    print 'ratio = ',xi/xix
-    print 'diff = ',xi-xix
+    print('ddx.npairs = ',ddx.npairs)
+    print('rrx.npairs = ',rrx.npairs)
+    print('xix = ',xix)
+    print('ratio = ',xi/xix)
+    print('diff = ',xi-xix)
     numpy.testing.assert_almost_equal(xix/xi, 1., decimal=2)
 
     # Check that we get the same result using the corr2 executable:
@@ -673,30 +672,30 @@ def test_list():
     p = subprocess.Popen( ["corr2","nn_list1.params"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_list1.out'),names=True)
-    print 'xi = ',xi
-    print 'from corr2 output = ',corr2_output['xi']
-    print 'ratio = ',corr2_output['xi']/xi
-    print 'diff = ',corr2_output['xi']-xi
+    print('xi = ',xi)
+    print('from corr2 output = ',corr2_output['xi'])
+    print('ratio = ',corr2_output['xi']/xi)
+    print('diff = ',corr2_output['xi']-xi)
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=3)
 
     import subprocess
     p = subprocess.Popen( ["corr2","nn_list2.params"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_list2.out'),names=True)
-    print 'xi = ',xi
-    print 'from corr2 output = ',corr2_output['xi']
-    print 'ratio = ',corr2_output['xi']/xi
-    print 'diff = ',corr2_output['xi']-xi
+    print('xi = ',xi)
+    print('from corr2 output = ',corr2_output['xi'])
+    print('ratio = ',corr2_output['xi']/xi)
+    print('diff = ',corr2_output['xi']-xi)
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
 
     import subprocess
     p = subprocess.Popen( ["corr2","nn_list3.params"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_list3.out'),names=True)
-    print 'xi = ',xi
-    print 'from corr2 output = ',corr2_output['xi']
-    print 'ratio = ',corr2_output['xi']/xi
-    print 'diff = ',corr2_output['xi']-xi
+    print('xi = ',xi)
+    print('from corr2 output = ',corr2_output['xi'])
+    print('ratio = ',corr2_output['xi']/xi)
+    print('diff = ',corr2_output['xi']-xi)
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
 
 def test_perp_minmax():
@@ -735,8 +734,8 @@ def test_perp_minmax():
     dd2 = treecorr.NNCorrelation(config, min_sep=lower_min_sep, nbins=more_nbins)
     dd2.process(dcat, metric='Rperp')
 
-    print 'dd1 npairs = ',dd1.npairs
-    print 'dd2 npairs = ',dd2.npairs[2:-2]
+    print('dd1 npairs = ',dd1.npairs)
+    print('dd2 npairs = ',dd2.npairs[2:-2])
     # First a basic sanity check.  The values not near the edge should be identical.
     numpy.testing.assert_equal(dd1.npairs[2:-2], dd2.npairs[4:-4])
     # The edge bins may differ slightly from the binning approximations (bin_slop and such),
@@ -752,22 +751,22 @@ def test_perp_minmax():
         rr1.process(rcat, metric='Rperp')
         rr2 = treecorr.NNCorrelation(config, min_sep=lower_min_sep, nbins=more_nbins)
         rr2.process(rcat, metric='Rperp')
-        print 'rr1 npairs = ',rr1.npairs
-        print 'rr2 npairs = ',rr2.npairs[2:-2]
+        print('rr1 npairs = ',rr1.npairs)
+        print('rr2 npairs = ',rr2.npairs[2:-2])
         numpy.testing.assert_almost_equal( rr1.npairs / rr2.npairs[2:-2], 1., decimal=4)
 
         dr1 = treecorr.NNCorrelation(config)
         dr1.process(dcat, rcat, metric='Rperp')
         dr2 = treecorr.NNCorrelation(config, min_sep=lower_min_sep, nbins=more_nbins)
         dr2.process(dcat, rcat, metric='Rperp')
-        print 'dr1 npairs = ',dr1.npairs
-        print 'dr2 npairs = ',dr2.npairs[2:-2]
+        print('dr1 npairs = ',dr1.npairs)
+        print('dr2 npairs = ',dr2.npairs[2:-2])
         numpy.testing.assert_almost_equal( dr1.npairs / dr2.npairs[2:-2], 1., decimal=4)
 
         xi1, varxi1 = dd1.calculateXi(rr1, dr1)
         xi2, varxi2 = dd2.calculateXi(rr2, dr2)
-        print 'xi1 = ',xi1
-        print 'xi2 = ',xi2[2:-2]
+        print('xi1 = ',xi1)
+        print('xi2 = ',xi2[2:-2])
         numpy.testing.assert_almost_equal( xi1 / xi2[2:-2], 1., decimal=2)
 
 

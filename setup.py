@@ -1,23 +1,25 @@
+from __future__ import print_function
 import sys
 import os
 import glob
+
 try:
     from setuptools import setup, Extension
     from setuptools.command.build_ext import build_ext
     import setuptools
-    print "Using setuptools version",setuptools.__version__
+    print("Using setuptools version",setuptools.__version__)
 except ImportError:
-    print 'Unable to import setuptools.  Using distutils instead.'
+    print('Unable to import setuptools.  Using distutils instead.')
     from distutils.core import setup, Extension
     from distutils.command.build_ext import build_ext
     import distutils
-    print "Using distutils version",distutils.__version__
+    print("Using distutils version",distutils.__version__)
 try:
     from sysconfig import get_config_vars
 except:
     from distutils.sysconfig import get_config_vars
 
-print 'Python version = ',sys.version
+print('Python version = ',sys.version)
 py_version = "%d.%d"%sys.version_info[0:2]  # we check things based on the major.minor version.
 
 scripts = ['corr2', 'corr3']
@@ -58,16 +60,25 @@ def get_compiler(cc):
     import subprocess
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines = p.stdout.readlines()
-    print 'compiler version: '
+    print('compiler version: ')
     for line in lines:
-        print line.strip()
-    if 'clang' in lines[0]:
+        print(line.strip())
+    try:
+        # Python3 needs this decode bit.
+        # Python2.7 doesn't need it, but it works fine.
+        line0 = lines[0].decode(encoding='UTF-8')
+        line1 = lines[1].decode(encoding='UTF-8')
+    except TypeError:
+        # Python2.6 throws a TypeError, so just use the lines as they are.
+        line0 = lines[0]
+        line1 = lines[1]
+
+    if "clang" in line0:
         # Supposedly, clang will support openmp in version 3.5.  Let's go with that for now...
         # If the version is reports >= 3.5, let's call it gcc, rather than clang to get
         # the -fopenmp flag.
-        line = lines[1]
         import re
-        match = re.search(r'[0-9]+(\.[0-9]+)+', line)
+        match = re.search(r'[0-9]+(\.[0-9]+)+', line1)
         if match:
             version = match.group(0)
             # Get the version up to the first decimal
@@ -76,9 +87,9 @@ def get_compiler(cc):
             if vnum >= '3.5':
                 return 'gcc'
         return 'clang'
-    elif 'gcc' in lines[0]:
+    elif 'gcc' in line0:
         return 'gcc'
-    elif 'GCC' in lines[0]:
+    elif 'GCC' in line0:
         return 'gcc'
     elif 'clang' in cc:
         return 'clang'
@@ -200,9 +211,9 @@ class my_builder( build_ext ):
         cc = self.compiler.executables['compiler_cxx'][0]
         comp_type = get_compiler(cc)
         if cc == comp_type:
-            print 'Using compiler %s'%(cc)
+            print('Using compiler %s'%(cc))
         else:
-            print 'Using compiler %s, which is %s'%(cc,comp_type)
+            print('Using compiler %s, which is %s'%(cc,comp_type))
         for e in self.extensions:
             e.extra_compile_args = copt[ comp_type ]
             e.extra_link_args = lopt[ comp_type ]
@@ -224,14 +235,14 @@ with open('README.rst') as file:
     long_description = file.read()
 
 setup(name="TreeCorr", 
-      version="3.1.0",
+      version="3.1.2",
       author="Mike Jarvis",
       author_email="michael@jarvis.net",
       description="Python module for computing 2-point correlation functions",
       long_description=long_description,
       license = "BSD License",
       url="https://github.com/rmjarvis/TreeCorr",
-      download_url="https://github.com/rmjarvis/TreeCorr/releases/tag/v3.1.0.zip",
+      download_url="https://github.com/rmjarvis/TreeCorr/releases/tag/v3.1.2.zip",
       packages=['treecorr'],
       ext_modules=[ext],
       install_requires=dependencies,

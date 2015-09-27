@@ -11,7 +11,7 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
-
+from __future__ import print_function
 import numpy
 import treecorr
 import os
@@ -57,7 +57,7 @@ def test_gg():
     gg.process(cat)
 
     # log(<R>) != <logR>, but it should be close:
-    print 'meanlogr - log(meanr) = ',gg.meanlogr - numpy.log(gg.meanr)
+    print('meanlogr - log(meanr) = ',gg.meanlogr - numpy.log(gg.meanr))
     numpy.testing.assert_almost_equal(gg.meanlogr, numpy.log(gg.meanr), decimal=3)
 
     r = gg.meanr
@@ -65,22 +65,22 @@ def test_gg():
     true_xip = temp * (r**4 - 16.*r**2*r0**2 + 32.*r0**4)/r0**4
     true_xim = temp * r**4/r0**4
 
-    print 'gg.xip = ',gg.xip
-    print 'true_xip = ',true_xip
-    print 'ratio = ',gg.xip / true_xip
-    print 'diff = ',gg.xip - true_xip
-    print 'max diff = ',max(abs(gg.xip - true_xip))
+    print('gg.xip = ',gg.xip)
+    print('true_xip = ',true_xip)
+    print('ratio = ',gg.xip / true_xip)
+    print('diff = ',gg.xip - true_xip)
+    print('max diff = ',max(abs(gg.xip - true_xip)))
     assert max(abs(gg.xip - true_xip))/req_factor < 3.e-7
-    print 'xip_im = ',gg.xip_im
+    print('xip_im = ',gg.xip_im)
     assert max(abs(gg.xip_im))/req_factor < 2.e-7
 
-    print 'gg.xim = ',gg.xim
-    print 'true_xim = ',true_xim
-    print 'ratio = ',gg.xim / true_xim
-    print 'diff = ',gg.xim - true_xim
-    print 'max diff = ',max(abs(gg.xim - true_xim))
+    print('gg.xim = ',gg.xim)
+    print('true_xim = ',true_xim)
+    print('ratio = ',gg.xim / true_xim)
+    print('diff = ',gg.xim - true_xim)
+    print('max diff = ',max(abs(gg.xim - true_xim)))
     assert max(abs(gg.xim - true_xim))/req_factor < 3.e-7
-    print 'xim_im = ',gg.xim_im
+    print('xim_im = ',gg.xim_im)
     assert max(abs(gg.xim_im))/req_factor < 1.e-7
 
     # Check MapSq calculation:
@@ -93,20 +93,20 @@ def test_gg():
     true_mapsq = 6.*numpy.pi * gamma0**2 * r0**8 * r**4 / (L**2 * (r**2+r0**2)**5)
 
     mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq('Crittenden')
-    print 'mapsq = ',mapsq
-    print 'true_mapsq = ',true_mapsq
-    print 'ratio = ',mapsq/true_mapsq
-    print 'diff = ',mapsq-true_mapsq
-    print 'max diff = ',max(abs(mapsq - true_mapsq))
-    print 'max diff[16:] = ',max(abs(mapsq[16:] - true_mapsq[16:]))
+    print('mapsq = ',mapsq)
+    print('true_mapsq = ',true_mapsq)
+    print('ratio = ',mapsq/true_mapsq)
+    print('diff = ',mapsq-true_mapsq)
+    print('max diff = ',max(abs(mapsq - true_mapsq)))
+    print('max diff[16:] = ',max(abs(mapsq[16:] - true_mapsq[16:])))
     # It's pretty ratty near the start where the integral is poorly evaluated, but the 
     # agreement is pretty good if we skip the first 16 elements.
     # Well, it gets bad again at the end, but those values are small enough that they still
     # pass this test.
     assert max(abs(mapsq[16:]-true_mapsq[16:]))/req_factor < 3.e-8
-    print 'mxsq = ',mxsq
-    print 'max = ',max(abs(mxsq))
-    print 'max[16:] = ',max(abs(mxsq[16:]))
+    print('mxsq = ',mxsq)
+    print('max = ',max(abs(mxsq)))
+    print('max[16:] = ',max(abs(mxsq[16:])))
     assert max(abs(mxsq[16:]))/req_factor < 3.e-8
 
     # Check that we get the same result using the corr2 executable:
@@ -116,36 +116,36 @@ def test_gg():
         p = subprocess.Popen( ["corr2","gg.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','gg.out'), names=True)
-        print 'gg.xip = ',gg.xip
-        print 'from corr2 output = ',corr2_output['xip']
-        print 'ratio = ',corr2_output['xip']/gg.xip
-        print 'diff = ',corr2_output['xip']-gg.xip
+        print('gg.xip = ',gg.xip)
+        print('from corr2 output = ',corr2_output['xip'])
+        print('ratio = ',corr2_output['xip']/gg.xip)
+        print('diff = ',corr2_output['xip']-gg.xip)
         numpy.testing.assert_almost_equal(corr2_output['xip']/gg.xip, 1., decimal=3)
 
-        print 'gg.xim = ',gg.xim
-        print 'from corr2 output = ',corr2_output['xim']
-        print 'ratio = ',corr2_output['xim']/gg.xim
-        print 'diff = ',corr2_output['xim']-gg.xim
+        print('gg.xim = ',gg.xim)
+        print('from corr2 output = ',corr2_output['xim'])
+        print('ratio = ',corr2_output['xim']/gg.xim)
+        print('diff = ',corr2_output['xim']-gg.xim)
         numpy.testing.assert_almost_equal(corr2_output['xim']/gg.xim, 1., decimal=3)
 
-        print 'xip_im from corr2 output = ',corr2_output['xip_im']
-        print 'max err = ',max(abs(corr2_output['xip_im']))
+        print('xip_im from corr2 output = ',corr2_output['xip_im'])
+        print('max err = ',max(abs(corr2_output['xip_im'])))
         assert max(abs(corr2_output['xip_im']))/req_factor < 2.e-7
-        print 'xim_im from corr2 output = ',corr2_output['xim_im']
-        print 'max err = ',max(abs(corr2_output['xim_im']))
+        print('xim_im from corr2 output = ',corr2_output['xim_im'])
+        print('max err = ',max(abs(corr2_output['xim_im'])))
         assert max(abs(corr2_output['xim_im']))/req_factor < 1.e-7
 
         corr2_output2 = numpy.genfromtxt(os.path.join('output','gg_m2.out'), names=True)
-        print 'mapsq = ',mapsq
-        print 'from corr2 output = ',corr2_output2['Mapsq']
-        print 'ratio = ',corr2_output2['Mapsq']/mapsq
-        print 'diff = ',corr2_output2['Mapsq']-mapsq
+        print('mapsq = ',mapsq)
+        print('from corr2 output = ',corr2_output2['Mapsq'])
+        print('ratio = ',corr2_output2['Mapsq']/mapsq)
+        print('diff = ',corr2_output2['Mapsq']-mapsq)
         numpy.testing.assert_almost_equal(corr2_output2['Mapsq']/mapsq, 1., decimal=3)
 
-        print 'mxsq = ',mxsq
-        print 'from corr2 output = ',corr2_output2['Mxsq']
-        print 'ratio = ',corr2_output2['Mxsq']/mxsq
-        print 'diff = ',corr2_output2['Mxsq']-mxsq
+        print('mxsq = ',mxsq)
+        print('from corr2 output = ',corr2_output2['Mxsq'])
+        print('ratio = ',corr2_output2['Mxsq']/mxsq)
+        print('diff = ',corr2_output2['Mxsq']-mxsq)
         numpy.testing.assert_almost_equal(corr2_output2['Mxsq']/mxsq, 1., decimal=3)
 
     # Check the fits write option
@@ -190,23 +190,23 @@ def test_gg():
         true_mapsq *= i0(x) * r**2 * (r**4 + 96.*r0**4) - 16.*i1(x) * r0**2 * (r**4 + 24.*r0**4)
 
         mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq('Schneider')
-        print 'Schneider mapsq = ',mapsq
-        print 'true_mapsq = ',true_mapsq
-        print 'ratio = ',mapsq/true_mapsq
-        print 'diff = ',mapsq-true_mapsq
-        print 'max diff = ',max(abs(mapsq - true_mapsq))
-        print 'max diff[20:] = ',max(abs(mapsq[20:] - true_mapsq[20:]))
+        print('Schneider mapsq = ',mapsq)
+        print('true_mapsq = ',true_mapsq)
+        print('ratio = ',mapsq/true_mapsq)
+        print('diff = ',mapsq-true_mapsq)
+        print('max diff = ',max(abs(mapsq - true_mapsq)))
+        print('max diff[20:] = ',max(abs(mapsq[20:] - true_mapsq[20:])))
         # This one stay ratty longer, so we need to skip the first 20 and also loosen the
         # test a bit.
         assert max(abs(mapsq[20:]-true_mapsq[20:])) < 7.e-8
-        print 'mxsq = ',mxsq
-        print 'max = ',max(abs(mxsq))
-        print 'max[20:] = ',max(abs(mxsq[20:]))
+        print('mxsq = ',mxsq)
+        print('max = ',max(abs(mxsq)))
+        print('max[20:] = ',max(abs(mxsq[20:])))
         assert max(abs(mxsq[20:])) < 7.e-8
 
     except ImportError:
         # Don't require scipy if the user doesn't have it.
-        print 'Skipping tests of Schneider aperture mass, since scipy.special not available.'
+        print('Skipping tests of Schneider aperture mass, since scipy.special not available.')
 
 
 def test_spherical():
@@ -297,23 +297,23 @@ def test_spherical():
                                     verbose=2)
         gg.process(cat)
 
-        print 'ra0, dec0 = ',ra0,dec0
-        print 'gg.xip = ',gg.xip
-        print 'true_xip = ',true_xip
-        print 'ratio = ',gg.xip / true_xip
-        print 'diff = ',gg.xip - true_xip
-        print 'max diff = ',max(abs(gg.xip - true_xip))
+        print('ra0, dec0 = ',ra0,dec0)
+        print('gg.xip = ',gg.xip)
+        print('true_xip = ',true_xip)
+        print('ratio = ',gg.xip / true_xip)
+        print('diff = ',gg.xip - true_xip)
+        print('max diff = ',max(abs(gg.xip - true_xip)))
         # The 3rd and 4th centers are somewhat less accurate.  Not sure why.
         # The math seems to be right, since the last one that gets all the way to the pole
         # works, so I'm not sure what is going on.  It's just a few bins that get a bit less
         # accurate.  Possibly worth investigating further at some point...
         assert max(abs(gg.xip - true_xip))/req_factor < 3.e-7
 
-        print 'gg.xim = ',gg.xim
-        print 'true_xim = ',true_xim
-        print 'ratio = ',gg.xim / true_xim
-        print 'diff = ',gg.xim - true_xim
-        print 'max diff = ',max(abs(gg.xim - true_xim))
+        print('gg.xim = ',gg.xim)
+        print('true_xim = ',true_xim)
+        print('ratio = ',gg.xim / true_xim)
+        print('diff = ',gg.xim - true_xim)
+        print('max diff = ',max(abs(gg.xim - true_xim)))
         assert max(abs(gg.xim - true_xim))/req_factor < 2.e-7
 
     # One more center that can be done very easily.  If the center is the north pole, then all
@@ -328,21 +328,21 @@ def test_spherical():
                            dec_units='rad')
     gg.process(cat)
 
-    print 'gg.xip = ',gg.xip
-    print 'gg.xip_im = ',gg.xip_im
-    print 'true_xip = ',true_xip
-    print 'ratio = ',gg.xip / true_xip
-    print 'diff = ',gg.xip - true_xip
-    print 'max diff = ',max(abs(gg.xip - true_xip))
+    print('gg.xip = ',gg.xip)
+    print('gg.xip_im = ',gg.xip_im)
+    print('true_xip = ',true_xip)
+    print('ratio = ',gg.xip / true_xip)
+    print('diff = ',gg.xip - true_xip)
+    print('max diff = ',max(abs(gg.xip - true_xip)))
     assert max(abs(gg.xip - true_xip))/req_factor < 3.e-7
     assert max(abs(gg.xip_im))/req_factor < 3.e-7
 
-    print 'gg.xim = ',gg.xim
-    print 'gg.xim_im = ',gg.xim_im
-    print 'true_xim = ',true_xim
-    print 'ratio = ',gg.xim / true_xim
-    print 'diff = ',gg.xim - true_xim
-    print 'max diff = ',max(abs(gg.xim - true_xim))
+    print('gg.xim = ',gg.xim)
+    print('gg.xim_im = ',gg.xim_im)
+    print('true_xim = ',true_xim)
+    print('ratio = ',gg.xim / true_xim)
+    print('diff = ',gg.xim - true_xim)
+    print('max diff = ',max(abs(gg.xim - true_xim)))
     assert max(abs(gg.xim - true_xim))/req_factor < 2.e-7
     assert max(abs(gg.xim_im))/req_factor < 2.e-7
 
@@ -353,24 +353,23 @@ def test_spherical():
         p = subprocess.Popen( ["corr2","gg_spherical.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','gg_spherical.out'), names=True)
-        print 'gg.xip = ',gg.xip
-        print 'from corr2 output = ',corr2_output['xip']
-        print 'ratio = ',corr2_output['xip']/gg.xip
-        print 'diff = ',corr2_output['xip']-gg.xip
+        print('gg.xip = ',gg.xip)
+        print('from corr2 output = ',corr2_output['xip'])
+        print('ratio = ',corr2_output['xip']/gg.xip)
+        print('diff = ',corr2_output['xip']-gg.xip)
         numpy.testing.assert_almost_equal(corr2_output['xip']/gg.xip, 1., decimal=3)
 
-        print 'gg.xim = ',gg.xim
-        print 'from corr2 output = ',corr2_output['xim']
-        print 'ratio = ',corr2_output['xim']/gg.xim
-        print 'diff = ',corr2_output['xim']-gg.xim
+        print('gg.xim = ',gg.xim)
+        print('from corr2 output = ',corr2_output['xim'])
+        print('ratio = ',corr2_output['xim']/gg.xim)
+        print('diff = ',corr2_output['xim']-gg.xim)
         numpy.testing.assert_almost_equal(corr2_output['xim']/gg.xim, 1., decimal=3)
 
-        print 'xip_im from corr2 output = ',corr2_output['xip_im']
+        print('xip_im from corr2 output = ',corr2_output['xip_im'])
         assert max(abs(corr2_output['xip_im']))/req_factor < 3.e-7
 
-        print 'xim_im from corr2 output = ',corr2_output['xim_im']
+        print('xim_im from corr2 output = ',corr2_output['xim_im'])
         assert max(abs(corr2_output['xim_im']))/req_factor < 2.e-7
-
 
 
 def test_aardvark():
@@ -390,23 +389,23 @@ def test_aardvark():
     direct_xip = direct_data[:,3]
     direct_xim = direct_data[:,4]
 
-    #print 'gg.xip = ',gg.xip
-    #print 'direct.xip = ',direct_xip
+    #print('gg.xip = ',gg.xip)
+    #print('direct.xip = ',direct_xip)
 
     xip_err = gg.xip - direct_xip
-    print 'xip_err = ',xip_err
-    print 'max = ',max(abs(xip_err))
+    print('xip_err = ',xip_err)
+    print('max = ',max(abs(xip_err)))
     assert max(abs(xip_err)) < 2.e-7
-    print 'xip_im = ',gg.xip_im
-    print 'max = ',max(abs(gg.xip_im))
+    print('xip_im = ',gg.xip_im)
+    print('max = ',max(abs(gg.xip_im)))
     assert max(abs(gg.xip_im)) < 3.e-7
 
     xim_err = gg.xim - direct_xim
-    print 'xim_err = ',xim_err
-    print 'max = ',max(abs(xim_err))
+    print('xim_err = ',xim_err)
+    print('max = ',max(abs(xim_err)))
     assert max(abs(xim_err)) < 1.e-7
-    print 'xim_im = ',gg.xim_im
-    print 'max = ',max(abs(gg.xim_im))
+    print('xim_im = ',gg.xim_im)
+    print('max = ',max(abs(gg.xim_im)))
     assert max(abs(gg.xim_im)) < 1.e-7
 
     # However, after some back and forth about the calculation, we concluded that Eric hadn't
@@ -421,17 +420,17 @@ def test_aardvark():
     bs0_xip = bs0_data[:,2]
     bs0_xim = bs0_data[:,3]
 
-    #print 'gg.xip = ',gg.xip
-    #print 'bs0.xip = ',bs0_xip
+    #print('gg.xip = ',gg.xip)
+    #print('bs0.xip = ',bs0_xip)
 
     xip_err = gg.xip - bs0_xip
-    print 'xip_err = ',xip_err
-    print 'max = ',max(abs(xip_err))
+    print('xip_err = ',xip_err)
+    print('max = ',max(abs(xip_err)))
     assert max(abs(xip_err)) < 1.e-7
 
     xim_err = gg.xim - bs0_xim
-    print 'xim_err = ',xim_err
-    print 'max = ',max(abs(xim_err))
+    print('xim_err = ',xim_err)
+    print('max = ',max(abs(xim_err)))
     assert max(abs(xim_err)) < 5.e-8
 
     # Check that we get the same result using the corr2 executable:
@@ -441,23 +440,23 @@ def test_aardvark():
     p = subprocess.Popen( ["corr2","Aardvark.params"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','Aardvark.out'), names=True)
-    print 'gg.xip = ',gg.xip
-    print 'from corr2 output = ',corr2_output['xip']
-    print 'ratio = ',corr2_output['xip']/gg.xip
-    print 'diff = ',corr2_output['xip']-gg.xip
+    print('gg.xip = ',gg.xip)
+    print('from corr2 output = ',corr2_output['xip'])
+    print('ratio = ',corr2_output['xip']/gg.xip)
+    print('diff = ',corr2_output['xip']-gg.xip)
     numpy.testing.assert_almost_equal(corr2_output['xip']/gg.xip, 1., decimal=3)
 
-    print 'gg.xim = ',gg.xim
-    print 'from corr2 output = ',corr2_output['xim']
-    print 'ratio = ',corr2_output['xim']/gg.xim
-    print 'diff = ',corr2_output['xim']-gg.xim
+    print('gg.xim = ',gg.xim)
+    print('from corr2 output = ',corr2_output['xim'])
+    print('ratio = ',corr2_output['xim']/gg.xim)
+    print('diff = ',corr2_output['xim']-gg.xim)
     numpy.testing.assert_almost_equal(corr2_output['xim']/gg.xim, 1., decimal=3)
 
-    print 'xip_im from corr2 output = ',corr2_output['xip_im']
-    print 'max err = ',max(abs(corr2_output['xip_im']))
+    print('xip_im from corr2 output = ',corr2_output['xip_im'])
+    print('max err = ',max(abs(corr2_output['xip_im'])))
     assert max(abs(corr2_output['xip_im'])) < 3.e-7
-    print 'xim_im from corr2 output = ',corr2_output['xim_im']
-    print 'max err = ',max(abs(corr2_output['xim_im']))
+    print('xim_im from corr2 output = ',corr2_output['xim_im'])
+    print('max err = ',max(abs(corr2_output['xim_im'])))
     assert max(abs(corr2_output['xim_im'])) < 1.e-7
 
     # As bin_slop decreases, the agreement should get even better.
@@ -467,17 +466,17 @@ def test_aardvark():
         gg = treecorr.GGCorrelation(config)
         gg.process(cat1)
 
-        #print 'gg.xip = ',gg.xip
-        #print 'bs0.xip = ',bs0_xip
+        #print('gg.xip = ',gg.xip)
+        #print('bs0.xip = ',bs0_xip)
 
         xip_err = gg.xip - bs0_xip
-        print 'xip_err = ',xip_err
-        print 'max = ',max(abs(xip_err))
+        print('xip_err = ',xip_err)
+        print('max = ',max(abs(xip_err)))
         assert max(abs(xip_err)) < 1.e-8
 
         xim_err = gg.xim - bs0_xim
-        print 'xim_err = ',xim_err
-        print 'max = ',max(abs(xim_err))
+        print('xim_err = ',xim_err)
+        print('max = ',max(abs(xim_err)))
         assert max(abs(xim_err)) < 1.e-8
 
  
@@ -502,18 +501,18 @@ def test_shuffle():
 
     # Put these in a single 2d array so we can easily use numpy.random.shuffle
     data = numpy.array( [x, y, g1, g2] ).T
-    print 'data = ',data
+    print('data = ',data)
     numpy.random.shuffle(data)
 
     cat_s = treecorr.Catalog(x=data[:,0], y=data[:,1], g1=data[:,2], g2=data[:,3])
     gg_s = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=30., verbose=2)
     gg_s.process(cat_s)
 
-    print 'gg_u.xip = ',gg_u.xip
-    print 'gg_s.xip = ',gg_s.xip
-    print 'ratio = ',gg_u.xip / gg_s.xip
-    print 'diff = ',gg_u.xip - gg_s.xip
-    print 'max diff = ',max(abs(gg_u.xip - gg_s.xip))
+    print('gg_u.xip = ',gg_u.xip)
+    print('gg_s.xip = ',gg_s.xip)
+    print('ratio = ',gg_u.xip / gg_s.xip)
+    print('diff = ',gg_u.xip - gg_s.xip)
+    print('max diff = ',max(abs(gg_u.xip - gg_s.xip)))
     assert max(abs(gg_u.xip - gg_s.xip)) < 1.e-14
 
 if __name__ == '__main__':

@@ -17,6 +17,7 @@
 
 from __future__ import print_function
 import treecorr
+import six
 
 
 def parse_variable(config, v):
@@ -334,7 +335,7 @@ def merge_config(config, kwargs, valid_params):
     if kwargs is None:
         kwargs = {}
     if config:
-        for key, value in config.iteritems():
+        for key, value in six.iteritems(config):
             if key in valid_params and key not in kwargs:
                 kwargs[key] = value
     check_config(kwargs, valid_params)

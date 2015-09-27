@@ -67,11 +67,17 @@ def get_compiler(cc):
         # Python3 needs this decode bit.
         # Python2.7 doesn't need it, but it works fine.
         line0 = lines[0].decode(encoding='UTF-8')
-        line1 = lines[1].decode(encoding='UTF-8')
+        if len(lines) > 1:
+            line1 = lines[1].decode(encoding='UTF-8')
+        else:
+            line1 = ''
     except TypeError:
         # Python2.6 throws a TypeError, so just use the lines as they are.
         line0 = lines[0]
-        line1 = lines[1]
+        if len(lines) > 1:
+            line1 = lines[1]
+        else:
+            line1 = ''
 
     if "clang" in line0:
         # Supposedly, clang will support openmp in version 3.5.  Let's go with that for now...
@@ -224,7 +230,7 @@ ext=Extension("treecorr._treecorr",
               sources,
               undef_macros = undef_macros)
 
-dependencies = ['numpy']
+dependencies = ['numpy', 'six']
 if py_version < '2.7':
     dependencies += ['argparse']
 else:
@@ -238,7 +244,12 @@ except ImportError:
     try:
         import pyfits
     except ImportError:
-        dependencies += ['fitsio']
+        if py_version < '3':
+            dependencies += ['fitsio']
+        else:
+            # I'm getting errors with fitsio in python 3, so use astropy instead for that.
+            # Revisit at some point to see if this gets fixed, since fitsio is the better package.
+            dependencies += ['astropy']
 
 with open('README.rst') as file:
     long_description = file.read()

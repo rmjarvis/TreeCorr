@@ -1,5 +1,6 @@
 
-TreeCorr is a package for efficiently computing 2-point correlation functions.
+TreeCorr is a package for efficiently computing 2-point and 3-point correlation
+functions.
 
 - The code is hosted at https://github.com/rmjarvis/TreeCorr
 - It can compute correlations of regular number counts, weak lensing shears, or
@@ -7,22 +8,29 @@ TreeCorr is a package for efficiently computing 2-point correlation functions.
 - 2-point correlations may be auto-correlations or cross-correlations.  This
   includes shear-shear, count-shear, count-count, kappa-kappa, etc.  (Any
   combination of shear, kappa, and counts.)
-- 2-point functions can be done with correct curved-sky calculation using
-  RA, Dec coordinates, on a Euclidean tangent plane, or in 3D using RA, Dec
-  and a distance.
+- 3-point correlations currently can only be auto-correlations.  This includes
+  shear-shear-shear, count-count-count, and kappa-kappa-kappa.  The cross
+  varieties are planned to be added in the near future.
+- Both 2- and 3-point functions can be done with correct curved-sky calculation
+  using RA, Dec coordinates, on a Euclidean tangent plane, or in 3D using 
+  either RA, Dec and a distance or (x,y,z) positions.
 - The front end is in Python, which can be used as a Python module or as a 
   standalone executable using configuration files.
 - The actual computation of the correlation functions is done in C++ using ball
-  trees (similar to kd trees), which make the calculation extremely
-  efficient.
+  trees (similar to kd trees), which make the calculation extremely efficient.
 - When available, OpenMP is used to run in parallel on multi-core machines.
 - Approximate running time for 2-point shear-shear is ~30 sec * (N/10^6) / core
   for a bin size of 0.1 in log(r).  It scales as b^(-2).  This is the slowest
-  of the various kinds of correlations, so others will be a bit faster, but
-  with the same scaling with N and b.
-- 3-point functions have not yet been migrated to the new API, but they should
-  be available soon.
+  of the various kinds of 2-point correlations, so others will be a bit faster,
+  but with the same scaling with N and b.
+- The running time for 3-point functions are highly variable depending on the 
+  range of triangle geometries you are calculating.  They are significantly
+  slower than the 2-point functions, but many orders of magnitude faster than
+  brute force algorithms.
 - Reference: Jarvis, Bernstein, & Jain, 2004, MNRAS, 352, 338
+  (I'm working on new paper about TreeCorr, including some of the improvements
+  I've made since then, but this will suffice as a reference for now.)
+- Record on the Astrophyics Source Code Library: http://ascl.net/1508.007
 
 The code is licensed under a FreeBSD license.  Essentially, you can use the 
 code in any way you want, but if you distribute it, you need to include the 
@@ -119,9 +127,9 @@ that is also relatively straightforward:
         cd tests
         nosetests
 
-   They do take a bit of time to run, since I use around 1 million galaxies
-   for many of the tests.  On the order of 5-10 minutes when using a single
-   core, or less when OpenMP is enabled.
+   They do take a bit of time to run, since I use lots of galaxies for many of
+   the tests.  On the order of 4 minutes when using a single core, or less when
+   OpenMP is enabled.
 
 
 Two-point Correlations

@@ -27,22 +27,24 @@ scripts = [ os.path.join('scripts',f) for f in scripts ]
 
 sources = glob.glob(os.path.join('src','*.cpp'))
 
+undef_macros = []
+
 # If we build with debug, also undefine NDEBUG flag
 if "--debug" in sys.argv:
-    undef_macros=['NDEBUG']
-else:
-    undef_macros=None
+    undef_macros+=['NDEBUG']
 
 copt =  {
     'gcc' : ['-fopenmp','-O3','-ffast-math'],
     'icc' : ['-openmp','-O3'],
     'clang' : ['-O3','-ffast-math'],
+    'clang w/ OpenMP' : ['-fopenmp=libomp','-O3','-ffast-math'],
     'unknown' : [],
 }
 lopt =  {
     'gcc' : ['-fopenmp'],
     'icc' : ['-openmp'],
     'clang' : [],
+    'clang w/ OpenMP' : ['-fopenmp=libomp'],
     'unknown' : [],
 }
 
@@ -50,6 +52,7 @@ if "--debug" in sys.argv:
     copt['gcc'].append('-g')
     copt['icc'].append('-g')
     copt['clang'].append('-g')
+    copt['clang w/ OpenMP'].append('-g')
 
 def get_compiler(cc):
     """Try to figure out which kind of compiler this really is.
@@ -60,42 +63,44 @@ def get_compiler(cc):
     import subprocess
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines = p.stdout.readlines()
-    print('compiler version: ')
+    print('compiler version information: ')
     for line in lines:
         print(line.strip())
     try:
         # Python3 needs this decode bit.
         # Python2.7 doesn't need it, but it works fine.
-        line0 = lines[0].decode(encoding='UTF-8')
-        if len(lines) > 1:
-            line1 = lines[1].decode(encoding='UTF-8')
-        else:
-            line1 = ''
+        line = lines[0].decode(encoding='UTF-8')
+        if line.startswith('Configured'):
+            line = lines[1].decode(encoding='UTF-8')
     except TypeError:
         # Python2.6 throws a TypeError, so just use the lines as they are.
-        line0 = lines[0]
-        if len(lines) > 1:
-            line1 = lines[1]
-        else:
-            line1 = ''
+        line = lines[0]
+        if line.startswith('Configured'):
+            line = lines[1]
 
-    if "clang" in line0:
-        # Supposedly, clang will support openmp in version 3.5.  Let's go with that for now...
-        # If the version is reports >= 3.5, let's call it gcc, rather than clang to get
-        # the -fopenmp flag.
+    if "clang" in line:
+        # clang 3.7 is the first with openmp support. So check the version number.
+        # It can show up in one of two places depending on whether this is Apple clang or
+        # regular clang.
         import re
-        match = re.search(r'[0-9]+(\.[0-9]+)+', line1)
+        if 'LLVM' in line:
+            match = re.search(r'LLVM [0-9]+(\.[0-9]+)+', line)
+            match_num = 1
+        else:
+            match = re.search(r'[0-9]+(\.[0-9]+)+', line)
+            match_num = 0
         if match:
-            version = match.group(0)
+            version = match.group(0).split()[match_num]
+            print('clang version = ',version)
             # Get the version up to the first decimal
             # e.g. for 3.4.1 we only keep 3.4
             vnum = version[0:version.find('.')+2]
-            if vnum >= '3.5':
-                return 'gcc'
+            if vnum >= '3.7':
+                return 'clang w/ OpenMP'
         return 'clang'
-    elif 'gcc' in line0:
+    elif 'gcc' in line:
         return 'gcc'
-    elif 'GCC' in line0:
+    elif 'GCC' in line:
         return 'gcc'
     elif 'clang' in cc:
         return 'clang'

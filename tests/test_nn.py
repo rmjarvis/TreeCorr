@@ -16,6 +16,8 @@ import numpy
 import treecorr
 import os
 
+from test_helper import get_from_wiki
+
 def test_binnedcorr2():
     import math
     # Test some basic properties of the base class
@@ -286,6 +288,9 @@ def test_direct_3d():
 
 def test_direct_perp():
     # This is the same as the above test, but using the perpendicular distance metric
+
+    get_from_wiki('nn_perp_data.dat')
+    get_from_wiki('nn_perp_rand.dat')
 
     ngal = 100
     s = 10.

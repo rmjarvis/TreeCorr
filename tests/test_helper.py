@@ -13,22 +13,22 @@
 
 from __future__ import print_function
 
-def get_aardvark():
+def get_from_wiki(file_name):
     """We host the Aardvark.fit file separately so it people don't need to download it with
     the code when checking out the repo.  Most people don't run the tests after all.
     """
     import os
-    file_name = os.path.join('data','Aardvark.fit')
-    url = 'https://github.com/rmjarvis/TreeCorr/wiki/Aardvark.fit'
-    if not os.path.isfile(file_name):
+    local_file_name = os.path.join('data',file_name)
+    url = 'https://github.com/rmjarvis/TreeCorr/wiki/' + file_name
+    if not os.path.isfile(local_file_name):
         try:
             from urllib.request import urlopen
         except ImportError:
             from urllib import urlopen
         import shutil
 
-        print('downloading %s from %s...'%(file_name,url))
-        # urllib.request.urlretrieve(url,file_name)
+        print('downloading %s from %s...'%(local_file_name,url))
+        # urllib.request.urlretrieve(url,local_file_name)
         # The above line doesn't work very well with the SSL certificate that github puts on it.
         # It works fine in a web browser, but on my laptop I get:
         # urllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:600)>
@@ -43,7 +43,7 @@ def get_aardvark():
         except (AttributeError, TypeError):
             # Note: prior to 2.7.9, there is no such function or even the context keyword.
             u = urlopen(url)
-        with open(file_name, 'wb') as out:
+        with open(local_file_name, 'wb') as out:
             shutil.copyfileobj(u, out)
         u.close()
         print('done.')

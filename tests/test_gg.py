@@ -16,7 +16,7 @@ import numpy
 import treecorr
 import os
 
-from test_helper import get_aardvark
+from test_helper import get_from_wiki
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
 
 def test_gg():
@@ -380,7 +380,7 @@ def test_aardvark():
     # Eric Suchyta did a brute force calculation of the Aardvark catalog, so it is useful to
     # compare the output from my code with that.
 
-    get_aardvark()
+    get_from_wiki('Aardvark.fit')
     file_name = os.path.join('data','Aardvark.fit')
     config = treecorr.read_config('Aardvark.params')
     cat1 = treecorr.Catalog(file_name, config)

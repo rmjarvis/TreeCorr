@@ -1032,29 +1032,36 @@ def test_nnn():
     numpy.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
 
     # Test compensated zeta
-    # Note: I don't think this is actually right. The error is more like 0.075, rather than 
-    #       0.05 for simple. I think the problem is that DDR is not nearly zero like DRR and RRR.
-    #       It has the 2pt correlation still. So I'm not sure if this is really the right thing
-    #       to do for the compensated zeta.  Still, it does pass the test, since the values are
-    #       so large that the DDR result is much less than DDD.
+    # This version computes the three-point function after subtracting off the appropriate
+    # two-point functions xi(d1) + xi(d2) + xi(d3), where [cf. test_nn() in test_nn.py]
+    # xi(r) = 1/4pi (L/s)^2 exp(-r^2/4s^2) - 1
     if __name__ == '__main__':
-        ddr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                      min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                      nubins=nubins, nvbins=nvbins,
-                                      sep_units='arcmin', verbose=3)
+        ddr = ddd.copy()
+        drd = ddd.copy()
+        rdd = ddd.copy()
+        drr = ddd.copy()
+        rdr = ddd.copy()
+        rrd = ddd.copy()
+
         ddr.process(cat,cat,rand)
-        #print('ddr.ntri = ',ddr.ntri)
-
-        drr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                      min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                      nubins=nubins, nvbins=nvbins,
-                                      sep_units='arcmin', verbose=3)
+        drd.process(cat,rand,cat)
+        rdd.process(rand,cat,cat)
         drr.process(cat,rand,rand)
-        #print('drr.ntri = ',drr.ntri)
+        rdr.process(rand,cat,rand)
+        rrd.process(rand,rand,cat)
 
-        zeta, varzeta = ddd.calculateZeta(rrr,drr,ddr)
+        zeta, varzeta = ddd.calculateZeta(rrr,drr,rdr,rrd,ddr,drd,rdd)
         print('compensated zeta = ',zeta)
-        print('true_zeta = ',true_zeta)
+
+        xi1 = (1./(4.*numpy.pi)) * (L/s)**2 * numpy.exp(-d1**2/(4.*s**2)) - 1.
+        xi2 = (1./(4.*numpy.pi)) * (L/s)**2 * numpy.exp(-d2**2/(4.*s**2)) - 1.
+        xi3 = (1./(4.*numpy.pi)) * (L/s)**2 * numpy.exp(-d3**2/(4.*s**2)) - 1.
+        print('xi1 = ',xi1)
+        print('xi2 = ',xi2)
+        print('xi3 = ',xi3)
+        print('true_zeta + xi1 + xi2 + xi3 = ',true_zeta)
+        true_zeta -= xi1 + xi2 + xi3
+        print('true_zeta => ',true_zeta)
         print('ratio = ',zeta / true_zeta)
         print('diff = ',zeta - true_zeta)
         print('max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)))
@@ -1063,7 +1070,7 @@ def test_nnn():
                                           numpy.log(numpy.abs(true_zeta))/req_factor, decimal=1)
 
         out_file_name3 = os.path.join('output','nnn_out3.fits')
-        ddd.write(out_file_name3, rrr, drr, ddr)
+        ddd.write(out_file_name3, rrr,drr,rdr,rrd,ddr,drd,rdd)
         try:
             import fitsio
             data = fitsio.read(out_file_name3)
@@ -1082,8 +1089,12 @@ def test_nnn():
             numpy.testing.assert_almost_equal(data['sigma_zeta'], numpy.sqrt(varzeta).flatten())
             numpy.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
             numpy.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
-            numpy.testing.assert_almost_equal(data['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
             numpy.testing.assert_almost_equal(data['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
+            numpy.testing.assert_almost_equal(data['RDR'], rdr.ntri.flatten() * (ddd.tot / rdr.tot))
+            numpy.testing.assert_almost_equal(data['RRD'], rrd.ntri.flatten() * (ddd.tot / rrd.tot))
+            numpy.testing.assert_almost_equal(data['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
+            numpy.testing.assert_almost_equal(data['DRD'], drd.ntri.flatten() * (ddd.tot / drd.tot))
+            numpy.testing.assert_almost_equal(data['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
         except ImportError:
             print('Unable to import fitsio.  Skipping fits tests.')
 

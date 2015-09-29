@@ -410,30 +410,32 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             self._process_all_cross(cat1,cat2,cat3, metric, num_threads)
         self.finalize()
 
-    def calculateZeta(self, rrr, drr=None, ddr=None,
-                      rdr=None, rrd=None, drd=None, rdd=None):
+    def calculateZeta(self, rrr, drr=None, rdr=None, rrd=None,
+                      ddr=None, drd=None, rdd=None):
         """Calculate the 3pt function given another 3pt function of random
         points using the same mask, and possibly cross correlations of the data and random.
 
-        There are several possible formulae that could be used here:
+        There are two possible formulae that are currently supported.
 
         1. The simplest formula to use is (ddd-rrr)/rrr.
            In this case, only rrr needs to be given, the NNNCorrelation of a random field.
+           However, note that in this case, the return value is not normally called zeta.
+           Rather, this is an estimator of zeta(d1,d2,d3) + xi(d1) + xi(d2) + xi(d3)
+           where xi is the two-point correlation function for each leg of the triangle.
+           You would typically want to calculate that separately and subtract off the
+           two-point contributions.
 
-        2. For auto-correlations, a better formula is (ddd-3ddr+3rrd-rrr)/rrr.
-           In this case, ddr and rrd calculate the triangles where two points come from either
-           the data or the randoms, respectively.
-
-        3. Finally, if the data correlation function is correlating two or three different
-           kinds of things, then there are different "Randoms" for each of them.
-           In this case, you need to do a different calculation for each of the three
-           data values: (ddd-ddr-drd-rdd+rrd+rdr+drr-rrr)/rrr.
+        2. For auto-correlations, a better formula is (ddd-ddr-drd-rdd+drr+rdr+rrd-rrr)/rrr.
+           In this case, ddr, etc. calculate the triangles where two points come from either
+           the data or the randoms.  In the case of ddr for instance, points p1 and p2 on the 
+           triangle have data and p3 uses randoms, where points p1, p2, p3 are opposite sides 
+           d1, d2, d3 with d1 > d2 > d3 as usual; rdr has randoms at 1,3 and data at 2, etc.
 
         :param rrr:         An NNCorrelation object for the random field.
         :param drr:         DRR if desired. (default: None)
-        :param ddr:         DDR if desired. (default: None)
         :param rdr:         RDR if desired. (default: None)
         :param rrd:         RRD if desired. (default: None)
+        :param ddr:         DDR if desired. (default: None)
         :param drd:         DRD if desired. (default: None)
         :param rdd:         RDD if desired. (default: None)
 
@@ -443,25 +445,15 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         if rrr.tot == 0:
             raise RuntimeError("rrr has tot=0.")
 
-        if drr is not None or ddr is not None:
-            if drr is None or ddr is None:
-                raise AttributeError("Must provide both drr and ddr")
-        if rdr is not None or rrd is not None or drd is not None or rdd is not None:
-            if (rdr is None or rrd is None or drd is None or rdd is None or
-                drr is None or ddr is None):
+        if (drr is not None or rdr is not None or rrd is not None or
+            ddr is not None or drd is not None or rdd is not None):
+            if (drr is None or rdr is None or rrd is None or 
+                ddr is None or drd is None or rrd is None):
                 raise AttributeError("Must provide all 6 combinations rdr, drr, etc.")
 
         rrrw = self.tot / rrr.tot
         if drr is None:
             zeta = (self.ntri - rrr.ntri * rrrw)
-        elif rdr is None:
-            if rrd.tot == 0:
-                raise RuntimeError("rrd has tot=0.")
-            if ddr.tot == 0:
-                raise RuntimeError("ddr has tot=0.")
-            rrdw = self.tot / rrd.tot
-            ddrw = self.tot / ddr.tot
-            zeta = (self.ntri - 3.*rrd.ntri * rrdw + 3.*ddr.ntri * ddrw - rrr.ntri * rrrw)
         else:
             if rrd.tot == 0:
                 raise RuntimeError("rrd has tot=0.")
@@ -481,8 +473,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             drrw = self.tot / drr.tot
             drdw = self.tot / drd.tot
             rddw = self.tot / rdd.tot
-            zeta = (self.ntri - rrd.ntri * rrdw - rdr.ntri * rdrw - drr.ntr * nrrw +
-                    ddr.ntri * ddrw + drd.ntri * drdw + rdd.ntri * rddw - rrr.ntri * rrrw)
+            zeta = (self.ntri + rrd.ntri * rrdw + rdr.ntri * rdrw + drr.ntri * drrw
+                    - ddr.ntri * ddrw - drd.ntri * drdw - rdd.ntri * rddw - rrr.ntri * rrrw)
         if numpy.any(rrr.ntri == 0):
             self.logger.warn("Warning: Some bins for the randoms had no triangles.")
             self.logger.warn("         Probably max_sep is larger than your field.")
@@ -497,34 +489,36 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         return zeta, varzeta
 
 
-    def write(self, file_name, rrr=None, drr=None, ddr=None,
-                      rdr=None, rrd=None, drd=None, rdd=None, file_type=None):
+    def write(self, file_name, rrr=None, drr=None, rdr=None, rrd=None,
+              ddr=None, drd=None, rdd=None, file_type=None):
         """Write the correlation function to the file, file_name.
 
         Normally, at least rrr should be provided, but if this is None, then only the 
         basic accumulated number of triangles are output (along with the separation columns).
 
         If at least rrr is given, then it will output an estimate of the final 3pt correlation
-        function, zeta. There are several possible formulae that could be used here:
+        function, zeta. There are two possible formulae that are currently supported.
 
         1. The simplest formula to use is (ddd-rrr)/rrr.
            In this case, only rrr needs to be given, the NNNCorrelation of a random field.
+           However, note that in this case, the return value is not normally called zeta.
+           Rather, this is an estimator of zeta(d1,d2,d3) + xi(d1) + xi(d2) + xi(d3)
+           where xi is the two-point correlation function for each leg of the triangle.
+           You would typically want to calculate that separately and subtract off the
+           two-point contributions.
 
-        2. For auto-correlations, a better formula is (ddd-3ddr+3drr-rrr)/rrr.
-           In this case, ddr and drr calculate the triangles where two points come from either
-           the data or the randoms, respectively.
-
-        3. Finally, if the data correlation function is correlating two or three different
-           kinds of things, then there are different "Randoms" for each of them.
-           In this case, you need to do a different calculation for each of the three
-           data values: (ddd-ddr-drd-rdd+drr+rdr+rrd-rrr)/rrr.
+        2. For auto-correlations, a better formula is (ddd-ddr-drd-rdd+drr+rdr+rrd-rrr)/rrr.
+           In this case, ddr, etc. calculate the triangles where two points come from either
+           the data or the randoms.  In the case of ddr for instance, points p1 and p2 on the 
+           triangle have data and p3 uses randoms, where points p1, p2, p3 are opposite sides 
+           d1, d2, d3 with d1 > d2 > d3 as usual; rdr has randoms at 1,3 and data at 2, etc.
 
         :param file_name:   The name of the file to write to.
         :param rrr:         An NNNCorrelation object for the random field. (default: None)
         :param drr:         DRR if desired. (default: None)
-        :param ddr:         DDR if desired. (default: None)
         :param rdr:         RDR if desired. (default: None)
         :param rrd:         RRD if desired. (default: None)
+        :param ddr:         DDR if desired. (default: None)
         :param drd:         DRD if desired. (default: None)
         :param rdd:         RDD if desired. (default: None)
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
@@ -538,35 +532,24 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                     self.meand3, self.meanlogd3, self.meanu, self.meanv ]
         if rrr is None:
+            if (drr is not None or rdr is not None or rrd is not None or
+                ddr is not None or drd is not None or rdd is not None):
+                raise AttributeError("rrr must be provided if other combinations are not None")
             col_names += [ 'ntri' ]
             columns += [ self.ntri ]
-            if drr is not None:
-                raise AttributeError("rrr must be provided if drr is not None")
-            if rdr is not None:
-                raise AttributeError("rrr must be provided if rdd is not None")
-            if rrd is not None:
-                raise AttributeError("rrr must be provided if rrd is not None")
-            if ddr is not None:
-                raise AttributeError("rrr must be provided if ddr is not None")
-            if drd is not None:
-                raise AttributeError("rrr must be provided if drd is not None")
-            if rdd is not None:
-                raise AttributeError("rrr must be provided if rdd is not None")
         else:
-            zeta, varzeta = self.calculateZeta(rrr,drr,ddr,rdr,rrd,drd,rdd)
+            # This will check for other invalid combinations of rrr, drr, etc.
+            zeta, varzeta = self.calculateZeta(rrr,drr,rdr,rrd,ddr,drd,rdd)
 
             col_names += [ 'zeta','sigma_zeta','DDD','RRR' ]
             columns += [ zeta, numpy.sqrt(varzeta),
                          self.ntri, rrr.ntri * (self.tot/rrr.tot) ]
 
-            if drr is not None and rdr is None:
-                col_names += ['DDR','DRR']
-                columns += [ ddr.ntri * (self.tot/ddr.tot), drr.ntri * (self.tot/drr.tot) ]
-            elif rdr is not None:
-                col_names += ['DDR','DRD','RDD','DRR','RDR','RRD']
-                columns += [ ddr.ntri * (self.tot/ddr.tot), drd.ntri * (self.tot/drd.tot),
-                             rdd.ntri * (self.tot/rdd.tot), drr.ntri * (self.tot/drr.tot),
-                             rdr.ntri * (self.tot/rdr.tot), rrd.ntri * (self.tot/rrd.tot) ]
+            if drr is not None:
+                col_names += ['DRR','RDR','RRD','DDR','DRD','RDD']
+                columns += [ drr.ntri * (self.tot/drr.tot), rdr.ntri * (self.tot/rdr.tot),
+                             rrd.ntri * (self.tot/rrd.tot), ddr.ntri * (self.tot/ddr.tot),
+                             drd.ntri * (self.tot/drd.tot), rdd.ntri * (self.tot/rdd.tot) ]
 
         prec = self.config.get('precision', 4)
 

@@ -17,7 +17,7 @@ import treecorr
 import os
 from numpy import pi
 
-from test_helper import get_aardvark
+from test_helper import get_from_wiki
 
 def test_ascii():
 
@@ -190,8 +190,7 @@ def test_ascii():
 
  
 def test_fits():
-    get_aardvark()
-
+    get_from_wiki('Aardvark.fit')
     file_name = os.path.join('data','Aardvark.fit')
     config = treecorr.read_config('Aardvark.params')
 

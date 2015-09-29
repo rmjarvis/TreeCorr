@@ -14,8 +14,9 @@
 from __future__ import print_function
 
 def get_from_wiki(file_name):
-    """We host the Aardvark.fit file separately so it people don't need to download it with
-    the code when checking out the repo.  Most people don't run the tests after all.
+    """We host some larger files used for the test suite separately on the TreeCorr wiki repo
+    so people don't need to download them with the code when checking out the repo.
+    Most people don't run the tests after all.
     """
     import os
     local_file_name = os.path.join('data',file_name)

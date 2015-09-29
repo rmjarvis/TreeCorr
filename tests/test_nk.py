@@ -16,7 +16,6 @@ import numpy
 import treecorr
 import os
 
-from test_helper import get_aardvark
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
 
 def test_single():

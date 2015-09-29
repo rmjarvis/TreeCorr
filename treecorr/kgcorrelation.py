@@ -123,7 +123,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         del d['logger']  # Oh well.  This is just lost in the copy.  Can't be pickled.
         return d
 
-    def __setstate__(self):
+    def __setstate__(self, d):
         self.__dict__ = d
         self._build_corr()
         self.logger = treecorr.config.setup_logger(

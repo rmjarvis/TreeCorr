@@ -44,6 +44,12 @@ New features:
   can be used to split a problem up to be run on multiple machines. (#23)
 - Added ability to add one Correlation object to another to enable doing the
   calculation in parts over several processes. (#23)
+- Added ability to use different weights for the position centroiding than for
+  the regular weighted values being correlated.  This enables jackknife 
+  calculations to have the exact same tree structure each time by setting
+  the value weights `w=0` for the points to exclude each time, but keep
+  `wpos` the same so the cells are identical.  This removes some numerical
+  noise in the calculation that otherwise occurs. (#31)
 - Added the option of calling `NNCorrelation.write()` with no `rr` parameter.
   In this case, it will just write a column with the number of pairs (along
   with the regular separation columns), rather than calculate the correlation 
@@ -60,3 +66,6 @@ Bug fixes:
   'num_threads' parameter had been checked only when loading the config dict
   from a file, which meant that there was no obvious way to change the number
   of threads in the python layer. This is now possible. (#21)
+- Fixed NN correlations to properly use weight values.  This is particularly
+  useful for setting some points to have w=0 to exclude them from the sums,
+  which didn't used to work. (#29)

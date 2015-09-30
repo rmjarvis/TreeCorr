@@ -127,9 +127,6 @@ that is also relatively straightforward:
         cd tests
         nosetests
 
-   They do take a bit of time to run, since I use lots of galaxies for many of
-   the tests.  On the order of 4 minutes when using a single core, or less when
-   OpenMP is enabled.
 
 
 Two-point Correlations

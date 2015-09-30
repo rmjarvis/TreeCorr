@@ -11,16 +11,17 @@ functions.
 - 3-point correlations currently can only be auto-correlations.  This includes
   shear-shear-shear, count-count-count, and kappa-kappa-kappa.  The cross
   varieties are planned to be added in the near future.
-- Both 2- and 3-point functions can be done with correct curved-sky calculation
-  using RA, Dec coordinates, on a Euclidean tangent plane, or in 3D using 
-  either RA, Dec and a distance or (x,y,z) positions.
+- Both 2- and 3-point functions can be done with the correct curved-sky 
+  calculation using RA, Dec coordinates, on a Euclidean tangent plane, or in
+  3D using either (RA,Dec,r) or (x,y,z) positions.
 - The front end is in Python, which can be used as a Python module or as a 
-  standalone executable using configuration files.
+  standalone executable using configuration files. (The executable is corr2
+  for 2-point and corr3 for 3-point.)
 - The actual computation of the correlation functions is done in C++ using ball
   trees (similar to kd trees), which make the calculation extremely efficient.
 - When available, OpenMP is used to run in parallel on multi-core machines.
 - Approximate running time for 2-point shear-shear is ~30 sec * (N/10^6) / core
-  for a bin size of 0.1 in log(r).  It scales as b^(-2).  This is the slowest
+  for a bin size b=0.1 in log(r).  It scales as b^(-2).  This is the slowest
   of the various kinds of 2-point correlations, so others will be a bit faster,
   but with the same scaling with N and b.
 - The running time for 3-point functions are highly variable depending on the 
@@ -52,12 +53,18 @@ released version, you should do::
 To install TreeCorr on a system where you do not have sudo privileges,
 you can do::
 
-    pip install TreeCorr --install-option="--prefix=~"
+    pip install TreeCorr --user
 
-NB: There is also a `--user` option with `pip install`, which installs into
-~/.local.  This is fine for the python module, but it puts the `corr2`
-executable into ~/.local/bin, which is probably not in your path.  The above
-command will instead install `corr2` into ~/bin.
+This installs the python module into `~/.local/lib/python2.7/site-packages`,
+which is normally already in your PYTHONPATH, but it puts the executables
+`corr2` and `corr3` into `~/.local/bin` which is probably not in your PATH.
+To use these scripts, you should add this directory to your PATH.  If you would
+rather install into a different prefix rather than ~/.local, you can use::
+
+    pip install TreeCorr --install-option="--prefix=PREFIX"
+
+This would install the executables into `PREFIX/bin` and the python module
+into `PREFIX/lib/python2.7/site-packages`.
 
 
 If you would rather download the tarball and install TreeCorr yourself,
@@ -73,10 +80,12 @@ that is also relatively straightforward:
       system.
     - pandas: This package significantly speeds up the reading of ASCII
       input catalogs over the numpy functions loadtxt or genfromtxt.
+      However, if you don't have pandas installed, TreeCorr will fall back
+      to using the slower numpy.genfromtxt.
 
-2. Download the zip file or tarball of the current code from:
+2. Download the zip file or tarball for the latest release from::
 
-   https://github.com/rmjarvis/TreeCorr/releases/tag/v3.1.2
+   https://github.com/rmjarvis/TreeCorr/releases/
 
 3. Unzip the archive with either of the following (depending on which kind
    of archive you downloaded)::
@@ -91,13 +100,13 @@ that is also relatively straightforward:
 4. Install with the normal setup.py options.  Typically this would be the
    command::
 
-        python setup.py install --prefix=/your/home/directory
+        python setup.py install --prefix=~
 
    This will install the executable `corr2` at::
 
         /your/home/directory/bin/corr2
 
-   It will also install the Python module called treecorr which you can use
+   It will also install the Python module called `treecorr` which you can use
    from within Python.
 
    .. note::
@@ -105,8 +114,8 @@ that is also relatively straightforward:
         There is a bug with numpy that it sometimes doesn't install correctly
         when included as a setup.py dependency:
             https://github.com/numpy/numpy/issues/1458  
-        The bug was marked closed in 2012, but I've gotten it with the latest
-        numpy version 1.8.2.  Installation failed with a traceback that ended
+        The bug was marked closed in 2012, but I've gotten it with numpy
+        versions since then. Installation failed with a traceback that ended
         with::
 
             File "/private/tmp/easy_install-xl4gri/numpy-1.8.2/numpy/core/setup.py", line 631, in configuration
@@ -152,16 +161,31 @@ This software is able to compute several varieties of two-point correlations:
 :KK:  two-point kappa correlation function.
 
 
-Running corr2
--------------
+Three-point Correlations
+------------------------
 
-The executable corr2 takes one required command-line argument, which is the 
-name of a configuration file::
+This software is currently only able to compute three-point auto-correlations:
+
+:NNN: three point correlation function of galaxy counts.
+
+:GGG: three-point shear correlation function.  We use the "natural components"
+      called Gamma, described by Schneider & Lombardi [Astron.Astrophys. 397
+      (2003) 809-818] using the triangle centroid as the reference point.
+
+:KKK: three-point kappa correlation function.
+
+
+Running corr2 and corr3
+-----------------------
+
+The executables corr2 and corr3 each take one required command-line argument,
+which is the name of a configuration file::
 
     corr2 config_file
+    corr3 config_file
 
-A sample configuration file is provided, called sample.params.  See the
-TreeCorr wiki page
+A sample configuration file for corr2 is provided, called sample.params.  
+See the TreeCorr wiki page
 
 https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters
 
@@ -181,8 +205,31 @@ files.
 Using the Python module
 -----------------------
 
-The same functionality can be achieved from within Python using a Python dict
-for the configuration parameters::
+The TreeCorr module is called `treecorr` in python.  Typical usage for
+computing the shear-shear correlation function looks something like the
+following::
+
+    >>> import treecorr
+    >>> cat = treecorr.Catalog('cat.fits', ra_col='RA', dec_col='DEC',
+    ...                        ra_units='degrees', dec_units='degrees',
+    ...                        g1_col='GAMMA1', g2_col='GAMMA2')
+    >>> gg = treecorr.GGCorrelation(min_sep=1., max_sep=100., bin_size=0.1,
+    ...                             sep_units='arcmin')
+    >>> gg.process(cat)
+    >>> xip = gg.xip  # The xi_plus correlation function
+    >>> xim = gg.xim  # The xi_minus correlation function
+
+The different correlation functions each have their own class.  You can 
+access the Python documentation by calling help on the appropriate class
+to get more details about the different kwarg options, attributes, and 
+methods for each::
+
+    >>> help(GGCorrelation)
+    >>> help(NGCorrelation)
+    >>> help(NNNCorrelation)
+
+You can also leverage the configuration file apparatus from within python
+using a Python dict for the configuration parameters::
 
     >>> import treecorr
     >>> config = treecorr.read_config(config_file)

@@ -50,7 +50,14 @@ class NKCorrelation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point count-kappa correlation
     function.
 
-    It holds the following attributes:
+    Ojects of this class holds the following attributes::
+
+        :nbins:     The number of bins in logr
+        :bin_size:  The size of the bins in logr
+        :min_sep:   The minimum separation being considered
+        :max_sep:   The maximum separation being considered
+
+    In addition, the following attributes are numpy arrays of length (nbins)::
 
         :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
         :meanr:     The (weighted) mean value of r for the pairs in each bin.

@@ -26,6 +26,8 @@ class BinnedCorr3(object):
     the derived classes for more details:
 
     - :class:`~treecorr.NNNCorrelation` handles count-count-count correlation functions
+    - :class:`~treecorr.KKKCorrelation` handles kappa-kappa-kappa correlation functions
+    - :class:`~treecorr.GGGCorrelation` handles gamma-gamma-gamma correlation functions
 
     Three-point correlations are a bit more complicated than two-point, since the data need
     to be binned in triangles, not just the separation between two points.  We characterize the

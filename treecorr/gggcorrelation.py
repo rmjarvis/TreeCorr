@@ -77,11 +77,29 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
     See the doc string of :BinnedCorr3: for a description of how the triangles are binned.
     
-    Ojects of this class holds the following attributes:
+    Ojects of this class holds the following attributes::
 
-        :logr:      The nominal center of the bin in log(r).
-        :u:         The nominal center of the bin in u.
-        :v:         The nominal center of the bin in v.
+        :nbins:     The number of bins in logr where r = d2
+        :bin_size:  The size of the bins in logr
+        :min_sep:   The minimum separation being considered
+        :max_sep:   The maximum separation being considered
+        :nubins:    The number of bins in u where u = d3/d2
+        :ubin_size: The size of the bins in u
+        :min_u:     The minimum u being considered
+        :max_u:     The maximum u being considered
+        :nvbins:    The number of bins in v where v = +-(d1-d2)/d3
+        :vbin_size: The size of the bins in v
+        :min_v:     The minimum v being considered
+        :max_v:     The maximum v being considered
+        :logr1d:    The nominal centers of the nbins bins in log(r).
+        :u1d:       The nominal centers of the nubins bins in u.
+        :v1d:       The nominal centers of the nvbins bins in v.
+
+    In addition, the following attributes are numpy arrays whose shape is (nbins, nubins, nvbins)::
+
+        :logr:      The nominal center of each bin in log(r).
+        :u:         The nominal center of each bin in u.
+        :v:         The nominal center of each bin in v.
         :meand1:    The (weighted) mean value of d1 for the triangles in each bin.
         :meanlogd1: The mean value of log(d1) for the triangles in each bin.
         :meand2:    The (weighted) mean value of d2 (aka r) for the triangles in each bin.

@@ -147,15 +147,14 @@ class NKCorrelation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
 
-        :param cat1:    The first catalog to process
-        :param cat2:    The second catalog to process
-        :param metric:  Which metric to use.  See the doc string for :process: for details.
-                        (default: 'Euclidean')
+        :param cat1:        The first catalog to process
+        :param cat2:        The second catalog to process
+        :param metric:      Which metric to use.  See the doc string for :process: for details.
+                            (default: 'Euclidean')
         :param num_threads: How many OpenMP threads to use during the calculation.  
-                        (default: None, which means to first check for a num_threads parameter
-                        in self.config, then default to querying the number of cpu cores and 
-                        try to use that many threads.)  Note that this won't work if the system's
-                        C compiler is clang, such as on MacOS systems.
+                            (default: use the number of cpu cores; this value can also be given in
+                            the constructor in the config dict.) Note that this won't work if the 
+                            system's C compiler is clang prior to version 3.7.
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process NK cross-correlations')
@@ -191,15 +190,14 @@ class NKCorrelation(treecorr.BinnedCorr2):
         calling this function as often as desired, the finalize() command will
         finish the calculation.
 
-        :param cat1:    The first catalog to process
-        :param cat2:    The second catalog to process
-        :param metric:  Which metric to use.  See the doc string for :process: for details.
-                        (default: 'Euclidean')
+        :param cat1:        The first catalog to process
+        :param cat2:        The second catalog to process
+        :param metric:      Which metric to use.  See the doc string for :process: for details.
+                            (default: 'Euclidean')
         :param num_threads: How many OpenMP threads to use during the calculation.  
-                        (default: None, which means to first check for a num_threads parameter
-                        in self.config, then default to querying the number of cpu cores and 
-                        try to use that many threads.)  Note that this won't work if the system's
-                        C compiler is clang, such as on MacOS systems.
+                            (default: use the number of cpu cores; this value can also be given in
+                            the constructor in the config dict.) Note that this won't work if the 
+                            system's C compiler is clang prior to version 3.7.
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process NK pairwise-correlations')
@@ -289,21 +287,20 @@ class NKCorrelation(treecorr.BinnedCorr2):
         Both arguments may be lists, in which case all items in the list are used 
         for that element of the correlation.
 
-        :param cat1:    A catalog or list of catalogs for the N field.
-        :param cat2:    A catalog or list of catalogs for the K field.
-        :param metric:  Which metric to use for distance measurements.  Options are:
-                        - 'Euclidean' = straight line Euclidean distance between two points.
-                          For spherical coordinates (ra,dec without r), this is the chord
-                          distance between points on the unit sphere.
-                        - 'Rperp' = the perpendicular component of the distance. For two points
-                          with distance from Earth r1,r2, if d is the normal Euclidean distance
-                          and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
-                        (default: 'Euclidean')
+        :param cat1:        A catalog or list of catalogs for the N field.
+        :param cat2:        A catalog or list of catalogs for the K field.
+        :param metric:      Which metric to use for distance measurements.  Options are:
+                            - 'Euclidean' = straight line Euclidean distance between two points.
+                              For spherical coordinates (ra,dec without r), this is the chord
+                              distance between points on the unit sphere.
+                            - 'Rperp' = the perpendicular component of the distance. For two points
+                              with distance from Earth r1,r2, if d is the normal Euclidean distance
+                              and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
+                            (default: 'Euclidean')
         :param num_threads: How many OpenMP threads to use during the calculation.  
-                        (default: None, which means to first check for a num_threads parameter
-                        in self.config, then default to querying the number of cpu cores and 
-                        try to use that many threads.)  Note that this won't work if the system's
-                        C compiler is clang, such as on MacOS systems.
+                            (default: use the number of cpu cores; this value can also be given in
+                            the constructor in the config dict.) Note that this won't work if the 
+                            system's C compiler is clang prior to version 3.7.
         """
         import math
         self.clear()
@@ -361,6 +358,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
                             (default: None)
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
+        :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
+                            this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing NK correlations to %s',file_name)
 

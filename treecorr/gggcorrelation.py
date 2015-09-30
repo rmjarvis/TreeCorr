@@ -244,14 +244,13 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         calling this function as often as desired, the finalize() command will
         finish the calculation of meand1, meanlogd1, etc.
 
-        :param cat:     The catalog to process
-        :param metric:  Which metric to use.  See the doc string for :process: for details.
-                        (default: 'Euclidean')
+        :param cat:         The catalog to process
+        :param metric:      Which metric to use.  See the doc string for :process: for details.
+                            (default: 'Euclidean')
         :param num_threads: How many OpenMP threads to use during the calculation.  
-                        (default: None, which means to first check for a num_threads parameter
-                        in self.config, then default to querying the number of cpu cores and 
-                        try to use that many threads.)  Note that this won't work if the system's
-                        C compiler is clang, such as on MacOS systems.
+                            (default: use the number of cpu cores; this value can also be given in
+                            the constructor in the config dict.) Note that this won't work if the 
+                            system's C compiler is clang prior to version 3.7.
         """
         if cat.name == '':
             self.logger.info('Starting process GGG auto-correlations')

@@ -7,9 +7,8 @@ y_col = 2
 x_units = arcmin
 y_units = arcmin
 
-w_col = 3
-g1_col = 4
-g2_col = 5
+g1_col = 3
+g2_col = 4
 
 verbose = 2
 

@@ -35,42 +35,53 @@ double CalculateSizeSq(
 template <int DC, int M>
 void BuildCellData(
     const std::vector<CellData<DC,M>*>& vdata, size_t start, size_t end,
-    Position<M>& pos, float& w)
+    Position<M>& pos, float& w, long& n)
 {
     Assert(start < end);
     // Note: starting with the first element makes sure that for M=Sphere, the 
     // final pos will have the right value if _is3d.
-    pos = vdata[start]->getPos();
+    double wp = vdata[start]->getWPos();
+    pos = vdata[start]->getPos() * wp;
     w = vdata[start]->getW();
+    n = (w != 0);
+    double sumwp = wp;
     for(size_t i=start+1; i!=end; ++i) {
         const CellData<DC,M>& data = *vdata[i];
-        pos += data.getPos();
+        pos += data.getPos() * wp;
+        sumwp += wp;
         w += data.getW();
+        if (data.getW() != 0.) ++n;
     }
-    Assert(w != 0);
-    pos /= w;
-    // If M == Sphere, the average position is no longer on the surface of the unit sphere.
-    // Divide by the new r.  (This is a null op if M == Flat or _pos is a 3D position.)
-    pos.normalize();
+    if (sumwp > 0.) {
+        pos /= sumwp;
+        // If M == Sphere, the average position is no longer on the surface of the unit sphere.
+        // Divide by the new r.  (This is a null op if M == Flat or _pos is a 3D position.)
+        pos.normalize();
+    } else {
+        // Make sure we don't have an invalid position, even if all wpos == 0.
+        pos = vdata[start]->getPos();
+        // But in this case, we should have w == 0 too!
+        Assert(w == 0.)
+    }
 }
 
 template <int M>
 CellData<NData,M>::CellData(
     const std::vector<CellData<NData,M>*>& vdata, size_t start, size_t end) :
-    _w(0.), _n(end-start)
-{ BuildCellData(vdata,start,end,_pos,_w); }
+    _w(0.), _n(0)
+{ BuildCellData(vdata,start,end,_pos,_w,_n); }
 
 template <int M>
 CellData<KData,M>::CellData(
     const std::vector<CellData<KData,M>*>& vdata, size_t start, size_t end) :
-    _wk(0.), _w(0.), _n(end-start)
-{ BuildCellData(vdata,start,end,_pos,_w); }
+    _wk(0.), _w(0.), _n(0)
+{ BuildCellData(vdata,start,end,_pos,_w,_n); }
 
 template <int M>
 CellData<GData,M>::CellData(
     const std::vector<CellData<GData,M>*>& vdata, size_t start, size_t end) :
-    _wg(0.), _w(0.), _n(end-start)
-{ BuildCellData(vdata,start,end,_pos,_w); }
+    _wg(0.), _w(0.), _n(0)
+{ BuildCellData(vdata,start,end,_pos,_w,_n); }
 
 template <int M>
 void CellData<KData,M>::finishAverages(

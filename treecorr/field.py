@@ -34,13 +34,19 @@ cdouble_ptr = ctypes.POINTER(cdouble)
 # Define the restypes and argtypes for the C functions:
 _treecorr.BuildNFieldFlat.restype = cvoid_ptr
 _treecorr.BuildNFieldFlat.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
+    cdouble_ptr, cdouble_ptr, 
+    cdouble_ptr, cdouble_ptr, clong, 
+    cdouble, cdouble, cdouble, cint, cint ]
 _treecorr.BuildNField3D.restype = cvoid_ptr
 _treecorr.BuildNField3D.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint, cint ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, clong,
+    cdouble, cdouble, cdouble, cint, cint, cint ]
 _treecorr.BuildNFieldPerp.restype = cvoid_ptr
 _treecorr.BuildNFieldPerp.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, clong,
+    cdouble, cdouble, cdouble, cint, cint ]
 
 _treecorr.DestroyNFieldFlat.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyNField3D.argtypes = [ cvoid_ptr ]
@@ -48,13 +54,19 @@ _treecorr.DestroyNFieldPerp.argtypes = [ cvoid_ptr ]
 
 _treecorr.BuildKFieldFlat.restype = cvoid_ptr
 _treecorr.BuildKFieldFlat.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, 
+    cdouble_ptr, cdouble_ptr, clong, 
+    cdouble, cdouble, cdouble, cint, cint ]
 _treecorr.BuildKField3D.restype = cvoid_ptr
 _treecorr.BuildKField3D.argtypes = [
-    cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint, cint ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, clong,
+    cdouble, cdouble, cdouble, cint, cint, cint ]
 _treecorr.BuildKFieldPerp.restype = cvoid_ptr
 _treecorr.BuildKFieldPerp.argtypes = [
-    cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, clong, cdouble, cdouble, cdouble, cint, cint ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, clong, 
+    cdouble, cdouble, cdouble, cint, cint ]
 
 _treecorr.DestroyKFieldFlat.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyKField3D.argtypes = [ cvoid_ptr ]
@@ -62,27 +74,36 @@ _treecorr.DestroyKFieldPerp.argtypes = [ cvoid_ptr ]
 
 _treecorr.BuildGFieldFlat.restype = cvoid_ptr
 _treecorr.BuildGFieldFlat.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
-    clong, cdouble, cdouble, cdouble, cint ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, clong, 
+    cdouble, cdouble, cdouble, cint, cint ]
 _treecorr.BuildGField3D.restype = cvoid_ptr
 _treecorr.BuildGField3D.argtypes = [
-    cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, cdouble_ptr,
-    clong, cdouble, cdouble, cdouble, cint, cint, cint ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, clong, 
+    cdouble, cdouble, cdouble, cint, cint, cint ]
 _treecorr.BuildGFieldPerp.restype = cvoid_ptr
 _treecorr.BuildGFieldPerp.argtypes = [
-    cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr, cdouble_ptr,
-    clong, cdouble, cdouble, cdouble, cint, cint ]
+    cdouble_ptr, cdouble_ptr,cdouble_ptr,  cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, clong, 
+    cdouble, cdouble, cdouble, cint, cint ]
 
 _treecorr.DestroyGFieldFlat.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyGField3D.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyGFieldPerp.argtypes = [ cvoid_ptr ]
 
 _treecorr.BuildNSimpleFieldFlat.restype = cvoid_ptr
-_treecorr.BuildNSimpleFieldFlat.argtypes = [ cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+_treecorr.BuildNSimpleFieldFlat.argtypes = [ 
+    cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, clong ]
 _treecorr.BuildNSimpleField3D.restype = cvoid_ptr
-_treecorr.BuildNSimpleField3D.argtypes = [ cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+_treecorr.BuildNSimpleField3D.argtypes = [ 
+    cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, clong ]
 _treecorr.BuildNSimpleFieldPerp.restype = cvoid_ptr
-_treecorr.BuildNSimpleFieldPerp.argtypes = [ cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+_treecorr.BuildNSimpleFieldPerp.argtypes = [
+    cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, clong ]
 
 _treecorr.DestroyNSimpleFieldFlat.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyNSimpleField3D.argtypes = [ cvoid_ptr ]
@@ -90,13 +111,16 @@ _treecorr.DestroyNSimpleFieldPerp.argtypes = [ cvoid_ptr ]
 
 _treecorr.BuildKSimpleFieldFlat.restype = cvoid_ptr
 _treecorr.BuildKSimpleFieldFlat.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, clong ]
 _treecorr.BuildKSimpleField3D.restype = cvoid_ptr
 _treecorr.BuildKSimpleField3D.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, clong ]
 _treecorr.BuildKSimpleFieldPerp.restype = cvoid_ptr
 _treecorr.BuildKSimpleFieldPerp.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, clong ]
 
 _treecorr.DestroyKSimpleFieldFlat.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyKSimpleField3D.argtypes = [ cvoid_ptr ]
@@ -104,13 +128,16 @@ _treecorr.DestroyKSimpleFieldPerp.argtypes = [ cvoid_ptr ]
 
 _treecorr.BuildGSimpleFieldFlat.restype = cvoid_ptr
 _treecorr.BuildGSimpleFieldFlat.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, clong ]
 _treecorr.BuildGSimpleField3D.restype = cvoid_ptr
 _treecorr.BuildGSimpleField3D.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, clong ]
 _treecorr.BuildGSimpleFieldPerp.restype = cvoid_ptr
 _treecorr.BuildGSimpleFieldPerp.argtypes = [
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, clong ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, 
+    cdouble_ptr, cdouble_ptr, clong ]
 
 _treecorr.DestroyGSimpleFieldFlat.argtypes = [ cvoid_ptr ]
 _treecorr.DestroyGSimpleField3D.argtypes = [ cvoid_ptr ]
@@ -188,13 +215,14 @@ class NField(object):
         self.metric = metric
 
         w = cat.w.ctypes.data_as(cdouble_ptr)
+        wpos = cat.wpos.ctypes.data_as(cdouble_ptr)
         sm = _parse_split_method(split_method)
 
         if cat.coords == 'flat':
             self.flat = True
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildNFieldFlat(x,y,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
+            self.data = _treecorr.BuildNFieldFlat(x,y,w,wpos,cat.nobj,min_sep,max_sep,b,sm,max_top)
             if logger:
                 logger.debug('Finished building NField 2D')
         else:
@@ -207,15 +235,17 @@ class NField(object):
             else:
                 spher = 0
             if self.metric == 'Rperp':
-                # Go a bit smller than min_sep for Rperp metric, since the simple calculation of what 
-                # minimum size to use isn't exactly accurate in this case.
+                # Go a bit smller than min_sep for Rperp metric, since the simple calculation of
+                # what minimum size to use isn't exactly accurate in this case.
                 min_sep /= 2.
-                self.data = _treecorr.BuildNFieldPerp(x,y,z,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
+                self.data = _treecorr.BuildNFieldPerp(x,y,z,w,wpos,cat.nobj,min_sep,max_sep,b,
+                                                      sm,max_top)
                 self.perp = True
                 if logger:
                     logger.debug('Finished building NField Perp')
             else:
-                self.data = _treecorr.BuildNField3D(x,y,z,w,cat.nobj,min_sep,max_sep,b,sm,max_top,spher)
+                self.data = _treecorr.BuildNField3D(x,y,z,w,wpos,cat.nobj,min_sep,max_sep,b,
+                                                    sm,max_top,spher)
                 self.perp = False
                 if logger:
                     logger.debug('Finished building NField 3D')
@@ -291,13 +321,15 @@ class KField(object):
 
         k = cat.k.ctypes.data_as(cdouble_ptr)
         w = cat.w.ctypes.data_as(cdouble_ptr)
+        wpos = cat.wpos.ctypes.data_as(cdouble_ptr)
         sm = _parse_split_method(split_method)
 
         if cat.coords == 'flat':
             self.flat = True
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildKFieldFlat(x,y,k,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
+            self.data = _treecorr.BuildKFieldFlat(x,y,k,w,wpos,cat.nobj,min_sep,max_sep,b,
+                                                  sm,max_top)
             if logger:
                 logger.debug('Finished building KField Flat')
         else:
@@ -310,15 +342,17 @@ class KField(object):
             else:
                 spher = 0
             if self.metric == 'Rperp':
-                # Go a bit smller than min_sep for Rperp metric, since the simple calculation of what 
-                # minimum size to use isn't exactly accurate in this case.
+                # Go a bit smller than min_sep for Rperp metric, since the simple calculation of
+                # what minimum size to use isn't exactly accurate in this case.
                 min_sep /= 2.
-                self.data = _treecorr.BuildKFieldPerp(x,y,z,k,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
+                self.data = _treecorr.BuildKFieldPerp(x,y,z,k,w,wpos,cat.nobj,min_sep,max_sep,b,
+                                                      sm,max_top)
                 self.perp = True
                 if logger:
                     logger.debug('Finished building KField Perp')
             else:
-                self.data = _treecorr.BuildKField3D(x,y,z,k,w,cat.nobj,min_sep,max_sep,b,sm,max_top,spher)
+                self.data = _treecorr.BuildKField3D(x,y,z,k,w,wpos,cat.nobj,min_sep,max_sep,b,
+                                                    sm,max_top,spher)
                 self.perp = False
                 if logger:
                     logger.debug('Finished building KField 3D')
@@ -397,13 +431,15 @@ class GField(object):
         g1 = cat.g1.ctypes.data_as(cdouble_ptr)
         g2 = cat.g2.ctypes.data_as(cdouble_ptr)
         w = cat.w.ctypes.data_as(cdouble_ptr)
+        wpos = cat.wpos.ctypes.data_as(cdouble_ptr)
         sm = _parse_split_method(split_method)
 
         if cat.coords == 'flat':
             self.flat = True
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildGFieldFlat(x,y,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
+            self.data = _treecorr.BuildGFieldFlat(x,y,g1,g2,w,wpos,cat.nobj,min_sep,max_sep,b,
+                                                  sm,max_top)
             if logger:
                 logger.debug('Finished building GField Flat')
         else: 
@@ -416,15 +452,17 @@ class GField(object):
             else:
                 spher = 0
             if self.metric == 'Rperp':
-                # Go a bit smller than min_sep for Rperp metric, since the simple calculation of what 
-                # minimum size to use isn't exactly accurate in this case.
+                # Go a bit smller than min_sep for Rperp metric, since the simple calculation of
+                # what minimum size to use isn't exactly accurate in this case.
                 min_sep /= 2.
-                self.data = _treecorr.BuildGFieldPerp(x,y,z,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm,max_top)
+                self.data = _treecorr.BuildGFieldPerp(x,y,z,g1,g2,w,wpos,cat.nobj,min_sep,max_sep,b,
+                                                      sm,max_top)
                 self.perp = True
                 if logger:
                     logger.debug('Finished building GField Perp')
             else:
-                self.data = _treecorr.BuildGField3D(x,y,z,g1,g2,w,cat.nobj,min_sep,max_sep,b,sm,max_top,spher)
+                self.data = _treecorr.BuildGField3D(x,y,z,g1,g2,w,wpos,cat.nobj,min_sep,max_sep,b,
+                                                    sm,max_top,spher)
                 self.perp = False
                 if logger:
                     logger.debug('Finished building GField 3D')
@@ -484,6 +522,7 @@ class NSimpleField(object):
             raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         w = cat.w.ctypes.data_as(cdouble_ptr)
+        wpos = cat.wpos.ctypes.data_as(cdouble_ptr)
 
         self.metric = metric
 
@@ -491,7 +530,7 @@ class NSimpleField(object):
             self.flat = True
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildNSimpleFieldFlat(x,y,w,cat.nobj)
+            self.data = _treecorr.BuildNSimpleFieldFlat(x,y,w,wpos,cat.nobj)
             if logger:
                 logger.debug('Finished building NSimpleField Flat')
         else:
@@ -504,12 +543,12 @@ class NSimpleField(object):
             else:
                 spher = 0
             if self.metric == 'Rperp':
-                self.data = _treecorr.BuildNSimpleFieldPerp(x,y,z,w,cat.nobj)
+                self.data = _treecorr.BuildNSimpleFieldPerp(x,y,z,w,wpos,cat.nobj)
                 self.perp = True
                 if logger:
                     logger.debug('Finished building NSimpleField Perp')
             else:
-                self.data = _treecorr.BuildNSimpleField3D(x,y,z,w,cat.nobj,spher)
+                self.data = _treecorr.BuildNSimpleField3D(x,y,z,w,wpos,cat.nobj,spher)
                 self.perp = False
                 if logger:
                     logger.debug('Finished building NSimpleField 3D')
@@ -559,6 +598,7 @@ class KSimpleField(object):
 
         k = cat.k.ctypes.data_as(cdouble_ptr)
         w = cat.w.ctypes.data_as(cdouble_ptr)
+        wpos = cat.wpos.ctypes.data_as(cdouble_ptr)
 
         self.metric = metric
 
@@ -566,7 +606,7 @@ class KSimpleField(object):
             self.flat = True
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildKSimpleFieldFlat(x,y,k,w,cat.nobj)
+            self.data = _treecorr.BuildKSimpleFieldFlat(x,y,k,w,wpos,cat.nobj)
             if logger:
                 logger.debug('Finished building KSimpleField Flat')
         else:
@@ -579,12 +619,12 @@ class KSimpleField(object):
             else:
                 spher = 0
             if self.metric == 'Rperp':
-                self.data = _treecorr.BuildKSimpleFieldPerp(x,y,z,k,w,cat.nobj)
+                self.data = _treecorr.BuildKSimpleFieldPerp(x,y,z,k,w,wpos,cat.nobj)
                 self.perp = True
                 if logger:
                     logger.debug('Finished building KSimpleField Perp')
             else:
-                self.data = _treecorr.BuildKSimpleField3D(x,y,z,k,w,cat.nobj,spher)
+                self.data = _treecorr.BuildKSimpleField3D(x,y,z,k,w,wpos,cat.nobj,spher)
                 self.perp = False
                 if logger:
                     logger.debug('Finished building KSimpleField 3D')
@@ -635,6 +675,7 @@ class GSimpleField(object):
         g1 = cat.g1.ctypes.data_as(cdouble_ptr)
         g2 = cat.g2.ctypes.data_as(cdouble_ptr)
         w = cat.w.ctypes.data_as(cdouble_ptr)
+        wpos = cat.wpos.ctypes.data_as(cdouble_ptr)
 
         self.metric = metric
 
@@ -642,7 +683,7 @@ class GSimpleField(object):
             self.flat = True
             x = cat.x.ctypes.data_as(cdouble_ptr)
             y = cat.y.ctypes.data_as(cdouble_ptr)
-            self.data = _treecorr.BuildGSimpleFieldFlat(x,y,g1,g2,w,cat.nobj)
+            self.data = _treecorr.BuildGSimpleFieldFlat(x,y,g1,g2,w,wpos,cat.nobj)
             if logger:
                 logger.debug('Finished building GSimpleField Flat')
         else:
@@ -655,12 +696,12 @@ class GSimpleField(object):
             else:
                 spher = 0
             if self.metric == 'Rperp':
-                self.data = _treecorr.BuildGSimpleFieldPerp(x,y,z,g1,g2,w,cat.nobj)
+                self.data = _treecorr.BuildGSimpleFieldPerp(x,y,z,g1,g2,w,wpos,cat.nobj)
                 self.perp = True
                 if logger:
                     logger.debug('Finished building GSimpleField Perp')
             else:
-                self.data = _treecorr.BuildGSimpleField3D(x,y,z,g1,g2,w,cat.nobj,spher)
+                self.data = _treecorr.BuildGSimpleField3D(x,y,z,g1,g2,w,wpos,cat.nobj,spher)
                 self.perp = False
                 if logger:
                     logger.debug('Finished building GSimpleField 3D')

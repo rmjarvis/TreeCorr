@@ -224,7 +224,9 @@ def test_fits():
     config['last_row'] = 50000
     cat3 = treecorr.Catalog(file_name, config)
     numpy.testing.assert_equal(len(cat3.x), 49900)
-    numpy.testing.assert_equal(cat3.nobj, sum(cat3.w != 0))
+    numpy.testing.assert_equal(cat3.nobj, 49900)
+    numpy.testing.assert_equal(cat3.sumw, sum(cat3.w))
+    numpy.testing.assert_equal(cat3.sumw, sum(cat2.w[100:50000]))
     numpy.testing.assert_almost_equal(cat3.g1[46292], 0.0005066675)
     numpy.testing.assert_almost_equal(cat3.g2[46292], -0.0001006742)
     numpy.testing.assert_almost_equal(cat3.k[46292], -0.0008628797)

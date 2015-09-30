@@ -22,9 +22,10 @@ template <int DC, int M>
 class Field
 {
 public:
-    Field(double* x, double* y, double* z, double* g1, double* g2, double* k, double* w,
-          long nobj, double minsep, double maxsep, double b, int sm_int, int maxtop,
-          bool spher=false);
+    Field(double* x, double* y, double* z, double* g1, double* g2, double* k, 
+          double* w, double* wpos, long nobj,
+          double minsep, double maxsep, double b,
+          int sm_int, int maxtop, bool spher=false);
     ~Field();
 
     long getNObj() const { return _nobj; }
@@ -47,8 +48,8 @@ template <int DC, int M>
 class SimpleField
 {
 public:
-    SimpleField(double* x, double* y, double* z, double* g1, double* g2, double* k, double* w,
-                long nobj, bool spher=false);
+    SimpleField(double* x, double* y, double* z, double* g1, double* g2, double* k,
+                double* w, double* wpos, long nobj, bool spher=false);
     ~SimpleField();
 
     long getNObj() const { return long(_cells.size()); }
@@ -61,37 +62,44 @@ private:
 // The C interface for python
 extern "C" {
 
-    extern void* BuildGFieldFlat(double* x, double* y, double* g1, double* g2, double* w,
-                                 long nobj, double minsep, double maxsep, double b, int sm_int,
-                                 int maxtop);
-    extern void* BuildGField3D(double* x, double* y, double* z,
-                               double* g1, double* g2, double* w,
-                               long nobj, double minsep, double maxsep, double b, int sm_int,
-                               int maxtop, int spher);
-    extern void* BuildGFieldPerp(double* x, double* y, double* z,
-                                 double* g1, double* g2, double* w,
-                                 long nobj, double minsep, double maxsep, double b, int sm_int,
-                                 int maxtop);
+    extern void* BuildGFieldFlat(double* x, double* y, double* g1, double* g2, 
+                                 double* w, double* wpos, long nobj,
+                                 double minsep, double maxsep, double b,
+                                 int sm_int, int maxtop);
+    extern void* BuildGField3D(double* x, double* y, double* z, double* g1, double* g2,
+                               double* w, double* wpos, long nobj,
+                               double minsep, double maxsep, double b,
+                               int sm_int, int maxtop, int spher);
+    extern void* BuildGFieldPerp(double* x, double* y, double* z, double* g1, double* g2,
+                                 double* w, double* wpos, long nobj,
+                                 double minsep, double maxsep, double b,
+                                 int sm_int, int maxtop);
 
-    extern void* BuildKFieldFlat(double* x, double* y, double* k, double* w,
-                                 long nobj, double minsep, double maxsep, double b, int sm_int,
-                                 int maxtop);
-    extern void* BuildKField3D(double* x, double* y, double* z, double* k, double* w,
-                               long nobj, double minsep, double maxsep, double b, int sm_int,
-                               int maxtop, int spher);
-    extern void* BuildKFieldPerp(double* x, double* y, double* z, double* k, double* w,
-                                 long nobj, double minsep, double maxsep, double b, int sm_int,
-                                 int maxtop);
+    extern void* BuildKFieldFlat(double* x, double* y, double* k,
+                                 double* w, double* wpos, long nobj,
+                                 double minsep, double maxsep, double b,
+                                 int sm_int, int maxtop);
+    extern void* BuildKField3D(double* x, double* y, double* z, double* k, 
+                               double* w, double* wpos, long nobj,
+                               double minsep, double maxsep, double b,
+                               int sm_int, int maxtop, int spher);
+    extern void* BuildKFieldPerp(double* x, double* y, double* z, double* k, 
+                                 double* w, double* wpos, long nobj,
+                                 double minsep, double maxsep, double b,
+                                 int sm_int, int maxtop);
 
-    extern void* BuildNFieldFlat(double* x, double* y, double* w,
-                                 long nobj, double minsep, double maxsep, double b, int sm_int,
-                                 int maxtop);
-    extern void* BuildNField3D(double* x, double* y, double* z, double* w,
-                               long nobj, double minsep, double maxsep, double b, int sm_int,
-                               int maxtop, int spher);
-    extern void* BuildNFieldPerp(double* x, double* y, double* z, double* w,
-                                 long nobj, double minsep, double maxsep, double b, int sm_int,
-                                 int maxtop);
+    extern void* BuildNFieldFlat(double* x, double* y,
+                                 double* w, double* wpos, long nobj,
+                                 double minsep, double maxsep, double b,
+                                 int sm_int, int maxtop);
+    extern void* BuildNField3D(double* x, double* y, double* z, 
+                               double* w, double* wpos, long nobj,
+                               double minsep, double maxsep, double b,
+                               int sm_int, int maxtop, int spher);
+    extern void* BuildNFieldPerp(double* x, double* y, double* z, 
+                                 double* w, double* wpos, long nobj,
+                                 double minsep, double maxsep, double b,
+                                 int sm_int, int maxtop);
 
     extern void DestroyGFieldFlat(void* field);
     extern void DestroyGField3D(void* field);
@@ -106,24 +114,26 @@ extern "C" {
     extern void DestroyNFieldPerp(void* field);
 
 
-    extern void* BuildGSimpleFieldFlat(double* x, double* y,
-                                       double* g1, double* g2, double* w, long nobj);
-    extern void* BuildGSimpleField3D(double* x, double* y, double* z,
-                                     double* g1, double* g2, double* w, long nobj, int spher);
-    extern void* BuildGSimpleFieldPerp(double* x, double* y, double* z,
-                                       double* g1, double* g2, double* w, long nobj);
+    extern void* BuildGSimpleFieldFlat(double* x, double* y, double* g1, double* g2,
+                                       double* w, double* wpos, long nobj);
+    extern void* BuildGSimpleField3D(double* x, double* y, double* z, double* g1, double* g2,
+                                     double* w, double* wpos, long nobj, int spher);
+    extern void* BuildGSimpleFieldPerp(double* x, double* y, double* z, double* g1, double* g2,
+                                       double* w, double* wpos, long nobj);
 
-    extern void* BuildKSimpleFieldFlat(double* x, double* y,
-                                       double* k, double* w, long nobj);
-    extern void* BuildKSimpleField3D(double* x, double* y, double* z,
-                                     double* k, double* w, long nobj, int spher);
-    extern void* BuildKSimpleFieldPerp(double* x, double* y, double* z,
-                                       double* k, double* w, long nobj);
+    extern void* BuildKSimpleFieldFlat(double* x, double* y, double* k,
+                                       double* w, double* wpos, long nobj);
+    extern void* BuildKSimpleField3D(double* x, double* y, double* z, double* k,
+                                     double* w, double* wpos, long nobj, int spher);
+    extern void* BuildKSimpleFieldPerp(double* x, double* y, double* z, double* k,
+                                       double* w, double* wpos, long nobj);
 
-    extern void* BuildNSimpleFieldFlat(double* x, double* y, double* w, long nobj);
+    extern void* BuildNSimpleFieldFlat(double* x, double* y,
+                                       double* w, double* wpos, long nobj);
     extern void* BuildNSimpleField3D(double* x, double* y, double* z,
-                                     double* w, long nobj, int spher);
-    extern void* BuildNSimpleFieldPerp(double* x, double* y, double* z, double* w, long nobj);
+                                     double* w, double* wpos, long nobj, int spher);
+    extern void* BuildNSimpleFieldPerp(double* x, double* y, double* z,
+                                       double* w, double* wpos, long nobj);
 
     extern void DestroyGSimpleFieldFlat(void* field);
     extern void DestroyGSimpleField3D(void* field);

@@ -7,9 +7,8 @@ dec_col = 2
 ra_units = rad
 dec_units = rad
 
-w_col = 3
-g1_col = 4
-g2_col = 5
+g1_col = 3
+g2_col = 4
 
 verbose = 2
 

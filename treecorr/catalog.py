@@ -72,6 +72,8 @@ class Catalog(object):
         :dec:    The declination, if defined, as a numpy array. (None otherwise)
         :r:      The distance, if defined, as a numpy array. (None otherwise)
         :w:      The weights, as a numpy array. (All 1's if no weight column provided.)
+        :wpos:   The weights for position centroiding, as a numpy array.  (All 1's if neither
+                 weight column provided.)
         :g1:     The g1 component of the shear, if defined, as a numpy array. (None otherwise)
         :g2:     The g2 component of the shear, if defined, as a numpy array. (None otherwise)
         :k:      The convergence, kappa, if defined, as a numpy array. (None otherwise)
@@ -121,6 +123,8 @@ class Catalog(object):
     :param r:           The r values (the distances of each source from Earth). Note that r is
                         invalid in conjunction with x,y. (default: None)
     :param w:           The weight values. (default: None)
+    :param wpos:        The weight values for position centroiding. (default: None, which means
+                        to use the value weights, w, to weight the positions as well)
     :param flag:        The flag values.  Rows with flag != 0 (or flag & ~okflag != 0) will be
                         given a weight of 0. (default: None)
     :param g1:          The g1 values. (g1,g2 may represent any spinor field.) (default: None)
@@ -192,6 +196,9 @@ class Catalog(object):
     :param w_col:       The column to use for the weight values. This should be an integer for
                         ASCII files or a string for FITS files. (default: 0 or '0', which means not
                         to read in this column.)
+    :param wpos_col:    The column to use for the position weight values. This should be an integer
+                        for ASCII files or a string for FITS files. (default: 0 or '0', which 
+                        means not to read in this column.)
     :param flag_col:    The column to use for the flag values. This should be an integer for ASCII
                         files or a string for FITS files. Any row with flag != 0 (or technically
                         flag & ~ok_flag != 0) will be given a weight of 0. (default: 0 or '0',
@@ -212,6 +219,7 @@ class Catalog(object):
     :param g2_hdu:      Which hdu to use for the g2 values. (default: hdu)
     :param k_hdu:       Which hdu to use for the k values. (default: hdu)
     :param w_hdu:       Which hdu to use for the w values. (default: hdu)
+    :param wpos_hdu:    Which hdu to use for the wpos values. (default: hdu)
     :param flag_hdu:    Which hdu to use for the flag values. (default: hdu)
     :param verbose:     If no logger is provided, this will optionally specify a logging level to
                         use.
@@ -273,6 +281,8 @@ class Catalog(object):
                 'Which column to use for kappa. Should be an integer for ASCII catalogs. '),
         'w_col' : (str, True, '0', None,
                 'Which column to use for weight. Should be an integer for ASCII catalogs.'),
+        'wpos_col' : (str, True, '0', None,
+                'Which column to use for position weight. Should be an integer for ASCII catalogs.'),
         'flag_col' : (str, True, '0', None,
                 'Which column to use for flag. Should be an integer for ASCII catalogs.'),
         'ignore_flag': (int, True, None, None,
@@ -301,6 +311,8 @@ class Catalog(object):
                 'Which HDU to use for the k_col. default is the global hdu value.'),
         'w_hdu': (int, True, None, None,
                 'Which HDU to use for the w_col. default is the global hdu value.'),
+        'wpos_hdu': (int, True, None, None,
+                'Which HDU to use for the wpos_col. default is the global hdu value.'),
         'flag_hdu': (int, True, None, None,
                 'Which HDU to use for the flag_col. default is the global hdu value.'),
         'flip_g1' : (bool, True, False, None,
@@ -317,10 +329,14 @@ class Catalog(object):
                 'The number of digits after the decimal in the output.'),
     }
     def __init__(self, file_name=None, config=None, num=0, logger=None, is_rand=False,
-                 x=None, y=None, z=None, ra=None, dec=None, r=None, w=None, flag=None,
+                 x=None, y=None, z=None, ra=None, dec=None, r=None, w=None, wpos=None, flag=None,
                  g1=None, g2=None, k=None, **kwargs):
 
         self.config = treecorr.config.merge_config(config,kwargs,Catalog._valid_params)
+        self.orig_config = config
+        if config and kwargs: 
+            self.orig_config.update(kwargs)
+
         if logger is not None:
             self.logger = logger
         else:
@@ -336,6 +352,7 @@ class Catalog(object):
         self.dec = None
         self.r = None
         self.w = None
+        self.wpos = None
         self.flag = None
         self.g1 = None
         self.g2 = None
@@ -397,6 +414,7 @@ class Catalog(object):
             self.dec = self.makeArray(dec,'dec')
             self.r = self.makeArray(r,'r')
             self.w = self.makeArray(w,'w')
+            self.wpos = self.makeArray(wpos,'wpos')
             self.flag = self.makeArray(flag,'flag',int)
             self.g1 = self.makeArray(g1,'g1')
             self.g2 = self.makeArray(g2,'g2')
@@ -474,6 +492,7 @@ class Catalog(object):
         if self.dec is not None: self.dec = self.dec[start:end]
         if self.r is not None: self.r = self.r[start:end]
         if self.w is not None: self.w = self.w[start:end]
+        if self.wpos is not None: self.wpos = self.wpos[start:end]
         if self.g1 is not None: self.g1 = self.g1[start:end]
         if self.g2 is not None: self.g2 = self.g2[start:end]
         if self.k is not None: self.k = self.k[start:end]
@@ -495,6 +514,8 @@ class Catalog(object):
             raise ValueError("r has the wrong numbers of elements")
         if self.w is not None and len(self.w) != nobj:
             raise ValueError("w has the wrong numbers of elements")
+        if self.wpos is not None and len(self.wpos) != nobj:
+            raise ValueError("wpos has the wrong numbers of elements")
         if self.g1 is not None and len(self.g1) != nobj:
             raise ValueError("g1 has the wrong numbers of elements")
         if self.g2 is not None and len(self.g1) != nobj:
@@ -513,10 +534,13 @@ class Catalog(object):
         self.checkForNaN(self.g2,'g2')
         self.checkForNaN(self.k,'k')
         self.checkForNaN(self.w,'w')
+        self.checkForNaN(self.wpos,'wpos')
 
         # Calculate some summary parameters here that will typically be needed
         if self.w is not None:
-            self.nobj = numpy.sum(self.w != 0)
+            self.nontrivial_w = True
+            #self.nobj = numpy.sum(self.w != 0)
+            self.nobj = nobj
             self.sumw = numpy.sum(self.w)
             if self.sumw == 0.:
                 raise RuntimeError("Catalog has invalid sumw == 0")
@@ -532,6 +556,7 @@ class Catalog(object):
             else:
                 self.vark = 0.
         else:
+            self.nontrivial_w = False
             self.nobj = nobj # From above.
             self.sumw = nobj
             if self.g1 is not None:
@@ -543,6 +568,25 @@ class Catalog(object):
             else:
                 self.vark = 0.
             self.w = numpy.ones( (self.nobj) )
+
+        # Copy w to wpos if necessary (Do this after checkForNaN's, since this may set some
+        # entries to have w=0.)
+        if self.wpos is None:
+            self.nontrivial_wpos = False
+            self.wpos = self.w
+            self.logger.debug('Using w for wpos')
+        else:
+            self.nontrivial_wpos = True
+            # Also check that any wpos == 0 points also have w == 0
+            if numpy.any(self.wpos == 0.):
+                if self.nontrivial_w:
+                    if numpy.any(self.w[self.wpos == 0.] != 0.):
+                        self.logger.error('Some wpos values = 0 but have w!=0. This is invalid.\n',
+                                          'Setting w=0 for these points.')
+                        self.w[self.wpos == 0.] = 0.
+                else:
+                    self.logger.warn('Some wpos values are zero, setting w=0 for these points.')
+                    self.w[self.wpos == 0.] = 0.
 
         if self.ra is not None:
             # Should have already been checked above, so just use assert here.
@@ -654,6 +698,7 @@ class Catalog(object):
         dec_col = treecorr.config.get_from_list(self.config,'dec_col',num,int,0)
         r_col = treecorr.config.get_from_list(self.config,'r_col',num,int,0)
         w_col = treecorr.config.get_from_list(self.config,'w_col',num,int,0)
+        wpos_col = treecorr.config.get_from_list(self.config,'wpos_col',num,int,0)
         flag_col = treecorr.config.get_from_list(self.config,'flag_col',num,int,0)
         g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,int,0)
         g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,int,0)
@@ -705,6 +750,13 @@ class Catalog(object):
             self.w = data[:,w_col-1].astype(float)
             self.logger.debug('read w = %s',str(self.w))
 
+        # Read wpos
+        if wpos_col != 0:
+            if wpos_col <= 0 or wpos_col > ncols:
+                raise AttributeError("wpos_col is invalid for file %s"%file_name)
+            self.wpos = data[:,wpos_col-1].astype(float)
+            self.logger.debug('read wpos = %s',str(self.wpos))
+
         # Read flag 
         if flag_col != 0:
             if flag_col <= 0 or flag_col > ncols:
@@ -718,7 +770,9 @@ class Catalog(object):
         # Read g1,g2
         if (g1_col != 0 or g2_col != 0):
             if g1_col <= 0 or g1_col > ncols or g2_col <= 0 or g2_col > ncols:
-                if isGColRequired(self.config,num):
+                print('g1_col, g2_col = ',g1_col, g2_col)
+                print('ncols = ',ncols)
+                if isGColRequired(self.orig_config,num):
                     raise AttributeError("g1_col, g2_col are invalid for file %s"%file_name)
                 else:
                     self.logger.warn("Warning: skipping g1_col, g2_col for %s, num=%d",
@@ -733,7 +787,7 @@ class Catalog(object):
         # Read k
         if k_col != 0:
             if k_col <= 0 or k_col > ncols:
-                if isKColRequired(self.config,num):
+                if isKColRequired(self.orig_config,num):
                     raise AttributeError("k_col is invalid for file %s"%file_name)
                 else:
                     self.logger.warn("Warning: skipping k_col for %s, num=%d",file_name,num)
@@ -758,6 +812,7 @@ class Catalog(object):
         dec_col = treecorr.config.get_from_list(self.config,'dec_col',num,str,'0')
         r_col = treecorr.config.get_from_list(self.config,'r_col',num,str,'0')
         w_col = treecorr.config.get_from_list(self.config,'w_col',num,str,'0')
+        wpos_col = treecorr.config.get_from_list(self.config,'wpos_col',num,str,'0')
         flag_col = treecorr.config.get_from_list(self.config,'flag_col',num,str,'0')
         g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,str,'0')
         g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,str,'0')
@@ -786,11 +841,11 @@ class Catalog(object):
             raise AttributeError("No valid position columns specified for file %s"%file_name)
 
         # Check that g1,g2,k cols are valid
-        if g1_col == '0' and isGColRequired(self.config,num):
+        if g1_col == '0' and isGColRequired(self.orig_config,num):
             raise AttributeError("g1_col is missing for file %s"%file_name)
-        if g2_col == '0' and isGColRequired(self.config,num):
+        if g2_col == '0' and isGColRequired(self.orig_config,num):
             raise AttributeError("g2_col is missing for file %s"%file_name)
-        if k_col == '0' and isKColRequired(self.config,num):
+        if k_col == '0' and isKColRequired(self.orig_config,num):
             raise AttributeError("k_col is missing for file %s"%file_name)
 
         if (g1_col != '0' and g2_col == '0') or (g1_col == '0' and g2_col != '0'):
@@ -799,16 +854,16 @@ class Catalog(object):
         # OK, now go ahead and read all the columns.
         try:
             self.read_fitsio(file_name, num, is_rand,
-                             x_col, y_col, z_col, ra_col, dec_col, r_col, w_col, flag_col,
+                             x_col, y_col, z_col, ra_col, dec_col, r_col, w_col, wpos_col, flag_col,
                              g1_col, g2_col, k_col)
         except ImportError:
             self.read_pyfits(file_name, num, is_rand,
-                             x_col, y_col, z_col, ra_col, dec_col, r_col, w_col, flag_col,
+                             x_col, y_col, z_col, ra_col, dec_col, r_col, w_col, wpos_col, flag_col,
                              g1_col, g2_col, k_col)
 
 
     def read_fitsio(self, file_name, num, is_rand,
-                    x_col, y_col, z_col, ra_col, dec_col, r_col, w_col, flag_col,
+                    x_col, y_col, z_col, ra_col, dec_col, r_col, w_col, wpos_col, flag_col,
                     g1_col, g2_col, k_col):
         """Read the catalog from a FITS file using the fitsio package
 
@@ -824,6 +879,7 @@ class Catalog(object):
         :param dec_col:     The name for dec_col
         :param r_col:       The name for r_col
         :param w_col:       The name for w_col
+        :param wpos_col:    The name for wpos_col
         :param flag_col:    The name for flat_col
         :param g1_col:      The name for g1_col
         :param g2_col:      The name for g2_col
@@ -879,6 +935,14 @@ class Catalog(object):
                 self.w = fits[w_hdu].read_column(w_col).astype(float)
                 self.logger.debug('read w = %s',str(self.w))
 
+            # Read wpos
+            if wpos_col != '0':
+                wpos_hdu = treecorr.config.get_from_list(self.config,'wpos_hdu',num,int,hdu)
+                if wpos_col not in fits[wpos_hdu].get_colnames():
+                    raise AttributeError("wpos_col is invalid for file %s"%file_name)
+                self.wpos = fits[wpos_hdu].read_column(wpos_col).astype(float)
+                self.logger.debug('read wpos = %s',str(self.wpos))
+
             # Read flag
             if flag_col != '0':
                 flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
@@ -896,7 +960,7 @@ class Catalog(object):
                 g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
                 if (g1_col not in fits[g1_hdu].get_colnames() or
                     g2_col not in fits[g2_hdu].get_colnames()):
-                    if isGColRequired(self.config,num):
+                    if isGColRequired(self.orig_config,num):
                         raise AttributeError("g1_col, g2_col are invalid for file %s"%file_name)
                     else:
                         self.logger.warn("Warning: skipping g1_col, g2_col for %s, num=%d",
@@ -912,7 +976,7 @@ class Catalog(object):
             if k_col != '0':
                 k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
                 if k_col not in fits[k_hdu].get_colnames():
-                    if isKColRequired(self.config,num):
+                    if isKColRequired(self.orig_config,num):
                         raise AttributeError("k_col is invalid for file %s"%file_name)
                     else:
                         self.logger.warn("Warning: skipping k_col for %s, num=%d",file_name,num)
@@ -923,7 +987,7 @@ class Catalog(object):
 
  
     def read_pyfits(self, file_name, num, is_rand,
-                    x_col, y_col, z_col, ra_col, dec_col, r_col, w_col, flag_col,
+                    x_col, y_col, z_col, ra_col, dec_col, r_col, w_col, wpos_col, flag_col,
                     g1_col, g2_col, k_col):
         """Read the catalog from a FITS file using the pyfits or astropy.io package
 
@@ -939,6 +1003,7 @@ class Catalog(object):
         :param dec_col:     The name for dec_col
         :param r_col:       The name for r_col
         :param w_col:       The name for w_col
+        :param wpos_col:    The name for wpos_col
         :param flag_col:    The name for flat_col
         :param g1_col:      The name for g1_col
         :param g2_col:      The name for g2_col
@@ -997,6 +1062,14 @@ class Catalog(object):
                 self.w = hdu_list[w_hdu].data.field(w_col).astype(float)
                 self.logger.debug('read w = %s',str(self.w))
 
+            # Read wpos
+            if wpos_col != '0':
+                wpos_hdu = treecorr.config.get_from_list(self.config,'wpos_hdu',num,int,hdu)
+                if wpos_col not in hdu_list[wpos_hdu].columns.names:
+                    raise AttributeError("wpos_col is invalid for file %s"%file_name)
+                self.wpos = hdu_list[wpos_hdu].data.field(wpos_col).astype(float)
+                self.logger.debug('read wpos = %s',str(self.wpos))
+
             # Read flag
             if flag_col != '0':
                 flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
@@ -1014,7 +1087,7 @@ class Catalog(object):
                 g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
                 if (g1_col not in hdu_list[g1_hdu].columns.names or
                     g2_col not in hdu_list[g2_hdu].columns.names):
-                    if isGColRequired(self.config,num):
+                    if isGColRequired(self.orig_config,num):
                         raise AttributeError("g1_col, g2_col are invalid for file %s"%file_name)
                     else:
                         self.logger.warn("Warning: skipping g1_col, g2_col for %s, num=%d",
@@ -1030,7 +1103,7 @@ class Catalog(object):
             if k_col != '0':
                 k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
                 if k_col not in hdu_list[k_hdu].columns.names:
-                    if isKColRequired(self.config,num):
+                    if isKColRequired(self.orig_config,num):
                         raise AttributeError("k_col is invalid for file %s"%file_name)
                     else:
                         self.logger.warn("Warning: skipping k_col for %s, num=%d",file_name,num)
@@ -1266,9 +1339,12 @@ class Catalog(object):
             if self.z is not None:
                 col_names.append('z')
                 columns.append(self.z / self.z_units)
-        if self.w is not None:
+        if self.nontrivial_w:
             col_names.append('w')
             columns.append(self.w)
+        if self.nontrivial_wpos:
+            col_names.append('wpos')
+            columns.append(self.wpos)
         if self.g1 is not None:
             col_names.append('g1')
             columns.append(self.g1)
@@ -1297,6 +1373,7 @@ class Catalog(object):
         if self.dec is not None: s += 'dec='+repr(self.dec)+','
         if self.r is not None: s += 'r='+repr(self.r)+','
         if self.w is not None: s += 'w='+repr(self.w)+','
+        if self.wpos is not None: s += 'wpos='+repr(self.wpos)+','
         if self.g1 is not None: s += 'g1='+repr(self.g1)+','
         if self.g2 is not None: s += 'g2='+repr(self.g2)+','
         if self.k is not None: s += 'k='+repr(self.k)+','
@@ -1432,12 +1509,12 @@ def isGColRequired(config, num):
                     False if not.
 
     """
-    return ( 'gg_file_name' in config
-             or 'm2_file_name' in config
-             or 'norm_file_name' in config
-             or (num==1 and 'ng_file_name' in config)
-             or (num==1 and 'nm_file_name' in config)
-             or (num==1 and 'kg_file_name' in config) )
+    return config and ( 'gg_file_name' in config
+                        or 'm2_file_name' in config
+                        or 'norm_file_name' in config
+                        or (num==1 and 'ng_file_name' in config)
+                        or (num==1 and 'nm_file_name' in config)
+                        or (num==1 and 'kg_file_name' in config) )
 
 
 
@@ -1454,8 +1531,8 @@ def isKColRequired(config, num):
                     False if not.
 
     """
-    return ( 'kk_file_name' in config
-             or (num==0 and 'kg_file_name' in config)
-             or (num==1 and 'nk_file_name' in config) )
+    return config and ( 'kk_file_name' in config
+                        or (num==0 and 'kg_file_name' in config)
+                        or (num==1 and 'nk_file_name' in config) )
 
 

@@ -236,7 +236,7 @@ void BinnedCorr2<DC1,DC2>::processPairwise(
             }
             const Cell<DC1,M>& c1 = *field1.getCells()[i];
             const Cell<DC2,M>& c2 = *field2.getCells()[i];
-            const double dsq = DistSq(c1.getData().getPos(),c2.getData().getPos());
+            const double dsq = DistSq(c1.getPos(),c2.getPos());
             if (dsq >= _minsepsq && dsq < _maxsepsq) {
                 bc2.directProcess11(c1,c2,dsq);
             }
@@ -255,6 +255,7 @@ void BinnedCorr2<DC1,DC2>::processPairwise(
 template <int DC1, int DC2> template <int M>
 void BinnedCorr2<DC1,DC2>::process2(const Cell<DC1,M>& c12)
 {
+    if (c12.getW() == 0.) return;
     if (c12.getSize() < _halfminsep) return;
 
     Assert(c12.getLeft());
@@ -267,13 +268,14 @@ void BinnedCorr2<DC1,DC2>::process2(const Cell<DC1,M>& c12)
 template <int DC1, int DC2> template <int M>
 void BinnedCorr2<DC1,DC2>::process11(const Cell<DC1,M>& c1, const Cell<DC2,M>& c2)
 {
-    const double dsq = DistSq(c1.getData().getPos(),c2.getData().getPos());
+    if (c1.getW() == 0. || c2.getW() == 0.) return;
+
+    const double dsq = DistSq(c1.getPos(),c2.getPos());
     const double s1ps2 = c1.getAllSize()+c2.getAllSize();
 
-    
-    if (TooSmallDist(c1.getData().getPos(), c2.getData().getPos(), s1ps2, dsq, _minsep, _minsepsq))
+    if (TooSmallDist(c1.getPos(), c2.getPos(), s1ps2, dsq, _minsep, _minsepsq))
         return;
-    if (TooLargeDist(c1.getData().getPos(), c2.getData().getPos(), s1ps2, dsq, _maxsep, _maxsepsq))
+    if (TooLargeDist(c1.getPos(), c2.getPos(), s1ps2, dsq, _maxsep, _maxsepsq))
         return;
 
     // See if need to split:
@@ -288,9 +290,9 @@ void BinnedCorr2<DC1,DC2>::process11(const Cell<DC1,M>& c1, const Cell<DC2,M>& c
                 std::cerr<<"c1.Size = "<<c1.getSize()<<", c2.Size = "<<c2.getSize()<<std::endl;
                 std::cerr<<"c1.SizeSq = "<<c1.getSizeSq()<<
                     ", c2.SizeSq = "<<c2.getSizeSq()<<std::endl;
-                std::cerr<<"c1.N = "<<c1.getData().getN()<<", c2.N = "<<c2.getData().getN()<<std::endl;
-                std::cerr<<"c1.Pos = "<<c1.getData().getPos();
-                std::cerr<<", c2.Pos = "<<c2.getData().getPos()<<std::endl;
+                std::cerr<<"c1.N = "<<c1.getN()<<", c2.N = "<<c2.getN()<<std::endl;
+                std::cerr<<"c1.Pos = "<<c1.getPos();
+                std::cerr<<", c2.Pos = "<<c2.getPos()<<std::endl;
                 std::cerr<<"dsq = "<<dsq<<", s1ps2 = "<<s1ps2<<std::endl;
             }
             Assert(c1.getLeft());
@@ -342,7 +344,7 @@ struct DirectHelper<NData,KData>
     static void ProcessXi(
         const Cell<NData,M>& c1, const Cell<KData,M>& c2, const double ,
         XiData<NData,KData>& xi, int k)
-    { xi.xi[k] += c1.getData().getW() * c2.getData().getWK(); }
+    { xi.xi[k] += c1.getW() * c2.getData().getWK(); }
 };
  
 template <>
@@ -357,7 +359,7 @@ struct DirectHelper<NData,GData>
         MetricHelper<M>::ProjectShear(c1,c2,dsq,g2);
         // The minus sign here is to make it accumulate tangential shear, rather than radial.
         // g2 from the above ProjectShear is measured along the connecting line, not tangent.
-        g2 *= -c1.getData().getW();
+        g2 *= -c1.getW();
         xi.xi[k] += real(g2);
         xi.xi_im[k] += imag(g2);
 
@@ -428,7 +430,7 @@ struct DirectHelper2
         const double r,  const double logr, const double ,
         double* meanr, double* meanlogr, double* weight, int k)
     {
-        double ww = double(c1.getData().getW()) * double(c2.getData().getW());
+        double ww = double(c1.getW()) * double(c2.getW());
         meanr[k] += ww * r;
         meanlogr[k] += ww * logr;
         weight[k] += ww;
@@ -466,7 +468,7 @@ void BinnedCorr2<DC1,DC2>::directProcess11(
     XAssert(k >= 0); 
     XAssert(k < _nbins);
 
-    double nn = double(c1.getData().getN()) * double(c2.getData().getN());
+    double nn = double(c1.getN()) * double(c2.getN());
     _npairs[k] += nn;
 
     DirectHelper<DC1,DC2>::ProcessXi(c1,c2,dsq,_xi,k);

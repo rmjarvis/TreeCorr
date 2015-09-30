@@ -391,6 +391,8 @@ def test_ng():
 def test_pieces():
     # Test that we can do the calculation in pieces and recombine the results
 
+    import time
+
     ncats = 3
     data_cats = []
 
@@ -422,26 +424,30 @@ def test_pieces():
                                        g1=g1.flatten(), g2=g2.flatten(),
                                        x_units='arcmin', y_units='arcmin')
 
+    t0 = time.time()
     for k in range(ncats):
         # These could each be done on different machines in a real world application.
         ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                     verbose=2)
         # These should use process_cross, not process, since we don't want to call finalize.
         ng.process_cross(lens_cat, source_cats[k])
-        ng.write(os.path.join('output','ng_piece%d.fits'%k))
-
-    full_ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                     verbose=2)
-    full_ng.process(lens_cat, full_source_cat)
+        ng.write(os.path.join('output','ng_piece_%d.fits'%k))
 
     pieces_ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
     for k in range(ncats):
         ng = pieces_ng.copy()
-        ng.read(os.path.join('output','ng_piece%d.fits'%k))
+        ng.read(os.path.join('output','ng_piece_%d.fits'%k))
         pieces_ng += ng
-
     varg = treecorr.calculateVarG(source_cats)
     pieces_ng.finalize(varg)
+    t1 = time.time()
+    print ('time for piece-wise processing (including I/O) = ',t1-t0)
+
+    full_ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+                                     verbose=2)
+    full_ng.process(lens_cat, full_source_cat)
+    t2 = time.time()
+    print ('time for full processing = ',t2-t1)
 
     print('max error in meanr = ',numpy.max(pieces_ng.meanr - full_ng.meanr),)
     print('    max meanr = ',numpy.max(full_ng.meanr))
@@ -458,12 +464,66 @@ def test_pieces():
     print('max error in varxi = ',numpy.max(pieces_ng.varxi - full_ng.varxi),)
     print('    max varxi = ',numpy.max(full_ng.varxi))
     numpy.testing.assert_almost_equal(pieces_ng.meanr, full_ng.meanr, decimal=2)
-    numpy.testing.assert_almost_equal(pieces_ng.meanlogr, full_ng.meanlogr, decimal=4)
+    numpy.testing.assert_almost_equal(pieces_ng.meanlogr, full_ng.meanlogr, decimal=2)
     numpy.testing.assert_almost_equal(pieces_ng.npairs*1.e-5, full_ng.npairs*1.e-5, decimal=2)
     numpy.testing.assert_almost_equal(pieces_ng.weight*1.e-5, full_ng.weight*1.e-5, decimal=2)
-    numpy.testing.assert_almost_equal(pieces_ng.xi*1.e2, full_ng.xi*1.e2, decimal=2)
-    numpy.testing.assert_almost_equal(pieces_ng.xi_im*1.e2, full_ng.xi_im*1.e2, decimal=2)
-    numpy.testing.assert_almost_equal(pieces_ng.varxi*1.e6, full_ng.varxi*1.e6, decimal=3)
+    numpy.testing.assert_almost_equal(pieces_ng.xi*1.e1, full_ng.xi*1.e1, decimal=2)
+    numpy.testing.assert_almost_equal(pieces_ng.xi_im*1.e1, full_ng.xi_im*1.e1, decimal=2)
+    numpy.testing.assert_almost_equal(pieces_ng.varxi*1.e5, full_ng.varxi*1.e5, decimal=2)
+
+    # A different way to do this can produce results that are essentially identical to the
+    # full calculation.  We can use wpos = w, but set w = 0 for the items in the pieces catalogs
+    # that we don't want to include.  This will force the tree to be built identically in each
+    # case, but only use the subset of items in the calculation.  The sum of all these should
+    # be identical to the full calculation aside from order of calculation differences.
+    # However, we lose some to speed, since there are a lot more wasted calculations along the
+    # way that have to be duplicated in each piece.
+    w2 = [ numpy.empty(w.shape) for k in range(ncats) ]
+    for k in range(ncats): 
+        w2[k][:,:] = 0. 
+        w2[k][:,k] = w[:,k]
+    source_cats2 = [ treecorr.Catalog(x=xs.flatten(), y=ys.flatten(), 
+                                      g1=g1.flatten(), g2=g2.flatten(), 
+                                      wpos=w.flatten(), w=w2[k].flatten(),
+                                      x_units='arcmin', y_units='arcmin') for k in range(ncats) ]
+
+    t3 = time.time()
+    ng2 = [ full_ng.copy() for k in range(ncats) ]
+    for k in range(ncats):
+        ng2[k].clear()
+        ng2[k].process_cross(lens_cat, source_cats2[k])
+
+    pieces_ng2 = full_ng.copy()
+    pieces_ng2.clear()
+    for k in range(ncats):
+        pieces_ng2 += ng2[k]
+    pieces_ng2.finalize(varg)
+    t4 = time.time()
+    print ('time for zero-weight piece-wise processing = ',t4-t3)
+
+    print('max error in meanr = ',numpy.max(pieces_ng2.meanr - full_ng.meanr),)
+    print('    max meanr = ',numpy.max(full_ng.meanr))
+    print('max error in meanlogr = ',numpy.max(pieces_ng2.meanlogr - full_ng.meanlogr),)
+    print('    max meanlogr = ',numpy.max(full_ng.meanlogr))
+    print('max error in npairs = ',numpy.max(pieces_ng2.npairs - full_ng.npairs),)
+    print('    max npairs = ',numpy.max(full_ng.npairs))
+    print('max error in weight = ',numpy.max(pieces_ng2.weight - full_ng.weight),)
+    print('    max weight = ',numpy.max(full_ng.weight))
+    print('max error in xi = ',numpy.max(pieces_ng2.xi - full_ng.xi),)
+    print('    max xi = ',numpy.max(full_ng.xi))
+    print('max error in xi_im = ',numpy.max(pieces_ng2.xi_im - full_ng.xi_im),)
+    print('    max xi_im = ',numpy.max(full_ng.xi_im))
+    print('max error in varxi = ',numpy.max(pieces_ng2.varxi - full_ng.varxi),)
+    print('    max varxi = ',numpy.max(full_ng.varxi))
+    numpy.testing.assert_almost_equal(pieces_ng2.meanr, full_ng.meanr, decimal=8)
+    numpy.testing.assert_almost_equal(pieces_ng2.meanlogr, full_ng.meanlogr, decimal=8)
+    numpy.testing.assert_almost_equal(pieces_ng2.npairs*1.e-5, full_ng.npairs*1.e-5, decimal=8)
+    numpy.testing.assert_almost_equal(pieces_ng2.weight*1.e-5, full_ng.weight*1.e-5, decimal=8)
+    numpy.testing.assert_almost_equal(pieces_ng2.xi*1.e1, full_ng.xi*1.e1, decimal=8)
+    numpy.testing.assert_almost_equal(pieces_ng2.xi_im*1.e1, full_ng.xi_im*1.e1, decimal=8)
+    numpy.testing.assert_almost_equal(pieces_ng2.varxi*1.e5, full_ng.varxi*1.e5, decimal=8)
+
+
 
 if __name__ == '__main__':
     test_single()

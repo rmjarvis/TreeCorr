@@ -409,7 +409,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         return xi, varxi
 
 
-    def write(self, file_name, rr=None, dr=None, rd=None, file_type=None):
+    def write(self, file_name, rr=None, dr=None, rd=None, file_type=None, prec=None):
         """Write the correlation function to the file, file_name.
 
         rr is the NNCorrelation function for random points.
@@ -497,7 +497,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
             col_names += [ 'npairs' ]
             columns += [ self.npairs ]
 
-        prec = self.config.get('precision', 4)
+        if prec is None:
+            prec = self.config.get('precision', 4)
 
         treecorr.util.gen_write(
             file_name, col_names, columns, prec=prec, file_type=file_type, logger=self.logger)

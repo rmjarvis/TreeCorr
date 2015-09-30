@@ -332,7 +332,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
             return self.xi - rk.xi, self.varxi + rk.varxi
 
 
-    def write(self, file_name, rk=None, file_type=None):
+    def write(self, file_name, rk=None, file_type=None, prec=None):
         """Write the correlation function to the file, file_name.
 
         If rk is None, the simple correlation function <kappa>(R) is used.
@@ -358,7 +358,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.logger.info('Writing NK correlations to %s',file_name)
 
         xi, varxi = self.calculateXi(rk)
-        prec = self.config.get('precision', 4)
+        if prec is None:
+            prec = self.config.get('precision', 4)
 
         treecorr.util.gen_write(
             file_name,

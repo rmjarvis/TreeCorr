@@ -1302,7 +1302,7 @@ class Catalog(object):
             self.gsimplefield = treecorr.GSimpleField(self,*args,logger=logger)
         return self.gsimplefield
 
-    def write(self, file_name, file_type=None):
+    def write(self, file_name, file_type=None, cat_precision=None):
         """Write the catalog to a file.
 
         Note that the x,y,ra,dec columns are output using the same units as were used when
@@ -1314,9 +1314,28 @@ class Catalog(object):
             >>> cat.ra_units = treecorr.degrees
             >>> cat.write('new_cat.dat')
 
-        :param file_name:   The name of the file to write to.
-        :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
-                            the type automatically from the extension of file_name.)
+        The output file will include some of the following columns::
+
+            ra          if self.ra is not None
+            dec         if self.dec is not None
+            r           if self.r is not None
+            x           if self.x is not None
+            y           if self.y is not None
+            z           if self.z is not None
+            w           if self.w is not None and self.nontrivial_w
+            wpos        if self.wpos is not None and self.nontrivial_wpos
+            g1          if self.g1 is not None
+            g2          if self.g2 is not None
+            k           if self.k is not None
+            meanR       The mean value <R> of pairs that fell into each bin.
+            meanlogR    The mean value <logR> of pairs that fell into each bin.
+
+        :param file_name:       The name of the file to write to.
+        :param file_type:       The type of file to write ('ASCII' or 'FITS').  (default: determine
+                                the type automatically from the extension of file_name.)
+        :param cat_precision:   For ASCII output catalogs, the desired precision. (default: 16;
+                                this value can also be given in the Catalog constructor in the 
+                                config dict.)
         """
         self.logger.info('Writing catalog to %s',file_name)
         import numpy
@@ -1355,7 +1374,10 @@ class Catalog(object):
             col_names.append('k')
             columns.append(self.k)
 
-        prec = treecorr.config.get(self.config,'cat_precision',int,16)
+        if cat_precision is None:
+            prec = treecorr.config.get(self.config,'cat_precision',int,16)
+        else:
+            prec = cat_precision
 
         treecorr.util.gen_write(
             file_name, col_names, columns, prec=prec, file_type=file_type, logger=self.logger)

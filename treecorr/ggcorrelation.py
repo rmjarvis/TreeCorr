@@ -383,7 +383,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.finalize(varg1,varg2)
 
 
-    def write(self, file_name, file_type=None):
+    def write(self, file_name, file_type=None, prec=None):
         """Write the correlation function to the file, file_name.
 
         The output file will include the following columns::
@@ -402,9 +402,13 @@ class GGCorrelation(treecorr.BinnedCorr2):
         :param file_name:   The name of the file to write to.
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
+        :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
+                            this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing GG correlations to %s',file_name)
-        prec = self.config.get('precision', 4)
+
+        if prec is None:
+            prec = treecorr.config.get(self.config,'precision',int,4)
         
         treecorr.util.gen_write(
             file_name,
@@ -593,7 +597,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         return gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e
 
 
-    def writeMapSq(self, file_name, m2_uform=None, file_type=None):
+    def writeMapSq(self, file_name, m2_uform=None, file_type=None, prec=None):
         """Write the aperture mass statistics based on the correlation function to the
         file, file_name.
 
@@ -616,11 +620,15 @@ class GGCorrelation(treecorr.BinnedCorr2):
         :param m2_uform:    Which form to use for the aperture mass.  (default: None)
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
+        :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
+                            this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing Map^2 from GG correlations to %s',file_name)
 
         mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = self.calculateMapSq(m2_uform=m2_uform)
         gamsq, vargamsq = self.calculateGamSq()
+        if prec is None:
+            prec = treecorr.config.get(self.config,'precision',int,4)
 
         treecorr.util.gen_write(
             file_name,
@@ -628,6 +636,6 @@ class GGCorrelation(treecorr.BinnedCorr2):
             [ numpy.exp(self.logr),
               mapsq, mxsq, mapsq_im, -mxsq_im, numpy.sqrt(varmapsq),
               gamsq, numpy.sqrt(vargamsq) ],
-            file_type=file_type, logger=self.logger)
+            prec=prec, file_type=file_type, logger=self.logger)
 
 

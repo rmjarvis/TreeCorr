@@ -498,7 +498,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
 
     def write(self, file_name, rrr=None, drr=None, rdr=None, rrd=None,
-              ddr=None, drd=None, rdd=None, file_type=None):
+              ddr=None, drd=None, rdd=None, file_type=None, prec=None):
         """Write the correlation function to the file, file_name.
 
         Normally, at least rrr should be provided, but if this is None, then only the 
@@ -605,7 +605,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             col_names += [ 'ntri' ]
             columns += [ self.ntri ]
 
-        prec = self.config.get('precision', 4)
+        if prec is None:
+            prec = self.config.get('precision', 4)
 
         treecorr.util.gen_write(
             file_name, col_names, columns, prec=prec, file_type=file_type, logger=self.logger)

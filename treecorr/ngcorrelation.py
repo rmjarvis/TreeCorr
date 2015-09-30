@@ -341,7 +341,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
             return (self.xi - rg.xi), (self.xi_im - rg.xi_im), (self.varxi + rg.varxi)
 
 
-    def write(self, file_name, rg=None, file_type=None):
+    def write(self, file_name, rg=None, file_type=None, prec=None):
         """Write the correlation function to the file, file_name.
 
         If rg is None, the simple correlation function <gamma_T> is used.
@@ -364,11 +364,14 @@ class NGCorrelation(treecorr.BinnedCorr2):
                             (default: None)
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
+        :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
+                            this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing NG correlations to %s',file_name)
     
         xi, xi_im, varxi = self.calculateXi(rg)
-        prec = self.config.get('precision', 4)
+        if prec is None:
+            prec = self.config.get('precision', 4)
 
         treecorr.util.gen_write(
             file_name,
@@ -438,7 +441,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
                             (default: None)
         :param m2_uform:    Which form to use for the aperture mass, as described above.
-                            (default: 'Crittenden')
+                            (default: 'Crittenden'; this value can also be given in the
+                            constructor in the config dict.)
 
         :returns:           (nmap, nmx, varnmap) as a tuple
         """
@@ -477,7 +481,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         return nmap, nmx, varnmap
 
 
-    def writeNMap(self, file_name, rg=None, m2_uform=None, file_type=None):
+    def writeNMap(self, file_name, rg=None, m2_uform=None, file_type=None, prec=None):
         """Write the cross correlation of the foreground galaxy counts with the aperture mass
         based on the correlation function to the file, file_name.
 
@@ -496,13 +500,18 @@ class NGCorrelation(treecorr.BinnedCorr2):
         :param file_name:   The name of the file to write to.
         :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
                             (default: None)
-        :param m2_uform:    Which form to use for the aperture mass.  (default: 'Crittenden')
+        :param m2_uform:    Which form to use for the aperture mass.  (default: 'Crittenden';
+                            this value can also be given in the constructor in the config dict.)
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
+        :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
+                            this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing NMap from NG correlations to %s',file_name)
 
         nmap, nmx, varnmap = self.calculateNMap(rg=rg, m2_uform=m2_uform)
+        if prec is None:
+            prec = self.config.get('precision', 4)
  
         treecorr.util.gen_write(
             file_name,
@@ -511,7 +520,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
             prec=prec, file_type=file_type, logger=self.logger)
 
 
-    def writeNorm(self, file_name, gg, dd, rr, dr=None, rg=None, m2_uform=None, file_type=None):
+    def writeNorm(self, file_name, gg, dd, rr, dr=None, rg=None, m2_uform=None, file_type=None, 
+                  prec=None):
         """Write the normalized aperture mass cross-correlation to the file, file_name.
 
         The combination :math:`\\langle N M_{ap}\\rangle^2 / \\langle M_{ap}^2\\rangle
@@ -553,9 +563,12 @@ class NGCorrelation(treecorr.BinnedCorr2):
                             case the Landy-Szalay estimator will be calculated.  (default: None)
         :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
                             (default: None)
-        :param m2_uform:    Which form to use for the aperture mass.  (default: 'Crittenden')
+        :param m2_uform:    Which form to use for the aperture mass.  (default: 'Crittenden';
+                            this value can also be given in the constructor in the config dict.)
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
+        :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
+                            this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing Norm from NG correlations to %s',file_name)
 
@@ -567,6 +580,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         varnmnorm = nmnorm**2 * (4. * varnmap / nmap**2 + varnsq / nsq**2 + varmapsq / mapsq**2)
         nnnorm = nsq / mapsq
         varnnnorm = nnnorm**2 * (varnsq / nsq**2 + varmapsq / mapsq**2)
+        if prec is None:
+            prec = self.config.get('precision', 4)
  
         treecorr.util.gen_write(
             file_name,

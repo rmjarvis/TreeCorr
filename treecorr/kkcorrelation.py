@@ -365,7 +365,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         self.finalize(vark1,vark2)
 
 
-    def write(self, file_name, file_type=None):
+    def write(self, file_name, file_type=None, prec=None):
         """Write the correlation function to the file, file_name.
 
         The output file will include the following columns::
@@ -382,9 +382,12 @@ class KKCorrelation(treecorr.BinnedCorr2):
         :param file_name:   The name of the file to write to.
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
+        :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
+                            this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing KK correlations to %s',file_name)
-        prec = self.config.get('precision', 4)
+        if prec is None:
+            prec = self.config.get('precision', 4)
          
         treecorr.util.gen_write(
             file_name,

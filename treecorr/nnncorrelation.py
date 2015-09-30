@@ -199,7 +199,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             _treecorr.ProcessAutoNNNPerp(self.corr, field.data, self.output_dots)
         else:
             _treecorr.ProcessAutoNNN3D(self.corr, field.data, self.output_dots)
-        self.tot += (1./6.) * cat.nobj**3
+        self.tot += (1./6.) * cat.sumw**3
 
     def process_cross21(self, cat1, cat2, metric='Euclidean', num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where two of the 
@@ -267,7 +267,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             _treecorr.ProcessCrossNNNPerp(self.corr, f1.data, f2.data, f3.data, self.output_dots)
         else:
             _treecorr.ProcessCrossNNN3D(self.corr, f1.data, f2.data, f3.data, self.output_dots)
-        self.tot += cat1.nobj * cat2.nobj * cat3.nobj / 6.0
+        self.tot += cat1.sumw * cat2.sumw * cat3.sumw / 6.0
 
 
     def finalize(self):

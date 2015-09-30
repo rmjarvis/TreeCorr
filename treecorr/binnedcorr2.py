@@ -257,7 +257,7 @@ class BinnedCorr2(object):
             if len(cat1) != len(cat2):
                 raise RuntimeError("Number of files for 1 and 2 must be equal for pairwise.")
             for c1,c2 in zip(cat1,cat2):
-                if c1.nobj != c2.nobj:
+                if c1.ntot != c2.ntot:
                     raise RuntimeError("Number of objects must be equal for pairwise.")
                 self.process_pairwise(c1,c2,metric,num_threads)
         else:

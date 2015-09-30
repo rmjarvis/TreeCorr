@@ -78,6 +78,7 @@ class Catalog(object):
         :g2:     The g2 component of the shear, if defined, as a numpy array. (None otherwise)
         :k:      The convergence, kappa, if defined, as a numpy array. (None otherwise)
 
+        :ntot:   The number of objects total
         :nobj:   The number of objects with non-zero weight
         :sumw:   The sum of the weights
         :varg:   The shear variance (aka shape noise) (0 if g1,g2 are not defined)
@@ -499,28 +500,28 @@ class Catalog(object):
 
         # Check that all columns have the same length:
         if self.x is not None: 
-            nobj = len(self.x)
-            if len(self.y) != nobj: 
+            self.ntot = len(self.x)
+            if len(self.y) != self.ntot: 
                 raise ValueError("x and y have different numbers of elements")
         else: 
-            nobj = len(self.ra)
-            if len(self.dec) != nobj: 
+            self.ntot = len(self.ra)
+            if len(self.dec) != self.ntot: 
                 raise ValueError("ra and dec have different numbers of elements")
-        if nobj == 0:
+        if self.ntot == 0:
             raise RuntimeError("Catalog has no objects!")
-        if self.z is not None and len(self.z) != nobj: 
+        if self.z is not None and len(self.z) != self.ntot: 
             raise ValueError("z has the wrong numbers of elements")
-        if self.r is not None and len(self.r) != nobj:
+        if self.r is not None and len(self.r) != self.ntot:
             raise ValueError("r has the wrong numbers of elements")
-        if self.w is not None and len(self.w) != nobj:
+        if self.w is not None and len(self.w) != self.ntot:
             raise ValueError("w has the wrong numbers of elements")
-        if self.wpos is not None and len(self.wpos) != nobj:
+        if self.wpos is not None and len(self.wpos) != self.ntot:
             raise ValueError("wpos has the wrong numbers of elements")
-        if self.g1 is not None and len(self.g1) != nobj:
+        if self.g1 is not None and len(self.g1) != self.ntot:
             raise ValueError("g1 has the wrong numbers of elements")
-        if self.g2 is not None and len(self.g1) != nobj:
+        if self.g2 is not None and len(self.g1) != self.ntot:
             raise ValueError("g1 has the wrong numbers of elements")
-        if self.k is not None and len(self.k) != nobj:
+        if self.k is not None and len(self.k) != self.ntot:
             raise ValueError("k has the wrong numbers of elements")
 
         # Check for NaN's:
@@ -539,8 +540,7 @@ class Catalog(object):
         # Calculate some summary parameters here that will typically be needed
         if self.w is not None:
             self.nontrivial_w = True
-            #self.nobj = numpy.sum(self.w != 0)
-            self.nobj = nobj
+            self.nobj = numpy.sum(self.w != 0)
             self.sumw = numpy.sum(self.w)
             if self.sumw == 0.:
                 raise RuntimeError("Catalog has invalid sumw == 0")
@@ -557,8 +557,8 @@ class Catalog(object):
                 self.vark = 0.
         else:
             self.nontrivial_w = False
-            self.nobj = nobj # From above.
-            self.sumw = nobj
+            self.nobj = self.ntot
+            self.sumw = self.ntot
             if self.g1 is not None:
                 self.varg = numpy.sum(self.g1**2 + self.g2**2) / (2.*self.nobj)
             else:
@@ -567,7 +567,7 @@ class Catalog(object):
                 self.vark = numpy.sum(self.k**2) / self.nobj
             else:
                 self.vark = 0.
-            self.w = numpy.ones( (self.nobj) )
+            self.w = numpy.ones( (self.ntot) )
 
         # Copy w to wpos if necessary (Do this after checkForNaN's, since this may set some
         # entries to have w=0.)
@@ -608,7 +608,7 @@ class Catalog(object):
             else:
                 self.coords = '3d'
 
-        self.logger.info("   nobj = %d",nobj)
+        self.logger.info("   nobj = %d",self.nobj)
 
 
     def makeArray(self, col, col_str, dtype=float):

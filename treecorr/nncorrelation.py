@@ -168,7 +168,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
             _treecorr.ProcessAutoNNPerp(self.corr, field.data, self.output_dots)
         else:
             _treecorr.ProcessAutoNN3D(self.corr, field.data, self.output_dots)
-        self.tot += 0.5 * cat.nobj**2
+        self.tot += 0.5 * cat.sumw**2
 
 
     def process_cross(self, cat1, cat2, metric='Euclidean', num_threads=None):
@@ -211,7 +211,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
             _treecorr.ProcessCrossNNPerp(self.corr, f1.data, f2.data, self.output_dots)
         else:
             _treecorr.ProcessCrossNN3D(self.corr, f1.data, f2.data, self.output_dots)
-        self.tot += cat1.nobj*cat2.nobj
+        self.tot += cat1.sumw*cat2.sumw
 
 
     def process_pairwise(self, cat1, cat2, metric='Euclidean', num_threads=None):
@@ -254,7 +254,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
             _treecorr.ProcessPairwiseNNPerp(self.corr, f1.data, f2.data, self.output_dots)
         else:
             _treecorr.ProcessPairwiseNN3D(self.corr, f1.data, f2.data, self.output_dots)
-        self.tot += cat1.nobj
+        self.tot += cat1.weight
 
 
     def finalize(self):

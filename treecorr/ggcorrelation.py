@@ -35,7 +35,8 @@ cvoid_ptr = ctypes.c_void_p
 _treecorr.BuildGGCorr.restype = ctypes.c_void_p
 _treecorr.BuildGGCorr.argtypes = [
     cdouble, cdouble, cint, cdouble, cdouble,
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyGGCorr.argtypes = [ cvoid_ptr ]
 _treecorr.ProcessAutoGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint  ]
 _treecorr.ProcessAutoGG3D.argtypes = [ cvoid_ptr, cvoid_ptr, cint  ]
@@ -114,7 +115,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
         weight = self.weight.ctypes.data_as(cdouble_ptr)
         npairs = self.npairs.ctypes.data_as(cdouble_ptr)
         self.corr = _treecorr.BuildGGCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
-                                          xip,xipi,xim,ximi,meanr,meanlogr,weight,npairs);
+                                          xip,xipi,xim,ximi,
+                                          meanr,meanlogr,weight,npairs);
  
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it

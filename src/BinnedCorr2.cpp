@@ -54,7 +54,7 @@ BinnedCorr2<DC1,DC2>::BinnedCorr2(const BinnedCorr2<DC1,DC2>& rhs, bool copy_dat
     _xi.new_data(_nbins);
     _meanr = new double[_nbins];
     _meanlogr = new double[_nbins];
-    if (rhs._weight) _weight = new double[_nbins];
+    _weight = new double[_nbins];
     _npairs = new double[_nbins];
 
     if (copy_data) *this = rhs;
@@ -68,7 +68,7 @@ BinnedCorr2<DC1,DC2>::~BinnedCorr2()
         _xi.delete_data(_nbins);
         delete [] _meanr; _meanr = 0;
         delete [] _meanlogr; _meanlogr = 0;
-        if (_weight) delete [] _weight; _weight = 0;
+        delete [] _weight; _weight = 0;
         delete [] _npairs; _npairs = 0;
     }
 }
@@ -94,7 +94,7 @@ void BinnedCorr2<DC1,DC2>::clear()
     _xi.clear(_nbins);
     for (int i=0; i<_nbins; ++i) _meanr[i] = 0.;
     for (int i=0; i<_nbins; ++i) _meanlogr[i] = 0.;
-    if (_weight) for (int i=0; i<_nbins; ++i) _weight[i] = 0.;
+    for (int i=0; i<_nbins; ++i) _weight[i] = 0.;
     for (int i=0; i<_nbins; ++i) _npairs[i] = 0.;
     _metric = -1;
 }
@@ -419,38 +419,6 @@ struct DirectHelper<GData,GData>
     }
 };
 
-// The way meanr, meanlogr and weight are processed is the same for everything except NN.
-// So do this as a separate template specialization:
-template <int DC1, int DC2>
-struct DirectHelper2
-{
-    template <int M>
-    static void ProcessWeight(
-        const Cell<DC1,M>& c1, const Cell<DC2,M>& c2, 
-        const double r,  const double logr, const double ,
-        double* meanr, double* meanlogr, double* weight, int k)
-    {
-        double ww = double(c1.getW()) * double(c2.getW());
-        meanr[k] += ww * r;
-        meanlogr[k] += ww * logr;
-        weight[k] += ww;
-    }
-};
-            
-template <>
-struct DirectHelper2<NData, NData>
-{
-    template <int M>
-    static void ProcessWeight(
-        const Cell<NData,M>& , const Cell<NData,M>& ,
-        const double r, const double logr, const double nn,
-        double* meanr, double* meanlogr, double* , int k)
-    { 
-        meanr[k] += nn * r; 
-        meanlogr[k] += nn * logr; 
-    }
-};
-
 template <int DC1, int DC2> template <int M>
 void BinnedCorr2<DC1,DC2>::directProcess11(
     const Cell<DC1,M>& c1, const Cell<DC2,M>& c2, const double dsq)
@@ -471,9 +439,12 @@ void BinnedCorr2<DC1,DC2>::directProcess11(
     double nn = double(c1.getN()) * double(c2.getN());
     _npairs[k] += nn;
 
-    DirectHelper<DC1,DC2>::ProcessXi(c1,c2,dsq,_xi,k);
+    double ww = double(c1.getW()) * double(c2.getW());
+    _meanr[k] += ww * r;
+    _meanlogr[k] += ww * logr;
+    _weight[k] += ww;
 
-    DirectHelper2<DC1,DC2>::ProcessWeight(c1,c2,r,logr,nn,_meanr,_meanlogr,_weight,k);
+    DirectHelper<DC1,DC2>::ProcessXi(c1,c2,dsq,_xi,k);
 }
 
 template <int DC1, int DC2>
@@ -483,7 +454,7 @@ void BinnedCorr2<DC1,DC2>::operator=(const BinnedCorr2<DC1,DC2>& rhs)
     _xi.copy(rhs._xi,_nbins);
     for (int i=0; i<_nbins; ++i) _meanr[i] = rhs._meanr[i];
     for (int i=0; i<_nbins; ++i) _meanlogr[i] = rhs._meanlogr[i];
-    if (_weight) for (int i=0; i<_nbins; ++i) _weight[i] = rhs._weight[i];
+    for (int i=0; i<_nbins; ++i) _weight[i] = rhs._weight[i];
     for (int i=0; i<_nbins; ++i) _npairs[i] = rhs._npairs[i];
 }
 
@@ -494,7 +465,7 @@ void BinnedCorr2<DC1,DC2>::operator+=(const BinnedCorr2<DC1,DC2>& rhs)
     _xi.add(rhs._xi,_nbins);
     for (int i=0; i<_nbins; ++i) _meanr[i] += rhs._meanr[i];
     for (int i=0; i<_nbins; ++i) _meanlogr[i] += rhs._meanlogr[i];
-    if (_weight) for (int i=0; i<_nbins; ++i) _weight[i] += rhs._weight[i];
+    for (int i=0; i<_nbins; ++i) _weight[i] += rhs._weight[i];
     for (int i=0; i<_nbins; ++i) _npairs[i] += rhs._npairs[i];
 }
 
@@ -505,13 +476,13 @@ void BinnedCorr2<DC1,DC2>::operator+=(const BinnedCorr2<DC1,DC2>& rhs)
 //
 
 void* BuildNNCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                  double* meanr, double* meanlogr, double* npairs)
+                  double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildNNCorr\n";
     void* corr = static_cast<void*>(new BinnedCorr2<NData,NData>(
             minsep, maxsep, nbins, binsize, b,
             0, 0, 0, 0,
-            meanr, meanlogr, 0, npairs));
+            meanr, meanlogr, weight, npairs));
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }

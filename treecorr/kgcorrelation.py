@@ -35,7 +35,8 @@ cvoid_ptr = ctypes.c_void_p
 _treecorr.BuildKGCorr.restype = cvoid_ptr
 _treecorr.BuildKGCorr.argtypes = [
     cdouble, cdouble, cint, cdouble, cdouble,
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
+    cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyKGCorr.argtypes = [ cvoid_ptr ]
 _treecorr.ProcessCrossKGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossKG3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]

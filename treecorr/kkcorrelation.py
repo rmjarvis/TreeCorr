@@ -35,6 +35,7 @@ cvoid_ptr = ctypes.c_void_p
 _treecorr.BuildKKCorr.restype = cvoid_ptr
 _treecorr.BuildKKCorr.argtypes = [
     cdouble, cdouble, cint, cdouble, cdouble,
+    cdouble_ptr, 
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyKKCorr.argtypes = [ cvoid_ptr ]
 _treecorr.ProcessAutoKKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]

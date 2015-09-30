@@ -35,7 +35,8 @@ cvoid_ptr = ctypes.c_void_p
 _treecorr.BuildNGCorr.restype = cvoid_ptr
 _treecorr.BuildNGCorr.argtypes = [
     cdouble, cdouble, cint, cdouble, cdouble,
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
+    cdouble_ptr, cdouble_ptr,
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyNGCorr.argtypes = [ cvoid_ptr ]
 _treecorr.ProcessCrossNGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessCrossNG3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
@@ -106,7 +107,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         weight = self.weight.ctypes.data_as(cdouble_ptr)
         npairs = self.npairs.ctypes.data_as(cdouble_ptr)
         self.corr = _treecorr.BuildNGCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
-                                          xi,xi_im,meanr,meanlogr,weight,npairs);
+                                          xi,xi_im,
+                                          meanr,meanlogr,weight,npairs);
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it

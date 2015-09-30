@@ -39,7 +39,7 @@ _treecorr.BuildNNNCorr.argtypes = [
     cdouble, cdouble, cint, cdouble, cdouble,
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
     cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
-    cdouble_ptr ]
+    cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyNNNCorr.argtypes = [ cvoid_ptr ]
 _treecorr.ProcessAutoNNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessAutoNNN3D.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
@@ -66,7 +66,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         :meanlogd2: The mean value of log(d3) for the triangles in each bin.
         :meanu:     The mean value of u for the triangles in each bin.
         :meanv:     The mean value of v for the triangles in each bin.
-        :ntri:      The number of triangles going into each bin.
+        :weight:    The total weight in each bin.
+        :ntri:      The number of triangles in each bin.
         :tot:       The total number of triangles processed, which is used to normalize
                     the randoms if they have a different number of triangles.
 
@@ -110,6 +111,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.meanlogd3 = numpy.zeros(shape, dtype=float)
         self.meanu = numpy.zeros(shape, dtype=float)
         self.meanv = numpy.zeros(shape, dtype=float)
+        self.weight = numpy.zeros(shape, dtype=float)
         self.ntri = numpy.zeros(shape, dtype=float)
         self.tot = 0.
         self._build_corr()
@@ -124,12 +126,14 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         meanlogd3 = self.meanlogd3.ctypes.data_as(cdouble_ptr)
         meanu = self.meanu.ctypes.data_as(cdouble_ptr)
         meanv = self.meanv.ctypes.data_as(cdouble_ptr)
+        weight = self.weight.ctypes.data_as(cdouble_ptr)
         ntri = self.ntri.ctypes.data_as(cdouble_ptr)
         self.corr = _treecorr.BuildNNNCorr(
                 self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                 self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                 self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
-                meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, ntri);
+                meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, 
+                weight, ntri);
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -271,19 +275,19 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         The process_auto and process_cross commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation of meanlogr, meanu, meanv by dividing by the total ntri.
+        finishes the calculation of meanlogr, meanu, meanv by dividing by the total weight.
         """
-        mask1 = self.ntri != 0
-        mask2 = self.ntri == 0
+        mask1 = self.weight != 0
+        mask2 = self.weight == 0
 
-        self.meand1[mask1] /= self.ntri[mask1]
-        self.meanlogd1[mask1] /= self.ntri[mask1]
-        self.meand2[mask1] /= self.ntri[mask1]
-        self.meanlogd2[mask1] /= self.ntri[mask1]
-        self.meand3[mask1] /= self.ntri[mask1]
-        self.meanlogd3[mask1] /= self.ntri[mask1]
-        self.meanu[mask1] /= self.ntri[mask1]
-        self.meanv[mask1] /= self.ntri[mask1]
+        self.meand1[mask1] /= self.weight[mask1]
+        self.meanlogd1[mask1] /= self.weight[mask1]
+        self.meand2[mask1] /= self.weight[mask1]
+        self.meanlogd2[mask1] /= self.weight[mask1]
+        self.meand3[mask1] /= self.weight[mask1]
+        self.meanlogd3[mask1] /= self.weight[mask1]
+        self.meanu[mask1] /= self.weight[mask1]
+        self.meanv[mask1] /= self.weight[mask1]
 
         # Update the units
         self.meand1[mask1] /= self.sep_units
@@ -315,6 +319,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.meanlogd3[:,:,:] = 0.
         self.meanu[:,:,:] = 0.
         self.meanv[:,:,:] = 0.
+        self.weight[:,:,:] = 0.
         self.ntri[:,:,:] = 0.
         self.tot = 0.
 
@@ -346,6 +351,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.meanlogd3[:] += other.meanlogd3[:]
         self.meanu[:] += other.meanu[:]
         self.meanv[:] += other.meanv[:]
+        self.weight[:] += other.weight[:]
         self.ntri[:] += other.ntri[:]
         self.tot += other.tot
         return self
@@ -453,7 +459,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         rrrw = self.tot / rrr.tot
         if drr is None:
-            zeta = (self.ntri - rrr.ntri * rrrw)
+            zeta = (self.weight - rrr.weight * rrrw)
         else:
             if rrd.tot == 0:
                 raise RuntimeError("rrd has tot=0.")
@@ -473,18 +479,18 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             drrw = self.tot / drr.tot
             drdw = self.tot / drd.tot
             rddw = self.tot / rdd.tot
-            zeta = (self.ntri + rrd.ntri * rrdw + rdr.ntri * rdrw + drr.ntri * drrw
-                    - ddr.ntri * ddrw - drd.ntri * drdw - rdd.ntri * rddw - rrr.ntri * rrrw)
-        if numpy.any(rrr.ntri == 0):
+            zeta = (self.weight + rrd.weight * rrdw + rdr.weight * rdrw + drr.weight * drrw
+                    - ddr.weight * ddrw - drd.weight * drdw - rdd.weight * rddw - rrr.weight * rrrw)
+        if numpy.any(rrr.weight == 0):
             self.logger.warn("Warning: Some bins for the randoms had no triangles.")
             self.logger.warn("         Probably max_sep is larger than your field.")
-        mask1 = rrr.ntri != 0
-        mask2 = rrr.ntri == 0
-        zeta[mask1] /= (rrr.ntri[mask1] * rrrw)
+        mask1 = rrr.weight != 0
+        mask2 = rrr.weight == 0
+        zeta[mask1] /= (rrr.weight[mask1] * rrrw)
         zeta[mask2] = 0
 
-        varzeta = numpy.zeros_like(rrr.ntri)
-        varzeta[mask1] = 1./ (rrr.ntri[mask1] * rrrw)
+        varzeta = numpy.zeros_like(rrr.weight)
+        varzeta[mask1] = 1./ (rrr.weight[mask1] * rrrw)
 
         return zeta, varzeta
 
@@ -535,21 +541,23 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             if (drr is not None or rdr is not None or rrd is not None or
                 ddr is not None or drd is not None or rdd is not None):
                 raise AttributeError("rrr must be provided if other combinations are not None")
-            col_names += [ 'ntri' ]
-            columns += [ self.ntri ]
+            col_names += [ 'DDD', 'ntri' ]
+            columns += [ self.weight, self.ntri ]
         else:
             # This will check for other invalid combinations of rrr, drr, etc.
             zeta, varzeta = self.calculateZeta(rrr,drr,rdr,rrd,ddr,drd,rdd)
 
             col_names += [ 'zeta','sigma_zeta','DDD','RRR' ]
             columns += [ zeta, numpy.sqrt(varzeta),
-                         self.ntri, rrr.ntri * (self.tot/rrr.tot) ]
+                         self.weight, rrr.weight * (self.tot/rrr.tot) ]
 
             if drr is not None:
                 col_names += ['DRR','RDR','RRD','DDR','DRD','RDD']
-                columns += [ drr.ntri * (self.tot/drr.tot), rdr.ntri * (self.tot/rdr.tot),
-                             rrd.ntri * (self.tot/rrd.tot), ddr.ntri * (self.tot/ddr.tot),
-                             drd.ntri * (self.tot/drd.tot), rdd.ntri * (self.tot/rdd.tot) ]
+                columns += [ drr.weight * (self.tot/drr.tot), rdr.weight * (self.tot/rdr.tot),
+                             rrd.weight * (self.tot/rrd.tot), ddr.weight * (self.tot/ddr.tot),
+                             drd.weight * (self.tot/drd.tot), rdd.weight * (self.tot/rdd.tot) ]
+            col_names += [ 'ntri' ]
+            columns += [ self.ntri ]
 
         prec = self.config.get('precision', 4)
 
@@ -586,9 +594,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.meanlogd3 = data['<logd3>'].reshape(s)
         self.meanu = data['<u>'].reshape(s)
         self.meanv = data['<v>'].reshape(s)
-        if 'ntri' in data.dtype.names:
-            self.ntri = data['ntri'].reshape(s)
-        else:
-            self.ntri = data['DDD'].reshape(s)
+        self.weight = data['DDD'].reshape(s)
+        self.ntri = data['ntri'].reshape(s)
 
 

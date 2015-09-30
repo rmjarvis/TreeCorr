@@ -349,7 +349,7 @@ extern "C" {
                               double minv, double maxv, int nvbins, double vbinsize, double bv,
                               double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
                               double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                              double* ntri);
+                              double* weight, double* ntri);
     extern void* BuildKKKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                               double minu, double maxu, int nubins, double ubinsize, double bu,
                               double minv, double maxv, int nvbins, double vbinsize, double bv,

@@ -35,7 +35,7 @@ cvoid_ptr = ctypes.c_void_p
 _treecorr.BuildNNCorr.restype = cvoid_ptr
 _treecorr.BuildNNCorr.argtypes = [
     cdouble, cdouble, cint, cdouble, cdouble,
-    cdouble_ptr, cdouble_ptr ]
+    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
 _treecorr.DestroyNNCorr.argtypes = [ cvoid_ptr ]
 _treecorr.ProcessAutoNNFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
 _treecorr.ProcessAutoNN3D.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
@@ -59,7 +59,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
                     If there are no pairs in a bin, then exp(logr) will be used instead.
         :meanlogr:  The mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
-        :npairs:    The number of pairs going into each bin.
+        :weight:    The total weight in each bin.
+        :npairs:    The number of pairs in each bin.
         :tot:       The total number of pairs processed, which is used to normalize
                     the randoms if they have a different number of pairs.
 
@@ -92,6 +93,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         self.meanr = numpy.zeros(self.nbins, dtype=float)
         self.meanlogr = numpy.zeros(self.nbins, dtype=float)
+        self.weight = numpy.zeros(self.nbins, dtype=float)
         self.npairs = numpy.zeros(self.nbins, dtype=float)
         self.tot = 0.
         self._build_corr()
@@ -100,9 +102,10 @@ class NNCorrelation(treecorr.BinnedCorr2):
     def _build_corr(self):
         meanr = self.meanr.ctypes.data_as(cdouble_ptr)
         meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
+        weight = self.weight.ctypes.data_as(cdouble_ptr)
         npairs = self.npairs.ctypes.data_as(cdouble_ptr)
         self.corr = _treecorr.BuildNNCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
-                                          meanr,meanlogr,npairs);
+                                          meanr,meanlogr,weight,npairs);
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -259,13 +262,13 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         The process_auto and process_cross commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation of meanr, meanlogr by dividing by the total npairs.
+        finishes the calculation of meanr, meanlogr by dividing by the total weight.
         """
-        mask1 = self.npairs != 0
-        mask2 = self.npairs == 0
+        mask1 = self.weight != 0
+        mask2 = self.weight == 0
 
-        self.meanr[mask1] /= self.npairs[mask1]
-        self.meanlogr[mask1] /= self.npairs[mask1]
+        self.meanr[mask1] /= self.weight[mask1]
+        self.meanlogr[mask1] /= self.weight[mask1]
 
         # Update the units of meanr, meanlogr
         self.meanr[mask1] /= self.sep_units
@@ -281,6 +284,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         """
         self.meanr[:] = 0.
         self.meanlogr[:] = 0.
+        self.weight[:] = 0.
         self.npairs[:] = 0.
         self.tot = 0.
 
@@ -300,6 +304,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         self.meanr[:] += other.meanr[:]
         self.meanlogr[:] += other.meanlogr[:]
+        self.weight[:] += other.weight[:]
         self.npairs[:] += other.npairs[:]
         self.tot += other.tot
         return self
@@ -366,40 +371,40 @@ class NNCorrelation(treecorr.BinnedCorr2):
                         
         :returns:           (xi, varxi) as a tuple
         """
-        # Each random npairs value needs to be rescaled by the ratio of total possible pairs.
+        # Each random weight value needs to be rescaled by the ratio of total possible pairs.
         if rr.tot == 0:
             raise RuntimeError("rr has tot=0.")
 
         rrw = self.tot / rr.tot
         if dr is None:
             if rd is None:
-                xi = (self.npairs - rr.npairs * rrw)
+                xi = (self.weight - rr.weight * rrw)
             else:
                 if rd.tot == 0:
                     raise RuntimeError("rd has tot=0.")
                 rdw = self.tot / rd.tot
-                xi = (self.npairs - 2.*rd.npairs * rdw + rr.npairs * rrw)
+                xi = (self.weight - 2.*rd.weight * rdw + rr.weight * rrw)
         else:
             if dr.tot == 0:
                 raise RuntimeError("dr has tot=0.")
             drw = self.tot / dr.tot
             if rd is None:
-                xi = (self.npairs - 2.*dr.npairs * drw + rr.npairs * rrw)
+                xi = (self.weight - 2.*dr.weight * drw + rr.weight * rrw)
             else:
                 if rd.tot == 0:
                     raise RuntimeError("rd has tot=0.")
                 rdw = self.tot / rd.tot
-                xi = (self.npairs - rd.npairs * rdw - dr.npairs * drw + rr.npairs * rrw)
-        if numpy.any(rr.npairs == 0):
+                xi = (self.weight - rd.weight * rdw - dr.weight * drw + rr.weight * rrw)
+        if numpy.any(rr.weight == 0):
             self.logger.warn("Warning: Some bins for the randoms had no pairs.")
             self.logger.warn("         Probably max_sep is larger than your field.")
-        mask1 = rr.npairs != 0
-        mask2 = rr.npairs == 0
-        xi[mask1] /= (rr.npairs[mask1] * rrw)
+        mask1 = rr.weight != 0
+        mask2 = rr.weight == 0
+        xi[mask1] /= (rr.weight[mask1] * rrw)
         xi[mask2] = 0
 
-        varxi = numpy.zeros_like(rr.npairs)
-        varxi[mask1] = 1./ (rr.npairs[mask1] * rrw)
+        varxi = numpy.zeros_like(rr.weight)
+        varxi[mask1] = 1./ (rr.weight[mask1] * rrw)
 
         return xi, varxi
 
@@ -430,8 +435,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
         col_names = [ 'R_nom','<R>','<logR>' ]
         columns = [ numpy.exp(self.logr), self.meanr, self.meanlogr ]
         if rr is None:
-            col_names += [ 'npairs' ]
-            columns += [ self.npairs ]
+            col_names += [ 'DD', 'npairs' ]
+            columns += [ self.weight, self.npairs ]
             if dr is not None:
                 raise AttributeError("rr must be provided if dr is not None")
             if rd is not None:
@@ -441,13 +446,15 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
             col_names += [ 'xi','sigma_xi','DD','RR' ]
             columns += [ xi, numpy.sqrt(varxi),
-                         self.npairs, rr.npairs * (self.tot/rr.tot) ]
+                         self.weight, rr.weight * (self.tot/rr.tot) ]
 
             if dr is not None or rd is not None:
                 if dr is None: dr = rd
                 if rd is None: rd = dr
                 col_names += ['DR','RD']
-                columns += [ dr.npairs * (self.tot/dr.tot), rd.npairs * (self.tot/rd.tot) ]
+                columns += [ dr.weight * (self.tot/dr.tot), rd.weight * (self.tot/rd.tot) ]
+            col_names += [ 'npairs' ]
+            columns += [ self.npairs ]
 
         prec = self.config.get('precision', 4)
 
@@ -475,10 +482,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.logr = numpy.log(data['R_nom'])
         self.meanr = data['<R>']
         self.meanlogr = data['<logR>']
-        if 'npairs' in data.dtype.names:
-            self.npairs = data['npairs']
-        else:
-            self.npairs = data['DD']
+        self.weight = data['DD']
+        self.npairs = data['npairs']
 
 
     def calculateNapSq(self, rr, dr=None, rd=None, m2_uform=None):

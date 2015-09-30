@@ -217,7 +217,7 @@ struct XiData<NData, NData>
 extern "C" {
 
     extern void* BuildNNCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                             double* meanr, double* meanlogr, double* npairs);
+                             double* meanr, double* meanlogr, double* weight, double* npairs);
     extern void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                              double* xi,
                              double* meanr, double* meanlogr, double* weight, double* npairs);

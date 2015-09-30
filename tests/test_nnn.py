@@ -11,7 +11,7 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
-
+from __future__ import print_function
 import numpy
 import treecorr
 import os
@@ -581,6 +581,96 @@ def test_direct_count_cross():
     #print('true_ntri = ',true_ntri)
     #print('diff = ',ddd.ntri - true_ntri)
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+def test_direct_partial():
+    # Test the two ways to only use parts of a catalog:
+
+    ngal = 200
+    s = 10.
+    numpy.random.seed(8675309)
+    x1 = numpy.random.normal(0,s, (ngal,) )
+    y1 = numpy.random.normal(0,s, (ngal,) )
+    cat1a = treecorr.Catalog(x=x1, y=y1, first_row=28, last_row=144)
+    x2 = numpy.random.normal(0,s, (ngal,) )
+    y2 = numpy.random.normal(0,s, (ngal,) )
+    cat2a = treecorr.Catalog(x=x2, y=y2, first_row=48, last_row=129)
+    x3 = numpy.random.normal(0,s, (ngal,) )
+    y3 = numpy.random.normal(0,s, (ngal,) )
+    cat3a = treecorr.Catalog(x=x3, y=y3, first_row=82, last_row=167)
+
+    min_sep = 1.
+    max_sep = 50.
+    nbins = 50
+    min_u = 0.13
+    max_u = 0.89
+    nubins = 10
+    min_v = -0.83
+    max_v = 0.59
+    nvbins = 20
+
+    ddda = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+                                   min_u=min_u, max_u=max_u, nubins=nubins,
+                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                   bin_slop=0.)
+    ddda.process(cat1a, cat2a, cat3a)
+    #print('ddda.ntri = ',ddda.ntri)
+
+    log_min_sep = numpy.log(min_sep)
+    log_max_sep = numpy.log(max_sep)
+    true_ntri = numpy.zeros( (nbins, nubins, nvbins) )
+    bin_size = (log_max_sep - log_min_sep) / nbins
+    ubin_size = (max_u-min_u) / nubins
+    vbin_size = (max_v-min_v) / nvbins
+    for i in range(27,144):
+        for j in range(47,129):
+            for k in range(81,167):
+                d3 = numpy.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
+                d2 = numpy.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2)
+                d1 = numpy.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2)
+                if d3 == 0.: continue
+                if d2 == 0.: continue
+                if d1 == 0.: continue
+                if d1 < d2 or d2 < d3: continue;
+                ccw = is_ccw(x1[i],y1[i],x2[j],y2[j],x3[k],y3[k])
+                r = d2
+                u = d3/d2
+                v = (d1-d2)/d3
+                if not ccw: 
+                    v = -v
+                kr = int(numpy.floor( (numpy.log(r)-log_min_sep) / bin_size ))
+                ku = int(numpy.floor( (u-min_u) / ubin_size ))
+                kv = int(numpy.floor( (v-min_v) / vbin_size ))
+                if kr < 0: continue
+                if kr >= nbins: continue
+                if ku < 0: continue
+                if ku >= nubins: continue
+                if kv < 0: continue
+                if kv >= nvbins: continue
+                true_ntri[kr,ku,kv] += 1
+
+    #print('true_ntri = ',true_ntri)
+    #print('diff = ',ddda.ntri - true_ntri)
+    numpy.testing.assert_array_equal(ddda.ntri, true_ntri)
+
+    # Now check that we get the same thing with all the points, but with w=0 for the ones 
+    # we don't want.
+    w1 = numpy.zeros(ngal)
+    w1[27:144] = 1.
+    w2 = numpy.zeros(ngal)
+    w2[47:129] = 1.
+    w3 = numpy.zeros(ngal)
+    w3[81:167] = 1.
+    cat1b = treecorr.Catalog(x=x1, y=y1, w=w1)
+    cat2b = treecorr.Catalog(x=x2, y=y2, w=w2)
+    cat3b = treecorr.Catalog(x=x3, y=y3, w=w3)
+    dddb = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+                                   min_u=min_u, max_u=max_u, nubins=nubins,
+                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                   bin_slop=0.)
+    dddb.process(cat1b, cat2b, cat3b)
+    #print('dddb.ntri = ',dddb.ntri)
+    #print('diff = ',dddb.ntri - true_ntri)
+    numpy.testing.assert_array_equal(dddb.ntri, true_ntri)
 
 
 def is_ccw_3d(x1,y1,z1, x2,y2,z2, x3,y3,z3):
@@ -1374,6 +1464,7 @@ if __name__ == '__main__':
     test_direct_count_cross()
     test_direct_3d_auto()
     test_direct_3d_cross()
+    test_direct_partial()
     test_nnn()
     test_3d()
     test_list()

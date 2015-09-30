@@ -342,6 +342,61 @@ def test_direct_perp():
     dd.process(cat1, cat2, metric='Rperp')
     numpy.testing.assert_array_equal(dd.npairs, true_npairs)
 
+def test_direct_partial():
+    # There are two ways to specify using only parts of a catalog:
+    # 1. The parameters first_row and last_row would usually be used for files, but they are a 
+    #    general way to use only a (contiguous) subset of the rows
+    # 2. You can also set weights to 0 for the rows you don't want to use.
+
+    # First test first_row, last_row
+    ngal = 200
+    s = 10.
+    numpy.random.seed(8675309)
+    x1 = numpy.random.normal(0,s, (ngal,) )
+    y1 = numpy.random.normal(0,s, (ngal,) )
+    cat1a = treecorr.Catalog(x=x1, y=y1, first_row=28, last_row=144)
+    x2 = numpy.random.normal(0,s, (ngal,) )
+    y2 = numpy.random.normal(0,s, (ngal,) )
+    cat2a = treecorr.Catalog(x=x2, y=y2, first_row=48, last_row=129)
+
+    min_sep = 1.
+    max_sep = 50.
+    nbins = 50
+    dda = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    dda.process(cat1a, cat2a)
+    print('dda.npairs = ',dda.npairs)
+
+    log_min_sep = numpy.log(min_sep)
+    log_max_sep = numpy.log(max_sep)
+    true_npairs = numpy.zeros(nbins)
+    bin_size = (log_max_sep - log_min_sep) / nbins
+    for i in range(27,144):
+        for j in range(47,129):
+            rsq = (x1[i]-x2[j])**2 + (y1[i]-y2[j])**2
+            logr = 0.5 * numpy.log(rsq)
+            k = int(numpy.floor( (logr-log_min_sep) / bin_size ))
+            if k < 0: continue
+            if k >= nbins: continue
+            true_npairs[k] += 1
+
+    print('true_npairs = ',true_npairs)
+    print('diff = ',dda.npairs - true_npairs)
+    numpy.testing.assert_array_equal(dda.npairs, true_npairs)
+
+    # Now check that we get the same thing with all the points, but with w=0 for the ones 
+    # we don't want.
+    w1 = numpy.zeros(ngal)
+    w1[27:144] = 1.
+    w2 = numpy.zeros(ngal)
+    w2[47:129] = 1.
+    cat1b = treecorr.Catalog(x=x1, y=y1, w=w1)
+    cat2b = treecorr.Catalog(x=x2, y=y2, w=w2)
+    ddb = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    ddb.process(cat1b, cat2b)
+    print('ddb.npairs = ',ddb.npairs)
+    print('diff = ',ddb.npairs - true_npairs)
+    numpy.testing.assert_array_equal(ddb.npairs, true_npairs)
+
 
 def test_nn():
     # Use a simple probability distribution for the galaxies:
@@ -791,6 +846,7 @@ if __name__ == '__main__':
     test_direct_count()
     test_direct_3d()
     test_direct_perp()
+    test_direct_partial()
     test_nn()
     test_3d()
     test_list()

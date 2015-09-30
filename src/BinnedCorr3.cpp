@@ -90,7 +90,7 @@ BinnedCorr3<DC1,DC2,DC3>::BinnedCorr3(const BinnedCorr3<DC1,DC2,DC3>& rhs, bool 
     _meanlogd3 = new double[_ntot];
     _meanu = new double[_ntot];
     _meanv = new double[_ntot];
-    if (rhs._weight) _weight = new double[_ntot];
+    _weight = new double[_ntot];
     _ntri = new double[_ntot];
 
     if (copy_data) *this = rhs;
@@ -110,7 +110,7 @@ BinnedCorr3<DC1,DC2,DC3>::~BinnedCorr3()
         delete [] _meanlogd3; _meanlogd3 = 0;
         delete [] _meanu; _meanu = 0;
         delete [] _meanv; _meanv = 0;
-        if (_weight) delete [] _weight; _weight = 0;
+        delete [] _weight; _weight = 0;
         delete [] _ntri; _ntri = 0;
     }
 }
@@ -127,7 +127,7 @@ void BinnedCorr3<DC1,DC2,DC3>::clear()
     for (int i=0; i<_ntot; ++i) _meanlogd3[i] = 0.;
     for (int i=0; i<_ntot; ++i) _meanu[i] = 0.;
     for (int i=0; i<_ntot; ++i) _meanv[i] = 0.;
-    if (_weight) for (int i=0; i<_ntot; ++i) _weight[i] = 0.;
+    for (int i=0; i<_ntot; ++i) _weight[i] = 0.;
     for (int i=0; i<_ntot; ++i) _ntri[i] = 0.;
     _metric = -1;
 }
@@ -310,6 +310,10 @@ template <int DC1, int DC2, int DC3> template <int M>
 void BinnedCorr3<DC1,DC2,DC3>::process3(const Cell<DC1,M>* c123)
 {
     xdbg<<"Process3: c123 = "<<c123->getData().getPos()<<"  "<<"  "<<c123->getSize()<<"  "<<c123->getData().getN()<<std::endl;
+    if (c123->getW() == 0) {
+        xdbg<<"    w == 0.  return\n";
+        return;
+    }
     if (c123->getSize() < _halfminsep) {
         xdbg<<"    size < halfminsep.  return\n";
         return;
@@ -332,12 +336,20 @@ void BinnedCorr3<DC1,DC2,DC3>::process21(const Cell<DC1,M>* c12, const Cell<DC3,
     xdbg<<"           c3  = "<<c3->getData().getPos()<<"  "<<"  "<<c3->getSize()<<"  "<<c3->getData().getN()<<std::endl;
 
     // Some trivial stoppers:
+    if (c12->getW() == 0) {
+        xdbg<<"    w12 == 0.  return\n";
+        return;
+    }
+    if (c3->getW() == 0) {
+        xdbg<<"    w3 == 0.  return\n";
+        return;
+    }
     if (c12->getSize() == 0.) {
-        xdbg<<"    size == 0.  return\n";
+        xdbg<<"    size12 == 0.  return\n";
         return;
     }
     if (c12->getSize() < _halfmind3) {
-        xdbg<<"    size < halfminsep * umin.  return\n";
+        xdbg<<"    size12 < halfminsep * umin.  return\n";
         return;
     }
 
@@ -661,6 +673,19 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
     const Cell<DC1,M>* c1, const Cell<DC2,M>* c2, const Cell<DC3,M>* c3,
     double d1sq, double d2sq, double d3sq)
 {
+    if (c1->getW() == 0) {
+        xdbg<<"    w1 == 0.  return\n";
+        return;
+    }
+    if (c2->getW() == 0) {
+        xdbg<<"    w2 == 0.  return\n";
+        return;
+    }
+    if (c3->getW() == 0) {
+        xdbg<<"    w3 == 0.  return\n";
+        return;
+    }
+
     // Calculate the distances if they aren't known yet, and sort so that d3 < d2 < d1
     SortHelper<DC1,DC2,DC3,sort,M>::sort3(c1,c2,c3,d1sq,d2sq,d3sq);
 
@@ -1050,55 +1075,6 @@ struct DirectHelper<KData,KData,GData>
 };
 #endif
 
-// The way meand1, meanlogd1, etc. are processed is the same for everything except NN.
-// So do this as a separate template specialization:
-template <int DC1, int DC2, int DC3>
-struct DirectHelper2
-{
-    template <int M>
-    static void ProcessWeight(
-        const Cell<DC1,M>& c1, const Cell<DC2,M>& c2, const Cell<DC3,M>& c3,
-        const double d1, const double d2, const double d3,
-        const double logr, const double u, const double v, const double ,
-        double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
-        double* meand3, double* meanlogd3, double* meanu, double* meanv, double* weight, int index)
-    {
-        double www = double(c1.getData().getW()) * double(c2.getData().getW()) *
-            double(c3.getData().getW());
-        meand1[index] += www * d1;
-        meanlogd1[index] += www * log(d1);
-        meand2[index] += www * d2;
-        meanlogd2[index] += www * logr;
-        meand3[index] += www * d3;
-        meanlogd3[index] += www * log(d3);
-        meanu[index] += www * u;
-        meanv[index] += www * v;
-        weight[index] += www;
-    }
-};
-            
-template <>
-struct DirectHelper2<NData, NData, NData>
-{
-    template <int M>
-    static void ProcessWeight(
-        const Cell<NData,M>& , const Cell<NData,M>& , const Cell<NData,M>& ,
-        const double d1, const double d2, const double d3,
-        const double logr, const double u, const double v, const double nnn,
-        double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
-        double* meand3, double* meanlogd3, double* meanu, double* meanv, double* , int index)
-    { 
-        meand1[index] += nnn * d1;
-        meanlogd1[index] += nnn * log(d1);
-        meand2[index] += nnn * d2;
-        meanlogd2[index] += nnn * logr;
-        meand3[index] += nnn * d3;
-        meanlogd3[index] += nnn * log(d3);
-        meanu[index] += nnn * u; 
-        meanv[index] += nnn * v; 
-    }
-};
-
 template <int DC1, int DC2, int DC3> template <int M>
 void BinnedCorr3<DC1,DC2,DC3>::directProcess111(
     const Cell<DC1,M>& c1, const Cell<DC2,M>& c2, const Cell<DC3,M>& c3,
@@ -1111,11 +1087,19 @@ void BinnedCorr3<DC1,DC2,DC3>::directProcess111(
     xdbg<<"            index = "<<index<<std::endl;
     xdbg<<"            nnn = "<<nnn<<std::endl;
 
-    DirectHelper<DC1,DC2,DC3>::ProcessZeta(c1,c2,c3,d1,d2,d3,_zeta,index);
+    double www = double(c1.getData().getW()) * double(c2.getData().getW()) *
+        double(c3.getData().getW());
+    _meand1[index] += www * d1;
+    _meanlogd1[index] += www * log(d1);
+    _meand2[index] += www * d2;
+    _meanlogd2[index] += www * logr;
+    _meand3[index] += www * d3;
+    _meanlogd3[index] += www * log(d3);
+    _meanu[index] += www * u;
+    _meanv[index] += www * v;
+    _weight[index] += www;
 
-    DirectHelper2<DC1,DC2,DC3>::ProcessWeight(c1,c2,c3,d1,d2,d3,logr,u,v,nnn,
-                                              _meand1,_meanlogd1,_meand2,_meanlogd2,
-                                              _meand3,_meanlogd3,_meanu,_meanv,_weight,index);
+    DirectHelper<DC1,DC2,DC3>::ProcessZeta(c1,c2,c3,d1,d2,d3,_zeta,index);
 }
 
 template <int DC1, int DC2, int DC3>
@@ -1131,7 +1115,7 @@ void BinnedCorr3<DC1,DC2,DC3>::operator=(const BinnedCorr3<DC1,DC2,DC3>& rhs)
     for (int i=0; i<_ntot; ++i) _meanlogd3[i] = rhs._meanlogd3[i];
     for (int i=0; i<_ntot; ++i) _meanu[i] = rhs._meanu[i];
     for (int i=0; i<_ntot; ++i) _meanv[i] = rhs._meanv[i];
-    if (_weight) for (int i=0; i<_ntot; ++i) _weight[i] = rhs._weight[i];
+    for (int i=0; i<_ntot; ++i) _weight[i] = rhs._weight[i];
     for (int i=0; i<_ntot; ++i) _ntri[i] = rhs._ntri[i];
 }
 
@@ -1148,7 +1132,7 @@ void BinnedCorr3<DC1,DC2,DC3>::operator+=(const BinnedCorr3<DC1,DC2,DC3>& rhs)
     for (int i=0; i<_ntot; ++i) _meanlogd3[i] += rhs._meanlogd3[i];
     for (int i=0; i<_ntot; ++i) _meanu[i] += rhs._meanu[i];
     for (int i=0; i<_ntot; ++i) _meanv[i] += rhs._meanv[i];
-    if (_weight) for (int i=0; i<_ntot; ++i) _weight[i] += rhs._weight[i];
+    for (int i=0; i<_ntot; ++i) _weight[i] += rhs._weight[i];
     for (int i=0; i<_ntot; ++i) _ntri[i] += rhs._ntri[i];
 }
 
@@ -1162,7 +1146,8 @@ void* BuildNNNCorr(double minsep, double maxsep, int nbins, double binsize, doub
                    double minu, double maxu, int nubins, double ubinsize, double bu,
                    double minv, double maxv, int nvbins, double vbinsize, double bv,
                    double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                   double* meand3, double* meanlogd3, double* meanu, double* meanv, double* ntri)
+                   double* meand3, double* meanlogd3, double* meanu, double* meanv, 
+                   double* weight, double* ntri)
 {
     dbg<<"Start BuildNNNCorr\n";
     void* corr = static_cast<void*>(new BinnedCorr3<NData,NData,NData>(
@@ -1170,7 +1155,8 @@ void* BuildNNNCorr(double minsep, double maxsep, int nbins, double binsize, doub
             minu, maxu, nubins, ubinsize, bu,
             minv, maxv, nvbins, vbinsize, bv,
             0, 0, 0, 0, 0, 0, 0, 0,
-            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, 0, ntri));
+            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, 
+            weight, ntri));
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
@@ -1189,7 +1175,8 @@ void* BuildKKKCorr(double minsep, double maxsep, int nbins, double binsize, doub
             minu, maxu, nubins, ubinsize, bu,
             minv, maxv, nvbins, vbinsize, bv,
             zeta, 0, 0, 0, 0, 0, 0, 0,
-            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, weight, ntri));
+            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, 
+            weight, ntri));
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
@@ -1210,7 +1197,8 @@ void* BuildGGGCorr(double minsep, double maxsep, int nbins, double binsize, doub
             minu, maxu, nubins, ubinsize, bu,
             minv, maxv, nvbins, vbinsize, bv,
             gam0r, gam0i, gam1r, gam1i, gam2r, gam2i, gam3r, gam3i,
-            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, weight, ntri));
+            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
+            weight, ntri));
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
@@ -1230,7 +1218,8 @@ void* BuildNNKCorr(double minsep, double maxsep, int nbins, double binsize, doub
             minu, maxu, nubins, ubinsize, bu,
             minv, maxv, nvbins, vbinsize, bv,
             zeta, 0, 0, 0, 0, 0, 0, 0,
-            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, weight, ntri));
+            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
+            weight, ntri));
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
@@ -1249,7 +1238,8 @@ void* BuildNNGCorr(double minsep, double maxsep, int nbins, double binsize, doub
             minu, maxu, nubins, ubinsize, bu,
             minv, maxv, nvbins, vbinsize, bv,
             zeta, zeta_im, 0, 0, 0, 0, 0, 0,
-            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, weight, ntri));
+            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
+            weight, ntri));
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
@@ -1268,7 +1258,8 @@ void* BuildKKGCorr(double minsep, double maxsep, int nbins, double binsize, doub
             minu, maxu, nubins, ubinsize, bu,
             minv, maxv, nvbins, vbinsize, bv,
             zeta, zeta_im, 0, 0, 0, 0, 0, 0,
-            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, weight, ntri));
+            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
+            weight, ntri));
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }

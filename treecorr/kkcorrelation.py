@@ -89,8 +89,8 @@ class KKCorrelation(treecorr.BinnedCorr2):
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    Other parameters are allowed to be either in the config dict or as a named kwarg.
-    See the documentation for BinnedCorr2 for details.
+    See the documentation for :BinnedCorr2: for the list of other allowed kwargs, which may
+    be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
@@ -368,6 +368,17 @@ class KKCorrelation(treecorr.BinnedCorr2):
     def write(self, file_name, file_type=None):
         """Write the correlation function to the file, file_name.
 
+        The output file will include the following columns::
+
+            R_nom       The nominal center of the bin in R.
+            meanR       The mean value <R> of pairs that fell into each bin.
+            meanlogR    The mean value <logR> of pairs that fell into each bin.
+            xi          The correlation function xi = <kappa kappa>.
+            sigma_xi    The sqrt of the variance estimate of xi.
+            weight      The total weight contributing to each bin.
+            npairs      The number of pairs contributing ot each bin.
+
+
         :param file_name:   The name of the file to write to.
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
@@ -377,7 +388,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
          
         treecorr.util.gen_write(
             file_name,
-            ['R_nom','<R>','<logR>','xi','sigma_xi','weight','npairs'],
+            ['R_nom','meanR','meanlogR','xi','sigma_xi','weight','npairs'],
             [ numpy.exp(self.logr), self.meanr, self.meanlogr,
               self.xi, numpy.sqrt(self.varxi), self.weight, self.npairs ],
             prec=prec, file_type=file_type, logger=self.logger)
@@ -401,8 +412,8 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         data = treecorr.util.gen_read(file_name, file_type=file_type)
         self.logr = numpy.log(data['R_nom'])
-        self.meanr = data['<R>']
-        self.meanlogr = data['<logR>']
+        self.meanr = data['meanR']
+        self.meanlogr = data['meanlogR']
         self.xi = data['xi']
         self.varxi = data['sigma_xi']**2
         self.weight = data['weight']

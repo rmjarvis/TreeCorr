@@ -52,10 +52,32 @@ _treecorr.ProcessCrossGGGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoi
 
 
 class GGGCorrelation(treecorr.BinnedCorr3):
-    """This class handles the calculation and storage of a 2-point count-count correlation
-    function.  i.e. the regular density correlation function.
+    """This class handles the calculation and storage of a 3-point shear-shear-shear correlation
+    function.
 
-    It holds the following attributes:
+    We use the "natural components" of the shear 3-point function described by Schneider &
+    Lombardi (2003) [Astron.Astrophys. 397 (2003) 809-818].  In this paradigm, the shears
+    are projected relative to some point defined by the geometry of the triangle.  They
+    give several reasonable choices for this point.  We choose the triangle's centroid as the 
+    "most natural" point, as many simple shear fields have purely real Gamma_0 using
+    this definition.  It is also a fairly simple point to calculate in the code compared to 
+    some of the other options they offer, so projections relative to it are fairly efficient.
+
+    There are 4 complex-valued 3-point shear corrletion functions defined for triples of shear
+    values projected relative to the line joining the location of the shear to the cenroid of
+    the triangle::
+
+        Gamma_0 = <gamma(R1) gamma(R2) gamma(R3)>
+        Gamma_1 = <gamma(R1)* gamma(R2) gamma(R3)>
+        Gamma_2 = <gamma(R1) gamma(R2)* gamma(R3)>
+        Gamma_3 = <gamma(R1) gamma(R2) gamma(R3)*>
+
+    where R1, R2, R3 are the positions of the three shears in each case, and * indicates 
+    complex conjugation.
+
+    See the doc string of :BinnedCorr3: for a description of how the triangles are binned.
+    
+    Ojects of this class holds the following attributes:
 
         :logr:      The nominal center of the bin in log(r).
         :u:         The nominal center of the bin in u.
@@ -68,10 +90,10 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         :meanlogd2: The mean value of log(d3) for the triangles in each bin.
         :meanu:     The mean value of u for the triangles in each bin.
         :meanv:     The mean value of v for the triangles in each bin.
-        :gam0:      The 0th "natural" correlation function, Gamma0(r,u,v).
-        :gam1:      The 1st "natural" correlation function, Gamma1(r,u,v).
-        :gam2:      The 2nd "natural" correlation function, Gamma2(r,u,v).
-        :gam3:      The 3rd "natural" correlation function, Gamma3(r,u,v).
+        :gam0:      The 0th "natural" correlation function, Gamma_0(r,u,v).
+        :gam1:      The 1st "natural" correlation function, Gamma_1(r,u,v).
+        :gam2:      The 2nd "natural" correlation function, Gamma_2(r,u,v).
+        :gam3:      The 3rd "natural" correlation function, Gamma_3(r,u,v).
         :vargam:    The variance of Gamma*, only including the shot noise propagated into the
                     final correlation.  This does not include sample variance, so it is always
                     an underestimate of the actual variance.
@@ -88,6 +110,8 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         >>> ggg.process(cat1,cat2,cat3)   # For cross-correlation.
         >>> ggg.write(file_name)          # Write out to a file.
         >>> gam0 = ggg.gam0, etc.         # To access gamma values directly.
+        >>> gam0r = ggg.gam0r             # You can also access real and imag parts separately.
+        >>> gam0i = ggg.gam0i
 
     :param config:      The configuration dict which defines attributes about how to read the file.
                         Any kwargs that are not those listed here will be added to the config, 
@@ -96,8 +120,8 @@ class GGGCorrelation(treecorr.BinnedCorr3):
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    Other parameters are allowed to be either in the config dict or as a named kwarg.
-    See the documentation for BinnedCorr3 for details.
+    See the documentation for :BinnedCorr3: for the list of other allowed kwargs, which may
+    be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
@@ -493,14 +517,45 @@ class GGGCorrelation(treecorr.BinnedCorr3):
     def write(self, file_name, file_type=None):
         """Write the correlation function to the file, file_name.
 
+        As described in the doc string for :GGGCorrelation:, we use the "natural components" of
+        the shear 3-point function described by Schneider & Lombardi (2003) using the triangle
+        centroid as the projection point.  There are 4 complex-valued natural components, so
+        there are 8 columns in the output file.
+
+        The output file will include the following columns::
+
+            R_nom       The nominal center of the bin in R = d2 where d1 > d2 > d3.
+            u_nom       The nominal center of the bin in u = d3/d2.
+            v_nom       The nominal center of the bin in v = +-(d1-d2)/d3.
+            meand1      The mean value <d1> of triangles that fell into each bin.
+            meanlogd1   The mean value <logd1> of triangles that fell into each bin.
+            meand2      The mean value <d2> of triangles that fell into each bin.
+            meanlogd2   The mean value <logd2> of triangles that fell into each bin.
+            meand3      The mean value <d3> of triangles that fell into each bin.
+            meanlogd3   The mean value <logd3> of triangles that fell into each bin.
+            meanu       The mean value <u> of triangles that fell into each bin.
+            meanv       The mean value <v> of triangles that fell into each bin.
+            gam0r       The real part of the estimator of Gamma_0(d1,d2,d3)
+            gam0i       The imag part of the estimator of Gamma_0(d1,d2,d3)
+            gam1r       The real part of the estimator of Gamma_1(d1,d2,d3)
+            gam1i       The imag part of the estimator of Gamma_1(d1,d2,d3)
+            gam2r       The real part of the estimator of Gamma_2(d1,d2,d3)
+            gam2i       The imag part of the estimator of Gamma_2(d1,d2,d3)
+            gam3r       The real part of the estimator of Gamma_3(d1,d2,d3)
+            gam3i       The imag part of the estimator of Gamma_3(d1,d2,d3)
+            sigma_zeta  The sqrt of the variance estimate of zeta.
+            weight      The total weight of triangles contributing to each bin.
+            ntri        The number of triangles contributing to each bin.
+
+
         :param file_name:   The name of the file to write to.
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
         """
         self.logger.info('Writing GGG correlations to %s',file_name)
         
-        col_names = [ 'R_nom', 'u_nom', 'v_nom', '<d1>', '<logd1>', '<d2>', '<logd2>',
-                      '<d3>', '<logd3>', '<u>', '<v>', 
+        col_names = [ 'R_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+                      'meand3', 'meanlogd3', 'meanu', 'meanv', 
                       'gam0r', 'gam0i', 'gam1r', 'gam1i', 'gam2r', 'gam2i', 'gam3r', 'gam3i',
                       'sigma_gam', 'weight', 'ntri' ]
         columns = [ numpy.exp(self.logr), self.u, self.v,
@@ -536,14 +591,14 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.logr = numpy.log(data['R_nom']).reshape(s)
         self.u = data['u_nom'].reshape(s)
         self.v = data['v_nom'].reshape(s)
-        self.meand1 = data['<d1>'].reshape(s)
-        self.meanlogd1 = data['<logd1>'].reshape(s)
-        self.meand2 = data['<d2>'].reshape(s)
-        self.meanlogd2 = data['<logd2>'].reshape(s)
-        self.meand3 = data['<d3>'].reshape(s)
-        self.meanlogd3 = data['<logd3>'].reshape(s)
-        self.meanu = data['<u>'].reshape(s)
-        self.meanv = data['<v>'].reshape(s)
+        self.meand1 = data['meand1'].reshape(s)
+        self.meanlogd1 = data['meanlogd1'].reshape(s)
+        self.meand2 = data['meand2'].reshape(s)
+        self.meanlogd2 = data['meanlogd2'].reshape(s)
+        self.meand3 = data['meand3'].reshape(s)
+        self.meanlogd3 = data['meanlogd3'].reshape(s)
+        self.meanu = data['meanu'].reshape(s)
+        self.meanv = data['meanv'].reshape(s)
         self.gam0r = data['gam0r'].reshape(s)
         self.gam0i = data['gam0i'].reshape(s)
         self.gam1r = data['gam1r'].reshape(s)

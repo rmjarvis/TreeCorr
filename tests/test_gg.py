@@ -155,8 +155,8 @@ def test_gg():
         import fitsio
         data = fitsio.read(out_file_name)
         numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(gg.logr))
-        numpy.testing.assert_almost_equal(data['<R>'], gg.meanr)
-        numpy.testing.assert_almost_equal(data['<logR>'], gg.meanlogr)
+        numpy.testing.assert_almost_equal(data['meanR'], gg.meanr)
+        numpy.testing.assert_almost_equal(data['meanlogR'], gg.meanlogr)
         numpy.testing.assert_almost_equal(data['xip'], gg.xip)
         numpy.testing.assert_almost_equal(data['xim'], gg.xim)
         numpy.testing.assert_almost_equal(data['xip_im'], gg.xip_im)

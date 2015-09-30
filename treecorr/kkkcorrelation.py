@@ -51,9 +51,15 @@ _treecorr.ProcessCrossKKKPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoi
 
 
 class KKKCorrelation(treecorr.BinnedCorr3):
-    """This class handles the calculation and storage of a 2-point count-count correlation
-    function.  i.e. the regular density correlation function.
+    """This class handles the calculation and storage of a 3-point kappa-kappa-kappa correlation
+    function.
 
+    Note: while we use the term kappa here and the letter K in various places, in fact
+    any scalar field will work here.  For example, you can use this to compute correlations
+    of the CMB temperature fluctuations, where "kappa" would really be delta T.
+
+    See the doc string of :BinnedCorr3: for a description of how the triangles are binned.
+    
     It holds the following attributes:
 
         :logr:      The nominal center of the bin in log(r).
@@ -92,8 +98,8 @@ class KKKCorrelation(treecorr.BinnedCorr3):
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    Other parameters are allowed to be either in the config dict or as a named kwarg.
-    See the documentation for BinnedCorr3 for details.
+    See the documentation for :BinnedCorr3: for the list of other allowed kwargs, which may
+    be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
@@ -437,14 +443,35 @@ class KKKCorrelation(treecorr.BinnedCorr3):
     def write(self, file_name, file_type=None):
         """Write the correlation function to the file, file_name.
 
+        The output file will include the following columns::
+
+            R_nom       The nominal center of the bin in R.
+            u_nom       The nominal center of the bin in R.
+            v_nom       The nominal center of the bin in R.
+            meand1      The mean value <d1> of triangles that fell into each bin.
+            meanlogd1   The mean value <logd1> of triangles that fell into each bin.
+            meand2      The mean value <d2> of triangles that fell into each bin.
+            meanlogd2   The mean value <logd2> of triangles that fell into each bin.
+            meand3      The mean value <d3> of triangles that fell into each bin.
+            meanlogd3   The mean value <logd3> of triangles that fell into each bin.
+            meanu       The mean value <u> of triangles that fell into each bin.
+            meanv       The mean value <v> of triangles that fell into each bin.
+            zeta        The estimator of zeta(d1,d2,d3)
+            sigma_zeta  The sqrt of the variance estimate of zeta.
+            weight      The total weight of triangles contributing to each bin.
+            ntri        The number of triangles contributing to each bin.
+
+
         :param file_name:   The name of the file to write to.
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
         """
         self.logger.info('Writing KKK correlations to %s',file_name)
         
-        col_names = [ 'R_nom', 'u_nom', 'v_nom', '<d1>', '<logd1>', '<d2>', '<logd2>',
-                      '<d3>', '<logd3>', '<u>', '<v>', 'zeta', 'sigma_zeta', 'weight', 'ntri' ]
+        col_names = [ 'R_nom', 'u_nom', 'v_nom',
+                      'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+                      'meand3', 'meanlogd3', 'meanu', 'meanv',
+                      'zeta', 'sigma_zeta', 'weight', 'ntri' ]
         columns = [ numpy.exp(self.logr), self.u, self.v,
                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                     self.meand3, self.meanlogd3, self.meanu, self.meanv,
@@ -476,14 +503,14 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         self.logr = numpy.log(data['R_nom']).reshape(s)
         self.u = data['u_nom'].reshape(s)
         self.v = data['v_nom'].reshape(s)
-        self.meand1 = data['<d1>'].reshape(s)
-        self.meanlogd1 = data['<logd1>'].reshape(s)
-        self.meand2 = data['<d2>'].reshape(s)
-        self.meanlogd2 = data['<logd2>'].reshape(s)
-        self.meand3 = data['<d3>'].reshape(s)
-        self.meanlogd3 = data['<logd3>'].reshape(s)
-        self.meanu = data['<u>'].reshape(s)
-        self.meanv = data['<v>'].reshape(s)
+        self.meand1 = data['meand1'].reshape(s)
+        self.meanlogd1 = data['meanlogd1'].reshape(s)
+        self.meand2 = data['meand2'].reshape(s)
+        self.meanlogd2 = data['meanlogd2'].reshape(s)
+        self.meand3 = data['meand3'].reshape(s)
+        self.meanlogd3 = data['meanlogd3'].reshape(s)
+        self.meanu = data['meanu'].reshape(s)
+        self.meanv = data['meanv'].reshape(s)
         self.zeta = data['zeta'].reshape(s)
         self.varzeta = data['sigma_zeta'].reshape(s)**2
         self.weight = data['weight'].reshape(s)

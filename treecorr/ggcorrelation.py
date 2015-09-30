@@ -386,6 +386,19 @@ class GGCorrelation(treecorr.BinnedCorr2):
     def write(self, file_name, file_type=None):
         """Write the correlation function to the file, file_name.
 
+        The output file will include the following columns::
+
+            R_nom       The nominal center of the bin in R.
+            meanR       The mean value <R> of pairs that fell into each bin.
+            meanlogR    The mean value <logR> of pairs that fell into each bin.
+            xip         The real part of the xi_+ correlation function.
+            xim         The real part of the xi_- correlation function.
+            xip_im      The imag part of the xi_+ correlation function.
+            xim_im      The imag part of the xi_- correlation function.
+            sigma_xi    The sqrt of the variance estimate of xi_+, xi_-.
+            weight      The total weight contributing to each bin.
+            npairs      The number of pairs contributing ot each bin.
+
         :param file_name:   The name of the file to write to.
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
@@ -395,7 +408,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         
         treecorr.util.gen_write(
             file_name,
-            ['R_nom','<R>','<logR>','xip','xim','xip_im','xim_im','sigma_xi','weight','npairs'],
+            ['R_nom','meanR','meanlogR','xip','xim','xip_im','xim_im','sigma_xi','weight','npairs'],
             [ numpy.exp(self.logr), self.meanr, self.meanlogr,
               self.xip, self.xim, self.xip_im, self.xim_im, numpy.sqrt(self.varxi),
               self.weight, self.npairs ],
@@ -420,8 +433,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         data = treecorr.util.gen_read(file_name, file_type=file_type)
         self.logr = numpy.log(data['R_nom'])
-        self.meanr = data['<R>']
-        self.meanlogr = data['<logR>']
+        self.meanr = data['meanR']
+        self.meanlogr = data['meanlogR']
         self.xip = data['xip']
         self.xim = data['xim']
         self.xip_im = data['xip_im']
@@ -584,7 +597,20 @@ class GGCorrelation(treecorr.BinnedCorr2):
         """Write the aperture mass statistics based on the correlation function to the
         file, file_name.
 
-        See calculateMapSq for an explanation of the m2_uform parameter.
+        See ::calculateMapSq:: for an explanation of the m2_uform parameter.
+
+        The output file will include the following columns::
+
+            R           The aperture radius
+            Mapsq       The real part of <M_ap^2>. cf. ::calculateMapSq::
+            Mxsq        The real part of <M_x^2>.
+            MMxa        The imag part of <M_ap^2>.
+            MMxb        The imag part of -<M_x^2>.
+            sig_map     The sqrt of the variance estimate of <M_ap^2> (which is equal to the 
+                        variance of <M_x^2> as well).
+            Gamsq       The tophat shear variance <gamma^2>. cf. ::calculateGamSq::
+            sig_gam     The sqrt of the variance estimate of <gamma^2>
+
 
         :param file_name:   The name of the file to write to.
         :param m2_uform:    Which form to use for the aperture mass.  (default: None)
@@ -598,7 +624,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         treecorr.util.gen_write(
             file_name,
-            ['R','<Mapsq>','<Mxsq>','<MMx>(a)','<MMx>(b)','sig_map','<Gamsq>','sig_gam'],
+            ['R','Mapsq','Mxsq','MMxa','MMxb','sig_map','Gamsq','sig_gam'],
             [ numpy.exp(self.logr),
               mapsq, mxsq, mapsq_im, -mxsq_im, numpy.sqrt(varmapsq),
               gamsq, numpy.sqrt(vargamsq) ],

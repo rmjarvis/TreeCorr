@@ -53,6 +53,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
     """This class handles the calculation and storage of a 2-point count-count correlation
     function.  i.e. the regular density correlation function.
 
+    See the doc string of :BinnedCorr3: for a description of how the triangles are binned.
+    
     It holds the following attributes:
 
         :logr:      The nominal center of the bin in log(r).
@@ -96,8 +98,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    Other parameters are allowed to be either in the config dict or as a named kwarg.
-    See the documentation for BinnedCorr3 for details.
+    See the documentation for :BinnedCorr3: for the list of other allowed kwargs, which may
+    be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
@@ -500,7 +502,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         """Write the correlation function to the file, file_name.
 
         Normally, at least rrr should be provided, but if this is None, then only the 
-        basic accumulated number of triangles are output (along with the separation columns).
+        basic accumulated number of triangles are output (along with the columns parametrizing
+        the size and shape of the triangles).
 
         If at least rrr is given, then it will output an estimate of the final 3pt correlation
         function, zeta. There are two possible formulae that are currently supported.
@@ -519,6 +522,49 @@ class NNNCorrelation(treecorr.BinnedCorr3):
            triangle have data and p3 uses randoms, where points p1, p2, p3 are opposite sides 
            d1, d2, d3 with d1 > d2 > d3 as usual; rdr has randoms at 1,3 and data at 2, etc.
 
+        The output file will include the following columns::
+
+            R_nom       The nominal center of the bin in R.
+            u_nom       The nominal center of the bin in R.
+            v_nom       The nominal center of the bin in R.
+            meand1      The mean value <d1> of triangles that fell into each bin.
+            meanlogd1   The mean value <logd1> of triangles that fell into each bin.
+            meand2      The mean value <d2> of triangles that fell into each bin.
+            meanlogd2   The mean value <logd2> of triangles that fell into each bin.
+            meand3      The mean value <d3> of triangles that fell into each bin.
+            meanlogd3   The mean value <logd3> of triangles that fell into each bin.
+            meanu       The mean value <u> of triangles that fell into each bin.
+            meanv       The mean value <v> of triangles that fell into each bin.
+
+        Then if rrr is None::
+
+            DDD         The total weight of triangles in each bin.
+            ntri        The total number of triangles in each bin.
+
+        If rrr is given, but not the cross-correlations::
+
+            zeta        The estimator (DDD-RRR)/RRR, which is really an estimate of
+                        zeta(d1,d2,d3) + xi(d1) + xi(d2) + xi(d3).  cf. ::calculateZeta::
+            sigma_zeta  The sqrt of the variance estimate of zeta.
+            DDD         The total weight of data triangles (aka DDD) in each bin.
+            RRR         The total weight of random triangles (aka RRR) in each bin.
+            ntri        The number of triangles contributing to each bin.
+
+        If all cross-correlations are given::
+
+            zeta        The estimator zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR.
+            sigma_zeta  The sqrt of the variance estimate of zeta.
+            DDD         The total weight of DDD triangles in each bin.
+            RRR         The total weight of RRR triangles in each bin.
+            DRR         The total weight of DRR triangles in each bin.
+            RDR         The total weight of RDR triangles in each bin.
+            RRD         The total weight of RRD triangles in each bin.
+            DDR         The total weight of DDR triangles in each bin.
+            DRD         The total weight of DRD triangles in each bin.
+            RDD         The total weight of RDD triangles in each bin.
+            ntri        The number of triangles contributing to each bin.
+
+
         :param file_name:   The name of the file to write to.
         :param rrr:         An NNNCorrelation object for the random field. (default: None)
         :param drr:         DRR if desired. (default: None)
@@ -532,8 +578,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         """
         self.logger.info('Writing NNN correlations to %s',file_name)
         
-        col_names = [ 'R_nom', 'u_nom', 'v_nom', '<d1>', '<logd1>', '<d2>', '<logd2>',
-                      '<d3>', '<logd3>', '<u>', '<v>' ]
+        col_names = [ 'R_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+                      'meand3', 'meanlogd3', 'meanu', 'meanv' ]
         columns = [ numpy.exp(self.logr), self.u, self.v,
                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                     self.meand3, self.meanlogd3, self.meanu, self.meanv ]
@@ -586,14 +632,14 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.logr = numpy.log(data['R_nom']).reshape(s)
         self.u = data['u_nom'].reshape(s)
         self.v = data['v_nom'].reshape(s)
-        self.meand1 = data['<d1>'].reshape(s)
-        self.meanlogd1 = data['<logd1>'].reshape(s)
-        self.meand2 = data['<d2>'].reshape(s)
-        self.meanlogd2 = data['<logd2>'].reshape(s)
-        self.meand3 = data['<d3>'].reshape(s)
-        self.meanlogd3 = data['<logd3>'].reshape(s)
-        self.meanu = data['<u>'].reshape(s)
-        self.meanv = data['<v>'].reshape(s)
+        self.meand1 = data['meand1'].reshape(s)
+        self.meanlogd1 = data['meanlogd1'].reshape(s)
+        self.meand2 = data['meand2'].reshape(s)
+        self.meanlogd2 = data['meanlogd2'].reshape(s)
+        self.meand3 = data['meand3'].reshape(s)
+        self.meanlogd3 = data['meanlogd3'].reshape(s)
+        self.meanu = data['meanu'].reshape(s)
+        self.meanv = data['meanv'].reshape(s)
         self.weight = data['DDD'].reshape(s)
         self.ntri = data['ntri'].reshape(s)
 

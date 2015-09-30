@@ -102,8 +102,8 @@ def test_kk():
         import fitsio
         data = fitsio.read(out_file_name)
         numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(kk.logr))
-        numpy.testing.assert_almost_equal(data['<R>'], kk.meanr)
-        numpy.testing.assert_almost_equal(data['<logR>'], kk.meanlogr)
+        numpy.testing.assert_almost_equal(data['meanR'], kk.meanr)
+        numpy.testing.assert_almost_equal(data['meanlogR'], kk.meanlogr)
         numpy.testing.assert_almost_equal(data['xi'], kk.xi)
         numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(kk.varxi))
         numpy.testing.assert_almost_equal(data['weight'], kk.weight)

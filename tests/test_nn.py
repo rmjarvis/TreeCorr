@@ -497,8 +497,8 @@ def test_nn():
         import fitsio
         data = fitsio.read(out_file_name1)
         numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(dd.logr))
-        numpy.testing.assert_almost_equal(data['<R>'], dd.meanr)
-        numpy.testing.assert_almost_equal(data['<logR>'], dd.meanlogr)
+        numpy.testing.assert_almost_equal(data['meanR'], dd.meanr)
+        numpy.testing.assert_almost_equal(data['meanlogR'], dd.meanlogr)
         numpy.testing.assert_almost_equal(data['npairs'], dd.npairs)
     except ImportError:
         print('Unable to import fitsio.  Skipping fits tests.')
@@ -509,8 +509,8 @@ def test_nn():
         import fitsio
         data = fitsio.read(out_file_name2)
         numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(dd.logr))
-        numpy.testing.assert_almost_equal(data['<R>'], dd.meanr)
-        numpy.testing.assert_almost_equal(data['<logR>'], dd.meanlogr)
+        numpy.testing.assert_almost_equal(data['meanR'], dd.meanr)
+        numpy.testing.assert_almost_equal(data['meanlogR'], dd.meanlogr)
         numpy.testing.assert_almost_equal(data['xi'], simple_xi)
         numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(simple_varxi))
         numpy.testing.assert_almost_equal(data['DD'], dd.npairs)
@@ -524,14 +524,13 @@ def test_nn():
         import fitsio
         data = fitsio.read(out_file_name3)
         numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(dd.logr))
-        numpy.testing.assert_almost_equal(data['<R>'], dd.meanr)
-        numpy.testing.assert_almost_equal(data['<logR>'], dd.meanlogr)
+        numpy.testing.assert_almost_equal(data['meanR'], dd.meanr)
+        numpy.testing.assert_almost_equal(data['meanlogR'], dd.meanlogr)
         numpy.testing.assert_almost_equal(data['xi'], xi)
         numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(varxi))
         numpy.testing.assert_almost_equal(data['DD'], dd.npairs)
         numpy.testing.assert_almost_equal(data['RR'], rr.npairs * (dd.tot / rr.tot))
         numpy.testing.assert_almost_equal(data['DR'], dr.npairs * (dd.tot / dr.tot))
-        numpy.testing.assert_almost_equal(data['RD'], dr.npairs * (dd.tot / dr.tot))
     except ImportError:
         print('Unable to import fitsio.  Skipping fits tests.')
 

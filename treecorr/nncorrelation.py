@@ -85,8 +85,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    Other parameters are allowed to be either in the config dict or as a named kwarg.
-    See the documentation for BinnedCorr2 for details.
+    See the documentation for :BinnedCorr2: for the list of other allowed kwargs, which may
+    be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
@@ -420,6 +420,45 @@ class NNCorrelation(treecorr.BinnedCorr2):
         Normally, at least rr should be provided, but if this is also None, then only the 
         basic accumulated number of pairs are output (along with the separation columns).
 
+        The output file will include the following columns::
+
+            R_nom       The nominal center of the bin in R.
+            meanR       The mean value <R> of pairs that fell into each bin.
+            meanlogR    The mean value <logR> of pairs that fell into each bin.
+
+        Then if rr is None::
+
+            DD          The total weight of pairs in each bin.
+            npairs      The total number of pairs in each bin.
+
+        If rr is given, but not the cross-correlations::
+
+            xi          The estimator xi = (DD-RR)/RR
+            sigma_xi    The sqrt of the variance estimate of xi.
+            DD          The total weight of data pairs (aka DD) in each bin.
+            RR          The total weight of random pairs (aka RR) in each bin.
+            npairs      The number of pairs contributing ot each bin.
+
+        If one of dr or rd is given::
+
+            xi          The estimator xi = (DD-2DR+RR)/RR
+            sigma_xi    The sqrt of the variance estimate of xi.
+            DD          The total weight of DD pairs in each bin.
+            RR          The total weight of RR pairs in each bin.
+            DR          The total weight of DR pairs in each bin.
+            npairs      The number of pairs contributing ot each bin.
+
+        If both dr and rd are given::
+
+            xi          The estimator xi = (DD-DR-RD+RR)/RR
+            sigma_xi    The sqrt of the variance estimate of xi.
+            DD          The total weight of DD pairs in each bin.
+            RR          The total weight of RR pairs in each bin.
+            DR          The total weight of DR pairs in each bin.
+            RD          The total weight of RD pairs in each bin.
+            npairs      The number of pairs contributing ot each bin.
+
+
         :param file_name:   The name of the file to write to.
         :param rr:          An NNCorrelation object for the random-random pairs. (default: None,
                             in which case, no xi or varxi columns will be output)
@@ -432,7 +471,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Writing NN correlations to %s',file_name)
         
-        col_names = [ 'R_nom','<R>','<logR>' ]
+        col_names = [ 'R_nom','meanR','meanlogR' ]
         columns = [ numpy.exp(self.logr), self.meanr, self.meanlogr ]
         if rr is None:
             col_names += [ 'DD', 'npairs' ]
@@ -448,11 +487,13 @@ class NNCorrelation(treecorr.BinnedCorr2):
             columns += [ xi, numpy.sqrt(varxi),
                          self.weight, rr.weight * (self.tot/rr.tot) ]
 
-            if dr is not None or rd is not None:
-                if dr is None: dr = rd
-                if rd is None: rd = dr
+            if dr is not None and rd is not None:
                 col_names += ['DR','RD']
                 columns += [ dr.weight * (self.tot/dr.tot), rd.weight * (self.tot/rd.tot) ]
+            elif dr is not None or rd is not None:
+                if dr is None: dr = rd
+                col_names += ['DR']
+                columns += [ dr.weight * (self.tot/dr.tot) ]
             col_names += [ 'npairs' ]
             columns += [ self.npairs ]
 
@@ -480,8 +521,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         data = treecorr.util.gen_read(file_name, file_type=file_type)
         self.logr = numpy.log(data['R_nom'])
-        self.meanr = data['<R>']
-        self.meanlogr = data['<logR>']
+        self.meanr = data['meanR']
+        self.meanlogr = data['meanlogR']
         self.weight = data['DD']
         self.npairs = data['npairs']
 

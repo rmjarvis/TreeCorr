@@ -13,6 +13,7 @@ Checklist for making a new release:
 - In gh-pages directory, commit and push new docs.
 - git tag -a vM.m.r -m MESSAGE
 - git push --tags
+- python setup.py install  (make sure this is current)
 - python setup.py sdist upload
 - From another directory try out pip install TreeCorr --upgrade
 - git checkout -b releases/M.m

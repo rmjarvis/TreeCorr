@@ -106,6 +106,14 @@ class BinnedCorr2(object):
                         on MacOS systems.
     :param m2_uform:    The default functional form to use for aperture mass calculations.  See
                         :GGCorrelation.calculateMapSq: for more details. (default: 'Crittenden')
+    :param metric:      Which metric to use for distance measurements.  Options are:
+                        - 'Euclidean' = straight line Euclidean distance between two points.
+                            For spherical coordinates (ra,dec without r), this is the chord
+                            distance between points on the unit sphere.
+                        - 'Rperp' = the perpendicular component of the distance. For two points
+                            with distance from Earth r1,r2, if d is the normal Euclidean distance
+                            and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
+                        (default: 'Euclidean')
     """
     _valid_params = {
         'nbins' : (int, False, None, None,
@@ -142,6 +150,8 @@ class BinnedCorr2(object):
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
         'm2_uform' : (str, False, 'Crittenden', ['Crittenden', 'Schneider'],
                 'The function form of the mass aperture.'),
+        'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp'],
+                'Which metric to use for the distance measurements'),
     }
     def __init__(self, config=None, logger=None, **kwargs):
         import math

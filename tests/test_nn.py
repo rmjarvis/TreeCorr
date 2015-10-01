@@ -815,7 +815,12 @@ def test_perp_minmax():
 
     if __name__ == '__main__':
         # If we're running from the command line, go ahead and finish the calculation
-        rcat = treecorr.Catalog('data/nn_perp_rand.dat', config)
+        # This catalog has 10^6 objects, which takes quite a while.  I should really investigate
+        # how to speed up the Rperp distance calculation.  Probably by having a faster over-
+        # and under-estimate first, and then only do the full calculation when it seems like we
+        # will actually need it.  
+        # Anyway, until then, let's not take forever by using last_row=200000
+        rcat = treecorr.Catalog('data/nn_perp_rand.dat', config, last_row=200000)
 
         rr1 = treecorr.NNCorrelation(config)
         rr1.process(rcat, metric='Rperp')
@@ -838,6 +843,18 @@ def test_perp_minmax():
         print('xi1 = ',xi1)
         print('xi2 = ',xi2[2:-2])
         numpy.testing.assert_almost_equal( xi1 / xi2[2:-2], 1., decimal=2)
+
+        # Check that we get the same result with the corr2 executable.
+        import subprocess
+        p = subprocess.Popen( ["corr2","nn_rperp.params"] )
+        p.communicate()
+        corr2_output = numpy.genfromtxt(os.path.join('output','nn_rperp.out'),names=True)
+        print('xi = ',xi1)
+        print('from corr2 output = ',corr2_output['xi'])
+        print('ratio = ',corr2_output['xi']/xi1)
+        print('diff = ',corr2_output['xi']-xi1)
+        numpy.testing.assert_almost_equal(corr2_output['xi']/xi1, 1., decimal=3)
+
 
 
 if __name__ == '__main__':

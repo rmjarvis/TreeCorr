@@ -26,7 +26,7 @@ import treecorr
 #    description
 corr2_valid_params = {
 
-    # Parameters about the input catlogs
+    # Parameters about the input catalogs
 
     'file_name' : (str, True, None, None,
             'The file(s) with the galaxy data.'),
@@ -44,93 +44,6 @@ corr2_valid_params = {
             'A text file with file names in lieu of rand_file_name.'),
     'rand_file_list2' : (str, False, None, None,
             'A text file with file names in lieu of rand_file_name2.'),
-    'file_type' : (str, False, None, ['ASCII', 'FITS'],
-            'The file type of the input files. The default is to use the file name extension.'),
-    'delimiter' : (str, True, None, None,
-            'The delimeter between values in an ASCII catalog. The default is any whitespace.'),
-    'comment_marker' : (str, True, '#', None,
-            'The first (non-whitespace) character of comment lines in an input ASCII catalog.'),
-    'first_row' : (int, True, 1, None,
-            'The first row to use from the input catalog'),
-    'last_row' : (int, True, -1, None,
-            'The last row to use from the input catalog.  The default is to use all of them.'),
-    'x_col' : (str, True, '0', None,
-            'Which column to use for x. Should be an integer for ASCII catalogs.'),
-    'y_col' : (str, True, '0', None,
-            'Which column to use for y. Should be an integer for ASCII catalogs.'),
-    'ra_col' : (str, True, '0', None,
-            'Which column to use for ra. Should be an integer for ASCII catalogs.'),
-    'dec_col' : (str, True, '0', None,
-            'Which column to use for dec. Should be an integer for ASCII catalogs.'),
-    'r_col' : (str, True, '0', None,
-            'Which column to use for r.  Only valid with ra,dec. ',
-            'Should be an integer for ASCII catalogs.'),
-    'x_units' : (str, True, None, treecorr.angle_units.keys(),
-            'The units of x values.'),
-    'y_units' : (str, True, None, treecorr.angle_units.keys(),
-            'The units of y values.'),
-    'ra_units' : (str, True, None, treecorr.angle_units.keys(),
-            'The units of ra values. Required when using ra_col.'),
-    'dec_units' : (str, True, None, treecorr.angle_units.keys(),
-            'The units of dec values. Required when using dec_col.'),
-    'g1_col' : (str, True, '0', None,
-            'Which column to use for g1. Should be an integer for ASCII catalogs.'),
-    'g2_col' : (str, True, '0', None,
-            'Which column to use for g2. Should be an integer for ASCII catalogs.'),
-    'k_col' : (str, True, '0', None,
-            'Which column to use for kappa. Should be an integer for ASCII catalogs. '),
-    'w_col' : (str, True, '0', None,
-            'Which column to use for weight. Should be an integer for ASCII catalogs.'),
-    'flag_col' : (str, True, '0', None,
-            'Which column to use for flag. Should be an integer for ASCII catalogs.'),
-    'ignore_flag': (int, True, None, None,
-            'Ignore objects with flag & ignore_flag != 0 (bitwise &)'),
-    'ok_flag': (int, True, 0, None,
-            'Ignore objects with flag & ~ok_flag != 0 (bitwise &, ~)'),
-    'hdu': (int, True, 1, None,
-            'Which HDU in a fits file to use rather than hdu=1'),
-    'x_hdu': (int, True, None, None,
-            'Which HDU to use for the x_col. default is the global hdu value.'),
-    'y_hdu': (int, True, None, None,
-            'Which HDU to use for the y_col. default is the global hdu value.'),
-    'ra_hdu': (int, True, None, None,
-            'Which HDU to use for the ra_col. default is the global hdu value.'),
-    'dec_hdu': (int, True, None, None,
-            'Which HDU to use for the dec_col. default is the global hdu value.'),
-    'r_hdu': (int, True, None, None,
-            'Which HDU to use for the r_col. default is the global hdu value.'),
-    'g1_hdu': (int, True, None, None,
-            'Which HDU to use for the g1_col. default is the global hdu value.'),
-    'g2_hdu': (int, True, None, None,
-            'Which HDU to use for the g2_col. default is the global hdu value.'),
-    'k_hdu': (int, True, None, None,
-            'Which HDU to use for the k_col. default is the global hdu value.'),
-    'w_hdu': (int, True, None, None,
-            'Which HDU to use for the w_col. default is the global hdu value.'),
-    'flag_hdu': (int, True, None, None,
-            'Which HDU to use for the flag_col. default is the global hdu value.'),
-    'flip_g1' : (bool, True, False, None,
-            'Whether to flip the sign of g1'),
-    'flip_g2' : (bool, True, False, None,
-            'Whether to flip the sign of g2'),
-    'pairwise' : (bool, True, False, None,
-            'Whether to do a pair-wise cross-correlation '),
-
-    # Parameters about the binned correlation function to be calculated
-
-    'min_sep' : (float, False, None, None,
-            'The minimum separation to include in the output.'),
-    'max_sep' : (float, False, None, None,
-            'The maximum separation to include in the output.'),
-    'nbins' : (int, False, None, None,
-            'The number of output bins to use.'),
-    'bin_size' : (float, False, None, None,
-            'The size of the output bins in log(sep).'),
-    'sep_units' : (str, False, None, treecorr.angle_units.keys(),
-            'The units to use for min_sep and max_sep.  Also the units of the output r columns'),
-    'bin_slop' : (float, False, None, None,
-            'The fraction of a bin width by which it is ok to let the pairs miss the correct bin.',
-            'The default is to use 1 if bin_size <= 0.1, or 0.1/bin_size if bin_size > 0.1.'),
 
     # Parameters about the output file(s)
 
@@ -154,36 +67,20 @@ corr2_valid_params = {
             'The output filename for kappa-kappa correlation function.'),
     'kg_file_name' : (str, False, None, None,
             'The output filename for kappa-shear correlation function.'),
-    'precision' : (int, False, 4, None,
-            'The number of digits after the decimal in the output.'),
 
     # Derived output quantities
 
     'm2_file_name' : (str, False, None, None,
             'The output filename for the aperture mass statistics.'),
-    'm2_uform' : (str, False, 'Crittenden', ['Crittenden', 'Schneider'],
-            'The function form of the aperture.'),
     'nm_file_name' : (str, False, None, None,
             'The output filename for <N Map> and related values.'),
     'norm_file_name' : (str, False, None,  None,
             'The output filename for <N Map>^2/<N^2><Map^2> and related values.'),
-
-    # Miscellaneous parameters
-
-    'verbose' : (int, False, 1, [0, 1, 2, 3],
-            'How verbose the code should be during processing. ',
-            '0 = Errors Only, 1 = Warnings, 2 = Progress, 3 = Debugging'),
-    'num_threads' : (int, False, None, None,
-            'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
-    'split_method' : (str, False, 'mean', ['mean', 'median', 'middle'],
-            'Which method to use for splitting cells.'),
-    'log_file' : (str, False, None, None,
-            'If desired, an output file for the logging output.',
-            'The default is to write the output to stdout.'),
-    'output_dots' : (bool, False, None, None,
-            'Whether to output dots to the stdout during the C++-level computation.',
-            'The default is True if verbose >= 2 and there is no log_file.  Else False.'),
 }
+
+# Add in the valid parameters for the relevant classes
+for c in [ treecorr.Catalog, treecorr.BinnedCorr2 ]:
+    corr2_valid_params.update(c._valid_params)
 
 corr2_aliases = {
     'n2_file_name' : 'nn_file_name',

@@ -61,7 +61,7 @@ void BuildCellData(
         // Make sure we don't have an invalid position, even if all wpos == 0.
         pos = vdata[start]->getPos();
         // But in this case, we should have w == 0 too!
-        Assert(w == 0.)
+        Assert(w == 0.);
     }
 }
 

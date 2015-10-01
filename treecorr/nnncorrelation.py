@@ -181,7 +181,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
     def __repr__(self):
         return 'NNNCorrelation(config=%r)'%self.config
 
-    def process_auto(self, cat, metric='Euclidean', num_threads=None):
+    def process_auto(self, cat, metric=None, num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the auto-correlation for the given catalog.  After
@@ -190,7 +190,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         :param cat:         The catalog to process
         :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean')
+                            (default: 'Euclidean'; this value can also be given in the constructor
+                            in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -201,6 +202,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         else:
             self.logger.info('Starting process NNN auto-correlations for cat %s.', cat.name)
 
+        if metric is None:
+            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
 
@@ -220,7 +223,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             _treecorr.ProcessAutoNNN3D(self.corr, field.data, self.output_dots)
         self.tot += (1./6.) * cat.sumw**3
 
-    def process_cross21(self, cat1, cat2, metric='Euclidean', num_threads=None):
+    def process_cross21(self, cat1, cat2, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where two of the 
         points in each triangle come from the first catalog, and one from the second.
 
@@ -231,7 +234,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         :param cat1:        The first catalog to process
         :param cat2:        The second catalog to process
         :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean')
+                            (default: 'Euclidean'; this value can also be given in the constructor
+                            in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -240,7 +244,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         raise NotImplemented("No partial cross NNN yet.")
 
 
-    def process_cross(self, cat1, cat2, cat3, metric='Euclidean', num_threads=None):
+    def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs.  After
@@ -251,7 +255,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         :param cat2:        The second catalog to process
         :param cat3:        The third catalog to process
         :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean')
+                            (default: 'Euclidean'; this value can also be given in the constructor
+                            in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -263,6 +268,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             self.logger.info('Starting process NNN cross-correlations for cats %s, %s, %s.',
                              cat1.name, cat2.name, cat3.name)
 
+        if metric is None:
+            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
         if cat1.coords != cat2.coords or cat1.coords != cat3.coords:
@@ -374,7 +381,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         return self
 
 
-    def process(self, cat1, cat2=None, cat3=None, metric='Euclidean', num_threads=None):
+    def process(self, cat1, cat2=None, cat3=None, metric=None, num_threads=None):
         """Accumulate the number of triangles of points between cat1, cat2, and cat3.
 
         If only 1 argument is given, then compute an auto-correlation function.
@@ -404,7 +411,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                             - 'Rperp' = the perpendicular component of the distance. For two points
                               with distance from Earth r1,r2, if d is the normal Euclidean distance
                               and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
-                            (default: 'Euclidean')
+                            (default: 'Euclidean'; this value can also be given in the constructor
+                            in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 

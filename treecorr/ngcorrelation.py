@@ -143,7 +143,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
     def __repr__(self):
         return 'NGCorrelation(config=%r)'%self.config
 
-    def process_cross(self, cat1, cat2, metric='Euclidean', num_threads=None):
+    def process_cross(self, cat1, cat2, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
@@ -154,7 +154,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         :param cat1:        The first catalog to process
         :param cat2:        The second catalog to process
         :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean')
+                            (default: 'Euclidean'; this value can also be given in the constructor
+                            in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -166,6 +167,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process NG cross-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
+        if metric is None:
+            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
         if cat1.coords != cat2.coords:
@@ -185,7 +188,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
             _treecorr.ProcessCrossNG3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
-    def process_pairwise(self, cat1, cat2, metric='Euclidean', num_threads=None):
+    def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
 
@@ -197,7 +200,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         :param cat1:        The first catalog to process
         :param cat2:        The second catalog to process
         :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean')
+                            (default: 'Euclidean'; this value can also be given in the constructor
+                            in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -209,6 +213,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process NG pairwise-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
+        if metric is None:
+            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
         if cat1.coords != cat2.coords:
@@ -290,7 +296,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         return self
 
 
-    def process(self, cat1, cat2, metric='Euclidean', num_threads=None):
+    def process(self, cat1, cat2, metric=None, num_threads=None):
         """Compute the correlation function.
 
         Both arguments may be lists, in which case all items in the list are used 
@@ -305,7 +311,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
                             - 'Rperp' = the perpendicular component of the distance. For two points
                               with distance from Earth r1,r2, if d is the normal Euclidean distance
                               and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
-                            (default: 'Euclidean')
+                            (default: 'Euclidean'; this value can also be given in the constructor
+                            in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 

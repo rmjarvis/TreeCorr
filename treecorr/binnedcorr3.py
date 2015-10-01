@@ -118,7 +118,15 @@ class BinnedCorr3(object):
                         which specifies how many digits to write. (default: 4)
     :param num_threads: How many OpenMP threads to use during the calculations.  (default: 0,
                         which means to query the number of cpu cores and use that many threads.)
-    """
+    :param metric:      Which metric to use for distance measurements.  Options are:
+                        - 'Euclidean' = straight line Euclidean distance between two points.
+                            For spherical coordinates (ra,dec without r), this is the chord
+                            distance between points on the unit sphere.
+                        - 'Rperp' = the perpendicular component of the distance. For two points
+                            with distance from Earth r1,r2, if d is the normal Euclidean distance
+                            and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
+                        (default: 'Euclidean')
+     """
     _valid_params = {
         'nbins' : (int, False, None, None,
                 'The number of output bins to use for sep dimension.'),
@@ -166,6 +174,8 @@ class BinnedCorr3(object):
                 'The number of digits after the decimal in the output.'),
         'num_threads' : (int, False, None, None,
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
+        'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp'],
+                'Which metric to use for the distance measurements'),
     }
     def __init__(self, config=None, logger=None, **kwargs):
         import math

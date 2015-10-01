@@ -230,6 +230,20 @@ class Catalog(object):
                         - 3 means to output extensive debugging information
     :param log_file:    If no logger is provided, this will specify a file to write the logging
                         output.  (default: None; i.e. output to standard output)
+    :param split_method: How to split the cells in the tree when building the tree structure.
+                        Options are:
+                        - mean: Use the arithmetic mean of the coordinate being split. (default)
+                        - median: Use the median of the coordinate being split.
+                        - middle: Use the middle of the range; i.e. the average of the minimum and
+                          maximum value.
+    :param metric:      Which metric to use for distance measurements.  Options are:
+                        - 'Euclidean' = straight line Euclidean distance between two points.
+                            For spherical coordinates (ra,dec without r), this is the chord
+                            distance between points on the unit sphere.
+                        - 'Rperp' = the perpendicular component of the distance. For two points
+                            with distance from Earth r1,r2, if d is the normal Euclidean distance
+                            and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
+                        (default: 'Euclidean')
     :param cat_precision: The precision to use when writing a Catalog to an ASCII file. This should
                         be an integer, which specifies how many digits to write. (default: 16)
     """
@@ -326,6 +340,10 @@ class Catalog(object):
         'log_file' : (str, False, None, None,
                 'If desired, an output file for the logging output.',
                 'The default is to write the output to stdout.'),
+        'split_method' : (str, False, 'mean', ['mean', 'median', 'middle'],
+                'Which method to use for splitting cells.'),
+        'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp'],
+                'Which metric to use for the distance measurements'),
         'cat_precision' : (int, False, 16, None,
                 'The number of digits after the decimal in the output.'),
     }
@@ -1113,7 +1131,7 @@ class Catalog(object):
                     self.logger.debug('read k = %s',str(self.k))
 
 
-    def getNField(self, min_sep, max_sep, b, split_method='mean', metric='Euclidean', max_top=10,
+    def getNField(self, min_sep, max_sep, b, split_method=None, metric=None, max_top=10,
                   logger=None):
         """Return an NField based on the positions in this catalog.
 
@@ -1124,7 +1142,8 @@ class Catalog(object):
         :param b:               The b parameter that will be used for the correlation function.
                                 This should be bin_size * bin_slop.
         :param split_method:    Which split method to use ('mean', 'median', or 'middle')
-                                (default: 'mean')
+                                (default: 'mean'; this value can also be given in the Catalog 
+                                constructor in the config dict.)
         :param metric:          Which metric to use for distance measurements.  Options are:
                                 - 'Euclidean' = straight line Euclidean distance between two points.
                                 For spherical coordinates (ra,dec without r), this is the chord
@@ -1132,13 +1151,18 @@ class Catalog(object):
                                 - 'Rperp' = the perpendicular component of the distance. For two 
                                 points with distance from Earth r1,r2, if d is the normal Euclidean
                                 distance and Rparallel = |r1 - r2|, then Rperp^2 = d^2-Rparallel^2.
-                                (default: 'Euclidean')
+                                (default: 'Euclidean'; this value can also be given in the Catalog 
+                                constructor in the config dict.)
         :param max_top:         The maximum number of top layers to use when setting up the
                                 field. (default: 10)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.NField` object
         """
+        if split_method is None:
+            split_method = treecorr.config.get(self.config,'split_method',str,'mean')
+        if metric is None:
+            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
         args = (min_sep, max_sep, b, split_method, metric, max_top)
         if args in self.nfields:
             nfield = self.nfields[args]
@@ -1150,7 +1174,7 @@ class Catalog(object):
         return nfield
 
 
-    def getKField(self, min_sep, max_sep, b, split_method='mean', metric='Euclidean', max_top=10,
+    def getKField(self, min_sep, max_sep, b, split_method=None, metric=None, max_top=10,
                   logger=None):
         """Return a KField based on the k values in this catalog.
 
@@ -1161,7 +1185,8 @@ class Catalog(object):
         :param b:               The b parameter that will be used for the correlation function.
                                 This should be bin_size * bin_slop.
         :param split_method:    Which split method to use ('mean', 'median', or 'middle')
-                                (default: 'mean')
+                                (default: 'mean'; this value can also be given in the Catalog 
+                                constructor in the config dict.)
         :param metric:          Which metric to use for distance measurements.  Options are:
                                 - 'Euclidean' = straight line Euclidean distance between two points.
                                 For spherical coordinates (ra,dec without r), this is the chord
@@ -1169,13 +1194,18 @@ class Catalog(object):
                                 - 'Rperp' = the perpendicular component of the distance. For two 
                                 points with distance from Earth r1,r2, if d is the normal Euclidean
                                 distance and Rparallel = |r1 - r2|, then Rperp^2 = d^2-Rparallel^2.
-                                (default: 'Euclidean')
+                                (default: 'Euclidean'; this value can also be given in the Catalog 
+                                constructor in the config dict.)
         :param max_top:         The maximum number of top layers to use when setting up the
                                 field. (default: 10)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.KField` object
         """
+        if split_method is None:
+            split_method = treecorr.config.get(self.config,'split_method',str,'mean')
+        if metric is None:
+            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
         args = (min_sep, max_sep, b, split_method, metric, max_top)
         if args in self.kfields:
             kfield = self.kfields[args]
@@ -1189,7 +1219,7 @@ class Catalog(object):
         return kfield
 
 
-    def getGField(self, min_sep, max_sep, b, split_method='mean', metric='Euclidean', max_top=10,
+    def getGField(self, min_sep, max_sep, b, split_method=None, metric=None, max_top=10,
                   logger=None):
         """Return a GField based on the g1,g2 values in this catalog.
 
@@ -1200,7 +1230,8 @@ class Catalog(object):
         :param b:               The b parameter that will be used for the correlation function.
                                 This should be bin_size * bin_slop.
         :param split_method:    Which split method to use ('mean', 'median', or 'middle')
-                                (default: 'mean')
+                                (default: 'mean'; this value can also be given in the Catalog 
+                                constructor in the config dict.)
         :param metric:          Which metric to use for distance measurements.  Options are:
                                 - 'Euclidean' = straight line Euclidean distance between two points.
                                 For spherical coordinates (ra,dec without r), this is the chord
@@ -1208,13 +1239,18 @@ class Catalog(object):
                                 - 'Rperp' = the perpendicular component of the distance. For two 
                                 points with distance from Earth r1,r2, if d is the normal Euclidean
                                 distance and Rparallel = |r1 - r2|, then Rperp^2 = d^2-Rparallel^2.
-                                (default: 'Euclidean')
+                                (default: 'Euclidean'; this value can also be given in the Catalog 
+                                constructor in the config dict.)
         :param max_top:         The maximum number of top layers to use when setting up the
                                 field. (default: 10)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.GField` object
         """
+        if split_method is None:
+            split_method = treecorr.config.get(self.config,'split_method',str,'mean')
+        if metric is None:
+            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
         args = (min_sep, max_sep, b, split_method, metric, max_top)
         if args in self.gfields:
             gfield = self.gfields[args]
@@ -1228,7 +1264,7 @@ class Catalog(object):
         return gfield
 
 
-    def getNSimpleField(self, metric='Euclidean', logger=None):
+    def getNSimpleField(self, metric=None, logger=None):
         """Return an NSimpleField based on the positions in this catalog.
 
         The NSimpleField object is cached, so this is efficient to call multiple times.
@@ -1240,11 +1276,14 @@ class Catalog(object):
                                 - 'Rperp' = the perpendicular component of the distance. For two 
                                 points with distance from Earth r1,r2, if d is the normal Euclidean
                                 distance and Rparallel = |r1 - r2|, then Rperp^2 = d^2-Rparallel^2.
-                                (default: 'Euclidean')
+                                (default: 'Euclidean'; this value can also be given in the Catalog 
+                                constructor in the config dict.)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.NSimpleField` object
         """
+        if metric is None:
+            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
         args = (metric, )
         if args in self.nsimplefields:
             nsimplefield = self.nsimplefields[args]
@@ -1255,17 +1294,26 @@ class Catalog(object):
         return self.nsimplefield
 
 
-    def getKSimpleField(self, metric='Euclidean', logger=None):
+    def getKSimpleField(self, metric=None, logger=None):
         """Return a KSimpleField based on the k values in this catalog.
 
         The KSimpleField object is cached, so this is efficient to call multiple times.
 
-        :param perp:            Whether to use the perpendicular distance rather than the 3d 
-                                separation (for catalogs with 3d positions) (default: False)
+        :param metric:          Which metric to use for distance measurements.  Options are:
+                                - 'Euclidean' = straight line Euclidean distance between two points.
+                                For spherical coordinates (ra,dec without r), this is the chord
+                                distance between points on the unit sphere.
+                                - 'Rperp' = the perpendicular component of the distance. For two 
+                                points with distance from Earth r1,r2, if d is the normal Euclidean
+                                distance and Rparallel = |r1 - r2|, then Rperp^2 = d^2-Rparallel^2.
+                                (default: 'Euclidean'; this value can also be given in the Catalog 
+                                constructor in the config dict.)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.KSimpleField` object
         """
+        if metric is None:
+            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
         args = (metric, )
         if args in self.ksimplefields:
             ksimplefield = self.ksimplefields[args]
@@ -1276,7 +1324,7 @@ class Catalog(object):
         return self.ksimplefield
 
 
-    def getGSimpleField(self, metric='Euclidean', logger=None):
+    def getGSimpleField(self, metric=None, logger=None):
         """Return a GSimpleField based on the g1,g2 values in this catalog.
 
         The GSimpleField object is cached, so this is efficient to call multiple times.
@@ -1288,11 +1336,14 @@ class Catalog(object):
                                 - 'Rperp' = the perpendicular component of the distance. For two 
                                 points with distance from Earth r1,r2, if d is the normal Euclidean
                                 distance and Rparallel = |r1 - r2|, then Rperp^2 = d^2-Rparallel^2.
-                                (default: 'Euclidean')
+                                (default: 'Euclidean'; this value can also be given in the Catalog 
+                                constructor in the config dict.)
         :param logger:          A logger file if desired (default: self.logger)
 
         :returns:               A :class:`~treecorr.GSimpleField` object
         """
+        if metric is None:
+            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
         args = (metric, )
         if args in self.gsimplefields:
             gsimplefield = self.gsimplefields[args]

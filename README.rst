@@ -83,9 +83,9 @@ that is also relatively straightforward:
       However, if you don't have pandas installed, TreeCorr will fall back
       to using the slower numpy.genfromtxt.
 
-2. Download the zip file or tarball for the latest release from::
+2. Download the zip file or tarball for the latest release from:
 
-   https://github.com/rmjarvis/TreeCorr/releases/
+https://github.com/rmjarvis/TreeCorr/releases/
 
 3. Unzip the archive with either of the following (depending on which kind
    of archive you downloaded)::
@@ -113,7 +113,9 @@ that is also relatively straightforward:
 
         There is a bug with numpy that it sometimes doesn't install correctly
         when included as a setup.py dependency:
+
             https://github.com/numpy/numpy/issues/1458  
+
         The bug was marked closed in 2012, but I've gotten it with numpy
         versions since then. Installation failed with a traceback that ended
         with::

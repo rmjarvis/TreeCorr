@@ -25,6 +25,7 @@ def parse_variable(config, v):
     and write that value to config[key].
 
     :param config:  The configuration dict to wich to write the key,value pair
+
     :param v:       A string of the form 'key = value'
     """
     if '=' not in v:
@@ -120,6 +121,7 @@ def setup_logger(verbose, log_file=None):
     or switch between using a log_file and stdout.
 
     :param verbose:     An integer indicating what verbosity level to use.
+
     :param log_file:    If given, a file name to which to write the logging output.
                         If omitted or None, then output to stdout.
 
@@ -160,9 +162,12 @@ def check_config(config, params, aliases=None, logger=None):
     The file corr2.py has a list of parameters for the corr2 program.
 
     :param config:  The config dict to check.
+
     :param params:  A dict of valid parameters with information about each one.
+
     :param aliases: A dict of deprecated parameters that are still aliases for new names.
                     (default: None)
+
     :param logger:  If desired, a logger object for logging any warnings here. (default: None)
 
     :returns:       The updated config dict.  The input config may be modified by this function.
@@ -253,7 +258,9 @@ def convert(value, value_type, key):
     Otherwise, it just parses 
 
     :param value:       The input value to be converted.  Usually a string.
+
     :param value_type:  The type to convert to.
+
     :param key:         The key for this value.  Only used to see if it includes 'unit'.
 
     :returns:           The converted value.
@@ -273,9 +280,13 @@ def get_from_list(config, key, num, value_type=str, default=None):
     all values of `num`.
 
     :param config:      The configuration dict from which to get the key value.
+
     :param key:         What key to get from config.
+
     :param num:         Which number element to use if the item is a list.
+
     :param value_type:  What type should the value be converted to. (default: str)
+
     :param default:     What value should be used if the key is not in the config dict.
                         (default: None)
 
@@ -303,8 +314,11 @@ def get(config, key, value_type=str, default=None):
     """A helper function to get a key from config converting to a particular type
 
     :param config:      The configuration dict from which to get the key value.
+
     :param key:         Which key to get from config.
+
     :param value_type:  Which type should the value be converted to. (default: str)
+
     :param default:     What value should be used if the key is not in the config dict.
                         (default: None)
 
@@ -326,7 +340,9 @@ def merge_config(config, kwargs, valid_params):
     if there are any keys that are in both.  Also, the kwargs dict will be modified in this case.
 
     :param config:          The root config (will not be modified)
+
     :param kwargs:          A second dict with more or updated values
+
     :param valid_params:    A dict of valid parameters that are allowed for this usage.
                             The config dict is allowed to have extra items, but kwargs is not.
 
@@ -353,6 +369,7 @@ def set_omp_threads(num_threads, logger=None):
     """Set the number of OpenMP threads to use in the C++ layer.
 
     :param num_threads: The target number of threads to use
+
     :param logger:      If desired, a logger object for logging any warnings here. (default: None)
 
     :returns:           The  number of threads OpenMP reports that it will use.  Typically this

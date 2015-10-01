@@ -89,6 +89,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
                         Any kwargs that are not those listed here will be added to the config, 
                         so you can even omit the config dict and just enter all parameters you
                         want as kwargs.  (default: None) 
+
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
@@ -148,9 +149,11 @@ class NNCorrelation(treecorr.BinnedCorr2):
         finish the calculation of meanr, meanlogr.
 
         :param cat:         The catalog to process
+
         :param metric:      Which metric to use.  See the doc string for :process: for details.
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
+
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -188,10 +191,13 @@ class NNCorrelation(treecorr.BinnedCorr2):
         finish the calculation of meanr, meanlogr.
 
         :param cat1:        The first catalog to process
+
         :param cat2:        The second catalog to process
+
         :param metric:      Which metric to use.  See the doc string for :process: for details.
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
+
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -234,10 +240,13 @@ class NNCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
 
         :param cat1:        The first catalog to process
+
         :param cat2:        The second catalog to process
+
         :param metric:      Which metric to use.  See the doc string for :process: for details.
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
+
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -333,17 +342,22 @@ class NNCorrelation(treecorr.BinnedCorr2):
         for that element of the correlation.
 
         :param cat1:        A catalog or list of catalogs for the first N field.
+
         :param cat2:        A catalog or list of catalogs for the second N field, if any.
                             (default: None)
+
         :param metric:      Which metric to use for distance measurements.  Options are:
+
                             - 'Euclidean' = straight line Euclidean distance between two points.
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
                             - 'Rperp' = the perpendicular component of the distance. For two points
                               with distance from Earth r1,r2, if d is the normal Euclidean distance
-                              and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
+                              and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2 - Rparallel^2`.
+
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
+
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -377,8 +391,10 @@ class NNCorrelation(treecorr.BinnedCorr2):
         where dd is self, the data NN correlation function.
 
         :param rr:          An NNCorrelation object for the random-random pairs.
+
         :param dr:          An NNCorrelation object for the data-random pairs, if desired, in which
                             case the Landy-Szalay estimator will be calculated.  (default: None)
+
         :param rd:          An NNCorrelation object for the random-data pairs, if desired and 
                             different from dr.  (default: None, which mean use rd=dr)
                         
@@ -473,14 +489,19 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
 
         :param file_name:   The name of the file to write to.
+
         :param rr:          An NNCorrelation object for the random-random pairs. (default: None,
                             in which case, no xi or varxi columns will be output)
+
         :param dr:          An NNCorrelation object for the data-random pairs, if desired, in which
                             case the Landy-Szalay estimator will be calculated.  (default: None)
+
         :param rd:          An NNCorrelation object for the random-data pairs, if desired and 
                             different from dr.  (default: None, which mean use rd=dr)
+
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
+
         :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
                             this value can also be given in the constructor in the config dict.)
         """
@@ -530,6 +551,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         checked by the read function.
 
         :param file_name:   The name of the file to read in.
+
         :param file_type:   The type of file ('ASCII' or 'FITS').  (default: determine the type
                             automatically from the extension of file_name.)
         """
@@ -550,10 +572,13 @@ class NNCorrelation(treecorr.BinnedCorr2):
         GGCorrelation.calculateMapSq() for more details.
 
         :param rr:          An NNCorrelation object for the random-random pairs.
+
         :param dr:          An NNCorrelation object for the data-random pairs, if desired, in which
                             case the Landy-Szalay estimator will be calculated.  (default: None)
+
         :param rd:          An NNCorrelation object for the random-data pairs, if desired and 
                             different from dr.  (default: None, which mean use rd=dr)
+
         :param m2_uform:    Which form to use for the aperture mass.  (default: 'Crittenden';
                             this value can also be given in the constructor in the config dict.)
 

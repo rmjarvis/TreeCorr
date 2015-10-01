@@ -73,6 +73,7 @@ class CelestialCoord(object):
         >>> dec = coord.dec
 
     :param ra:       The right ascension in radians.
+
     :param dec:      The declination in radian.
     """
     def __init__(self, ra, dec):
@@ -116,6 +117,7 @@ class CelestialCoord(object):
         The return value is in radians.
 
         :param other:   Another `CelestialCoord` object.
+
         :returns:       The great circle distance in radians between this coord and `other`.
         """
         # The easiest way to do this in a way that is stable for small separations
@@ -152,7 +154,9 @@ class CelestialCoord(object):
         the direction is clockwise.
 
         :param coord1:  Another `CelestialCoord` object.
+
         :param coord2:  A third `CelestialCoord` object.
+
         :returns:       The angle in radians between the great circles to the two other coords.
         """
         # Call A = coord1, B = coord2, C = self
@@ -189,7 +193,9 @@ class CelestialCoord(object):
         and `coord2`, returning the area in steradians.
 
         :param coord1:  Another `CelestialCoord` object.
+
         :param coord2:  A third `CelestialCoord` object.
+
         :returns:       The area in steradians of the spherical triangle defined by the three
                         coords.
         """
@@ -268,7 +274,9 @@ class CelestialCoord(object):
         The distance or angle errors increase with distance from the projection point of course.
 
         :param other:       The coordinate to be projected relative to the current coord.
+
         :param projection:  Which kind of projection to use. (default: 'lambert')
+
         :returns:           The projected position (u,v) in radians as a tuple.
         """
         if projection not in [ 'lambert', 'stereographic', 'gnomonic', 'postel' ]:
@@ -341,8 +349,11 @@ class CelestialCoord(object):
         kinds of projection.
 
         :param ra:          The RA of the coordinate to be projected relative to the current coord.
+
         :param dec:         The Dec of the coordinate to be projected relative to the current coord.
+
         :param projection:  Which kind of projection to use. (default: 'lambert')
+
         :returns:           The projected position (u,v) in radians as a tuple.
         """
         if projection not in [ 'lambert', 'stereographic', 'gnomonic', 'postel' ]:
@@ -370,8 +381,11 @@ class CelestialCoord(object):
         kinds of projection.
 
         :param u:           The projected u value to be deprojected.
+
         :param v:           The projected v value to be deprojected.
+
         :param projection:  Which kind of projection to use. (default: 'lambert')
+
         :returns:           The `CelestialCoord` corresponding to the given projected position.
         """
         if projection not in [ 'lambert', 'stereographic', 'gnomonic', 'postel' ]:
@@ -456,8 +470,11 @@ class CelestialCoord(object):
         kinds of projection.
 
         :param u:           The projected u value to be deprojected.
+
         :param v:           The projected v value to be deprojected.
+
         :param projection:  Which kind of projection to use. (default: 'lambert')
+
         :returns:           A tuple (ra, dec) of the deprojected coordinates.
         """
         if projection not in [ 'lambert', 'stereographic', 'gnomonic', 'postel' ]:
@@ -478,8 +495,11 @@ class CelestialCoord(object):
         kinds of projection.
 
         :param u:           The projected u value to be deprojected.
+
         :param v:           The projected v value to be deprojected.
+
         :param projection:  Which kind of projection to use. (default: 'lambert')
+
         :returns:           The matrix as a tuple (J00, J01, J10, J11)
         """
         if projection not in [ 'lambert', 'stereographic', 'gnomonic', 'postel' ]:
@@ -561,7 +581,9 @@ class CelestialCoord(object):
         and (c) Lieske (1979) A&A 73, 282-284.
 
         :param from_epoch:  The epoch to use for the current coord.
+
         :param to_epoch:    The new epoch to precess to.
+
         :returns:           A new `CelestialCoord` of the coordinates in the new epoch.
         """
         if from_epoch == to_epoch: return self
@@ -619,6 +641,7 @@ class CelestialCoord(object):
         by default, but you may also specify a different value with the epoch parameter.
 
         :param epoch:   The epoch to assume for the current coordinates (default: 2000)
+
         :returns:       The longitude and latitude as a tuple (el, b) in radians.
         """
         # cf. Lang, Astrophysical Formulae, page 13
@@ -657,6 +680,7 @@ class CelestialCoord(object):
         and the output ecliptic coordinates.
 
         :param epoch:   The epoch to assume for the coordinates (default: 2000).
+
         :returns:       The longitude and latitude as a tuple (lambda, beta) in radians.
         """
         import math

@@ -91,6 +91,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
     :param config:      A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have addition entries in addition to those listed
                         in :BinnedCorr2:, which are ignored here. (default: None)
+
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
@@ -160,9 +161,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
 
         :param cat:         The catalog to process
+
         :param metric:      Which metric to use.  See the doc string for :process: for details.
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
+
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -200,10 +203,13 @@ class GGCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
 
         :param cat1:        The first catalog to process
+
         :param cat2:        The second catalog to process
+
         :param metric:      Which metric to use.  See the doc string for :process: for details.
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
+
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -246,10 +252,13 @@ class GGCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
 
         :param cat1:        The first catalog to process
+
         :param cat2:        The second catalog to process
+
         :param metric:      Which metric to use.  See the doc string for :process: for details.
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
+
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -289,6 +298,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         finishes the calculation by dividing each column by the total weight.
 
         :param varg1:   The shear variance per component for the first field.
+
         :param varg2:   The shear variance per component for the second field.
         """
         mask1 = self.weight != 0
@@ -360,17 +370,22 @@ class GGCorrelation(treecorr.BinnedCorr2):
         for that element of the correlation.
 
         :param cat1:        A catalog or list of catalogs for the first G field.
+
         :param cat2:        A catalog or list of catalogs for the second G field, if any.
                             (default: None)
+
         :param metric:      Which metric to use for distance measurements.  Options are:
+
                             - 'Euclidean' = straight line Euclidean distance between two points.
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
                             - 'Rperp' = the perpendicular component of the distance. For two points
                               with distance from Earth r1,r2, if d is the normal Euclidean distance
-                              and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
+                              and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2 - Rparallel^2`.
+
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
+
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -420,8 +435,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
             npairs      The number of pairs contributing ot each bin.
 
         :param file_name:   The name of the file to write to.
+
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
+
         :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
                             this value can also be given in the constructor in the config dict.)
         """
@@ -450,6 +467,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         checked by the read function.
 
         :param file_name:   The name of the file to read in.
+
         :param file_type:   The type of file ('ASCII' or 'FITS').  (default: determine the type
                             automatically from the extension of file_name.)
         """
@@ -638,10 +656,13 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
 
         :param file_name:   The name of the file to write to.
+
         :param m2_uform:    Which form to use for the aperture mass.  (default: 'Crittenden';
                             this value can also be given in the constructor in the config dict.)
+
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
+
         :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
                             this value can also be given in the constructor in the config dict.)
         """

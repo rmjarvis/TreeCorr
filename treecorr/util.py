@@ -21,11 +21,16 @@ def gen_write(file_name, col_names, columns, prec=4, file_type=None, logger=None
     We do this basic functionality a lot, so put the code to do it in one place.
 
     :param file_name:   The name of the file to write to.
+
     :param col_names:   A list of columns names for the given columns.
+
     :param columns:     A list of numpy arrays with the data to write.
+
     :param prec:        Output precision for ASCII. (default: 4)
+
     :param file_type:   Which kind of file to write to. (default: determine from the file_name
                         extension)
+
     :param logger:      If desired, a logger object for logging. (default: None)
     """
     import numpy
@@ -61,9 +66,12 @@ def gen_write_ascii(file_name, col_names, columns, prec=4):
     """Write some columns to an output ASCII file with the given column names.
 
     :param file_name:   The name of the file to write to.
+
     :param col_names:   A list of columns names for the given columns.  These will be written
                         in a header comment line at the top of the output file.
+
     :param columns:     A list of numpy arrays with the data to write.
+
     :param prec:        Output precision for ASCII. (default: 4)
     """
     import numpy
@@ -93,8 +101,11 @@ def gen_write_ascii(file_name, col_names, columns, prec=4):
 
 def gen_write_fits(file_name, col_names, columns):
     """Write some columns to an output FITS file with the given column names.
+
     :param file_name:   The name of the file to write to.
+
     :param col_names:   A list of columns names for the given columns.
+
     :param columns:     A list of numpy arrays with the data to write.
     """
     import numpy
@@ -131,8 +142,10 @@ def gen_read(file_name, file_type=None, logger=None):
     gen_write function, so we don't have a lot of flexibility in the input structure.
 
     :param file_name:   The name of the file to read.
+
     :param file_type:   Which kind of file to write to. (default: determine from the file_name
                         extension)
+
     :param logger:      If desired, a logger object for logging. (default: None)
 
     :returns: a numpy ndarray with named columns

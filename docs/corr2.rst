@@ -1,19 +1,25 @@
-The corr2 driver script
-=======================
+The corr2 and corr3 driver scripts
+==================================
 
 The corr2 function from python
 ------------------------------
 
 .. autofunction:: treecorr.corr2
 
-The corr2 executable
---------------------
+The corr3 function from python
+------------------------------
 
-Also installed with TreeCorr is an executable script, called corr2.
-The script takes one required command-line argument, which is the 
-name of a configuration file::
+.. autofunction:: treecorr.corr3
+
+The corr2 and corr3 executables
+-------------------------------
+
+Also installed with TreeCorr are two executable scripts, called corr2
+and corr3.  The scripts takes one required command-line argument, which
+is the name of a configuration file::
 
     corr2 config_file
+    corr3 config_file
 
 A sample configuration file is provided, called sample.params.  See the
 TreeCorr wiki page
@@ -32,12 +38,16 @@ the configuration file. e.g.::
 This can be useful when running the program from a script for lots of input 
 files.
 
-Other utilities related to corr2
---------------------------------
+Other utilities related to corr2 and corr3
+------------------------------------------
 
 .. automodule:: treecorr.corr2
     :members:
     :exclude-members: corr2
+
+.. automodule:: treecorr.corr3
+    :members:
+    :exclude-members: corr3
 
 
 Utilities related to the configuration dict

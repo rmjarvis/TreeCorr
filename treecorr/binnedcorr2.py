@@ -44,6 +44,7 @@ class BinnedCorr2(object):
     :param config:      A configuration dict that can be used to pass in the below kwargs if
                         desired.  This dict is allowed to have addition entries in addition
                         to those listed below, which are ignored here. (default: NoneP
+
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
@@ -53,66 +54,85 @@ class BinnedCorr2(object):
                         are required. If nbins is not given, it will be calculated from the values
                         of the other three, rounding up to the next highest integer. In this case,
                         max_sep will be readjusted to account for this rounding up.)
+
     :param bin_size:    The width of the bins in log(separation). (Exactly three of nbins, 
                         bin_size, min_sep, max_sep are required.  If bin_size is not given, it will
                         be calculated from the values of the other three.)
+
     :param min_sep:     The minimum separation in units of sep_units, if relevant. (Exactly three
                         of nbins, bin_size, min_sep, max_sep are required.  If min_sep is not
                         given, it will be calculated from the values of the other three.)
+
     :param max_sep:     The maximum separation in units of sep_units, if relevant. (Exactly three
                         of nbins, bin_size, min_sep, max_sep are required.  If max_sep is not
                         given, it will be calculated from the values of the other three.  If nbins
                         is not given, then max_sep will be adjusted as needed to allow nbins to be
                         an integer value.)
+
     :param sep_units:   The units to use for the separation values, given as a string.  This 
                         includes both min_sep and max_sep above, as well as the units of the 
                         output R column.  Valid options are arcsec, arcmin, degrees, hours,
                         radians.  (default: radians)
+
     :param bin_slop:    How much slop to allow in the placement of pairs in the bins.
                         If bin_slop = 1, then the bin into which a particular pair is placed may
                         be incorrect by at most 1.0 bin widths.  (default: None, which means to
                         use bin_slop=1 if bin_size <= 0.1, or 0.1/bin_size if bin_size > 0.1.
                         This mean the error will be at most 0.1 in log(sep), which has been found
                         to yield good results for most application.
+
     :param verbose:     If no logger is provided, this will optionally specify a logging level to
                         use.
+
                         - 0 means no logging output (default)
                         - 1 means to output warnings only
                         - 2 means to output various progress information
                         - 3 means to output extensive debugging information
+
     :param log_file:    If no logger is provided, this will specify a file to write the logging
                         output.  (default: None; i.e. output to standard output)
+
     :param output_dots: Whether to output progress dots during the calcualtion of the correlation
                         function. (default: False unless verbose is given and >= 2, in which case
                         True)
-    :param split_method:  How to split the cells in the tree when building the tree structure.
+
+    :param split_method: How to split the cells in the tree when building the tree structure.
                         Options are:
-                        - mean: Use the arithmetic mean of the coordinate being split. (default)
-                        - median: Use the median of the coordinate being split.
-                        - middle: Use the middle of the range; i.e. the average of the minimum and
+
+                        - mean = Use the arithmetic mean of the coordinate being split. (default)
+                        - median = Use the median of the coordinate being split.
+                        - middle = Use the middle of the range; i.e. the average of the minimum and
                           maximum value.
+
     :param max_top:     The maximum number of top layers to use when setting up the field. 
                         The top-level cells are the cells where each calculation job starts.
                         There will typically be of order 2^max_top top-level cells. (default: 10)
+
     :param precision:   The precision to use for the output values. This should be an integer,
                         which specifies how many digits to write. (default: 4)
+
     :param pairwise:    Whether to use a different kind of calculation for cross correlations
                         whereby corresponding items in the two catalogs are correlated pairwise
                         rather than the usual case of every item in one catalog being correlated
                         with every item in the other catalog. (default: False)
-    :param num_threads: How many OpenMP threads to use during the calculations.  (default: 0,
-                        which means to query the number of cpu cores and use that many threads.)
-                        Note that this won't work if the system's C compiler is clang, such as
-                        on MacOS systems.
+
+    :param num_threads: How many OpenMP threads to use during the calculation.  
+                        (default: use the number of cpu cores; this value can also be given in
+                        the constructor in the config dict.) Note that this won't work if the 
+                        system's C compiler is clang prior to version 3.7.
+
     :param m2_uform:    The default functional form to use for aperture mass calculations.  See
                         :GGCorrelation.calculateMapSq: for more details. (default: 'Crittenden')
+
     :param metric:      Which metric to use for distance measurements.  Options are:
+
                         - 'Euclidean' = straight line Euclidean distance between two points.
-                            For spherical coordinates (ra,dec without r), this is the chord
-                            distance between points on the unit sphere.
+                          For spherical coordinates (ra,dec without r), this is the chord
+                          distance between points on the unit sphere.
                         - 'Rperp' = the perpendicular component of the distance. For two points
-                            with distance from Earth r1,r2, if d is the normal Euclidean distance
-                            and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
+                          with distance from Earth r1,r2, if d is the normal Euclidean distance
+                          and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2 - Rparallel^2`.
+
                         (default: 'Euclidean')
     """
     _valid_params = {

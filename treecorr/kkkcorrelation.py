@@ -113,6 +113,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                         Any kwargs that are not those listed here will be added to the config, 
                         so you can even omit the config dict and just enter all parameters you
                         want as kwargs.  (default: None) 
+
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
@@ -192,9 +193,11 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         finish the calculation of meand1, meanlogd1, etc.
 
         :param cat:         The catalog to process
+
         :param metric:      Which metric to use.  See the doc string for :process: for details.
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
+
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -234,10 +237,13 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         finish the calculation of meand1, meanlogd1, etc.
 
         :param cat1:        The first catalog to process
+
         :param cat2:        The second catalog to process
+
         :param metric:      Which metric to use.  See the doc string for :process: for details.
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
+
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -254,11 +260,15 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         finish the calculation of meand1, meanlogd1, etc.
 
         :param cat1:        The first catalog to process
+
         :param cat2:        The second catalog to process
+
         :param cat3:        The third catalog to process
+
         :param metric:      Which metric to use.  See the doc string for :process: for details.
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
+
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -303,7 +313,9 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         finishes the calculation by dividing by the total weight.
 
         :param vark1:   The kappa variance for the first field.
+
         :param vark2:   The kappa variance for the second field.
+
         :param vark3:   The kappa variance for the third field.
         """
         mask1 = self.weight != 0
@@ -394,10 +406,10 @@ class KKKCorrelation(treecorr.BinnedCorr3):
     def process(self, cat1, cat2=None, cat3=None, metric=None, num_threads=None):
         """Accumulate the number of triangles of points between cat1, cat2, and cat3.
 
-        If only 1 argument is given, then compute an auto-correlation function.
-        If 2 arguments are given, then compute a cross-correlation function with the 
-            first catalog taking two corners of the triangles. (Not implemented yet.)
-        If 3 arguments are given, then compute a cross-correlation function.
+        - If only 1 argument is given, then compute an auto-correlation function.
+        - If 2 arguments are given, then compute a cross-correlation function with the 
+          first catalog taking two corners of the triangles. (Not implemented yet.)
+        - If 3 arguments are given, then compute a cross-correlation function.
 
         All arguments may be lists, in which case all items in the list are used 
         for that element of the correlation.
@@ -410,19 +422,25 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         multiple times with the different catalogs in different positions.
 
         :param cat1:        A catalog or list of catalogs for the first N field.
+
         :param cat2:        A catalog or list of catalogs for the second N field, if any.
                             (default: None)
+
         :param cat3:        A catalog or list of catalogs for the third N field, if any.
                             (default: None)
+
         :param metric:      Which metric to use for distance measurements.  Options are:
+
                             - 'Euclidean' = straight line Euclidean distance between two points.
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
                             - 'Rperp' = the perpendicular component of the distance. For two points
                               with distance from Earth r1,r2, if d is the normal Euclidean distance
-                              and Rparallel = |r1 - r2|, then Rperp^2 = d^2 - Rparallel^2.
+                              and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2 - Rparallel^2`.
+
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
+
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -485,8 +503,10 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
 
         :param file_name:   The name of the file to write to.
+
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
+
         :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
                             this value can also be given in the constructor in the config dict.)
         """
@@ -518,6 +538,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         checked by the read function.
 
         :param file_name:   The name of the file to read in.
+
         :param file_type:   The type of file ('ASCII' or 'FITS').  (default: determine the type
                             automatically from the extension of file_name.)
         """

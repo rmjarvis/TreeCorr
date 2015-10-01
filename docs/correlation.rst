@@ -12,3 +12,13 @@ Two-point Correlation Functions
     nk
     kg
 
+Three-point Correlation Functions
+=================================
+
+.. toctree::
+
+    binnedcorr3
+    nnn
+    ggg
+    kkk
+

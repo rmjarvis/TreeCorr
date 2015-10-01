@@ -2,6 +2,9 @@
 Previous History
 ================
 
+`Changes from version 3.1 to 3.2 
+<https://github.com/rmjarvis/TreeCorr/blob/releases/3.2/CHANGELOG.rst>`_
+
 `Changes from version 3.0 to 3.1 
 <https://github.com/rmjarvis/TreeCorr/blob/releases/3.1/CHANGELOG.rst>`_
 

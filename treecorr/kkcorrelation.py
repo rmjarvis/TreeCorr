@@ -53,18 +53,18 @@ class KKCorrelation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point kappa-kappa correlation
     function.
 
-    Note: while we use the term kappa here and the letter K in various places, in fact
-    any scalar field will work here.  For example, you can use this to compute correlations
+    Note: while we use the term kappa (:math:`\\kappa`) here and the letter K in various places,
+    in fact any scalar field will work here.  For example, you can use this to compute correlations
     of the CMB temperature fluctuations, where "kappa" would really be delta T.
 
-    Ojects of this class holds the following attributes::
+    Ojects of this class holds the following attributes:
 
         :nbins:     The number of bins in logr
         :bin_size:  The size of the bins in logr
         :min_sep:   The minimum separation being considered
         :max_sep:   The maximum separation being considered
 
-    In addition, the following attributes are numpy arrays of length (nbins)::
+    In addition, the following attributes are numpy arrays of length (nbins):
 
         :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
         :meanr:     The (weighted) mean value of r for the pairs in each bin.
@@ -89,16 +89,14 @@ class KKCorrelation(treecorr.BinnedCorr2):
         >>> kk.write(file_name)     # Write out to a file.
         >>> xi = kk.xi              # Or access the correlation function directly.
 
-    :param config:      The configuration dict which defines attributes about how to read the file.
-                        Any kwargs that are not those listed here will be added to the config, 
-                        so you can even omit the config dict and just enter all parameters you
-                        want as kwargs.  (default: None) 
-
+    :param config:      A configuration dict that can be used to pass in kwargs if desired.
+                        This dict is allowed to have addition entries in addition to those listed
+                        in :class:`~treecorr.BinnedCorr2`, which are ignored here. (default: None)
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    See the documentation for :BinnedCorr2: for the list of other allowed kwargs, which may
-    be passed either directly or in the config dict.
+    See the documentation for :class:`~treecorr.BinnedCorr2` for the list of other allowed kwargs,
+    which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
@@ -156,11 +154,9 @@ class KKCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
 
         :param cat:         The catalog to process
-
-        :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean'; this value can also be given in the constructor
-                            in the config dict.)
-
+        :param metric:      Which metric to use.  See :meth:`~treecorr.KKCorrelation.process` for 
+                            details.  (default: 'Euclidean'; this value can also be given in the 
+                            constructor in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -198,13 +194,10 @@ class KKCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
 
         :param cat1:        The first catalog to process
-
         :param cat2:        The second catalog to process
-
-        :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean'; this value can also be given in the constructor
-                            in the config dict.)
-
+        :param metric:      Which metric to use.  See :meth:`~treecorr.KKCorrelation.process` for 
+                            details.  (default: 'Euclidean'; this value can also be given in the 
+                            constructor in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -247,13 +240,10 @@ class KKCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
 
         :param cat1:        The first catalog to process
-
         :param cat2:        The second catalog to process
-
-        :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean'; this value can also be given in the constructor
-                            in the config dict.)
-
+        :param metric:      Which metric to use.  See :meth:`~treecorr.KKCorrelation.process` for 
+                            details.  (default: 'Euclidean'; this value can also be given in the 
+                            constructor in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -293,7 +283,6 @@ class KKCorrelation(treecorr.BinnedCorr2):
         finishes the calculation by dividing each column by the total weight.
 
         :param vark1:   The kappa variance for the first field.
-
         :param vark2:   The kappa variance for the second field.
         """
         mask1 = self.weight != 0
@@ -355,18 +344,17 @@ class KKCorrelation(treecorr.BinnedCorr2):
         for that element of the correlation.
 
         :param cat1:        A catalog or list of catalogs for the first K field.
-
         :param cat2:        A catalog or list of catalogs for the second K field, if any.
                             (default: None)
-
         :param metric:      Which metric to use for distance measurements.  Options are:
 
                             - 'Euclidean' = straight line Euclidean distance between two points.
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
                             - 'Rperp' = the perpendicular component of the distance. For two points
-                              with distance from Earth r1,r2, if d is the normal Euclidean distance
-                              and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2 - Rparallel^2`.
+                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                              distance and :math:`Rparallel = |r1-r2|`, then we define
+                              :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
@@ -401,22 +389,21 @@ class KKCorrelation(treecorr.BinnedCorr2):
     def write(self, file_name, file_type=None, prec=None):
         """Write the correlation function to the file, file_name.
 
-        The output file will include the following columns::
+        The output file will include the following columns:
 
-            R_nom       The nominal center of the bin in R.
-            meanR       The mean value <R> of pairs that fell into each bin.
-            meanlogR    The mean value <logR> of pairs that fell into each bin.
-            xi          The correlation function xi = <kappa kappa>.
-            sigma_xi    The sqrt of the variance estimate of xi.
-            weight      The total weight contributing to each bin.
-            npairs      The number of pairs contributing ot each bin.
+            :R_nom:     The nominal center of the bin in R.
+            :meanR:     The mean value :math:`\\langle R\\rangle` of pairs that fell into each bin.
+            :meanlogR:  The mean value :math:`\\langle logR\\rangle` of pairs that fell into each
+                        bin.
+            :xi:        The correlation function :math:`\\xi = \\langle \\kappa \\kappa \\rangle`.
+            :sigma_xi:  The sqrt of the variance estimate of :math:`\\xi`.
+            :weight:    The total weight contributing to each bin.
+            :npairs:    The number of pairs contributing ot each bin.
 
 
         :param file_name:   The name of the file to write to.
-
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
-
         :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
                             this value can also be given in the constructor in the config dict.)
         """
@@ -443,7 +430,6 @@ class KKCorrelation(treecorr.BinnedCorr2):
         checked by the read function.
 
         :param file_name:   The name of the file to read in.
-
         :param file_type:   The type of file ('ASCII' or 'FITS').  (default: determine the type
                             automatically from the extension of file_name.)
         """

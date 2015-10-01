@@ -9,7 +9,8 @@ TreeCorr Documentation
    overview
    catalog
    field
-   correlation
+   correlation2
+   correlation3
    celestial
    corr2
    changes

@@ -177,31 +177,26 @@ class NField(object):
         >>> nfield = cat.getNField(min_sep, max_sep, b)
 
     :param cat:         The catalog from which to make the field.
-
     :param min_sep:     The minimum separation between points that will be needed.
-
     :param max_sep:     The maximum separation between points that will be needed.
-
     :param b:           The b parameter that will be used for the correlation function.
                         This should be bin_size * bin_slop.
-
     :param split_method: Which split method to use ('mean', 'median', or 'middle')
                         (default: 'mean')
-
     :param metric:      Which metric to use for distance measurements.  Options are:
 
                         - 'Euclidean' = straight line Euclidean distance between two points.
                           For spherical coordinates (ra,dec without r), this is the chord
                           distance between points on the unit sphere.
                         - 'Rperp' = the perpendicular component of the distance. For two points
-                          with distance from Earth r1,r2, if d is the normal Euclidean distance
-                          and `Rparallel = |r1-r2|`, then Rperp^2 = d^2 - Rparallel^2.
+                          with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                          distance and :math:`Rparallel = |r1-r2|`, then we define
+                          :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                         (default: 'Euclidean')
 
     :param max_top:     The maximum number of top layers to use when setting up the
                             field. (default: 10)
-
     :param logger:      A logger file if desired (default: None)
     """
     def __init__(self, cat, min_sep, max_sep, b, split_method='mean', metric='Euclidean',
@@ -291,31 +286,26 @@ class KField(object):
         >>> kfield = cat.getKField(min_sep, max_sep, b)
 
     :param cat:         The catalog from which to make the field.
-
     :param min_sep:     The minimum separation between points that will be needed.
-
     :param max_sep:     The maximum separation between points that will be needed.
-
     :param b:           The b parameter that will be used for the correlation function.
                         This should be bin_size * bin_slop.
-
     :param split_method: Which split method to use ('mean', 'median', or 'middle')
                         (default: 'mean')
-
     :param metric:      Which metric to use for distance measurements.  Options are:
 
                         - 'Euclidean' = straight line Euclidean distance between two points.
                           For spherical coordinates (ra,dec without r), this is the chord
                           distance between points on the unit sphere.
                         - 'Rperp' = the perpendicular component of the distance. For two points
-                          with distance from Earth r1,r2, if d is the normal Euclidean distance
-                          and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2 - Rparallel^2`.
+                          with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                          distance and :math:`Rparallel = |r1-r2|`, then we define
+                          :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                         (default: 'Euclidean')
 
     :param max_top:     The maximum number of top layers to use when setting up the
                         field. (default: 10)
-
     :param logger:      A logger file if desired (default: None)
     """
     def __init__(self, cat, min_sep, max_sep, b, split_method='mean', metric='Euclidean',
@@ -409,31 +399,26 @@ class GField(object):
         >>> gfield = cat.getGField(min_sep, max_sep, b)
 
     :param cat:         The catalog from which to make the field.
-
     :param min_sep:     The minimum separation between points that will be needed.
-
     :param max_sep:     The maximum separation between points that will be needed.
-
     :param b:           The b parameter that will be used for the correlation function.
                         This should be bin_size * bin_slop.
-
     :param split_method: Which split method to use ('mean', 'median', or 'middle')
                         (default: 'mean')
-
     :param metric:      Which metric to use for distance measurements.  Options are:
 
                         - 'Euclidean' = straight line Euclidean distance between two points.
                           For spherical coordinates (ra,dec without r), this is the chord
                           distance between points on the unit sphere.
                         - 'Rperp' = the perpendicular component of the distance. For two points
-                          with distance from Earth r1,r2, if d is the normal Euclidean distance
-                          and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2 - Rparallel^2`.
+                          with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                          distance and :math:`Rparallel = |r1-r2|`, then we define
+                          :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                         (default: 'Euclidean')
 
     :param max_top:     The maximum number of top layers to use when setting up the
                         field. (default: 10)
-
     :param logger:      A logger file if desired (default: None)
     """
     def __init__(self, cat, min_sep, max_sep, b, split_method='mean', metric='Euclidean',
@@ -526,15 +511,15 @@ class NSimpleField(object):
         >>> nfield = cat.getNSimpleField()
 
     :param cat:         The catalog from which to make the field.
-
     :param metric:      Which metric to use for distance measurements.  Options are:
 
                         - 'Euclidean' = straight line Euclidean distance between two points.
                           For spherical coordinates (ra,dec without r), this is the chord
                           distance between points on the unit sphere.
                         - 'Rperp' = the perpendicular component of the distance. For two points
-                          with distance from Earth r1,r2, if d is the normal Euclidean distance
-                          and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2 - Rparallel^2`.
+                          with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                          distance and :math:`Rparallel = |r1-r2|`, then we define
+                          :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                         (default: 'Euclidean')
 
@@ -605,15 +590,15 @@ class KSimpleField(object):
         >>> kfield = cat.getKSimpleField()
 
     :param cat:         The catalog from which to make the field.
-
     :param metric:      Which metric to use for distance measurements.  Options are:
 
                         - 'Euclidean' = straight line Euclidean distance between two points.
                           For spherical coordinates (ra,dec without r), this is the chord
                           distance between points on the unit sphere.
                         - 'Rperp' = the perpendicular component of the distance. For two points
-                          with distance from Earth r1,r2, if d is the normal Euclidean distance
-                          and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2 - Rparallel^2`.
+                          with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                          distance and :math:`Rparallel = |r1-r2|`, then we define
+                          :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                         (default: 'Euclidean')
 
@@ -685,15 +670,15 @@ class GSimpleField(object):
         >>> gfield = cat.getGSimpleField()
 
     :param cat:         The catalog from which to make the field.
-
     :param metric:      Which metric to use for distance measurements.  Options are:
 
                         - 'Euclidean' = straight line Euclidean distance between two points.
                           For spherical coordinates (ra,dec without r), this is the chord
                           distance between points on the unit sphere.
                         - 'Rperp' = the perpendicular component of the distance. For two points
-                          with distance from Earth r1,r2, if d is the normal Euclidean distance
-                          and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2 - Rparallel^2`.
+                          with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                          distance and :math:`Rparallel = |r1-r2|`, then we define
+                          :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                         (default: 'Euclidean')
 

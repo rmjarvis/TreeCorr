@@ -50,14 +50,14 @@ class NKCorrelation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point count-kappa correlation
     function.
 
-    Ojects of this class holds the following attributes::
+    Ojects of this class holds the following attributes:
 
         :nbins:     The number of bins in logr
         :bin_size:  The size of the bins in logr
         :min_sep:   The minimum separation being considered
         :max_sep:   The maximum separation being considered
 
-    In addition, the following attributes are numpy arrays of length (nbins)::
+    In addition, the following attributes are numpy arrays of length (nbins):
 
         :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
         :meanr:     The (weighted) mean value of r for the pairs in each bin.
@@ -81,16 +81,14 @@ class NKCorrelation(treecorr.BinnedCorr2):
         >>> nk.write(file_name)     # Write out to a file.
         >>> xi = nk.xi              # Or access the correlation function directly.
 
-    :param config:      The configuration dict which defines attributes about how to read the file.
-                        Any kwargs that are not those listed here will be added to the config, 
-                        so you can even omit the config dict and just enter all parameters you
-                        want as kwargs.  (default: None) 
-
+    :param config:      A configuration dict that can be used to pass in kwargs if desired.
+                        This dict is allowed to have addition entries in addition to those listed
+                        in :class:`~treecorr.BinnedCorr2`, which are ignored here. (default: None)
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    See the documentation for :BinnedCorr2: for the list of other allowed kwargs, which may
-    be passed either directly or in the config dict.
+    See the documentation for :class:`~treecorr.BinnedCorr2` for the list of other allowed kwargs,
+    which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
@@ -149,13 +147,10 @@ class NKCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
 
         :param cat1:        The first catalog to process
-
         :param cat2:        The second catalog to process
-
-        :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean'; this value can also be given in the constructor
-                            in the config dict.)
-
+        :param metric:      Which metric to use.  See :meth:`~treecorr.NKCorrelation.process` for 
+                            details.  (default: 'Euclidean'; this value can also be given in the 
+                            constructor in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -198,13 +193,10 @@ class NKCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
 
         :param cat1:        The first catalog to process
-
         :param cat2:        The second catalog to process
-
-        :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean'; this value can also be given in the constructor
-                            in the config dict.)
-
+        :param metric:      Which metric to use.  See :meth:`~treecorr.NKCorrelation.process` for 
+                            details.  (default: 'Euclidean'; this value can also be given in the 
+                            constructor in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -301,17 +293,16 @@ class NKCorrelation(treecorr.BinnedCorr2):
         for that element of the correlation.
 
         :param cat1:        A catalog or list of catalogs for the N field.
-
         :param cat2:        A catalog or list of catalogs for the K field.
-
         :param metric:      Which metric to use for distance measurements.  Options are:
 
                             - 'Euclidean' = straight line Euclidean distance between two points.
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
                             - 'Rperp' = the perpendicular component of the distance. For two points
-                              with distance from Earth r1,r2, if d is the normal Euclidean distance
-                              and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2 - Rparallel^2`.
+                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                              distance and :math:`Rparallel = |r1-r2|`, then we define
+                              :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
@@ -341,8 +332,10 @@ class NKCorrelation(treecorr.BinnedCorr2):
         """Calculate the correlation function possibly given another correlation function
         that uses random points for the foreground objects.
 
-        If rk is None, the simple correlation function <kappa> is returned.
-        If rk is not None, then a compensated calculation is done: <kappa> = (dk - rk)
+        - If rk is None, the simple correlation function :math:`\\langle \\kappa \\rangle` is
+          returned.
+        - If rk is not None, then a compensated calculation is done: 
+          :math:`\\langle \\kappa \\rangle = (dk - rk)`
 
         :param rk:          An NKCorrelation using random locations as the lenses, if desired. 
                             (default: None)
@@ -358,28 +351,28 @@ class NKCorrelation(treecorr.BinnedCorr2):
     def write(self, file_name, rk=None, file_type=None, prec=None):
         """Write the correlation function to the file, file_name.
 
-        If rk is None, the simple correlation function <kappa>(R) is used.
-        If rk is not None, then a compensated calculation is done: <kappa>(R) = (dk - rk)
+        - If rk is None, the simple correlation function :math:`\\langle \\kappa \\rangle(R)` is 
+          used.
+        - If rk is not None, then a compensated calculation is done: 
+          :math:`\\langle \\kappa \\rangle(R) = (dk - rk)`.
 
-        The output file will include the following columns::
+        The output file will include the following columns:
 
-            R_nom       The nominal center of the bin in R.
-            meanR       The mean value <R> of pairs that fell into each bin.
-            meanlogR    The mean value <logR> of pairs that fell into each bin.
-            kappa       The mean value of <kappa>(R).
-            sigma       The sqrt of the variance estimate of <kappa>.
-            weight      The total weight contributing to each bin.
-            npairs      The number of pairs contributing ot each bin.
+            :R_nom:     The nominal center of the bin in R.
+            :meanR:     The mean value :math:`\\langle R\\rangle` of pairs that fell into each bin.
+            :meanlogR:  The mean value :math:`\\langle logR\\rangle` of pairs that fell into each
+                        bin.
+            :kappa:     The mean value of :math:`\\langle \\kappa \\rangle(R)`.
+            :sigma:     The sqrt of the variance estimate of :math:`\\langle \\kappa \\rangle`.
+            :weight:    The total weight contributing to each bin.
+            :npairs:    The number of pairs contributing ot each bin.
 
 
         :param file_name:   The name of the file to write to.
-
         :param rk:          An NKCorrelation using random locations as the lenses, if desired. 
                             (default: None)
-
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
-
         :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
                             this value can also be given in the constructor in the config dict.)
         """
@@ -408,7 +401,6 @@ class NKCorrelation(treecorr.BinnedCorr2):
         checked by the read function.
 
         :param file_name:   The name of the file to read in.
-
         :param file_type:   The type of file ('ASCII' or 'FITS').  (default: determine the type
                             automatically from the extension of file_name.)
         """

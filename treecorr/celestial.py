@@ -49,6 +49,10 @@ class CelestialCoord(object):
     This class is used to perform various calculations in spherical coordinates, such
     as the angular distance between two points in the sky, the angles in spherical triangles,
     projecting from sky coordinates onto a Euclidean tangent plane, etc.
+    None of these calculations are used directly by TreeCorr, but the projection routines
+    were useful when developing code for working directly in spherical coordinates, and it
+    could still be useful for people who need to massage their input catalogs before passing
+    them to TreeCorr.
 
     A `CelestialCoord` object is constructed from the right ascension and declination:
 
@@ -73,7 +77,6 @@ class CelestialCoord(object):
         >>> dec = coord.dec
 
     :param ra:       The right ascension in radians.
-
     :param dec:      The declination in radian.
     """
     def __init__(self, ra, dec):
@@ -154,7 +157,6 @@ class CelestialCoord(object):
         the direction is clockwise.
 
         :param coord1:  Another `CelestialCoord` object.
-
         :param coord2:  A third `CelestialCoord` object.
 
         :returns:       The angle in radians between the great circles to the two other coords.
@@ -193,7 +195,6 @@ class CelestialCoord(object):
         and `coord2`, returning the area in steradians.
 
         :param coord1:  Another `CelestialCoord` object.
-
         :param coord2:  A third `CelestialCoord` object.
 
         :returns:       The area in steradians of the spherical triangle defined by the three
@@ -274,7 +275,6 @@ class CelestialCoord(object):
         The distance or angle errors increase with distance from the projection point of course.
 
         :param other:       The coordinate to be projected relative to the current coord.
-
         :param projection:  Which kind of projection to use. (default: 'lambert')
 
         :returns:           The projected position (u,v) in radians as a tuple.
@@ -349,9 +349,7 @@ class CelestialCoord(object):
         kinds of projection.
 
         :param ra:          The RA of the coordinate to be projected relative to the current coord.
-
         :param dec:         The Dec of the coordinate to be projected relative to the current coord.
-
         :param projection:  Which kind of projection to use. (default: 'lambert')
 
         :returns:           The projected position (u,v) in radians as a tuple.
@@ -381,9 +379,7 @@ class CelestialCoord(object):
         kinds of projection.
 
         :param u:           The projected u value to be deprojected.
-
         :param v:           The projected v value to be deprojected.
-
         :param projection:  Which kind of projection to use. (default: 'lambert')
 
         :returns:           The `CelestialCoord` corresponding to the given projected position.
@@ -470,9 +466,7 @@ class CelestialCoord(object):
         kinds of projection.
 
         :param u:           The projected u value to be deprojected.
-
         :param v:           The projected v value to be deprojected.
-
         :param projection:  Which kind of projection to use. (default: 'lambert')
 
         :returns:           A tuple (ra, dec) of the deprojected coordinates.
@@ -495,9 +489,7 @@ class CelestialCoord(object):
         kinds of projection.
 
         :param u:           The projected u value to be deprojected.
-
         :param v:           The projected v value to be deprojected.
-
         :param projection:  Which kind of projection to use. (default: 'lambert')
 
         :returns:           The matrix as a tuple (J00, J01, J10, J11)
@@ -581,7 +573,6 @@ class CelestialCoord(object):
         and (c) Lieske (1979) A&A 73, 282-284.
 
         :param from_epoch:  The epoch to use for the current coord.
-
         :param to_epoch:    The new epoch to precess to.
 
         :returns:           A new `CelestialCoord` of the coordinates in the new epoch.

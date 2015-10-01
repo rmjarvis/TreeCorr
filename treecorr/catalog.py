@@ -108,44 +108,33 @@ class Catalog(object):
                         want as kwargs.  (default: None) 
 
     :param num:         Which number catalog are we reading.  e.g. for NG correlations the catalog
-                        for the N has num=0, the one for G has num=1. (default: 0)
-
+                        for the N has num=0, the one for G has num=1.  This is only necessary if
+                        you are using a config dict where things like :x_col: have multiple values.
+                        (default: 0)
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
-
     :param is_rand:     If this is a random file, then setting is_rand to True will let them
                         skip k_col, g1_col, and g2_col if they were set for the main catalog.
                         (default: False)
 
     :param x:           The x values. (default: None; When providing values directly, either x,y
                         are required or ra,dec are required.)
-
     :param y:           The y values. (default: None; When providing values directly, either x,y
                         are required or ra,dec are required.)
-
     :param z:           The z values, if doing 3d positions. (default: None)
-
     :param ra:          The RA values. (default: None; When providing values directly, either x,y
                         are required or ra,dec are required.)
-
     :param dec:         The Dec values. (default: None; When providing values directly, either x,y
                         are required or ra,dec are required.)
-
     :param r:           The r values (the distances of each source from Earth). Note that r is
                         invalid in conjunction with x,y. (default: None)
-
     :param w:           The weight values. (default: None)
-
     :param wpos:        The weight values for position centroiding. (default: None, which means
                         to use the value weights, w, to weight the positions as well)
-
     :param flag:        The flag values.  Rows with flag != 0 (or flag & ~okflag != 0) will be
                         given a weight of 0. (default: None)
-
     :param g1:          The g1 values. (g1,g2 may represent any spinor field.) (default: None)
-
     :param g2:          The g2 values. (g1,g2 may represent any spinor field.) (default: None)
-
     :param k:           The kappa values. (This may represent any scalar field.) (default: None)
 
     The following parameters may be given either in the config dict or as named kwargs:
@@ -153,16 +142,10 @@ class Catalog(object):
     :param file_type:   What kind of file is the input file. Valid options are 'ASCII' or 'FITS'
                         (default: if the file_name extension starts with .fit, then use 'FITS',
                         else 'ASCII')
-
     :param delimiter:   For ASCII files, what delimiter to use between values. (default: None,
                         which means any whitespace)
-
     :param comment_marker: For ASCII files, what token indicates a comment line. (default: '#')
-
-    :param hdu:         For FITS files, which hdu to read. (default: 1)
-
     :param first_row:   Which row to take as the first row to be used. (default: 1)
-
     :param last_row:    Which row to take as the last row to be used. (default: -1, which means
                         the last row in the file)
 
@@ -170,26 +153,21 @@ class Catalog(object):
                         files or a string for FITS files. (default: 0 or '0', which means not to
                         read in this column. When reading from a file, either x_col and y_col are
                         required or ra_col and dec_col are required.)
-
     :param y_col:       The column to use for the y values. This should be an integer for ASCII
                         files or a string for FITS files. (default: 0 or '0', which means not to
                         read in this column. When reading from a file, either x_col and y_col are
                         required or ra_col and dec_col are required.)
-
     :param z_col:       The column to use for the z values. This should be an integer for ASCII
                         files or a string for FITS files. (default: 0 or '0', which means not to
                         read in this column.)
-
     :param ra_col:      The column to use for the ra values. This should be an integer for ASCII
                         files or a string for FITS files. (default: 0 or '0', which means not to
                         read in this column. When reading from a file, either x_col and y_col are
                         required or ra_col and dec_col are required.)
-
     :param dec_col:     The column to use for the dec values. This should be an integer for ASCII
                         files or a string for FITS files. (default: 0 or '0', which means not to
                         read in this column. When reading from a file, either x_col and y_col are
                         required or ra_col and dec_col are required.)
-
     :param r_col:       The column to use for the r values. This should be an integer for ASCII
                         files or a string for FITS files.  Note that r_col is invalid in 
                         conjunction with x_col/y_col. (default: 0 or '0', which means not to
@@ -199,21 +177,17 @@ class Catalog(object):
                         arcsec, arcmin, degrees, hours, radians.  (default: radians, although 
                         with (x,y) positions, you can often just ignore the units, and the output
                         separations will be in whatever units x and y are in.)
-
     :param y_units:     The units to use for the y values, given as a string.  Valid options are
                         arcsec, arcmin, degrees, hours, radians.  (default: radians, although 
                         with (x,y) positions, you can often just ignore the units, and the output
                         separations will be in whatever units x and y are in.)
-
     :param z_units:     The units to use for the z values, given as a string.  Valid options are
                         arcsec, arcmin, degrees, hours, radians.  (default: radians, although 
                         when using x,y,z, it really doesn't make much sense to apply units, so
                         you probably don't want to use this parameter.)
-
     :param ra_units:    The units to use for the ra values, given as a string.  Valid options are
                         arcsec, arcmin, degrees, hours, radians. (required when using ra_col or
                         providing ra directly)
-
     :param dec_units:   The units to use for the dec values, given as a string.  Valid options are
                         arcsec, arcmin, degrees, hours, radians. (required when using dec_col or
                         providing dec directly)
@@ -221,60 +195,42 @@ class Catalog(object):
     :param g1_col:       The column to use for the g1 values. This should be an integer for ASCII
                         files or a string for FITS files. (default: 0 or '0', which means not to
                         read in this column.)
-
     :param g2_col:       The column to use for the g2 values. This should be an integer for ASCII
                         files or a string for FITS files. (default: 0 or '0', which means not to
                         read in this column.)
-
     :param k_col:       The column to use for the kappa values. This should be an integer for ASCII
                         files or a string for FITS files. (default: 0 or '0', which means not to
                         read in this column.)
-
     :param w_col:       The column to use for the weight values. This should be an integer for
                         ASCII files or a string for FITS files. (default: 0 or '0', which means not
                         to read in this column.)
-
     :param wpos_col:    The column to use for the position weight values. This should be an integer
                         for ASCII files or a string for FITS files. (default: 0 or '0', which 
                         means not to read in this column.)
-
     :param flag_col:    The column to use for the flag values. This should be an integer for ASCII
                         files or a string for FITS files. Any row with flag != 0 (or technically
                         flag & ~ok_flag != 0) will be given a weight of 0. (default: 0 or '0',
                         which means not to read in this column.)
-
     :param ignore_flag: Which flags should be ignored. (default: all non-zero flags are ignored.
                         Equivalent to ignore_flag = ~0.)
-
     :param ok_flag:     Which flags should be considered ok. (default: 0.  i.e. all non-zero flags
                         are ignored.)
 
     :param flip_g1:     Whtether to flip the sign of the input g1 values. (default: False)
-
     :param flip_g2:     Whtether to flip the sign of the input g2 values. (default: False)
 
+    :param hdu:         For FITS files, which hdu to read. (default: 1)
     :param x_hdu:       Which hdu to use for the x values. (default: hdu)
-
     :param y_hdu:       Which hdu to use for the y values. (default: hdu)
-
     :param z_hdu:       Which hdu to use for the z values. (default: hdu)
-
     :param ra_hdu:      Which hdu to use for the ra values. (default: hdu)
-
     :param dec_hdu:     Which hdu to use for the dec values. (default: hdu)
-
     :param r_hdu:       Which hdu to use for the r values. (default: hdu)
-
     :param g1_hdu:      Which hdu to use for the g1 values. (default: hdu)
-
     :param g2_hdu:      Which hdu to use for the g2 values. (default: hdu)
-
     :param k_hdu:       Which hdu to use for the k values. (default: hdu)
-
     :param w_hdu:       Which hdu to use for the w values. (default: hdu)
-
     :param wpos_hdu:    Which hdu to use for the wpos values. (default: hdu)
-
     :param flag_hdu:    Which hdu to use for the flag values. (default: hdu)
 
     :param verbose:     If no logger is provided, this will optionally specify a logging level to
@@ -302,8 +258,9 @@ class Catalog(object):
                           For spherical coordinates (ra,dec without r), this is the chord
                           distance between points on the unit sphere.
                         - 'Rperp' = the perpendicular component of the distance. For two points
-                          with distance from Earth r1,r2, if d is the normal Euclidean distance
-                          and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2 - Rparallel^2`.
+                          with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                          distance and :math:`Rparallel = |r1-r2|`, then we define
+                          :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                         (default: 'Euclidean')
 
@@ -958,33 +915,19 @@ class Catalog(object):
         This is normally not called directly.  Use :meth:`~treecorr.Catalog.read_fits` instead.
 
         :param file_name:   The name of the file to read in.
-
         :param num:         Which number catalog are we reading.
-
         :param is_rand:     Is this a random catalog?
-
         :param x_col:       The name for x_col
-
         :param y_col:       The name for y_col
-
         :param z_col:       The name for z_col
-
         :param ra_col:      The name for ra_col
-
         :param dec_col:     The name for dec_col
-
         :param r_col:       The name for r_col
-
         :param w_col:       The name for w_col
-
         :param wpos_col:    The name for wpos_col
-
         :param flag_col:    The name for flat_col
-
         :param g1_col:      The name for g1_col
-
         :param g2_col:      The name for g2_col
-
         :param k_col:       The name for k_col
         """
         import fitsio
@@ -1096,33 +1039,19 @@ class Catalog(object):
         This is normally not called directly.  Use :meth:`~treecorr.Catalog.read_fits` instead.
 
         :param file_name:   The name of the file to read in.
-
         :param num:         Which number catalog are we reading.
-
         :param is_rand:     Is this a random catalog?
-
         :param x_col:       The name for x_col
-
         :param y_col:       The name for y_col
-
         :param z_col:       The name for z_col
-
         :param ra_col:      The name for ra_col
-
         :param dec_col:     The name for dec_col
-
         :param r_col:       The name for r_col
-
         :param w_col:       The name for w_col
-
         :param wpos_col:    The name for wpos_col
-
         :param flag_col:    The name for flat_col
-
         :param g1_col:      The name for g1_col
-
         :param g2_col:      The name for g2_col
-
         :param k_col:       The name for k_col
         """
         try:
@@ -1236,31 +1165,26 @@ class Catalog(object):
         The NField object is cached, so this is efficient to call multiple times.
 
         :param min_sep:     The minimum separation between points that will be needed.
-
         :param max_sep:     The maximum separation between points that will be needed.
-
         :param b:           The b parameter that will be used for the correlation function.
                             This should be bin_size * bin_slop.
-
         :param split_method: Which split method to use ('mean', 'median', or 'middle')
                             (default: 'mean'; this value can also be given in the Catalog 
                             constructor in the config dict.)
-
         :param metric:      Which metric to use for distance measurements.  Options are:
 
                             - 'Euclidean' = straight line Euclidean distance between two points.
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
-                            - 'Rperp' = the perpendicular component of the distance. For two 
-                              points with distance from Earth r1,r2, if d is the normal Euclidean
-                              distance and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2-Rparallel^2`.
+                            - 'Rperp' = the perpendicular component of the distance. For two points
+                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                              distance and :math:`Rparallel = |r1-r2|`, then we define
+                              :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                             (default: 'Euclidean'; this value can also be given in the Catalog 
                             constructor in the config dict.)
-
         :param max_top:     The maximum number of top layers to use when setting up the
                             field. (default: 10)
-
         :param logger:      A logger file if desired (default: self.logger)
 
         :returns:           A :class:`~treecorr.NField` object
@@ -1287,31 +1211,27 @@ class Catalog(object):
         The KField object is cached, so this is efficient to call multiple times.
 
         :param min_sep:     The minimum separation between points that will be needed.
-
         :param max_sep:     The maximum separation between points that will be needed.
-
         :param b:           The b parameter that will be used for the correlation function.
                             This should be bin_size * bin_slop.
-
         :param split_method: Which split method to use ('mean', 'median', or 'middle')
                             (default: 'mean'; this value can also be given in the Catalog 
                             constructor in the config dict.)
-
         :param metric:      Which metric to use for distance measurements.  Options are:
 
                             - 'Euclidean' = straight line Euclidean distance between two points.
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
-                            - 'Rperp' = the perpendicular component of the distance. For two 
-                              points with distance from Earth r1,r2, if d is the normal Euclidean
-                              distance and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2-Rparallel^2`.
+                            - 'Rperp' = the perpendicular component of the distance. For two points
+                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                              distance and :math:`Rparallel = |r1-r2|`, then we define
+                              :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                             (default: 'Euclidean'; this value can also be given in the Catalog 
                             constructor in the config dict.)
 
         :param max_top:     The maximum number of top layers to use when setting up the
                             field. (default: 10)
-
         :param logger:      A logger file if desired (default: self.logger)
 
         :returns:           A :class:`~treecorr.KField` object
@@ -1340,31 +1260,27 @@ class Catalog(object):
         The GField object is cached, so this is efficient to call multiple times.
 
         :param min_sep:     The minimum separation between points that will be needed.
-
         :param max_sep:     The maximum separation between points that will be needed.
-
         :param b:           The b parameter that will be used for the correlation function.
                             This should be bin_size * bin_slop.
-
         :param split_method: Which split method to use ('mean', 'median', or 'middle')
                             (default: 'mean'; this value can also be given in the Catalog 
                             constructor in the config dict.)
-
         :param metric:      Which metric to use for distance measurements.  Options are:
 
                             - 'Euclidean' = straight line Euclidean distance between two points.
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
-                            - 'Rperp' = the perpendicular component of the distance. For two 
-                              points with distance from Earth r1,r2, if d is the normal Euclidean
-                              distance and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2-Rparallel^2`.
+                            - 'Rperp' = the perpendicular component of the distance. For two points
+                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                              distance and :math:`Rparallel = |r1-r2|`, then we define
+                              :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                             (default: 'Euclidean'; this value can also be given in the Catalog 
                             constructor in the config dict.)
 
         :param max_top:     The maximum number of top layers to use when setting up the
                             field. (default: 10)
-
         :param logger:      A logger file if desired (default: self.logger)
 
         :returns:           A :class:`~treecorr.GField` object
@@ -1391,21 +1307,22 @@ class Catalog(object):
 
         The NSimpleField object is cached, so this is efficient to call multiple times.
 
-        :param metric:       Which metric to use for distance measurements.  Options are:
+        :param metric:      Which metric to use for distance measurements.  Options are:
 
-                             - 'Euclidean' = straight line Euclidean distance between two points.
-                               For spherical coordinates (ra,dec without r), this is the chord
-                               distance between points on the unit sphere.
-                             - 'Rperp' = the perpendicular component of the distance. For two 
-                               points with distance from Earth r1,r2, if d is the normal Euclidean
-                               distance and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2-Rparallel^2`.
+                            - 'Euclidean' = straight line Euclidean distance between two points.
+                              For spherical coordinates (ra,dec without r), this is the chord
+                              distance between points on the unit sphere.
+                            - 'Rperp' = the perpendicular component of the distance. For two points
+                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                              distance and :math:`Rparallel = |r1-r2|`, then we define
+                              :math:`Rperp^2 = d^2 - Rparallel^2`.
 
-                             (default: 'Euclidean'; this value can also be given in the Catalog 
-                             constructor in the config dict.)
+                            (default: 'Euclidean'; this value can also be given in the Catalog 
+                            constructor in the config dict.)
 
-        :param logger:       A logger file if desired (default: self.logger)
+        :param logger:      A logger file if desired (default: self.logger)
 
-        :returns:            A :class:`~treecorr.NSimpleField` object
+        :returns:           A :class:`~treecorr.NSimpleField` object
         """
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
@@ -1429,9 +1346,10 @@ class Catalog(object):
                             - 'Euclidean' = straight line Euclidean distance between two points.
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
-                            - 'Rperp' = the perpendicular component of the distance. For two 
-                              points with distance from Earth r1,r2, if d is the normal Euclidean
-                              distance and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2-Rparallel^2`.
+                            - 'Rperp' = the perpendicular component of the distance. For two points
+                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                              distance and :math:`Rparallel = |r1-r2|`, then we define
+                              :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                             (default: 'Euclidean'; this value can also be given in the Catalog 
                             constructor in the config dict.)
@@ -1462,9 +1380,10 @@ class Catalog(object):
                             - 'Euclidean' = straight line Euclidean distance between two points.
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
-                            - 'Rperp' = the perpendicular component of the distance. For two 
-                              points with distance from Earth r1,r2, if d is the normal Euclidean
-                              distance and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2-Rparallel^2`.
+                            - 'Rperp' = the perpendicular component of the distance. For two points
+                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                              distance and :math:`Rparallel = |r1-r2|`, then we define
+                              :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                             (default: 'Euclidean'; this value can also be given in the Catalog 
                             constructor in the config dict.)
@@ -1496,27 +1415,25 @@ class Catalog(object):
             >>> cat.ra_units = treecorr.degrees
             >>> cat.write('new_cat.dat')
 
-        The output file will include some of the following columns::
+        The output file will include some of the following columns:
 
-            ra          if self.ra is not None
-            dec         if self.dec is not None
-            r           if self.r is not None
-            x           if self.x is not None
-            y           if self.y is not None
-            z           if self.z is not None
-            w           if self.w is not None and self.nontrivial_w
-            wpos        if self.wpos is not None and self.nontrivial_wpos
-            g1          if self.g1 is not None
-            g2          if self.g2 is not None
-            k           if self.k is not None
-            meanR       The mean value <R> of pairs that fell into each bin.
-            meanlogR    The mean value <logR> of pairs that fell into each bin.
+            :ra:        if self.ra is not None
+            :dec:       if self.dec is not None
+            :r:         if self.r is not None
+            :x:         if self.x is not None
+            :y:         if self.y is not None
+            :z:         if self.z is not None
+            :w:         if self.w is not None and self.nontrivial_w
+            :wpos:      if self.wpos is not None and self.nontrivial_wpos
+            :g1:        if self.g1 is not None
+            :g2:        if self.g2 is not None
+            :k:         if self.k is not None
+            :meanR:     The mean value <R> of pairs that fell into each bin.
+            :meanlogR:  The mean value <logR> of pairs that fell into each bin.
 
         :param file_name:       The name of the file to write to.
-
         :param file_type:       The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
-
         :param cat_precision:   For ASCII output catalogs, the desired precision. (default: 16;
                                 this value can also be given in the Catalog constructor in the 
                                 config dict.)
@@ -1601,18 +1518,13 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
     The default is 0, which means to use the first item in the list if they are lists.
 
     :param config:      The configuration dict to use for the appropriate parameters
-
     :param key:         Which key name to use for the file names. e.g. 'file_name' (default: None)
-
     :param list_key:    Which key name to use for the name of a list file. e.g. 'file_list'.
                         Either key or list_key is required.  (default: None)
-
     :param num:         Which number catalog does this correspond to. e.g. file_name should use
                         num=0, file_name2 should use num=1.  (default: 0)
-
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
-
     :param is_rand:     If this is a random file, then setting is_rand to True will let them
                         skip k_col, g1_col, and g2_col if they were set for the main catalog.
                         (default: False)
@@ -1714,7 +1626,6 @@ def isGColRequired(config, num):
     ng_file_name parameter, and we let the would-be error pass.
 
     :param config:  The configuration file to check.
-
     :param num:     Which number catalog are we working on.
 
     :returns:       True if some output file requires this catalog to have valid g1/g2 columns,
@@ -1737,7 +1648,6 @@ def isKColRequired(config, num):
     for output files that require the kappa column rather than gamma.
 
     :param config:  The configuration file to check.
-
     :param num:     Which number catalog are we working on.
 
     :returns:       True if some output file requires this catalog to have valid g1/g2 columns,

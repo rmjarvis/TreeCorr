@@ -51,24 +51,24 @@ class NGCorrelation(treecorr.BinnedCorr2):
     function.  This is the tangential shear profile around lenses, commonly referred to as
     galaxy-galaxy lensing.
 
-    Ojects of this class holds the following attributes::
+    Ojects of this class holds the following attributes:
 
         :nbins:     The number of bins in logr
         :bin_size:  The size of the bins in logr
         :min_sep:   The minimum separation being considered
         :max_sep:   The maximum separation being considered
 
-    In addition, the following attributes are numpy arrays of length (nbins)::
+    In addition, the following attributes are numpy arrays of length (nbins):
 
         :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
         :meanr:     The (weighted) mean value of r for the pairs in each bin.
                     If there are no pairs in a bin, then exp(logr) will be used instead.
         :meanlogr:  The (weighted) mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
-        :xi:        The correlation function, xi(r) = <gamma_T>.
-        :xi_im:     The imaginary part of xi(r).
-        :varxi:     The variance of xi, only including the shape noise propagated into the
-                    final correlation.  This does not include sample variance, so it is
+        :xi:        The correlation function, :math:`\\xi(r) = \\langle \\gamma_T\\rangle`.
+        :xi_im:     The imaginary part of :math:`\\xi(r)`.
+        :varxi:     The variance of :math:`\\xi`, only including the shape noise propagated into
+                    the final correlation.  This does not include sample variance, so it is
                     always an underestimate of the actual variance.
         :weight:    The total weight in each bin.
         :npairs:    The number of pairs going into each bin.
@@ -83,16 +83,14 @@ class NGCorrelation(treecorr.BinnedCorr2):
         >>> ng.write(file_name)     # Write out to a file.
         >>> xi = gg.xi              # Or access the correlation function directly.
 
-    :param config:      The configuration dict which defines attributes about how to read the file.
-                        Any kwargs that are not those listed here will be added to the config, 
-                        so you can even omit the config dict and just enter all parameters you
-                        want as kwargs.  (default: None) 
-
+    :param config:      A configuration dict that can be used to pass in kwargs if desired.
+                        This dict is allowed to have addition entries in addition to those listed
+                        in :class:`~treecorr.BinnedCorr2`, which are ignored here. (default: None)
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    See the documentation for :BinnedCorr2: for the list of other allowed kwargs, which may
-    be passed either directly or in the config dict.
+    See the documentation for :class:`~treecorr.BinnedCorr2` for the list of other allowed kwargs,
+    which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
@@ -153,13 +151,10 @@ class NGCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
 
         :param cat1:        The first catalog to process
-
         :param cat2:        The second catalog to process
-
-        :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean'; this value can also be given in the constructor
-                            in the config dict.)
-
+        :param metric:      Which metric to use.  See :meth:`~treecorr.NGCorrelation.process` for 
+                            details.  (default: 'Euclidean'; this value can also be given in the 
+                            constructor in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -202,13 +197,10 @@ class NGCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
 
         :param cat1:        The first catalog to process
-
         :param cat2:        The second catalog to process
-
-        :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean'; this value can also be given in the constructor
-                            in the config dict.)
-
+        :param metric:      Which metric to use.  See :meth:`~treecorr.NGCorrelation.process` for 
+                            details.  (default: 'Euclidean'; this value can also be given in the 
+                            constructor in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -310,17 +302,16 @@ class NGCorrelation(treecorr.BinnedCorr2):
         for that element of the correlation.
 
         :param cat1:        A catalog or list of catalogs for the N field.
-
         :param cat2:        A catalog or list of catalogs for the G field.
-
         :param metric:      Which metric to use for distance measurements.  Options are:
 
                             - 'Euclidean' = straight line Euclidean distance between two points.
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
                             - 'Rperp' = the perpendicular component of the distance. For two points
-                              with distance from Earth r1,r2, if d is the normal Euclidean distance
-                              and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2 - Rparallel^2`.
+                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                              distance and :math:`Rparallel = |r1-r2|`, then we define
+                              :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
@@ -350,8 +341,10 @@ class NGCorrelation(treecorr.BinnedCorr2):
         """Calculate the correlation function possibly given another correlation function
         that uses random points for the foreground objects.
 
-        If rg is None, the simple correlation function <gamma_T> is returned.
-        If rg is not None, then a compensated calculation is done: <gamma_T> = (dg - rg)
+        - If rg is None, the simple correlation function :math:`\\langle \\gamma_T\\rangle` is
+          returned.
+        - If rg is not None, then a compensated calculation is done:
+          :math:`\\langle \\gamma_T\\rangle = (DG - RG)`
 
         :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
                             (default: None)
@@ -367,29 +360,30 @@ class NGCorrelation(treecorr.BinnedCorr2):
     def write(self, file_name, rg=None, file_type=None, prec=None):
         """Write the correlation function to the file, file_name.
 
-        If rg is None, the simple correlation function <gamma_T> is used.
-        If rg is not None, then a compensated calculation is done: <gamma_T> = (dg - rg)
+        - If rg is None, the simple correlation function :math:`\\langle \\gamma_T\\rangle` is used.
+        - If rg is not None, then a compensated calculation is done:
+          :math:`\\langle \\gamma_T\\rangle = (DG - RG)`
 
-        The output file will include the following columns::
+        The output file will include the following columns:
 
-            R_nom       The nominal center of the bin in R.
-            meanR       The mean value <R> of pairs that fell into each bin.
-            meanlogR    The mean value <logR> of pairs that fell into each bin.
-            gamT        The real part of the mean tangential shear <gamma_T>(R).
-            gamX        The imag part of the mean tangential shear <gamma_T>(R).
-            sigma       The sqrt of the variance estimate of <gamma_T>
-            weight      The total weight contributing to each bin.
-            npairs      The number of pairs contributing ot each bin.
+            :R_nom:     The nominal center of the bin in R.
+            :meanR:     The mean value :math:`\\langle R\\rangle` of pairs that fell into each bin.
+            :meanlogR:  The mean value :math:`\\langle logR\\rangle` of pairs that fell into each
+                        bin.
+            :gamT:      The real part of the mean tangential shear 
+                        :math:`\\langle \\gamma_T\\rangle(R)`.
+            :gamX:      The imag part of the mean tangential shear 
+                        :math:`\\langle \\gamma_T\\rangle(R)`.
+            :sigma:     The sqrt of the variance estimate of :math:\\langle \\gamma_T\\rangle`
+            :weight:    The total weight contributing to each bin.
+            :npairs:    The number of pairs contributing ot each bin.
 
 
         :param file_name:   The name of the file to write to.
-
         :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
                             (default: None)
-
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
-
         :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
                             this value can also be given in the constructor in the config dict.)
         """
@@ -418,7 +412,6 @@ class NGCorrelation(treecorr.BinnedCorr2):
         checked by the read function.
 
         :param file_name:   The name of the file to read in.
-
         :param file_type:   The type of file ('ASCII' or 'FITS').  (default: determine the type
                             automatically from the extension of file_name.)
         """
@@ -467,7 +460,6 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
                             (default: None)
-
         :param m2_uform:    Which form to use for the aperture mass, as described above.
                             (default: 'Crittenden'; this value can also be given in the
                             constructor in the config dict.)
@@ -513,29 +505,27 @@ class NGCorrelation(treecorr.BinnedCorr2):
         """Write the cross correlation of the foreground galaxy counts with the aperture mass
         based on the correlation function to the file, file_name.
 
-        If rg is provided, the compensated calculation will be used for xi.
+        If rg is provided, the compensated calculation will be used for :math:`\\xi`.
 
-        See :calculateNMap: for an explanation of the m2_uform parameter.
+        See :meth:`~treecorr.NGCorrelation:calculateNMap` for an explanation of the `m2_uform`
+        parameter.
 
-        The output file will include the following columns::
+        The output file will include the following columns:
 
-            R           The radius of the aperture.
-            NMap        The mean value <N_ap M_ap>.
-            NMx         The mean value <N_ap M_x>.
-            sig_nmap    The sqrt of the variance estimate of <N_ap M_ap> or <N_ap M_x>.
+            :R:         The radius of the aperture.
+            :NMap:      The mean value :math:`\\langle N_{ap} M_{ap}\\rangle`.
+            :NMx:       The mean value :math:`\\langle N_{ap} M_x\\rangle`.
+            :sig_nmap:  The sqrt of the variance estimate of :math:`\\langle N_{ap} M_{ap}\\rangle` 
+                        (which is the same as that of :math:`\\langle N_{ap} M_x\\rangle`.
 
 
         :param file_name:   The name of the file to write to.
-
         :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
                             (default: None)
-
         :param m2_uform:    Which form to use for the aperture mass.  (default: 'Crittenden';
                             this value can also be given in the constructor in the config dict.)
-
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
-
         :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
                             this value can also be given in the constructor in the config dict.)
         """
@@ -569,44 +559,42 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         See calculateNMap for an explanation of the m2_uform parameter.
 
-        The output file will include the following columns::
+        The output file will include the following columns:
 
-            R           The radius of the aperture.
-            NMap        The mean value <N_ap M_ap>.
-            NMx         The mean value <N_ap M_x>.
-            sig_nmap    The sqrt of the variance estimate of <N_ap M_ap> or <N_ap M_x>.
-            Napsq       The mean value <N_ap^2>.
-            sig_napsq   The sqrt of the variance estimate of <N_ap^2>.
-            Mapsq       The mean value <M_ap^2>.
-            sig_mapsq   The sqrt of the variance estimate of <M_ap^2>.
-            NMap_norm   The ratio <N_ap M_ap>^2/(<N_ap^2><M_ap^2>).
-            sig_norm    The sqrt of the variance estimate of <N_ap M_ap>^2/(<N_ap^2><M_ap^2>).
-            Nsq_Mapsq   The ratio <N_ap^2/<M_ap^2>.
-            sig_nn_mm   The sqrt of the variance estimate of <N_ap^>/<M_ap^2>.
+            :R:             The radius of the aperture.
+            :NMap:          The mean value :math:`\\langle N_{ap} M_{ap}\\rangle`.
+            :NMx:           The mean value :math:`\\langle N_{ap} M_x\\rangle`.
+            :sig_nmap:      The sqrt of the variance estimate of 
+                            :math:`\\langle N_{ap} M_{ap}\\rangle` or
+                            :math:`\\langle N_{ap} M_x\\rangle`.
+            :Napsq:         The mean value :math:`\\langle N_{ap}^2\\rangle`.
+            :sig_napsq:     The sqrt of the variance estimate of :math:`\\langle N_{ap}^2\\rangle`.
+            :Mapsq:         The mean value :math:`\\langle M_{ap}^2\\rangle`.
+            :sig_mapsq:     The sqrt of the variance estimate of :math:`\\langle M_{ap}^2\\rangle`.
+            :NMap_norm:     The ratio :math:`\\langle N_{ap} M_{ap}\\rangle^2 /
+                            (\\langle N_{ap}^2\\rangle\\langle M_{ap}^2\\rangle)`.
+            :sig_norm:      The sqrt of the variance estimate of 
+                            :math:`\\langle N_{ap} M_{ap}\\rangle^2 /
+                            (\\langle N_{ap}^2\\rangle\\langle M_{ap}^2\\rangle)`.
+            :Nsq_Mapsq:     The ratio :math:`\\langle N_{ap}^2/\\langle M_{ap}^2\\rangle`.
+            :sig_nn_mm:     The sqrt of the variance estimate of 
+                            :math:`\\langle N_{ap}^\\rangle/\\langle M_{ap}^2\\rangle`.
 
 
         :param file_name:   The name of the file to write to.
-
         :param gg:          A GGCorrelation object for the shear-shear correlation function
                             of the G field.
-
         :param dd:          An NNCorrelation object for the count-count correlation function
                             of the N field.
-
         :param rr:          An NNCorrelation object for the random-random pairs.
-
         :param dr:          An NNCorrelation object for the data-random pairs, if desired, in which
                             case the Landy-Szalay estimator will be calculated.  (default: None)
-
         :param rg:          An NGCorrelation using random locations as the lenses, if desired. 
                             (default: None)
-
         :param m2_uform:    Which form to use for the aperture mass.  (default: 'Crittenden';
                             this value can also be given in the constructor in the config dict.)
-
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
-
         :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
                             this value can also be given in the constructor in the config dict.)
         """

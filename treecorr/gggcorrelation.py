@@ -59,25 +59,28 @@ class GGGCorrelation(treecorr.BinnedCorr3):
     Lombardi (2003) [Astron.Astrophys. 397 (2003) 809-818].  In this paradigm, the shears
     are projected relative to some point defined by the geometry of the triangle.  They
     give several reasonable choices for this point.  We choose the triangle's centroid as the 
-    "most natural" point, as many simple shear fields have purely real Gamma_0 using
+    "most natural" point, as many simple shear fields have purely real :math:`\\Gamma_0` using
     this definition.  It is also a fairly simple point to calculate in the code compared to 
     some of the other options they offer, so projections relative to it are fairly efficient.
 
     There are 4 complex-valued 3-point shear corrletion functions defined for triples of shear
     values projected relative to the line joining the location of the shear to the cenroid of
-    the triangle::
+    the triangle:
 
-        Gamma_0 = <gamma(R1) gamma(R2) gamma(R3)>
-        Gamma_1 = <gamma(R1)* gamma(R2) gamma(R3)>
-        Gamma_2 = <gamma(R1) gamma(R2)* gamma(R3)>
-        Gamma_3 = <gamma(R1) gamma(R2) gamma(R3)*>
+    .. math::
 
-    where R1, R2, R3 are the positions of the three shears in each case, and * indicates 
-    complex conjugation.
+        \\Gamma_0 &= \\langle \\gamma(\\mathbf{x1}) \\gamma(\\mathbf{x2}) \\gamma(\\mathbf{x3}) \\rangle \\\\
+        \\Gamma_1 &= \\langle \\gamma(\\mathbf{x1})^* \\gamma(\\mathbf{x2}) \\gamma(\\mathbf{x3}) \\rangle \\\\
+        \\Gamma_2 &= \\langle \\gamma(\\mathbf{x1}) \\gamma(\\mathbf{x2})^* \\gamma(\\mathbf{x3}) \\rangle \\\\
+        \\Gamma_3 &= \\langle \\gamma(\\mathbf{x1}) \\gamma(\\mathbf{x2}) \\gamma(\\mathbf{x3})^* \\rangle \\\\
 
-    See the doc string of :BinnedCorr3: for a description of how the triangles are binned.
+    where :math:`\\mathbf{x1}, \\mathbf{x2}, \\mathbf{x3}` are the corners of the triange opposite
+    sides `d1, d2, d3` respectively, where `d1 > d2 > d3`, and `*` indicates complex conjugation.
+
+    See the doc string of :class:`~treecorr.BinnedCorr3` for a description of how the triangles 
+    are binned.
     
-    Ojects of this class holds the following attributes::
+    Ojects of this class holds the following attributes:
 
         :nbins:     The number of bins in logr where r = d2
         :bin_size:  The size of the bins in logr
@@ -95,7 +98,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         :u1d:       The nominal centers of the nubins bins in u.
         :v1d:       The nominal centers of the nvbins bins in v.
 
-    In addition, the following attributes are numpy arrays whose shape is (nbins, nubins, nvbins)::
+    In addition, the following attributes are numpy arrays whose shape is (nbins, nubins, nvbins):
 
         :logr:      The nominal center of each bin in log(r).
         :u:         The nominal center of each bin in u.
@@ -108,20 +111,20 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         :meanlogd2: The mean value of log(d3) for the triangles in each bin.
         :meanu:     The mean value of u for the triangles in each bin.
         :meanv:     The mean value of v for the triangles in each bin.
-        :gam0:      The 0th "natural" correlation function, Gamma_0(r,u,v).
-        :gam1:      The 1st "natural" correlation function, Gamma_1(r,u,v).
-        :gam2:      The 2nd "natural" correlation function, Gamma_2(r,u,v).
-        :gam3:      The 3rd "natural" correlation function, Gamma_3(r,u,v).
-        :vargam:    The variance of Gamma*, only including the shot noise propagated into the
-                    final correlation.  This does not include sample variance, so it is always
-                    an underestimate of the actual variance.
+        :gam0:      The 0th "natural" correlation function, :math:`\\Gamma_0(r,u,v)`.
+        :gam1:      The 1st "natural" correlation function, :math:`\\Gamma_1(r,u,v)`.
+        :gam2:      The 2nd "natural" correlation function, :math:`\\Gamma_2(r,u,v)`.
+        :gam3:      The 3rd "natural" correlation function, :math:`\\Gamma_3(r,u,v)`.
+        :vargam:    The variance of :math:`\\Gamma` values, only including the shot noise
+                    propagated into the final correlation.  This does not include sample variance,
+                    so it is always an underestimate of the actual variance.
         :weight:    The total weight in each bin.
         :ntri:      The number of triangles going into each bin.
 
     If sep_units are given (either in the config dict or as a named kwarg) then logr and meanlogr
     both take r to be in these units.  i.e. exp(logr) will have R in units of sep_units.
 
-    The usage pattern is as follows:
+    The usage pattern is as follows::
 
         >>> ggg = treecorr.GGGCorrelation(config)
         >>> ggg.process(cat)              # For auto-correlation.
@@ -131,16 +134,14 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         >>> gam0r = ggg.gam0r             # You can also access real and imag parts separately.
         >>> gam0i = ggg.gam0i
 
-    :param config:      The configuration dict which defines attributes about how to read the file.
-                        Any kwargs that are not those listed here will be added to the config, 
-                        so you can even omit the config dict and just enter all parameters you
-                        want as kwargs.  (default: None) 
-
+    :param config:      A configuration dict that can be used to pass in kwargs if desired.
+                        This dict is allowed to have addition entries in addition to those listed
+                        in :class:`~treecorr.BinnedCorr3`, which are ignored here. (default: None)
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    See the documentation for :BinnedCorr3: for the list of other allowed kwargs, which may
-    be passed either directly or in the config dict.
+    See the documentation for :class:`~treecorr.BinnedCorr3` for the list of other allowed kwargs,
+    which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
@@ -246,11 +247,9 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         finish the calculation of meand1, meanlogd1, etc.
 
         :param cat:         The catalog to process
-
-        :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean'; this value can also be given in the constructor
-                            in the config dict.)
-
+        :param metric:      Which metric to use.  See :meth:`~treecorr.GGGCorrelation.process` for 
+                            details.  (default: 'Euclidean'; this value can also be given in the 
+                            constructor in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -290,13 +289,10 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         finish the calculation of meand1, meanlogd1, etc.
 
         :param cat1:        The first catalog to process
-
         :param cat2:        The second catalog to process
-
-        :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean'; this value can also be given in the constructor
-                            in the config dict.)
-
+        :param metric:      Which metric to use.  See :meth:`~treecorr.GGGCorrelation.process` for 
+                            details.  (default: 'Euclidean'; this value can also be given in the 
+                            constructor in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -313,15 +309,11 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         finish the calculation of meand1, meanlogd1, etc.
 
         :param cat1:        The first catalog to process
-
         :param cat2:        The second catalog to process
-
         :param cat3:        The third catalog to process
-
-        :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean'; this value can also be given in the constructor
-                            in the config dict.)
-
+        :param metric:      Which metric to use.  See :meth:`~treecorr.GGGCorrelation.process` for 
+                            details.  (default: 'Euclidean'; this value can also be given in the 
+                            constructor in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -366,9 +358,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         finishes the calculation by dividing by the total weight.
 
         :param varg1:   The shear variance for the first field.
-
         :param varg2:   The shear variance for the second field.
-
         :param varg3:   The shear variance for the third field.
         """
         mask1 = self.weight != 0
@@ -496,21 +486,19 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         multiple times with the different catalogs in different positions.
 
         :param cat1:        A catalog or list of catalogs for the first N field.
-
         :param cat2:        A catalog or list of catalogs for the second N field, if any.
                             (default: None)
-
         :param cat3:        A catalog or list of catalogs for the third N field, if any.
                             (default: None)
-
         :param metric:      Which metric to use for distance measurements.  Options are:
 
                             - 'Euclidean' = straight line Euclidean distance between two points.
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
                             - 'Rperp' = the perpendicular component of the distance. For two points
-                              with distance from Earth r1,r2, if d is the normal Euclidean distance
-                              and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2 - Rparallel^2`.
+                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                              distance and :math:`Rparallel = |r1-r2|`, then we define
+                              :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
@@ -557,42 +545,47 @@ class GGGCorrelation(treecorr.BinnedCorr3):
     def write(self, file_name, file_type=None, prec=None):
         """Write the correlation function to the file, file_name.
 
-        As described in the doc string for :GGGCorrelation:, we use the "natural components" of
-        the shear 3-point function described by Schneider & Lombardi (2003) using the triangle
-        centroid as the projection point.  There are 4 complex-valued natural components, so
-        there are 8 columns in the output file.
+        As described in the doc string for :class:`~treecorr.GGGCorrelation`, we use the
+        "natural components" of the shear 3-point function described by Schneider & Lombardi (2003)
+        using the triangle centroid as the projection point.  There are 4 complex-valued natural
+        components, so there are 8 columns in the output file.
 
-        The output file will include the following columns::
+        The output file will include the following columns:
 
-            R_nom       The nominal center of the bin in R = d2 where d1 > d2 > d3.
-            u_nom       The nominal center of the bin in u = d3/d2.
-            v_nom       The nominal center of the bin in v = +-(d1-d2)/d3.
-            meand1      The mean value <d1> of triangles that fell into each bin.
-            meanlogd1   The mean value <logd1> of triangles that fell into each bin.
-            meand2      The mean value <d2> of triangles that fell into each bin.
-            meanlogd2   The mean value <logd2> of triangles that fell into each bin.
-            meand3      The mean value <d3> of triangles that fell into each bin.
-            meanlogd3   The mean value <logd3> of triangles that fell into each bin.
-            meanu       The mean value <u> of triangles that fell into each bin.
-            meanv       The mean value <v> of triangles that fell into each bin.
-            gam0r       The real part of the estimator of Gamma_0(d1,d2,d3)
-            gam0i       The imag part of the estimator of Gamma_0(d1,d2,d3)
-            gam1r       The real part of the estimator of Gamma_1(d1,d2,d3)
-            gam1i       The imag part of the estimator of Gamma_1(d1,d2,d3)
-            gam2r       The real part of the estimator of Gamma_2(d1,d2,d3)
-            gam2i       The imag part of the estimator of Gamma_2(d1,d2,d3)
-            gam3r       The real part of the estimator of Gamma_3(d1,d2,d3)
-            gam3i       The imag part of the estimator of Gamma_3(d1,d2,d3)
-            sigma_zeta  The sqrt of the variance estimate of zeta.
-            weight      The total weight of triangles contributing to each bin.
-            ntri        The number of triangles contributing to each bin.
-
+            :R_nom:         The nominal center of the bin in R = d2 where d1 > d2 > d3.
+            :u_nom:         The nominal center of the bin in u = d3/d2.
+            :v_nom:         The nominal center of the bin in v = +-(d1-d2)/d3.
+            :meand1:        The mean value :math:`\\langle d1\\rangle` of pairs that fell into
+                            each bin.
+            :meanlogd1:     The mean value :math:`\\langle logd1\\rangle` of pairs that fell into
+                            each bin.
+            :meand2:        The mean value :math:`\\langle d2\\rangle` of pairs that fell into
+                            each bin.
+            :meanlogd2:     The mean value :math:`\\langle logd2\\rangle` of pairs that fell into
+                            each bin.
+            :meand3:        The mean value :math:`\\langle d3\\rangle` of pairs that fell into
+                            each bin.
+            :meanlogd3:     The mean value :math:`\\langle logd3\\rangle` of pairs that fell into
+                            each bin.
+            :meanu:         The mean value :math:`\\langle u\\rangle` of pairs that fell into
+                            each bin.
+            :meanv:         The mean value :math:`\\langle v\\rangle` of pairs that fell into
+                            each bin.
+            :gam0r:         The real part of the estimator of :math:`\\Gamma_0(r,u,v)`.
+            :gam0i:         The imag part of the estimator of :math:`\\Gamma_0(r,u,v)`.
+            :gam1r:         The real part of the estimator of :math:`\\Gamma_1(r,u,v)`.
+            :gam1i:         The imag part of the estimator of :math:`\\Gamma_1(r,u,v)`.
+            :gam2r:         The real part of the estimator of :math:`\\Gamma_2(r,u,v)`.
+            :gam2i:         The imag part of the estimator of :math:`\\Gamma_2(r,u,v)`.
+            :gam3r:         The real part of the estimator of :math:`\\Gamma_3(r,u,v)`.
+            :gam3i:         The imag part of the estimator of :math:`\\Gamma_3(r,u,v)`.
+            :sigma_gam:     The sqrt of the variance estimate of :math:`\\Gamma` values.
+            :weight:        The total weight of triangles contributing to each bin.
+            :ntri:          The number of triangles contributing to each bin.
 
         :param file_name:   The name of the file to write to.
-
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
-
         :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
                             this value can also be given in the constructor in the config dict.)
         """
@@ -626,7 +619,6 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         checked by the read function.
 
         :param file_name:   The name of the file to read in.
-
         :param file_type:   The type of file ('ASCII' or 'FITS').  (default: determine the type
                             automatically from the extension of file_name.)
         """

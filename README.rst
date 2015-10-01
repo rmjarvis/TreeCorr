@@ -35,7 +35,7 @@ functions.
 
 The code is licensed under a FreeBSD license.  Essentially, you can use the 
 code in any way you want, but if you distribute it, you need to include the 
-file `TreeCorr_LICENSE` with the distribution.  See that file for details.
+file ``TreeCorr_LICENSE`` with the distribution.  See that file for details.
 
 
 Installation
@@ -55,16 +55,16 @@ you can do::
 
     pip install TreeCorr --user
 
-This installs the python module into `~/.local/lib/python2.7/site-packages`,
+This installs the python module into ``~/.local/lib/python2.7/site-packages``,
 which is normally already in your PYTHONPATH, but it puts the executables
-`corr2` and `corr3` into `~/.local/bin` which is probably not in your PATH.
+``corr2`` and ``corr3`` into ``~/.local/bin`` which is probably not in your PATH.
 To use these scripts, you should add this directory to your PATH.  If you would
 rather install into a different prefix rather than ~/.local, you can use::
 
     pip install TreeCorr --install-option="--prefix=PREFIX"
 
-This would install the executables into `PREFIX/bin` and the python module
-into `PREFIX/lib/python2.7/site-packages`.
+This would install the executables into ``PREFIX/bin`` and the python module
+into ``PREFIX/lib/python2.7/site-packages``.
 
 
 If you would rather download the tarball and install TreeCorr yourself,
@@ -85,7 +85,7 @@ that is also relatively straightforward:
 
 2. Download the zip file or tarball for the latest release from:
 
-https://github.com/rmjarvis/TreeCorr/releases/
+   https://github.com/rmjarvis/TreeCorr/releases/
 
 3. Unzip the archive with either of the following (depending on which kind
    of archive you downloaded)::
@@ -102,11 +102,11 @@ https://github.com/rmjarvis/TreeCorr/releases/
 
         python setup.py install --prefix=~
 
-   This will install the executable `corr2` at::
+   This will install the executable ``corr2`` at::
 
         /your/home/directory/bin/corr2
 
-   It will also install the Python module called `treecorr` which you can use
+   It will also install the Python module called ``treecorr`` which you can use
    from within Python.
 
    .. note::
@@ -145,22 +145,22 @@ Two-point Correlations
 
 This software is able to compute several varieties of two-point correlations:
 
-:NN:  the normal two point correlation function of things like 2dF that
+:NN:  The normal two point correlation function of things like 2dF that
       correlate the galaxy counts at each position.
 
-:NG:  correlation of counts with shear.  This is what is often called
+:NG:  Correlation of counts with shear.  This is what is often called
       galaxy-galaxy lensing.
 
-:GG:  two-point shear correlation function.
+:GG:  Two-point shear correlation function.
 
-:NK:  correlation of counts with kappa.  While kappa is nominally the lensing
+:NK:  Correlation of counts with kappa.  While kappa is nominally the lensing
       convergence, it could really be any scalar quantity, like temperature,
       size, etc.
 
-:KG:  correlation of convergence with shear.  Like the NG calculation, but 
+:KG:  Correlation of convergence with shear.  Like the NG calculation, but 
       weighting the pairs by the convergence values the foreground points.
 
-:KK:  two-point kappa correlation function.
+:KK:  Two-point kappa correlation function.
 
 
 Three-point Correlations
@@ -168,13 +168,13 @@ Three-point Correlations
 
 This software is currently only able to compute three-point auto-correlations:
 
-:NNN: three point correlation function of galaxy counts.
+:NNN: Three point correlation function of galaxy counts.
 
-:GGG: three-point shear correlation function.  We use the "natural components"
+:GGG: Three-point shear correlation function.  We use the "natural components"
       called Gamma, described by Schneider & Lombardi [Astron.Astrophys. 397
       (2003) 809-818] using the triangle centroid as the reference point.
 
-:KKK: three-point kappa correlation function.
+:KKK: Three-point kappa correlation function.
 
 
 Running corr2 and corr3
@@ -207,7 +207,7 @@ files.
 Using the Python module
 -----------------------
 
-The TreeCorr module is called `treecorr` in python.  Typical usage for
+The TreeCorr module is called ``treecorr`` in python.  Typical usage for
 computing the shear-shear correlation function looks something like the
 following::
 

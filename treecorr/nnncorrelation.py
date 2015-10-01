@@ -53,9 +53,10 @@ class NNNCorrelation(treecorr.BinnedCorr3):
     """This class handles the calculation and storage of a 2-point count-count correlation
     function.  i.e. the regular density correlation function.
 
-    See the doc string of :BinnedCorr3: for a description of how the triangles are binned.
+    See the doc string of :class:`~treecorr.BinnedCorr3` for a description of how the triangles
+    are binned.
     
-    Ojects of this class holds the following attributes::
+    Ojects of this class holds the following attributes:
 
         :nbins:     The number of bins in logr where r = d2
         :bin_size:  The size of the bins in logr
@@ -73,7 +74,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         :u1d:       The nominal centers of the nubins bins in u.
         :v1d:       The nominal centers of the nvbins bins in v.
 
-    In addition, the following attributes are numpy arrays whose shape is (nbins, nubins, nvbins)::
+    In addition, the following attributes are numpy arrays whose shape is (nbins, nubins, nvbins):
 
         :logr:      The nominal center of the bin in log(r).
         :u:         The nominal center of the bin in u.
@@ -109,16 +110,14 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         >>> nn.write(file_name,rrr,drr,...)  # Write out to a file.
         >>> zeta,varzeta = nn.calculateZeta(rrr,drr,...)  # Or get the 3pt function directly.
 
-    :param config:      The configuration dict which defines attributes about how to read the file.
-                        Any kwargs that are not those listed here will be added to the config, 
-                        so you can even omit the config dict and just enter all parameters you
-                        want as kwargs.  (default: None) 
-
+    :param config:      A configuration dict that can be used to pass in kwargs if desired.
+                        This dict is allowed to have addition entries in addition to those listed
+                        in :class:`~treecorr.BinnedCorr3`, which are ignored here. (default: None)
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    See the documentation for :BinnedCorr3: for the list of other allowed kwargs, which may
-    be passed either directly or in the config dict.
+    See the documentation for :class:`~treecorr.BinnedCorr3` for the list of other allowed kwargs,
+    which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
@@ -190,11 +189,9 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         finish the calculation of meand1, meanlogd1, etc.
 
         :param cat:         The catalog to process
-
-        :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean'; this value can also be given in the constructor
-                            in the config dict.)
-
+        :param metric:      Which metric to use.  See :meth:`~treecorr.NNNCorrelation.process` for 
+                            details.  (default: 'Euclidean'; this value can also be given in the 
+                            constructor in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -235,13 +232,10 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         finish the calculation of meand1, meanlogd1, etc.
 
         :param cat1:        The first catalog to process
-
         :param cat2:        The second catalog to process
-
-        :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean'; this value can also be given in the constructor
-                            in the config dict.)
-
+        :param metric:      Which metric to use.  See :meth:`~treecorr.NNNCorrelation.process` for 
+                            details.  (default: 'Euclidean'; this value can also be given in the 
+                            constructor in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -258,15 +252,11 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         finish the calculation of meand1, meanlogd1, etc.
 
         :param cat1:        The first catalog to process
-
         :param cat2:        The second catalog to process
-
         :param cat3:        The third catalog to process
-
-        :param metric:      Which metric to use.  See the doc string for :process: for details.
-                            (default: 'Euclidean'; this value can also be given in the constructor
-                            in the config dict.)
-
+        :param metric:      Which metric to use.  See :meth:`~treecorr.NNNCorrelation.process` for 
+                            details.  (default: 'Euclidean'; this value can also be given in the 
+                            constructor in the config dict.)
         :param num_threads: How many OpenMP threads to use during the calculation.  
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the 
@@ -410,21 +400,19 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         multiple times with the different catalogs in different positions.
 
         :param cat1:        A catalog or list of catalogs for the first N field.
-
         :param cat2:        A catalog or list of catalogs for the second N field, if any.
                             (default: None)
-
         :param cat3:        A catalog or list of catalogs for the third N field, if any.
                             (default: None)
-
         :param metric:      Which metric to use for distance measurements.  Options are:
 
                             - 'Euclidean' = straight line Euclidean distance between two points.
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
                             - 'Rperp' = the perpendicular component of the distance. For two points
-                              with distance from Earth r1,r2, if d is the normal Euclidean distance
-                              and `Rparallel = |r1-r2|`, then `Rperp^2 = d^2 - Rparallel^2`.
+                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                              distance and :math:`Rparallel = |r1-r2|`, then we define
+                              :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
@@ -463,32 +451,34 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         There are two possible formulae that are currently supported.
 
-        1. The simplest formula to use is (ddd-rrr)/rrr.
+        1. The simplest formula to use is :math:`\\zeta^\\prime = (DDD-RRR)/RRR`.
            In this case, only rrr needs to be given, the NNNCorrelation of a random field.
-           However, note that in this case, the return value is not normally called zeta.
-           Rather, this is an estimator of zeta(d1,d2,d3) + xi(d1) + xi(d2) + xi(d3)
-           where xi is the two-point correlation function for each leg of the triangle.
+           However, note that in this case, the return value is not normally called :math:`\\zeta`.
+           Rather, this is an estimator of 
+
+           .. math::
+               \\zeta^\\prime(d1,d2,d3) = \\zeta(d1,d2,d3) + \\xi(d1) + \\xi(d2) + \\xi(d3)
+
+           where :math:`\\xi` is the two-point correlation function for each leg of the triangle.
            You would typically want to calculate that separately and subtract off the
            two-point contributions.
 
-        2. For auto-correlations, a better formula is (ddd-ddr-drd-rdd+drr+rdr+rrd-rrr)/rrr.
-           In this case, ddr, etc. calculate the triangles where two points come from either
-           the data or the randoms.  In the case of ddr for instance, points p1 and p2 on the 
-           triangle have data and p3 uses randoms, where points p1, p2, p3 are opposite sides 
-           d1, d2, d3 with d1 > d2 > d3 as usual; rdr has randoms at 1,3 and data at 2, etc.
+        2. For auto-correlations, a better formula is 
+           :math:`\\zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR`.
+           In this case, DDR, etc. calculate the triangles where two points come from either
+           the data or the randoms.  In the case of DDR for instance, points x1 and x2 on the 
+           triangle have data and x3 uses randoms, where points x1, x2, x3 are opposite sides 
+           d1, d2, d3 with d1 > d2 > d3 as usual; RDR has randoms at 1,3 and data at 2, etc.
+
+        - If only rrr is provided, the first formula will be used.
+        - If all of rrr, drr, rdr, rrd, ddr, drd, rdd are provided then the second will be used.
 
         :param rrr:         An NNCorrelation object for the random field.
-
         :param drr:         DRR if desired. (default: None)
-
         :param rdr:         RDR if desired. (default: None)
-
         :param rrd:         RRD if desired. (default: None)
-
         :param ddr:         DDR if desired. (default: None)
-
         :param drd:         DRD if desired. (default: None)
-
         :param rdd:         RDD if desired. (default: None)
 
         :returns:           (zeta, varzeta) as a tuple
@@ -550,84 +540,91 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         the size and shape of the triangles).
 
         If at least rrr is given, then it will output an estimate of the final 3pt correlation
-        function, zeta. There are two possible formulae that are currently supported.
+        function, :math:`\\zeta`. There are two possible formulae that are currently supported.
 
-        1. The simplest formula to use is (ddd-rrr)/rrr.
+        1. The simplest formula to use is :math:`\\zeta^\\prime = (DDD-RRR)/RRR`.
            In this case, only rrr needs to be given, the NNNCorrelation of a random field.
-           However, note that in this case, the return value is not normally called zeta.
-           Rather, this is an estimator of zeta(d1,d2,d3) + xi(d1) + xi(d2) + xi(d3)
-           where xi is the two-point correlation function for each leg of the triangle.
+           However, note that in this case, the return value is not what is normally called
+           :math:`\\zeta`.  Rather, this is an estimator of
+
+           .. math::
+               \\zeta^\\prime(d1,d2,d3) = \\zeta(d1,d2,d3) + \\xi(d1) + \\xi(d2) + \\xi(d3)
+
+           where :math:`\\xi` is the two-point correlation function for each leg of the triangle.
            You would typically want to calculate that separately and subtract off the
            two-point contributions.
 
-        2. For auto-correlations, a better formula is (ddd-ddr-drd-rdd+drr+rdr+rrd-rrr)/rrr.
-           In this case, ddr, etc. calculate the triangles where two points come from either
-           the data or the randoms.  In the case of ddr for instance, points p1 and p2 on the 
-           triangle have data and p3 uses randoms, where points p1, p2, p3 are opposite sides 
-           d1, d2, d3 with d1 > d2 > d3 as usual; rdr has randoms at 1,3 and data at 2, etc.
+        2. For auto-correlations, a better formula is 
+           :math:`\\zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR`.
+           In this case, DDR, etc. calculate the triangles where two points come from either
+           the data or the randoms.  In the case of DDR for instance, points x1 and x2 on the 
+           triangle have data and x3 uses randoms, where points x1, x2, x3 are opposite sides 
+           d1, d2, d3 with d1 > d2 > d3 as usual; RDR has randoms at 1,3 and data at 2, etc.
+           For this case, all the combinations rrr, drr, rdr, rrd, ddr, drd, rdd must be 
+           provided.
 
-        The output file will include the following columns::
+        The output file will include the following columns:
 
-            R_nom       The nominal center of the bin in R.
-            u_nom       The nominal center of the bin in R.
-            v_nom       The nominal center of the bin in R.
-            meand1      The mean value <d1> of triangles that fell into each bin.
-            meanlogd1   The mean value <logd1> of triangles that fell into each bin.
-            meand2      The mean value <d2> of triangles that fell into each bin.
-            meanlogd2   The mean value <logd2> of triangles that fell into each bin.
-            meand3      The mean value <d3> of triangles that fell into each bin.
-            meanlogd3   The mean value <logd3> of triangles that fell into each bin.
-            meanu       The mean value <u> of triangles that fell into each bin.
-            meanv       The mean value <v> of triangles that fell into each bin.
+            :R_nom:         The nominal center of the bin in R.
+            :u_nom:         The nominal center of the bin in R.
+            :v_nom:         The nominal center of the bin in R.
+            :meand1:        The mean value :math:`\\langle d1\\rangle` of pairs that fell into
+                            each bin.
+            :meanlogd1:     The mean value :math:`\\langle logd1\\rangle` of pairs that fell into
+                            each bin.
+            :meand2:        The mean value :math:`\\langle d2\\rangle` of pairs that fell into
+                            each bin.
+            :meanlogd2:     The mean value :math:`\\langle logd2\\rangle` of pairs that fell into
+                            each bin.
+            :meand3:        The mean value :math:`\\langle d3\\rangle` of pairs that fell into
+                            each bin.
+            :meanlogd3:     The mean value :math:`\\langle logd3\\rangle` of pairs that fell into
+                            each bin.
+            :meanu:         The mean value :math:`\\langle u\\rangle` of pairs that fell into
+                            each bin.
+            :meanv:         The mean value :math:`\\langle v\\rangle` of pairs that fell into
+                            each bin.
 
-        Then if rrr is None::
+        Then if rrr is None:
 
-            DDD         The total weight of triangles in each bin.
-            ntri        The total number of triangles in each bin.
+            :DDD:           The total weight of triangles in each bin.
+            :ntri:          The total number of triangles in each bin.
 
-        If rrr is given, but not the cross-correlations::
+        If rrr is given, but not the cross-correlations:
 
-            zeta        The estimator (DDD-RRR)/RRR, which is really an estimate of
-                        zeta(d1,d2,d3) + xi(d1) + xi(d2) + xi(d3).  cf. ::calculateZeta::
-            sigma_zeta  The sqrt of the variance estimate of zeta.
-            DDD         The total weight of data triangles (aka DDD) in each bin.
-            RRR         The total weight of random triangles (aka RRR) in each bin.
-            ntri        The number of triangles contributing to each bin.
+            :zeta:          The estimator :math:`\\zeta^\\prime = (DDD-RRR)/RRR`, which is really
+                            :math:`\\zeta(d1,d2,d3) + \\xi(d1) + \\xi(d2) + \\xi(d3)`.  
+                            cf. :meth:`~treecorr.NNNCorrelation.calculateZeta`
+            :sigma_zeta:    The sqrt of the variance estimate of :math:`\\zeta`.
+            :DDD:           The total weight of data triangles (aka DDD) in each bin.
+            :RRR:           The total weight of random triangles (aka RRR) in each bin.
+            :ntri:          The number of triangles contributing to each bin.
 
-        If all cross-correlations are given::
+        If all cross-correlations are given:
 
-            zeta        The estimator zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR.
-            sigma_zeta  The sqrt of the variance estimate of zeta.
-            DDD         The total weight of DDD triangles in each bin.
-            RRR         The total weight of RRR triangles in each bin.
-            DRR         The total weight of DRR triangles in each bin.
-            RDR         The total weight of RDR triangles in each bin.
-            RRD         The total weight of RRD triangles in each bin.
-            DDR         The total weight of DDR triangles in each bin.
-            DRD         The total weight of DRD triangles in each bin.
-            RDD         The total weight of RDD triangles in each bin.
-            ntri        The number of triangles contributing to each bin.
+            :zeta:          The estimator :math:`\\zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR`.
+            :sigma_zeta:    The sqrt of the variance estimate of :math:`\\zeta`.
+            :DDD:           The total weight of DDD triangles in each bin.
+            :RRR:           The total weight of RRR triangles in each bin.
+            :DRR:           The total weight of DRR triangles in each bin.
+            :RDR:           The total weight of RDR triangles in each bin.
+            :RRD:           The total weight of RRD triangles in each bin.
+            :DDR:           The total weight of DDR triangles in each bin.
+            :DRD:           The total weight of DRD triangles in each bin.
+            :RDD:           The total weight of RDD triangles in each bin.
+            :ntri:          The number of triangles contributing to each bin.
 
 
         :param file_name:   The name of the file to write to.
-
         :param rrr:         An NNNCorrelation object for the random field. (default: None)
-
         :param drr:         DRR if desired. (default: None)
-
         :param rdr:         RDR if desired. (default: None)
-
         :param rrd:         RRD if desired. (default: None)
-
         :param ddr:         DDR if desired. (default: None)
-
         :param drd:         DRD if desired. (default: None)
-
         :param rdd:         RDD if desired. (default: None)
-
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
-
         :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
                             this value can also be given in the constructor in the config dict.)
         """
@@ -678,7 +675,6 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         checked by the read function.
 
         :param file_name:   The name of the file to read in.
-
         :param file_type:   The type of file ('ASCII' or 'FITS').  (default: determine the type
                             automatically from the extension of file_name.)
         """

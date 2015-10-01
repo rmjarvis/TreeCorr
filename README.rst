@@ -55,7 +55,7 @@ you can do::
 
     pip install TreeCorr --user
 
-This installs the python module into ``~/.local/lib/python2.7/site-packages``,
+This installs the Python module into ``~/.local/lib/python2.7/site-packages``,
 which is normally already in your PYTHONPATH, but it puts the executables
 ``corr2`` and ``corr3`` into ``~/.local/bin`` which is probably not in your PATH.
 To use these scripts, you should add this directory to your PATH.  If you would
@@ -63,7 +63,7 @@ rather install into a different prefix rather than ~/.local, you can use::
 
     pip install TreeCorr --install-option="--prefix=PREFIX"
 
-This would install the executables into ``PREFIX/bin`` and the python module
+This would install the executables into ``PREFIX/bin`` and the Python module
 into ``PREFIX/lib/python2.7/site-packages``.
 
 
@@ -145,22 +145,23 @@ Two-point Correlations
 
 This software is able to compute several varieties of two-point correlations:
 
-:NN:  The normal two point correlation function of things like 2dF that
-      correlate the galaxy counts at each position.
+:NN:  The normal two-point correlation function of number counts (typically
+      galaxy counts).
 
-:NG:  Correlation of counts with shear.  This is what is often called
+:GG:  Two-point shear-shear correlation function.
+
+:KK:  Nominally the two-point kappa-kappa correlation function, although any
+      scalar quantity can be used as "kappa".  In lensing, kappa is the 
+      convergence, but this could be used for temperature, size, etc.
+
+:NG:  Cross-correlation of counts with shear.  This is what is often called
       galaxy-galaxy lensing.
 
-:GG:  Two-point shear correlation function.
+:NK:  Cross-correlation of counts with kappa.  Again, "kappa here can be any scalar
+      quantity.
 
-:NK:  Correlation of counts with kappa.  While kappa is nominally the lensing
-      convergence, it could really be any scalar quantity, like temperature,
-      size, etc.
-
-:KG:  Correlation of convergence with shear.  Like the NG calculation, but 
-      weighting the pairs by the convergence values the foreground points.
-
-:KK:  Two-point kappa correlation function.
+:KG:  Cross-correlation of convergence with shear.  Like the NG calculation, but 
+      weighting the pairs by the kappa values the foreground points.
 
 
 Three-point Correlations
@@ -168,13 +169,14 @@ Three-point Correlations
 
 This software is currently only able to compute three-point auto-correlations:
 
-:NNN: Three point correlation function of galaxy counts.
+:NNN: Three-point correlation function of number counts.
 
 :GGG: Three-point shear correlation function.  We use the "natural components"
       called Gamma, described by Schneider & Lombardi [Astron.Astrophys. 397
       (2003) 809-818] using the triangle centroid as the reference point.
 
-:KKK: Three-point kappa correlation function.
+:KKK: Three-point kappa correlation function.  Again, "kappa" here can be any
+      scalar quantity.
 
 
 Running corr2 and corr3
@@ -207,7 +209,12 @@ files.
 Using the Python module
 -----------------------
 
-The TreeCorr module is called ``treecorr`` in python.  Typical usage for
+Here we only give a quick overview.  Full Sphinx-generated documentation can
+be found at:
+
+http://rmjarvis.github.io/TreeCorr/html/index.html
+
+The TreeCorr module is called ``treecorr`` in Python.  Typical usage for
 computing the shear-shear correlation function looks something like the
 following::
 
@@ -226,11 +233,17 @@ access the Python documentation by calling help on the appropriate class
 to get more details about the different kwarg options, attributes, and 
 methods for each::
 
+    >>> help(NNCorrelation)
     >>> help(GGCorrelation)
+    >>> help(KKCorrelation)
     >>> help(NGCorrelation)
+    >>> help(NKCorrelation)
+    >>> help(KGCorrelation)
     >>> help(NNNCorrelation)
+    >>> help(GGGCorrelation)
+    >>> help(KKKCorrelation)
 
-You can also leverage the configuration file apparatus from within python
+You can also leverage the configuration file apparatus from within Python
 using a Python dict for the configuration parameters::
 
     >>> import treecorr
@@ -244,13 +257,9 @@ using a Python dict for the configuration parameters::
 
 However, the Python module gives you much more flexibility in how to specify
 the input and output, including going directly from and to numpy arrays within
-Python.  For more information, see the wiki page:
+Python.  For a slightly longer "Getting Started" guide see the wiki page:
 
 https://github.com/rmjarvis/TreeCorr/wiki/Guide-to-using-TreeCorr-in-Python
-
-Sphinx documentation based on the doc strings can be found at:
-
-http://rmjarvis.github.io/TreeCorr/html/index.html
 
 
 Reporting bugs

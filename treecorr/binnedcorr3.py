@@ -34,9 +34,10 @@ class BinnedCorr3(object):
     triangles according to the following three parameters based on the three side lenghts
     of the triangle with d1 >= d2 >= d3.
 
-        r = d3
-        u = d3 / d2
-        v = +-(d1 - d2) / d3
+    .. math::
+        r &= d2 \\\\
+        u &= \\frac{d3}{d2} \\\\
+        v &= \\pm \\frac{(d1 - d2)}{d3} \\\\
 
     The orientation of the triangle is specified by the sign of v.  
     Positive v triangles have the three sides d1,d2,d3 in counter-clockwise orientation.
@@ -99,7 +100,8 @@ class BinnedCorr3(object):
     :param max_v:       Analogous to max_sep for the v direction. (default: 1)
 
     :param verbose:     If no logger is provided, this will optionally specify a logging level to
-                        use.
+                        use:
+
                         - 0 means no logging output (default)
                         - 1 means to output warnings only
                         - 2 means to output various progress information

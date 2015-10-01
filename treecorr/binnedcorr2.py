@@ -77,7 +77,7 @@ class BinnedCorr2(object):
                         to yield good results for most application.
 
     :param verbose:     If no logger is provided, this will optionally specify a logging level to
-                        use.
+                        use:
 
                         - 0 means no logging output (default)
                         - 1 means to output warnings only

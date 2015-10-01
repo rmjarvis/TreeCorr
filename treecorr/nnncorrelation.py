@@ -565,25 +565,25 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         The output file will include the following columns:
 
-            :R_nom:         The nominal center of the bin in R.
-            :u_nom:         The nominal center of the bin in R.
-            :v_nom:         The nominal center of the bin in R.
-            :meand1:        The mean value :math:`\\langle d1\\rangle` of pairs that fell into
-                            each bin.
-            :meanlogd1:     The mean value :math:`\\langle logd1\\rangle` of pairs that fell into
-                            each bin.
-            :meand2:        The mean value :math:`\\langle d2\\rangle` of pairs that fell into
-                            each bin.
-            :meanlogd2:     The mean value :math:`\\langle logd2\\rangle` of pairs that fell into
-                            each bin.
-            :meand3:        The mean value :math:`\\langle d3\\rangle` of pairs that fell into
-                            each bin.
-            :meanlogd3:     The mean value :math:`\\langle logd3\\rangle` of pairs that fell into
-                            each bin.
-            :meanu:         The mean value :math:`\\langle u\\rangle` of pairs that fell into
-                            each bin.
-            :meanv:         The mean value :math:`\\langle v\\rangle` of pairs that fell into
-                            each bin.
+            :R_nom:         The nominal center of the bin in R = d2 where d1 > d2 > d3.
+            :u_nom:         The nominal center of the bin in u = d3/d2.
+            :v_nom:         The nominal center of the bin in v = +-(d1-d2)/d3.
+            :meand1:        The mean value :math:`\\langle d1\\rangle` of triangles that fell
+                            into each bin.
+            :meanlogd1:     The mean value :math:`\\langle logd1\\rangle` of triangles that fell
+                            into each bin.
+            :meand2:        The mean value :math:`\\langle d2\\rangle` of triangles that fell 
+                            into each bin.
+            :meanlogd2:     The mean value :math:`\\langle logd2\\rangle` of triangles that fell
+                            into each bin.
+            :meand3:        The mean value :math:`\\langle d3\\rangle` of triangles that fell
+                            into each bin.
+            :meanlogd3:     The mean value :math:`\\langle logd3\\rangle` of triangles that fell
+                            into each bin.
+            :meanu:         The mean value :math:`\\langle u\\rangle` of triangles that fell
+                            into each bin.
+            :meanv:         The mean value :math:`\\langle v\\rangle` of triangles that fell
+                            into each bin.
 
         Then if rrr is None:
 

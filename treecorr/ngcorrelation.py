@@ -554,10 +554,13 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         This function computes these combinations and outputs them to a file.
 
-        if rg is provided, the compensated calculation will be used for NMap.
-        if dr is provided, the compensated calculation will be used for Nap^2.
+        - if rg is provided, the compensated calculation will be used for 
+          :math:`\\langle N_{ap} M_{ap} \\rangle`.
+        - if dr is provided, the compensated calculation will be used for
+          :math:`\\langle N_{ap}^2 \\rangle`.
 
-        See calculateNMap for an explanation of the m2_uform parameter.
+        See :meth:`~treecorr.NGCorrelation.calculateNMap` for an explanation of the m2_uform
+        parameter.
 
         The output file will include the following columns:
 

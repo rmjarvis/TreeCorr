@@ -80,10 +80,10 @@ corr3_valid_params = {
 
     # Derived output quantities
 
-    'm3_file_name' : (str, False, None, None,
-            'The output filename for the aperture mass statistics.'),
-    'm3_uform' : (str, False, 'Crittenden', ['Crittenden', 'Schneider'],
-            'The function form of the aperture.'),
+    #'m3_file_name' : (str, False, None, None,
+            #'The output filename for the aperture mass statistics.'),
+    #'m3_uform' : (str, False, 'Crittenden', ['Crittenden', 'Schneider'],
+            #'The function form of the aperture.'),
     #'nm_file_name' : (str, False, None, None,
             #'The output filename for <N Map> and related values.'),
     #'norm_file_name' : (str, False, None,  None,

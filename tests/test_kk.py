@@ -82,6 +82,11 @@ def test_kk():
     print('max diff = ',max(abs(kk.xi - true_xi)))
     assert max(abs(kk.xi - true_xi)) < 5.e-7
 
+    # It should also work as a cross-correlation of this cat with itself
+    kk.process(cat,cat)
+    numpy.testing.assert_almost_equal(kk.meanlogr, numpy.log(kk.meanr), decimal=3)
+    assert max(abs(kk.xi - true_xi)) < 5.e-7
+
     # Check that we get the same result using the corr2 executable:
     if __name__ == '__main__':
         cat.write(os.path.join('data','kk.dat'))

@@ -83,6 +83,14 @@ def test_gg():
     print('xim_im = ',gg.xim_im)
     assert max(abs(gg.xim_im))/req_factor < 1.e-7
 
+    # Should also work as a cross-correlation with itself
+    gg.process(cat,cat)
+    numpy.testing.assert_almost_equal(gg.meanlogr, numpy.log(gg.meanr), decimal=3)
+    assert max(abs(gg.xip - true_xip))/req_factor < 3.e-7
+    assert max(abs(gg.xip_im))/req_factor < 2.e-7
+    assert max(abs(gg.xim - true_xim))/req_factor < 3.e-7
+    assert max(abs(gg.xim_im))/req_factor < 1.e-7
+
     # Check MapSq calculation:
     # cf. http://adsabs.harvard.edu/abs/2004MNRAS.352..338J
     # Use Crittenden formulation, since the analytic result is simpler:

@@ -224,8 +224,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         self._set_num_threads(num_threads)
 
-        f1 = cat1.getGField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
-        f2 = cat2.getGField(self.min_sep,self.max_sep,self.b,self.split_method,perp,self.max_top)
+        f1 = cat1.getGField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
+        f2 = cat2.getGField(self.min_sep,self.max_sep,self.b,self.split_method,metric,self.max_top)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         if f1.flat:

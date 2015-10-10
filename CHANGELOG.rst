@@ -1,3 +1,14 @@
+Changes from version 3.2.0 to 3.2.1
+===================================
+
+Bug fixes:
+----------
+
+- Fixed a bug for GG cross-correlation that somehow there wasn't a unit test
+  for (and now there is).
+
+
+
 Changes from version 3.1 to 3.2
 ===============================
 

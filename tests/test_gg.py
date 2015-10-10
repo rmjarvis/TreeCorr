@@ -526,8 +526,111 @@ def test_shuffle():
     print('max diff = ',max(abs(gg_u.xip - gg_s.xip)))
     assert max(abs(gg_u.xip - gg_s.xip)) < 1.e-14
 
+def test_haloellip():
+    nlens = 1000
+    nsource = 10000  # sources per lens
+    ntot = nsource * nlens
+    L = 100000.  # The side length in which the lenses are placed
+    R = 10.      # The (rms) radius of the associated sources from the lenses
+                 # In this case, we want L >> R so that most sources are only associated
+                 # with the one lens we used for assigning its shear value.
+
+    # Lenses are randomly located with random shapes.
+    numpy.random.seed(8675309)
+    lens_g1 = numpy.random.normal(0., 0.1, (nlens,))
+    lens_g2 = numpy.random.normal(0., 0.1, (nlens,))
+    lens_g = lens_g1 + 1j * lens_g2
+    lens_absg = numpy.abs(lens_g)
+    lens_x = (numpy.random.random_sample(nlens)-0.5) * L
+    lens_y = (numpy.random.random_sample(nlens)-0.5) * L
+    print('Made lenses')
+
+    e_a = 0.17  # The amplitude of the constant part of the signal
+    e_b = 0.23  # The amplitude of the quadrupole part of the signal
+    source_g1 = numpy.empty(ntot)
+    source_g2 = numpy.empty(ntot)
+    source_x = numpy.empty(ntot)
+    source_y = numpy.empty(ntot)
+    # For the sources, place 100 galaxies around each lens with the expected azimuthal pattern
+    # I just use a constant |g| for the amplitude, not a real radial pattern.
+    for i in range(nlens):
+        # First build the signal as it appears in the coordinate system where the halo
+        # is oriented along the x-axis
+        dx = numpy.random.normal(0., 10., (nsource,))
+        dy = numpy.random.normal(0., 10., (nsource,))
+        z = dx + 1j * dy
+        exp2iphi = z**2 / numpy.abs(z)**2
+        source_g = e_a + e_b * exp2iphi**2
+        # Now rotate the whole system by the phase of the lens ellipticity.
+        exp2ialpha = lens_g[i] / lens_absg[i]
+        expialpha = numpy.sqrt(exp2ialpha)
+        source_g *= exp2ialpha
+        z *= expialpha
+        # Also scale the signal by |lens_g|
+        source_g *= lens_absg[i]
+        # Place the source galaxies at this dx,dy with this shape
+        source_x[i*nsource: (i+1)*nsource] = lens_x[i] + z.real
+        source_y[i*nsource: (i+1)*nsource] = lens_y[i] + z.imag
+        source_g1[i*nsource: (i+1)*nsource] = source_g.real
+        source_g2[i*nsource: (i+1)*nsource] = source_g.imag
+    print('Made sources')
+
+    source_cat = treecorr.Catalog(x=source_x, y=source_y, g1=source_g1, g2=source_g2)
+    gg = treecorr.GGCorrelation(min_sep=1, max_sep=30, bin_size=0.1)
+    lens_mean_absg = numpy.mean(lens_absg)
+    print('mean_absg = ',lens_mean_absg)
+
+    # First the original version where we only use the phase of the lens ellipticities:
+    lens_absg = numpy.sqrt(lens_g1**2 + lens_g2**2)
+    lens_cat1 = treecorr.Catalog(x=lens_x, y=lens_y, g1=lens_g1/lens_absg, g2=lens_g2/lens_absg)
+    gg.process(lens_cat1, source_cat)
+    print('gg.xim = ',gg.xim)
+    # The net signal here is just <absg> * e_b
+    print('expected signal = ',e_b * lens_mean_absg)
+    # These tests don't quite work at the 1% level of accuracy, but 2% seems to work for most.
+    # This is effected by checking that 1/2 the value matches 0.5 to 2 decimal places.
+    numpy.testing.assert_almost_equal(gg.xim/(e_b * lens_mean_absg)/2., 0.5, decimal=2)
+    print('gg.xip = ',gg.xip)
+    print('expected signal = ',e_a * lens_mean_absg)
+    numpy.testing.assert_almost_equal(gg.xip/(e_a * lens_mean_absg)/2, 0.5, decimal=2)
+
+    # Next weight the lenses by their absg.
+    lens_cat2 = treecorr.Catalog(x=lens_x, y=lens_y, g1=lens_g1/lens_absg, g2=lens_g2/lens_absg,
+                                w=lens_absg)
+    gg.process(lens_cat2, source_cat)
+    print('gg.xim = ',gg.xim)
+    # Now the net signal is 
+    # sum(w * e_b*absg[i]) / sum(w) 
+    # = sum(absg[i]^2 * e_b) / sum(absg[i])
+    # = <absg^2> * e_b / <absg>
+    lens_mean_gsq = numpy.mean(lens_absg**2)
+    print('expected signal = ',e_b * lens_mean_gsq / lens_mean_absg)
+    numpy.testing.assert_almost_equal(gg.xim/(e_b * lens_mean_gsq / lens_mean_absg)/2., 0.5,
+                                      decimal=2)
+    print('gg.xip = ',gg.xip)
+    print('expected signal = ',e_a * lens_mean_gsq / lens_mean_absg)
+    numpy.testing.assert_almost_equal(gg.xip/(e_a * lens_mean_gsq / lens_mean_absg)/2., 0.5,
+                                      decimal=2)
+
+    # Finally, use the unnormalized lens_g for the lens ellipticities
+    lens_cat3 = treecorr.Catalog(x=lens_x, y=lens_y, g1=lens_g1, g2=lens_g2)
+    gg.process(lens_cat3, source_cat)
+    print('gg.xim = ',gg.xim)
+    # Now the net signal is 
+    # sum(absg[i] * e_b*absg[i]) / N
+    # = sum(absg[i]^2 * e_b) / N
+    # = <absg^2> * e_b
+    print('expected signal = ',e_b * lens_mean_gsq)
+    # This one is slightly less accurate.  But easily passes at 3% accuracy.
+    numpy.testing.assert_almost_equal(gg.xim/(e_b * lens_mean_gsq)/3., 0.333, decimal=2)
+    print('gg.xip = ',gg.xip)
+    print('expected signal = ',e_a * lens_mean_gsq)
+    numpy.testing.assert_almost_equal(gg.xip/(e_a * lens_mean_gsq)/2., 0.5, decimal=2)
+
+
 if __name__ == '__main__':
     test_gg()
     test_spherical()
     test_aardvark()
     test_shuffle()
+    test_haloellip()

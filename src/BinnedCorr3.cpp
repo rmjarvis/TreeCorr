@@ -15,7 +15,7 @@
 #include "dbg.h"
 #include "BinnedCorr3.h"
 #include "Split.h"
-#include "MetricHelper.h"
+#include "ProjectHelper.h"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -25,8 +25,8 @@
 //#define XAssert(x) Assert(x)
 #define XAssert(x)
 
-template <int DC1, int DC2, int DC3>
-BinnedCorr3<DC1,DC2,DC3>::BinnedCorr3(
+template <int D1, int D2, int D3>
+BinnedCorr3<D1,D2,D3>::BinnedCorr3(
     double minsep, double maxsep, int nbins, double binsize, double b,
     double minu, double maxu, int nubins, double ubinsize, double bu,
     double minv, double maxv, int nvbins, double vbinsize, double bv,
@@ -38,7 +38,7 @@ BinnedCorr3<DC1,DC2,DC3>::BinnedCorr3(
     _minsep(minsep), _maxsep(maxsep), _nbins(nbins), _binsize(binsize), _b(b),
     _minu(minu), _maxu(maxu), _nubins(nubins), _ubinsize(ubinsize), _bu(bu),
     _minv(minv), _maxv(maxv), _nvbins(nvbins), _vbinsize(vbinsize), _bv(bv),
-    _metric(-1), _owns_data(false),
+    _coords(-1), _owns_data(false),
     _zeta(zeta0,zeta1,zeta2,zeta3,zeta4,zeta5,zeta6,zeta7),
     _meand1(meand1), _meanlogd1(meanlogd1), _meand2(meand2), _meanlogd2(meanlogd2),
     _meand3(meand3), _meanlogd3(meanlogd3), _meanu(meanu), _meanv(meanv),
@@ -64,8 +64,8 @@ BinnedCorr3<DC1,DC2,DC3>::BinnedCorr3(
     _ntot = _nbins * _nuv;
 }
 
-template <int DC1, int DC2, int DC3>
-BinnedCorr3<DC1,DC2,DC3>::BinnedCorr3(const BinnedCorr3<DC1,DC2,DC3>& rhs, bool copy_data) :
+template <int D1, int D2, int D3>
+BinnedCorr3<D1,D2,D3>::BinnedCorr3(const BinnedCorr3<D1,D2,D3>& rhs, bool copy_data) :
     _minsep(rhs._minsep), _maxsep(rhs._maxsep), _nbins(rhs._nbins),
     _binsize(rhs._binsize), _b(rhs._b),
     _minu(rhs._minu), _maxu(rhs._maxu), _nubins(rhs._nubins),
@@ -78,7 +78,7 @@ BinnedCorr3<DC1,DC2,DC3>::BinnedCorr3(const BinnedCorr3<DC1,DC2,DC3>& rhs, bool 
     _minabsv(rhs._minabsv), _maxabsv(rhs._maxabsv),
     _minabsvsq(rhs._minabsvsq), _maxabsvsq(rhs._maxabsvsq),
     _bsq(rhs._bsq), _busq(rhs._busq), _bvsq(rhs._bvsq), _sqrttwobv(rhs._sqrttwobv),
-    _metric(rhs._metric), _nuv(rhs._nuv), _ntot(rhs._ntot),
+    _coords(rhs._coords), _nuv(rhs._nuv), _ntot(rhs._ntot),
     _owns_data(true), _zeta(0,0,0,0,0,0,0,0), _weight(0)
 {
     _zeta.new_data(_ntot);
@@ -97,8 +97,8 @@ BinnedCorr3<DC1,DC2,DC3>::BinnedCorr3(const BinnedCorr3<DC1,DC2,DC3>& rhs, bool 
     else clear();
 }
 
-template <int DC1, int DC2, int DC3>
-BinnedCorr3<DC1,DC2,DC3>::~BinnedCorr3()
+template <int D1, int D2, int D3>
+BinnedCorr3<D1,D2,D3>::~BinnedCorr3()
 {
     if (_owns_data) {
         _zeta.delete_data();
@@ -115,8 +115,8 @@ BinnedCorr3<DC1,DC2,DC3>::~BinnedCorr3()
     }
 }
 
-template <int DC1, int DC2, int DC3>
-void BinnedCorr3<DC1,DC2,DC3>::clear()
+template <int D1, int D2, int D3>
+void BinnedCorr3<D1,D2,D3>::clear()
 {
     _zeta.clear(_ntot);
     for (int i=0; i<_ntot; ++i) _meand1[i] = 0.;
@@ -129,46 +129,47 @@ void BinnedCorr3<DC1,DC2,DC3>::clear()
     for (int i=0; i<_ntot; ++i) _meanv[i] = 0.;
     for (int i=0; i<_ntot; ++i) _weight[i] = 0.;
     for (int i=0; i<_ntot; ++i) _ntri[i] = 0.;
-    _metric = -1;
+    _coords = -1;
 }
 
-// BinnedCorr3::process3 is invalid if DC1 != DC2 or DC3, so this helper struct lets us only call 
-// process3, process21 and process111 when DC1 == DC2 == DC3
-template <int DC1, int DC2, int DC3, int M>
+// BinnedCorr3::process3 is invalid if D1 != D2 or D3, so this helper struct lets us only call 
+// process3, process21 and process111 when D1 == D2 == D3
+template <int D1, int D2, int D3, int C, int M>
 struct ProcessHelper
 {
-    static void process3(BinnedCorr3<DC1,DC2,DC3>& , const Cell<DC1,M>* ) {}
-    static void process21(BinnedCorr3<DC1,DC2,DC3>& , const Cell<DC1,M>*, const Cell<DC3,M>* ) {}
-    static void process111(BinnedCorr3<DC1,DC2,DC3>& , const Cell<DC1,M>*, const Cell<DC2,M>*,
-                           const Cell<DC3,M>* ) {}
+    static void process3(BinnedCorr3<D1,D2,D3>& , const Cell<D1,C>* ) {}
+    static void process21(BinnedCorr3<D1,D2,D3>& , const Cell<D1,C>*, const Cell<D3,C>* ) {}
+    static void process111(BinnedCorr3<D1,D2,D3>& , const Cell<D1,C>*, const Cell<D2,C>*,
+                           const Cell<D3,C>* ) {}
 };
 
-template <int DC1, int DC3, int M>
-struct ProcessHelper<DC1,DC1,DC3,M>
+template <int D1, int D3, int C, int M>
+struct ProcessHelper<D1,D1,D3,C,M>
 {
-    static void process3(BinnedCorr3<DC1,DC1,DC3>& b, const Cell<DC1,M>* ) {}
-    static void process21(BinnedCorr3<DC1,DC1,DC3>& b, const Cell<DC1,M>* , const Cell<DC3,M>* ) {}
-    static void process111(BinnedCorr3<DC1,DC1,DC3>& b, const Cell<DC1,M>* , const Cell<DC1,M>*,
-                           const Cell<DC3,M>* ) {}
+    static void process3(BinnedCorr3<D1,D1,D3>& b, const Cell<D1,C>* ) {}
+    static void process21(BinnedCorr3<D1,D1,D3>& b, const Cell<D1,C>* , const Cell<D3,C>* ) {}
+    static void process111(BinnedCorr3<D1,D1,D3>& b, const Cell<D1,C>* , const Cell<D1,C>*,
+                           const Cell<D3,C>* ) {}
 };
 
-template <int DC, int M>
-struct ProcessHelper<DC,DC,DC,M>
+template <int D, int C, int M>
+struct ProcessHelper<D,D,D,C,M>
 {
-    static void process3(BinnedCorr3<DC,DC,DC>& b, const Cell<DC,M>* c123) { b.process3(c123); }
-    static void process21(BinnedCorr3<DC,DC,DC>& b, const Cell<DC,M>* c12, const Cell<DC,M>* c3) 
-    { b.template process21<true>(c12,c3); }
-    static void process111(BinnedCorr3<DC,DC,DC>& b, const Cell<DC,M>* c1, const Cell<DC,M>* c2,
-                            const Cell<DC,M>* c3) 
-    { b.template process111<true>(c1,c2,c3); }
+    static void process3(BinnedCorr3<D,D,D>& b, const Cell<D,C>* c123) 
+    { b.template process3<C,M>(c123); }
+    static void process21(BinnedCorr3<D,D,D>& b, const Cell<D,C>* c12, const Cell<D,C>* c3) 
+    { b.template process21<true,C,M>(c12,c3); }
+    static void process111(BinnedCorr3<D,D,D>& b, const Cell<D,C>* c1, const Cell<D,C>* c2,
+                           const Cell<D,C>* c3) 
+    { b.template process111<true,C,M>(c1,c2,c3); }
 };
 
-template <int DC1, int DC2, int DC3> template <int M>
-void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field, bool dots)
+template <int D1, int D2, int D3> template <int C, int M>
+void BinnedCorr3<D1,D2,D3>::process(const Field<D1,C>& field, bool dots)
 {
-    Assert(DC1 == DC2);
-    Assert(_metric == -1 || _metric == M);
-    _metric = M;
+    Assert(D1 == D2);
+    Assert(_coords == -1 || _coords == C);
+    _coords = C;
     const long n1 = field.getNTopLevel();
     xdbg<<"field has "<<n1<<" top level nodes\n";
     dbg<<"zeta[0] = "<<_zeta<<std::endl;
@@ -177,16 +178,16 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field, bool dots)
 #pragma omp parallel 
     {
         // Give each thread their own copy of the data vector to fill in.
-        BinnedCorr3<DC1,DC2,DC3> bc3(*this,false);
+        BinnedCorr3<D1,D2,D3> bc3(*this,false);
 #else
-        BinnedCorr3<DC1,DC2,DC3>& bc3 = *this;
+        BinnedCorr3<D1,D2,D3>& bc3 = *this;
 #endif
 
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
         for (int i=0;i<n1;++i) {
-            const Cell<DC1,M>* c1 = field.getCells()[i];
+            const Cell<D1,C>* c1 = field.getCells()[i];
 #ifdef _OPENMP
 #pragma omp critical
 #endif
@@ -200,14 +201,14 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field, bool dots)
                 if (dbgout && XDEBUG) c1->WriteTree(*dbgout);
 #endif
             }
-            ProcessHelper<DC1,DC2,DC3,M>::process3(bc3,c1);
+            ProcessHelper<D1,D2,D3,C,M>::process3(bc3,c1);
             for (int j=i+1;j<n1;++j) {
-                const Cell<DC1,M>* c2 = field.getCells()[j];
-                ProcessHelper<DC1,DC2,DC3,M>::process21(bc3,c1,c2);
-                ProcessHelper<DC1,DC2,DC3,M>::process21(bc3,c2,c1);
+                const Cell<D1,C>* c2 = field.getCells()[j];
+                ProcessHelper<D1,D2,D3,C,M>::process21(bc3,c1,c2);
+                ProcessHelper<D1,D2,D3,C,M>::process21(bc3,c2,c1);
                 for (int k=j+1;k<n1;++k) {
-                    const Cell<DC1,M>* c3 = field.getCells()[k];
-                    ProcessHelper<DC1,DC2,DC3,M>::process111(bc3,c1,c2,c3);
+                    const Cell<D1,C>* c3 = field.getCells()[k];
+                    ProcessHelper<D1,D2,D3,C,M>::process111(bc3,c1,c2,c3);
                 }
             }
         }
@@ -223,14 +224,14 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field, bool dots)
     dbg<<"zeta[0] -> "<<_zeta<<std::endl;
 }
 
-template <int DC1, int DC2, int DC3> template <int M>
-void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field1, const Field<DC2,M>& field2,
-                                       const Field<DC3,M>& field3, bool dots)
+template <int D1, int D2, int D3> template <int C, int M>
+void BinnedCorr3<D1,D2,D3>::process(const Field<D1,C>& field1, const Field<D2,C>& field2,
+                                    const Field<D3,C>& field3, bool dots)
 {
-    xdbg<<"_metric = "<<_metric<<std::endl;
-    xdbg<<"M = "<<M<<std::endl;
-    Assert(_metric == -1 || _metric == M);
-    _metric = M;
+    xdbg<<"_coords = "<<_coords<<std::endl;
+    xdbg<<"C = "<<C<<std::endl;
+    Assert(_coords == -1 || _coords == C);
+    _coords = C;
     const long n1 = field1.getNTopLevel();
     const long n2 = field2.getNTopLevel();
     const long n3 = field3.getNTopLevel();
@@ -245,19 +246,19 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field1, const Field<D
         xdbg<<"field1: \n";
         for (int i=0;i<n1;++i) {
             xdbg<<"node "<<i<<std::endl;
-            const Cell<DC1,M>* c1 = field1.getCells()[i];
+            const Cell<D1,C>* c1 = field1.getCells()[i];
             c1->WriteTree(*dbgout);
         }
         xdbg<<"field2: \n";
         for (int i=0;i<n2;++i) {
             xdbg<<"node "<<i<<std::endl;
-            const Cell<DC2,M>* c2 = field2.getCells()[i];
+            const Cell<D2,C>* c2 = field2.getCells()[i];
             c2->WriteTree(*dbgout);
         }
         xdbg<<"field3: \n";
         for (int i=0;i<n3;++i) {
             xdbg<<"node "<<i<<std::endl;
-            const Cell<DC3,M>* c3 = field3.getCells()[i];
+            const Cell<D3,C>* c3 = field3.getCells()[i];
             c3->WriteTree(*dbgout);
         }
     }
@@ -267,9 +268,9 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field1, const Field<D
 #pragma omp parallel 
     {
         // Give each thread their own copy of the data vector to fill in.
-        BinnedCorr3<DC1,DC2,DC3> bc3(*this,false);
+        BinnedCorr3<D1,D2,D3> bc3(*this,false);
 #else
-        BinnedCorr3<DC1,DC2,DC3>& bc3 = *this;
+        BinnedCorr3<D1,D2,D3>& bc3 = *this;
 #endif
 
 #ifdef _OPENMP
@@ -285,12 +286,12 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field1, const Field<D
                 dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
 #endif
             }
-            const Cell<DC1,M>* c1 = field1.getCells()[i];
+            const Cell<D1,C>* c1 = field1.getCells()[i];
             for (int j=0;j<n2;++j) {
-                const Cell<DC2,M>* c2 = field2.getCells()[j];
+                const Cell<D2,C>* c2 = field2.getCells()[j];
                 for (int k=0;k<n3;++k) {
-                    const Cell<DC3,M>* c3 = field3.getCells()[k];
-                    bc3.template process111<false>(c1,c2,c3);
+                    const Cell<D3,C>* c3 = field3.getCells()[k];
+                    bc3.template process111<false,C,M>(c1,c2,c3);
                 }
             }
         }
@@ -306,8 +307,8 @@ void BinnedCorr3<DC1,DC2,DC3>::process(const Field<DC1,M>& field1, const Field<D
 }
 
 // Does all triangles with 3 points in c123
-template <int DC1, int DC2, int DC3> template <int M>
-void BinnedCorr3<DC1,DC2,DC3>::process3(const Cell<DC1,M>* c123)
+    template <int D1, int D2, int D3> template <int C, int M>
+    void BinnedCorr3<D1,D2,D3>::process3(const Cell<D1,C>* c123)
 {
     xdbg<<"Process3: c123 = "<<c123->getData().getPos()<<"  "<<"  "<<c123->getSize()<<"  "<<c123->getData().getN()<<std::endl;
     if (c123->getW() == 0) {
@@ -321,16 +322,16 @@ void BinnedCorr3<DC1,DC2,DC3>::process3(const Cell<DC1,M>* c123)
 
     Assert(c123->getLeft());
     Assert(c123->getRight());
-    process3(c123->getLeft()); 
-    process3(c123->getRight()); 
-    process21<true>(c123->getLeft(),c123->getRight()); 
-    process21<true>(c123->getRight(),c123->getLeft()); 
+    process3<C,M>(c123->getLeft()); 
+    process3<C,M>(c123->getRight()); 
+    process21<true,C,M>(c123->getLeft(),c123->getRight()); 
+    process21<true,C,M>(c123->getRight(),c123->getLeft()); 
 }
 
 // Does all triangles with two points in c12 and 3rd point in c3
 // This version is allowed to swap the positions of points 1,2,3
-template <int DC1, int DC2, int DC3> template <bool sort, int M>
-void BinnedCorr3<DC1,DC2,DC3>::process21(const Cell<DC1,M>* c12, const Cell<DC3,M>* c3)
+    template <int D1, int D2, int D3> template <bool sort, int C, int M>
+    void BinnedCorr3<D1,D2,D3>::process21(const Cell<D1,C>* c12, const Cell<D3,C>* c3)
 {
     xdbg<<"Process21: c12 = "<<c12->getData().getPos()<<"  "<<"  "<<c12->getSize()<<"  "<<c12->getData().getN()<<std::endl;
     xdbg<<"           c3  = "<<c3->getData().getPos()<<"  "<<"  "<<c3->getSize()<<"  "<<c3->getData().getN()<<std::endl;
@@ -353,7 +354,7 @@ void BinnedCorr3<DC1,DC2,DC3>::process21(const Cell<DC1,M>* c12, const Cell<DC3,
         return;
     }
 
-    double d2sq = DistSq(c12->getData().getPos(), c3->getData().getPos());
+    double d2sq = MetricHelper<M>::DistSq(c12->getData().getPos(), c3->getData().getPos());
     double s12 = c12->getSize();
     double s3 = c3->getSize();
     double s12ps3 = s12 + s3;
@@ -385,23 +386,26 @@ void BinnedCorr3<DC1,DC2,DC3>::process21(const Cell<DC1,M>* c12, const Cell<DC3,
 
     Assert(c12->getLeft());
     Assert(c12->getRight());
-    process21<true>(c12->getLeft(),c3);
-    process21<true>(c12->getRight(),c3);
-    process111<true>(c12->getLeft(),c12->getRight(),c3);
+    process21<true,C,M>(c12->getLeft(),c3);
+    process21<true,C,M>(c12->getRight(),c3);
+    process111<true,C,M>(c12->getLeft(),c12->getRight(),c3);
 }
 
 // A helper to calculate the distances and possibly sort the points.
 // First the sort = false case.
-template <int DC1, int DC2, int DC3, bool sort, int M>
+template <int D1, int D2, int D3, bool sort, int C, int M>
 struct SortHelper
 {
     static void sort3(
-        const Cell<DC1,M>*& c1, const Cell<DC2,M>*& c2, const Cell<DC3,M>*& c3,
+        const Cell<D1,C>*& c1, const Cell<D2,C>*& c2, const Cell<D3,C>*& c3,
         double& d1sq, double& d2sq, double& d3sq)
     {
-        if (d1sq == 0.) d1sq = DistSq(c2->getData().getPos(), c3->getData().getPos());
-        if (d2sq == 0.) d2sq = DistSq(c1->getData().getPos(), c3->getData().getPos());
-        if (d3sq == 0.) d3sq = DistSq(c1->getData().getPos(), c2->getData().getPos());
+        if (d1sq == 0.) 
+            d1sq = MetricHelper<M>::DistSq(c2->getData().getPos(), c3->getData().getPos());
+        if (d2sq == 0.) 
+            d2sq = MetricHelper<M>::DistSq(c1->getData().getPos(), c3->getData().getPos());
+        if (d3sq == 0.) 
+            d3sq = MetricHelper<M>::DistSq(c1->getData().getPos(), c2->getData().getPos());
     }
     static bool stop111(
         double d1sq, double d2sq, double d3sq, double d2,
@@ -415,7 +419,7 @@ struct SortHelper
         // Since we aren't sorting here, we may not have d1 > d2 > d3.
         // We want to abort the recursion if there are no triangles in the given positions
         // where d1 will be the largest, d2 the middle, and d3 the smallest.
-        
+
         // First, if the smallest d3 is larger than either the largest d1 or the largest d2,
         // then it can't be the smallest side.
         // i.e. if d3 - s1-s2 > d1 + s2+s3
@@ -522,16 +526,19 @@ struct SortHelper
 };
 
 // This one has sort = true, so the points get sorted, and always returns true.
-template <int DC, int M>
-struct SortHelper<DC,DC,DC,true,M>
+template <int D, int C, int M>
+struct SortHelper<D,D,D,true,C,M>
 {
     static void sort3(
-        const Cell<DC,M>*& c1, const Cell<DC,M>*& c2, const Cell<DC,M>*& c3,
+        const Cell<D,C>*& c1, const Cell<D,C>*& c2, const Cell<D,C>*& c3,
         double& d1sq, double& d2sq, double& d3sq)
     {
-        if (d1sq == 0.) d1sq = DistSq(c2->getData().getPos(), c3->getData().getPos());
-        if (d2sq == 0.) d2sq = DistSq(c1->getData().getPos(), c3->getData().getPos());
-        if (d3sq == 0.) d3sq = DistSq(c1->getData().getPos(), c2->getData().getPos());
+        if (d1sq == 0.) 
+            d1sq = MetricHelper<M>::DistSq(c2->getData().getPos(), c3->getData().getPos());
+        if (d2sq == 0.) 
+            d2sq = MetricHelper<M>::DistSq(c1->getData().getPos(), c3->getData().getPos());
+        if (d3sq == 0.) 
+            d3sq = MetricHelper<M>::DistSq(c1->getData().getPos(), c2->getData().getPos());
 
         // Need to end up with d3 < d2 < d1
         if (d1sq < d2sq) {
@@ -668,9 +675,9 @@ struct SortHelper<DC,DC,DC,true,M>
 };
 
 // Does all triangles with 1 point each in c1, c2, c3
-template <int DC1, int DC2, int DC3> template <bool sort, int M>
-void BinnedCorr3<DC1,DC2,DC3>::process111(
-    const Cell<DC1,M>* c1, const Cell<DC2,M>* c2, const Cell<DC3,M>* c3,
+template <int D1, int D2, int D3> template <bool sort, int C, int M>
+void BinnedCorr3<D1,D2,D3>::process111(
+    const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D3,C>* c3,
     double d1sq, double d2sq, double d3sq)
 {
     if (c1->getW() == 0) {
@@ -687,7 +694,7 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
     }
 
     // Calculate the distances if they aren't known yet, and sort so that d3 < d2 < d1
-    SortHelper<DC1,DC2,DC3,sort,M>::sort3(c1,c2,c3,d1sq,d2sq,d3sq);
+    SortHelper<D1,D2,D3,sort,C,M>::sort3(c1,c2,c3,d1sq,d2sq,d3sq);
 
     xdbg<<"Process111: c1 = "<<c1->getData().getPos()<<"  "<<"  "<<c1->getSize()<<"  "<<c1->getData().getN()<<std::endl;
     xdbg<<"            c2 = "<<c2->getData().getPos()<<"  "<<"  "<<c2->getSize()<<"  "<<c2->getData().getN()<<std::endl;
@@ -701,10 +708,10 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
     const double s3 = c3->getAllSize();
     const double d2 = sqrt(d2sq);
 
-    if (SortHelper<DC1,DC2,DC3,sort,M>::stop111(d1sq,d2sq,d3sq,d2,s1,s2,s3,
-                                                _minsep,_minsepsq,_maxsep,_maxsepsq,
-                                                _minu,_minusq,_maxu,_maxusq,
-                                                _minabsv,_minabsvsq,_maxabsv,_maxabsvsq)) 
+    if (SortHelper<D1,D2,D3,sort,C,M>::stop111(d1sq,d2sq,d3sq,d2,s1,s2,s3,
+                                               _minsep,_minsepsq,_maxsep,_maxsepsq,
+                                               _minu,_minusq,_maxu,_maxusq,
+                                               _minabsv,_minabsvsq,_maxabsv,_maxabsvsq)) 
         return;
 
     // For 1,3 decide whether to split on the noraml criteria with s1+s3/d2 < b
@@ -745,7 +752,7 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
         // d1 + s3 < d2 - s3
         if (d1sq < d2sq && s3 > 0 && (d2 < 2.*s3 ||  d1sq < SQR(d2 - 2.*s3))) split3 = true;
     }
-        
+
     // We don't need to split c1,c3 for d2 but we might need to split c1,c2 for d3.
     // u = d3 / d2
     // du = d(d3) / d2 = (s1+s2)/d2
@@ -759,7 +766,7 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
     // I don't currently do any checks related to _minv, _maxv.
     // Not sure how important they are.
     // But there could be some gain to checking that here.
-    
+
     // v is a bit complicated.
     // Consider the angle bisector of d1,d2.  Call this line z.
     // Then let phi = the angle between d1 (or d2) and z
@@ -819,7 +826,7 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
     // Need to split if 2sin^2(dtheta) > b
     if (!split1) split1 = s1 > 0.5*_sqrttwobv * d3;
     if (!split2) split2 = s2 > 0.5*_sqrttwobv * d3;
-    
+
     if (!(split1 && split2) && onemvsq > 1.e-2) {
         CalcSplitSq(split1,split2,*c1,*c2,d3sq,s1+s2,_bvsq * 3./16. / onemvsq);
     }
@@ -836,24 +843,24 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
                 Assert(c2->getRight());
                 Assert(c3->getLeft());
                 Assert(c3->getRight());
-                process111<sort>(c1->getLeft(),c2->getLeft(),c3->getLeft());
-                process111<sort>(c1->getLeft(),c2->getLeft(),c3->getRight());
-                process111<sort>(c1->getLeft(),c2->getRight(),c3->getLeft());
-                process111<sort>(c1->getLeft(),c2->getRight(),c3->getRight());
-                process111<sort>(c1->getRight(),c2->getLeft(),c3->getLeft());
-                process111<sort>(c1->getRight(),c2->getLeft(),c3->getRight());
-                process111<sort>(c1->getRight(),c2->getRight(),c3->getLeft());
-                process111<sort>(c1->getRight(),c2->getRight(),c3->getRight());
-             } else {
+                process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3->getLeft());
+                process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3->getRight());
+                process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3->getLeft());
+                process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3->getRight());
+                process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3->getLeft());
+                process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3->getRight());
+                process111<sort,C,M>(c1->getRight(),c2->getRight(),c3->getLeft());
+                process111<sort,C,M>(c1->getRight(),c2->getRight(),c3->getRight());
+            } else {
                 // split 1,2
                 Assert(c1->getLeft());
                 Assert(c1->getRight());
                 Assert(c2->getLeft());
                 Assert(c2->getRight());
-                process111<sort>(c1->getLeft(),c2->getLeft(),c3);
-                process111<sort>(c1->getLeft(),c2->getRight(),c3);
-                process111<sort>(c1->getRight(),c2->getLeft(),c3);
-                process111<sort>(c1->getRight(),c2->getRight(),c3);
+                process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3);
+                process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3);
+                process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3);
+                process111<sort,C,M>(c1->getRight(),c2->getRight(),c3);
             }
         } else {
             if (split3) {
@@ -862,16 +869,16 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
                 Assert(c1->getRight());
                 Assert(c3->getLeft());
                 Assert(c3->getRight());
-                process111<sort>(c1->getLeft(),c2,c3->getLeft());
-                process111<sort>(c1->getLeft(),c2,c3->getRight());
-                process111<sort>(c1->getRight(),c2,c3->getLeft());
-                process111<sort>(c1->getRight(),c2,c3->getRight());
+                process111<sort,C,M>(c1->getLeft(),c2,c3->getLeft());
+                process111<sort,C,M>(c1->getLeft(),c2,c3->getRight());
+                process111<sort,C,M>(c1->getRight(),c2,c3->getLeft());
+                process111<sort,C,M>(c1->getRight(),c2,c3->getRight());
             } else {
                 // split 1 only
                 Assert(c1->getLeft());
                 Assert(c1->getRight());
-                process111<sort>(c1->getLeft(),c2,c3,d1sq);
-                process111<sort>(c1->getRight(),c2,c3,d1sq);
+                process111<sort,C,M>(c1->getLeft(),c2,c3,d1sq);
+                process111<sort,C,M>(c1->getRight(),c2,c3,d1sq);
             }
         }
     } else {
@@ -882,24 +889,24 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
                 Assert(c2->getRight());
                 Assert(c3->getLeft());
                 Assert(c3->getRight());
-                process111<sort>(c1,c2->getLeft(),c3->getLeft());
-                process111<sort>(c1,c2->getLeft(),c3->getRight());
-                process111<sort>(c1,c2->getRight(),c3->getLeft());
-                process111<sort>(c1,c2->getRight(),c3->getRight());
+                process111<sort,C,M>(c1,c2->getLeft(),c3->getLeft());
+                process111<sort,C,M>(c1,c2->getLeft(),c3->getRight());
+                process111<sort,C,M>(c1,c2->getRight(),c3->getLeft());
+                process111<sort,C,M>(c1,c2->getRight(),c3->getRight());
             } else {
                 // split 2 only
                 Assert(c2->getLeft());
                 Assert(c2->getRight());
-                process111<sort>(c1,c2->getLeft(),c3,0.,d2sq);
-                process111<sort>(c1,c2->getRight(),c3,0.,d2sq);
+                process111<sort,C,M>(c1,c2->getLeft(),c3,0.,d2sq);
+                process111<sort,C,M>(c1,c2->getRight(),c3,0.,d2sq);
             }
         } else {
             if (split3) {
                 // split 3 only
                 Assert(c3->getLeft());
                 Assert(c3->getRight());
-                process111<sort>(c1,c2,c3->getLeft(),0.,0.,d3sq);
-                process111<sort>(c1,c2,c3->getRight(),0.,0.,d3sq);
+                process111<sort,C,M>(c1,c2,c3->getLeft(),0.,0.,d3sq);
+                process111<sort,C,M>(c1,c2,c3->getRight(),0.,0.,d3sq);
             } else {
                 // No splits required.
                 // Now we can check to make sure the final d2, u, v are in the right ranges.
@@ -914,7 +921,8 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
                     return;
                 }
 
-                if (!CCW(c1->getData().getPos(), c2->getData().getPos(), c3->getData().getPos()))
+                if (!MetricHelper<M>::CCW(c1->getData().getPos(), c2->getData().getPos(),
+                                          c3->getData().getPos()))
                     v = -v;
                 if (v < _minv || v >= _maxv) {
                     xdbg<<"v not in minv .. maxv\n";
@@ -953,22 +961,22 @@ void BinnedCorr3<DC1,DC2,DC3>::process111(
                 int index = kr * _nuv + ku * _nvbins + kv;
                 Assert(index >= 0);
                 Assert(index < _ntot);
-                directProcess111(*c1,*c2,*c3,d1,d2,d3,logr,u,v,index);
+                directProcess111<C,M>(*c1,*c2,*c3,d1,d2,d3,logr,u,v,index);
             }
         }
     }
 }
 
 // We also set up a helper class for doing the direct processing
-template <int DC1, int DC2, int DC3>
+template <int D1, int D2, int D3>
 struct DirectHelper;
 
 template <>
 struct DirectHelper<NData,NData,NData>
 {
-    template <int M>
+    template <int C, int M>
     static void ProcessZeta(
-        const Cell<NData,M>& , const Cell<NData,M>& , const Cell<NData,M>&, 
+        const Cell<NData,C>& , const Cell<NData,C>& , const Cell<NData,C>&, 
         const double , const double , const double ,
         ZetaData<NData,NData,NData>& , int )
     {}
@@ -977,9 +985,9 @@ struct DirectHelper<NData,NData,NData>
 template <>
 struct DirectHelper<KData,KData,KData>
 {
-    template <int M>
+    template <int C, int M>
     static void ProcessZeta(
-        const Cell<KData,M>& c1, const Cell<KData,M>& c2, const Cell<KData,M>& c3,
+        const Cell<KData,C>& c1, const Cell<KData,C>& c2, const Cell<KData,C>& c3,
         const double , const double , const double ,
         ZetaData<KData,KData,KData>& zeta, int index)
     { 
@@ -987,18 +995,18 @@ struct DirectHelper<KData,KData,KData>
         xdbg<<"            zeta -> "<<zeta.zeta[index]<<std::endl;
     }
 };
- 
+
 template <>
 struct DirectHelper<GData,GData,GData>
 {
-    template <int M>
+    template <int C, int M>
     static void ProcessZeta(
-        const Cell<GData,M>& c1, const Cell<GData,M>& c2, const Cell<GData,M>& c3,
+        const Cell<GData,C>& c1, const Cell<GData,C>& c2, const Cell<GData,C>& c3,
         const double d1, const double d2, const double d3,
         ZetaData<GData,GData,GData>& zeta, int index)
     {
         std::complex<double> g1, g2, g3;
-        MetricHelper<M>::ProjectShears(c1,c2,c3,g1,g2,g3);
+        ProjectHelper<C>::ProjectShears(c1,c2,c3,g1,g2,g3);
 
         // The complex products g1 g2 and g1 g2* share most of the calculations,
         // so faster to do this manually.
@@ -1026,25 +1034,25 @@ struct DirectHelper<GData,GData,GData>
 template <>
 struct DirectHelper<NData,NData,KData>
 {
-    template <int M>
+    template <int C, int M>
     static void ProcessZeta(
-        const Cell<NData,M>& c1, const Cell<KData,M>& c2,
+        const Cell<NData,C>& c1, const Cell<KData,C>& c2,
         const double d1, const double d2, const double d3,
         ZetaData<NData,NData,KData>& zeta, int index)
     { zeta.zeta[index] += c1.getData().getW() * c2.getData().getWK(); }
 };
- 
+
 template <>
 struct DirectHelper<NData,NData,GData>
 {
-    template <int M>
+    template <int C, int M>
     static void ProcessZeta(
-        const Cell<NData,M>& c1, const Cell<GData,M>& c2,
+        const Cell<NData,C>& c1, const Cell<GData,C>& c2,
         const double d1, const double d2, const double d3,
         ZetaData<NData,NData,GData>& zeta, int index)
     {
         std::complex<double> g2;
-        MetricHelper<M>::ProjectShear(c1,c2,dsq,g2);
+        ProjectHelper<C>::ProjectShear(c1,c2,dsq,g2);
         // The minus sign here is to make it accumulate tangential shear, rather than radial.
         // g2 from the above ProjectShear is measured along the connecting line, not tangent.
         g2 *= -c1.getData().getW();
@@ -1058,14 +1066,14 @@ struct DirectHelper<NData,NData,GData>
 template <>
 struct DirectHelper<KData,KData,GData>
 {
-    template <int M>
+    template <int C, int M>
     static void ProcessZeta(
-        const Cell<KData,M>& c1, const Cell<GData,M>& c2,
+        const Cell<KData,C>& c1, const Cell<GData,C>& c2,
         const double d1, const double d2, const double d3,
         ZetaData<KData,KData,GData>& zeta, int index)
     {
         std::complex<double> g2;
-        MetricHelper<M>::ProjectShear(c1,c2,dsq,g2);
+        ProjectHelper<C>::ProjectShear(c1,c2,dsq,g2);
         // The minus sign here is to make it accumulate tangential shear, rather than radial.
         // g2 from the above ProjectShear is measured along the connecting line, not tangent.
         g2 *= -c1.getData().getWK();
@@ -1075,9 +1083,9 @@ struct DirectHelper<KData,KData,GData>
 };
 #endif
 
-template <int DC1, int DC2, int DC3> template <int M>
-void BinnedCorr3<DC1,DC2,DC3>::directProcess111(
-    const Cell<DC1,M>& c1, const Cell<DC2,M>& c2, const Cell<DC3,M>& c3,
+template <int D1, int D2, int D3> template <int C, int M>
+void BinnedCorr3<D1,D2,D3>::directProcess111(
+    const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
     const double d1, const double d2, const double d3,
     const double logr, const double u, const double v, const int index)
 {
@@ -1099,11 +1107,11 @@ void BinnedCorr3<DC1,DC2,DC3>::directProcess111(
     _meanv[index] += www * v;
     _weight[index] += www;
 
-    DirectHelper<DC1,DC2,DC3>::ProcessZeta(c1,c2,c3,d1,d2,d3,_zeta,index);
+    DirectHelper<D1,D2,D3>::template ProcessZeta<C,M>(c1,c2,c3,d1,d2,d3,_zeta,index);
 }
 
-template <int DC1, int DC2, int DC3>
-void BinnedCorr3<DC1,DC2,DC3>::operator=(const BinnedCorr3<DC1,DC2,DC3>& rhs)
+template <int D1, int D2, int D3>
+void BinnedCorr3<D1,D2,D3>::operator=(const BinnedCorr3<D1,D2,D3>& rhs)
 {
     Assert(rhs._ntot == _ntot);
     _zeta.copy(rhs._zeta,_ntot);
@@ -1119,8 +1127,8 @@ void BinnedCorr3<DC1,DC2,DC3>::operator=(const BinnedCorr3<DC1,DC2,DC3>& rhs)
     for (int i=0; i<_ntot; ++i) _ntri[i] = rhs._ntri[i];
 }
 
-template <int DC1, int DC2, int DC3>
-void BinnedCorr3<DC1,DC2,DC3>::operator+=(const BinnedCorr3<DC1,DC2,DC3>& rhs)
+template <int D1, int D2, int D3>
+void BinnedCorr3<D1,D2,D3>::operator+=(const BinnedCorr3<D1,D2,D3>& rhs)
 {
     Assert(rhs._ntot == _ntot);
     _zeta.add(rhs._zeta,_ntot);
@@ -1314,64 +1322,64 @@ void DestroyKKGCorr(void* corr)
 void ProcessAutoNNNFlat(void* corr, void* field, int dots)
 {
     dbg<<"Start ProcessAutoNNNFlat\n";
-    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process(
+    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<Flat,Euclidean>(
         *static_cast<Field<NData,Flat>*>(field),dots);
 }
 void ProcessAutoNNN3D(void* corr, void* field, int dots)
 {
     dbg<<"Start ProcessAutoNNN3D\n";
-    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process(
-        *static_cast<Field<NData,Sphere>*>(field),dots);
+    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Euclidean>(
+        *static_cast<Field<NData,ThreeD>*>(field),dots);
 }
 void ProcessAutoNNNPerp(void* corr, void* field, int dots)
 {
     dbg<<"Start ProcessAutoNNNPerp\n";
-    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process(
-        *static_cast<Field<NData,Perp>*>(field),dots);
+    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Perp>(
+        *static_cast<Field<NData,ThreeD>*>(field),dots);
 }
 
 void ProcessAutoKKKFlat(void* corr, void* field, int dots)
 {
     dbg<<"Start ProcessAutoKKKFlat\n";
-    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process(
+    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<Flat,Euclidean>(
         *static_cast<Field<KData,Flat>*>(field),dots);
 }
 void ProcessAutoKKK3D(void* corr, void* field, int dots)
 {
     dbg<<"Start ProcessAutoKKK3D\n";
-    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process(
-        *static_cast<Field<KData,Sphere>*>(field),dots);
+    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Euclidean>(
+        *static_cast<Field<KData,ThreeD>*>(field),dots);
 }
 void ProcessAutoKKKPerp(void* corr, void* field, int dots)
 {
     dbg<<"Start ProcessAutoKKKPerp\n";
-    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process(
-        *static_cast<Field<KData,Perp>*>(field),dots);
+    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Perp>(
+        *static_cast<Field<KData,ThreeD>*>(field),dots);
 }
 
 void ProcessAutoGGGFlat(void* corr, void* field, int dots)
 {
     dbg<<"Start ProcessAutoGGGFlat\n";
-    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process(
+    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<Flat,Euclidean>(
         *static_cast<Field<GData,Flat>*>(field),dots);
 }
 void ProcessAutoGGG3D(void* corr, void* field, int dots)
 {
     dbg<<"Start ProcessAutoGGG3D\n";
-    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process(
-        *static_cast<Field<GData,Sphere>*>(field),dots);
+    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Euclidean>(
+        *static_cast<Field<GData,ThreeD>*>(field),dots);
 }
 void ProcessAutoGGGPerp(void* corr, void* field, int dots)
 {
     dbg<<"Start ProcessAutoGGGPerp\n";
-    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process(
-        *static_cast<Field<GData,Perp>*>(field),dots);
+    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Perp>(
+        *static_cast<Field<GData,ThreeD>*>(field),dots);
 }
 
 void ProcessCrossNNNFlat(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossNNNFlat\n";
-    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process(
+    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<Flat,Euclidean>(
         *static_cast<Field<NData,Flat>*>(field1),
         *static_cast<Field<NData,Flat>*>(field2),
         *static_cast<Field<NData,Flat>*>(field3),dots);
@@ -1379,24 +1387,24 @@ void ProcessCrossNNNFlat(void* corr, void* field1, void* field2, void* field3, i
 void ProcessCrossNNN3D(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossNNN3D\n";
-    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process(
-        *static_cast<Field<NData,Sphere>*>(field1),
-        *static_cast<Field<NData,Sphere>*>(field2),
-        *static_cast<Field<NData,Sphere>*>(field3),dots);
+    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Euclidean>(
+        *static_cast<Field<NData,ThreeD>*>(field1),
+        *static_cast<Field<NData,ThreeD>*>(field2),
+        *static_cast<Field<NData,ThreeD>*>(field3),dots);
 }
 void ProcessCrossNNNPerp(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossNNNPerp\n";
-    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process(
-        *static_cast<Field<NData,Perp>*>(field1),
-        *static_cast<Field<NData,Perp>*>(field2),
-        *static_cast<Field<NData,Perp>*>(field3),dots);
+    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Perp>(
+        *static_cast<Field<NData,ThreeD>*>(field1),
+        *static_cast<Field<NData,ThreeD>*>(field2),
+        *static_cast<Field<NData,ThreeD>*>(field3),dots);
 }
 
 void ProcessCrossKKKFlat(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossKKKFlat\n";
-    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process(
+    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<Flat,Euclidean>(
         *static_cast<Field<KData,Flat>*>(field1),
         *static_cast<Field<KData,Flat>*>(field2),
         *static_cast<Field<KData,Flat>*>(field3),dots);
@@ -1404,24 +1412,24 @@ void ProcessCrossKKKFlat(void* corr, void* field1, void* field2, void* field3, i
 void ProcessCrossKKK3D(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossKKK3D\n";
-    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process(
-        *static_cast<Field<KData,Sphere>*>(field1),
-        *static_cast<Field<KData,Sphere>*>(field2),
-        *static_cast<Field<KData,Sphere>*>(field3),dots);
+    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Euclidean>(
+        *static_cast<Field<KData,ThreeD>*>(field1),
+        *static_cast<Field<KData,ThreeD>*>(field2),
+        *static_cast<Field<KData,ThreeD>*>(field3),dots);
 }
 void ProcessCrossKKKPerp(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossKKKPerp\n";
-    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process(
-        *static_cast<Field<KData,Perp>*>(field1),
-        *static_cast<Field<KData,Perp>*>(field2),
-        *static_cast<Field<KData,Perp>*>(field3),dots);
+    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Perp>(
+        *static_cast<Field<KData,ThreeD>*>(field1),
+        *static_cast<Field<KData,ThreeD>*>(field2),
+        *static_cast<Field<KData,ThreeD>*>(field3),dots);
 }
 
 void ProcessCrossGGGFlat(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossGGGFlat\n";
-    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process(
+    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<Flat,Euclidean>(
         *static_cast<Field<GData,Flat>*>(field1),
         *static_cast<Field<GData,Flat>*>(field2),
         *static_cast<Field<GData,Flat>*>(field3),dots);
@@ -1429,25 +1437,25 @@ void ProcessCrossGGGFlat(void* corr, void* field1, void* field2, void* field3, i
 void ProcessCrossGGG3D(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossGGG3D\n";
-    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process(
-        *static_cast<Field<GData,Sphere>*>(field1),
-        *static_cast<Field<GData,Sphere>*>(field2),
-        *static_cast<Field<GData,Sphere>*>(field3),dots);
+    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Euclidean>(
+        *static_cast<Field<GData,ThreeD>*>(field1),
+        *static_cast<Field<GData,ThreeD>*>(field2),
+        *static_cast<Field<GData,ThreeD>*>(field3),dots);
 }
 void ProcessCrossGGGPerp(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossGGGPerp\n";
-    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process(
-        *static_cast<Field<GData,Perp>*>(field1),
-        *static_cast<Field<GData,Perp>*>(field2),
-        *static_cast<Field<GData,Perp>*>(field3),dots);
+    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Perp>(
+        *static_cast<Field<GData,ThreeD>*>(field1),
+        *static_cast<Field<GData,ThreeD>*>(field2),
+        *static_cast<Field<GData,ThreeD>*>(field3),dots);
 }
 
 #if 0
 void ProcessCrossNNKFlat(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossNNKFlat\n";
-    static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process(
+    static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process<Flat,Euclidean>(
         *static_cast<Field<NData,Flat>*>(field1),
         *static_cast<Field<NData,Flat>*>(field2),
         *static_cast<Field<KData,Flat>*>(field3),dots);
@@ -1455,24 +1463,24 @@ void ProcessCrossNNKFlat(void* corr, void* field1, void* field2, void* field3, i
 void ProcessCrossNNK3D(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossNNK3D\n";
-    static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process(
-        *static_cast<Field<NData,Sphere>*>(field1),
-        *static_cast<Field<NData,Sphere>*>(field2),
-        *static_cast<Field<KData,Sphere>*>(field3),dots);
+    static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process<ThreeD,Euclidean>(
+        *static_cast<Field<NData,ThreeD>*>(field1),
+        *static_cast<Field<NData,ThreeD>*>(field2),
+        *static_cast<Field<KData,ThreeD>*>(field3),dots);
 }
 void ProcessCrossNNKPerp(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossNNKPerp\n";
-    static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process(
-        *static_cast<Field<NData,Perp>*>(field1),
-        *static_cast<Field<NData,Perp>*>(field2),
-        *static_cast<Field<KData,Perp>*>(field3),dots);
+    static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process<ThreeD,Perp>(
+        *static_cast<Field<NData,ThreeD>*>(field1),
+        *static_cast<Field<NData,ThreeD>*>(field2),
+        *static_cast<Field<KData,ThreeD>*>(field3),dots);
 }
 
 void ProcessCrossNNGFlat(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossNNGFlat\n";
-    static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process(
+    static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process<Flat,Euclidean>(
         *static_cast<Field<NData,Flat>*>(field1),
         *static_cast<Field<NData,Flat>*>(field2),
         *static_cast<Field<GData,Flat>*>(field3),dots);
@@ -1480,24 +1488,24 @@ void ProcessCrossNNGFlat(void* corr, void* field1, void* field2, void* field3, i
 void ProcessCrossNNG3D(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossNNG3D\n";
-    static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process(
-        *static_cast<Field<NData,Sphere>*>(field1),
-        *static_cast<Field<NData,Sphere>*>(field2),
-        *static_cast<Field<GData,Sphere>*>(field3),dots);
+    static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process<ThreeD,Euclidean>(
+        *static_cast<Field<NData,ThreeD>*>(field1),
+        *static_cast<Field<NData,ThreeD>*>(field2),
+        *static_cast<Field<GData,ThreeD>*>(field3),dots);
 }
 void ProcessCrossNNGPerp(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossNNGPerp\n";
-    static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process(
-        *static_cast<Field<NData,Perp>*>(field1),
-        *static_cast<Field<NData,Perp>*>(field2),
-        *static_cast<Field<GData,Perp>*>(field3),dots);
+    static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process<ThreeD,Perp>(
+        *static_cast<Field<NData,ThreeD>*>(field1),
+        *static_cast<Field<NData,ThreeD>*>(field2),
+        *static_cast<Field<GData,ThreeD>*>(field3),dots);
 }
 
 void ProcessCrossKKGFlat(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossKKGFlat\n";
-    static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process(
+    static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process<Flat,Euclidean>(
         *static_cast<Field<KData,Flat>*>(field1),
         *static_cast<Field<KData,Flat>*>(field2),
         *static_cast<Field<GData,Flat>*>(field3),dots);
@@ -1505,18 +1513,18 @@ void ProcessCrossKKGFlat(void* corr, void* field1, void* field2, void* field3, i
 void ProcessCrossKKG3D(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossKKG3D\n";
-    static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process(
-        *static_cast<Field<KData,Sphere>*>(field1),
-        *static_cast<Field<KData,Sphere>*>(field2),
-        *static_cast<Field<GData,Sphere>*>(field3),dots);
+    static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process<ThreeD,Euclidean>(
+        *static_cast<Field<KData,ThreeD>*>(field1),
+        *static_cast<Field<KData,ThreeD>*>(field2),
+        *static_cast<Field<GData,ThreeD>*>(field3),dots);
 }
 void ProcessCrossKKGPerp(void* corr, void* field1, void* field2, void* field3, int dots)
 {
     dbg<<"Start ProcessCrossKKGPerp\n";
-    static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process(
-        *static_cast<Field<KData,Perp>*>(field1),
-        *static_cast<Field<KData,Perp>*>(field2),
-        *static_cast<Field<GData,Perp>*>(field3),dots);
+    static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process<ThreeD,Perp>(
+        *static_cast<Field<KData,ThreeD>*>(field1),
+        *static_cast<Field<KData,ThreeD>*>(field2),
+        *static_cast<Field<GData,ThreeD>*>(field3),dots);
 }
 #endif
 

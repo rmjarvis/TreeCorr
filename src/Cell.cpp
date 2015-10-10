@@ -15,39 +15,38 @@
 #include "dbg.h"
 #include "Cell.h"
 #include "Bounds.h"
+#include "Metric.h"
 
 //
 // CellData
 //
 
-template <int DC, int M>
+template <int D, int C>
 double CalculateSizeSq(
-    const Position<M>& cen, const std::vector<CellData<DC,M>*>& vdata,
+    const Position<C>& cen, const std::vector<CellData<D,C>*>& vdata,
     size_t start, size_t end)
 {
     double sizesq = 0.;
     for(size_t i=start;i<end;++i) {
-        double devsq = DistSq(cen,vdata[i]->getPos());
+        double devsq = MetricHelper<Euclidean>::DistSq(cen,vdata[i]->getPos());
         if (devsq > sizesq) sizesq = devsq;
     }
     return sizesq;
 }
 
-template <int DC, int M>
+template <int D, int C>
 void BuildCellData(
-    const std::vector<CellData<DC,M>*>& vdata, size_t start, size_t end,
-    Position<M>& pos, float& w, long& n)
+    const std::vector<CellData<D,C>*>& vdata, size_t start, size_t end,
+    Position<C>& pos, float& w, long& n)
 {
     Assert(start < end);
-    // Note: starting with the first element makes sure that for M=Sphere, the 
-    // final pos will have the right value if _is3d.
     double wp = vdata[start]->getWPos();
     pos = vdata[start]->getPos() * wp;
     w = vdata[start]->getW();
     n = (w != 0);
     double sumwp = wp;
     for(size_t i=start+1; i!=end; ++i) {
-        const CellData<DC,M>& data = *vdata[i];
+        const CellData<D,C>& data = *vdata[i];
         pos += data.getPos() * wp;
         sumwp += wp;
         w += data.getW();
@@ -55,8 +54,8 @@ void BuildCellData(
     }
     if (sumwp > 0.) {
         pos /= sumwp;
-        // If M == Sphere, the average position is no longer on the surface of the unit sphere.
-        // Divide by the new r.  (This is a null op if M == Flat or _pos is a 3D position.)
+        // If C == Sphere, the average position is no longer on the surface of the unit sphere.
+        // Divide by the new r.  (This is a noop if C == Flat or ThreeD.)
         pos.normalize();
     } else {
         // Make sure we don't have an invalid position, even if all wpos == 0.
@@ -66,27 +65,27 @@ void BuildCellData(
     }
 }
 
-template <int M>
-CellData<NData,M>::CellData(
-    const std::vector<CellData<NData,M>*>& vdata, size_t start, size_t end) :
+template <int C>
+CellData<NData,C>::CellData(
+    const std::vector<CellData<NData,C>*>& vdata, size_t start, size_t end) :
     _w(0.), _n(0)
 { BuildCellData(vdata,start,end,_pos,_w,_n); }
 
-template <int M>
-CellData<KData,M>::CellData(
-    const std::vector<CellData<KData,M>*>& vdata, size_t start, size_t end) :
+template <int C>
+CellData<KData,C>::CellData(
+    const std::vector<CellData<KData,C>*>& vdata, size_t start, size_t end) :
     _wk(0.), _w(0.), _n(0)
 { BuildCellData(vdata,start,end,_pos,_w,_n); }
 
-template <int M>
-CellData<GData,M>::CellData(
-    const std::vector<CellData<GData,M>*>& vdata, size_t start, size_t end) :
+template <int C>
+CellData<GData,C>::CellData(
+    const std::vector<CellData<GData,C>*>& vdata, size_t start, size_t end) :
     _wg(0.), _w(0.), _n(0)
 { BuildCellData(vdata,start,end,_pos,_w,_n); }
 
-template <int M>
-void CellData<KData,M>::finishAverages(
-    const std::vector<CellData<KData,M>*>& vdata, size_t start, size_t end) 
+template <int C>
+void CellData<KData,C>::finishAverages(
+    const std::vector<CellData<KData,C>*>& vdata, size_t start, size_t end) 
 {
     // Accumulate in double precision for better accuracy.
     double dwk = 0.;
@@ -104,9 +103,9 @@ void CellData<GData,Flat>::finishAverages(
     _wg = dwg;
 }
 
-template <int M>
-std::complex<double> ParallelTransportShift(const std::vector<CellData<GData,M>*>& vdata,
-                                            const Position<M>& center, size_t start, size_t end) 
+template <int C>
+std::complex<double> ParallelTransportShift(const std::vector<CellData<GData,C>*>& vdata,
+                                            const Position<C>& center, size_t start, size_t end) 
 {
     // For the average shear, we need to parallel transport each one to the center
     // to account for the different coordinate systems for each measurement.
@@ -155,15 +154,15 @@ std::complex<double> ParallelTransportShift(const std::vector<CellData<GData,M>*
 
 // These two need to do the same thing, so pull it out into the above function.
 template <>
-void CellData<GData,Sphere>::finishAverages(
-    const std::vector<CellData<GData,Sphere>*>& vdata, size_t start, size_t end) 
+void CellData<GData,ThreeD>::finishAverages(
+    const std::vector<CellData<GData,ThreeD>*>& vdata, size_t start, size_t end) 
 {
     _wg = ParallelTransportShift(vdata,_pos,start,end);
 }
 
 template <>
-void CellData<GData,Perp>::finishAverages(
-    const std::vector<CellData<GData,Perp>*>& vdata, size_t start, size_t end) 
+void CellData<GData,Sphere>::finishAverages(
+    const std::vector<CellData<GData,Sphere>*>& vdata, size_t start, size_t end) 
 {
     _wg = ParallelTransportShift(vdata,_pos,start,end);
 }
@@ -173,35 +172,35 @@ void CellData<GData,Perp>::finishAverages(
 // Cell
 //
 
-template <int DC, int M>
+template <int D, int C>
 struct DataCompare 
 {
     int split;
     DataCompare(int s) : split(s) {}
-    bool operator()(const CellData<DC,M>* cd1, const CellData<DC,M>* cd2) const 
+    bool operator()(const CellData<D,C>* cd1, const CellData<D,C>* cd2) const 
     { return cd1->getPos().get(split) < cd2->getPos().get(split); }
 };
 
-template <int DC, int M>
+template <int D, int C>
 struct DataCompareToValue 
 {
     int split;
     double splitvalue;
 
     DataCompareToValue(int s, double v) : split(s), splitvalue(v) {}
-    bool operator()(const CellData<DC,M>* cd) const 
+    bool operator()(const CellData<D,C>* cd) const 
     { return cd->getPos().get(split) < splitvalue; }
 };
 
-template <int DC, int M>
+template <int D, int C>
 size_t SplitData(
-    std::vector<CellData<DC,M>*>& vdata, SplitMethod sm, 
-    size_t start, size_t end, const Position<M>& meanpos)
+    std::vector<CellData<D,C>*>& vdata, SplitMethod sm, 
+    size_t start, size_t end, const Position<C>& meanpos)
 {
     Assert(end-start > 1);
     size_t mid=0;
 
-    Bounds<M> b;
+    Bounds<C> b;
     for(size_t i=start;i<end;++i) b += vdata[i]->getPos();
 
     int split = b.getSplit();
@@ -210,16 +209,16 @@ size_t SplitData(
       case MIDDLE :
            { // Middle is the average of the min and max value of x or y
                double splitvalue = b.getMiddle(split);
-               DataCompareToValue<DC,M> comp(split,splitvalue);
-               typename std::vector<CellData<DC,M>*>::iterator middle =
+               DataCompareToValue<D,C> comp(split,splitvalue);
+               typename std::vector<CellData<D,C>*>::iterator middle =
                    std::partition(vdata.begin()+start,vdata.begin()+end,comp);
                mid = middle - vdata.begin();
            } break;
       case MEDIAN :
            { // Median is the point which divides the group into equal numbers
-               DataCompare<DC,M> comp(split);
+               DataCompare<D,C> comp(split);
                mid = (start+end)/2;
-               typename std::vector<CellData<DC,M>*>::iterator middle =
+               typename std::vector<CellData<D,C>*>::iterator middle =
                    vdata.begin()+mid;
                std::nth_element(
                    vdata.begin()+start,middle,vdata.begin()+end,comp);
@@ -227,8 +226,8 @@ size_t SplitData(
       case MEAN :
            { // Mean is the weighted average value of x or y
                double splitvalue = meanpos.get(split);
-               DataCompareToValue<DC,M> comp(split,splitvalue);
-               typename std::vector<CellData<DC,M>*>::iterator middle =
+               DataCompareToValue<D,C> comp(split,splitvalue);
+               typename std::vector<CellData<D,C>*>::iterator middle =
                    std::partition(vdata.begin()+start,vdata.begin()+end,comp);
                mid = middle - vdata.begin();
            } break;
@@ -260,8 +259,8 @@ size_t SplitData(
     return mid;
 }
 
-template <int DC, int M>
-Cell<DC,M>::Cell(std::vector<CellData<DC,M>*>& vdata, 
+template <int D, int C>
+Cell<D,C>::Cell(std::vector<CellData<D,C>*>& vdata, 
                  double minsizesq, SplitMethod sm, size_t start, size_t end) :
     _size(0.), _sizesq(0.), _left(0), _right(0)
 {
@@ -275,7 +274,7 @@ Cell<DC,M>::Cell(std::vector<CellData<DC,M>*>& vdata,
         _data = vdata[start];
         vdata[start] = 0; // Make sure calling routine doesn't delete this one!
     } else {
-        _data = new CellData<DC,M>(vdata,start,end);
+        _data = new CellData<D,C>(vdata,start,end);
         _data->finishAverages(vdata,start,end);
         //xdbg<<"Make cell from "<<start<<".."<<end<<" = "<<*_data<<std::endl;
 
@@ -287,8 +286,8 @@ Cell<DC,M>::Cell(std::vector<CellData<DC,M>*>& vdata,
             //xdbg<<"size = "<<_size<<std::endl;
             size_t mid = SplitData(vdata,sm,start,end,_data->getPos());
             try {
-                _left = new Cell<DC,M>(vdata,minsizesq,sm,start,mid);
-                _right = new Cell<DC,M>(vdata,minsizesq,sm,mid,end);
+                _left = new Cell<D,C>(vdata,minsizesq,sm,start,mid);
+                _right = new Cell<D,C>(vdata,minsizesq,sm,mid,end);
             } catch (std::bad_alloc) {
                 myerror("out of memory - cannot create new Cell");
             }
@@ -303,9 +302,9 @@ Cell<DC,M>::Cell(std::vector<CellData<DC,M>*>& vdata,
     }
 }
 
-template <int DC, int M>
-Cell<DC,M>::Cell(CellData<DC,M>* ave, double sizesq,
-                 std::vector<CellData<DC,M>*>& vdata, 
+template <int D, int C>
+Cell<D,C>::Cell(CellData<D,C>* ave, double sizesq,
+                 std::vector<CellData<D,C>*>& vdata, 
                  double minsizesq, SplitMethod sm, size_t start, size_t end) :
     _sizesq(sizesq), _data(ave), _left(0), _right(0)
 {
@@ -320,8 +319,8 @@ Cell<DC,M>::Cell(CellData<DC,M>* ave, double sizesq,
         _size = sqrt(_sizesq);
         size_t mid = SplitData(vdata,sm,start,end,_data->getPos());
         try {
-            _left = new Cell<DC,M>(vdata,minsizesq,sm,start,mid);
-            _right = new Cell<DC,M>(vdata,minsizesq,sm,mid,end);
+            _left = new Cell<D,C>(vdata,minsizesq,sm,start,mid);
+            _right = new Cell<D,C>(vdata,minsizesq,sm,mid,end);
         } catch (std::bad_alloc) {
             myerror("out of memory - cannot create new Cell");
         }
@@ -330,8 +329,8 @@ Cell<DC,M>::Cell(CellData<DC,M>* ave, double sizesq,
     }
 }
 
-template <int DC, int M>
-long Cell<DC,M>::countLeaves() const 
+template <int D, int C>
+long Cell<D,C>::countLeaves() const 
 {
     if (_left) {
         Assert(_right);
@@ -340,12 +339,12 @@ long Cell<DC,M>::countLeaves() const
 }
 
 
-template <int DC, int M>
-std::vector<const Cell<DC,M>*> Cell<DC,M>::getAllLeaves() const 
+template <int D, int C>
+std::vector<const Cell<D,C>*> Cell<D,C>::getAllLeaves() const 
 {
-    std::vector<const Cell<DC,M>*> ret;
+    std::vector<const Cell<D,C>*> ret;
     if (_left) {
-        std::vector<const Cell<DC,M>*> temp = _left->getAllLeaves();
+        std::vector<const Cell<D,C>*> temp = _left->getAllLeaves();
         ret.insert(ret.end(),temp.begin(),temp.end());
         Assert(_right);
         temp = _right->getAllLeaves();
@@ -357,14 +356,14 @@ std::vector<const Cell<DC,M>*> Cell<DC,M>::getAllLeaves() const
     return ret;
 }
 
-template <int DC, int M>
-void Cell<DC,M>::Write(std::ostream& os) const
+template <int D, int C>
+void Cell<D,C>::Write(std::ostream& os) const
 {
     os<<getData().getPos()<<"  "<<getSize()<<"  "<<getData().getN();
 }
 
-template <int DC, int M>
-void Cell<DC,M>::WriteTree(std::ostream& os, int indent) const
+template <int D, int C>
+void Cell<D,C>::WriteTree(std::ostream& os, int indent) const
 {
     os<<std::string(indent*2,'.')<<*this<<std::endl;
     if (getLeft()) {
@@ -374,49 +373,49 @@ void Cell<DC,M>::WriteTree(std::ostream& os, int indent) const
 }
 
 template class CellData<NData,Flat>;
+template class CellData<NData,ThreeD>;
 template class CellData<NData,Sphere>;
-template class CellData<NData,Perp>;
 template class CellData<KData,Flat>;
+template class CellData<KData,ThreeD>;
 template class CellData<KData,Sphere>;
-template class CellData<KData,Perp>;
 template class CellData<GData,Flat>;
+template class CellData<GData,ThreeD>;
 template class CellData<GData,Sphere>;
-template class CellData<GData,Perp>;
 
 template class Cell<NData,Flat>;
+template class Cell<NData,ThreeD>;
 template class Cell<NData,Sphere>;
-template class Cell<NData,Perp>;
 template class Cell<KData,Flat>;
+template class Cell<KData,ThreeD>;
 template class Cell<KData,Sphere>;
-template class Cell<KData,Perp>;
 template class Cell<GData,Flat>;
+template class Cell<GData,ThreeD>;
 template class Cell<GData,Sphere>;
-template class Cell<GData,Perp>;
 
 template double CalculateSizeSq(
     const Position<Flat>& cen, const std::vector<CellData<NData,Flat>*>& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
-    const Position<Sphere>& cen, const std::vector<CellData<NData,Sphere>*>& vdata,
+    const Position<ThreeD>& cen, const std::vector<CellData<NData,ThreeD>*>& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
-    const Position<Perp>& cen, const std::vector<CellData<NData,Perp>*>& vdata,
+    const Position<Sphere>& cen, const std::vector<CellData<NData,Sphere>*>& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
     const Position<Flat>& cen, const std::vector<CellData<KData,Flat>*>& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
-    const Position<Sphere>& cen, const std::vector<CellData<KData,Sphere>*>& vdata,
+    const Position<ThreeD>& cen, const std::vector<CellData<KData,ThreeD>*>& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
-    const Position<Perp>& cen, const std::vector<CellData<KData,Perp>*>& vdata,
+    const Position<Sphere>& cen, const std::vector<CellData<KData,Sphere>*>& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
     const Position<Flat>& cen, const std::vector<CellData<GData,Flat>*>& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
-    const Position<Sphere>& cen, const std::vector<CellData<GData,Sphere>*>& vdata,
+    const Position<ThreeD>& cen, const std::vector<CellData<GData,ThreeD>*>& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
-    const Position<Perp>& cen, const std::vector<CellData<GData,Perp>*>& vdata,
+    const Position<Sphere>& cen, const std::vector<CellData<GData,Sphere>*>& vdata,
     size_t start, size_t end);

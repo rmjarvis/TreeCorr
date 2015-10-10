@@ -83,13 +83,13 @@ inline std::istream& operator>>(std::istream& fin, Bounds<M>& b)
 
 
 template <>
-class Bounds<Sphere>
+class Bounds<ThreeD>
 {
 
 public:
     Bounds(double x1, double x2, double y1, double y2, double z1, double z2) :
         _defined(1), _xmin(x1), _xmax(x2), _ymin(y1), _ymax(y2), _zmin(z1), _zmax(z2) {}
-    Bounds(const Position<Sphere>& pos) :
+    Bounds(const Position<ThreeD>& pos) :
         _defined(1), _xmin(pos.getX()), _xmax(pos.getX()),
         _ymin(pos.getY()), _ymax(pos.getY()),
         _zmin(pos.getZ()), _zmax(pos.getZ()) {}
@@ -105,7 +105,7 @@ public:
     bool isDefined() const { return _defined; }
 
     // Expand the bounds to include the given position.
-    void operator+=(const Position<Sphere>& pos)
+    void operator+=(const Position<ThreeD>& pos)
     {
         if (_defined) {
             if (pos.getX() < _xmin) _xmin = pos.getX();
@@ -150,19 +150,19 @@ private:
 };
 
 template <>
-class Bounds<Perp> : public Bounds<Sphere>
+class Bounds<Sphere> : public Bounds<ThreeD>
 {
 
 public:
     Bounds() {}
     Bounds(double x1, double x2, double y1, double y2, double z1, double z2) :
-        Bounds<Sphere>(x1,x2,y1,y2,z1,z2) {}
-    Bounds(const Position<Perp>& pos) : Bounds<Sphere>(pos) {}
+        Bounds<ThreeD>(x1,x2,y1,y2,z1,z2) {}
+    Bounds(const Position<Sphere>& pos) : Bounds<ThreeD>(pos) {}
     ~Bounds() {}
 
     // Expand the bounds to include the given position.
-    void operator+=(const Position<Perp>& pos)
-    { Bounds<Sphere>::operator+=(pos); }
+    void operator+=(const Position<Sphere>& pos)
+    { Bounds<ThreeD>::operator+=(pos); }
 
 };
 

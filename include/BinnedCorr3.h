@@ -44,25 +44,25 @@ public:
 
     void clear();  // Set all data to 0.
 
-    template <int M>
-    void process(const Field<DC1, M>& field, bool dots);
-    template <int M>
-    void process(const Field<DC1, M>& field1, const Field<DC2, M>& field2, 
-                 const Field<DC3, M>& field3, bool dots);
+    template <int C, int M>
+    void process(const Field<DC1, C>& field, bool dots);
+    template <int C, int M>
+    void process(const Field<DC1, C>& field1, const Field<DC2, C>& field2, 
+                 const Field<DC3, C>& field3, bool dots);
 
     // Main worker functions for calculating the result
-    template <int M>
-    void process3(const Cell<DC1,M>* c123);
+    template <int C, int M>
+    void process3(const Cell<DC1,C>* c123);
 
-    template <bool sort, int M>
-    void process21(const Cell<DC1,M>* c12, const Cell<DC3,M>* c3);
+    template <bool sort, int C, int M>
+    void process21(const Cell<DC1,C>* c12, const Cell<DC3,C>* c3);
 
-    template <bool sort, int M>
-    void process111(const Cell<DC1,M>* c1, const Cell<DC2,M>* c2, const Cell<DC3,M>* c3,
+    template <bool sort, int C, int M>
+    void process111(const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const Cell<DC3,C>* c3,
                     double d1sq=0., double d2sq=0., double d3sq=0.);
 
-    template <int M>
-    void directProcess111(const Cell<DC1,M>& c1, const Cell<DC2,M>& c2, const Cell<DC3,M>& c3,
+    template <int C, int M>
+    void directProcess111(const Cell<DC1,C>& c1, const Cell<DC2,C>& c2, const Cell<DC3,C>& c3,
                           const double d1, const double d2, const double d3,
                           const double logr, const double u, const double v, const int index);
 
@@ -102,7 +102,7 @@ protected:
     double _busq;
     double _bvsq;
     double _sqrttwobv;
-    int _metric; // Stores which Metric is being used for the analysis.
+    int _coords; // Stores the kind of coordinates being used for the analysis.
     int _nuv; // = nubins * nvbins
     int _ntot; // = nbins * nubins * nvbins
 

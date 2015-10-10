@@ -10,6 +10,9 @@ https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+3.3%22+is%3
 API changes:
 ------------
 
+- Change Field classes to take ``min_size`` and ``max_size`` directly, rather than letting these
+  be calculated from ``min_sep``, ``max_sep``, ``b`` and ``metric``.
+
 
 New features:
 -------------

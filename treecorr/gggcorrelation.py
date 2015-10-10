@@ -264,18 +264,25 @@ class GGGCorrelation(treecorr.BinnedCorr3):
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
         if metric not in ['Euclidean', 'Rperp']:
             raise ValueError("Invalid metric.")
+        if metric == 'Rperp' and cat.coords != '3d':
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads(num_threads)
 
-        min_size = self.min_sep * self.min_u
-        max_size = 2.*self.max_sep 
         b = numpy.max( (self.b, self.bu, self.bv) )
-        field = cat.getGField(min_size,max_size,b,self.split_method,metric,self.max_top)
+        # The minimum separation we care about is that of the smallest size, which is 
+        # min_sep * min_u.  Do the same calculation as for 2pt to get to min_size.
+        min_size = self.min_sep * self.min_u * b / (2.+3.*b);
+        if metric == 'Rperp': min_size /= 2.
+        # This time, the maximum size is d1 * b.  d1 can be as high as 2*max_sep.
+        max_size = 2. * self.max_sep * b
+
+        field = cat.getGField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        if field.flat:
+        if cat.coords == 'flat':
             _treecorr.ProcessAutoGGGFlat(self.corr, field.data, self.output_dots)
-        elif field.perp:
+        elif metric == 'Rperp':
             _treecorr.ProcessAutoGGGPerp(self.corr, field.data, self.output_dots)
         else:
             _treecorr.ProcessAutoGGG3D(self.corr, field.data, self.output_dots)
@@ -331,20 +338,24 @@ class GGGCorrelation(treecorr.BinnedCorr3):
             raise ValueError("Invalid metric.")
         if cat1.coords != cat2.coords or cat1.coords != cat3.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+        if metric == 'Rperp' and cat1.coords != '3d':
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads(num_threads)
 
-        min_size = self.min_sep * self.min_u
-        max_size = 2.*self.max_sep 
         b = numpy.max( (self.b, self.bu, self.bv) )
-        f1 = cat1.getGField(min_size,max_size,b,self.split_method,metric,self.max_top)
-        f2 = cat2.getGField(min_size,max_size,b,self.split_method,metric,self.max_top)
-        f3 = cat3.getGField(min_size,max_size,b,self.split_method,metric,self.max_top)
+        min_size = self.min_sep * self.min_u * b / (2.+3.*b);
+        if metric == 'Rperp': min_size /= 2.
+        max_size = 2.*self.max_sep * b
+
+        f1 = cat1.getGField(min_size,max_size,self.split_method,self.max_top)
+        f2 = cat2.getGField(min_size,max_size,self.split_method,self.max_top)
+        f3 = cat3.getGField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        if f1.flat:
+        if cat1.coords == 'flat':
             _treecorr.ProcessCrossGGGFlat(self.corr, f1.data, f2.data, f3.data, self.output_dots)
-        elif f1.perp:
+        elif metric == 'Rperp':
             _treecorr.ProcessCrossGGGPerp(self.corr, f1.data, f2.data, f3.data, self.output_dots)
         else:
             _treecorr.ProcessCrossGGG3D(self.corr, f1.data, f2.data, f3.data, self.output_dots)

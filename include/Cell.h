@@ -22,7 +22,7 @@ enum SplitMethod { MIDDLE, MEDIAN, MEAN };
 #include <complex>
 #include <vector>
 
-#include "Bounds.h"
+#include "Position.h"
 #include "dbg.h"
 
 const double PI = 3.141592653589793;

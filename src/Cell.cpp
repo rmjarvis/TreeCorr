@@ -14,6 +14,7 @@
 
 #include "dbg.h"
 #include "Cell.h"
+#include "Bounds.h"
 
 //
 // CellData

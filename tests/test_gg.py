@@ -627,6 +627,25 @@ def test_haloellip():
     print('expected signal = ',e_a * lens_mean_gsq)
     numpy.testing.assert_almost_equal(gg.xip/(e_a * lens_mean_gsq)/2., 0.5, decimal=2)
 
+    # It's worth noting that exactly half the signal is in each of g1, g2, so for things
+    # like SDSS, you can only use g2, which avoids some insidious systematic errors related to
+    # the scan direction.
+    source_cat2 = treecorr.Catalog(x=source_x, y=source_y,
+                                   g1=numpy.zeros_like(source_g2), g2=source_g2)
+    gg.process(lens_cat1, source_cat2)
+    print('gg.xim = ',gg.xim)
+    print('expected signal = ',e_b * lens_mean_absg / 2.)
+    # The precision of this is a bit less though, since we now have more shape noise.
+    # Naively, I would expect sqrt(2) worse, but since the agreement in this test is largely
+    # artificial, as I placed the exact signal down with no shape noise, the increased shape
+    # noise is a lot more than previously here.  So I had to drop the precision by a factor of
+    # 5 relative to what I did above.
+    numpy.testing.assert_almost_equal(gg.xim/(e_b * lens_mean_absg/2.)/10., 0.1, decimal=2)
+    print('gg.xip = ',gg.xip)
+    print('expected signal = ',e_a * lens_mean_absg / 2.)
+    numpy.testing.assert_almost_equal(gg.xip/(e_a * lens_mean_absg/2.)/10, 0.1, decimal=2)
+
+
 
 if __name__ == '__main__':
     test_gg()

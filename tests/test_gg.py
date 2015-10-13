@@ -628,8 +628,8 @@ def test_haloellip():
     numpy.testing.assert_almost_equal(gg.xip/(e_a * lens_mean_gsq)/2., 0.5, decimal=2)
 
     # It's worth noting that exactly half the signal is in each of g1, g2, so for things
-    # like SDSS, you can only use g2, which avoids some insidious systematic errors related to
-    # the scan direction.
+    # like SDSS, you can use only g2, for instance, which avoids some insidious systematic
+    # errors related to the scan direction.
     source_cat2 = treecorr.Catalog(x=source_x, y=source_y,
                                    g1=numpy.zeros_like(source_g2), g2=source_g2)
     gg.process(lens_cat1, source_cat2)

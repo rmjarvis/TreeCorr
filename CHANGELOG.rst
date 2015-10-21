@@ -1,3 +1,15 @@
+
+Changes from version 3.2.1 to 3.2.2
+===================================
+
+Bug fixes:
+----------
+
+- Fixed a bug in corr2 executable for NN cross-correlations when using 
+  lists for the random files. #37
+
+
+
 Changes from version 3.2.0 to 3.2.1
 ===================================
 

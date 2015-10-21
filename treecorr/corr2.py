@@ -131,7 +131,7 @@ def corr2(config, logger=None):
     cat1 = treecorr.read_catalogs(config, 'file_name', 'file_list', 0, logger)
     if len(cat1) == 0:
         raise AttributeError("Either file_name or file_list is required")
-    cat2 = treecorr.read_catalogs(config, 'file_name2', 'rand_file_list2', 1, logger)
+    cat2 = treecorr.read_catalogs(config, 'file_name2', 'file_list2', 1, logger)
     rand1 = treecorr.read_catalogs(config, 'rand_file_name', 'rand_file_list', 0, logger)
     rand2 = treecorr.read_catalogs(config, 'rand_file_name2', 'rand_file_list2', 1, logger)
     if len(cat2) == 0 and len(rand2) > 0:

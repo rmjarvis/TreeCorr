@@ -768,6 +768,36 @@ def test_list():
     print('diff = ',corr2_output['xi']-xi)
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
 
+    import subprocess
+    p = subprocess.Popen( ["corr2","nn_list4.params"] )
+    p.communicate()
+    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list4.out'),names=True)
+    print('xi = ',xi)
+    print('from corr2 output = ',corr2_output['xi'])
+    print('ratio = ',corr2_output['xi']/xi)
+    print('diff = ',corr2_output['xi']-xi)
+    numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
+
+    import subprocess
+    p = subprocess.Popen( ["corr2","nn_list5.params"] )
+    p.communicate()
+    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list5.out'),names=True)
+    print('xi = ',xi)
+    print('from corr2 output = ',corr2_output['xi'])
+    print('ratio = ',corr2_output['xi']/xi)
+    print('diff = ',corr2_output['xi']-xi)
+    numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
+
+    import subprocess
+    p = subprocess.Popen( ["corr2","nn_list6.params"] )
+    p.communicate()
+    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list6.out'),names=True)
+    print('xi = ',xi)
+    print('from corr2 output = ',corr2_output['xi'])
+    print('ratio = ',corr2_output['xi']/xi)
+    print('diff = ',corr2_output['xi']-xi)
+    numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
+
 def test_perp_minmax():
     """This test is based on a bug report from Erika Wagoner where the lowest bins were 
     getting spuriously high w(rp) values.  It stemmed from a subtlety about how large

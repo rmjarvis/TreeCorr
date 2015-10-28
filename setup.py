@@ -14,6 +14,9 @@ except ImportError:
     from distutils.command.build_ext import build_ext
     import distutils
     print("Using distutils version",distutils.__version__)
+
+from distutils.command.install_headers import install_headers 
+
 try:
     from sysconfig import get_config_vars
 except:
@@ -262,7 +265,7 @@ except ImportError:
 with open('README.rst') as file:
     long_description = file.read()
 
-setup(name="TreeCorr", 
+dist = setup(name="TreeCorr", 
       version="3.2.0",
       author="Mike Jarvis",
       author_email="michael@jarvis.net",
@@ -275,5 +278,13 @@ setup(name="TreeCorr",
       ext_modules=[ext],
       install_requires=dependencies,
       cmdclass = {'build_ext': my_builder },
+      headers=headers,
       scripts=scripts)
 
+# I don't actually need these installed for TreeCorr, but I wanted to figure out how to do
+# it, so I played with it here.  distutils installs these automatically when the headers argument
+# is given to setup.  But setuptools doesn't.  cf. http://bugs.python.org/setuptools/issue142
+cmd = install_headers(dist)
+cmd.finalize_options()
+print('Installing headers to ',cmd.install_dir)
+cmd.run()

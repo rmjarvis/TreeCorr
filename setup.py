@@ -27,6 +27,8 @@ scripts = [ os.path.join('scripts',f) for f in scripts ]
 
 sources = glob.glob(os.path.join('src','*.cpp'))
 
+headers = glob.glob(os.path.join('include','*.h'))
+
 undef_macros = []
 
 # If we build with debug, also undefine NDEBUG flag
@@ -233,6 +235,7 @@ class my_builder( build_ext ):
 
 ext=Extension("treecorr._treecorr",
               sources,
+              depends=headers,
               undef_macros = undef_macros)
 
 dependencies = ['numpy', 'six']

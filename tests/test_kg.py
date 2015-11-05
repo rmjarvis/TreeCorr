@@ -38,7 +38,7 @@ def test_single():
     lens_cat = treecorr.Catalog(x=[0], y=[0], k=[kappa],  x_units='arcmin', y_units='arcmin')
     source_cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     kg = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                verbose=2)
+                                verbose=1)
     kg.process(lens_cat, source_cat)
 
     # log(<R>) != <logR>, but it should be close:
@@ -98,7 +98,7 @@ def test_pairwise():
     lens_cat = treecorr.Catalog(x=dx, y=dx, k=k, x_units='arcmin', y_units='arcmin')
     source_cat = treecorr.Catalog(x=x+dx, y=y+dx, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     kg = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                verbose=2, pairwise=True)
+                                verbose=1, pairwise=True)
     kg.process(lens_cat, source_cat)
 
     r = kg.meanr
@@ -160,7 +160,7 @@ def test_kg():
     lens_cat = treecorr.Catalog(x=xl, y=yl, k=kl, x_units='arcmin', y_units='arcmin')
     source_cat = treecorr.Catalog(x=xs, y=ys, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     kg = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                verbose=2)
+                                verbose=1)
     kg.process(lens_cat, source_cat)
 
     r = kg.meanr

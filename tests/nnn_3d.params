@@ -8,7 +8,7 @@ r_col = 3
 ra_units = deg
 dec_units = deg
 
-verbose = 2
+verbose = 1
 
 min_sep = 10.
 max_sep = 20.

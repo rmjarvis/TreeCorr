@@ -80,7 +80,7 @@ def test_ggg():
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins,
-                                  sep_units='arcmin', verbose=3)
+                                  sep_units='arcmin', verbose=1)
     ggg.process(cat)
 
     # log(<d>) != <logd>, but it should be close:
@@ -288,7 +288,7 @@ def test_ggg():
     ggg2 = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                    nubins=nubins, nvbins=nvbins,
-                                   sep_units='arcmin', verbose=3)
+                                   sep_units='arcmin', verbose=1)
     ggg2.read(out_file_name1)
     numpy.testing.assert_almost_equal(ggg2.logr, ggg.logr)
     numpy.testing.assert_almost_equal(ggg2.u, ggg.u)

@@ -43,7 +43,7 @@ def test_constant():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins,
-                                  sep_units='arcmin', verbose=2)
+                                  sep_units='arcmin', verbose=1)
     kkk.process(cat)
     print('kkk.zeta = ',kkk.zeta.flatten())
     numpy.testing.assert_almost_equal(kkk.zeta, A**3, decimal=10)
@@ -105,7 +105,7 @@ def test_kkk():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins,
-                                  sep_units='arcmin', verbose=2)
+                                  sep_units='arcmin', verbose=1)
     kkk.process(cat)
 
     # log(<d>) != <logd>, but it should be close:
@@ -190,7 +190,7 @@ def test_kkk():
     kkk2 = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                    nubins=nubins, nvbins=nvbins,
-                                   sep_units='arcmin', verbose=2)
+                                   sep_units='arcmin', verbose=1)
     kkk2.read(out_file_name)
     numpy.testing.assert_almost_equal(kkk2.logr, kkk.logr)
     numpy.testing.assert_almost_equal(kkk2.u, kkk.u)

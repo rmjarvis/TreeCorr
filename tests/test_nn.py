@@ -430,7 +430,7 @@ def test_nn():
 
     cat = treecorr.Catalog(x=x, y=y, x_units='arcmin', y_units='arcmin')
     dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                verbose=2)
+                                verbose=1)
     dd.process(cat)
     print('dd.npairs = ',dd.npairs)
 
@@ -442,12 +442,12 @@ def test_nn():
     ry = (numpy.random.random_sample(nrand)-0.5) * L
     rand = treecorr.Catalog(x=rx,y=ry, x_units='arcmin', y_units='arcmin')
     rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                verbose=2)
+                                verbose=1)
     rr.process(rand)
     print('rr.npairs = ',rr.npairs)
 
     dr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                verbose=2)
+                                verbose=1)
     dr.process(cat,rand)
     print('dr.npairs = ',dr.npairs)
 
@@ -589,7 +589,7 @@ def test_3d():
     ra = numpy.arctan2(y,x) / treecorr.degrees
 
     cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='deg', dec_units='deg')
-    dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=1)
     dd.process(cat)
     print('dd.npairs = ',dd.npairs)
 
@@ -600,11 +600,11 @@ def test_3d():
     rdec = numpy.arcsin(rz/rr) / treecorr.degrees
     rra = numpy.arctan2(ry,rx) / treecorr.degrees
     rand = treecorr.Catalog(ra=rra, dec=rdec, r=rr, ra_units='deg', dec_units='deg')
-    rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=1)
     rr.process(rand)
     print('rr.npairs = ',rr.npairs)
 
-    dr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    dr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=1)
     dr.process(cat,rand)
     print('dr.npairs = ',dr.npairs)
 
@@ -676,11 +676,11 @@ def test_list():
     ry = (numpy.random.random_sample((nobj,ncats))-0.5) * L
     rand_cats = [ treecorr.Catalog(x=rx[:,k],y=ry[:,k]) for k in range(ncats) ]
 
-    dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=1)
     dd.process(data_cats)
     print('dd.npairs = ',dd.npairs)
 
-    rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=1)
     rr.process(rand_cats)
     print('rr.npairs = ',rr.npairs)
 
@@ -688,8 +688,8 @@ def test_list():
     print('xi = ',xi)
 
     # Now do the same thing with one big catalog for each.
-    ddx = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
-    rrx = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=2)
+    ddx = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=1)
+    rrx = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=1)
     data_catx = treecorr.Catalog(x=x.reshape( (nobj*ncats,) ), y=y.reshape( (nobj*ncats,) ))
     rand_catx = treecorr.Catalog(x=rx.reshape( (nobj*ncats,) ), y=ry.reshape( (nobj*ncats,) ))
     ddx.process(data_catx)
@@ -818,7 +818,7 @@ def test_perp_minmax():
         'min_sep' : 40,
         'bin_size' : 0.036652,
         'nbins' : 50,
-        'verbose' : 2
+        'verbose' : 1
     }
 
     # Speed up for nosetests runs

@@ -53,7 +53,7 @@ def test_gg():
 
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
-                                verbose=2)
+                                verbose=1)
     gg.process(cat)
 
     # log(<R>) != <logR>, but it should be close:
@@ -248,7 +248,7 @@ def test_spherical():
     theta = arctan2(y,x)
 
     gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
-                                verbose=2)
+                                verbose=1)
     r1 = numpy.exp(gg.logr) * treecorr.arcmin
     temp = numpy.pi/16. * gamma0**2 * (r0/L)**2 * numpy.exp(-0.25*r1**2/r0**2)
     true_xip = temp * (r1**4 - 16.*r1**2*r0**2 + 32.*r0**4)/r0**4
@@ -307,7 +307,7 @@ def test_spherical():
         cat = treecorr.Catalog(ra=ra, dec=dec, g1=g1_sph, g2=g2_sph, ra_units='rad', 
                                dec_units='rad')
         gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
-                                    verbose=2)
+                                    verbose=1)
         gg.process(cat)
 
         print('ra0, dec0 = ',ra0,dec0)
@@ -511,7 +511,7 @@ def test_shuffle():
     g2 = -gamma0 * numpy.exp(-r2/2.) * (2.*x*y)/r0**2
 
     cat_u = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
-    gg_u = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=30., verbose=2)
+    gg_u = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=30., verbose=1)
     gg_u.process(cat_u)
 
     # Put these in a single 2d array so we can easily use numpy.random.shuffle
@@ -520,7 +520,7 @@ def test_shuffle():
     numpy.random.shuffle(data)
 
     cat_s = treecorr.Catalog(x=data[:,0], y=data[:,1], g1=data[:,2], g2=data[:,3])
-    gg_s = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=30., verbose=2)
+    gg_s = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=30., verbose=1)
     gg_s.process(cat_s)
 
     print('gg_u.xip = ',gg_u.xip)

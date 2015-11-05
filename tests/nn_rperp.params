@@ -11,7 +11,7 @@ r_col = 3
 metric = Rperp
 last_row = 200000
 
-verbose = 2
+verbose = 1
 
 min_sep = 40.
 bin_size = 0.036652

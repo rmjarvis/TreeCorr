@@ -5,7 +5,7 @@ rand_file_list = data/nn_list_rand_files.txt
 x_col = 1
 y_col = 2
 
-verbose = 2
+verbose = 1
 
 min_sep = 1.
 max_sep = 25.

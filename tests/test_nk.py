@@ -34,7 +34,7 @@ def test_single():
     lens_cat = treecorr.Catalog(x=[0], y=[0], x_units='arcmin', y_units='arcmin')
     source_cat = treecorr.Catalog(x=x, y=y, k=k, x_units='arcmin', y_units='arcmin')
     nk = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                verbose=2)
+                                verbose=1)
     nk.process(lens_cat, source_cat)
 
     r = nk.meanr
@@ -86,7 +86,7 @@ def test_nk():
     lens_cat = treecorr.Catalog(x=xl, y=yl, x_units='arcmin', y_units='arcmin')
     source_cat = treecorr.Catalog(x=xs, y=ys, k=k, x_units='arcmin', y_units='arcmin')
     nk = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                verbose=2)
+                                verbose=1)
     nk.process(lens_cat, source_cat)
 
     # log(<R>) != <logR>, but it should be close:
@@ -108,7 +108,7 @@ def test_nk():
     yr = (numpy.random.random_sample(nrand)-0.5) * L
     rand_cat = treecorr.Catalog(x=xr, y=yr, x_units='arcmin', y_units='arcmin')
     rk = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                verbose=2)
+                                verbose=1)
     rk.process(rand_cat, source_cat)
     print('rk.xi = ',rk.xi)
     xi, varxi = nk.calculateXi(rk)

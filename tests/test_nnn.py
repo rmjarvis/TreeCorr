@@ -399,7 +399,7 @@ def test_direct_count_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0., verbose=3)
+                                  bin_slop=0., verbose=1)
     ddd.process(cat)
     #print('ddd.ntri = ',ddd.ntri)
 
@@ -464,7 +464,7 @@ def test_direct_count_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=3)
+                                  bin_slop=1.e-16, verbose=1)
     ddd.process(cat)
     #print('ddd.ntri = ',ddd.ntri)
     #print('true_ntri => ',true_ntri)
@@ -475,7 +475,7 @@ def test_direct_count_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=3, max_top=0)
+                                  bin_slop=1.e-16, verbose=1, max_top=0)
     ddd.process(cat)
     #print('ddd.ntri = ',ddd.ntri)
     #print('true_ntri => ',true_ntri)
@@ -522,7 +522,7 @@ def test_direct_count_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0., verbose=3)
+                                  bin_slop=0., verbose=1)
     ddd.process(cat1, cat2, cat3)
     #print('ddd.ntri = ',ddd.ntri)
 
@@ -567,7 +567,7 @@ def test_direct_count_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=3)
+                                  bin_slop=1.e-16, verbose=1)
     ddd.process(cat1, cat2, cat3)
     #print('binslop > 0: ddd.ntri = ',ddd.ntri)
     #print('diff = ',ddd.ntri - true_ntri)
@@ -577,7 +577,7 @@ def test_direct_count_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=3, max_top=0)
+                                  bin_slop=1.e-16, verbose=1, max_top=0)
     ddd.process(cat1, cat2, cat3)
     #print('max_top = 0: ddd.ntri = ',ddd.ntri)
     #print('true_ntri = ',true_ntri)
@@ -718,7 +718,7 @@ def test_direct_3d_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0., verbose=3)
+                                  bin_slop=0., verbose=1)
     ddd.process(cat)
     #print('ddd.ntri = ',ddd.ntri)
 
@@ -784,7 +784,7 @@ def test_direct_3d_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=3)
+                                  bin_slop=1.e-16, verbose=1)
     ddd.process(cat)
     #print('ddd.ntri = ',ddd.ntri)
     #print('diff = ',ddd.ntri - true_ntri)
@@ -794,7 +794,7 @@ def test_direct_3d_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=3, max_top=0)
+                                  bin_slop=1.e-16, verbose=1, max_top=0)
     ddd.process(cat)
     #print('ddd.ntri = ',ddd.ntri)
     #print('true_ntri => ',true_ntri)
@@ -857,7 +857,7 @@ def test_direct_3d_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0., verbose=3)
+                                  bin_slop=0., verbose=1)
     ddd.process(cat1, cat2, cat3)
     #print('ddd.ntri = ',ddd.ntri)
 
@@ -905,7 +905,7 @@ def test_direct_3d_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=3)
+                                  bin_slop=1.e-16, verbose=1)
     ddd.process(cat1, cat2, cat3)
     #print('binslop > 0: ddd.ntri = ',ddd.ntri)
     #print('diff = ',ddd.ntri - true_ntri)
@@ -915,7 +915,7 @@ def test_direct_3d_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=3, max_top=0)
+                                  bin_slop=1.e-16, verbose=1, max_top=0)
     ddd.process(cat1, cat2, cat3)
     #print('max_top = 0: ddd.ntri = ',ddd.ntri)
     #print('true_ntri = ',true_ntri)
@@ -983,7 +983,7 @@ def test_nnn():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins,
-                                  sep_units='arcmin', verbose=3)
+                                  sep_units='arcmin', verbose=1)
     ddd.process(cat)
     #print('ddd.ntri = ',ddd.ntri)
 
@@ -1006,7 +1006,7 @@ def test_nnn():
     rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins,
-                                  sep_units='arcmin', verbose=3)
+                                  sep_units='arcmin', verbose=1)
     rrr.process(rand)
     #print('rrr.ntri = ',rrr.ntri)
 
@@ -1095,7 +1095,7 @@ def test_nnn():
     ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                    nubins=nubins, nvbins=nvbins,
-                                   sep_units='arcmin', verbose=3)
+                                   sep_units='arcmin', verbose=1)
     ddd2.read(out_file_name1)
     numpy.testing.assert_almost_equal(ddd2.logr, ddd.logr)
     numpy.testing.assert_almost_equal(ddd2.u, ddd.u)
@@ -1267,7 +1267,7 @@ def test_3d():
     cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='deg', dec_units='deg')
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                  nubins=nubins, nvbins=nvbins, verbose=3)
+                                  nubins=nubins, nvbins=nvbins, verbose=1)
     ddd.process(cat)
     print('ddd.ntri = ',ddd.ntri.flatten())
 
@@ -1281,7 +1281,7 @@ def test_3d():
     rand = treecorr.Catalog(ra=rra, dec=rdec, r=rr, ra_units='deg', dec_units='deg')
     rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                  nubins=nubins, nvbins=nvbins, verbose=3)
+                                  nubins=nubins, nvbins=nvbins, verbose=1)
     rrr.process(rand)
     print('rrr.ntri = ',rrr.ntri.flatten())
 
@@ -1364,14 +1364,14 @@ def test_list():
 
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                  nubins=nubins, nvbins=nvbins, verbose=2)
+                                  nubins=nubins, nvbins=nvbins, verbose=1)
     ddd.process(data_cats)
     print('From multiple catalogs: ddd.ntri = ',ddd.ntri)
 
     # Now do the same thing with one big catalog
     dddx = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                   nubins=nubins, nvbins=nvbins, verbose=2)
+                                   nubins=nubins, nvbins=nvbins, verbose=1)
     data_catx = treecorr.Catalog(x=x.reshape( (ngal*ncats,) ), y=y.reshape( (ngal*ncats,) ))
     dddx.process(data_catx)
     print('From single catalog: dddx.ntri = ',dddx.ntri)
@@ -1386,13 +1386,13 @@ def test_list():
     if __name__ == "__main__":
         rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                     min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                  nubins=nubins, nvbins=nvbins, verbose=2)
+                                  nubins=nubins, nvbins=nvbins, verbose=1)
         rrr.process(rand_cats)
         print('rrr.ntri = ',rrr.ntri)
 
         rrrx = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                     min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                   nubins=nubins, nvbins=nvbins, verbose=2)
+                                   nubins=nubins, nvbins=nvbins, verbose=1)
         rand_catx = treecorr.Catalog(x=rx.reshape( (nrand*ncats,) ), y=ry.reshape( (nrand*ncats,) ))
         rrrx.process(rand_catx)
         print('rrrx.ntri = ',rrrx.ntri)

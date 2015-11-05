@@ -68,7 +68,7 @@ def test_kk():
 
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     kk = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=50., sep_units='arcmin',
-                                verbose=2)
+                                verbose=1)
     kk.process(cat)
 
     # log(<R>) != <logR>, but it should be close:

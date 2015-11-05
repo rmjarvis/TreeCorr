@@ -8,7 +8,7 @@ y_units = arcmin
 g1_col = 3
 g2_col = 4
 
-verbose = 2
+verbose = 1
 
 min_sep = 11.
 max_sep = 15.

@@ -5,7 +5,7 @@ rand_file_name = data/nnn_list_randx.dat
 x_col = 1
 y_col = 2
 
-verbose = 2
+verbose = 1
 
 min_sep = 30.
 max_sep = 50.

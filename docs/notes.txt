@@ -3,6 +3,7 @@ This file just contains some notes to myself about various things.
 Checklist for making a new release:
 
 - Run test suite on as many machines as possible.
+- Make sure debugging output is turned off.
 - Update the version number to the new M.m.r value.
   - README.rst
   - setup.py

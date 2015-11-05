@@ -251,7 +251,7 @@ class BinnedCorr2(object):
             self.logger.warn("Using bin_slop = %g, bin_size = %g",self.bin_slop,self.bin_size)
             self.logger.warn("The b parameter is bin_slop * bin_size = %g",self.b)
             self.logger.warn("It is generally recommended to use b <= 0.1 for most applications.")
-            self.logger.warn("Larger values of this b parameter may result in significant"+
+            self.logger.warn("Larger values of this b parameter may result in significant "+
                              "inaccuracies.")
         else:
             self.logger.debug("Using bin_slop = %g, b = %g",self.bin_slop,self.b)

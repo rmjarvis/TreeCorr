@@ -151,13 +151,13 @@ def test_binnedcorr2():
     assert nn.bin_slop == 0.0
     assert nn.b == 0.0
 
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=2.0)
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=2.0, verbose=0)
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.1
     assert nn.bin_slop == 2.0
     numpy.testing.assert_almost_equal(nn.b, 0.2)
 
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.4, bin_slop=1.0)
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.4, bin_slop=1.0, verbose=0)
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.4
     assert nn.bin_slop == 1.0
@@ -187,7 +187,7 @@ def test_binnedcorr2():
     assert nn.bin_slop == 1.0
     numpy.testing.assert_almost_equal(nn.b, 0.05)
 
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.05, bin_slop=3)
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.05, bin_slop=3, verbose=0)
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.05
     assert nn.bin_slop == 3.0

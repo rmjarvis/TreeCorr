@@ -308,7 +308,7 @@ def test_binnedcorr3():
     # Bigger bin_slop
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=2.0,
                                   min_u=0.2, max_u=0.9, ubin_size=0.03,
-                                  min_v=-0.2, max_v=0.2, vbin_size=0.07)
+                                  min_v=-0.2, max_v=0.2, vbin_size=0.07, verbose=0)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)
@@ -323,7 +323,7 @@ def test_binnedcorr3():
     # With bin_size > 0.1, explicit bin_slop=1.0 is accepted.
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.4, bin_slop=1.0,
                                   min_u=0.2, max_u=0.9, ubin_size=0.03,
-                                  min_v=-0.2, max_v=0.2, vbin_size=0.07)
+                                  min_v=-0.2, max_v=0.2, vbin_size=0.07, verbose=0)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)

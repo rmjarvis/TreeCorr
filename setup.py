@@ -6,12 +6,16 @@ import glob
 try:
     from setuptools import setup, Extension
     from setuptools.command.build_ext import build_ext
+    from setuptools.command.install_scripts import install_scripts
+    from setuptools.command.easy_install import easy_install
     import setuptools
     print("Using setuptools version",setuptools.__version__)
 except ImportError:
     print('Unable to import setuptools.  Using distutils instead.')
     from distutils.core import setup, Extension
     from distutils.command.build_ext import build_ext
+    from distutils.command.install_scripts import install_scripts
+    easy_install = object  # Prevent error when using as base class
     import distutils
     print("Using distutils version",distutils.__version__)
 
@@ -224,17 +228,40 @@ int main() {
 # cf. http://stackoverflow.com/questions/724664/python-distutils-how-to-get-a-compiler-that-is-going-to-be-used
 class my_builder( build_ext ):
     def build_extensions(self):
+        # Figure out what compiler it will use
         cc = self.compiler.executables['compiler_cxx'][0]
         comp_type = get_compiler(cc)
         if cc == comp_type:
             print('Using compiler %s'%(cc))
         else:
             print('Using compiler %s, which is %s'%(cc,comp_type))
+        # Add the appropriate extra flags for that compiler.
         for e in self.extensions:
             e.extra_compile_args = copt[ comp_type ]
             e.extra_link_args = lopt[ comp_type ]
             e.include_dirs = ['include']
+        # Now run the normal build function.
         build_ext.build_extensions(self)
+
+# AFAICT, setuptools doesn't provide any easy access to the final installation location of the
+# executable scripts.  This bit is just to save the value of script_dir so I can use it later.
+# cf. http://stackoverflow.com/questions/12975540/correct-way-to-find-scripts-directory-from-setup-py-in-python-distutils/
+class my_easy_install( easy_install ):  # For setuptools
+
+    # Match the call signature of the easy_install version.
+    def write_script(self, script_name, contents, mode="t", *ignored):
+        # Run the normal version
+        easy_install.write_script(self, script_name, contents, mode, *ignored)
+        # Save the script install directory in the distribution object.
+        # This is the same thing that is returned by the setup function.
+        self.distribution.script_install_dir = self.script_dir
+
+# For distutils, the appropriate thing is the install_scripts command class, not easy_install.
+# So here is the appropriate thing in that case.
+class my_install_scripts( install_scripts ):  # For distutils
+    def run(self):
+        install_scripts.run(self)
+        self.distribution.script_install_dir = self.install_dir
 
 ext=Extension("treecorr._treecorr",
               sources,
@@ -277,7 +304,10 @@ dist = setup(name="TreeCorr",
       packages=['treecorr'],
       ext_modules=[ext],
       install_requires=dependencies,
-      cmdclass = {'build_ext': my_builder },
+      cmdclass = {'build_ext': my_builder,
+                  'install_scripts': my_install_scripts,
+                  'easy_install': my_easy_install,
+                  },
       headers=headers,
       scripts=scripts)
 
@@ -288,3 +318,14 @@ cmd = install_headers(dist)
 cmd.finalize_options()
 print('Installing headers to ',cmd.install_dir)
 cmd.run()
+
+# Check that the path includes the directory where the scripts are installed.
+if dist.script_install_dir not in os.environ['PATH'].split(':'):
+    print('\nWARNING: The TreeCorr executables were installed in a directory not in your PATH')
+    print('         If you want to use the executables, you should add the directory')
+    print('\n             ',dist.script_install_dir,'\n')
+    print('         to your path.  The current path is')
+    print('\n             ',os.environ['PATH'],'\n')
+    print('         Alternatively, you can specify a different prefix with --prefix=PREFIX,')
+    print('         in which case the scripts will be installed in PREFIX/bin.')
+    print('         If you are installing via pip use --install-option="--prefix=PREFIX"')

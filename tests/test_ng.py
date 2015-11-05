@@ -16,6 +16,7 @@ import numpy
 import treecorr
 import os
 
+from test_helper import get_script_name
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
 
 def test_single():
@@ -61,7 +62,8 @@ def test_single():
         lens_cat.write(os.path.join('data','ng_single_lens.dat'))
         source_cat.write(os.path.join('data','ng_single_source.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","ng_single.params"] )
+        corr2_exe = get_script_name('corr2')
+        p = subprocess.Popen( [corr2_exe,"ng_single.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','ng_single.out'),names=True)
         print('ng.xi = ',ng.xi)
@@ -117,7 +119,8 @@ def test_pairwise():
         lens_cat.write(os.path.join('data','ng_pairwise_lens.dat'))
         source_cat.write(os.path.join('data','ng_pairwise_source.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","ng_pairwise.params"] )
+        corr2_exe = get_script_name('corr2')
+        p = subprocess.Popen( [corr2_exe,"ng_pairwise.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','ng_pairwise.out'),names=True)
         print('ng.xi = ',ng.xi)
@@ -247,7 +250,8 @@ def test_spherical():
         lens_cat.write(os.path.join('data','ng_spherical_lens.dat'))
         source_cat.write(os.path.join('data','ng_spherical_source.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","ng_spherical.params"] )
+        corr2_exe = get_script_name('corr2')
+        p = subprocess.Popen( [corr2_exe,"ng_spherical.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','ng_spherical.out'),names=True)
         print('ng.xi = ',ng.xi)
@@ -328,7 +332,8 @@ def test_ng():
         source_cat.write(os.path.join('data','ng_source.dat'))
         rand_cat.write(os.path.join('data','ng_rand.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","ng.params"] )
+        corr2_exe = get_script_name('corr2')
+        p = subprocess.Popen( [corr2_exe,"ng.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','ng.out'),names=True)
         print('ng.xi = ',ng.xi)

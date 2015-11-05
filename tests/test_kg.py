@@ -16,6 +16,8 @@ import numpy
 import treecorr
 import os
 
+from test_helper import get_script_name
+
 def test_single():
     # Use gamma_t(r) = gamma0 exp(-r^2/2r0^2) around a single lens
     # i.e. gamma(r) = -gamma0 exp(-r^2/2r0^2) (x+iy)^2/r^2
@@ -60,7 +62,8 @@ def test_single():
         lens_cat.write(os.path.join('data','kg_single_lens.dat'))
         source_cat.write(os.path.join('data','kg_single_source.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","kg_single.params"] )
+        corr2_exe = get_script_name('corr2')
+        p = subprocess.Popen( [corr2_exe,"kg_single.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','kg_single.out'),names=True)
         print('kg.xi = ',kg.xi)
@@ -115,7 +118,8 @@ def test_pairwise():
         lens_cat.write(os.path.join('data','kg_pairwise_lens.dat'))
         source_cat.write(os.path.join('data','kg_pairwise_source.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","kg_pairwise.params"] )
+        corr2_exe = get_script_name('corr2')
+        p = subprocess.Popen( [corr2_exe,"kg_pairwise.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','kg_pairwise.out'),names=True)
         print('kg.xi = ',kg.xi)
@@ -176,7 +180,8 @@ def test_kg():
         lens_cat.write(os.path.join('data','kg_lens.dat'))
         source_cat.write(os.path.join('data','kg_source.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","kg.params"] )
+        corr2_exe = get_script_name('corr2')
+        p = subprocess.Popen( [corr2_exe,"kg.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','kg.out'),names=True)
         print('kg.xi = ',kg.xi)

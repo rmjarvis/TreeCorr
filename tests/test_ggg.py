@@ -16,6 +16,8 @@ import numpy
 import treecorr
 import os
 
+from test_helper import get_script_name
+
 def test_ggg():
     # Use gamma_t(r) = gamma0 r^2/r0^2 exp(-r^2/2r0^2)
     # i.e. gamma(r) = -gamma0 exp(-r^2/2r0^2) (x+iy)^2 / r0^2
@@ -205,7 +207,8 @@ def test_ggg():
     if __name__ == '__main__':
         cat.write(os.path.join('data','ggg_data.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr3","ggg.params"] )
+        corr3_exe = get_script_name('corr3')
+        p = subprocess.Popen( [corr3_exe,"ggg.params"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','ggg.out'), names=True)
         #print('gam0r = ',ggg.gam0.real)

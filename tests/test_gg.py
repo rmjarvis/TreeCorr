@@ -16,7 +16,7 @@ import numpy
 import treecorr
 import os
 
-from test_helper import get_from_wiki
+from test_helper import get_from_wiki, get_script_name
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
 
 def test_gg():
@@ -121,7 +121,8 @@ def test_gg():
     if __name__ == '__main__':
         cat.write(os.path.join('data','gg.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","gg.params"] )
+        corr2_exe = get_script_name('corr2')
+        p = subprocess.Popen( [corr2_exe,"gg.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','gg.out'), names=True)
         print('gg.xip = ',gg.xip)
@@ -361,7 +362,8 @@ def test_spherical():
     if __name__ == '__main__':
         cat.write(os.path.join('data','gg_spherical.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","gg_spherical.params"] )
+        corr2_exe = get_script_name('corr2')
+        p = subprocess.Popen( [corr2_exe,"gg_spherical.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','gg_spherical.out'), names=True)
         print('gg.xip = ',gg.xip)
@@ -448,7 +450,8 @@ def test_aardvark():
     # Note: This is the only test of the corr2 executable that we do with nosetests.
     # The other similar tests are blocked out with: if __name__ == '__main__':
     import subprocess
-    p = subprocess.Popen( ["corr2","Aardvark.params"] )
+    corr2_exe = get_script_name('corr2')
+    p = subprocess.Popen( [corr2_exe,"Aardvark.params"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','Aardvark.out'), names=True)
     print('gg.xip = ',gg.xip)

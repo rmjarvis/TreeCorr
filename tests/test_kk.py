@@ -16,6 +16,8 @@ import numpy
 import treecorr
 import os
 
+from test_helper import get_script_name
+
 def test_constant():
     # A fairly trivial test is to use a constant value of kappa everywhere.
 
@@ -91,7 +93,8 @@ def test_kk():
     if __name__ == '__main__':
         cat.write(os.path.join('data','kk.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","kk.params"] )
+        corr2_exe = get_script_name('corr2')
+        p = subprocess.Popen( [corr2_exe,"kk.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','kk.out'), names=True)
         print('kk.xi = ',kk.xi)

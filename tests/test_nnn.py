@@ -16,6 +16,8 @@ import numpy
 import treecorr
 import os
 
+from test_helper import get_script_name
+
 def test_binnedcorr3():
     import math
     # Test some basic properties of the base class
@@ -1034,7 +1036,8 @@ def test_nnn():
         cat.write(os.path.join('data','nnn_data.dat'))
         rand.write(os.path.join('data','nnn_rand.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr3","nnn.params"] )
+        corr3_exe = get_script_name('corr3')
+        p = subprocess.Popen( [corr3_exe,"nnn.params"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','nnn.out'), names=True)
         print('zeta = ',zeta)
@@ -1309,7 +1312,8 @@ def test_3d():
         cat.write(os.path.join('data','nnn_3d_data.dat'))
         rand.write(os.path.join('data','nnn_3d_rand.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr3","nnn_3d.params"] )
+        corr3_exe = get_script_name('corr3')
+        p = subprocess.Popen( [corr3_exe,"nnn_3d.params"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','nnn_3d.out'), names=True)
         print('zeta = ',zeta.flatten())
@@ -1430,7 +1434,8 @@ def test_list():
         rand_catx.write(rand_file_namex)
 
         import subprocess
-        p = subprocess.Popen( ["corr3","nnn_list1.params"] )
+        corr3_exe = get_script_name('corr3')
+        p = subprocess.Popen( [corr3_exe,"nnn_list1.params"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list1.out'), names=True)
         print('zeta = ',zeta)
@@ -1439,7 +1444,7 @@ def test_list():
         print('diff = ',corr3_output['zeta']-zeta.flatten())
         numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=3)
 
-        p = subprocess.Popen( ["corr3","nnn_list2.params"] )
+        p = subprocess.Popen( [corr3_exe,"nnn_list2.params"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list2.out'), names=True)
         print('zeta = ',zeta)
@@ -1448,7 +1453,7 @@ def test_list():
         print('diff = ',corr3_output['zeta']-zeta.flatten())
         numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=1)
 
-        p = subprocess.Popen( ["corr3","nnn_list3.params"] )
+        p = subprocess.Popen( [corr3_exe,"nnn_list3.params"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list3.out'), names=True)
         print('zeta = ',zeta)

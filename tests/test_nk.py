@@ -16,7 +16,7 @@ import numpy
 import treecorr
 import os
 
-from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
+from test_helper import get_script_name
 
 def test_single():
     # Use kappa(r) = kappa0 exp(-r^2/2r0^2) (1-r^2/2r0^2) around a single lens
@@ -52,7 +52,8 @@ def test_single():
         lens_cat.write(os.path.join('data','nk_single_lens.dat'))
         source_cat.write(os.path.join('data','nk_single_source.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","nk_single.params"] )
+        corr2_exe = get_script_name('corr2')
+        p = subprocess.Popen( [corr2_exe,"nk_single.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','nk_single.out'), names=True)
         print('nk.xi = ',nk.xi)
@@ -126,7 +127,8 @@ def test_nk():
         source_cat.write(os.path.join('data','nk_source.dat'))
         rand_cat.write(os.path.join('data','nk_rand.dat'))
         import subprocess
-        p = subprocess.Popen( ["corr2","nk.params"] )
+        corr2_exe = get_script_name('corr2')
+        p = subprocess.Popen( [corr2_exe,"nk.params"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','nk.out'), names=True)
         print('nk.xi = ',nk.xi)

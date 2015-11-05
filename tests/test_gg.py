@@ -98,6 +98,8 @@ def test_gg():
     #          = 6 pi gamma0^2 r0^8 R^4 / (L^2 (r0^2+R^2)^5)
     # Mx^2(R)  = int 1/2 r/R^2 (T+(r/R) xi+(r) - T-(r/R) xi-(r)) dr
     #          = 0
+    # where T+(s) = (s^4-16s^2+32)/128 exp(-s^2/4)
+    #       T-(s) = s^4/128 exp(-s^2/4)
     true_mapsq = 6.*numpy.pi * gamma0**2 * r0**8 * r**4 / (L**2 * (r**2+r0**2)**5)
 
     mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq('Crittenden')
@@ -193,13 +195,12 @@ def test_gg():
     # Also check the Schneider version.  The math isn't quite as nice here, but it is tractable
     # using a different formula than I used above:
     # Map^2(R) = int k P(k) W(kR) dk
-    #          = 576 pi gamma0^2 r0^6/(L^2 R^10) exp(-R^2/2r0^2)
-    #            x (I0(R^2/2r0^2) R^2 (R^4 + 96 r0^4) - 16 I1(R^2/2r0^2) r0^2 (R^4 + 24 r0^4)
+    #          = 576 pi gamma0^2 r0^6/(L^2 R^4) exp(-R^2/2r0^2) (I4(R^2/2r0^2)
+    # where I4 is the modified Bessel function with nu=4.
     try:
-        from scipy.special import i0,i1
+        from scipy.special import iv
         x = 0.5*r**2/r0**2
-        true_mapsq = 576.*numpy.pi * gamma0**2 * r0**6 / (L**2 * r**10) * numpy.exp(-x)
-        true_mapsq *= i0(x) * r**2 * (r**4 + 96.*r0**4) - 16.*i1(x) * r0**2 * (r**4 + 24.*r0**4)
+        true_mapsq = 144.*numpy.pi * gamma0**2 * r0**2 / (L**2 * x**2) * numpy.exp(-x) * iv(4,x)
 
         mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq('Schneider')
         print('Schneider mapsq = ',mapsq)
@@ -208,7 +209,7 @@ def test_gg():
         print('diff = ',mapsq-true_mapsq)
         print('max diff = ',max(abs(mapsq - true_mapsq)))
         print('max diff[20:] = ',max(abs(mapsq[20:] - true_mapsq[20:])))
-        # This one stay ratty longer, so we need to skip the first 20 and also loosen the
+        # This one stays ratty longer, so we need to skip the first 20 and also loosen the
         # test a bit.
         assert max(abs(mapsq[20:]-true_mapsq[20:])) < 7.e-8
         print('mxsq = ',mxsq)

@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 
-version = '3.2.2'
+version = '3.2.3'
 
 from . import util
 from .celestial import CelestialCoord, angle_units, arcsec, arcmin, degrees, hours, radians

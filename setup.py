@@ -297,7 +297,7 @@ with open('README.rst') as file:
     long_description = file.read()
 
 dist = setup(name="TreeCorr", 
-      version="3.2.0",
+      version="3.3",
       author="Mike Jarvis",
       author_email="michael@jarvis.net",
       description="Python module for computing 2-point correlation functions",

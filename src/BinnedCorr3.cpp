@@ -1150,6 +1150,10 @@ void BinnedCorr3<D1,D2,D3>::operator+=(const BinnedCorr3<D1,D2,D3>& rhs)
 //
 //
 
+extern "C" {
+#include "BinnedCorr3_C.h"
+}
+
 void* BuildNNNCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                    double minu, double maxu, int nubins, double ubinsize, double bu,
                    double minv, double maxv, int nvbins, double vbinsize, double bv,

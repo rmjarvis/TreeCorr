@@ -475,6 +475,10 @@ void BinnedCorr2<D1,D2>::operator+=(const BinnedCorr2<D1,D2>& rhs)
 //
 //
 
+extern "C" {
+#include "BinnedCorr2_C.h"
+}
+
 void* BuildNNCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {

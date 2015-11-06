@@ -292,6 +292,10 @@ SimpleField<D,C>::~SimpleField()
 //
 //
 
+extern "C" {
+#include "Field_C.h"
+}
+
 void* BuildGFieldFlat(double* x, double* y, double* g1, double* g2,
                       double* w, double* wpos, long nobj,
                       double minsize, double maxsize,

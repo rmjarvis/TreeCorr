@@ -1,26 +1,4 @@
 
-Changes from version 3.2.1 to 3.2.2
-===================================
-
-Bug fixes:
-----------
-
-- Fixed a bug in corr2 executable for NN cross-correlations when using 
-  lists for the random files. #37
-
-
-
-Changes from version 3.2.0 to 3.2.1
-===================================
-
-Bug fixes:
-----------
-
-- Fixed a bug for GG cross-correlation that somehow there wasn't a unit test
-  for (and now there is).
-
-
-
 Changes from version 3.1 to 3.2
 ===============================
 
@@ -94,3 +72,36 @@ Bug fixes:
 - Fixed NN correlations to properly use weight values.  This is particularly
   useful for setting some points to have w=0 to exclude them from the sums,
   which didn't used to work. (#29)
+
+
+
+Changes from version 3.2.0 to 3.2.1
+===================================
+
+Bug fixes:
+----------
+
+- Fixed a bug for GG cross-correlation that somehow there wasn't a unit test
+  for (and now there is).
+
+
+Changes from version 3.2.1 to 3.2.2
+===================================
+
+Bug fixes:
+----------
+
+- Fixed a bug in corr2 executable for NN cross-correlations when using 
+  lists for the random files. #37
+
+
+Changes from version 3.2.2 to 3.2.3
+===================================
+
+Bug fixes:
+----------
+
+- Turned off debugging output, which was accidentally left on.
+
+
+

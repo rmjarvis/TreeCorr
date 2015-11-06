@@ -15,6 +15,9 @@
 .. module:: util
 """
 
+import treecorr
+import numpy
+
 def gen_write(file_name, col_names, columns, prec=4, file_type=None, logger=None):
     """Write some columns to an output file with the given column names.
 
@@ -28,7 +31,6 @@ def gen_write(file_name, col_names, columns, prec=4, file_type=None, logger=None
                         extension)
     :param logger:      If desired, a logger object for logging. (default: None)
     """
-    import numpy
     if len(col_names) != len(columns):
         raise ValueError("col_names and columns are not the same length.")
     if len(columns) == 0:
@@ -66,9 +68,6 @@ def gen_write_ascii(file_name, col_names, columns, prec=4):
     :param columns:     A list of numpy arrays with the data to write.
     :param prec:        Output precision for ASCII. (default: 4)
     """
-    import numpy
-    import treecorr
-    
     ncol = len(col_names)
     data = numpy.empty( (len(columns[0]), ncol) )
     for i,col in enumerate(columns):
@@ -98,8 +97,6 @@ def gen_write_fits(file_name, col_names, columns):
     :param col_names:   A list of columns names for the given columns.
     :param columns:     A list of numpy arrays with the data to write.
     """
-    import numpy
-
     try:
         import fitsio
         data = numpy.empty(len(columns[0]), dtype=[ (name,'f8') for name in col_names ])
@@ -138,7 +135,6 @@ def gen_read(file_name, file_type=None, logger=None):
 
     :returns: a numpy ndarray with named columns
     """
-    import numpy
     # Figure out which file type the catalog is
     if file_type is None:
         import os
@@ -162,7 +158,6 @@ def gen_read(file_name, file_type=None, logger=None):
             with pyfits.open(file_name) as f:
                 data = f[1].data
     elif file_type == 'ASCII':
-        import numpy
         data = numpy.genfromtxt(file_name, names=True)
     else:
         raise ValueError("Invalid file_type %s"%file_type)
@@ -176,8 +171,8 @@ class LRU_Cache:
     but added a method for dynamic resizing.  The least recently used cached item is
     overwritten on a cache miss.
 
-    @param user_function   A python function to cache.
-    @param maxsize         Maximum number of inputs to cache.  [Default: 1024]
+    :param user_function:  A python function to cache.
+    :param maxsize:        Maximum number of inputs to cache.  [Default: 1024]
 
     Usage
     -----
@@ -241,7 +236,7 @@ class LRU_Cache:
         necessarily remove items from the cache if the cache is already filled.  Items are removed
         in least recently used order.
 
-        @param maxsize  The new maximum number of inputs to cache.
+        :param maxsize: The new maximum number of inputs to cache.
         """
         oldsize = len(self.cache)
         if maxsize == oldsize:
@@ -266,3 +261,15 @@ class LRU_Cache:
             else:
                 raise ValueError("Invalid maxsize: {0:}".format(maxsize))
 
+def double_ptr(x):
+    """
+    Cast x as a double* to pass to library C functions
+
+    :param x:   A numpy array assumed to have dtype = float.
+
+    :returns:   A version of the array that can be passed to cffi C functions.
+    """
+    # This fails if x is read_only
+    #return treecorr.ffi.cast('double*', treecorr.ffi.from_buffer(x))
+    # This works, presumably by ignoring the numpy read_only flag.  Although, I think it's ok.
+    return treecorr.ffi.cast('double*', x.ctypes.data)

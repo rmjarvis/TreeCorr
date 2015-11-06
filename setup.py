@@ -1,7 +1,6 @@
 from __future__ import print_function
-import sys
-import os
-import glob
+import sys,os,glob
+
 
 try:
     from setuptools import setup, Extension
@@ -17,7 +16,12 @@ except ImportError:
     from distutils.command.install_scripts import install_scripts
     easy_install = object  # Prevent error when using as base class
     import distutils
+    # cf. http://stackoverflow.com/questions/1612733/including-non-python-files-with-setup-py
+    from distutils.command.install import INSTALL_SCHEMES
+    for scheme in INSTALL_SCHEMES.values():
+        scheme['data'] = scheme['purelib']
     print("Using distutils version",distutils.__version__)
+
 
 from distutils.command.install_headers import install_headers 
 
@@ -268,7 +272,7 @@ ext=Extension("treecorr._treecorr",
               depends=headers,
               undef_macros = undef_macros)
 
-dependencies = ['numpy', 'six']
+dependencies = ['numpy', 'six', 'cffi']
 if py_version < '2.7':
     dependencies += ['argparse']
 else:
@@ -302,6 +306,7 @@ dist = setup(name="TreeCorr",
       url="https://github.com/rmjarvis/TreeCorr",
       download_url="https://github.com/rmjarvis/TreeCorr/releases/tag/v3.2.0.zip",
       packages=['treecorr'],
+      data_files=[('treecorr/include',headers)],
       ext_modules=[ext],
       install_requires=dependencies,
       cmdclass = {'build_ext': my_builder,

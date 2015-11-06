@@ -18,36 +18,6 @@
 import treecorr
 import numpy
 
-# Start by loading up the relevant C functions using ctypes
-import ctypes
-import os
-
-# The numpy version of this function tries to be more portable than the native
-# ctypes.cdll.LoadLibary or cdtypes.CDLL functions.
-_treecorr = numpy.ctypeslib.load_library('_treecorr',os.path.dirname(__file__))
-
-# some useful aliases
-cint = ctypes.c_int
-cdouble = ctypes.c_double
-cdouble_ptr = ctypes.POINTER(cdouble)
-cvoid_ptr = ctypes.c_void_p
-
-_treecorr.BuildGGCorr.restype = ctypes.c_void_p
-_treecorr.BuildGGCorr.argtypes = [
-    cdouble, cdouble, cint, cdouble, cdouble,
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
-_treecorr.DestroyGGCorr.argtypes = [ cvoid_ptr ]
-_treecorr.ProcessAutoGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint  ]
-_treecorr.ProcessAutoGG3D.argtypes = [ cvoid_ptr, cvoid_ptr, cint  ]
-_treecorr.ProcessAutoGGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cint  ]
-_treecorr.ProcessCrossGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossGG3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossGGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessPairwiseGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessPairwiseGG3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessPairwiseGGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-
 
 class GGCorrelation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point shear-shear correlation
@@ -113,23 +83,17 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.logger.debug('Finished building GGCorr')
 
     def _build_corr(self):
-        xip = self.xip.ctypes.data_as(cdouble_ptr)
-        xipi = self.xip_im.ctypes.data_as(cdouble_ptr)
-        xim = self.xim.ctypes.data_as(cdouble_ptr)
-        ximi = self.xim_im.ctypes.data_as(cdouble_ptr)
-        meanr = self.meanr.ctypes.data_as(cdouble_ptr)
-        meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
-        weight = self.weight.ctypes.data_as(cdouble_ptr)
-        npairs = self.npairs.ctypes.data_as(cdouble_ptr)
-        self.corr = _treecorr.BuildGGCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
-                                          xip,xipi,xim,ximi,
-                                          meanr,meanlogr,weight,npairs);
+        from treecorr.util import double_ptr as dp
+        self.corr = treecorr.lib.BuildGGCorr(
+                self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                dp(self.xip),dp(self.xip_im),dp(self.xim),dp(self.xim_im),
+                dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
  
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'corr'):    # In case __init__ failed to get that far
-            _treecorr.DestroyGGCorr(self.corr)
+            treecorr.lib.DestroyGGCorr(self.corr)
 
     def copy(self):
         import copy
@@ -204,11 +168,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         if cat.coords == 'flat':
-            _treecorr.ProcessAutoGGFlat(self.corr, field.data, self.output_dots)
+            treecorr.lib.ProcessAutoGGFlat(self.corr, field.data, self.output_dots)
         elif metric == 'Rperp':
-            _treecorr.ProcessAutoGGPerp(self.corr, field.data, self.output_dots)
+            treecorr.lib.ProcessAutoGGPerp(self.corr, field.data, self.output_dots)
         else:
-            _treecorr.ProcessAutoGG3D(self.corr, field.data, self.output_dots)
+            treecorr.lib.ProcessAutoGG3D(self.corr, field.data, self.output_dots)
 
 
     def process_cross(self, cat1, cat2, metric=None, num_threads=None):
@@ -258,11 +222,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         if cat1.coords == 'flat':
-            _treecorr.ProcessCrossGGFlat(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr.lib.ProcessCrossGGFlat(self.corr, f1.data, f2.data, self.output_dots)
         elif metric == 'Rperp':
-            _treecorr.ProcessCrossGGPerp(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr.lib.ProcessCrossGGPerp(self.corr, f1.data, f2.data, self.output_dots)
         else:
-            _treecorr.ProcessCrossGG3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr.lib.ProcessCrossGG3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -305,11 +269,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getGSimpleField()
 
         if cat1.coords == 'flat':
-            _treecorr.ProcessPairwiseGGFlat(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr.lib.ProcessPairwiseGGFlat(self.corr, f1.data, f2.data, self.output_dots)
         elif metric == 'Rperp':
-            _treecorr.ProcessPairwiseGGPerp(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr.lib.ProcessPairwiseGGPerp(self.corr, f1.data, f2.data, self.output_dots)
         else:
-            _treecorr.ProcessPairwiseGG3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr.lib.ProcessPairwiseGG3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def finalize(self, varg1, varg2):
@@ -502,6 +466,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.varxi = data['sigma_xi']**2
         self.weight = data['weight']
         self.npairs = data['npairs']
+        self._build_corr()
 
 
     def calculateMapSq(self, m2_uform=None):

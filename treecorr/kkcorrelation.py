@@ -18,36 +18,6 @@
 import treecorr
 import numpy
 
-# Start by loading up the relevant C functions using ctypes
-import ctypes
-import os
-
-# The numpy version of this function tries to be more portable than the native
-# ctypes.cdll.LoadLibary or cdtypes.CDLL functions.
-_treecorr = numpy.ctypeslib.load_library('_treecorr',os.path.dirname(__file__))
-
-# some useful aliases
-cint = ctypes.c_int
-cdouble = ctypes.c_double
-cdouble_ptr = ctypes.POINTER(cdouble)
-cvoid_ptr = ctypes.c_void_p
-
-_treecorr.BuildKKCorr.restype = cvoid_ptr
-_treecorr.BuildKKCorr.argtypes = [
-    cdouble, cdouble, cint, cdouble, cdouble,
-    cdouble_ptr, 
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr ]
-_treecorr.DestroyKKCorr.argtypes = [ cvoid_ptr ]
-_treecorr.ProcessAutoKKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessAutoKK3D.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessAutoKKPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossKKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossKK3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossKKPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessPairwiseKKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessPairwiseKK3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessPairwiseKKPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-
 
 class KKCorrelation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point kappa-kappa correlation
@@ -111,19 +81,17 @@ class KKCorrelation(treecorr.BinnedCorr2):
         self.logger.debug('Finished building KKCorr')
 
     def _build_corr(self):
-        xi = self.xi.ctypes.data_as(cdouble_ptr)
-        meanr = self.meanr.ctypes.data_as(cdouble_ptr)
-        meanlogr = self.meanlogr.ctypes.data_as(cdouble_ptr)
-        weight = self.weight.ctypes.data_as(cdouble_ptr)
-        npairs = self.npairs.ctypes.data_as(cdouble_ptr)
-        self.corr = _treecorr.BuildKKCorr(self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
-                                          xi,meanr,meanlogr,weight,npairs);
+        from treecorr.util import double_ptr as dp
+        self.corr = treecorr.lib.BuildKKCorr(
+                self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                dp(self.xi),
+                dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'corr'):    # In case __init__ failed to get that far
-            _treecorr.DestroyKKCorr(self.corr)
+            treecorr.lib.DestroyKKCorr(self.corr)
 
     def copy(self):
         import copy
@@ -184,11 +152,11 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         if cat.coords == 'flat':
-            _treecorr.ProcessAutoKKFlat(self.corr, field.data, self.output_dots)
+            treecorr.lib.ProcessAutoKKFlat(self.corr, field.data, self.output_dots)
         elif metric == 'Rperp':
-            _treecorr.ProcessAutoKKPerp(self.corr, field.data, self.output_dots)
+            treecorr.lib.ProcessAutoKKPerp(self.corr, field.data, self.output_dots)
         else:
-            _treecorr.ProcessAutoKK3D(self.corr, field.data, self.output_dots)
+            treecorr.lib.ProcessAutoKK3D(self.corr, field.data, self.output_dots)
 
 
     def process_cross(self, cat1, cat2, metric=None, num_threads=None):
@@ -235,11 +203,11 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         if cat1.coords == 'flat':
-            _treecorr.ProcessCrossKKFlat(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr.lib.ProcessCrossKKFlat(self.corr, f1.data, f2.data, self.output_dots)
         elif metric == 'Rperp':
-            _treecorr.ProcessCrossKKPerp(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr.lib.ProcessCrossKKPerp(self.corr, f1.data, f2.data, self.output_dots)
         else:
-            _treecorr.ProcessCrossKK3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr.lib.ProcessCrossKK3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -282,11 +250,11 @@ class KKCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getKSimpleField()
 
         if cat1.coords == 'flat':
-            _treecorr.ProcessPairwiseKKFlat(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr.lib.ProcessPairwiseKKFlat(self.corr, f1.data, f2.data, self.output_dots)
         elif metric == 'Rperp':
-            _treecorr.ProcessPairwiseKKPerp(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr.lib.ProcessPairwiseKKPerp(self.corr, f1.data, f2.data, self.output_dots)
         else:
-            _treecorr.ProcessPairwiseKK3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr.lib.ProcessPairwiseKK3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def finalize(self, vark1, vark2):
@@ -457,5 +425,6 @@ class KKCorrelation(treecorr.BinnedCorr2):
         self.varxi = data['sigma_xi']**2
         self.weight = data['weight']
         self.npairs = data['npairs']
+        self._build_corr()
 
 

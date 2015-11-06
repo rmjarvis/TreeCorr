@@ -18,37 +18,6 @@
 import treecorr
 import numpy
 
-# Start by loading up the relevant C functions using ctypes
-import ctypes
-import os
-
-# The numpy version of this function tries to be more portable than the native
-# ctypes.cdll.LoadLibary or cdtypes.CDLL functions.
-_treecorr = numpy.ctypeslib.load_library('_treecorr',os.path.dirname(__file__))
-
-# some useful aliases
-cint = ctypes.c_int
-cdouble = ctypes.c_double
-cdouble_ptr = ctypes.POINTER(cdouble)
-cvoid_ptr = ctypes.c_void_p
-
-_treecorr.BuildKKKCorr.restype = cvoid_ptr
-_treecorr.BuildKKKCorr.argtypes = [
-    cdouble, cdouble, cint, cdouble, cdouble,
-    cdouble, cdouble, cint, cdouble, cdouble,
-    cdouble, cdouble, cint, cdouble, cdouble,
-    cdouble_ptr,
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
-    cdouble_ptr, cdouble_ptr ]
-_treecorr.DestroyKKKCorr.argtypes = [ cvoid_ptr ]
-_treecorr.ProcessAutoKKKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessAutoKKK3D.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessAutoKKKPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossKKKFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossKKK3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossKKKPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-
 
 class KKKCorrelation(treecorr.BinnedCorr3):
     """This class handles the calculation and storage of a 3-point kappa-kappa-kappa correlation
@@ -139,30 +108,21 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         self.logger.debug('Finished building KKKCorr')
 
     def _build_corr(self):
-        zeta = self.zeta.ctypes.data_as(cdouble_ptr)
-        meand1 = self.meand1.ctypes.data_as(cdouble_ptr)
-        meanlogd1 = self.meanlogd1.ctypes.data_as(cdouble_ptr)
-        meand2 = self.meand2.ctypes.data_as(cdouble_ptr)
-        meanlogd2 = self.meanlogd2.ctypes.data_as(cdouble_ptr)
-        meand3 = self.meand3.ctypes.data_as(cdouble_ptr)
-        meanlogd3 = self.meanlogd3.ctypes.data_as(cdouble_ptr)
-        meanu = self.meanu.ctypes.data_as(cdouble_ptr)
-        meanv = self.meanv.ctypes.data_as(cdouble_ptr)
-        weight = self.weight.ctypes.data_as(cdouble_ptr)
-        ntri = self.ntri.ctypes.data_as(cdouble_ptr)
-        self.corr = _treecorr.BuildKKKCorr(
+        from treecorr.util import double_ptr as dp
+        self.corr = treecorr.lib.BuildKKKCorr(
                 self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                 self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                 self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
-                zeta, 
-                meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, 
-                weight, ntri);
+                dp(self.zeta), 
+                dp(self.meand1), dp(self.meanlogd1), dp(self.meand2), dp(self.meanlogd2),
+                dp(self.meand3), dp(self.meanlogd3), dp(self.meanu), dp(self.meanv), 
+                dp(self.weight), dp(self.ntri));
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'corr'):    # In case __init__ failed to get that far
-            _treecorr.DestroyKKKCorr(self.corr)
+            treecorr.lib.DestroyKKKCorr(self.corr)
 
     def copy(self):
         import copy
@@ -223,11 +183,11 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         if cat.coords == 'flat':
-            _treecorr.ProcessAutoKKKFlat(self.corr, field.data, self.output_dots)
+            treecorr.lib.ProcessAutoKKKFlat(self.corr, field.data, self.output_dots)
         elif metric == 'Rperp':
-            _treecorr.ProcessAutoKKKPerp(self.corr, field.data, self.output_dots)
+            treecorr.lib.ProcessAutoKKKPerp(self.corr, field.data, self.output_dots)
         else:
-            _treecorr.ProcessAutoKKK3D(self.corr, field.data, self.output_dots)
+            treecorr.lib.ProcessAutoKKK3D(self.corr, field.data, self.output_dots)
 
     def process_cross21(self, cat1, cat2, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where two of the 
@@ -296,11 +256,11 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         if cat1.coords == 'flat':
-            _treecorr.ProcessCrossKKKFlat(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+            treecorr.lib.ProcessCrossKKKFlat(self.corr, f1.data, f2.data, f3.data, self.output_dots)
         elif metric == 'Rperp':
-            _treecorr.ProcessCrossKKKPerp(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+            treecorr.lib.ProcessCrossKKKPerp(self.corr, f1.data, f2.data, f3.data, self.output_dots)
         else:
-            _treecorr.ProcessCrossKKK3D(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+            treecorr.lib.ProcessCrossKKK3D(self.corr, f1.data, f2.data, f3.data, self.output_dots)
 
 
     def finalize(self, vark1, vark2, vark3):
@@ -560,5 +520,6 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         self.varzeta = data['sigma_zeta'].reshape(s)**2
         self.weight = data['weight'].reshape(s)
         self.ntri = data['ntri'].reshape(s)
+        self._build_corr()
 
 

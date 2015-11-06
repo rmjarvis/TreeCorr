@@ -14,6 +14,13 @@
 
 version = '3.3'
 
+# Load the C functions with cffi
+import os,cffi,glob
+ffi = cffi.FFI()
+for file_name in glob.glob(os.path.join(os.path.dirname(__file__),'include','*_C.h')):
+    ffi.cdef(open(file_name).read())
+lib = ffi.dlopen(os.path.join(os.path.dirname(__file__),'_treecorr.so'))
+
 from . import util
 from .celestial import CelestialCoord, angle_units, arcsec, arcmin, degrees, hours, radians
 from .config import read_config, set_omp_threads
@@ -32,3 +39,4 @@ from .kkkcorrelation import KKKCorrelation
 from .gggcorrelation import GGGCorrelation
 from .corr2 import corr2, print_corr2_params
 from .corr3 import corr3, print_corr3_params
+

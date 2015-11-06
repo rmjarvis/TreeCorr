@@ -18,38 +18,6 @@
 import treecorr
 import numpy
 
-# Start by loading up the relevant C functions using ctypes
-import ctypes
-import os
-
-# The numpy version of this function tries to be more portable than the native
-# ctypes.cdll.LoadLibary or cdtypes.CDLL functions.
-_treecorr = numpy.ctypeslib.load_library('_treecorr',os.path.dirname(__file__))
-
-# some useful aliases
-cint = ctypes.c_int
-cdouble = ctypes.c_double
-cdouble_ptr = ctypes.POINTER(cdouble)
-cvoid_ptr = ctypes.c_void_p
-
-_treecorr.BuildGGGCorr.restype = cvoid_ptr
-_treecorr.BuildGGGCorr.argtypes = [
-    cdouble, cdouble, cint, cdouble, cdouble,
-    cdouble, cdouble, cint, cdouble, cdouble,
-    cdouble, cdouble, cint, cdouble, cdouble,
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
-    cdouble_ptr, cdouble_ptr, cdouble_ptr, cdouble_ptr,
-    cdouble_ptr, cdouble_ptr ]
-_treecorr.DestroyGGGCorr.argtypes = [ cvoid_ptr ]
-_treecorr.ProcessAutoGGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessAutoGGG3D.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessAutoGGGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossGGGFlat.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossGGG3D.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-_treecorr.ProcessCrossGGGPerp.argtypes = [ cvoid_ptr, cvoid_ptr, cvoid_ptr, cvoid_ptr, cint ]
-
 
 class GGGCorrelation(treecorr.BinnedCorr3):
     """This class handles the calculation and storage of a 3-point shear-shear-shear correlation
@@ -187,37 +155,22 @@ class GGGCorrelation(treecorr.BinnedCorr3):
     def gam3(self, g3): self.gam3r = g3.real; self.gam3i = g3.imag
 
     def _build_corr(self):
-        gam0r = self.gam0r.ctypes.data_as(cdouble_ptr)
-        gam0i = self.gam0i.ctypes.data_as(cdouble_ptr)
-        gam1r = self.gam1r.ctypes.data_as(cdouble_ptr)
-        gam1i = self.gam1i.ctypes.data_as(cdouble_ptr)
-        gam2r = self.gam2r.ctypes.data_as(cdouble_ptr)
-        gam2i = self.gam2i.ctypes.data_as(cdouble_ptr)
-        gam3r = self.gam3r.ctypes.data_as(cdouble_ptr)
-        gam3i = self.gam3i.ctypes.data_as(cdouble_ptr)
-        meand1 = self.meand1.ctypes.data_as(cdouble_ptr)
-        meanlogd1 = self.meanlogd1.ctypes.data_as(cdouble_ptr)
-        meand2 = self.meand2.ctypes.data_as(cdouble_ptr)
-        meanlogd2 = self.meanlogd2.ctypes.data_as(cdouble_ptr)
-        meand3 = self.meand3.ctypes.data_as(cdouble_ptr)
-        meanlogd3 = self.meanlogd3.ctypes.data_as(cdouble_ptr)
-        meanu = self.meanu.ctypes.data_as(cdouble_ptr)
-        meanv = self.meanv.ctypes.data_as(cdouble_ptr)
-        weight = self.weight.ctypes.data_as(cdouble_ptr)
-        ntri = self.ntri.ctypes.data_as(cdouble_ptr)
-        self.corr = _treecorr.BuildGGGCorr(
+        from treecorr.util import double_ptr as dp
+        self.corr = treecorr.lib.BuildGGGCorr(
                 self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                 self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                 self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
-                gam0r, gam0i, gam1r, gam1i, gam2r, gam2i, gam3r, gam3i,
-                meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, 
-                weight, ntri);
+                dp(self.gam0r), dp(self.gam0i), dp(self.gam1r), dp(self.gam1i),
+                dp(self.gam2r), dp(self.gam2i), dp(self.gam3r), dp(self.gam3i),
+                dp(self.meand1), dp(self.meanlogd1), dp(self.meand2), dp(self.meanlogd2),
+                dp(self.meand3), dp(self.meanlogd3), dp(self.meanu), dp(self.meanv), 
+                dp(self.weight), dp(self.ntri));
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'corr'):    # In case __init__ failed to get that far
-            _treecorr.DestroyGGGCorr(self.corr)
+            treecorr.lib.DestroyGGGCorr(self.corr)
 
     def copy(self):
         import copy
@@ -281,11 +234,11 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         if cat.coords == 'flat':
-            _treecorr.ProcessAutoGGGFlat(self.corr, field.data, self.output_dots)
+            treecorr.lib.ProcessAutoGGGFlat(self.corr, field.data, self.output_dots)
         elif metric == 'Rperp':
-            _treecorr.ProcessAutoGGGPerp(self.corr, field.data, self.output_dots)
+            treecorr.lib.ProcessAutoGGGPerp(self.corr, field.data, self.output_dots)
         else:
-            _treecorr.ProcessAutoGGG3D(self.corr, field.data, self.output_dots)
+            treecorr.lib.ProcessAutoGGG3D(self.corr, field.data, self.output_dots)
 
     def process_cross21(self, cat1, cat2, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where two of the 
@@ -354,11 +307,11 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         if cat1.coords == 'flat':
-            _treecorr.ProcessCrossGGGFlat(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+            treecorr.lib.ProcessCrossGGGFlat(self.corr, f1.data, f2.data, f3.data, self.output_dots)
         elif metric == 'Rperp':
-            _treecorr.ProcessCrossGGGPerp(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+            treecorr.lib.ProcessCrossGGGPerp(self.corr, f1.data, f2.data, f3.data, self.output_dots)
         else:
-            _treecorr.ProcessCrossGGG3D(self.corr, f1.data, f2.data, f3.data, self.output_dots)
+            treecorr.lib.ProcessCrossGGG3D(self.corr, f1.data, f2.data, f3.data, self.output_dots)
 
 
     def finalize(self, varg1, varg2, varg3):

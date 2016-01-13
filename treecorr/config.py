@@ -353,22 +353,28 @@ def set_omp_threads(num_threads, logger=None):
                         the requested number of threads.
     """
     input_num_threads = num_threads  # Save the input value.
+
+    # If num_threads is auto, get it from cpu_count
     if num_threads is None or num_threads <= 0:
         import multiprocessing
         num_threads = multiprocessing.cpu_count()
         if logger:
             logger.debug('multiprocessing.cpu_count() = %d',num_threads)
-    if num_threads > 1:
-        if logger:
-            logger.debug('Telling OpenMP to use %d threads',num_threads)
-        num_threads = treecorr.lib.SetOMPThreads(num_threads)
-        if logger:
-            logger.debug('OpenMP reports that it will use %d threads',num_threads)
-            if num_threads > 1:
-                logger.info('Using %d threads.',num_threads)
-            elif input_num_threads is not None and input_num_threads != 1:
-                # Only warn if the user specifically asked for num_threads != 1.
-                logger.warn('Unable to use multiple threads, since OpenMP is not enabled.')
+
+    # Tell OpenMP to use this many threads
+    if logger:
+        logger.debug('Telling OpenMP to use %d threads',num_threads)
+    num_threads = treecorr.lib.SetOMPThreads(num_threads)
+
+    # Report back appropriately.
+    if logger:
+        logger.debug('OpenMP reports that it will use %d threads',num_threads)
+        if num_threads > 1:
+            logger.info('Using %d threads.',num_threads)
+        elif input_num_threads is not None and input_num_threads != 1:
+            # Only warn if the user specifically asked for num_threads != 1.
+            logger.warn('Unable to use multiple threads, since OpenMP is not enabled.')
+
     return num_threads
 
 

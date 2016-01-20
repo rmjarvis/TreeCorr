@@ -97,6 +97,8 @@ class BinnedCorr2(object):
                         - median = Use the median of the coordinate being split.
                         - middle = Use the middle of the range; i.e. the average of the minimum and
                           maximum value.
+                        - random: Use a random point somewhere in the middle two quartiles of the
+                          range. 
 
     :param max_top:     The maximum number of top layers to use when setting up the field. 
                         The top-level cells are the cells where each calculation job starts.
@@ -149,7 +151,7 @@ class BinnedCorr2(object):
         'output_dots' : (bool, False, None, None,
                 'Whether to output dots to the stdout during the C++-level computation.',
                 'The default is True if verbose >= 2 and there is no log_file.  Else False.'),
-        'split_method' : (str, False, 'mean', ['mean', 'median', 'middle'],
+        'split_method' : (str, False, 'mean', ['mean', 'median', 'middle', 'random'],
                 'Which method to use for splitting cells.'),
         'max_top' : (int, False, 10, None,
                 'The maximum number of top layers to use when setting up the field.'),
@@ -234,7 +236,7 @@ class BinnedCorr2(object):
                              self.sep_unit_name,self.bin_size)
 
         self.split_method = self.config.get('split_method','mean')
-        if self.split_method not in ['middle', 'median', 'mean']:
+        if self.split_method not in ['middle', 'median', 'mean', 'random']:
             raise ValueError("Invalid split_method %s"%self.split_method)
         self.logger.debug("Using split_method = %s",self.split_method)
 

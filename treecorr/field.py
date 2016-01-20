@@ -21,7 +21,8 @@ import numpy
 def _parse_split_method(split_method):
     if split_method == 'middle': return 0
     elif split_method == 'median': return 1
-    else: return 2
+    elif split_method == 'mean': return 2
+    else: return 3
 
 
 class NField(object):
@@ -35,7 +36,7 @@ class NField(object):
     :param cat:         The catalog from which to make the field.
     :param min_size:    The minimum radius cell required (usually min_sep).
     :param max_size:    The maximum radius cell required (usually max_sep).
-    :param split_method: Which split method to use ('mean', 'median', or 'middle')
+    :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                         (default: 'mean')
     :param max_top:     The maximum number of top layers to use when setting up the field. 
                         (default: 10)
@@ -112,7 +113,7 @@ class KField(object):
     :param cat:         The catalog from which to make the field.
     :param min_size:    The minimum radius cell required (usually min_sep).
     :param max_size:    The maximum radius cell required (usually max_sep).
-    :param split_method: Which split method to use ('mean', 'median', or 'middle')
+    :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                         (default: 'mean')
     :param max_top:     The maximum number of top layers to use when setting up the
                         field. (default: 10)
@@ -194,7 +195,7 @@ class GField(object):
     :param cat:         The catalog from which to make the field.
     :param min_size:    The minimum radius cell required (usually min_sep).
     :param max_size:    The maximum radius cell required (usually max_sep).
-    :param split_method: Which split method to use ('mean', 'median', or 'middle')
+    :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                         (default: 'mean')
     :param max_top:     The maximum number of top layers to use when setting up the
                         field. (default: 10)

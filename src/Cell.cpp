@@ -12,6 +12,9 @@
  *    and/or other materials provided with the distribution.
  */
 
+#include <sys/time.h>
+#include <fcntl.h>
+
 #include "dbg.h"
 #include "Cell.h"
 #include "Bounds.h"
@@ -192,6 +195,57 @@ struct DataCompareToValue
     { return cd->getPos().get(split) < splitvalue; }
 };
 
+void seed_urandom()
+{
+    // This implementation shamelessly taken from:
+    // http://stackoverflow.com/questions/2572366/how-to-use-dev-random-or-urandom-in-c
+    int randomData = open("/dev/urandom", O_RDONLY);
+    int myRandomInteger;
+    size_t randomDataLen = 0;
+    while (randomDataLen < sizeof myRandomInteger)
+    {
+        ssize_t result = read(randomData, ((char*)&myRandomInteger) + randomDataLen,
+                              (sizeof myRandomInteger) - randomDataLen);
+        if (result < 0)
+            throw std::runtime_error("Unable to read from /dev/urandom");
+        randomDataLen += result;
+    }
+    close(randomData);
+    srand(myRandomInteger);
+}
+
+void seed_time()
+{
+    struct timeval tp;
+    gettimeofday(&tp,NULL);
+    srand(tp.tv_usec);
+}
+
+size_t select_random(size_t lo, size_t hi)
+{
+    static bool first = true;
+
+    if (first) {
+        // This is a copy of the way GalSim seeds its random number generator using urandom first,
+        // and then if that fails, using the time.
+        // Except we just use this to seed the std rand function, not a boost rng.
+        // Should be fine for this purpose.
+        try {
+            seed_urandom();
+        } catch(...) {
+            seed_time();
+        }
+        first = false;
+    }
+    if (lo == hi) {
+        return lo;
+    } else {
+        size_t mid = int((rand() / RAND_MAX) * (hi-lo+1)) + lo;
+        if (mid > hi) mid = hi;  // Just in case rand() == RAND_MAX
+        return mid;
+    }
+}
+
 template <int D, int C>
 size_t SplitData(
     std::vector<CellData<D,C>*>& vdata, SplitMethod sm, 
@@ -218,10 +272,8 @@ size_t SplitData(
            { // Median is the point which divides the group into equal numbers
                DataCompare<D,C> comp(split);
                mid = (start+end)/2;
-               typename std::vector<CellData<D,C>*>::iterator middle =
-                   vdata.begin()+mid;
-               std::nth_element(
-                   vdata.begin()+start,middle,vdata.begin()+end,comp);
+               typename std::vector<CellData<D,C>*>::iterator middle = vdata.begin()+mid;
+               std::nth_element(vdata.begin()+start,middle,vdata.begin()+end,comp);
            } break;
       case MEAN :
            { // Mean is the weighted average value of x or y
@@ -230,6 +282,19 @@ size_t SplitData(
                typename std::vector<CellData<D,C>*>::iterator middle =
                    std::partition(vdata.begin()+start,vdata.begin()+end,comp);
                mid = middle - vdata.begin();
+           } break;
+      case RANDOM :
+           { // Random is a random point from the first quartile to the third quartile
+               DataCompare<D,C> comp(split);
+
+               // The code for RANDOM is same as MEDIAN except for the next line.
+               // Note: The lo and hi values are slightly subtle.  We want to make sure if there
+               // are only two values, we actually split.  So if start=1, end=3, the only possible
+               // result should be mid=2.  Otherwise, we want roughly 1/4 and 3/4 of the span.
+               mid = select_random(end-3*(end-start)/4,start+3*(end-start)/4);
+
+               typename std::vector<CellData<D,C>*>::iterator middle = vdata.begin()+mid;
+               std::nth_element(vdata.begin()+start,middle,vdata.begin()+end,comp);
            } break;
       default :
            myerror("Invalid SplitMethod");

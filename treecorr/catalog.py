@@ -251,6 +251,8 @@ class Catalog(object):
                         - median: Use the median of the coordinate being split.
                         - middle: Use the middle of the range; i.e. the average of the minimum and
                           maximum value.
+                        - random: Use a random point somewhere in the middle two quartiles of the
+                          range. 
 
     :param cat_precision: The precision to use when writing a Catalog to an ASCII file. This should
                         be an integer, which specifies how many digits to write. (default: 16)
@@ -348,7 +350,7 @@ class Catalog(object):
         'log_file' : (str, False, None, None,
                 'If desired, an output file for the logging output.',
                 'The default is to write the output to stdout.'),
-        'split_method' : (str, False, 'mean', ['mean', 'median', 'middle'],
+        'split_method' : (str, False, 'mean', ['mean', 'median', 'middle', 'random'],
                 'Which method to use for splitting cells.'),
         'cat_precision' : (int, False, 16, None,
                 'The number of digits after the decimal in the output.'),
@@ -1151,7 +1153,7 @@ class Catalog(object):
 
         :param min_size:    The minimum radius cell required (usually min_sep).
         :param max_size:    The maximum radius cell required (usually max_sep).
-        :param split_method: Which split method to use ('mean', 'median', or 'middle')
+        :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                             (default: 'mean'; this value can also be given in the Catalog 
                             constructor in the config dict.)
         :param max_top:     The maximum number of top layers to use when setting up the
@@ -1180,7 +1182,7 @@ class Catalog(object):
 
         :param min_size:    The minimum radius cell required (usually min_sep).
         :param max_size:    The maximum radius cell required (usually max_sep).
-        :param split_method: Which split method to use ('mean', 'median', or 'middle')
+        :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                             (default: 'mean'; this value can also be given in the Catalog 
                             constructor in the config dict.)
         :param max_top:     The maximum number of top layers to use when setting up the
@@ -1211,7 +1213,7 @@ class Catalog(object):
 
         :param min_size:    The minimum radius cell required (usually min_sep).
         :param max_size:    The maximum radius cell required (usually max_sep).
-        :param split_method: Which split method to use ('mean', 'median', or 'middle')
+        :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                             (default: 'mean'; this value can also be given in the Catalog 
                             constructor in the config dict.)
         :param max_top:     The maximum number of top layers to use when setting up the

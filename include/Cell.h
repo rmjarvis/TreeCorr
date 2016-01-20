@@ -15,7 +15,7 @@
 #ifndef TreeCorr_Cell_H
 #define TreeCorr_Cell_H
 
-enum SplitMethod { MIDDLE, MEDIAN, MEAN };
+enum SplitMethod { MIDDLE, MEDIAN, MEAN, RANDOM };
 
 #include <iostream>
 #include <algorithm>

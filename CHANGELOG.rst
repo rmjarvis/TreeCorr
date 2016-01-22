@@ -23,6 +23,9 @@ API changes:
 - Change Field classes to take ``min_size`` and ``max_size`` directly, rather
   than having these be calculated from ``min_sep``, ``max_sep``, ``b`` and
   ``metric``.
+- Removed the ``z_units`` option for ``Catalog``, since it doesn't actually
+  make sense.  Any ``z`` field should be in physical units, not arcsec, 
+  degrees, etc.
 
 
 New features:
@@ -37,7 +40,7 @@ New features:
   compiled library.  So in case anyone wants to use the C++ code directly in
   another application, rather than through the python interface, that's now
   easier to do.  The directory to add to the include path is available as
-  `treecorr.include_dir` and the library to link is `treecorr.lib_file`.
+  ``treecorr.include_dir`` and the library to link is ``treecorr.lib_file``.
 
 
 Bug fixes:

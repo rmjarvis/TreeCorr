@@ -181,10 +181,6 @@ class Catalog(object):
                         arcsec, arcmin, degrees, hours, radians.  (default: radians, although 
                         with (x,y) positions, you can often just ignore the units, and the output
                         separations will be in whatever units x and y are in.)
-    :param z_units:     The units to use for the z values, given as a string.  Valid options are
-                        arcsec, arcmin, degrees, hours, radians.  (default: radians, although 
-                        when using x,y,z, it really doesn't make much sense to apply units, so
-                        you probably don't want to use this parameter.)
     :param ra_units:    The units to use for the ra values, given as a string.  Valid options are
                         arcsec, arcmin, degrees, hours, radians. (required when using ra_col or
                         providing ra directly)
@@ -292,8 +288,6 @@ class Catalog(object):
                 'The units of x values.'),
         'y_units' : (str, True, None, treecorr.angle_units.keys(),
                 'The units of y values.'),
-        'z_units' : (str, True, None, treecorr.angle_units.keys(),
-                'The units of z values.'),
         'ra_units' : (str, True, None, treecorr.angle_units.keys(),
                 'The units of ra values. Required when using ra_col.'),
         'dec_units' : (str, True, None, treecorr.angle_units.keys(),
@@ -457,9 +451,6 @@ class Catalog(object):
             self.y_units = treecorr.config.get_from_list(self.config,'y_units',num,str,'radians')
             self.x *= self.x_units
             self.y *= self.y_units
-            if self.z is not None:
-                self.z_units = treecorr.config.get_from_list(self.config,'z_units',num,str,'radians')
-                self.z *= self.z_units
         else:
             if not self.config.get('ra_units',None):
                 raise ValueError("ra_units is required when using ra, dec")
@@ -627,7 +618,7 @@ class Catalog(object):
                 self.y *= self.r
                 self.z *= self.r
                 self.coords = '3d'
-            self.x_units = self.y_units = self.z_units = 1.
+            self.x_units = self.y_units = 1.
         else:
             if self.z is None:
                 self.coords = 'flat'
@@ -1348,7 +1339,7 @@ class Catalog(object):
             columns.append(self.y / self.y_units)
             if self.z is not None:
                 col_names.append('z')
-                columns.append(self.z / self.z_units)
+                columns.append(self.z)
         if self.nontrivial_w:
             col_names.append('w')
             columns.append(self.w)

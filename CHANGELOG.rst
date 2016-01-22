@@ -43,3 +43,6 @@ New features:
 Bug fixes:
 ----------
 
+- Fixed a bug where num_threads=1 didn't actually do anything, so it wasn't
+  possible to get TreeCorr not to use multi-threading.  Thanks to Eric Baxter
+  for this bug report.

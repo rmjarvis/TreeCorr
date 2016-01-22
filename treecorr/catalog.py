@@ -66,10 +66,13 @@ class Catalog(object):
 
     A Catalog object will have available the following attributes:
 
-        :x:      The x positions, if defined, as a numpy array. (None otherwise)
-        :y:      The y positions, if defined, as a numpy array. (None otherwise)
-        :ra:     The right ascension, if defined, as a numpy array. (None otherwise)
-        :dec:    The declination, if defined, as a numpy array. (None otherwise)
+        :x:      The x positions, if defined, as a numpy array (converted to radians if x_units
+                 was given). (None otherwise)
+        :y:      The y positions, if defined, as a numpy array (converted to radians if y_units
+                 was given). (None otherwise)
+        :z:      The z positions, if defined, as a numpy array. (None otherwise)
+        :ra:     The right ascension, if defined, as a numpy array (in radians). (None otherwise)
+        :dec:    The declination, if defined, as a numpy array (in radians). (None otherwise)
         :r:      The distance, if defined, as a numpy array. (None otherwise)
         :w:      The weights, as a numpy array. (All 1's if no weight column provided.)
         :wpos:   The weights for position centroiding, as a numpy array.  (All 1's if neither

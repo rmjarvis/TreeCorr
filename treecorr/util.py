@@ -270,6 +270,6 @@ def double_ptr(x):
     :returns:   A version of the array that can be passed to cffi C functions.
     """
     # This fails if x is read_only
-    #return treecorr.ffi.cast('double*', treecorr.ffi.from_buffer(x))
+    #return treecorr._ffi.cast('double*', treecorr._ffi.from_buffer(x))
     # This works, presumably by ignoring the numpy read_only flag.  Although, I think it's ok.
-    return treecorr.ffi.cast('double*', x.ctypes.data)
+    return treecorr._ffi.cast('double*', x.ctypes.data)

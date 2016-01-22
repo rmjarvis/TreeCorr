@@ -57,24 +57,24 @@ class NField(object):
 
         if cat.coords == 'flat':
             self.flat = True
-            self.data = treecorr.lib.BuildNFieldFlat(dp(cat.x),dp(cat.y),
-                                                     dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                     min_size,max_size,sm,max_top)
+            self.data = treecorr._lib.BuildNFieldFlat(dp(cat.x),dp(cat.y),
+                                                      dp(cat.w),dp(cat.wpos),cat.ntot,
+                                                      min_size,max_size,sm,max_top)
             if logger:
                 logger.debug('Finished building NField 2D')
         else:
             self.flat = False
             if cat.coords == 'spherical':
-                self.data = treecorr.lib.BuildNFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                           dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                           min_size,max_size,sm,max_top)
+                self.data = treecorr._lib.BuildNFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),
+                                                            dp(cat.w),dp(cat.wpos),cat.ntot,
+                                                            min_size,max_size,sm,max_top)
                 self.spher = True
                 if logger:
                     logger.debug('Finished building NField Sphere')
             else:
-                self.data = treecorr.lib.BuildNField3D(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                       dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                       min_size,max_size,sm,max_top)
+                self.data = treecorr._lib.BuildNField3D(dp(cat.x),dp(cat.y),dp(cat.z),
+                                                        dp(cat.w),dp(cat.wpos),cat.ntot,
+                                                        min_size,max_size,sm,max_top)
                 self.spher = False
                 if logger:
                     logger.debug('Finished building NField 3D')
@@ -85,21 +85,21 @@ class NField(object):
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             if self.flat:
-                treecorr.lib.DestroyNFieldFlat(self.data)
+                treecorr._lib.DestroyNFieldFlat(self.data)
             elif self.spher:
-                treecorr.lib.DestroyNFieldSphere(self.data)
+                treecorr._lib.DestroyNFieldSphere(self.data)
             else:
-                treecorr.lib.DestroyNField3D(self.data)
+                treecorr._lib.DestroyNField3D(self.data)
 
     @property
     def nTopLevelNodes(self):
         """The number of top-level nodes."""
         if self.flat:
-            return treecorr.lib.NFieldFlatGetNTopLevel(self.data)
+            return treecorr._lib.NFieldFlatGetNTopLevel(self.data)
         elif self.spher:
-            return treecorr.lib.NFieldSphereGetNTopLevel(self.data)
+            return treecorr._lib.NFieldSphereGetNTopLevel(self.data)
         else:
-            return treecorr.lib.NField3DGetNTopLevel(self.data)
+            return treecorr._lib.NField3DGetNTopLevel(self.data)
 
 
 class KField(object):
@@ -134,27 +134,27 @@ class KField(object):
 
         if cat.coords == 'flat':
             self.flat = True
-            self.data = treecorr.lib.BuildKFieldFlat(dp(cat.x),dp(cat.y),
-                                                     dp(cat.k),
-                                                     dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                     min_size,max_size,sm,max_top)
+            self.data = treecorr._lib.BuildKFieldFlat(dp(cat.x),dp(cat.y),
+                                                      dp(cat.k),
+                                                      dp(cat.w),dp(cat.wpos),cat.ntot,
+                                                      min_size,max_size,sm,max_top)
             if logger:
                 logger.debug('Finished building KField Flat')
         else:
             self.flat = False
             if cat.coords == 'spherical':
-                self.data = treecorr.lib.BuildKFieldThreeD(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                           dp(cat.k),
-                                                           dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                           min_size,max_size,sm,max_top)
+                self.data = treecorr._lib.BuildKFieldThreeD(dp(cat.x),dp(cat.y),dp(cat.z),
+                                                            dp(cat.k),
+                                                            dp(cat.w),dp(cat.wpos),cat.ntot,
+                                                            min_size,max_size,sm,max_top)
                 self.spher = True
                 if logger:
                     logger.debug('Finished building KField Sphere')
             else:
-                self.data = treecorr.lib.BuildKField3D(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                       dp(cat.k),
-                                                       dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                       min_size,max_size,sm,max_top)
+                self.data = treecorr._lib.BuildKField3D(dp(cat.x),dp(cat.y),dp(cat.z),
+                                                        dp(cat.k),
+                                                        dp(cat.w),dp(cat.wpos),cat.ntot,
+                                                        min_size,max_size,sm,max_top)
                 self.spher = False
                 if logger:
                     logger.debug('Finished building KField 3D')
@@ -166,21 +166,21 @@ class KField(object):
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             if self.flat:
-                treecorr.lib.DestroyKFieldFlat(self.data)
+                treecorr._lib.DestroyKFieldFlat(self.data)
             elif self.spher:
-                treecorr.lib.DestroyKFieldSphere(self.data)
+                treecorr._lib.DestroyKFieldSphere(self.data)
             else:
-                treecorr.lib.DestroyKField3D(self.data)
+                treecorr._lib.DestroyKField3D(self.data)
 
     @property
     def nTopLevelNodes(self):
         """The number of top-level nodes."""
         if self.flat:
-            return treecorr.lib.NFieldFlatGetNTopLevel(self.data)
+            return treecorr._lib.NFieldFlatGetNTopLevel(self.data)
         elif self.spher:
-            return treecorr.lib.NFieldSphereGetNTopLevel(self.data)
+            return treecorr._lib.NFieldSphereGetNTopLevel(self.data)
         else:
-            return treecorr.lib.NField3DGetNTopLevel(self.data)
+            return treecorr._lib.NField3DGetNTopLevel(self.data)
 
 
 
@@ -216,27 +216,27 @@ class GField(object):
 
         if cat.coords == 'flat':
             self.flat = True
-            self.data = treecorr.lib.BuildGFieldFlat(dp(cat.x),dp(cat.y),
-                                                     dp(cat.g1),dp(cat.g2),
-                                                     dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                     min_size,max_size,sm,max_top)
+            self.data = treecorr._lib.BuildGFieldFlat(dp(cat.x),dp(cat.y),
+                                                      dp(cat.g1),dp(cat.g2),
+                                                      dp(cat.w),dp(cat.wpos),cat.ntot,
+                                                      min_size,max_size,sm,max_top)
             if logger:
                 logger.debug('Finished building GField Flat')
         else: 
             self.flat = False
             if cat.coords == 'spherical':
-                self.data = treecorr.lib.BuildGFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                           dp(cat.g1),dp(cat.g2),
-                                                           dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                           min_size,max_size,sm,max_top)
+                self.data = treecorr._lib.BuildGFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),
+                                                            dp(cat.g1),dp(cat.g2),
+                                                            dp(cat.w),dp(cat.wpos),cat.ntot,
+                                                            min_size,max_size,sm,max_top)
                 self.spher = True
                 if logger:
                     logger.debug('Finished building GField Sphere')
             else:
-                self.data = treecorr.lib.BuildGField3D(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                       dp(cat.g1),dp(cat.g2),
-                                                       dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                       min_size,max_size,sm,max_top)
+                self.data = treecorr._lib.BuildGField3D(dp(cat.x),dp(cat.y),dp(cat.z),
+                                                        dp(cat.g1),dp(cat.g2),
+                                                        dp(cat.w),dp(cat.wpos),cat.ntot,
+                                                        min_size,max_size,sm,max_top)
                 self.spher = False
                 if logger:
                     logger.debug('Finished building GField 3D')
@@ -248,21 +248,21 @@ class GField(object):
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             if self.flat:
-                treecorr.lib.DestroyGFieldFlat(self.data)
+                treecorr._lib.DestroyGFieldFlat(self.data)
             elif self.spher:
-                treecorr.lib.DestroyGFieldSphere(self.data)
+                treecorr._lib.DestroyGFieldSphere(self.data)
             else:
-                treecorr.lib.DestroyGField3D(self.data)
+                treecorr._lib.DestroyGField3D(self.data)
 
     @property
     def nTopLevelNodes(self):
         """The number of top-level nodes."""
         if self.flat:
-            return treecorr.lib.GFieldFlatGetNTopLevel(self.data)
+            return treecorr._lib.GFieldFlatGetNTopLevel(self.data)
         elif self.spher:
-            return treecorr.lib.GFieldSphereGetNTopLevel(self.data)
+            return treecorr._lib.GFieldSphereGetNTopLevel(self.data)
         else:
-            return treecorr.lib.GField3DGetNTopLevel(self.data)
+            return treecorr._lib.GField3DGetNTopLevel(self.data)
 
 
 class NSimpleField(object):
@@ -285,21 +285,21 @@ class NSimpleField(object):
 
         if cat.coords == 'flat':
             self.flat = True
-            self.data = treecorr.lib.BuildNSimpleFieldFlat(dp(cat.x),dp(cat.y),
-                                                           dp(cat.w),dp(cat.wpos),cat.ntot)
+            self.data = treecorr._lib.BuildNSimpleFieldFlat(dp(cat.x),dp(cat.y),
+                                                            dp(cat.w),dp(cat.wpos),cat.ntot)
             if logger:
                 logger.debug('Finished building NSimpleField Flat')
         else:
             self.flat = False
             if cat.coords == 'spherical':
-                self.data = treecorr.lib.BuildNSimpleFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                                 dp(cat.w),dp(cat.wpos),cat.ntot)
+                self.data = treecorr._lib.BuildNSimpleFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),
+                                                                  dp(cat.w),dp(cat.wpos),cat.ntot)
                 self.spher = True
                 if logger:
                     logger.debug('Finished building NSimpleField Sphere')
             else:
-                self.data = treecorr.lib.BuildNSimpleField3D(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                             dp(cat.w),dp(cat.wpos),cat.ntot)
+                self.data = treecorr._lib.BuildNSimpleField3D(dp(cat.x),dp(cat.y),dp(cat.z),
+                                                              dp(cat.w),dp(cat.wpos),cat.ntot)
                 self.spher = False
                 if logger:
                     logger.debug('Finished building NSimpleField 3D')
@@ -310,11 +310,11 @@ class NSimpleField(object):
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             if self.flat:
-                treecorr.lib.DestroyNSimpleFieldFlat(self.data)
+                treecorr._lib.DestroyNSimpleFieldFlat(self.data)
             elif self.spher:
-                treecorr.lib.DestroyNSimpleFieldSphere(self.data)
+                treecorr._lib.DestroyNSimpleFieldSphere(self.data)
             else:
-                treecorr.lib.DestroyNSimpleField3D(self.data)
+                treecorr._lib.DestroyNSimpleField3D(self.data)
 
 
 class KSimpleField(object):
@@ -337,24 +337,24 @@ class KSimpleField(object):
 
         if cat.coords == 'flat':
             self.flat = True
-            self.data = treecorr.lib.BuildKSimpleFieldFlat(dp(cat.x),dp(cat.y),
-                                                           dp(cat.k),
-                                                           dp(cat.w),dp(cat.wpos),cat.ntot)
+            self.data = treecorr._lib.BuildKSimpleFieldFlat(dp(cat.x),dp(cat.y),
+                                                            dp(cat.k),
+                                                            dp(cat.w),dp(cat.wpos),cat.ntot)
             if logger:
                 logger.debug('Finished building KSimpleField Flat')
         else:
             self.flat = False
             if cat.coords == 'spherical':
-                self.data = treecorr.lib.BuildKSimpleFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                                 dp(cat.k),
-                                                                 dp(cat.w),dp(cat.wpos),cat.ntot)
+                self.data = treecorr._lib.BuildKSimpleFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),
+                                                                  dp(cat.k),
+                                                                  dp(cat.w),dp(cat.wpos),cat.ntot)
                 self.spher = True
                 if logger:
                     logger.debug('Finished building KSimpleField Sphere')
             else:
-                self.data = treecorr.lib.BuildKSimpleField3D(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                             dp(cat.k),
-                                                             dp(cat.w),dp(cat.wpos),cat.ntot)
+                self.data = treecorr._lib.BuildKSimpleField3D(dp(cat.x),dp(cat.y),dp(cat.z),
+                                                              dp(cat.k),
+                                                              dp(cat.w),dp(cat.wpos),cat.ntot)
                 self.spher = False
                 if logger:
                     logger.debug('Finished building KSimpleField 3D')
@@ -365,11 +365,11 @@ class KSimpleField(object):
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             if self.flat:
-                treecorr.lib.DestroyKSimpleFieldFlat(self.data)
+                treecorr._lib.DestroyKSimpleFieldFlat(self.data)
             elif self.spher:
-                treecorr.lib.DestroyKSimpleFieldSphere(self.data)
+                treecorr._lib.DestroyKSimpleFieldSphere(self.data)
             else:
-                treecorr.lib.DestroyKSimpleField3D(self.data)
+                treecorr._lib.DestroyKSimpleField3D(self.data)
 
 
 class GSimpleField(object):
@@ -392,24 +392,24 @@ class GSimpleField(object):
 
         if cat.coords == 'flat':
             self.flat = True
-            self.data = treecorr.lib.BuildGSimpleFieldFlat(dp(cat.x),dp(cat.y),
-                                                           dp(cat.g1),dp(cat.g2),
-                                                           dp(cat.w),dp(cat.wpos),cat.ntot)
+            self.data = treecorr._lib.BuildGSimpleFieldFlat(dp(cat.x),dp(cat.y),
+                                                            dp(cat.g1),dp(cat.g2),
+                                                            dp(cat.w),dp(cat.wpos),cat.ntot)
             if logger:
                 logger.debug('Finished building GSimpleField Flat')
         else:
             self.flat = False
             if cat.coords == 'spherical':
-                self.data = treecorr.lib.BuildGSimpleFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                                 dp(cat.g1),dp(cat.g2),
-                                                                 dp(cat.w),dp(cat.wpos),cat.ntot)
+                self.data = treecorr._lib.BuildGSimpleFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),
+                                                                  dp(cat.g1),dp(cat.g2),
+                                                                  dp(cat.w),dp(cat.wpos),cat.ntot)
                 self.spher = True
                 if logger:
                     logger.debug('Finished building GSimpleField Sphere')
             else:
-                self.data = treecorr.lib.BuildGSimpleField3D(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                             dp(cat.g1),dp(cat.g2),
-                                                             dp(cat.w),dp(cat.wpos),cat.ntot)
+                self.data = treecorr._lib.BuildGSimpleField3D(dp(cat.x),dp(cat.y),dp(cat.z),
+                                                              dp(cat.g1),dp(cat.g2),
+                                                              dp(cat.w),dp(cat.wpos),cat.ntot)
                 self.spher = False
                 if logger:
                     logger.debug('Finished building GSimpleField 3D')
@@ -420,9 +420,9 @@ class GSimpleField(object):
 
         if hasattr(self,'data'):    # In case __init__ failed to get that far
             if self.flat:
-                treecorr.lib.DestroyGSimpleFieldFlat(self.data)
+                treecorr._lib.DestroyGSimpleFieldFlat(self.data)
             elif self.spher:
-                treecorr.lib.DestroyGSimpleFieldSphere(self.data)
+                treecorr._lib.DestroyGSimpleFieldSphere(self.data)
             else:
-                treecorr.lib.DestroyGSimpleField3D(self.data)
+                treecorr._lib.DestroyGSimpleField3D(self.data)
 

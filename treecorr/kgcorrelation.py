@@ -79,7 +79,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
 
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
-        self.corr = treecorr.lib.BuildKGCorr(
+        self.corr = treecorr._lib.BuildKGCorr(
                 self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                 dp(self.xi),dp(self.xi_im),
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
@@ -88,7 +88,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'corr'):    # In case __init__ failed to get that far
-            treecorr.lib.DestroyKGCorr(self.corr)
+            treecorr._lib.DestroyKGCorr(self.corr)
 
     def copy(self):
         import copy
@@ -154,11 +154,11 @@ class KGCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         if cat1.coords == 'flat':
-            treecorr.lib.ProcessCrossKGFlat(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossKGFlat(self.corr, f1.data, f2.data, self.output_dots)
         elif metric == 'Rperp':
-            treecorr.lib.ProcessCrossKGPerp(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossKGPerp(self.corr, f1.data, f2.data, self.output_dots)
         else:
-            treecorr.lib.ProcessCrossKG3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossKG3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -201,11 +201,11 @@ class KGCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getGSimpleField()
 
         if cat1.coords == 'flat':
-            treecorr.lib.ProcessPairwiseKGFlat(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseKGFlat(self.corr, f1.data, f2.data, self.output_dots)
         elif metric == 'Rperp':
-            treecorr.lib.ProcessPairwiseKGPerp(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseKGPerp(self.corr, f1.data, f2.data, self.output_dots)
         else:
-            treecorr.lib.ProcessPairwiseKG3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseKG3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def finalize(self, vark, varg):

@@ -78,7 +78,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
-        self.corr = treecorr.lib.BuildNNCorr(
+        self.corr = treecorr._lib.BuildNNCorr(
                 self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
 
@@ -86,7 +86,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'corr'):    # In case __init__ failed to get that far
-            treecorr.lib.DestroyNNCorr(self.corr)
+            treecorr._lib.DestroyNNCorr(self.corr)
 
     def copy(self):
         import copy
@@ -146,11 +146,11 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         if cat.coords == 'flat':
-            treecorr.lib.ProcessAutoNNFlat(self.corr, field.data, self.output_dots)
+            treecorr._lib.ProcessAutoNNFlat(self.corr, field.data, self.output_dots)
         elif metric == 'Rperp':
-            treecorr.lib.ProcessAutoNNPerp(self.corr, field.data, self.output_dots)
+            treecorr._lib.ProcessAutoNNPerp(self.corr, field.data, self.output_dots)
         else:
-            treecorr.lib.ProcessAutoNN3D(self.corr, field.data, self.output_dots)
+            treecorr._lib.ProcessAutoNN3D(self.corr, field.data, self.output_dots)
         self.tot += 0.5 * cat.sumw**2
 
 
@@ -197,11 +197,11 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         if cat1.coords == 'flat':
-            treecorr.lib.ProcessCrossNNFlat(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossNNFlat(self.corr, f1.data, f2.data, self.output_dots)
         elif metric == 'Rperp':
-            treecorr.lib.ProcessCrossNNPerp(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossNNPerp(self.corr, f1.data, f2.data, self.output_dots)
         else:
-            treecorr.lib.ProcessCrossNN3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossNN3D(self.corr, f1.data, f2.data, self.output_dots)
         self.tot += cat1.sumw*cat2.sumw
 
 
@@ -244,11 +244,11 @@ class NNCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getNSimpleField()
 
         if cat1.coords == 'flat':
-            treecorr.lib.ProcessPairwiseNNFlat(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseNNFlat(self.corr, f1.data, f2.data, self.output_dots)
         elif metric == 'Rperp':
-            treecorr.lib.ProcessPairwiseNNPerp(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseNNPerp(self.corr, f1.data, f2.data, self.output_dots)
         else:
-            treecorr.lib.ProcessPairwiseNN3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseNN3D(self.corr, f1.data, f2.data, self.output_dots)
         self.tot += cat1.weight
 
 

@@ -80,7 +80,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
-        self.corr = treecorr.lib.BuildNGCorr(
+        self.corr = treecorr._lib.BuildNGCorr(
                 self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                 dp(self.xi),dp(self.xi_im),
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
@@ -89,7 +89,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'corr'):    # In case __init__ failed to get that far
-            treecorr.lib.DestroyNGCorr(self.corr)
+            treecorr._lib.DestroyNGCorr(self.corr)
 
     def copy(self):
         import copy
@@ -155,11 +155,11 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         if cat1.coords == 'flat':
-            treecorr.lib.ProcessCrossNGFlat(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossNGFlat(self.corr, f1.data, f2.data, self.output_dots)
         elif metric == 'Rperp':
-            treecorr.lib.ProcessCrossNGPerp(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossNGPerp(self.corr, f1.data, f2.data, self.output_dots)
         else:
-            treecorr.lib.ProcessCrossNG3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossNG3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -202,11 +202,11 @@ class NGCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getGSimpleField()
 
         if cat1.coords == 'flat':
-            treecorr.lib.ProcessPairwiseNGFlat(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseNGFlat(self.corr, f1.data, f2.data, self.output_dots)
         elif metric == 'Rperp':
-            treecorr.lib.ProcessPairwiseNGPerp(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseNGPerp(self.corr, f1.data, f2.data, self.output_dots)
         else:
-            treecorr.lib.ProcessPairwiseNG3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseNG3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def finalize(self, varg):

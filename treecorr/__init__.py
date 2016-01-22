@@ -14,12 +14,16 @@
 
 version = '3.3'
 
-# Load the C functions with cffi
 import os,cffi,glob
-ffi = cffi.FFI()
-for file_name in glob.glob(os.path.join(os.path.dirname(__file__),'include','*_C.h')):
-    ffi.cdef(open(file_name).read())
-lib = ffi.dlopen(os.path.join(os.path.dirname(__file__),'_treecorr.so'))
+# Set module level attributes for the include directory and the library file name.
+include_dir = os.path.join(os.path.dirname(__file__),'include')
+lib_file = os.path.join(os.path.dirname(__file__),'_treecorr.so')
+
+# Load the C functions with cffi
+_ffi = cffi.FFI()
+for file_name in glob.glob(os.path.join(include_dir,'*_C.h')):
+    _ffi.cdef(open(file_name).read())
+_lib = _ffi.dlopen(lib_file)
 
 from . import util
 from .celestial import CelestialCoord, angle_units, arcsec, arcmin, degrees, hours, radians

@@ -84,7 +84,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
-        self.corr = treecorr.lib.BuildGGCorr(
+        self.corr = treecorr._lib.BuildGGCorr(
                 self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                 dp(self.xip),dp(self.xip_im),dp(self.xim),dp(self.xim_im),
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
@@ -93,7 +93,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'corr'):    # In case __init__ failed to get that far
-            treecorr.lib.DestroyGGCorr(self.corr)
+            treecorr._lib.DestroyGGCorr(self.corr)
 
     def copy(self):
         import copy
@@ -168,11 +168,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         if cat.coords == 'flat':
-            treecorr.lib.ProcessAutoGGFlat(self.corr, field.data, self.output_dots)
+            treecorr._lib.ProcessAutoGGFlat(self.corr, field.data, self.output_dots)
         elif metric == 'Rperp':
-            treecorr.lib.ProcessAutoGGPerp(self.corr, field.data, self.output_dots)
+            treecorr._lib.ProcessAutoGGPerp(self.corr, field.data, self.output_dots)
         else:
-            treecorr.lib.ProcessAutoGG3D(self.corr, field.data, self.output_dots)
+            treecorr._lib.ProcessAutoGG3D(self.corr, field.data, self.output_dots)
 
 
     def process_cross(self, cat1, cat2, metric=None, num_threads=None):
@@ -222,11 +222,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         if cat1.coords == 'flat':
-            treecorr.lib.ProcessCrossGGFlat(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossGGFlat(self.corr, f1.data, f2.data, self.output_dots)
         elif metric == 'Rperp':
-            treecorr.lib.ProcessCrossGGPerp(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossGGPerp(self.corr, f1.data, f2.data, self.output_dots)
         else:
-            treecorr.lib.ProcessCrossGG3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossGG3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -269,11 +269,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getGSimpleField()
 
         if cat1.coords == 'flat':
-            treecorr.lib.ProcessPairwiseGGFlat(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseGGFlat(self.corr, f1.data, f2.data, self.output_dots)
         elif metric == 'Rperp':
-            treecorr.lib.ProcessPairwiseGGPerp(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseGGPerp(self.corr, f1.data, f2.data, self.output_dots)
         else:
-            treecorr.lib.ProcessPairwiseGG3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseGG3D(self.corr, f1.data, f2.data, self.output_dots)
 
 
     def finalize(self, varg1, varg2):

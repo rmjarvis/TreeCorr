@@ -364,7 +364,7 @@ def set_omp_threads(num_threads, logger=None):
     # Tell OpenMP to use this many threads
     if logger:
         logger.debug('Telling OpenMP to use %d threads',num_threads)
-    num_threads = treecorr.lib.SetOMPThreads(num_threads)
+    num_threads = treecorr._lib.SetOMPThreads(num_threads)
 
     # Report back appropriately.
     if logger:

@@ -803,7 +803,12 @@ void BinnedCorr3<D1,D2,D3>::process111(
     if (!(split1 && split2 && split3)) {
         d1 = sqrt(d1sq);
         d3 = sqrt(d3sq);
-        v = (d1-d2)/d3;
+        if (d3 == 0.) {
+            // Very unusual!  But possible, so make sure we don't get nans
+            v = 0.;
+        } else {
+            v = (d1-d2)/d3;
+        }
         onemvsq = 1.-SQR(v);
     }
 
@@ -961,6 +966,10 @@ void BinnedCorr3<D1,D2,D3>::process111(
                 int index = kr * _nuv + ku * _nvbins + kv;
                 Assert(index >= 0);
                 Assert(index < _ntot);
+                // Just to make extra sure we don't get seg faults (since the above
+                // asserts aren't active in normal operations), do a real check that
+                // index is in the allowed range.
+                if (index < 0 || index >= _ntot) return;
                 directProcess111<C,M>(*c1,*c2,*c3,d1,d2,d3,logr,u,v,index);
             }
         }

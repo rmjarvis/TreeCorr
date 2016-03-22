@@ -13,7 +13,7 @@
  */
 
 #include <sys/time.h>
-#include <fcntl.h>
+#include <fstream>
 
 #include "dbg.h"
 #include "Cell.h"
@@ -199,18 +199,10 @@ void seed_urandom()
 {
     // This implementation shamelessly taken from:
     // http://stackoverflow.com/questions/2572366/how-to-use-dev-random-or-urandom-in-c
-    int randomData = open("/dev/urandom", O_RDONLY);
+    std::ifstream rand("/dev/urandom");
     int myRandomInteger;
-    size_t randomDataLen = 0;
-    while (randomDataLen < sizeof myRandomInteger)
-    {
-        ssize_t result = read(randomData, ((char*)&myRandomInteger) + randomDataLen,
-                              (sizeof myRandomInteger) - randomDataLen);
-        if (result < 0)
-            throw std::runtime_error("Unable to read from /dev/urandom");
-        randomDataLen += result;
-    }
-    close(randomData);
+    ssize_t result = rand.read((char*)&myRandomInteger, sizeof myRandomInteger);
+    rand.close();
     srand(myRandomInteger);
 }
 

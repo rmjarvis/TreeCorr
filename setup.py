@@ -186,7 +186,8 @@ int main() {
     p.communicate()
     if p.returncode != 0:
         os.remove(cpp_file.name)
-        if os.path.exists(o_file.name): os.remove(o_file.name)
+        if os.path.exists(o_file.name):
+            os.remove(o_file.name)
         return False
 
     # Another named temporary file for the executable
@@ -215,9 +216,154 @@ int main() {
     # Remove the temp files
     os.remove(cpp_file.name)
     os.remove(o_file.name)
-    if os.path.exists(exe_file.name): os.remove(exe_file.name)
+    if os.path.exists(exe_file.name):
+        os.remove(exe_file.name)
     return p.returncode == 0
 
+def check_ffi_compile(cc, cc_type):
+    ffi_code = """
+#include "ffi.h"
+int main() {
+    return 0;
+}
+"""
+    import tempfile
+    ffi_file = tempfile.NamedTemporaryFile(delete=False, suffix='.c')
+    ffi_file.write(ffi_code)
+    ffi_file.close()
+
+    # Just get a named temporary file to write to:
+    o_file = tempfile.NamedTemporaryFile(delete=False, suffix='.os')
+    o_file.close()
+
+    # Try compiling with the given flags
+    import subprocess
+    cmd = [cc] + copt[cc_type] + ['-c',ffi_file.name,'-o',o_file.name]
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    lines = p.stdout.readlines()
+    p.communicate()
+    if p.returncode != 0:
+        # Try ffi/ffi.h
+        ffi_code = """
+#include "ffi/ffi.h"
+int main() {
+    return 0;
+}
+"""
+        ffi_file = open(ffi_file.name, ffi_file.mode)
+        ffi_file.write(ffi_code)
+        ffi_file.close()
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        lines = p.stdout.readlines()
+        p.communicate()
+        if p.returncode != 0:
+            os.remove(ffi_file.name)
+            if os.path.exists(o_file.name):
+                os.remove(o_file.name)
+            print("Could not find ffi.h")
+            return False
+        else:
+            print("Found ffi/ffi.h")
+    else:
+        print("Found ffi.h")
+
+    # Another named temporary file for the executable
+    exe_file = tempfile.NamedTemporaryFile(delete=False, suffix='.exe')
+    exe_file.close()
+
+    # Try linking
+    cmd = [cc] + lopt[cc_type] + ['-lffi'] + [o_file.name,'-o',exe_file.name]
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    lines = p.stdout.readlines()
+    p.communicate()
+
+    if p.returncode != 0:
+        print("Could not link with -lffi")
+    else:
+        print("Successfully linked with -lffi")
+
+    # Remove the temp files
+    os.remove(ffi_file.name)
+    os.remove(o_file.name)
+    if os.path.exists(exe_file.name): 
+        os.remove(exe_file.name)
+    return p.returncode == 0
+
+# Based on recipe 577058: http://code.activestate.com/recipes/577058/
+def query_yes_no(question, default="yes"):
+    """Ask a yes/no question via raw_input() and return their answer.
+
+    "question" is a string that is presented to the user.
+    "default" is the presumed answer if the user just hits <Enter>.
+        It must be "yes" (the default), "no" or None (meaning
+        an answer is required of the user).
+
+    The "answer" return value is one of "yes" or "no".
+    """
+    valid = {"yes":"yes",   "y":"yes",  "ye":"yes",
+             "no":"no",     "n":"no"}
+    if default == None:
+        prompt = " [y/n] "
+    elif default == "yes":
+        prompt = " [Y/n] "
+    elif default == "no":
+        prompt = " [y/N] "
+    else:
+        raise ValueError("invalid default answer: '%s'" % default)
+
+    while 1:
+        sys.stdout.write(question + prompt)
+        choice = raw_input().lower()
+        if default is not None and choice == '':
+            return default
+        elif choice in valid.keys():
+            return valid[choice]
+        else:
+            sys.stdout.write("Please respond with 'yes' or 'no' "\
+                             "(or 'y' or 'n').\n")
+
+
+def check_ffi(cc, cc_type):
+    try:
+        raise ImportError
+        import cffi
+    except ImportError:
+        # Then cffi will need to be installed.
+        # It requires libffi, so check if it is available.
+        if check_ffi_compile(cc, cc_type):
+            return
+        # libffi needs to be installed.  Give a helpful message about how to do so.
+        msg = """
+WARNING: TreeCorr uses cffi, which in turn requires libffi to be installed.
+         As the latter is not a python package, pip cannot download and
+         install it.  However, it is fairly straightforward to install.
+
+On Linux, you can use one of the following:
+
+    apt-get install libffi-dev
+    yum install libffi-devel
+
+On a Mac, it should be available after you do:
+
+    xcode-select --install
+
+If neither of those work for you, you can install it yourself with the
+following commands:
+
+    wget ftp://sourceware.org:/pub/libffi/libffi-3.2.1.tar.gz
+    tar xfz libffi-3.2.1.tar.gz
+    cd libffi-3.2.1
+    ./configure --prefix=/dir/in/your/LIBRARY_PATH
+    make
+    make install
+    cp */include/ffi*.h /dir/in/your/C_INCLUDE_PATH
+    cd ..
+"""
+        print(msg)
+        q = "Stop the installation here to take care of this?"
+        yn = query_yes_no(q, default='yes')
+        if yn == 'yes':
+            sys.exit()
 
 # This was supposed to remove the -Wstrict-prototypes flag
 # But it doesn't work....
@@ -244,6 +390,7 @@ class my_builder( build_ext ):
             e.extra_compile_args = copt[ comp_type ]
             e.extra_link_args = lopt[ comp_type ]
             e.include_dirs = ['include']
+        check_ffi(cc,comp_type)
         # Now run the normal build function.
         build_ext.build_extensions(self)
 

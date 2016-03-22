@@ -201,7 +201,7 @@ void seed_urandom()
     // http://stackoverflow.com/questions/2572366/how-to-use-dev-random-or-urandom-in-c
     std::ifstream rand("/dev/urandom");
     int myRandomInteger;
-    ssize_t result = rand.read((char*)&myRandomInteger, sizeof myRandomInteger);
+    rand.read((char*)&myRandomInteger, sizeof myRandomInteger);
     rand.close();
     srand(myRandomInteger);
 }

@@ -17,6 +17,13 @@
 
 import treecorr
 import numpy
+import os
+
+def ensure_dir(target):
+    d = os.path.dirname(target)
+    if not os.path.exists(d):
+        os.makedirs(d)
+
 
 def gen_write(file_name, col_names, columns, prec=4, file_type=None, logger=None):
     """Write some columns to an output file with the given column names.
@@ -39,6 +46,8 @@ def gen_write(file_name, col_names, columns, prec=4, file_type=None, logger=None
         if col.shape != columns[0].shape:
             raise ValueError("columns are not all the same shape")
     columns = [ col.flatten() for col in columns ]
+
+    ensure_dir(file_name)
 
     # Figure out which file type the catalog is
     if file_type is None:
@@ -81,6 +90,7 @@ def gen_write_ascii(file_name, col_names, columns, prec=4):
         header_form += " {%d:^%d}"%(i,width)
     header = header_form.format(*col_names)
     fmt = '%%%d.%de'%(width,prec)
+    ensure_dir(file_name)
     try:
         numpy.savetxt(file_name, data, fmt=fmt, header=header)
     except (AttributeError, TypeError):
@@ -97,6 +107,7 @@ def gen_write_fits(file_name, col_names, columns):
     :param col_names:   A list of columns names for the given columns.
     :param columns:     A list of numpy arrays with the data to write.
     """
+    ensure_dir(file_name)
     try:
         import fitsio
         data = numpy.empty(len(columns[0]), dtype=[ (name,'f8') for name in col_names ])

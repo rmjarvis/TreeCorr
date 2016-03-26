@@ -87,7 +87,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.corr = treecorr._lib.BuildGGCorr(
                 self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
                 dp(self.xip),dp(self.xip_im),dp(self.xim),dp(self.xim_im),
-                dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
+                dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs))
  
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -154,7 +154,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         #      d = minsep / (1+1.5 b)
         #      s = 0.5 * b * minsep / (1+1.5 b)
         #        = b * minsep / (2+3b)
-        min_size = self.min_sep * self.b / (2.+3.*self.b);
+        min_size = self.min_sep * self.b / (2.+3.*self.b)
         if metric == 'Rperp':
             # Go a bit smller than min_sep for Rperp metric, since the above calculation of
             # what minimum size to use isn't exactly accurate in this case.
@@ -201,16 +201,18 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
+        if metric not in ['Euclidean', 'Rperp', 'Rlens']:
             raise ValueError("Invalid metric.")
         if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
         if metric == 'Rperp' and cat1.coords != '3d':
             raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        if metric == 'Rlens' and cat1.coords != '3d':
+            raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads(num_threads)
 
-        min_size = self.min_sep * self.b / (2.+3.*self.b);
+        min_size = self.min_sep * self.b / (2.+3.*self.b)
         if metric == 'Rperp':
             # Go a bit smller than min_sep for Rperp metric, since the simple calculation of
             # what minimum size to use isn't exactly accurate in this case.
@@ -225,6 +227,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
             treecorr._lib.ProcessCrossGGFlat(self.corr, f1.data, f2.data, self.output_dots)
         elif metric == 'Rperp':
             treecorr._lib.ProcessCrossGGPerp(self.corr, f1.data, f2.data, self.output_dots)
+        elif metric == 'Rlens':
+            treecorr._lib.ProcessCrossGGLens(self.corr, f1.data, f2.data, self.output_dots)
         else:
             treecorr._lib.ProcessCrossGG3D(self.corr, f1.data, f2.data, self.output_dots)
 
@@ -256,12 +260,14 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
+        if metric not in ['Euclidean', 'Rperp', 'Rlens']:
             raise ValueError("Invalid metric.")
         if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
         if metric == 'Rperp' and cat1.coords != '3d':
             raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        if metric == 'Rlens' and cat1.coords != '3d':
+            raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads(num_threads)
 
@@ -272,6 +278,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
             treecorr._lib.ProcessPairwiseGGFlat(self.corr, f1.data, f2.data, self.output_dots)
         elif metric == 'Rperp':
             treecorr._lib.ProcessPairwiseGGPerp(self.corr, f1.data, f2.data, self.output_dots)
+        elif metric == 'Rlens':
+            treecorr._lib.ProcessPairwiseGGLens(self.corr, f1.data, f2.data, self.output_dots)
         else:
             treecorr._lib.ProcessPairwiseGG3D(self.corr, f1.data, f2.data, self.output_dots)
 
@@ -366,6 +374,9 @@ class GGCorrelation(treecorr.BinnedCorr2):
                               with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
                               distance and :math:`Rparallel = |r1-r2|`, then we define
                               :math:`Rperp^2 = d^2 - Rparallel^2`.
+                            - 'Rlens' = the projected distance perpendicular to the first point
+                              in the pair (taken to be a lens) to the line of sight to the second
+                              point (e.g. a lensed source galaxy).
 
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
@@ -385,8 +396,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
+        if metric not in ['Euclidean', 'Rperp', 'Rlens']:
             raise ValueError("Invalid metric.")
+        if metric == 'Rlens' and cat2 is None:
+            raise ValueError("Rlens metric is only valid for cross correlations.")
 
         if cat2 is None or len(cat2) == 0:
             varg1 = treecorr.calculateVarG(cat1)

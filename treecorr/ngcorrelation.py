@@ -137,12 +137,14 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
+        if metric not in ['Euclidean', 'Rperp', 'Rlens']:
             raise ValueError("Invalid metric.")
         if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
         if metric == 'Rperp' and cat1.coords != '3d':
             raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        if metric == 'Rlens' and cat1.coords != '3d':
+            raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads(num_threads)
 
@@ -158,6 +160,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
             treecorr._lib.ProcessCrossNGFlat(self.corr, f1.data, f2.data, self.output_dots)
         elif metric == 'Rperp':
             treecorr._lib.ProcessCrossNGPerp(self.corr, f1.data, f2.data, self.output_dots)
+        elif metric == 'Rlens':
+            treecorr._lib.ProcessCrossNGLens(self.corr, f1.data, f2.data, self.output_dots)
         else:
             treecorr._lib.ProcessCrossNG3D(self.corr, f1.data, f2.data, self.output_dots)
 
@@ -189,12 +193,14 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
+        if metric not in ['Euclidean', 'Rperp', 'Rlens']:
             raise ValueError("Invalid metric.")
         if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
         if metric == 'Rperp' and cat1.coords != '3d':
             raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        if metric == 'Rlens' and cat1.coords != '3d':
+            raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
 
         self._set_num_threads(num_threads)
 
@@ -205,6 +211,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
             treecorr._lib.ProcessPairwiseNGFlat(self.corr, f1.data, f2.data, self.output_dots)
         elif metric == 'Rperp':
             treecorr._lib.ProcessPairwiseNGPerp(self.corr, f1.data, f2.data, self.output_dots)
+        elif metric == 'Rlens':
+            treecorr._lib.ProcessPairwiseNGLens(self.corr, f1.data, f2.data, self.output_dots)
         else:
             treecorr._lib.ProcessPairwiseNG3D(self.corr, f1.data, f2.data, self.output_dots)
 
@@ -289,6 +297,9 @@ class NGCorrelation(treecorr.BinnedCorr2):
                               with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
                               distance and :math:`Rparallel = |r1-r2|`, then we define
                               :math:`Rperp^2 = d^2 - Rparallel^2`.
+                            - 'Rlens' = the projected distance perpendicular to the first point
+                              in the pair (taken to be a lens) to the line of sight to the second
+                              point (e.g. a lensed source galaxy).
 
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)

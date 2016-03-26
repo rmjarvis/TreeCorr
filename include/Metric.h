@@ -18,8 +18,9 @@
 // We use a code for the metric to use:
 // Euclidean is Euclidean in (x,y) or (x,y,z)
 // Perp uses the perpendicular component of the separation as the distance
+// Lens uses the perpendicular component at the lens (the first catalog) distance
 // Arc uses the great circle distance between two points on the sphere
-enum Metric { Euclidean=1, Perp=2, Arc=3 };
+enum Metric { Euclidean=1, Perp=2, Lens=3, Arc=4 };
 
 template <int M>
 struct MetricHelper;
@@ -174,6 +175,59 @@ struct MetricHelper<Perp>
         double rparsq = r1sq + r2sq - 2.*sqrt(r1sq*r2sq);
         double d3sq = rparsq + dsq;  // The 3d distance.  Remember dsq is really rp^2.
         return (d3sq + 2.*sqrt(d3sq * rparsq) + rparsq) * SQR(2.*s1ps2) <= SQR(dsq - maxsepsq);
+    }
+
+};
+
+
+//
+//
+// Lens is only valid for Coord == ThreeD
+//
+//
+
+template <>
+struct MetricHelper<Lens>
+{
+    static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    {
+        // theta = angle between p1, p2
+        // L/r1 = tan(theta)
+        // | p1 x p2 | = r1 r2 sin(theta)
+        // p1 . p2 = r1 r2 cos(theta)
+        // L = r1 |p1 x p2| / (p1 . p2)
+        return p1.normSq() * p1.cross(p2).normSq() / SQR(p1.dot(p2));
+    }
+    static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    { return sqrt(DistSq(p1,p2)); }
+
+    static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2, 
+                    const Position<ThreeD>& p3)
+    {
+        // This is the same as Euclidean
+        return MetricHelper<Euclidean>::CCW(p1,p2,p3);
+    }
+
+    // This one is a bit subtle.  The maximum possible L can be larger than just (L + s1ps2).
+    static bool TooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2, double s1ps2, 
+                             double dsq, double minsep, double minsepsq)
+
+    {
+        // First a simple check that will work most of the time.
+        if (dsq >= minsepsq || s1ps2 >= minsep || dsq >= SQR(minsep - s1ps2)) return false;
+        // Now check the subtle case.
+        // TODO
+        return true;
+    }
+
+    // This one is similar.  The minimum possible L can be smaller than just (L - s1ps2).
+    static bool TooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2, double s1ps2,
+                             double dsq, double maxsep, double maxsepsq)
+    { 
+        if (dsq < maxsepsq || dsq < SQR(maxsep + s1ps2)) return false;
+        // Now check the subtle case.
+        // TODO
+        return true;
     }
 
 };

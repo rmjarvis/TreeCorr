@@ -120,6 +120,9 @@ class BinnedCorr2(object):
                           with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
                           distance and :math:`Rparallel = |r1-r2|`, then we define
                           :math:`Rperp^2 = d^2 - Rparallel^2`.
+                        - 'Rlens' = the projected distance perpendicular to the first point
+                          in the pair (taken to be a lens) to the line of sight to the second
+                          point (e.g. a lensed source galaxy).
 
                         (default: 'Euclidean')
 
@@ -163,7 +166,7 @@ class BinnedCorr2(object):
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
         'm2_uform' : (str, False, 'Crittenden', ['Crittenden', 'Schneider'],
                 'The function form of the mass aperture.'),
-        'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp'],
+        'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp', 'Rlens'],
                 'Which metric to use for the distance measurements'),
     }
     def __init__(self, config=None, logger=None, **kwargs):

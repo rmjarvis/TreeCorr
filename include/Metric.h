@@ -42,7 +42,7 @@ struct MetricHelper<Euclidean>
     static double DistSq(const Position<Flat>& p1, const Position<Flat>& p2)
     { 
         Position<Flat> r = p1-p2;
-        return r.getX()*r.getX() + r.getY()*r.getY(); 
+        return r.normSq();
     }
     static double Dist(const Position<Flat>& p1, const Position<Flat>& p2)
     { return sqrt(DistSq(p1,p2)); }
@@ -50,11 +50,9 @@ struct MetricHelper<Euclidean>
     static bool CCW(const Position<Flat>& p1, const Position<Flat>& p2, const Position<Flat>& p3)
     {
         // If cross product r21 x r31 > 0, then the points are counter-clockwise.
-        double x2 = p2.getX() - p1.getX();
-        double y2 = p2.getY() - p1.getY();
-        double x3 = p3.getX() - p1.getX();
-        double y3 = p3.getY() - p1.getY();
-        return (x2*y3 - x3*y2) > 0.;
+        Position<Flat> r21 = p2 - p1;
+        Position<Flat> r31 = p3 - p1;
+        return r21.cross(r31) > 0.;
     }
 
     static bool TooSmallDist(const Position<Flat>& , const Position<Flat>& , double s1ps2, 
@@ -77,7 +75,7 @@ struct MetricHelper<Euclidean>
     static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
     { 
         Position<ThreeD> r = p1-p2;
-        return r.getX()*r.getX() + r.getY()*r.getY() + r.getZ()*r.getZ(); 
+        return r.normSq();
     }
     static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
     { return sqrt(DistSq(p1,p2)); }
@@ -89,16 +87,9 @@ struct MetricHelper<Euclidean>
         // the same thing, computing the cross product with respect to point p1.  Then if the 
         // cross product points back toward Earth, the points are viewed as counter-clockwise.
         // We check this last point by the dot product with p1.
-        double x2 = p2.getX() - p1.getX();
-        double y2 = p2.getY() - p1.getY();
-        double z2 = p2.getZ() - p1.getZ();
-        double x3 = p3.getX() - p1.getX();
-        double y3 = p3.getY() - p1.getY();
-        double z3 = p3.getZ() - p1.getZ();
-        double cx = y2*z3 - y3*z2;
-        double cy = z2*x3 - z3*x2;
-        double cz = x2*y3 - x3*y2;
-        return cx*p1.getX() + cy*p1.getY() + cz*p1.getZ() < 0.;
+        Position<ThreeD> r21 = p2-p1;
+        Position<ThreeD> r31 = p3-p1;
+        return r21.cross(r31).dot(p1) < 0.;
     }
 
     static bool TooSmallDist(const Position<ThreeD>& , const Position<ThreeD>& , double s1ps2, 
@@ -137,17 +128,8 @@ struct MetricHelper<Perp>
     static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2, 
                     const Position<ThreeD>& p3)
     {
-        // This is the same as ThreeD
-        double x2 = p2.getX() - p1.getX();
-        double y2 = p2.getY() - p1.getY();
-        double z2 = p2.getZ() - p1.getZ();
-        double x3 = p3.getX() - p1.getX();
-        double y3 = p3.getY() - p1.getY();
-        double z3 = p3.getZ() - p1.getZ();
-        double cx = y2*z3 - y3*z2;
-        double cy = z2*x3 - z3*x2;
-        double cz = x2*y3 - x3*y2;
-        return cx*p1.getX() + cy*p1.getY() + cz*p1.getZ() < 0.;
+        // This is the same as Euclidean
+        return MetricHelper<Euclidean>::CCW(p1,p2,p3);
     }
 
     // This one is a bit subtle.  The maximum possible rp can be larger than just (rp + s1ps2).
@@ -168,8 +150,8 @@ struct MetricHelper<Perp>
         // First a simple check that will work most of the time.
         if (dsq >= minsepsq || s1ps2 >= minsep || dsq >= SQR(minsep - s1ps2)) return false;
         // Now check the subtle case.
-        double r1sq = p1.getX()*p1.getX() + p1.getY()*p1.getY() + p1.getZ()*p1.getZ(); 
-        double r2sq = p2.getX()*p2.getX() + p2.getY()*p2.getY() + p2.getZ()*p2.getZ(); 
+        double r1sq = p1.normSq();
+        double r2sq = p2.normSq();
         double rparsq = r1sq + r2sq - 2.*sqrt(r1sq*r2sq);
         double d3sq = rparsq + dsq;  // The 3d distance.  Remember dsq is really rp^2.
         return (d3sq + 2.*sqrt(d3sq * rparsq) + rparsq) * SQR(2.*s1ps2) < SQR(minsepsq - dsq);
@@ -187,8 +169,8 @@ struct MetricHelper<Perp>
     { 
         if (dsq < maxsepsq || dsq < SQR(maxsep + s1ps2)) return false;
         // Now check the subtle case.
-        double r1sq = p1.getX()*p1.getX() + p1.getY()*p1.getY() + p1.getZ()*p1.getZ(); 
-        double r2sq = p2.getX()*p2.getX() + p2.getY()*p2.getY() + p2.getZ()*p2.getZ(); 
+        double r1sq = p1.normSq();
+        double r2sq = p2.normSq();
         double rparsq = r1sq + r2sq - 2.*sqrt(r1sq*r2sq);
         double d3sq = rparsq + dsq;  // The 3d distance.  Remember dsq is really rp^2.
         return (d3sq + 2.*sqrt(d3sq * rparsq) + rparsq) * SQR(2.*s1ps2) <= SQR(dsq - maxsepsq);

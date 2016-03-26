@@ -54,6 +54,11 @@ public:
     double norm() const { return sqrt(normSq()); }
     void normalize() {}
 
+    double dot(const Position<Flat>& p2) const
+    { return _x*p2._x + _y*p2._y; }
+    double cross(const Position<Flat>& p2) const
+    { return _x*p2._y - _y*p2._x; }
+
     Position<Flat>& operator+=(const Position<Flat>& p2)
     { _x += p2.getX(); _y += p2.getY(); return *this; }
     Position<Flat>& operator-=(const Position<Flat>& p2)
@@ -117,6 +122,15 @@ public:
     double normSq() const { return _x*_x + _y*_y + _z*_z; }
     double norm() const { return sqrt(normSq()); }
     void normalize() {}
+
+    double dot(const Position<ThreeD>& p2) const
+    { return _x*p2._x + _y*p2._y + _z*p2._z; }
+    Position<ThreeD> cross(const Position<ThreeD>& p2) const
+    {
+        return Position<ThreeD>(_y*p2._z - _z*p2._y,
+                                _z*p2._x - _x*p2._z,
+                                _x*p2._y - _y*p2._x); 
+    }
 
     Position<ThreeD>& operator+=(const Position<ThreeD>& p2)
     { _x += p2.getX(); _y += p2.getY(); _z += p2.getZ(); return *this; }

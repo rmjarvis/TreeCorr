@@ -376,14 +376,16 @@ def test_direct_lens():
     for i in range(ngal):
         for j in range(ngal):
             # Use |r1 x r2| = |r1| |r2| sin(theta)
-            # L = |r1| tan(theta)
             xcross = y1[i] * z2[j] - z1[i] * y2[j]
             ycross = z1[i] * x2[j] - x1[i] * z2[j]
             zcross = x1[i] * y2[j] - y1[i] * x2[j]
             sintheta = numpy.sqrt(xcross**2 + ycross**2 + zcross**2) / (r1[i] * r2[j])
-            L = r1[i] * numpy.tan(numpy.arcsin(sintheta))
-            # Alt: L = 2 |r1| sin(theta/2)
-            #L = 2. * r1[i] * numpy.sin(numpy.arcsin(sintheta)/2)
+            if True:
+                # L = 2 |r1| sin(theta/2)
+                L = 2. * r1[i] * numpy.sin(numpy.arcsin(sintheta)/2)
+            else:
+                # L = |r1| tan(theta)
+                L = r1[i] * numpy.tan(numpy.arcsin(sintheta))
             logL = numpy.log(L)
             k = int(numpy.floor( (logL-log_min_sep) / bin_size ))
             if k < 0: continue

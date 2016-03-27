@@ -189,6 +189,21 @@ struct MetricHelper<Perp>
 template <>
 struct MetricHelper<Lens>
 {
+#if 1
+    // The first option uses the chord distance at the distance of r1
+    static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    {
+        // theta = angle between p1, p2
+        // L/r1 = 2 sin(theta/2) = sin(theta) / cos(theta/2)
+        //      = sin(theta) sqrt(2/(1+cos(theta)))
+        // | p1 x p2 | = r1 r2 sin(theta)
+        // p1 . p2 = r1 r2 cos(theta)
+        double r1r2 = p1.norm() * p2.norm();
+        double costheta = p1.dot(p2) / r1r2;
+        return p1.cross(p2).normSq() / p2.normSq() * (2. / (1.+costheta));
+    }
+#else
+    // The second option uses the direction perpendiculat to r1
     static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
     {
         // theta = angle between p1, p2
@@ -198,6 +213,8 @@ struct MetricHelper<Lens>
         // L = r1 |p1 x p2| / (p1 . p2)
         return p1.normSq() * p1.cross(p2).normSq() / SQR(p1.dot(p2));
     }
+#endif
+
     static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
     { return sqrt(DistSq(p1,p2)); }
 

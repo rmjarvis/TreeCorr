@@ -289,9 +289,6 @@ def test_direct_3d():
 def test_direct_perp():
     # This is the same as the above test, but using the perpendicular distance metric
 
-    get_from_wiki('nn_perp_data.dat')
-    get_from_wiki('nn_perp_rand.dat')
-
     ngal = 100
     s = 10.
     numpy.random.seed(8675309)
@@ -827,6 +824,7 @@ def test_perp_minmax():
         config['min_sep'] = 20
         config['bin_size'] = 0.1
 
+    get_from_wiki('nn_perp_data.dat')
     dcat = treecorr.Catalog('data/nn_perp_data.dat', config)
 
     dd1 = treecorr.NNCorrelation(config)
@@ -853,6 +851,7 @@ def test_perp_minmax():
         # and under-estimate first, and then only do the full calculation when it seems like we
         # will actually need it.  
         # Anyway, until then, let's not take forever by using last_row=200000
+        get_from_wiki('nn_perp_rand.dat')
         rcat = treecorr.Catalog('data/nn_perp_rand.dat', config, last_row=200000)
 
         rr1 = treecorr.NNCorrelation(config)

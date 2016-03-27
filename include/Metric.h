@@ -201,33 +201,42 @@ struct MetricHelper<Lens>
     static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
     { return sqrt(DistSq(p1,p2)); }
 
-    static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2, 
+    static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                     const Position<ThreeD>& p3)
     {
         // This is the same as Euclidean
         return MetricHelper<Euclidean>::CCW(p1,p2,p3);
     }
 
-    // This one is a bit subtle.  The maximum possible L can be larger than just (L + s1ps2).
-    static bool TooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2, double s1ps2, 
+    // If p1 is closer to Earth than p2 then everything is normal.  But if p2 is closer, then
+    // the effect of s1ps2 on the separation is larger by a factor of r1/r2.
+    // maxd = L + s1ps2 * r1/r2
+    static bool TooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2, double s1ps2,
                              double dsq, double minsep, double minsepsq)
 
     {
         // First a simple check that will work most of the time.
         if (dsq >= minsepsq || s1ps2 >= minsep || dsq >= SQR(minsep - s1ps2)) return false;
-        // Now check the subtle case.
-        // TODO
-        return true;
+        // Now check if p2 is closer
+        if (p1.normSq() < p2.normSq()) return true;
+        else {
+            s1ps2 *= p1.norm() / p2.norm();
+            return s1ps2 < minsep && dsq < SQR(minsep - s1ps2);
+        }
     }
 
-    // This one is similar.  The minimum possible L can be smaller than just (L - s1ps2).
+
+    // This one is similar.  The minimum possible L if p2 is closer is L - s1ps2 * r1/r2
     static bool TooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2, double s1ps2,
                              double dsq, double maxsep, double maxsepsq)
-    { 
+    {
         if (dsq < maxsepsq || dsq < SQR(maxsep + s1ps2)) return false;
-        // Now check the subtle case.
-        // TODO
-        return true;
+        // Now check if p2 is closer
+        if (p1.normSq() < p2.normSq()) return true;
+        else {
+            s1ps2 *= p1.norm() / p2.norm();
+            return dsq >= SQR(maxsep + s1ps2);
+        }
     }
 
 };

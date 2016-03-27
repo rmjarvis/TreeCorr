@@ -617,6 +617,12 @@ void ProcessAutoNNPerp(void* corr, void* field, int dots)
     static_cast<BinnedCorr2<NData,NData>*>(corr)->process<ThreeD,Perp>(
         *static_cast<Field<NData,ThreeD>*>(field),dots);
 }
+void ProcessAutoNNLens(void* corr, void* field, int dots)
+{
+    dbg<<"Start ProcessAutoNNLens\n";
+    static_cast<BinnedCorr2<NData,NData>*>(corr)->process<ThreeD,Lens>(
+        *static_cast<Field<NData,ThreeD>*>(field),dots);
+}
 
 void ProcessAutoKKFlat(void* corr, void* field, int dots)
 {
@@ -634,6 +640,12 @@ void ProcessAutoKKPerp(void* corr, void* field, int dots)
 {
     dbg<<"Start ProcessAutoKKPerp\n";
     static_cast<BinnedCorr2<KData,KData>*>(corr)->process<ThreeD,Perp>(
+        *static_cast<Field<KData,ThreeD>*>(field),dots);
+}
+void ProcessAutoKKLens(void* corr, void* field, int dots)
+{
+    dbg<<"Start ProcessAutoKKLens\n";
+    static_cast<BinnedCorr2<KData,KData>*>(corr)->process<ThreeD,Lens>(
         *static_cast<Field<KData,ThreeD>*>(field),dots);
 }
 
@@ -655,6 +667,12 @@ void ProcessAutoGGPerp(void* corr, void* field, int dots)
     static_cast<BinnedCorr2<GData,GData>*>(corr)->process<ThreeD,Perp>(
         *static_cast<Field<GData,ThreeD>*>(field),dots);
 }
+void ProcessAutoGGLens(void* corr, void* field, int dots)
+{
+    dbg<<"Start ProcessAutoGGLens\n";
+    static_cast<BinnedCorr2<GData,GData>*>(corr)->process<ThreeD,Lens>(
+        *static_cast<Field<GData,ThreeD>*>(field),dots);
+}
 
 void ProcessCrossNNFlat(void* corr, void* field1, void* field2, int dots)
 {
@@ -674,6 +692,13 @@ void ProcessCrossNNPerp(void* corr, void* field1, void* field2, int dots)
 {
     dbg<<"Start ProcessCrossNNPerp\n";
     static_cast<BinnedCorr2<NData,NData>*>(corr)->process<ThreeD,Perp>(
+        *static_cast<Field<NData,ThreeD>*>(field1),
+        *static_cast<Field<NData,ThreeD>*>(field2),dots);
+}
+void ProcessCrossNNLens(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessCrossNNLens\n";
+    static_cast<BinnedCorr2<NData,NData>*>(corr)->process<ThreeD,Lens>(
         *static_cast<Field<NData,ThreeD>*>(field1),
         *static_cast<Field<NData,ThreeD>*>(field2),dots);
 }
@@ -699,6 +724,13 @@ void ProcessCrossNKPerp(void* corr, void* field1, void* field2, int dots)
         *static_cast<Field<NData,ThreeD>*>(field1),
         *static_cast<Field<KData,ThreeD>*>(field2),dots);
 }
+void ProcessCrossNKLens(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessCrossNKLens\n";
+    static_cast<BinnedCorr2<NData,KData>*>(corr)->process<ThreeD,Lens>(
+        *static_cast<Field<NData,ThreeD>*>(field1),
+        *static_cast<Field<KData,ThreeD>*>(field2),dots);
+}
 
 void ProcessCrossNGFlat(void* corr, void* field1, void* field2, int dots)
 {
@@ -718,6 +750,13 @@ void ProcessCrossNGPerp(void* corr, void* field1, void* field2, int dots)
 {
     dbg<<"Start ProcessCrossNGPerp\n";
     static_cast<BinnedCorr2<NData,GData>*>(corr)->process<ThreeD,Perp>(
+        *static_cast<Field<NData,ThreeD>*>(field1),
+        *static_cast<Field<GData,ThreeD>*>(field2),dots);
+}
+void ProcessCrossNGLens(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessCrossNGLens\n";
+    static_cast<BinnedCorr2<NData,GData>*>(corr)->process<ThreeD,Lens>(
         *static_cast<Field<NData,ThreeD>*>(field1),
         *static_cast<Field<GData,ThreeD>*>(field2),dots);
 }
@@ -743,6 +782,13 @@ void ProcessCrossKKPerp(void* corr, void* field1, void* field2, int dots)
         *static_cast<Field<KData,ThreeD>*>(field1),
         *static_cast<Field<KData,ThreeD>*>(field2),dots);
 }
+void ProcessCrossKKLens(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessCrossKKLens\n";
+    static_cast<BinnedCorr2<KData,KData>*>(corr)->process<ThreeD,Lens>(
+        *static_cast<Field<KData,ThreeD>*>(field1),
+        *static_cast<Field<KData,ThreeD>*>(field2),dots);
+}
 
 void ProcessCrossKGFlat(void* corr, void* field1, void* field2, int dots)
 {
@@ -762,6 +808,13 @@ void ProcessCrossKGPerp(void* corr, void* field1, void* field2, int dots)
 {
     dbg<<"Start ProcessCrossKGPerp\n";
     static_cast<BinnedCorr2<KData,GData>*>(corr)->process<ThreeD,Perp>(
+        *static_cast<Field<KData,ThreeD>*>(field1),
+        *static_cast<Field<GData,ThreeD>*>(field2),dots);
+}
+void ProcessCrossKGLens(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessCrossKGLens\n";
+    static_cast<BinnedCorr2<KData,GData>*>(corr)->process<ThreeD,Lens>(
         *static_cast<Field<KData,ThreeD>*>(field1),
         *static_cast<Field<GData,ThreeD>*>(field2),dots);
 }
@@ -787,6 +840,13 @@ void ProcessCrossGGPerp(void* corr, void* field1, void* field2, int dots)
         *static_cast<Field<GData,ThreeD>*>(field1),
         *static_cast<Field<GData,ThreeD>*>(field2),dots);
 }
+void ProcessCrossGGLens(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessCrossGGLens\n";
+    static_cast<BinnedCorr2<GData,GData>*>(corr)->process<ThreeD,Lens>(
+        *static_cast<Field<GData,ThreeD>*>(field1),
+        *static_cast<Field<GData,ThreeD>*>(field2),dots);
+}
 
 void ProcessPairwiseNNFlat(void* corr, void* field1, void* field2, int dots)
 {
@@ -806,6 +866,13 @@ void ProcessPairwiseNNPerp(void* corr, void* field1, void* field2, int dots)
 {
     dbg<<"Start ProcessPairwiseNNPerp\n";
     static_cast<BinnedCorr2<NData,NData>*>(corr)->processPairwise<ThreeD,Perp>(
+        *static_cast<SimpleField<NData,ThreeD>*>(field1),
+        *static_cast<SimpleField<NData,ThreeD>*>(field2),dots);
+}
+void ProcessPairwiseNNLens(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseNNLens\n";
+    static_cast<BinnedCorr2<NData,NData>*>(corr)->processPairwise<ThreeD,Lens>(
         *static_cast<SimpleField<NData,ThreeD>*>(field1),
         *static_cast<SimpleField<NData,ThreeD>*>(field2),dots);
 }
@@ -831,6 +898,13 @@ void ProcessPairwiseNKPerp(void* corr, void* field1, void* field2, int dots)
         *static_cast<SimpleField<NData,ThreeD>*>(field1),
         *static_cast<SimpleField<KData,ThreeD>*>(field2),dots);
 }
+void ProcessPairwiseNKLens(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseNKLens\n";
+    static_cast<BinnedCorr2<NData,KData>*>(corr)->processPairwise<ThreeD,Lens>(
+        *static_cast<SimpleField<NData,ThreeD>*>(field1),
+        *static_cast<SimpleField<KData,ThreeD>*>(field2),dots);
+}
 
 void ProcessPairwiseNGFlat(void* corr, void* field1, void* field2, int dots)
 {
@@ -850,6 +924,13 @@ void ProcessPairwiseNGPerp(void* corr, void* field1, void* field2, int dots)
 {
     dbg<<"Start ProcessPairwiseNGPerp\n";
     static_cast<BinnedCorr2<NData,GData>*>(corr)->processPairwise<ThreeD,Perp>(
+        *static_cast<SimpleField<NData,ThreeD>*>(field1),
+        *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
+}
+void ProcessPairwiseNGLens(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseNGLens\n";
+    static_cast<BinnedCorr2<NData,GData>*>(corr)->processPairwise<ThreeD,Lens>(
         *static_cast<SimpleField<NData,ThreeD>*>(field1),
         *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
 }
@@ -875,6 +956,13 @@ void ProcessPairwiseKKPerp(void* corr, void* field1, void* field2, int dots)
         *static_cast<SimpleField<KData,ThreeD>*>(field1),
         *static_cast<SimpleField<KData,ThreeD>*>(field2),dots);
 }
+void ProcessPairwiseKKLens(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseKKLens\n";
+    static_cast<BinnedCorr2<KData,KData>*>(corr)->processPairwise<ThreeD,Lens>(
+        *static_cast<SimpleField<KData,ThreeD>*>(field1),
+        *static_cast<SimpleField<KData,ThreeD>*>(field2),dots);
+}
 
 void ProcessPairwiseKGFlat(void* corr, void* field1, void* field2, int dots)
 {
@@ -897,6 +985,13 @@ void ProcessPairwiseKGPerp(void* corr, void* field1, void* field2, int dots)
         *static_cast<SimpleField<KData,ThreeD>*>(field1),
         *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
 }
+void ProcessPairwiseKGLens(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseKGLens\n";
+    static_cast<BinnedCorr2<KData,GData>*>(corr)->processPairwise<ThreeD,Lens>(
+        *static_cast<SimpleField<KData,ThreeD>*>(field1),
+        *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
+}
 
 void ProcessPairwiseGGFlat(void* corr, void* field1, void* field2, int dots)
 {
@@ -916,6 +1011,13 @@ void ProcessPairwiseGGPerp(void* corr, void* field1, void* field2, int dots)
 {
     dbg<<"Start ProcessPairwiseGGPerp\n";
     static_cast<BinnedCorr2<GData,GData>*>(corr)->processPairwise<ThreeD,Perp>(
+        *static_cast<SimpleField<GData,ThreeD>*>(field1),
+        *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
+}
+void ProcessPairwiseGGLens(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseGGLens\n";
+    static_cast<BinnedCorr2<GData,GData>*>(corr)->processPairwise<ThreeD,Lens>(
         *static_cast<SimpleField<GData,ThreeD>*>(field1),
         *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
 }

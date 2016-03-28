@@ -139,10 +139,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
-        if metric == 'Rperp' and cat.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        metric = treecorr.util.parse_metric(metric, cat.coords, auto=True)
 
         self._set_num_threads(num_threads)
 
@@ -155,7 +152,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         #      s = 0.5 * b * minsep / (1+1.5 b)
         #        = b * minsep / (2+3b)
         min_size = self.min_sep * self.b / (2.+3.*self.b)
-        if metric == 'Rperp':
+        if metric == treecorr._lib.Perp:
             # Go a bit smller than min_sep for Rperp metric, since the above calculation of
             # what minimum size to use isn't exactly accurate in this case.
             min_size /= 2.
@@ -168,11 +165,9 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         if cat.coords == 'flat':
-            treecorr._lib.ProcessAutoGGFlat(self.corr, field.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessAutoGGPerp(self.corr, field.data, self.output_dots)
+            treecorr._lib.ProcessAutoGGFlat(self.corr, field.data, self.output_dots, metric)
         else:
-            treecorr._lib.ProcessAutoGG3D(self.corr, field.data, self.output_dots)
+            treecorr._lib.ProcessAutoGG3D(self.corr, field.data, self.output_dots, metric)
 
 
     def process_cross(self, cat1, cat2, metric=None, num_threads=None):
@@ -201,19 +196,14 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp', 'Rlens']:
-            raise ValueError("Invalid metric.")
         if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and cat1.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
-        if metric == 'Rlens' and cat1.coords != '3d':
-            raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
+        metric = treecorr.util.parse_metric(metric, cat1.coords)
 
         self._set_num_threads(num_threads)
 
         min_size = self.min_sep * self.b / (2.+3.*self.b)
-        if metric == 'Rperp':
+        if metric == treecorr._lib.Perp:
             # Go a bit smller than min_sep for Rperp metric, since the simple calculation of
             # what minimum size to use isn't exactly accurate in this case.
             min_size /= 2.
@@ -224,13 +214,9 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         if cat1.coords == 'flat':
-            treecorr._lib.ProcessCrossGGFlat(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessCrossGGPerp(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rlens':
-            treecorr._lib.ProcessCrossGGLens(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossGGFlat(self.corr, f1.data, f2.data, self.output_dots, metric)
         else:
-            treecorr._lib.ProcessCrossGG3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossGG3D(self.corr, f1.data, f2.data, self.output_dots, metric)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -260,14 +246,9 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp', 'Rlens']:
-            raise ValueError("Invalid metric.")
         if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and cat1.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
-        if metric == 'Rlens' and cat1.coords != '3d':
-            raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
+        metric = treecorr.util.parse_metric(metric, cat1.coords)
 
         self._set_num_threads(num_threads)
 
@@ -275,13 +256,9 @@ class GGCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getGSimpleField()
 
         if cat1.coords == 'flat':
-            treecorr._lib.ProcessPairwiseGGFlat(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessPairwiseGGPerp(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rlens':
-            treecorr._lib.ProcessPairwiseGGLens(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseGGFlat(self.corr, f1.data, f2.data, self.output_dots, metric)
         else:
-            treecorr._lib.ProcessPairwiseGG3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseGG3D(self.corr, f1.data, f2.data, self.output_dots, metric)
 
 
     def finalize(self, varg1, varg2):
@@ -393,13 +370,6 @@ class GGCorrelation(treecorr.BinnedCorr2):
         if cat2 is not None and not isinstance(cat2,list): cat2 = [cat2]
         if len(cat1) == 0:
             raise AttributeError("No catalogs provided for cat1")
-
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp', 'Rlens']:
-            raise ValueError("Invalid metric.")
-        if metric == 'Rlens' and cat2 is None:
-            raise ValueError("Rlens metric is only valid for cross correlations.")
 
         if cat2 is None or len(cat2) == 0:
             varg1 = treecorr.calculateVarG(cat1)

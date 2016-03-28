@@ -284,3 +284,23 @@ def double_ptr(x):
     #return treecorr._ffi.cast('double*', treecorr._ffi.from_buffer(x))
     # This works, presumably by ignoring the numpy read_only flag.  Although, I think it's ok.
     return treecorr._ffi.cast('double*', x.ctypes.data)
+
+def parse_metric(metric, coords, auto=False):
+    """
+    Convert a string metric into the corresponding enum to pass to the C code.
+    """
+    if metric == 'Euclidean':
+        return treecorr._lib.Euclidean
+    elif metric == 'Rperp':
+        if coords != '3d':
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        return treecorr._lib.Perp
+    elif metric == 'Rlens':
+        if auto:
+            raise ValueError("Rlens metric is only valid for cross correlations.")
+        if coords != '3d':
+            raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
+        return treecorr._lib.Lens
+    else:
+        raise ValueError("Invalid metric %s"%metric)
+

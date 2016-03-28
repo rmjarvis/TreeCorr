@@ -131,26 +131,21 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
-        if metric == 'Rperp' and cat.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        metric = treecorr.util.parse_metric(metric, cat.coords, auto=True)
 
         self._set_num_threads(num_threads)
 
         min_size = self.min_sep * self.b / (2.+3.*self.b);
-        if metric == 'Rperp': min_size /= 2.
+        if metric == treecorr._lib.Perp: min_size /= 2.
         max_size = self.max_sep * self.b
 
         field = cat.getNField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         if cat.coords == 'flat':
-            treecorr._lib.ProcessAutoNNFlat(self.corr, field.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessAutoNNPerp(self.corr, field.data, self.output_dots)
+            treecorr._lib.ProcessAutoNNFlat(self.corr, field.data, self.output_dots, metric)
         else:
-            treecorr._lib.ProcessAutoNN3D(self.corr, field.data, self.output_dots)
+            treecorr._lib.ProcessAutoNN3D(self.corr, field.data, self.output_dots, metric)
         self.tot += 0.5 * cat.sumw**2
 
 
@@ -179,19 +174,14 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp', 'Rlens']:
-            raise ValueError("Invalid metric.")
         if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and cat1.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
-        if metric == 'Rlens' and cat1.coords != '3d':
-            raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
+        metric = treecorr.util.parse_metric(metric, cat1.coords)
 
         self._set_num_threads(num_threads)
 
         min_size = self.min_sep * self.b / (2.+3.*self.b);
-        if metric == 'Rperp': min_size /= 2.
+        if metric == treecorr._lib.Perp: min_size /= 2.
         max_size = self.max_sep * self.b
 
         f1 = cat1.getNField(min_size,max_size,self.split_method,self.max_top)
@@ -199,13 +189,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         if cat1.coords == 'flat':
-            treecorr._lib.ProcessCrossNNFlat(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessCrossNNPerp(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rlens':
-            treecorr._lib.ProcessCrossNNLens(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossNNFlat(self.corr, f1.data, f2.data, self.output_dots, metric)
         else:
-            treecorr._lib.ProcessCrossNN3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossNN3D(self.corr, f1.data, f2.data, self.output_dots, metric)
         self.tot += cat1.sumw*cat2.sumw
 
 
@@ -235,14 +221,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp', 'Rlens']:
-            raise ValueError("Invalid metric.")
         if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and cat1.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
-        if metric == 'Rlens' and cat1.coords != '3d':
-            raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
+        metric = treecorr.util.parse_metric(metric, cat1.coords)
 
         self._set_num_threads(num_threads)
 
@@ -250,13 +231,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getNSimpleField()
 
         if cat1.coords == 'flat':
-            treecorr._lib.ProcessPairwiseNNFlat(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessPairwiseNNPerp(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rlens':
-            treecorr._lib.ProcessPairwiseNNLens(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseNNFlat(self.corr, f1.data, f2.data, self.output_dots, metric)
         else:
-            treecorr._lib.ProcessPairwiseNN3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseNN3D(self.corr, f1.data, f2.data, self.output_dots, metric)
         self.tot += cat1.weight
 
 
@@ -351,8 +328,6 @@ class NNCorrelation(treecorr.BinnedCorr2):
         if cat2 is not None and not isinstance(cat2,list): cat2 = [cat2]
         if len(cat1) == 0:
             raise ValueError("No catalogs provided for cat1")
-        if metric == 'Rlens' and cat2 is None:
-            raise ValueError("Rlens metric is only valid for cross correlations.")
 
         if cat2 is None or len(cat2) == 0:
             self._process_all_auto(cat1,metric,num_threads)

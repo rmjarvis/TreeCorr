@@ -215,10 +215,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
-        if metric == 'Rperp' and cat.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        metric = treecorr.util.parse_metric(metric, cat.coords, auto=True)
 
         self._set_num_threads(num_threads)
 
@@ -226,7 +223,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         # The minimum separation we care about is that of the smallest size, which is 
         # min_sep * min_u.  Do the same calculation as for 2pt to get to min_size.
         min_size = self.min_sep * self.min_u * b / (2.+3.*b);
-        if metric == 'Rperp': min_size /= 2.
+        if metric == treecorr._lib.Perp: min_size /= 2.
         # This time, the maximum size is d1 * b.  d1 can be as high as 2*max_sep.
         max_size = 2. * self.max_sep * b
 
@@ -234,11 +231,9 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         if cat.coords == 'flat':
-            treecorr._lib.ProcessAutoGGGFlat(self.corr, field.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessAutoGGGPerp(self.corr, field.data, self.output_dots)
+            treecorr._lib.ProcessAutoGGGFlat(self.corr, field.data, self.output_dots, metric)
         else:
-            treecorr._lib.ProcessAutoGGG3D(self.corr, field.data, self.output_dots)
+            treecorr._lib.ProcessAutoGGG3D(self.corr, field.data, self.output_dots, metric)
 
     def process_cross21(self, cat1, cat2, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where two of the 
@@ -287,18 +282,15 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
         if cat1.coords != cat2.coords or cat1.coords != cat3.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and cat1.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        metric = treecorr.util.parse_metric(metric, cat1.coords)
 
         self._set_num_threads(num_threads)
 
         b = numpy.max( (self.b, self.bu, self.bv) )
         min_size = self.min_sep * self.min_u * b / (2.+3.*b);
-        if metric == 'Rperp': min_size /= 2.
+        if metric == treecorr._lib.Perp: min_size /= 2.
         max_size = 2.*self.max_sep * b
 
         f1 = cat1.getGField(min_size,max_size,self.split_method,self.max_top)
@@ -308,13 +300,10 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         if cat1.coords == 'flat':
             treecorr._lib.ProcessCrossGGGFlat(self.corr, f1.data, f2.data, f3.data,
-                                              self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessCrossGGGPerp(self.corr, f1.data, f2.data, f3.data,
-                                              self.output_dots)
+                                              self.output_dots, metric)
         else:
             treecorr._lib.ProcessCrossGGG3D(self.corr, f1.data, f2.data, f3.data,
-                                            self.output_dots)
+                                            self.output_dots, metric)
 
 
     def finalize(self, varg1, varg2, varg3):

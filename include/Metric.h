@@ -15,12 +15,9 @@
 #ifndef TreeCorr_Metric_H
 #define TreeCorr_Metric_H
 
-// We use a code for the metric to use:
-// Euclidean is Euclidean in (x,y) or (x,y,z)
-// Perp uses the perpendicular component of the separation as the distance
-// Lens uses the perpendicular component at the lens (the first catalog) distance
-// Arc uses the great circle distance between two points on the sphere
-enum Metric { Euclidean=1, Perp=2, Lens=3, Arc=4 };
+// The Metric enum is defined here:
+#include "Metric_C.h"
+
 
 template <int M>
 struct MetricHelper;

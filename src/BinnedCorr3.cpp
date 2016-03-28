@@ -1332,212 +1332,239 @@ void DestroyKKGCorr(void* corr)
 #endif
 
 
-void ProcessAutoNNNFlat(void* corr, void* field, int dots)
+void ProcessAutoNNNFlat(void* corr, void* field, int dots, int metric)
 {
     dbg<<"Start ProcessAutoNNNFlat\n";
-    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<NData,Flat>*>(field),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<NData,Flat>*>(field),dots);
+    else
+        Assert(false);
 }
-void ProcessAutoNNN3D(void* corr, void* field, int dots)
+void ProcessAutoNNN3D(void* corr, void* field, int dots, int metric)
 {
     dbg<<"Start ProcessAutoNNN3D\n";
-    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<NData,ThreeD>*>(field),dots);
-}
-void ProcessAutoNNNPerp(void* corr, void* field, int dots)
-{
-    dbg<<"Start ProcessAutoNNNPerp\n";
-    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<NData,ThreeD>*>(field),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<NData,ThreeD>*>(field),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<NData,ThreeD>*>(field),dots);
+    else
+        Assert(false);
 }
 
-void ProcessAutoKKKFlat(void* corr, void* field, int dots)
+void ProcessAutoKKKFlat(void* corr, void* field, int dots, int metric)
 {
     dbg<<"Start ProcessAutoKKKFlat\n";
-    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<KData,Flat>*>(field),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<KData,Flat>*>(field),dots);
+    else
+        Assert(false);
 }
-void ProcessAutoKKK3D(void* corr, void* field, int dots)
+void ProcessAutoKKK3D(void* corr, void* field, int dots, int metric)
 {
     dbg<<"Start ProcessAutoKKK3D\n";
-    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<KData,ThreeD>*>(field),dots);
-}
-void ProcessAutoKKKPerp(void* corr, void* field, int dots)
-{
-    dbg<<"Start ProcessAutoKKKPerp\n";
-    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<KData,ThreeD>*>(field),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<KData,ThreeD>*>(field),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<KData,ThreeD>*>(field),dots);
+    else
+        Assert(false);
 }
 
-void ProcessAutoGGGFlat(void* corr, void* field, int dots)
+void ProcessAutoGGGFlat(void* corr, void* field, int dots, int metric)
 {
     dbg<<"Start ProcessAutoGGGFlat\n";
-    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<GData,Flat>*>(field),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<GData,Flat>*>(field),dots);
+    else
+        Assert(false);
 }
-void ProcessAutoGGG3D(void* corr, void* field, int dots)
+void ProcessAutoGGG3D(void* corr, void* field, int dots, int metric)
 {
     dbg<<"Start ProcessAutoGGG3D\n";
-    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<GData,ThreeD>*>(field),dots);
-}
-void ProcessAutoGGGPerp(void* corr, void* field, int dots)
-{
-    dbg<<"Start ProcessAutoGGGPerp\n";
-    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<GData,ThreeD>*>(field),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<GData,ThreeD>*>(field),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<GData,ThreeD>*>(field),dots);
+    else
+        Assert(false);
 }
 
-void ProcessCrossNNNFlat(void* corr, void* field1, void* field2, void* field3, int dots)
+void ProcessCrossNNNFlat(void* corr, void* field1, void* field2, void* field3, int dots, int metric)
 {
     dbg<<"Start ProcessCrossNNNFlat\n";
-    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<NData,Flat>*>(field1),
-        *static_cast<Field<NData,Flat>*>(field2),
-        *static_cast<Field<NData,Flat>*>(field3),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<NData,Flat>*>(field1),
+            *static_cast<Field<NData,Flat>*>(field2),
+            *static_cast<Field<NData,Flat>*>(field3),dots);
+    else
+        Assert(false);
 }
-void ProcessCrossNNN3D(void* corr, void* field1, void* field2, void* field3, int dots)
+void ProcessCrossNNN3D(void* corr, void* field1, void* field2, void* field3, int dots, int metric)
 {
     dbg<<"Start ProcessCrossNNN3D\n";
-    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<NData,ThreeD>*>(field1),
-        *static_cast<Field<NData,ThreeD>*>(field2),
-        *static_cast<Field<NData,ThreeD>*>(field3),dots);
-}
-void ProcessCrossNNNPerp(void* corr, void* field1, void* field2, void* field3, int dots)
-{
-    dbg<<"Start ProcessCrossNNNPerp\n";
-    static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<NData,ThreeD>*>(field1),
-        *static_cast<Field<NData,ThreeD>*>(field2),
-        *static_cast<Field<NData,ThreeD>*>(field3),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<NData,ThreeD>*>(field1),
+            *static_cast<Field<NData,ThreeD>*>(field2),
+            *static_cast<Field<NData,ThreeD>*>(field3),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<NData,ThreeD>*>(field1),
+            *static_cast<Field<NData,ThreeD>*>(field2),
+            *static_cast<Field<NData,ThreeD>*>(field3),dots);
+    else
+        Assert(false);
 }
 
-void ProcessCrossKKKFlat(void* corr, void* field1, void* field2, void* field3, int dots)
+void ProcessCrossKKKFlat(void* corr, void* field1, void* field2, void* field3, int dots, int metric)
 {
     dbg<<"Start ProcessCrossKKKFlat\n";
-    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<KData,Flat>*>(field1),
-        *static_cast<Field<KData,Flat>*>(field2),
-        *static_cast<Field<KData,Flat>*>(field3),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<KData,Flat>*>(field1),
+            *static_cast<Field<KData,Flat>*>(field2),
+            *static_cast<Field<KData,Flat>*>(field3),dots);
+    else
+        Assert(false);
 }
-void ProcessCrossKKK3D(void* corr, void* field1, void* field2, void* field3, int dots)
+void ProcessCrossKKK3D(void* corr, void* field1, void* field2, void* field3, int dots, int metric)
 {
     dbg<<"Start ProcessCrossKKK3D\n";
-    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<KData,ThreeD>*>(field1),
-        *static_cast<Field<KData,ThreeD>*>(field2),
-        *static_cast<Field<KData,ThreeD>*>(field3),dots);
-}
-void ProcessCrossKKKPerp(void* corr, void* field1, void* field2, void* field3, int dots)
-{
-    dbg<<"Start ProcessCrossKKKPerp\n";
-    static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<KData,ThreeD>*>(field1),
-        *static_cast<Field<KData,ThreeD>*>(field2),
-        *static_cast<Field<KData,ThreeD>*>(field3),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<KData,ThreeD>*>(field1),
+            *static_cast<Field<KData,ThreeD>*>(field2),
+            *static_cast<Field<KData,ThreeD>*>(field3),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<KData,ThreeD>*>(field1),
+            *static_cast<Field<KData,ThreeD>*>(field2),
+            *static_cast<Field<KData,ThreeD>*>(field3),dots);
+    else
+        Assert(false);
 }
 
-void ProcessCrossGGGFlat(void* corr, void* field1, void* field2, void* field3, int dots)
+void ProcessCrossGGGFlat(void* corr, void* field1, void* field2, void* field3, int dots, int metric)
 {
     dbg<<"Start ProcessCrossGGGFlat\n";
-    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<GData,Flat>*>(field1),
-        *static_cast<Field<GData,Flat>*>(field2),
-        *static_cast<Field<GData,Flat>*>(field3),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<GData,Flat>*>(field1),
+            *static_cast<Field<GData,Flat>*>(field2),
+            *static_cast<Field<GData,Flat>*>(field3),dots);
+    else
+        Assert(false);
 }
-void ProcessCrossGGG3D(void* corr, void* field1, void* field2, void* field3, int dots)
+void ProcessCrossGGG3D(void* corr, void* field1, void* field2, void* field3, int dots, int metric)
 {
     dbg<<"Start ProcessCrossGGG3D\n";
-    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<GData,ThreeD>*>(field1),
-        *static_cast<Field<GData,ThreeD>*>(field2),
-        *static_cast<Field<GData,ThreeD>*>(field3),dots);
-}
-void ProcessCrossGGGPerp(void* corr, void* field1, void* field2, void* field3, int dots)
-{
-    dbg<<"Start ProcessCrossGGGPerp\n";
-    static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<GData,ThreeD>*>(field1),
-        *static_cast<Field<GData,ThreeD>*>(field2),
-        *static_cast<Field<GData,ThreeD>*>(field3),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<GData,ThreeD>*>(field1),
+            *static_cast<Field<GData,ThreeD>*>(field2),
+            *static_cast<Field<GData,ThreeD>*>(field3),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<GData,ThreeD>*>(field1),
+            *static_cast<Field<GData,ThreeD>*>(field2),
+            *static_cast<Field<GData,ThreeD>*>(field3),dots);
+    else
+        Assert(false);
 }
 
 #if 0
-void ProcessCrossNNKFlat(void* corr, void* field1, void* field2, void* field3, int dots)
+void ProcessCrossNNKFlat(void* corr, void* field1, void* field2, void* field3, int dots, int metric)
 {
     dbg<<"Start ProcessCrossNNKFlat\n";
-    static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<NData,Flat>*>(field1),
-        *static_cast<Field<NData,Flat>*>(field2),
-        *static_cast<Field<KData,Flat>*>(field3),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<NData,Flat>*>(field1),
+            *static_cast<Field<NData,Flat>*>(field2),
+            *static_cast<Field<KData,Flat>*>(field3),dots);
+    else
+        Assert(false);
 }
-void ProcessCrossNNK3D(void* corr, void* field1, void* field2, void* field3, int dots)
+void ProcessCrossNNK3D(void* corr, void* field1, void* field2, void* field3, int dots, int metric)
 {
     dbg<<"Start ProcessCrossNNK3D\n";
-    static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<NData,ThreeD>*>(field1),
-        *static_cast<Field<NData,ThreeD>*>(field2),
-        *static_cast<Field<KData,ThreeD>*>(field3),dots);
-}
-void ProcessCrossNNKPerp(void* corr, void* field1, void* field2, void* field3, int dots)
-{
-    dbg<<"Start ProcessCrossNNKPerp\n";
-    static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<NData,ThreeD>*>(field1),
-        *static_cast<Field<NData,ThreeD>*>(field2),
-        *static_cast<Field<KData,ThreeD>*>(field3),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<NData,ThreeD>*>(field1),
+            *static_cast<Field<NData,ThreeD>*>(field2),
+            *static_cast<Field<KData,ThreeD>*>(field3),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<NData,ThreeD>*>(field1),
+            *static_cast<Field<NData,ThreeD>*>(field2),
+            *static_cast<Field<KData,ThreeD>*>(field3),dots);
+    else
+        Assert(false);
 }
 
-void ProcessCrossNNGFlat(void* corr, void* field1, void* field2, void* field3, int dots)
+void ProcessCrossNNGFlat(void* corr, void* field1, void* field2, void* field3, int dots, int metric)
 {
     dbg<<"Start ProcessCrossNNGFlat\n";
-    static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<NData,Flat>*>(field1),
-        *static_cast<Field<NData,Flat>*>(field2),
-        *static_cast<Field<GData,Flat>*>(field3),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<NData,Flat>*>(field1),
+            *static_cast<Field<NData,Flat>*>(field2),
+            *static_cast<Field<GData,Flat>*>(field3),dots);
+    else
+        Assert(false);
 }
-void ProcessCrossNNG3D(void* corr, void* field1, void* field2, void* field3, int dots)
+void ProcessCrossNNG3D(void* corr, void* field1, void* field2, void* field3, int dots, int metric)
 {
     dbg<<"Start ProcessCrossNNG3D\n";
-    static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<NData,ThreeD>*>(field1),
-        *static_cast<Field<NData,ThreeD>*>(field2),
-        *static_cast<Field<GData,ThreeD>*>(field3),dots);
-}
-void ProcessCrossNNGPerp(void* corr, void* field1, void* field2, void* field3, int dots)
-{
-    dbg<<"Start ProcessCrossNNGPerp\n";
-    static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<NData,ThreeD>*>(field1),
-        *static_cast<Field<NData,ThreeD>*>(field2),
-        *static_cast<Field<GData,ThreeD>*>(field3),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<NData,ThreeD>*>(field1),
+            *static_cast<Field<NData,ThreeD>*>(field2),
+            *static_cast<Field<GData,ThreeD>*>(field3),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<NData,ThreeD>*>(field1),
+            *static_cast<Field<NData,ThreeD>*>(field2),
+            *static_cast<Field<GData,ThreeD>*>(field3),dots);
+    else
+        Assert(false);
 }
 
-void ProcessCrossKKGFlat(void* corr, void* field1, void* field2, void* field3, int dots)
+void ProcessCrossKKGFlat(void* corr, void* field1, void* field2, void* field3, int dots, int metric)
 {
     dbg<<"Start ProcessCrossKKGFlat\n";
-    static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<KData,Flat>*>(field1),
-        *static_cast<Field<KData,Flat>*>(field2),
-        *static_cast<Field<GData,Flat>*>(field3),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<KData,Flat>*>(field1),
+            *static_cast<Field<KData,Flat>*>(field2),
+            *static_cast<Field<GData,Flat>*>(field3),dots);
+    else
+        Assert(false);
 }
-void ProcessCrossKKG3D(void* corr, void* field1, void* field2, void* field3, int dots)
+void ProcessCrossKKG3D(void* corr, void* field1, void* field2, void* field3, int dots, int metric)
 {
     dbg<<"Start ProcessCrossKKG3D\n";
-    static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<KData,ThreeD>*>(field1),
-        *static_cast<Field<KData,ThreeD>*>(field2),
-        *static_cast<Field<GData,ThreeD>*>(field3),dots);
-}
-void ProcessCrossKKGPerp(void* corr, void* field1, void* field2, void* field3, int dots)
-{
-    dbg<<"Start ProcessCrossKKGPerp\n";
-    static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<KData,ThreeD>*>(field1),
-        *static_cast<Field<KData,ThreeD>*>(field2),
-        *static_cast<Field<GData,ThreeD>*>(field3),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<KData,ThreeD>*>(field1),
+            *static_cast<Field<KData,ThreeD>*>(field2),
+            *static_cast<Field<GData,ThreeD>*>(field3),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<KData,ThreeD>*>(field1),
+            *static_cast<Field<KData,ThreeD>*>(field2),
+            *static_cast<Field<GData,ThreeD>*>(field3),dots);
+    else
+        Assert(false);
 }
 #endif
 

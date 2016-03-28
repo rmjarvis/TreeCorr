@@ -20,7 +20,6 @@
 
 #include "Cell.h"
 #include "Field.h"
-#include "Metric.h"
 
 template <int D1, int D2>
 struct XiData;

@@ -137,26 +137,21 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
-        if metric == 'Rperp' and cat.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        metric = treecorr.util.parse_metric(metric, cat.coords, auto=True)
 
         self._set_num_threads(num_threads)
 
         min_size = self.min_sep * self.b / (2.+3.*self.b);
-        if metric == 'Rperp': min_size /= 2.
+        if metric == treecorr._lib.Perp: min_size /= 2.
         max_size = self.max_sep * self.b
 
         field = cat.getKField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         if cat.coords == 'flat':
-            treecorr._lib.ProcessAutoKKFlat(self.corr, field.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessAutoKKPerp(self.corr, field.data, self.output_dots)
+            treecorr._lib.ProcessAutoKKFlat(self.corr, field.data, self.output_dots, metric)
         else:
-            treecorr._lib.ProcessAutoKK3D(self.corr, field.data, self.output_dots)
+            treecorr._lib.ProcessAutoKK3D(self.corr, field.data, self.output_dots, metric)
 
 
     def process_cross(self, cat1, cat2, metric=None, num_threads=None):
@@ -185,19 +180,14 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp', 'Rlens']:
-            raise ValueError("Invalid metric.")
         if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and cat1.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
-        if metric == 'Rlens' and cat1.coords != '3d':
-            raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
+        metric = treecorr.util.parse_metric(metric, cat1.coords)
 
         self._set_num_threads(num_threads)
 
         min_size = self.min_sep * self.b / (2.+3.*self.b);
-        if metric == 'Rperp': min_size /= 2.
+        if metric == treecorr._lib.Perp: min_size /= 2.
         max_size = self.max_sep * self.b
 
         f1 = cat1.getKField(min_size,max_size,self.split_method,self.max_top)
@@ -205,13 +195,9 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         if cat1.coords == 'flat':
-            treecorr._lib.ProcessCrossKKFlat(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessCrossKKPerp(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rlens':
-            treecorr._lib.ProcessCrossKKLens(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossKKFlat(self.corr, f1.data, f2.data, self.output_dots, metric)
         else:
-            treecorr._lib.ProcessCrossKK3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessCrossKK3D(self.corr, f1.data, f2.data, self.output_dots, metric)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -241,14 +227,9 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp', 'Rlens']:
-            raise ValueError("Invalid metric.")
         if cat1.coords != cat2.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and cat1.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
-        if metric == 'Rlens' and cat1.coords != '3d':
-            raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
+        metric = treecorr.util.parse_metric(metric, cat1.coords)
 
         self._set_num_threads(num_threads)
 
@@ -256,13 +237,9 @@ class KKCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getKSimpleField()
 
         if cat1.coords == 'flat':
-            treecorr._lib.ProcessPairwiseKKFlat(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessPairwiseKKPerp(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rlens':
-            treecorr._lib.ProcessPairwiseKKLens(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseKKFlat(self.corr, f1.data, f2.data, self.output_dots, metric)
         else:
-            treecorr._lib.ProcessPairwiseKK3D(self.corr, f1.data, f2.data, self.output_dots)
+            treecorr._lib.ProcessPairwiseKK3D(self.corr, f1.data, f2.data, self.output_dots, metric)
 
 
     def finalize(self, vark1, vark2):
@@ -364,8 +341,6 @@ class KKCorrelation(treecorr.BinnedCorr2):
         if cat2 is not None and not isinstance(cat2,list): cat2 = [cat2]
         if len(cat1) == 0:
             raise ValueError("No catalogs provided for cat1")
-        if metric == 'Rlens' and cat2 is None:
-            raise ValueError("Rlens metric is only valid for cross correlations.")
 
         if cat2 is None or len(cat2) == 0:
             vark1 = treecorr.calculateVarK(cat1)

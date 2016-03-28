@@ -166,27 +166,22 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
-        if metric == 'Rperp' and cat.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        metric = treecorr.util.parse_metric(metric, cat.coords, auto=True)
 
         self._set_num_threads(num_threads)
 
         b = numpy.max( (self.b, self.bu, self.bv) )
         min_size = self.min_sep * self.min_u * b / (2.+3.*b);
-        if metric == 'Rperp': min_size /= 2.
+        if metric == treecorr._lib.Perp: min_size /= 2.
         max_size = 2. * self.max_sep * b
 
         field = cat.getNField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         if cat.coords == 'flat':
-            treecorr._lib.ProcessAutoNNNFlat(self.corr, field.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessAutoNNNPerp(self.corr, field.data, self.output_dots)
+            treecorr._lib.ProcessAutoNNNFlat(self.corr, field.data, self.output_dots, metric)
         else:
-            treecorr._lib.ProcessAutoNNN3D(self.corr, field.data, self.output_dots)
+            treecorr._lib.ProcessAutoNNN3D(self.corr, field.data, self.output_dots, metric)
         self.tot += (1./6.) * cat.sumw**3
 
     def process_cross21(self, cat1, cat2, metric=None, num_threads=None):
@@ -236,18 +231,15 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
         if cat1.coords != cat2.coords or cat1.coords != cat3.coords:
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and cat1.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        metric = treecorr.util.parse_metric(metric, cat1.coords)
 
         self._set_num_threads(num_threads)
 
         b = numpy.max( (self.b, self.bu, self.bv) )
         min_size = self.min_sep * self.min_u * b / (2.+3.*b);
-        if metric == 'Rperp': min_size /= 2.
+        if metric == treecorr._lib.Perp: min_size /= 2.
         max_size = 2. * self.max_sep * b
 
         f1 = cat1.getNField(min_size,max_size,self.split_method,self.max_top)
@@ -257,13 +249,10 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         if cat1.coords == 'flat':
             treecorr._lib.ProcessCrossNNNFlat(self.corr, f1.data, f2.data, f3.data,
-                                              self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessCrossNNNPerp(self.corr, f1.data, f2.data, f3.data,
-                                              self.output_dots)
+                                              self.output_dots, metric)
         else:
             treecorr._lib.ProcessCrossNNN3D(self.corr, f1.data, f2.data, f3.data,
-                                            self.output_dots)
+                                            self.output_dots, metric)
         self.tot += cat1.sumw * cat2.sumw * cat3.sumw / 6.0
 
 

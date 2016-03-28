@@ -599,427 +599,427 @@ void DestroyGGCorr(void* corr)
 }
 
 
-void ProcessAutoNNFlat(void* corr, void* field, int dots)
+void ProcessAutoNNFlat(void* corr, void* field, int dots, int metric)
 {
     dbg<<"Start ProcessAutoNNFlat\n";
-    static_cast<BinnedCorr2<NData,NData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<NData,Flat>*>(field),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<NData,NData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<NData,Flat>*>(field),dots);
+    else
+        Assert(false);
 }
-void ProcessAutoNN3D(void* corr, void* field, int dots)
+void ProcessAutoNN3D(void* corr, void* field, int dots, int metric)
 {
     dbg<<"Start ProcessAutoNN3D\n";
-    static_cast<BinnedCorr2<NData,NData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<NData,ThreeD>*>(field),dots);
-}
-void ProcessAutoNNPerp(void* corr, void* field, int dots)
-{
-    dbg<<"Start ProcessAutoNNPerp\n";
-    static_cast<BinnedCorr2<NData,NData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<NData,ThreeD>*>(field),dots);
-}
-void ProcessAutoNNLens(void* corr, void* field, int dots)
-{
-    dbg<<"Start ProcessAutoNNLens\n";
-    static_cast<BinnedCorr2<NData,NData>*>(corr)->process<ThreeD,Lens>(
-        *static_cast<Field<NData,ThreeD>*>(field),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<NData,NData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<NData,ThreeD>*>(field),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr2<NData,NData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<NData,ThreeD>*>(field),dots);
+    else if (metric == Lens)
+        static_cast<BinnedCorr2<NData,NData>*>(corr)->process<ThreeD,Lens>(
+            *static_cast<Field<NData,ThreeD>*>(field),dots);
+    else
+        Assert(false);
 }
 
-void ProcessAutoKKFlat(void* corr, void* field, int dots)
+void ProcessAutoKKFlat(void* corr, void* field, int dots, int metric)
 {
     dbg<<"Start ProcessAutoKKFlat\n";
-    static_cast<BinnedCorr2<KData,KData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<KData,Flat>*>(field),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<KData,KData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<KData,Flat>*>(field),dots);
+    else
+        Assert(false);
 }
-void ProcessAutoKK3D(void* corr, void* field, int dots)
+void ProcessAutoKK3D(void* corr, void* field, int dots, int metric)
 {
     dbg<<"Start ProcessAutoKK3D\n";
-    static_cast<BinnedCorr2<KData,KData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<KData,ThreeD>*>(field),dots);
-}
-void ProcessAutoKKPerp(void* corr, void* field, int dots)
-{
-    dbg<<"Start ProcessAutoKKPerp\n";
-    static_cast<BinnedCorr2<KData,KData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<KData,ThreeD>*>(field),dots);
-}
-void ProcessAutoKKLens(void* corr, void* field, int dots)
-{
-    dbg<<"Start ProcessAutoKKLens\n";
-    static_cast<BinnedCorr2<KData,KData>*>(corr)->process<ThreeD,Lens>(
-        *static_cast<Field<KData,ThreeD>*>(field),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<KData,KData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<KData,ThreeD>*>(field),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr2<KData,KData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<KData,ThreeD>*>(field),dots);
+    else if (metric == Lens)
+        static_cast<BinnedCorr2<KData,KData>*>(corr)->process<ThreeD,Lens>(
+            *static_cast<Field<KData,ThreeD>*>(field),dots);
+    else
+        Assert(false);
 }
 
-void ProcessAutoGGFlat(void* corr, void* field, int dots)
+void ProcessAutoGGFlat(void* corr, void* field, int dots, int metric)
 {
     dbg<<"Start ProcessAutoGGFlat\n";
-    static_cast<BinnedCorr2<GData,GData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<GData,Flat>*>(field),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<GData,GData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<GData,Flat>*>(field),dots);
+    else
+        Assert(false);
 }
-void ProcessAutoGG3D(void* corr, void* field, int dots)
+void ProcessAutoGG3D(void* corr, void* field, int dots, int metric)
 {
     dbg<<"Start ProcessAutoGG3D\n";
-    static_cast<BinnedCorr2<GData,GData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<GData,ThreeD>*>(field),dots);
-}
-void ProcessAutoGGPerp(void* corr, void* field, int dots)
-{
-    dbg<<"Start ProcessAutoGGPerp\n";
-    static_cast<BinnedCorr2<GData,GData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<GData,ThreeD>*>(field),dots);
-}
-void ProcessAutoGGLens(void* corr, void* field, int dots)
-{
-    dbg<<"Start ProcessAutoGGLens\n";
-    static_cast<BinnedCorr2<GData,GData>*>(corr)->process<ThreeD,Lens>(
-        *static_cast<Field<GData,ThreeD>*>(field),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<GData,GData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<GData,ThreeD>*>(field),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr2<GData,GData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<GData,ThreeD>*>(field),dots);
+    else if (metric == Lens)
+        static_cast<BinnedCorr2<GData,GData>*>(corr)->process<ThreeD,Lens>(
+            *static_cast<Field<GData,ThreeD>*>(field),dots);
+    else
+        Assert(false);
 }
 
-void ProcessCrossNNFlat(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNNFlat(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessCrossNNFlat\n";
-    static_cast<BinnedCorr2<NData,NData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<NData,Flat>*>(field1),
-        *static_cast<Field<NData,Flat>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<NData,NData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<NData,Flat>*>(field1),
+            *static_cast<Field<NData,Flat>*>(field2),dots);
+    else
+        Assert(false);
 }
-void ProcessCrossNN3D(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNN3D(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessCrossNN3D\n";
-    static_cast<BinnedCorr2<NData,NData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<NData,ThreeD>*>(field1),
-        *static_cast<Field<NData,ThreeD>*>(field2),dots);
-}
-void ProcessCrossNNPerp(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessCrossNNPerp\n";
-    static_cast<BinnedCorr2<NData,NData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<NData,ThreeD>*>(field1),
-        *static_cast<Field<NData,ThreeD>*>(field2),dots);
-}
-void ProcessCrossNNLens(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessCrossNNLens\n";
-    static_cast<BinnedCorr2<NData,NData>*>(corr)->process<ThreeD,Lens>(
-        *static_cast<Field<NData,ThreeD>*>(field1),
-        *static_cast<Field<NData,ThreeD>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<NData,NData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<NData,ThreeD>*>(field1),
+            *static_cast<Field<NData,ThreeD>*>(field2),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr2<NData,NData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<NData,ThreeD>*>(field1),
+            *static_cast<Field<NData,ThreeD>*>(field2),dots);
+    else if (metric == Lens)
+        static_cast<BinnedCorr2<NData,NData>*>(corr)->process<ThreeD,Lens>(
+            *static_cast<Field<NData,ThreeD>*>(field1),
+            *static_cast<Field<NData,ThreeD>*>(field2),dots);
+    else
+        Assert(false);
 }
 
-void ProcessCrossNKFlat(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNKFlat(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessCrossNKFlat\n";
-    static_cast<BinnedCorr2<NData,KData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<NData,Flat>*>(field1),
-        *static_cast<Field<KData,Flat>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<NData,KData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<NData,Flat>*>(field1),
+            *static_cast<Field<KData,Flat>*>(field2),dots);
+    else
+        Assert(false);
 }
-void ProcessCrossNK3D(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNK3D(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessCrossNK3D\n";
-    static_cast<BinnedCorr2<NData,KData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<NData,ThreeD>*>(field1),
-        *static_cast<Field<KData,ThreeD>*>(field2),dots);
-}
-void ProcessCrossNKPerp(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessCrossNKPerp\n";
-    static_cast<BinnedCorr2<NData,KData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<NData,ThreeD>*>(field1),
-        *static_cast<Field<KData,ThreeD>*>(field2),dots);
-}
-void ProcessCrossNKLens(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessCrossNKLens\n";
-    static_cast<BinnedCorr2<NData,KData>*>(corr)->process<ThreeD,Lens>(
-        *static_cast<Field<NData,ThreeD>*>(field1),
-        *static_cast<Field<KData,ThreeD>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<NData,KData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<NData,ThreeD>*>(field1),
+            *static_cast<Field<KData,ThreeD>*>(field2),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr2<NData,KData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<NData,ThreeD>*>(field1),
+            *static_cast<Field<KData,ThreeD>*>(field2),dots);
+    else if (metric == Lens)
+        static_cast<BinnedCorr2<NData,KData>*>(corr)->process<ThreeD,Lens>(
+            *static_cast<Field<NData,ThreeD>*>(field1),
+            *static_cast<Field<KData,ThreeD>*>(field2),dots);
+    else
+        Assert(false);
 }
 
-void ProcessCrossNGFlat(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNGFlat(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessCrossNGFlat\n";
-    static_cast<BinnedCorr2<NData,GData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<NData,Flat>*>(field1),
-        *static_cast<Field<GData,Flat>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<NData,GData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<NData,Flat>*>(field1),
+            *static_cast<Field<GData,Flat>*>(field2),dots);
+    else
+        Assert(false);
 }
-void ProcessCrossNG3D(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNG3D(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessCrossNG3D\n";
-    static_cast<BinnedCorr2<NData,GData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<NData,ThreeD>*>(field1),
-        *static_cast<Field<GData,ThreeD>*>(field2),dots);
-}
-void ProcessCrossNGPerp(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessCrossNGPerp\n";
-    static_cast<BinnedCorr2<NData,GData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<NData,ThreeD>*>(field1),
-        *static_cast<Field<GData,ThreeD>*>(field2),dots);
-}
-void ProcessCrossNGLens(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessCrossNGLens\n";
-    static_cast<BinnedCorr2<NData,GData>*>(corr)->process<ThreeD,Lens>(
-        *static_cast<Field<NData,ThreeD>*>(field1),
-        *static_cast<Field<GData,ThreeD>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<NData,GData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<NData,ThreeD>*>(field1),
+            *static_cast<Field<GData,ThreeD>*>(field2),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr2<NData,GData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<NData,ThreeD>*>(field1),
+            *static_cast<Field<GData,ThreeD>*>(field2),dots);
+    else if (metric == Lens)
+        static_cast<BinnedCorr2<NData,GData>*>(corr)->process<ThreeD,Lens>(
+            *static_cast<Field<NData,ThreeD>*>(field1),
+            *static_cast<Field<GData,ThreeD>*>(field2),dots);
+    else
+        Assert(false);
 }
 
-void ProcessCrossKKFlat(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossKKFlat(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessCrossKKFlat\n";
-    static_cast<BinnedCorr2<KData,KData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<KData,Flat>*>(field1),
-        *static_cast<Field<KData,Flat>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<KData,KData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<KData,Flat>*>(field1),
+            *static_cast<Field<KData,Flat>*>(field2),dots);
+    else
+        Assert(false);
 }
-void ProcessCrossKK3D(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossKK3D(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessCrossKK3D\n";
-    static_cast<BinnedCorr2<KData,KData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<KData,ThreeD>*>(field1),
-        *static_cast<Field<KData,ThreeD>*>(field2),dots);
-}
-void ProcessCrossKKPerp(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessCrossKKPerp\n";
-    static_cast<BinnedCorr2<KData,KData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<KData,ThreeD>*>(field1),
-        *static_cast<Field<KData,ThreeD>*>(field2),dots);
-}
-void ProcessCrossKKLens(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessCrossKKLens\n";
-    static_cast<BinnedCorr2<KData,KData>*>(corr)->process<ThreeD,Lens>(
-        *static_cast<Field<KData,ThreeD>*>(field1),
-        *static_cast<Field<KData,ThreeD>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<KData,KData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<KData,ThreeD>*>(field1),
+            *static_cast<Field<KData,ThreeD>*>(field2),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr2<KData,KData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<KData,ThreeD>*>(field1),
+            *static_cast<Field<KData,ThreeD>*>(field2),dots);
+    else if (metric == Lens)
+        static_cast<BinnedCorr2<KData,KData>*>(corr)->process<ThreeD,Lens>(
+            *static_cast<Field<KData,ThreeD>*>(field1),
+            *static_cast<Field<KData,ThreeD>*>(field2),dots);
+    else
+        Assert(false);
 }
 
-void ProcessCrossKGFlat(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossKGFlat(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessCrossKGFlat\n";
-    static_cast<BinnedCorr2<KData,GData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<KData,Flat>*>(field1),
-        *static_cast<Field<GData,Flat>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<KData,GData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<KData,Flat>*>(field1),
+            *static_cast<Field<GData,Flat>*>(field2),dots);
+    else
+        Assert(false);
 }
-void ProcessCrossKG3D(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossKG3D(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessCrossKG3D\n";
-    static_cast<BinnedCorr2<KData,GData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<KData,ThreeD>*>(field1),
-        *static_cast<Field<GData,ThreeD>*>(field2),dots);
-}
-void ProcessCrossKGPerp(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessCrossKGPerp\n";
-    static_cast<BinnedCorr2<KData,GData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<KData,ThreeD>*>(field1),
-        *static_cast<Field<GData,ThreeD>*>(field2),dots);
-}
-void ProcessCrossKGLens(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessCrossKGLens\n";
-    static_cast<BinnedCorr2<KData,GData>*>(corr)->process<ThreeD,Lens>(
-        *static_cast<Field<KData,ThreeD>*>(field1),
-        *static_cast<Field<GData,ThreeD>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<KData,GData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<KData,ThreeD>*>(field1),
+            *static_cast<Field<GData,ThreeD>*>(field2),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr2<KData,GData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<KData,ThreeD>*>(field1),
+            *static_cast<Field<GData,ThreeD>*>(field2),dots);
+    else if (metric == Lens)
+        static_cast<BinnedCorr2<KData,GData>*>(corr)->process<ThreeD,Lens>(
+            *static_cast<Field<KData,ThreeD>*>(field1),
+            *static_cast<Field<GData,ThreeD>*>(field2),dots);
+    else
+        Assert(false);
 }
 
-void ProcessCrossGGFlat(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossGGFlat(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessCrossGGFlat\n";
-    static_cast<BinnedCorr2<GData,GData>*>(corr)->process<Flat,Euclidean>(
-        *static_cast<Field<GData,Flat>*>(field1),
-        *static_cast<Field<GData,Flat>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<GData,GData>*>(corr)->process<Flat,Euclidean>(
+            *static_cast<Field<GData,Flat>*>(field1),
+            *static_cast<Field<GData,Flat>*>(field2),dots);
+    else
+        Assert(false);
 }
-void ProcessCrossGG3D(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossGG3D(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessCrossGG3D\n";
-    static_cast<BinnedCorr2<GData,GData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<GData,ThreeD>*>(field1),
-        *static_cast<Field<GData,ThreeD>*>(field2),dots);
-}
-void ProcessCrossGGPerp(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessCrossGGPerp\n";
-    static_cast<BinnedCorr2<GData,GData>*>(corr)->process<ThreeD,Perp>(
-        *static_cast<Field<GData,ThreeD>*>(field1),
-        *static_cast<Field<GData,ThreeD>*>(field2),dots);
-}
-void ProcessCrossGGLens(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessCrossGGLens\n";
-    static_cast<BinnedCorr2<GData,GData>*>(corr)->process<ThreeD,Lens>(
-        *static_cast<Field<GData,ThreeD>*>(field1),
-        *static_cast<Field<GData,ThreeD>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<GData,GData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<GData,ThreeD>*>(field1),
+            *static_cast<Field<GData,ThreeD>*>(field2),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr2<GData,GData>*>(corr)->process<ThreeD,Perp>(
+            *static_cast<Field<GData,ThreeD>*>(field1),
+            *static_cast<Field<GData,ThreeD>*>(field2),dots);
+    else if (metric == Lens)
+        static_cast<BinnedCorr2<GData,GData>*>(corr)->process<ThreeD,Lens>(
+            *static_cast<Field<GData,ThreeD>*>(field1),
+            *static_cast<Field<GData,ThreeD>*>(field2),dots);
+    else
+        Assert(false);
 }
 
-void ProcessPairwiseNNFlat(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseNNFlat(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessPairwiseNNFlat\n";
-    static_cast<BinnedCorr2<NData,NData>*>(corr)->processPairwise<Flat,Euclidean>(
-        *static_cast<SimpleField<NData,Flat>*>(field1),
-        *static_cast<SimpleField<NData,Flat>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<NData,NData>*>(corr)->processPairwise<Flat,Euclidean>(
+            *static_cast<SimpleField<NData,Flat>*>(field1),
+            *static_cast<SimpleField<NData,Flat>*>(field2),dots);
+    else
+        Assert(false);
 }
-void ProcessPairwiseNN3D(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseNN3D(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessPairwiseNN3D\n";
-    static_cast<BinnedCorr2<NData,NData>*>(corr)->processPairwise<ThreeD,Euclidean>(
-        *static_cast<SimpleField<NData,ThreeD>*>(field1),
-        *static_cast<SimpleField<NData,ThreeD>*>(field2),dots);
-}
-void ProcessPairwiseNNPerp(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessPairwiseNNPerp\n";
-    static_cast<BinnedCorr2<NData,NData>*>(corr)->processPairwise<ThreeD,Perp>(
-        *static_cast<SimpleField<NData,ThreeD>*>(field1),
-        *static_cast<SimpleField<NData,ThreeD>*>(field2),dots);
-}
-void ProcessPairwiseNNLens(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessPairwiseNNLens\n";
-    static_cast<BinnedCorr2<NData,NData>*>(corr)->processPairwise<ThreeD,Lens>(
-        *static_cast<SimpleField<NData,ThreeD>*>(field1),
-        *static_cast<SimpleField<NData,ThreeD>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<NData,NData>*>(corr)->processPairwise<ThreeD,Euclidean>(
+            *static_cast<SimpleField<NData,ThreeD>*>(field1),
+            *static_cast<SimpleField<NData,ThreeD>*>(field2),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr2<NData,NData>*>(corr)->processPairwise<ThreeD,Perp>(
+            *static_cast<SimpleField<NData,ThreeD>*>(field1),
+            *static_cast<SimpleField<NData,ThreeD>*>(field2),dots);
+    else if (metric == Lens)
+        static_cast<BinnedCorr2<NData,NData>*>(corr)->processPairwise<ThreeD,Lens>(
+            *static_cast<SimpleField<NData,ThreeD>*>(field1),
+            *static_cast<SimpleField<NData,ThreeD>*>(field2),dots);
+    else
+        Assert(false);
 }
 
-void ProcessPairwiseNKFlat(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseNKFlat(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessPairwiseNKFlat\n";
-    static_cast<BinnedCorr2<NData,KData>*>(corr)->processPairwise<Flat,Euclidean>(
-        *static_cast<SimpleField<NData,Flat>*>(field1),
-        *static_cast<SimpleField<KData,Flat>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<NData,KData>*>(corr)->processPairwise<Flat,Euclidean>(
+            *static_cast<SimpleField<NData,Flat>*>(field1),
+            *static_cast<SimpleField<KData,Flat>*>(field2),dots);
+    else
+        Assert(false);
 }
-void ProcessPairwiseNK3D(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseNK3D(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessPairwiseNK3D\n";
-    static_cast<BinnedCorr2<NData,KData>*>(corr)->processPairwise<ThreeD,Euclidean>(
-        *static_cast<SimpleField<NData,ThreeD>*>(field1),
-        *static_cast<SimpleField<KData,ThreeD>*>(field2),dots);
-}
-void ProcessPairwiseNKPerp(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessPairwiseNKPerp\n";
-    static_cast<BinnedCorr2<NData,KData>*>(corr)->processPairwise<ThreeD,Perp>(
-        *static_cast<SimpleField<NData,ThreeD>*>(field1),
-        *static_cast<SimpleField<KData,ThreeD>*>(field2),dots);
-}
-void ProcessPairwiseNKLens(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessPairwiseNKLens\n";
-    static_cast<BinnedCorr2<NData,KData>*>(corr)->processPairwise<ThreeD,Lens>(
-        *static_cast<SimpleField<NData,ThreeD>*>(field1),
-        *static_cast<SimpleField<KData,ThreeD>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<NData,KData>*>(corr)->processPairwise<ThreeD,Euclidean>(
+            *static_cast<SimpleField<NData,ThreeD>*>(field1),
+            *static_cast<SimpleField<KData,ThreeD>*>(field2),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr2<NData,KData>*>(corr)->processPairwise<ThreeD,Perp>(
+            *static_cast<SimpleField<NData,ThreeD>*>(field1),
+            *static_cast<SimpleField<KData,ThreeD>*>(field2),dots);
+    else if (metric == Lens)
+        static_cast<BinnedCorr2<NData,KData>*>(corr)->processPairwise<ThreeD,Lens>(
+            *static_cast<SimpleField<NData,ThreeD>*>(field1),
+            *static_cast<SimpleField<KData,ThreeD>*>(field2),dots);
+    else
+        Assert(false);
 }
 
-void ProcessPairwiseNGFlat(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseNGFlat(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessPairwiseNGFlat\n";
-    static_cast<BinnedCorr2<NData,GData>*>(corr)->processPairwise<Flat,Euclidean>(
-        *static_cast<SimpleField<NData,Flat>*>(field1),
-        *static_cast<SimpleField<GData,Flat>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<NData,GData>*>(corr)->processPairwise<Flat,Euclidean>(
+            *static_cast<SimpleField<NData,Flat>*>(field1),
+            *static_cast<SimpleField<GData,Flat>*>(field2),dots);
+    else
+        Assert(false);
 }
-void ProcessPairwiseNG3D(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseNG3D(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessPairwiseNG3D\n";
-    static_cast<BinnedCorr2<NData,GData>*>(corr)->processPairwise<ThreeD,Euclidean>(
-        *static_cast<SimpleField<NData,ThreeD>*>(field1),
-        *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
-}
-void ProcessPairwiseNGPerp(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessPairwiseNGPerp\n";
-    static_cast<BinnedCorr2<NData,GData>*>(corr)->processPairwise<ThreeD,Perp>(
-        *static_cast<SimpleField<NData,ThreeD>*>(field1),
-        *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
-}
-void ProcessPairwiseNGLens(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessPairwiseNGLens\n";
-    static_cast<BinnedCorr2<NData,GData>*>(corr)->processPairwise<ThreeD,Lens>(
-        *static_cast<SimpleField<NData,ThreeD>*>(field1),
-        *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<NData,GData>*>(corr)->processPairwise<ThreeD,Euclidean>(
+            *static_cast<SimpleField<NData,ThreeD>*>(field1),
+            *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr2<NData,GData>*>(corr)->processPairwise<ThreeD,Perp>(
+            *static_cast<SimpleField<NData,ThreeD>*>(field1),
+            *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
+    else if (metric == Lens)
+        static_cast<BinnedCorr2<NData,GData>*>(corr)->processPairwise<ThreeD,Lens>(
+            *static_cast<SimpleField<NData,ThreeD>*>(field1),
+            *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
+    else
+        Assert(false);
 }
 
-void ProcessPairwiseKKFlat(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseKKFlat(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessPairwiseKKFlat\n";
-    static_cast<BinnedCorr2<KData,KData>*>(corr)->processPairwise<Flat,Euclidean>(
-        *static_cast<SimpleField<KData,Flat>*>(field1),
-        *static_cast<SimpleField<KData,Flat>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<KData,KData>*>(corr)->processPairwise<Flat,Euclidean>(
+            *static_cast<SimpleField<KData,Flat>*>(field1),
+            *static_cast<SimpleField<KData,Flat>*>(field2),dots);
+    else
+        Assert(false);
 }
-void ProcessPairwiseKK3D(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseKK3D(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessPairwiseKK3D\n";
-    static_cast<BinnedCorr2<KData,KData>*>(corr)->processPairwise<ThreeD,Euclidean>(
-        *static_cast<SimpleField<KData,ThreeD>*>(field1),
-        *static_cast<SimpleField<KData,ThreeD>*>(field2),dots);
-}
-void ProcessPairwiseKKPerp(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessPairwiseKKPerp\n";
-    static_cast<BinnedCorr2<KData,KData>*>(corr)->processPairwise<ThreeD,Perp>(
-        *static_cast<SimpleField<KData,ThreeD>*>(field1),
-        *static_cast<SimpleField<KData,ThreeD>*>(field2),dots);
-}
-void ProcessPairwiseKKLens(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessPairwiseKKLens\n";
-    static_cast<BinnedCorr2<KData,KData>*>(corr)->processPairwise<ThreeD,Lens>(
-        *static_cast<SimpleField<KData,ThreeD>*>(field1),
-        *static_cast<SimpleField<KData,ThreeD>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<KData,KData>*>(corr)->processPairwise<ThreeD,Euclidean>(
+            *static_cast<SimpleField<KData,ThreeD>*>(field1),
+            *static_cast<SimpleField<KData,ThreeD>*>(field2),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr2<KData,KData>*>(corr)->processPairwise<ThreeD,Perp>(
+            *static_cast<SimpleField<KData,ThreeD>*>(field1),
+            *static_cast<SimpleField<KData,ThreeD>*>(field2),dots);
+    else if (metric == Lens)
+        static_cast<BinnedCorr2<KData,KData>*>(corr)->processPairwise<ThreeD,Lens>(
+            *static_cast<SimpleField<KData,ThreeD>*>(field1),
+            *static_cast<SimpleField<KData,ThreeD>*>(field2),dots);
+    else
+        Assert(false);
 }
 
-void ProcessPairwiseKGFlat(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseKGFlat(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessPairwiseKGFlat\n";
-    static_cast<BinnedCorr2<KData,GData>*>(corr)->processPairwise<Flat,Euclidean>(
-        *static_cast<SimpleField<KData,Flat>*>(field1),
-        *static_cast<SimpleField<GData,Flat>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<KData,GData>*>(corr)->processPairwise<Flat,Euclidean>(
+            *static_cast<SimpleField<KData,Flat>*>(field1),
+            *static_cast<SimpleField<GData,Flat>*>(field2),dots);
+    else
+        Assert(false);
 }
-void ProcessPairwiseKG3D(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseKG3D(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessPairwiseKG3D\n";
-    static_cast<BinnedCorr2<KData,GData>*>(corr)->processPairwise<ThreeD,Euclidean>(
-        *static_cast<SimpleField<KData,ThreeD>*>(field1),
-        *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
-}
-void ProcessPairwiseKGPerp(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessPairwiseKGPerp\n";
-    static_cast<BinnedCorr2<KData,GData>*>(corr)->processPairwise<ThreeD,Perp>(
-        *static_cast<SimpleField<KData,ThreeD>*>(field1),
-        *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
-}
-void ProcessPairwiseKGLens(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessPairwiseKGLens\n";
-    static_cast<BinnedCorr2<KData,GData>*>(corr)->processPairwise<ThreeD,Lens>(
-        *static_cast<SimpleField<KData,ThreeD>*>(field1),
-        *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<KData,GData>*>(corr)->processPairwise<ThreeD,Euclidean>(
+            *static_cast<SimpleField<KData,ThreeD>*>(field1),
+            *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr2<KData,GData>*>(corr)->processPairwise<ThreeD,Perp>(
+            *static_cast<SimpleField<KData,ThreeD>*>(field1),
+            *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
+    else if (metric == Lens)
+        static_cast<BinnedCorr2<KData,GData>*>(corr)->processPairwise<ThreeD,Lens>(
+            *static_cast<SimpleField<KData,ThreeD>*>(field1),
+            *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
+    else
+        Assert(false);
 }
 
-void ProcessPairwiseGGFlat(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseGGFlat(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessPairwiseGGFlat\n";
-    static_cast<BinnedCorr2<GData,GData>*>(corr)->processPairwise<Flat,Euclidean>(
-        *static_cast<SimpleField<GData,Flat>*>(field1),
-        *static_cast<SimpleField<GData,Flat>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<GData,GData>*>(corr)->processPairwise<Flat,Euclidean>(
+            *static_cast<SimpleField<GData,Flat>*>(field1),
+            *static_cast<SimpleField<GData,Flat>*>(field2),dots);
+    else
+        Assert(false);
 }
-void ProcessPairwiseGG3D(void* corr, void* field1, void* field2, int dots)
+void ProcessPairwiseGG3D(void* corr, void* field1, void* field2, int dots, int metric)
 {
     dbg<<"Start ProcessPairwiseGG3D\n";
-    static_cast<BinnedCorr2<GData,GData>*>(corr)->processPairwise<ThreeD,Euclidean>(
-        *static_cast<SimpleField<GData,ThreeD>*>(field1),
-        *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
-}
-void ProcessPairwiseGGPerp(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessPairwiseGGPerp\n";
-    static_cast<BinnedCorr2<GData,GData>*>(corr)->processPairwise<ThreeD,Perp>(
-        *static_cast<SimpleField<GData,ThreeD>*>(field1),
-        *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
-}
-void ProcessPairwiseGGLens(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessPairwiseGGLens\n";
-    static_cast<BinnedCorr2<GData,GData>*>(corr)->processPairwise<ThreeD,Lens>(
-        *static_cast<SimpleField<GData,ThreeD>*>(field1),
-        *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
+    if (metric == Euclidean)
+        static_cast<BinnedCorr2<GData,GData>*>(corr)->processPairwise<ThreeD,Euclidean>(
+            *static_cast<SimpleField<GData,ThreeD>*>(field1),
+            *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
+    else if (metric == Perp)
+        static_cast<BinnedCorr2<GData,GData>*>(corr)->processPairwise<ThreeD,Perp>(
+            *static_cast<SimpleField<GData,ThreeD>*>(field1),
+            *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
+    else if (metric == Lens)
+        static_cast<BinnedCorr2<GData,GData>*>(corr)->processPairwise<ThreeD,Lens>(
+            *static_cast<SimpleField<GData,ThreeD>*>(field1),
+            *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
+    else
+        Assert(false);
 }
 
 int SetOMPThreads(int num_threads)

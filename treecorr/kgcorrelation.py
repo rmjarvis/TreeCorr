@@ -136,9 +136,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if cat1.coords != cat2.coords:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        metric = treecorr.util.parse_metric(metric, cat1.coords)
+        metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
@@ -183,9 +181,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if cat1.coords != cat2.coords:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        metric = treecorr.util.parse_metric(metric, cat1.coords)
+        metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 

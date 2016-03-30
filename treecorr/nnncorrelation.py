@@ -166,7 +166,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        metric = treecorr.util.parse_metric(metric, cat.coords, auto=True)
+        metric = treecorr.util.parse_metric(metric, cat.coords)
 
         self._set_num_threads(num_threads)
 
@@ -231,9 +231,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if cat1.coords != cat2.coords or cat1.coords != cat3.coords:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        metric = treecorr.util.parse_metric(metric, cat1.coords)
+        metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords, cat3.coords)
 
         self._set_num_threads(num_threads)
 

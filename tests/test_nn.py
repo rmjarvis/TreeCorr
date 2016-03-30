@@ -396,6 +396,13 @@ def test_direct_lens():
     print('diff = ',dd.npairs - true_npairs)
     numpy.testing.assert_array_equal(dd.npairs, true_npairs)
 
+    # The distance is only dependent on r for cat1, so if you don't know r for cat2, that's ok.
+    cat2 = treecorr.Catalog(ra=ra2, dec=dec2, ra_units='rad', dec_units='rad')
+    dd.process(cat1, cat2, metric='Rlens')
+    print('no r2: dd.npairs = ',dd.npairs)
+    print('diff = ',dd.npairs - true_npairs)
+    numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+
     # Can also specify coords directly as x,y,z
     cat1 = treecorr.Catalog(x=x1, y=y1, z=z1)
     cat2 = treecorr.Catalog(x=x2, y=y2, z=z2)

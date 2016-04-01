@@ -81,6 +81,12 @@ CellData<KData,C>::CellData(
 { BuildCellData(vdata,start,end,_pos,_w,_n); }
 
 template <int C>
+CellData<VData,C>::CellData(
+    const std::vector<CellData<VData,C>*>& vdata, size_t start, size_t end) :
+    _wv(0., 0., 0.), _w(0.), _n(0)
+{ BuildCellData(vdata,start,end,_pos,_w,_n); }
+
+template <int C>
 CellData<GData,C>::CellData(
     const std::vector<CellData<GData,C>*>& vdata, size_t start, size_t end) :
     _wg(0.), _w(0.), _n(0)
@@ -94,6 +100,16 @@ void CellData<KData,C>::finishAverages(
     double dwk = 0.;
     for(size_t i=start;i<end;++i) dwk += vdata[i]->getWK();
     _wk = dwk;
+}
+
+template <int C>
+void CellData<VData,C>::finishAverages(
+    const std::vector<CellData<VData,C>*>& vdata, size_t start, size_t end) 
+{
+    // Accumulate in double precision for better accuracy.
+    Vect dwv(0., 0., 0.);
+    for(size_t i=start;i<end;++i) dwv += vdata[i]->getWV();
+    _wv = dwv;
 }
 
 template <>
@@ -435,6 +451,7 @@ template class CellData<NData,Sphere>;
 template class CellData<KData,Flat>;
 template class CellData<KData,ThreeD>;
 template class CellData<KData,Sphere>;
+template class CellData<VData,ThreeD>;
 template class CellData<GData,Flat>;
 template class CellData<GData,ThreeD>;
 template class CellData<GData,Sphere>;
@@ -445,6 +462,7 @@ template class Cell<NData,Sphere>;
 template class Cell<KData,Flat>;
 template class Cell<KData,ThreeD>;
 template class Cell<KData,Sphere>;
+template class Cell<VData,ThreeD>;
 template class Cell<GData,Flat>;
 template class Cell<GData,ThreeD>;
 template class Cell<GData,Sphere>;
@@ -466,6 +484,9 @@ template double CalculateSizeSq(
     size_t start, size_t end);
 template double CalculateSizeSq(
     const Position<Sphere>& cen, const std::vector<CellData<KData,Sphere>*>& vdata,
+    size_t start, size_t end);
+template double CalculateSizeSq(
+    const Position<ThreeD>& cen, const std::vector<CellData<VData,ThreeD>*>& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
     const Position<Flat>& cen, const std::vector<CellData<GData,Flat>*>& vdata,

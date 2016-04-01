@@ -29,12 +29,62 @@ const double PI = 3.141592653589793;
 const double TWOPI = 2.*PI;
 const double IOTA = 1.e-10;
 
+
+class Vect{
+    
+public:
+    Vect(): _x(0.), _y(0.), _z(0.) {}
+    Vect(const Vect & rhs) :
+        _x(rhs._x), _y(rhs._y), _z(rhs._z) {}
+    ~Vect() {}
+    Vect(double x, double y, double z) :
+        _x(x), _y(y), _z(z) {}
+    Vect& operator=(const Vect& rhs) 
+    { _x = rhs.getX(); _y = rhs.getY(); _z = rhs.getZ(); return *this; }
+
+    double getX() const { return _x; }
+    double getY() const { return _y; }
+    double getZ() const { return _z; }
+
+    double normSq() const { return _x*_x + _y*_y + _z*_z; }
+    double norm() const { return sqrt(normSq()); }
+    void normalize() { double n = norm();  _x /= n; _y /= n; _z /= n; }
+
+    Vect& operator+=(const Vect& p2)
+    { _x += p2.getX(); _y += p2.getY(); _z += p2.getZ(); return *this; }
+    Vect& operator-=(const Vect& p2)
+    { _x -= p2.getX(); _y -= p2.getY(); _z -= p2.getZ(); return *this; }
+    Vect& operator*=(double a)
+    { _x *= a; _y *= a; _z *= a; return *this; }
+    Vect& operator/=(double a)
+    { _x /= a; _y /= a; _z /= a; return *this; }
+
+    Vect operator+(const Vect& p2) const
+    { Vect p1 = *this; p1 += p2; return p1; }
+    Vect operator-(const Vect& p2) const
+    { Vect p1 = *this; p1 -= p2; return p1; }
+    Vect operator*(double a) const
+    { Vect p1 = *this; p1 *= a; return p1; }
+    Vect operator/(double a) const
+    { Vect p1 = *this; p1 /= a; return p1; }
+
+    void read(std::istream& fin) 
+    { fin >> _x >> _y >> _z; }
+    void write(std::ostream& fout) const
+    { fout << _x << " " << _y << " " << _z << " "; }
+      
+private:
+    double _x, _y, _z;
+    
+};
+
+
 // We use a code (to be used as a template parameter) to indicate which kind of data we
 // are using for a particular use. 
 // NData means just count the point.
 // KData means use a scalar.  Nominally kappa, but works with any scalar (e.g. temperature).
 // GData means use a shear. 
-enum DataType { NData=1 , KData=2 , GData=3 };
+enum DataType { NData=1 , KData=2 , GData=3, VData=4 };
 
 
 // This class encapsulates the differences in the different kinds of data being
@@ -160,6 +210,47 @@ private:
 template <int C>
 std::ostream& operator<<(std::ostream& os, const CellData<GData,C>& c)
 { return os << c.getPos() << " " << c.getWG() << " " << c.getW() << " " << c.getN(); }
+
+template <int C>
+class CellData<VData,C> 
+{
+public:
+    CellData() {}
+
+    CellData(const Position<C>& pos, Vect v, double w, double wpos) : 
+        _pos(pos), _wv (w*v ), _w(w), _wpos(wpos), _n(w != 0.)
+    { }
+
+    template <int C2>
+    CellData(const Position<C2>& pos, Vect v, double w, double wpos) : 
+        _pos(pos), _wv (w*v ), _w(w), _wpos(wpos), _n(w != 0.)
+    {}
+
+    CellData(const std::vector<CellData<VData,C>*>& vdata, size_t start, size_t end);
+
+    // The above constructor just computes the mean pos, since sometimes that's all we
+    // need.  So this function will finish the rest of the construction when desired.
+    void finishAverages(const std::vector<CellData<VData,C>*>& vdata, size_t start, size_t end);
+
+    const Position<C>& getPos() const { return _pos; }
+    const Vect& getWV() const { return _wv; }
+    double getW() const { return _w; }
+    double getWPos() const { return _wpos; }
+    long getN() const { return _n; }
+
+private:
+
+    Position<C> _pos;
+    Vect _wv;
+    float _w;
+    float _wpos;
+    long _n;
+};
+
+template <int C>
+std::ostream& operator<<(std::ostream& os, const CellData<VData,C>& c)
+{ return os << c.getPos() << " " << c.getWE() << " " << c.getW() << " " << c.getN(); }
+
 
 template <int D, int C>
 class Cell

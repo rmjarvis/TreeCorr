@@ -50,6 +50,11 @@ extern void* BuildNFieldSphere(double* x, double* y, double* z,
                                double* w, double* wpos, long nobj,
                                double minsize, double maxsize,
                                int sm_int, int maxtop);
+extern void* BuildVfield3D(double* x, double* y, double* z,
+                           double* a, double* b, double* c,
+                           double* w, double* wpos, long nobj,
+                           double minsize, double maxsize,
+                           int sm_int, int maxtop);
 
 extern void DestroyGFieldFlat(void* field);
 extern void DestroyGField3D(void* field);
@@ -62,7 +67,7 @@ extern void DestroyKFieldSphere(void* field);
 extern void DestroyNFieldFlat(void* field);
 extern void DestroyNField3D(void* field);
 extern void DestroyNFieldSphere(void* field);
-
+extern void DestroyVField3D(void* field);
 
 extern void* BuildGSimpleFieldFlat(double* x, double* y, double* g1, double* g2,
                                    double* w, double* wpos, long nobj);
@@ -85,6 +90,10 @@ extern void* BuildNSimpleField3D(double* x, double* y, double* z,
 extern void* BuildNSimpleFieldSphere(double* x, double* y, double* z,
                                      double* w, double* wpos, long nobj);
 
+extern void* BuildVSimpleFieldSphere(double* x, double* y, double* z,
+                                     double* a, double* b, double* c,
+                                     double* w, double* wpos, long nobj);
+
 extern void DestroyGSimpleFieldFlat(void* field);
 extern void DestroyGSimpleField3D(void* field);
 extern void DestroyGSimpleFieldSphere(void* field);
@@ -96,6 +105,7 @@ extern void DestroyKSimpleFieldSphere(void* field);
 extern void DestroyNSimpleFieldFlat(void* field);
 extern void DestroyNSimpleField3D(void* field);
 extern void DestroyNSimpleFieldSphere(void* field);
+extern void DestroyVSimpleField3D(void* field);
 
 extern long NFieldFlatGetNTopLevel(void* field);
 extern long NField3DGetNTopLevel(void* field);
@@ -106,3 +116,4 @@ extern long KFieldSphereGetNTopLevel(void* field);
 extern long GFieldFlatGetNTopLevel(void* field);
 extern long GField3DGetNTopLevel(void* field);
 extern long GFieldSphereGetNTopLevel(void* field);
+extern long VField3DGetNTopLevel(void* field);

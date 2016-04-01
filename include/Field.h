@@ -39,6 +39,7 @@ class Field
 {
 public:
     Field(double* x, double* y, double* z, double* g1, double* g2, double* k, 
+          double* a, double* b, double* c,
           double* w, double* wpos, long nobj,
           double minsize, double maxsize,
           int sm_int, int maxtop);
@@ -64,6 +65,7 @@ class SimpleField
 {
 public:
     SimpleField(double* x, double* y, double* z, double* g1, double* g2, double* k,
+                double* a, double* b, double* c,
                 double* w, double* wpos, long nobj);
     ~SimpleField();
 

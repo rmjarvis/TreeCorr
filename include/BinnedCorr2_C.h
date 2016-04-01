@@ -17,6 +17,9 @@ extern void* BuildNNCorr(double minsep, double maxsep, int nbins, double binsize
 extern void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                          double* xi,
                          double* meanr, double* meanlogr, double* weight, double* npairs);
+extern void* BuildNVCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                         double* xi,
+                         double* meanr, double* meanlogr, double* weight, double* npairs);
 extern void* BuildNGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                          double* xi, double* xi_im,
                          double* meanr, double* meanlogr, double* weight, double* npairs);
@@ -32,6 +35,7 @@ extern void* BuildGGCorr(double minsep, double maxsep, int nbins, double binsize
 
 extern void DestroyNNCorr(void* corr);
 extern void DestroyNKCorr(void* corr);
+extern void DestroyNVCorr(void* corr);
 extern void DestroyNGCorr(void* corr);
 extern void DestroyKKCorr(void* corr);
 extern void DestroyKGCorr(void* corr);
@@ -53,6 +57,7 @@ extern void ProcessCrossNNPerp(void* corr, void* field1, void* field2, int dots)
 extern void ProcessCrossNKFlat(void* corr, void* field1, void* field2, int dots);
 extern void ProcessCrossNK3D(void* corr, void* field1, void* field2, int dots);
 extern void ProcessCrossNKPerp(void* corr, void* field1, void* field2, int dots);
+extern void ProcessCrossNV3D(void* corr, void* field1, void* field2, int dots);
 extern void ProcessCrossNGFlat(void* corr, void* field1, void* field2, int dots);
 extern void ProcessCrossNG3D(void* corr, void* field1, void* field2, int dots);
 extern void ProcessCrossNGPerp(void* corr, void* field1, void* field2, int dots);
@@ -72,6 +77,7 @@ extern void ProcessPairwiseNNPerp(void* corr, void* field1, void* field2, int do
 extern void ProcessPairwiseNKFlat(void* corr, void* field1, void* field2, int dots);
 extern void ProcessPairwiseNK3D(void* corr, void* field1, void* field2, int dots);
 extern void ProcessPairwiseNKPerp(void* corr, void* field1, void* field2, int dots);
+extern void ProcessPairwiseNV3D(void* corr, void* field1, void* field2, int dots);
 extern void ProcessPairwiseNGFlat(void* corr, void* field1, void* field2, int dots);
 extern void ProcessPairwiseNG3D(void* corr, void* field1, void* field2, int dots);
 extern void ProcessPairwiseNGPerp(void* corr, void* field1, void* field2, int dots);

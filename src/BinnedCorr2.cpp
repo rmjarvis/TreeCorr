@@ -367,6 +367,23 @@ struct DirectHelper<NData,GData>
 };
 
 template <>
+struct DirectHelper<NData,VData>
+{
+    template <int C, int M>
+    static void ProcessXi(
+        const Cell<NData,C>& c1, const Cell<VData,C>& c2, const double dsq,
+        XiData<NData,VData>& xi, int k)
+    {
+        double g;
+        ProjectHelper<C>::ProjectVector(c1,c2,dsq, g);
+        // The minus sign here is to make it accumulate tangential shear, rather than radial.
+        // g2 from the above ProjectShear is measured along the connecting line, not tangent.
+        g *= c1.getW();
+        xi.xi[k] += g;
+    }
+};
+
+template <>
 struct DirectHelper<KData,KData>
 {
     template <int C, int M>
@@ -504,6 +521,19 @@ void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, doubl
     return corr;
 }
 
+void* BuildNVCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                  double* xi,
+                  double* meanr, double* meanlogr, double* weight, double* npairs)
+{
+    dbg<<"Start BuildNVCorr\n";
+    void* corr = static_cast<void*>(new BinnedCorr2<NData,VData>(
+            minsep, maxsep, nbins, binsize, b,
+            xi, 0, 0, 0,
+            meanr, meanlogr, weight, npairs));
+    xdbg<<"corr = "<<corr<<std::endl;
+    return corr;
+}
+
 void* BuildNGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                   double* xi, double* xi_im,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
@@ -568,6 +598,14 @@ void DestroyNKCorr(void* corr)
     dbg<<"Start DestroyNKCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr2<NData,KData>*>(corr);
+}
+
+
+void DestroyNVCorr(void* corr)
+{
+    dbg<<"Start DestroyNVCorr\n";
+    xdbg<<"corr = "<<corr<<std::endl;
+    delete static_cast<BinnedCorr2<NData,VData>*>(corr);
 }
 
 void DestroyNGCorr(void* corr)
@@ -699,7 +737,13 @@ void ProcessCrossNKPerp(void* corr, void* field1, void* field2, int dots)
         *static_cast<Field<NData,ThreeD>*>(field1),
         *static_cast<Field<KData,ThreeD>*>(field2),dots);
 }
-
+void ProcessCrossNV3D(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessCrossNV3D\n";
+    static_cast<BinnedCorr2<NData,VData>*>(corr)->process<ThreeD,Euclidean>(
+        *static_cast<Field<NData,ThreeD>*>(field1),
+        *static_cast<Field<VData,ThreeD>*>(field2),dots);
+}
 void ProcessCrossNGFlat(void* corr, void* field1, void* field2, int dots)
 {
     dbg<<"Start ProcessCrossNGFlat\n";
@@ -831,7 +875,13 @@ void ProcessPairwiseNKPerp(void* corr, void* field1, void* field2, int dots)
         *static_cast<SimpleField<NData,ThreeD>*>(field1),
         *static_cast<SimpleField<KData,ThreeD>*>(field2),dots);
 }
-
+void ProcessPairwiseNV3D(void* corr, void* field1, void* field2, int dots)
+{
+    dbg<<"Start ProcessPairwiseNV3D\n";
+    static_cast<BinnedCorr2<NData,VData>*>(corr)->processPairwise<ThreeD,Euclidean>(
+        *static_cast<SimpleField<NData,ThreeD>*>(field1),
+        *static_cast<SimpleField<VData,ThreeD>*>(field2),dots);
+}
 void ProcessPairwiseNGFlat(void* corr, void* field1, void* field2, int dots)
 {
     dbg<<"Start ProcessPairwiseNGFlat\n";

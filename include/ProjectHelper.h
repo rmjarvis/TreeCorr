@@ -16,6 +16,7 @@
 #define TreeCorr_ProjectHelper_H
 
 #include "Metric.h"
+#include "Cell.h"
 
 // For the direct processing, we need a helper struct to handle some of the projections
 // we need to do to the shear values.
@@ -235,6 +236,17 @@ struct ProjectHelper<ThreeD>
         crosssq = cross*cross;
         dsq = MetricHelper<ThreeD>::DistSq(p3,cen);
         ProjectShear1(p3,cen,dsq,cross,crosssq,g3);
+    }
+    
+    template <int DC1>
+    static void ProjectVector(
+        const Cell<DC1,ThreeD>& c1, const Cell<VData,ThreeD>& c2,
+        double dsq, double & g)
+    {
+        const Position<ThreeD>& p1 = c1.getData().getPos();
+        const Position<ThreeD>& p2 = c2.getData().getPos();
+        Vect wv =  c2.getData().getWV();
+        g = pow(wv.getX()*(p1.getX() - p2.getX()) + wv.getY()*(p1.getY() - p2.getY()) + wv.getZ()*(p1.getZ() - p2.getZ()), 2.0); 
     }
 };
 

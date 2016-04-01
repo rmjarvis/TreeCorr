@@ -92,7 +92,7 @@ protected:
 };
 
 template <int D1, int D2>
-struct XiData // This works for NK, KK
+struct XiData // This works for NK, KK, VN, VK
 {
     XiData(double* xi0, double*, double*, double*) : xi(xi0) {}
 

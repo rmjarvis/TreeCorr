@@ -218,12 +218,12 @@ public:
     CellData() {}
 
     CellData(const Position<C>& pos, Vect v, double w, double wpos) : 
-        _pos(pos), _wv (w*v ), _w(w), _wpos(wpos), _n(w != 0.)
+        _pos(pos), _wv (v*w), _w(w), _wpos(wpos), _n(w != 0.)
     { }
 
     template <int C2>
     CellData(const Position<C2>& pos, Vect v, double w, double wpos) : 
-        _pos(pos), _wv (w*v ), _w(w), _wpos(wpos), _n(w != 0.)
+        _pos(pos), _wv (v*w), _w(w), _wpos(wpos), _n(w != 0.)
     {}
 
     CellData(const std::vector<CellData<VData,C>*>& vdata, size_t start, size_t end);

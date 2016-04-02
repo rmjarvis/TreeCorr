@@ -143,7 +143,7 @@ struct CellDataHelper<VData,ThreeD>
                                          double , double , double,
                                          double a, double b, double c,
                                          double w, double wpos)
-    { return new CellData<VData,ThreeD>(Position<ThreeD>(x,y,z), a, b, c, w, wpos); }
+    { return new CellData<VData,ThreeD>(Position<ThreeD>(x,y,z), Vect(a, b, c), w, wpos); }
 };
 template <>
 struct CellDataHelper<GData,ThreeD>

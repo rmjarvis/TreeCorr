@@ -243,10 +243,12 @@ struct ProjectHelper<ThreeD>
         const Cell<DC1,ThreeD>& c1, const Cell<VData,ThreeD>& c2,
         double dsq, double & g)
     {
-        const Position<ThreeD>& p1 = c1.getData().getPos();
-        const Position<ThreeD>& p2 = c2.getData().getPos();
+        double x = c2.getData().getPos().getX() - c1.getData().getPos().getX();
+        double y = c2.getData().getPos().getY() - c1.getData().getPos().getY();
+        double z = c2.getData().getPos().getZ() - c1.getData().getPos().getZ();
+        double n = sqrt(x*x + y*y + z*z);
         Vect wv =  c2.getData().getWV();
-        g = pow(wv.getX()*(p1.getX() - p2.getX()) + wv.getY()*(p1.getY() - p2.getY()) + wv.getZ()*(p1.getZ() - p2.getZ()), 2.0); 
+        g = pow(wv.getX()*x/n + wv.getY()*y/n + wv.getZ()*z/n, 2.0); 
     }
 };
 

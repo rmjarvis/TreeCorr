@@ -116,7 +116,7 @@ public:
 
     double normSq() const { return _x*_x + _y*_y + _z*_z; }
     double norm() const { return sqrt(normSq()); }
-    void normalize() {}
+    void normalize() {double n = norm();  _x /= n; _y /= n; _z /= n;  }
 
     Position<ThreeD>& operator+=(const Position<ThreeD>& p2)
     { _x += p2.getX(); _y += p2.getY(); _z += p2.getZ(); return *this; }

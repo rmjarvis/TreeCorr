@@ -209,6 +209,7 @@ class NVCorrelation(treecorr.BinnedCorr2):
         mask2 = self.weight == 0
 
         self.xi[mask1] /= self.weight[mask1]
+        self.xi -= 1.0/3.
         self.meanr[mask1] /= self.weight[mask1]
         self.meanlogr[mask1] /= self.weight[mask1]
 
@@ -303,4 +304,4 @@ class NVCorrelation(treecorr.BinnedCorr2):
 
         :returns:           xi
         """
-        return self.xi - 1.0/3.
+        return self.xi

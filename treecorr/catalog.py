@@ -354,7 +354,7 @@ class Catalog(object):
     }
     def __init__(self, file_name=None, config=None, num=0, logger=None, is_rand=False,
                  x=None, y=None, z=None, ra=None, dec=None, r=None, w=None, wpos=None, flag=None,
-                 g1=None, g2=None, k=None, **kwargs):
+                 g1=None, g2=None, k=None, a=None, b=None, c=None, **kwargs):
 
         self.config = treecorr.config.merge_config(config,kwargs,Catalog._valid_params)
         self.orig_config = config
@@ -380,21 +380,26 @@ class Catalog(object):
         self.flag = None
         self.g1 = None
         self.g2 = None
-        self.k = None
+        self.k = None       
+        self.a = None
+        self.b = None
+        self.c = None
 
         # Some dicts to store fields that get made.  Indexed by the args used to make the fields.
         self.nfields = {}
         self.kfields = {}
         self.gfields = {}
+        self.vfields = {}
         self.nsimplefields = {}
         self.ksimplefields = {}
         self.gsimplefields = {}
+        self.vsimplefields = {}
 
         # First style -- read from a file
         if file_name is not None:
             if self.config is None:
                 raise AttributeError("config must be provided when file_name is provided.")
-            if any([v is not None for v in [x,y,ra,dec,r,g1,g2,k,w]]):
+            if any([v is not None for v in [x,y,ra,dec,r,g1,g2,k,a,b,c,w]]):
                 raise AttributeError("Vectors may not be provided when file_name is provided.")
             self.name = file_name
             self.logger.info("Reading input file %s",self.name)
@@ -443,6 +448,9 @@ class Catalog(object):
             self.g1 = self.makeArray(g1,'g1')
             self.g2 = self.makeArray(g2,'g2')
             self.k = self.makeArray(k,'k')
+            self.a = self.makeArray(a,'a')
+            self.b = self.makeArray(b,'b')
+            self.c = self.makeArray(c,'c')
 
         # Apply units to x,y,ra,dec
         if self.x is not None:
@@ -517,7 +525,10 @@ class Catalog(object):
         if self.g1 is not None: self.g1 = self.g1[start:end]
         if self.g2 is not None: self.g2 = self.g2[start:end]
         if self.k is not None: self.k = self.k[start:end]
-
+        if self.a is not None: self.a = self.a[start:end]
+        if self.b is not None: self.b = self.b[start:end]
+        if self.c is not None: self.c = self.c[start:end]
+        
         # Check that all columns have the same length:
         if self.x is not None: 
             self.ntot = len(self.x)
@@ -543,6 +554,12 @@ class Catalog(object):
             raise ValueError("g1 has the wrong numbers of elements")
         if self.k is not None and len(self.k) != self.ntot:
             raise ValueError("k has the wrong numbers of elements")
+        if self.a is not None and len(self.a) != self.ntot:
+            raise ValueError("a has the wrong numbers of elements")
+        if self.b is not None and len(self.b) != self.ntot:
+            raise ValueError("b has the wrong numbers of elements")
+        if self.c is not None and len(self.c) != self.ntot:
+            raise ValueError("c has the wrong numbers of elements")
 
         # Check for NaN's:
         self.checkForNaN(self.x,'x')
@@ -554,6 +571,9 @@ class Catalog(object):
         self.checkForNaN(self.g1,'g1')
         self.checkForNaN(self.g2,'g2')
         self.checkForNaN(self.k,'k')
+        self.checkForNaN(self.a,'a')
+        self.checkForNaN(self.b,'b')
+        self.checkForNaN(self.c,'c')
         self.checkForNaN(self.w,'w')
         self.checkForNaN(self.wpos,'wpos')
 
@@ -1231,6 +1251,37 @@ class Catalog(object):
         return gfield
 
 
+    def getVField(self, min_size, max_size, split_method=None, max_top=10, logger=None):
+        """Return a VField based on the vector values in this catalog.
+
+        The VField object is cached, so this is efficient to call multiple times.
+
+        :param min_size:    The minimum radius cell required (usually min_sep).
+        :param max_size:    The maximum radius cell required (usually max_sep).
+        :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
+                            (default: 'mean'; this value can also be given in the Catalog 
+                            constructor in the config dict.)
+        :param max_top:     The maximum number of top layers to use when setting up the
+                            field. (default: 10)
+        :param logger:      A logger file if desired (default: self.logger)
+
+        :returns:           A :class:`~treecorr.VField` object
+        """
+        if split_method is None:
+            split_method = treecorr.config.get(self.config,'split_method',str,'mean')
+        args = (min_size, max_size, split_method, max_top)
+        if args in self.vfields:
+            vfield = self.vfields[args]
+        else:
+            if logger is None:
+                logger = self.logger
+            if self.a is None or self.b is None or self.c is None :
+                raise AttributeError("v is not defined.")
+            vfield = treecorr.VField(self,*args,logger=logger)
+            self.vfields[args] = vfield
+        return vfield
+
+
     def getNSimpleField(self, logger=None):
         """Return an NSimpleField based on the positions in this catalog.
 
@@ -1286,6 +1337,26 @@ class Catalog(object):
                 logger = self.logger
             self.gsimplefield = treecorr.GSimpleField(self,*args,logger=logger)
         return self.gsimplefield
+    
+    
+    def getVSimpleField(self, logger=None):
+        """Return a VSimpleField based on the vector values in this catalog.
+
+        The VSimpleField object is cached, so this is efficient to call multiple times.
+
+        :param logger:      A logger file if desired (default: self.logger)
+
+        :returns:           A :class:`~treecorr.KSimpleField` object
+        """
+        args = ()
+        if args in self.vsimplefields:
+            vsimplefield = self.vsimplefields[args]
+        else:
+            if logger is None:
+                logger = self.logger
+            self.vsimplefield = treecorr.VSimpleField(self,*args,logger=logger)
+        return self.vsimplefield
+
 
     def write(self, file_name, file_type=None, cat_precision=None):
         """Write the catalog to a file.

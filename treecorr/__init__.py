@@ -35,8 +35,9 @@ from .nncorrelation import NNCorrelation
 from .kkcorrelation import KKCorrelation
 from .ngcorrelation import NGCorrelation
 from .nkcorrelation import NKCorrelation
+from .nvcorrelation import NVCorrelation
 from .kgcorrelation import KGCorrelation
-from .field import NField, KField, GField, NSimpleField, KSimpleField, GSimpleField
+from .field import NField, KField, GField, NSimpleField, KSimpleField, GSimpleField, VField, VSimpleField
 from .binnedcorr3 import BinnedCorr3
 from .nnncorrelation import NNNCorrelation
 from .kkkcorrelation import KKKCorrelation

@@ -50,7 +50,7 @@ extern void* BuildNFieldSphere(double* x, double* y, double* z,
                                double* w, double* wpos, long nobj,
                                double minsize, double maxsize,
                                int sm_int, int maxtop);
-extern void* BuildVfield3D(double* x, double* y, double* z,
+extern void* BuildVField3D(double* x, double* y, double* z,
                            double* a, double* b, double* c,
                            double* w, double* wpos, long nobj,
                            double minsize, double maxsize,

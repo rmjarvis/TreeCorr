@@ -176,11 +176,11 @@ class KField(object):
     def nTopLevelNodes(self):
         """The number of top-level nodes."""
         if self.flat:
-            return treecorr._lib.NFieldFlatGetNTopLevel(self.data)
+            return treecorr._lib.KFieldFlatGetNTopLevel(self.data)
         elif self.spher:
-            return treecorr._lib.NFieldSphereGetNTopLevel(self.data)
+            return treecorr._lib.KFieldSphereGetNTopLevel(self.data)
         else:
-            return treecorr._lib.NField3DGetNTopLevel(self.data)
+            return treecorr._lib.KField3DGetNTopLevel(self.data)
 
 
 
@@ -263,6 +263,56 @@ class GField(object):
             return treecorr._lib.GFieldSphereGetNTopLevel(self.data)
         else:
             return treecorr._lib.GField3DGetNTopLevel(self.data)
+        
+class VField(object):
+    """This class stores a Vector field in a tree structure from which it is efficient
+    to compute the two-point correlation functions.  
+
+    A VField is typically created from a Catalog object using
+
+        >>> vfield = cat.getVField(min_size, max_size, b)
+
+    :param cat:         The catalog from which to make the field.
+    :param min_size:    The minimum radius cell required (usually min_sep).
+    :param max_size:    The maximum radius cell required (usually max_sep).
+    :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
+                        (default: 'mean')
+    :param max_top:     The maximum number of top layers to use when setting up the
+                        field. (default: 10)
+    :param logger:      A logger file if desired (default: None)
+    """
+    def __init__(self, cat, min_size, max_size, split_method='mean', max_top=10, logger=None):
+        from treecorr.util import double_ptr as dp
+        if logger:
+            if cat.name != '':
+                logger.info('Building VField from cat %s',cat.name)
+            else:
+                logger.info('Building VField')
+
+        self.min_size = min_size
+        self.max_size = max_size
+        self.split_method = split_method
+        sm = _parse_split_method(split_method)
+        # TODO: Implement other geometries than 3D
+        self.data = treecorr._lib.BuildVField3D(dp(cat.x),dp(cat.y),dp(cat.z),
+                                                dp(cat.a),dp(cat.b),dp(cat.c),
+                                                dp(cat.w),dp(cat.wpos),cat.ntot,
+                                                min_size,max_size,sm,max_top)
+        self.spher = False
+        self.flat = False
+
+
+    def __del__(self):
+        # Using memory allocated from the C layer means we have to explicitly deallocate it
+        # rather than being able to rely on the Python memory manager.
+
+        if hasattr(self,'data'):    # In case __init__ failed to get that far
+            treecorr._lib.DestroyVField3D(self.data)
+
+    @property
+    def nTopLevelNodes(self):
+        """The number of top-level nodes."""
+        return treecorr._lib.VField3DGetNTopLevel(self.data)
 
 
 class NSimpleField(object):
@@ -426,3 +476,35 @@ class GSimpleField(object):
             else:
                 treecorr._lib.DestroyGSimpleField3D(self.data)
 
+class VSimpleField(object):
+    """This class stores the vector field as a list, skipping all the tree stuff.
+
+    A VSimpleField is typically created from a Catalog object using
+
+        >>> vfield = cat.getVSimpleField()
+
+    :param cat:         The catalog from which to make the field.
+    :param logger:      A logger file if desired (default: None)
+    """
+    def __init__(self, cat, logger=None):
+        from treecorr.util import double_ptr as dp
+        if logger:
+            if cat.name != '':
+                logger.info('Building VSimpleField from cat %s',cat.name)
+            else:
+                logger.info('Building VSimpleField')
+
+        self.flat = False
+        self.spher = False
+        self.data = treecorr._lib.BuildKSimpleField3D(dp(cat.x),dp(cat.y),dp(cat.z),
+                                                      dp(cat.a),dp(cat.b),dp(cat.c),
+                                                      dp(cat.w),dp(cat.wpos),cat.ntot)
+        if logger:
+            logger.debug('Finished building VSimpleField 3D')
+
+    def __del__(self):
+        # Using memory allocated from the C layer means we have to explicitly deallocate it
+        # rather than being able to rely on the Python memory manager.
+
+        if hasattr(self,'data'):    # In case __init__ failed to get that far
+            treecorr._lib.DestroyVSimpleField3D(self.data)

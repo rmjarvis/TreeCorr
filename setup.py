@@ -419,7 +419,7 @@ ext=Extension("treecorr._treecorr",
               depends=headers,
               undef_macros = undef_macros)
 
-dependencies = ['numpy', 'six', 'cffi']
+dependencies = ['numpy', 'future', 'cffi']
 if py_version < '2.7':
     dependencies += ['argparse']
 else:

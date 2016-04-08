@@ -17,14 +17,11 @@
 
 #include <complex>
 
+// The Coord enum is defined here:
+#include "Position_C.h"
+
 template <typename T>
 inline T SQR(T x) { return x * x; }
-
-// There are three kinds of coordinate systems we can use:
-// 1 = Flat = (x,y) coordinates
-// 2 = ThreeD (called 3d in python) = (x,y,z) coordinates
-// 3 = Sphere = (ra,dec)  These are stored as (x,y,z), but normalized to have |r| = 1.
-enum Coord { Flat=1, ThreeD=2, Sphere=3 };
 
 template <int C>
 class Position;

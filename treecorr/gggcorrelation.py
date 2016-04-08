@@ -215,7 +215,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        metric = treecorr.util.parse_metric(metric, cat.coords)
+        coord, metric = treecorr.util.parse_metric(metric, cat.coords)
 
         self._set_num_threads(num_threads)
 
@@ -230,10 +230,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         field = cat.getGField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        if cat.coords == 'flat':
-            treecorr._lib.ProcessAutoGGGFlat(self.corr, field.data, self.output_dots, metric)
-        else:
-            treecorr._lib.ProcessAutoGGG3D(self.corr, field.data, self.output_dots, metric)
+        treecorr._lib.ProcessAutoGGG(self.corr, field.data, self.output_dots, coord, metric)
 
     def process_cross21(self, cat1, cat2, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where two of the 
@@ -282,7 +279,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords, cat3.coords)
+        coord, metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords, cat3.coords)
 
         self._set_num_threads(num_threads)
 
@@ -296,12 +293,8 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         f3 = cat3.getGField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        if cat1.coords == 'flat':
-            treecorr._lib.ProcessCrossGGGFlat(self.corr, f1.data, f2.data, f3.data,
-                                              self.output_dots, metric)
-        else:
-            treecorr._lib.ProcessCrossGGG3D(self.corr, f1.data, f2.data, f3.data,
-                                            self.output_dots, metric)
+        treecorr._lib.ProcessCrossGGG(self.corr, f1.data, f2.data, f3.data,
+                                      self.output_dots, coord, metric)
 
 
     def finalize(self, varg1, varg2, varg3):

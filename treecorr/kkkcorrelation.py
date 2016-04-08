@@ -167,7 +167,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        metric = treecorr.util.parse_metric(metric, cat.coords)
+        coord, metric = treecorr.util.parse_metric(metric, cat.coords)
 
         self._set_num_threads(num_threads)
 
@@ -179,10 +179,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         field = cat.getKField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        if cat.coords == 'flat':
-            treecorr._lib.ProcessAutoKKKFlat(self.corr, field.data, self.output_dots, metric)
-        else:
-            treecorr._lib.ProcessAutoKKK3D(self.corr, field.data, self.output_dots, metric)
+        treecorr._lib.ProcessAutoKKK(self.corr, field.data, self.output_dots, coord, metric)
 
     def process_cross21(self, cat1, cat2, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where two of the 
@@ -231,7 +228,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords, cat2.coords)
+        coord, metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
@@ -245,12 +242,8 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         f3 = cat3.getKField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        if cat1.coords == 'flat':
-            treecorr._lib.ProcessCrossKKKFlat(self.corr, f1.data, f2.data, f3.data,
-                                              self.output_dots, metric)
-        else:
-            treecorr._lib.ProcessCrossKKK3D(self.corr, f1.data, f2.data, f3.data,
-                                            self.output_dots, metric)
+        treecorr._lib.ProcessCrossKKK(self.corr, f1.data, f2.data, f3.data,
+                                      self.output_dots, coord, metric)
 
 
     def finalize(self, vark1, vark2, vark3):

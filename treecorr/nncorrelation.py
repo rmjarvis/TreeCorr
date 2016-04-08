@@ -131,7 +131,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        metric = treecorr.util.parse_metric(metric, cat.coords)
+        coord, metric = treecorr.util.parse_metric(metric, cat.coords)
 
         self._set_num_threads(num_threads)
 
@@ -142,10 +142,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         field = cat.getNField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        if cat.coords == 'flat':
-            treecorr._lib.ProcessAutoNNFlat(self.corr, field.data, self.output_dots, metric)
-        else:
-            treecorr._lib.ProcessAutoNN3D(self.corr, field.data, self.output_dots, metric)
+        treecorr._lib.ProcessAutoNN(self.corr, field.data, self.output_dots, coord, metric)
         self.tot += 0.5 * cat.sumw**2
 
 
@@ -174,7 +171,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
+        coord, metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
@@ -186,10 +183,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getNField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        if cat1.coords == 'flat':
-            treecorr._lib.ProcessCrossNNFlat(self.corr, f1.data, f2.data, self.output_dots, metric)
-        else:
-            treecorr._lib.ProcessCrossNN3D(self.corr, f1.data, f2.data, self.output_dots, metric)
+        treecorr._lib.ProcessCrossNN(self.corr, f1.data, f2.data, self.output_dots, coord, metric)
         self.tot += cat1.sumw*cat2.sumw
 
 
@@ -219,17 +213,14 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
+        coord, metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
         f1 = cat1.getNSimpleField()
         f2 = cat2.getNSimpleField()
 
-        if cat1.coords == 'flat':
-            treecorr._lib.ProcessPairwiseNNFlat(self.corr, f1.data, f2.data, self.output_dots, metric)
-        else:
-            treecorr._lib.ProcessPairwiseNN3D(self.corr, f1.data, f2.data, self.output_dots, metric)
+        treecorr._lib.ProcessPairNN(self.corr, f1.data, f2.data, self.output_dots, coord, metric)
         self.tot += cat1.weight
 
 

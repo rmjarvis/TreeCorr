@@ -137,7 +137,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
+        coord, metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
@@ -149,10 +149,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getGField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        if cat1.coords == 'flat':
-            treecorr._lib.ProcessCrossNGFlat(self.corr, f1.data, f2.data, self.output_dots, metric)
-        else:
-            treecorr._lib.ProcessCrossNG3D(self.corr, f1.data, f2.data, self.output_dots, metric)
+        treecorr._lib.ProcessCrossNG(self.corr, f1.data, f2.data, self.output_dots, coord, metric)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -182,17 +179,14 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
+        coord, metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
         f1 = cat1.getNSimpleField()
         f2 = cat2.getGSimpleField()
 
-        if cat1.coords == 'flat':
-            treecorr._lib.ProcessPairwiseNGFlat(self.corr, f1.data, f2.data, self.output_dots, metric)
-        else:
-            treecorr._lib.ProcessPairwiseNG3D(self.corr, f1.data, f2.data, self.output_dots, metric)
+        treecorr._lib.ProcessPairNG(self.corr, f1.data, f2.data, self.output_dots, coord, metric)
 
 
     def finalize(self, varg):

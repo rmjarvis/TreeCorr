@@ -166,7 +166,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        metric = treecorr.util.parse_metric(metric, cat.coords)
+        coord, metric = treecorr.util.parse_metric(metric, cat.coords)
 
         self._set_num_threads(num_threads)
 
@@ -178,10 +178,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         field = cat.getNField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        if cat.coords == 'flat':
-            treecorr._lib.ProcessAutoNNNFlat(self.corr, field.data, self.output_dots, metric)
-        else:
-            treecorr._lib.ProcessAutoNNN3D(self.corr, field.data, self.output_dots, metric)
+        treecorr._lib.ProcessAutoNNN(self.corr, field.data, self.output_dots, coord, metric)
         self.tot += (1./6.) * cat.sumw**3
 
     def process_cross21(self, cat1, cat2, metric=None, num_threads=None):
@@ -231,7 +228,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords, cat3.coords)
+        coord, metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords, cat3.coords)
 
         self._set_num_threads(num_threads)
 
@@ -245,12 +242,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         f3 = cat3.getNField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        if cat1.coords == 'flat':
-            treecorr._lib.ProcessCrossNNNFlat(self.corr, f1.data, f2.data, f3.data,
-                                              self.output_dots, metric)
-        else:
-            treecorr._lib.ProcessCrossNNN3D(self.corr, f1.data, f2.data, f3.data,
-                                            self.output_dots, metric)
+        treecorr._lib.ProcessCrossNNN(self.corr, f1.data, f2.data, f3.data,
+                                      self.output_dots, coord, metric)
         self.tot += cat1.sumw * cat2.sumw * cat3.sumw / 6.0
 
 

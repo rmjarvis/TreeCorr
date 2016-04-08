@@ -37,38 +37,23 @@ extern void DestroyKKCorr(void* corr);
 extern void DestroyKGCorr(void* corr);
 extern void DestroyGGCorr(void* corr);
 
-extern void ProcessAutoNNFlat(void* corr, void* field, int dots, int metric);
-extern void ProcessAutoNN3D(void* corr, void* field, int dots, int metric);
-extern void ProcessAutoKKFlat(void* corr, void* field, int dots, int metric);
-extern void ProcessAutoKK3D(void* corr, void* field, int dots, int metric);
-extern void ProcessAutoGGFlat(void* corr, void* field, int dots, int metric);
-extern void ProcessAutoGG3D(void* corr, void* field, int dots, int metric);
+extern void ProcessAutoNN(void* corr, void* field, int dots, int coord, int metric);
+extern void ProcessAutoKK(void* corr, void* field, int dots, int coord, int metric);
+extern void ProcessAutoGG(void* corr, void* field, int dots, int coord, int metric);
 
-extern void ProcessCrossNNFlat(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessCrossNN3D(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessCrossNKFlat(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessCrossNK3D(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessCrossNGFlat(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessCrossNG3D(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessCrossKKFlat(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessCrossKK3D(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessCrossKGFlat(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessCrossKG3D(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessCrossGGFlat(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessCrossGG3D(void* corr, void* field1, void* field2, int dots, int metric);
+extern void ProcessCrossNN(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessCrossNK(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessCrossNG(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessCrossKK(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessCrossKG(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessCrossGG(void* corr, void* field1, void* field2, int dots, int coord, int metric);
 
-extern void ProcessPairwiseNNFlat(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessPairwiseNN3D(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessPairwiseNKFlat(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessPairwiseNK3D(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessPairwiseNGFlat(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessPairwiseNG3D(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessPairwiseKKFlat(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessPairwiseKK3D(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessPairwiseKGFlat(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessPairwiseKG3D(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessPairwiseGGFlat(void* corr, void* field1, void* field2, int dots, int metric);
-extern void ProcessPairwiseGG3D(void* corr, void* field1, void* field2, int dots, int metric);
+extern void ProcessPairNN(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessPairNK(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessPairNG(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessPairKK(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessPairKG(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessPairGG(void* corr, void* field1, void* field2, int dots, int coord, int metric);
 
 extern int SetOMPThreads(int num_threads);
 

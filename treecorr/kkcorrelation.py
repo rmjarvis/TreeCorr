@@ -137,7 +137,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        metric = treecorr.util.parse_metric(metric, cat.coords)
+        coord, metric = treecorr.util.parse_metric(metric, cat.coords)
 
         self._set_num_threads(num_threads)
 
@@ -148,10 +148,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         field = cat.getKField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        if cat.coords == 'flat':
-            treecorr._lib.ProcessAutoKKFlat(self.corr, field.data, self.output_dots, metric)
-        else:
-            treecorr._lib.ProcessAutoKK3D(self.corr, field.data, self.output_dots, metric)
+        treecorr._lib.ProcessAutoKK(self.corr, field.data, self.output_dots, coord, metric)
 
 
     def process_cross(self, cat1, cat2, metric=None, num_threads=None):
@@ -180,7 +177,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
+        coord, metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
@@ -192,10 +189,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getKField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        if cat1.coords == 'flat':
-            treecorr._lib.ProcessCrossKKFlat(self.corr, f1.data, f2.data, self.output_dots, metric)
-        else:
-            treecorr._lib.ProcessCrossKK3D(self.corr, f1.data, f2.data, self.output_dots, metric)
+        treecorr._lib.ProcessCrossKK(self.corr, f1.data, f2.data, self.output_dots, coord, metric)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -225,17 +219,14 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
+        coord, metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
         f1 = cat1.getKSimpleField()
         f2 = cat2.getKSimpleField()
 
-        if cat1.coords == 'flat':
-            treecorr._lib.ProcessPairwiseKKFlat(self.corr, f1.data, f2.data, self.output_dots, metric)
-        else:
-            treecorr._lib.ProcessPairwiseKK3D(self.corr, f1.data, f2.data, self.output_dots, metric)
+        treecorr._lib.ProcessPairKK(self.corr, f1.data, f2.data, self.output_dots, coord, metric)
 
 
     def finalize(self, vark1, vark2):

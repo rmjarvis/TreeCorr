@@ -181,6 +181,10 @@ def test_binnedcorr3():
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
+    numpy.testing.assert_almost_equal(nnn.min_sep, 5.)
+    numpy.testing.assert_almost_equal(nnn.max_sep, 20.)
+    numpy.testing.assert_almost_equal(nnn._min_sep, 5.)
+    numpy.testing.assert_almost_equal(nnn._max_sep, 20.)
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
@@ -192,8 +196,10 @@ def test_binnedcorr3():
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
-    numpy.testing.assert_almost_equal(nnn.min_sep, 5. * math.pi/180/3600)
-    numpy.testing.assert_almost_equal(nnn.max_sep, 20. * math.pi/180/3600)
+    numpy.testing.assert_almost_equal(nnn.min_sep, 5.)
+    numpy.testing.assert_almost_equal(nnn.max_sep, 20.)
+    numpy.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180/3600)
+    numpy.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/180/3600)
     assert nnn.nbins == 20
     numpy.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
     # Note that logr is in the separation units, not radians.
@@ -207,8 +213,10 @@ def test_binnedcorr3():
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
-    numpy.testing.assert_almost_equal(nnn.min_sep, 5. * math.pi/180/60)
-    numpy.testing.assert_almost_equal(nnn.max_sep, 20. * math.pi/180/60)
+    numpy.testing.assert_almost_equal(nnn.min_sep, 5.)
+    numpy.testing.assert_almost_equal(nnn.max_sep, 20.)
+    numpy.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180/60)
+    numpy.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/180/60)
     assert nnn.nbins == 20
     numpy.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
     numpy.testing.assert_almost_equal(nnn.logr[0], math.log(5) + 0.5*nnn.bin_size)
@@ -221,8 +229,10 @@ def test_binnedcorr3():
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
-    numpy.testing.assert_almost_equal(nnn.min_sep, 5. * math.pi/180)
-    numpy.testing.assert_almost_equal(nnn.max_sep, 20. * math.pi/180)
+    numpy.testing.assert_almost_equal(nnn.min_sep, 5.)
+    numpy.testing.assert_almost_equal(nnn.max_sep, 20.)
+    numpy.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180)
+    numpy.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/180)
     assert nnn.nbins == 20
     numpy.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
     numpy.testing.assert_almost_equal(nnn.logr[0], math.log(5) + 0.5*nnn.bin_size)
@@ -235,8 +245,10 @@ def test_binnedcorr3():
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
-    numpy.testing.assert_almost_equal(nnn.min_sep, 5. * math.pi/12)
-    numpy.testing.assert_almost_equal(nnn.max_sep, 20. * math.pi/12)
+    numpy.testing.assert_almost_equal(nnn.min_sep, 5.)
+    numpy.testing.assert_almost_equal(nnn.max_sep, 20.)
+    numpy.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/12)
+    numpy.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/12)
     assert nnn.nbins == 20
     numpy.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
     numpy.testing.assert_almost_equal(nnn.logr[0], math.log(5) + 0.5*nnn.bin_size)

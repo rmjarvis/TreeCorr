@@ -47,6 +47,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
     In addition, the following attributes are numpy arrays whose shape is (nbins, nubins, nvbins):
 
         :logr:      The nominal center of the bin in log(r).
+        :rnom:      The nominal center of the bin converted to regular distance. 
+                    i.e. r = exp(logr).
         :u:         The nominal center of the bin in u.
         :v:         The nominal center of the bin in v.
         :meand1:    The (weighted) mean value of d1 for the triangles in each bin.
@@ -62,10 +64,13 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         :tot:       The total number of triangles processed, which is used to normalize
                     the randoms if they have a different number of triangles.
 
-    If sep_units are given (either in the config dict or as a named kwarg) then logr and meanlogr
-    both take r to be in these units.  i.e. exp(logr) will have R in units of sep_units.
+    If `sep_units` are given (either in the config dict or as a named kwarg) then the distances
+    will all be in these units.  Note however, that if you separate out the steps of the 
+    :func:`process` command and use :func:`process_auto` and/or :func:`process_cross`, then the
+    units will not be applied to :meanr: or :meanlogr: until the :func:`finalize` function is
+    called.
 
-    The usage pattern is as follows:
+    The typical usage pattern is as follows:
 
         >>> nnn = treecorr.NNNCorrelation(config)
         >>> nnn.process(cat)         # For auto-correlation.
@@ -110,7 +115,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
         self.corr = treecorr._lib.BuildNNNCorr(
-                self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                self._min_sep,self._max_sep,self.nbins,self.bin_size,self.b,
                 self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                 self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
                 dp(self.meand1), dp(self.meanlogd1), dp(self.meand2), dp(self.meanlogd2),
@@ -171,9 +176,9 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self._set_num_threads(num_threads)
 
         b = numpy.max( (self.b, self.bu, self.bv) )
-        min_size = self.min_sep * self.min_u * b / (2.+3.*b);
+        min_size = self._min_sep * self.min_u * b / (2.+3.*b);
         if metric == treecorr._lib.Perp: min_size /= 2.
-        max_size = 2. * self.max_sep * b
+        max_size = 2. * self._max_sep * b
 
         field = cat.getNField(min_size,max_size,self.split_method,self.max_top)
 
@@ -233,9 +238,9 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self._set_num_threads(num_threads)
 
         b = numpy.max( (self.b, self.bu, self.bv) )
-        min_size = self.min_sep * self.min_u * b / (2.+3.*b);
+        min_size = self._min_sep * self.min_u * b / (2.+3.*b);
         if metric == treecorr._lib.Perp: min_size /= 2.
-        max_size = 2. * self.max_sep * b
+        max_size = 2. * self._max_sep * b
 
         f1 = cat1.getNField(min_size,max_size,self.split_method,self.max_top)
         f2 = cat2.getNField(min_size,max_size,self.split_method,self.max_top)
@@ -267,15 +272,10 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.meanv[mask1] /= self.weight[mask1]
 
         # Update the units
-        self.meand1[mask1] /= self.sep_units
-        self.meanlogd1[mask1] -= self.log_sep_units
-        self.meand2[mask1] /= self.sep_units
-        self.meanlogd2[mask1] -= self.log_sep_units
-        self.meand3[mask1] /= self.sep_units
-        self.meanlogd3[mask1] -= self.log_sep_units
+        self._apply_units(mask1)
 
         # Use meanlogr when available, but set to nominal when no triangles in bin.
-        self.meand2[mask2] = numpy.exp(self.logr[mask2])
+        self.meand2[mask2] = self.rnom[mask2]
         self.meanlogd2[mask2] = self.logr[mask2]
         self.meanu[mask2] = self.u[mask2]
         self.meanv[mask2] = self.v[mask2]
@@ -571,6 +571,9 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             :RDD:           The total weight of RDD triangles in each bin.
             :ntri:          The number of triangles contributing to each bin.
 
+        If `sep_units` was given at construction, then the distances will all be in these units.
+        Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
+        radians (for spherical coordinates).
 
         :param file_name:   The name of the file to write to.
         :param rrr:         An NNNCorrelation object for the random field. (default: None)
@@ -589,7 +592,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         
         col_names = [ 'R_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
                       'meand3', 'meanlogd3', 'meanu', 'meanv' ]
-        columns = [ numpy.exp(self.logr), self.u, self.v,
+        columns = [ self.rnom, self.u, self.v,
                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                     self.meand3, self.meanlogd3, self.meanu, self.meanv ]
         if rrr is None:
@@ -639,7 +642,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         data = treecorr.util.gen_read(file_name, file_type=file_type)
         s = self.logr.shape
-        self.logr = numpy.log(data['R_nom']).reshape(s)
+        self.rnom = data['R_nom'].reshape(s)
+        self.logr = numpy.log(self.rnom)
         self.u = data['u_nom'].reshape(s)
         self.v = data['v_nom'].reshape(s)
         self.meand1 = data['meand1'].reshape(s)

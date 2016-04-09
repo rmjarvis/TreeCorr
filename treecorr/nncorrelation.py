@@ -33,6 +33,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
     In addition, the following attributes are numpy arrays of length (nbins):
 
         :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
+        :rnom:      The nominal center of the bin converted to regular distance. 
+                    i.e. r = exp(logr).
         :meanr:     The (weighted) mean value of r for the pairs in each bin.
                     If there are no pairs in a bin, then exp(logr) will be used instead.
         :meanlogr:  The mean value of log(r) for the pairs in each bin.
@@ -42,10 +44,13 @@ class NNCorrelation(treecorr.BinnedCorr2):
         :tot:       The total number of pairs processed, which is used to normalize
                     the randoms if they have a different number of pairs.
 
-    If sep_units are given (either in the config dict or as a named kwarg) then logr and meanlogr
-    both take r to be in these units.  i.e. exp(logr) will have R in units of sep_units.
+    If `sep_units` are given (either in the config dict or as a named kwarg) then the distances
+    will all be in these units.  Note however, that if you separate out the steps of the 
+    :func:`process` command and use :func:`process_auto` and/or :func:`process_cross`, then the
+    units will not be applied to :meanr: or :meanlogr: until the :func:`finalize` function is
+    called.
 
-    The usage pattern is as follows:
+    The typical usage pattern is as follows:
 
         >>> nn = treecorr.NNCorrelation(config)
         >>> nn.process(cat)         # For auto-correlation.
@@ -79,7 +84,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
         self.corr = treecorr._lib.BuildNNCorr(
-                self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                self._min_sep,self._max_sep,self.nbins,self.bin_size,self.b,
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
 
     def __del__(self):
@@ -135,9 +140,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         self._set_num_threads(num_threads)
 
-        min_size = self.min_sep * self.b / (2.+3.*self.b);
+        min_size = self._min_sep * self.b / (2.+3.*self.b);
         if metric == treecorr._lib.Perp: min_size /= 2.
-        max_size = self.max_sep * self.b
+        max_size = self._max_sep * self.b
 
         field = cat.getNField(min_size,max_size,self.split_method,self.max_top)
 
@@ -175,9 +180,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         self._set_num_threads(num_threads)
 
-        min_size = self.min_sep * self.b / (2.+3.*self.b);
+        min_size = self._min_sep * self.b / (2.+3.*self.b);
         if metric == treecorr._lib.Perp: min_size /= 2.
-        max_size = self.max_sep * self.b
+        max_size = self._max_sep * self.b
 
         f1 = cat1.getNField(min_size,max_size,self.split_method,self.max_top)
         f2 = cat2.getNField(min_size,max_size,self.split_method,self.max_top)
@@ -238,11 +243,10 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.meanlogr[mask1] /= self.weight[mask1]
 
         # Update the units of meanr, meanlogr
-        self.meanr[mask1] /= self.sep_units
-        self.meanlogr[mask1] -= self.log_sep_units
+        self._apply_units(mask1)
 
         # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
-        self.meanr[mask2] = numpy.exp(self.logr[mask2])
+        self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
 
 
@@ -434,6 +438,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
             :RD:        The total weight of RD pairs in each bin.
             :npairs:    The number of pairs contributing ot each bin.
 
+        If `sep_units` was given at construction, then the distances will all be in these units.
+        Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
+        radians (for spherical coordinates).
 
         :param file_name:   The name of the file to write to.
         :param rr:          An NNCorrelation object for the random-random pairs. (default: None,
@@ -450,7 +457,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.logger.info('Writing NN correlations to %s',file_name)
         
         col_names = [ 'R_nom','meanR','meanlogR' ]
-        columns = [ numpy.exp(self.logr), self.meanr, self.meanlogr ]
+        columns = [ self.rnom, self.meanr, self.meanlogr ]
         if rr is None:
             col_names += [ 'DD', 'npairs' ]
             columns += [ self.weight, self.npairs ]
@@ -499,7 +506,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.logger.info('Reading NN correlations from %s',file_name)
 
         data = treecorr.util.gen_read(file_name, file_type=file_type)
-        self.logr = numpy.log(data['R_nom'])
+        self.rnom = data['R_nom']
+        self.logr = numpy.log(self.rnom)
         self.meanr = data['meanR']
         self.meanlogr = data['meanlogR']
         self.weight = data['DD']
@@ -529,7 +537,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
             raise ValueError("Invalid m2_uform")
 
         # Make s a matrix, so we can eventually do the integral by doing a matrix product.
-        r = numpy.exp(self.logr)
+        r = self.rnom
         s = numpy.outer(1./r, self.meanr)  
         ssq = s*s
         if m2_uform == 'Crittenden':

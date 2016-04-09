@@ -76,8 +76,10 @@ class BinnedCorr3(object):
 
     :param sep_units:   The units to use for the separation values, given as a string.  This 
                         includes both min_sep and max_sep above, as well as the units of the 
-                        output R column.  Valid options are arcsec, arcmin, degrees, hours,
-                        radians.  (default: radians)
+                        output distance values.  Valid options are arcsec, arcmin, degrees, hours,
+                        radians.  (default: radians if angular units make sense, but for 3-d
+                        or flat 2-d positions, the default will just match the units of x,y[,z]
+                        coordinates)
     :param bin_slop:    How much slop to allow in the placement of pairs in the bins.
                         If bin_slop = 1, then the bin into which a particular pair is placed may
                         be incorrect by at most 1.0 bin widths.  (default: None, which means to
@@ -155,7 +157,7 @@ class BinnedCorr3(object):
         'max_sep' : (float, False, None, None,
                 'The maximum separation to include in the output.'),
         'sep_units' : (str, False, None, treecorr.angle_units.keys(),
-                'The units to use for min_sep and max_sep.  Also the units of the output r columns'),
+                'The units to use for min_sep and max_sep.  Also the units of the output distances'),
         'bin_slop' : (float, False, None, None,
                 'The fraction of a bin width by which it is ok to let the pairs miss the correct bin.',
                 'The default is to use 1 if bin_size <= 0.1, or 0.1/bin_size if bin_size > 0.1.'),
@@ -195,6 +197,7 @@ class BinnedCorr3(object):
         'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp'],
                 'Which metric to use for the distance measurements'),
     }
+
     def __init__(self, config=None, logger=None, **kwargs):
         import math
         import numpy
@@ -223,8 +226,8 @@ class BinnedCorr3(object):
                 raise AttributeError("Missing required parameter min_sep")
             if 'bin_size' not in self.config:
                 raise AttributeError("Missing required parameter bin_size")
-            self.min_sep = float(self.config['min_sep']) * self.sep_units
-            self.max_sep = float(self.config['max_sep']) * self.sep_units
+            self.min_sep = float(self.config['min_sep'])
+            self.max_sep = float(self.config['max_sep'])
             if self.min_sep >= self.max_sep:
                 raise ValueError("max_sep must be larger than min_sep")
             self.bin_size = float(self.config['bin_size'])
@@ -236,8 +239,8 @@ class BinnedCorr3(object):
                 raise AttributeError("Missing required parameter max_sep")
             if 'min_sep' not in self.config:
                 raise AttributeError("Missing required parameter min_sep")
-            self.min_sep = float(self.config['min_sep']) * self.sep_units
-            self.max_sep = float(self.config['max_sep']) * self.sep_units
+            self.min_sep = float(self.config['min_sep'])
+            self.max_sep = float(self.config['max_sep'])
             if self.min_sep >= self.max_sep:
                 raise ValueError("max_sep must be larger than min_sep")
             self.nbins = int(self.config['nbins'])
@@ -245,14 +248,14 @@ class BinnedCorr3(object):
         elif 'max_sep' not in self.config:
             if 'min_sep' not in self.config:
                 raise AttributeError("Missing required parameter min_sep")
-            self.min_sep = float(self.config['min_sep']) * self.sep_units
+            self.min_sep = float(self.config['min_sep'])
             self.nbins = int(self.config['nbins'])
             self.bin_size = float(self.config['bin_size'])
             self.max_sep = math.exp(self.nbins*self.bin_size)*self.min_sep
         else:
             if 'min_sep' in self.config:
                 raise AttributeError("Only 3 of min_sep, max_sep, bin_size, nbins are allowed.")
-            self.max_sep = float(self.config['max_sep']) * self.sep_units
+            self.max_sep = float(self.config['max_sep'])
             self.nbins = int(self.config['nbins'])
             self.bin_size = float(self.config['bin_size'])
             self.min_sep = self.max_sep*math.exp(-self.nbins*self.bin_size)
@@ -263,6 +266,9 @@ class BinnedCorr3(object):
             self.logger.info("r: nbins = %d, min,max sep = %g..%g %s, bin_size = %g",
                              self.nbins,self.min_sep/self.sep_units,self.max_sep/self.sep_units,
                              self.sep_unit_name,self.bin_size)
+        # The underscore-prefixed names are in natural units (radians for angles)
+        self._min_sep = self.min_sep * self.sep_units
+        self._max_sep = self.max_sep * self.sep_units
 
         if 'nubins' not in self.config:
             self.min_u = float(self.config.get('min_u', 0.))
@@ -410,9 +416,6 @@ class BinnedCorr3(object):
         # Offset by the position of the center of the first bin.
         self.logr1d += math.log(self.min_sep) + 0.5*self.bin_size
 
-        # And correct the units:
-        self.logr1d -= self.log_sep_units
-
         self.u1d = numpy.linspace(start=0, stop=self.nubins*self.ubin_size, 
                                   num=self.nubins, endpoint=False)
         self.u1d += self.min_u + 0.5*self.ubin_size
@@ -428,6 +431,7 @@ class BinnedCorr3(object):
                             (self.nbins, 1, self.nvbins))
         self.v = numpy.tile(self.v1d[numpy.newaxis, numpy.newaxis, :],
                             (self.nbins, self.nubins, 1))
+        self.rnom = numpy.exp(self.logr)
 
     def _process_all_auto(self, cat1, metric, num_threads):
         # I'm not sure which of these is more intuitive, but both are correct...
@@ -460,7 +464,6 @@ class BinnedCorr3(object):
                         self.process_cross(c3,c1,c2, metric, num_threads)
                         self.process_cross(c3,c2,c1, metric, num_threads)
 
-
     def _process_all_cross21(self, cat1, cat2, metric, num_threads):
         for c1 in cat1:
             for c2 in cat2:
@@ -476,7 +479,6 @@ class BinnedCorr3(object):
                 for c3 in cat3:
                     self.process_cross(c1,c2,c3, metric, num_threads)
  
-
     def _set_num_threads(self, num_threads):
         if num_threads is None:
             num_threads = self.config.get('num_threads',None)
@@ -485,3 +487,13 @@ class BinnedCorr3(object):
         else:
             self.logger.debug('Set num_threads = %d',num_threads)
         treecorr.set_omp_threads(num_threads, self.logger)
+
+    def _apply_units(self, mask):
+        # Update the units
+        self.meand1[mask] /= self.sep_units
+        self.meanlogd1[mask] -= self.log_sep_units
+        self.meand2[mask] /= self.sep_units
+        self.meanlogd2[mask] -= self.log_sep_units
+        self.meand3[mask] /= self.sep_units
+        self.meanlogd3[mask] -= self.log_sep_units
+

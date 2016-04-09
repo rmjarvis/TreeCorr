@@ -33,6 +33,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
     In addition, the following attributes are numpy arrays of length (nbins):
 
         :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
+        :rnom:      The nominal center of the bin converted to regular distance. 
+                    i.e. r = exp(logr).
         :meanr:     The (weighted) mean value of r for the pairs in each bin.
                     If there are no pairs in a bin, then exp(logr) will be used instead.
         :meanlogr:  The (weighted) mean value of log(r) for the pairs in each bin.
@@ -44,10 +46,13 @@ class NKCorrelation(treecorr.BinnedCorr2):
         :weight:    The total weight in each bin.
         :npairs:    The number of pairs going into each bin.
 
-    If sep_units are given (either in the config dict or as a named kwarg) then logr and meanlogr
-    both take r to be in these units.  i.e. exp(logr) will have R in units of sep_units.
+    If `sep_units` are given (either in the config dict or as a named kwarg) then the distances
+    will all be in these units.  Note however, that if you separate out the steps of the 
+    :func:`process` command and use :func:`process_auto` and/or :func:`process_cross`, then the
+    units will not be applied to :meanr: or :meanlogr: until the :func:`finalize` function is
+    called.
 
-    The usage pattern is as follows:
+    The typical usage pattern is as follows:
 
         >>> nk = treecorr.NKCorrelation(config)
         >>> nk.process(cat1,cat2)   # Compute the cross-correlation function.
@@ -78,7 +83,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
         self.corr = treecorr._lib.BuildNKCorr(
-                self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                self._min_sep,self._max_sep,self.nbins,self.bin_size,self.b,
                 dp(self.xi),
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
 
@@ -138,9 +143,9 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         self._set_num_threads(num_threads)
 
-        min_size = self.min_sep * self.b / (2.+3.*self.b);
+        min_size = self._min_sep * self.b / (2.+3.*self.b);
         if metric == treecorr._lib.Perp: min_size /= 2.
-        max_size = self.max_sep * self.b
+        max_size = self._max_sep * self.b
 
         f1 = cat1.getNField(min_size,max_size,self.split_method,self.max_top)
         f2 = cat2.getKField(min_size,max_size,self.split_method,self.max_top)
@@ -204,11 +209,10 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.varxi[mask1] = vark / self.weight[mask1]
 
         # Update the units of meanr, meanlogr
-        self.meanr[mask1] /= self.sep_units
-        self.meanlogr[mask1] -= self.log_sep_units
+        self._apply_units(mask1)
 
         # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
-        self.meanr[mask2] = numpy.exp(self.logr[mask2])
+        self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
         self.varxi[mask2] = 0.
 
@@ -329,6 +333,9 @@ class NKCorrelation(treecorr.BinnedCorr2):
             :weight:    The total weight contributing to each bin.
             :npairs:    The number of pairs contributing ot each bin.
 
+        If `sep_units` was given at construction, then the distances will all be in these units.
+        Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
+        radians (for spherical coordinates).
 
         :param file_name:   The name of the file to write to.
         :param rk:          An NKCorrelation using random locations as the lenses, if desired. 
@@ -347,7 +354,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         treecorr.util.gen_write(
             file_name,
             ['R_nom','meanR','meanlogR','kappa','sigma','weight','npairs'],
-            [ numpy.exp(self.logr), self.meanr, self.meanlogr,
+            [ self.rnom, self.meanr, self.meanlogr,
               xi, numpy.sqrt(varxi), self.weight, self.npairs ],
             prec=prec, file_type=file_type, logger=self.logger)
 
@@ -369,7 +376,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.logger.info('Reading NK correlations from %s',file_name)
 
         data = treecorr.util.gen_read(file_name, file_type=file_type)
-        self.logr = numpy.log(data['R_nom'])
+        self.rnom = data['R_nom']
+        self.logr = numpy.log(self.rnom)
         self.meanr = data['meanR']
         self.meanlogr = data['meanlogR']
         self.xi = data['kappa']

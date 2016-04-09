@@ -33,6 +33,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
     In addition, the following attributes are numpy arrays of length (nbins):
 
         :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
+        :rnom:      The nominal center of the bin converted to regular distance. 
+                    i.e. r = exp(logr).
         :meanr:     The (weighted) mean value of r for the pairs in each bin.
                     If there are no pairs in a bin, then exp(logr) will be used instead.
         :meanlogr:  The (weighted) mean value of log(r) for the pairs in each bin.
@@ -47,10 +49,13 @@ class GGCorrelation(treecorr.BinnedCorr2):
         :weight:    The total weight in each bin.
         :npairs:    The number of pairs going into each bin.
 
-    If sep_units are given (either in the config dict or as a named kwarg) then logr and meanlogr
-    both take r to be in these units.  i.e. exp(logr) will have R in units of sep_units.
+    If `sep_units` are given (either in the config dict or as a named kwarg) then the distances
+    will all be in these units.  Note however, that if you separate out the steps of the 
+    :func:`process` command and use :func:`process_auto` and/or :func:`process_cross`, then the
+    units will not be applied to :meanr: or :meanlogr: until the :func:`finalize` function is
+    called.
 
-    The usage pattern is as follows:
+    The typical usage pattern is as follows:
 
         >>> gg = treecorr.GGCorrelation(config)
         >>> gg.process(cat)         # For auto-correlation.
@@ -85,7 +90,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
         self.corr = treecorr._lib.BuildGGCorr(
-                self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                self._min_sep,self._max_sep,self.nbins,self.bin_size,self.b,
                 dp(self.xip),dp(self.xip_im),dp(self.xim),dp(self.xim_im),
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs))
  
@@ -151,7 +156,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         #      d = minsep / (1+1.5 b)
         #      s = 0.5 * b * minsep / (1+1.5 b)
         #        = b * minsep / (2+3b)
-        min_size = self.min_sep * self.b / (2.+3.*self.b)
+        min_size = self._min_sep * self.b / (2.+3.*self.b)
         if metric == treecorr._lib.Perp:
             # Go a bit smller than min_sep for Rperp metric, since the above calculation of
             # what minimum size to use isn't exactly accurate in this case.
@@ -159,7 +164,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         # The maximum size cell that will be useful is one where a cell of size s will
         # be split at the maximum separation even if the other size = 0.
         # i.e. max_size = max_sep * b
-        max_size = self.max_sep * self.b
+        max_size = self._max_sep * self.b
             
         field = cat.getGField(min_size,max_size,self.split_method,self.max_top)
 
@@ -197,12 +202,12 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         self._set_num_threads(num_threads)
 
-        min_size = self.min_sep * self.b / (2.+3.*self.b)
+        min_size = self._min_sep * self.b / (2.+3.*self.b)
         if metric == treecorr._lib.Perp:
             # Go a bit smller than min_sep for Rperp metric, since the simple calculation of
             # what minimum size to use isn't exactly accurate in this case.
             min_size /= 2.
-        max_size = self.max_sep * self.b
+        max_size = self._max_sep * self.b
             
         f1 = cat1.getGField(min_size,max_size,self.split_method,self.max_top)
         f2 = cat2.getGField(min_size,max_size,self.split_method,self.max_top)
@@ -270,11 +275,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.varxi[mask1] = varg1 * varg2 / self.weight[mask1]
 
         # Update the units of meanr, meanlogr
-        self.meanr[mask1] /= self.sep_units
-        self.meanlogr[mask1] -= self.log_sep_units
+        self._apply_units(mask1)
 
         # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
-        self.meanr[mask2] = numpy.exp(self.logr[mask2])
+        self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
         self.varxi[mask2] = 0.
 
@@ -390,6 +394,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
             :weight:    The total weight contributing to each bin.
             :npairs:    The number of pairs contributing ot each bin.
 
+        If `sep_units` was given at construction, then the distances will all be in these units.
+        Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
+        radians (for spherical coordinates).
+
         :param file_name:   The name of the file to write to.
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
@@ -404,7 +412,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         treecorr.util.gen_write(
             file_name,
             ['R_nom','meanR','meanlogR','xip','xim','xip_im','xim_im','sigma_xi','weight','npairs'],
-            [ numpy.exp(self.logr), self.meanr, self.meanlogr,
+            [ self.rnom, self.meanr, self.meanlogr,
               self.xip, self.xim, self.xip_im, self.xim_im, numpy.sqrt(self.varxi),
               self.weight, self.npairs ],
             prec=prec, file_type=file_type, logger=self.logger)
@@ -427,6 +435,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.logger.info('Reading GG correlations from %s',file_name)
 
         data = treecorr.util.gen_read(file_name, file_type=file_type)
+        self.rnom = data['R_nom']
         self.logr = numpy.log(data['R_nom'])
         self.meanr = data['meanR']
         self.meanlogr = data['meanlogR']
@@ -490,7 +499,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
             raise ValueError("Invalid m2_uform")
 
         # Make s a matrix, so we can eventually do the integral by doing a matrix product.
-        r = numpy.exp(self.logr)
+        r = self.rnom
         s = numpy.outer(1./r, self.meanr)
         ssq = s*s
         if m2_uform == 'Crittenden':
@@ -558,7 +567,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         :returns:   (gamsq, vargamsq) if `eb == False` or
                     (gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e)  if `eb == True`
         """
-        r = numpy.exp(self.logr)
+        r = self.rnom
         s = numpy.outer(1./r, self.meanr)  
         ssq = s*s
         Sp = numpy.zeros_like(s)
@@ -632,7 +641,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         treecorr.util.gen_write(
             file_name,
             ['R','Mapsq','Mxsq','MMxa','MMxb','sig_map','Gamsq','sig_gam'],
-            [ numpy.exp(self.logr),
+            [ self.rnom,
               mapsq, mxsq, mapsq_im, -mxsq_im, numpy.sqrt(varmapsq),
               gamsq, numpy.sqrt(vargamsq) ],
             prec=prec, file_type=file_type, logger=self.logger)

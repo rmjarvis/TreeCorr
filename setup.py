@@ -50,14 +50,15 @@ copt =  {
     'gcc' : ['-fopenmp','-O3','-ffast-math'],
     'icc' : ['-openmp','-O3'],
     'clang' : ['-O3','-ffast-math'],
-    'clang w/ OpenMP' : ['-fopenmp=libomp','-O3','-ffast-math'],
+    #'clang w/ OpenMP' : ['-fopenmp=libomp','-O3','-ffast-math'],
+    'clang w/ OpenMP' : ['-fopenmp','-O3','-ffast-math'],
     'unknown' : [],
 }
 lopt =  {
     'gcc' : ['-fopenmp'],
     'icc' : ['-openmp'],
     'clang' : [],
-    'clang w/ OpenMP' : ['-fopenmp=libomp'],
+    'clang w/ OpenMP' : ['-fopenmp'],
     'unknown' : [],
 }
 

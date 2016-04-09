@@ -1351,6 +1351,9 @@ void ProcessAutoNNN(void* corr, void* field, int dots, int coord, int metric)
         else if (metric == Lens)
             static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Lens>(
                 *static_cast<Field<NData,ThreeD>*>(field),dots);
+        else if (metric == Arc)
+            static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<Sphere,Arc>(
+                *static_cast<Field<NData,Sphere>*>(field),dots);
         else
             Assert(false);
     }
@@ -1375,6 +1378,9 @@ void ProcessAutoKKK(void* corr, void* field, int dots, int coord, int metric)
         else if (metric == Lens)
             static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Lens>(
                 *static_cast<Field<KData,ThreeD>*>(field),dots);
+        else if (metric == Arc)
+            static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<Sphere,Arc>(
+                *static_cast<Field<KData,Sphere>*>(field),dots);
         else
             Assert(false);
     }
@@ -1399,6 +1405,9 @@ void ProcessAutoGGG(void* corr, void* field, int dots, int coord, int metric)
         else if (metric == Lens)
             static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Lens>(
                 *static_cast<Field<GData,ThreeD>*>(field),dots);
+        else if (metric == Arc)
+            static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<Sphere,Arc>(
+                *static_cast<Field<GData,Sphere>*>(field),dots);
         else
             Assert(false);
     }
@@ -1432,6 +1441,11 @@ void ProcessCrossNNN(void* corr, void* field1, void* field2, void* field3, int d
                 *static_cast<Field<NData,ThreeD>*>(field1),
                 *static_cast<Field<NData,ThreeD>*>(field2),
                 *static_cast<Field<NData,ThreeD>*>(field3),dots);
+        else if (metric == Arc)
+            static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<Sphere,Arc>(
+                *static_cast<Field<NData,Sphere>*>(field1),
+                *static_cast<Field<NData,Sphere>*>(field2),
+                *static_cast<Field<NData,Sphere>*>(field3),dots);
         else
             Assert(false);
     }
@@ -1465,6 +1479,11 @@ void ProcessCrossKKK(void* corr, void* field1, void* field2, void* field3, int d
                 *static_cast<Field<KData,ThreeD>*>(field1),
                 *static_cast<Field<KData,ThreeD>*>(field2),
                 *static_cast<Field<KData,ThreeD>*>(field3),dots);
+        else if (metric == Arc)
+            static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<Sphere,Arc>(
+                *static_cast<Field<KData,Sphere>*>(field1),
+                *static_cast<Field<KData,Sphere>*>(field2),
+                *static_cast<Field<KData,Sphere>*>(field3),dots);
         else
             Assert(false);
     }
@@ -1498,6 +1517,11 @@ void ProcessCrossGGG(void* corr, void* field1, void* field2, void* field3, int d
                 *static_cast<Field<GData,ThreeD>*>(field1),
                 *static_cast<Field<GData,ThreeD>*>(field2),
                 *static_cast<Field<GData,ThreeD>*>(field3),dots);
+        else if (metric == Arc)
+            static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<Sphere,Arc>(
+                *static_cast<Field<GData,Sphere>*>(field1),
+                *static_cast<Field<GData,Sphere>*>(field2),
+                *static_cast<Field<GData,Sphere>*>(field3),dots);
         else
             Assert(false);
     }
@@ -1532,6 +1556,11 @@ void ProcessCrossNNK(void* corr, void* field1, void* field2, void* field3, int d
                 *static_cast<Field<NData,ThreeD>*>(field1),
                 *static_cast<Field<NData,ThreeD>*>(field2),
                 *static_cast<Field<KData,ThreeD>*>(field3),dots);
+        else if (metric == Arc)
+            static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process<Sphere,Arc>(
+                *static_cast<Field<NData,Sphere>*>(field1),
+                *static_cast<Field<NData,Sphere>*>(field2),
+                *static_cast<Field<KData,Sphere>*>(field3),dots);
         else
             Assert(false);
     }
@@ -1565,6 +1594,11 @@ void ProcessCrossNNG(void* corr, void* field1, void* field2, void* field3, int d
                 *static_cast<Field<NData,ThreeD>*>(field1),
                 *static_cast<Field<NData,ThreeD>*>(field2),
                 *static_cast<Field<GData,ThreeD>*>(field3),dots);
+        else if (metric == Arc)
+            static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process<Sphere,Arc>(
+                *static_cast<Field<NData,Sphere>*>(field1),
+                *static_cast<Field<NData,Sphere>*>(field2),
+                *static_cast<Field<GData,Sphere>*>(field3),dots);
         else
             Assert(false);
     }
@@ -1598,6 +1632,11 @@ void ProcessCrossKKG(void* corr, void* field1, void* field2, void* field3, int d
                 *static_cast<Field<KData,ThreeD>*>(field1),
                 *static_cast<Field<KData,ThreeD>*>(field2),
                 *static_cast<Field<GData,ThreeD>*>(field3),dots);
+        else if (metric == Arc)
+            static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process<Sphere,Arc>(
+                *static_cast<Field<KData,Sphere>*>(field1),
+                *static_cast<Field<KData,Sphere>*>(field2),
+                *static_cast<Field<GData,Sphere>*>(field3),dots);
         else
             Assert(false);
     }

@@ -255,5 +255,44 @@ struct MetricHelper<Lens>
 
 };
 
+
+//
+//
+// Arc is only valid for Coord == Sphere
+//
+//
+
+template <>
+struct MetricHelper<Arc>
+{
+    static double DistSq(const Position<Sphere>& p1, const Position<Sphere>& p2)
+    { return SQR(Dist(p1,p2)); }
+
+    static double Dist(const Position<Sphere>& p1, const Position<Sphere>& p2)
+    { 
+        // theta = angle between p1, p2
+        // L = 2 sin(theta/2)
+        // L is the normal Euclidean distance.
+        // theta is the Arc distance.
+        double L = MetricHelper<Euclidean>::Dist(p1,p2);
+        double theta = 2. * std::asin(L/2.);
+        return theta;
+    }
+
+    // These are the same as Euclidean.
+    static bool CCW(const Position<Sphere>& p1, const Position<Sphere>& p2,
+                    const Position<Sphere>& p3)
+    { return MetricHelper<Euclidean>::CCW(p1,p2,p3); }
+
+    static bool TooSmallDist(const Position<Sphere>& p1, const Position<Sphere>& p2, double s1ps2,
+                             double dsq, double minsep, double minsepsq)
+    { return MetricHelper<Euclidean>::TooSmallDist(p1,p2,s1ps2,dsq,minsep,minsepsq); }
+
+    static bool TooLargeDist(const Position<Sphere>& p1, const Position<Sphere>& p2, double s1ps2,
+                             double dsq, double maxsep, double maxsepsq)
+    { return MetricHelper<Euclidean>::TooLargeDist(p1,p2,s1ps2,dsq,maxsep,maxsepsq); }
+
+};
+
 #endif
 

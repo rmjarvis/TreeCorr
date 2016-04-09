@@ -301,6 +301,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
                             - 'Rlens' = the projected distance perpendicular to the first point
                               in the pair (taken to be a lens) to the line of sight to the second
                               point (e.g. a lensed source galaxy).
+                            - 'Arc' = the true great circle distance for spherical coordinates.
 
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)

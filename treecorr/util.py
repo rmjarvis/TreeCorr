@@ -321,6 +321,10 @@ def parse_metric(metric, coords, coords2=None, coords3=None):
         if coords != '3d':
             raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
         m = treecorr._lib.Lens
+    elif metric == 'Arc':
+        if coords != 'spherical':
+            raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
+        m = treecorr._lib.Arc
     else:
         raise ValueError("Invalid metric %s"%metric)
 

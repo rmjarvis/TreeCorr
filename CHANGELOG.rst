@@ -20,17 +20,24 @@ Dependency change:
 API changes:
 ------------
 
-- Change Field classes to take ``min_size`` and ``max_size`` directly, rather
-  than having these be calculated from ``min_sep``, ``max_sep``, ``b`` and
-  ``metric``.
 - Removed the ``z_units`` option for ``Catalog``, since it doesn't actually
-  make sense.  Any ``z`` field should be in physical units, not arcsec, 
+  make sense.  Any ``z`` field should be in physical units, not arcsec,
   degrees, etc.
+- Changed the attributes ``min_sep``, ``max_sep``, and ``logr`` to have units
+  of ``sep_units`` if they are given, rather than radians.  The previous
+  behavior was somewhat confusing.  (#39)
+- Changed the output separations to convert from the chord distance to the
+  corresponding great circle distance.  (#39)
 
 
 New features:
 -------------
 
+- Added new metric Arc, which calculates the true great circle separation
+  throughout the calculation, rather than calculating chord distances and
+  then converting to the corresponding angles at the end.  Most people will
+  prefer the speed of the chord distances, but this provides a way to compare
+  the accuracy of the two approaches. (#39)
 - Added a new split_method='random', which chooses a random point between the
   25th percentile and 75th percentile at which to make the split each time.
   This is potentially useful when the large-scale shape of your field is very
@@ -41,6 +48,10 @@ New features:
   another application, rather than through the python interface, that's now
   easier to do.  The directory to add to the include path is available as
   ``treecorr.include_dir`` and the library to link is ``treecorr.lib_file``.
+- Added new metric Rlens, which is the projected separation at the distance of
+  the lens (here taken to be the object in the first catalog of the cross-
+  correlation). (#41)
+- Write commands will create the directory if necessary. (#42)
 
 
 Bug fixes:

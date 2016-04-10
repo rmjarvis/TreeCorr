@@ -16,6 +16,8 @@
 """
 
 import treecorr
+import math
+import numpy
 
 class BinnedCorr2(object):
     """This class stores the results of a 2-point correlation calculation, along with some
@@ -173,8 +175,6 @@ class BinnedCorr2(object):
     }
 
     def __init__(self, config=None, logger=None, **kwargs):
-        import math
-        import numpy
         self.config = treecorr.config.merge_config(config,kwargs,BinnedCorr2._valid_params)
         if logger is None:
             self.logger = treecorr.config.setup_logger(
@@ -273,6 +273,8 @@ class BinnedCorr2(object):
         # Offset by the position of the center of the first bin.
         self.logr += math.log(self.min_sep) + 0.5*self.bin_size
         self.rnom = numpy.exp(self.logr)
+        self._coords = None
+        self._metric = None
 
     def _process_all_auto(self, cat1, metric, num_threads):
         for i,c1 in enumerate(cat1):
@@ -303,7 +305,26 @@ class BinnedCorr2(object):
             self.logger.debug('Set num_threads = %d',num_threads)
         treecorr.set_omp_threads(num_threads, self.logger)
 
+    def _set_metric(self, metric, coords1, coords2=None):
+        if metric is None:
+            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
+        coords, metric = treecorr.util.parse_metric(metric, coords1, coords2)
+        if self._coords != None or self._metric != None:
+            if coords != self._coords:
+                self.logger.warn("Detected a change in catalog coordinate systems. "
+                                 "This probably doesn't make sense!")
+            if metric != self._metric:
+                self.logger.warn("Detected a change in metric. "
+                                 "This probably doesn't make sense!")
+        self._coords = coords
+        self._metric = metric
+
     def _apply_units(self, mask):
+        if self._coords == treecorr._lib.Sphere and self._metric == treecorr._lib.Euclidean:
+            # Then our distances are all angles.  Convert from the chord distance to a real angle.
+            # L = 2 sin(theta/2)
+            self.meanr[mask] = 2. * numpy.arcsin(self.meanr[mask]/2.)
+            self.meanlogr[mask] = numpy.log( 2. * numpy.arcsin(numpy.exp(self.meanlogr[mask])/2.) )
         self.meanr[mask] /= self.sep_units
         self.meanlogr[mask] -= self.log_sep_units
 

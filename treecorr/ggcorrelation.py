@@ -142,9 +142,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         else:
             self.logger.info('Starting process GG auto-correlations for cat %s.',cat.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        coord, metric = treecorr.util.parse_metric(metric, cat.coords)
+        self._set_metric(metric, cat.coords)
 
         self._set_num_threads(num_threads)
 
@@ -169,7 +167,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
         field = cat.getGField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        treecorr._lib.ProcessAutoGG(self.corr, field.data, self.output_dots, coord, metric)
+        treecorr._lib.ProcessAutoGG(self.corr, field.data, self.output_dots,
+                                    self._coords, self._metric)
 
 
     def process_cross(self, cat1, cat2, metric=None, num_threads=None):
@@ -196,9 +195,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process GG cross-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        coord, metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
+        self._set_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
@@ -213,7 +210,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getGField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        treecorr._lib.ProcessCrossGG(self.corr, f1.data, f2.data, self.output_dots, coord, metric)
+        treecorr._lib.ProcessCrossGG(self.corr, f1.data, f2.data, self.output_dots,
+                                     self._coords, self._metric)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -241,16 +239,15 @@ class GGCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process GG pairwise-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        coord, metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
+        self._set_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
         f1 = cat1.getGSimpleField()
         f2 = cat2.getGSimpleField()
 
-        treecorr._lib.ProcessPairGG(self.corr, f1.data, f2.data, self.output_dots, coord, metric)
+        treecorr._lib.ProcessPairGG(self.corr, f1.data, f2.data, self.output_dots,
+                                    self._coords, self._metric)
 
 
     def finalize(self, varg1, varg2):

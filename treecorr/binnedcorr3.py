@@ -16,6 +16,8 @@
 """
 
 import treecorr
+import math
+import numpy
 
 class BinnedCorr3(object):
     """This class stores the results of a 3-point correlation calculation, along with some
@@ -199,8 +201,6 @@ class BinnedCorr3(object):
     }
 
     def __init__(self, config=None, logger=None, **kwargs):
-        import math
-        import numpy
         self.config = treecorr.config.merge_config(config,kwargs,BinnedCorr3._valid_params)
         if logger is None:
             self.logger = treecorr.config.setup_logger(
@@ -432,6 +432,8 @@ class BinnedCorr3(object):
         self.v = numpy.tile(self.v1d[numpy.newaxis, numpy.newaxis, :],
                             (self.nbins, self.nubins, 1))
         self.rnom = numpy.exp(self.logr)
+        self._coords = None
+        self._metric = None
 
     def _process_all_auto(self, cat1, metric, num_threads):
         # I'm not sure which of these is more intuitive, but both are correct...
@@ -488,8 +490,31 @@ class BinnedCorr3(object):
             self.logger.debug('Set num_threads = %d',num_threads)
         treecorr.set_omp_threads(num_threads, self.logger)
 
+    def _set_metric(self, metric, coords1, coords2=None, coords3=None):
+        if metric is None:
+            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
+        coords, metric = treecorr.util.parse_metric(metric, coords1, coords2, coords3)
+        if self._coords != None or self._metric != None:
+            if coords != self._coords:
+                self.logger.warn("Detected a change in catalog coordinate systems. "
+                                 "This probably doesn't make sense!")
+            if metric != self._metric:
+                self.logger.warn("Detected a change in metric. "
+                                 "This probably doesn't make sense!")
+        self._coords = coords
+        self._metric = metric
+
     def _apply_units(self, mask):
-        # Update the units
+        if self._coords == treecorr._lib.Sphere and self._metric == treecorr._lib.Euclidean:
+            # Then our distances are all angles.  Convert from the chord distance to a real angle.
+            # L = 2 sin(theta/2)
+            self.meand1[mask] = 2. * numpy.arcsin(self.meand1[mask]/2.)
+            self.meanlogd1[mask] = numpy.log(2.*numpy.arcsin(numpy.exp(self.meanlogd1[mask])/2.))
+            self.meand2[mask] = 2. * numpy.arcsin(self.meand2[mask]/2.)
+            self.meanlogd2[mask] = numpy.log(2.*numpy.arcsin(numpy.exp(self.meanlogd2[mask])/2.))
+            self.meand3[mask] = 2. * numpy.arcsin(self.meand3[mask]/2.)
+            self.meanlogd3[mask] = numpy.log(2.*numpy.arcsin(numpy.exp(self.meanlogd3[mask])/2.))
+
         self.meand1[mask] /= self.sep_units
         self.meanlogd1[mask] -= self.log_sep_units
         self.meand2[mask] /= self.sep_units

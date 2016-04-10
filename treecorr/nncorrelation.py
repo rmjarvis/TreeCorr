@@ -134,9 +134,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         else:
             self.logger.info('Starting process NN auto-correlations for cat %s.', cat.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        coord, metric = treecorr.util.parse_metric(metric, cat.coords)
+        self._set_metric(metric, cat.coords)
 
         self._set_num_threads(num_threads)
 
@@ -147,7 +145,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
         field = cat.getNField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        treecorr._lib.ProcessAutoNN(self.corr, field.data, self.output_dots, coord, metric)
+        treecorr._lib.ProcessAutoNN(self.corr, field.data, self.output_dots,
+                                    self._coords, self._metric)
         self.tot += 0.5 * cat.sumw**2
 
 
@@ -174,9 +173,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process NN cross-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        coord, metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
+        self._set_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
@@ -188,7 +185,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getNField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        treecorr._lib.ProcessCrossNN(self.corr, f1.data, f2.data, self.output_dots, coord, metric)
+        treecorr._lib.ProcessCrossNN(self.corr, f1.data, f2.data, self.output_dots,
+                                     self._coords, self._metric)
         self.tot += cat1.sumw*cat2.sumw
 
 
@@ -216,16 +214,15 @@ class NNCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process NN pairwise-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        coord, metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
+        self._set_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
         f1 = cat1.getNSimpleField()
         f2 = cat2.getNSimpleField()
 
-        treecorr._lib.ProcessPairNN(self.corr, f1.data, f2.data, self.output_dots, coord, metric)
+        treecorr._lib.ProcessPairNN(self.corr, f1.data, f2.data, self.output_dots,
+                                    self._coords, self._metric)
         self.tot += cat1.weight
 
 

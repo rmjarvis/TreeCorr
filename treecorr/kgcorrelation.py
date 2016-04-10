@@ -139,9 +139,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process KG cross-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        coord, metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
+        self._set_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
@@ -153,7 +151,8 @@ class KGCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getGField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        treecorr._lib.ProcessCrossKG(self.corr, f1.data, f2.data, self.output_dots, coord, metric)
+        treecorr._lib.ProcessCrossKG(self.corr, f1.data, f2.data, self.output_dots,
+                                     self._coords, self._metric)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -181,16 +180,15 @@ class KGCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process KG pairwise-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        coord, metric = treecorr.util.parse_metric(metric, cat1.coords, cat2.coords)
+        self._set_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
         f1 = cat1.getKSimpleField()
         f2 = cat2.getGSimpleField()
 
-        treecorr._lib.ProcessPairKG(self.corr, f1.data, f2.data, self.output_dots, coord, metric)
+        treecorr._lib.ProcessPairKG(self.corr, f1.data, f2.data, self.output_dots,
+                                    self._coords, self._metric)
 
 
     def finalize(self, vark, varg):

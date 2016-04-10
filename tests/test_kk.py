@@ -154,7 +154,7 @@ def test_large_scale():
         'max_sep' : 1.57,
         'nbins' : 50,
         'bin_slop' : 0.3,
-        'verbose' : 2
+        'verbose' : 1
     }
     dd_sphere = treecorr.KKCorrelation(config)
     dd_chord = treecorr.KKCorrelation(config)

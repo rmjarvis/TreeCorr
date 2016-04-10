@@ -23,7 +23,7 @@ except ImportError:
     print("Using distutils version",distutils.__version__)
 
 
-from distutils.command.install_headers import install_headers 
+#from distutils.command.install_headers import install_headers 
 
 try:
     from sysconfig import get_config_vars
@@ -467,10 +467,10 @@ dist = setup(name="TreeCorr",
 # I don't actually need these installed for TreeCorr, but I wanted to figure out how to do
 # it, so I played with it here.  distutils installs these automatically when the headers argument
 # is given to setup.  But setuptools doesn't.  cf. http://bugs.python.org/setuptools/issue142
-cmd = install_headers(dist)
-cmd.finalize_options()
-print('Installing headers to ',cmd.install_dir)
-cmd.run()
+#cmd = install_headers(dist)
+#cmd.finalize_options()
+#print('Installing headers to ',cmd.install_dir)
+#cmd.run()
 
 # Check that the path includes the directory where the scripts are installed.
 if dist.script_install_dir not in os.environ['PATH'].split(':'):

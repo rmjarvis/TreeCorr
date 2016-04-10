@@ -444,15 +444,27 @@ except ImportError:
 with open('README.rst') as file:
     long_description = file.read()
 
+# Read in the treecorr version from treecorr/_version.py
+# cf. http://stackoverflow.com/questions/458550/standard-way-to-embed-version-into-python-package
+version_file=os.path.join('treecorr','_version.py')
+verstrline = open(version_file, "rt").read()
+VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
+mo = re.search(VSRE, verstrline, re.M)
+if mo:
+    treecorr_version = mo.group(1)
+else:
+    raise RuntimeError("Unable to find version string in %s." % (version_file,))
+    print('TreeCorr version is %s'%(treecorr_version))
+
 dist = setup(name="TreeCorr", 
-      version="3.3",
+      version=treecorr_version,
       author="Mike Jarvis",
       author_email="michael@jarvis.net",
       description="Python module for computing 2-point correlation functions",
       long_description=long_description,
       license = "BSD License",
       url="https://github.com/rmjarvis/TreeCorr",
-      download_url="https://github.com/rmjarvis/TreeCorr/releases/tag/v3.2.0.zip",
+      download_url="https://github.com/rmjarvis/TreeCorr/releases/tag/v%s.zip"%treecorr_version,
       packages=['treecorr'],
       data_files=[('treecorr/include',headers)],
       ext_modules=[ext],

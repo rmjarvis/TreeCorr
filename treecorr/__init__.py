@@ -11,8 +11,12 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
+# The version is stored in _version.py as recommended here:
+# http://stackoverflow.com/questions/458550/standard-way-to-embed-version-into-python-package
+from ._version import __version__, __version_info__
 
-version = '3.3'
+# Also let treecorr.version show the version.
+version = __version__
 
 import os,cffi,glob
 # Set module level attributes for the include directory and the library file name.

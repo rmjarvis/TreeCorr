@@ -948,7 +948,7 @@ def test_perp_minmax():
         'ra_units' : 'deg',
         'dec_units' : 'deg',
         'r_col' : 3,
-        'min_sep' : 40,
+        'min_sep' : 20,
         'bin_size' : 0.036652,
         'nbins' : 50,
         'verbose' : 1
@@ -957,7 +957,6 @@ def test_perp_minmax():
     # Speed up for nosetests runs
     if __name__ != "__main__":
         config['nbins'] = 5
-        config['min_sep'] = 20
         config['bin_size'] = 0.1
 
     get_from_wiki('nn_perp_data.dat')

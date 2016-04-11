@@ -1,6 +1,6 @@
 
-file_name = data/nn_list_datax.dat
-rand_file_list = data/nn_list_rand_files.txt
+file_name = data/nn_list_data0.dat data/nn_list_data1.dat data/nn_list_data2.dat
+rand_file_name = [data/nn_list_rand0.dat, data/nn_list_rand1.dat, data/nn_list_rand2.dat]
 file_list2 = data/nn_list_data_files.txt
 rand_file_list2 = data/nn_list_rand_files.txt
 

@@ -1474,6 +1474,15 @@ def test_list():
         print('diff = ',corr3_output['zeta']-zeta.flatten())
         numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=1)
 
+        p = subprocess.Popen( [corr3_exe,"nnn_list4.params"] )
+        p.communicate()
+        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list4.out'), names=True)
+        print('zeta = ',zeta)
+        print('from corr3 output = ',corr3_output['zeta'])
+        print('ratio = ',corr3_output['zeta']/zeta.flatten())
+        print('diff = ',corr3_output['zeta']-zeta.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=1)
+
 
 if __name__ == '__main__':
     test_binnedcorr3()

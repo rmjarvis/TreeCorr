@@ -34,14 +34,17 @@ def parse_variable(config, v):
     # Cut off any trailing comment
     if '#' in value: value = value.split('#')[0]
     value = value.strip()
-    if value[0] == '{':
+    if value[0] in ['{','[','(']:
+        if value[-1] not in ['}',']',')']:
+            raise ValueError('List symbol %s not properly matched'%value[0])
         values = value[1:-1].split(',')
+        values = [ v.strip() for v in values ]
     else:
         values = value.split() # on whitespace
-        if len(values) == 1:
-            config[key] = value
-        else:
-            config[key] = values
+    if len(values) == 1:
+        config[key] = values[0]
+    else:
+        config[key] = values
 
 
 def parse_bool(value):
@@ -97,6 +100,8 @@ def read_config(file_name):
     """Read a configuration dict from a file.
 
     :param file_name:   The file name from which the configuration dict should be read.
+
+    :returns:           A config dict built from the configuration file.
     """
     config = dict()
     with open(file_name) as fin:
@@ -187,6 +192,8 @@ def check_config(config, params, aliases=None, logger=None):
         # Get the value
         if value_type is bool:
             value = parse_bool(config[key])
+        elif may_be_list and isinstance(config[key], list):
+            value = [ value_type(v) for v in config[key] ]
         else:
             value = value_type(config[key])
 

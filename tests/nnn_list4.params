@@ -1,0 +1,21 @@
+
+file_name = [data/nnn_list_data0.dat,data/nnn_list_data1.dat,data/nnn_list_data2.dat]
+rand_file_name = data/nnn_list_rand0.dat data/nnn_list_rand1.dat data/nnn_list_rand2.dat
+
+x_col = 1
+y_col = 2
+
+verbose = 1
+
+min_sep = 30.
+max_sep = 50.
+nbins = 5
+min_u = 0
+max_u = 0.3
+nubins = 3
+min_v = 0.5
+max_v = 0.9
+nvbins = 5
+
+nnn_file_name = output/nnn_list4.out
+nnn_statistic = simple

@@ -795,8 +795,6 @@ class Catalog(object):
         # Read g1,g2
         if (g1_col != 0 or g2_col != 0):
             if g1_col <= 0 or g1_col > ncols or g2_col <= 0 or g2_col > ncols:
-                print('g1_col, g2_col = ',g1_col, g2_col)
-                print('ncols = ',ncols)
                 if isGColRequired(self.orig_config,num):
                     raise AttributeError("g1_col, g2_col are invalid for file %s"%file_name)
                 else:

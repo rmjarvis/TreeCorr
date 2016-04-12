@@ -8,13 +8,13 @@
 #
 # The normal usage is:
 #
-# corr2 config_file
+# corr2 config.yaml
 #
 # You can also specify parameters on the command line after the name of 
 # the configuration file. e.g.:
 #
-# corr2 config_file file_name=file1.dat ee_file_name=file1.out
-# corr2 config_file file_name=file2.dat ee_file_name=file2.out
+# corr2 config.yaml file_name=file1.dat ee_file_name=file1.out
+# corr2 config.yaml file_name=file2.dat ee_file_name=file2.out
 # ...
 #
 # This can be useful when running the program from a script for lots of input files.
@@ -87,6 +87,21 @@ y_units: arcsec
 #g1_col: GAMMA1
 #g2_col: GAMMA2
 #w_col: WEIGHT
+
+# If the first and second catalog (file_name and file_name2) have different column 
+# names or numbers, the *_col parameters may be lists.  e.g. if they use different names
+# for the RA and DEC columns:
+#ra_col: [ra, ALPHA_J2000]
+#dec_col: [dec, DELTA_J2000]
+#
+# You can also indicate that one or the other does not have some information by setting the 
+# name or number to 0.  e.g. for NG correlations, the lenses don't need to have shear values:
+#g1_col: 0 3
+#g2_col: 0 4
+# or by name
+#g1_col: 0 G1
+#g2_col: 0 G2
+
 
 # Sometimes there are issues with the sign conventions of gamma.  If you need to flip 
 # the sign of g1 or g2, you may do that with flip_g1 or flip_g2 (or both).

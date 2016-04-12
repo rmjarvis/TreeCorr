@@ -1,0 +1,21 @@
+
+verbose: 1
+
+# available from https://github.com/rmjarvis/TreeCorr/wiki/Aardvark.fit
+file_name: data/Aardvark.fit
+
+ra_col: RA
+dec_col: DEC
+ra_units: degrees
+dec_units: degrees
+
+g1_col: GAMMA1
+g2_col: GAMMA2
+k_col: KAPPA
+
+min_sep: 1
+max_sep: 400
+nbins: 100
+sep_units: arcmin
+
+gg_file_name: output/Aardvark.out

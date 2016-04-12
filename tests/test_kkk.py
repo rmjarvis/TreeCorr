@@ -152,7 +152,7 @@ def test_kkk():
         cat.write(os.path.join('data','kkk_data.dat'))
         import subprocess
         corr3_exe = get_script_name('corr3')
-        p = subprocess.Popen( [corr3_exe,"kkk.params"] )
+        p = subprocess.Popen( [corr3_exe,"kkk.yaml"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','kkk.out'), names=True)
         #print('zeta = ',kkk.zeta)

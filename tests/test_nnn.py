@@ -1049,7 +1049,7 @@ def test_nnn():
         rand.write(os.path.join('data','nnn_rand.dat'))
         import subprocess
         corr3_exe = get_script_name('corr3')
-        p = subprocess.Popen( [corr3_exe,"nnn.params"] )
+        p = subprocess.Popen( [corr3_exe,"nnn.yaml"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','nnn.out'), names=True)
         print('zeta = ',zeta)
@@ -1325,7 +1325,7 @@ def test_3d():
         rand.write(os.path.join('data','nnn_3d_rand.dat'))
         import subprocess
         corr3_exe = get_script_name('corr3')
-        p = subprocess.Popen( [corr3_exe,"nnn_3d.params"] )
+        p = subprocess.Popen( [corr3_exe,"nnn_3d.yaml"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','nnn_3d.out'), names=True)
         print('zeta = ',zeta.flatten())
@@ -1447,7 +1447,7 @@ def test_list():
 
         import subprocess
         corr3_exe = get_script_name('corr3')
-        p = subprocess.Popen( [corr3_exe,"nnn_list1.params"] )
+        p = subprocess.Popen( [corr3_exe,"nnn_list1.yaml"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list1.out'), names=True)
         print('zeta = ',zeta)
@@ -1456,7 +1456,7 @@ def test_list():
         print('diff = ',corr3_output['zeta']-zeta.flatten())
         numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=3)
 
-        p = subprocess.Popen( [corr3_exe,"nnn_list2.params"] )
+        p = subprocess.Popen( [corr3_exe,"nnn_list2.json"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list2.out'), names=True)
         print('zeta = ',zeta)
@@ -1474,7 +1474,7 @@ def test_list():
         print('diff = ',corr3_output['zeta']-zeta.flatten())
         numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=1)
 
-        p = subprocess.Popen( [corr3_exe,"nnn_list4.params"] )
+        p = subprocess.Popen( [corr3_exe, "nnn_list4.config", "-f", "params"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list4.out'), names=True)
         print('zeta = ',zeta)

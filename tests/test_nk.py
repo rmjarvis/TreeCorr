@@ -53,7 +53,7 @@ def test_single():
         source_cat.write(os.path.join('data','nk_single_source.dat'))
         import subprocess
         corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"nk_single.params"] )
+        p = subprocess.Popen( [corr2_exe,"nk_single.yaml"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','nk_single.out'), names=True)
         print('nk.xi = ',nk.xi)
@@ -128,7 +128,7 @@ def test_nk():
         rand_cat.write(os.path.join('data','nk_rand.dat'))
         import subprocess
         corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"nk.params"] )
+        p = subprocess.Popen( [corr2_exe,"nk.yaml"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','nk.out'), names=True)
         print('nk.xi = ',nk.xi)

@@ -1,0 +1,21 @@
+
+file_list: data/nnn_list_data_files.txt
+rand_file_list: data/nnn_list_rand_files.txt
+
+x_col: 1
+y_col: 2
+
+verbose: 1
+
+min_sep: 30.
+max_sep: 50.
+nbins: 5
+min_u: 0
+max_u: 0.3
+nubins: 3
+min_v: 0.5
+max_v: 0.9
+nvbins: 5
+
+nnn_file_name: output/nnn_list1.out
+nnn_statistic: simple

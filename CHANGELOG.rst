@@ -20,6 +20,10 @@ Dependency change:
 API changes:
 ------------
 
+- Changed the default configuration format to be based on the file extension.
+  If your config file is named _something_.params, then it will still work
+  the same way.  Otherwise, you may need to add '-f params' when you run
+  corr2 or corr3. (#18)
 - Removed the ``z_units`` option for ``Catalog``, since it doesn't actually
   make sense.  Any ``z`` field should be in physical units, not arcsec,
   degrees, etc.
@@ -33,6 +37,12 @@ API changes:
 New features:
 -------------
 
+- Added support for YAML and JSON configuration files.  YAML is now the
+  recommended format.  If your config file ends with '.yaml', then this
+  will automatically be used.  If it ends with '.params', the old parameter
+  list style will be used.  And if it ends with '.json', JSON will be used.
+  You can also specify the format directly with the -f (or --file_type)
+  command-line argument for corr2 and corr3. (#18)
 - Added new metric Arc, which calculates the true great circle separation
   throughout the calculation, rather than calculating chord distances and
   then converting to the corresponding angles at the end.  Most people will

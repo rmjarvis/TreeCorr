@@ -208,7 +208,7 @@ def test_ggg():
         cat.write(os.path.join('data','ggg_data.dat'))
         import subprocess
         corr3_exe = get_script_name('corr3')
-        p = subprocess.Popen( [corr3_exe,"ggg.params"] )
+        p = subprocess.Popen( [corr3_exe,"ggg.yaml"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','ggg.out'), names=True)
         #print('gam0r = ',ggg.gam0.real)

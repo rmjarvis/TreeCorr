@@ -1,0 +1,17 @@
+
+file_name: data/nn_3d_data.dat
+rand_file_name: data/nn_3d_rand.dat
+
+ra_col: 1
+dec_col: 2
+r_col: 3
+ra_units: degrees
+dec_units: degrees
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 25.
+bin_size: 0.10
+
+nn_file_name: output/nn_3d.out

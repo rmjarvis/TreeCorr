@@ -50,6 +50,11 @@ def parse_args():
         '-l', '--log_file', type=str, action='store', default=None,
         help='filename for storing logging output [default is to stream to stdout]')
     parser.add_argument(
+        '-f', '--file_type', type=str, action='store', default='auto',
+        choices=('yaml', 'json', 'params'),
+        help=('type of config_file: yaml, json, or params (i.e. lines with key=value) ' +
+              '[default is to automatically determine the type from the extension]'))
+    parser.add_argument(
         '--version', action='store_const', default=False, const=True,
         help='show the version of TreeCorr')
 
@@ -71,7 +76,7 @@ def main():
     args = parse_args()
 
     # Read the config file
-    config = treecorr.config.read_config(args.config_file)
+    config = treecorr.config.read_config(args.config_file, args.file_type)
 
     # Create a logger with the given verbosity and log_file
     verbose = args.verbosity

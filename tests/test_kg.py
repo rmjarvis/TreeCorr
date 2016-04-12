@@ -63,7 +63,7 @@ def test_single():
         source_cat.write(os.path.join('data','kg_single_source.dat'))
         import subprocess
         corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"kg_single.params"] )
+        p = subprocess.Popen( [corr2_exe,"kg_single.yaml"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','kg_single.out'),names=True)
         print('kg.xi = ',kg.xi)
@@ -119,7 +119,7 @@ def test_pairwise():
         source_cat.write(os.path.join('data','kg_pairwise_source.dat'))
         import subprocess
         corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"kg_pairwise.params"] )
+        p = subprocess.Popen( [corr2_exe,"kg_pairwise.yaml"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','kg_pairwise.out'),names=True)
         print('kg.xi = ',kg.xi)
@@ -181,7 +181,7 @@ def test_kg():
         source_cat.write(os.path.join('data','kg_source.dat'))
         import subprocess
         corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"kg.params"] )
+        p = subprocess.Popen( [corr2_exe,"kg.yaml"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','kg.out'),names=True)
         print('kg.xi = ',kg.xi)

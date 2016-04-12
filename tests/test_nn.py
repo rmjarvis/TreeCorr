@@ -615,7 +615,7 @@ def test_nn():
         rand.write(os.path.join('data','nn_rand.dat'))
         import subprocess
         corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"nn.params"] )
+        p = subprocess.Popen( [corr2_exe,"nn.yaml"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','nn.out'),names=True)
         print('xi = ',xi)
@@ -767,7 +767,7 @@ def test_3d():
         rand.write(os.path.join('data','nn_3d_rand.dat'))
         import subprocess
         corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"nn_3d.params"] )
+        p = subprocess.Popen( [corr2_exe,"nn_3d.yaml"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','nn_3d.out'),names=True)
         print('xi = ',xi)
@@ -875,7 +875,7 @@ def test_list():
 
     import subprocess
     corr2_exe = get_script_name('corr2')
-    p = subprocess.Popen( [corr2_exe,"nn_list1.params"] )
+    p = subprocess.Popen( [corr2_exe,"nn_list1.yaml"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_list1.out'),names=True)
     print('xi = ',xi)
@@ -885,7 +885,7 @@ def test_list():
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=3)
 
     import subprocess
-    p = subprocess.Popen( [corr2_exe,"nn_list2.params"] )
+    p = subprocess.Popen( [corr2_exe,"nn_list2.json"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_list2.out'),names=True)
     print('xi = ',xi)
@@ -905,7 +905,7 @@ def test_list():
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
 
     import subprocess
-    p = subprocess.Popen( [corr2_exe,"nn_list4.params"] )
+    p = subprocess.Popen( [corr2_exe, "nn_list4.config", "-f", "yaml"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_list4.out'),names=True)
     print('xi = ',xi)
@@ -915,7 +915,7 @@ def test_list():
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
 
     import subprocess
-    p = subprocess.Popen( [corr2_exe,"nn_list5.params"] )
+    p = subprocess.Popen( [corr2_exe, "nn_list5.config", "-f", "json"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_list5.out'),names=True)
     print('xi = ',xi)
@@ -925,7 +925,7 @@ def test_list():
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
 
     import subprocess
-    p = subprocess.Popen( [corr2_exe,"nn_list6.params"] )
+    p = subprocess.Popen( [corr2_exe, "nn_list6.config", "-f", "params"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_list6.out'),names=True)
     print('xi = ',xi)
@@ -1014,7 +1014,7 @@ def test_perp_minmax():
         # Check that we get the same result with the corr2 executable.
         import subprocess
         corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"nn_rperp.params"] )
+        p = subprocess.Popen( [corr2_exe,"nn_rperp.yaml"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','nn_rperp.out'),names=True)
         print('xi = ',xi1)

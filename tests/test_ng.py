@@ -63,7 +63,7 @@ def test_single():
         source_cat.write(os.path.join('data','ng_single_source.dat'))
         import subprocess
         corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"ng_single.params"] )
+        p = subprocess.Popen( [corr2_exe,"ng_single.yaml"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','ng_single.out'),names=True)
         print('ng.xi = ',ng.xi)
@@ -120,7 +120,7 @@ def test_pairwise():
         source_cat.write(os.path.join('data','ng_pairwise_source.dat'))
         import subprocess
         corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"ng_pairwise.params"] )
+        p = subprocess.Popen( [corr2_exe,"ng_pairwise.yaml"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','ng_pairwise.out'),names=True)
         print('ng.xi = ',ng.xi)
@@ -251,7 +251,7 @@ def test_spherical():
         source_cat.write(os.path.join('data','ng_spherical_source.dat'))
         import subprocess
         corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"ng_spherical.params"] )
+        p = subprocess.Popen( [corr2_exe,"ng_spherical.yaml"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','ng_spherical.out'),names=True)
         print('ng.xi = ',ng.xi)
@@ -333,7 +333,7 @@ def test_ng():
         rand_cat.write(os.path.join('data','ng_rand.dat'))
         import subprocess
         corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"ng.params"] )
+        p = subprocess.Popen( [corr2_exe,"ng.yaml"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','ng.out'),names=True)
         print('ng.xi = ',ng.xi)

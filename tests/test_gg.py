@@ -124,7 +124,7 @@ def test_gg():
         cat.write(os.path.join('data','gg.dat'))
         import subprocess
         corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"gg.params"] )
+        p = subprocess.Popen( [corr2_exe,"gg.yaml"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','gg.out'), names=True)
         print('gg.xip = ',gg.xip)
@@ -364,7 +364,7 @@ def test_spherical():
         cat.write(os.path.join('data','gg_spherical.dat'))
         import subprocess
         corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"gg_spherical.params"] )
+        p = subprocess.Popen( [corr2_exe,"gg_spherical.yaml"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','gg_spherical.out'), names=True)
         print('gg.xip = ',gg.xip)
@@ -393,7 +393,7 @@ def test_aardvark():
 
     get_from_wiki('Aardvark.fit')
     file_name = os.path.join('data','Aardvark.fit')
-    config = treecorr.read_config('Aardvark.params')
+    config = treecorr.read_config('Aardvark.yaml')
     cat1 = treecorr.Catalog(file_name, config)
     gg = treecorr.GGCorrelation(config)
     gg.process(cat1)
@@ -452,7 +452,7 @@ def test_aardvark():
     # The other similar tests are blocked out with: if __name__ == '__main__':
     import subprocess
     corr2_exe = get_script_name('corr2')
-    p = subprocess.Popen( [corr2_exe,"Aardvark.params"] )
+    p = subprocess.Popen( [corr2_exe,"Aardvark.yaml"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','Aardvark.out'), names=True)
     print('gg.xip = ',gg.xip)

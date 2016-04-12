@@ -25,16 +25,20 @@
 ####
 
 # The file with the data to be correlated.
-file_name = file.dat
+file_name: file.dat
 
 # You an also specify a second file, in which case the program calculates a 
 # cross-correlation between the two sets of values.
-#file_name2 = file2.dat
+#file_name2: file2.dat
 
 # You can also have file_name and/or file_name2 be lists of files, in which case,
 # it will treat them as parts of a single large field.  This may be convenient
 # if you have several observations that tile an area on the sky.
-#file_name = file1a.dat file1b.dat
+#file_name: [file1a.dat, file1b.dat]
+
+# Or if there are a lot of files you want to treat as a single field, you can
+# provide a text file with a list of file names
+#file_list: all_file_names.txt
 
 # For doing density correlation functions, you need to specify random files
 # that are drawn from the same mask and observing conditions, but have no
@@ -42,7 +46,7 @@ file_name = file.dat
 # to help beat down the noise.  Or equivalently, they can have more objects
 # than the real data, in which case the overall number density is scaled 
 # appropriately.
-rand_file_name = rand1.dat rand2.dat rand3.dat
+rand_file_name: [rand1.dat, rand2.dat, rand3.dat]
 
 
 # The default file type is normally ASCII.
@@ -51,43 +55,43 @@ rand_file_name = rand1.dat rand2.dat rand3.dat
 #
 # You can override this behavior using file_type.
 # Allowed values are ASCII or FITS
-file_type = ASCII
+file_type: ASCII
 
 
 # For ASCII files, you need to specify which column corresponds to which value.
 # Columns are specified starting with 1 being the first column.  (Not 0.)
-x_col = 1
-y_col = 2
-g1_col = 3
-g2_col = 4
+x_col: 1
+y_col: 2
+g1_col: 3
+g2_col: 4
 
 # The weight column is optional.  If omitted, all weights are taken to be 1.0.
-w_col = 5
+w_col: 5
 
 # All distances on the sky include a "units" parameter to specify what in units the values
 # are specified.  So for x_col and y_col, we also have x_units and y_units.
 # Options for units are radians, hours, degrees, arcmin, arcsec.
 # If omitted, radians is assumed.
-x_units = arcsec
-y_units = arcsec
+x_units: arcsec
+y_units: arcsec
 
 # Instead of x_col and y_col, you may instead specify columns for RA and Declination.
-#ra_col = 1
-#dec_col = 2
-#ra_units = hours
-#dec_units = degrees
+#ra_col: 1
+#dec_col: 2
+#ra_units: hours
+#dec_units: degrees
 
 # For FITS files, the columns are specified by name, not number:
-#ra_col = RA
-#dec_col = DEC
-#g1_col = GAMMA1
-#g2_col = GAMMA2
-#w_col = WEIGHT
+#ra_col: RA
+#dec_col: DEC
+#g1_col: GAMMA1
+#g2_col: GAMMA2
+#w_col: WEIGHT
 
 # Sometimes there are issues with the sign conventions of gamma.  If you need to flip 
 # the sign of g1 or g2, you may do that with flip_g1 or flip_g2 (or both).
-flip_g1 = false
-flip_g2 = false
+flip_g1: false
+flip_g2: false
 
 
 
@@ -101,15 +105,15 @@ flip_g2 = false
 #     max_sep  = the right edge of the last bin
 #     nbins    = the number of bins
 #     bin_size = the width of the bins in log(sep)
-min_sep = 1.
-max_sep = 300.
-bin_size = 0.10
+min_sep: 1.
+max_sep: 300.
+bin_size: 0.10
 
 # sep_units specifies the units to use for min_sep and max_sep.
 # It is also the units of R in the output file.
 # If omitted, radians is assumed.  (So when using x,y, you can just omit both
 # this and x_units,y_units, and the units will match up and can be arbitrary.)
-sep_units = arcmin
+sep_units: arcmin
 
 
 ####
@@ -121,17 +125,17 @@ sep_units = arcmin
 # output file you set.
 
 # For shear-shear correlations, the output file name is given by gg_file_name.
-gg_file_name = gg.out
+gg_file_name: gg.out
 
 # The code can compute the mass aperture statistic from the two-point shear correlation 
 # function if you specify m2_file_name.
-m2_file_name = m2.out
+m2_file_name: m2.out
 
 # For count-shear correlations, the output file name is given by ng_file_name.
-#ng_file_name = ng.out
+#ng_file_name: ng.out
 
 # For count-count correlations, the output file name is given by nn_file_name.
-#nn_file_name = nn.out
+#nn_file_name: nn.out
 
 
 ####
@@ -143,10 +147,10 @@ m2_file_name = m2.out
 # 1 = warnings (This is the default if not specified)
 # 2 = progress information
 # 3 = extra debugging output
-verbose = 2
+verbose: 2
 
 # num_threads = the number of threads to use.
 # The default is to let OpenMP determine an appropriate number of threads automatically.
 # Usually this matches the number of cores your system has.
-#num_threads = 1
+#num_threads: 1
 

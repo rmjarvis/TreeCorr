@@ -94,7 +94,7 @@ def test_kk():
         cat.write(os.path.join('data','kk.dat'))
         import subprocess
         corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"kk.params"] )
+        p = subprocess.Popen( [corr2_exe,"kk.yaml"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','kk.out'), names=True)
         print('kk.xi = ',kk.xi)

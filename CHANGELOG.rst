@@ -24,14 +24,14 @@ API changes:
   If your config file is named _something_.params, then it will still work
   the same way.  Otherwise, you may need to add '-f params' when you run
   corr2 or corr3. (#18)
-- Removed the ``z_units`` option for ``Catalog``, since it doesn't actually
-  make sense.  Any ``z`` field should be in physical units, not arcsec,
-  degrees, etc.
 - Changed the attributes ``min_sep``, ``max_sep``, and ``logr`` to have units
   of ``sep_units`` if they are given, rather than radians.  The previous
   behavior was somewhat confusing.  (#39)
 - Changed the output separations to convert from the chord distance to the
   corresponding great circle distance.  (#39)
+- Removed the ``z_units`` option for ``Catalog``, since it doesn't actually
+  make sense.  Any ``z`` field should be in physical units, not arcsec,
+  degrees, etc.
 
 
 New features:
@@ -53,15 +53,15 @@ New features:
   This is potentially useful when the large-scale shape of your field is very
   regular (e.g. a perfect rectangle) to avoid numerical issues related to the
   larger cells all having identical shapes.  (#40)
+- Added new metric Rlens, which is the projected separation at the distance of
+  the lens (here taken to be the object in the first catalog of the cross-
+  correlation). (#41)
+- Changed the write commands to create the output directory if necessary. (#42)
 - Made the C and C++ header files installed with the python code and the
   compiled library.  So in case anyone wants to use the C++ code directly in
   another application, rather than through the python interface, that's now
   easier to do.  The directory to add to the include path is available as
   ``treecorr.include_dir`` and the library to link is ``treecorr.lib_file``.
-- Added new metric Rlens, which is the projected separation at the distance of
-  the lens (here taken to be the object in the first catalog of the cross-
-  correlation). (#41)
-- Write commands will create the directory if necessary. (#42)
 
 
 Bug fixes:

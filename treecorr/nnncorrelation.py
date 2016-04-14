@@ -118,6 +118,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                 self._min_sep,self._max_sep,self.nbins,self.bin_size,self.b,
                 self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                 self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
+                self.min_rpar, self.max_rpar,
                 dp(self.meand1), dp(self.meanlogd1), dp(self.meand2), dp(self.meanlogd2),
                 dp(self.meand3), dp(self.meanlogd3), dp(self.meanu), dp(self.meanv), 
                 dp(self.weight), dp(self.ntri));

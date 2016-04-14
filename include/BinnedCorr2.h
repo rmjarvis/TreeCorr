@@ -32,6 +32,7 @@ class BinnedCorr2
 public:
 
     BinnedCorr2(double minsep, double maxsep, int nbins, double binsize, double b,
+                double minrpar, double maxrpar,
                 double* xi0, double* xi1, double* xi2, double* xi3,
                 double* meanr, double* meanlogr, double* weight, double* npairs);
     BinnedCorr2(const BinnedCorr2& rhs, bool copy_data=true);
@@ -68,6 +69,8 @@ protected:
     int _nbins;
     double _binsize;
     double _b;
+    double _minrpar;
+    double _maxrpar;
     double _logminsep;
     double _halfminsep;
     double _minsepsq;

@@ -141,8 +141,17 @@ class BinnedCorr3(object):
                           with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
                           distance and :math:`Rparallel = |r1-r2|`, then we define
                           :math:`Rperp^2 = d^2 - Rparallel^2`.
+                        - 'Rlens' = the projected distance perpendicular to the first point
+                          in the pair (taken to be a lens) to the line of sight to the second
+                          point (e.g. a lensed source galaxy).
+                        - 'Arc' = the true great circle distance for spherical coordinates.
 
                         (default: 'Euclidean')
+
+    :param min_rpar:    For the 'Rperp' metric, the minimum difference in Rparallel to allow
+                        for pairs being included in the correlation function. (default: None)
+    :param max_rpar:    For the 'Rperp' metric, the maximum difference in Rparallel to allow
+                        for pairs being included in the correlation function. (default: None)
 
     :param num_threads: How many OpenMP threads to use during the calculation.  
                         (default: use the number of cpu cores; this value can also be given in
@@ -196,8 +205,12 @@ class BinnedCorr3(object):
                 'The number of digits after the decimal in the output.'),
         'num_threads' : (int, False, None, None,
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
-        'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp'],
+        'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp', 'Rlens', 'Arc'],
                 'Which metric to use for the distance measurements'),
+        'min_rpar': (float, False, None, None,
+                'For Rperp metric, the minimum difference in Rparallel for pairs to include'),
+        'max_rpar': (float, False, None, None,
+                'For Rperp metric, the maximum difference in Rparallel for pairs to include'),
     }
 
     def __init__(self, config=None, logger=None, **kwargs):
@@ -434,6 +447,8 @@ class BinnedCorr3(object):
         self.rnom = numpy.exp(self.logr)
         self._coords = None
         self._metric = None
+        self.min_rpar = treecorr.config.get(self.config,'min_rpar',float,0.)
+        self.max_rpar = treecorr.config.get(self.config,'min_rpar',float,0.)
 
     def _process_all_auto(self, cat1, metric, num_threads):
         # I'm not sure which of these is more intuitive, but both are correct...

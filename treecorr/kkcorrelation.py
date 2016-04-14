@@ -89,6 +89,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         from treecorr.util import double_ptr as dp
         self.corr = treecorr._lib.BuildKKCorr(
                 self._min_sep,self._max_sep,self.nbins,self.bin_size,self.b,
+                self.min_rpar, self.max_rpar,
                 dp(self.xi),
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
 

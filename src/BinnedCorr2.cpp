@@ -28,9 +28,11 @@
 template <int D1, int D2>
 BinnedCorr2<D1,D2>::BinnedCorr2(
     double minsep, double maxsep, int nbins, double binsize, double b,
+    double minrpar, double maxrpar,
     double* xi0, double* xi1, double* xi2, double* xi3,
     double* meanr, double* meanlogr, double* weight, double* npairs) :
     _minsep(minsep), _maxsep(maxsep), _nbins(nbins), _binsize(binsize), _b(b),
+    _minrpar(minrpar), _maxrpar(maxrpar),
     _coords(-1), _owns_data(false),
     _xi(xi0,xi1,xi2,xi3), _meanr(meanr), _meanlogr(meanlogr), _weight(weight), _npairs(npairs)
 {
@@ -480,11 +482,13 @@ extern "C" {
 }
 
 void* BuildNNCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                  double minrpar, double maxrpar,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildNNCorr\n";
     void* corr = static_cast<void*>(new BinnedCorr2<NData,NData>(
             minsep, maxsep, nbins, binsize, b,
+            minrpar, maxrpar,
             0, 0, 0, 0,
             meanr, meanlogr, weight, npairs));
     xdbg<<"corr = "<<corr<<std::endl;
@@ -492,12 +496,14 @@ void* BuildNNCorr(double minsep, double maxsep, int nbins, double binsize, doubl
 }
 
 void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                  double minrpar, double maxrpar,
                   double* xi,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildNKCorr\n";
     void* corr = static_cast<void*>(new BinnedCorr2<NData,KData>(
             minsep, maxsep, nbins, binsize, b,
+            minrpar, maxrpar,
             xi, 0, 0, 0,
             meanr, meanlogr, weight, npairs));
     xdbg<<"corr = "<<corr<<std::endl;
@@ -505,12 +511,14 @@ void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, doubl
 }
 
 void* BuildNGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                  double minrpar, double maxrpar,
                   double* xi, double* xi_im,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildNGCorr\n";
     void* corr = static_cast<void*>(new BinnedCorr2<NData,GData>(
             minsep, maxsep, nbins, binsize, b,
+            minrpar, maxrpar,
             xi, xi_im, 0, 0,
             meanr, meanlogr, weight, npairs));
     xdbg<<"corr = "<<corr<<std::endl;
@@ -518,12 +526,14 @@ void* BuildNGCorr(double minsep, double maxsep, int nbins, double binsize, doubl
 }
 
 void* BuildKKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                  double minrpar, double maxrpar,
                   double* xi,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildKKCorr\n";
     void* corr = static_cast<void*>(new BinnedCorr2<KData,KData>(
             minsep, maxsep, nbins, binsize, b,
+            minrpar, maxrpar,
             xi, 0, 0, 0,
             meanr, meanlogr, weight, npairs));
     xdbg<<"corr = "<<corr<<std::endl;
@@ -531,12 +541,14 @@ void* BuildKKCorr(double minsep, double maxsep, int nbins, double binsize, doubl
 }
 
 void* BuildKGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                  double minrpar, double maxrpar,
                   double* xi, double* xi_im,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildKGCorr\n";
     void* corr = static_cast<void*>(new BinnedCorr2<KData,GData>(
             minsep, maxsep, nbins, binsize, b,
+            minrpar, maxrpar,
             xi, xi_im, 0, 0,
             meanr, meanlogr, weight, npairs));
     xdbg<<"corr = "<<corr<<std::endl;
@@ -544,12 +556,14 @@ void* BuildKGCorr(double minsep, double maxsep, int nbins, double binsize, doubl
 }
 
 void* BuildGGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                  double minrpar, double maxrpar,
                   double* xip, double* xip_im, double* xim, double* xim_im,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildGGCorr\n";
     void* corr = static_cast<void*>(new BinnedCorr2<GData,GData>(
             minsep, maxsep, nbins, binsize, b,
+            minrpar, maxrpar,
             xip, xip_im, xim, xim_im,
             meanr, meanlogr, weight, npairs));
     xdbg<<"corr = "<<corr<<std::endl;

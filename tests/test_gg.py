@@ -528,6 +528,43 @@ def test_shuffle():
     assert max(abs(gg_u.xip - gg_s.xip)) < 1.e-14
 
 def test_haloellip():
+    """Test that the constant and quadrupole versions of the Clampitt halo ellipticity calculation
+    are equivalent to xi+ and xi- (respectively) of the shear-shear cross correlation, where
+    the halo ellipticities are normalized to |g_lens|=1.
+
+    Joseph's original formulation: (cf. Issue #36, although I correct what I believe is an error
+    in his gamma_Qx formula.)
+
+    gamma_Q = Sum_i (w_i * g1_i * cos(4theta) + w_i * g2_i * sin(4theta)) / Sum_i (w_i)
+    gamma_C = Sum_i (w_i * g1_i) / Sum_i (w_i)
+
+    gamma_Qx = Sum_i (w_i * g2_i * cos(4theta) - w_i * g1_i * sin(4theta)) / Sum_i (w_i)
+    gamma_Cx = Sum_i (w_i * g2_i) / Sum_i (w_i)
+
+    where g1,g2 and theta are measured w.r.t. the coordinate system where the halo ellitpicity
+    is along the x-axis.  Converting this to complex notation, we obtain:
+
+    gamma_C + i gamma_Cx = < g1 + i g2 >
+                         = < gobs exp(-2iphi) >
+                         = < gobs elens* >
+    gamma_Q + i gamma_Qx = < (g1 + i g2) (cos(4t) - isin(4t) >
+                         = < gobs exp(-2iphi) exp(-4itheta) >
+                         = < gobs exp(2iphi) exp(-4i(theta+phi)) >
+                         = < gobs elens exp(-4i(theta+phi)) >
+
+    where gobs is the observed shape of the source in the normal world coordinate system, and
+    elens = exp(2iphi) is the unit-normalized shape of the lens in that same coordinate system.
+    Note that the combination theta+phi is the angle between the line joining the two points
+    and the E-W coordinate, which means that
+
+    gamma_C + i gamma_Cx = xi+(gobs, elens)
+    gamma_Q + i gamma_Qx = xi-(gobs, elens)
+
+    We test this result here using the above formulation with both unit weights and weights
+    proportional to the halo ellitpicity.  We also try keeping the magnitude of elens rather
+    than normalizing it.
+    """
+
     nlens = 1000
     nsource = 10000  # sources per lens
     ntot = nsource * nlens

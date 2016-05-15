@@ -521,6 +521,129 @@ def test_pieces():
     numpy.testing.assert_almost_equal(pieces_ng2.varxi*1.e5, full_ng.varxi*1.e5, decimal=8)
 
 
+def test_rlens():
+    # Same as above, except use R_lens for separation.
+    # Use gamma_t(r) = gamma0 exp(-R^2/2R0^2) around a bunch of foreground lenses.
+
+    nlens = 100
+    nsource = 100000
+    #nlens = 1
+    #nsource = 100
+    gamma0 = 0.05
+    R0 = 10.
+    L = 50. * R0
+    numpy.random.seed(8675309)
+    xl = (numpy.random.random_sample(nlens)-0.5) * L  # -500 < x < 500
+    zl = (numpy.random.random_sample(nlens)-0.5) * L  # -500 < y < 500
+    yl = numpy.random.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
+    rl = numpy.sqrt(xl**2 + yl**2 + zl**2)
+    xs = (numpy.random.random_sample(nsource)-0.5) * L
+    zs = (numpy.random.random_sample(nsource)-0.5) * L
+    ys = numpy.random.random_sample(nsource) * 8*L + 160*L  # 80000 < z < 84000
+    rs = numpy.sqrt(xs**2 + ys**2 + zs**2)
+    g1 = numpy.zeros( (nsource,) )
+    g2 = numpy.zeros( (nsource,) )
+    bin_size = 0.1
+    # min_sep is set so the first bin doesn't have 0 pairs.
+    min_sep = 1.3*R0
+    # max_sep can't be too large, since the measured value starts to have shape noise for larger
+    # values of separation.  We're not adding any shape noise directly, but the shear from other
+    # lenses is effectively a shape noise, and that comes to dominate the measurement above ~4R0.
+    max_sep = 4.*R0
+    nbins = int(numpy.ceil(numpy.log(max_sep/min_sep)/bin_size))
+    true_gt = numpy.zeros( (nbins,) )
+    true_npairs = numpy.zeros((nbins,), dtype=int)
+    print('Making shear vectors')
+    for x,y,z,r in zip(xl,yl,zl,rl):
+        # Use |r1 x r2| = |r1| |r2| sin(theta)
+        xcross = ys * z - zs * y
+        ycross = zs * x - xs * z
+        zcross = xs * y - ys * x
+        sintheta = numpy.sqrt(xcross**2 + ycross**2 + zcross**2) / (rs * r)
+        Rlens = 2. * r * numpy.sin(numpy.arcsin(sintheta)/2)
+
+        gammat = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+        # For the rotation, approximate that the x,z coords are approx the perpendicular plane.
+        # So just normalize back to the unit sphere and do the 2d projection calculation.
+        # It's not exactly right, but it should be good enough for this unit test.
+        dx = xs/rs-x/r
+        dz = zs/rs-z/r
+        drsq = dx**2 + dz**2
+        g1 += -gammat * (dx**2-dz**2)/drsq
+        g2 += -gammat * (2.*dx*dz)/drsq
+        index = numpy.floor( numpy.log(Rlens/min_sep) / bin_size).astype(int)
+        mask = (index >= 0) & (index < nbins)
+        numpy.add.at(true_gt, index[mask], gammat[mask])
+        numpy.add.at(true_npairs, index[mask], 1)
+    true_gt /= true_npairs
+
+    # Start with bin_slop == 0.  With only 100 lenses, this still runs very fast.
+    lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl)
+    source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
+    ng = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=3,
+                                metric='Rlens', bin_slop=0)
+    ng.process(lens_cat, source_cat)
+
+    Rlens = ng.meanr
+    theory_gt = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+
+    print('Results with bin_slop = 0:')
+    print('ng.npairs = ',ng.npairs)
+    print('true_npairs = ',true_npairs)
+    print('ng.xi = ',ng.xi)
+    print('ng.xi_im = ',ng.xi_im)
+    print('true_gammat = ',true_gt)
+    print('ratio = ',ng.xi / true_gt)
+    print('diff = ',ng.xi - true_gt)
+    print('max diff = ',max(abs(ng.xi - true_gt)))
+    assert max(abs(ng.xi - true_gt)) < 2.e-6
+    assert max(abs(ng.xi_im)) < 1.e-6
+
+    print('ng.xi = ',ng.xi)
+    print('theory_gammat = ',theory_gt)
+    print('ratio = ',ng.xi / theory_gt)
+    print('diff = ',ng.xi - theory_gt)
+    print('max diff = ',max(abs(ng.xi - theory_gt)))
+    assert max(abs(ng.xi - theory_gt)) < 4.e-5
+    assert max(abs(ng.xi_im)) < 1.e-6
+
+    # Now use a more normal value for bin_slop.
+    lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl)
+    source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
+    ng = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=3,
+                                metric='Rlens')
+    ng.process(lens_cat, source_cat)
+    Rlens = ng.meanr
+    theory_gt = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+
+    print('Results with bin_slop = 1')
+    print('ng.npairs = ',ng.npairs)
+    print('ng.xi = ',ng.xi)
+    print('theory_gammat = ',theory_gt)
+    print('ratio = ',ng.xi / theory_gt)
+    print('diff = ',ng.xi - theory_gt)
+    print('max diff = ',max(abs(ng.xi - theory_gt)))
+    assert max(abs(ng.xi - theory_gt)) < 4.e-5
+    assert max(abs(ng.xi_im)) < 1.e-6
+
+    # Check that we get the same result using the corr2 executable:
+    if __name__ == '__main__':
+        lens_cat.write(os.path.join('data','ng_rlens_lens.dat'))
+        source_cat.write(os.path.join('data','ng_rlens_source.dat'))
+        import subprocess
+        corr2_exe = get_script_name('corr2')
+        p = subprocess.Popen( [corr2_exe,"ng_rlens.yaml"] )
+        p.communicate()
+        corr2_output = numpy.genfromtxt(os.path.join('output','ng_rlens.out'),names=True)
+        print('ng.xi = ',ng.xi)
+        print('from corr2 output = ',corr2_output['gamT'])
+        print('ratio = ',corr2_output['gamT']/ng.xi)
+        print('diff = ',corr2_output['gamT']-ng.xi)
+        numpy.testing.assert_almost_equal(corr2_output['gamT'], ng.xi, decimal=6)
+
+        print('xi_im from corr2 output = ',corr2_output['gamX'])
+        assert max(abs(corr2_output['gamX'])) < 1.e-6
+
 
 if __name__ == '__main__':
     test_single()
@@ -528,3 +651,4 @@ if __name__ == '__main__':
     test_spherical()
     test_ng()
     test_pieces()
+    test_rlens()

@@ -1063,7 +1063,7 @@ struct DirectHelper<NData,NData,GData>
         ZetaData<NData,NData,GData>& zeta, int index)
     {
         std::complex<double> g2;
-        ProjectHelper<C>::ProjectShear(c1,c2,dsq,g2);
+        ProjectHelper<C>::ProjectShear(c1,c2,g2);
         // The minus sign here is to make it accumulate tangential shear, rather than radial.
         // g2 from the above ProjectShear is measured along the connecting line, not tangent.
         g2 *= -c1.getData().getW();
@@ -1084,7 +1084,7 @@ struct DirectHelper<KData,KData,GData>
         ZetaData<KData,KData,GData>& zeta, int index)
     {
         std::complex<double> g2;
-        ProjectHelper<C>::ProjectShear(c1,c2,dsq,g2);
+        ProjectHelper<C>::ProjectShear(c1,c2,g2);
         // The minus sign here is to make it accumulate tangential shear, rather than radial.
         // g2 from the above ProjectShear is measured along the connecting line, not tangent.
         g2 *= -c1.getData().getWK();

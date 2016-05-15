@@ -270,19 +270,25 @@ void BinnedCorr2<D1,D2>::process2(const Cell<D1,C>& c12)
 template <int D1, int D2> template <int C, int M>
 void BinnedCorr2<D1,D2>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2)
 {
+    //dbg<<"Start process11 for "<<c1.getPos()<<",  "<<c2.getPos()<<std::endl;
+    //dbg<<"w = "<<c1.getW()<<", "<<c2.getW()<<std::endl;
     if (c1.getW() == 0. || c2.getW() == 0.) return;
 
     const double dsq = MetricHelper<M>::DistSq(c1.getPos(),c2.getPos());
     const double s1ps2 = c1.getAllSize()+c2.getAllSize();
 
+    //dbg<<"dsq = "<<dsq<<", s1ps2 = "<<s1ps2<<std::endl;
     if (MetricHelper<M>::TooSmallDist(c1.getPos(), c2.getPos(), s1ps2, dsq, _minsep, _minsepsq))
         return;
+    //dbg<<"Not too small\n";
     if (MetricHelper<M>::TooLargeDist(c1.getPos(), c2.getPos(), s1ps2, dsq, _maxsep, _maxsepsq))
         return;
+    //dbg<<"Not too large\n";
 
     // See if need to split:
     bool split1=false, split2=false;
     CalcSplitSq(split1,split2,c1,c2,dsq,s1ps2,_bsq);
+    //dbg<<"split = "<<split1<<','<<split2<<std::endl;
 
     if (split1) {
         if (split2) {
@@ -358,13 +364,12 @@ struct DirectHelper<NData,GData>
         XiData<NData,GData>& xi, int k)
     {
         std::complex<double> g2;
-        ProjectHelper<C>::ProjectShear(c1,c2,dsq,g2);
+        ProjectHelper<C>::ProjectShear(c1,c2,g2);
         // The minus sign here is to make it accumulate tangential shear, rather than radial.
         // g2 from the above ProjectShear is measured along the connecting line, not tangent.
         g2 *= -c1.getW();
         xi.xi[k] += real(g2);
         xi.xi_im[k] += imag(g2);
-
     }
 };
 
@@ -387,7 +392,7 @@ struct DirectHelper<KData,GData>
         XiData<KData,GData>& xi, int k)
     {
         std::complex<double> g2;
-        ProjectHelper<C>::ProjectShear(c1,c2,dsq,g2);
+        ProjectHelper<C>::ProjectShear(c1,c2,g2);
         // The minus sign here is to make it accumulate tangential shear, rather than radial.
         // g2 from the above ProjectShear is measured along the connecting line, not tangent.
         g2 *= -c1.getData().getWK();
@@ -405,7 +410,7 @@ struct DirectHelper<GData,GData>
         XiData<GData,GData>& xi, int k)
     {
         std::complex<double> g1, g2;
-        ProjectHelper<C>::ProjectShears(c1,c2,dsq,g1,g2);
+        ProjectHelper<C>::ProjectShears(c1,c2,g1,g2);
 
         // The complex products g1 g2 and g1 g2* share most of the calculations,
         // so faster to do this manually.

@@ -205,6 +205,7 @@ class Position<Sphere> : public Position<ThreeD>
 public:
     Position() : Position<ThreeD>() {}
     Position(const Position<Sphere>& rhs) : Position<ThreeD>(rhs) {}
+    Position(const Position<ThreeD>& rhs) : Position<ThreeD>(rhs) { normalize(); }
     ~Position() {}
     Position(double x, double y, double z) : Position<ThreeD>(x,y,z) {}
     Position<Sphere>& operator=(const Position<Sphere>& rhs)

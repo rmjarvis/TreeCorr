@@ -478,7 +478,7 @@ def test_direct_arc():
 
 def test_direct_partial():
     # There are two ways to specify using only parts of a catalog:
-    # 1. The parameters first_row and last_row would usually be used for files, but they are a 
+    # 1. The parameters first_row and last_row would usually be used for files, but they are a
     #    general way to use only a (contiguous) subset of the rows
     # 2. You can also set weights to 0 for the rows you don't want to use.
 
@@ -517,7 +517,7 @@ def test_direct_partial():
     print('diff = ',dda.npairs - true_npairs)
     numpy.testing.assert_array_equal(dda.npairs, true_npairs)
 
-    # Now check that we get the same thing with all the points, but with w=0 for the ones 
+    # Now check that we get the same thing with all the points, but with w=0 for the ones
     # we don't want.
     w1 = numpy.zeros(ngal)
     w1[27:144] = 1.
@@ -539,7 +539,7 @@ def test_nn():
     #
     # The Fourier transform is: n~(k) = exp(-s^2 k^2/2)
     # P(k) = <|n~(k)|^2> = exp(-s^2 k^2)
-    # xi(r) = (1/2pi) int( dk k P(k) J0(kr) ) 
+    # xi(r) = (1/2pi) int( dk k P(k) J0(kr) )
     #       = 1/(4 pi s^2) exp(-r^2/4s^2)
     #
     # However, we need to correct for the uniform density background, so the real result
@@ -594,17 +594,17 @@ def test_nn():
     print('ratio = ',xi / true_xi)
     print('diff = ',xi - true_xi)
     print('max rel diff = ',max(abs((xi - true_xi)/true_xi)))
-    # This isn't super accurate.  But the agreement improves as L increase, so I think it is 
+    # This isn't super accurate.  But the agreement improves as L increase, so I think it is
     # merely a matter of the finite field and the integrals going to infinity.  (Sort of, since
     # we still have L in there.)
     assert max(abs(xi - true_xi)/true_xi)/req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi))/req_factor, 
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi))/req_factor,
                                       numpy.log(numpy.abs(true_xi))/req_factor, decimal=1)
 
     simple_xi, simple_varxi = dd.calculateXi(rr)
     print('simple xi = ',simple_xi)
     print('max rel diff = ',max(abs((simple_xi - true_xi)/true_xi)))
-    # The simple calculation (i.e. dd/rr-1, rather than (dd-2dr+rr)/rr as above) is only 
+    # The simple calculation (i.e. dd/rr-1, rather than (dd-2dr+rr)/rr as above) is only
     # slightly less accurate in this case.  Probably because the mask is simple (a box), so
     # the difference is relatively minor.  The error is slightly higher in this case, but testing
     # that it is everywhere < 0.1 is still appropriate.
@@ -673,7 +673,7 @@ def test_nn():
 
 
 def test_3d():
-    # For this one, build a Gaussian cloud around some random point in 3D space and do the 
+    # For this one, build a Gaussian cloud around some random point in 3D space and do the
     # correlation function in 3D.
     #
     # Use n(r) = (2pi s^2)^-3/2 exp(-r^2/2s^2)
@@ -740,14 +740,14 @@ def test_3d():
     print('diff = ',xi - true_xi)
     print('max rel diff = ',max(abs((xi - true_xi)/true_xi)))
     assert max(abs(xi - true_xi)/true_xi)/req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi))/req_factor, 
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi))/req_factor,
                                       numpy.log(numpy.abs(true_xi))/req_factor, decimal=1)
 
     simple_xi, varxi = dd.calculateXi(rr)
     print('simple xi = ',simple_xi)
     print('max rel diff = ',max(abs((simple_xi - true_xi)/true_xi)))
     assert max(abs(simple_xi - true_xi)/true_xi)/req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(simple_xi))/req_factor, 
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(simple_xi))/req_factor,
                                       numpy.log(numpy.abs(true_xi))/req_factor, decimal=1)
 
     # Check that we get the same result using the corr2 executable:
@@ -773,7 +773,7 @@ def test_3d():
     dr.process(cat,rand)
     xi, varxi = dd.calculateXi(rr,dr)
     assert max(abs(xi - true_xi)/true_xi)/req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi))/req_factor, 
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi))/req_factor,
                                       numpy.log(numpy.abs(true_xi))/req_factor, decimal=1)
 
 
@@ -924,13 +924,13 @@ def test_list():
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
 
 def test_perp_minmax():
-    """This test is based on a bug report from Erika Wagoner where the lowest bins were 
+    """This test is based on a bug report from Erika Wagoner where the lowest bins were
     getting spuriously high w(rp) values.  It stemmed from a subtlety about how large
     rp can be compared to minsep.  The maximum rp is more than just rp + s1 + s2.
     So this test checks that when the min and max are expanded a bit, the number of pairs
     doesn't change much in the bins that used to be the min and max.
     """
-    # Just use Erika's files for data and rand.  
+    # Just use Erika's files for data and rand.
     config = {
         'ra_col' : 1,
         'dec_col' : 2,
@@ -973,7 +973,7 @@ def test_perp_minmax():
         # This catalog has 10^6 objects, which takes quite a while.  I should really investigate
         # how to speed up the Rperp distance calculation.  Probably by having a faster over-
         # and under-estimate first, and then only do the full calculation when it seems like we
-        # will actually need it.  
+        # will actually need it.
         # Anyway, until then, let's not take forever by using last_row=200000
         get_from_wiki('nn_perp_rand.dat')
         rcat = treecorr.Catalog('data/nn_perp_rand.dat', config, last_row=200000)

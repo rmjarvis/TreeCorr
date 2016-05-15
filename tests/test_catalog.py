@@ -77,7 +77,7 @@ def test_ascii():
     # Check ok_flag
     config['ok_flag'] = 4
     cat3 = treecorr.Catalog(file_name, config)
-    numpy.testing.assert_almost_equal(cat3.w[numpy.logical_or(flags==0, flags==4)], 
+    numpy.testing.assert_almost_equal(cat3.w[numpy.logical_or(flags==0, flags==4)],
                                       w[numpy.logical_or(flags==0, flags==4)])
     numpy.testing.assert_almost_equal(cat3.w[numpy.logical_and(flags!=0, flags!=4)], 0.)
 
@@ -188,7 +188,6 @@ def test_ascii():
     numpy.testing.assert_almost_equal(cat8.g2, g2)
 
 
- 
 def test_fits():
     get_from_wiki('Aardvark.fit')
     file_name = os.path.join('data','Aardvark.fit')
@@ -289,7 +288,7 @@ def test_contiguous():
                             g2=source_data['g2'])
     cat2_float = treecorr.Catalog(ra=source_data['ra'].astype(float), ra_units='deg',
                                   dec=source_data['dec'].astype(float), dec_units='deg',
-                                  g1=source_data['g1'].astype(float), 
+                                  g1=source_data['g1'].astype(float),
                                   g2=source_data['g2'].astype(float))
 
     print("dtypes of original arrays: ", [source_data[key].dtype for key in ['ra','dec','g1','g2']])
@@ -419,8 +418,8 @@ def test_write():
     numpy.testing.assert_almost_equal(cat1_asc.z, z)
 
     cat2.write(os.path.join('output','cat2.dat'), file_type='ASCII')
-    cat2_asc = treecorr.Catalog(os.path.join('output','cat2.dat'), ra_col=1, dec_col=2, 
-                                r_col=3, w_col=4, g1_col=5, g2_col=6, k_col=7, 
+    cat2_asc = treecorr.Catalog(os.path.join('output','cat2.dat'), ra_col=1, dec_col=2,
+                                r_col=3, w_col=4, g1_col=5, g2_col=6, k_col=7,
                                 ra_units='rad', dec_units='rad')
     numpy.testing.assert_almost_equal(cat2_asc.ra, ra)
     numpy.testing.assert_almost_equal(cat2_asc.dec, dec)
@@ -439,8 +438,8 @@ def test_write():
     numpy.testing.assert_almost_equal(cat1_fits.z, z)
 
     cat2.write(os.path.join('output','cat2.fits'))
-    cat2_fits = treecorr.Catalog(os.path.join('output','cat2.fits'), ra_col='ra', dec_col='dec', 
-                                 r_col='r', w_col='w', g1_col='g1', g2_col='g2', k_col='k', 
+    cat2_fits = treecorr.Catalog(os.path.join('output','cat2.fits'), ra_col='ra', dec_col='dec',
+                                 r_col='r', w_col='w', g1_col='g1', g2_col='g2', k_col='k',
                                  ra_units='rad', dec_units='rad', file_type='FITS')
     numpy.testing.assert_almost_equal(cat2_fits.ra, ra)
     numpy.testing.assert_almost_equal(cat2_fits.dec, dec)

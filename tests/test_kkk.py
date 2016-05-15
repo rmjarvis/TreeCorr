@@ -119,7 +119,7 @@ def test_kkk():
     numpy.testing.assert_almost_equal(kkk.meanlogd2, numpy.log(kkk.meand2), decimal=3)
     numpy.testing.assert_almost_equal(kkk.meanlogd3, numpy.log(kkk.meand3), decimal=3)
     numpy.testing.assert_almost_equal(kkk.meanlogd3-kkk.meanlogd2, numpy.log(kkk.meanu), decimal=3)
-    numpy.testing.assert_almost_equal(numpy.log(kkk.meand1-kkk.meand2)-kkk.meanlogd3, 
+    numpy.testing.assert_almost_equal(numpy.log(kkk.meand1-kkk.meand2)-kkk.meanlogd3,
                                       numpy.log(numpy.abs(kkk.meanv)), decimal=3)
 
     d1 = kkk.meand1
@@ -145,7 +145,7 @@ def test_kkk():
     #print('diff = ',kkk.zeta - true_zeta)
     print('max rel diff = ',numpy.max(numpy.abs((kkk.zeta - true_zeta)/true_zeta)))
     assert numpy.max(numpy.abs((kkk.zeta - true_zeta)/true_zeta)) / req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(kkk.zeta)) / req_factor, 
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(kkk.zeta)) / req_factor,
                                       numpy.log(numpy.abs(true_zeta)) / req_factor, decimal=1)
 
     # Check that we get the same result using the corr3 executable:

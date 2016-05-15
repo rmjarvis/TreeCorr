@@ -161,7 +161,7 @@ def test_nk():
     numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(varxi))
     numpy.testing.assert_almost_equal(data['weight'], nk.weight)
     numpy.testing.assert_almost_equal(data['npairs'], nk.npairs)
-    
+
     # Check the read function
     nk2 = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
     nk2.read(out_file_name1)

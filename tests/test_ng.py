@@ -476,11 +476,11 @@ def test_pieces():
     # However, we lose some to speed, since there are a lot more wasted calculations along the
     # way that have to be duplicated in each piece.
     w2 = [ numpy.empty(w.shape) for k in range(ncats) ]
-    for k in range(ncats): 
-        w2[k][:,:] = 0. 
+    for k in range(ncats):
+        w2[k][:,:] = 0.
         w2[k][:,k] = w[:,k]
-    source_cats2 = [ treecorr.Catalog(x=xs.flatten(), y=ys.flatten(), 
-                                      g1=g1.flatten(), g2=g2.flatten(), 
+    source_cats2 = [ treecorr.Catalog(x=xs.flatten(), y=ys.flatten(),
+                                      g1=g1.flatten(), g2=g2.flatten(),
                                       wpos=w.flatten(), w=w2[k].flatten(),
                                       x_units='arcmin', y_units='arcmin') for k in range(ncats) ]
 

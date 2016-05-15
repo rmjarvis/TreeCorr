@@ -25,7 +25,7 @@ def test_angle_units():
     deg = treecorr.angle_units['deg']
     arcmin = treecorr.angle_units['arcmin']
     arcsec = treecorr.angle_units['arcsec']
-    
+
     numpy.testing.assert_almost_equal(rad, 1.)
     numpy.testing.assert_almost_equal(hour, pi/12.)
     numpy.testing.assert_almost_equal(deg, pi/180.)
@@ -38,7 +38,7 @@ def test_angle_units():
     deg = treecorr.degrees
     arcmin = treecorr.arcmin
     arcsec = treecorr.arcsec
-    
+
     numpy.testing.assert_almost_equal(rad, 1.)
     numpy.testing.assert_almost_equal(hour, pi/12.)
     numpy.testing.assert_almost_equal(deg, pi/180.)
@@ -81,7 +81,7 @@ def test_distance():
     numpy.testing.assert_almost_equal(c1.distanceTo(c3), pi)
     numpy.testing.assert_almost_equal(c1.distanceTo(c4), pi-1.174)
 
-    # Now some that require spherical trig calculations. 
+    # Now some that require spherical trig calculations.
     # Importantly, this uses the more straightforward spherical trig formula, the cosine rule.
     # The CelestialCoord class uses a different formula that is more stable for very small
     # distances, which are typical in the correlation function calculation.
@@ -164,7 +164,7 @@ def test_angle():
     numpy.testing.assert_almost_equal(cos(C), -cos(A)*cos(B) + sin(A)*sin(B)*cos(c))
     numpy.testing.assert_almost_equal(cos(A), -cos(B)*cos(C) + sin(B)*sin(C)*cos(a))
     numpy.testing.assert_almost_equal(cos(B), -cos(C)*cos(A) + sin(C)*sin(A)*cos(b))
-    
+
     # Spherical excess:
     numpy.testing.assert_almost_equal(cA.area(cB,cC), E)
     numpy.testing.assert_almost_equal(cA.area(cC,cB), E)
@@ -217,7 +217,7 @@ def test_projection():
     numpy.testing.assert_almost_equal(cA.dec, cA2.dec)
     cA3 = center.deproject_rad(*pA, projection='lambert')
     numpy.testing.assert_array_almost_equal( [cA.ra, cA.dec], cA3 )
- 
+
     # The angles are not preserved
     a = sqrt( (pB[0]-pC[0])**2 + (pB[1]-pC[1])**2 )
     b = sqrt( (pC[0]-pA[0])**2 + (pC[1]-pA[1])**2 )
@@ -229,7 +229,7 @@ def test_projection():
     print('lambert cosA = ',cosA,cos(A))
     print('lambert cosB = ',cosB,cos(B))
     print('lambert cosC = ',cosC,cos(C))
- 
+
     # The deproject jacobian should tell us how the area changes
     dudx, dudy, dvdx, dvdy = center.deproject_jac(*pA, projection='lambert')
     jac_area = abs(dudx*dvdy - dudy*dvdx)
@@ -260,7 +260,7 @@ def test_projection():
     numpy.testing.assert_almost_equal(cosA,cos(A), decimal=5)
     numpy.testing.assert_almost_equal(cosB,cos(B), decimal=5)
     numpy.testing.assert_almost_equal(cosC,cos(C), decimal=5)
-    
+
     # Check that project_rad does the same thing
     pA2 = center.project_rad(cA.ra, cA.dec, projection='stereographic')
     numpy.testing.assert_array_almost_equal(pA, pA2)
@@ -275,7 +275,7 @@ def test_projection():
     # The area is not preserved
     area = 0.5 * abs( (pB[0]-pA[0])*(pC[1]-pA[1]) - (pC[0]-pA[0])*(pB[1]-pA[1]) )
     print('stereographic area = ',area,E)
- 
+
     # The deproject jacobian should tell us how the area changes
     dudx, dudy, dvdx, dvdy = center.deproject_jac(*pA, projection='stereographic')
     jac_area = abs(dudx*dvdy - dudy*dvdx)
@@ -314,7 +314,7 @@ def test_projection():
     print('gnomonic cosA = ',cosA,cos(A))
     print('gnomonic cosB = ',cosB,cos(B))
     print('gnomonic cosC = ',cosC,cos(C))
- 
+
     # The area is not preserved
     area = 0.5 * abs( (pB[0]-pA[0])*(pC[1]-pA[1]) - (pC[0]-pA[0])*(pB[1]-pA[1]) )
     print('gnomonic area = ',area,E)
@@ -366,7 +366,7 @@ def test_projection():
     print('postel cosA = ',cosA,cos(A))
     print('postel cosB = ',cosB,cos(B))
     print('postel cosC = ',cosC,cos(C))
- 
+
     # The area is not preserved
     area = 0.5 * abs( (pB[0]-pA[0])*(pC[1]-pA[1]) - (pC[0]-pA[0])*(pB[1]-pA[1]) )
     print('postel area = ',area,E)
@@ -390,7 +390,7 @@ def test_precess():
     numpy.testing.assert_almost_equal(c3.ra, orig.ra)
     numpy.testing.assert_almost_equal(c3.dec, orig.dec)
 
-    # I found a website that does precession calculations, so check that we are 
+    # I found a website that does precession calculations, so check that we are
     # consistent with them.
     # http://www.bbastrodesigns.com/coordErrors.html
     dra_1950 = -(2. + 39.07/60.)/60. * treecorr.hours

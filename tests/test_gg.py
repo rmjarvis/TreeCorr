@@ -28,12 +28,12 @@ def test_gg():
     #
     # The Fourier transform is: gamma~(k) = -2 pi gamma0 r0^4 k^2 exp(-r0^2 k^2/2) / L^2
     # P(k) = (1/2pi) <|gamma~(k)|^2> = 2 pi gamma0^2 r0^8 k^4 / L^4 exp(-r0^2 k^2)
-    # xi+(r) = (1/2pi) int( dk k P(k) J0(kr) ) 
+    # xi+(r) = (1/2pi) int( dk k P(k) J0(kr) )
     #        = pi/16 gamma0^2 (r0/L)^2 exp(-r^2/4r0^2) (r^4 - 16r^2r0^2 + 32r0^4)/r0^4
-    # xi-(r) = (1/2pi) int( dk k P(k) J4(kr) ) 
+    # xi-(r) = (1/2pi) int( dk k P(k) J4(kr) )
     #        = pi/16 gamma0^2 (r0/L)^2 exp(-r^2/4r0^2) r^4/r0^4
     # Note: I'm not sure I handled the L factors correctly, but the units at the end need
-    # to be gamma^2, so it needs to be (r0/L)^2. 
+    # to be gamma^2, so it needs to be (r0/L)^2.
 
     gamma0 = 0.05
     r0 = 10.
@@ -110,7 +110,7 @@ def test_gg():
     print('diff = ',mapsq-true_mapsq)
     print('max diff = ',max(abs(mapsq - true_mapsq)))
     print('max diff[16:] = ',max(abs(mapsq[16:] - true_mapsq[16:])))
-    # It's pretty ratty near the start where the integral is poorly evaluated, but the 
+    # It's pretty ratty near the start where the integral is poorly evaluated, but the
     # agreement is pretty good if we skip the first 16 elements.
     # Well, it gets bad again at the end, but those values are small enough that they still
     # pass this test.
@@ -301,7 +301,7 @@ def test_spherical():
         g1_sph = g1 * cos2beta - g2 * sin2beta
         g2_sph = g2 * cos2beta + g1 * sin2beta
 
-        cat = treecorr.Catalog(ra=ra, dec=dec, g1=g1_sph, g2=g2_sph, ra_units='rad', 
+        cat = treecorr.Catalog(ra=ra, dec=dec, g1=g1_sph, g2=g2_sph, ra_units='rad',
                                dec_units='rad')
         gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
                                     verbose=1)
@@ -423,7 +423,7 @@ def test_aardvark():
     # done the spherical trig correctly to get the shears relative to the great circle joining
     # the two positions.  So let's compare with my own brute force calculation (i.e. using
     # bin_slop = 0):
-    # This also has the advantage that the radial bins are done the same way -- uniformly 
+    # This also has the advantage that the radial bins are done the same way -- uniformly
     # spaced in log of the chord distance, rather than the great circle distance.
 
     bs0_file_name = os.path.join('data','Aardvark.bs0')
@@ -491,7 +491,7 @@ def test_aardvark():
         print('max = ',max(abs(xim_err)))
         assert max(abs(xim_err)) < 1.e-8
 
- 
+
 def test_shuffle():
     # Check that the code is insensitive to shuffling the input data vectors.
 
@@ -637,8 +637,8 @@ def test_haloellip():
                                 w=lens_absg)
     gg.process(lens_cat2, source_cat)
     print('gg.xim = ',gg.xim)
-    # Now the net signal is 
-    # sum(w * e_b*absg[i]) / sum(w) 
+    # Now the net signal is
+    # sum(w * e_b*absg[i]) / sum(w)
     # = sum(absg[i]^2 * e_b) / sum(absg[i])
     # = <absg^2> * e_b / <absg>
     lens_mean_gsq = numpy.mean(lens_absg**2)
@@ -654,7 +654,7 @@ def test_haloellip():
     lens_cat3 = treecorr.Catalog(x=lens_x, y=lens_y, g1=lens_g1, g2=lens_g2)
     gg.process(lens_cat3, source_cat)
     print('gg.xim = ',gg.xim)
-    # Now the net signal is 
+    # Now the net signal is
     # sum(absg[i] * e_b*absg[i]) / N
     # = sum(absg[i]^2 * e_b) / N
     # = <absg^2> * e_b

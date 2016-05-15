@@ -51,11 +51,10 @@ def test_kk():
     #
     # The Fourier transform is: kappa~(k) = 2 pi A s^2 exp(-s^2 k^2/2) / L^2
     # P(k) = (1/2pi) <|kappa~(k)|^2> = 2 pi A^2 (s/L)^4 exp(-s^2 k^2)
-    # xi(r) = (1/2pi) int( dk k P(k) J0(kr) ) 
+    # xi(r) = (1/2pi) int( dk k P(k) J0(kr) )
     #       = pi A^2 (s/L)^2 exp(-r^2/2s^2/4)
     # Note: I'm not sure I handled the L factors correctly, but the units at the end need
-    # to be kappa^2, so it needs to be (s/L)^2. 
-
+    # to be kappa^2, so it needs to be (s/L)^2.
 
     ngal = 1000000
     A = 0.05

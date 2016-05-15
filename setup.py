@@ -420,26 +420,12 @@ ext=Extension("treecorr._treecorr",
               depends=headers,
               undef_macros = undef_macros)
 
-dependencies = ['numpy', 'future', 'cffi']
+dependencies = ['numpy', 'future', 'cffi', 'fitsio']
 if py_version < '2.7':
     dependencies += ['argparse']
 else:
     dependencies += ['pandas']  # These seem to have conflicting numpy requirements, so don't
                                 # include pandas with argparse.
-
-# Make sure at least some fits package is present.
-try:
-    import astropy
-except ImportError:
-    try:
-        import pyfits
-    except ImportError:
-        if py_version < '3':
-            dependencies += ['fitsio']
-        else:
-            # I'm getting errors with fitsio in python 3, so use astropy instead for that.
-            # Revisit at some point to see if this gets fixed, since fitsio is the better package.
-            dependencies += ['astropy']
 
 with open('README.rst') as file:
     long_description = file.read()

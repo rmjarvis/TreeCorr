@@ -15,6 +15,10 @@ Dependency change:
   on your system.  This is usually already true, but if not, see the cffi
   docs here: https://cffi.readthedocs.org/en/latest/installation.html
   for platform-specific instructions for installing libffi.
+- Made fitsio a required dependency, rather than allowing astropy.io.fits or
+  pyfits as an optional way to read/write FITS files.  The fitsio package is
+  almost always faster, and it's an easy dependency, since it is installable
+  via either pip or easy_install.
 
 
 API changes:

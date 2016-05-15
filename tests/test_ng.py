@@ -15,6 +15,7 @@ from __future__ import print_function
 import numpy
 import treecorr
 import os
+import fitsio
 
 from test_helper import get_script_name
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
@@ -349,35 +350,27 @@ def test_ng():
     # Check the fits write option
     out_file_name1 = os.path.join('output','ng_out1.fits')
     ng.write(out_file_name1)
-    try:
-        import fitsio
-        data = fitsio.read(out_file_name1)
-        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ng.logr))
-        numpy.testing.assert_almost_equal(data['meanR'], ng.meanr)
-        numpy.testing.assert_almost_equal(data['meanlogR'], ng.meanlogr)
-        numpy.testing.assert_almost_equal(data['gamT'], ng.xi)
-        numpy.testing.assert_almost_equal(data['gamX'], ng.xi_im)
-        numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(ng.varxi))
-        numpy.testing.assert_almost_equal(data['weight'], ng.weight)
-        numpy.testing.assert_almost_equal(data['npairs'], ng.npairs)
-    except ImportError:
-        print('Unable to import fitsio.  Skipping fits tests.')
+    data = fitsio.read(out_file_name1)
+    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ng.logr))
+    numpy.testing.assert_almost_equal(data['meanR'], ng.meanr)
+    numpy.testing.assert_almost_equal(data['meanlogR'], ng.meanlogr)
+    numpy.testing.assert_almost_equal(data['gamT'], ng.xi)
+    numpy.testing.assert_almost_equal(data['gamX'], ng.xi_im)
+    numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(ng.varxi))
+    numpy.testing.assert_almost_equal(data['weight'], ng.weight)
+    numpy.testing.assert_almost_equal(data['npairs'], ng.npairs)
 
     out_file_name2 = os.path.join('output','ng_out2.fits')
     ng.write(out_file_name2, rg)
-    try:
-        import fitsio
-        data = fitsio.read(out_file_name2)
-        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ng.logr))
-        numpy.testing.assert_almost_equal(data['meanR'], ng.meanr)
-        numpy.testing.assert_almost_equal(data['meanlogR'], ng.meanlogr)
-        numpy.testing.assert_almost_equal(data['gamT'], xi)
-        numpy.testing.assert_almost_equal(data['gamX'], xi_im)
-        numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(varxi))
-        numpy.testing.assert_almost_equal(data['weight'], ng.weight)
-        numpy.testing.assert_almost_equal(data['npairs'], ng.npairs)
-    except ImportError:
-        print('Unable to import fitsio.  Skipping fits tests.')
+    data = fitsio.read(out_file_name2)
+    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ng.logr))
+    numpy.testing.assert_almost_equal(data['meanR'], ng.meanr)
+    numpy.testing.assert_almost_equal(data['meanlogR'], ng.meanlogr)
+    numpy.testing.assert_almost_equal(data['gamT'], xi)
+    numpy.testing.assert_almost_equal(data['gamX'], xi_im)
+    numpy.testing.assert_almost_equal(data['sigma'], numpy.sqrt(varxi))
+    numpy.testing.assert_almost_equal(data['weight'], ng.weight)
+    numpy.testing.assert_almost_equal(data['npairs'], ng.npairs)
 
     # Check the read function
     ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')

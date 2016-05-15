@@ -15,6 +15,7 @@ from __future__ import print_function
 import numpy
 import treecorr
 import os
+import fitsio
 
 from test_helper import get_script_name
 
@@ -255,33 +256,29 @@ def test_ggg():
     # Check the fits write option
     out_file_name1 = os.path.join('output','ggg_out1.fits')
     ggg.write(out_file_name1)
-    try:
-        import fitsio
-        data = fitsio.read(out_file_name1)
-        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ggg.logr).flatten())
-        numpy.testing.assert_almost_equal(data['u_nom'], ggg.u.flatten())
-        numpy.testing.assert_almost_equal(data['v_nom'], ggg.v.flatten())
-        numpy.testing.assert_almost_equal(data['meand1'], ggg.meand1.flatten())
-        numpy.testing.assert_almost_equal(data['meanlogd1'], ggg.meanlogd1.flatten())
-        numpy.testing.assert_almost_equal(data['meand2'], ggg.meand2.flatten())
-        numpy.testing.assert_almost_equal(data['meanlogd2'], ggg.meanlogd2.flatten())
-        numpy.testing.assert_almost_equal(data['meand3'], ggg.meand3.flatten())
-        numpy.testing.assert_almost_equal(data['meanlogd3'], ggg.meanlogd3.flatten())
-        numpy.testing.assert_almost_equal(data['meanu'], ggg.meanu.flatten())
-        numpy.testing.assert_almost_equal(data['meanv'], ggg.meanv.flatten())
-        numpy.testing.assert_almost_equal(data['gam0r'], ggg.gam0.real.flatten())
-        numpy.testing.assert_almost_equal(data['gam1r'], ggg.gam1.real.flatten())
-        numpy.testing.assert_almost_equal(data['gam2r'], ggg.gam2.real.flatten())
-        numpy.testing.assert_almost_equal(data['gam3r'], ggg.gam3.real.flatten())
-        numpy.testing.assert_almost_equal(data['gam0i'], ggg.gam0.imag.flatten())
-        numpy.testing.assert_almost_equal(data['gam1i'], ggg.gam1.imag.flatten())
-        numpy.testing.assert_almost_equal(data['gam2i'], ggg.gam2.imag.flatten())
-        numpy.testing.assert_almost_equal(data['gam3i'], ggg.gam3.imag.flatten())
-        numpy.testing.assert_almost_equal(data['sigma_gam'], numpy.sqrt(ggg.vargam.flatten()))
-        numpy.testing.assert_almost_equal(data['weight'], ggg.weight.flatten())
-        numpy.testing.assert_almost_equal(data['ntri'], ggg.ntri.flatten())
-    except ImportError:
-        print('Unable to import fitsio.  Skipping fits tests.')
+    data = fitsio.read(out_file_name1)
+    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ggg.logr).flatten())
+    numpy.testing.assert_almost_equal(data['u_nom'], ggg.u.flatten())
+    numpy.testing.assert_almost_equal(data['v_nom'], ggg.v.flatten())
+    numpy.testing.assert_almost_equal(data['meand1'], ggg.meand1.flatten())
+    numpy.testing.assert_almost_equal(data['meanlogd1'], ggg.meanlogd1.flatten())
+    numpy.testing.assert_almost_equal(data['meand2'], ggg.meand2.flatten())
+    numpy.testing.assert_almost_equal(data['meanlogd2'], ggg.meanlogd2.flatten())
+    numpy.testing.assert_almost_equal(data['meand3'], ggg.meand3.flatten())
+    numpy.testing.assert_almost_equal(data['meanlogd3'], ggg.meanlogd3.flatten())
+    numpy.testing.assert_almost_equal(data['meanu'], ggg.meanu.flatten())
+    numpy.testing.assert_almost_equal(data['meanv'], ggg.meanv.flatten())
+    numpy.testing.assert_almost_equal(data['gam0r'], ggg.gam0.real.flatten())
+    numpy.testing.assert_almost_equal(data['gam1r'], ggg.gam1.real.flatten())
+    numpy.testing.assert_almost_equal(data['gam2r'], ggg.gam2.real.flatten())
+    numpy.testing.assert_almost_equal(data['gam3r'], ggg.gam3.real.flatten())
+    numpy.testing.assert_almost_equal(data['gam0i'], ggg.gam0.imag.flatten())
+    numpy.testing.assert_almost_equal(data['gam1i'], ggg.gam1.imag.flatten())
+    numpy.testing.assert_almost_equal(data['gam2i'], ggg.gam2.imag.flatten())
+    numpy.testing.assert_almost_equal(data['gam3i'], ggg.gam3.imag.flatten())
+    numpy.testing.assert_almost_equal(data['sigma_gam'], numpy.sqrt(ggg.vargam.flatten()))
+    numpy.testing.assert_almost_equal(data['weight'], ggg.weight.flatten())
+    numpy.testing.assert_almost_equal(data['ntri'], ggg.ntri.flatten())
 
     # Check the read function
     # Note: These don't need the flatten. The read function should reshape them to the right shape.

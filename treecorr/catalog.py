@@ -829,6 +829,8 @@ class Catalog(object):
 
         :param is_rand:     Is this a random catalog? (default: False)
         """
+        import fitsio
+
         # Get the column names
         x_col = treecorr.config.get_from_list(self.config,'x_col',num,str,'0')
         y_col = treecorr.config.get_from_list(self.config,'y_col',num,str,'0')
@@ -877,36 +879,6 @@ class Catalog(object):
             raise AttributeError("g1_col, g2_col are invalid for file %s"%file_name)
 
         # OK, now go ahead and read all the columns.
-        self.read_fits(file_name, num, is_rand,
-                       x_col, y_col, z_col, ra_col, dec_col, r_col, w_col, wpos_col, flag_col,
-                       g1_col, g2_col, k_col)
-
-
-    def read_fits(self, file_name, num, is_rand,
-                  x_col, y_col, z_col, ra_col, dec_col, r_col, w_col, wpos_col, flag_col,
-                  g1_col, g2_col, k_col):
-        """Read the catalog from a FITS file using the fitsio package
-
-        This is normally not called directly.  Use :meth:`~treecorr.Catalog.read_fits` instead.
-
-        :param file_name:   The name of the file to read in.
-        :param num:         Which number catalog are we reading.
-        :param is_rand:     Is this a random catalog?
-        :param x_col:       The name for x_col
-        :param y_col:       The name for y_col
-        :param z_col:       The name for z_col
-        :param ra_col:      The name for ra_col
-        :param dec_col:     The name for dec_col
-        :param r_col:       The name for r_col
-        :param w_col:       The name for w_col
-        :param wpos_col:    The name for wpos_col
-        :param flag_col:    The name for flat_col
-        :param g1_col:      The name for g1_col
-        :param g2_col:      The name for g2_col
-        :param k_col:       The name for k_col
-        """
-        import fitsio
-
         hdu = treecorr.config.get_from_list(self.config,'hdu',num,int,1)
 
         with fitsio.FITS(file_name, 'r') as fits:

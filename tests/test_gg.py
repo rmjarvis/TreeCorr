@@ -683,6 +683,175 @@ def test_haloellip():
     print('expected signal = ',e_a * lens_mean_absg / 2.)
     numpy.testing.assert_almost_equal(gg.xip/(e_a * lens_mean_absg/2.)/10, 0.1, decimal=2)
 
+def test_rlens():
+    # Similar to test_rlens in test_ng.py, but we give the lenses a shape and do a GG correlation.
+    # Use gamma_t(r) = gamma0 exp(-R^2/2R0^2) around a bunch of foreground lenses.
+
+    nlens = 100
+    nsource = 200000
+    #nlens = 1
+    #nsource = 2
+    gamma0 = 0.05
+    R0 = 10.
+    L = 50. * R0
+    numpy.random.seed(8675309)
+
+    # Lenses are randomly located with random shapes.
+    xl = (numpy.random.random_sample(nlens)-0.5) * L  # -500 < x < 500
+    zl = (numpy.random.random_sample(nlens)-0.5) * L  # -500 < y < 500
+    yl = numpy.random.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
+    rl = numpy.sqrt(xl**2 + yl**2 + zl**2)
+    g1l = numpy.random.normal(0., 0.1, (nlens,))
+    g2l = numpy.random.normal(0., 0.1, (nlens,))
+    gl = g1l + 1j * g2l
+    gl /= numpy.abs(gl)
+    print('Made lenses')
+
+    # For the signal, we'll do a pure quadrupole halo lens signal.  cf. test_haloellip()
+    xs = (numpy.random.random_sample(nsource)-0.5) * L
+    zs = (numpy.random.random_sample(nsource)-0.5) * L
+    ys = numpy.random.random_sample(nsource) * 8*L + 160*L  # 80000 < z < 84000
+    rs = numpy.sqrt(xs**2 + ys**2 + zs**2)
+    g1 = numpy.zeros( (nsource,) )
+    g2 = numpy.zeros( (nsource,) )
+    bin_size = 0.1
+    # min_sep is set so the first bin doesn't have 0 pairs.
+    min_sep = 1.3*R0
+    # max_sep can't be too large, since the measured value starts to have shape noise for larger
+    # values of separation.  We're not adding any shape noise directly, but the shear from other
+    # lenses is effectively a shape noise, and that comes to dominate the measurement above ~4R0.
+    max_sep = 4.*R0
+    nbins = int(numpy.ceil(numpy.log(max_sep/min_sep)/bin_size))
+    true_gQ = numpy.zeros( (nbins,) )
+    true_gCr = numpy.zeros( (nbins,) )
+    true_gCi = numpy.zeros( (nbins,) )
+    true_npairs = numpy.zeros((nbins,), dtype=int)
+    print('Making shear vectors')
+    for x,y,z,r,g in zip(xl,yl,zl,rl,gl):
+        # Use |r1 x r2| = |r1| |r2| sin(theta)
+        xcross = ys * z - zs * y
+        ycross = zs * x - xs * z
+        zcross = xs * y - ys * x
+        sintheta = numpy.sqrt(xcross**2 + ycross**2 + zcross**2) / (rs * r)
+        Rlens = 2. * r * numpy.sin(numpy.arcsin(sintheta)/2)
+        #print('Rlens = ',Rlens)
+
+        gammaQ = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+        #print('gammaQ = ',gammaQ)
+
+        # For the alpha angle, approximate that the x,z coords are approx the perpendicular plane.
+        # So just normalize back to the unit sphere and do the 2d projection calculation.
+        # It's not exactly right, but it should be good enough for this unit test.
+        dx = xs/rs-x/r
+        dz = zs/rs-z/r
+        expialpha = dx + 1j*dz
+        expialpha /= numpy.abs(expialpha)
+        #print('expialpha = ',expialpha)
+
+        # In frame where halo is along x axis,
+        #   g_source = gammaQ exp(4itheta)
+        # In real frame, theta = alpha - phi, and we need to rotate the shear an extra exp(2iphi)
+        #   g_source = gammaQ exp(4ialpha) exp(-2iphi)
+        gQ = gammaQ * expialpha**4 * numpy.conj(g)
+        #print('gQ = ',gQ)
+        g1 += gQ.real
+        g2 += gQ.imag
+        #print('g1 = ',g1)
+        #print('g2 = ',g2)
+
+        index = numpy.floor( numpy.log(Rlens/min_sep) / bin_size).astype(int)
+        #print('index = ',index)
+        mask = (index >= 0) & (index < nbins)
+        numpy.add.at(true_gQ, index[mask], gammaQ[mask])
+        numpy.add.at(true_npairs, index[mask], 1)
+
+        # We aren't intentionally making a constant term, but there will be some C signal due to
+        # the finite number of pairs being rendered.  So let's figure out how much there is.
+        gC = gQ * numpy.conj(g)
+        numpy.add.at(true_gCr, index[mask], gC[mask].real)
+        numpy.add.at(true_gCi, index[mask], -gC[mask].imag)
+    true_gQ /= true_npairs
+    true_gCr /= true_npairs
+    true_gCi /= true_npairs
+    print('true_gQ = ',true_gQ)
+    print('true_gCr = ',true_gCr)
+    print('true_gCi = ',true_gCi)
+
+    # Start with bin_slop == 0.  With only 100 lenses, this still runs very fast.
+    lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl, g1=gl.real, g2=gl.imag)
+    source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
+    gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                metric='Rlens', bin_slop=0)
+    gg.process(lens_cat, source_cat)
+
+    Rlens = gg.meanr
+    theory_gQ = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+
+    print('Results with bin_slop = 0:')
+    print('gg.npairs = ',gg.npairs)
+    print('true_npairs = ',true_npairs)
+    print('gg.xim = ',gg.xim)
+    print('true_gammat = ',true_gQ)
+    print('ratio = ',gg.xim / true_gQ)
+    print('diff = ',gg.xim - true_gQ)
+    print('max diff = ',max(abs(gg.xim - true_gQ)))
+    assert max(abs(gg.xim - true_gQ)) < 2.e-6
+    print('gg.xim_im = ',gg.xim_im)
+    assert max(abs(gg.xim_im)) < 2.e-6
+    print('gg.xip = ',gg.xip)
+    print('true_gCr = ',true_gCr)
+    print('diff = ',gg.xip - true_gCr)
+    print('max diff = ',max(abs(gg.xip - true_gCr)))
+    assert max(abs(gg.xip - true_gCr)) < 2.e-6
+    print('gg.xip_im = ',gg.xip_im)
+    print('true_gCi = ',true_gCi)
+    print('diff = ',gg.xip_im - true_gCi)
+    print('max diff = ',max(abs(gg.xip_im - true_gCi)))
+    assert max(abs(gg.xip_im - true_gCi)) < 2.e-6
+
+    print('gg.xim = ',gg.xim)
+    print('theory_gammat = ',theory_gQ)
+    print('ratio = ',gg.xim / theory_gQ)
+    print('diff = ',gg.xim - theory_gQ)
+    print('max diff = ',max(abs(gg.xim - theory_gQ)))
+    assert max(abs(gg.xim - theory_gQ)) < 4.e-5
+
+    # Now use a more normal value for bin_slop.
+    gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                metric='Rlens')
+    gg.process(lens_cat, source_cat)
+    Rlens = gg.meanr
+    theory_gQ = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+
+    print('Results with bin_slop = 1')
+    print('gg.npairs = ',gg.npairs)
+    print('gg.xim = ',gg.xim)
+    print('theory_gammat = ',theory_gQ)
+    print('ratio = ',gg.xim / theory_gQ)
+    print('diff = ',gg.xim - theory_gQ)
+    print('max diff = ',max(abs(gg.xim - theory_gQ)))
+    assert max(abs(gg.xim - theory_gQ)) < 4.e-5
+    print('gg.xim_im = ',gg.xim_im)
+    assert max(abs(gg.xim_im)) < 3.e-6
+
+    # Check that we get the same result using the corr2 executable:
+    if __name__ == '__main__':
+        lens_cat.write(os.path.join('data','gg_rlens_lens.dat'))
+        source_cat.write(os.path.join('data','gg_rlens_source.dat'))
+        import subprocess
+        corr2_exe = get_script_name('corr2')
+        p = subprocess.Popen( [corr2_exe,"gg_rlens.yaml"] )
+        p.communicate()
+        corr2_output = numpy.genfromtxt(os.path.join('output','gg_rlens.out'),names=True)
+        print('gg.xim = ',gg.xim)
+        print('from corr2 output = ',corr2_output['xim'])
+        print('ratio = ',corr2_output['xim']/gg.xim)
+        print('diff = ',corr2_output['xim']-gg.xim)
+        numpy.testing.assert_almost_equal(corr2_output['xim'], gg.xim, decimal=6)
+        numpy.testing.assert_almost_equal(corr2_output['xim_im'], gg.xim_im, decimal=6)
+        numpy.testing.assert_almost_equal(corr2_output['xip'], gg.xip, decimal=6)
+        numpy.testing.assert_almost_equal(corr2_output['xip_im'], gg.xip_im, decimal=6)
+
 
 
 if __name__ == '__main__':
@@ -691,3 +860,4 @@ if __name__ == '__main__':
     test_aardvark()
     test_shuffle()
     test_haloellip()
+    test_rlens()

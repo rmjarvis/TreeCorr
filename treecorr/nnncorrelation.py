@@ -174,10 +174,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         self._set_num_threads(num_threads)
 
-        b = numpy.max( (self.b, self.bu, self.bv) )
-        min_size = self._min_sep * self.min_u * b / (2.+3.*b);
-        if metric == treecorr._lib.Perp: min_size /= 2.
-        max_size = 2. * self._max_sep * b
+        min_size, max_size = self._get_minmax_size()
 
         field = cat.getNField(min_size,max_size,self.split_method,self.max_top)
 
@@ -235,10 +232,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         self._set_num_threads(num_threads)
 
-        b = numpy.max( (self.b, self.bu, self.bv) )
-        min_size = self._min_sep * self.min_u * b / (2.+3.*b);
-        if metric == treecorr._lib.Perp: min_size /= 2.
-        max_size = 2. * self._max_sep * b
+        min_size, max_size = self._get_minmax_size()
 
         f1 = cat1.getNField(min_size,max_size,self.split_method,self.max_top)
         f2 = cat2.getNField(min_size,max_size,self.split_method,self.max_top)

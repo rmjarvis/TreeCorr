@@ -145,9 +145,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         self._set_num_threads(num_threads)
 
-        min_size = self._min_sep * self.b / (2.+3.*self.b);
-        if metric == treecorr._lib.Perp: min_size /= 2.
-        max_size = self._max_sep * self.b
+        min_size, max_size = self._get_minmax_size()
 
         field = cat.getKField(min_size,max_size,self.split_method,self.max_top)
 
@@ -184,9 +182,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         self._set_num_threads(num_threads)
 
-        min_size = self._min_sep * self.b / (2.+3.*self.b);
-        if metric == treecorr._lib.Perp: min_size /= 2.
-        max_size = self._max_sep * self.b
+        min_size, max_size = self._get_minmax_size()
 
         f1 = cat1.getKField(min_size,max_size,self.split_method,self.max_top)
         f2 = cat2.getKField(min_size,max_size,self.split_method,self.max_top)

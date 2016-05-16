@@ -147,24 +147,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         self._set_num_threads(num_threads)
 
-        # The minimum size cell that will be useful is one where two cells that just barely
-        # don't split have (d + s1 + s2) = minsep
-        # The largest s2 we need to worry about is s2 = 2s1.
-        # i.e. d = minsep - 3s1  and s1 = 0.5 * bd
-        #      d = minsep - 1.5 bd
-        #      d = minsep / (1+1.5 b)
-        #      s = 0.5 * b * minsep / (1+1.5 b)
-        #        = b * minsep / (2+3b)
-        min_size = self._min_sep * self.b / (2.+3.*self.b)
-        if metric == treecorr._lib.Perp:
-            # Go a bit smller than min_sep for Rperp metric, since the above calculation of
-            # what minimum size to use isn't exactly accurate in this case.
-            min_size /= 2.
-        # The maximum size cell that will be useful is one where a cell of size s will
-        # be split at the maximum separation even if the other size = 0.
-        # i.e. max_size = max_sep * b
-        max_size = self._max_sep * self.b
-            
+        min_size, max_size = self._get_minmax_size()
+
         field = cat.getGField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
@@ -200,13 +184,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         self._set_num_threads(num_threads)
 
-        min_size = self._min_sep * self.b / (2.+3.*self.b)
-        if metric == treecorr._lib.Perp:
-            # Go a bit smller than min_sep for Rperp metric, since the simple calculation of
-            # what minimum size to use isn't exactly accurate in this case.
-            min_size /= 2.
-        max_size = self._max_sep * self.b
-            
+        min_size, max_size = self._get_minmax_size()
+
         f1 = cat1.getGField(min_size,max_size,self.split_method,self.max_top)
         f2 = cat2.getGField(min_size,max_size,self.split_method,self.max_top)
 

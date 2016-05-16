@@ -340,3 +340,24 @@ class BinnedCorr2(object):
         self.meanr[mask] /= self.sep_units
         self.meanlogr[mask] -= self.log_sep_units
 
+    def _get_minmax_size(self):
+        if self._metric == treecorr._lib.Euclidean:
+            # The minimum size cell that will be useful is one where two cells that just barely
+            # don't split have (d + s1 + s2) = minsep
+            # The largest s2 we need to worry about is s2 = 2s1.
+            # i.e. d = minsep - 3s1  and s1 = 0.5 * bd
+            #      d = minsep - 1.5 bd
+            #      d = minsep / (1+1.5 b)
+            #      s = 0.5 * b * minsep / (1+1.5 b)
+            #        = b * minsep / (2+3b)
+            min_size = self._min_sep * self.b / (2.+3.*self.b)
+        else:
+            # For other metrics, the above calculation doesn't really apply, so just skip
+            # that relatively modest optimization and go all the way to the leaves.
+            min_size = 0.
+        # The maximum size cell that will be useful is one where a cell of size s will
+        # be split at the maximum separation even if the other size = 0.
+        # i.e. max_size = max_sep * b
+        max_size = self._max_sep * self.b
+        return min_size, max_size
+

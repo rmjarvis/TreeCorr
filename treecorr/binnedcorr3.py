@@ -537,3 +537,15 @@ class BinnedCorr3(object):
         self.meand3[mask] /= self.sep_units
         self.meanlogd3[mask] -= self.log_sep_units
 
+    def _get_minmax_size(self):
+        b = numpy.max( (self.b, self.bu, self.bv) )
+        if self._metric == treecorr._lib.Euclidean:
+            # The minimum separation we care about is that of the smallest size, which is
+            # min_sep * min_u.  Do the same calculation as for 2pt to get to min_size.
+            min_size = self._min_sep * self.min_u * b / (2.+3.*b)
+        else:
+            min_size = 0.
+        # This time, the maximum size is d1 * b.  d1 can be as high as 2*max_sep.
+        max_size = 2. * self._max_sep * b
+        return min_size, max_size
+

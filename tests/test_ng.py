@@ -526,7 +526,7 @@ def test_rlens():
     # Use gamma_t(r) = gamma0 exp(-R^2/2R0^2) around a bunch of foreground lenses.
 
     nlens = 100
-    nsource = 100000
+    nsource = 200000
     #nlens = 1
     #nsource = 100
     gamma0 = 0.05
@@ -580,7 +580,7 @@ def test_rlens():
     # Start with bin_slop == 0.  With only 100 lenses, this still runs very fast.
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl)
     source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
-    ng = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=3,
+    ng = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
                                 metric='Rlens', bin_slop=0)
     ng.process(lens_cat, source_cat)
 
@@ -605,12 +605,9 @@ def test_rlens():
     print('diff = ',ng.xi - theory_gt)
     print('max diff = ',max(abs(ng.xi - theory_gt)))
     assert max(abs(ng.xi - theory_gt)) < 4.e-5
-    assert max(abs(ng.xi_im)) < 1.e-6
 
     # Now use a more normal value for bin_slop.
-    lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl)
-    source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
-    ng = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=3,
+    ng = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
                                 metric='Rlens')
     ng.process(lens_cat, source_cat)
     Rlens = ng.meanr
@@ -640,9 +637,7 @@ def test_rlens():
         print('ratio = ',corr2_output['gamT']/ng.xi)
         print('diff = ',corr2_output['gamT']-ng.xi)
         numpy.testing.assert_almost_equal(corr2_output['gamT'], ng.xi, decimal=6)
-
-        print('xi_im from corr2 output = ',corr2_output['gamX'])
-        assert max(abs(corr2_output['gamX'])) < 1.e-6
+        numpy.testing.assert_almost_equal(corr2_output['gamX'], ng.xi_im, decimal=6)
 
 
 if __name__ == '__main__':

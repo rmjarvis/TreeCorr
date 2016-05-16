@@ -351,13 +351,15 @@ class BinnedCorr2(object):
             #      s = 0.5 * b * minsep / (1+1.5 b)
             #        = b * minsep / (2+3b)
             min_size = self._min_sep * self.b / (2.+3.*self.b)
+
+            # The maximum size cell that will be useful is one where a cell of size s will
+            # be split at the maximum separation even if the other size = 0.
+            # i.e. max_size = max_sep * b
+            max_size = self._max_sep * self.b
+            return min_size, max_size
         else:
             # For other metrics, the above calculation doesn't really apply, so just skip
-            # that relatively modest optimization and go all the way to the leaves.
-            min_size = 0.
-        # The maximum size cell that will be useful is one where a cell of size s will
-        # be split at the maximum separation even if the other size = 0.
-        # i.e. max_size = max_sep * b
-        max_size = self._max_sep * self.b
-        return min_size, max_size
+            # this relatively modest optimization and go all the way to the leaves.
+            # (And for the max_size, always split 10 levels for the top-level cells.)
+            return 0., 0.
 

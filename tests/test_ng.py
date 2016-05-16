@@ -527,8 +527,6 @@ def test_rlens():
 
     nlens = 100
     nsource = 200000
-    #nlens = 1
-    #nsource = 100
     gamma0 = 0.05
     R0 = 10.
     L = 50. * R0

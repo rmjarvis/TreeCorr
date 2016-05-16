@@ -240,15 +240,15 @@ struct MetricHelper<Lens>
     }
 
 
-    // This one is similar.  The minimum possible L if p2 is closer is L - s1ps2 * r1/r2
+    // This one is similar.  The minimum possible L if p2 is larger is L - s1ps2 * r2/r1
     static bool TooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2, double s1ps2,
                              double dsq, double maxsep, double maxsepsq)
     {
         if (dsq < maxsepsq || dsq < SQR(maxsep + s1ps2)) return false;
-        // Now check if p2 is closer
-        if (p1.normSq() < p2.normSq()) return true;
+        // Now check if p2 is farther
+        if (p1.normSq() > p2.normSq()) return true;
         else {
-            s1ps2 *= p1.norm() / p2.norm();
+            s1ps2 *= p2.norm() / p1.norm();
             return dsq >= SQR(maxsep + s1ps2);
         }
     }

@@ -91,17 +91,22 @@ class CelestialCoord(object):
     def dec(self): return self._dec
 
     @staticmethod
-    def radec_to_xyz(ra, dec):
-        "Convert ra, dec to 3D x,y,z coordinates on the unit sphere."
+    def radec_to_xyz(ra, dec, r=1.):
+        "Convert ra, dec (in radians) to 3D x,y,z coordinates on the unit sphere."
         import numpy
         cosdec = numpy.cos(dec)
-        sindec = numpy.sin(dec)
-        cosra = numpy.cos(ra)
-        sinra = numpy.sin(ra)
-        x = cosdec * cosra
-        y = cosdec * sinra
-        z = sindec
+        x = cosdec * numpy.cos(ra) * r
+        y = cosdec * numpy.sin(ra) * r
+        z = numpy.sin(dec) * r
         return x,y,z
+
+    @staticmethod
+    def xyz_to_radec(x, y, z):
+        "Convert 3D x,y,z coordinates to ra, dec (in radians)."
+        import numpy
+        ra = numpy.arctan2(y,x)
+        dec = numpy.arctan2(z,numpy.sqrt(x**2+y**2))
+        return ra,dec
 
     def _set_aux(self):
         if self._x is None:

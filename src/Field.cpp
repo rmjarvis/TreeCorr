@@ -204,37 +204,23 @@ Field<D,C>::Field(
     // First we setup what all the top-level cells are going to be.
     // Then we build them and their sub-nodes.
 
-    if (maxsizesq == 0.) {
-        dbg<<"Doing brute-force calculation (all cells are leaf nodes).\n";
-        // If doing a brute-force calculation, the top-level cell data are the same as celldata.
-        const ptrdiff_t n = celldata.size();
-        _cells.resize(n);
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-        for(ptrdiff_t i=0;i<n;++i) {
-            _cells[i] = new Cell<D,C>(celldata[i]);
-            celldata[i] = 0; // Make sure the calling routing doesn't delete this one.
-        }
-    } else {
-        std::vector<CellData<D,C>*> top_data;
-        std::vector<double> top_sizesq;
-        std::vector<size_t> top_start;
-        std::vector<size_t> top_end;
+    std::vector<CellData<D,C>*> top_data;
+    std::vector<double> top_sizesq;
+    std::vector<size_t> top_start;
+    std::vector<size_t> top_end;
 
-        // Setup the top level cells:
-        SetupTopLevelCells(celldata,maxsizesq,sm,0,celldata.size(),maxtop,
-                           top_data,top_sizesq,top_start,top_end);
-        const ptrdiff_t n = top_data.size();
-        dbg<<"Field has "<<n<<" top-level nodes.  Building lower nodes...\n";
-        _cells.resize(n);
+    // Setup the top level cells:
+    SetupTopLevelCells(celldata,maxsizesq,sm,0,celldata.size(),maxtop,
+                       top_data,top_sizesq,top_start,top_end);
+    const ptrdiff_t n = top_data.size();
+    dbg<<"Field has "<<n<<" top-level nodes.  Building lower nodes...\n";
+    _cells.resize(n);
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-        for(ptrdiff_t i=0;i<n;++i)
-            _cells[i] = new Cell<D,C>(top_data[i],top_sizesq[i],celldata,minsizesq,sm,
-                                      top_start[i],top_end[i]);
-    }
+    for(ptrdiff_t i=0;i<n;++i)
+        _cells[i] = new Cell<D,C>(top_data[i],top_sizesq[i],celldata,minsizesq,sm,
+                                  top_start[i],top_end[i]);
 
     // delete any CellData elements that didn't get kept in the _cells object.
     for (size_t i=0;i<celldata.size();++i) if (celldata[i]) delete celldata[i];

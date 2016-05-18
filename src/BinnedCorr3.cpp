@@ -356,9 +356,10 @@ void BinnedCorr3<D1,D2,D3>::process(const Field<D1,C>& field1, const Field<D2,C>
         return;
     }
 
-    double d2sq = MetricHelper<M>::DistSq(c12->getData().getPos(), c3->getData().getPos());
     double s12 = c12->getSize();
     double s3 = c3->getSize();
+    double d2sq = MetricHelper<M>::DistSq(c12->getData().getPos(), c3->getData().getPos(),
+                                          s12, s3);
     double s12ps3 = s12 + s3;
 
     // If all possible triangles will have d2 < minsep, then abort the recursion here.
@@ -402,12 +403,16 @@ struct SortHelper
         const Cell<D1,C>*& c1, const Cell<D2,C>*& c2, const Cell<D3,C>*& c3,
         double& d1sq, double& d2sq, double& d3sq)
     {
-        if (d1sq == 0.) 
-            d1sq = MetricHelper<M>::DistSq(c2->getData().getPos(), c3->getData().getPos());
-        if (d2sq == 0.) 
-            d2sq = MetricHelper<M>::DistSq(c1->getData().getPos(), c3->getData().getPos());
-        if (d3sq == 0.) 
-            d3sq = MetricHelper<M>::DistSq(c1->getData().getPos(), c2->getData().getPos());
+        // TODO: Think about what the right thing to do with s1,s2,s3 is when the metric
+        //       DistSq function wants to adjust these values.  The current code isn't right
+        //       for non-Euclidean metrics.
+        double s=0.;
+        if (d1sq == 0.)
+            d1sq = MetricHelper<M>::DistSq(c2->getData().getPos(), c3->getData().getPos(), s,s);
+        if (d2sq == 0.)
+            d2sq = MetricHelper<M>::DistSq(c1->getData().getPos(), c3->getData().getPos(), s,s);
+        if (d3sq == 0.)
+            d3sq = MetricHelper<M>::DistSq(c1->getData().getPos(), c2->getData().getPos(), s,s);
     }
     static bool stop111(
         double d1sq, double d2sq, double d3sq, double d2,
@@ -535,12 +540,13 @@ struct SortHelper<D,D,D,true,C,M>
         const Cell<D,C>*& c1, const Cell<D,C>*& c2, const Cell<D,C>*& c3,
         double& d1sq, double& d2sq, double& d3sq)
     {
-        if (d1sq == 0.) 
-            d1sq = MetricHelper<M>::DistSq(c2->getData().getPos(), c3->getData().getPos());
-        if (d2sq == 0.) 
-            d2sq = MetricHelper<M>::DistSq(c1->getData().getPos(), c3->getData().getPos());
-        if (d3sq == 0.) 
-            d3sq = MetricHelper<M>::DistSq(c1->getData().getPos(), c2->getData().getPos());
+        double s=0.;
+        if (d1sq == 0.)
+            d1sq = MetricHelper<M>::DistSq(c2->getData().getPos(), c3->getData().getPos(), s,s);
+        if (d2sq == 0.)
+            d2sq = MetricHelper<M>::DistSq(c1->getData().getPos(), c3->getData().getPos(), s,s);
+        if (d3sq == 0.)
+            d3sq = MetricHelper<M>::DistSq(c1->getData().getPos(), c2->getData().getPos(), s,s);
 
         // Need to end up with d3 < d2 < d1
         if (d1sq < d2sq) {

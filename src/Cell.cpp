@@ -31,7 +31,8 @@ double CalculateSizeSq(
 {
     double sizesq = 0.;
     for(size_t i=start;i<end;++i) {
-        double devsq = MetricHelper<Euclidean>::DistSq(cen,vdata[i]->getPos());
+        double s=0.;
+        double devsq = MetricHelper<Euclidean>::DistSq(cen,vdata[i]->getPos(),s,s);
         if (devsq > sizesq) sizesq = devsq;
     }
     return sizesq;

@@ -238,7 +238,8 @@ void BinnedCorr2<D1,D2>::processPairwise(
             }
             const Cell<D1,C>& c1 = *field1.getCells()[i];
             const Cell<D2,C>& c2 = *field2.getCells()[i];
-            const double dsq = MetricHelper<M>::DistSq(c1.getPos(),c2.getPos());
+            double s=0.;
+            const double dsq = MetricHelper<M>::DistSq(c1.getPos(),c2.getPos(),s,s);
             if (dsq >= _minsepsq && dsq < _maxsepsq) {
                 bc2.template directProcess11<C,M>(c1,c2,dsq);
             }
@@ -274,8 +275,12 @@ void BinnedCorr2<D1,D2>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2)
     //dbg<<"w = "<<c1.getW()<<", "<<c2.getW()<<std::endl;
     if (c1.getW() == 0. || c2.getW() == 0.) return;
 
-    const double dsq = MetricHelper<M>::DistSq(c1.getPos(),c2.getPos());
-    const double s1ps2 = c1.getAllSize()+c2.getAllSize();
+    double s1 = c1.getSize();
+    double s2 = c2.getSize();
+    //dbg<<"s1,s2 = "<<s1<<','<<s2<<std::endl;
+    const double dsq = MetricHelper<M>::DistSq(c1.getPos(),c2.getPos(),s1,s2);
+    //dbg<<"s1,s2 => "<<s1<<','<<s2<<std::endl;
+    const double s1ps2 = s1+s2;
 
     //dbg<<"dsq = "<<dsq<<", s1ps2 = "<<s1ps2<<std::endl;
     if (MetricHelper<M>::TooSmallDist(c1.getPos(), c2.getPos(), s1ps2, dsq, _minsep, _minsepsq))
@@ -288,6 +293,7 @@ void BinnedCorr2<D1,D2>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2)
     // See if need to split:
     bool split1=false, split2=false;
     CalcSplitSq(split1,split2,c1,c2,dsq,s1ps2,_bsq);
+    //dbg<<"s1ps2 / d = "<<s1ps2 / sqrt(dsq)<<", b = "<<_b<<std::endl;
     //dbg<<"split = "<<split1<<','<<split2<<std::endl;
 
     if (split1) {
@@ -430,6 +436,7 @@ template <int D1, int D2> template <int C, int M>
 void BinnedCorr2<D1,D2>::directProcess11(
     const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double dsq)
 {
+    //dbg<<"DirectProcess11: dsq = "<<dsq<<std::endl;
     XAssert(dsq >= _minsepsq);
     XAssert(dsq < _maxsepsq);
     XAssert(c1.getSize()+c2.getSize() < sqrt(dsq)*_b + 0.0001);
@@ -442,6 +449,7 @@ void BinnedCorr2<D1,D2>::directProcess11(
     const int k = int((logr - _logminsep)/_binsize);
     XAssert(k >= 0);
     XAssert(k < _nbins);
+    //dbg<<"r,logr,k = "<<r<<','<<logr<<','<<k<<std::endl;
 
     double nn = double(c1.getN()) * double(c2.getN());
     _npairs[k] += nn;

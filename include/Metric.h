@@ -37,13 +37,17 @@ struct MetricHelper<Euclidean>
     //
     ///
 
-    static double DistSq(const Position<Flat>& p1, const Position<Flat>& p2)
-    { 
+    static double DistSq(const Position<Flat>& p1, const Position<Flat>& p2,
+                         double& s1, double& s2)
+    {
         Position<Flat> r = p1-p2;
         return r.normSq();
     }
     static double Dist(const Position<Flat>& p1, const Position<Flat>& p2)
-    { return sqrt(DistSq(p1,p2)); }
+    {
+        double s=0.;
+        return sqrt(DistSq(p1,p2,s,s));
+    }
 
     static bool CCW(const Position<Flat>& p1, const Position<Flat>& p2, const Position<Flat>& p3)
     {
@@ -70,13 +74,17 @@ struct MetricHelper<Euclidean>
     //
     ///
 
-    static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
-    { 
+    static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                         double& s1, double& s2)
+    {
         Position<ThreeD> r = p1-p2;
         return r.normSq();
     }
     static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
-    { return sqrt(DistSq(p1,p2)); }
+    {
+        double s=0.;
+        return sqrt(DistSq(p1,p2,s,s));
+    }
 
     static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                     const Position<ThreeD>& p3)
@@ -109,8 +117,9 @@ struct MetricHelper<Euclidean>
 template <>
 struct MetricHelper<Perp>
 {
-    static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
-    { 
+    static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                         double& s1, double& s2)
+    {
         // r_perp^2 + r_parallel^2 = d^2
         Position<ThreeD> r = p1-p2;
         double dsq = r.getX()*r.getX() + r.getY()*r.getY() + r.getZ()*r.getZ();
@@ -118,17 +127,48 @@ struct MetricHelper<Perp>
         double r2sq = p2.getX()*p2.getX() + p2.getY()*p2.getY() + p2.getZ()*p2.getZ();
         // r_parallel^2 = (r1-r2)^2 = r1^2 + r2^2 - 2r1r2
         double rparsq = r1sq + r2sq - 2.*sqrt(r1sq*r2sq);
+
+        // For the usual case that the angle theta between p1 and p2 is << 1, the above
+        // calculation reduces to
+        //
+        //      r_perp ~= sqrt(r1 r2) theta
+        //
+        // The effect of s1 is essentially s1 = r1 dtheta, which means that its effect on r_perp
+        // is approximately
+        //
+        //      s1' ~= sqrt(r1 r2) s/r1
+        //          ~= sqrt(r2/r1) s
+        //
+        // So if r1 < r2, the effective sphere is larger than the nominal s1 by a factor
+        // sqrt(r2/r1).  We don't really want to take another sqrt here, nevermind two sqrts
+        // to get this result exactly, so we approximate this as
+        //
+        //      s1' ~= sqrt(1 + dr/r1) s
+        //          ~= (1 + 1/4 dr^2 / r1^2) s
+        //
+        // We also take the conservative approach of only increasing s for the closer point, not
+        // decreasing it for the larger one.
+
+        if (r1sq < r2sq) {
+            if (s1 != 0.)
+                s1 *= (1. + 0.25 * (r2sq-r1sq)/r1sq);
+        } else {
+            if (s2 != 0.)
+                s2 *= (1. + 0.25 * (r2sq-r1sq)/r1sq);
+        }
+
         return dsq - rparsq;
     }
     static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
-    { return sqrt(DistSq(p1,p2)); }
-
-    static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2, 
-                    const Position<ThreeD>& p3)
     {
-        // This is the same as Euclidean
-        return MetricHelper<Euclidean>::CCW(p1,p2,p3);
+        double s=0.;
+        return sqrt(DistSq(p1,p2,s,s));
     }
+
+    // This is the same as Euclidean
+    static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                    const Position<ThreeD>& p3)
+    { return MetricHelper<Euclidean>::CCW(p1,p2,p3); }
 
     // This one is a bit subtle.  The maximum possible rp can be larger than just (rp + s1ps2).
     // The most extreme case is if the two cells are in opposite directions from Earth.
@@ -187,70 +227,73 @@ struct MetricHelper<Lens>
 {
 #if 1
     // The first option uses the chord distance at the distance of r1
-    static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                         double& s1, double& s2)
     {
         // theta = angle between p1, p2
         // L/r1 = 2 sin(theta/2) = sin(theta) / cos(theta/2)
         //      = sin(theta) sqrt(2/(1+cos(theta)))
         // | p1 x p2 | = r1 r2 sin(theta)
         // p1 . p2 = r1 r2 cos(theta)
-        double r1r2 = p1.norm() * p2.norm();
-        double costheta = p1.dot(p2) / r1r2;
-        return p1.cross(p2).normSq() / p2.normSq() * (2. / (1.+costheta));
+        //
+        // L^2 = r1^2 |p1xp2|^2/(r1^2 r2^2) (2 / (1+(p1.p2)/(r1 r2)))
+        //     = 2 * |p1xp2|^2 / r2^2 / (1 + (p1.p2)/r1r2)
+        double r1 = p1.norm();
+        double r2 = p2.norm();
+        double costheta = p1.dot(p2) / (r1*r2);
+
+        // The effect of s2 needs to be modified here.  Its effect on rlens is
+        //      s2' = r1/r2 s2
+        // We take the conservative approach and only increase s2 if r2 < r1.
+        // If r2 > r1, we leave it alone.
+        //if (r2 < r1) {
+        if (true) {
+            s2 *= r1/r2;
+        }
+        return 2. * p1.cross(p2).normSq() / (r2*r2) / (1.+costheta);
     }
 #else
     // The second option uses the direction perpendiculat to r1
-    static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                         double& s1, double& s2)
     {
         // theta = angle between p1, p2
         // L/r1 = tan(theta)
         // | p1 x p2 | = r1 r2 sin(theta)
         // p1 . p2 = r1 r2 cos(theta)
         // L = r1 |p1 x p2| / (p1 . p2)
-        return p1.normSq() * p1.cross(p2).normSq() / SQR(p1.dot(p2));
+        double r1sq = p1.normSq();
+        double r2sq = p2.normsq();
+        if (r2sq < r1sq) {
+            s2 *= sqrt(r1sq/r2sq);
+        }
+        return r1sq * p1.cross(p2).normSq() / SQR(p1.dot(p2));
     }
 #endif
 
     static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
-    { return sqrt(DistSq(p1,p2)); }
-
-    static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                    const Position<ThreeD>& p3)
     {
-        // This is the same as Euclidean
-        return MetricHelper<Euclidean>::CCW(p1,p2,p3);
+        double s=0.;
+        return sqrt(DistSq(p1,p2,s,s));
     }
 
-    // If p1 is closer to Earth than p2 then everything is normal.  But if p2 is closer, then
-    // the effect of s1ps2 on the separation is larger by a factor of r1/r2.
-    // maxd = L + s1ps2 * r1/r2
+    // This is the same as Euclidean
+    static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                    const Position<ThreeD>& p3)
+    { return MetricHelper<Euclidean>::CCW(p1,p2,p3); }
+
+    // We've already accounted for the way that the raw s1+s2 may not be sufficient in DistSq
+    // where we update s2 according to the relative distances.  So these two functions are
+    // the same as the Euclidean versions.
     static bool TooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2, double s1ps2,
                              double dsq, double minsep, double minsepsq)
 
-    {
-        // First a simple check that will work most of the time.
-        if (dsq >= minsepsq || s1ps2 >= minsep || dsq >= SQR(minsep - s1ps2)) return false;
-        // Now check if p2 is closer
-        if (p1.normSq() < p2.normSq()) return true;
-        else {
-            s1ps2 *= p1.norm() / p2.norm();
-            return s1ps2 < minsep && dsq < SQR(minsep - s1ps2);
-        }
-    }
-
+    { return MetricHelper<Euclidean>::TooSmallDist(p1,p2,s1ps2,dsq,minsep,minsepsq); }
 
     // This one is similar.  The minimum possible L if p2 is larger is L - s1ps2 * r2/r1
     static bool TooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2, double s1ps2,
                              double dsq, double maxsep, double maxsepsq)
-    {
-        if (dsq < maxsepsq || dsq < SQR(maxsep + s1ps2)) return false;
-        // Now check if p2 is farther
-        if (p1.normSq() > p2.normSq()) return true;
-        else {
-            s1ps2 *= p2.norm() / p1.norm();
-            return dsq >= SQR(maxsep + s1ps2);
-        }
-    }
+    { return MetricHelper<Euclidean>::TooLargeDist(p1,p2,s1ps2,dsq,maxsep,maxsepsq); }
 
 };
 
@@ -264,7 +307,8 @@ struct MetricHelper<Lens>
 template <>
 struct MetricHelper<Arc>
 {
-    static double DistSq(const Position<Sphere>& p1, const Position<Sphere>& p2)
+    static double DistSq(const Position<Sphere>& p1, const Position<Sphere>& p2,
+                         double& s1, double& s2)
     { return SQR(Dist(p1,p2)); }
 
     static double Dist(const Position<Sphere>& p1, const Position<Sphere>& p2)

@@ -578,48 +578,49 @@ def test_rlens():
     # Start with bin_slop == 0.  With only 100 lenses, this still runs very fast.
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl)
     source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
-    ng = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                metric='Rlens', bin_slop=0)
-    ng.process(lens_cat, source_cat)
+    ng0 = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                 metric='Rlens', bin_slop=0)
+    ng0.process(lens_cat, source_cat)
 
-    Rlens = ng.meanr
+    Rlens = ng0.meanr
     theory_gt = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
 
     print('Results with bin_slop = 0:')
-    print('ng.npairs = ',ng.npairs)
+    print('ng.npairs = ',ng0.npairs)
     print('true_npairs = ',true_npairs)
-    print('ng.xi = ',ng.xi)
-    print('ng.xi_im = ',ng.xi_im)
+    print('ng.xi = ',ng0.xi)
     print('true_gammat = ',true_gt)
-    print('ratio = ',ng.xi / true_gt)
-    print('diff = ',ng.xi - true_gt)
-    print('max diff = ',max(abs(ng.xi - true_gt)))
-    assert max(abs(ng.xi - true_gt)) < 2.e-6
-    assert max(abs(ng.xi_im)) < 1.e-6
+    print('ratio = ',ng0.xi / true_gt)
+    print('diff = ',ng0.xi - true_gt)
+    print('max diff = ',max(abs(ng0.xi - true_gt)))
+    assert max(abs(ng0.xi - true_gt)) < 2.e-6
+    print('ng.xi_im = ',ng0.xi_im)
+    assert max(abs(ng0.xi_im)) < 1.e-6
 
-    print('ng.xi = ',ng.xi)
+    print('ng.xi = ',ng0.xi)
     print('theory_gammat = ',theory_gt)
-    print('ratio = ',ng.xi / theory_gt)
-    print('diff = ',ng.xi - theory_gt)
-    print('max diff = ',max(abs(ng.xi - theory_gt)))
-    assert max(abs(ng.xi - theory_gt)) < 4.e-5
+    print('ratio = ',ng0.xi / theory_gt)
+    print('diff = ',ng0.xi - theory_gt)
+    print('max diff = ',max(abs(ng0.xi - theory_gt)))
+    assert max(abs(ng0.xi - theory_gt)) < 4.e-5
 
     # Now use a more normal value for bin_slop.
-    ng = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                metric='Rlens')
-    ng.process(lens_cat, source_cat)
-    Rlens = ng.meanr
+    ng1 = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=3,
+                                 metric='Rlens')
+    ng1.process(lens_cat, source_cat)
+    Rlens = ng1.meanr
     theory_gt = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
 
     print('Results with bin_slop = 1')
-    print('ng.npairs = ',ng.npairs)
-    print('ng.xi = ',ng.xi)
+    print('ng.npairs = ',ng1.npairs)
+    print('ng.xi = ',ng1.xi)
     print('theory_gammat = ',theory_gt)
-    print('ratio = ',ng.xi / theory_gt)
-    print('diff = ',ng.xi - theory_gt)
-    print('max diff = ',max(abs(ng.xi - theory_gt)))
-    assert max(abs(ng.xi - theory_gt)) < 4.e-5
-    assert max(abs(ng.xi_im)) < 1.e-6
+    print('ratio = ',ng1.xi / theory_gt)
+    print('diff = ',ng1.xi - theory_gt)
+    print('max diff = ',max(abs(ng1.xi - theory_gt)))
+    assert max(abs(ng1.xi - theory_gt)) < 4.e-5
+    print('ng.xi_im = ',ng1.xi_im)
+    assert max(abs(ng1.xi_im)) < 1.e-6
 
     # Check that we get the same result using the corr2 executable:
     if __name__ == '__main__':
@@ -630,12 +631,71 @@ def test_rlens():
         p = subprocess.Popen( [corr2_exe,"ng_rlens.yaml"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','ng_rlens.out'),names=True)
-        print('ng.xi = ',ng.xi)
+        print('ng.xi = ',ng1.xi)
         print('from corr2 output = ',corr2_output['gamT'])
-        print('ratio = ',corr2_output['gamT']/ng.xi)
-        print('diff = ',corr2_output['gamT']-ng.xi)
-        numpy.testing.assert_almost_equal(corr2_output['gamT'], ng.xi, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['gamX'], ng.xi_im, decimal=6)
+        print('ratio = ',corr2_output['gamT']/ng1.xi)
+        print('diff = ',corr2_output['gamT']-ng1.xi)
+        numpy.testing.assert_almost_equal(corr2_output['gamT'], ng1.xi, decimal=6)
+        numpy.testing.assert_almost_equal(corr2_output['gamX'], ng1.xi_im, decimal=6)
+
+    # Repeat with the sources being given as RA/Dec only.
+    ral, decl = treecorr.CelestialCoord.xyz_to_radec(xl,yl,zl)
+    ras, decs = treecorr.CelestialCoord.xyz_to_radec(xs,ys,zs)
+    lens_cat = treecorr.Catalog(ra=ral, dec=decl, ra_units='radians', dec_units='radians', r=rl)
+    source_cat = treecorr.Catalog(ra=ras, dec=decs, ra_units='radians', dec_units='radians',
+                                  g1=g1, g2=g2)
+
+    # Again, start with bin_slop == 0.
+    # This version should be identical to the 3D version.  When bin_slop != 0, it won't be
+    # exactly identical, since the tree construction will have different decisions along the
+    # way (since everything is at the same radius here), but the results are consistent.
+    ng0s = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                  metric='Rlens', bin_slop=0)
+    ng0s.process(lens_cat, source_cat)
+
+    Rlens = ng0s.meanr
+    theory_gt = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+
+    print('Results when sources have no radius information, first bin_slop=0')
+    print('ng.npairs = ',ng0s.npairs)
+    print('true_npairs = ',true_npairs)
+    print('ng.xi = ',ng0s.xi)
+    print('true_gammat = ',true_gt)
+    print('ratio = ',ng0s.xi / true_gt)
+    print('diff = ',ng0s.xi - true_gt)
+    print('max diff = ',max(abs(ng0s.xi - true_gt)))
+    assert max(abs(ng0s.xi - true_gt)) < 2.e-6
+    print('ng.xi_im = ',ng0s.xi_im)
+    assert max(abs(ng0s.xi_im)) < 1.e-6
+
+    print('ng.xi = ',ng0s.xi)
+    print('theory_gammat = ',theory_gt)
+    print('ratio = ',ng0s.xi / theory_gt)
+    print('diff = ',ng0s.xi - theory_gt)
+    print('max diff = ',max(abs(ng0s.xi - theory_gt)))
+    assert max(abs(ng0s.xi - theory_gt)) < 4.e-5
+
+    assert max(abs(ng0s.xi - ng0.xi)) < 1.e-7
+    assert max(abs(ng0s.xi_im - ng0.xi_im)) < 1.e-7
+    assert max(abs(ng0s.npairs - ng0.npairs)) < 1.e-7
+
+    # Now use a more normal value for bin_slop.
+    ng1s = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=3,
+                                  metric='Rlens')
+    ng1s.process(lens_cat, source_cat)
+    Rlens = ng1s.meanr
+    theory_gt = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+
+    print('Results with bin_slop = 1')
+    print('ng.npairs = ',ng1s.npairs)
+    print('ng.xi = ',ng1s.xi)
+    print('theory_gammat = ',theory_gt)
+    print('ratio = ',ng1s.xi / theory_gt)
+    print('diff = ',ng1s.xi - theory_gt)
+    print('max diff = ',max(abs(ng1s.xi - theory_gt)))
+    assert max(abs(ng1s.xi - theory_gt)) < 5.e-5  # Slightly higher error here.
+    print('ng.xi_im = ',ng1s.xi_im)
+    assert max(abs(ng1s.xi_im)) < 4.e-6
 
 
 if __name__ == '__main__':

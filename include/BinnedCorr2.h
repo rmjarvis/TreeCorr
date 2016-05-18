@@ -84,7 +84,7 @@ protected:
     // So keep track if we own the data and need to delete the memory ourselves.
     bool _owns_data;
 
-    // The different correlation functions have different numbers of arrays for xi, 
+    // The different correlation functions have different numbers of arrays for xi,
     // so encapsulate that difference with a templated XiData class.
     XiData<D1,D2> _xi;
     double* _meanr;
@@ -100,9 +100,9 @@ struct XiData // This works for NK, KK
 
     void new_data(int n) { xi = new double[n]; }
     void delete_data(int n) { delete [] xi; xi = 0; }
-    void copy(const XiData<D1,D2>& rhs,int n) 
+    void copy(const XiData<D1,D2>& rhs,int n)
     { for (int i=0; i<n; ++i) xi[i] = rhs.xi[i]; }
-    void add(const XiData<D1,D2>& rhs,int n) 
+    void add(const XiData<D1,D2>& rhs,int n)
     { for (int i=0; i<n; ++i) xi[i] += rhs.xi[i]; }
     void clear(int n)
     { for (int i=0; i<n; ++i) xi[i] = 0.; }
@@ -121,32 +121,32 @@ struct XiData<D1, GData> // This works for NG, KG
 {
     XiData(double* xi0, double* xi1, double*, double*) : xi(xi0), xi_im(xi1) {}
 
-    void new_data(int n) 
+    void new_data(int n)
     {
-        xi = new double[n]; 
-        xi_im = new double[n]; 
+        xi = new double[n];
+        xi_im = new double[n];
     }
-    void delete_data(int n) 
+    void delete_data(int n)
     {
-        delete [] xi; xi = 0; 
-        delete [] xi_im; xi_im = 0; 
+        delete [] xi; xi = 0;
+        delete [] xi_im; xi_im = 0;
     }
-    void copy(const XiData<D1,GData>& rhs,int n) 
-    { 
-        for (int i=0; i<n; ++i) xi[i] = rhs.xi[i]; 
-        for (int i=0; i<n; ++i) xi_im[i] = rhs.xi_im[i]; 
-    }
-    void add(const XiData<D1,GData>& rhs,int n) 
+    void copy(const XiData<D1,GData>& rhs,int n)
     {
-        for (int i=0; i<n; ++i) xi[i] += rhs.xi[i]; 
-        for (int i=0; i<n; ++i) xi_im[i] += rhs.xi_im[i]; 
+        for (int i=0; i<n; ++i) xi[i] = rhs.xi[i];
+        for (int i=0; i<n; ++i) xi_im[i] = rhs.xi_im[i];
+    }
+    void add(const XiData<D1,GData>& rhs,int n)
+    {
+        for (int i=0; i<n; ++i) xi[i] += rhs.xi[i];
+        for (int i=0; i<n; ++i) xi_im[i] += rhs.xi_im[i];
     }
     void clear(int n)
-    { 
+    {
         for (int i=0; i<n; ++i) xi[i] = 0.;
         for (int i=0; i<n; ++i) xi_im[i] = 0.;
     }
-    void write(std::ostream& os) const 
+    void write(std::ostream& os) const
     { os << xi[0]<<','<<xi_im[0]; }
 
     double* xi;
@@ -159,42 +159,42 @@ struct XiData<GData, GData>
     XiData(double* xi0, double* xi1, double* xi2, double* xi3) :
         xip(xi0), xip_im(xi1), xim(xi2), xim_im(xi3) {}
 
-    void new_data(int n) 
+    void new_data(int n)
     {
-        xip = new double[n]; 
-        xip_im = new double[n]; 
-        xim = new double[n]; 
-        xim_im = new double[n]; 
+        xip = new double[n];
+        xip_im = new double[n];
+        xim = new double[n];
+        xim_im = new double[n];
     }
-    void delete_data(int n) 
+    void delete_data(int n)
     {
-        delete [] xip; xip = 0; 
-        delete [] xip_im; xip_im = 0; 
-        delete [] xim; xim = 0; 
-        delete [] xim_im; xim_im = 0; 
+        delete [] xip; xip = 0;
+        delete [] xip_im; xip_im = 0;
+        delete [] xim; xim = 0;
+        delete [] xim_im; xim_im = 0;
     }
-    void copy(const XiData<GData,GData>& rhs,int n) 
-    { 
-        for (int i=0; i<n; ++i) xip[i] = rhs.xip[i]; 
-        for (int i=0; i<n; ++i) xip_im[i] = rhs.xip_im[i]; 
-        for (int i=0; i<n; ++i) xim[i] = rhs.xim[i]; 
-        for (int i=0; i<n; ++i) xim_im[i] = rhs.xim_im[i]; 
-    }
-    void add(const XiData<GData,GData>& rhs,int n) 
+    void copy(const XiData<GData,GData>& rhs,int n)
     {
-        for (int i=0; i<n; ++i) xip[i] += rhs.xip[i]; 
-        for (int i=0; i<n; ++i) xip_im[i] += rhs.xip_im[i]; 
-        for (int i=0; i<n; ++i) xim[i] += rhs.xim[i]; 
-        for (int i=0; i<n; ++i) xim_im[i] += rhs.xim_im[i]; 
+        for (int i=0; i<n; ++i) xip[i] = rhs.xip[i];
+        for (int i=0; i<n; ++i) xip_im[i] = rhs.xip_im[i];
+        for (int i=0; i<n; ++i) xim[i] = rhs.xim[i];
+        for (int i=0; i<n; ++i) xim_im[i] = rhs.xim_im[i];
+    }
+    void add(const XiData<GData,GData>& rhs,int n)
+    {
+        for (int i=0; i<n; ++i) xip[i] += rhs.xip[i];
+        for (int i=0; i<n; ++i) xip_im[i] += rhs.xip_im[i];
+        for (int i=0; i<n; ++i) xim[i] += rhs.xim[i];
+        for (int i=0; i<n; ++i) xim_im[i] += rhs.xim_im[i];
     }
     void clear(int n)
-    { 
+    {
         for (int i=0; i<n; ++i) xip[i] = 0.;
         for (int i=0; i<n; ++i) xip_im[i] = 0.;
         for (int i=0; i<n; ++i) xim[i] = 0.;
         for (int i=0; i<n; ++i) xim_im[i] = 0.;
     }
-    void write(std::ostream& os) const 
+    void write(std::ostream& os) const
     { os << xip[0]<<','<<xip_im[0]<<','<<xim[0]<<','<<xim_im; }
 
     double* xip;

@@ -33,7 +33,7 @@ BinnedCorr3<D1,D2,D3>::BinnedCorr3(
     double minrpar, double maxrpar,
     double* zeta0, double* zeta1, double* zeta2, double* zeta3,
     double* zeta4, double* zeta5, double* zeta6, double* zeta7,
-    double* meand1, double* meanlogd1, double* meand2, double* meanlogd2, 
+    double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
     double* meand3, double* meanlogd3, double* meanu, double* meanv,
     double* weight, double* ntri) :
     _minsep(minsep), _maxsep(maxsep), _nbins(nbins), _binsize(binsize), _b(b),
@@ -75,8 +75,8 @@ BinnedCorr3<D1,D2,D3>::BinnedCorr3(const BinnedCorr3<D1,D2,D3>& rhs, bool copy_d
     _minv(rhs._minv), _maxv(rhs._maxv), _nvbins(rhs._nvbins),
     _vbinsize(rhs._vbinsize), _bv(rhs._bv),
     _logminsep(rhs._logminsep), _halfminsep(rhs._halfminsep), _halfmind3(rhs._halfmind3),
-    _minsepsq(rhs._minsepsq), _maxsepsq(rhs._maxsepsq), 
-    _minusq(rhs._minusq), _maxusq(rhs._maxusq), 
+    _minsepsq(rhs._minsepsq), _maxsepsq(rhs._maxsepsq),
+    _minusq(rhs._minusq), _maxusq(rhs._maxusq),
     _minabsv(rhs._minabsv), _maxabsv(rhs._maxabsv),
     _minabsvsq(rhs._minabsvsq), _maxabsvsq(rhs._maxabsvsq),
     _bsq(rhs._bsq), _busq(rhs._busq), _bvsq(rhs._bvsq), _sqrttwobv(rhs._sqrttwobv),
@@ -134,7 +134,7 @@ void BinnedCorr3<D1,D2,D3>::clear()
     _coords = -1;
 }
 
-// BinnedCorr3::process3 is invalid if D1 != D2 or D3, so this helper struct lets us only call 
+// BinnedCorr3::process3 is invalid if D1 != D2 or D3, so this helper struct lets us only call
 // process3, process21 and process111 when D1 == D2 == D3
 template <int D1, int D2, int D3, int C, int M>
 struct ProcessHelper
@@ -157,12 +157,12 @@ struct ProcessHelper<D1,D1,D3,C,M>
 template <int D, int C, int M>
 struct ProcessHelper<D,D,D,C,M>
 {
-    static void process3(BinnedCorr3<D,D,D>& b, const Cell<D,C>* c123) 
+    static void process3(BinnedCorr3<D,D,D>& b, const Cell<D,C>* c123)
     { b.template process3<C,M>(c123); }
-    static void process21(BinnedCorr3<D,D,D>& b, const Cell<D,C>* c12, const Cell<D,C>* c3) 
+    static void process21(BinnedCorr3<D,D,D>& b, const Cell<D,C>* c12, const Cell<D,C>* c3)
     { b.template process21<true,C,M>(c12,c3); }
     static void process111(BinnedCorr3<D,D,D>& b, const Cell<D,C>* c1, const Cell<D,C>* c2,
-                           const Cell<D,C>* c3) 
+                           const Cell<D,C>* c3)
     { b.template process111<true,C,M>(c1,c2,c3); }
 };
 
@@ -177,7 +177,7 @@ void BinnedCorr3<D1,D2,D3>::process(const Field<D1,C>& field, bool dots)
     dbg<<"zeta[0] = "<<_zeta<<std::endl;
     Assert(n1 > 0);
 #ifdef _OPENMP
-#pragma omp parallel 
+#pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
         BinnedCorr3<D1,D2,D3> bc3(*this,false);
@@ -267,7 +267,7 @@ void BinnedCorr3<D1,D2,D3>::process(const Field<D1,C>& field1, const Field<D2,C>
 #endif
 
 #ifdef _OPENMP
-#pragma omp parallel 
+#pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
         BinnedCorr3<D1,D2,D3> bc3(*this,false);
@@ -324,10 +324,10 @@ void BinnedCorr3<D1,D2,D3>::process(const Field<D1,C>& field1, const Field<D2,C>
 
     Assert(c123->getLeft());
     Assert(c123->getRight());
-    process3<C,M>(c123->getLeft()); 
-    process3<C,M>(c123->getRight()); 
-    process21<true,C,M>(c123->getLeft(),c123->getRight()); 
-    process21<true,C,M>(c123->getRight(),c123->getLeft()); 
+    process3<C,M>(c123->getLeft());
+    process3<C,M>(c123->getRight());
+    process21<true,C,M>(c123->getLeft(),c123->getRight());
+    process21<true,C,M>(c123->getRight(),c123->getLeft());
 }
 
 // Does all triangles with two points in c12 and 3rd point in c3
@@ -463,7 +463,7 @@ struct SortHelper
             return true;
         }
 
-        // If the user sets minu > 0, then we can abort if no possible triangle can have 
+        // If the user sets minu > 0, then we can abort if no possible triangle can have
         // u = d3/d2 as large as this.
         // The maximum possible u from our triangle is (d3+s1+s2) / (d2-s1-s3).
         // Abort if (d3+s1+s2) / (d2-s1-s3) < minu
@@ -490,7 +490,7 @@ struct SortHelper
 
         // If the user sets minv, maxv to be near 0, then we can abort if no possible triangle
         // can have v = (d1-d2)/d3 as small in absolute value as either of these.
-        // |v| is |d1-d2|/d3.  The minimum numerator is a bit non-obvious.  
+        // |v| is |d1-d2|/d3.  The minimum numerator is a bit non-obvious.
         // The easy part is from c1, c2.  These can shrink |d1-d2| by s1+s2.
         // The edge of c3 can shrink |d1-d2| by at most another s3, assuming d3 < d2, so the
         // angle at c3 is acute.  i.e. it's not 2s3 as one might naively assume.
@@ -587,8 +587,8 @@ struct SortHelper<D,D,D,true,C,M>
         // Probably if d2 + s1+s3 < minsep, we can stop, but also check d3.
         // If one of these don't pass, then it's pretty unlikely that d1 will, so don't bother
         // checking that one.
-        if (d2sq < minsepsq && s1+s3 < minsep && s1+s2 < minsep && 
-            (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3)) && 
+        if (d2sq < minsepsq && s1+s3 < minsep && s1+s2 < minsep &&
+            (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3)) &&
             (s1+s2 == 0. || d3sq < SQR(minsep - s1-s2)) ) {
             xdbg<<"d2 cannot be as large as minsep\n";
             return true;
@@ -600,13 +600,13 @@ struct SortHelper<D,D,D,true,C,M>
         // And again, it's pretty unlikely that d3 needs to be checked if one of the first
         // two don't pass.
         if (d2sq >= maxsepsq &&
-            (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3)) && 
+            (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3)) &&
             (s2+s3 == 0. || d1sq >= SQR(maxsep + s2+s3))) {
             xdbg<<"d2 cannot be as small as maxsep\n";
             return true;
         }
 
-        // If the user sets minu > 0, then we can abort if no possible triangle can have 
+        // If the user sets minu > 0, then we can abort if no possible triangle can have
         // u = d3/d2 as large as this.
         // The maximum possible u from our triangle is (d3+s1+s2) / (d2-s1-s3).
         // Abort if (d3+s1+s2) / (d2-s1-s3) < minu
@@ -713,14 +713,14 @@ void BinnedCorr3<D1,D2,D3>::process111(
     if (SortHelper<D1,D2,D3,sort,C,M>::stop111(d1sq,d2sq,d3sq,d2,s1,s2,s3,
                                                _minsep,_minsepsq,_maxsep,_maxsepsq,
                                                _minu,_minusq,_maxu,_maxusq,
-                                               _minabsv,_minabsvsq,_maxabsv,_maxabsvsq)) 
+                                               _minabsv,_minabsvsq,_maxabsv,_maxabsvsq))
         return;
 
     // For 1,3 decide whether to split on the noraml criteria with s1+s3/d2 < b
     bool split1 = false, split3 = false;
     CalcSplitSq(split1,split3,*c1,*c3,d2sq,s1+s3,_bsq);
 
-    // For 2, split if it's possible for d3 to become larger than the largest possible d2 or 
+    // For 2, split if it's possible for d3 to become larger than the largest possible d2 or
     // if d1 could become smaller than the current smallest possible d2.
     // i.e. if d3 + s1 + s2 > d2 + s1 + s3 => d3 > d2 - s2 + s3
     //      or d1 - s2 - s3 < d2 - s1 - s3 => d1 < d2 + s2 - s1
@@ -738,14 +738,14 @@ void BinnedCorr3<D1,D2,D3>::process111(
         // since we don't actually have a valid u here.
         // Split the largest one at least.
         if (s1 > s2) {
-            if (s1 > s3) 
+            if (s1 > s3)
                 split1 = true;
-            else if (s3 > 0) 
+            else if (s3 > 0)
                 split3 = true;
         } else {
-            if (s2 > s3) 
+            if (s2 > s3)
                 split2 = true;
-            else if (s3 > 0) 
+            else if (s3 > 0)
                 split3 = true;
         }
         // Also split any that can directly lead to a swap of two that are out of order
@@ -784,14 +784,14 @@ void BinnedCorr3<D1,D2,D3>::process111(
     // The biggest change in v from moving c3 is in theta:
     // dv = |dv/dtheta| dtheta = |sin(theta)|/cos(phi) (s3/z)
     // dv < b -> s3/z |sin(theta)|/cos(phi) < b
-    // 
+    //
     // v >= cos(theta), so sqrt(1-v^2) <= sin(theta)
     // Also, z cos(phi) >= 3/4 d2  (where the 3/4 is the case where theta=90, phi=30 deg.)
     //
     // So s3 * sqrt(1-v^2) / (0.75 d2) < b
     // s3/d2 < 0.75 b / sqrt(1-v^2)
     //
-    // In the limit as v -> 1, the triangle collapses, and the differential doesn't 
+    // In the limit as v -> 1, the triangle collapses, and the differential doesn't
     // really work (theta == 0).  So here we calculate what triangle could happen from
     // c3 moving by up to a distance of s3:
     // dv = 1-cos(dtheta) = 1-cos(s3/z) ~= 1/2(s3/z)^2 < 1/2(s3/d2)^2
@@ -800,7 +800,7 @@ void BinnedCorr3<D1,D2,D3>::process111(
 
     // These may be set here and then used below, but only if we aren't splitting already.
     // Initialize them to zero to avoid compiler warnings.
-    double d1=0.,d3=0.,v=0.,onemvsq=0.; 
+    double d1=0.,d3=0.,v=0.,onemvsq=0.;
 
     if (!(split1 && split2 && split3)) {
         d1 = sqrt(d1sq);
@@ -822,7 +822,7 @@ void BinnedCorr3<D1,D2,D3>::process111(
     //
     // These two cells mostly serve to twist the line d3.
     // We make the approximation that the angle bisector hits d3 near the middle.
-    // Then dtheta = (s1+s2)/(d3/2).  
+    // Then dtheta = (s1+s2)/(d3/2).
     // Then from the same kind of derivation as above, we get
     // |sin(theta)|/cos(phi) 2(s1+s2)/d3 < b
     // (s1+s2)/d3 < sqrt(3)/4 b / sqrt(1-v^2)
@@ -950,7 +950,7 @@ void BinnedCorr3<D1,D2,D3>::process111(
                     // Rounding error can allow this.
                     XAssert((u-_minu)/_ubinsize - ku < 1.e-10);
                     Assert(ku==_nubins);
-                    --ku; 
+                    --ku;
                 }
                 Assert(ku >= 0);
                 Assert(ku < _nubins);
@@ -960,7 +960,7 @@ void BinnedCorr3<D1,D2,D3>::process111(
                     // Rounding error can allow this.
                     XAssert((v-_minv)/_vbinsize - kv < 1.e-10);
                     Assert(kv==_nvbins);
-                    --kv; 
+                    --kv;
                 }
                 Assert(kv >= 0);
                 Assert(kv < _nvbins);
@@ -987,7 +987,7 @@ struct DirectHelper<NData,NData,NData>
 {
     template <int C, int M>
     static void ProcessZeta(
-        const Cell<NData,C>& , const Cell<NData,C>& , const Cell<NData,C>&, 
+        const Cell<NData,C>& , const Cell<NData,C>& , const Cell<NData,C>&,
         const double , const double , const double ,
         ZetaData<NData,NData,NData>& , int )
     {}
@@ -1001,8 +1001,8 @@ struct DirectHelper<KData,KData,KData>
         const Cell<KData,C>& c1, const Cell<KData,C>& c2, const Cell<KData,C>& c3,
         const double , const double , const double ,
         ZetaData<KData,KData,KData>& zeta, int index)
-    { 
-        zeta.zeta[index] += c1.getData().getWK() * c2.getData().getWK() * c3.getData().getWK(); 
+    {
+        zeta.zeta[index] += c1.getData().getWK() * c2.getData().getWK() * c3.getData().getWK();
         xdbg<<"            zeta -> "<<zeta.zeta[index]<<std::endl;
     }
 };
@@ -1170,7 +1170,7 @@ void* BuildNNNCorr(double minsep, double maxsep, int nbins, double binsize, doub
                    double minv, double maxv, int nvbins, double vbinsize, double bv,
                    double minrpar, double maxrpar,
                    double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                   double* meand3, double* meanlogd3, double* meanu, double* meanv, 
+                   double* meand3, double* meanlogd3, double* meanu, double* meanv,
                    double* weight, double* ntri)
 {
     dbg<<"Start BuildNNNCorr\n";
@@ -1180,7 +1180,7 @@ void* BuildNNNCorr(double minsep, double maxsep, int nbins, double binsize, doub
             minv, maxv, nvbins, vbinsize, bv,
             minrpar, maxrpar,
             0, 0, 0, 0, 0, 0, 0, 0,
-            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, 
+            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
             weight, ntri));
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
@@ -1202,7 +1202,7 @@ void* BuildKKKCorr(double minsep, double maxsep, int nbins, double binsize, doub
             minv, maxv, nvbins, vbinsize, bv,
             minrpar, maxrpar,
             zeta, 0, 0, 0, 0, 0, 0, 0,
-            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv, 
+            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
             weight, ntri));
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
@@ -1465,7 +1465,7 @@ void ProcessCrossNNN(void* corr, void* field1, void* field2, void* field3, int d
     }
 }
 
-void ProcessCrossKKK(void* corr, void* field1, void* field2, void* field3, int dots, 
+void ProcessCrossKKK(void* corr, void* field1, void* field2, void* field3, int dots,
                      int coord, int metric)
 {
     dbg<<"Start ProcessCrossKKK\n";

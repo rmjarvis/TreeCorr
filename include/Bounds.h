@@ -21,7 +21,7 @@ template <int M>
 class Bounds;
 
 template <>
-class Bounds<Flat> 
+class Bounds<Flat>
 {
     // Basically just a rectangle.  This is used to keep track of the bounds of
     // catalogs and fields.  You can set values, but generally you just keep
@@ -93,7 +93,7 @@ public:
         _defined(1), _xmin(pos.getX()), _xmax(pos.getX()),
         _ymin(pos.getY()), _ymax(pos.getY()),
         _zmin(pos.getZ()), _zmax(pos.getZ()) {}
-    Bounds() : 
+    Bounds() :
         _defined(0), _xmin(0.), _xmax(0.), _ymin(0.), _ymax(0.), _zmin(0.), _zmax(0.) {}
     ~Bounds() {}
     double getXMin() const { return _xmin; }
@@ -123,20 +123,20 @@ public:
     }
 
     void write(std::ostream& fout) const
-    { 
-        fout << _xmin << ' ' << _xmax << ' ' << _ymin << ' ' << _ymax << 
-            ' ' << _zmin << ' ' << _zmax << ' '; 
+    {
+        fout << _xmin << ' ' << _xmax << ' ' << _ymin << ' ' << _ymax <<
+            ' ' << _zmin << ' ' << _zmax << ' ';
     }
     void read(std::istream& fin)
     { fin >> _xmin >> _xmax >> _ymin >> _ymax >> _zmin >> _zmax; _defined = true; }
 
     int getSplit()
-    { 
+    {
         double xrange = _xmax-_xmin;
         double yrange = _ymax-_ymin;
         double zrange = _zmax-_zmin;
         return yrange > xrange ?
-            ( zrange > yrange ? 2 : 1 ) : 
+            ( zrange > yrange ? 2 : 1 ) :
             ( zrange > xrange ? 2 : 0 );
     }
 

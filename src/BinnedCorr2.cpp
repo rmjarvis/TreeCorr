@@ -75,7 +75,7 @@ BinnedCorr2<D1,D2>::~BinnedCorr2()
     }
 }
 
-// BinnedCorr2::process2 is invalid if D1 != D2, so this helper struct lets us only call 
+// BinnedCorr2::process2 is invalid if D1 != D2, so this helper struct lets us only call
 // process2 when D1 == D2.
 template <int D1, int D2, int C, int M>
 struct ProcessHelper
@@ -86,7 +86,7 @@ struct ProcessHelper
 template <int D, int C, int M>
 struct ProcessHelper<D,D,C,M>
 {
-    static void process2(BinnedCorr2<D,D>& b, const Cell<D,C>& c12) 
+    static void process2(BinnedCorr2<D,D>& b, const Cell<D,C>& c12)
     { b.template process2<C,M>(c12); }
 };
 
@@ -111,7 +111,7 @@ void BinnedCorr2<D1,D2>::process(const Field<D1,C>& field, bool dots)
     xdbg<<"field has "<<n1<<" top level nodes\n";
     Assert(n1 > 0);
 #ifdef _OPENMP
-#pragma omp parallel 
+#pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
         BinnedCorr2<D1,D2> bc2(*this,false);
@@ -162,7 +162,7 @@ void BinnedCorr2<D1,D2>::process(const Field<D1,C>& field1, const Field<D2,C>& f
     Assert(n2 > 0);
 
 #ifdef _OPENMP
-#pragma omp parallel 
+#pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
         BinnedCorr2<D1,D2> bc2(*this,false);
@@ -201,7 +201,7 @@ void BinnedCorr2<D1,D2>::process(const Field<D1,C>& field1, const Field<D2,C>& f
 template <int D1, int D2> template <int C, int M>
 void BinnedCorr2<D1,D2>::processPairwise(
     const SimpleField<D1,C>& field1, const SimpleField<D2,C>& field2, bool dots)
-{ 
+{
     Assert(_coords == -1 || _coords == C);
     _coords = C;
     const long nobj = field1.getNObj();
@@ -214,7 +214,7 @@ void BinnedCorr2<D1,D2>::processPairwise(
     const long sqrtn = long(sqrt(double(nobj)));
 
 #ifdef _OPENMP
-#pragma omp parallel 
+#pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
         BinnedCorr2<D1,D2> bc2(*this,false);
@@ -440,7 +440,7 @@ void BinnedCorr2<D1,D2>::directProcess11(
 
     XAssert(_binsize != 0.);
     const int k = int((logr - _logminsep)/_binsize);
-    XAssert(k >= 0); 
+    XAssert(k >= 0);
     XAssert(k < _nbins);
 
     double nn = double(c1.getN()) * double(c2.getN());

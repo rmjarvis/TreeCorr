@@ -17,8 +17,8 @@
 
 #include "OldCell.h"
 
-struct NPairCellData : 
-    public NCellData 
+struct NPairCellData :
+    public NCellData
 {
     // NPairCellData is a structure that keeps track of all the accumulated
     // data for a given set of NCell pairs.
@@ -31,15 +31,15 @@ struct NPairCellData :
     NPairCellData(const CellType& c1, const CellType& c2,
                   const double d, const std::complex<double>& r);
 
-    void operator+=(const NPairCellData& rhs) 
-    { 
+    void operator+=(const NPairCellData& rhs)
+    {
         double w=rhs.n1n2;
         this->pos+=rhs.pos*w; n1n2+=w;
         sover2+=rhs.sover2*w;
         Assert(imag(rhs.sover2) >= 0.);
     }
 
-    void changeSumToAve() 
+    void changeSumToAve()
     {
         if(n1n2 > 0.) {
             this->pos/=n1n2; sover2/=n1n2;
@@ -55,8 +55,8 @@ struct NPairCellData :
     std::complex<double> sover2;
 };
 
-struct PairCellData : 
-    public NPairCellData 
+struct PairCellData :
+    public NPairCellData
 {
     // PairCellData is a structure that keeps track of all the accumulated
     // data for a given set of Cell pairs.
@@ -68,18 +68,18 @@ struct PairCellData :
     PairCellData(const Cell& c1, const Cell& c2,
                  const double d, const std::complex<double>& r);
 
-    void operator+=(const PairCellData& rhs) 
-    { 
+    void operator+=(const PairCellData& rhs)
+    {
         NPairCellData::operator+=(rhs);
         w1w2+=rhs.w1w2;
         e1e2+=rhs.e1e2;
         e1e2c+=rhs.e1e2c;
     }
 
-    void changeSumToAve() 
+    void changeSumToAve()
     {
         if(w1w2 > 0.) {
-            this->pos/=w1w2; 
+            this->pos/=w1w2;
             sover2/=w1w2;
             Assert(imag(sover2) >= 0.);
             double abssover2 = std::abs(sover2);
@@ -124,17 +124,17 @@ inline PairCellData::PairCellData(
 
     // make it so 2 is _above_ 1 (y2 > y1)
     if (imag(r) < 0.) {
-        e1e2c = conj(e1e2c); 
+        e1e2c = conj(e1e2c);
         //sover2 = -sover2; This already done in making NPairCellData
     }
     Assert(imag(sover2) >= 0.);
 }
 
 template <class DataType>
-class GenPairCell 
+class GenPairCell
 {
 
-    // 
+    //
     // A PairCell is a set of pairs of regular Cells (or NCells).
     // It is characterized by a centroid (the centroid of the midpoints
     // between the various pairs of Cells), two sizes (see below), and
@@ -147,21 +147,21 @@ class GenPairCell
     // (the max dev from _its_ centroid, not the overall centroid), then
     // size is the maximum size of any of the bins.
     //
-    // 
+    //
 
 public:
 
     GenPairCell(int nthetabins, double minsize,
                 std::vector<DataType>& pairdata, SplitMethod sm=MEAN,
                 size_t start=0, size_t end=0);
-    ~GenPairCell() 
+    ~GenPairCell()
     { if(left) delete left; if(right) delete right; }
 
     const Position2D& getMeanPos() const { return meanpos; }
     double getMeanD3() const { return meand3; }
     int getNBins() const {return data.size(); }
 
-    const DataType& getData(size_t i) const 
+    const DataType& getData(size_t i) const
     { Assert(i<data.size()); return data[i]; }
 
     double getSize() const { return size; }
@@ -178,7 +178,7 @@ public:
         size_t start=0, size_t end=0) const;
 
     int countLeaves() const { return DoCountLeaves(this); }
-    std::vector<const GenPairCell*> getAllLeaves() const 
+    std::vector<const GenPairCell*> getAllLeaves() const
     { return DoGetAllLeaves(this); }
 
     typedef Position2D PosType;
@@ -199,11 +199,11 @@ protected:
     const GenPairCell* right;
 };
 
-template <class DataType> 
+template <class DataType>
 inline GenPairCell<DataType>::GenPairCell(
     int nthetabins, double minsize, std::vector<DataType>& vdata,
-    SplitMethod sm, size_t start, size_t end) : 
-    meanpos(0.,0.),meand3(0.),data(nthetabins), size(0.), sizesq(0.), 
+    SplitMethod sm, size_t start, size_t end) :
+    meanpos(0.,0.),meand3(0.),data(nthetabins), size(0.), sizesq(0.),
     allsize(0.), ntot(0), left(0),right(0)
 {
     if (end == 0) end = vdata.size();
@@ -275,7 +275,7 @@ inline GenPairCell<DataType>::GenPairCell(
 
             left = new GenPairCell(nthetabins,minsize,vdata,sm,start,mid);
             right = new GenPairCell(nthetabins,minsize,vdata,sm,mid,end);
-            if (!left || !right) 
+            if (!left || !right)
                 myerror("out of memory - cannot create new PairCell");
         }
     }

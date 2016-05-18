@@ -74,7 +74,7 @@ struct ProjectHelper<Sphere>
         // In this function we just project the shear at p2.
         // This will be used by both NG and GG projections below.
 
-        // We need the angle at each point between north and the line connecting the 
+        // We need the angle at each point between north and the line connecting the
         // two points.
         //
         // Use the spherical law of cosines:
@@ -88,7 +88,7 @@ struct ProjectHelper<Sphere>
         //   A = angle between c and north at p2
         //   B = angle between c and north at p1
         //   C = angle between meridians = ra1 - ra2
-        // 
+        //
 
         // cos(C) = cos(ra1 - ra2) = cos(ra1)cos(ra2) + sin(ra1)sin(ra2)
         //        = (x1/cos(dec1)) (x2/cos(dec2)) + (y1/cos(dec1)) (y2/cos(dec2))
@@ -176,7 +176,7 @@ struct ProjectHelper<Sphere>
         //               = exp(-iPi) * exp(2iB)
         //               = - exp(2iB)
 
-        std::complex<double> expm2ibeta(-cos2B,-sin2B); 
+        std::complex<double> expm2ibeta(-cos2B,-sin2B);
         g1 *= expm2ibeta;
     }
 

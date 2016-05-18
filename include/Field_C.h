@@ -12,7 +12,7 @@
  *    and/or other materials provided with the distribution.
  */
 
-extern void* BuildGFieldFlat(double* x, double* y, double* g1, double* g2, 
+extern void* BuildGFieldFlat(double* x, double* y, double* g1, double* g2,
                              double* w, double* wpos, long nobj,
                              double minsize, double maxsize,
                              int sm_int, int maxtop);
@@ -29,11 +29,11 @@ extern void* BuildKFieldFlat(double* x, double* y, double* k,
                              double* w, double* wpos, long nobj,
                              double minsize, double maxsize,
                              int sm_int, int maxtop);
-extern void* BuildKField3D(double* x, double* y, double* z, double* k, 
+extern void* BuildKField3D(double* x, double* y, double* z, double* k,
                            double* w, double* wpos, long nobj,
                            double minsize, double maxsize,
                            int sm_int, int maxtop);
-extern void* BuildKFieldSphere(double* x, double* y, double* z, double* k, 
+extern void* BuildKFieldSphere(double* x, double* y, double* z, double* k,
                                double* w, double* wpos, long nobj,
                                double minsize, double maxsize,
                                int sm_int, int maxtop);
@@ -42,11 +42,11 @@ extern void* BuildNFieldFlat(double* x, double* y,
                              double* w, double* wpos, long nobj,
                              double minsize, double maxsize,
                              int sm_int, int maxtop);
-extern void* BuildNField3D(double* x, double* y, double* z, 
+extern void* BuildNField3D(double* x, double* y, double* z,
                            double* w, double* wpos, long nobj,
                            double minsize, double maxsize,
                            int sm_int, int maxtop);
-extern void* BuildNFieldSphere(double* x, double* y, double* z, 
+extern void* BuildNFieldSphere(double* x, double* y, double* z,
                                double* w, double* wpos, long nobj,
                                double minsize, double maxsize,
                                int sm_int, int maxtop);

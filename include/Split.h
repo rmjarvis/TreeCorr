@@ -17,10 +17,9 @@
 
 #include "Cell.h"
 
-template <class CellType1, class CellType2>
 inline void CalcSplit(
-    bool& split1, bool& split2, const CellType1& c1,
-    const CellType2& c2, const double d, const double s1ps2, const double b)
+    bool& split1, bool& split2, const double d,
+    const double s1, const double s2, const double b)
 {
     // This function determines whether either input cell needs to be
     // split.  It is written as a template so that the second cell
@@ -63,11 +62,9 @@ inline void CalcSplit(
     // that this value is close enough to optimal for most
     // datasets.
 
-    const double s1 = c1.getSize();
-    const double s2 = c2.getSize();
     if (s2 > s1) {
         // Make s1 the larger value.
-        CalcSplit(split2,split1,c2,c1,d,b);
+        CalcSplit(split2,split1,d,s2,s1,b);
     } else if (s1 > 2.*s2) {
         // If one cell is more than 2x the size of the other, only split that one.
         if (!split1) {
@@ -80,49 +77,47 @@ inline void CalcSplit(
             split2 = s2 > maxs;
             if (!split1 && !split2) {
                 // If both are small, need to check the sum.
-                if (s1ps2 > maxs) {
+                if (s1+s2 > maxs) {
                     double modmax = splitfactor*maxs;
                     split1 = true;
                     split2 = (s2 > modmax);
                 }
             }
         } else if (split1) {
-            const double s2 = c2.getSize();
             const double maxs = b*d;
             split2 = s2 > maxs;
         } else if (split2) {
-            const double s1 = c1.getSize();
             const double maxs = b*d;
             split1 = s1 > maxs;
         } // else do nothing.
     }
 }
 
-template <class CellType1, class CellType2>
 inline void CalcSplitSq(
-    bool& split1, bool& split2, const CellType1& c1,
-    const CellType2& c2, const double dsq, const double s1ps2, const double bsq)
+    bool& split1, bool& split2, const double dsq,
+    const double s1, const double s2, const double bsq)
 {
     // The same as above, but when we know the distance squared rather
     // than just the distance.  We get some speed up by saving the
     // square roots in some parts of the code.
     const double splitfactorsq = 0.3422;
-    const double s1sq = c1.getSizeSq();
-    const double s2sq = c2.getSizeSq();
-    if (s2sq > s1sq) {
+    if (s2 > s1) {
         // Make s1 the larger value.
-        CalcSplitSq(split2,split1,c2,c1,dsq,s1ps2,bsq);
-    } else if (s1sq > 4.*s2sq) {
+        CalcSplitSq(split2,split1,dsq,s2,s1,bsq);
+    } else if (s1 > 2.*s2) {
         // If one cell is more than 2x the size of the other, only split that one.
         if (!split1) {
-            split1 = s1sq > bsq*dsq;
+            split1 = s1*s1 > bsq*dsq;
         } // else do nothing.
     } else {
         if (!split1) {
             const double maxssq = bsq*dsq;
+            const double s1sq = s1*s1;
+            const double s2sq = s2*s2;
             split1 = s1sq > maxssq;
             split2 = s2sq > maxssq;
             if (!split1 && !split2) {
+                const double s1ps2 = s1+s2;
                 // If both are small, need to check the sum.
                 if (s1ps2*s1ps2 > maxssq) {
                     double modmax = splitfactorsq*maxssq;
@@ -131,13 +126,11 @@ inline void CalcSplitSq(
                 }
             }
         } else if (split1) {
-            const double s2sq = c2.getSizeSq();
             const double maxssq = bsq*dsq;
-            split2 = s2sq > maxssq;
+            split2 = s2*s2 > maxssq;
         } else if (split2) {
-            const double s1sq = c1.getSizeSq();
             const double maxssq = bsq*dsq;
-            split1 = s1sq > maxssq;
+            split1 = s1*s1 > maxssq;
         } // else do nothing.
     }
 }

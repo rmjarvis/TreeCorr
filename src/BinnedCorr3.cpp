@@ -724,7 +724,7 @@ void BinnedCorr3<D1,D2,D3>::process111(
 
     // For 1,3 decide whether to split on the noraml criteria with s1+s3/d2 < b
     bool split1 = false, split3 = false;
-    CalcSplitSq(split1,split3,*c1,*c3,d2sq,s1+s3,_bsq);
+    CalcSplitSq(split1,split3,d2sq,s1,s3,_bsq);
 
     // For 2, split if it's possible for d3 to become larger than the largest possible d2 or
     // if d1 could become smaller than the current smallest possible d2.
@@ -765,7 +765,7 @@ void BinnedCorr3<D1,D2,D3>::process111(
     // u = d3 / d2
     // du = d(d3) / d2 = (s1+s2)/d2
     // du < bu -> same split calculation as before, but with d2, not d3, and _bu instead of _b.
-    CalcSplitSq(split1,split2,*c1,*c2,d2sq,s1+s2,_busq);
+    CalcSplitSq(split1,split2,d2sq,s1,s2,_busq);
 
     xdbg<<"u: split = "<<split1<<" "<<split2<<" "<<split3<<std::endl;
 
@@ -841,7 +841,7 @@ void BinnedCorr3<D1,D2,D3>::process111(
     if (!split2) split2 = s2 > 0.5*_sqrttwobv * d3;
 
     if (!(split1 && split2) && onemvsq > 1.e-2) {
-        CalcSplitSq(split1,split2,*c1,*c2,d3sq,s1+s2,_bvsq * 3./16. / onemvsq);
+        CalcSplitSq(split1,split2,d3sq,s1,s2,_bvsq * 3./16. / onemvsq);
     }
 
     xdbg<<"v: split = "<<split1<<" "<<split2<<" "<<split3<<std::endl;

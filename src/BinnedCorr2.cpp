@@ -108,7 +108,7 @@ void BinnedCorr2<D1,D2>::process(const Field<D1,C>& field, bool dots)
     Assert(_coords == -1 || _coords == C);
     _coords = C;
     const long n1 = field.getNTopLevel();
-    xdbg<<"field has "<<n1<<" top level nodes\n";
+    dbg<<"field has "<<n1<<" top level nodes\n";
     Assert(n1 > 0);
 #ifdef _OPENMP
 #pragma omp parallel
@@ -156,8 +156,8 @@ void BinnedCorr2<D1,D2>::process(const Field<D1,C>& field1, const Field<D2,C>& f
     _coords = C;
     const long n1 = field1.getNTopLevel();
     const long n2 = field2.getNTopLevel();
-    xdbg<<"field1 has "<<n1<<" top level nodes\n";
-    xdbg<<"field2 has "<<n2<<" top level nodes\n";
+    dbg<<"field1 has "<<n1<<" top level nodes\n";
+    dbg<<"field2 has "<<n2<<" top level nodes\n";
     Assert(n1 > 0);
     Assert(n2 > 0);
 
@@ -271,7 +271,7 @@ void BinnedCorr2<D1,D2>::process2(const Cell<D1,C>& c12)
 template <int D1, int D2> template <int C, int M>
 void BinnedCorr2<D1,D2>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2)
 {
-    //dbg<<"Start process11 for "<<c1.getPos()<<",  "<<c2.getPos()<<std::endl;
+    //dbg<<"Start process11 for "<<c1.getPos()<<",  "<<c2.getPos()<<"   ";
     //dbg<<"w = "<<c1.getW()<<", "<<c2.getW()<<std::endl;
     if (c1.getW() == 0. || c2.getW() == 0.) return;
 
@@ -292,8 +292,9 @@ void BinnedCorr2<D1,D2>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2)
 
     // See if need to split:
     bool split1=false, split2=false;
-    CalcSplitSq(split1,split2,c1,c2,dsq,s1ps2,_bsq);
-    //dbg<<"s1ps2 / d = "<<s1ps2 / sqrt(dsq)<<", b = "<<_b<<std::endl;
+    CalcSplitSq(split1,split2,dsq,s1,s2,_bsq);
+    //dbg<<"dsq = "<<dsq<<", s1ps2 = "<<s1ps2<<"  ";
+    //dbg<<"s1ps2 / d = "<<s1ps2 / sqrt(dsq)<<", b = "<<_b<<"  ";
     //dbg<<"split = "<<split1<<','<<split2<<std::endl;
 
     if (split1) {
@@ -458,6 +459,7 @@ void BinnedCorr2<D1,D2>::directProcess11(
     _meanr[k] += ww * r;
     _meanlogr[k] += ww * logr;
     _weight[k] += ww;
+    //dbg<<"n,w = "<<nn<<','<<ww<<" ==>  "<<_npairs[k]<<','<<_weight[k]<<std::endl;
 
     DirectHelper<D1,D2>::template ProcessXi<C,M>(c1,c2,dsq,_xi,k);
 }

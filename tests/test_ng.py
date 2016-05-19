@@ -605,22 +605,22 @@ def test_rlens():
     assert max(abs(ng0.xi - theory_gt)) < 4.e-5
 
     # Now use a more normal value for bin_slop.
-    ng1 = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=3,
-                                 metric='Rlens')
+    ng1 = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                 metric='Rlens', bin_slop=0.5)
     ng1.process(lens_cat, source_cat)
     Rlens = ng1.meanr
     theory_gt = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
 
-    print('Results with bin_slop = 1')
+    print('Results with bin_slop = 0.5')
     print('ng.npairs = ',ng1.npairs)
     print('ng.xi = ',ng1.xi)
     print('theory_gammat = ',theory_gt)
     print('ratio = ',ng1.xi / theory_gt)
     print('diff = ',ng1.xi - theory_gt)
     print('max diff = ',max(abs(ng1.xi - theory_gt)))
-    assert max(abs(ng1.xi - theory_gt)) < 4.e-5
+    assert max(abs(ng1.xi - theory_gt)) < 5.e-5
     print('ng.xi_im = ',ng1.xi_im)
-    assert max(abs(ng1.xi_im)) < 1.e-6
+    assert max(abs(ng1.xi_im)) < 3.e-6
 
     # Check that we get the same result using the corr2 executable:
     if __name__ == '__main__':
@@ -680,22 +680,22 @@ def test_rlens():
     assert max(abs(ng0s.npairs - ng0.npairs)) < 1.e-7
 
     # Now use a more normal value for bin_slop.
-    ng1s = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=3,
-                                  metric='Rlens')
+    ng1s = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                  metric='Rlens', bin_slop=0.5)
     ng1s.process(lens_cat, source_cat)
     Rlens = ng1s.meanr
     theory_gt = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
 
-    print('Results with bin_slop = 1')
+    print('Results with bin_slop = 0.5')
     print('ng.npairs = ',ng1s.npairs)
     print('ng.xi = ',ng1s.xi)
     print('theory_gammat = ',theory_gt)
     print('ratio = ',ng1s.xi / theory_gt)
     print('diff = ',ng1s.xi - theory_gt)
     print('max diff = ',max(abs(ng1s.xi - theory_gt)))
-    assert max(abs(ng1s.xi - theory_gt)) < 5.e-5  # Slightly higher error here.
+    assert max(abs(ng1s.xi - theory_gt)) < 5.e-5
     print('ng.xi_im = ',ng1s.xi_im)
-    assert max(abs(ng1s.xi_im)) < 4.e-6
+    assert max(abs(ng1s.xi_im)) < 3.e-6
 
 
 if __name__ == '__main__':

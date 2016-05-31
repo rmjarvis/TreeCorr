@@ -557,8 +557,8 @@ def test_haloellip():
     Note that the combination theta+phi is the angle between the line joining the two points
     and the E-W coordinate, which means that
 
-    gamma_C + i gamma_Cx = xi+(gobs, elens)
-    gamma_Q + i gamma_Qx = xi-(gobs, elens)
+    gamma_C + i gamma_Cx = xi+(elens, gobs)
+    gamma_Q + i gamma_Qx = xi-(elens, gobs)
 
     We test this result here using the above formulation with both unit weights and weights
     proportional to the halo ellitpicity.  We also try keeping the magnitude of elens rather
@@ -619,7 +619,6 @@ def test_haloellip():
     print('mean_absg = ',lens_mean_absg)
 
     # First the original version where we only use the phase of the lens ellipticities:
-    lens_absg = numpy.sqrt(lens_g1**2 + lens_g2**2)
     lens_cat1 = treecorr.Catalog(x=lens_x, y=lens_y, g1=lens_g1/lens_absg, g2=lens_g2/lens_absg)
     gg.process(lens_cat1, source_cat)
     print('gg.xim = ',gg.xim)

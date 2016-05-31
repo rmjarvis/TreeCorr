@@ -698,6 +698,134 @@ def test_rlens():
     assert max(abs(ng1s.xi_im)) < 3.e-6
 
 
+def test_haloellip():
+    """This is similar to the Clampitt halo ellipticity measurement, but using counts for the
+    background galaxies rather than shears.
+
+    w_aligned = Sum_i (w_i * cos(2theta)) / Sum_i (w_i)
+    w_cross = Sum_i (w_i * sin(2theta)) / Sum_i (w_i)
+
+    where theta is measured w.r.t. the coordinate system where the halo ellitpicity
+    is along the x-axis.  Converting this to complex notation, we obtain:
+
+    w_a - i w_c = < exp(-2itheta) >
+                = < exp(2iphi) exp(-2i(theta+phi)) >
+                = < ehalo exp(-2i(theta+phi)) >
+
+    where ehalo = exp(2iphi) is the unit-normalized shape of the halo in the normal world
+    coordinate system.  Note that the combination theta+phi is the angle between the line joining
+    the two points and the E-W coordinate, which means that
+
+    w_a - i w_c = -gamma_t(n_bg, ehalo)
+
+    so the reverse of the usual galaxy-galaxy lensing order.  The N is the background galaxies
+    and G is the halo shapes (normalized to have |ehalo| = 1).
+    """
+
+    nhalo = 10
+    nsource = 1000000  # sources per halo
+    ntot = nsource * nhalo
+    L = 100000.  # The side length in which the halos are placed
+    R = 10.      # The (rms) radius of the associated sources from the halos
+                 # In this case, we want L >> R so that most sources are only associated
+                 # with the one halo we used for assigning its shear value.
+
+    # Lenses are randomly located with random shapes.
+    numpy.random.seed(8675309)
+    halo_g1 = numpy.random.normal(0., 0.3, (nhalo,))
+    halo_g2 = numpy.random.normal(0., 0.3, (nhalo,))
+    halo_g = halo_g1 + 1j * halo_g2
+    # The interpretation is simpler if they all have the same |g|, so just make them all 0.3.
+    halo_g *= 0.3 / abs(halo_g)
+    halo_absg = numpy.abs(halo_g)
+    halo_x = (numpy.random.random_sample(nhalo)-0.5) * L
+    halo_y = (numpy.random.random_sample(nhalo)-0.5) * L
+    print('Made halos')
+
+    # For the sources, place nsource galaxies around each halo with the expected azimuthal pattern
+    source_x = numpy.empty(ntot)
+    source_y = numpy.empty(ntot)
+    for i in range(nhalo):
+        absg = halo_absg[i]
+        # First position the sources in a Gaussian cloud around the halo center.
+        dx = numpy.random.normal(0., 10., (nsource,))
+        dy = numpy.random.normal(0., 10., (nsource,))
+        r = numpy.sqrt(dx*dx + dy*dy)
+        t = numpy.arctan2(dy,dx)
+        # z = dx + idy = r exp(it)
+
+        # Reposition the sources azimuthally so p(theta) ~ 1 + |g_halo| * cos(2 theta)
+        # Currently t has p(t) = 1/2pi.
+        # Let u be the new azimuthal angle with p(u) = (1/2pi) (1 + |g| cos(2u))
+        # p(u) = |dt/du| p(t)
+        # 1 + |g| cos(2u) = dt/du
+        # t = int( (1 + |g| cos(2u)) du = u + 1/2 |g| sin(2u)
+
+        # This doesn't have an analytic solution, but a few iterations of Newton-Raphson
+        # should work well enough.
+        u = t.copy()
+        #print('t = ',t)
+        for i in range(4):
+            u -= (u - t + 0.5 * absg * numpy.sin(2.*u)) / (1. + absg * numpy.cos(2.*u))
+            #print('u = ',u)
+
+        z = r * numpy.exp(1j * u)
+        exp2iphi = z**2 / numpy.abs(z)**2
+
+        # Now rotate the whole system by the phase of the halo ellipticity.
+        exp2ialpha = halo_g[i] / absg
+        expialpha = numpy.sqrt(exp2ialpha)
+        z *= expialpha
+        # Place the source galaxies at this dx,dy with this shape
+        source_x[i*nsource: (i+1)*nsource] = halo_x[i] + z.real
+        source_y[i*nsource: (i+1)*nsource] = halo_y[i] + z.imag
+    print('Made sources')
+
+    source_cat = treecorr.Catalog(x=source_x, y=source_y)
+    # Big fat bin to increase S/N.  The way I set it up, the signal is the same in all
+    # radial bins, so just combine them together for higher S/N.
+    ng = treecorr.NGCorrelation(min_sep=5, max_sep=10, nbins=1, verbose=2)
+    halo_mean_absg = numpy.mean(halo_absg)
+    print('mean_absg = ',halo_mean_absg)
+
+    # First the original version where we only use the phase of the halo ellipticities:
+    halo_cat1 = treecorr.Catalog(x=halo_x, y=halo_y,
+                                 g1=halo_g.real/halo_absg, g2=halo_g.imag/halo_absg)
+    ng.process(source_cat, halo_cat1)
+    print('ng.npairs = ',ng.npairs)
+    print('ng.xi = ',ng.xi)
+    # The expected signal is
+    # E(ng) = - < int( p(t) cos(2t) ) >
+    #       = - < int( (1 + e_halo cos(2t)) cos(2t) ) >
+    #       = -0.5 <e_halo>
+    print('expected signal = ',-0.5 * halo_mean_absg)
+    # These tests don't quite work at the 1% level of accuracy, but 2% seems to work for most.
+    # This is effected by checking that 1/2 the value matches 0.5 to 2 decimal places.
+    numpy.testing.assert_almost_equal(ng.xi, -0.5 * halo_mean_absg, decimal=2)
+
+    # Next weight the halos by their absg.
+    halo_cat2 = treecorr.Catalog(x=halo_x, y=halo_y, w=halo_absg,
+                                 g1=halo_g.real/halo_absg, g2=halo_g.imag/halo_absg)
+    ng.process(source_cat, halo_cat2)
+    print('ng.xi = ',ng.xi)
+    # Now the net signal is
+    # sum(w * p*cos(2t)) / sum(w)
+    # = 0.5 * <absg^2> / <absg>
+    halo_mean_gsq = numpy.mean(halo_absg**2)
+    print('expected signal = ',0.5 * halo_mean_gsq / halo_mean_absg)
+    numpy.testing.assert_almost_equal(ng.xi, -0.5 * halo_mean_gsq / halo_mean_absg, decimal=2)
+
+    # Finally, use the unnormalized halo_g for the halo ellipticities
+    halo_cat3 = treecorr.Catalog(x=halo_x, y=halo_y, g1=halo_g.real, g2=halo_g.imag)
+    ng.process(source_cat, halo_cat3)
+    print('ng.xi = ',ng.xi)
+    # Now the net signal is
+    # sum(absg * p*cos(2t)) / N
+    # = 0.5 * <absg^2>
+    print('expected signal = ',0.5 * halo_mean_gsq)
+    numpy.testing.assert_almost_equal(ng.xi, -0.5 * halo_mean_gsq, decimal=2)
+
+
 if __name__ == '__main__':
     test_single()
     test_pairwise()
@@ -705,3 +833,4 @@ if __name__ == '__main__':
     test_ng()
     test_pieces()
     test_rlens()
+    test_haloellip()

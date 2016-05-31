@@ -784,7 +784,7 @@ def test_haloellip():
     source_cat = treecorr.Catalog(x=source_x, y=source_y)
     # Big fat bin to increase S/N.  The way I set it up, the signal is the same in all
     # radial bins, so just combine them together for higher S/N.
-    ng = treecorr.NGCorrelation(min_sep=5, max_sep=10, nbins=1, verbose=2)
+    ng = treecorr.NGCorrelation(min_sep=5, max_sep=10, nbins=1)
     halo_mean_absg = numpy.mean(halo_absg)
     print('mean_absg = ',halo_mean_absg)
 

@@ -531,8 +531,8 @@ def test_rlens():
     R0 = 10.
     L = 50. * R0
     numpy.random.seed(8675309)
-    xl = (numpy.random.random_sample(nlens)-0.5) * L  # -500 < x < 500
-    zl = (numpy.random.random_sample(nlens)-0.5) * L  # -500 < y < 500
+    xl = (numpy.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
+    zl = (numpy.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
     yl = numpy.random.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
     rl = numpy.sqrt(xl**2 + yl**2 + zl**2)
     xs = (numpy.random.random_sample(nsource)-0.5) * L
@@ -698,6 +698,163 @@ def test_rlens():
     assert max(abs(ng1s.xi_im)) < 3.e-6
 
 
+def test_rlens_bkg():
+    # Same as above, except limit the sources to be in the background of the lens.
+
+    nlens = 100
+    nsource = 200000
+    gamma0 = 0.05
+    R0 = 10.
+    L = 50. * R0
+    numpy.random.seed(8675309)
+    xl = (numpy.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
+    zl = (numpy.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
+    yl = numpy.random.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
+    rl = numpy.sqrt(xl**2 + yl**2 + zl**2)
+    xs = (numpy.random.random_sample(nsource)-0.5) * L
+    zs = (numpy.random.random_sample(nsource)-0.5) * L
+    ys = numpy.random.random_sample(nsource) * 12*L + 8*L  # 4000 < z < 10000
+    rs = numpy.sqrt(xs**2 + ys**2 + zs**2)
+    print('xl = ',numpy.min(xl),numpy.max(xl))
+    print('yl = ',numpy.min(yl),numpy.max(yl))
+    print('zl = ',numpy.min(zl),numpy.max(zl))
+    print('xs = ',numpy.min(xs),numpy.max(xs))
+    print('ys = ',numpy.min(ys),numpy.max(ys))
+    print('zs = ',numpy.min(zs),numpy.max(zs))
+    g1 = numpy.zeros( (nsource,) )
+    g2 = numpy.zeros( (nsource,) )
+    bin_size = 0.1
+    # min_sep is set so the first bin doesn't have 0 pairs.
+    min_sep = 1.3*R0
+    # max_sep can't be too large, since the measured value starts to have shape noise for larger
+    # values of separation.  We're not adding any shape noise directly, but the shear from other
+    # lenses is effectively a shape noise, and that comes to dominate the measurement above ~4R0.
+    max_sep = 4.*R0
+    nbins = int(numpy.ceil(numpy.log(max_sep/min_sep)/bin_size))
+    print('Making shear vectors')
+    for x,y,z,r in zip(xl,yl,zl,rl):
+        # Use |r1 x r2| = |r1| |r2| sin(theta)
+        xcross = ys * z - zs * y
+        ycross = zs * x - xs * z
+        zcross = xs * y - ys * x
+        sintheta = numpy.sqrt(xcross**2 + ycross**2 + zcross**2) / (rs * r)
+        Rlens = 2. * r * numpy.sin(numpy.arcsin(sintheta)/2)
+
+        gammat = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+        # For the rotation, approximate that the x,z coords are approx the perpendicular plane.
+        # So just normalize back to the unit sphere and do the 2d projection calculation.
+        # It's not exactly right, but it should be good enough for this unit test.
+        dx = xs/rs-x/r
+        dz = zs/rs-z/r
+        drsq = dx**2 + dz**2
+
+        # This time, only give the true shear to the background galaxies.
+        bkg = (rs > r)
+        g1[bkg] += (-gammat * (dx**2-dz**2)/drsq)[bkg]
+        g2[bkg] += (-gammat * (2.*dx*dz)/drsq)[bkg]
+
+    # Slight subtlety in this test vs the previous one.  We need to build up the full g1,g2
+    # arrays first before calculating the true_gt value, since we need to include the background
+    # galaxies for each lens regardless of whether they had signal or not.
+    true_gt = numpy.zeros( (nbins,) )
+    true_npairs = numpy.zeros((nbins,), dtype=int)
+    for x,y,z,r in zip(xl,yl,zl,rl):
+        # Use |r1 x r2| = |r1| |r2| sin(theta)
+        xcross = ys * z - zs * y
+        ycross = zs * x - xs * z
+        zcross = xs * y - ys * x
+        sintheta = numpy.sqrt(xcross**2 + ycross**2 + zcross**2) / (rs * r)
+        Rlens = 2. * r * numpy.sin(numpy.arcsin(sintheta)/2)
+        dx = xs/rs-x/r
+        dz = zs/rs-z/r
+        drsq = dx**2 + dz**2
+        gt = -g1 * (dx**2-dz**2)/drsq - g2 * (2.*dx*dz)/drsq
+        bkg = (rs > r)
+        index = numpy.floor( numpy.log(Rlens/min_sep) / bin_size).astype(int)
+        mask = (index >= 0) & (index < nbins) & bkg
+        numpy.add.at(true_gt, index[mask], gt[mask])
+        numpy.add.at(true_npairs, index[mask], 1)
+
+    true_gt /= true_npairs
+
+    # Start with bin_slop == 0.  With only 100 lenses, this still runs very fast.
+    lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl)
+    source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
+    ng0 = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                 metric='Rlens', bin_slop=0, min_rpar=0)
+    ng0.process(lens_cat, source_cat)
+
+    Rlens = ng0.meanr
+    theory_gt = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+
+    print('Results with bin_slop = 0:')
+    print('ng.npairs = ',ng0.npairs)
+    print('true_npairs = ',true_npairs)
+    print('ng.xi = ',ng0.xi)
+    print('true_gammat = ',true_gt)
+    print('ratio = ',ng0.xi / true_gt)
+    print('diff = ',ng0.xi - true_gt)
+    print('max diff = ',max(abs(ng0.xi - true_gt)))
+    assert max(abs(ng0.xi - true_gt)) < 2.e-6
+
+    print('ng.xi = ',ng0.xi)
+    print('theory_gammat = ',theory_gt)
+    print('ratio = ',ng0.xi / theory_gt)
+    print('diff = ',ng0.xi - theory_gt)
+    print('max diff = ',max(abs(ng0.xi - theory_gt)))
+    assert max(abs(ng0.xi - theory_gt)) < 1.e-3
+    print('ng.xi_im = ',ng0.xi_im)
+    assert max(abs(ng0.xi_im)) < 1.e-3
+
+    # Without min_rpar, this should fail.
+    lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl)
+    source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
+    ng0 = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                 metric='Rlens', bin_slop=0)
+    ng0.process(lens_cat, source_cat)
+    Rlens = ng0.meanr
+
+    print('Results without min_rpar')
+    print('ng.xi = ',ng0.xi)
+    print('true_gammat = ',true_gt)
+    print('max diff = ',max(abs(ng0.xi - true_gt)))
+    assert max(abs(ng0.xi - true_gt)) > 5.e-3
+
+    # Now use a more normal value for bin_slop.
+    ng1 = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                 metric='Rlens', bin_slop=0.5, min_rpar=0)
+    ng1.process(lens_cat, source_cat)
+    Rlens = ng1.meanr
+    theory_gt = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+
+    print('Results with bin_slop = 0.5')
+    print('ng.npairs = ',ng1.npairs)
+    print('ng.xi = ',ng1.xi)
+    print('theory_gammat = ',theory_gt)
+    print('ratio = ',ng1.xi / theory_gt)
+    print('diff = ',ng1.xi - theory_gt)
+    print('max diff = ',max(abs(ng1.xi - theory_gt)))
+    assert max(abs(ng1.xi - theory_gt)) < 1.e-3
+    print('ng.xi_im = ',ng1.xi_im)
+    assert max(abs(ng1.xi_im)) < 1.e-3
+
+    # Check that we get the same result using the corr2 executable:
+    if __name__ == '__main__':
+        lens_cat.write(os.path.join('data','ng_rlens_bkg_lens.dat'))
+        source_cat.write(os.path.join('data','ng_rlens_bkg_source.dat'))
+        import subprocess
+        corr2_exe = get_script_name('corr2')
+        p = subprocess.Popen( [corr2_exe,"ng_rlens_bkg.yaml"] )
+        p.communicate()
+        corr2_output = numpy.genfromtxt(os.path.join('output','ng_rlens_bkg.out'),names=True)
+        print('ng.xi = ',ng1.xi)
+        print('from corr2 output = ',corr2_output['gamT'])
+        print('ratio = ',corr2_output['gamT']/ng1.xi)
+        print('diff = ',corr2_output['gamT']-ng1.xi)
+        numpy.testing.assert_almost_equal(corr2_output['gamT'], ng1.xi, decimal=6)
+        numpy.testing.assert_almost_equal(corr2_output['gamX'], ng1.xi_im, decimal=6)
+
+
 def test_haloellip():
     """This is similar to the Clampitt halo ellipticity measurement, but using counts for the
     background galaxies rather than shears.
@@ -736,7 +893,7 @@ def test_haloellip():
     halo_g2 = numpy.random.normal(0., 0.3, (nhalo,))
     halo_g = halo_g1 + 1j * halo_g2
     # The interpretation is simpler if they all have the same |g|, so just make them all 0.3.
-    halo_g *= 0.3 / abs(halo_g)
+    halo_g *= 0.3 / numpy.abs(halo_g)
     halo_absg = numpy.abs(halo_g)
     halo_x = (numpy.random.random_sample(nhalo)-0.5) * L
     halo_y = (numpy.random.random_sample(nhalo)-0.5) * L
@@ -764,10 +921,8 @@ def test_haloellip():
         # This doesn't have an analytic solution, but a few iterations of Newton-Raphson
         # should work well enough.
         u = t.copy()
-        #print('t = ',t)
         for i in range(4):
             u -= (u - t + 0.5 * absg * numpy.sin(2.*u)) / (1. + absg * numpy.cos(2.*u))
-            #print('u = ',u)
 
         z = r * numpy.exp(1j * u)
         exp2iphi = z**2 / numpy.abs(z)**2
@@ -833,4 +988,5 @@ if __name__ == '__main__':
     test_ng()
     test_pieces()
     test_rlens()
+    test_rlens_bkg()
     test_haloellip()

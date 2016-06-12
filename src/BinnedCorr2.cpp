@@ -283,10 +283,12 @@ void BinnedCorr2<D1,D2>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2)
     const double s1ps2 = s1+s2;
 
     //dbg<<"dsq = "<<dsq<<", s1ps2 = "<<s1ps2<<std::endl;
-    if (MetricHelper<M>::TooSmallDist(c1.getPos(), c2.getPos(), s1ps2, dsq, _minsep, _minsepsq))
+    if (MetricHelper<M>::TooSmallDist(c1.getPos(), c2.getPos(), s1ps2, dsq, _minsep, _minsepsq,
+                                      _minrpar))
         return;
     //dbg<<"Not too small\n";
-    if (MetricHelper<M>::TooLargeDist(c1.getPos(), c2.getPos(), s1ps2, dsq, _maxsep, _maxsepsq))
+    if (MetricHelper<M>::TooLargeDist(c1.getPos(), c2.getPos(), s1ps2, dsq, _maxsep, _maxsepsq,
+                                      _maxrpar))
         return;
     //dbg<<"Not too large\n";
 

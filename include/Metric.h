@@ -17,6 +17,7 @@
 
 // The Metric enum is defined here:
 #include "Metric_C.h"
+#include <limits>
 
 
 template <int M>
@@ -58,11 +59,11 @@ struct MetricHelper<Euclidean>
     }
 
     static bool TooSmallDist(const Position<Flat>& , const Position<Flat>& , double s1ps2,
-                             double dsq, double minsep, double minsepsq)
+                             double dsq, double minsep, double minsepsq, double minrpar)
     { return dsq < minsepsq && s1ps2 < minsep && dsq < SQR(minsep - s1ps2); }
 
     static bool TooLargeDist(const Position<Flat>& , const Position<Flat>& , double s1ps2,
-                             double dsq, double maxsep, double maxsepsq)
+                             double dsq, double maxsep, double maxsepsq, double maxrpar)
     { return dsq >= maxsepsq && dsq >= SQR(maxsep + s1ps2); }
 
 
@@ -99,11 +100,11 @@ struct MetricHelper<Euclidean>
     }
 
     static bool TooSmallDist(const Position<ThreeD>& , const Position<ThreeD>& , double s1ps2,
-                             double dsq, double minsep, double minsepsq)
+                             double dsq, double minsep, double minsepsq, double minrpar)
     { return dsq < minsepsq && s1ps2 < minsep && dsq < SQR(minsep - s1ps2); }
 
     static bool TooLargeDist(const Position<ThreeD>& , const Position<ThreeD>& , double s1ps2,
-                             double dsq, double maxsep, double maxsepsq)
+                             double dsq, double maxsep, double maxsepsq, double maxrpar)
     { return dsq >= maxsepsq && dsq >= SQR(maxsep + s1ps2); }
 
 };
@@ -182,14 +183,20 @@ struct MetricHelper<Perp>
     // rp^2 + 2(d + rpar) s1ps2 < minsepsq
     // 4 (d^2 + 2d rpar + rpar^2) s1ps2^2 < (minsepsq - rp^2)^2
     static bool TooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2, double s1ps2,
-                             double dsq, double minsep, double minsepsq)
+                             double dsq, double minsep, double minsepsq, double minrpar)
     {
         // First a simple check that will work most of the time.
-        if (dsq >= minsepsq || s1ps2 >= minsep || dsq >= SQR(minsep - s1ps2)) return false;
+        if (dsq >= minsepsq || s1ps2 >= minsep || dsq >= SQR(minsep - s1ps2)) {
+            if (minrpar == -std::numeric_limits<double>::max())
+                return false;
+        }
         // Now check the subtle case.
-        double r1sq = p1.normSq();
-        double r2sq = p2.normSq();
-        double rparsq = r1sq + r2sq - 2.*sqrt(r1sq*r2sq);
+        double r1 = p1.norm();
+        double r2 = p2.norm();
+        double rpar = r2-r1;  // Positive if p2 is in background of p1.
+        // If max possible rpar < minrpar, then return true.
+        if (rpar + s1ps2 < minrpar) return true;
+        double rparsq = SQR(rpar);
         double d3sq = rparsq + dsq;  // The 3d distance.  Remember dsq is really rp^2.
         return (d3sq + 2.*sqrt(d3sq * rparsq) + rparsq) * SQR(2.*s1ps2) < SQR(minsepsq - dsq);
     }
@@ -202,13 +209,19 @@ struct MetricHelper<Perp>
     // rp^2 - 2(d + rpar) s1ps2 > maxsepsq
     // 4 (d^2 + 2d rpar + rpar^2) s1ps2^2 < (rp^2 - maxsepsq)^2
     static bool TooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2, double s1ps2,
-                             double dsq, double maxsep, double maxsepsq)
+                             double dsq, double maxsep, double maxsepsq, double maxrpar)
     {
-        if (dsq < maxsepsq || dsq < SQR(maxsep + s1ps2)) return false;
+        if (dsq < maxsepsq || dsq < SQR(maxsep + s1ps2)) {
+            if (maxrpar == std::numeric_limits<double>::max())
+                return false;
+        }
         // Now check the subtle case.
-        double r1sq = p1.normSq();
-        double r2sq = p2.normSq();
-        double rparsq = r1sq + r2sq - 2.*sqrt(r1sq*r2sq);
+        double r1 = p1.norm();
+        double r2 = p2.norm();
+        double rpar = r2-r1;  // Positive if p2 is in background of p1.
+        // If min possible rpar > maxrpar, then return true.
+        if (rpar - s1ps2 > maxrpar) return true;
+        double rparsq = SQR(rpar);
         double d3sq = rparsq + dsq;  // The 3d distance.  Remember dsq is really rp^2.
         return (d3sq + 2.*sqrt(d3sq * rparsq) + rparsq) * SQR(2.*s1ps2) <= SQR(dsq - maxsepsq);
     }
@@ -286,14 +299,34 @@ struct MetricHelper<Lens>
     // where we update s2 according to the relative distances.  So these two functions are
     // the same as the Euclidean versions.
     static bool TooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2, double s1ps2,
-                             double dsq, double minsep, double minsepsq)
+                             double dsq, double minsep, double minsepsq, double minrpar)
 
-    { return MetricHelper<Euclidean>::TooSmallDist(p1,p2,s1ps2,dsq,minsep,minsepsq); }
+    {
+        if (dsq < minsepsq && s1ps2 < minsep && dsq < SQR(minsep - s1ps2)) return true;
+        // Not too small from just d, s considerations.  Maybe need to check rpar.
+        if (minrpar == -std::numeric_limits<double>::max()) return false;
+        // rpar is not -inf, so need to check.
+        double r1 = p1.norm();
+        double r2 = p2.norm();
+        double rpar = r2-r1;  // Positive if p2 is in background of p1.
+        // If max possible rpar < minrpar, then return true.
+        if (rpar + s1ps2 < minrpar) return true;
+        else return false;
+    }
 
     // This one is similar.  The minimum possible L if p2 is larger is L - s1ps2 * r2/r1
     static bool TooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2, double s1ps2,
-                             double dsq, double maxsep, double maxsepsq)
-    { return MetricHelper<Euclidean>::TooLargeDist(p1,p2,s1ps2,dsq,maxsep,maxsepsq); }
+                             double dsq, double maxsep, double maxsepsq, double maxrpar)
+    {
+        if (dsq >= maxsepsq && dsq >= SQR(maxsep + s1ps2)) return true;
+        if (maxrpar == std::numeric_limits<double>::max()) return false;
+        double r1 = p1.norm();
+        double r2 = p2.norm();
+        double rpar = r2-r1;  // Positive if p2 is in background of p1.
+        // If min possible rpar > maxrpar, then return true.
+        if (rpar - s1ps2 > maxrpar) return true;
+        else return false;
+    }
 
 };
 
@@ -328,12 +361,12 @@ struct MetricHelper<Arc>
     { return MetricHelper<Euclidean>::CCW(p1,p2,p3); }
 
     static bool TooSmallDist(const Position<Sphere>& p1, const Position<Sphere>& p2, double s1ps2,
-                             double dsq, double minsep, double minsepsq)
-    { return MetricHelper<Euclidean>::TooSmallDist(p1,p2,s1ps2,dsq,minsep,minsepsq); }
+                             double dsq, double minsep, double minsepsq, double minrpar)
+    { return MetricHelper<Euclidean>::TooSmallDist(p1,p2,s1ps2,dsq,minsep,minsepsq,minrpar); }
 
     static bool TooLargeDist(const Position<Sphere>& p1, const Position<Sphere>& p2, double s1ps2,
-                             double dsq, double maxsep, double maxsepsq)
-    { return MetricHelper<Euclidean>::TooLargeDist(p1,p2,s1ps2,dsq,maxsep,maxsepsq); }
+                             double dsq, double maxsep, double maxsepsq, double maxrpar)
+    { return MetricHelper<Euclidean>::TooLargeDist(p1,p2,s1ps2,dsq,maxsep,maxsepsq,maxrpar); }
 
 };
 

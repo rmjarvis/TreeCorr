@@ -18,6 +18,7 @@
 import treecorr
 import math
 import numpy
+import sys
 
 class BinnedCorr2(object):
     """This class stores the results of a 2-point correlation calculation, along with some
@@ -285,8 +286,8 @@ class BinnedCorr2(object):
         self.rnom = numpy.exp(self.logr)
         self._coords = None
         self._metric = None
-        self.min_rpar = treecorr.config.get(self.config,'min_rpar',float,0.)
-        self.max_rpar = treecorr.config.get(self.config,'min_rpar',float,0.)
+        self.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)
+        self.max_rpar = treecorr.config.get(self.config,'max_rpar',float,sys.float_info.max)
 
     def _process_all_auto(self, cat1, metric, num_threads):
         for i,c1 in enumerate(cat1):
@@ -328,6 +329,11 @@ class BinnedCorr2(object):
             if metric != self._metric:
                 self.logger.warn("Detected a change in metric. "
                                  "This probably doesn't make sense!")
+        if metric not in [treecorr._lib.Perp, treecorr._lib.Lens]:
+            if self.min_rpar != -sys.float_info.max:
+                raise ValueError("min_rpar is only valid with either Rlens or Rperp metric.")
+            if self.max_rpar != sys.float_info.max:
+                raise ValueError("max_rpar is only valid with either Rlens or Rperp metric.")
         self._coords = coords
         self._metric = metric
 

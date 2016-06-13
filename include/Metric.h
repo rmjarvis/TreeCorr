@@ -186,16 +186,21 @@ struct MetricHelper<Perp>
                              double dsq, double minsep, double minsepsq, double minrpar)
     {
         // First a simple check that will work most of the time.
-        if (dsq >= minsepsq || s1ps2 >= minsep || dsq >= SQR(minsep - s1ps2)) {
-            if (minrpar == -std::numeric_limits<double>::max())
-                return false;
-        }
-        // Now check the subtle case.
+        bool easy_test = dsq >= minsepsq || s1ps2 >= minsep || dsq >= SQR(minsep - s1ps2);
+        // If this is false, and there is no rpar check, then we're good.
+        if (easy_test && (minrpar == -std::numeric_limits<double>::max())) return false;
+
+        // If we need to check rpar, do that now.
         double r1 = p1.norm();
         double r2 = p2.norm();
         double rpar = r2-r1;  // Positive if p2 is in background of p1.
         // If max possible rpar < minrpar, then return true.
         if (rpar + s1ps2 < minrpar) return true;
+
+        // Redo the easy test again.
+        if (easy_test) return false;
+
+        // Now check the subtle case.
         double rparsq = SQR(rpar);
         double d3sq = rparsq + dsq;  // The 3d distance.  Remember dsq is really rp^2.
         return (d3sq + 2.*sqrt(d3sq * rparsq) + rparsq) * SQR(2.*s1ps2) < SQR(minsepsq - dsq);
@@ -211,16 +216,22 @@ struct MetricHelper<Perp>
     static bool TooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2, double s1ps2,
                              double dsq, double maxsep, double maxsepsq, double maxrpar)
     {
-        if (dsq < maxsepsq || dsq < SQR(maxsep + s1ps2)) {
-            if (maxrpar == std::numeric_limits<double>::max())
-                return false;
-        }
-        // Now check the subtle case.
+        // First a simple check that will work most of the time.
+        bool easy_test = dsq < maxsepsq || dsq < SQR(maxsep + s1ps2);
+        // If this is false, and there is no rpar check, then we're good.
+        if (easy_test && (maxrpar == std::numeric_limits<double>::max())) return false;
+
+        // If we need to check rpar, do that now.
         double r1 = p1.norm();
         double r2 = p2.norm();
         double rpar = r2-r1;  // Positive if p2 is in background of p1.
         // If min possible rpar > maxrpar, then return true.
         if (rpar - s1ps2 > maxrpar) return true;
+
+        // Redo the easy test again.
+        if (easy_test) return false;
+
+        // Now check the subtle case.
         double rparsq = SQR(rpar);
         double d3sq = rparsq + dsq;  // The 3d distance.  Remember dsq is really rp^2.
         return (d3sq + 2.*sqrt(d3sq * rparsq) + rparsq) * SQR(2.*s1ps2) <= SQR(dsq - maxsepsq);

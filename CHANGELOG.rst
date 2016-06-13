@@ -47,6 +47,8 @@ New features:
   list style will be used.  And if it ends with '.json', JSON will be used.
   You can also specify the format directly with the -f (or --file_type)
   command-line argument for corr2 and corr3. (#18)
+- Added ``min_rpar`` and ``max_rpar`` options for metrics Rperp and Rlens to
+  set the minimum and maximum separations in the r_parallel direction. (#34)
 - Added new metric Arc, which calculates the true great circle separation
   throughout the calculation, rather than calculating chord distances and
   then converting to the corresponding angles at the end.  Most people will
@@ -74,3 +76,5 @@ Bug fixes:
 - Fixed a bug where num_threads=1 didn't actually do anything, so it wasn't
   possible to get TreeCorr not to use multi-threading.  Thanks to Eric Baxter
   for this bug report.
+- Fixed a big where 3-pt correlations could sometimes seg fault due to a
+  calculation coming out as nan. (#42)

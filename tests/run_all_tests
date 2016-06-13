@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-python=python 
+python='python'
 # In case you want to use something else. Like python3.4. Or e.g. on folio I need the following:
 #python=/data3/DECAM/global/Python-2.7.3/bin/python
 
@@ -9,13 +9,12 @@ python=python
 
 time $python test_catalog.py || exit
 time $python test_celestial.py || exit
-time $python test_ggg.py || exit
-time $python test_gg.py || exit
-time $python test_helper.py || exit
-time $python test_kg.py || exit
-time $python test_kkk.py || exit
-time $python test_kk.py || exit
+time $python test_nn.py || exit
 time $python test_ng.py || exit
 time $python test_nk.py || exit
+time $python test_gg.py || exit
+time $python test_kk.py || exit
+time $python test_kg.py || exit
+time $python test_ggg.py || exit
+time $python test_kkk.py || exit
 time $python test_nnn.py || exit
-time $python test_nn.py || exit

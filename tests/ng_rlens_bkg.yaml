@@ -14,9 +14,9 @@ verbose: 1
 min_sep: 13.
 max_sep: 40.
 bin_size: 0.1
-metric: Rlens
 bin_slop: 0.5
 
+metric: Rlens
 min_rpar: 0
 
 ng_file_name: output/ng_rlens_bkg.out

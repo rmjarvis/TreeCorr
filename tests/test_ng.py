@@ -733,25 +733,26 @@ def test_rlens_bkg():
     nbins = int(numpy.ceil(numpy.log(max_sep/min_sep)/bin_size))
     print('Making shear vectors')
     for x,y,z,r in zip(xl,yl,zl,rl):
+        # This time, only give the true shear to the background galaxies.
+        bkg = (rs > r)
+
         # Use |r1 x r2| = |r1| |r2| sin(theta)
-        xcross = ys * z - zs * y
-        ycross = zs * x - xs * z
-        zcross = xs * y - ys * x
-        sintheta = numpy.sqrt(xcross**2 + ycross**2 + zcross**2) / (rs * r)
+        xcross = ys[bkg] * z - zs[bkg] * y
+        ycross = zs[bkg] * x - xs[bkg] * z
+        zcross = xs[bkg] * y - ys[bkg] * x
+        sintheta = numpy.sqrt(xcross**2 + ycross**2 + zcross**2) / (rs[bkg] * r)
         Rlens = 2. * r * numpy.sin(numpy.arcsin(sintheta)/2)
 
         gammat = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
         # For the rotation, approximate that the x,z coords are approx the perpendicular plane.
         # So just normalize back to the unit sphere and do the 2d projection calculation.
         # It's not exactly right, but it should be good enough for this unit test.
-        dx = xs/rs-x/r
-        dz = zs/rs-z/r
+        dx = (xs/rs)[bkg]-x/r
+        dz = (zs/rs)[bkg]-z/r
         drsq = dx**2 + dz**2
 
-        # This time, only give the true shear to the background galaxies.
-        bkg = (rs > r)
-        g1[bkg] += (-gammat * (dx**2-dz**2)/drsq)[bkg]
-        g2[bkg] += (-gammat * (2.*dx*dz)/drsq)[bkg]
+        g1[bkg] += -gammat * (dx**2-dz**2)/drsq
+        g2[bkg] += -gammat * (2.*dx*dz)/drsq
 
     # Slight subtlety in this test vs the previous one.  We need to build up the full g1,g2
     # arrays first before calculating the true_gt value, since we need to include the background

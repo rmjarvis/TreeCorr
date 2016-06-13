@@ -245,7 +245,7 @@ int main() {
     p.communicate()
     if p.returncode != 0:
         print('Unable to compile file with #include "ffi.h"')
-        print("Failed command is: ",cmd)
+        print("Failed command is: ",' '.join(cmd))
         # Try ffi/ffi.h
         ffi_code = """
 #include "ffi/ffi.h"
@@ -338,6 +338,11 @@ def check_ffi(cc, cc_type):
         if check_ffi_compile(cc, cc_type):
             return
         # libffi needs to be installed.  Give a helpful message about how to do so.
+        prefix = '/SOME/APPROPRIATE/PREFIX'
+        prefix_param = [param for param in sys.argv if param.startswith('--prefix=')]
+        if len(prefix_param) == 1:
+            prefix = prefix_param[0].split('=')[1]
+            prefix = os.path.expanduser(prefix)
         msg = """
 WARNING: TreeCorr uses cffi, which in turn requires libffi to be installed.
          As the latter is not a python package, pip cannot download and
@@ -358,16 +363,16 @@ following commands:
     wget ftp://sourceware.org:/pub/libffi/libffi-3.2.1.tar.gz
     tar xfz libffi-3.2.1.tar.gz
     cd libffi-3.2.1
-    ./configure --prefix=/dir/in/your/LIBRARY_PATH
+    ./configure --prefix={0}
     make
     make install
-    cp */include/ffi*.h /dir/in/your/C_INCLUDE_PATH
+    cp */include/ffi*.h {0}/include
     cd ..
 
 If you have already done this, then check the command (given above) that failed.  You may
 need to add a directory to either C_INCLUDE_PATH, LIBRARY_PATH, or LD_LIBRARY_PATH to
 make it succeed.
-"""
+""".format(prefix)
         print(msg)
         q = "Stop the installation here to take care of this?"
         yn = query_yes_no(q, default='yes')

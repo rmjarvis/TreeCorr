@@ -203,7 +203,7 @@ def test_large_scale():
 
     # And almost the full range at the same precision.
     numpy.testing.assert_allclose(renorm_sphere[:43], interp_euclid[:43], rtol=2.e-3)
-    numpy.testing.assert_allclose(renorm_sphere, interp_euclid, rtol=6.e-3)
+    numpy.testing.assert_allclose(renorm_sphere, interp_euclid, rtol=1.e-2)
 
     # The xi values are similar.  The euclid and chord values start out basically identical,
     # but the distances are different.  The euclid and the sphere are actually the same function

@@ -48,6 +48,7 @@ template <int D1, int D2>
 BinnedCorr2<D1,D2>::BinnedCorr2(const BinnedCorr2<D1,D2>& rhs, bool copy_data) :
     _minsep(rhs._minsep), _maxsep(rhs._maxsep), _nbins(rhs._nbins),
     _binsize(rhs._binsize), _b(rhs._b),
+    _minrpar(rhs._minrpar), _maxrpar(rhs._maxrpar),
     _logminsep(rhs._logminsep), _halfminsep(rhs._halfminsep),
     _minsepsq(rhs._minsepsq), _maxsepsq(rhs._maxsepsq), _bsq(rhs._bsq),
     _coords(rhs._coords), _owns_data(true),

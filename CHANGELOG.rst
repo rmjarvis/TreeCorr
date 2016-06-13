@@ -32,7 +32,7 @@ API changes:
   of ``sep_units`` if they are given, rather than radians.  The previous
   behavior was somewhat confusing.  (#39)
 - Changed the output separations to convert from the chord distance to the
-  corresponding great circle distance.  (#39)
+  corresponding great circle distance when using spherical coordinates.  (#39)
 - Removed the ``z_units`` option for ``Catalog``, since it doesn't actually
   make sense.  Any ``z`` field should be in physical units, not arcsec,
   degrees, etc.
@@ -47,8 +47,9 @@ New features:
   list style will be used.  And if it ends with '.json', JSON will be used.
   You can also specify the format directly with the -f (or --file_type)
   command-line argument for corr2 and corr3. (#18)
-- Added ``min_rpar`` and ``max_rpar`` options for metrics Rperp and Rlens to
-  set the minimum and maximum separations in the r_parallel direction. (#34)
+- Added ``min_rpar`` and ``max_rpar`` options for the Rperp metric (as well
+  as the new Rlens metric -- see below) to set the minimum and maximum
+  separations in the r_parallel direction. (#34)
 - Added new metric Arc, which calculates the true great circle separation
   throughout the calculation, rather than calculating chord distances and
   then converting to the corresponding angles at the end.  Most people will
@@ -63,9 +64,9 @@ New features:
   the lens (here taken to be the object in the first catalog of the cross-
   correlation). (#41)
 - Changed the write commands to create the output directory if necessary. (#42)
-- Made the C and C++ header files installed with the python code and the
-  compiled library.  So in case anyone wants to use the C++ code directly in
-  another application, rather than through the python interface, that's now
+- Made the C and C++ header files be installed along with the python code and
+  the compiled library.  So in case anyone wants to use the C++ code directly
+  in another application, rather than through the python interface, that's now
   easier to do.  The directory to add to the include path is available as
   ``treecorr.include_dir`` and the library to link is ``treecorr.lib_file``.
 
@@ -78,3 +79,4 @@ Bug fixes:
   for this bug report.
 - Fixed a big where 3-pt correlations could sometimes seg fault due to a
   calculation coming out as nan. (#42)
+

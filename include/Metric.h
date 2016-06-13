@@ -123,9 +123,9 @@ struct MetricHelper<Perp>
     {
         // r_perp^2 + r_parallel^2 = d^2
         Position<ThreeD> r = p1-p2;
-        double dsq = r.getX()*r.getX() + r.getY()*r.getY() + r.getZ()*r.getZ();
-        double r1sq = p1.getX()*p1.getX() + p1.getY()*p1.getY() + p1.getZ()*p1.getZ();
-        double r2sq = p2.getX()*p2.getX() + p2.getY()*p2.getY() + p2.getZ()*p2.getZ();
+        double dsq = r.normSq();
+        double r1sq = p1.normSq();
+        double r2sq = p2.normSq();
         // r_parallel^2 = (r1-r2)^2 = r1^2 + r2^2 - 2r1r2
         double rparsq = r1sq + r2sq - 2.*sqrt(r1sq*r2sq);
 
@@ -268,12 +268,8 @@ struct MetricHelper<Lens>
 
         // The effect of s2 needs to be modified here.  Its effect on rlens is
         //      s2' = r1/r2 s2
-        // We take the conservative approach and only increase s2 if r2 < r1.
-        // If r2 > r1, we leave it alone.
-        //if (r2 < r1) {
-        if (true) {
-            s2 *= r1/r2;
-        }
+        s2 *= r1/r2;
+
         return 2. * p1.cross(p2).normSq() / (r2*r2) / (1.+costheta);
     }
 #else
@@ -288,9 +284,7 @@ struct MetricHelper<Lens>
         // L = r1 |p1 x p2| / (p1 . p2)
         double r1sq = p1.normSq();
         double r2sq = p2.normsq();
-        if (r2sq < r1sq) {
-            s2 *= sqrt(r1sq/r2sq);
-        }
+        s2 *= sqrt(r1sq/r2sq);
         return r1sq * p1.cross(p2).normSq() / SQR(p1.dot(p2));
     }
 #endif

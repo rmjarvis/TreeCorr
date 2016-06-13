@@ -244,6 +244,8 @@ int main() {
     lines = p.stdout.readlines()
     p.communicate()
     if p.returncode != 0:
+        print('Unable to compile file with #include "ffi.h"')
+        print("Failed command is: ",cmd)
         # Try ffi/ffi.h
         ffi_code = """
 #include "ffi/ffi.h"
@@ -258,9 +260,8 @@ int main() {
         lines = p.stdout.readlines()
         p.communicate()
         if p.returncode != 0:
-            os.remove(ffi_file.name)
-            if os.path.exists(o_file.name):
-                os.remove(o_file.name)
+            print('Unable to compile file with #include "ffi/ffi.h"')
+            print("Failed command is: ",' '.join(cmd))
             print("Could not find ffi.h")
             return False
         else:
@@ -280,15 +281,18 @@ int main() {
 
     if p.returncode != 0:
         print("Could not link with -lffi")
+        print("Failed command is: ",' '.join(cmd))
+        return False
     else:
         print("Successfully linked with -lffi")
 
-    # Remove the temp files
+    # Remove the temp files only if all succeeded.
     os.remove(ffi_file.name)
     os.remove(o_file.name)
     if os.path.exists(exe_file.name): 
         os.remove(exe_file.name)
-    return p.returncode == 0
+
+    return True
 
 # Based on recipe 577058: http://code.activestate.com/recipes/577058/
 def query_yes_no(question, default="yes"):
@@ -359,6 +363,10 @@ following commands:
     make install
     cp */include/ffi*.h /dir/in/your/C_INCLUDE_PATH
     cd ..
+
+If you have already done this, then check the command (given above) that failed.  You may
+need to add a directory to either C_INCLUDE_PATH, LIBRARY_PATH, or LD_LIBRARY_PATH to
+make it succeed.
 """
         print(msg)
         q = "Stop the installation here to take care of this?"

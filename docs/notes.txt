@@ -6,10 +6,10 @@ Checklist for making a new release:
 - Make sure debugging output is turned off.
 - Update the version number to the new M.m.r value.
   - README.rst
-  - setup.py
-  - __init__.py
+  - _version.py
 - Read over the CHANGELOG.rst file and edit as needed.
 - Update the wiki pages to incorporate any changes as needed.
+- Update any docs that might need updating.
 - In docs directory, run update_docs
 - In gh-pages directory, commit and push new docs.
 - git tag -a vM.m.r -m MESSAGE

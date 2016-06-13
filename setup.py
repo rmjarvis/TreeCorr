@@ -79,7 +79,7 @@ def get_compiler(cc):
     lines = p.stdout.readlines()
     print('compiler version information: ')
     for line in lines:
-        print(line.strip())
+        print(line.decode().strip())
     try:
         # Python3 needs this decode bit.
         # Python2.7 doesn't need it, but it works fine.
@@ -172,7 +172,7 @@ int main() {
 """
     import tempfile
     cpp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.cpp')
-    cpp_file.write(cpp_code)
+    cpp_file.write(cpp_code.encode())
     cpp_file.close()
 
     # Just get a named temporary file to write to:
@@ -230,7 +230,7 @@ int main() {
 """
     import tempfile
     ffi_file = tempfile.NamedTemporaryFile(delete=False, suffix='.c')
-    ffi_file.write(ffi_code)
+    ffi_file.write(ffi_code.encode())
     ffi_file.close()
 
     # Just get a named temporary file to write to:
@@ -252,7 +252,7 @@ int main() {
 }
 """
         ffi_file = open(ffi_file.name, ffi_file.mode)
-        ffi_file.write(ffi_code)
+        ffi_file.write(ffi_code.encode())
         ffi_file.close()
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         lines = p.stdout.readlines()

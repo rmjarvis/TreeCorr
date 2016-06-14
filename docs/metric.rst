@@ -5,7 +5,7 @@ Metrics
 The correlation functions need to know how to calculate distances between the points,
 that is, the metric defining the space.
 
-In most cases, you will probably want to use the default Metric, which is called "Euclidean",
+In most cases, you will probably want to use the default Metric, called "Euclidean",
 which just uses the normal Euclidean distance between two points.  However, there are a few
 other options, which are useful for various applications.
 

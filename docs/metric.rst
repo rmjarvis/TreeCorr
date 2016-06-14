@@ -60,7 +60,7 @@ functions for every pair calculation along the way, rather than just at the end.
 In most cases, this extra care is unnecessary, but it provides a means to check if the
 chord calculations are in any way problematic for your particular use case.
 
-Also, unline the "Euclidean" version, the bin spacing will be uniform in log(r) using the
+Also, unlike the "Euclidean" version, the bin spacing will be uniform in log(r) using the
 actual great circle distances, rather than being based on the chord distances.
 
 "Rperp"

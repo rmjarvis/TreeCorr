@@ -80,3 +80,13 @@ Bug fixes:
 - Fixed a big where 3-pt correlations could sometimes seg fault due to a
   calculation coming out as nan. (#42)
 
+
+Changes from version 3.3.0 to 3.3.1
+===================================
+
+Bug fix:
+--------
+
+- Fixed a bug where numerical rounding imprecision could let dsq come out
+  negative for the Rperp metric if the lens and source were identical (i.e.
+  had the same position, so dsq should be 0).

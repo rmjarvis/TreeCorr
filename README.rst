@@ -75,6 +75,7 @@ that is also relatively straightforward:
    interested, the dependencies are:
 
     - numpy
+    - future
     - fitsio: TreeCorr can use either fitsio or pyfits (now part of astropy),
       so it will only install fitsio if none of these are present on your
       system.
@@ -90,12 +91,12 @@ that is also relatively straightforward:
 3. Unzip the archive with either of the following (depending on which kind
    of archive you downloaded)::
 
-        unzip TreeCorr-3.3.0.zip
-        tar xvzf TreeCorr-3.3.0.tar.gz
+        unzip TreeCorr-3.3.1.zip
+        tar xvzf TreeCorr-3.3.1.tar.gz
 
-   It will unzip into the directory TreeCorr-3.3.0. Change to that directory::
+   It will unzip into the directory TreeCorr-3.3.1. Change to that directory::
 
-        cd TreeCorr-3.3.0
+        cd TreeCorr-3.3.1
 
 4. Install with the normal setup.py options.  Typically this would be the
    command::

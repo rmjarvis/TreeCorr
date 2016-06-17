@@ -75,6 +75,7 @@ that is also relatively straightforward:
    interested, the dependencies are:
 
     - numpy
+    - future
     - fitsio: TreeCorr can use either fitsio or pyfits (now part of astropy),
       so it will only install fitsio if none of these are present on your
       system.

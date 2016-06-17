@@ -127,7 +127,10 @@ struct MetricHelper<Perp>
         double r1sq = p1.normSq();
         double r2sq = p2.normSq();
         // r_parallel^2 = (r1-r2)^2 = r1^2 + r2^2 - 2r1r2
-        double rparsq = r1sq + r2sq - 2.*sqrt(r1sq*r2sq);
+        // Numerically more stable value if rpar << r1,r2:
+        // r_par^2 = ((r1^2 + r2^2)^2 - 4r1^2 r2^2) / (r1^2 + r2^2 + 2r1r2)
+        //         = (r1^2 - r2^2)^2 / (r1^2 + r2^2 + 2r1r2)
+        double rparsq = SQR(r1sq - r2sq) / (r1sq + r2sq + 2.*sqrt(r1sq*r2sq));
 
         // For the usual case that the angle theta between p1 and p2 is << 1, the above
         // calculation reduces to
@@ -158,7 +161,8 @@ struct MetricHelper<Perp>
                 s2 *= (1. + 0.25 * (r2sq-r1sq)/r1sq);
         }
 
-        return dsq - rparsq;
+        // This can end up negative with rounding errors.  So take the abs value to be safe.
+        return std::abs(dsq - rparsq);
     }
     static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
     {
@@ -270,7 +274,9 @@ struct MetricHelper<Lens>
         //      s2' = r1/r2 s2
         s2 *= r1/r2;
 
-        return 2. * p1.cross(p2).normSq() / (r2*r2) / (1.+costheta);
+        double dsq = 2. * p1.cross(p2).normSq() / (r2*r2) / (1.+costheta);
+        // I don't think rounding can make this negative, but just to be safe...
+        return std::abs(dsq);
     }
 #else
     // The second option uses the direction perpendiculat to r1

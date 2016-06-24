@@ -465,14 +465,13 @@ dist = setup(name="TreeCorr",
       url="https://github.com/rmjarvis/TreeCorr",
       download_url="https://github.com/rmjarvis/TreeCorr/releases/tag/v%s.zip"%treecorr_version,
       packages=['treecorr'],
-      data_files=[('treecorr/include',headers)],
+      package_data={'treecorr' : headers },
       ext_modules=[ext],
       install_requires=dependencies,
       cmdclass = {'build_ext': my_builder,
                   'install_scripts': my_install_scripts,
                   'easy_install': my_easy_install,
                   },
-      headers=headers,
       scripts=scripts)
 
 # I don't actually need these installed for TreeCorr, but I wanted to figure out how to do

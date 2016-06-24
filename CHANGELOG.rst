@@ -90,3 +90,13 @@ Bug fix:
 - Fixed a bug where numerical rounding imprecision could let dsq come out
   negative for the Rperp metric if the lens and source were identical (i.e.
   had the same position, so dsq should be 0).
+
+
+Changes from version 3.3.0 to 3.3.1
+===================================
+
+Bug fix:
+--------
+
+- Fixed a problem with pip installation on linux boxes that the include files
+  were not being installed into the right place.

@@ -81,7 +81,7 @@ Bug fixes:
   calculation coming out as nan. (#42)
 
 
-Version 3.3.1 Bug fix:
+Version 3.3.1 bug fix:
 ----------------------
 
 - Fixed a bug where numerical rounding imprecision could let dsq come out
@@ -89,8 +89,15 @@ Version 3.3.1 Bug fix:
   had the same position, so dsq should be 0).
 
 
-Version 3.3.2 Bug fix:
+Version 3.3.2 bug fix:
 ----------------------
 
 - Fixed a problem with pip installation on linux boxes that the include files
   were not being installed into the right place.
+
+
+Version 3.3.3 bug fix:
+----------------------
+
+- Fixed an error when writing output files in the current directory.
+

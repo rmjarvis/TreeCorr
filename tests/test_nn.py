@@ -913,15 +913,22 @@ def test_list():
     print('diff = ',corr2_output['xi']-xi)
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
 
+    # For this one, the output file is in the current directory, which used to give an error.
     import subprocess
     p = subprocess.Popen( [corr2_exe, "nn_list6.config", "-f", "params"] )
     p.communicate()
-    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list6.out'),names=True)
+    output_file = 'nn_list6.out'
+    corr2_output = numpy.genfromtxt(output_file,names=True)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
     print('ratio = ',corr2_output['xi']/xi)
     print('diff = ',corr2_output['xi']-xi)
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
+    # Move it to the output directory now to keep the current directory clean.
+    mv_output_file = os.path.join('output',output_file)
+    if os.path.exists(mv_output_file):
+        os.remove(mv_output_file)
+    os.rename(output_file, mv_output_file)
 
 def test_perp_minmax():
     """This test is based on a bug report from Erika Wagoner where the lowest bins were

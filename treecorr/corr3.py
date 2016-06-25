@@ -137,7 +137,7 @@ def corr3(config, logger=None):
 
     # Set the number of threads
     num_threads = config.get('num_threads',None)
-    logger.debug('From config dict, num_threads = %d',num_threads)
+    logger.debug('From config dict, num_threads = %s',num_threads)
     treecorr.set_omp_threads(num_threads, logger)
 
     # Read in the input files.  Each of these is a list.

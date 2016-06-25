@@ -21,8 +21,9 @@ import os
 
 def ensure_dir(target):
     d = os.path.dirname(target)
-    if not os.path.exists(d):
-        os.makedirs(d)
+    if d != '':
+        if not os.path.exists(d):
+            os.makedirs(d)
 
 
 def gen_write(file_name, col_names, columns, prec=4, file_type=None, logger=None):

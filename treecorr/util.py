@@ -26,7 +26,7 @@ def ensure_dir(target):
             os.makedirs(d)
 
 
-def gen_write(file_name, col_names, columns, prec=4, file_type=None, logger=None):
+def gen_write(file_name, col_names, columns, params=None, prec=4, file_type=None, logger=None):
     """Write some columns to an output file with the given column names.
 
     We do this basic functionality a lot, so put the code to do it in one place.
@@ -34,6 +34,8 @@ def gen_write(file_name, col_names, columns, prec=4, file_type=None, logger=None
     :param file_name:   The name of the file to write to.
     :param col_names:   A list of columns names for the given columns.
     :param columns:     A list of numpy arrays with the data to write.
+    :param params:      A dict of extra parameters to write at the top of the output file (for
+                        ASCII output) or in the header (for FITS output).  (default: None)
     :param prec:        Output precision for ASCII. (default: 4)
     :param file_type:   Which kind of file to write to. (default: determine from the file_name
                         extension)
@@ -62,20 +64,21 @@ def gen_write(file_name, col_names, columns, prec=4, file_type=None, logger=None
             logger.info("file_type assumed to be %s from the file name.",file_type)
 
     if file_type == 'FITS':
-        gen_write_fits(file_name, col_names, columns)
+        gen_write_fits(file_name, col_names, columns, params)
     elif file_type == 'ASCII':
-        gen_write_ascii(file_name, col_names, columns, prec=prec)
+        gen_write_ascii(file_name, col_names, columns, params, prec=prec)
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 
 
-def gen_write_ascii(file_name, col_names, columns, prec=4):
+def gen_write_ascii(file_name, col_names, columns, params, prec=4):
     """Write some columns to an output ASCII file with the given column names.
 
     :param file_name:   The name of the file to write to.
     :param col_names:   A list of columns names for the given columns.  These will be written
                         in a header comment line at the top of the output file.
     :param columns:     A list of numpy arrays with the data to write.
+    :param params:      A dict of extra parameters to write at the top of the output file.
     :param prec:        Output precision for ASCII. (default: 4)
     """
     ncol = len(col_names)
@@ -92,43 +95,43 @@ def gen_write_ascii(file_name, col_names, columns, prec=4):
     header = header_form.format(*col_names)
     fmt = '%%%d.%de'%(width,prec)
     ensure_dir(file_name)
-    try:
-        numpy.savetxt(file_name, data, fmt=fmt, header=header)
-    except (AttributeError, TypeError):
-        # header was added with version 1.7, so do it by hand if not available.
-        with open(file_name, 'w') as fid:
-            fid.write('#' + header + '\n')
-            numpy.savetxt(fid, data, fmt=fmt) 
+    with open(file_name, 'w') as fid:
+        if params is not None:
+            for key in params:
+                fid.write('## %s = %r\n'%(key,params[key]))
+        fid.write('#' + header + '\n')
+        numpy.savetxt(fid, data, fmt=fmt)
 
 
-def gen_write_fits(file_name, col_names, columns):
+def gen_write_fits(file_name, col_names, columns, params):
     """Write some columns to an output FITS file with the given column names.
 
     :param file_name:   The name of the file to write to.
     :param col_names:   A list of columns names for the given columns.
     :param columns:     A list of numpy arrays with the data to write.
+    :param params:      A dict of extra parameters to write in the FITS header.
     """
     import fitsio
     ensure_dir(file_name)
     data = numpy.empty(len(columns[0]), dtype=[ (name,'f8') for name in col_names ])
     for (name, col) in zip(col_names, columns):
         data[name] = col
-    fitsio.write(file_name, data, clobber=True)
+    fitsio.write(file_name, data, header=params, clobber=True)
 
 
 def gen_read(file_name, file_type=None, logger=None):
     """Read some columns from an input file.
 
     We do this basic functionality a lot, so put the code to do it in one place.
-    Note that the input file is expected to have been written by TreeCorr using the 
+    Note that the input file is expected to have been written by TreeCorr using the
     gen_write function, so we don't have a lot of flexibility in the input structure.
 
     :param file_name:   The name of the file to read.
-    :param file_type:   Which kind of file to write to. (default: determine from the file_name
+    :param file_type:   Which kind of file to read. (default: determine from the file_name
                         extension)
     :param logger:      If desired, a logger object for logging. (default: None)
 
-    :returns: a numpy ndarray with named columns
+    :returns: (data, params), a numpy ndarray with named columns, and a dict of extra parameters.
     """
     # Figure out which file type the catalog is
     if file_type is None:
@@ -144,12 +147,21 @@ def gen_read(file_name, file_type=None, logger=None):
     if file_type == 'FITS':
         import fitsio
         data = fitsio.read(file_name)
+        params = fitsio.read_header(file_name, 1)
     elif file_type == 'ASCII':
-        data = numpy.genfromtxt(file_name, names=True)
+        with open(file_name) as fid:
+            header = fid.readline()
+            params = {}
+            while header[1] == '#':
+                assert header[0] == '#'
+                key, value = header[2:].split('=')
+                params[key.strip()] = eval(value.strip())
+                header = fid.readline()
+        data = numpy.genfromtxt(file_name, names=True, skip_header=len(params))
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 
-    return data
+    return data, params
 
 
 class LRU_Cache:

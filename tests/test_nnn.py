@@ -1075,6 +1075,8 @@ def test_nnn():
     numpy.testing.assert_almost_equal(data['meanu'], ddd.meanu.flatten())
     numpy.testing.assert_almost_equal(data['meanv'], ddd.meanv.flatten())
     numpy.testing.assert_almost_equal(data['ntri'], ddd.ntri.flatten())
+    header = fitsio.read_header(out_file_name1, 1)
+    numpy.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
     out_file_name2 = os.path.join('output','nnn_out2.fits')
     ddd.write(out_file_name2, rrr)
@@ -1094,6 +1096,8 @@ def test_nnn():
     numpy.testing.assert_almost_equal(data['sigma_zeta'], numpy.sqrt(varzeta).flatten())
     numpy.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
     numpy.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+    header = fitsio.read_header(out_file_name2, 1)
+    numpy.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
     # Check the read function
     # Note: These don't need the flatten. The read function should reshape them to the right shape.
@@ -1114,6 +1118,7 @@ def test_nnn():
     numpy.testing.assert_almost_equal(ddd2.meanu, ddd.meanu)
     numpy.testing.assert_almost_equal(ddd2.meanv, ddd.meanv)
     numpy.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
+    numpy.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
 
     ddd2.read(out_file_name2)
     numpy.testing.assert_almost_equal(ddd2.logr, ddd.logr)
@@ -1128,6 +1133,7 @@ def test_nnn():
     numpy.testing.assert_almost_equal(ddd2.meanu, ddd.meanu)
     numpy.testing.assert_almost_equal(ddd2.meanv, ddd.meanv)
     numpy.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
+    numpy.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
 
     # Test compensated zeta
     # This version computes the three-point function after subtracting off the appropriate
@@ -1191,6 +1197,8 @@ def test_nnn():
         numpy.testing.assert_almost_equal(data['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
         numpy.testing.assert_almost_equal(data['DRD'], drd.ntri.flatten() * (ddd.tot / drd.tot))
         numpy.testing.assert_almost_equal(data['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
+        header = fitsio.read_header(out_file_name3, 1)
+        numpy.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
         ddd2.read(out_file_name3)
         numpy.testing.assert_almost_equal(ddd2.logr, ddd.logr)
@@ -1205,6 +1213,7 @@ def test_nnn():
         numpy.testing.assert_almost_equal(ddd2.meanu, ddd.meanu)
         numpy.testing.assert_almost_equal(ddd2.meanv, ddd.meanv)
         numpy.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
+        numpy.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
 
 
 def test_3d():

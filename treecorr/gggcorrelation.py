@@ -568,7 +568,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         """
         self.logger.info('Reading GGG correlations from %s',file_name)
 
-        data = treecorr.util.gen_read(file_name, file_type=file_type)
+        data, _ = treecorr.util.gen_read(file_name, file_type=file_type)
         s = self.logr.shape
         self.rnom = data['R_nom'].reshape(s)
         self.logr = numpy.log(self.rnom)

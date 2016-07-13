@@ -618,12 +618,22 @@ def test_nn():
         corr2_exe = get_script_name('corr2')
         p = subprocess.Popen( [corr2_exe,"nn.yaml"] )
         p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','nn.out'),names=True)
+        out_file_name = os.path.join('output','nn.out')
+        corr2_output = numpy.genfromtxt(out_file_name, names=True, skip_header=1)
         print('xi = ',xi)
         print('from corr2 output = ',corr2_output['xi'])
         print('ratio = ',corr2_output['xi']/xi)
         print('diff = ',corr2_output['xi']-xi)
         numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=3)
+
+        # Check the read function (not at very high accuracy for the ASCII I/O)
+        dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+        dd2.read(out_file_name)
+        numpy.testing.assert_almost_equal(dd2.logr/dd.logr, 1., decimal=3)
+        numpy.testing.assert_almost_equal(dd2.meanr/dd.meanr, 1., decimal=3)
+        numpy.testing.assert_almost_equal(dd2.meanlogr/dd.meanlogr, 1., decimal=3)
+        numpy.testing.assert_almost_equal(dd2.npairs/dd.npairs, 1., decimal=3)
+        numpy.testing.assert_almost_equal(dd2.tot/dd.tot, 1., decimal=3)
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','nn_out1.fits')
@@ -633,6 +643,8 @@ def test_nn():
     numpy.testing.assert_almost_equal(data['meanR'], dd.meanr)
     numpy.testing.assert_almost_equal(data['meanlogR'], dd.meanlogr)
     numpy.testing.assert_almost_equal(data['npairs'], dd.npairs)
+    header = fitsio.read_header(out_file_name1, 1)
+    numpy.testing.assert_almost_equal(header['tot'], dd.tot)
 
     out_file_name2 = os.path.join('output','nn_out2.fits')
     dd.write(out_file_name2, rr)
@@ -644,6 +656,8 @@ def test_nn():
     numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(simple_varxi))
     numpy.testing.assert_almost_equal(data['DD'], dd.npairs)
     numpy.testing.assert_almost_equal(data['RR'], rr.npairs * (dd.tot / rr.tot))
+    header = fitsio.read_header(out_file_name2, 1)
+    numpy.testing.assert_almost_equal(header['tot'], dd.tot)
 
     out_file_name3 = os.path.join('output','nn_out3.fits')
     dd.write(out_file_name3, rr, dr)
@@ -656,6 +670,8 @@ def test_nn():
     numpy.testing.assert_almost_equal(data['DD'], dd.npairs)
     numpy.testing.assert_almost_equal(data['RR'], rr.npairs * (dd.tot / rr.tot))
     numpy.testing.assert_almost_equal(data['DR'], dr.npairs * (dd.tot / dr.tot))
+    header = fitsio.read_header(out_file_name3, 1)
+    numpy.testing.assert_almost_equal(header['tot'], dd.tot)
 
     # Check the read function
     dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
@@ -664,12 +680,14 @@ def test_nn():
     numpy.testing.assert_almost_equal(dd2.meanr, dd.meanr)
     numpy.testing.assert_almost_equal(dd2.meanlogr, dd.meanlogr)
     numpy.testing.assert_almost_equal(dd2.npairs, dd.npairs)
+    numpy.testing.assert_almost_equal(dd2.tot, dd.tot)
 
     dd2.read(out_file_name3)
     numpy.testing.assert_almost_equal(dd2.logr, dd.logr)
     numpy.testing.assert_almost_equal(dd2.meanr, dd.meanr)
     numpy.testing.assert_almost_equal(dd2.meanlogr, dd.meanlogr)
     numpy.testing.assert_almost_equal(dd2.npairs, dd.npairs)
+    numpy.testing.assert_almost_equal(dd2.tot, dd.tot)
 
 
 def test_3d():
@@ -758,7 +776,7 @@ def test_3d():
         corr2_exe = get_script_name('corr2')
         p = subprocess.Popen( [corr2_exe,"nn_3d.yaml"] )
         p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','nn_3d.out'),names=True)
+        corr2_output = numpy.genfromtxt(os.path.join('output','nn_3d.out'),names=True,skip_header=1)
         print('xi = ',xi)
         print('from corr2 output = ',corr2_output['xi'])
         print('ratio = ',corr2_output['xi']/xi)
@@ -866,7 +884,7 @@ def test_list():
     corr2_exe = get_script_name('corr2')
     p = subprocess.Popen( [corr2_exe,"nn_list1.yaml"] )
     p.communicate()
-    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list1.out'),names=True)
+    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list1.out'),names=True,skip_header=1)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
     print('ratio = ',corr2_output['xi']/xi)
@@ -876,7 +894,7 @@ def test_list():
     import subprocess
     p = subprocess.Popen( [corr2_exe,"nn_list2.json"] )
     p.communicate()
-    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list2.out'),names=True)
+    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list2.out'),names=True,skip_header=1)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
     print('ratio = ',corr2_output['xi']/xi)
@@ -886,7 +904,7 @@ def test_list():
     import subprocess
     p = subprocess.Popen( [corr2_exe,"nn_list3.params"] )
     p.communicate()
-    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list3.out'),names=True)
+    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list3.out'),names=True,skip_header=1)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
     print('ratio = ',corr2_output['xi']/xi)
@@ -896,7 +914,7 @@ def test_list():
     import subprocess
     p = subprocess.Popen( [corr2_exe, "nn_list4.config", "-f", "yaml"] )
     p.communicate()
-    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list4.out'),names=True)
+    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list4.out'),names=True,skip_header=1)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
     print('ratio = ',corr2_output['xi']/xi)
@@ -906,7 +924,7 @@ def test_list():
     import subprocess
     p = subprocess.Popen( [corr2_exe, "nn_list5.config", "-f", "json"] )
     p.communicate()
-    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list5.out'),names=True)
+    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list5.out'),names=True,skip_header=1)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
     print('ratio = ',corr2_output['xi']/xi)
@@ -918,7 +936,7 @@ def test_list():
     p = subprocess.Popen( [corr2_exe, "nn_list6.config", "-f", "params"] )
     p.communicate()
     output_file = 'nn_list6.out'
-    corr2_output = numpy.genfromtxt(output_file,names=True)
+    corr2_output = numpy.genfromtxt(output_file,names=True,skip_header=1)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
     print('ratio = ',corr2_output['xi']/xi)
@@ -1012,7 +1030,7 @@ def test_perp_minmax():
         corr2_exe = get_script_name('corr2')
         p = subprocess.Popen( [corr2_exe,"nn_rperp.yaml"] )
         p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','nn_rperp.out'),names=True)
+        corr2_output = numpy.genfromtxt(os.path.join('output','nn_rperp.out'),names=True,skip_header=1)
         print('xi = ',xi1)
         print('from corr2 output = ',corr2_output['xi'])
         print('ratio = ',corr2_output['xi']/xi1)

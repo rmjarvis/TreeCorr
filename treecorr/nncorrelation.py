@@ -479,8 +479,11 @@ class NNCorrelation(treecorr.BinnedCorr2):
         if prec is None:
             prec = self.config.get('precision', 4)
 
+        params = { 'tot' : self.tot }
+
         treecorr.util.gen_write(
-            file_name, col_names, columns, prec=prec, file_type=file_type, logger=self.logger)
+            file_name, col_names, columns, params=params,
+            prec=prec, file_type=file_type, logger=self.logger)
 
 
     def read(self, file_name, file_type=None):
@@ -499,13 +502,14 @@ class NNCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Reading NN correlations from %s',file_name)
 
-        data = treecorr.util.gen_read(file_name, file_type=file_type)
+        data, params = treecorr.util.gen_read(file_name, file_type=file_type)
         self.rnom = data['R_nom']
         self.logr = numpy.log(self.rnom)
         self.meanr = data['meanR']
         self.meanlogr = data['meanlogR']
         self.weight = data['DD']
         self.npairs = data['npairs']
+        self.tot = params['tot']
         self._build_corr()
 
 

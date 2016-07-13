@@ -372,7 +372,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Reading NK correlations from %s',file_name)
 
-        data = treecorr.util.gen_read(file_name, file_type=file_type)
+        data, _ = treecorr.util.gen_read(file_name, file_type=file_type)
         self.rnom = data['R_nom']
         self.logr = numpy.log(self.rnom)
         self.meanr = data['meanR']

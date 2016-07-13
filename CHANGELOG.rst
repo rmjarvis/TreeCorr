@@ -13,6 +13,10 @@ Dependency changes:
 API changes:
 ------------
 
+- Added tot attribute to the NN and NNN output files.  This may require slight
+  changes to code that reads in ASCII files.  There should not be any problem
+  reading the file if you use FITS format.
+
 
 
 New features:
@@ -23,4 +27,6 @@ New features:
 Bug fixes:
 ----------
 
-
+- Added tot attribute to the NN and NNN output files, which fixes an error
+  where NNCorrelation and NNNCorrelation did not round trip correctly through
+  a FITS output file.  Now the tot attribute is set properly when reading.

@@ -776,12 +776,24 @@ def test_3d():
         corr2_exe = get_script_name('corr2')
         p = subprocess.Popen( [corr2_exe,"nn_3d.yaml"] )
         p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','nn_3d.out'),names=True,skip_header=1)
+
+        corr2_outfile = os.path.join('output','nn_3d.fits')
+        corr2_output = fitsio.read(corr2_outfile)
         print('xi = ',xi)
         print('from corr2 output = ',corr2_output['xi'])
         print('ratio = ',corr2_output['xi']/xi)
         print('diff = ',corr2_output['xi']-xi)
-        numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=3)
+
+        numpy.testing.assert_almost_equal(corr2_output['R_nom'], numpy.exp(dd.logr))
+        numpy.testing.assert_almost_equal(corr2_output['meanR'], dd.meanr)
+        numpy.testing.assert_almost_equal(corr2_output['meanlogR'], dd.meanlogr)
+        numpy.testing.assert_almost_equal(corr2_output['xi'], xi)
+        numpy.testing.assert_almost_equal(corr2_output['sigma_xi'], numpy.sqrt(varxi))
+        numpy.testing.assert_almost_equal(corr2_output['DD'], dd.npairs)
+        numpy.testing.assert_almost_equal(corr2_output['RR'], rr.npairs * (dd.tot / rr.tot))
+        numpy.testing.assert_almost_equal(corr2_output['DR'], dr.npairs * (dd.tot / dr.tot))
+        header = fitsio.read_header(corr2_outfile, 1)
+        numpy.testing.assert_almost_equal(header['tot'], dd.tot)
 
     # And repeat with Catalogs that use x,y,z
     cat = treecorr.Catalog(x=x, y=y, z=z)

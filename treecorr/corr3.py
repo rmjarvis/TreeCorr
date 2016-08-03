@@ -188,43 +188,36 @@ def corr3(config, logger=None):
             rrr.process(rand1)
             logger.info("Done RRR calculations.")
 
-            if config['nnn_statistic'] == 'compensated':
-                drr = treecorr.NNNCorrelation(config,logger)
-                drr.process(cat1,rand2,rand3)
-                logger.info("Done DRR calculations.")
-                ddr = treecorr.NNNCorrelation(config,logger)
-                ddr.process(cat1,cat2,rand3)
-                logger.info("Done DDR calculations.")
-                ddd.write(config['nnn_file_name'],rrr,drr,ddr)
-            else:
-                ddd.write(config['nnn_file_name'],rrr)
+            # For the next step, just make cat2 = cat3 = cat1 and rand2 = rand3 = rand1.
+            cat2 = cat3 = cat1
+            rand2 = rand3 = rand1
         else:
             rrr = treecorr.NNNCorrelation(config,logger)
             rrr.process(rand1,rand2,rand3)
             logger.info("Done RRR calculations.")
 
-            if config['nnn_statistic'] == 'compensated':
-                drr = treecorr.NNNCorrelation(config,logger)
-                drr.process(cat1,rand2,rand3)
-                logger.info("Done DRR calculations.")
-                ddr = treecorr.NNNCorrelation(config,logger)
-                ddr.process(cat1,cat2,rand3)
-                logger.info("Done DDR calculations.")
-                rdr = treecorr.NNNCorrelation(config,logger)
-                rdr.process(rand1,cat2,rand3)
-                logger.info("Done RDR calculations.")
-                rrd = treecorr.NNNCorrelation(config,logger)
-                rrd.process(rand1,rand2,cat3)
-                logger.info("Done RRD calculations.")
-                drd = treecorr.NNNCorrelation(config,logger)
-                drd.process(cat1,rand2,cat3)
-                logger.info("Done DRD calculations.")
-                rdd = treecorr.NNNCorrelation(config,logger)
-                rdd.process(rand1,cat2,cat3)
-                logger.info("Done RDD calculations.")
-                ddd.write(config['nnn_file_name'],rrr,drr,ddr,rdr,rrd,drd,rdd)
-            else:
-                ddd.write(config['nnn_file_name'],rrr)
+        if config['nnn_statistic'] == 'compensated':
+            drr = treecorr.NNNCorrelation(config,logger)
+            drr.process(cat1,rand2,rand3)
+            logger.info("Done DRR calculations.")
+            ddr = treecorr.NNNCorrelation(config,logger)
+            ddr.process(cat1,cat2,rand3)
+            logger.info("Done DDR calculations.")
+            rdr = treecorr.NNNCorrelation(config,logger)
+            rdr.process(rand1,cat2,rand3)
+            logger.info("Done RDR calculations.")
+            rrd = treecorr.NNNCorrelation(config,logger)
+            rrd.process(rand1,rand2,cat3)
+            logger.info("Done RRD calculations.")
+            drd = treecorr.NNNCorrelation(config,logger)
+            drd.process(cat1,rand2,cat3)
+            logger.info("Done DRD calculations.")
+            rdd = treecorr.NNNCorrelation(config,logger)
+            rdd.process(rand1,cat2,cat3)
+            logger.info("Done RDD calculations.")
+            ddd.write(config['nnn_file_name'],rrr,drr,rdr,rrd,ddr,drd,rdd)
+        else:
+            ddd.write(config['nnn_file_name'],rrr)
 
     # Do KKK correlation function if necessary
     if 'kkk_file_name' in config:

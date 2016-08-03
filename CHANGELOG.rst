@@ -101,3 +101,10 @@ Version 3.3.3 bug fix:
 
 - Fixed an error when writing output files in the current directory.
 
+
+Version 3.3.4 bug fix:
+----------------------
+
+- Fixed an error in how the corr3 script calculates the compensated nnn
+  statistic.
+

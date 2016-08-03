@@ -91,12 +91,12 @@ that is also relatively straightforward:
 3. Unzip the archive with either of the following (depending on which kind
    of archive you downloaded)::
 
-        unzip TreeCorr-3.3.3.zip
-        tar xvzf TreeCorr-3.3.3.tar.gz
+        unzip TreeCorr-3.3.4.zip
+        tar xvzf TreeCorr-3.3.4.tar.gz
 
-   It will unzip into the directory TreeCorr-3.3.3. Change to that directory::
+   It will unzip into the directory TreeCorr-3.3.4. Change to that directory::
 
-        cd TreeCorr-3.3.3
+        cd TreeCorr-3.3.4
 
 4. Install with the normal setup.py options.  Typically this would be the
    command::

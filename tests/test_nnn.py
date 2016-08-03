@@ -1215,6 +1215,43 @@ def test_nnn():
         numpy.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
         numpy.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
 
+        import subprocess
+        corr3_exe = get_script_name('corr3')
+        p = subprocess.Popen( [corr3_exe,"nnn_compensated.yaml"] )
+        p.communicate()
+
+        corr3_outfile = os.path.join('output','nnn_compensated.fits')
+        corr3_output = fitsio.read(corr3_outfile)
+        print('zeta = ',zeta)
+        print('from corr3 output = ',corr3_output['zeta'])
+        print('ratio = ',corr3_output['zeta']/zeta.flatten())
+        print('diff = ',corr3_output['zeta']-zeta.flatten())
+
+        numpy.testing.assert_almost_equal(corr3_output['R_nom'], numpy.exp(ddd.logr).flatten())
+        numpy.testing.assert_almost_equal(corr3_output['u_nom'], ddd.u.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['v_nom'], ddd.v.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['meand1'], ddd.meand1.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['meanlogd1'], ddd.meanlogd1.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['meand2'], ddd.meand2.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['meanlogd2'], ddd.meanlogd2.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['meand3'], ddd.meand3.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['meanlogd3'], ddd.meanlogd3.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['meanu'], ddd.meanu.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['meanv'], ddd.meanv.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['zeta'], zeta.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['sigma_zeta'], numpy.sqrt(varzeta).flatten())
+        numpy.testing.assert_almost_equal(corr3_output['DDD'], ddd.ntri.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+        numpy.testing.assert_almost_equal(corr3_output['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
+        numpy.testing.assert_almost_equal(corr3_output['RDR'], rdr.ntri.flatten() * (ddd.tot / rdr.tot))
+        numpy.testing.assert_almost_equal(corr3_output['RRD'], rrd.ntri.flatten() * (ddd.tot / rrd.tot))
+        numpy.testing.assert_almost_equal(corr3_output['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
+        numpy.testing.assert_almost_equal(corr3_output['DRD'], drd.ntri.flatten() * (ddd.tot / drd.tot))
+        numpy.testing.assert_almost_equal(corr3_output['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
+        header = fitsio.read_header(corr3_outfile, 1)
+        numpy.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
+
+
 
 def test_3d():
     # For this one, build a Gaussian cloud around some random point in 3D space and do the

@@ -1,0 +1,23 @@
+
+file_name: data/nnn_data.dat
+rand_file_name: data/nnn_rand.dat
+
+x_col: 1
+y_col: 2
+x_units: arcmin
+y_units: arcmin
+
+verbose: 1
+
+min_sep: 11.
+max_sep: 13.
+nbins: 2
+sep_units: arcmin
+min_u: 0.6
+max_u: 0.9
+nubins: 3
+min_v: 0.5
+max_v: 0.9
+nvbins: 5
+
+nnn_file_name: output/nnn_compensated.fits

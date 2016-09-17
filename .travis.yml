@@ -12,20 +12,23 @@ python:
 
 before_install:
     - "sudo apt-get install -y libffi-dev"
-    - "sudo pip install numpy==1.10"
-    - "sudo pip install pandas==0.18"
+    - "pip install numpy==1.10"
+    - "pip install pandas==0.18"
     - "export PYTHONPATH=/usr/local/lib/python2.7/dist-packages/:$PYTHONPATH"
+    - "export PYTHONPATH=$HOME/lib/python2.7/site-packages/:$PYTHONPATH"
 
 cache:
     - pip: true
 
-install: "sudo python setup.py install"
+install: "python setup.py install --prefix=$HOME"
 
 script: 
     - "cd tests"
     - "echo $PYTHONPATH"
+    - "echo $HOME"
     - "which python"
     - "which nosetests"
+    - "env"
     - "ls -l /usr/local/lib/python2.7/dist-packages/"
     - "python -c 'import sys; print(sys.path)'"
     - "nosetests"

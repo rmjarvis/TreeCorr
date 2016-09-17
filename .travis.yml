@@ -5,20 +5,18 @@ branches:
 language: python
 
 python:
-    #- "2.6"
+    - "2.6"
     - "2.7"
-    #- "3.4"
-    #- "3.5"
+    - "3.4"
+    - "3.5"
 
 before_install:
     - "sudo apt-get install -y libffi-dev"
-    - "pip install numpy==1.10"
-    - "pip install pandas==0.18"
-    - "export PYTHONPATH=/usr/local/lib/python2.7/dist-packages/:$PYTHONPATH"
-    - "export PYTHONPATH=$HOME/lib/python2.7/site-packages/:$PYTHONPATH"
+    - "pip install -r requirements.txt"
+    - "export PYTHONPATH=$HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages/:$PYTHONPATH"
     - "mkdir $HOME/lib"
-    - "mkdir $HOME/lib/python2.7"
-    - "mkdir $HOME/lib/python2.7/site-packages"
+    - "mkdir $HOME/lib/python$TRAVIS_PYTHON_VERSION"
+    - "mkdir $HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages"
 
 cache:
     - pip: true
@@ -27,11 +25,10 @@ install: "python setup.py install --prefix=$HOME"
 
 script: 
     - "cd tests"
-    - "echo $PYTHONPATH"
-    - "echo $HOME"
-    - "which python"
-    - "which nosetests"
-    - "env"
-    - "ls -l /usr/local/lib/python2.7/dist-packages/"
-    - "python -c 'import sys; print(sys.path)'"
+    #- "echo $PYTHONPATH"
+    #- "echo $HOME"
+    #- "which python"
+    #- "which nosetests"
+    #- "env"
+    #- "python -c 'import sys; print(sys.path)'"
     - "nosetests"

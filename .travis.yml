@@ -17,6 +17,8 @@ before_install:
     - "export PYTHONPATH=/usr/local/lib/python2.7/dist-packages/:$PYTHONPATH"
     - "export PYTHONPATH=$HOME/lib/python2.7/site-packages/:$PYTHONPATH"
     - "mkdir $HOME/lib"
+    - "mkdir $HOME/lib/python2.7"
+    - "mkdir $HOME/lib/python2.7/site-packages"
 
 cache:
     - pip: true

@@ -12,8 +12,8 @@ python:
 
 before_install:
     - "sudo apt-get install -y libffi-dev"
-    - "pip install numpy==1.10"
-    - "pip install pandas==0.18"
+    - "sudo pip install numpy==1.10"
+    - "sudo pip install pandas==0.18"
 
 cache:
     - pip: true

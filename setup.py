@@ -437,7 +437,7 @@ dependencies = ['numpy', 'future', 'cffi', 'fitsio']
 if py_version < '2.7':
     dependencies += ['argparse']
 else:
-    dependencies += ['pandas']  # These seem to have conflicting numpy requirements, so don't
+    dependencies += ['pandas<=0.18'] # These seem to have conflicting numpy requirements, so don't
                                 # include pandas with argparse.
 
 with open('README.rst') as file:

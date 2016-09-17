@@ -20,4 +20,9 @@ cache:
 
 install: "sudo python setup.py install"
 
-script: "cd tests && nosetests"
+script: 
+    - "cd tests"
+    - "echo $PYTHONPATH"
+    - "ls -l /usr/local/lib/python2.7/dist-packages/"
+    - "python -c 'import sys; print(sys.path)'"
+    - "nosetests"

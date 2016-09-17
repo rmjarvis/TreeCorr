@@ -5,10 +5,10 @@ branches:
 language: python
 
 python:
-    - "2.6"
-    - "2.7"
+    #- "2.6"
+    #- "2.7"
     - "3.4"
-    - "3.5"
+    #- "3.5"
 
 before_install:
     - "sudo apt-get install -y libffi-dev"
@@ -25,6 +25,10 @@ install: "python setup.py install --prefix=$HOME"
 
 script: 
     - "cd tests"
+    - "ls -l /home/travis/lib/python3.4/site-packages/TreeCorr-3.4-py3.4-linux-x86_64.egg/treecorr/"
+    - "ldd  /home/travis/lib/python3.4/site-packages/TreeCorr-3.4-py3.4-linux-x86_64.egg/treecorr/_treecorr.so"
+    - "ls -l  ../build/lib*/treecorr/"
+    - "ldd  ../build/lib*/treecorr/_treecorr.so"
     #- "echo $PYTHONPATH"
     #- "echo $HOME"
     #- "which python"

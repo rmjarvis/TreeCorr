@@ -1,0 +1,23 @@
+
+file_name: data/nnn_direct_data.dat
+rand_file_name: data/nnn_direct_rand.dat
+
+x_col: 1
+y_col: 2
+
+verbose: 0
+
+min_sep: 1.
+max_sep: 50.
+nbins: 50
+min_u: 0.13
+max_u: 0.89
+nubins: 10
+min_v: -0.83
+max_v: 0.59
+nvbins: 20
+
+bin_slop: 0
+
+nnn_statistic: simple
+nnn_file_name: output/nnn_direct.out

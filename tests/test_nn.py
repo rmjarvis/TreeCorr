@@ -246,6 +246,85 @@ def test_direct_count():
     print('diff = ',dd.npairs - true_npairs)
     numpy.testing.assert_array_equal(dd.npairs, true_npairs)
 
+    # Check that running via the corr2 script works correctly.
+    file_name1 = os.path.join('data','nn_direct_data1.dat')
+    with open(file_name1, 'w') as fid:
+        for i in range(ngal):
+            fid.write(('%.20f %.20f\n')%(x1[i],y1[i]))
+    file_name2 = os.path.join('data','nn_direct_data2.dat')
+    with open(file_name2, 'w') as fid:
+        for i in range(ngal):
+            fid.write(('%.20f %.20f\n')%(x2[i],y2[i]))
+    L = 10*s
+    nrand = ngal
+    rx1 = (numpy.random.random_sample(nrand)-0.5) * L
+    ry1 = (numpy.random.random_sample(nrand)-0.5) * L
+    rx2 = (numpy.random.random_sample(nrand)-0.5) * L
+    ry2 = (numpy.random.random_sample(nrand)-0.5) * L
+    rcat1 = treecorr.Catalog(x=rx1, y=ry1)
+    rcat2 = treecorr.Catalog(x=rx2, y=ry2)
+    rand_file_name1 = os.path.join('data','nn_direct_rand1.dat')
+    with open(rand_file_name1, 'w') as fid:
+        for i in range(nrand):
+            fid.write(('%.20f %.20f\n')%(rx1[i],ry1[i]))
+    rand_file_name2 = os.path.join('data','nn_direct_rand2.dat')
+    with open(rand_file_name2, 'w') as fid:
+        for i in range(nrand):
+            fid.write(('%.20f %.20f\n')%(rx2[i],ry2[i]))
+    rr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+                                verbose=0)
+    rr.process(rcat1,rcat2)
+    xi, varxi = dd.calculateXi(rr)
+
+    # First do this via the corr2 function.
+    config = treecorr.config.read_config('nn_direct.yaml')
+    logger = treecorr.config.setup_logger(0)
+    treecorr.corr2(config, logger)
+    corr2_output = numpy.genfromtxt(os.path.join('output','nn_direct.out'), names=True,
+                                    skip_header=1)
+    print('corr2_output = ',corr2_output)
+    print('corr2_output.dtype = ',corr2_output.dtype)
+    print('rnom = ',dd.rnom)
+    print('       ',corr2_output['R_nom'])
+    numpy.testing.assert_almost_equal(corr2_output['R_nom'], dd.rnom, decimal=3)
+    print('DD = ',dd.npairs)
+    print('      ',corr2_output['DD'])
+    numpy.testing.assert_almost_equal(corr2_output['DD'], dd.npairs, decimal=3)
+    numpy.testing.assert_almost_equal(corr2_output['npairs'], dd.npairs, decimal=3)
+    print('RR = ',rr.npairs)
+    print('      ',corr2_output['RR'])
+    numpy.testing.assert_almost_equal(corr2_output['RR'], rr.npairs, decimal=3)
+    print('xi = ',xi)
+    print('from corr2 output = ',corr2_output['xi'])
+    print('diff = ',corr2_output['xi']-xi)
+    diff_index = numpy.where(numpy.abs(corr2_output['xi']-xi) > 1.e-5)[0]
+    print('different at ',diff_index)
+    print('xi[diffs] = ',xi[diff_index])
+    print('corr2.xi[diffs] = ',corr2_output['xi'][diff_index])
+    print('diff[diffs] = ',xi[diff_index] - corr2_output['xi'][diff_index])
+    numpy.testing.assert_almost_equal(corr2_output['xi'], xi, decimal=3)
+
+    # Now calling out to the external corr2 executable.
+    import subprocess
+    corr2_exe = get_script_name('corr2')
+    p = subprocess.Popen( [corr2_exe,"nn_direct.yaml"] )
+    p.communicate()
+    corr2_output = numpy.genfromtxt(os.path.join('output','nn_direct.out'), names=True,
+                                    skip_header=1)
+    numpy.testing.assert_almost_equal(corr2_output['xi'], xi, decimal=3)
+
+    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=1.e-16)
+    dd.process(cat1, cat2)
+    numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+
+    # And again with no top-level recursion
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=1.e-16,
+                                max_top=0)
+    dd.process(cat1, cat2)
+    numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+
+
 def test_direct_3d():
     # This is the same as the above test, but using the 3d correlations
 
@@ -892,6 +971,18 @@ def test_list():
             for i in range(nobj):
                 fid.write(('%.8f %.8f\n')%(rx[i,k],ry[i,k]))
 
+    # First do this via the corr2 function.
+    config = treecorr.config.read_config('nn_list1.yaml')
+    logger = treecorr.config.setup_logger(0)
+    treecorr.corr2(config, logger)
+    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list1.out'),names=True,skip_header=1)
+    print('xi = ',xi)
+    print('from corr2 output = ',corr2_output['xi'])
+    print('ratio = ',corr2_output['xi']/xi)
+    print('diff = ',corr2_output['xi']-xi)
+    numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=3)
+
+    # Now calling out to the external corr2 executable.
     import subprocess
     corr2_exe = get_script_name('corr2')
     p = subprocess.Popen( [corr2_exe,"nn_list1.yaml"] )

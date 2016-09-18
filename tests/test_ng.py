@@ -983,6 +983,7 @@ def test_haloellip():
 
 
 if __name__ == '__main__':
+    test_haloellip()
     test_single()
     test_pairwise()
     test_spherical()

@@ -92,13 +92,10 @@ def gen_write_ascii(file_name, col_names, columns, prec=4):
     header = header_form.format(*col_names)
     fmt = '%%%d.%de'%(width,prec)
     ensure_dir(file_name)
-    try:
-        numpy.savetxt(file_name, data, fmt=fmt, header=header)
-    except (AttributeError, TypeError):
-        # header was added with version 1.7, so do it by hand if not available.
-        with open(file_name, 'w') as fid:
-            fid.write('#' + header + '\n')
-            numpy.savetxt(fid, data, fmt=fmt) 
+    with open(file_name, 'wb') as fid:
+        h = '#' + header + '\n'
+        fid.write(h.encode())
+        numpy.savetxt(fid, data, fmt=fmt)
 
 
 def gen_write_fits(file_name, col_names, columns):

@@ -21,7 +21,15 @@ version = __version__
 import os,cffi,glob
 # Set module level attributes for the include directory and the library file name.
 include_dir = os.path.join(os.path.dirname(__file__),'include')
+
 lib_file = os.path.join(os.path.dirname(__file__),'_treecorr.so')
+# Some installation (e.g. Travis with python 3.x) name this e.g. _treecorr.cpython-34m.so,
+# so if the normal name doesn't exist, look for this instead.
+if not os.path.exists(lib_file):
+    ext = ".cpython-%d%dm.so"%sys.version_info[:2]
+    alt_file = os.path.join(os.path.dirname(__file__),'_treecorr' + ext)
+    if os.path.exists(alt_file):
+        lib_file = alt_file
 
 # Load the C functions with cffi
 _ffi = cffi.FFI()

@@ -441,12 +441,14 @@ ext=Extension("treecorr._treecorr",
               depends=headers,
               undef_macros = undef_macros)
 
-dependencies = ['numpy', 'future', 'cffi', 'fitsio']
-if py_version < '2.7':
-    dependencies += ['argparse']
+dependencies = ['numpy', 'future', 'cffi', 'fitsio', 'pyyaml']
+if py_version <= '2.6':
+    dependencies += ['argparse'] # These seem to have conflicting numpy requirements, so don't
+                                 # include pandas with argparse.
+elif py_version < '3.0':
+    dependencies += ['pandas==0.18']  # Getting weird errors with 0.19 on python 2.7
 else:
-    dependencies += ['pandas']  # These seem to have conflicting numpy requirements, so don't
-                                # include pandas with argparse.
+    dependencies += ['pandas'] 
 
 with open('README.rst') as file:
     long_description = file.read()

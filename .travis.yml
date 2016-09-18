@@ -29,4 +29,4 @@ script:
     - nosetests --with-coverage --cover-package=treecorr --with-doctest
 
 after_success:
-    - coveralls
+    - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi

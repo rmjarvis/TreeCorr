@@ -18,18 +18,21 @@ from ._version import __version__, __version_info__
 # Also let treecorr.version show the version.
 version = __version__
 
-import os,sys,cffi,glob
+import os,cffi,glob
 # Set module level attributes for the include directory and the library file name.
-include_dir = os.path.join(os.path.dirname(__file__),'include')
+treecorr_dir = os.path.dirname(__file__)
+include_dir = os.path.join(treecorr_dir,'include')
 
-lib_file = os.path.join(os.path.dirname(__file__),'_treecorr.so')
+lib_file = os.path.join(treecorr_dir,'_treecorr.so')
 # Some installation (e.g. Travis with python 3.x) name this e.g. _treecorr.cpython-34m.so,
-# so if the normal name doesn't exist, look for this instead.
+# so if the normal name doesn't exist, look for something else.
 if not os.path.exists(lib_file):
-    ext = ".cpython-%d%dm.so"%sys.version_info[:2]
-    alt_file = os.path.join(os.path.dirname(__file__),'_treecorr' + ext)
-    if os.path.exists(alt_file):
-        lib_file = alt_file
+    alt_files = glob.glob(os.path.join(os.path.dirname(__file__),'_treecorr*.so'))
+    if len(alt_files) == 0:
+        raise IOError("No file '_treecorr.so' found in %s"%treecorr_dir)
+    if len(alt_files) > 1:
+        raise IOError("Multiple files '_treecorr*.so' found in %s: %s"%(treecorr_dir,alt_files))
+    lib_file = alt_files[0]
 
 # Load the C functions with cffi
 _ffi = cffi.FFI()

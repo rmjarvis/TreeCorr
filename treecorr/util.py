@@ -95,11 +95,13 @@ def gen_write_ascii(file_name, col_names, columns, params, prec=4):
     header = header_form.format(*col_names)
     fmt = '%%%d.%de'%(width,prec)
     ensure_dir(file_name)
-    with open(file_name, 'w') as fid:
+    with open(file_name, 'wb') as fid:
         if params is not None:
             for key in params:
-                fid.write('## %s = %r\n'%(key,params[key]))
-        fid.write('#' + header + '\n')
+                s = '## %s = %r\n'%(key,params[key])
+                fid.write(s.encode())
+        h = '#' + header + '\n'
+        fid.write(h.encode())
         numpy.savetxt(fid, data, fmt=fmt)
 
 

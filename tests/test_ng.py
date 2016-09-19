@@ -889,7 +889,7 @@ def test_haloellip():
                  # with the one halo we used for assigning its shear value.
 
     # Lenses are randomly located with random shapes.
-    numpy.random.seed(8675309)
+    numpy.random.seed(86753099)
     halo_g1 = numpy.random.normal(0., 0.3, (nhalo,))
     halo_g2 = numpy.random.normal(0., 0.3, (nhalo,))
     halo_g = halo_g1 + 1j * halo_g2

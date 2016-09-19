@@ -473,6 +473,70 @@ def test_direct_count_auto():
     #print('diff = ',ddd.ntri - true_ntri)
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
+    # Check that running via the corr3 script works correctly.
+    file_name = os.path.join('data','nnn_direct_data.dat')
+    with open(file_name, 'w') as fid:
+        for i in range(ngal):
+            fid.write(('%.20f %.20f\n')%(x[i],y[i]))
+    L = 10*s
+    nrand = ngal
+    rx = (numpy.random.random_sample(nrand)-0.5) * L
+    ry = (numpy.random.random_sample(nrand)-0.5) * L
+    rcat = treecorr.Catalog(x=rx, y=ry)
+    rand_file_name = os.path.join('data','nnn_direct_rand.dat')
+    with open(rand_file_name, 'w') as fid:
+        for i in range(nrand):
+            fid.write(('%.20f %.20f\n')%(rx[i],ry[i]))
+    rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=0)
+    rrr.process(rcat)
+    zeta, varzeta = ddd.calculateZeta(rrr)
+
+    # First do this via the corr3 function.
+    config = treecorr.config.read_config('nnn_direct.yaml')
+    logger = treecorr.config.setup_logger(0)
+    treecorr.corr3(config, logger)
+    corr3_output = numpy.genfromtxt(os.path.join('output','nnn_direct.out'), names=True,
+                                    skip_header=1)
+    print('corr3_output = ',corr3_output)
+    print('corr3_output.dtype = ',corr3_output.dtype)
+    print('rnom = ',ddd.rnom.flatten())
+    print('       ',corr3_output['R_nom'])
+    numpy.testing.assert_almost_equal(corr3_output['R_nom'], ddd.rnom.flatten(), decimal=3)
+    print('unom = ',ddd.u.flatten())
+    print('       ',corr3_output['u_nom'])
+    numpy.testing.assert_almost_equal(corr3_output['u_nom'], ddd.u.flatten(), decimal=3)
+    print('vnom = ',ddd.v.flatten())
+    print('       ',corr3_output['v_nom'])
+    numpy.testing.assert_almost_equal(corr3_output['v_nom'], ddd.v.flatten(), decimal=3)
+    print('DDD = ',ddd.ntri.flatten())
+    print('      ',corr3_output['DDD'])
+    numpy.testing.assert_almost_equal(corr3_output['DDD'], ddd.ntri.flatten(), decimal=3)
+    numpy.testing.assert_almost_equal(corr3_output['ntri'], ddd.ntri.flatten(), decimal=3)
+    print('RRR = ',rrr.ntri.flatten())
+    print('      ',corr3_output['RRR'])
+    numpy.testing.assert_almost_equal(corr3_output['RRR'], rrr.ntri.flatten(), decimal=3)
+    print('zeta = ',zeta.flatten())
+    print('from corr3 output = ',corr3_output['zeta'])
+    print('diff = ',corr3_output['zeta']-zeta.flatten())
+    diff_index = numpy.where(numpy.abs(corr3_output['zeta']-zeta.flatten()) > 1.e-5)[0]
+    print('different at ',diff_index)
+    print('zeta[diffs] = ',zeta.flatten()[diff_index])
+    print('corr3.zeta[diffs] = ',corr3_output['zeta'][diff_index])
+    print('diff[diffs] = ',zeta.flatten()[diff_index] - corr3_output['zeta'][diff_index])
+    numpy.testing.assert_almost_equal(corr3_output['zeta'], zeta.flatten(), decimal=3)
+
+    # Now calling out to the external corr3 executable.
+    import subprocess
+    corr3_exe = get_script_name('corr3')
+    p = subprocess.Popen( [corr3_exe,"nnn_direct.yaml"] )
+    p.communicate()
+    corr3_output = numpy.genfromtxt(os.path.join('output','nnn_direct.out'), names=True,
+                                    skip_header=1)
+    numpy.testing.assert_almost_equal(corr3_output['zeta'], zeta.flatten(), decimal=3)
+
     # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
@@ -503,6 +567,7 @@ def test_direct_count_auto():
     #print('true_ntri => ',true_ntri)
     #print('diff = ',ddd.ntri - true_ntri)
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
+
 
 
 def test_direct_count_cross():

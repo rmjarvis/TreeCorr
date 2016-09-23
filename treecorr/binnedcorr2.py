@@ -334,6 +334,10 @@ class BinnedCorr2(object):
                 raise ValueError("min_rpar is only valid with either Rlens or Rperp metric.")
             if self.max_rpar != sys.float_info.max:
                 raise ValueError("max_rpar is only valid with either Rlens or Rperp metric.")
+        if metric in [treecorr._lib.Perp, treecorr._lib.Lens]:
+            if self.sep_units != 1.:
+                raise ValueError("sep_units is invalid with either Rlens or Rperp metric. "+
+                                 "min_sep and max_sep should be in the same units as r (or x,y,z)")
         self._coords = coords
         self._metric = metric
 

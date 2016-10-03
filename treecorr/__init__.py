@@ -26,7 +26,7 @@ include_dir = os.path.join(treecorr_dir,'include')
 lib_file = os.path.join(treecorr_dir,'_treecorr.so')
 # Some installation (e.g. Travis with python 3.x) name this e.g. _treecorr.cpython-34m.so,
 # so if the normal name doesn't exist, look for something else.
-if not os.path.exists(lib_file):
+if not os.path.exists(lib_file): # pragma: no cover
     alt_files = glob.glob(os.path.join(os.path.dirname(__file__),'_treecorr*.so'))
     if len(alt_files) == 0:
         raise IOError("No file '_treecorr.so' found in %s"%treecorr_dir)

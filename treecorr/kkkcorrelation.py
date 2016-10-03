@@ -201,7 +201,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                             the constructor in the config dict.) Note that this won't work if the 
                             system's C compiler is clang prior to version 3.7.
         """
-        raise NotImplemented("No partial cross KKK yet.")
+        raise NotImplementedError("No partial cross KKK yet.")
 
 
     def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
@@ -391,9 +391,9 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         if cat3 is not None and len(cat3) == 0:
             cat3 = None
         if cat2 is None and cat3 is not None:
-            raise NotImplemented("No partial cross KKK yet.")
+            raise NotImplementedError("No partial cross KKK yet.")
         if cat3 is None and cat2 is not None:
-            raise NotImplemented("No partial cross KKK yet.")
+            raise NotImplementedError("No partial cross KKK yet.")
 
         if cat2 is None and cat3 is None:
             vark1 = treecorr.calculateVarK(cat1)

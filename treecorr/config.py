@@ -258,7 +258,7 @@ def check_config(config, params, aliases=None, logger=None):
     return config
 
 
-def print_params(params):
+def print_params(params): # pragma: no cover
     """Print the information about the valid parameters, given by the given params dict.
     See check_config for the structure of the params dict.
 
@@ -408,7 +408,7 @@ def set_omp_threads(num_threads, logger=None):
     num_threads = treecorr._lib.SetOMPThreads(num_threads)
 
     # Report back appropriately.
-    if logger:
+    if logger: # pragma: no cover
         logger.debug('OpenMP reports that it will use %d threads',num_threads)
         if num_threads > 1:
             logger.info('Using %d threads.',num_threads)

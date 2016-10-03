@@ -464,7 +464,7 @@ class BinnedCorr3(object):
                         for c3 in cat1:
                             if c3 is not c1 and c3 is not c2:
                                 self.process_cross(c1,c2,c3, metric, num_threads)
-        else:
+        else: # pragma: no cover
             for i,c1 in enumerate(cat1):
                 self.process_auto(c1)
                 for j,c2 in enumerate(cat1[i+1:]):
@@ -482,7 +482,8 @@ class BinnedCorr3(object):
                         self.process_cross(c3,c1,c2, metric, num_threads)
                         self.process_cross(c3,c2,c1, metric, num_threads)
 
-    def _process_all_cross21(self, cat1, cat2, metric, num_threads):
+    # These are not actually implemented yet.
+    def _process_all_cross21(self, cat1, cat2, metric, num_threads): # pragma: no cover
         for c1 in cat1:
             for c2 in cat2:
                 self.process_cross(c1,c1,c2, metric, num_threads)
@@ -491,7 +492,8 @@ class BinnedCorr3(object):
                     self.process_cross(c1,c3,c2, metric, num_threads)
                     self.process_cross(c3,c1,c2, metric, num_threads)
 
-    def _process_all_cross(self, cat1, cat2, cat3, metric, num_threads):
+    # These are not actually implemented yet.
+    def _process_all_cross(self, cat1, cat2, cat3, metric, num_threads): # pragma: nocover
         for c1 in cat1:
             for c2 in cat2:
                 for c3 in cat3:

@@ -108,3 +108,13 @@ Version 3.3.4 bug fix:
 - Fixed an error in how the corr3 script calculates the compensated nnn
   statistic.
 
+
+Version 3.3.5 bug fixes:
+------------------------
+
+- Added an exception if sep_units is used with either Rperp or Rlens.  This
+  would really be a user error, not a TreeCorr bug, but it was not obvious
+  that this was invalid, so raising the exception should help users notice
+  the error.
+- Added a timeout for the ffi question in setup.py to avoid pip installation
+  hanging. (#45)

@@ -898,7 +898,7 @@ def test_haloellip():
     halo_absg = numpy.abs(halo_g)
     halo_x = (numpy.random.random_sample(nhalo)-0.5) * L
     halo_y = (numpy.random.random_sample(nhalo)-0.5) * L
-    print('Made halos')
+    print('Made halos',len(halo_x))
 
     # For the sources, place nsource galaxies around each halo with the expected azimuthal pattern
     source_x = numpy.empty(ntot)
@@ -935,7 +935,7 @@ def test_haloellip():
         # Place the source galaxies at this dx,dy with this shape
         source_x[i*nsource: (i+1)*nsource] = halo_x[i] + z.real
         source_y[i*nsource: (i+1)*nsource] = halo_y[i] + z.imag
-    print('Made sources')
+    print('Made sources',len(source_x))
 
     source_cat = treecorr.Catalog(x=source_x, y=source_y)
     # Big fat bin to increase S/N.  The way I set it up, the signal is the same in all

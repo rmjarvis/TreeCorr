@@ -1,5 +1,6 @@
 from __future__ import print_function
 import sys,os,glob,re
+import select
 
 
 try:
@@ -295,7 +296,7 @@ int main() {
     return True
 
 # Based on recipe 577058: http://code.activestate.com/recipes/577058/
-def query_yes_no(question, default="yes"):
+def query_yes_no(question, default="yes", timeout=30):
     """Ask a yes/no question via raw_input() and return their answer.
 
     "question" is a string that is presented to the user.
@@ -318,14 +319,21 @@ def query_yes_no(question, default="yes"):
 
     while 1:
         sys.stdout.write(question + prompt)
-        choice = raw_input().lower()
+        sys.stdout.flush()
+        i, _, _ = select.select( [sys.stdin], [], [], timeout )
+
+        if i:
+            choice = sys.stdin.readline().strip()
+        else:
+            sys.stdout.write("\nPrompt timed out after %s seconds.\n"%timeout)
+            return default
+
         if default is not None and choice == '':
             return default
         elif choice in valid.keys():
             return valid[choice]
         else:
-            sys.stdout.write("Please respond with 'yes' or 'no' "\
-                             "(or 'y' or 'n').\n")
+            sys.stdout.write("Please respond with 'yes' or 'no' (or 'y' or 'n').\n")
 
 
 def check_ffi(cc, cc_type):
@@ -377,7 +385,7 @@ make it succeed.
         q = "Stop the installation here to take care of this?"
         yn = query_yes_no(q, default='yes')
         if yn == 'yes':
-            sys.exit()
+            sys.exit(1)
 
 # This was supposed to remove the -Wstrict-prototypes flag
 # But it doesn't work....

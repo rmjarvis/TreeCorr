@@ -391,6 +391,7 @@ def test_aardvark():
     get_from_wiki('Aardvark.fit')
     file_name = os.path.join('data','Aardvark.fit')
     config = treecorr.read_config('Aardvark.yaml')
+    config['verbose'] = 1
     cat1 = treecorr.Catalog(file_name, config)
     gg = treecorr.GGCorrelation(config)
     gg.process(cat1)
@@ -449,7 +450,7 @@ def test_aardvark():
     # The other similar tests are blocked out with: if __name__ == '__main__':
     import subprocess
     corr2_exe = get_script_name('corr2')
-    p = subprocess.Popen( [corr2_exe,"Aardvark.yaml"] )
+    p = subprocess.Popen( [corr2_exe,"Aardvark.yaml","verbose=0"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','Aardvark.out'), names=True)
     print('gg.xip = ',gg.xip)

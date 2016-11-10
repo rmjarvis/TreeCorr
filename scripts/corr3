@@ -103,6 +103,8 @@ def main():
         if 'log_file' in config: log_file = config['log_file']
         logger = treecorr.config.setup_logger(verbose,log_file)
 
+    logger.warning('Using config file %s'%args.config_file)
+
     # Run the corr3 function
     treecorr.corr3(config, logger)
 

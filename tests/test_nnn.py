@@ -531,7 +531,7 @@ def test_direct_count_auto():
     # Now calling out to the external corr3 executable.
     import subprocess
     corr3_exe = get_script_name('corr3')
-    p = subprocess.Popen( [corr3_exe,"nnn_direct.yaml"] )
+    p = subprocess.Popen( [corr3_exe,"nnn_direct.yaml","verbose=0"] )
     p.communicate()
     corr3_output = numpy.genfromtxt(os.path.join('output','nnn_direct.out'), names=True,
                                     skip_header=1)

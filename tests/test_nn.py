@@ -307,7 +307,7 @@ def test_direct_count():
     # Now calling out to the external corr2 executable.
     import subprocess
     corr2_exe = get_script_name('corr2')
-    p = subprocess.Popen( [corr2_exe,"nn_direct.yaml"] )
+    p = subprocess.Popen( [corr2_exe,"nn_direct.yaml","verbose=0"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_direct.out'), names=True,
                                     skip_header=1)
@@ -985,7 +985,7 @@ def test_list():
     # Now calling out to the external corr2 executable.
     import subprocess
     corr2_exe = get_script_name('corr2')
-    p = subprocess.Popen( [corr2_exe,"nn_list1.yaml"] )
+    p = subprocess.Popen( [corr2_exe,"nn_list1.yaml","verbose=0"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_list1.out'),names=True,skip_header=1)
     print('xi = ',xi)
@@ -995,7 +995,7 @@ def test_list():
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=3)
 
     import subprocess
-    p = subprocess.Popen( [corr2_exe,"nn_list2.json"] )
+    p = subprocess.Popen( [corr2_exe,"nn_list2.json","verbose=0"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_list2.out'),names=True,skip_header=1)
     print('xi = ',xi)
@@ -1005,7 +1005,7 @@ def test_list():
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
 
     import subprocess
-    p = subprocess.Popen( [corr2_exe,"nn_list3.params"] )
+    p = subprocess.Popen( [corr2_exe,"nn_list3.params","verbose=0"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_list3.out'),names=True,skip_header=1)
     print('xi = ',xi)
@@ -1015,7 +1015,7 @@ def test_list():
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
 
     import subprocess
-    p = subprocess.Popen( [corr2_exe, "nn_list4.config", "-f", "yaml"] )
+    p = subprocess.Popen( [corr2_exe, "-f", "yaml", "nn_list4.config", "verbose=0"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_list4.out'),names=True,skip_header=1)
     print('xi = ',xi)
@@ -1025,7 +1025,7 @@ def test_list():
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
 
     import subprocess
-    p = subprocess.Popen( [corr2_exe, "nn_list5.config", "-f", "json"] )
+    p = subprocess.Popen( [corr2_exe, "-f", "json", "nn_list5.config", "verbose=0"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_list5.out'),names=True,skip_header=1)
     print('xi = ',xi)
@@ -1036,7 +1036,7 @@ def test_list():
 
     # For this one, the output file is in the current directory, which used to give an error.
     import subprocess
-    p = subprocess.Popen( [corr2_exe, "nn_list6.config", "-f", "params"] )
+    p = subprocess.Popen( [corr2_exe, "-f", "params", "nn_list6.config", "verbose=0"] )
     p.communicate()
     output_file = 'nn_list6.out'
     corr2_output = numpy.genfromtxt(output_file,names=True,skip_header=1)
@@ -1131,7 +1131,7 @@ def test_perp_minmax():
         # Check that we get the same result with the corr2 executable.
         import subprocess
         corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"nn_rperp.yaml"] )
+        p = subprocess.Popen( [corr2_exe,"nn_rperp.yaml","verbose=0"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','nn_rperp.out'),names=True,skip_header=1)
         print('xi = ',xi1)

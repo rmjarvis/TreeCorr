@@ -118,3 +118,10 @@ Version 3.3.5 bug fixes:
   the error.
 - Added a timeout for the ffi question in setup.py to avoid pip installation
   hanging. (#45)
+
+Version 3.3.6 bug fixes:
+------------------------
+
+- Fixed an import error in some installations with Python 3 where the library
+  file gets a different name like _treecorr.cpython-34m.so or similar.
+- Added a bit more output when running with the default verbose=1.

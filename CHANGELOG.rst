@@ -123,5 +123,6 @@ Version 3.3.6 bug fixes:
 ------------------------
 
 - Fixed an import error in some installations with Python 3 where the library
-  file gets a different name like _treecorr.cpython-34m.so or similar.
+  file gets a different name like _treecorr.cpython-34m.so or similar. (#49)
 - Added a bit more output when running with the default verbose=1.
+

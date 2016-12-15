@@ -219,13 +219,10 @@ files.
 Using the Python module
 -----------------------
 
-Here we only give a quick overview.  A Jupyter notebook tutorial here:
-
-https://github.com/rmjarvis/TreeCorr/blob/master/tests/Tutorial.ipynb
-
-goes into more detail.  And full Sphinx-generated documentation can be found at:
-
-http://rmjarvis.github.io/TreeCorr/html/index.html
+Here we only give a quick overview.  There is also a `Jupyter notebook tutorial
+<https://github.com/rmjarvis/TreeCorr/blob/master/tests/Tutorial.ipynb>`_,
+with more details.  And for the complete details, see the `Sphinx-generated
+documentation <http://rmjarvis.github.io/TreeCorr/html/index.html>`_.
 
 The TreeCorr module is called ``treecorr`` in Python.  Typical usage for
 computing the shear-shear correlation function looks something like the

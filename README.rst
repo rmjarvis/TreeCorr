@@ -33,7 +33,8 @@ functions.
   range of triangle geometries you are calculating.  They are significantly
   slower than the 2-point functions, but many orders of magnitude faster than
   brute force algorithms.
-- Reference: Jarvis, Bernstein, & Jain, 2004, MNRAS, 352, 338
+- **If you use TreeCorr in published research, please reference:
+  Jarvis, Bernstein, & Jain, 2004, MNRAS, 352, 338**
   (I'm working on new paper about TreeCorr, including some of the improvements
   I've made since then, but this will suffice as a reference for now.)
 - Record on the Astrophyics Source Code Library: http://ascl.net/1508.007

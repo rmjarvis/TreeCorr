@@ -219,8 +219,11 @@ files.
 Using the Python module
 -----------------------
 
-Here we only give a quick overview.  Full Sphinx-generated documentation can
-be found at:
+Here we only give a quick overview.  A Jupyter notebook tutorial here:
+
+https://github.com/rmjarvis/TreeCorr/blob/master/tests/Tutorial.ipynb
+
+goes into more detail.  And full Sphinx-generated documentation can be found at:
 
 http://rmjarvis.github.io/TreeCorr/html/index.html
 

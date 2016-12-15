@@ -38,6 +38,9 @@ functions.
   (I'm working on new paper about TreeCorr, including some of the improvements
   I've made since then, but this will suffice as a reference for now.)
 - Record on the Astrophyics Source Code Library: http://ascl.net/1508.007
+- Developed by Mike Jarvis.  Fee free to contact me with questions or comments
+  at mikejarvis17 at gmail.  Or post an issue (see below) if you have any
+  problems with the code.
 
 The code is licensed under a FreeBSD license.  Essentially, you can use the 
 code in any way you want, but if you distribute it, you need to include the 

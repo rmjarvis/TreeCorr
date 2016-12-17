@@ -493,8 +493,11 @@ dist = setup(name="TreeCorr",
 #cmd.run()
 
 # Check that the path includes the directory where the scripts are installed.
+real_env_path = [os.path.realpath(d) for d in os.environ['PATH'].split(':')]
 if (hasattr(dist,'script_install_dir') and
-    dist.script_install_dir not in os.environ['PATH'].split(':')):
+    dist.script_install_dir not in os.environ['PATH'].split(':') and
+    os.path.realpath(dist.script_install_dir) not in real_env_path):
+
     print('\nWARNING: The TreeCorr executables were installed in a directory not in your PATH')
     print('         If you want to use the executables, you should add the directory')
     print('\n             ',dist.script_install_dir,'\n')

@@ -85,13 +85,67 @@ that is also relatively straightforward:
 
     - numpy
     - future
-    - fitsio: TreeCorr can use either fitsio or pyfits (now part of astropy),
-      so it will only install fitsio if none of these are present on your
-      system.
-    - pandas: This package significantly speeds up the reading of ASCII
-      input catalogs over the numpy functions loadtxt or genfromtxt.
-      However, if you don't have pandas installed, TreeCorr will fall back
-      to using the slower numpy.genfromtxt.
+    - fitsio
+    - pandas
+    - pyyaml
+    - cffi
+
+   The last dependency is the only one that typically could cause any problems, since it in
+   turn depends on a library called libffi.  This is a common thing to have installed already
+   on linux machines, so it is likely that you won't have any trouble with it, but if you get
+   errors about "ffi.h" not being found, then you may need to either install it yourself or
+   update your paths to include the directory where ffi.h is found.
+
+   a) Installing libffi on linux systems:
+
+      If you have root access on your system, then one of the following should work to install
+      libffi::
+
+            apt-get install libffi-dev
+            yum install libffi-devel
+
+   b) Installing libffi on Mac systems:
+
+      It should be installed as part of the XCode libraries after running::
+
+            xcode-select --install
+
+   c) Installing libffi manually:
+
+      If neither of the above methods works for you, you can install it yourself with the
+      following commands::
+
+            wget ftp://sourceware.org:/pub/libffi/libffi-3.2.1.tar.gz
+            tar xfz libffi-3.2.1.tar.gz
+            cd libffi-3.2.1
+            ./configure --prefix={prefix}
+            make
+            make install
+            cp */include/ffi*.h {prefix}/include
+            cd ..
+
+      where {prefix} is wherever you want the code to be installed.  e.g. /home/username.
+
+   d) Updating your system paths:
+
+      If you used option (c) above and ``{prefix}`` is not ``/usr/local`` or similar, then you
+      might need to update some system paths to let the compiler know where to look for the header
+      file and library.  Similarly, if libffi was already installed, but it is in a non-standard
+      location where gcc doesn't look by default, then this also applies.  (Try ``locate ffi.h``
+      to see if it shows up somewhere.)
+
+      Assuming ``ffi.h`` is in ``{prefix}/include/ffi/`` and ``libffi.so`` (or ``libffi.dylib`` on
+      Macs) is in ``{prefix}/lib/``, then the following commands should be put in your ``.bashrc``
+      or ``.bash_profile file``::
+
+            export C_INCLUDE_PATH=$C_INCLUDE_PATH:{prefix}/include
+            export LIBRARY_PATH=$LIBRARY_PATH:{prefix}/lib
+
+      Or if you use C shell, put the following in ``.cshrc`` or equivalent file::
+
+            setenv C_INCLUDE_PATH "$C_INCLUDE_PATH":{prefix}/include
+            setenv LIBRARY_PATH "$LIBRARY_PATH":{prefix}/lib
+
 
 2. Download the zip file or tarball for the latest release from:
 

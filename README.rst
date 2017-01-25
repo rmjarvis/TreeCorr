@@ -83,12 +83,12 @@ that is also relatively straightforward:
    setup.py, so you should not need to worry about these.  But if you are
    interested, the dependencies are:
 
-    - numpy
-    - future
-    - fitsio
-    - pandas
-    - pyyaml
-    - cffi
+   - numpy
+   - future
+   - fitsio
+   - pandas
+   - pyyaml
+   - cffi
 
    The last dependency is the only one that typically could cause any problems, since it in
    turn depends on a library called libffi.  This is a common thing to have installed already
@@ -136,7 +136,7 @@ that is also relatively straightforward:
 
       Assuming ``ffi.h`` is in ``{prefix}/include/ffi/`` and ``libffi.so`` (or ``libffi.dylib`` on
       Macs) is in ``{prefix}/lib/``, then the following commands should be put in your ``.bashrc``
-      or ``.bash_profile file``::
+      or ``.bash_profile`` file::
 
             export C_INCLUDE_PATH=$C_INCLUDE_PATH:{prefix}/include
             export LIBRARY_PATH=$LIBRARY_PATH:{prefix}/lib

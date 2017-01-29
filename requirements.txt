@@ -6,3 +6,4 @@ future
 cffi
 fitsio
 codecov
+nbval==0.3.6

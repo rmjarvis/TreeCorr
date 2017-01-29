@@ -27,6 +27,7 @@ script:
     - python setup.py install --prefix=$HOME
     - cd tests
     - nosetests --with-coverage --cover-package=treecorr --with-doctest
+    - py.test --nbval Tutorial.ipynb --sanitize-with sanitize.cfg
 
 after_success:
     - codecov

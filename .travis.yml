@@ -20,7 +20,7 @@ before_install:
 install:
     - pip install -r requirements.txt
     # Extra packages only needed for testing:
-    - pip install matplotlib==1.5.0 pytest codecov #nbval>=0.4.1
+    - pip install matplotlib==1.5.0 pytest codecov nbval
 
     # Until nbval 0.4.1 comes out, need to use master branch
     - pushd $HOME

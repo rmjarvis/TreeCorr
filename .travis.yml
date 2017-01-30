@@ -29,7 +29,7 @@ script:
     - python setup.py install --prefix=$HOME
     - cd tests
     - nosetests --with-coverage --cover-package=treecorr --with-doctest
-    - if [[ $TRAVIS_PYTHON_VERSION >= 2.7 ]]; then py.test --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env; fi
+    - if [[ $TRAVIS_PYTHON_VERSION > 2.6 ]]; then py.test --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env; fi
 
 after_success:
     - codecov

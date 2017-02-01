@@ -30,3 +30,4 @@ Bug fixes:
 - Added tot attribute to the NN and NNN output files, which fixes an error
   where NNCorrelation and NNNCorrelation did not round trip correctly through
   a FITS output file.  Now the tot attribute is set properly when reading.
+- Fixed the Catalog.copy() method, which wasn't working properly.

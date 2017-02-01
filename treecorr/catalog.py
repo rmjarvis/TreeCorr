@@ -1207,7 +1207,12 @@ class Catalog(object):
 
     def copy(self):
         import copy
-        return copy.deepcopy(self)
+        logger = self.logger  # Don't deepcopy the logger.
+        del self.logger
+        ret = copy.deepcopy(self)
+        ret.logger = logger
+        self.logger = logger
+        return ret
 
     def __repr__(self):
         s = 'Catalog('

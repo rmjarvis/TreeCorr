@@ -140,11 +140,13 @@ that is also relatively straightforward:
 
             export C_INCLUDE_PATH=$C_INCLUDE_PATH:{prefix}/include
             export LIBRARY_PATH=$LIBRARY_PATH:{prefix}/lib
+            export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{prefix}/lib
 
       Or if you use C shell, put the following in ``.cshrc`` or equivalent file::
 
             setenv C_INCLUDE_PATH "$C_INCLUDE_PATH":{prefix}/include
             setenv LIBRARY_PATH "$LIBRARY_PATH":{prefix}/lib
+            setenv LD_LIBRARY_PATH "$LD_LIBRARY_PATH":{prefix}/lib
 
 
 2. Download the zip file or tarball for the latest release from:

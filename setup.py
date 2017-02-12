@@ -463,7 +463,7 @@ if mo:
     treecorr_version = mo.group(1)
 else:
     raise RuntimeError("Unable to find version string in %s." % (version_file,))
-    print('TreeCorr version is %s'%(treecorr_version))
+print('TreeCorr version is %s'%(treecorr_version))
 
 dist = setup(name="TreeCorr", 
       version=treecorr_version,

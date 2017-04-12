@@ -16,6 +16,7 @@
 """
 
 from __future__ import print_function
+import sys
 import treecorr
 import future.utils
 
@@ -171,7 +172,7 @@ def setup_logger(verbose, log_file=None):
     logger = logging.getLogger('treecorr')
     if len(logger.handlers) == 0:  # only add handler once!
         if log_file is None:
-            handle = logging.StreamHandler()
+            handle = logging.StreamHandler(stream=sys.stdout)
         else:
             handle = logging.FileHandler(log_file)
         formatter = logging.Formatter('%(message)s')  # Simple text output

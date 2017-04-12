@@ -126,3 +126,9 @@ Version 3.3.6 bug fixes:
   file gets a different name like _treecorr.cpython-34m.so or similar. (#49)
 - Added a bit more output when running with the default verbose=1.
 
+Version 3.3.7 dependency change:
+--------------------------------
+
+- Changed the pandas dependency specification from pandas==0.18 to just pandas.
+  The pandas 0.19.0rc1 version had been on pip was broken, so we used 0.18.
+  But they fixed that, so we removed the restriction. (#59)

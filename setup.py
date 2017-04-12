@@ -445,8 +445,6 @@ dependencies = ['numpy', 'future', 'cffi', 'fitsio', 'pyyaml']
 if py_version <= '2.6':
     dependencies += ['argparse'] # These seem to have conflicting numpy requirements, so don't
                                  # include pandas with argparse.
-elif py_version < '3.0':
-    dependencies += ['pandas==0.18']  # Getting weird errors with 0.19 on python 2.7
 else:
     dependencies += ['pandas'] 
 

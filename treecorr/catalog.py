@@ -483,7 +483,7 @@ class Catalog(object):
                 ignore_flag = ~ok_flag
             # If we don't already have a weight column, make one with all values = 1.
             if self.w is None:
-                self.w = numpy.ones_like(self.flag)
+                self.w = numpy.ones_like(self.flag, dtype=float)
             self.w[(self.flag & ignore_flag)!=0] = 0
             self.logger.debug('Applied flag: w => %s',str(self.w))
 
@@ -587,7 +587,7 @@ class Catalog(object):
                 self.vark = numpy.sum(self.k**2) / self.nobj
             else:
                 self.vark = 0.
-            self.w = numpy.ones( (self.ntot) )
+            self.w = numpy.ones((self.ntot), dtype=float)
 
         # Copy w to wpos if necessary (Do this after checkForNaN's, since this may set some
         # entries to have w=0.)
@@ -665,7 +665,7 @@ class Catalog(object):
             self.logger.warn("Warning: NaNs found in %s column.  Skipping rows %s.",
                              col_str,str(index.tolist()))
             if self.w is None:
-                self.w = numpy.ones_like(col)
+                self.w = numpy.ones_like(col, dtype=float)
             self.w[index] = 0
 
     def read_ascii(self, file_name, num=0, is_rand=False):

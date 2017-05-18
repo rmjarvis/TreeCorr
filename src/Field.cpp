@@ -172,6 +172,10 @@ Field<D,C>::Field(
     int sm_int, int maxtop)
 {
     dbg<<"Starting to Build Field with "<<nobj<<" objects\n";
+    xdbg<<"First few values are:\n";
+    for(int i=0;i<5;++i) {
+        xdbg<<x[i]<<"  "<<y[i]<<"  "<<z[i]<<"  "<<g1[i]<<"  "<<g1[i]<<"  "<<k[i]<<"  "<<w[i]<<"  "<<wpos[i]<<std::endl;
+    }
     std::vector<CellData<D,C>*> celldata;
     celldata.reserve(nobj);
     if (z) {
@@ -218,9 +222,12 @@ Field<D,C>::Field(
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for(ptrdiff_t i=0;i<n;++i)
+    for(ptrdiff_t i=0;i<n;++i) {
         _cells[i] = new Cell<D,C>(top_data[i],top_sizesq[i],celldata,minsizesq,sm,
                                   top_start[i],top_end[i]);
+        xdbg<<i<<": "<<_cells[i]->getN()<<"  "<<_cells[i]->getW()<<"  "<<
+            _cells[i]->getPos()<<"  "<<_cells[i]->getSize()<<"  "<<_cells[i]->getSizeSq()<<std::endl;
+    }
 
     // delete any CellData elements that didn't get kept in the _cells object.
     for (size_t i=0;i<celldata.size();++i) if (celldata[i]) delete celldata[i];

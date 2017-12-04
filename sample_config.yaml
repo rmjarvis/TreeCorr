@@ -1,0 +1,171 @@
+# This file lists the most common parameters that you might want to use in a
+# configuration file for use with the corr2 program.  (And eventually the 
+# other corr varieties...)  See the wiki page:
+#
+# https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters
+#
+# for complete documentation about all the possible parameters you can use.
+#
+# The normal usage is:
+#
+# corr2 config.yaml
+#
+# You can also specify parameters on the command line after the name of 
+# the configuration file. e.g.:
+#
+# corr2 config.yaml file_name=file1.dat ee_file_name=file1.out
+# corr2 config.yaml file_name=file2.dat ee_file_name=file2.out
+# ...
+#
+# This can be useful when running the program from a script for lots of input files.
+
+
+####
+#### Parameters about the input file
+####
+
+# The file with the data to be correlated.
+file_name: file.dat
+
+# You an also specify a second file, in which case the program calculates a 
+# cross-correlation between the two sets of values.
+#file_name2: file2.dat
+
+# You can also have file_name and/or file_name2 be lists of files, in which case,
+# it will treat them as parts of a single large field.  This may be convenient
+# if you have several observations that tile an area on the sky.
+#file_name: [file1a.dat, file1b.dat]
+
+# Or if there are a lot of files you want to treat as a single field, you can
+# provide a text file with a list of file names
+#file_list: all_file_names.txt
+
+# For doing density correlation functions, you need to specify random files
+# that are drawn from the same mask and observing conditions, but have no
+# cosmological correlations.  There can be more than one of these if desired
+# to help beat down the noise.  Or equivalently, they can have more objects
+# than the real data, in which case the overall number density is scaled 
+# appropriately.
+rand_file_name: [rand1.dat, rand2.dat, rand3.dat]
+
+
+# The default file type is normally ASCII.
+# However, if the file name extension starts with ".fit" in it, then a fits
+# binary table is assumed.
+#
+# You can override this behavior using file_type.
+# Allowed values are ASCII or FITS
+file_type: ASCII
+
+
+# For ASCII files, you need to specify which column corresponds to which value.
+# Columns are specified starting with 1 being the first column.  (Not 0.)
+x_col: 1
+y_col: 2
+g1_col: 3
+g2_col: 4
+
+# The weight column is optional.  If omitted, all weights are taken to be 1.0.
+w_col: 5
+
+# All distances on the sky include a "units" parameter to specify what in units the values
+# are specified.  So for x_col and y_col, we also have x_units and y_units.
+# Options for units are radians, hours, degrees, arcmin, arcsec.
+# If omitted, radians is assumed.
+x_units: arcsec
+y_units: arcsec
+
+# Instead of x_col and y_col, you may instead specify columns for RA and Declination.
+#ra_col: 1
+#dec_col: 2
+#ra_units: hours
+#dec_units: degrees
+
+# For FITS files, the columns are specified by name, not number:
+#ra_col: RA
+#dec_col: DEC
+#g1_col: GAMMA1
+#g2_col: GAMMA2
+#w_col: WEIGHT
+
+# If the first and second catalog (file_name and file_name2) have different column 
+# names or numbers, the *_col parameters may be lists.  e.g. if they use different names
+# for the RA and DEC columns:
+#ra_col: [ra, ALPHA_J2000]
+#dec_col: [dec, DELTA_J2000]
+#
+# You can also indicate that one or the other does not have some information by setting the 
+# name or number to 0.  e.g. for NG correlations, the lenses don't need to have shear values:
+#g1_col: 0 3
+#g2_col: 0 4
+# or by name
+#g1_col: 0 G1
+#g2_col: 0 G2
+
+
+# Sometimes there are issues with the sign conventions of gamma.  If you need to flip 
+# the sign of g1 or g2, you may do that with flip_g1 or flip_g2 (or both).
+flip_g1: false
+flip_g2: false
+
+
+
+####
+#### Parameters about the binned correlation function to be calculated
+####
+
+# The bins for the histogram may be defined by setting 3 of the following 
+# 4 parameters:
+#     min_sep  = the left edge of the first bin
+#     max_sep  = the right edge of the last bin
+#     nbins    = the number of bins
+#     bin_size = the width of the bins in log(sep)
+min_sep: 1.
+max_sep: 300.
+bin_size: 0.10
+
+# sep_units specifies the units to use for min_sep and max_sep.
+# It is also the units of R in the output file.
+# If omitted, radians is assumed.  (So when using x,y, you can just omit both
+# this and x_units,y_units, and the units will match up and can be arbitrary.)
+sep_units: arcmin
+
+
+####
+#### Parameters about the output files
+####
+
+# The kind of correlation function that the code will calculate is based on which
+# output file(s) you specify.  It will do the calculation(s) relevant for each
+# output file you set.
+
+# For shear-shear correlations, the output file name is given by gg_file_name.
+gg_file_name: gg.out
+
+# The code can compute the mass aperture statistic from the two-point shear correlation 
+# function if you specify m2_file_name.
+m2_file_name: m2.out
+
+# For count-shear correlations, the output file name is given by ng_file_name.
+#ng_file_name: ng.out
+
+# For count-count correlations, the output file name is given by nn_file_name.
+#nn_file_name: nn.out
+
+
+####
+#### Miscellaneous parameters
+####
+
+# verbose specifies how much progress output the code should emit.
+# 0 = no output unless there is an error
+# 1 = warnings (This is the default if not specified)
+# 2 = progress information
+# 3 = extra debugging output
+verbose: 2
+
+# num_threads = the number of threads to use.
+# The default is to let OpenMP determine an appropriate number of threads automatically.
+# Usually this matches the number of cores your system has.
+#num_threads: 1
+

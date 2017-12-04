@@ -21,11 +21,12 @@ import os
 
 def ensure_dir(target):
     d = os.path.dirname(target)
-    if not os.path.exists(d):
-        os.makedirs(d)
+    if d != '':
+        if not os.path.exists(d):
+            os.makedirs(d)
 
 
-def gen_write(file_name, col_names, columns, prec=4, file_type=None, logger=None):
+def gen_write(file_name, col_names, columns, params=None, prec=4, file_type=None, logger=None):
     """Write some columns to an output file with the given column names.
 
     We do this basic functionality a lot, so put the code to do it in one place.
@@ -33,6 +34,8 @@ def gen_write(file_name, col_names, columns, prec=4, file_type=None, logger=None
     :param file_name:   The name of the file to write to.
     :param col_names:   A list of columns names for the given columns.
     :param columns:     A list of numpy arrays with the data to write.
+    :param params:      A dict of extra parameters to write at the top of the output file (for
+                        ASCII output) or in the header (for FITS output).  (default: None)
     :param prec:        Output precision for ASCII. (default: 4)
     :param file_type:   Which kind of file to write to. (default: determine from the file_name
                         extension)
@@ -61,20 +64,21 @@ def gen_write(file_name, col_names, columns, prec=4, file_type=None, logger=None
             logger.info("file_type assumed to be %s from the file name.",file_type)
 
     if file_type == 'FITS':
-        gen_write_fits(file_name, col_names, columns)
+        gen_write_fits(file_name, col_names, columns, params)
     elif file_type == 'ASCII':
-        gen_write_ascii(file_name, col_names, columns, prec=prec)
+        gen_write_ascii(file_name, col_names, columns, params, prec=prec)
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 
 
-def gen_write_ascii(file_name, col_names, columns, prec=4):
+def gen_write_ascii(file_name, col_names, columns, params, prec=4):
     """Write some columns to an output ASCII file with the given column names.
 
     :param file_name:   The name of the file to write to.
     :param col_names:   A list of columns names for the given columns.  These will be written
                         in a header comment line at the top of the output file.
     :param columns:     A list of numpy arrays with the data to write.
+    :param params:      A dict of extra parameters to write at the top of the output file.
     :param prec:        Output precision for ASCII. (default: 4)
     """
     ncol = len(col_names)
@@ -91,60 +95,45 @@ def gen_write_ascii(file_name, col_names, columns, prec=4):
     header = header_form.format(*col_names)
     fmt = '%%%d.%de'%(width,prec)
     ensure_dir(file_name)
-    try:
-        numpy.savetxt(file_name, data, fmt=fmt, header=header)
-    except (AttributeError, TypeError):
-        # header was added with version 1.7, so do it by hand if not available.
-        with open(file_name, 'w') as fid:
-            fid.write('#' + header + '\n')
-            numpy.savetxt(fid, data, fmt=fmt) 
+    with open(file_name, 'wb') as fid:
+        if params is not None:
+            for key in params:
+                s = '## %s = %r\n'%(key,params[key])
+                fid.write(s.encode())
+        h = '#' + header + '\n'
+        fid.write(h.encode())
+        numpy.savetxt(fid, data, fmt=fmt)
 
 
-def gen_write_fits(file_name, col_names, columns):
+def gen_write_fits(file_name, col_names, columns, params):
     """Write some columns to an output FITS file with the given column names.
 
     :param file_name:   The name of the file to write to.
     :param col_names:   A list of columns names for the given columns.
     :param columns:     A list of numpy arrays with the data to write.
+    :param params:      A dict of extra parameters to write in the FITS header.
     """
+    import fitsio
     ensure_dir(file_name)
-    try:
-        import fitsio
-        data = numpy.empty(len(columns[0]), dtype=[ (name,'f8') for name in col_names ])
-        for (name, col) in zip(col_names, columns):
-            data[name] = col
-        fitsio.write(file_name, data, clobber=True)
-    except ImportError:
-        try:
-            import astropy.io.fits as pyfits
-        except:
-            import pyfits
-
-        cols = pyfits.ColDefs([
-            pyfits.Column(name=name, format='D', array=col)
-            for (name, col) in zip(col_names, columns) ])
-
-        # Depending on the version of pyfits, one of these should work:
-        try:
-            tbhdu = pyfits.BinTableHDU.from_columns(cols)
-        except:
-            tbhdu = pyfits.new_table(cols)
-        tbhdu.writeto(file_name, clobber=True)
+    data = numpy.empty(len(columns[0]), dtype=[ (name,'f8') for name in col_names ])
+    for (name, col) in zip(col_names, columns):
+        data[name] = col
+    fitsio.write(file_name, data, header=params, clobber=True)
 
 
 def gen_read(file_name, file_type=None, logger=None):
     """Read some columns from an input file.
 
     We do this basic functionality a lot, so put the code to do it in one place.
-    Note that the input file is expected to have been written by TreeCorr using the 
+    Note that the input file is expected to have been written by TreeCorr using the
     gen_write function, so we don't have a lot of flexibility in the input structure.
 
     :param file_name:   The name of the file to read.
-    :param file_type:   Which kind of file to write to. (default: determine from the file_name
+    :param file_type:   Which kind of file to read. (default: determine from the file_name
                         extension)
     :param logger:      If desired, a logger object for logging. (default: None)
 
-    :returns: a numpy ndarray with named columns
+    :returns: (data, params), a numpy ndarray with named columns, and a dict of extra parameters.
     """
     # Figure out which file type the catalog is
     if file_type is None:
@@ -158,25 +147,27 @@ def gen_read(file_name, file_type=None, logger=None):
             logger.info("file_type assumed to be %s from the file name.",file_type)
 
     if file_type == 'FITS':
-        try:
-            import fitsio
-            data = fitsio.read(file_name)
-        except ImportError:
-            try:
-                import astropy.io.fits as pyfits
-            except ImportError:
-                import pyfits
-            with pyfits.open(file_name) as f:
-                data = f[1].data
+        import fitsio
+        data = fitsio.read(file_name)
+        params = fitsio.read_header(file_name, 1)
     elif file_type == 'ASCII':
-        data = numpy.genfromtxt(file_name, names=True)
+        with open(file_name) as fid:
+            header = fid.readline()
+            params = {}
+            while header[1] == '#':
+                assert header[0] == '#'
+                key, value = header[2:].split('=')
+                params[key.strip()] = eval(value.strip())
+                header = fid.readline()
+        data = numpy.genfromtxt(file_name, names=True, skip_header=len(params))
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 
-    return data
+    return data, params
 
 
-class LRU_Cache:
+# This is not currently being used.  But leave it here in case useful again.
+class LRU_Cache:  # pragma: no cover
     """ Simplified Least Recently Used Cache.
     Mostly stolen from http://code.activestate.com/recipes/577970-simplified-lru-cache/,
     but added a method for dynamic resizing.  The least recently used cached item is
@@ -284,3 +275,49 @@ def double_ptr(x):
     #return treecorr._ffi.cast('double*', treecorr._ffi.from_buffer(x))
     # This works, presumably by ignoring the numpy read_only flag.  Although, I think it's ok.
     return treecorr._ffi.cast('double*', x.ctypes.data)
+
+def parse_metric(metric, coords, coords2=None, coords3=None):
+    """
+    Convert a string metric into the corresponding enum to pass to the C code.
+    """
+    if coords2 is None:
+        auto = True
+    else:
+        auto = False
+        # Special Rlens doesn't care about the distance to the sources, so spherical is fine
+        # for cat2, cat3 in that case.
+        if metric == 'Rlens':
+            if coords2 == 'spherical': coords2 = '3d'
+            if coords3 == 'spherical': coords3 = '3d'
+
+        if ( (coords2 != coords) or (coords3 is not None and coords3 != coords) ):
+            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+
+    if coords == 'flat':
+        c = treecorr._lib.Flat
+    elif coords == 'spherical':
+        c = treecorr._lib.Sphere
+    else:
+        c = treecorr._lib.ThreeD
+
+    if metric == 'Euclidean':
+        m = treecorr._lib.Euclidean
+    elif metric == 'Rperp':
+        if coords != '3d':
+            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        m = treecorr._lib.Perp
+    elif metric == 'Rlens':
+        if auto:
+            raise ValueError("Rlens metric is only valid for cross correlations.")
+        if coords != '3d':
+            raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
+        m = treecorr._lib.Lens
+    elif metric == 'Arc':
+        if coords != 'spherical':
+            raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
+        m = treecorr._lib.Arc
+    else:
+        raise ValueError("Invalid metric %s"%metric)
+
+    return c, m
+

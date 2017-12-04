@@ -1,0 +1,24 @@
+
+file_name: data/nnn_3d_data.dat
+rand_file_name: data/nnn_3d_rand.dat
+
+ra_col: 1
+dec_col: 2
+r_col: 3
+ra_units: deg
+dec_units: deg
+
+verbose: 1
+
+min_sep: 10.
+max_sep: 20.
+nbins: 8
+min_u: 0.9
+max_u: 1.0
+nubins: 1
+min_v: -0.05
+max_v: 0.05
+nvbins: 1
+
+nnn_statistic: simple
+nnn_file_name: output/nnn_3d.out

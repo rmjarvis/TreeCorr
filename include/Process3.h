@@ -57,18 +57,18 @@ void ProcessV(
     // of a difference here.
     // So the biggest change in v from moving c3 is in theta:
     // dv = abs(dv/dtheta) dtheta = abs(sin theta)/cos phi (s3/b)
-    // b cos phi > d2, so 
+    // b cos phi > d2, so
     // dv < b ==> s < m b cos phi / sqrt(1-v^2) < m d2 / sqrt(1-v^2)
     // But - just like with u where the denominator was u+m, not just u,
-    // we need to modify this.  
+    // we need to modify this.
     // If v = 1, dv = 1-cos(dtheta) = 1-cos(s3/b) ~= 1/2(s3/b)^2
     // So in this case, s3/b < sqrt(2m)
     // In general we require both to be true.
 
     double soverd = c3.getSize()/d2;
     double v = (d1-d2)/d3;
-    const bool split3 = c3.getSize() > 0. && 
-        ( soverd > sqrttwob || 
+    const bool split3 = c3.getSize() > 0. &&
+        ( soverd > sqrttwob ||
           soverd > b / sqrt(1-SQR(v)) );
 
     if (split3) {
@@ -131,7 +131,7 @@ void ProcessV(
         ProcessV(vdata,c1,c2,c3,d1,d2,d3,swap12,u);
     } else {
         ProcessV(vdata,c2,c1,c3,d2,d1,d3,!swap12,u);
-    } 
+    }
     xdbg<<std::string(recursen,'.')<<"Done PV3\n";
     --recursen;
 }
@@ -363,7 +363,7 @@ void Process3(
     std::vector<std::vector<std::vector<DataType> > >& data,
     double minr, double maxr, const CellType& c123)
 // Does all triangles with 3 points in c123 for which d3 is the smallest side
-{ 
+{
     static const double sqrt3 = sqrt(3.);
     const double minsize = minr/sqrt3;
     if (c123.getSize() < minsize) return;
@@ -379,10 +379,10 @@ void Process3(
 
     Assert(c123.getLeft());
     Assert(c123.getRight());
-    Process21(data,minr,maxr,*c123.getLeft(),*c123.getRight()); 
-    Process21(data,minr,maxr,*c123.getRight(),*c123.getLeft()); 
-    Process3(data,minr,maxr,*c123.getLeft()); 
-    Process3(data,minr,maxr,*c123.getRight()); 
+    Process21(data,minr,maxr,*c123.getLeft(),*c123.getRight());
+    Process21(data,minr,maxr,*c123.getRight(),*c123.getLeft());
+    Process3(data,minr,maxr,*c123.getLeft());
+    Process3(data,minr,maxr,*c123.getRight());
 
     if (tempdbg) {
         dbg<<std::string(recursen,'.')<<"Done P3: size = "<<c123.getSize()<<std::endl;

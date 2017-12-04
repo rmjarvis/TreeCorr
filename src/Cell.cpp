@@ -31,7 +31,8 @@ double CalculateSizeSq(
 {
     double sizesq = 0.;
     for(size_t i=start;i<end;++i) {
-        double devsq = MetricHelper<Euclidean>::DistSq(cen,vdata[i]->getPos());
+        double s=0.;
+        double devsq = MetricHelper<Euclidean>::DistSq(cen,vdata[i]->getPos(),s,s);
         if (devsq > sizesq) sizesq = devsq;
     }
     return sizesq;
@@ -94,7 +95,7 @@ CellData<GData,C>::CellData(
 
 template <int C>
 void CellData<KData,C>::finishAverages(
-    const std::vector<CellData<KData,C>*>& vdata, size_t start, size_t end) 
+    const std::vector<CellData<KData,C>*>& vdata, size_t start, size_t end)
 {
     // Accumulate in double precision for better accuracy.
     double dwk = 0.;
@@ -114,7 +115,7 @@ void CellData<VData,C>::finishAverages(
 
 template <>
 void CellData<GData,Flat>::finishAverages(
-    const std::vector<CellData<GData,Flat>*>& vdata, size_t start, size_t end) 
+    const std::vector<CellData<GData,Flat>*>& vdata, size_t start, size_t end)
 {
     // Accumulate in double precision for better accuracy.
     std::complex<double> dwg(0.);
@@ -124,7 +125,7 @@ void CellData<GData,Flat>::finishAverages(
 
 template <int C>
 std::complex<double> ParallelTransportShift(const std::vector<CellData<GData,C>*>& vdata,
-                                            const Position<C>& center, size_t start, size_t end) 
+                                            const Position<C>& center, size_t start, size_t end)
 {
     // For the average shear, we need to parallel transport each one to the center
     // to account for the different coordinate systems for each measurement.
@@ -136,12 +137,12 @@ std::complex<double> ParallelTransportShift(const std::vector<CellData<GData,C>*
         // The difference is that here, we just rotate the single shear by
         // (Pi-A-B).  See the comments in ProjectShear2 for understanding
         // the initial bit where we calculate A,B.
-        double x1 = center.getX(); 
-        double y1 = center.getY(); 
-        double z1 = center.getZ(); 
-        double x2 = vdata[i]->getPos().getX(); 
-        double y2 = vdata[i]->getPos().getY(); 
-        double z2 = vdata[i]->getPos().getZ(); 
+        double x1 = center.getX();
+        double y1 = center.getY();
+        double z1 = center.getZ();
+        double x2 = vdata[i]->getPos().getX();
+        double y2 = vdata[i]->getPos().getY();
+        double z2 = vdata[i]->getPos().getZ();
         double temp = x1*x2+y1*y2;
         double cosA = z1*(1.-z2*z2) - z2*temp;
         double sinA = y1*x2 - x1*y2;
@@ -174,14 +175,14 @@ std::complex<double> ParallelTransportShift(const std::vector<CellData<GData,C>*
 // These two need to do the same thing, so pull it out into the above function.
 template <>
 void CellData<GData,ThreeD>::finishAverages(
-    const std::vector<CellData<GData,ThreeD>*>& vdata, size_t start, size_t end) 
+    const std::vector<CellData<GData,ThreeD>*>& vdata, size_t start, size_t end)
 {
     _wg = ParallelTransportShift(vdata,_pos,start,end);
 }
 
 template <>
 void CellData<GData,Sphere>::finishAverages(
-    const std::vector<CellData<GData,Sphere>*>& vdata, size_t start, size_t end) 
+    const std::vector<CellData<GData,Sphere>*>& vdata, size_t start, size_t end)
 {
     _wg = ParallelTransportShift(vdata,_pos,start,end);
 }
@@ -192,22 +193,22 @@ void CellData<GData,Sphere>::finishAverages(
 //
 
 template <int D, int C>
-struct DataCompare 
+struct DataCompare
 {
     int split;
     DataCompare(int s) : split(s) {}
-    bool operator()(const CellData<D,C>* cd1, const CellData<D,C>* cd2) const 
+    bool operator()(const CellData<D,C>* cd1, const CellData<D,C>* cd2) const
     { return cd1->getPos().get(split) < cd2->getPos().get(split); }
 };
 
 template <int D, int C>
-struct DataCompareToValue 
+struct DataCompareToValue
 {
     int split;
     double splitvalue;
 
     DataCompareToValue(int s, double v) : split(s), splitvalue(v) {}
-    bool operator()(const CellData<D,C>* cd) const 
+    bool operator()(const CellData<D,C>* cd) const
     { return cd->getPos().get(split) < splitvalue; }
 };
 
@@ -256,7 +257,7 @@ size_t select_random(size_t lo, size_t hi)
 
 template <int D, int C>
 size_t SplitData(
-    std::vector<CellData<D,C>*>& vdata, SplitMethod sm, 
+    std::vector<CellData<D,C>*>& vdata, SplitMethod sm,
     size_t start, size_t end, const Position<C>& meanpos)
 {
     Assert(end-start > 1);
@@ -319,10 +320,10 @@ size_t SplitData(
         for(size_t i=start; i!=end; ++i) {
             xdbg<<"v["<<i<<"] = "<<vdata[i]<<std::endl;
         }
-        // With duplicate entries, can get mid == start or mid == end. 
+        // With duplicate entries, can get mid == start or mid == end.
         // This should only happen if all entries in this set are equal.
         // So it should be safe to just take the mid = (start + end)/2.
-        // But just to be safe, re-call this function with sm = MEDIAN to 
+        // But just to be safe, re-call this function with sm = MEDIAN to
         // make sure.
         Assert(sm != MEDIAN);
         return SplitData(vdata,MEDIAN,start,end,meanpos);
@@ -333,7 +334,7 @@ size_t SplitData(
 }
 
 template <int D, int C>
-Cell<D,C>::Cell(std::vector<CellData<D,C>*>& vdata, 
+Cell<D,C>::Cell(std::vector<CellData<D,C>*>& vdata,
                  double minsizesq, SplitMethod sm, size_t start, size_t end) :
     _size(0.), _sizesq(0.), _left(0), _right(0)
 {
@@ -367,7 +368,7 @@ Cell<D,C>::Cell(std::vector<CellData<D,C>*>& vdata,
         } else {
             // This shouldn't be necessary for 2-point, but 3-point calculations sometimes
             // have triangles that have two sides that are almost the same, so splits can
-            // go arbitrarily small to switch which one is d1,d2 or d2,d3.  This isn't 
+            // go arbitrarily small to switch which one is d1,d2 or d2,d3.  This isn't
             // actually an important distinction, so just abort that by calling the size
             // exactly zero.
             _size = _sizesq = 0.;
@@ -377,7 +378,7 @@ Cell<D,C>::Cell(std::vector<CellData<D,C>*>& vdata,
 
 template <int D, int C>
 Cell<D,C>::Cell(CellData<D,C>* ave, double sizesq,
-                 std::vector<CellData<D,C>*>& vdata, 
+                 std::vector<CellData<D,C>*>& vdata,
                  double minsizesq, SplitMethod sm, size_t start, size_t end) :
     _sizesq(sizesq), _data(ave), _left(0), _right(0)
 {
@@ -403,7 +404,7 @@ Cell<D,C>::Cell(CellData<D,C>* ave, double sizesq,
 }
 
 template <int D, int C>
-long Cell<D,C>::countLeaves() const 
+long Cell<D,C>::countLeaves() const
 {
     if (_left) {
         Assert(_right);
@@ -413,7 +414,7 @@ long Cell<D,C>::countLeaves() const
 
 
 template <int D, int C>
-std::vector<const Cell<D,C>*> Cell<D,C>::getAllLeaves() const 
+std::vector<const Cell<D,C>*> Cell<D,C>::getAllLeaves() const
 {
     std::vector<const Cell<D,C>*> ret;
     if (_left) {
@@ -421,7 +422,7 @@ std::vector<const Cell<D,C>*> Cell<D,C>::getAllLeaves() const
         ret.insert(ret.end(),temp.begin(),temp.end());
         Assert(_right);
         temp = _right->getAllLeaves();
-        ret.insert(ret.end(),temp.begin(),temp.end()); 
+        ret.insert(ret.end(),temp.begin(),temp.end());
     } else {
         Assert(!_right);
         ret.push_back(this);

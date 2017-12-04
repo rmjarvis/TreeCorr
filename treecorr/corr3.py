@@ -137,7 +137,7 @@ def corr3(config, logger=None):
 
     # Set the number of threads
     num_threads = config.get('num_threads',None)
-    logger.debug('From config dict, num_threads = %d',num_threads)
+    logger.debug('From config dict, num_threads = %s',num_threads)
     treecorr.set_omp_threads(num_threads, logger)
 
     # Read in the input files.  Each of these is a list.
@@ -157,7 +157,7 @@ def corr3(config, logger=None):
 
     # Do GGG correlation function if necessary
     if 'ggg_file_name' in config: #or 'm3_file_name' in config:
-        logger.info("Start GGG calculations...")
+        logger.warning("Performing GGG calculations...")
         ggg = treecorr.GGGCorrelation(config,logger)
         ggg.process(cat1,cat2,cat3)
         logger.info("Done GGG calculations.")
@@ -178,57 +178,58 @@ def corr3(config, logger=None):
             raise NotImplementedError(
                 "Cannot yet handle 3-point corrleations with only two catalogs. "+
                 "Need both cat2 and cat3.")
-        logger.info("Start DDD calculations...")
+        logger.warning("Performing DDD calculations...")
         ddd = treecorr.NNNCorrelation(config,logger)
         ddd.process(cat1,cat2,cat3)
         logger.info("Done DDD calculations.")
 
         if len(cat2) == 0:
+            logger.warning("Performing RRR calculations...")
             rrr = treecorr.NNNCorrelation(config,logger)
             rrr.process(rand1)
             logger.info("Done RRR calculations.")
 
-            if config['nnn_statistic'] == 'compensated':
-                drr = treecorr.NNNCorrelation(config,logger)
-                drr.process(cat1,rand2,rand3)
-                logger.info("Done DRR calculations.")
-                ddr = treecorr.NNNCorrelation(config,logger)
-                ddr.process(cat1,cat2,rand3)
-                logger.info("Done DDR calculations.")
-                ddd.write(config['nnn_file_name'],rrr,drr,ddr)
-            else:
-                ddd.write(config['nnn_file_name'],rrr)
+            # For the next step, just make cat2 = cat3 = cat1 and rand2 = rand3 = rand1.
+            cat2 = cat3 = cat1
+            rand2 = rand3 = rand1
         else:
+            logger.warning("Performing RRR calculations...")
             rrr = treecorr.NNNCorrelation(config,logger)
             rrr.process(rand1,rand2,rand3)
             logger.info("Done RRR calculations.")
 
-            if config['nnn_statistic'] == 'compensated':
-                drr = treecorr.NNNCorrelation(config,logger)
-                drr.process(cat1,rand2,rand3)
-                logger.info("Done DRR calculations.")
-                ddr = treecorr.NNNCorrelation(config,logger)
-                ddr.process(cat1,cat2,rand3)
-                logger.info("Done DDR calculations.")
-                rdr = treecorr.NNNCorrelation(config,logger)
-                rdr.process(rand1,cat2,rand3)
-                logger.info("Done RDR calculations.")
-                rrd = treecorr.NNNCorrelation(config,logger)
-                rrd.process(rand1,rand2,cat3)
-                logger.info("Done RRD calculations.")
-                drd = treecorr.NNNCorrelation(config,logger)
-                drd.process(cat1,rand2,cat3)
-                logger.info("Done DRD calculations.")
-                rdd = treecorr.NNNCorrelation(config,logger)
-                rdd.process(rand1,cat2,cat3)
-                logger.info("Done RDD calculations.")
-                ddd.write(config['nnn_file_name'],rrr,drr,ddr,rdr,rrd,drd,rdd)
-            else:
-                ddd.write(config['nnn_file_name'],rrr)
+        if config['nnn_statistic'] == 'compensated':
+            logger.warning("Performing DRR calculations...")
+            drr = treecorr.NNNCorrelation(config,logger)
+            drr.process(cat1,rand2,rand3)
+            logger.info("Done DRR calculations.")
+            logger.warning("Performing DDR calculations...")
+            ddr = treecorr.NNNCorrelation(config,logger)
+            ddr.process(cat1,cat2,rand3)
+            logger.info("Done DDR calculations.")
+            logger.warning("Performing RDR calculations...")
+            rdr = treecorr.NNNCorrelation(config,logger)
+            rdr.process(rand1,cat2,rand3)
+            logger.info("Done RDR calculations.")
+            logger.warning("Performing RRD calculations...")
+            rrd = treecorr.NNNCorrelation(config,logger)
+            rrd.process(rand1,rand2,cat3)
+            logger.info("Done RRD calculations.")
+            logger.warning("Performing DRD calculations...")
+            drd = treecorr.NNNCorrelation(config,logger)
+            drd.process(cat1,rand2,cat3)
+            logger.info("Done DRD calculations.")
+            logger.warning("Performing RDD calculations...")
+            rdd = treecorr.NNNCorrelation(config,logger)
+            rdd.process(rand1,cat2,cat3)
+            logger.info("Done RDD calculations.")
+            ddd.write(config['nnn_file_name'],rrr,drr,rdr,rrd,ddr,drd,rdd)
+        else:
+            ddd.write(config['nnn_file_name'],rrr)
 
     # Do KKK correlation function if necessary
     if 'kkk_file_name' in config:
-        logger.info("Start KKK calculations...")
+        logger.warning("Performing KKK calculations...")
         kkk = treecorr.KKKCorrelation(config,logger)
         kkk.process(cat1,cat2,cat3)
         logger.info("Done KKK calculations.")
@@ -239,7 +240,7 @@ def corr3(config, logger=None):
     #if 'nng_file_name' in config or 'nnm_file_name' in config:
         if len(cat3) == 0:
             raise AttributeError("file_name3 is required for nng correlation")
-        logger.info("Start NNG calculations...")
+        logger.warning("Performing NNG calculations...")
         nng = treecorr.NNGCorrelation(config,logger)
         nng.process(cat1,cat2,cat3)
         logger.info("Done NNG calculation.")
@@ -265,7 +266,7 @@ def corr3(config, logger=None):
     #if 'nnk_file_name' in config:
         if len(cat3) == 0:
             raise AttributeError("file_name3 is required for nnk correlation")
-        logger.info("Start NNK calculations...")
+        logger.warning("Performing NNK calculations...")
         nnk = treecorr.NNKCorrelation(config,logger)
         nnk.process(cat1,cat2,cat3)
         logger.info("Done NNK calculation.")
@@ -286,7 +287,7 @@ def corr3(config, logger=None):
     #if 'kkg_file_name' in config:
         if len(cat3) == 0:
             raise AttributeError("file_name3 is required for kkg correlation")
-        logger.info("Start KKG calculations...")
+        logger.warning("Performing KKG calculations...")
         kkg = treecorr.KKGCorrelation(config,logger)
         kkg.process(cat1,cat2,cat3)
         logger.info("Done KKG calculation.")

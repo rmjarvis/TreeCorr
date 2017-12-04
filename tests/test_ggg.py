@@ -15,6 +15,7 @@ from __future__ import print_function
 import numpy
 import treecorr
 import os
+import fitsio
 
 from test_helper import get_script_name
 
@@ -25,7 +26,7 @@ def test_ggg():
     # Rather than go through the bispectrum, I found it easier to just directly do the
     # integral:
     #
-    # Gamma0 = int(int( g(x+x1,y+y1) g(x+x2,y+y2) g(x-x1-x2,y-y1-y2) (x1-Iy1)^2/(x1^2+y1^2) 
+    # Gamma0 = int(int( g(x+x1,y+y1) g(x+x2,y+y2) g(x-x1-x2,y-y1-y2) (x1-Iy1)^2/(x1^2+y1^2)
     #                       (x2-Iy2)^2/(x2^2+y2^2) (x1+x2-I(y1+y2))^2/((x1+x2)^2+(y1+y2)^2)))
     #
     # where the positions are measured relative to the centroid (x,y).
@@ -34,18 +35,18 @@ def test_ggg():
     #    q2 = x2 + I y2
     #    q3 = -(x1+x2) - I (y1+y2)
     # then the result comes out as
-    # 
+    #
     # Gamma0 = -2/3 gamma0^3/L^2r0^4 Pi |q1|^2 |q2|^2 |q3|^2 exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2)
     #
     # The other three are a bit more complicated.
     #
-    # Gamma1 = int(int( g(x+x1,y+y1)* g(x+x2,y+y2) g(x-x1-x2,y-y1-y2) (x1+Iy1)^2/(x1^2+y1^2) 
+    # Gamma1 = int(int( g(x+x1,y+y1)* g(x+x2,y+y2) g(x-x1-x2,y-y1-y2) (x1+Iy1)^2/(x1^2+y1^2)
     #                       (x2-Iy2)^2/(x2^2+y2^2) (x1+x2-I(y1+y2))^2/((x1+x2)^2+(y1+y2)^2)))
-    # 
+    #
     #        = -2/3 gamma0^3/L^2r0^4 Pi exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2) *
-    #             ( |q1|^2 |q2|^2 |q3|^2 - 8/3 r0^2 q1^2 q2* q3* 
+    #             ( |q1|^2 |q2|^2 |q3|^2 - 8/3 r0^2 q1^2 q2* q3*
     #               + 8/9 r0^4 (q1^2 q2*^2 q3*^2)/(|q1|^2 |q2|^2 |q3|^2) (2q1^2-q2^2-q3^2) )
-    # 
+    #
     # Gamm2 and Gamma3 are found from cyclic rotations of q1,q2,q3.
 
     gamma0 = 0.05
@@ -93,7 +94,7 @@ def test_ggg():
     numpy.testing.assert_almost_equal(ggg.meanlogd2, numpy.log(ggg.meand2), decimal=3)
     numpy.testing.assert_almost_equal(ggg.meanlogd3, numpy.log(ggg.meand3), decimal=3)
     numpy.testing.assert_almost_equal(ggg.meanlogd3-ggg.meanlogd2, numpy.log(ggg.meanu), decimal=3)
-    numpy.testing.assert_almost_equal(numpy.log(ggg.meand1-ggg.meand2)-ggg.meanlogd3, 
+    numpy.testing.assert_almost_equal(numpy.log(ggg.meand1-ggg.meand2)-ggg.meanlogd3,
                                       numpy.log(numpy.abs(ggg.meanv)), decimal=3)
 
     d1 = ggg.meand1
@@ -110,7 +111,7 @@ def test_ggg():
     # Then let s be the "complex vector" from c1 to c3, which is just real.
     s = d2
     # And let t be from c1 to c2. t = |t| e^Iphi
-    # |t| = d3. 
+    # |t| = d3
     # cos(phi) = (d2^2+d3^2-d1^2)/(2d2 d3)
     # |t| cos(phi) = (d2^2+d3^2-d1^2)/2d2
     # |t| sin(phi) = sqrt(|t|^2 - (|t|cos(phi))^2)
@@ -133,31 +134,31 @@ def test_ggg():
 
     # The L^2 term in the denominator of true_zeta is the area over which the integral is done.
     # Since the centers of the triangles don't go to the edge of the box, we approximate the
-    # correct area by subtracting off 2*mean(qi) from L, which should give a slightly better 
+    # correct area by subtracting off 2*mean(qi) from L, which should give a slightly better
     # estimate of the correct area to use here.  (We used 2d2 for the kkk calculation, but this
     # is probably a slightly better estimate of the distance the triangles can get to the edges.)
     L = L - 2.*(q1 + q2 + q3)/3.
 
     # Gamma0 = -2/3 gamma0^3/L^2r0^4 Pi |q1|^2 |q2|^2 |q3|^2 exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2)
-    true_gam0 = ((-2.*numpy.pi * gamma0**3)/(3. * L**2 * r0**4) * 
+    true_gam0 = ((-2.*numpy.pi * gamma0**3)/(3. * L**2 * r0**4) *
                     numpy.exp(-(nq1+nq2+nq3)/(2.*r0**2)) * (nq1*nq2*nq3) )
 
     # Gamma1 = -2/3 gamma0^3/L^2r0^4 Pi exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2) *
     #             ( |q1|^2 |q2|^2 |q3|^2 - 8/3 r0^2 q1^2 q2* q3*
     #               + 8/9 r0^4 (q1^2 q2*^2 q3*^2)/(|q1|^2 |q2|^2 |q3|^2) (2q1^2-q2^2-q3^2) )
-    true_gam1 = ((-2.*numpy.pi * gamma0**3)/(3. * L**2 * r0**4) * 
+    true_gam1 = ((-2.*numpy.pi * gamma0**3)/(3. * L**2 * r0**4) *
                     numpy.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
                     (nq1*nq2*nq3 - 8./3. * r0**2 * q1**2*nq2*nq3/(q2*q3)
                      + (8./9. * r0**4 * (q1**2 * nq2 * nq3)/(nq1 * q2**2 * q3**2) *
                          (2.*q1**2 - q2**2 - q3**2)) ))
 
-    true_gam2 = ((-2.*numpy.pi * gamma0**3)/(3. * L**2 * r0**4) * 
+    true_gam2 = ((-2.*numpy.pi * gamma0**3)/(3. * L**2 * r0**4) *
                     numpy.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
                     (nq1*nq2*nq3 - 8./3. * r0**2 * nq1*q2**2*nq3/(q1*q3)
                      + (8./9. * r0**4 * (nq1 * q2**2 * nq3)/(q1**2 * nq2 * q3**2) *
                          (2.*q2**2 - q1**2 - q3**2)) ))
 
-    true_gam3 = ((-2.*numpy.pi * gamma0**3)/(3. * L**2 * r0**4) * 
+    true_gam3 = ((-2.*numpy.pi * gamma0**3)/(3. * L**2 * r0**4) *
                     numpy.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
                     (nq1*nq2*nq3 - 8./3. * r0**2 * nq1*nq2*q3**2/(q1*q2)
                      + (8./9. * r0**4 * (nq1 * nq2 * q3**2)/(q1**2 * q2**2 * nq3) *
@@ -173,7 +174,7 @@ def test_ggg():
     # number of objects, so I think it's just because of the smallish number of galaxies being
     # not super accurate.
     assert numpy.max(numpy.abs((ggg.gam0 - true_gam0)/true_gam0))/req_factor < 0.2
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(ggg.gam0))/2./req_factor, 
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(ggg.gam0))/2./req_factor,
                                       numpy.log(numpy.abs(true_gam0))/2./req_factor, decimal=1)
 
     print('gam1 = ',ggg.gam1)
@@ -182,7 +183,7 @@ def test_ggg():
     #print('diff = ',ggg.gam1 - true_gam1)
     print('max rel diff = ',numpy.max(numpy.abs((ggg.gam1 - true_gam1)/true_gam1)))
     assert numpy.max(numpy.abs((ggg.gam1 - true_gam1)/true_gam1))/req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(ggg.gam1))/req_factor, 
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(ggg.gam1))/req_factor,
                                       numpy.log(numpy.abs(true_gam1))/req_factor, decimal=1)
 
     #print('gam2 = ',ggg.gam2)
@@ -191,7 +192,7 @@ def test_ggg():
     #print('diff = ',ggg.gam2 - true_gam2)
     #print('max rel diff = ',numpy.max(numpy.abs((ggg.gam2 - true_gam2)/true_gam2)))
     assert numpy.max(numpy.abs((ggg.gam2 - true_gam2)/true_gam2))/req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(ggg.gam2))/req_factor, 
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(ggg.gam2))/req_factor,
                                       numpy.log(numpy.abs(true_gam2))/req_factor, decimal=1)
 
     #print('gam3 = ',ggg.gam3)
@@ -200,7 +201,7 @@ def test_ggg():
     #print('diff = ',ggg.gam3 - true_gam3)
     #print('max rel diff = ',numpy.max(numpy.abs((ggg.gam3 - true_gam3)/true_gam3)))
     assert numpy.max(numpy.abs((ggg.gam3 - true_gam3)/true_gam3))/req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(ggg.gam3))/req_factor, 
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(ggg.gam3))/req_factor,
                                       numpy.log(numpy.abs(true_gam3))/req_factor, decimal=1)
 
     # Check that we get the same result using the corr3 executable:
@@ -208,7 +209,7 @@ def test_ggg():
         cat.write(os.path.join('data','ggg_data.dat'))
         import subprocess
         corr3_exe = get_script_name('corr3')
-        p = subprocess.Popen( [corr3_exe,"ggg.params"] )
+        p = subprocess.Popen( [corr3_exe,"ggg.yaml"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','ggg.out'), names=True)
         #print('gam0r = ',ggg.gam0.real)
@@ -255,33 +256,29 @@ def test_ggg():
     # Check the fits write option
     out_file_name1 = os.path.join('output','ggg_out1.fits')
     ggg.write(out_file_name1)
-    try:
-        import fitsio
-        data = fitsio.read(out_file_name1)
-        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ggg.logr).flatten())
-        numpy.testing.assert_almost_equal(data['u_nom'], ggg.u.flatten())
-        numpy.testing.assert_almost_equal(data['v_nom'], ggg.v.flatten())
-        numpy.testing.assert_almost_equal(data['meand1'], ggg.meand1.flatten())
-        numpy.testing.assert_almost_equal(data['meanlogd1'], ggg.meanlogd1.flatten())
-        numpy.testing.assert_almost_equal(data['meand2'], ggg.meand2.flatten())
-        numpy.testing.assert_almost_equal(data['meanlogd2'], ggg.meanlogd2.flatten())
-        numpy.testing.assert_almost_equal(data['meand3'], ggg.meand3.flatten())
-        numpy.testing.assert_almost_equal(data['meanlogd3'], ggg.meanlogd3.flatten())
-        numpy.testing.assert_almost_equal(data['meanu'], ggg.meanu.flatten())
-        numpy.testing.assert_almost_equal(data['meanv'], ggg.meanv.flatten())
-        numpy.testing.assert_almost_equal(data['gam0r'], ggg.gam0.real.flatten())
-        numpy.testing.assert_almost_equal(data['gam1r'], ggg.gam1.real.flatten())
-        numpy.testing.assert_almost_equal(data['gam2r'], ggg.gam2.real.flatten())
-        numpy.testing.assert_almost_equal(data['gam3r'], ggg.gam3.real.flatten())
-        numpy.testing.assert_almost_equal(data['gam0i'], ggg.gam0.imag.flatten())
-        numpy.testing.assert_almost_equal(data['gam1i'], ggg.gam1.imag.flatten())
-        numpy.testing.assert_almost_equal(data['gam2i'], ggg.gam2.imag.flatten())
-        numpy.testing.assert_almost_equal(data['gam3i'], ggg.gam3.imag.flatten())
-        numpy.testing.assert_almost_equal(data['sigma_gam'], numpy.sqrt(ggg.vargam.flatten()))
-        numpy.testing.assert_almost_equal(data['weight'], ggg.weight.flatten())
-        numpy.testing.assert_almost_equal(data['ntri'], ggg.ntri.flatten())
-    except ImportError:
-        print('Unable to import fitsio.  Skipping fits tests.')
+    data = fitsio.read(out_file_name1)
+    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ggg.logr).flatten())
+    numpy.testing.assert_almost_equal(data['u_nom'], ggg.u.flatten())
+    numpy.testing.assert_almost_equal(data['v_nom'], ggg.v.flatten())
+    numpy.testing.assert_almost_equal(data['meand1'], ggg.meand1.flatten())
+    numpy.testing.assert_almost_equal(data['meanlogd1'], ggg.meanlogd1.flatten())
+    numpy.testing.assert_almost_equal(data['meand2'], ggg.meand2.flatten())
+    numpy.testing.assert_almost_equal(data['meanlogd2'], ggg.meanlogd2.flatten())
+    numpy.testing.assert_almost_equal(data['meand3'], ggg.meand3.flatten())
+    numpy.testing.assert_almost_equal(data['meanlogd3'], ggg.meanlogd3.flatten())
+    numpy.testing.assert_almost_equal(data['meanu'], ggg.meanu.flatten())
+    numpy.testing.assert_almost_equal(data['meanv'], ggg.meanv.flatten())
+    numpy.testing.assert_almost_equal(data['gam0r'], ggg.gam0.real.flatten())
+    numpy.testing.assert_almost_equal(data['gam1r'], ggg.gam1.real.flatten())
+    numpy.testing.assert_almost_equal(data['gam2r'], ggg.gam2.real.flatten())
+    numpy.testing.assert_almost_equal(data['gam3r'], ggg.gam3.real.flatten())
+    numpy.testing.assert_almost_equal(data['gam0i'], ggg.gam0.imag.flatten())
+    numpy.testing.assert_almost_equal(data['gam1i'], ggg.gam1.imag.flatten())
+    numpy.testing.assert_almost_equal(data['gam2i'], ggg.gam2.imag.flatten())
+    numpy.testing.assert_almost_equal(data['gam3i'], ggg.gam3.imag.flatten())
+    numpy.testing.assert_almost_equal(data['sigma_gam'], numpy.sqrt(ggg.vargam.flatten()))
+    numpy.testing.assert_almost_equal(data['weight'], ggg.weight.flatten())
+    numpy.testing.assert_almost_equal(data['ntri'], ggg.ntri.flatten())
 
     # Check the read function
     # Note: These don't need the flatten. The read function should reshape them to the right shape.

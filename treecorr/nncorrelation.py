@@ -33,6 +33,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
     In addition, the following attributes are numpy arrays of length (nbins):
 
         :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
+        :rnom:      The nominal center of the bin converted to regular distance. 
+                    i.e. r = exp(logr).
         :meanr:     The (weighted) mean value of r for the pairs in each bin.
                     If there are no pairs in a bin, then exp(logr) will be used instead.
         :meanlogr:  The mean value of log(r) for the pairs in each bin.
@@ -42,10 +44,13 @@ class NNCorrelation(treecorr.BinnedCorr2):
         :tot:       The total number of pairs processed, which is used to normalize
                     the randoms if they have a different number of pairs.
 
-    If sep_units are given (either in the config dict or as a named kwarg) then logr and meanlogr
-    both take r to be in these units.  i.e. exp(logr) will have R in units of sep_units.
+    If `sep_units` are given (either in the config dict or as a named kwarg) then the distances
+    will all be in these units.  Note however, that if you separate out the steps of the 
+    :func:`process` command and use :func:`process_auto` and/or :func:`process_cross`, then the
+    units will not be applied to :meanr: or :meanlogr: until the :func:`finalize` function is
+    called.
 
-    The usage pattern is as follows:
+    The typical usage pattern is as follows:
 
         >>> nn = treecorr.NNCorrelation(config)
         >>> nn.process(cat)         # For auto-correlation.
@@ -79,7 +84,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
         self.corr = treecorr._lib.BuildNNCorr(
-                self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                self._min_sep,self._max_sep,self.nbins,self.bin_size,self.b,
+                self.min_rpar, self.max_rpar,
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
 
     def __del__(self):
@@ -129,28 +135,17 @@ class NNCorrelation(treecorr.BinnedCorr2):
         else:
             self.logger.info('Starting process NN auto-correlations for cat %s.', cat.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
-        if metric == 'Rperp' and cat.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        self._set_metric(metric, cat.coords)
 
         self._set_num_threads(num_threads)
 
-        min_size = self.min_sep * self.b / (2.+3.*self.b);
-        if metric == 'Rperp': min_size /= 2.
-        max_size = self.max_sep * self.b
+        min_size, max_size = self._get_minmax_size()
 
         field = cat.getNField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        if cat.coords == 'flat':
-            treecorr._lib.ProcessAutoNNFlat(self.corr, field.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessAutoNNPerp(self.corr, field.data, self.output_dots)
-        else:
-            treecorr._lib.ProcessAutoNN3D(self.corr, field.data, self.output_dots)
+        treecorr._lib.ProcessAutoNN(self.corr, field.data, self.output_dots,
+                                    self._coords, self._metric)
         self.tot += 0.5 * cat.sumw**2
 
 
@@ -177,31 +172,18 @@ class NNCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process NN cross-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
-        if cat1.coords != cat2.coords:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and cat1.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        self._set_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
-        min_size = self.min_sep * self.b / (2.+3.*self.b);
-        if metric == 'Rperp': min_size /= 2.
-        max_size = self.max_sep * self.b
+        min_size, max_size = self._get_minmax_size()
 
         f1 = cat1.getNField(min_size,max_size,self.split_method,self.max_top)
         f2 = cat2.getNField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        if cat1.coords == 'flat':
-            treecorr._lib.ProcessCrossNNFlat(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessCrossNNPerp(self.corr, f1.data, f2.data, self.output_dots)
-        else:
-            treecorr._lib.ProcessCrossNN3D(self.corr, f1.data, f2.data, self.output_dots)
+        treecorr._lib.ProcessCrossNN(self.corr, f1.data, f2.data, self.output_dots,
+                                     self._coords, self._metric)
         self.tot += cat1.sumw*cat2.sumw
 
 
@@ -229,26 +211,15 @@ class NNCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process NN pairwise-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
-        if cat1.coords != cat2.coords:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and cat1.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        self._set_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
         f1 = cat1.getNSimpleField()
         f2 = cat2.getNSimpleField()
 
-        if cat1.coords == 'flat':
-            treecorr._lib.ProcessPairwiseNNFlat(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessPairwiseNNPerp(self.corr, f1.data, f2.data, self.output_dots)
-        else:
-            treecorr._lib.ProcessPairwiseNN3D(self.corr, f1.data, f2.data, self.output_dots)
+        treecorr._lib.ProcessPairNN(self.corr, f1.data, f2.data, self.output_dots,
+                                    self._coords, self._metric)
         self.tot += cat1.weight
 
 
@@ -266,11 +237,10 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.meanlogr[mask1] /= self.weight[mask1]
 
         # Update the units of meanr, meanlogr
-        self.meanr[mask1] /= self.sep_units
-        self.meanlogr[mask1] -= self.log_sep_units
+        self._apply_units(mask1)
 
         # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
-        self.meanr[mask2] = numpy.exp(self.logr[mask2])
+        self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
 
 
@@ -326,6 +296,10 @@ class NNCorrelation(treecorr.BinnedCorr2):
                               with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
                               distance and :math:`Rparallel = |r1-r2|`, then we define
                               :math:`Rperp^2 = d^2 - Rparallel^2`.
+                            - 'Rlens' = the projected distance perpendicular to the first point
+                              in the pair (taken to be a lens) to the line of sight to the second
+                              point (e.g. a lensed source galaxy).
+                            - 'Arc' = the true great circle distance for spherical coordinates.
 
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
@@ -458,6 +432,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
             :RD:        The total weight of RD pairs in each bin.
             :npairs:    The number of pairs contributing ot each bin.
 
+        If `sep_units` was given at construction, then the distances will all be in these units.
+        Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
+        radians (for spherical coordinates).
 
         :param file_name:   The name of the file to write to.
         :param rr:          An NNCorrelation object for the random-random pairs. (default: None,
@@ -474,7 +451,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.logger.info('Writing NN correlations to %s',file_name)
         
         col_names = [ 'R_nom','meanR','meanlogR' ]
-        columns = [ numpy.exp(self.logr), self.meanr, self.meanlogr ]
+        columns = [ self.rnom, self.meanr, self.meanlogr ]
         if rr is None:
             col_names += [ 'DD', 'npairs' ]
             columns += [ self.weight, self.npairs ]
@@ -502,8 +479,11 @@ class NNCorrelation(treecorr.BinnedCorr2):
         if prec is None:
             prec = self.config.get('precision', 4)
 
+        params = { 'tot' : self.tot }
+
         treecorr.util.gen_write(
-            file_name, col_names, columns, prec=prec, file_type=file_type, logger=self.logger)
+            file_name, col_names, columns, params=params,
+            prec=prec, file_type=file_type, logger=self.logger)
 
 
     def read(self, file_name, file_type=None):
@@ -522,12 +502,14 @@ class NNCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Reading NN correlations from %s',file_name)
 
-        data = treecorr.util.gen_read(file_name, file_type=file_type)
-        self.logr = numpy.log(data['R_nom'])
+        data, params = treecorr.util.gen_read(file_name, file_type=file_type)
+        self.rnom = data['R_nom']
+        self.logr = numpy.log(self.rnom)
         self.meanr = data['meanR']
         self.meanlogr = data['meanlogR']
         self.weight = data['DD']
         self.npairs = data['npairs']
+        self.tot = params['tot']
         self._build_corr()
 
 
@@ -553,7 +535,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
             raise ValueError("Invalid m2_uform")
 
         # Make s a matrix, so we can eventually do the integral by doing a matrix product.
-        r = numpy.exp(self.logr)
+        r = self.rnom
         s = numpy.outer(1./r, self.meanr)  
         ssq = s*s
         if m2_uform == 'Crittenden':

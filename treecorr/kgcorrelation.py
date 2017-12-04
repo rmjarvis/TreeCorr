@@ -33,6 +33,8 @@ class KGCorrelation(treecorr.BinnedCorr2):
     In addition, the following attributes are numpy arrays of length (nbins):
 
         :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
+        :rnom:      The nominal center of the bin converted to regular distance. 
+                    i.e. r = exp(logr).
         :meanr:     The (weighted) mean value of r for the pairs in each bin.
                     If there are no pairs in a bin, then exp(logr) will be used instead.
         :meanlogr:  The (weighted) mean value of log(r) for the pairs in each bin.
@@ -45,10 +47,13 @@ class KGCorrelation(treecorr.BinnedCorr2):
         :weight:    The total weight in each bin.
         :npairs:    The number of pairs going into each bin.
 
-    If sep_units are given (either in the config dict or as a named kwarg) then logr and meanlogr
-    both take r to be in these units.  i.e. exp(logr) will have R in units of sep_units.
+    If `sep_units` are given (either in the config dict or as a named kwarg) then the distances
+    will all be in these units.  Note however, that if you separate out the steps of the 
+    :func:`process` command and use :func:`process_auto` and/or :func:`process_cross`, then the
+    units will not be applied to :meanr: or :meanlogr: until the :func:`finalize` function is
+    called.
 
-    The usage pattern is as follows:
+    The typical usage pattern is as follows:
 
         >>> kg = treecorr.KGCorrelation(config)
         >>> kg.process(cat1,cat2)   # Calculate the cross-correlation
@@ -80,7 +85,8 @@ class KGCorrelation(treecorr.BinnedCorr2):
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
         self.corr = treecorr._lib.BuildKGCorr(
-                self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                self._min_sep,self._max_sep,self.nbins,self.bin_size,self.b,
+                self.min_rpar, self.max_rpar,
                 dp(self.xi),dp(self.xi_im),
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
 
@@ -134,31 +140,18 @@ class KGCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process KG cross-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
-        if cat1.coords != cat2.coords:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and cat1.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        self._set_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
-        min_size = self.min_sep * self.b / (2.+3.*self.b);
-        if metric == 'Rperp': min_size /= 2.
-        max_size = self.max_sep * self.b
+        min_size, max_size = self._get_minmax_size()
 
         f1 = cat1.getKField(min_size,max_size,self.split_method,self.max_top)
         f2 = cat2.getGField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        if cat1.coords == 'flat':
-            treecorr._lib.ProcessCrossKGFlat(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessCrossKGPerp(self.corr, f1.data, f2.data, self.output_dots)
-        else:
-            treecorr._lib.ProcessCrossKG3D(self.corr, f1.data, f2.data, self.output_dots)
+        treecorr._lib.ProcessCrossKG(self.corr, f1.data, f2.data, self.output_dots,
+                                     self._coords, self._metric)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -186,26 +179,15 @@ class KGCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process KG pairwise-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
-        if cat1.coords != cat2.coords:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and cat1.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        self._set_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
         f1 = cat1.getKSimpleField()
         f2 = cat2.getGSimpleField()
 
-        if cat1.coords == 'flat':
-            treecorr._lib.ProcessPairwiseKGFlat(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessPairwiseKGPerp(self.corr, f1.data, f2.data, self.output_dots)
-        else:
-            treecorr._lib.ProcessPairwiseKG3D(self.corr, f1.data, f2.data, self.output_dots)
+        treecorr._lib.ProcessPairKG(self.corr, f1.data, f2.data, self.output_dots,
+                                    self._coords, self._metric)
 
 
     def finalize(self, vark, varg):
@@ -228,11 +210,10 @@ class KGCorrelation(treecorr.BinnedCorr2):
         self.varxi[mask1] = vark * varg / self.weight[mask1]
 
         # Update the units of meanr, meanlogr
-        self.meanr[mask1] /= self.sep_units
-        self.meanlogr[mask1] -= self.log_sep_units
+        self._apply_units(mask1)
 
         # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
-        self.meanr[mask2] = numpy.exp(self.logr[mask2])
+        self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
         self.varxi[mask2] = 0.
 
@@ -287,6 +268,10 @@ class KGCorrelation(treecorr.BinnedCorr2):
                               with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
                               distance and :math:`Rparallel = |r1-r2|`, then we define
                               :math:`Rperp^2 = d^2 - Rparallel^2`.
+                            - 'Rlens' = the projected distance perpendicular to the first point
+                              in the pair (taken to be a lens) to the line of sight to the second
+                              point (e.g. a lensed source galaxy).
+                            - 'Arc' = the true great circle distance for spherical coordinates.
 
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
@@ -331,6 +316,9 @@ class KGCorrelation(treecorr.BinnedCorr2):
             :weight:    The total weight contributing to each bin.
             :npairs:    The number of pairs contributing ot each bin.
 
+        If `sep_units` was given at construction, then the distances will all be in these units.
+        Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
+        radians (for spherical coordinates).
 
         :param file_name:   The name of the file to write to.
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
@@ -345,7 +333,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         treecorr.util.gen_write(
             file_name,
             ['R_nom','meanR','meanlogR','kgamT','kgamX','sigma','weight','npairs'],
-            [ numpy.exp(self.logr), self.meanr, self.meanlogr,
+            [ self.rnom, self.meanr, self.meanlogr,
               self.xi, self.xi_im, numpy.sqrt(self.varxi),
               self.weight, self.npairs ],
             prec=prec, file_type=file_type, logger=self.logger)
@@ -367,8 +355,9 @@ class KGCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Reading KG correlations from %s',file_name)
 
-        data = treecorr.util.gen_read(file_name, file_type=file_type)
-        self.logr = numpy.log(data['R_nom'])
+        data, _ = treecorr.util.gen_read(file_name, file_type=file_type)
+        self.rnom = data['R_nom']
+        self.logr = numpy.log(self.rnom)
         self.meanr = data['meanR']
         self.meanlogr = data['meanlogR']
         self.xi = data['kgamT']

@@ -143,7 +143,7 @@ class KField(object):
         else:
             self.flat = False
             if cat.coords == 'spherical':
-                self.data = treecorr._lib.BuildKFieldThreeD(dp(cat.x),dp(cat.y),dp(cat.z),
+                self.data = treecorr._lib.BuildKFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),
                                                             dp(cat.k),
                                                             dp(cat.w),dp(cat.wpos),cat.ntot,
                                                             min_size,max_size,sm,max_top)

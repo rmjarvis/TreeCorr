@@ -1,0 +1,34 @@
+branches:
+    only: 
+        - master
+
+language: python
+
+python:
+    - 2.7
+    - 3.4
+    - 3.5
+
+before_install:
+    - sudo apt-get install -y libffi-dev
+    - export PYTHONPATH=$HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages/:$PYTHONPATH
+    - mkdir $HOME/lib
+    - mkdir $HOME/lib/python$TRAVIS_PYTHON_VERSION
+    - mkdir $HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages
+
+install:
+    - pip install -r requirements.txt
+    # Extra packages only needed for testing:
+    - pip install matplotlib==1.5.0 pytest codecov nbval ipykernel
+
+cache:
+    - pip: true
+
+script: 
+    - python setup.py install --prefix=$HOME
+    - cd tests
+    - nosetests --with-coverage --cover-package=treecorr --with-doctest
+    - if [[ $TRAVIS_PYTHON_VERSION > 2.6 ]]; then py.test --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env; fi
+
+after_success:
+    - codecov

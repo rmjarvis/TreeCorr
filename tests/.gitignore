@@ -1,2 +1,5 @@
 .png
 *.pyc
+.coverage
+.ipynb_checkpoints
+testkernel

@@ -20,11 +20,11 @@
 // Most of the functionality for building Cells and doing the correlation functions is the
 // same regardless of which kind of Cell we have (N, K, G) or which kind of positions we
 // are using (Flat, ThreeD, Sphere), or what metric we use for the distances between points
-// (Euclidean, Perp, Arc).  So most of the C++ code uses templates.  
+// (Euclidean, Perp, Arc).  So most of the C++ code uses templates.
 //
 // D = NData for counts
 //     KData for kappa
-//     GData for shear 
+//     GData for shear
 //
 // C = Flat for (x,y) coordinates
 //     ThreeD for (x,y,z) coordinates
@@ -38,7 +38,7 @@ template <int D, int C>
 class Field
 {
 public:
-    Field(double* x, double* y, double* z, double* g1, double* g2, double* k, 
+    Field(double* x, double* y, double* z, double* g1, double* g2, double* k,
           double* a, double* b, double* c,
           double* w, double* wpos, long nobj,
           double minsize, double maxsize,

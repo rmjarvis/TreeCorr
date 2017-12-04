@@ -1,0 +1,16 @@
+{
+"file_list": "data/nn_list_data_files.txt",
+"rand_file_name": "data/nn_list_randx.dat",
+
+"x_col": 1,
+"y_col": 2,
+
+"verbose": 1,
+
+"min_sep": 1.0,
+"max_sep": 25.0,
+"bin_size": 0.10,
+
+"nn_file_name": "output/nn_list2.out",
+"nn_statistic": "simple"
+}

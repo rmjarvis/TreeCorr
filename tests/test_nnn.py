@@ -15,6 +15,7 @@ from __future__ import print_function
 import numpy
 import treecorr
 import os
+import fitsio
 
 from test_helper import get_script_name
 
@@ -181,6 +182,10 @@ def test_binnedcorr3():
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
+    numpy.testing.assert_almost_equal(nnn.min_sep, 5.)
+    numpy.testing.assert_almost_equal(nnn.max_sep, 20.)
+    numpy.testing.assert_almost_equal(nnn._min_sep, 5.)
+    numpy.testing.assert_almost_equal(nnn._max_sep, 20.)
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
@@ -192,8 +197,10 @@ def test_binnedcorr3():
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
-    numpy.testing.assert_almost_equal(nnn.min_sep, 5. * math.pi/180/3600)
-    numpy.testing.assert_almost_equal(nnn.max_sep, 20. * math.pi/180/3600)
+    numpy.testing.assert_almost_equal(nnn.min_sep, 5.)
+    numpy.testing.assert_almost_equal(nnn.max_sep, 20.)
+    numpy.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180/3600)
+    numpy.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/180/3600)
     assert nnn.nbins == 20
     numpy.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
     # Note that logr is in the separation units, not radians.
@@ -207,8 +214,10 @@ def test_binnedcorr3():
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
-    numpy.testing.assert_almost_equal(nnn.min_sep, 5. * math.pi/180/60)
-    numpy.testing.assert_almost_equal(nnn.max_sep, 20. * math.pi/180/60)
+    numpy.testing.assert_almost_equal(nnn.min_sep, 5.)
+    numpy.testing.assert_almost_equal(nnn.max_sep, 20.)
+    numpy.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180/60)
+    numpy.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/180/60)
     assert nnn.nbins == 20
     numpy.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
     numpy.testing.assert_almost_equal(nnn.logr[0], math.log(5) + 0.5*nnn.bin_size)
@@ -221,8 +230,10 @@ def test_binnedcorr3():
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
-    numpy.testing.assert_almost_equal(nnn.min_sep, 5. * math.pi/180)
-    numpy.testing.assert_almost_equal(nnn.max_sep, 20. * math.pi/180)
+    numpy.testing.assert_almost_equal(nnn.min_sep, 5.)
+    numpy.testing.assert_almost_equal(nnn.max_sep, 20.)
+    numpy.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180)
+    numpy.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/180)
     assert nnn.nbins == 20
     numpy.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
     numpy.testing.assert_almost_equal(nnn.logr[0], math.log(5) + 0.5*nnn.bin_size)
@@ -235,8 +246,10 @@ def test_binnedcorr3():
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
-    numpy.testing.assert_almost_equal(nnn.min_sep, 5. * math.pi/12)
-    numpy.testing.assert_almost_equal(nnn.max_sep, 20. * math.pi/12)
+    numpy.testing.assert_almost_equal(nnn.min_sep, 5.)
+    numpy.testing.assert_almost_equal(nnn.max_sep, 20.)
+    numpy.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/12)
+    numpy.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/12)
     assert nnn.nbins == 20
     numpy.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
     numpy.testing.assert_almost_equal(nnn.logr[0], math.log(5) + 0.5*nnn.bin_size)
@@ -374,7 +387,7 @@ def is_ccw(x1,y1, x2,y2, x3,y3):
     y3 -= y1
     return x2*y3-x3*y2 > 0.
 
-    
+
 def test_direct_count_auto():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
@@ -396,7 +409,7 @@ def test_direct_count_auto():
     max_v = 0.59
     nvbins = 20
 
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0., verbose=1)
@@ -443,7 +456,7 @@ def test_direct_count_auto():
                 r = d2
                 u = d3/d2
                 v = (d1-d2)/d3
-                if not ccw: 
+                if not ccw:
                     v = -v
                 kr = int(numpy.floor( (numpy.log(r)-log_min_sep) / bin_size ))
                 ku = int(numpy.floor( (u-min_u) / ubin_size ))
@@ -460,8 +473,72 @@ def test_direct_count_auto():
     #print('diff = ',ddd.ntri - true_ntri)
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
+    # Check that running via the corr3 script works correctly.
+    file_name = os.path.join('data','nnn_direct_data.dat')
+    with open(file_name, 'w') as fid:
+        for i in range(ngal):
+            fid.write(('%.20f %.20f\n')%(x[i],y[i]))
+    L = 10*s
+    nrand = ngal
+    rx = (numpy.random.random_sample(nrand)-0.5) * L
+    ry = (numpy.random.random_sample(nrand)-0.5) * L
+    rcat = treecorr.Catalog(x=rx, y=ry)
+    rand_file_name = os.path.join('data','nnn_direct_rand.dat')
+    with open(rand_file_name, 'w') as fid:
+        for i in range(nrand):
+            fid.write(('%.20f %.20f\n')%(rx[i],ry[i]))
+    rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=0)
+    rrr.process(rcat)
+    zeta, varzeta = ddd.calculateZeta(rrr)
+
+    # First do this via the corr3 function.
+    config = treecorr.config.read_config('nnn_direct.yaml')
+    logger = treecorr.config.setup_logger(0)
+    treecorr.corr3(config, logger)
+    corr3_output = numpy.genfromtxt(os.path.join('output','nnn_direct.out'), names=True,
+                                    skip_header=1)
+    print('corr3_output = ',corr3_output)
+    print('corr3_output.dtype = ',corr3_output.dtype)
+    print('rnom = ',ddd.rnom.flatten())
+    print('       ',corr3_output['R_nom'])
+    numpy.testing.assert_almost_equal(corr3_output['R_nom'], ddd.rnom.flatten(), decimal=3)
+    print('unom = ',ddd.u.flatten())
+    print('       ',corr3_output['u_nom'])
+    numpy.testing.assert_almost_equal(corr3_output['u_nom'], ddd.u.flatten(), decimal=3)
+    print('vnom = ',ddd.v.flatten())
+    print('       ',corr3_output['v_nom'])
+    numpy.testing.assert_almost_equal(corr3_output['v_nom'], ddd.v.flatten(), decimal=3)
+    print('DDD = ',ddd.ntri.flatten())
+    print('      ',corr3_output['DDD'])
+    numpy.testing.assert_almost_equal(corr3_output['DDD'], ddd.ntri.flatten(), decimal=3)
+    numpy.testing.assert_almost_equal(corr3_output['ntri'], ddd.ntri.flatten(), decimal=3)
+    print('RRR = ',rrr.ntri.flatten())
+    print('      ',corr3_output['RRR'])
+    numpy.testing.assert_almost_equal(corr3_output['RRR'], rrr.ntri.flatten(), decimal=3)
+    print('zeta = ',zeta.flatten())
+    print('from corr3 output = ',corr3_output['zeta'])
+    print('diff = ',corr3_output['zeta']-zeta.flatten())
+    diff_index = numpy.where(numpy.abs(corr3_output['zeta']-zeta.flatten()) > 1.e-5)[0]
+    print('different at ',diff_index)
+    print('zeta[diffs] = ',zeta.flatten()[diff_index])
+    print('corr3.zeta[diffs] = ',corr3_output['zeta'][diff_index])
+    print('diff[diffs] = ',zeta.flatten()[diff_index] - corr3_output['zeta'][diff_index])
+    numpy.testing.assert_almost_equal(corr3_output['zeta'], zeta.flatten(), decimal=3)
+
+    # Now calling out to the external corr3 executable.
+    import subprocess
+    corr3_exe = get_script_name('corr3')
+    p = subprocess.Popen( [corr3_exe,"nnn_direct.yaml","verbose=0"] )
+    p.communicate()
+    corr3_output = numpy.genfromtxt(os.path.join('output','nnn_direct.out'), names=True,
+                                    skip_header=1)
+    numpy.testing.assert_almost_equal(corr3_output['zeta'], zeta.flatten(), decimal=3)
+
     # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=1.e-16, verbose=1)
@@ -472,7 +549,7 @@ def test_direct_count_auto():
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And again with no top-level recursion
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=1.e-16, verbose=1, max_top=0)
@@ -490,6 +567,7 @@ def test_direct_count_auto():
     #print('true_ntri => ',true_ntri)
     #print('diff = ',ddd.ntri - true_ntri)
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
+
 
 
 def test_direct_count_cross():
@@ -519,7 +597,7 @@ def test_direct_count_cross():
     max_v = 0.59
     nvbins = 20
 
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0., verbose=1)
@@ -546,7 +624,7 @@ def test_direct_count_cross():
                 r = d2
                 u = d3/d2
                 v = (d1-d2)/d3
-                if not ccw: 
+                if not ccw:
                     v = -v
                 kr = int(numpy.floor( (numpy.log(r)-log_min_sep) / bin_size ))
                 ku = int(numpy.floor( (u-min_u) / ubin_size ))
@@ -564,7 +642,7 @@ def test_direct_count_cross():
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=1.e-16, verbose=1)
@@ -574,7 +652,7 @@ def test_direct_count_cross():
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And again with no top-level recursion
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=1.e-16, verbose=1, max_top=0)
@@ -610,7 +688,7 @@ def test_direct_partial():
     max_v = 0.59
     nvbins = 20
 
-    ddda = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+    ddda = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, nubins=nubins,
                                    min_v=min_v, max_v=max_v, nvbins=nvbins,
                                    bin_slop=0.)
@@ -637,7 +715,7 @@ def test_direct_partial():
                 r = d2
                 u = d3/d2
                 v = (d1-d2)/d3
-                if not ccw: 
+                if not ccw:
                     v = -v
                 kr = int(numpy.floor( (numpy.log(r)-log_min_sep) / bin_size ))
                 ku = int(numpy.floor( (u-min_u) / ubin_size ))
@@ -654,7 +732,7 @@ def test_direct_partial():
     #print('diff = ',ddda.ntri - true_ntri)
     numpy.testing.assert_array_equal(ddda.ntri, true_ntri)
 
-    # Now check that we get the same thing with all the points, but with w=0 for the ones 
+    # Now check that we get the same thing with all the points, but with w=0 for the ones
     # we don't want.
     w1 = numpy.zeros(ngal)
     w1[27:144] = 1.
@@ -665,7 +743,7 @@ def test_direct_partial():
     cat1b = treecorr.Catalog(x=x1, y=y1, w=w1)
     cat2b = treecorr.Catalog(x=x2, y=y2, w=w2)
     cat3b = treecorr.Catalog(x=x3, y=y3, w=w3)
-    dddb = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+    dddb = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, nubins=nubins,
                                    min_v=min_v, max_v=max_v, nvbins=nvbins,
                                    bin_slop=0.)
@@ -715,7 +793,7 @@ def test_direct_3d_auto():
     min_v = -0.83
     max_v = 0.59
     nvbins = 20
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0., verbose=1)
@@ -763,7 +841,7 @@ def test_direct_3d_auto():
                 r = d2
                 u = d3/d2
                 v = (d1-d2)/d3
-                if not ccw: 
+                if not ccw:
                     v = -v
                 kr = int(numpy.floor( (numpy.log(r)-log_min_sep) / bin_size ))
                 ku = int(numpy.floor( (u-min_u) / ubin_size ))
@@ -781,7 +859,7 @@ def test_direct_3d_auto():
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=1.e-16, verbose=1)
@@ -791,7 +869,7 @@ def test_direct_3d_auto():
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And again with no top-level recursion
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=1.e-16, verbose=1, max_top=0)
@@ -854,7 +932,7 @@ def test_direct_3d_cross():
     min_v = -0.83
     max_v = 0.59
     nvbins = 20
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0., verbose=1)
@@ -884,7 +962,7 @@ def test_direct_3d_cross():
                 r = d2
                 u = d3/d2
                 v = (d1-d2)/d3
-                if not ccw: 
+                if not ccw:
                     v = -v
                 kr = int(numpy.floor( (numpy.log(r)-log_min_sep) / bin_size ))
                 ku = int(numpy.floor( (u-min_u) / ubin_size ))
@@ -902,7 +980,7 @@ def test_direct_3d_cross():
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=1.e-16, verbose=1)
@@ -912,7 +990,7 @@ def test_direct_3d_cross():
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And again with no top-level recursion
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, 
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=1.e-16, verbose=1, max_top=0)
@@ -997,7 +1075,7 @@ def test_nnn():
     numpy.testing.assert_almost_equal(ddd.meanlogd2, numpy.log(ddd.meand2), decimal=3)
     numpy.testing.assert_almost_equal(ddd.meanlogd3, numpy.log(ddd.meand3), decimal=3)
     numpy.testing.assert_almost_equal(ddd.meanlogd3-ddd.meanlogd2, numpy.log(ddd.meanu), decimal=3)
-    numpy.testing.assert_almost_equal(numpy.log(ddd.meand1-ddd.meand2)-ddd.meanlogd3, 
+    numpy.testing.assert_almost_equal(numpy.log(ddd.meand1-ddd.meand2)-ddd.meanlogd3,
                                       numpy.log(ddd.meanv), decimal=3)
 
     rx = (numpy.random.random_sample(nrand)-0.5) * L
@@ -1028,7 +1106,7 @@ def test_nnn():
     print('diff = ',zeta - true_zeta)
     print('max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)))
     assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))/req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta))/req_factor, 
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta))/req_factor,
                                       numpy.log(numpy.abs(true_zeta))/req_factor, decimal=1)
 
     # Check that we get the same result using the corr3 executable:
@@ -1037,9 +1115,9 @@ def test_nnn():
         rand.write(os.path.join('data','nnn_rand.dat'))
         import subprocess
         corr3_exe = get_script_name('corr3')
-        p = subprocess.Popen( [corr3_exe,"nnn.params"] )
+        p = subprocess.Popen( [corr3_exe,"nnn.yaml"] )
         p.communicate()
-        corr3_output = numpy.genfromtxt(os.path.join('output','nnn.out'), names=True)
+        corr3_output = numpy.genfromtxt(os.path.join('output','nnn.out'), names=True, skip_header=1)
         print('zeta = ',zeta)
         print('from corr3 output = ',corr3_output['zeta'])
         print('ratio = ',corr3_output['zeta']/zeta.flatten())
@@ -1049,46 +1127,42 @@ def test_nnn():
     # Check the fits write option
     out_file_name1 = os.path.join('output','nnn_out1.fits')
     ddd.write(out_file_name1)
-    try:
-        import fitsio
-        data = fitsio.read(out_file_name1)
-        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ddd.logr).flatten())
-        numpy.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
-        numpy.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
-        numpy.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
-        numpy.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
-        numpy.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
-        numpy.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
-        numpy.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
-        numpy.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
-        numpy.testing.assert_almost_equal(data['meanu'], ddd.meanu.flatten())
-        numpy.testing.assert_almost_equal(data['meanv'], ddd.meanv.flatten())
-        numpy.testing.assert_almost_equal(data['ntri'], ddd.ntri.flatten())
-    except ImportError:
-        print('Unable to import fitsio.  Skipping fits tests.')
+    data = fitsio.read(out_file_name1)
+    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ddd.logr).flatten())
+    numpy.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
+    numpy.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
+    numpy.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
+    numpy.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
+    numpy.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
+    numpy.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
+    numpy.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
+    numpy.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
+    numpy.testing.assert_almost_equal(data['meanu'], ddd.meanu.flatten())
+    numpy.testing.assert_almost_equal(data['meanv'], ddd.meanv.flatten())
+    numpy.testing.assert_almost_equal(data['ntri'], ddd.ntri.flatten())
+    header = fitsio.read_header(out_file_name1, 1)
+    numpy.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
     out_file_name2 = os.path.join('output','nnn_out2.fits')
     ddd.write(out_file_name2, rrr)
-    try:
-        import fitsio
-        data = fitsio.read(out_file_name2)
-        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ddd.logr).flatten())
-        numpy.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
-        numpy.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
-        numpy.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
-        numpy.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
-        numpy.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
-        numpy.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
-        numpy.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
-        numpy.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
-        numpy.testing.assert_almost_equal(data['meanu'], ddd.meanu.flatten())
-        numpy.testing.assert_almost_equal(data['meanv'], ddd.meanv.flatten())
-        numpy.testing.assert_almost_equal(data['zeta'], zeta.flatten())
-        numpy.testing.assert_almost_equal(data['sigma_zeta'], numpy.sqrt(varzeta).flatten())
-        numpy.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
-        numpy.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
-    except ImportError:
-        print('Unable to import fitsio.  Skipping fits tests.')
+    data = fitsio.read(out_file_name2)
+    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ddd.logr).flatten())
+    numpy.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
+    numpy.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
+    numpy.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
+    numpy.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
+    numpy.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
+    numpy.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
+    numpy.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
+    numpy.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
+    numpy.testing.assert_almost_equal(data['meanu'], ddd.meanu.flatten())
+    numpy.testing.assert_almost_equal(data['meanv'], ddd.meanv.flatten())
+    numpy.testing.assert_almost_equal(data['zeta'], zeta.flatten())
+    numpy.testing.assert_almost_equal(data['sigma_zeta'], numpy.sqrt(varzeta).flatten())
+    numpy.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
+    numpy.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+    header = fitsio.read_header(out_file_name2, 1)
+    numpy.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
     # Check the read function
     # Note: These don't need the flatten. The read function should reshape them to the right shape.
@@ -1109,6 +1183,7 @@ def test_nnn():
     numpy.testing.assert_almost_equal(ddd2.meanu, ddd.meanu)
     numpy.testing.assert_almost_equal(ddd2.meanv, ddd.meanv)
     numpy.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
+    numpy.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
 
     ddd2.read(out_file_name2)
     numpy.testing.assert_almost_equal(ddd2.logr, ddd.logr)
@@ -1123,6 +1198,7 @@ def test_nnn():
     numpy.testing.assert_almost_equal(ddd2.meanu, ddd.meanu)
     numpy.testing.assert_almost_equal(ddd2.meanv, ddd.meanv)
     numpy.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
+    numpy.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
 
     # Test compensated zeta
     # This version computes the three-point function after subtracting off the appropriate
@@ -1159,37 +1235,35 @@ def test_nnn():
         print('diff = ',zeta - true_zeta)
         print('max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)))
         assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))/req_factor < 0.1
-        numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta))/req_factor, 
+        numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta))/req_factor,
                                           numpy.log(numpy.abs(true_zeta))/req_factor, decimal=1)
 
         out_file_name3 = os.path.join('output','nnn_out3.fits')
         ddd.write(out_file_name3, rrr,drr,rdr,rrd,ddr,drd,rdd)
-        try:
-            import fitsio
-            data = fitsio.read(out_file_name3)
-            numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ddd.logr).flatten())
-            numpy.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
-            numpy.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
-            numpy.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
-            numpy.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
-            numpy.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
-            numpy.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
-            numpy.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
-            numpy.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
-            numpy.testing.assert_almost_equal(data['meanu'], ddd.meanu.flatten())
-            numpy.testing.assert_almost_equal(data['meanv'], ddd.meanv.flatten())
-            numpy.testing.assert_almost_equal(data['zeta'], zeta.flatten())
-            numpy.testing.assert_almost_equal(data['sigma_zeta'], numpy.sqrt(varzeta).flatten())
-            numpy.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
-            numpy.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
-            numpy.testing.assert_almost_equal(data['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
-            numpy.testing.assert_almost_equal(data['RDR'], rdr.ntri.flatten() * (ddd.tot / rdr.tot))
-            numpy.testing.assert_almost_equal(data['RRD'], rrd.ntri.flatten() * (ddd.tot / rrd.tot))
-            numpy.testing.assert_almost_equal(data['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
-            numpy.testing.assert_almost_equal(data['DRD'], drd.ntri.flatten() * (ddd.tot / drd.tot))
-            numpy.testing.assert_almost_equal(data['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
-        except ImportError:
-            print('Unable to import fitsio.  Skipping fits tests.')
+        data = fitsio.read(out_file_name3)
+        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(ddd.logr).flatten())
+        numpy.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
+        numpy.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
+        numpy.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
+        numpy.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
+        numpy.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
+        numpy.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
+        numpy.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
+        numpy.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
+        numpy.testing.assert_almost_equal(data['meanu'], ddd.meanu.flatten())
+        numpy.testing.assert_almost_equal(data['meanv'], ddd.meanv.flatten())
+        numpy.testing.assert_almost_equal(data['zeta'], zeta.flatten())
+        numpy.testing.assert_almost_equal(data['sigma_zeta'], numpy.sqrt(varzeta).flatten())
+        numpy.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
+        numpy.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+        numpy.testing.assert_almost_equal(data['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
+        numpy.testing.assert_almost_equal(data['RDR'], rdr.ntri.flatten() * (ddd.tot / rdr.tot))
+        numpy.testing.assert_almost_equal(data['RRD'], rrd.ntri.flatten() * (ddd.tot / rrd.tot))
+        numpy.testing.assert_almost_equal(data['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
+        numpy.testing.assert_almost_equal(data['DRD'], drd.ntri.flatten() * (ddd.tot / drd.tot))
+        numpy.testing.assert_almost_equal(data['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
+        header = fitsio.read_header(out_file_name3, 1)
+        numpy.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
         ddd2.read(out_file_name3)
         numpy.testing.assert_almost_equal(ddd2.logr, ddd.logr)
@@ -1204,10 +1278,48 @@ def test_nnn():
         numpy.testing.assert_almost_equal(ddd2.meanu, ddd.meanu)
         numpy.testing.assert_almost_equal(ddd2.meanv, ddd.meanv)
         numpy.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
+        numpy.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
+
+        import subprocess
+        corr3_exe = get_script_name('corr3')
+        p = subprocess.Popen( [corr3_exe,"nnn_compensated.yaml"] )
+        p.communicate()
+
+        corr3_outfile = os.path.join('output','nnn_compensated.fits')
+        corr3_output = fitsio.read(corr3_outfile)
+        print('zeta = ',zeta)
+        print('from corr3 output = ',corr3_output['zeta'])
+        print('ratio = ',corr3_output['zeta']/zeta.flatten())
+        print('diff = ',corr3_output['zeta']-zeta.flatten())
+
+        numpy.testing.assert_almost_equal(corr3_output['R_nom'], numpy.exp(ddd.logr).flatten())
+        numpy.testing.assert_almost_equal(corr3_output['u_nom'], ddd.u.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['v_nom'], ddd.v.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['meand1'], ddd.meand1.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['meanlogd1'], ddd.meanlogd1.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['meand2'], ddd.meand2.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['meanlogd2'], ddd.meanlogd2.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['meand3'], ddd.meand3.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['meanlogd3'], ddd.meanlogd3.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['meanu'], ddd.meanu.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['meanv'], ddd.meanv.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['zeta'], zeta.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['sigma_zeta'], numpy.sqrt(varzeta).flatten())
+        numpy.testing.assert_almost_equal(corr3_output['DDD'], ddd.ntri.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+        numpy.testing.assert_almost_equal(corr3_output['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
+        numpy.testing.assert_almost_equal(corr3_output['RDR'], rdr.ntri.flatten() * (ddd.tot / rdr.tot))
+        numpy.testing.assert_almost_equal(corr3_output['RRD'], rrd.ntri.flatten() * (ddd.tot / rrd.tot))
+        numpy.testing.assert_almost_equal(corr3_output['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
+        numpy.testing.assert_almost_equal(corr3_output['DRD'], drd.ntri.flatten() * (ddd.tot / drd.tot))
+        numpy.testing.assert_almost_equal(corr3_output['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
+        header = fitsio.read_header(corr3_outfile, 1)
+        numpy.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
+
 
 
 def test_3d():
-    # For this one, build a Gaussian cloud around some random point in 3D space and do the 
+    # For this one, build a Gaussian cloud around some random point in 3D space and do the
     # correlation function in 3D.
     #
     # The 3D Fourier transform is: n~(k) = exp(-s^2 k^2/2)
@@ -1304,7 +1416,7 @@ def test_3d():
     print('diff = ',(zeta - true_zeta).flatten())
     print('max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)))
     assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))/req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta))/req_factor, 
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta))/req_factor,
                                       numpy.log(numpy.abs(true_zeta))/req_factor, decimal=1)
 
     # Check that we get the same result using the corr3 executable:
@@ -1313,15 +1425,15 @@ def test_3d():
         rand.write(os.path.join('data','nnn_3d_rand.dat'))
         import subprocess
         corr3_exe = get_script_name('corr3')
-        p = subprocess.Popen( [corr3_exe,"nnn_3d.params"] )
+        p = subprocess.Popen( [corr3_exe,"nnn_3d.yaml"] )
         p.communicate()
-        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_3d.out'), names=True)
+        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_3d.out'), names=True, skip_header=1)
         print('zeta = ',zeta.flatten())
         print('from corr3 output = ',corr3_output['zeta'])
         print('ratio = ',corr3_output['zeta']/zeta.flatten())
         print('diff = ',corr3_output['zeta']-zeta.flatten())
         numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=3)
-    
+
         # Check that we get the same thing when using x,y,z rather than ra,dec,r
         cat = treecorr.Catalog(x=x, y=y, z=z)
         rand = treecorr.Catalog(x=rx, y=ry, z=rz)
@@ -1329,7 +1441,7 @@ def test_3d():
         rrr.process(rand)
         zeta, varzeta = ddd.calculateZeta(rrr)
         assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))/req_factor < 0.1
-        numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta))/req_factor, 
+        numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta))/req_factor,
                                           numpy.log(numpy.abs(true_zeta))/req_factor, decimal=1)
 
 
@@ -1435,18 +1547,18 @@ def test_list():
 
         import subprocess
         corr3_exe = get_script_name('corr3')
-        p = subprocess.Popen( [corr3_exe,"nnn_list1.params"] )
+        p = subprocess.Popen( [corr3_exe,"nnn_list1.yaml"] )
         p.communicate()
-        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list1.out'), names=True)
+        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list1.out'), names=True, skip_header=1)
         print('zeta = ',zeta)
         print('from corr3 output = ',corr3_output['zeta'])
         print('ratio = ',corr3_output['zeta']/zeta.flatten())
         print('diff = ',corr3_output['zeta']-zeta.flatten())
         numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=3)
 
-        p = subprocess.Popen( [corr3_exe,"nnn_list2.params"] )
+        p = subprocess.Popen( [corr3_exe,"nnn_list2.json"] )
         p.communicate()
-        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list2.out'), names=True)
+        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list2.out'), names=True, skip_header=1)
         print('zeta = ',zeta)
         print('from corr3 output = ',corr3_output['zeta'])
         print('ratio = ',corr3_output['zeta']/zeta.flatten())
@@ -1455,7 +1567,16 @@ def test_list():
 
         p = subprocess.Popen( [corr3_exe,"nnn_list3.params"] )
         p.communicate()
-        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list3.out'), names=True)
+        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list3.out'), names=True, skip_header=1)
+        print('zeta = ',zeta)
+        print('from corr3 output = ',corr3_output['zeta'])
+        print('ratio = ',corr3_output['zeta']/zeta.flatten())
+        print('diff = ',corr3_output['zeta']-zeta.flatten())
+        numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=1)
+
+        p = subprocess.Popen( [corr3_exe, "nnn_list4.config", "-f", "params"] )
+        p.communicate()
+        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list4.out'), names=True, skip_header=1)
         print('zeta = ',zeta)
         print('from corr3 output = ',corr3_output['zeta'])
         print('ratio = ',corr3_output['zeta']/zeta.flatten())

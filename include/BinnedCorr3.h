@@ -34,6 +34,7 @@ public:
     BinnedCorr3(double minsep, double maxsep, int nbins, double binsize, double b,
                 double minu, double maxu, int nubins, double ubinsize, double bu,
                 double minv, double maxv, int nvbins, double vbinsize, double bv,
+                double minrpar, double maxrpar,
                 double* zeta0, double* zeta1, double* zeta2, double* zeta3,
                 double* zeta4, double* zeta5, double* zeta6, double* zeta7,
                 double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
@@ -47,7 +48,7 @@ public:
     template <int C, int M>
     void process(const Field<DC1, C>& field, bool dots);
     template <int C, int M>
-    void process(const Field<DC1, C>& field1, const Field<DC2, C>& field2, 
+    void process(const Field<DC1, C>& field1, const Field<DC2, C>& field2,
                  const Field<DC3, C>& field3, bool dots);
 
     // Main worker functions for calculating the result
@@ -87,6 +88,8 @@ protected:
     int _nvbins;
     double _vbinsize;
     double _bv;
+    double _minrpar;
+    double _maxrpar;
     double _logminsep;
     double _halfminsep;
     double _halfmind3;
@@ -112,7 +115,7 @@ protected:
     // So keep track if we own the data and need to delete the memory ourselves.
     bool _owns_data;
 
-    // The different correlation functions have different numbers of arrays for zeta, 
+    // The different correlation functions have different numbers of arrays for zeta,
     // so encapsulate that difference with a templated ZetaData class.
     ZetaData<DC1,DC2,DC3> _zeta;
     double* _meand1;
@@ -135,9 +138,9 @@ struct ZetaData // This works for NNK, NKK, KKK
 
     void new_data(int n) { zeta = new double[n]; }
     void delete_data() { delete [] zeta; zeta = 0; }
-    void copy(const ZetaData<DC1,DC2,DC3>& rhs, int n) 
+    void copy(const ZetaData<DC1,DC2,DC3>& rhs, int n)
     { for (int i=0; i<n; ++i) zeta[i] = rhs.zeta[i]; }
-    void add(const ZetaData<DC1,DC2,DC3>& rhs, int n) 
+    void add(const ZetaData<DC1,DC2,DC3>& rhs, int n)
     { for (int i=0; i<n; ++i) zeta[i] += rhs.zeta[i]; }
     void clear(int n)
     { for (int i=0; i<n; ++i) zeta[i] = 0.; }
@@ -159,32 +162,32 @@ struct ZetaData<DC1, DC2, GData> // This works for NNG, NKG, KKG
     ZetaData(double* z0, double* z1, double*, double*, double*, double*, double*, double*) :
         zeta(z0), zeta_im(z1) {}
 
-    void new_data(int n) 
+    void new_data(int n)
     {
-        zeta = new double[n]; 
-        zeta_im = new double[n]; 
+        zeta = new double[n];
+        zeta_im = new double[n];
     }
-    void delete_data() 
+    void delete_data()
     {
-        delete [] zeta; zeta = 0; 
-        delete [] zeta_im; zeta_im = 0; 
+        delete [] zeta; zeta = 0;
+        delete [] zeta_im; zeta_im = 0;
     }
-    void copy(const ZetaData<DC1,DC2,GData>& rhs, int n) 
-    { 
-        for (int i=0; i<n; ++i) zeta[i] = rhs.zeta[i]; 
-        for (int i=0; i<n; ++i) zeta_im[i] = rhs.zeta_im[i]; 
-    }
-    void add(const ZetaData<DC1,DC2,GData>& rhs, int n) 
+    void copy(const ZetaData<DC1,DC2,GData>& rhs, int n)
     {
-        for (int i=0; i<n; ++i) zeta[i] += rhs.zeta[i]; 
-        for (int i=0; i<n; ++i) zeta_im[i] += rhs.zeta_im[i]; 
+        for (int i=0; i<n; ++i) zeta[i] = rhs.zeta[i];
+        for (int i=0; i<n; ++i) zeta_im[i] = rhs.zeta_im[i];
+    }
+    void add(const ZetaData<DC1,DC2,GData>& rhs, int n)
+    {
+        for (int i=0; i<n; ++i) zeta[i] += rhs.zeta[i];
+        for (int i=0; i<n; ++i) zeta_im[i] += rhs.zeta_im[i];
     }
     void clear(int n)
-    { 
+    {
         for (int i=0; i<n; ++i) zeta[i] = 0.;
         for (int i=0; i<n; ++i) zeta_im[i] = 0.;
     }
-    void write(std::ostream& os) const 
+    void write(std::ostream& os) const
     { os << zeta[0]<<','<<zeta_im[0]; }
     void write_full(std::ostream& os, int n) const
     { for(int i=0;i<n;++i) os << zeta[i] <<" "; }
@@ -199,42 +202,42 @@ struct ZetaData<DC1, GData, GData> // This works for NGG, KGG
     ZetaData(double* z0, double* z1, double* z2, double* z3, double*, double*, double*, double*) :
         zetap(z0), zetap_im(z1), zetam(z2), zetam_im(z3) {}
 
-    void new_data(int n) 
+    void new_data(int n)
     {
-        zetap = new double[n]; 
-        zetap_im = new double[n]; 
-        zetam = new double[n]; 
-        zetam_im = new double[n]; 
+        zetap = new double[n];
+        zetap_im = new double[n];
+        zetam = new double[n];
+        zetam_im = new double[n];
     }
-    void delete_data() 
+    void delete_data()
     {
-        delete [] zetap; zetap = 0; 
-        delete [] zetap_im; zetap_im = 0; 
-        delete [] zetam; zetam = 0; 
-        delete [] zetam_im; zetam_im = 0; 
+        delete [] zetap; zetap = 0;
+        delete [] zetap_im; zetap_im = 0;
+        delete [] zetam; zetam = 0;
+        delete [] zetam_im; zetam_im = 0;
     }
-    void copy(const ZetaData<DC1,GData,GData>& rhs, int n) 
-    { 
-        for (int i=0; i<n; ++i) zetap[i] = rhs.zetap[i]; 
-        for (int i=0; i<n; ++i) zetap_im[i] = rhs.zetap_im[i]; 
-        for (int i=0; i<n; ++i) zetam[i] = rhs.zetam[i]; 
-        for (int i=0; i<n; ++i) zetam_im[i] = rhs.zetam_im[i]; 
-    }
-    void add(const ZetaData<DC1,GData,GData>& rhs, int n) 
+    void copy(const ZetaData<DC1,GData,GData>& rhs, int n)
     {
-        for (int i=0; i<n; ++i) zetap[i] += rhs.zetap[i]; 
-        for (int i=0; i<n; ++i) zetap_im[i] += rhs.zetap_im[i]; 
-        for (int i=0; i<n; ++i) zetam[i] += rhs.zetam[i]; 
-        for (int i=0; i<n; ++i) zetam_im[i] += rhs.zetam_im[i]; 
+        for (int i=0; i<n; ++i) zetap[i] = rhs.zetap[i];
+        for (int i=0; i<n; ++i) zetap_im[i] = rhs.zetap_im[i];
+        for (int i=0; i<n; ++i) zetam[i] = rhs.zetam[i];
+        for (int i=0; i<n; ++i) zetam_im[i] = rhs.zetam_im[i];
+    }
+    void add(const ZetaData<DC1,GData,GData>& rhs, int n)
+    {
+        for (int i=0; i<n; ++i) zetap[i] += rhs.zetap[i];
+        for (int i=0; i<n; ++i) zetap_im[i] += rhs.zetap_im[i];
+        for (int i=0; i<n; ++i) zetam[i] += rhs.zetam[i];
+        for (int i=0; i<n; ++i) zetam_im[i] += rhs.zetam_im[i];
     }
     void clear(int n)
-    { 
+    {
         for (int i=0; i<n; ++i) zetap[i] = 0.;
         for (int i=0; i<n; ++i) zetap_im[i] = 0.;
         for (int i=0; i<n; ++i) zetam[i] = 0.;
         for (int i=0; i<n; ++i) zetam_im[i] = 0.;
     }
-    void write(std::ostream& os) const 
+    void write(std::ostream& os) const
     { os << zetap[0]<<','<<zetap_im[0]<<','<<zetam[0]<<','<<zetam_im; }
     void write_full(std::ostream& os, int n) const
     { for(int i=0;i<n;++i) os << zetap[i] <<" "; }
@@ -254,52 +257,52 @@ struct ZetaData<GData, GData, GData>
         gam0r(z0), gam0i(z1), gam1r(z2), gam1i(z3),
         gam2r(z4), gam2i(z5), gam3r(z6), gam3i(z7) {}
 
-    void new_data(int n) 
+    void new_data(int n)
     {
-        gam0r = new double[n]; 
-        gam0i = new double[n]; 
-        gam1r = new double[n]; 
-        gam1i = new double[n]; 
-        gam2r = new double[n]; 
-        gam2i = new double[n]; 
-        gam3r = new double[n]; 
-        gam3i = new double[n]; 
+        gam0r = new double[n];
+        gam0i = new double[n];
+        gam1r = new double[n];
+        gam1i = new double[n];
+        gam2r = new double[n];
+        gam2i = new double[n];
+        gam3r = new double[n];
+        gam3i = new double[n];
     }
-    void delete_data() 
+    void delete_data()
     {
-        delete [] gam0r; gam0r = 0; 
-        delete [] gam0i; gam0i = 0; 
-        delete [] gam1r; gam1r = 0; 
-        delete [] gam1i; gam1i = 0; 
-        delete [] gam2r; gam2r = 0; 
-        delete [] gam2i; gam2i = 0; 
-        delete [] gam3r; gam3r = 0; 
-        delete [] gam3i; gam3i = 0; 
+        delete [] gam0r; gam0r = 0;
+        delete [] gam0i; gam0i = 0;
+        delete [] gam1r; gam1r = 0;
+        delete [] gam1i; gam1i = 0;
+        delete [] gam2r; gam2r = 0;
+        delete [] gam2i; gam2i = 0;
+        delete [] gam3r; gam3r = 0;
+        delete [] gam3i; gam3i = 0;
     }
-    void copy(const ZetaData<GData,GData,GData>& rhs, int n) 
-    { 
-        for (int i=0; i<n; ++i) gam0r[i] = rhs.gam0r[i]; 
-        for (int i=0; i<n; ++i) gam0i[i] = rhs.gam0i[i]; 
-        for (int i=0; i<n; ++i) gam1r[i] = rhs.gam1r[i]; 
-        for (int i=0; i<n; ++i) gam1i[i] = rhs.gam1i[i]; 
-        for (int i=0; i<n; ++i) gam2r[i] = rhs.gam2r[i]; 
-        for (int i=0; i<n; ++i) gam2i[i] = rhs.gam2i[i]; 
-        for (int i=0; i<n; ++i) gam3r[i] = rhs.gam3r[i]; 
-        for (int i=0; i<n; ++i) gam3i[i] = rhs.gam3i[i]; 
-    }
-    void add(const ZetaData<GData,GData,GData>& rhs, int n) 
+    void copy(const ZetaData<GData,GData,GData>& rhs, int n)
     {
-        for (int i=0; i<n; ++i) gam0r[i] += rhs.gam0r[i]; 
-        for (int i=0; i<n; ++i) gam0i[i] += rhs.gam0i[i]; 
-        for (int i=0; i<n; ++i) gam1r[i] += rhs.gam1r[i]; 
-        for (int i=0; i<n; ++i) gam1i[i] += rhs.gam1i[i]; 
-        for (int i=0; i<n; ++i) gam2r[i] += rhs.gam2r[i]; 
-        for (int i=0; i<n; ++i) gam2i[i] += rhs.gam2i[i]; 
-        for (int i=0; i<n; ++i) gam3r[i] += rhs.gam3r[i]; 
-        for (int i=0; i<n; ++i) gam3i[i] += rhs.gam3i[i]; 
+        for (int i=0; i<n; ++i) gam0r[i] = rhs.gam0r[i];
+        for (int i=0; i<n; ++i) gam0i[i] = rhs.gam0i[i];
+        for (int i=0; i<n; ++i) gam1r[i] = rhs.gam1r[i];
+        for (int i=0; i<n; ++i) gam1i[i] = rhs.gam1i[i];
+        for (int i=0; i<n; ++i) gam2r[i] = rhs.gam2r[i];
+        for (int i=0; i<n; ++i) gam2i[i] = rhs.gam2i[i];
+        for (int i=0; i<n; ++i) gam3r[i] = rhs.gam3r[i];
+        for (int i=0; i<n; ++i) gam3i[i] = rhs.gam3i[i];
+    }
+    void add(const ZetaData<GData,GData,GData>& rhs, int n)
+    {
+        for (int i=0; i<n; ++i) gam0r[i] += rhs.gam0r[i];
+        for (int i=0; i<n; ++i) gam0i[i] += rhs.gam0i[i];
+        for (int i=0; i<n; ++i) gam1r[i] += rhs.gam1r[i];
+        for (int i=0; i<n; ++i) gam1i[i] += rhs.gam1i[i];
+        for (int i=0; i<n; ++i) gam2r[i] += rhs.gam2r[i];
+        for (int i=0; i<n; ++i) gam2i[i] += rhs.gam2i[i];
+        for (int i=0; i<n; ++i) gam3r[i] += rhs.gam3r[i];
+        for (int i=0; i<n; ++i) gam3i[i] += rhs.gam3i[i];
     }
     void clear(int n)
-    { 
+    {
         for (int i=0; i<n; ++i) gam0r[i] = 0.;
         for (int i=0; i<n; ++i) gam0i[i] = 0.;
         for (int i=0; i<n; ++i) gam1r[i] = 0.;
@@ -309,10 +312,10 @@ struct ZetaData<GData, GData, GData>
         for (int i=0; i<n; ++i) gam3r[i] = 0.;
         for (int i=0; i<n; ++i) gam3i[i] = 0.;
     }
-    void write(std::ostream& os) const 
-    { 
+    void write(std::ostream& os) const
+    {
         os << gam0r[0]<<','<<gam0i[0]<<','<<gam1r[0]<<','<<gam1i[0]<<','<<
-            gam2r[0]<<','<<gam2i[0]<<','<<gam3r[0]<<','<<gam3i[0]; 
+            gam2r[0]<<','<<gam2i[0]<<','<<gam3r[0]<<','<<gam3i[0];
     }
     void write_full(std::ostream& os, int n) const
     { for(int i=0;i<n;++i) os << gam0r[i] <<" "; }

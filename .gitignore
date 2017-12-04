@@ -23,6 +23,7 @@
 TreeCorr.egg-info
 dist
 build
+.cache
 
 .*.swp
 *.pyc

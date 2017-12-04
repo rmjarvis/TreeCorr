@@ -16,8 +16,9 @@
 """
 
 from __future__ import print_function
+import sys
 import treecorr
-import six
+import future.utils
 
 
 def parse_variable(config, v):
@@ -34,14 +35,17 @@ def parse_variable(config, v):
     # Cut off any trailing comment
     if '#' in value: value = value.split('#')[0]
     value = value.strip()
-    if value[0] == '{':
+    if value[0] in ['{','[','(']:
+        if value[-1] not in ['}',']',')']:
+            raise ValueError('List symbol %s not properly matched'%value[0])
         values = value[1:-1].split(',')
+        values = [ v.strip() for v in values ]
     else:
         values = value.split() # on whitespace
-        if len(values) == 1:
-            config[key] = value
-        else:
-            config[key] = values
+    if len(values) == 1:
+        config[key] = values[0]
+    else:
+        config[key] = values
 
 
 def parse_bool(value):
@@ -81,7 +85,7 @@ def parse_unit(value):
 
     The value is allowed to merely start with one of the unit names.  So 'deg', 'degree',
     'degrees' all convert to 'deg' which is the key in the angle_units dict.
-    The return value in this case would be treecorr.angle_units['deg'], which has the 
+    The return value in this case would be treecorr.angle_units['deg'], which has the
     value pi/180.
 
     :param value:   The unit as a string value to parse.
@@ -93,11 +97,43 @@ def parse_unit(value):
     raise ValueError("Unable to parse %s as an angle unit"%value)
 
 
-def read_config(file_name):
+def read_config(file_name, file_type='auto'):
     """Read a configuration dict from a file.
 
     :param file_name:   The file name from which the configuration dict should be read.
+    :param file_type:   The type of config file.  Options are 'auto', 'yaml', 'json', 'params'.
+                        (default: 'auto', which tries to determine the type from the extension)
+
+    :returns:           A config dict built from the configuration file.
     """
+    if file_type == 'auto':
+        if file_name.endswith('.yaml'): file_type = 'yaml'
+        elif file_name.endswith('.json'): file_type = 'json'
+        elif file_name.endswith('.params'): file_type = 'params'
+        else:
+            raise ValueError("Unable to determine the type of config file from the extension")
+    if file_type == 'yaml':
+        return read_yaml_file(file_name)
+    elif file_type == 'json':
+        return read_json_file(file_name)
+    elif file_type == 'params':
+        return read_params_file(file_name)
+    else:
+        raise ValueError("Invalid file_type %s"%file_type)
+
+def read_yaml_file(file_name):
+    import yaml
+    with open(file_name) as fin:
+        config = yaml.load(fin.read())
+    return config
+
+def read_json_file(file_name):
+    import json
+    with open(file_name) as fin:
+        config = json.load(fin)
+    return config
+
+def read_params_file(file_name):
     config = dict()
     with open(file_name) as fin:
         for v in fin:
@@ -136,7 +172,7 @@ def setup_logger(verbose, log_file=None):
     logger = logging.getLogger('treecorr')
     if len(logger.handlers) == 0:  # only add handler once!
         if log_file is None:
-            handle = logging.StreamHandler()
+            handle = logging.StreamHandler(stream=sys.stdout)
         else:
             handle = logging.FileHandler(log_file)
         formatter = logging.Formatter('%(message)s')  # Simple text output
@@ -145,7 +181,7 @@ def setup_logger(verbose, log_file=None):
     logger.setLevel(logging_level)
     return logger
 
- 
+
 def check_config(config, params, aliases=None, logger=None):
     """Check (and update) a config dict to conform to the given parameter rules.
     The params dict has an entry for each valid config parameter whose value is a tuple
@@ -185,10 +221,16 @@ def check_config(config, params, aliases=None, logger=None):
         value_type, may_be_list, default_value, valid_values = params[key][:4]
 
         # Get the value
-        if value_type is bool:
-            value = parse_bool(config[key])
+        if may_be_list and isinstance(config[key], list):
+            if value_type is bool:
+                value = [ parse_bool(v) for v in config[key] ]
+            else:
+                value = [ value_type(v) for v in config[key] ]
         else:
-            value = value_type(config[key])
+            if value_type is bool:
+                value = parse_bool(config[key])
+            else:
+                value = value_type(config[key])
 
         # If limited allowed values, check that this is one of them.
         if valid_values is not None:
@@ -217,7 +259,7 @@ def check_config(config, params, aliases=None, logger=None):
     return config
 
 
-def print_params(params):
+def print_params(params): # pragma: no cover
     """Print the information about the valid parameters, given by the given params dict.
     See check_config for the structure of the params dict.
 
@@ -247,10 +289,10 @@ def print_params(params):
 
 def convert(value, value_type, key):
     """Convert the given value to the given type.
-    
+
     The key helps determine what kind of conversion should be performed.
     Specifically if 'unit' is in the key value, then a unit conversion is done.
-    Otherwise, it just parses 
+    Otherwise, it just parses
 
     :param value:       The input value to be converted.  Usually a string.
     :param value_type:  The type to convert to.
@@ -268,8 +310,8 @@ def convert(value, value_type, key):
 def get_from_list(config, key, num, value_type=str, default=None):
     """A helper function to get a key from config that is allowed to be a list
 
-    Some of the config values are allowed to be lists of values, in which case we take the 
-    `num` item from the list.  If they are not a list, then the given value is used for 
+    Some of the config values are allowed to be lists of values, in which case we take the
+    `num` item from the list.  If they are not a list, then the given value is used for
     all values of `num`.
 
     :param config:      The configuration dict from which to get the key value.
@@ -335,7 +377,7 @@ def merge_config(config, kwargs, valid_params):
     if kwargs is None:
         kwargs = {}
     if config:
-        for key, value in six.iteritems(config):
+        for key, value in future.utils.iteritems(config):
             if key in valid_params and key not in kwargs:
                 kwargs[key] = value
     check_config(kwargs, valid_params)
@@ -367,7 +409,7 @@ def set_omp_threads(num_threads, logger=None):
     num_threads = treecorr._lib.SetOMPThreads(num_threads)
 
     # Report back appropriately.
-    if logger:
+    if logger: # pragma: no cover
         logger.debug('OpenMP reports that it will use %d threads',num_threads)
         if num_threads > 1:
             logger.info('Using %d threads.',num_threads)

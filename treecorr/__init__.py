@@ -11,13 +11,28 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
+# The version is stored in _version.py as recommended here:
+# http://stackoverflow.com/questions/458550/standard-way-to-embed-version-into-python-package
+from ._version import __version__, __version_info__
 
-version = '3.3'
+# Also let treecorr.version show the version.
+version = __version__
 
 import os,cffi,glob
 # Set module level attributes for the include directory and the library file name.
-include_dir = os.path.join(os.path.dirname(__file__),'include')
-lib_file = os.path.join(os.path.dirname(__file__),'_treecorr.so')
+treecorr_dir = os.path.dirname(__file__)
+include_dir = os.path.join(treecorr_dir,'include')
+
+lib_file = os.path.join(treecorr_dir,'_treecorr.so')
+# Some installation (e.g. Travis with python 3.x) name this e.g. _treecorr.cpython-34m.so,
+# so if the normal name doesn't exist, look for something else.
+if not os.path.exists(lib_file): # pragma: no cover
+    alt_files = glob.glob(os.path.join(os.path.dirname(__file__),'_treecorr*.so'))
+    if len(alt_files) == 0:
+        raise IOError("No file '_treecorr.so' found in %s"%treecorr_dir)
+    if len(alt_files) > 1:
+        raise IOError("Multiple files '_treecorr*.so' found in %s: %s"%(treecorr_dir,alt_files))
+    lib_file = alt_files[0]
 
 # Load the C functions with cffi
 _ffi = cffi.FFI()

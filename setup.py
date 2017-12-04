@@ -1,5 +1,6 @@
 from __future__ import print_function
-import sys,os,glob
+import sys,os,glob,re
+import select
 
 
 try:
@@ -23,7 +24,7 @@ except ImportError:
     print("Using distutils version",distutils.__version__)
 
 
-from distutils.command.install_headers import install_headers 
+#from distutils.command.install_headers import install_headers 
 
 try:
     from sysconfig import get_config_vars
@@ -50,14 +51,15 @@ copt =  {
     'gcc' : ['-fopenmp','-O3','-ffast-math'],
     'icc' : ['-openmp','-O3'],
     'clang' : ['-O3','-ffast-math'],
-    'clang w/ OpenMP' : ['-fopenmp=libomp','-O3','-ffast-math'],
+    #'clang w/ OpenMP' : ['-fopenmp=libomp','-O3','-ffast-math'],
+    'clang w/ OpenMP' : ['-fopenmp','-O3','-ffast-math'],
     'unknown' : [],
 }
 lopt =  {
     'gcc' : ['-fopenmp'],
     'icc' : ['-openmp'],
     'clang' : [],
-    'clang w/ OpenMP' : ['-fopenmp=libomp'],
+    'clang w/ OpenMP' : ['-fopenmp'],
     'unknown' : [],
 }
 
@@ -78,7 +80,7 @@ def get_compiler(cc):
     lines = p.stdout.readlines()
     print('compiler version information: ')
     for line in lines:
-        print(line.strip())
+        print(line.decode().strip())
     try:
         # Python3 needs this decode bit.
         # Python2.7 doesn't need it, but it works fine.
@@ -171,7 +173,7 @@ int main() {
 """
     import tempfile
     cpp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.cpp')
-    cpp_file.write(cpp_code)
+    cpp_file.write(cpp_code.encode())
     cpp_file.close()
 
     # Just get a named temporary file to write to:
@@ -229,7 +231,7 @@ int main() {
 """
     import tempfile
     ffi_file = tempfile.NamedTemporaryFile(delete=False, suffix='.c')
-    ffi_file.write(ffi_code)
+    ffi_file.write(ffi_code.encode())
     ffi_file.close()
 
     # Just get a named temporary file to write to:
@@ -243,6 +245,8 @@ int main() {
     lines = p.stdout.readlines()
     p.communicate()
     if p.returncode != 0:
+        print('Unable to compile file with #include "ffi.h"')
+        print("Failed command is: ",' '.join(cmd))
         # Try ffi/ffi.h
         ffi_code = """
 #include "ffi/ffi.h"
@@ -251,15 +255,14 @@ int main() {
 }
 """
         ffi_file = open(ffi_file.name, ffi_file.mode)
-        ffi_file.write(ffi_code)
+        ffi_file.write(ffi_code.encode())
         ffi_file.close()
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         lines = p.stdout.readlines()
         p.communicate()
         if p.returncode != 0:
-            os.remove(ffi_file.name)
-            if os.path.exists(o_file.name):
-                os.remove(o_file.name)
+            print('Unable to compile file with #include "ffi/ffi.h"')
+            print("Failed command is: ",' '.join(cmd))
             print("Could not find ffi.h")
             return False
         else:
@@ -279,18 +282,21 @@ int main() {
 
     if p.returncode != 0:
         print("Could not link with -lffi")
+        print("Failed command is: ",' '.join(cmd))
+        return False
     else:
         print("Successfully linked with -lffi")
 
-    # Remove the temp files
+    # Remove the temp files only if all succeeded.
     os.remove(ffi_file.name)
     os.remove(o_file.name)
     if os.path.exists(exe_file.name): 
         os.remove(exe_file.name)
-    return p.returncode == 0
+
+    return True
 
 # Based on recipe 577058: http://code.activestate.com/recipes/577058/
-def query_yes_no(question, default="yes"):
+def query_yes_no(question, default="yes", timeout=30):
     """Ask a yes/no question via raw_input() and return their answer.
 
     "question" is a string that is presented to the user.
@@ -313,14 +319,21 @@ def query_yes_no(question, default="yes"):
 
     while 1:
         sys.stdout.write(question + prompt)
-        choice = raw_input().lower()
+        sys.stdout.flush()
+        i, _, _ = select.select( [sys.stdin], [], [], timeout )
+
+        if i:
+            choice = sys.stdin.readline().strip()
+        else:
+            sys.stdout.write("\nPrompt timed out after %s seconds.\n"%timeout)
+            return default
+
         if default is not None and choice == '':
             return default
         elif choice in valid.keys():
             return valid[choice]
         else:
-            sys.stdout.write("Please respond with 'yes' or 'no' "\
-                             "(or 'y' or 'n').\n")
+            sys.stdout.write("Please respond with 'yes' or 'no' (or 'y' or 'n').\n")
 
 
 def check_ffi(cc, cc_type):
@@ -333,6 +346,11 @@ def check_ffi(cc, cc_type):
         if check_ffi_compile(cc, cc_type):
             return
         # libffi needs to be installed.  Give a helpful message about how to do so.
+        prefix = '/SOME/APPROPRIATE/PREFIX'
+        prefix_param = [param for param in sys.argv if param.startswith('--prefix=')]
+        if len(prefix_param) == 1:
+            prefix = prefix_param[0].split('=')[1]
+            prefix = os.path.expanduser(prefix)
         msg = """
 WARNING: TreeCorr uses cffi, which in turn requires libffi to be installed.
          As the latter is not a python package, pip cannot download and
@@ -353,17 +371,21 @@ following commands:
     wget ftp://sourceware.org:/pub/libffi/libffi-3.2.1.tar.gz
     tar xfz libffi-3.2.1.tar.gz
     cd libffi-3.2.1
-    ./configure --prefix=/dir/in/your/LIBRARY_PATH
+    ./configure --prefix={0}
     make
     make install
-    cp */include/ffi*.h /dir/in/your/C_INCLUDE_PATH
+    cp */include/ffi*.h {0}/include
     cd ..
-"""
+
+If you have already done this, then check the command (given above) that failed.  You may
+need to add a directory to either C_INCLUDE_PATH, LIBRARY_PATH, or LD_LIBRARY_PATH to
+make it succeed.
+""".format(prefix)
         print(msg)
         q = "Stop the installation here to take care of this?"
         yn = query_yes_no(q, default='yes')
         if yn == 'yes':
-            sys.exit()
+            sys.exit(1)
 
 # This was supposed to remove the -Wstrict-prototypes flag
 # But it doesn't work....
@@ -419,60 +441,61 @@ ext=Extension("treecorr._treecorr",
               depends=headers,
               undef_macros = undef_macros)
 
-dependencies = ['numpy', 'six', 'cffi']
-if py_version < '2.7':
-    dependencies += ['argparse']
+dependencies = ['numpy', 'future', 'cffi', 'fitsio', 'pyyaml']
+if py_version <= '2.6':
+    dependencies += ['argparse'] # These seem to have conflicting numpy requirements, so don't
+                                 # include pandas with argparse.
 else:
-    dependencies += ['pandas']  # These seem to have conflicting numpy requirements, so don't
-                                # include pandas with argparse.
-
-# Make sure at least some fits package is present.
-try:
-    import astropy
-except ImportError:
-    try:
-        import pyfits
-    except ImportError:
-        if py_version < '3':
-            dependencies += ['fitsio']
-        else:
-            # I'm getting errors with fitsio in python 3, so use astropy instead for that.
-            # Revisit at some point to see if this gets fixed, since fitsio is the better package.
-            dependencies += ['astropy']
+    dependencies += ['pandas'] 
 
 with open('README.rst') as file:
     long_description = file.read()
 
+# Read in the treecorr version from treecorr/_version.py
+# cf. http://stackoverflow.com/questions/458550/standard-way-to-embed-version-into-python-package
+version_file=os.path.join('treecorr','_version.py')
+verstrline = open(version_file, "rt").read()
+VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
+mo = re.search(VSRE, verstrline, re.M)
+if mo:
+    treecorr_version = mo.group(1)
+else:
+    raise RuntimeError("Unable to find version string in %s." % (version_file,))
+print('TreeCorr version is %s'%(treecorr_version))
+
 dist = setup(name="TreeCorr", 
-      version="3.3",
+      version=treecorr_version,
       author="Mike Jarvis",
       author_email="michael@jarvis.net",
       description="Python module for computing 2-point correlation functions",
       long_description=long_description,
       license = "BSD License",
       url="https://github.com/rmjarvis/TreeCorr",
-      download_url="https://github.com/rmjarvis/TreeCorr/releases/tag/v3.2.0.zip",
+      download_url="https://github.com/rmjarvis/TreeCorr/releases/tag/v%s.zip"%treecorr_version,
       packages=['treecorr'],
-      data_files=[('treecorr/include',headers)],
+      package_data={'treecorr' : headers },
       ext_modules=[ext],
       install_requires=dependencies,
       cmdclass = {'build_ext': my_builder,
                   'install_scripts': my_install_scripts,
                   'easy_install': my_easy_install,
                   },
-      headers=headers,
       scripts=scripts)
 
 # I don't actually need these installed for TreeCorr, but I wanted to figure out how to do
 # it, so I played with it here.  distutils installs these automatically when the headers argument
 # is given to setup.  But setuptools doesn't.  cf. http://bugs.python.org/setuptools/issue142
-cmd = install_headers(dist)
-cmd.finalize_options()
-print('Installing headers to ',cmd.install_dir)
-cmd.run()
+#cmd = install_headers(dist)
+#cmd.finalize_options()
+#print('Installing headers to ',cmd.install_dir)
+#cmd.run()
 
 # Check that the path includes the directory where the scripts are installed.
-if dist.script_install_dir not in os.environ['PATH'].split(':'):
+real_env_path = [os.path.realpath(d) for d in os.environ['PATH'].split(':')]
+if (hasattr(dist,'script_install_dir') and
+    dist.script_install_dir not in os.environ['PATH'].split(':') and
+    os.path.realpath(dist.script_install_dir) not in real_env_path):
+
     print('\nWARNING: The TreeCorr executables were installed in a directory not in your PATH')
     print('         If you want to use the executables, you should add the directory')
     print('\n             ',dist.script_install_dir,'\n')

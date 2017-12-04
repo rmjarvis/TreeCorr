@@ -21,8 +21,10 @@ void Process11(
     double minrsq, double maxrsq,
     const CellType1& c1, const CellType2& c2)
 {
-    const double dsq = DistSq(c1.getMeanPos(),c2.getMeanPos());
-    const double s1ps2 = c1.getAllSize()+c2.getAllSize();
+    double s1 = c1.getAllSize();
+    double s2 = c2.getAllSize();
+    const double dsq = DistSq(c1.getMeanPos(),c2.getMeanPos(),s1,s2);
+    const double s1ps2 = s1+s2;
 
     if (dsq < minrsq) if (sqrt(dsq)+s1ps2 < minr) return;
     if (dsq > maxrsq) if (sqrt(dsq)-s1ps2 > maxr) return;

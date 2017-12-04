@@ -33,6 +33,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
     In addition, the following attributes are numpy arrays of length (nbins):
 
         :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
+        :rnom:      The nominal center of the bin converted to regular distance. 
+                    i.e. r = exp(logr).
         :meanr:     The (weighted) mean value of r for the pairs in each bin.
                     If there are no pairs in a bin, then exp(logr) will be used instead.
         :meanlogr:  The (weighted) mean value of log(r) for the pairs in each bin.
@@ -47,10 +49,13 @@ class GGCorrelation(treecorr.BinnedCorr2):
         :weight:    The total weight in each bin.
         :npairs:    The number of pairs going into each bin.
 
-    If sep_units are given (either in the config dict or as a named kwarg) then logr and meanlogr
-    both take r to be in these units.  i.e. exp(logr) will have R in units of sep_units.
+    If `sep_units` are given (either in the config dict or as a named kwarg) then the distances
+    will all be in these units.  Note however, that if you separate out the steps of the 
+    :func:`process` command and use :func:`process_auto` and/or :func:`process_cross`, then the
+    units will not be applied to :meanr: or :meanlogr: until the :func:`finalize` function is
+    called.
 
-    The usage pattern is as follows:
+    The typical usage pattern is as follows:
 
         >>> gg = treecorr.GGCorrelation(config)
         >>> gg.process(cat)         # For auto-correlation.
@@ -85,9 +90,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
         self.corr = treecorr._lib.BuildGGCorr(
-                self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                self._min_sep,self._max_sep,self.nbins,self.bin_size,self.b,
+                self.min_rpar, self.max_rpar,
                 dp(self.xip),dp(self.xip_im),dp(self.xim),dp(self.xim_im),
-                dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
+                dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs))
  
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -137,42 +143,17 @@ class GGCorrelation(treecorr.BinnedCorr2):
         else:
             self.logger.info('Starting process GG auto-correlations for cat %s.',cat.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
-        if metric == 'Rperp' and cat.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        self._set_metric(metric, cat.coords)
 
         self._set_num_threads(num_threads)
 
-        # The minimum size cell that will be useful is one where two cells that just barely
-        # don't split have (d + s1 + s2) = minsep
-        # The largest s2 we need to worry about is s2 = 2s1.
-        # i.e. d = minsep - 3s1  and s1 = 0.5 * bd
-        #      d = minsep - 1.5 bd
-        #      d = minsep / (1+1.5 b)
-        #      s = 0.5 * b * minsep / (1+1.5 b)
-        #        = b * minsep / (2+3b)
-        min_size = self.min_sep * self.b / (2.+3.*self.b);
-        if metric == 'Rperp':
-            # Go a bit smller than min_sep for Rperp metric, since the above calculation of
-            # what minimum size to use isn't exactly accurate in this case.
-            min_size /= 2.
-        # The maximum size cell that will be useful is one where a cell of size s will
-        # be split at the maximum separation even if the other size = 0.
-        # i.e. max_size = max_sep * b
-        max_size = self.max_sep * self.b
-            
+        min_size, max_size = self._get_minmax_size()
+
         field = cat.getGField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        if cat.coords == 'flat':
-            treecorr._lib.ProcessAutoGGFlat(self.corr, field.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessAutoGGPerp(self.corr, field.data, self.output_dots)
-        else:
-            treecorr._lib.ProcessAutoGG3D(self.corr, field.data, self.output_dots)
+        treecorr._lib.ProcessAutoGG(self.corr, field.data, self.output_dots,
+                                    self._coords, self._metric)
 
 
     def process_cross(self, cat1, cat2, metric=None, num_threads=None):
@@ -199,34 +180,18 @@ class GGCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process GG cross-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
-        if cat1.coords != cat2.coords:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and cat1.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        self._set_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
-        min_size = self.min_sep * self.b / (2.+3.*self.b);
-        if metric == 'Rperp':
-            # Go a bit smller than min_sep for Rperp metric, since the simple calculation of
-            # what minimum size to use isn't exactly accurate in this case.
-            min_size /= 2.
-        max_size = self.max_sep * self.b
-            
+        min_size, max_size = self._get_minmax_size()
+
         f1 = cat1.getGField(min_size,max_size,self.split_method,self.max_top)
         f2 = cat2.getGField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        if cat1.coords == 'flat':
-            treecorr._lib.ProcessCrossGGFlat(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessCrossGGPerp(self.corr, f1.data, f2.data, self.output_dots)
-        else:
-            treecorr._lib.ProcessCrossGG3D(self.corr, f1.data, f2.data, self.output_dots)
+        treecorr._lib.ProcessCrossGG(self.corr, f1.data, f2.data, self.output_dots,
+                                     self._coords, self._metric)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -254,26 +219,15 @@ class GGCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process GG pairwise-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
-        if cat1.coords != cat2.coords:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and cat1.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        self._set_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
         f1 = cat1.getGSimpleField()
         f2 = cat2.getGSimpleField()
 
-        if cat1.coords == 'flat':
-            treecorr._lib.ProcessPairwiseGGFlat(self.corr, f1.data, f2.data, self.output_dots)
-        elif metric == 'Rperp':
-            treecorr._lib.ProcessPairwiseGGPerp(self.corr, f1.data, f2.data, self.output_dots)
-        else:
-            treecorr._lib.ProcessPairwiseGG3D(self.corr, f1.data, f2.data, self.output_dots)
+        treecorr._lib.ProcessPairGG(self.corr, f1.data, f2.data, self.output_dots,
+                                    self._coords, self._metric)
 
 
     def finalize(self, varg1, varg2):
@@ -298,11 +252,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.varxi[mask1] = varg1 * varg2 / self.weight[mask1]
 
         # Update the units of meanr, meanlogr
-        self.meanr[mask1] /= self.sep_units
-        self.meanlogr[mask1] -= self.log_sep_units
+        self._apply_units(mask1)
 
         # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
-        self.meanr[mask2] = numpy.exp(self.logr[mask2])
+        self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
         self.varxi[mask2] = 0.
 
@@ -366,6 +319,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
                               with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
                               distance and :math:`Rparallel = |r1-r2|`, then we define
                               :math:`Rperp^2 = d^2 - Rparallel^2`.
+                            - 'Rlens' = the projected distance perpendicular to the first point
+                              in the pair (taken to be a lens) to the line of sight to the second
+                              point (e.g. a lensed source galaxy).
+                            - 'Arc' = the true great circle distance for spherical coordinates.
 
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
@@ -382,11 +339,6 @@ class GGCorrelation(treecorr.BinnedCorr2):
         if cat2 is not None and not isinstance(cat2,list): cat2 = [cat2]
         if len(cat1) == 0:
             raise AttributeError("No catalogs provided for cat1")
-
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
 
         if cat2 is None or len(cat2) == 0:
             varg1 = treecorr.calculateVarG(cat1)
@@ -419,6 +371,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
             :weight:    The total weight contributing to each bin.
             :npairs:    The number of pairs contributing ot each bin.
 
+        If `sep_units` was given at construction, then the distances will all be in these units.
+        Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
+        radians (for spherical coordinates).
+
         :param file_name:   The name of the file to write to.
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
@@ -433,7 +389,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         treecorr.util.gen_write(
             file_name,
             ['R_nom','meanR','meanlogR','xip','xim','xip_im','xim_im','sigma_xi','weight','npairs'],
-            [ numpy.exp(self.logr), self.meanr, self.meanlogr,
+            [ self.rnom, self.meanr, self.meanlogr,
               self.xip, self.xim, self.xip_im, self.xim_im, numpy.sqrt(self.varxi),
               self.weight, self.npairs ],
             prec=prec, file_type=file_type, logger=self.logger)
@@ -455,7 +411,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Reading GG correlations from %s',file_name)
 
-        data = treecorr.util.gen_read(file_name, file_type=file_type)
+        data, _ = treecorr.util.gen_read(file_name, file_type=file_type)
+        self.rnom = data['R_nom']
         self.logr = numpy.log(data['R_nom'])
         self.meanr = data['meanR']
         self.meanlogr = data['meanlogR']
@@ -519,7 +476,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
             raise ValueError("Invalid m2_uform")
 
         # Make s a matrix, so we can eventually do the integral by doing a matrix product.
-        r = numpy.exp(self.logr)
+        r = self.rnom
         s = numpy.outer(1./r, self.meanr)
         ssq = s*s
         if m2_uform == 'Crittenden':
@@ -587,7 +544,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         :returns:   (gamsq, vargamsq) if `eb == False` or
                     (gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e)  if `eb == True`
         """
-        r = numpy.exp(self.logr)
+        r = self.rnom
         s = numpy.outer(1./r, self.meanr)  
         ssq = s*s
         Sp = numpy.zeros_like(s)
@@ -661,7 +618,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         treecorr.util.gen_write(
             file_name,
             ['R','Mapsq','Mxsq','MMxa','MMxb','sig_map','Gamsq','sig_gam'],
-            [ numpy.exp(self.logr),
+            [ self.rnom,
               mapsq, mxsq, mapsq_im, -mxsq_im, numpy.sqrt(varmapsq),
               gamsq, numpy.sqrt(vargamsq) ],
             prec=prec, file_type=file_type, logger=self.logger)

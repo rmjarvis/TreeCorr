@@ -1,0 +1,20 @@
+
+file_name: data/gg_rlens_lens.dat
+file_name2: data/gg_rlens_source.dat
+
+x_col: 1
+y_col: 2
+z_col: 3
+
+g1_col: 4
+g2_col: 5
+
+verbose: 1
+
+min_sep: 13.
+max_sep: 40.
+bin_size: 0.1
+metric: Rlens
+bin_slop: 0.5
+
+gg_file_name: output/gg_rlens.out

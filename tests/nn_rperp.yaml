@@ -1,0 +1,20 @@
+
+file_name: data/nn_perp_data.dat
+rand_file_name: data/nn_perp_rand.dat
+
+ra_col: 1
+dec_col: 2
+ra_units: deg
+dec_units: deg
+r_col: 3
+
+metric: Rperp
+last_row: 200000
+
+verbose: 1
+
+min_sep: 20.
+bin_size: 0.036652
+nbins: 50
+
+nn_file_name: output/nn_rperp.out

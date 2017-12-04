@@ -1,0 +1,21 @@
+
+file_name: data/ng_rlens_lens.dat
+file_name2: data/ng_rlens_source.dat
+
+x_col: 1
+y_col: 2
+z_col: 3
+
+g1_col: 4
+g2_col: 5
+
+verbose: 1
+
+min_sep: 13.
+max_sep: 40.
+bin_size: 0.1
+bin_slop: 0.5
+
+metric: Rlens
+
+ng_file_name: output/ng_rlens.out

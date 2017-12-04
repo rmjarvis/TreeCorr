@@ -9,6 +9,7 @@ TreeCorr Documentation
    overview
    catalog
    field
+   metric
    correlation2
    correlation3
    celestial

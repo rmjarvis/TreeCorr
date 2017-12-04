@@ -31,7 +31,7 @@ const double IOTA = 1.e-10;
 
 
 class Vect{
-    
+
 public:
     Vect(): _x(0.), _y(0.), _z(0.) {}
     Vect(const Vect & rhs) :
@@ -39,7 +39,7 @@ public:
     ~Vect() {}
     Vect(double x, double y, double z) :
         _x(x), _y(y), _z(z) {}
-    Vect& operator=(const Vect& rhs) 
+    Vect& operator=(const Vect& rhs)
     { _x = rhs.getX(); _y = rhs.getY(); _z = rhs.getZ(); return *this; }
 
     double getX() const { return _x; }
@@ -68,22 +68,23 @@ public:
     Vect operator/(double a) const
     { Vect p1 = *this; p1 /= a; return p1; }
 
-    void read(std::istream& fin) 
+    void read(std::istream& fin)
     { fin >> _x >> _y >> _z; }
     void write(std::ostream& fout) const
     { fout << _x << " " << _y << " " << _z << " "; }
-      
+
 private:
     double _x, _y, _z;
-    
+
 };
 
 
 // We use a code (to be used as a template parameter) to indicate which kind of data we
-// are using for a particular use. 
+// are using for a particular use.
 // NData means just count the point.
 // KData means use a scalar.  Nominally kappa, but works with any scalar (e.g. temperature).
-// GData means use a shear. 
+// GData means use a shear.
+// Vdata means use a vector.
 enum DataType { NData=1 , KData=2 , GData=3, VData=4 };
 
 
@@ -100,11 +101,11 @@ class CellData<NData,C>
 public:
     CellData() {}
 
-    CellData(const Position<C>& pos, double w, double wpos) : 
+    CellData(const Position<C>& pos, double w, double wpos) :
         _pos(pos), _w(w), _wpos(wpos), _n(w != 0.) {}
 
     template <int C2>
-    CellData(const Position<C2>& pos, double w, double wpos) : 
+    CellData(const Position<C2>& pos, double w, double wpos) :
         _pos(pos), _w(w), _wpos(wpos), _n(w != 0.) {}
 
     CellData(const std::vector<CellData<NData,C>*>& vdata,
@@ -132,17 +133,17 @@ std::ostream& operator<<(std::ostream& os, const CellData<NData,C>& c)
 { return os << c.getPos() << " " << c.getN(); }
 
 template <int C>
-class CellData<KData,C> 
+class CellData<KData,C>
 {
 public:
     CellData() {}
 
-    CellData(const Position<C>& pos, double k, double w, double wpos) : 
+    CellData(const Position<C>& pos, double k, double w, double wpos) :
         _pos(pos), _wk(w*k), _w(w), _wpos(wpos), _n(w != 0.)
     {}
 
     template <int C2>
-    CellData(const Position<C2>& pos, double k, double w, double wpos) : 
+    CellData(const Position<C2>& pos, double k, double w, double wpos) :
         _pos(pos), _wk(w*k), _w(w), _wpos(wpos), _n(w != 0.)
     {}
 
@@ -172,17 +173,17 @@ std::ostream& operator<<(std::ostream& os, const CellData<KData,C>& c)
 { return os << c.getPos() << " " << c.getWK() << " " << c.getW() << " " << c.getN(); }
 
 template <int C>
-class CellData<GData,C> 
+class CellData<GData,C>
 {
 public:
     CellData() {}
 
-    CellData(const Position<C>& pos, const std::complex<double>& g, double w, double wpos) : 
+    CellData(const Position<C>& pos, const std::complex<double>& g, double w, double wpos) :
         _pos(pos), _wg(w*g), _w(w), _wpos(wpos), _n(w != 0.)
     {}
 
     template <int C2>
-    CellData(const Position<C2>& pos, const std::complex<double>& g, double w, double wpos) : 
+    CellData(const Position<C2>& pos, const std::complex<double>& g, double w, double wpos) :
         _pos(pos), _wg(w*g), _w(w), _wpos(wpos), _n(w != 0.)
     {}
 
@@ -212,17 +213,17 @@ std::ostream& operator<<(std::ostream& os, const CellData<GData,C>& c)
 { return os << c.getPos() << " " << c.getWG() << " " << c.getW() << " " << c.getN(); }
 
 template <int C>
-class CellData<VData,C> 
+class CellData<VData,C>
 {
 public:
     CellData() {}
 
-    CellData(const Position<C>& pos, Vect v, double w, double wpos) : 
+    CellData(const Position<C>& pos, Vect v, double w, double wpos) :
         _pos(pos), _wv (v*w), _w(w), _wpos(wpos), _n(w != 0.)
     { }
 
     template <int C2>
-    CellData(const Position<C2>& pos, Vect v, double w, double wpos) : 
+    CellData(const Position<C2>& pos, Vect v, double w, double wpos) :
         _pos(pos), _wv (v*w), _w(w), _wpos(wpos), _n(w != 0.)
     {}
 
@@ -260,7 +261,7 @@ public:
     // A Cell contains the accumulated data for a bunch of galaxies.
     // It is characterized primarily by a centroid and a size.
     // The centroid is simply the weighted centroid of all the galaxy positions.
-    // The size is the maximum deviation of any one of these galaxies 
+    // The size is the maximum deviation of any one of these galaxies
     // from the centroid.  That is, all galaxies fall within a radius
     // size from the centroid.
     // The structure also keeps track of some averages and sums about
@@ -268,13 +269,13 @@ public:
 
     Cell(CellData<D,C>* data) : _size(0.), _sizesq(0.), _data(data), _left(0), _right(0) {}
 
-    Cell(std::vector<CellData<D,C>*>& vdata, 
+    Cell(std::vector<CellData<D,C>*>& vdata,
          double minsizesq, SplitMethod sm, size_t start, size_t end);
 
-    Cell(CellData<D,C>* ave, double sizesq, std::vector<CellData<D,C>*>& vdata, 
+    Cell(CellData<D,C>* ave, double sizesq, std::vector<CellData<D,C>*>& vdata,
          double minsizesq, SplitMethod sm, size_t start, size_t end);
 
-    ~Cell() 
+    ~Cell()
     {
         Assert(_data);
         delete (_data);
@@ -322,7 +323,7 @@ double CalculateSizeSq(
 
 template <int D, int C>
 size_t SplitData(
-    std::vector<CellData<D,C>*>& vdata, SplitMethod sm, 
+    std::vector<CellData<D,C>*>& vdata, SplitMethod sm,
     size_t start, size_t end, const Position<C>& meanpos);
 
 template <int D, int C>

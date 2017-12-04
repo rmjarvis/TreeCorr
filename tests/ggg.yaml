@@ -1,0 +1,24 @@
+
+file_name: data/ggg_data.dat
+
+x_col: 1
+y_col: 2
+x_units: arcmin
+y_units: arcmin
+g1_col: 3
+g2_col: 4
+
+verbose: 1
+
+min_sep: 11.
+max_sep: 15.
+nbins: 3
+sep_units: arcmin
+min_u: 0.7
+max_u: 1.0
+nubins: 3
+min_v: -0.1
+max_v: 0.3
+nvbins: 4
+
+ggg_file_name: output/ggg.out

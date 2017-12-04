@@ -1,51 +1,33 @@
-Changes from version 3.2 to 3.3
+Changes from version 3.3 to 3.4
 ===============================
 
 The numbers at the ends of some items below indicate which issue is connected
 with the change:
 
-https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+3.3%22+is%3Aclosed
+https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+3.4%22+is%3Aclosed
 
-Dependency change:
-------------------
-
-- Switched from using ctypes (which is native to python) to cffi for the C++
-  wrapping.  This should be a seamless change, since setup.py should download
-  cffi for you if you need it, but it does require libffi to be installed
-  on your system.  This is usually already true, but if not, see the cffi
-  docs here: https://cffi.readthedocs.org/en/latest/installation.html
-  for platform-specific instructions for installing libffi.
+Dependency changes:
+-------------------
 
 
 API changes:
 ------------
 
-- Change Field classes to take ``min_size`` and ``max_size`` directly, rather
-  than having these be calculated from ``min_sep``, ``max_sep``, ``b`` and
-  ``metric``.
-- Removed the ``z_units`` option for ``Catalog``, since it doesn't actually
-  make sense.  Any ``z`` field should be in physical units, not arcsec, 
-  degrees, etc.
+- Added tot attribute to the NN and NNN output files.  This may require slight
+  changes to code that reads in ASCII files.  There should not be any problem
+  reading the file if you use FITS format.
+
 
 
 New features:
 -------------
 
-- Added a new split_method='random', which chooses a random point between the
-  25th percentile and 75th percentile at which to make the split each time.
-  This is potentially useful when the large-scale shape of your field is very
-  regular (e.g. a perfect rectangle) to avoid numerical issues related to the
-  larger cells all having identical shapes.  (#40)
-- Made the C and C++ header files installed with the python code and the
-  compiled library.  So in case anyone wants to use the C++ code directly in
-  another application, rather than through the python interface, that's now
-  easier to do.  The directory to add to the include path is available as
-  ``treecorr.include_dir`` and the library to link is ``treecorr.lib_file``.
 
 
 Bug fixes:
 ----------
 
-- Fixed a bug where num_threads=1 didn't actually do anything, so it wasn't
-  possible to get TreeCorr not to use multi-threading.  Thanks to Eric Baxter
-  for this bug report.
+- Added tot attribute to the NN and NNN output files, which fixes an error
+  where NNCorrelation and NNNCorrelation did not round trip correctly through
+  a FITS output file.  Now the tot attribute is set properly when reading.
+- Fixed the Catalog.copy() method, which wasn't working properly.

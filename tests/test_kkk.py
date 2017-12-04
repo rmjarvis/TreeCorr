@@ -15,6 +15,7 @@ from __future__ import print_function
 import numpy
 import treecorr
 import os
+import fitsio
 
 from test_helper import get_script_name
 
@@ -118,7 +119,7 @@ def test_kkk():
     numpy.testing.assert_almost_equal(kkk.meanlogd2, numpy.log(kkk.meand2), decimal=3)
     numpy.testing.assert_almost_equal(kkk.meanlogd3, numpy.log(kkk.meand3), decimal=3)
     numpy.testing.assert_almost_equal(kkk.meanlogd3-kkk.meanlogd2, numpy.log(kkk.meanu), decimal=3)
-    numpy.testing.assert_almost_equal(numpy.log(kkk.meand1-kkk.meand2)-kkk.meanlogd3, 
+    numpy.testing.assert_almost_equal(numpy.log(kkk.meand1-kkk.meand2)-kkk.meanlogd3,
                                       numpy.log(numpy.abs(kkk.meanv)), decimal=3)
 
     d1 = kkk.meand1
@@ -144,7 +145,7 @@ def test_kkk():
     #print('diff = ',kkk.zeta - true_zeta)
     print('max rel diff = ',numpy.max(numpy.abs((kkk.zeta - true_zeta)/true_zeta)))
     assert numpy.max(numpy.abs((kkk.zeta - true_zeta)/true_zeta)) / req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(kkk.zeta)) / req_factor, 
+    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(kkk.zeta)) / req_factor,
                                       numpy.log(numpy.abs(true_zeta)) / req_factor, decimal=1)
 
     # Check that we get the same result using the corr3 executable:
@@ -152,7 +153,7 @@ def test_kkk():
         cat.write(os.path.join('data','kkk_data.dat'))
         import subprocess
         corr3_exe = get_script_name('corr3')
-        p = subprocess.Popen( [corr3_exe,"kkk.params"] )
+        p = subprocess.Popen( [corr3_exe,"kkk.yaml"] )
         p.communicate()
         corr3_output = numpy.genfromtxt(os.path.join('output','kkk.out'), names=True)
         #print('zeta = ',kkk.zeta)
@@ -164,26 +165,22 @@ def test_kkk():
     # Check the fits write option
     out_file_name = os.path.join('output','kkk_out.fits')
     kkk.write(out_file_name)
-    try:
-        import fitsio
-        data = fitsio.read(out_file_name)
-        numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(kkk.logr).flatten())
-        numpy.testing.assert_almost_equal(data['u_nom'], kkk.u.flatten())
-        numpy.testing.assert_almost_equal(data['v_nom'], kkk.v.flatten())
-        numpy.testing.assert_almost_equal(data['meand1'], kkk.meand1.flatten())
-        numpy.testing.assert_almost_equal(data['meanlogd1'], kkk.meanlogd1.flatten())
-        numpy.testing.assert_almost_equal(data['meand2'], kkk.meand2.flatten())
-        numpy.testing.assert_almost_equal(data['meanlogd2'], kkk.meanlogd2.flatten())
-        numpy.testing.assert_almost_equal(data['meand3'], kkk.meand3.flatten())
-        numpy.testing.assert_almost_equal(data['meanlogd3'], kkk.meanlogd3.flatten())
-        numpy.testing.assert_almost_equal(data['meanu'], kkk.meanu.flatten())
-        numpy.testing.assert_almost_equal(data['meanv'], kkk.meanv.flatten())
-        numpy.testing.assert_almost_equal(data['zeta'], kkk.zeta.flatten())
-        numpy.testing.assert_almost_equal(data['sigma_zeta'], numpy.sqrt(kkk.varzeta.flatten()))
-        numpy.testing.assert_almost_equal(data['weight'], kkk.weight.flatten())
-        numpy.testing.assert_almost_equal(data['ntri'], kkk.ntri.flatten())
-    except ImportError:
-        print('Unable to import fitsio.  Skipping fits tests.')
+    data = fitsio.read(out_file_name)
+    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(kkk.logr).flatten())
+    numpy.testing.assert_almost_equal(data['u_nom'], kkk.u.flatten())
+    numpy.testing.assert_almost_equal(data['v_nom'], kkk.v.flatten())
+    numpy.testing.assert_almost_equal(data['meand1'], kkk.meand1.flatten())
+    numpy.testing.assert_almost_equal(data['meanlogd1'], kkk.meanlogd1.flatten())
+    numpy.testing.assert_almost_equal(data['meand2'], kkk.meand2.flatten())
+    numpy.testing.assert_almost_equal(data['meanlogd2'], kkk.meanlogd2.flatten())
+    numpy.testing.assert_almost_equal(data['meand3'], kkk.meand3.flatten())
+    numpy.testing.assert_almost_equal(data['meanlogd3'], kkk.meanlogd3.flatten())
+    numpy.testing.assert_almost_equal(data['meanu'], kkk.meanu.flatten())
+    numpy.testing.assert_almost_equal(data['meanv'], kkk.meanv.flatten())
+    numpy.testing.assert_almost_equal(data['zeta'], kkk.zeta.flatten())
+    numpy.testing.assert_almost_equal(data['sigma_zeta'], numpy.sqrt(kkk.varzeta.flatten()))
+    numpy.testing.assert_almost_equal(data['weight'], kkk.weight.flatten())
+    numpy.testing.assert_almost_equal(data['ntri'], kkk.ntri.flatten())
 
     # Check the read function
     # Note: These don't need the flatten. The read function should reshape them to the right shape.

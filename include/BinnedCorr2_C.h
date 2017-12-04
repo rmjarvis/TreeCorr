@@ -13,23 +13,29 @@
  */
 
 extern void* BuildNNCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                         double minrpar, double maxrpar,
                          double* meanr, double* meanlogr, double* weight, double* npairs);
 extern void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                         double minrpar, double maxrpar,
                          double* xi,
                          double* meanr, double* meanlogr, double* weight, double* npairs);
 extern void* BuildNVCorr(double minsep, double maxsep, int nbins, double binsize, double b,
                          double* xi,
                          double* meanr, double* meanlogr, double* weight, double* npairs);
 extern void* BuildNGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                         double minrpar, double maxrpar,
                          double* xi, double* xi_im,
                          double* meanr, double* meanlogr, double* weight, double* npairs);
 extern void* BuildKKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                         double minrpar, double maxrpar,
                          double* xi,
                          double* meanr, double* meanlogr, double* weight, double* npairs);
 extern void* BuildKGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                         double minrpar, double maxrpar,
                          double* xi, double* xi_im,
                          double* meanr, double* meanlogr, double* weight, double* npairs);
 extern void* BuildGGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                         double minrpar, double maxrpar,
                          double* xip, double* xip_im, double* xim, double* xim_im,
                          double* meanr, double* meanlogr, double* weight, double* npairs);
 
@@ -41,55 +47,24 @@ extern void DestroyKKCorr(void* corr);
 extern void DestroyKGCorr(void* corr);
 extern void DestroyGGCorr(void* corr);
 
-extern void ProcessAutoNNFlat(void* corr, void* field, int dots);
-extern void ProcessAutoNN3D(void* corr, void* field, int dots);
-extern void ProcessAutoNNPerp(void* corr, void* field, int dots);
-extern void ProcessAutoKKFlat(void* corr, void* field, int dots);
-extern void ProcessAutoKK3D(void* corr, void* field, int dots);
-extern void ProcessAutoKKPerp(void* corr, void* field, int dots);
-extern void ProcessAutoGGFlat(void* corr, void* field, int dots);
-extern void ProcessAutoGG3D(void* corr, void* field, int dots);
-extern void ProcessAutoGGPerp(void* corr, void* field, int dots);
+extern void ProcessAutoNN(void* corr, void* field, int dots, int coord, int metric);
+extern void ProcessAutoKK(void* corr, void* field, int dots, int coord, int metric);
+extern void ProcessAutoGG(void* corr, void* field, int dots, int coord, int metric);
 
-extern void ProcessCrossNNFlat(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossNN3D(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossNNPerp(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossNKFlat(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossNK3D(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossNKPerp(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossNV3D(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossNGFlat(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossNG3D(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossNGPerp(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossKKFlat(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossKK3D(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossKKPerp(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossKGFlat(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossKG3D(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossKGPerp(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossGGFlat(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossGG3D(void* corr, void* field1, void* field2, int dots);
-extern void ProcessCrossGGPerp(void* corr, void* field1, void* field2, int dots);
+extern void ProcessCrossNN(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessCrossNK(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessCrossNV(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessCrossNG(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessCrossKK(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessCrossKG(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessCrossGG(void* corr, void* field1, void* field2, int dots, int coord, int metric);
 
-extern void ProcessPairwiseNNFlat(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseNN3D(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseNNPerp(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseNKFlat(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseNK3D(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseNKPerp(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseNV3D(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseNGFlat(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseNG3D(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseNGPerp(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseKKFlat(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseKK3D(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseKKPerp(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseKGFlat(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseKG3D(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseKGPerp(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseGGFlat(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseGG3D(void* corr, void* field1, void* field2, int dots);
-extern void ProcessPairwiseGGPerp(void* corr, void* field1, void* field2, int dots);
+extern void ProcessPairNN(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessPairNK(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessPairNV(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessPairNG(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessPairKK(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessPairKG(void* corr, void* field1, void* field2, int dots, int coord, int metric);
+extern void ProcessPairGG(void* corr, void* field1, void* field2, int dots, int coord, int metric);
 
 extern int SetOMPThreads(int num_threads);
-

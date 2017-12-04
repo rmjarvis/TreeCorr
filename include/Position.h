@@ -17,14 +17,11 @@
 
 #include <complex>
 
+// The Coord enum is defined here:
+#include "Position_C.h"
+
 template <typename T>
 inline T SQR(T x) { return x * x; }
-
-// There are three kinds of coordinate systems we can use:
-// 1 = Flat = (x,y) coordinates
-// 2 = ThreeD (called 3d in python) = (x,y,z) coordinates
-// 3 = Sphere = (ra,dec)  These are stored as (x,y,z), but normalized to have |r| = 1.
-enum Coord { Flat=1, ThreeD=2, Sphere=3 };
 
 template <int C>
 class Position;
@@ -38,30 +35,48 @@ class Position<Flat>
 {
 
 public:
-    Position() : _x(0.), _y(0.) {}
-    Position(const Position<Flat>& rhs) :  _x(rhs._x), _y(rhs._y) {}
+    Position() : _x(0.), _y(0.), _normsq(0.), _norm(0.) {}
+    Position(const Position<Flat>& rhs) :
+        _x(rhs._x), _y(rhs._y), _normsq(rhs._normsq), _norm(rhs._norm) {}
     ~Position() {}
-    Position(double x, double y) : _x(x), _y(y) {}
-    Position& operator=(const Position<Flat>& rhs) 
-    { _x = rhs._x; _y = rhs._y; return *this; }
+    Position(double x, double y) : _x(x), _y(y), _normsq(0.), _norm(0.) {}
+    Position& operator=(const Position<Flat>& rhs)
+    {
+        _x = rhs._x; _y = rhs._y;
+        _normsq = rhs._normsq; _norm = rhs._norm;
+        return *this;
+    }
 
     double getX() const { return _x; }
     double getY() const { return _y; }
     double get(int split) const { return split==1 ? _y : _x; }
     operator std::complex<double>() const { return std::complex<double>(_x,_y); }
 
-    double normSq() const { return _x*_x+_y*_y; }
-    double norm() const { return sqrt(normSq()); }
+    double normSq() const
+    {
+        if (_normsq == 0.) _normsq = _x*_x + _y*_y;
+        return _normsq;
+    }
+    double norm() const
+    {
+        if (_norm == 0.) _norm = sqrt(normSq());
+        return _norm;
+    }
     void normalize() {}
 
+    double dot(const Position<Flat>& p2) const
+    { return _x*p2._x + _y*p2._y; }
+    double cross(const Position<Flat>& p2) const
+    { return _x*p2._y - _y*p2._x; }
+
     Position<Flat>& operator+=(const Position<Flat>& p2)
-    { _x += p2.getX(); _y += p2.getY(); return *this; }
+    { _x += p2.getX(); _y += p2.getY(); resetNorm(); return *this; }
     Position<Flat>& operator-=(const Position<Flat>& p2)
-    { _x -= p2.getX(); _y -= p2.getY(); return *this; }
+    { _x -= p2.getX(); _y -= p2.getY(); resetNorm(); return *this; }
     Position<Flat>& operator*=(double a)
-    { _x *= a; _y *= a; return *this; }
+    { _x *= a; _y *= a; resetNorm(); return *this; }
     Position<Flat>& operator/=(double a)
-    { _x /= a; _y /= a; return *this; }
+    { _x /= a; _y /= a; resetNorm(); return *this; }
 
     Position<Flat> operator+(const Position<Flat>& p2) const
     { Position<Flat> p1 = *this; p1 += p2; return p1; }
@@ -72,13 +87,16 @@ public:
     Position<Flat> operator/(double a) const
     { Position<Flat> p1 = *this; p1 /= a; return p1; }
 
-    void read(std::istream& fin) { fin >> _x >> _y; }
+    void read(std::istream& fin) { fin >> _x >> _y; resetNorm(); }
     void write(std::ostream& fout) const
     { fout << _x << " " << _y << " "; }
 
-private:
+protected:
+    void resetNorm() { _normsq = _norm = 0.; }
 
+private:
     double _x,_y;
+    mutable double _normsq, _norm;
 
 }; // Position<Flat>
 
@@ -96,36 +114,57 @@ inline std::istream& operator>>(std::istream& os, Position<C>& pos)
 //
 
 template <>
-class Position<ThreeD> 
+class Position<ThreeD>
 {
 
 public:
-    Position() : _x(0.), _y(0.), _z(0.) {}
-    Position(const Position<ThreeD>& rhs) : 
-        _x(rhs._x), _y(rhs._y), _z(rhs._z) {}
+    Position() : _x(0.), _y(0.), _z(0.), _normsq(0.), _norm(0.) {}
+    Position(const Position<ThreeD>& rhs) :
+        _x(rhs._x), _y(rhs._y), _z(rhs._z), _normsq(rhs._normsq), _norm(rhs._norm) {}
     ~Position() {}
     Position(double x, double y, double z) :
-        _x(x), _y(y), _z(z) {}
-    Position<ThreeD>& operator=(const Position<ThreeD>& rhs) 
-    { _x = rhs.getX(); _y = rhs.getY(); _z = rhs.getZ(); return *this; }
+        _x(x), _y(y), _z(z), _normsq(0.), _norm(0.) {}
+    Position<ThreeD>& operator=(const Position<ThreeD>& rhs)
+    {
+        _x = rhs._x; _y = rhs._y; _z = rhs._z;
+        _normsq = rhs._normsq; _norm = rhs._norm;
+        return *this;
+    }
 
     double getX() const { return _x; }
     double getY() const { return _y; }
     double getZ() const { return _z; }
     double get(int split) const { return split==2 ? _z : split==1 ? _y : _x; }
 
-    double normSq() const { return _x*_x + _y*_y + _z*_z; }
-    double norm() const { return sqrt(normSq()); }
-    void normalize() {double n = norm();  _x /= n; _y /= n; _z /= n;  }
+    double normSq() const
+    {
+        if (_normsq == 0.) _normsq = _x*_x + _y*_y + _z*_z;
+        return _normsq;
+    }
+    double norm() const
+    {
+        if (_norm == 0.) _norm = sqrt(normSq());
+        return _norm;
+    }
+    void normalize() {}
+
+    double dot(const Position<ThreeD>& p2) const
+    { return _x*p2._x + _y*p2._y + _z*p2._z; }
+    Position<ThreeD> cross(const Position<ThreeD>& p2) const
+    {
+        return Position<ThreeD>(_y*p2._z - _z*p2._y,
+                                _z*p2._x - _x*p2._z,
+                                _x*p2._y - _y*p2._x);
+    }
 
     Position<ThreeD>& operator+=(const Position<ThreeD>& p2)
-    { _x += p2.getX(); _y += p2.getY(); _z += p2.getZ(); return *this; }
+    { _x += p2.getX(); _y += p2.getY(); _z += p2.getZ(); resetNorm(); return *this; }
     Position<ThreeD>& operator-=(const Position<ThreeD>& p2)
-    { _x -= p2.getX(); _y -= p2.getY(); _z -= p2.getZ(); return *this; }
+    { _x -= p2.getX(); _y -= p2.getY(); _z -= p2.getZ(); resetNorm(); return *this; }
     Position<ThreeD>& operator*=(double a)
-    { _x *= a; _y *= a; _z *= a; return *this; }
+    { _x *= a; _y *= a; _z *= a; resetNorm(); return *this; }
     Position<ThreeD>& operator/=(double a)
-    { _x /= a; _y /= a; _z /= a; return *this; }
+    { _x /= a; _y /= a; _z /= a; resetNorm(); return *this; }
 
     Position<ThreeD> operator+(const Position<ThreeD>& p2) const
     { Position<ThreeD> p1 = *this; p1 += p2; return p1; }
@@ -136,18 +175,22 @@ public:
     Position<ThreeD> operator/(double a) const
     { Position<ThreeD> p1 = *this; p1 /= a; return p1; }
 
-    void read(std::istream& fin) 
-    { fin >> _x >> _y >> _z; }
+    void read(std::istream& fin)
+    { fin >> _x >> _y >> _z; resetNorm(); }
     void write(std::ostream& fout) const
     { fout << _x << " " << _y << " " << _z << " "; }
 
+protected:
+    void resetNorm() { _normsq = _norm = 0.; }
+
 private:
     double _x,_y,_z;
+    mutable double _normsq, _norm;
 
 }; // Position<ThreeD>
 
 
-// Spherical coordinates are stored as (x,y,z) with 
+// Spherical coordinates are stored as (x,y,z) with
 // x = cos(dec) * cos(ra)
 // y = cos(dec) * sin(ra)
 // z = sin(dec)
@@ -162,13 +205,17 @@ class Position<Sphere> : public Position<ThreeD>
 public:
     Position() : Position<ThreeD>() {}
     Position(const Position<Sphere>& rhs) : Position<ThreeD>(rhs) {}
+    Position(const Position<ThreeD>& rhs) : Position<ThreeD>(rhs) { normalize(); }
     ~Position() {}
     Position(double x, double y, double z) : Position<ThreeD>(x,y,z) {}
-    Position<Sphere>& operator=(const Position<Sphere>& rhs) 
+    Position<Sphere>& operator=(const Position<Sphere>& rhs)
     { Position<ThreeD>::operator=(rhs); return *this; }
 
+    double normSq() const { return 1.; }
+    double norm() const { return 1.; }
+
     // If appropriate, put the position back on the unit sphere.
-    void normalize() { *this /= norm(); }
+    void normalize() { *this /= Position<ThreeD>::norm(); resetNorm(); }
 
     Position<Sphere>& operator+=(const Position<Sphere>& p2)
     { Position<ThreeD>::operator+=(p2); return *this; }

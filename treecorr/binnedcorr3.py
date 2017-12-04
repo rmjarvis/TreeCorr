@@ -16,6 +16,9 @@
 """
 
 import treecorr
+import math
+import numpy
+import sys
 
 class BinnedCorr3(object):
     """This class stores the results of a 3-point correlation calculation, along with some
@@ -76,8 +79,10 @@ class BinnedCorr3(object):
 
     :param sep_units:   The units to use for the separation values, given as a string.  This 
                         includes both min_sep and max_sep above, as well as the units of the 
-                        output R column.  Valid options are arcsec, arcmin, degrees, hours,
-                        radians.  (default: radians)
+                        output distance values.  Valid options are arcsec, arcmin, degrees, hours,
+                        radians.  (default: radians if angular units make sense, but for 3-d
+                        or flat 2-d positions, the default will just match the units of x,y[,z]
+                        coordinates)
     :param bin_slop:    How much slop to allow in the placement of pairs in the bins.
                         If bin_slop = 1, then the bin into which a particular pair is placed may
                         be incorrect by at most 1.0 bin widths.  (default: None, which means to
@@ -137,8 +142,17 @@ class BinnedCorr3(object):
                           with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
                           distance and :math:`Rparallel = |r1-r2|`, then we define
                           :math:`Rperp^2 = d^2 - Rparallel^2`.
+                        - 'Rlens' = the projected distance perpendicular to the first point
+                          in the pair (taken to be a lens) to the line of sight to the second
+                          point (e.g. a lensed source galaxy).
+                        - 'Arc' = the true great circle distance for spherical coordinates.
 
                         (default: 'Euclidean')
+
+    :param min_rpar:    For the 'Rperp' metric, the minimum difference in Rparallel to allow
+                        for pairs being included in the correlation function. (default: None)
+    :param max_rpar:    For the 'Rperp' metric, the maximum difference in Rparallel to allow
+                        for pairs being included in the correlation function. (default: None)
 
     :param num_threads: How many OpenMP threads to use during the calculation.  
                         (default: use the number of cpu cores; this value can also be given in
@@ -155,7 +169,7 @@ class BinnedCorr3(object):
         'max_sep' : (float, False, None, None,
                 'The maximum separation to include in the output.'),
         'sep_units' : (str, False, None, treecorr.angle_units.keys(),
-                'The units to use for min_sep and max_sep.  Also the units of the output r columns'),
+                'The units to use for min_sep and max_sep.  Also the units of the output distances'),
         'bin_slop' : (float, False, None, None,
                 'The fraction of a bin width by which it is ok to let the pairs miss the correct bin.',
                 'The default is to use 1 if bin_size <= 0.1, or 0.1/bin_size if bin_size > 0.1.'),
@@ -192,12 +206,15 @@ class BinnedCorr3(object):
                 'The number of digits after the decimal in the output.'),
         'num_threads' : (int, False, None, None,
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
-        'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp'],
+        'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp', 'Rlens', 'Arc'],
                 'Which metric to use for the distance measurements'),
+        'min_rpar': (float, False, None, None,
+                'For Rperp metric, the minimum difference in Rparallel for pairs to include'),
+        'max_rpar': (float, False, None, None,
+                'For Rperp metric, the maximum difference in Rparallel for pairs to include'),
     }
+
     def __init__(self, config=None, logger=None, **kwargs):
-        import math
-        import numpy
         self.config = treecorr.config.merge_config(config,kwargs,BinnedCorr3._valid_params)
         if logger is None:
             self.logger = treecorr.config.setup_logger(
@@ -223,8 +240,8 @@ class BinnedCorr3(object):
                 raise AttributeError("Missing required parameter min_sep")
             if 'bin_size' not in self.config:
                 raise AttributeError("Missing required parameter bin_size")
-            self.min_sep = float(self.config['min_sep']) * self.sep_units
-            self.max_sep = float(self.config['max_sep']) * self.sep_units
+            self.min_sep = float(self.config['min_sep'])
+            self.max_sep = float(self.config['max_sep'])
             if self.min_sep >= self.max_sep:
                 raise ValueError("max_sep must be larger than min_sep")
             self.bin_size = float(self.config['bin_size'])
@@ -236,8 +253,8 @@ class BinnedCorr3(object):
                 raise AttributeError("Missing required parameter max_sep")
             if 'min_sep' not in self.config:
                 raise AttributeError("Missing required parameter min_sep")
-            self.min_sep = float(self.config['min_sep']) * self.sep_units
-            self.max_sep = float(self.config['max_sep']) * self.sep_units
+            self.min_sep = float(self.config['min_sep'])
+            self.max_sep = float(self.config['max_sep'])
             if self.min_sep >= self.max_sep:
                 raise ValueError("max_sep must be larger than min_sep")
             self.nbins = int(self.config['nbins'])
@@ -245,14 +262,14 @@ class BinnedCorr3(object):
         elif 'max_sep' not in self.config:
             if 'min_sep' not in self.config:
                 raise AttributeError("Missing required parameter min_sep")
-            self.min_sep = float(self.config['min_sep']) * self.sep_units
+            self.min_sep = float(self.config['min_sep'])
             self.nbins = int(self.config['nbins'])
             self.bin_size = float(self.config['bin_size'])
             self.max_sep = math.exp(self.nbins*self.bin_size)*self.min_sep
         else:
             if 'min_sep' in self.config:
                 raise AttributeError("Only 3 of min_sep, max_sep, bin_size, nbins are allowed.")
-            self.max_sep = float(self.config['max_sep']) * self.sep_units
+            self.max_sep = float(self.config['max_sep'])
             self.nbins = int(self.config['nbins'])
             self.bin_size = float(self.config['bin_size'])
             self.min_sep = self.max_sep*math.exp(-self.nbins*self.bin_size)
@@ -263,6 +280,9 @@ class BinnedCorr3(object):
             self.logger.info("r: nbins = %d, min,max sep = %g..%g %s, bin_size = %g",
                              self.nbins,self.min_sep/self.sep_units,self.max_sep/self.sep_units,
                              self.sep_unit_name,self.bin_size)
+        # The underscore-prefixed names are in natural units (radians for angles)
+        self._min_sep = self.min_sep * self.sep_units
+        self._max_sep = self.max_sep * self.sep_units
 
         if 'nubins' not in self.config:
             self.min_u = float(self.config.get('min_u', 0.))
@@ -410,9 +430,6 @@ class BinnedCorr3(object):
         # Offset by the position of the center of the first bin.
         self.logr1d += math.log(self.min_sep) + 0.5*self.bin_size
 
-        # And correct the units:
-        self.logr1d -= self.log_sep_units
-
         self.u1d = numpy.linspace(start=0, stop=self.nubins*self.ubin_size, 
                                   num=self.nubins, endpoint=False)
         self.u1d += self.min_u + 0.5*self.ubin_size
@@ -428,6 +445,11 @@ class BinnedCorr3(object):
                             (self.nbins, 1, self.nvbins))
         self.v = numpy.tile(self.v1d[numpy.newaxis, numpy.newaxis, :],
                             (self.nbins, self.nubins, 1))
+        self.rnom = numpy.exp(self.logr)
+        self._coords = None
+        self._metric = None
+        self.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)
+        self.max_rpar = treecorr.config.get(self.config,'max_rpar',float,sys.float_info.max)
 
     def _process_all_auto(self, cat1, metric, num_threads):
         # I'm not sure which of these is more intuitive, but both are correct...
@@ -442,7 +464,7 @@ class BinnedCorr3(object):
                         for c3 in cat1:
                             if c3 is not c1 and c3 is not c2:
                                 self.process_cross(c1,c2,c3, metric, num_threads)
-        else:
+        else: # pragma: no cover
             for i,c1 in enumerate(cat1):
                 self.process_auto(c1)
                 for j,c2 in enumerate(cat1[i+1:]):
@@ -460,8 +482,8 @@ class BinnedCorr3(object):
                         self.process_cross(c3,c1,c2, metric, num_threads)
                         self.process_cross(c3,c2,c1, metric, num_threads)
 
-
-    def _process_all_cross21(self, cat1, cat2, metric, num_threads):
+    # These are not actually implemented yet.
+    def _process_all_cross21(self, cat1, cat2, metric, num_threads): # pragma: no cover
         for c1 in cat1:
             for c2 in cat2:
                 self.process_cross(c1,c1,c2, metric, num_threads)
@@ -470,13 +492,13 @@ class BinnedCorr3(object):
                     self.process_cross(c1,c3,c2, metric, num_threads)
                     self.process_cross(c3,c1,c2, metric, num_threads)
 
-    def _process_all_cross(self, cat1, cat2, cat3, metric, num_threads):
+    # These are not actually implemented yet.
+    def _process_all_cross(self, cat1, cat2, cat3, metric, num_threads): # pragma: nocover
         for c1 in cat1:
             for c2 in cat2:
                 for c3 in cat3:
                     self.process_cross(c1,c2,c3, metric, num_threads)
  
-
     def _set_num_threads(self, num_threads):
         if num_threads is None:
             num_threads = self.config.get('num_threads',None)
@@ -485,3 +507,58 @@ class BinnedCorr3(object):
         else:
             self.logger.debug('Set num_threads = %d',num_threads)
         treecorr.set_omp_threads(num_threads, self.logger)
+
+    def _set_metric(self, metric, coords1, coords2=None, coords3=None):
+        if metric is None:
+            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
+        coords, metric = treecorr.util.parse_metric(metric, coords1, coords2, coords3)
+        if self._coords != None or self._metric != None:
+            if coords != self._coords:
+                self.logger.warn("Detected a change in catalog coordinate systems. "
+                                 "This probably doesn't make sense!")
+            if metric != self._metric:
+                self.logger.warn("Detected a change in metric. "
+                                 "This probably doesn't make sense!")
+        if metric not in ['Rlens', 'Rperp']:
+            if self.min_rpar != -sys.float_info.max:
+                raise ValueError("min_rpar is only valid with either Rlens or Rperp metric.")
+            if self.max_rpar != sys.float_info.max:
+                raise ValueError("max_rpar is only valid with either Rlens or Rperp metric.")
+        if metric in [treecorr._lib.Perp, treecorr._lib.Lens]:
+            if self.sep_units != 1.:
+                raise ValueError("sep_units is invalid with either Rlens or Rperp metric. "+
+                                 "min_sep and max_sep should be in the same units as r (or x,y,z)")
+        self._coords = coords
+        self._metric = metric
+
+    def _apply_units(self, mask):
+        if self._coords == treecorr._lib.Sphere and self._metric == treecorr._lib.Euclidean:
+            # Then our distances are all angles.  Convert from the chord distance to a real angle.
+            # L = 2 sin(theta/2)
+            self.meand1[mask] = 2. * numpy.arcsin(self.meand1[mask]/2.)
+            self.meanlogd1[mask] = numpy.log(2.*numpy.arcsin(numpy.exp(self.meanlogd1[mask])/2.))
+            self.meand2[mask] = 2. * numpy.arcsin(self.meand2[mask]/2.)
+            self.meanlogd2[mask] = numpy.log(2.*numpy.arcsin(numpy.exp(self.meanlogd2[mask])/2.))
+            self.meand3[mask] = 2. * numpy.arcsin(self.meand3[mask]/2.)
+            self.meanlogd3[mask] = numpy.log(2.*numpy.arcsin(numpy.exp(self.meanlogd3[mask])/2.))
+
+        self.meand1[mask] /= self.sep_units
+        self.meanlogd1[mask] -= self.log_sep_units
+        self.meand2[mask] /= self.sep_units
+        self.meanlogd2[mask] -= self.log_sep_units
+        self.meand3[mask] /= self.sep_units
+        self.meanlogd3[mask] -= self.log_sep_units
+
+    def _get_minmax_size(self):
+        b = numpy.max( (self.b, self.bu, self.bv) )
+        if self._metric == treecorr._lib.Euclidean:
+            # The minimum separation we care about is that of the smallest size, which is
+            # min_sep * min_u.  Do the same calculation as for 2pt to get to min_size.
+            min_size = self._min_sep * self.min_u * b / (2.+3.*b)
+
+            # This time, the maximum size is d1 * b.  d1 can be as high as 2*max_sep.
+            max_size = 2. * self._max_sep * b
+            return min_size, max_size
+        else:
+            return 0., 0.
+

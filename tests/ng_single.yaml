@@ -1,0 +1,20 @@
+
+file_name: data/ng_single_lens.dat
+file_name2: data/ng_single_source.dat
+
+x_col: 1
+y_col: 2
+x_units: arcmin
+y_units: arcmin
+
+g1_col: 3
+g2_col: 4
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 25.
+bin_size: 0.10
+sep_units: arcmin
+
+ng_file_name: output/ng_single.out

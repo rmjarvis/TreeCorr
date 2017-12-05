@@ -79,6 +79,7 @@ class NVCorrelation(treecorr.BinnedCorr2):
         from treecorr.util import double_ptr as dp
         self.corr = treecorr._lib.BuildNVCorr(
                 self.min_sep,self.max_sep,self.nbins,self.bin_size,self.b,
+                self.min_rpar, self.max_rpar,
                 dp(self.xi),
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
 
@@ -118,12 +119,12 @@ class NVCorrelation(treecorr.BinnedCorr2):
 
         :param cat1:        The first catalog to process
         :param cat2:        The second catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.NVCorrelation.process` for 
-                            details.  (default: 'Euclidean'; this value can also be given in the 
+        :param metric:      Which metric to use.  See :meth:`~treecorr.NVCorrelation.process` for
+                            details.  (default: 'Euclidean'; this value can also be given in the
                             constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         if cat1.name == '' and cat2.name == '':
@@ -132,26 +133,18 @@ class NVCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process NV cross-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
-        if cat1.coords != cat2.coords:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and cat1.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        self._set_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
-        min_size = self.min_sep * self.b / (2.+3.*self.b);
-        if metric == 'Rperp': min_size /= 2.
-        max_size = self.max_sep * self.b
+        min_size, max_size = self._get_minmax_size()
 
         f1 = cat1.getNField(min_size,max_size,self.split_method,self.max_top)
         f2 = cat2.getVField(min_size,max_size,self.split_method,self.max_top)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        treecorr._lib.ProcessCrossNV3D(self.corr, f1.data, f2.data, self.output_dots)
+        treecorr._lib.ProcessCrossNV(self.corr, f1.data, f2.data, self.output_dots,
+                                     self._coords, self._metric)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -165,12 +158,12 @@ class NVCorrelation(treecorr.BinnedCorr2):
 
         :param cat1:        The first catalog to process
         :param cat2:        The second catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.NVCorrelation.process` for 
-                            details.  (default: 'Euclidean'; this value can also be given in the 
+        :param metric:      Which metric to use.  See :meth:`~treecorr.NVCorrelation.process` for
+                            details.  (default: 'Euclidean'; this value can also be given in the
                             constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         if cat1.name == '' and cat2.name == '':
@@ -179,21 +172,15 @@ class NVCorrelation(treecorr.BinnedCorr2):
             self.logger.info('Starting process NV pairwise-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
-        if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Euclidean', 'Rperp']:
-            raise ValueError("Invalid metric.")
-        if cat1.coords != cat2.coords:
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
-        if metric == 'Rperp' and cat1.coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
+        self._set_metric(metric, cat1.coords, cat2.coords)
 
         self._set_num_threads(num_threads)
 
         f1 = cat1.getNSimpleField()
         f2 = cat2.getVSimpleField()
 
-        treecorr._lib.ProcessPairwiseNV3D(self.corr, f1.data, f2.data, self.output_dots)
+        treecorr._lib.ProcessPairNV(self.corr, f1.data, f2.data, self.output_dots,
+                                     self._coords, self._metric)
 
 
     def finalize(self):
@@ -235,7 +222,7 @@ class NVCorrelation(treecorr.BinnedCorr2):
     def __iadd__(self, other):
         """Add a second NVCorrelation's data to this one.
 
-        Note: For this to make sense, both Correlation objects should have been using 
+        Note: For this to make sense, both Correlation objects should have been using
         process_cross, and they should not have had finalize called yet.
         Then, after adding them together, you should call finalize on the sum.
         """
@@ -257,7 +244,7 @@ class NVCorrelation(treecorr.BinnedCorr2):
     def process(self, cat1, cat2, metric=None, num_threads=None):
         """Compute the correlation function.
 
-        Both arguments may be lists, in which case all items in the list are used 
+        Both arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
 
         :param cat1:        A catalog or list of catalogs for the N field.
@@ -268,16 +255,16 @@ class NVCorrelation(treecorr.BinnedCorr2):
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
                             - 'Rperp' = the perpendicular component of the distance. For two points
-                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean
                               distance and :math:`Rparallel = |r1-r2|`, then we define
                               :math:`Rperp^2 = d^2 - Rparallel^2`.
 
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
 
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         import math
@@ -289,7 +276,7 @@ class NVCorrelation(treecorr.BinnedCorr2):
             raise ValueError("No catalogs provided for cat1")
         if len(cat2) == 0:
             raise ValueError("No catalogs provided for cat2")
-        
+
         self._process_all_cross(cat1,cat2,metric,num_threads)
         self.finalize()
 

@@ -20,6 +20,7 @@ extern void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize
                          double* xi,
                          double* meanr, double* meanlogr, double* weight, double* npairs);
 extern void* BuildNVCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                         double minrpar, double maxrpar,
                          double* xi,
                          double* meanr, double* meanlogr, double* weight, double* npairs);
 extern void* BuildNGCorr(double minsep, double maxsep, int nbins, double binsize, double b,

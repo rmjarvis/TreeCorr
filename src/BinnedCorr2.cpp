@@ -546,12 +546,14 @@ void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, doubl
 }
 
 void* BuildNVCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+                  double minrpar, double maxrpar,
                   double* xi,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildNVCorr\n";
     void* corr = static_cast<void*>(new BinnedCorr2<NData,VData>(
             minsep, maxsep, nbins, binsize, b,
+            minrpar, maxrpar,
             xi, 0, 0, 0,
             meanr, meanlogr, weight, npairs));
     xdbg<<"corr = "<<corr<<std::endl;
@@ -813,12 +815,20 @@ void ProcessCrossNK(void* corr, void* field1, void* field2, int dots, int coord,
             Assert(false);
     }
 }
-void ProcessCrossNV3D(void* corr, void* field1, void* field2, int dots)
+void ProcessCrossNV(void* corr, void* field1, void* field2, int dots, int coord, int metric)
 {
-    dbg<<"Start ProcessCrossNV3D\n";
-    static_cast<BinnedCorr2<NData,VData>*>(corr)->process<ThreeD,Euclidean>(
-        *static_cast<Field<NData,ThreeD>*>(field1),
-        *static_cast<Field<VData,ThreeD>*>(field2),dots);
+    dbg<<"Start ProcessCrossNV\n";
+    if (coord == ThreeD) {
+        if (metric == Euclidean)
+        static_cast<BinnedCorr2<NData,VData>*>(corr)->process<ThreeD,Euclidean>(
+            *static_cast<Field<NData,ThreeD>*>(field1),
+            *static_cast<Field<VData,ThreeD>*>(field2),dots);
+        else
+            Assert(false);
+    } else {
+      Assert(false);
+    }
+
 }
 
 void ProcessCrossNG(void* corr, void* field1, void* field2, int dots, int coord, int metric)
@@ -1012,33 +1022,23 @@ void ProcessPairNK(void* corr, void* field1, void* field2, int dots, int coord, 
             Assert(false);
     }
 }
-<<<<<<< HEAD
-void ProcessPairwiseNV3D(void* corr, void* field1, void* field2, int dots)
+
+void ProcessPairNV(void* corr, void* field1, void* field2, int dots, int coord, int metric)
 {
-    dbg<<"Start ProcessPairwiseNV3D\n";
-    static_cast<BinnedCorr2<NData,VData>*>(corr)->processPairwise<ThreeD,Euclidean>(
-        *static_cast<SimpleField<NData,ThreeD>*>(field1),
-        *static_cast<SimpleField<VData,ThreeD>*>(field2),dots);
+    dbg<<"Start ProcessPairNV\n";
+    if (coord == ThreeD) {
+        if (metric == Euclidean)
+        static_cast<BinnedCorr2<NData,VData>*>(corr)->processPairwise<ThreeD,Euclidean>(
+            *static_cast<SimpleField<NData,ThreeD>*>(field1),
+            *static_cast<SimpleField<VData,ThreeD>*>(field2),dots);
+        else
+            Assert(false);
+    } else {
+            Assert(false);
+    }
 }
-void ProcessPairwiseNGFlat(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessPairwiseNGFlat\n";
-    static_cast<BinnedCorr2<NData,GData>*>(corr)->processPairwise<Flat,Euclidean>(
-        *static_cast<SimpleField<NData,Flat>*>(field1),
-        *static_cast<SimpleField<GData,Flat>*>(field2),dots);
-}
-void ProcessPairwiseNG3D(void* corr, void* field1, void* field2, int dots)
-{
-    dbg<<"Start ProcessPairwiseNG3D\n";
-    static_cast<BinnedCorr2<NData,GData>*>(corr)->processPairwise<ThreeD,Euclidean>(
-        *static_cast<SimpleField<NData,ThreeD>*>(field1),
-        *static_cast<SimpleField<GData,ThreeD>*>(field2),dots);
-}
-void ProcessPairwiseNGPerp(void* corr, void* field1, void* field2, int dots)
-=======
 
 void ProcessPairNG(void* corr, void* field1, void* field2, int dots, int coord, int metric)
->>>>>>> master
 {
     dbg<<"Start ProcessPairNG\n";
     if (coord == Flat) {

@@ -220,19 +220,7 @@ struct ProjectHelper<Sphere>
         ProjectShear1(p2,cen,g2);
         ProjectShear1(p3,cen,g3);
     }
-    
-    template <int DC1>
-    static void ProjectVector(
-        const Cell<DC1,ThreeD>& c1, const Cell<VData,ThreeD>& c2,
-        double dsq, double & g)
-    {
-        double x = c2.getData().getPos().getX() - c1.getData().getPos().getX();
-        double y = c2.getData().getPos().getY() - c1.getData().getPos().getY();
-        double z = c2.getData().getPos().getZ() - c1.getData().getPos().getZ();
-        double n = sqrt(x*x + y*y + z*z);
-        Vect wv =  c2.getData().getWV();
-        g = pow(wv.getX()*x/n + wv.getY()*y/n + wv.getZ()*z/n, 2.0); 
-    }
+
 };
 
 // The projections for ThreeD are basically the same as for Sphere.
@@ -285,6 +273,19 @@ struct ProjectHelper<ThreeD>
         ProjectHelper<Sphere>::ProjectShear1(sp1,cen,g1);
         ProjectHelper<Sphere>::ProjectShear1(sp2,cen,g2);
         ProjectHelper<Sphere>::ProjectShear1(sp3,cen,g3);
+    }
+
+    template <int DC1>
+    static void ProjectVector(
+        const Cell<DC1,ThreeD>& c1, const Cell<VData,ThreeD>& c2,
+        double dsq, double & g)
+    {
+        double x = c2.getData().getPos().getX() - c1.getData().getPos().getX();
+        double y = c2.getData().getPos().getY() - c1.getData().getPos().getY();
+        double z = c2.getData().getPos().getZ() - c1.getData().getPos().getZ();
+        double n = sqrt(x*x + y*y + z*z);
+        Vect wv =  c2.getData().getWV();
+        g = pow(wv.getX()*x/n + wv.getY()*y/n + wv.getZ()*z/n, 2.0);
     }
 };
 

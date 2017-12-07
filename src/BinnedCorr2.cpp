@@ -295,6 +295,14 @@ void BinnedCorr2<D1,D2>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2)
 
     // See if need to split:
     bool split1=false, split2=false;
+    // In the case of an NV correlation, we are splitting the cells down to
+    // individual objects
+    if (D2 == VData){
+      if (s2 <= 1)
+        split2 = false;
+      else
+        split2 = true;
+    };
     CalcSplitSq(split1,split2,dsq,s1,s2,_bsq);
     //dbg<<"dsq = "<<dsq<<", s1ps2 = "<<s1ps2<<"  ";
     //dbg<<"s1ps2 / d = "<<s1ps2 / sqrt(dsq)<<", b = "<<_b<<"  ";

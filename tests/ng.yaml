@@ -8,8 +8,8 @@ y_col: 2
 x_units: arcmin
 y_units: arcmin
 
-g1_col: 3
-g2_col: 4
+g1_col: [0, 3]
+g2_col: [0, 4]
 
 verbose: 1
 

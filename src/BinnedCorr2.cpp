@@ -260,7 +260,7 @@ template <int D1, int D2> template <int C, int M>
 void BinnedCorr2<D1,D2>::process2(const Cell<D1,C>& c12)
 {
     if (c12.getW() == 0.) return;
-    if (c12.getSize() < _halfminsep) return;
+    if (c12.getSize() <= _halfminsep) return;
 
     Assert(c12.getLeft());
     Assert(c12.getRight());

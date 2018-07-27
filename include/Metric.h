@@ -402,5 +402,67 @@ struct MetricHelper<Arc>
     { return int((logr - logminr) / binsize); }
 };
 
+
+// The TwoD metric is only valid for the Flat Coord.
+template <>
+struct MetricHelper<TwoD>
+{
+    ///
+    //
+    // Flat
+    //
+    ///
+
+    // Most things are the same as Euclidean:
+    static double DistSq(const Position<Flat>& p1, const Position<Flat>& p2,
+                         double& s1, double& s2)
+    {
+        Position<Flat> r = p1-p2;
+        return r.normSq();
+    }
+    static double Dist(const Position<Flat>& p1, const Position<Flat>& p2)
+    {
+        double s=0.;
+        return sqrt(DistSq(p1,p2,s,s));
+    }
+
+    static bool CCW(const Position<Flat>& p1, const Position<Flat>& p2, const Position<Flat>& p3)
+    {
+        // If cross product r21 x r31 > 0, then the points are counter-clockwise.
+        Position<Flat> r21 = p2 - p1;
+        Position<Flat> r31 = p3 - p1;
+        return r21.cross(r31) > 0.;
+    }
+
+    static bool TooSmallDist(const Position<Flat>& , const Position<Flat>& , double s1ps2,
+                             double dsq, double minsep, double minsepsq, double minrpar)
+    { return dsq < minsepsq && s1ps2 < minsep && dsq < SQR(minsep - s1ps2); }
+
+    static bool TooLargeDist(const Position<Flat>& , const Position<Flat>& , double s1ps2,
+                             double dsq, double maxsep, double maxsepsq, double maxrpar)
+    { return dsq >= maxsepsq && dsq >= SQR(maxsep + s1ps2); }
+
+    // This is the one thing that is different.
+    // Here we compute a 1-d index into a 2-d binning array.
+    // The array is ordered as dx, dy = (-nb,-nb), ... (-b, -nb), (0,-nb), (b,-nb), ... (nb,-nb),
+    //                                  ...
+    //                                  (-nb,0), ... (-b,0), (0,0), (b,0), (2b,0), ... (nb,0),
+    //                                  (-nb,b), ... (-b,b), (0,b), (b,b), (2b,b), ... (nb,b),
+    //                                  ...
+    //                                  (-nb,nb), ... (-b,nb), (0,nb), (b,nb),  ... (nb,nb)
+    static int CalculateBinK(const Position<Flat>& p1, const Position<Flat>& p2,
+                             double , double , double binsize,
+                             double , double , double maxsep)
+    {
+        double dx = p2.getX() - p1.getX();
+        double dy = p2.getY() - p1.getY();
+        int i = int((dx + maxsep) / binsize);
+        int j = int((dy + maxsep) / binsize);
+        int n = int(maxsep / binsize);
+        return j*(2*n+1) + i;
+    }
+};
+
+
 #endif
 

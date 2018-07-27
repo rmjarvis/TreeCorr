@@ -294,8 +294,11 @@ class BinnedCorr2(object):
             self.dx = self.dx.ravel()
             self.dy = self.dy.ravel()
             self.rnom = numpy.sqrt(self.dx**2 + self.dy**2)
-            self.logr = numpy.log(self.rnom)
-            self._metric = treecorr._lib.TwoD  # So we get a warning if process doesn't use this.
+            self.logr = numpy.zeros_like(self.rnom)
+            numpy.log(self.rnom, out=self.logr, where=self.rnom > 0)
+            self.logr[self.rnom==0.] = -numpy.inf
+            self._coords, self._metric = treecorr.util.parse_metric(metric, 'flat')
+            self._nbins = len(self.rnom)
         else:
             # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
             self.logr = numpy.linspace(start=0, stop=self.nbins*self.bin_size, 
@@ -303,7 +306,9 @@ class BinnedCorr2(object):
             # Offset by the position of the center of the first bin.
             self.logr += math.log(self.min_sep) + 0.5*self.bin_size
             self.rnom = numpy.exp(self.logr)
-        self._coords = None
+            self._nbins = self.nbins
+            self._coords = None
+            self._metric = None
         self.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)
         self.max_rpar = treecorr.config.get(self.config,'max_rpar',float,sys.float_info.max)
 

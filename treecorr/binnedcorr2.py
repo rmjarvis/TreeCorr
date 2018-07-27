@@ -289,10 +289,10 @@ class BinnedCorr2(object):
             self.logger.debug("Using bin_slop = %g, b = %g",self.bin_slop,self.b)
 
         if metric == 'TwoD':
-            sep = np.linspace(-self.max_sep,self.max_sep,2*self.nbins+1,dtype=float)
-            self.dx, self.dy = np.meshgrid(sep, sep)
-            self.rnom = np.sqrt(self.dx**2 + self.dy**2)
-            self.logr = np.log(self.rnom)
+            sep = numpy.linspace(-self.max_sep,self.max_sep,2*self.nbins+1,dtype=float)
+            self.dx, self.dy = numpy.meshgrid(sep, sep)
+            self.rnom = numpy.sqrt(self.dx**2 + self.dy**2)
+            self.logr = numpy.log(self.rnom)
             self._metric = treecorr._lib.TwoD  # So we get a warning if process doesn't use this.
         else:
             # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size

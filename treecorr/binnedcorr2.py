@@ -129,6 +129,8 @@ class BinnedCorr2(object):
                           in the pair (taken to be a lens) to the line of sight to the second
                           point (e.g. a lensed source galaxy).
                         - 'Arc' = the true great circle distance for spherical coordinates.
+                        - 'TwoD' = 2-dimensional binning from x = (-maxsep .. maxsep) and 
+                          y = (-maxsep .. maxsep)
 
                         (default: 'Euclidean')
 
@@ -177,7 +179,7 @@ class BinnedCorr2(object):
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
         'm2_uform' : (str, False, 'Crittenden', ['Crittenden', 'Schneider'],
                 'The function form of the mass aperture.'),
-        'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp', 'Rlens', 'Arc'],
+        'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp', 'Rlens', 'Arc', 'TwoD'],
                 'Which metric to use for the distance measurements'),
         'min_rpar': (float, False, None, None,
                 'For Rperp metric, the minimum difference in Rparallel for pairs to include'),
@@ -201,6 +203,8 @@ class BinnedCorr2(object):
         else:
             self.output_dots = False
 
+        metric = self.config.get('metric', None)
+
         self.sep_units = treecorr.config.get(self.config,'sep_units',str,'radians')
         self.sep_unit_name = self.config.get('sep_units','')
         self.log_sep_units = math.log(self.sep_units)
@@ -219,6 +223,7 @@ class BinnedCorr2(object):
             self.nbins = int(math.ceil(math.log(self.max_sep/self.min_sep)/self.bin_size))
             # Update max_sep given this value of nbins
             self.max_sep = math.exp(self.nbins*self.bin_size)*self.min_sep
+            # TODO: add metric==TwoD here
         elif 'bin_size' not in self.config:
             if 'max_sep' not in self.config:
                 raise AttributeError("Missing required parameter max_sep")
@@ -229,7 +234,10 @@ class BinnedCorr2(object):
             if self.min_sep >= self.max_sep:
                 raise ValueError("max_sep must be larger than min_sep")
             self.nbins = int(self.config['nbins'])
-            self.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
+            if metric == 'TwoD':
+                self.bin_size = self.max_sep/self.nbins
+            else:
+                self.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
         elif 'max_sep' not in self.config:
             if 'min_sep' not in self.config:
                 raise AttributeError("Missing required parameter min_sep")
@@ -237,6 +245,7 @@ class BinnedCorr2(object):
             self.nbins = int(self.config['nbins'])
             self.bin_size = float(self.config['bin_size'])
             self.max_sep = math.exp(self.nbins*self.bin_size)*self.min_sep
+            # TODO: add metric==TwoD here
         else:
             if 'min_sep' in self.config:
                 raise AttributeError("Only 3 of min_sep, max_sep, bin_size, nbins are allowed.")
@@ -244,6 +253,7 @@ class BinnedCorr2(object):
             self.nbins = int(self.config['nbins'])
             self.bin_size = float(self.config['bin_size'])
             self.min_sep = self.max_sep*math.exp(-self.nbins*self.bin_size)
+            # TODO: add metric==TwoD here
         if self.sep_unit_name == '':
             self.logger.info("nbins = %d, min,max sep = %g..%g, bin_size = %g",
                              self.nbins, self.min_sep, self.max_sep, self.bin_size)
@@ -278,14 +288,20 @@ class BinnedCorr2(object):
         else:
             self.logger.debug("Using bin_slop = %g, b = %g",self.bin_slop,self.b)
 
-        # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
-        self.logr = numpy.linspace(start=0, stop=self.nbins*self.bin_size, 
-                                   num=self.nbins, endpoint=False)
-        # Offset by the position of the center of the first bin.
-        self.logr += math.log(self.min_sep) + 0.5*self.bin_size
-        self.rnom = numpy.exp(self.logr)
+        if metric == 'TwoD':
+            sep = np.linspace(-self.max_sep,self.max_sep,2*self.nbins+1,dtype=float)
+            self.dx, self.dy = np.meshgrid(sep, sep)
+            self.rnom = np.sqrt(self.dx**2 + self.dy**2)
+            self.logr = np.log(self.rnom)
+            self._metric = treecorr._lib.TwoD  # So we get a warning if process doesn't use this.
+        else:
+            # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
+            self.logr = numpy.linspace(start=0, stop=self.nbins*self.bin_size, 
+                                       num=self.nbins, endpoint=False)
+            # Offset by the position of the center of the first bin.
+            self.logr += math.log(self.min_sep) + 0.5*self.bin_size
+            self.rnom = numpy.exp(self.logr)
         self._coords = None
-        self._metric = None
         self.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)
         self.max_rpar = treecorr.config.get(self.config,'max_rpar',float,sys.float_info.max)
 
@@ -319,6 +335,9 @@ class BinnedCorr2(object):
         treecorr.set_omp_threads(num_threads, self.logger)
 
     def _set_metric(self, metric, coords1, coords2=None):
+        if metric == 'TwoD' and self._metric != treecorr._lib.TwoD:
+            raise ValueError("metric=TwoD requires that the BinnedCorr2 object also be "
+                             "initialized with the metric='TwoD' kwarg")
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
         coords, metric = treecorr.util.parse_metric(metric, coords1, coords2)

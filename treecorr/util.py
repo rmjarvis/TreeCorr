@@ -316,6 +316,10 @@ def parse_metric(metric, coords, coords2=None, coords3=None):
         if coords != 'spherical':
             raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
         m = treecorr._lib.Arc
+    elif metric == 'TwoD':
+        if coords != 'flat':
+            raise ValueError("TwoD metric is only valid for catalogs with flat 2d positions.")
+        m = treecorr._lib.TwoD
     else:
         raise ValueError("Invalid metric %s"%metric)
 

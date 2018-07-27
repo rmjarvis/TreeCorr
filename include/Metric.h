@@ -18,6 +18,7 @@
 // The Metric enum is defined here:
 #include "Metric_C.h"
 #include <limits>
+#include <cmath>
 
 
 template <int M>
@@ -458,7 +459,7 @@ struct MetricHelper<TwoD>
         double dy = p2.getY() - p1.getY();
         int i = int((dx + maxsep) / binsize);
         int j = int((dy + maxsep) / binsize);
-        int n = int(maxsep / binsize);
+        int n = int(std::ceil(maxsep / binsize));
         return j*(2*n+1) + i;
     }
 };

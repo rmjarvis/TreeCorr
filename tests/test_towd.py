@@ -59,9 +59,6 @@ def corr2d(x, y, kappa, kappa_err=None,
 
 def test_twod():
 
-    #import pylab as plt
-    #plt.figure()
-    #for i in range(100):
     np.random.seed(42)
     N = 1000
     x = np.random.uniform(-10, 10, N)
@@ -86,16 +83,13 @@ def test_twod():
     kappa_err = np.ones_like(kappa) * (A/10.)
 
     cat = treecorr.Catalog(x=x, y=y, k=kappa, w=1./kappa_err**2)
-    kk = treecorr.KKCorrelation(min_sep=1., max_sep=10., nbins=10)
-    kk.process(cat)
+    kk = treecorr.KKCorrelation(min_sep=1., max_sep=10., nbins=10, metric='TwoD')
+    kk.process(cat, metric='TwoD')
 
     xi_brut, xi_x_brut, xi_y_brut = corr2d(x, y, kappa, kappa_err=None,
                                            rmax=10., bins=10)
-    
-    #plt.scatter(kk.meanr, kk.xi)
-    #plt.plot(kk.meanr, (A**2 * np.exp(-0.5 * (kk.meanr/size)**2)))
-    #plt.show()
+    return kk
     
 if __name__ == '__main__':
 
-    test_twod()
+    kk = test_twod()

@@ -66,6 +66,10 @@ struct MetricHelper<Euclidean>
                              double dsq, double maxsep, double maxsepsq, double maxrpar)
     { return dsq >= maxsepsq && dsq >= SQR(maxsep + s1ps2); }
 
+    static int CalculateBinK(const Position<Flat>& , const Position<Flat>& ,
+                             double logr, double logminr, double binsize,
+                             double, double, double)
+    { return int((logr - logminr) / binsize); }
 
 
     ///
@@ -107,6 +111,10 @@ struct MetricHelper<Euclidean>
                              double dsq, double maxsep, double maxsepsq, double maxrpar)
     { return dsq >= maxsepsq && dsq >= SQR(maxsep + s1ps2); }
 
+    static int CalculateBinK(const Position<ThreeD>& , const Position<ThreeD>& ,
+                             double logr, double logminr, double binsize,
+                             double, double, double)
+    { return int((logr - logminr) / binsize); }
 };
 
 //
@@ -241,6 +249,10 @@ struct MetricHelper<Perp>
         return (d3sq + 2.*sqrt(d3sq * rparsq) + rparsq) * SQR(2.*s1ps2) <= SQR(dsq - maxsepsq);
     }
 
+    static int CalculateBinK(const Position<ThreeD>& , const Position<ThreeD>& ,
+                             double logr, double logminr, double binsize,
+                             double, double, double)
+    { return int((logr - logminr) / binsize); }
 };
 
 
@@ -301,10 +313,15 @@ struct MetricHelper<Lens>
         return sqrt(DistSq(p1,p2,s,s));
     }
 
-    // This is the same as Euclidean
+    // These two are the same as Euclidean
     static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                     const Position<ThreeD>& p3)
     { return MetricHelper<Euclidean>::CCW(p1,p2,p3); }
+
+    static int CalculateBinK(const Position<ThreeD>& , const Position<ThreeD>& ,
+                             double logr, double logminr, double binsize,
+                             double, double, double)
+    { return int((logr - logminr) / binsize); }
 
     // We've already accounted for the way that the raw s1+s2 may not be sufficient in DistSq
     // where we update s2 according to the relative distances.  So these two functions are
@@ -379,6 +396,10 @@ struct MetricHelper<Arc>
                              double dsq, double maxsep, double maxsepsq, double maxrpar)
     { return MetricHelper<Euclidean>::TooLargeDist(p1,p2,s1ps2,dsq,maxsep,maxsepsq,maxrpar); }
 
+    static int CalculateBinK(const Position<Sphere>& , const Position<Sphere>& ,
+                             double logr, double logminr, double binsize,
+                             double, double, double)
+    { return int((logr - logminr) / binsize); }
 };
 
 #endif

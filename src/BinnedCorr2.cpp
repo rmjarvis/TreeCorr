@@ -450,7 +450,9 @@ void BinnedCorr2<D1,D2>::directProcess11(
     XAssert(logr >= _logminsep);
 
     XAssert(_binsize != 0.);
-    const int k = int((logr - _logminsep)/_binsize);
+    const int k = MetricHelper<M>::CalculateBinK(c1.getPos(), c2.getPos(),
+                                                 logr, _logminsep, _binsize,
+                                                 r, _minsep, _maxsep)
     XAssert(k >= 0);
     XAssert(k < _nbins);
     //dbg<<"r,logr,k = "<<r<<','<<logr<<','<<k<<std::endl;

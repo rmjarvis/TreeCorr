@@ -291,6 +291,8 @@ class BinnedCorr2(object):
         if metric == 'TwoD':
             sep = numpy.linspace(-self.max_sep,self.max_sep,2*self.nbins+1,dtype=float)
             self.dx, self.dy = numpy.meshgrid(sep, sep)
+            self.dx = self.dx.ravel()
+            self.dy = self.dy.ravel()
             self.rnom = numpy.sqrt(self.dx**2 + self.dy**2)
             self.logr = numpy.log(self.rnom)
             self._metric = treecorr._lib.TwoD  # So we get a warning if process doesn't use this.

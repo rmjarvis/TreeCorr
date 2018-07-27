@@ -76,12 +76,12 @@ class KKCorrelation(treecorr.BinnedCorr2):
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
-        self.xi = numpy.zeros(self.nbins, dtype=float)
-        self.varxi = numpy.zeros(self.nbins, dtype=float)
-        self.meanr = numpy.zeros(self.nbins, dtype=float)
-        self.meanlogr = numpy.zeros(self.nbins, dtype=float)
-        self.weight = numpy.zeros(self.nbins, dtype=float)
-        self.npairs = numpy.zeros(self.nbins, dtype=float)
+        self.xi = numpy.zeros(self._nbins, dtype=float)
+        self.varxi = numpy.zeros(self._nbins, dtype=float)
+        self.meanr = numpy.zeros(self._nbins, dtype=float)
+        self.meanlogr = numpy.zeros(self._nbins, dtype=float)
+        self.weight = numpy.zeros(self._nbins, dtype=float)
+        self.npairs = numpy.zeros(self._nbins, dtype=float)
         self._build_corr()
         self.logger.debug('Finished building KKCorr')
 
@@ -273,7 +273,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         """
         if not isinstance(other, KKCorrelation):
             raise AttributeError("Can only add another KKCorrelation object")
-        if not (self.nbins == other.nbins and
+        if not (self._nbins == other._nbins and
                 self.min_sep == other.min_sep and
                 self.max_sep == other.max_sep):
             raise ValueError("KKCorrelation to be added is not compatible with this one.")

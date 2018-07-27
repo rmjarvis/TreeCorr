@@ -81,15 +81,21 @@ def test_twod():
     kappa = np.random.multivariate_normal(np.zeros(N), K*(A**2))
     kappa += np.random.normal(scale=A/10., size=N)
     kappa_err = np.ones_like(kappa) * (A/10.)
+    print('kappa = ',kappa)
 
     cat = treecorr.Catalog(x=x, y=y, k=kappa, w=1./kappa_err**2)
-    kk = treecorr.KKCorrelation(min_sep=1., max_sep=10., nbins=10, metric='TwoD')
+    print('cat = ',cat)
+    kk = treecorr.KKCorrelation(min_sep=0., max_sep=10., nbins=10, metric='TwoD')
+    print('kk = ',kk)
     kk.process(cat, metric='TwoD')
+    print('kk.xi = ',kk.xi)
+    print('kk.dx = ',kk.dx)
+    print('kk.dy = ',kk.dy)
 
     xi_brut, xi_x_brut, xi_y_brut = corr2d(x, y, kappa, kappa_err=None,
-                                           rmax=10., bins=10)
-    return kk
+                                           rmax=10., bins=21)
+    print('xi_brut = ',xi_brut)
+
     
 if __name__ == '__main__':
-
-    kk = test_twod()
+    test_twod()

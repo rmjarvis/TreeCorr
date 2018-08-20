@@ -76,19 +76,19 @@ class KKCorrelation(treecorr.BinnedCorr2):
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
-        self.xi = numpy.zeros(self._nbins, dtype=float)
-        self.varxi = numpy.zeros(self._nbins, dtype=float)
-        self.meanr = numpy.zeros(self._nbins, dtype=float)
-        self.meanlogr = numpy.zeros(self._nbins, dtype=float)
-        self.weight = numpy.zeros(self._nbins, dtype=float)
-        self.npairs = numpy.zeros(self._nbins, dtype=float)
+        self.xi = numpy.zeros_like(self.rnom, dtype=float)
+        self.varxi = numpy.zeros_like(self.rnom, dtype=float)
+        self.meanr = numpy.zeros_like(self.rnom, dtype=float)
+        self.meanlogr = numpy.zeros_like(self.rnom, dtype=float)
+        self.weight = numpy.zeros_like(self.rnom, dtype=float)
+        self.npairs = numpy.zeros_like(self.rnom, dtype=float)
         self._build_corr()
         self.logger.debug('Finished building KKCorr')
 
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
         self.corr = treecorr._lib.BuildKKCorr(
-                self._min_sep,self._max_sep,self.nbins,self.bin_size,self.b,
+                self._min_sep,self._max_sep,self._nbins,self.bin_size,self.b,
                 self.min_rpar, self.max_rpar,
                 dp(self.xi),
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
@@ -278,11 +278,11 @@ class KKCorrelation(treecorr.BinnedCorr2):
                 self.max_sep == other.max_sep):
             raise ValueError("KKCorrelation to be added is not compatible with this one.")
 
-        self.xi[:] += other.xi[:]
-        self.meanr[:] += other.meanr[:]
-        self.meanlogr[:] += other.meanlogr[:]
-        self.weight[:] += other.weight[:]
-        self.npairs[:] += other.npairs[:]
+        self.xi.ravel()[:] += other.xi.ravel()[:]
+        self.meanr.ravel()[:] += other.meanr.ravel()[:]
+        self.meanlogr.ravel()[:] += other.meanlogr.ravel()[:]
+        self.weight.ravel()[:] += other.weight.ravel()[:]
+        self.npairs.ravel()[:] += other.npairs.ravel()[:]
         return self
 
 

@@ -91,38 +91,25 @@ def test_twod():
     kappa = np.random.multivariate_normal(np.zeros(N), K*(A**2))
     kappa += np.random.normal(scale=A/10., size=N)
     kappa_err = np.ones_like(kappa) * (A/10.)
-    #print('kappa = ',kappa)
+
+    max_sep = 10.
+    nbins = 21
+    xi_brut, xi_x_brut, xi_y_brut = corr2d(x, y, kappa, kappa_err=None,
+                                           rmax=max_sep, bins=nbins)
 
     cat = treecorr.Catalog(x=x, y=y, k=kappa, w=1./kappa_err**2)
-    #print('cat = ',cat)
-    kk = treecorr.KKCorrelation(min_sep=0., max_sep=10., nbins=10, metric='TwoD', bin_slop=0)
-    #print('kk = ',kk)
-    kk.process(cat, cat, metric='TwoD')
-    #print('kk.xi = ',kk.xi)
-    #print('kk.dx = ',kk.dx)
-    #print('kk.dy = ',kk.dy)
+    kk = treecorr.KKCorrelation(min_sep=0., max_sep=max_sep, nbins=nbins, metric='TwoD', bin_slop=0)
 
-    xi_brut, xi_x_brut, xi_y_brut = corr2d(x, y, kappa, kappa_err=None,
-                                           rmax=10.5, bins=21)
-    #print('shape = ',xi_brut.shape)
-    #print('xi_brut = ',xi_brut[7:14,7:14])
-    #print('kk.xi = ',kk.xi.reshape(xi_brut.shape)[7:14,7:14])
-    #print('diff = ',xi_brut[7:14,7:14] - kk.xi.reshape(xi_brut.shape)[7:14,7:14])
+    # First the simplest case to get right: cross correlation of the catalog with itself.
+    kk.process(cat, cat, metric='TwoD')
 
     mask = kk.meanr < 9.
-    #print('r = ',kk.rnom.reshape(xi_brut.shape)[7:14,7:14])
-    #print('meanr = ',kk.meanr.reshape(xi_brut.shape)[7:14,7:14])
-    #print('dx = ',kk.dx.reshape(xi_brut.shape)[7:14,7:14])
-    #print('dy = ',kk.dy.reshape(xi_brut.shape)[7:14,7:14])
-    #print('xi_x_brut = ',xi_x_brut[7:14,7:14])
-    #print('xi_y_brut = ',xi_y_brut[7:14,7:14])
-
-    #print('kk.xi.mask = ',kk.xi[mask])
-    #print('xi_brut.mask = ',xi_brut.flatten()[mask])
-    #print('diff = ',kk.xi[mask] - xi_brut.flatten()[mask])
-    print('max abs diff = ',np.max(np.abs(kk.xi[mask] - xi_brut.flatten()[mask])))
-    print('max rel diff = ',np.max(np.abs(kk.xi[mask] - xi_brut.flatten()[mask])/np.abs(kk.xi[mask])))
-    np.testing.assert_allclose(kk.xi[mask], xi_brut.flatten()[mask], atol=1.e-7)
+    #print('kk.xi.mask = ',kk.xi)
+    #print('xi_brut.mask = ',xi_brut)
+    #print('diff = ',kk.xi[mask] - xi_brut[mask])
+    #print('max abs diff = ',np.max(np.abs(kk.xi[mask] - xi_brut[mask])))
+    #print('max rel diff = ',np.max(np.abs(kk.xi[mask] - xi_brut[mask])/np.abs(kk.xi[mask])))
+    np.testing.assert_allclose(kk.xi[mask], xi_brut[mask], atol=1.e-7)
 
     
 if __name__ == '__main__':

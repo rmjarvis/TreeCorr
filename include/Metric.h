@@ -457,10 +457,12 @@ struct MetricHelper<TwoD>
     {
         double dx = p2.getX() - p1.getX();
         double dy = p2.getY() - p1.getY();
-        int i = int((dx + maxsep) / binsize + 0.5);
-        int j = int((dy + maxsep) / binsize + 0.5);
-        int n = int(std::ceil(maxsep / binsize));
-        return j*(2*n+1) + i;
+        int i = int((dx + maxsep) / binsize);
+        int j = int((dy + maxsep) / binsize);
+        int n = int(2*maxsep / binsize+0.5);
+        //std::cerr<<"dx,dy = "<<dx<<','<<dy<<std::endl;
+        //std::cerr<<"i,j,n = "<<i<<','<<j<<','<<n<<" -> "<<j*n+i<<std::endl;
+        return j*n + i;
     }
 };
 

@@ -235,7 +235,7 @@ class BinnedCorr2(object):
                 raise ValueError("max_sep must be larger than min_sep")
             self.nbins = int(self.config['nbins'])
             if metric == 'TwoD':
-                self.bin_size = self.max_sep/self.nbins
+                self.bin_size = 2.*self.max_sep/self.nbins
             else:
                 self.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
         elif 'max_sep' not in self.config:
@@ -289,20 +289,20 @@ class BinnedCorr2(object):
             self.logger.debug("Using bin_slop = %g, b = %g",self.bin_slop,self.b)
 
         if metric == 'TwoD':
-            sep = numpy.linspace(-self.max_sep,self.max_sep,2*self.nbins+1,dtype=float)
+            sep = numpy.linspace(-self.max_sep, self.max_sep, self.nbins, endpoint=False,
+                                 dtype=float)
+            sep += 0.5 * self.bin_size
             self.dx, self.dy = numpy.meshgrid(sep, sep)
-            self.dx = self.dx.ravel()
-            self.dy = self.dy.ravel()
             self.rnom = numpy.sqrt(self.dx**2 + self.dy**2)
             self.logr = numpy.zeros_like(self.rnom)
             numpy.log(self.rnom, out=self.logr, where=self.rnom > 0)
             self.logr[self.rnom==0.] = -numpy.inf
             self._coords, self._metric = treecorr.util.parse_metric(metric, 'flat')
-            self._nbins = len(self.rnom)
+            self._nbins = self.nbins**2
         else:
             # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
-            self.logr = numpy.linspace(start=0, stop=self.nbins*self.bin_size, 
-                                       num=self.nbins, endpoint=False)
+            self.logr = numpy.linspace(0, self.nbins*self.bin_size, self.nbins, endpoint=False,
+                                       dtype=float)
             # Offset by the position of the center of the first bin.
             self.logr += math.log(self.min_sep) + 0.5*self.bin_size
             self.rnom = numpy.exp(self.logr)

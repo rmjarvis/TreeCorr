@@ -132,3 +132,10 @@ Version 3.3.7 dependency change:
 - Changed the pandas dependency specification from pandas==0.18 to just pandas.
   The pandas 0.19.0rc1 version had been on pip was broken, so we used 0.18.
   But they fixed that, so we removed the restriction. (#59)
+
+Version 3.3.8 installation fix
+------------------------------
+
+- Changed how we determine the C compiler that setuptools will use.  The old
+  method could sometimes get the wrong one, which could lead to errors in the
+  correct OpenMP flag to use.

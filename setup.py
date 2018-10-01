@@ -93,26 +93,14 @@ def get_compiler(cc):
         if line.startswith('Configured'):
             line = lines[1]
 
-    if "clang" in line:
-        # clang 3.7 is the first with openmp support. So check the version number.
-        # It can show up in one of two places depending on whether this is Apple clang or
-        # regular clang.
-        import re
-        if 'LLVM' in line:
-            match = re.search(r'LLVM [0-9]+(\.[0-9]+)+', line)
-            match_num = 1
+    if 'clang' in line:
+        # clang 3.7 is the first with openmp support.  But Apple lies about the version
+        # number of clang, so the most reliable thing to do is to just try the compilation
+        # with the openmp flag and see if it works.
+        if try_cc(cc, 'clang w/ OpenMP'):
+            return 'clang w/ OpenMP'
         else:
-            match = re.search(r'[0-9]+(\.[0-9]+)+', line)
-            match_num = 0
-        if match:
-            version = match.group(0).split()[match_num]
-            print('clang version = ',version)
-            # Get the version up to the first decimal
-            # e.g. for 3.4.1 we only keep 3.4
-            vnum = version[0:version.find('.')+2]
-            if vnum >= '3.7':
-                return 'clang w/ OpenMP'
-        return 'clang'
+            return 'clang'
     elif 'gcc' in line:
         return 'gcc'
     elif 'GCC' in line:

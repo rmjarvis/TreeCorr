@@ -136,6 +136,11 @@ Version 3.3.7 dependency change:
 Version 3.3.8 installation fix
 ------------------------------
 
+- Include the LICENSE in the manifest.
+
+Version 3.3.9 installation fix
+------------------------------
+
 - Changed how we determine the C compiler that setuptools will use.  The old
   method could sometimes get the wrong one, which could lead to errors in the
   correct OpenMP flag to use.

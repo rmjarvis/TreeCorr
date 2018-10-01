@@ -144,3 +144,8 @@ Version 3.3.9 installation fix
 - Changed how we determine the C compiler that setuptools will use.  The old
   method could sometimes get the wrong one, which could lead to errors in the
   correct OpenMP flag to use.
+
+Version 3.3.10 installation fix
+-------------------------------
+
+- Fixed how setup.py decides whether clang compiler can use OpenMP.

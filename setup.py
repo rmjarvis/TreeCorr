@@ -401,7 +401,7 @@ make it succeed.
 class my_builder( build_ext ):
     def build_extensions(self):
         # Figure out what compiler it will use
-        cc = self.compiler.executables['compiler_cxx'][0]
+        cc = self.compiler.compiler_so[0]
         comp_type = get_compiler(cc)
         if cc == comp_type:
             print('Using compiler %s'%(cc))

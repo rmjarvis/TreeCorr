@@ -1,3 +1,4 @@
 include *.rst
-include tests/*.py
+include TreeCorr_LICENSE
 recursive-include treecorr *.h *.py *.so
+include tests/*.py

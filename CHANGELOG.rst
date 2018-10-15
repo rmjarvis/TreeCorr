@@ -149,3 +149,9 @@ Version 3.3.10 installation fix
 -------------------------------
 
 - Fixed how setup.py decides whether clang compiler can use OpenMP.
+
+Version 3.3.11 installation fix
+-------------------------------
+
+- Added more things to MANIFEST since pip no longer includes everything it
+  needs automatically, so pip install treecorr was failing.

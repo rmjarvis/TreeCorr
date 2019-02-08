@@ -18,84 +18,61 @@ def get_correlation_length_matrix(size, e1, e2):
     L = np.dot(rot.T, ell.dot(rot))
     return L
 
-def corr2d(x, y, kappa, kappa_err=None,
-           rmax=1., bins=513):
+def corr2d(x, y, kappa, w=None, rmax=1., bins=513):
 
     hrange = [ [-rmax,rmax], [-rmax,rmax] ]
     
     ind = np.linspace(0,len(x)-1,len(x)).astype(int)
     i1, i2 = np.meshgrid(ind,ind)
-    #Filtre = (i1 != i2)
     i1 = i1.reshape(len(x)**2)
     i2 = i2.reshape(len(x)**2)
-    #Filtre = Filtre.reshape(len(x)**2)
-
-    #i1 = i1[Filtre]
-    #i2 = i2[Filtre]
-    #del Filtre
 
     yshift = y[i2]-y[i1]
     xshift = x[i2]-x[i1]
-    if kappa_err is not None:
-        weight = 1. / kappa_err**2
-        ww = weight[i1] * weight[i2]
+    if w is not None:
+        ww = w[i1] * w[i2]
     else:
         ww = None
 
     mask = (np.abs(xshift) < 4) & (np.abs(yshift) < 4) & (abs(xshift) + abs(yshift) > 0)
-    #print('xshift = ',xshift[mask])
-    #print('yshift = ',yshift[mask])
-    #print('bins = ',bins)
-    #print('range = ',hrange)
-
     counts = np.histogram2d(xshift, yshift, bins=bins, range=hrange, weights=ww)[0]
 
     vv = kappa[i1] * kappa[i2]
-    if ww is not None:
-        vv *= ww
-    #print('vv = ',vv[mask])
+    if ww is not None: vv *= w
 
-    xi, X, Y = np.histogram2d(xshift, yshift, bins=bins, range=hrange, weights=vv)
-    #print('counts = ',counts[7:14,7:14])
-    #print('xi = ',xi[7:14,7:14])
+    xi = np.histogram2d(xshift, yshift, bins=bins, range=hrange, weights=vv)[0]
     xi /= counts
-    #print('xi => ',xi[7:14,7:14])
+    return xi.T
 
-    x = X[:-1] + (X[1] - X[0])/2.
-    y = Y[:-1] + (Y[1] - Y[0])/2.
-    x , y = np.meshgrid(x,y)
-
-    return xi.T, x, y
 
 def test_twod():
 
+    # N random points in 2 dimensions
     np.random.seed(42)
     N = 1000
     x = np.random.uniform(-10, 10, N)
     y = np.random.uniform(-10, 10, N)
     
-    size = 2.
-    e1 = 0.
-    e2 = 0.
-    A = 2.
-    
-    L = get_correlation_length_matrix(size, e1, e2)
-    invL = np.linalg.inv(L)
-    
-    dists = pdist(np.array([x,y]).T, metric='mahalanobis', VI=invL)
-    
+    # Give the points a multivariate Gaussian random field for kappa and gamma
+    L1 = [[0.33, 0.09], [-0.01, 0.26]]  # Some arbitrary correlation matrix
+    invL1 = np.linalg.inv(L1)
+    dists = pdist(np.array([x,y]).T, metric='mahalanobis', VI=invL1)
     K = np.exp(-0.5 * dists**2)
     K = squareform(K)
     np.fill_diagonal(K, 1.)
 
+    A = 2.3
     kappa = np.random.multivariate_normal(np.zeros(N), K*(A**2))
-    kappa += np.random.normal(scale=A/10., size=N)
-    kappa_err = np.ones_like(kappa) * (A/10.)
 
+    # Add some noise
+    sigma = A/10.
+    kappa += np.random.normal(scale=sigma, size=N)
+    kappa_err = np.ones_like(kappa) * sigma
+
+    # Calculate the 2D correlation using brute force
     max_sep = 10.
     nbins = 21
-    xi_brut, xi_x_brut, xi_y_brut = corr2d(x, y, kappa, kappa_err=None,
-                                           rmax=max_sep, bins=nbins)
+    xi_brut = corr2d(x, y, kappa, w=None, rmax=max_sep, bins=nbins)
 
     cat = treecorr.Catalog(x=x, y=y, k=kappa, w=1./kappa_err**2)
     kk = treecorr.KKCorrelation(min_sep=0., max_sep=max_sep, nbins=nbins, metric='TwoD', bin_slop=0)

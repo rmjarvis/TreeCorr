@@ -80,13 +80,12 @@ def test_twod():
     # First the simplest case to get right: cross correlation of the catalog with itself.
     kk.process(cat, cat, metric='TwoD')
 
-    mask = kk.meanr < 9.
-    #print('kk.xi.mask = ',kk.xi)
-    #print('xi_brut.mask = ',xi_brut)
-    #print('diff = ',kk.xi[mask] - xi_brut[mask])
-    #print('max abs diff = ',np.max(np.abs(kk.xi[mask] - xi_brut[mask])))
-    #print('max rel diff = ',np.max(np.abs(kk.xi[mask] - xi_brut[mask])/np.abs(kk.xi[mask])))
-    np.testing.assert_allclose(kk.xi[mask], xi_brut[mask], atol=1.e-7)
+    #print('kk.xi = ',kk.xi)
+    #print('xi_brut = ',xi_brut)
+    #print('diff = ',kk.xi - xi_brut)
+    print('max abs diff = ',np.max(np.abs(kk.xi - xi_brut)))
+    print('max rel diff = ',np.max(np.abs(kk.xi - xi_brut)/np.abs(kk.xi)))
+    np.testing.assert_allclose(kk.xi, xi_brut, atol=1.e-7)
 
     
 if __name__ == '__main__':

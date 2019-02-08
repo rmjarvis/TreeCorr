@@ -241,7 +241,8 @@ void BinnedCorr2<D1,D2>::processPairwise(
             const Cell<D2,C>& c2 = *field2.getCells()[i];
             double s=0.;
             const double dsq = MetricHelper<M>::DistSq(c1.getPos(),c2.getPos(),s,s);
-            if (dsq >= _minsepsq && dsq < _maxsepsq) {
+            if (MetricHelper<M>::DSqInRange(dsq, c1.getPos(), c2.getPos(),
+                                            _minsep, _minsepsq, _maxsep, _maxsepsq)) {
                 bc2.template directProcess11<C,M>(c1,c2,dsq);
             }
         }
@@ -333,7 +334,8 @@ void BinnedCorr2<D1,D2>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2)
             Assert(c2.getRight());
             process11<C,M>(c1,*c2.getLeft());
             process11<C,M>(c1,*c2.getRight());
-        } else if (dsq >= _minsepsq && dsq < _maxsepsq) {
+        } else if (MetricHelper<M>::DSqInRange(dsq, c1.getPos(), c2.getPos(),
+                                               _minsep, _minsepsq, _maxsep, _maxsepsq)) {
             XAssert(NoSplit(c1,c2,sqrt(dsq),_b));
             directProcess11<C,M>(c1,c2,dsq);
         }

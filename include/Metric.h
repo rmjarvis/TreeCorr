@@ -51,6 +51,12 @@ struct MetricHelper<Euclidean>
         return sqrt(DistSq(p1,p2,s,s));
     }
 
+    static bool DSqInRange(double dsq, const Position<Flat>& p1, const Position<Flat>& p2,
+                           double minsep, double minsepsq, double maxsep, double maxsepsq)
+    {
+        return dsq >= minsepsq && dsq < maxsepsq;
+    }
+
     static bool CCW(const Position<Flat>& p1, const Position<Flat>& p2, const Position<Flat>& p3)
     {
         // If cross product r21 x r31 > 0, then the points are counter-clockwise.
@@ -90,6 +96,12 @@ struct MetricHelper<Euclidean>
     {
         double s=0.;
         return sqrt(DistSq(p1,p2,s,s));
+    }
+
+    static bool DSqInRange(double dsq, const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                           double minsep, double minsepsq, double maxsep, double maxsepsq)
+    {
+        return dsq >= minsepsq && dsq < maxsepsq;
     }
 
     static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
@@ -178,6 +190,10 @@ struct MetricHelper<Perp>
         double s=0.;
         return sqrt(DistSq(p1,p2,s,s));
     }
+
+    static bool DSqInRange(double dsq, const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                           double minsep, double minsepsq, double maxsep, double maxsepsq)
+    { return MetricHelper<Euclidean>::DSqInRange(dsq,p1,p2,minsep,minsepsq,maxsep,maxsepsq); }
 
     // This is the same as Euclidean
     static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
@@ -314,6 +330,10 @@ struct MetricHelper<Lens>
         return sqrt(DistSq(p1,p2,s,s));
     }
 
+    static bool DSqInRange(double dsq, const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                           double minsep, double minsepsq, double maxsep, double maxsepsq)
+    { return MetricHelper<Euclidean>::DSqInRange(dsq,p1,p2,minsep,minsepsq,maxsep,maxsepsq); }
+
     // These two are the same as Euclidean
     static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                     const Position<ThreeD>& p3)
@@ -384,6 +404,10 @@ struct MetricHelper<Arc>
         return theta;
     }
 
+    static bool DSqInRange(double dsq, const Position<Sphere>& p1, const Position<Sphere>& p2,
+                           double minsep, double minsepsq, double maxsep, double maxsepsq)
+    { return MetricHelper<Euclidean>::DSqInRange(dsq,p1,p2,minsep,minsepsq,maxsep,maxsepsq); }
+
     // These are the same as Euclidean.
     static bool CCW(const Position<Sphere>& p1, const Position<Sphere>& p2,
                     const Position<Sphere>& p3)
@@ -427,6 +451,15 @@ struct MetricHelper<TwoD>
         return sqrt(DistSq(p1,p2,s,s));
     }
 
+    // This is different for TwoD.  We want to include out to the maximum in either direction.
+    static bool DSqInRange(double dsq, const Position<Flat>& p1, const Position<Flat>& p2,
+                           double minsep, double minsepsq, double maxsep, double maxsepsq)
+    {
+        Position<Flat> r = p1-p2;
+        double d = std::max(std::abs(r.getX()), std::abs(r.getY()));
+        return dsq >= minsepsq && d < maxsep;
+    }
+
     static bool CCW(const Position<Flat>& p1, const Position<Flat>& p2, const Position<Flat>& p3)
     {
         // If cross product r21 x r31 > 0, then the points are counter-clockwise.
@@ -439,9 +472,14 @@ struct MetricHelper<TwoD>
                              double dsq, double minsep, double minsepsq, double minrpar)
     { return dsq < minsepsq && s1ps2 < minsep && dsq < SQR(minsep - s1ps2); }
 
-    static bool TooLargeDist(const Position<Flat>& , const Position<Flat>& , double s1ps2,
+    // Similar to DSqInRange, this uses the max of dx or dy, not d.
+    static bool TooLargeDist(const Position<Flat>& p1, const Position<Flat>& p2, double s1ps2,
                              double dsq, double maxsep, double maxsepsq, double maxrpar)
-    { return dsq >= maxsepsq && dsq >= SQR(maxsep + s1ps2); }
+    {
+        Position<Flat> r = p1-p2;
+        double d = std::max(std::abs(r.getX()), std::abs(r.getY()));
+        return d > maxsep + s1ps2;
+    }
 
     // This is the one thing that is different.
     // Here we compute a 1-d index into a 2-d binning array.
@@ -460,8 +498,6 @@ struct MetricHelper<TwoD>
         int i = int((dx + maxsep) / binsize);
         int j = int((dy + maxsep) / binsize);
         int n = int(2*maxsep / binsize+0.5);
-        //std::cerr<<"dx,dy = "<<dx<<','<<dy<<std::endl;
-        //std::cerr<<"i,j,n = "<<i<<','<<j<<','<<n<<" -> "<<j*n+i<<std::endl;
         return j*n + i;
     }
 };

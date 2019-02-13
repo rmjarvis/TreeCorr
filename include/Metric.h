@@ -39,6 +39,8 @@ struct MetricHelper<Euclidean>
     //
     ///
 
+    static bool doReversePair() { return false; }
+
     static double DistSq(const Position<Flat>& p1, const Position<Flat>& p2,
                          double& s1, double& s2)
     {
@@ -139,6 +141,8 @@ struct MetricHelper<Euclidean>
 template <>
 struct MetricHelper<Perp>
 {
+    static bool doReversePair() { return false; }
+
     static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                          double& s1, double& s2)
     {
@@ -282,6 +286,8 @@ struct MetricHelper<Perp>
 template <>
 struct MetricHelper<Lens>
 {
+    static bool doReversePair() { return false; }
+
 #if 1
     // The first option uses the chord distance at the distance of r1
     static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
@@ -389,6 +395,8 @@ struct MetricHelper<Lens>
 template <>
 struct MetricHelper<Arc>
 {
+    static bool doReversePair() { return false; }
+
     static double DistSq(const Position<Sphere>& p1, const Position<Sphere>& p2,
                          double& s1, double& s2)
     { return SQR(Dist(p1,p2)); }
@@ -432,6 +440,8 @@ struct MetricHelper<Arc>
 template <>
 struct MetricHelper<TwoD>
 {
+    static bool doReversePair() { return true; }
+
     ///
     //
     // Flat

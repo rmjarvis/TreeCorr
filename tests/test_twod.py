@@ -97,6 +97,12 @@ def test_twod():
     print('max rel diff = ',np.max(np.abs(kk.xi - xi_brut)/np.abs(kk.xi)))
     np.testing.assert_allclose(kk.xi, xi_brut, atol=1.e-7)
 
+    # Auto-correlation should do the same thing.
+    kk.process(cat1, metric='TwoD')
+    print('max abs diff = ',np.max(np.abs(kk.xi - xi_brut)))
+    print('max rel diff = ',np.max(np.abs(kk.xi - xi_brut)/np.abs(kk.xi)))
+    np.testing.assert_allclose(kk.xi, xi_brut, atol=1.e-7)
+
     # Repeat with weights.
     xi_brut = corr2d(x, y, kappa, w=1./kappa_err**2, rmax=max_sep, bins=nbins)
     cat2 = treecorr.Catalog(x=x, y=y, k=kappa, w=1./kappa_err**2)
@@ -106,6 +112,10 @@ def test_twod():
     print('max abs diff = ',np.max(np.abs(kk.xi - xi_brut)))
     print('max rel diff = ',np.max(np.abs(kk.xi - xi_brut)/np.abs(kk.xi)))
     np.testing.assert_allclose(kk.xi, xi_brut, atol=1.e-7)
+
+    kk.process(cat2, metric='TwoD')
+    np.testing.assert_allclose(kk.xi, xi_brut, atol=1.e-7)
+
 
     
 if __name__ == '__main__':

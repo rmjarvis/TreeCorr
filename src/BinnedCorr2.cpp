@@ -353,7 +353,7 @@ struct DirectHelper<NData,NData>
     template <int C, int M>
     static void ProcessXi(
         const Cell<NData,C>& , const Cell<NData,C>& , const double ,
-        XiData<NData,NData>& , int )
+        XiData<NData,NData>& , int, int )
     {}
 };
 
@@ -363,7 +363,7 @@ struct DirectHelper<NData,KData>
     template <int C, int M>
     static void ProcessXi(
         const Cell<NData,C>& c1, const Cell<KData,C>& c2, const double ,
-        XiData<NData,KData>& xi, int k)
+        XiData<NData,KData>& xi, int k, int )
     { xi.xi[k] += c1.getW() * c2.getData().getWK(); }
 };
 
@@ -373,7 +373,7 @@ struct DirectHelper<NData,GData>
     template <int C, int M>
     static void ProcessXi(
         const Cell<NData,C>& c1, const Cell<GData,C>& c2, const double dsq,
-        XiData<NData,GData>& xi, int k)
+        XiData<NData,GData>& xi, int k, int )
     {
         std::complex<double> g2;
         ProjectHelper<C>::ProjectShear(c1,c2,g2);
@@ -391,8 +391,12 @@ struct DirectHelper<KData,KData>
     template <int C, int M>
     static void ProcessXi(
         const Cell<KData,C>& c1, const Cell<KData,C>& c2, const double ,
-        XiData<KData,KData>& xi, int k)
-    { xi.xi[k] += c1.getData().getWK() * c2.getData().getWK(); }
+        XiData<KData,KData>& xi, int k, int k2)
+    {
+        double wkk = c1.getData().getWK() * c2.getData().getWK();
+        xi.xi[k] += wkk;
+        if (k2 != -1) xi.xi[k2] += wkk;
+    }
 };
 
 template <>
@@ -401,7 +405,7 @@ struct DirectHelper<KData,GData>
     template <int C, int M>
     static void ProcessXi(
         const Cell<KData,C>& c1, const Cell<GData,C>& c2, const double dsq,
-        XiData<KData,GData>& xi, int k)
+        XiData<KData,GData>& xi, int k, int )
     {
         std::complex<double> g2;
         ProjectHelper<C>::ProjectShear(c1,c2,g2);
@@ -419,7 +423,7 @@ struct DirectHelper<GData,GData>
     template <int C, int M>
     static void ProcessXi(
         const Cell<GData,C>& c1, const Cell<GData,C>& c2, const double dsq,
-        XiData<GData,GData>& xi, int k)
+        XiData<GData,GData>& xi, int k, int k2)
     {
         std::complex<double> g1, g2;
         ProjectHelper<C>::ProjectShears(c1,c2,g1,g2);
@@ -435,6 +439,13 @@ struct DirectHelper<GData,GData>
         xi.xip_im[k] += g1ig2r - g1rg2i;
         xi.xim[k] += g1rg2r - g1ig2i;       // g1 * g2
         xi.xim_im[k] += g1ig2r + g1rg2i;
+
+        if (k2 != -1) {
+            xi.xip[k2] += g1rg2r + g1ig2i;       // g1 * conj(g2)
+            xi.xip_im[k2] += g1ig2r - g1rg2i;
+            xi.xim[k2] += g1rg2r - g1ig2i;       // g1 * g2
+            xi.xim_im[k2] += g1ig2r + g1rg2i;
+        }
     }
 };
 
@@ -468,7 +479,18 @@ void BinnedCorr2<D1,D2>::directProcess11(
     _weight[k] += ww;
     //dbg<<"n,w = "<<nn<<','<<ww<<" ==>  "<<_npairs[k]<<','<<_weight[k]<<std::endl;
 
-    DirectHelper<D1,D2>::template ProcessXi<C,M>(c1,c2,dsq,_xi,k);
+    int k2 = -1;
+    if (D1 == D2 && MetricHelper<M>::doReversePair()) {
+        k2 = MetricHelper<M>::CalculateBinK(c2.getPos(), c1.getPos(),
+                                            logr, _logminsep, _binsize,
+                                            r, _minsep, _maxsep);
+        _npairs[k2] += nn;
+        _meanr[k2] += ww * r;
+        _meanlogr[k2] += ww * logr;
+        _weight[k2] += ww;
+    }
+
+    DirectHelper<D1,D2>::template ProcessXi<C,M>(c1,c2,dsq,_xi,k,k2);
 }
 
 template <int D1, int D2>

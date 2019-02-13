@@ -38,9 +38,22 @@ def corr2d(x, y, kappa, w=None, rmax=1., bins=513):
     counts = np.histogram2d(xshift, yshift, bins=bins, range=hrange, weights=ww)[0]
 
     vv = kappa[i1] * kappa[i2]
-    if ww is not None: vv *= w
+    if ww is not None: vv *= ww
 
     xi = np.histogram2d(xshift, yshift, bins=bins, range=hrange, weights=vv)[0]
+
+    # Note: This calculation includes the "pairs" where both objects are the same as part
+    # of the zero lag bin.  We don't want that, so subtract it off.
+    mid = bins // 2
+    if w is None:
+        auto = np.sum(kappa**2)
+        sumww = len(kappa)
+    else:
+        auto = np.sum(kappa**2 * w**2)
+        sumww = np.sum(w**2)
+    xi[mid,mid] -= auto
+    counts[mid,mid] -= sumww
+
     xi /= counts
     return xi.T
 
@@ -74,15 +87,22 @@ def test_twod():
     nbins = 21
     xi_brut = corr2d(x, y, kappa, w=None, rmax=max_sep, bins=nbins)
 
-    cat = treecorr.Catalog(x=x, y=y, k=kappa, w=1./kappa_err**2)
+    cat1 = treecorr.Catalog(x=x, y=y, k=kappa)
     kk = treecorr.KKCorrelation(min_sep=0., max_sep=max_sep, nbins=nbins, metric='TwoD', bin_slop=0)
 
     # First the simplest case to get right: cross correlation of the catalog with itself.
-    kk.process(cat, cat, metric='TwoD')
+    kk.process(cat1, cat1, metric='TwoD')
 
-    #print('kk.xi = ',kk.xi)
-    #print('xi_brut = ',xi_brut)
-    #print('diff = ',kk.xi - xi_brut)
+    print('max abs diff = ',np.max(np.abs(kk.xi - xi_brut)))
+    print('max rel diff = ',np.max(np.abs(kk.xi - xi_brut)/np.abs(kk.xi)))
+    np.testing.assert_allclose(kk.xi, xi_brut, atol=1.e-7)
+
+    # Repeat with weights.
+    xi_brut = corr2d(x, y, kappa, w=1./kappa_err**2, rmax=max_sep, bins=nbins)
+    cat2 = treecorr.Catalog(x=x, y=y, k=kappa, w=1./kappa_err**2)
+    kk = treecorr.KKCorrelation(min_sep=0., max_sep=max_sep, nbins=nbins, metric='TwoD', bin_slop=0)
+    kk.process(cat2, cat2, metric='TwoD')
+
     print('max abs diff = ',np.max(np.abs(kk.xi - xi_brut)))
     print('max rel diff = ',np.max(np.abs(kk.xi - xi_brut)/np.abs(kk.xi)))
     np.testing.assert_allclose(kk.xi, xi_brut, atol=1.e-7)

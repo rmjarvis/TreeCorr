@@ -455,9 +455,12 @@ struct MetricHelper<TwoD>
     static bool DSqInRange(double dsq, const Position<Flat>& p1, const Position<Flat>& p2,
                            double minsep, double minsepsq, double maxsep, double maxsepsq)
     {
-        Position<Flat> r = p1-p2;
-        double d = std::max(std::abs(r.getX()), std::abs(r.getY()));
-        return dsq >= minsepsq && d < maxsep;
+        if (dsq == 0. || dsq < minsepsq) return false;
+        else {
+            Position<Flat> r = p1-p2;
+            double d = std::max(std::abs(r.getX()), std::abs(r.getY()));
+            return d < maxsep;
+        }
     }
 
     static bool CCW(const Position<Flat>& p1, const Position<Flat>& p2, const Position<Flat>& p3)

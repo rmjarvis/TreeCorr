@@ -71,19 +71,19 @@ class NKCorrelation(treecorr.BinnedCorr2):
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
-        self.xi = numpy.zeros(self.nbins, dtype=float)
-        self.varxi = numpy.zeros(self.nbins, dtype=float)
-        self.meanr = numpy.zeros(self.nbins, dtype=float)
-        self.meanlogr = numpy.zeros(self.nbins, dtype=float)
-        self.weight = numpy.zeros(self.nbins, dtype=float)
-        self.npairs = numpy.zeros(self.nbins, dtype=float)
+        self.xi = numpy.zeros_like(self.rnom, dtype=float)
+        self.varxi = numpy.zeros_like(self.rnom, dtype=float)
+        self.meanr = numpy.zeros_like(self.rnom, dtype=float)
+        self.meanlogr = numpy.zeros_like(self.rnom, dtype=float)
+        self.weight = numpy.zeros_like(self.rnom, dtype=float)
+        self.npairs = numpy.zeros_like(self.rnom, dtype=float)
         self._build_corr()
         self.logger.debug('Finished building NKCorr')
 
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
         self.corr = treecorr._lib.BuildNKCorr(
-                self._min_sep,self._max_sep,self.nbins,self.bin_size,self.b,
+                self._min_sep,self._max_sep,self._nbins,self.bin_size,self.b,
                 self.min_rpar, self.max_rpar,
                 dp(self.xi),
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
@@ -217,11 +217,11 @@ class NKCorrelation(treecorr.BinnedCorr2):
     def clear(self):
         """Clear the data vectors
         """
-        self.xi[:] = 0
-        self.meanr[:] = 0
-        self.meanlogr[:] = 0
-        self.weight[:] = 0
-        self.npairs[:] = 0
+        self.xi.ravel()[:] = 0
+        self.meanr.ravel()[:] = 0
+        self.meanlogr.ravel()[:] = 0
+        self.weight.ravel()[:] = 0
+        self.npairs.ravel()[:] = 0
 
     def __iadd__(self, other):
         """Add a second NKCorrelation's data to this one.
@@ -232,16 +232,16 @@ class NKCorrelation(treecorr.BinnedCorr2):
         """
         if not isinstance(other, NKCorrelation):
             raise AttributeError("Can only add another NKCorrelation object")
-        if not (self.nbins == other.nbins and
+        if not (self._nbins == other._nbins and
                 self.min_sep == other.min_sep and
                 self.max_sep == other.max_sep):
             raise ValueError("NKCorrelation to be added is not compatible with this one.")
 
-        self.xi[:] += other.xi[:]
-        self.meanr[:] += other.meanr[:]
-        self.meanlogr[:] += other.meanlogr[:]
-        self.weight[:] += other.weight[:]
-        self.npairs[:] += other.npairs[:]
+        self.xi.ravel()[:] += other.xi.ravel()[:]
+        self.meanr.ravel()[:] += other.meanr.ravel()[:]
+        self.meanlogr.ravel()[:] += other.meanlogr.ravel()[:]
+        self.weight.ravel()[:] += other.weight.ravel()[:]
+        self.npairs.ravel()[:] += other.npairs.ravel()[:]
         return self
 
 
@@ -266,6 +266,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
                               in the pair (taken to be a lens) to the line of sight to the second
                               point (e.g. a lensed source galaxy).
                             - 'Arc' = the true great circle distance for spherical coordinates.
+                            - 'TwoD' = 2-dimensional binning from x = (-maxsep .. maxsep) and
+                              y = (-maxsep .. maxsep)
 
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)

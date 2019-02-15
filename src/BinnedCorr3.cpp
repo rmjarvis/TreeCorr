@@ -307,8 +307,8 @@ void BinnedCorr3<D1,D2,D3>::process(const Field<D1,C>& field1, const Field<D2,C>
 }
 
 // Does all triangles with 3 points in c123
-    template <int D1, int D2, int D3> template <int C, int M>
-    void BinnedCorr3<D1,D2,D3>::process3(const Cell<D1,C>* c123)
+template <int D1, int D2, int D3> template <int C, int M>
+void BinnedCorr3<D1,D2,D3>::process3(const Cell<D1,C>* c123)
 {
     xdbg<<"Process3: c123 = "<<c123->getData().getPos()<<"  "<<"  "<<c123->getSize()<<"  "<<c123->getData().getN()<<std::endl;
     if (c123->getW() == 0) {
@@ -330,8 +330,8 @@ void BinnedCorr3<D1,D2,D3>::process(const Field<D1,C>& field1, const Field<D2,C>
 
 // Does all triangles with two points in c12 and 3rd point in c3
 // This version is allowed to swap the positions of points 1,2,3
-    template <int D1, int D2, int D3> template <bool sort, int C, int M>
-    void BinnedCorr3<D1,D2,D3>::process21(const Cell<D1,C>* c12, const Cell<D3,C>* c3)
+template <int D1, int D2, int D3> template <bool sort, int C, int M>
+void BinnedCorr3<D1,D2,D3>::process21(const Cell<D1,C>* c12, const Cell<D3,C>* c3)
 {
     xdbg<<"Process21: c12 = "<<c12->getData().getPos()<<"  "<<"  "<<c12->getSize()<<"  "<<c12->getData().getN()<<std::endl;
     xdbg<<"           c3  = "<<c3->getData().getPos()<<"  "<<"  "<<c3->getSize()<<"  "<<c3->getData().getN()<<std::endl;
@@ -1045,58 +1045,6 @@ struct DirectHelper<GData,GData,GData>
     }
 };
 
-#if 0
-template <>
-struct DirectHelper<NData,NData,KData>
-{
-    template <int C, int M>
-    static void ProcessZeta(
-        const Cell<NData,C>& c1, const Cell<KData,C>& c2,
-        const double d1, const double d2, const double d3,
-        ZetaData<NData,NData,KData>& zeta, int index)
-    { zeta.zeta[index] += c1.getData().getW() * c2.getData().getWK(); }
-};
-
-template <>
-struct DirectHelper<NData,NData,GData>
-{
-    template <int C, int M>
-    static void ProcessZeta(
-        const Cell<NData,C>& c1, const Cell<GData,C>& c2,
-        const double d1, const double d2, const double d3,
-        ZetaData<NData,NData,GData>& zeta, int index)
-    {
-        std::complex<double> g2;
-        ProjectHelper<C>::ProjectShear(c1,c2,g2);
-        // The minus sign here is to make it accumulate tangential shear, rather than radial.
-        // g2 from the above ProjectShear is measured along the connecting line, not tangent.
-        g2 *= -c1.getData().getW();
-        zeta.zeta[index] += real(g2);
-        zeta.zeta_im[index] += imag(g2);
-
-    }
-};
-
-
-template <>
-struct DirectHelper<KData,KData,GData>
-{
-    template <int C, int M>
-    static void ProcessZeta(
-        const Cell<KData,C>& c1, const Cell<GData,C>& c2,
-        const double d1, const double d2, const double d3,
-        ZetaData<KData,KData,GData>& zeta, int index)
-    {
-        std::complex<double> g2;
-        ProjectHelper<C>::ProjectShear(c1,c2,g2);
-        // The minus sign here is to make it accumulate tangential shear, rather than radial.
-        // g2 from the above ProjectShear is measured along the connecting line, not tangent.
-        g2 *= -c1.getData().getWK();
-        zeta.zeta[index] += real(g2);
-        zeta.zeta_im[index] += imag(g2);
-    }
-};
-#endif
 
 template <int D1, int D2, int D3> template <int C, int M>
 void BinnedCorr3<D1,D2,D3>::directProcess111(
@@ -1236,73 +1184,6 @@ void* BuildGGGCorr(double minsep, double maxsep, int nbins, double binsize, doub
     return corr;
 }
 
-#if 0
-void* BuildNNKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                   double minu, double maxu, int nubins, double ubinsize, double bu,
-                   double minv, double maxv, int nvbins, double vbinsize, double bv,
-                   double minrpar, double maxrpar,
-                   double* zeta,
-                   double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                   double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                   double* weight, double* ntri)
-{
-    dbg<<"Start BuildNNKCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr3<NData,NData,KData>(
-            minsep, maxsep, nbins, binsize, b,
-            minu, maxu, nubins, ubinsize, bu,
-            minv, maxv, nvbins, vbinsize, bv,
-            minrpar, maxrpar,
-            zeta, 0, 0, 0, 0, 0, 0, 0,
-            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
-            weight, ntri));
-    xdbg<<"corr = "<<corr<<std::endl;
-    return corr;
-}
-
-void* BuildNNGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                   double minu, double maxu, int nubins, double ubinsize, double bu,
-                   double minv, double maxv, int nvbins, double vbinsize, double bv,
-                   double minrpar, double maxrpar,
-                   double* zeta, double* zeta_im,
-                   double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                   double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                   double* weight, double* ntri)
-{
-    dbg<<"Start BuildNNGCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr3<NData,NData,GData>(
-            minsep, maxsep, nbins, binsize, b,
-            minu, maxu, nubins, ubinsize, bu,
-            minv, maxv, nvbins, vbinsize, bv,
-            minrpar, maxrpar,
-            zeta, zeta_im, 0, 0, 0, 0, 0, 0,
-            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
-            weight, ntri));
-    xdbg<<"corr = "<<corr<<std::endl;
-    return corr;
-}
-
-void* BuildKKGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                   double minu, double maxu, int nubins, double ubinsize, double bu,
-                   double minv, double maxv, int nvbins, double vbinsize, double bv,
-                   double minrpar, double maxrpar,
-                   double* zeta, double* zeta_im,
-                   double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                   double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                   double* weight, double* ntri)
-{
-    dbg<<"Start BuildKKGCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr3<KData,KData,GData>(
-            minsep, maxsep, nbins, binsize, b,
-            minu, maxu, nubins, ubinsize, bu,
-            minv, maxv, nvbins, vbinsize, bv,
-            minrpar, maxrpar,
-            zeta, zeta_im, 0, 0, 0, 0, 0, 0,
-            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
-            weight, ntri));
-    xdbg<<"corr = "<<corr<<std::endl;
-    return corr;
-}
-#endif
 
 void DestroyNNNCorr(void* corr)
 {
@@ -1318,7 +1199,6 @@ void DestroyKKKCorr(void* corr)
     delete static_cast<BinnedCorr3<KData,KData,KData>*>(corr);
 }
 
-
 void DestroyGGGCorr(void* corr)
 {
     dbg<<"Start DestroyGGGCorr\n";
@@ -1326,106 +1206,91 @@ void DestroyGGGCorr(void* corr)
     delete static_cast<BinnedCorr3<GData,GData,GData>*>(corr);
 }
 
-#if 0
-void DestroyNNKCorr(void* corr)
-{
-    dbg<<"Start DestroyNNKCorr\n";
-    xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr3<NData,NData,KData>*>(corr);
-}
 
-void DestroyNNGCorr(void* corr)
+template <int D>
+void ProcessAuto3(void* corr, void* field, int dots, int coord, int metric)
 {
-    dbg<<"Start DestroyNNGCorr\n";
-    xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr3<NData,NData,GData>*>(corr);
-}
-
-void DestroyKKGCorr(void* corr)
-{
-    dbg<<"Start DestroyKKGCorr\n";
-    xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr3<KData,KData,GData>*>(corr);
-}
-#endif
-
-
-void ProcessAutoNNN(void* corr, void* field, int dots, int coord, int metric)
-{
-    dbg<<"Start ProcessAutoNNN\n";
+    dbg<<"D = "<<D<<std::endl;
+    dbg<<"corr = "<<corr<<std::endl;
+    dbg<<"field = "<<field<<std::endl;
+    dbg<<"dots = "<<dots<<std::endl;
+    dbg<<"coord = "<<coord<<std::endl;
+    dbg<<"metric = "<<metric<<std::endl;
     if (coord == Flat) {
         if (metric == Euclidean)
-            static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<Flat,Euclidean>(
-                *static_cast<Field<NData,Flat>*>(field),dots);
+            static_cast<BinnedCorr3<D,D,D>*>(corr)->template process<Flat,Euclidean>(
+                *static_cast<Field<D,Flat>*>(field),dots);
         else
             Assert(false);
     } else {
         if (metric == Euclidean)
-            static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Euclidean>(
-                *static_cast<Field<NData,ThreeD>*>(field),dots);
+            static_cast<BinnedCorr3<D,D,D>*>(corr)->template process<ThreeD,Euclidean>(
+                *static_cast<Field<D,ThreeD>*>(field),dots);
         else if (metric == Perp)
-            static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Perp>(
-                *static_cast<Field<NData,ThreeD>*>(field),dots);
+            static_cast<BinnedCorr3<D,D,D>*>(corr)->template process<ThreeD,Perp>(
+                *static_cast<Field<D,ThreeD>*>(field),dots);
         else if (metric == Lens)
-            static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Lens>(
-                *static_cast<Field<NData,ThreeD>*>(field),dots);
+            static_cast<BinnedCorr3<D,D,D>*>(corr)->template process<ThreeD,Lens>(
+                *static_cast<Field<D,ThreeD>*>(field),dots);
         else if (metric == Arc)
-            static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<Sphere,Arc>(
-                *static_cast<Field<NData,Sphere>*>(field),dots);
+            static_cast<BinnedCorr3<D,D,D>*>(corr)->template process<Sphere,Arc>(
+                *static_cast<Field<D,Sphere>*>(field),dots);
         else
             Assert(false);
     }
+}
+
+void ProcessAutoNNN(void* corr, void* field, int dots, int coord, int metric)
+{
+    dbg<<"Start ProcessAutoNNN\n";
+    ProcessAuto3<NData>(corr, field, dots, coord, metric);
 }
 
 void ProcessAutoKKK(void* corr, void* field, int dots, int coord, int metric)
 {
     dbg<<"Start ProcessAutoKKK\n";
-    if (coord == Flat) {
-        if (metric == Euclidean)
-            static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<Flat,Euclidean>(
-                *static_cast<Field<KData,Flat>*>(field),dots);
-        else
-            Assert(false);
-    } else {
-        if (metric == Euclidean)
-            static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Euclidean>(
-                *static_cast<Field<KData,ThreeD>*>(field),dots);
-        else if (metric == Perp)
-            static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Perp>(
-                *static_cast<Field<KData,ThreeD>*>(field),dots);
-        else if (metric == Lens)
-            static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Lens>(
-                *static_cast<Field<KData,ThreeD>*>(field),dots);
-        else if (metric == Arc)
-            static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<Sphere,Arc>(
-                *static_cast<Field<KData,Sphere>*>(field),dots);
-        else
-            Assert(false);
-    }
+    ProcessAuto3<KData>(corr, field, dots, coord, metric);
 }
 
 void ProcessAutoGGG(void* corr, void* field, int dots, int coord, int metric)
 {
     dbg<<"Start ProcessAutoGGG\n";
+    ProcessAuto3<GData>(corr, field, dots, coord, metric);
+}
+
+template <int D1, int D2, int D3>
+void ProcessCross3(void* corr, void* field1, void* field2, void* field3, int dots,
+                   int coord, int metric)
+{
     if (coord == Flat) {
         if (metric == Euclidean)
-            static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<Flat,Euclidean>(
-                *static_cast<Field<GData,Flat>*>(field),dots);
+            static_cast<BinnedCorr3<D1,D2,D3>*>(corr)->template process<Flat,Euclidean>(
+                *static_cast<Field<D1,Flat>*>(field1),
+                *static_cast<Field<D2,Flat>*>(field2),
+                *static_cast<Field<D3,Flat>*>(field3),dots);
         else
             Assert(false);
     } else {
         if (metric == Euclidean)
-            static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Euclidean>(
-                *static_cast<Field<GData,ThreeD>*>(field),dots);
+            static_cast<BinnedCorr3<D1,D2,D3>*>(corr)->template process<ThreeD,Euclidean>(
+                *static_cast<Field<D1,ThreeD>*>(field1),
+                *static_cast<Field<D2,ThreeD>*>(field2),
+                *static_cast<Field<D3,ThreeD>*>(field3),dots);
         else if (metric == Perp)
-            static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Perp>(
-                *static_cast<Field<GData,ThreeD>*>(field),dots);
+            static_cast<BinnedCorr3<D1,D2,D3>*>(corr)->template process<ThreeD,Perp>(
+                *static_cast<Field<D1,ThreeD>*>(field1),
+                *static_cast<Field<D2,ThreeD>*>(field2),
+                *static_cast<Field<D3,ThreeD>*>(field3),dots);
         else if (metric == Lens)
-            static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Lens>(
-                *static_cast<Field<GData,ThreeD>*>(field),dots);
+            static_cast<BinnedCorr3<D1,D2,D3>*>(corr)->template process<ThreeD,Lens>(
+                *static_cast<Field<D1,ThreeD>*>(field1),
+                *static_cast<Field<D2,ThreeD>*>(field2),
+                *static_cast<Field<D3,ThreeD>*>(field3),dots);
         else if (metric == Arc)
-            static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<Sphere,Arc>(
-                *static_cast<Field<GData,Sphere>*>(field),dots);
+            static_cast<BinnedCorr3<D1,D2,D3>*>(corr)->template process<Sphere,Arc>(
+                *static_cast<Field<D1,Sphere>*>(field1),
+                *static_cast<Field<D2,Sphere>*>(field2),
+                *static_cast<Field<D3,Sphere>*>(field3),dots);
         else
             Assert(false);
     }
@@ -1435,229 +1300,21 @@ void ProcessCrossNNN(void* corr, void* field1, void* field2, void* field3, int d
                      int coord, int metric)
 {
     dbg<<"Start ProcessCrossNNN\n";
-    if (coord == Flat) {
-        if (metric == Euclidean)
-            static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<Flat,Euclidean>(
-                *static_cast<Field<NData,Flat>*>(field1),
-                *static_cast<Field<NData,Flat>*>(field2),
-                *static_cast<Field<NData,Flat>*>(field3),dots);
-        else
-            Assert(false);
-    } else {
-        if (metric == Euclidean)
-            static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Euclidean>(
-                *static_cast<Field<NData,ThreeD>*>(field1),
-                *static_cast<Field<NData,ThreeD>*>(field2),
-                *static_cast<Field<NData,ThreeD>*>(field3),dots);
-        else if (metric == Perp)
-            static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Perp>(
-                *static_cast<Field<NData,ThreeD>*>(field1),
-                *static_cast<Field<NData,ThreeD>*>(field2),
-                *static_cast<Field<NData,ThreeD>*>(field3),dots);
-        else if (metric == Lens)
-            static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<ThreeD,Lens>(
-                *static_cast<Field<NData,ThreeD>*>(field1),
-                *static_cast<Field<NData,ThreeD>*>(field2),
-                *static_cast<Field<NData,ThreeD>*>(field3),dots);
-        else if (metric == Arc)
-            static_cast<BinnedCorr3<NData,NData,NData>*>(corr)->process<Sphere,Arc>(
-                *static_cast<Field<NData,Sphere>*>(field1),
-                *static_cast<Field<NData,Sphere>*>(field2),
-                *static_cast<Field<NData,Sphere>*>(field3),dots);
-        else
-            Assert(false);
-    }
+    ProcessCross3<NData,NData,NData>(corr, field1, field2, field3, dots, coord, metric);
 }
 
 void ProcessCrossKKK(void* corr, void* field1, void* field2, void* field3, int dots,
                      int coord, int metric)
 {
     dbg<<"Start ProcessCrossKKK\n";
-    if (coord == Flat) {
-        if (metric == Euclidean)
-            static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<Flat,Euclidean>(
-                *static_cast<Field<KData,Flat>*>(field1),
-                *static_cast<Field<KData,Flat>*>(field2),
-                *static_cast<Field<KData,Flat>*>(field3),dots);
-        else
-            Assert(false);
-    } else {
-        if (metric == Euclidean)
-            static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Euclidean>(
-                *static_cast<Field<KData,ThreeD>*>(field1),
-                *static_cast<Field<KData,ThreeD>*>(field2),
-                *static_cast<Field<KData,ThreeD>*>(field3),dots);
-        else if (metric == Perp)
-            static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Perp>(
-                *static_cast<Field<KData,ThreeD>*>(field1),
-                *static_cast<Field<KData,ThreeD>*>(field2),
-                *static_cast<Field<KData,ThreeD>*>(field3),dots);
-        else if (metric == Lens)
-            static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<ThreeD,Lens>(
-                *static_cast<Field<KData,ThreeD>*>(field1),
-                *static_cast<Field<KData,ThreeD>*>(field2),
-                *static_cast<Field<KData,ThreeD>*>(field3),dots);
-        else if (metric == Arc)
-            static_cast<BinnedCorr3<KData,KData,KData>*>(corr)->process<Sphere,Arc>(
-                *static_cast<Field<KData,Sphere>*>(field1),
-                *static_cast<Field<KData,Sphere>*>(field2),
-                *static_cast<Field<KData,Sphere>*>(field3),dots);
-        else
-            Assert(false);
-    }
+    ProcessCross3<KData,KData,KData>(corr, field1, field2, field3, dots, coord, metric);
 }
 
 void ProcessCrossGGG(void* corr, void* field1, void* field2, void* field3, int dots,
                      int coord, int metric)
 {
     dbg<<"Start ProcessCrossGGG\n";
-    if (coord == Flat) {
-        if (metric == Euclidean)
-            static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<Flat,Euclidean>(
-                *static_cast<Field<GData,Flat>*>(field1),
-                *static_cast<Field<GData,Flat>*>(field2),
-                *static_cast<Field<GData,Flat>*>(field3),dots);
-        else
-            Assert(false);
-    } else {
-        if (metric == Euclidean)
-            static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Euclidean>(
-                *static_cast<Field<GData,ThreeD>*>(field1),
-                *static_cast<Field<GData,ThreeD>*>(field2),
-                *static_cast<Field<GData,ThreeD>*>(field3),dots);
-        else if (metric == Perp)
-            static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Perp>(
-                *static_cast<Field<GData,ThreeD>*>(field1),
-                *static_cast<Field<GData,ThreeD>*>(field2),
-                *static_cast<Field<GData,ThreeD>*>(field3),dots);
-        else if (metric == Lens)
-            static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<ThreeD,Lens>(
-                *static_cast<Field<GData,ThreeD>*>(field1),
-                *static_cast<Field<GData,ThreeD>*>(field2),
-                *static_cast<Field<GData,ThreeD>*>(field3),dots);
-        else if (metric == Arc)
-            static_cast<BinnedCorr3<GData,GData,GData>*>(corr)->process<Sphere,Arc>(
-                *static_cast<Field<GData,Sphere>*>(field1),
-                *static_cast<Field<GData,Sphere>*>(field2),
-                *static_cast<Field<GData,Sphere>*>(field3),dots);
-        else
-            Assert(false);
-    }
+    ProcessCross3<GData,GData,GData>(corr, field1, field2, field3, dots, coord, metric);
 }
 
-#if 0
-void ProcessCrossNNK(void* corr, void* field1, void* field2, void* field3, int dots,
-                     int coord, int metric)
-{
-    dbg<<"Start ProcessCrossNNK\n";
-    if (coord == Flat) {
-    if (metric == Euclidean)
-        static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process<Flat,Euclidean>(
-            *static_cast<Field<NData,Flat>*>(field1),
-            *static_cast<Field<NData,Flat>*>(field2),
-            *static_cast<Field<KData,Flat>*>(field3),dots);
-    else
-        Assert(false);
-    } else {
-        if (metric == Euclidean)
-            static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process<ThreeD,Euclidean>(
-                *static_cast<Field<NData,ThreeD>*>(field1),
-                *static_cast<Field<NData,ThreeD>*>(field2),
-                *static_cast<Field<KData,ThreeD>*>(field3),dots);
-        else if (metric == Perp)
-            static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process<ThreeD,Perp>(
-                *static_cast<Field<NData,ThreeD>*>(field1),
-                *static_cast<Field<NData,ThreeD>*>(field2),
-                *static_cast<Field<KData,ThreeD>*>(field3),dots);
-        else if (metric == Lens)
-            static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process<ThreeD,Lens>(
-                *static_cast<Field<NData,ThreeD>*>(field1),
-                *static_cast<Field<NData,ThreeD>*>(field2),
-                *static_cast<Field<KData,ThreeD>*>(field3),dots);
-        else if (metric == Arc)
-            static_cast<BinnedCorr3<NData,NData,KData>*>(corr)->process<Sphere,Arc>(
-                *static_cast<Field<NData,Sphere>*>(field1),
-                *static_cast<Field<NData,Sphere>*>(field2),
-                *static_cast<Field<KData,Sphere>*>(field3),dots);
-        else
-            Assert(false);
-    }
-}
-
-void ProcessCrossNNG(void* corr, void* field1, void* field2, void* field3, int dots,
-                     int coord, int metric)
-{
-    dbg<<"Start ProcessCrossNNG\n";
-    if (coord == Flat) {
-        if (metric == Euclidean)
-            static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process<Flat,Euclidean>(
-                *static_cast<Field<NData,Flat>*>(field1),
-                *static_cast<Field<NData,Flat>*>(field2),
-                *static_cast<Field<GData,Flat>*>(field3),dots);
-        else
-            Assert(false);
-    } else {
-        if (metric == Euclidean)
-            static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process<ThreeD,Euclidean>(
-                *static_cast<Field<NData,ThreeD>*>(field1),
-                *static_cast<Field<NData,ThreeD>*>(field2),
-                *static_cast<Field<GData,ThreeD>*>(field3),dots);
-        else if (metric == Perp)
-            static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process<ThreeD,Perp>(
-                *static_cast<Field<NData,ThreeD>*>(field1),
-                *static_cast<Field<NData,ThreeD>*>(field2),
-                *static_cast<Field<GData,ThreeD>*>(field3),dots);
-        else if (metric == Lens)
-            static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process<ThreeD,Lens>(
-                *static_cast<Field<NData,ThreeD>*>(field1),
-                *static_cast<Field<NData,ThreeD>*>(field2),
-                *static_cast<Field<GData,ThreeD>*>(field3),dots);
-        else if (metric == Arc)
-            static_cast<BinnedCorr3<NData,NData,GData>*>(corr)->process<Sphere,Arc>(
-                *static_cast<Field<NData,Sphere>*>(field1),
-                *static_cast<Field<NData,Sphere>*>(field2),
-                *static_cast<Field<GData,Sphere>*>(field3),dots);
-        else
-            Assert(false);
-    }
-}
-
-void ProcessCrossKKG(void* corr, void* field1, void* field2, void* field3, int dots,
-                     int coord, int metric)
-{
-    dbg<<"Start ProcessCrossKKG\n";
-    if (coord == Flat) {
-        if (metric == Euclidean)
-            static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process<Flat,Euclidean>(
-                *static_cast<Field<KData,Flat>*>(field1),
-                *static_cast<Field<KData,Flat>*>(field2),
-                *static_cast<Field<GData,Flat>*>(field3),dots);
-        else
-            Assert(false);
-    } else {
-        if (metric == Euclidean)
-            static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process<ThreeD,Euclidean>(
-                *static_cast<Field<KData,ThreeD>*>(field1),
-                *static_cast<Field<KData,ThreeD>*>(field2),
-                *static_cast<Field<GData,ThreeD>*>(field3),dots);
-        else if (metric == Perp)
-            static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process<ThreeD,Perp>(
-                *static_cast<Field<KData,ThreeD>*>(field1),
-                *static_cast<Field<KData,ThreeD>*>(field2),
-                *static_cast<Field<GData,ThreeD>*>(field3),dots);
-        else if (metric == Lens)
-            static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process<ThreeD,Lens>(
-                *static_cast<Field<KData,ThreeD>*>(field1),
-                *static_cast<Field<KData,ThreeD>*>(field2),
-                *static_cast<Field<GData,ThreeD>*>(field3),dots);
-        else if (metric == Arc)
-            static_cast<BinnedCorr3<KData,KData,GData>*>(corr)->process<Sphere,Arc>(
-                *static_cast<Field<KData,Sphere>*>(field1),
-                *static_cast<Field<KData,Sphere>*>(field2),
-                *static_cast<Field<GData,Sphere>*>(field3),dots);
-        else
-            Assert(false);
-    }
-}
-#endif
 

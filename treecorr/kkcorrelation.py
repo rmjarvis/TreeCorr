@@ -258,11 +258,11 @@ class KKCorrelation(treecorr.BinnedCorr2):
     def clear(self):
         """Clear the data vectors
         """
-        self.xi[:] = 0
-        self.meanr[:] = 0
-        self.meanlogr[:] = 0
-        self.weight[:] = 0
-        self.npairs[:] = 0
+        self.xi.ravel().ravel()[:] = 0
+        self.meanr.ravel()[:] = 0
+        self.meanlogr.ravel()[:] = 0
+        self.weight.ravel()[:] = 0
+        self.npairs.ravel()[:] = 0
 
     def __iadd__(self, other):
         """Add a second GGCorrelation's data to this one.

@@ -484,6 +484,8 @@ void BinnedCorr2<D1,D2>::directProcess11(
         k2 = MetricHelper<M>::CalculateBinK(c2.getPos(), c1.getPos(),
                                             logr, _logminsep, _binsize,
                                             r, _minsep, _maxsep);
+        XAssert(k2 >= 0);
+        XAssert(k2 < _nbins);
         _npairs[k2] += nn;
         _meanr[k2] += ww * r;
         _meanlogr[k2] += ww * logr;

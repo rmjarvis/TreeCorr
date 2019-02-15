@@ -27,7 +27,7 @@ def _parse_split_method(split_method):
 
 class NField(object):
     """This class stores the positions in a tree structure from which it is efficient
-    to compute the two-point correlation functions.  
+    to compute the two-point correlation functions.
 
     An NField is typically created from a Catalog object using
 
@@ -38,7 +38,7 @@ class NField(object):
     :param max_size:    The maximum radius cell required (usually max_sep).
     :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                         (default: 'mean')
-    :param max_top:     The maximum number of top layers to use when setting up the field. 
+    :param max_top:     The maximum number of top layers to use when setting up the field.
                         (default: 10)
     :param logger:      A logger file if desired (default: None)
     """
@@ -104,7 +104,7 @@ class NField(object):
 
 class KField(object):
     """This class stores the kappa field in a tree structure from which it is efficient
-    to compute the two-point correlation functions.  
+    to compute the two-point correlation functions.
 
     A KField is typically created from a Catalog object using
 
@@ -186,7 +186,7 @@ class KField(object):
 
 class GField(object):
     """This class stores the shear field in a tree structure from which it is efficient
-    to compute the two-point correlation functions.  
+    to compute the two-point correlation functions.
 
     A GField is typically created from a Catalog object using
 
@@ -222,7 +222,7 @@ class GField(object):
                                                       min_size,max_size,sm,max_top)
             if logger:
                 logger.debug('Finished building GField Flat')
-        else: 
+        else:
             self.flat = False
             if cat.coords == 'spherical':
                 self.data = treecorr._lib.BuildGFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),

@@ -29,7 +29,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
     See the doc string of :class:`~treecorr.BinnedCorr3` for a description of how the triangles
     are binned.
-    
+
     Ojects of this class holds the following attributes:
 
         :nbins:     The number of bins in logr where r = d2
@@ -51,7 +51,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
     In addition, the following attributes are numpy arrays whose shape is (nbins, nubins, nvbins):
 
         :logr:      The nominal center of the bin in log(r).
-        :rnom:      The nominal center of the bin converted to regular distance. 
+        :rnom:      The nominal center of the bin converted to regular distance.
                     i.e. r = exp(logr).
         :u:         The nominal center of the bin in u.
         :v:         The nominal center of the bin in v.
@@ -71,7 +71,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         :ntri:      The number of triangles going into each bin.
 
     If `sep_units` are given (either in the config dict or as a named kwarg) then the distances
-    will all be in these units.  Note however, that if you separate out the steps of the 
+    will all be in these units.  Note however, that if you separate out the steps of the
     :func:`process` command and use :func:`process_auto` and/or :func:`process_cross`, then the
     units will not be applied to :meanr: or :meanlogr: until the :func:`finalize` function is
     called.
@@ -119,9 +119,9 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                 self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                 self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
                 self.min_rpar, self.max_rpar,
-                dp(self.zeta), 
+                dp(self.zeta),
                 dp(self.meand1), dp(self.meanlogd1), dp(self.meand2), dp(self.meanlogd2),
-                dp(self.meand3), dp(self.meanlogd3), dp(self.meanu), dp(self.meanv), 
+                dp(self.meand3), dp(self.meanlogd3), dp(self.meanu), dp(self.meanv),
                 dp(self.weight), dp(self.ntri));
 
     def __del__(self):
@@ -158,12 +158,12 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         finish the calculation of meand1, meanlogd1, etc.
 
         :param cat:         The catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.KKKCorrelation.process` for 
-                            details.  (default: 'Euclidean'; this value can also be given in the 
+        :param metric:      Which metric to use.  See :meth:`~treecorr.KKKCorrelation.process` for
+                            details.  (default: 'Euclidean'; this value can also be given in the
                             constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         if cat.name == '':
@@ -184,7 +184,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                                      self._coords, self._metric)
 
     def process_cross21(self, cat1, cat2, metric=None, num_threads=None):
-        """Process two catalogs, accumulating the 3pt cross-correlation, where two of the 
+        """Process two catalogs, accumulating the 3pt cross-correlation, where two of the
         points in each triangle come from the first catalog, and one from the second.
 
         This accumulates the cross-correlation for the given catalogs.  After
@@ -193,12 +193,12 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
         :param cat1:        The first catalog to process
         :param cat2:        The second catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.KKKCorrelation.process` for 
-                            details.  (default: 'Euclidean'; this value can also be given in the 
+        :param metric:      Which metric to use.  See :meth:`~treecorr.KKKCorrelation.process` for
+                            details.  (default: 'Euclidean'; this value can also be given in the
                             constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         raise NotImplementedError("No partial cross KKK yet.")
@@ -214,12 +214,12 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         :param cat1:        The first catalog to process
         :param cat2:        The second catalog to process
         :param cat3:        The third catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.KKKCorrelation.process` for 
-                            details.  (default: 'Euclidean'; this value can also be given in the 
+        :param metric:      Which metric to use.  See :meth:`~treecorr.KKKCorrelation.process` for
+                            details.  (default: 'Euclidean'; this value can also be given in the
                             constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         if cat1.name == '' and cat2.name == '' and cat3.name == '':
@@ -338,16 +338,16 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         """Accumulate the number of triangles of points between cat1, cat2, and cat3.
 
         - If only 1 argument is given, then compute an auto-correlation function.
-        - If 2 arguments are given, then compute a cross-correlation function with the 
+        - If 2 arguments are given, then compute a cross-correlation function with the
           first catalog taking two corners of the triangles. (Not implemented yet.)
         - If 3 arguments are given, then compute a cross-correlation function.
 
-        All arguments may be lists, in which case all items in the list are used 
+        All arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
 
         Note: For a correlation of multiple catalogs, it matters which corner of the
-        triangle comes from which catalog.  The final accumulation will have 
-        d1 > d2 > d3 where d1 is between two points in cat2,cat3; d2 is between 
+        triangle comes from which catalog.  The final accumulation will have
+        d1 > d2 > d3 where d1 is between two points in cat2,cat3; d2 is between
         points in cat1,cat3; and d3 is between points in cat1,cat2.  To accumulate
         all the possible triangles between three catalogs, you should call this
         multiple times with the different catalogs in different positions.
@@ -363,7 +363,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
                             - 'Rperp' = the perpendicular component of the distance. For two points
-                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean
                               distance and :math:`Rparallel = |r1-r2|`, then we define
                               :math:`Rperp^2 = d^2 - Rparallel^2`.
                             - 'Rlens' = the projected distance perpendicular to the first point
@@ -374,9 +374,9 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
 
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         import math
@@ -425,7 +425,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                             into each bin.
             :meanlogd1:     The mean value :math:`\\langle logd1\\rangle` of triangles that fell
                             into each bin.
-            :meand2:        The mean value :math:`\\langle d2\\rangle` of triangles that fell 
+            :meand2:        The mean value :math:`\\langle d2\\rangle` of triangles that fell
                             into each bin.
             :meanlogd2:     The mean value :math:`\\langle logd2\\rangle` of triangles that fell
                             into each bin.
@@ -453,7 +453,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                             this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing KKK correlations to %s',file_name)
-        
+
         col_names = [ 'R_nom', 'u_nom', 'v_nom',
                       'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
                       'meand3', 'meanlogd3', 'meanu', 'meanv',
@@ -475,7 +475,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         This should be a file that was written by TreeCorr, preferably a FITS file, so there
         is no loss of information.
 
-        Warning: The KKKCorrelation object should be constructed with the same configuration 
+        Warning: The KKKCorrelation object should be constructed with the same configuration
         parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
         checked by the read function.
 

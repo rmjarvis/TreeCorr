@@ -37,7 +37,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
     In addition, the following attributes are numpy arrays of length (nbins):
 
         :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
-        :rnom:      The nominal center of the bin converted to regular distance. 
+        :rnom:      The nominal center of the bin converted to regular distance.
                     i.e. r = exp(logr).
         :meanr:     The (weighted) mean value of r for the pairs in each bin.
                     If there are no pairs in a bin, then exp(logr) will be used instead.
@@ -51,7 +51,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         :npairs:    The number of pairs going into each bin.
 
     If `sep_units` are given (either in the config dict or as a named kwarg) then the distances
-    will all be in these units.  Note however, that if you separate out the steps of the 
+    will all be in these units.  Note however, that if you separate out the steps of the
     :func:`process` command and use :func:`process_auto` and/or :func:`process_cross`, then the
     units will not be applied to :meanr: or :meanlogr: until the :func:`finalize` function is
     called.
@@ -128,12 +128,12 @@ class KKCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
 
         :param cat:         The catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.KKCorrelation.process` for 
-                            details.  (default: 'Euclidean'; this value can also be given in the 
+        :param metric:      Which metric to use.  See :meth:`~treecorr.KKCorrelation.process` for
+                            details.  (default: 'Euclidean'; this value can also be given in the
                             constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         if cat.name == '':
@@ -164,12 +164,12 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         :param cat1:        The first catalog to process
         :param cat2:        The second catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.KKCorrelation.process` for 
-                            details.  (default: 'Euclidean'; this value can also be given in the 
+        :param metric:      Which metric to use.  See :meth:`~treecorr.KKCorrelation.process` for
+                            details.  (default: 'Euclidean'; this value can also be given in the
                             constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         if cat1.name == '' and cat2.name == '':
@@ -203,12 +203,12 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         :param cat1:        The first catalog to process
         :param cat2:        The second catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.KKCorrelation.process` for 
-                            details.  (default: 'Euclidean'; this value can also be given in the 
+        :param metric:      Which metric to use.  See :meth:`~treecorr.KKCorrelation.process` for
+                            details.  (default: 'Euclidean'; this value can also be given in the
                             constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         if cat1.name == '' and cat2.name == '':
@@ -292,7 +292,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         If only 1 argument is given, then compute an auto-correlation function.
         If 2 arguments are given, then compute a cross-correlation function.
 
-        Both arguments may be lists, in which case all items in the list are used 
+        Both arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
 
         :param cat1:        A catalog or list of catalogs for the first K field.
@@ -304,22 +304,22 @@ class KKCorrelation(treecorr.BinnedCorr2):
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
                             - 'Rperp' = the perpendicular component of the distance. For two points
-                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean
                               distance and :math:`Rparallel = |r1-r2|`, then we define
                               :math:`Rperp^2 = d^2 - Rparallel^2`.
                             - 'Rlens' = the projected distance perpendicular to the first point
                               in the pair (taken to be a lens) to the line of sight to the second
                               point (e.g. a lensed source galaxy).
                             - 'Arc' = the true great circle distance for spherical coordinates.
-                            - 'TwoD' = 2-dimensional binning from x = (-maxsep .. maxsep) and 
+                            - 'TwoD' = 2-dimensional binning from x = (-maxsep .. maxsep) and
                               y = (-maxsep .. maxsep)
 
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
 
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         import math
@@ -371,7 +371,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         self.logger.info('Writing KK correlations to %s',file_name)
         if prec is None:
             prec = self.config.get('precision', 4)
-         
+
         treecorr.util.gen_write(
             file_name,
             ['R_nom','meanR','meanlogR','xi','sigma_xi','weight','npairs'],
@@ -386,7 +386,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         This should be a file that was written by TreeCorr, preferably a FITS file, so there
         is no loss of information.
 
-        Warning: The KKCorrelation object should be constructed with the same configuration 
+        Warning: The KKCorrelation object should be constructed with the same configuration
         parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
         checked by the read function.
 

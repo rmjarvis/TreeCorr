@@ -117,8 +117,8 @@ def corr2(config, logger=None):
     import pprint
     logger.debug('Using configuration dict:\n%s',pprint.pformat(config))
 
-    if ( 'output_dots' not in config 
-          and config.get('log_file',None) is None 
+    if ( 'output_dots' not in config
+          and config.get('log_file',None) is None
           and config['verbose'] >= 2 ):
         config['output_dots'] = True
 

@@ -42,30 +42,30 @@ class BinnedCorr3(object):
         u &= \\frac{d3}{d2} \\\\
         v &= \\pm \\frac{(d1 - d2)}{d3} \\\\
 
-    The orientation of the triangle is specified by the sign of v.  
+    The orientation of the triangle is specified by the sign of v.
     Positive v triangles have the three sides d1,d2,d3 in counter-clockwise orientation.
     Negative v triangles have the three sides d1,d2,d3 in clockwise orientation.
 
     The constructor for all derived classes take a config dict as the first argument,
-    since this is often how we keep track of parameters, but if you don't want to 
+    since this is often how we keep track of parameters, but if you don't want to
     use one or if you want to change some parameters from what are in a config dict,
     then you can use normal kwargs, which take precedence over anything in the config dict.
 
     :param config:      The configuration dict which defines attributes about how to read the file.
-                        Any kwargs that are not those listed here will be added to the config, 
+                        Any kwargs that are not those listed here will be added to the config,
                         so you can even omit the config dict and just enter all parameters you
-                        want as kwargs.  (default: None) 
+                        want as kwargs.  (default: None)
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     The following parameters may be given either in the config dict or as a named kwarg:
 
     :param nbins:       How many bins to use for the r binning. (Exactly three of nbins, bin_size,
-                        min_sep, max_sep are required. If nbins is not given, it will be 
+                        min_sep, max_sep are required. If nbins is not given, it will be
                         calculated from the values of the other three, rounding up to the next
                         highest integer. In this case, max_sep will be readjusted to account for
                         this rounding up.)
-    :param bin_size:    The width of the bins in log(separation). (Exactly three of nbins, 
+    :param bin_size:    The width of the bins in log(separation). (Exactly three of nbins,
                         bin_size, min_sep, max_sep are required.  If bin_size is not given, it will
                         be calculated from the values of the other three.)
     :param min_sep:     The minimum separation in units of sep_units, if relevant. (Exactly three
@@ -77,8 +77,8 @@ class BinnedCorr3(object):
                         is not given, then max_sep will be adjusted as needed to allow nbins to be
                         an integer value.)
 
-    :param sep_units:   The units to use for the separation values, given as a string.  This 
-                        includes both min_sep and max_sep above, as well as the units of the 
+    :param sep_units:   The units to use for the separation values, given as a string.  This
+                        includes both min_sep and max_sep above, as well as the units of the
                         output distance values.  Valid options are arcsec, arcmin, degrees, hours,
                         radians.  (default: radians if angular units make sense, but for 3-d
                         or flat 2-d positions, the default will just match the units of x,y[,z]
@@ -91,14 +91,14 @@ class BinnedCorr3(object):
                         to yield good results for most application.
 
     :param nubins:      Analogous to nbins for the u direction.  (The default is to calculate from
-                        ubin_size = binsize, min_u = 0, max_u = 1, but this can be overridden by 
+                        ubin_size = binsize, min_u = 0, max_u = 1, but this can be overridden by
                         specifying up to 3 of these four parametes.)
     :param ubin_size:   Analogous to bin_size for the u direction. (default: bin_size)
     :param min_u:       Analogous to min_sep for the u direction. (default: 0)
     :param max_u:       Analogous to max_sep for the u direction. (default: 1)
 
     :param nvbins:      Analogous to nbins for the v direction.  (The default is to calculate from
-                        vbin_size = binsize, min_v = -1, max_v = 1, but this can be overridden by 
+                        vbin_size = binsize, min_v = -1, max_v = 1, but this can be overridden by
                         specifying up to 3 of these four parametes.)
     :param vbin_size:   Analogous to bin_size for the v direction. (default: bin_size)
     :param min_v:       Analogous to min_sep for the v direction. (default: -1)
@@ -126,9 +126,9 @@ class BinnedCorr3(object):
                         - middle: Use the middle of the range; i.e. the average of the minimum and
                           maximum value.
                         - random: Use a random point somewhere in the middle two quartiles of the
-                          range. 
+                          range.
 
-    :param max_top:     The maximum number of top layers to use when setting up the field. 
+    :param max_top:     The maximum number of top layers to use when setting up the field.
                         The top-level cells are the cells where each calculation job starts.
                         There will typically be of order 2^max_top top-level cells. (default: 10)
     :param precision:   The precision to use for the output values. This should be an integer,
@@ -139,7 +139,7 @@ class BinnedCorr3(object):
                           For spherical coordinates (ra,dec without r), this is the chord
                           distance between points on the unit sphere.
                         - 'Rperp' = the perpendicular component of the distance. For two points
-                          with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                          with distance from Earth `r1, r2`, if `d` is the normal Euclidean
                           distance and :math:`Rparallel = |r1-r2|`, then we define
                           :math:`Rperp^2 = d^2 - Rparallel^2`.
                         - 'Rlens' = the projected distance perpendicular to the first point
@@ -154,9 +154,9 @@ class BinnedCorr3(object):
     :param max_rpar:    For the 'Rperp' metric, the maximum difference in Rparallel to allow
                         for pairs being included in the correlation function. (default: None)
 
-    :param num_threads: How many OpenMP threads to use during the calculation.  
+    :param num_threads: How many OpenMP threads to use during the calculation.
                         (default: use the number of cpu cores; this value can also be given in
-                        the constructor in the config dict.) Note that this won't work if the 
+                        the constructor in the config dict.) Note that this won't work if the
                         system's C compiler is clang prior to version 3.7.
      """
     _valid_params = {
@@ -321,7 +321,7 @@ class BinnedCorr3(object):
             if self.ubin_size * (self.nubins-1) >= 1.:
                 raise ValueError("Cannot specify ubin_size * nubins > 1.")
             self.max_u = self.min_u + self.nubins*self.ubin_size
-            if self.max_u > 1.: 
+            if self.max_u > 1.:
                 self.max_u = 1.
                 self.ubin_size = (self.max_u-self.min_u)/self.nubins
         self.logger.info("u: nbins = %d, min,max = %g..%g, bin_size = %g",
@@ -345,9 +345,9 @@ class BinnedCorr3(object):
                 self.max_v = self.min_v + self.nvbins*self.vbin_size
             else:
                 self.min_v = self.max_v - self.nvbins*self.vbin_size
-            if self.min_v < -1.: 
+            if self.min_v < -1.:
                 self.min_v = -1.
-            if self.max_v > 1.: 
+            if self.max_v > 1.:
                 self.max_v = 1.
             self.vbin_size = (self.max_v-self.min_v)/self.nvbins
         elif 'vbin_size' not in self.config:
@@ -425,16 +425,16 @@ class BinnedCorr3(object):
                               self.bin_slop,self.b,self.bu,self.bv)
 
         # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
-        self.logr1d = numpy.linspace(start=0, stop=self.nbins*self.bin_size, 
+        self.logr1d = numpy.linspace(start=0, stop=self.nbins*self.bin_size,
                                    num=self.nbins, endpoint=False)
         # Offset by the position of the center of the first bin.
         self.logr1d += math.log(self.min_sep) + 0.5*self.bin_size
 
-        self.u1d = numpy.linspace(start=0, stop=self.nubins*self.ubin_size, 
+        self.u1d = numpy.linspace(start=0, stop=self.nubins*self.ubin_size,
                                   num=self.nubins, endpoint=False)
         self.u1d += self.min_u + 0.5*self.ubin_size
 
-        self.v1d = numpy.linspace(start=0, stop=self.nvbins*self.vbin_size, 
+        self.v1d = numpy.linspace(start=0, stop=self.nvbins*self.vbin_size,
                                   num=self.nvbins, endpoint=False)
         self.v1d += self.min_v + 0.5*self.vbin_size
 
@@ -498,7 +498,7 @@ class BinnedCorr3(object):
             for c2 in cat2:
                 for c3 in cat3:
                     self.process_cross(c1,c2,c3, metric, num_threads)
- 
+
     def _set_num_threads(self, num_threads):
         if num_threads is None:
             num_threads = self.config.get('num_threads',None)

@@ -26,9 +26,9 @@ class GGGCorrelation(treecorr.BinnedCorr3):
     We use the "natural components" of the shear 3-point function described by Schneider &
     Lombardi (2003) [Astron.Astrophys. 397 (2003) 809-818].  In this paradigm, the shears
     are projected relative to some point defined by the geometry of the triangle.  They
-    give several reasonable choices for this point.  We choose the triangle's centroid as the 
+    give several reasonable choices for this point.  We choose the triangle's centroid as the
     "most natural" point, as many simple shear fields have purely real :math:`\\Gamma_0` using
-    this definition.  It is also a fairly simple point to calculate in the code compared to 
+    this definition.  It is also a fairly simple point to calculate in the code compared to
     some of the other options they offer, so projections relative to it are fairly efficient.
 
     There are 4 complex-valued 3-point shear corrletion functions defined for triples of shear
@@ -45,9 +45,9 @@ class GGGCorrelation(treecorr.BinnedCorr3):
     where :math:`\\mathbf{x1}, \\mathbf{x2}, \\mathbf{x3}` are the corners of the triange opposite
     sides `d1, d2, d3` respectively, where `d1 > d2 > d3`, and `*` indicates complex conjugation.
 
-    See the doc string of :class:`~treecorr.BinnedCorr3` for a description of how the triangles 
+    See the doc string of :class:`~treecorr.BinnedCorr3` for a description of how the triangles
     are binned.
-    
+
     Ojects of this class holds the following attributes:
 
         :nbins:     The number of bins in logr where r = d2
@@ -69,7 +69,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
     In addition, the following attributes are numpy arrays whose shape is (nbins, nubins, nvbins):
 
         :logr:      The nominal center of each bin in log(r).
-        :rnom:      The nominal center of the bin converted to regular distance. 
+        :rnom:      The nominal center of the bin converted to regular distance.
                     i.e. r = exp(logr).
         :u:         The nominal center of each bin in u.
         :v:         The nominal center of each bin in v.
@@ -92,7 +92,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         :ntri:      The number of triangles going into each bin.
 
     If `sep_units` are given (either in the config dict or as a named kwarg) then the distances
-    will all be in these units.  Note however, that if you separate out the steps of the 
+    will all be in these units.  Note however, that if you separate out the steps of the
     :func:`process` command and use :func:`process_auto` and/or :func:`process_cross`, then the
     units will not be applied to :meanr: or :meanlogr: until the :func:`finalize` function is
     called.
@@ -169,7 +169,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                 dp(self.gam0r), dp(self.gam0i), dp(self.gam1r), dp(self.gam1i),
                 dp(self.gam2r), dp(self.gam2i), dp(self.gam3r), dp(self.gam3i),
                 dp(self.meand1), dp(self.meanlogd1), dp(self.meand2), dp(self.meanlogd2),
-                dp(self.meand3), dp(self.meanlogd3), dp(self.meanu), dp(self.meanv), 
+                dp(self.meand3), dp(self.meanlogd3), dp(self.meanu), dp(self.meanv),
                 dp(self.weight), dp(self.ntri));
 
     def __del__(self):
@@ -206,12 +206,12 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         finish the calculation of meand1, meanlogd1, etc.
 
         :param cat:         The catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.GGGCorrelation.process` for 
-                            details.  (default: 'Euclidean'; this value can also be given in the 
+        :param metric:      Which metric to use.  See :meth:`~treecorr.GGGCorrelation.process` for
+                            details.  (default: 'Euclidean'; this value can also be given in the
                             constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         if cat.name == '':
@@ -232,7 +232,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                                      self._coords, self._metric)
 
     def process_cross21(self, cat1, cat2, metric=None, num_threads=None):
-        """Process two catalogs, accumulating the 3pt cross-correlation, where two of the 
+        """Process two catalogs, accumulating the 3pt cross-correlation, where two of the
         points in each triangle come from the first catalog, and one from the second.
 
         This accumulates the cross-correlation for the given catalogs.  After
@@ -241,12 +241,12 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
         :param cat1:        The first catalog to process
         :param cat2:        The second catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.GGGCorrelation.process` for 
-                            details.  (default: 'Euclidean'; this value can also be given in the 
+        :param metric:      Which metric to use.  See :meth:`~treecorr.GGGCorrelation.process` for
+                            details.  (default: 'Euclidean'; this value can also be given in the
                             constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         raise NotImplementedError("No partial cross GGG yet.")
@@ -262,12 +262,12 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         :param cat1:        The first catalog to process
         :param cat2:        The second catalog to process
         :param cat3:        The third catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.GGGCorrelation.process` for 
-                            details.  (default: 'Euclidean'; this value can also be given in the 
+        :param metric:      Which metric to use.  See :meth:`~treecorr.GGGCorrelation.process` for
+                            details.  (default: 'Euclidean'; this value can also be given in the
                             constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         if cat1.name == '' and cat2.name == '' and cat3.name == '':
@@ -407,16 +407,16 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         """Accumulate the number of triangles of points between cat1, cat2, and cat3.
 
         - If only 1 argument is given, then compute an auto-correlation function.
-        - If 2 arguments are given, then compute a cross-correlation function with the 
+        - If 2 arguments are given, then compute a cross-correlation function with the
           first catalog taking two corners of the triangles. (Not implemented yet.)
         - If 3 arguments are given, then compute a cross-correlation function.
 
-        All arguments may be lists, in which case all items in the list are used 
+        All arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
 
         Note: For a correlation of multiple catalogs, it matters which corner of the
-        triangle comes from which catalog.  The final accumulation will have 
-        d1 > d2 > d3 where d1 is between two points in cat2,cat3; d2 is between 
+        triangle comes from which catalog.  The final accumulation will have
+        d1 > d2 > d3 where d1 is between two points in cat2,cat3; d2 is between
         points in cat1,cat3; and d3 is between points in cat1,cat2.  To accumulate
         all the possible triangles between three catalogs, you should call this
         multiple times with the different catalogs in different positions.
@@ -432,7 +432,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
                             - 'Rperp' = the perpendicular component of the distance. For two points
-                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean
                               distance and :math:`Rparallel = |r1-r2|`, then we define
                               :math:`Rperp^2 = d^2 - Rparallel^2`.
                             - 'Rlens' = the projected distance perpendicular to the first point
@@ -443,9 +443,9 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
 
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         import math
@@ -499,7 +499,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                             into each bin.
             :meanlogd1:     The mean value :math:`\\langle logd1\\rangle` of triangles that fell
                             into each bin.
-            :meand2:        The mean value :math:`\\langle d2\\rangle` of triangles that fell 
+            :meand2:        The mean value :math:`\\langle d2\\rangle` of triangles that fell
                             into each bin.
             :meanlogd2:     The mean value :math:`\\langle logd2\\rangle` of triangles that fell
                             into each bin.
@@ -534,9 +534,9 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                             this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing GGG correlations to %s',file_name)
-        
+
         col_names = [ 'R_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
-                      'meand3', 'meanlogd3', 'meanu', 'meanv', 
+                      'meand3', 'meanlogd3', 'meanu', 'meanv',
                       'gam0r', 'gam0i', 'gam1r', 'gam1i', 'gam2r', 'gam2i', 'gam3r', 'gam3i',
                       'sigma_gam', 'weight', 'ntri' ]
         columns = [ self.rnom, self.u, self.v,
@@ -558,7 +558,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         This should be a file that was written by TreeCorr, preferably a FITS file, so there
         is no loss of information.
 
-        Warning: The GGGCorrelation object should be constructed with the same configuration 
+        Warning: The GGGCorrelation object should be constructed with the same configuration
         parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
         checked by the read function.
 

@@ -58,7 +58,7 @@ class CelestialCoord(object):
 
         >>> coord = treecorr.CelestialCoord(ra, dec)
 
-    The input angles are assumed to be in radians, but we have some helper variables to 
+    The input angles are assumed to be in radians, but we have some helper variables to
     convert from other units:
 
     - :const:`treecorr.arcsec`    The value of 1 arcsec in radians = pi/(180*3600)
@@ -212,7 +212,7 @@ class CelestialCoord(object):
         # E = A + B + C - pi
         # tan(E/4) = sqrt(tan(s/2) tan((s-a)/2) tan((s-b)/2) tan((s-c)/2)
         # tan(E/2) = tan(a/2) tan(b/2) sin(C) / (1 + tan(a/2) tan(b/2) cos(C))
-        # 
+        #
         # We use the last formula, which is stable both for small triangles and ones that are
         # nearly degenerate (which the middle formula may have trouble with).
         #
@@ -226,7 +226,7 @@ class CelestialCoord(object):
         #         G = sina sinb cosC
         #         da = 2 sin(a/2)
         #         db = 2 sin(b/2)
-        # 
+        #
         # tan(E/2) = sin(a/2) sin(b/2) sin(C) / (cos(a/2) cos(b/2) + sin(a/2) sin(b/2) cos(C))
         #          = sin(a) sin(b) sin(C) / (4 cos(a/2)^2 cos(b/2)^2 + sin(a) sin(b) cos(C))
         #          = F / (4 (1-sin(a/2)^2) (1-sin(b/2)^2) + G)
@@ -268,10 +268,10 @@ class CelestialCoord(object):
           patches, but not the angles between points in these patches.  For more information, see
           http://mathworld.wolfram.com/LambertAzimuthalEqual-AreaProjection.html
         - 'stereographic' Uses a stereographic proejection, which preserves angles between points
-          in small patches, but not area.  For more information, see 
+          in small patches, but not area.  For more information, see
           http://mathworld.wolfram.com/StereographicProjection.html
         - 'gnomonic' Uses a gnomonic projection (i.e. a projection from the center of the sphere),
-          which has the property that all great circles become straight lines.  For more 
+          which has the property that all great circles become straight lines.  For more
           information, see http://mathworld.wolfram.com/GnomonicProjection.html
         - 'postel' Uses a Postel equidistant proejection, which preserves distances from the
           projection point, but not area or angles.  For more information, see
@@ -343,14 +343,14 @@ class CelestialCoord(object):
 
 
     def project_rad(self, ra, dec, projection):
-        """This is basically identical to the :meth:`~treecorr.CelestialCoord.project` method 
-        except that the input `ra`, `dec` are given in radians rather than packaged as a 
+        """This is basically identical to the :meth:`~treecorr.CelestialCoord.project` method
+        except that the input `ra`, `dec` are given in radians rather than packaged as a
         `CelestialCoord` object.
 
         The main advantage to this is that it will work if `ra` and `dec` are NumPy arrays,
         in which case the output `x`, `y` will also be NumPy arrays.
 
-        See the doc for :meth:`~treecorr.CelestialCoord.project` for more information about the 
+        See the doc for :meth:`~treecorr.CelestialCoord.project` for more information about the
         kinds of projection.
 
         :param ra:          The RA of the coordinate to be projected relative to the current coord.
@@ -380,7 +380,7 @@ class CelestialCoord(object):
         coordinate, using the current coordinate as the center point of the tangent plane
         projection.
 
-        See the doc for :meth:`~treecorr.CelestialCoord.project` for more information about the 
+        See the doc for :meth:`~treecorr.CelestialCoord.project` for more information about the
         kinds of projection.
 
         :param u:           The projected u value to be deprojected.
@@ -417,7 +417,7 @@ class CelestialCoord(object):
         # sin(dec) = cos(c) sin(dec0) + v (sin(c)/r) cos(dec0)
         # tan(ra-ra0) = u (sin(c)/r) / (cos(dec0) cos(c) - v sin(dec0) (sin(c)/r))
         #
-        # which means we only need cos(c) and sin(c)/r.  For most of the projections, 
+        # which means we only need cos(c) and sin(c)/r.  For most of the projections,
         # this saves us from having to take sqrt(rsq).
 
         import numpy
@@ -461,13 +461,13 @@ class CelestialCoord(object):
 
     def deproject_rad(self, u, v, projection='lambert'):
         """This is basically identical to the deproject() function except that the output `ra`,
-        `dec` are returned as a tuple (ra, dec) in radians rather than packaged as a 
+        `dec` are returned as a tuple (ra, dec) in radians rather than packaged as a
         `CelestialCoord` object.
 
         The main advantage to this is that it will work if `u` and `v` are NumPy arrays,
         in which case the output `ra`, `dec` will also be NumPy arrays.
 
-        See the doc for :meth:`~treecorr.CelestialCoord.project` for more information about the 
+        See the doc for :meth:`~treecorr.CelestialCoord.project` for more information about the
         kinds of projection.
 
         :param u:           The projected u value to be deprojected.
@@ -490,7 +490,7 @@ class CelestialCoord(object):
         J = ( dra/du cos(dec)  dra/dv cos(dec) )
             (    ddec/du          ddec/dv      )
 
-        See the doc for :meth:`~treecorr.CelestialCoord.project` for more information about the 
+        See the doc for :meth:`~treecorr.CelestialCoord.project` for more information about the
         kinds of projection.
 
         :param u:           The projected u value to be deprojected.
@@ -506,12 +506,12 @@ class CelestialCoord(object):
         # tan(ra-ra0) = u sin(c)/r / (cos(dec0) cos(c) - v sin(dec0) sin(c)/r)
         #
         # d(sin(dec)) = cos(dec) ddec = s0 dc + (v ds + s dv) c0
-        # dtan(ra-ra0) = sec^2(ra-ra0) dra 
-        #              = ( (u ds + s du) A - u s (dc c0 - (v ds + s dv) s0 ) )/A^2 
+        # dtan(ra-ra0) = sec^2(ra-ra0) dra
+        #              = ( (u ds + s du) A - u s (dc c0 - (v ds + s dv) s0 ) )/A^2
         # where s = sin(c) / r
         #       c = cos(c)
         #       s0 = sin(dec0)
-        #       c0 = cos(dec0) 
+        #       c0 = cos(dec0)
         #       A = c c0 - v s s0
 
         import numpy
@@ -623,7 +623,7 @@ class CelestialCoord(object):
         y2 = xy*self._x + yy*self._y + zy*self._z
         z2 = xz*self._x + yz*self._y + zz*self._z
 
-        new_dec = math.atan2(z2,math.sqrt(x2**2+y2**2)) 
+        new_dec = math.atan2(z2,math.sqrt(x2**2+y2**2))
         new_ra = math.atan2(y2,x2)
         new_coord = CelestialCoord(new_ra,new_dec)
         return new_coord

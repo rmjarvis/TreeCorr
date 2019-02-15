@@ -40,7 +40,7 @@ class BinnedCorr2(object):
     here.  CMB temperature fluctuations for example.
 
     The constructor for all derived classes take a config dict as the first argument,
-    since this is often how we keep track of parameters, but if you don't want to 
+    since this is often how we keep track of parameters, but if you don't want to
     use one or if you want to change some parameters from what are in a config dict,
     then you can use normal kwargs, which take precedence over anything in the config dict.
 
@@ -56,7 +56,7 @@ class BinnedCorr2(object):
                         are required. If nbins is not given, it will be calculated from the values
                         of the other three, rounding up to the next highest integer. In this case,
                         max_sep will be readjusted to account for this rounding up.)
-    :param bin_size:    The width of the bins in log(separation). (Exactly three of nbins, 
+    :param bin_size:    The width of the bins in log(separation). (Exactly three of nbins,
                         bin_size, min_sep, max_sep are required.  If bin_size is not given, it will
                         be calculated from the values of the other three.)
     :param min_sep:     The minimum separation in units of sep_units, if relevant. (Exactly three
@@ -68,8 +68,8 @@ class BinnedCorr2(object):
                         is not given, then max_sep will be adjusted as needed to allow nbins to be
                         an integer value.)
 
-    :param sep_units:   The units to use for the separation values, given as a string.  This 
-                        includes both min_sep and max_sep above, as well as the units of the 
+    :param sep_units:   The units to use for the separation values, given as a string.  This
+                        includes both min_sep and max_sep above, as well as the units of the
                         output distance values.  Valid options are arcsec, arcmin, degrees, hours,
                         radians.  (default: radians if angular units make sense, but for 3-d
                         or flat 2-d positions, the default will just match the units of x,y[,z]
@@ -103,9 +103,9 @@ class BinnedCorr2(object):
                         - middle = Use the middle of the range; i.e. the average of the minimum and
                           maximum value.
                         - random: Use a random point somewhere in the middle two quartiles of the
-                          range. 
+                          range.
 
-    :param max_top:     The maximum number of top layers to use when setting up the field. 
+    :param max_top:     The maximum number of top layers to use when setting up the field.
                         The top-level cells are the cells where each calculation job starts.
                         There will typically be of order 2^max_top top-level cells. (default: 10)
     :param precision:   The precision to use for the output values. This should be an integer,
@@ -122,14 +122,14 @@ class BinnedCorr2(object):
                           For spherical coordinates (ra,dec without r), this is the chord
                           distance between points on the unit sphere.
                         - 'Rperp' = the perpendicular component of the distance. For two points
-                          with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                          with distance from Earth `r1, r2`, if `d` is the normal Euclidean
                           distance and :math:`Rparallel = |r1-r2|`, then we define
                           :math:`Rperp^2 = d^2 - Rparallel^2`.
                         - 'Rlens' = the projected distance perpendicular to the first point
                           in the pair (taken to be a lens) to the line of sight to the second
                           point (e.g. a lensed source galaxy).
                         - 'Arc' = the true great circle distance for spherical coordinates.
-                        - 'TwoD' = 2-dimensional binning from x = (-maxsep .. maxsep) and 
+                        - 'TwoD' = 2-dimensional binning from x = (-maxsep .. maxsep) and
                           y = (-maxsep .. maxsep)
 
                         (default: 'Euclidean')
@@ -139,9 +139,9 @@ class BinnedCorr2(object):
     :param max_rpar:    For the 'Rperp' metric, the maximum difference in Rparallel to allow
                         for pairs being included in the correlation function. (default: None)
 
-    :param num_threads: How many OpenMP threads to use during the calculation.  
+    :param num_threads: How many OpenMP threads to use during the calculation.
                         (default: use the number of cpu cores; this value can also be given in
-                        the constructor in the config dict.) Note that this won't work if the 
+                        the constructor in the config dict.) Note that this won't work if the
                         system's C compiler is clang prior to version 3.7.
     """
     _valid_params = {
@@ -330,7 +330,7 @@ class BinnedCorr2(object):
             for c1 in cat1:
                 for c2 in cat2:
                     self.process_cross(c1,c2,metric,num_threads)
- 
+
     def _set_num_threads(self, num_threads):
         if num_threads is None:
             num_threads = self.config.get('num_threads',None)

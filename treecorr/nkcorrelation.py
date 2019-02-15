@@ -33,7 +33,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
     In addition, the following attributes are numpy arrays of length (nbins):
 
         :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
-        :rnom:      The nominal center of the bin converted to regular distance. 
+        :rnom:      The nominal center of the bin converted to regular distance.
                     i.e. r = exp(logr).
         :meanr:     The (weighted) mean value of r for the pairs in each bin.
                     If there are no pairs in a bin, then exp(logr) will be used instead.
@@ -47,7 +47,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         :npairs:    The number of pairs going into each bin.
 
     If `sep_units` are given (either in the config dict or as a named kwarg) then the distances
-    will all be in these units.  Note however, that if you separate out the steps of the 
+    will all be in these units.  Note however, that if you separate out the steps of the
     :func:`process` command and use :func:`process_auto` and/or :func:`process_cross`, then the
     units will not be applied to :meanr: or :meanlogr: until the :func:`finalize` function is
     called.
@@ -124,12 +124,12 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         :param cat1:        The first catalog to process
         :param cat2:        The second catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.NKCorrelation.process` for 
-                            details.  (default: 'Euclidean'; this value can also be given in the 
+        :param metric:      Which metric to use.  See :meth:`~treecorr.NKCorrelation.process` for
+                            details.  (default: 'Euclidean'; this value can also be given in the
                             constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         if cat1.name == '' and cat2.name == '':
@@ -163,12 +163,12 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         :param cat1:        The first catalog to process
         :param cat2:        The second catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.NKCorrelation.process` for 
-                            details.  (default: 'Euclidean'; this value can also be given in the 
+        :param metric:      Which metric to use.  See :meth:`~treecorr.NKCorrelation.process` for
+                            details.  (default: 'Euclidean'; this value can also be given in the
                             constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         if cat1.name == '' and cat2.name == '':
@@ -226,7 +226,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
     def __iadd__(self, other):
         """Add a second NKCorrelation's data to this one.
 
-        Note: For this to make sense, both Correlation objects should have been using 
+        Note: For this to make sense, both Correlation objects should have been using
         process_cross, and they should not have had finalize called yet.
         Then, after adding them together, you should call finalize on the sum.
         """
@@ -248,7 +248,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
     def process(self, cat1, cat2, metric=None, num_threads=None):
         """Compute the correlation function.
 
-        Both arguments may be lists, in which case all items in the list are used 
+        Both arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
 
         :param cat1:        A catalog or list of catalogs for the N field.
@@ -259,7 +259,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
                             - 'Rperp' = the perpendicular component of the distance. For two points
-                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean
                               distance and :math:`Rparallel = |r1-r2|`, then we define
                               :math:`Rperp^2 = d^2 - Rparallel^2`.
                             - 'Rlens' = the projected distance perpendicular to the first point
@@ -270,9 +270,9 @@ class NKCorrelation(treecorr.BinnedCorr2):
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
 
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         import math
@@ -297,10 +297,10 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         - If rk is None, the simple correlation function :math:`\\langle \\kappa \\rangle` is
           returned.
-        - If rk is not None, then a compensated calculation is done: 
+        - If rk is not None, then a compensated calculation is done:
           :math:`\\langle \\kappa \\rangle = (dk - rk)`
 
-        :param rk:          An NKCorrelation using random locations as the lenses, if desired. 
+        :param rk:          An NKCorrelation using random locations as the lenses, if desired.
                             (default: None)
 
         :returns:           (xi, varxi) as a tuple
@@ -314,9 +314,9 @@ class NKCorrelation(treecorr.BinnedCorr2):
     def write(self, file_name, rk=None, file_type=None, prec=None):
         """Write the correlation function to the file, file_name.
 
-        - If rk is None, the simple correlation function :math:`\\langle \\kappa \\rangle(R)` is 
+        - If rk is None, the simple correlation function :math:`\\langle \\kappa \\rangle(R)` is
           used.
-        - If rk is not None, then a compensated calculation is done: 
+        - If rk is not None, then a compensated calculation is done:
           :math:`\\langle \\kappa \\rangle(R) = (dk - rk)`.
 
         The output file will include the following columns:
@@ -335,7 +335,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         radians (for spherical coordinates).
 
         :param file_name:   The name of the file to write to.
-        :param rk:          An NKCorrelation using random locations as the lenses, if desired. 
+        :param rk:          An NKCorrelation using random locations as the lenses, if desired.
                             (default: None)
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
@@ -362,7 +362,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         This should be a file that was written by TreeCorr, preferably a FITS file, so there
         is no loss of information.
 
-        Warning: The NKCorrelation object should be constructed with the same configuration 
+        Warning: The NKCorrelation object should be constructed with the same configuration
         parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
         checked by the read function.
 

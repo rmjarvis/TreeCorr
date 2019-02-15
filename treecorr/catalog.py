@@ -23,7 +23,7 @@ class Catalog(object):
     to be correlated in some way.
 
     The usual way to build this is using a config dict:
-    
+
         >>> cat = treecorr.Catalog(file_name, config, num=0)
 
     This uses the information in the config dict to read the input file, which may be either
@@ -92,7 +92,7 @@ class Catalog(object):
                  Note: If there are weights, this is really `sum(w^2 kappa^2)/sum(w)`
 
         :name:   When constructed from a file, this will be the file_name.  It is only used as
-                 a reference name in logging output  after construction, so if you construct it 
+                 a reference name in logging output  after construction, so if you construct it
                  from data vectors directly, it will be ''.  You may assign to it if you want to
                  give this catalog a specific name.
 
@@ -106,9 +106,9 @@ class Catalog(object):
                         the columns need to be entered directly with `x`, `y`, etc.)
 
     :param config:      The configuration dict which defines attributes about how to read the file.
-                        Any kwargs that are not those listed here will be added to the config, 
+                        Any kwargs that are not those listed here will be added to the config,
                         so you can even omit the config dict and just enter all parameters you
-                        want as kwargs.  (default: None) 
+                        want as kwargs.  (default: None)
 
     :param num:         Which number catalog are we reading.  e.g. for NG correlations the catalog
                         for the N has num=0, the one for G has num=1.  This is only necessary if
@@ -172,16 +172,16 @@ class Catalog(object):
                         read in this column. When reading from a file, either x_col and y_col are
                         required or ra_col and dec_col are required.)
     :param r_col:       The column to use for the r values. This should be an integer for ASCII
-                        files or a string for FITS files.  Note that r_col is invalid in 
+                        files or a string for FITS files.  Note that r_col is invalid in
                         conjunction with x_col/y_col. (default: 0 or '0', which means not to
                         read in this column.)
 
     :param x_units:     The units to use for the x values, given as a string.  Valid options are
-                        arcsec, arcmin, degrees, hours, radians.  (default: radians, although 
+                        arcsec, arcmin, degrees, hours, radians.  (default: radians, although
                         with (x,y) positions, you can often just ignore the units, and the output
                         separations will be in whatever units x and y are in.)
     :param y_units:     The units to use for the y values, given as a string.  Valid options are
-                        arcsec, arcmin, degrees, hours, radians.  (default: radians, although 
+                        arcsec, arcmin, degrees, hours, radians.  (default: radians, although
                         with (x,y) positions, you can often just ignore the units, and the output
                         separations will be in whatever units x and y are in.)
     :param ra_units:    The units to use for the ra values, given as a string.  Valid options are
@@ -204,7 +204,7 @@ class Catalog(object):
                         ASCII files or a string for FITS files. (default: 0 or '0', which means not
                         to read in this column.)
     :param wpos_col:    The column to use for the position weight values. This should be an integer
-                        for ASCII files or a string for FITS files. (default: 0 or '0', which 
+                        for ASCII files or a string for FITS files. (default: 0 or '0', which
                         means not to read in this column.)
     :param flag_col:    The column to use for the flag values. This should be an integer for ASCII
                         files or a string for FITS files. Any row with flag != 0 (or technically
@@ -251,7 +251,7 @@ class Catalog(object):
                         - middle: Use the middle of the range; i.e. the average of the minimum and
                           maximum value.
                         - random: Use a random point somewhere in the middle two quartiles of the
-                          range. 
+                          range.
 
     :param cat_precision: The precision to use when writing a Catalog to an ASCII file. This should
                         be an integer, which specifies how many digits to write. (default: 16)
@@ -358,7 +358,7 @@ class Catalog(object):
 
         self.config = treecorr.config.merge_config(config,kwargs,Catalog._valid_params)
         self.orig_config = config
-        if config and kwargs: 
+        if config and kwargs:
             self.orig_config.update(kwargs)
 
         if logger is not None:
@@ -467,7 +467,7 @@ class Catalog(object):
         # Apply flips if requested
         flip_g1 = treecorr.config.get_from_list(self.config,'flip_g1',num,bool,False)
         flip_g2 = treecorr.config.get_from_list(self.config,'flip_g2',num,bool,False)
-        if flip_g1: 
+        if flip_g1:
             self.logger.info("   Flipping sign of g1.")
             self.g1 = -self.g1
         if flip_g2:
@@ -497,11 +497,11 @@ class Catalog(object):
         if last_row > 0:
             end = last_row
         else:
-            if self.x is not None: 
+            if self.x is not None:
                 end = len(self.x)
             else:
                 end = len(self.ra)
-        if first_row > 1: 
+        if first_row > 1:
             start = first_row-1
         else:
             start = 0
@@ -519,17 +519,17 @@ class Catalog(object):
         if self.k is not None: self.k = self.k[start:end]
 
         # Check that all columns have the same length:
-        if self.x is not None: 
+        if self.x is not None:
             self.ntot = len(self.x)
-            if len(self.y) != self.ntot: 
+            if len(self.y) != self.ntot:
                 raise ValueError("x and y have different numbers of elements")
-        else: 
+        else:
             self.ntot = len(self.ra)
-            if len(self.dec) != self.ntot: 
+            if len(self.dec) != self.ntot:
                 raise ValueError("ra and dec have different numbers of elements")
         if self.ntot == 0:
             raise RuntimeError("Catalog has no objects!")
-        if self.z is not None and len(self.z) != self.ntot: 
+        if self.z is not None and len(self.z) != self.ntot:
             raise ValueError("z has the wrong numbers of elements")
         if self.r is not None and len(self.r) != self.ntot:
             raise ValueError("r has the wrong numbers of elements")
@@ -742,7 +742,7 @@ class Catalog(object):
             if r_col != 0:
                 raise AttributeError("r_col not allowed in conjunction with x/y cols")
             # NB. astype always copies, even if the type is already correct.
-            # We actually want this, since it makes the result contiguous in memory, 
+            # We actually want this, since it makes the result contiguous in memory,
             # which we will need.
             self.x = data[:,x_col-1].astype(float)
             self.logger.debug('read x = %s',str(self.x))
@@ -782,7 +782,7 @@ class Catalog(object):
             self.wpos = data[:,wpos_col-1].astype(float)
             self.logger.debug('read wpos = %s',str(self.wpos))
 
-        # Read flag 
+        # Read flag
         if flag_col != 0:
             if flag_col <= 0 or flag_col > ncols:
                 raise AttributeError("flag_col is invalid for file %s"%file_name)
@@ -977,7 +977,7 @@ class Catalog(object):
                     self.k = fits[k_hdu].read_column(k_col).astype(float)
                     self.logger.debug('read k = %s',str(self.k))
 
- 
+
     def getNField(self, min_size, max_size, split_method=None, max_top=10, logger=None):
         """Return an NField based on the positions in this catalog.
 
@@ -986,7 +986,7 @@ class Catalog(object):
         :param min_size:    The minimum radius cell required (usually min_sep).
         :param max_size:    The maximum radius cell required (usually max_sep).
         :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
-                            (default: 'mean'; this value can also be given in the Catalog 
+                            (default: 'mean'; this value can also be given in the Catalog
                             constructor in the config dict.)
         :param max_top:     The maximum number of top layers to use when setting up the
                             field. (default: 10)
@@ -1015,7 +1015,7 @@ class Catalog(object):
         :param min_size:    The minimum radius cell required (usually min_sep).
         :param max_size:    The maximum radius cell required (usually max_sep).
         :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
-                            (default: 'mean'; this value can also be given in the Catalog 
+                            (default: 'mean'; this value can also be given in the Catalog
                             constructor in the config dict.)
         :param max_top:     The maximum number of top layers to use when setting up the
                             field. (default: 10)
@@ -1046,7 +1046,7 @@ class Catalog(object):
         :param min_size:    The minimum radius cell required (usually min_sep).
         :param max_size:    The maximum radius cell required (usually max_sep).
         :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
-                            (default: 'mean'; this value can also be given in the Catalog 
+                            (default: 'mean'; this value can also be given in the Catalog
                             constructor in the config dict.)
         :param max_top:     The maximum number of top layers to use when setting up the
                             field. (default: 10)
@@ -1157,12 +1157,12 @@ class Catalog(object):
         :param file_type:       The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
         :param cat_precision:   For ASCII output catalogs, the desired precision. (default: 16;
-                                this value can also be given in the Catalog constructor in the 
+                                this value can also be given in the Catalog constructor in the
                                 config dict.)
         """
         self.logger.info('Writing catalog to %s',file_name)
         import numpy
- 
+
         col_names = []
         columns = []
         if self.ra is not None:
@@ -1284,7 +1284,7 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
             is_rand = 'rand' in key
         else:
             is_rand = 'rand' in list_key
-    if not isinstance(file_names,list): 
+    if not isinstance(file_names,list):
         file_names = file_names.split()
         if len(file_names) == 0:
             logger.warn('Warning: %s provided, but it seems to be an empty string',key)
@@ -1294,7 +1294,7 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
 
 def calculateVarG(cat_list):
     """Calculate the overall shear variance from a list of catalogs.
-        
+
     The catalogs are assumed to be equivalent, so this is just the average shear
     variance (per component) weighted by the number of objects in each catalog.
 
@@ -1316,7 +1316,7 @@ def calculateVarG(cat_list):
 
 def calculateVarK(cat_list):
     """Calculate the overall kappa variance from a list of catalogs.
-        
+
     The catalogs are assumed to be equivalent, so this is just the average kappa
     variance weighted by the number of objects in each catalog.
 
@@ -1343,12 +1343,12 @@ def isGColRequired(config, num):
     It checks the config dict for the output file names gg_file_name, ng_file_name (only if
     num == 1), etc.  If the output files indicate that we don't need the g1/g2 columns, then
     we don't need to raise an error if the g1_col or g2_col is invalid.
-    
-    This makes it easier to specify columns. e.g. for an NG correlation function, the 
+
+    This makes it easier to specify columns. e.g. for an NG correlation function, the
     first catalog does not need to have the gamma columns, and typically wouldn't.  So
     if you specify g1_col=5, g2_col=6, say, and the first catalog does not have these columns,
-    you would normally get an error. 
-    
+    you would normally get an error.
+
     But instead, we check that the calculation is going to be NG from the presence of an
     ng_file_name parameter, and we let the would-be error pass.
 

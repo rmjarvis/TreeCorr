@@ -22,7 +22,7 @@ import numpy
 class GGCorrelation(treecorr.BinnedCorr2):
     """This class handles the calculation and storage of a 2-point shear-shear correlation
     function.
- 
+
     Ojects of this class holds the following attributes:
 
         :nbins:     The number of bins in logr
@@ -33,7 +33,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
     In addition, the following attributes are numpy arrays of length (nbins):
 
         :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
-        :rnom:      The nominal center of the bin converted to regular distance. 
+        :rnom:      The nominal center of the bin converted to regular distance.
                     i.e. r = exp(logr).
         :meanr:     The (weighted) mean value of r for the pairs in each bin.
                     If there are no pairs in a bin, then exp(logr) will be used instead.
@@ -50,7 +50,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         :npairs:    The number of pairs going into each bin.
 
     If `sep_units` are given (either in the config dict or as a named kwarg) then the distances
-    will all be in these units.  Note however, that if you separate out the steps of the 
+    will all be in these units.  Note however, that if you separate out the steps of the
     :func:`process` command and use :func:`process_auto` and/or :func:`process_cross`, then the
     units will not be applied to :meanr: or :meanlogr: until the :func:`finalize` function is
     called.
@@ -69,7 +69,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
     :param logger:      If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    See the documentation for :class:`~treecorr.BinnedCorr2` for the list of other allowed kwargs, 
+    See the documentation for :class:`~treecorr.BinnedCorr2` for the list of other allowed kwargs,
     which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
@@ -94,7 +94,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
                 self.min_rpar, self.max_rpar,
                 dp(self.xip),dp(self.xip_im),dp(self.xim),dp(self.xim_im),
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs))
- 
+
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
@@ -130,12 +130,12 @@ class GGCorrelation(treecorr.BinnedCorr2):
         finish the calculation.
 
         :param cat:         The catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.GGCorrelation.process` for 
-                            details.  (default: 'Euclidean'; this value can also be given in the 
+        :param metric:      Which metric to use.  See :meth:`~treecorr.GGCorrelation.process` for
+                            details.  (default: 'Euclidean'; this value can also be given in the
                             constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         if cat.name == '':
@@ -166,12 +166,12 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         :param cat1:        The first catalog to process
         :param cat2:        The second catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.GGCorrelation.process` for 
-                            details.  (default: 'Euclidean'; this value can also be given in the 
+        :param metric:      Which metric to use.  See :meth:`~treecorr.GGCorrelation.process` for
+                            details.  (default: 'Euclidean'; this value can also be given in the
                             constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         if cat1.name == '' and cat2.name == '':
@@ -205,12 +205,12 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         :param cat1:        The first catalog to process
         :param cat2:        The second catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.GGCorrelation.process` for 
-                            details.  (default: 'Euclidean'; this value can also be given in the 
+        :param metric:      Which metric to use.  See :meth:`~treecorr.GGCorrelation.process` for
+                            details.  (default: 'Euclidean'; this value can also be given in the
                             constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         if cat1.name == '' and cat2.name == '':
@@ -304,7 +304,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         If only 1 argument is given, then compute an auto-correlation function.
         If 2 arguments are given, then compute a cross-correlation function.
 
-        Both arguments may be lists, in which case all items in the list are used 
+        Both arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
 
         :param cat1:        A catalog or list of catalogs for the first G field.
@@ -316,7 +316,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
                               For spherical coordinates (ra,dec without r), this is the chord
                               distance between points on the unit sphere.
                             - 'Rperp' = the perpendicular component of the distance. For two points
-                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean 
+                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean
                               distance and :math:`Rparallel = |r1-r2|`, then we define
                               :math:`Rperp^2 = d^2 - Rparallel^2`.
                             - 'Rlens' = the projected distance perpendicular to the first point
@@ -327,9 +327,9 @@ class GGCorrelation(treecorr.BinnedCorr2):
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)
 
-        :param num_threads: How many OpenMP threads to use during the calculation.  
+        :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the 
+                            the constructor in the config dict.) Note that this won't work if the
                             system's C compiler is clang prior to version 3.7.
         """
         import math
@@ -385,7 +385,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         if prec is None:
             prec = treecorr.config.get(self.config,'precision',int,4)
-        
+
         treecorr.util.gen_write(
             file_name,
             ['R_nom','meanR','meanlogR','xip','xim','xip_im','xim_im','sigma_xi','weight','npairs'],
@@ -401,7 +401,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         This should be a file that was written by TreeCorr, preferably a FITS file, so there
         is no loss of information.
 
-        Warning: The GGCorrelation object should be constructed with the same configuration 
+        Warning: The GGCorrelation object should be constructed with the same configuration
         parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
         checked by the read function.
 
@@ -432,10 +432,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
         .. math::
 
             \\langle M_{ap}^2 \\rangle(R) &= \\int_{0}^{rmax} \\frac{r dr}{2R^2}
-            \\left [ T_+\\left(\\frac{r}{R}\\right) \\xi_+(r) + 
+            \\left [ T_+\\left(\\frac{r}{R}\\right) \\xi_+(r) +
             T_-\\left(\\frac{r}{R}\\right) \\xi_-(r) \\right] \\\\
             \\langle M_\\times^2 \\rangle(R) &= \\int_{0}^{rmax} \\frac{r dr}{2R^2}
-            \\left [ T_+\\left(\\frac{r}{R}\\right) \\xi_+(r) - 
+            \\left [ T_+\\left(\\frac{r}{R}\\right) \\xi_+(r) -
             T_-\\left(\\frac{r}{R}\\right) \\xi_-(r) \\right]
 
         The m2_uform parameter sets which definition of the aperture mass to use.
@@ -464,8 +464,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         cf. Schneider, et al (2001): http://xxx.lanl.gov/abs/astro-ph/0112441
 
-        :param m2_uform:    Which form to use for the aperture mass, as described above. 
-                            (default: 'Crittenden'; this value can also be given in the 
+        :param m2_uform:    Which form to use for the aperture mass, as described above.
+                            (default: 'Crittenden'; this value can also be given in the
                             constructor in the config dict.)
 
         :returns:           (mapsq, mapsq_im, mxsq, mxsq_im, varmapsq) as a tuple
@@ -506,7 +506,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         mapsq_im = (Tpxip_im + Tmxim_im) * 0.5 * self.bin_size
         mxsq_im = (Tpxip_im - Tmxim_im) * 0.5 * self.bin_size
 
-        # The variance of each of these is 
+        # The variance of each of these is
         # Var(<Map^2>(R)) = int_r=0..2R [1/4 s^4 dlogr^2 (T+(s)^2 + T-(s)^2) Var(xi)]
         varmapsq = (Tp**2 + Tm**2).dot(self.varxi) * 0.25 * self.bin_size**2
 
@@ -537,15 +537,15 @@ class GGCorrelation(treecorr.BinnedCorr2):
         The default behavior is not to compute the E/B versions.  They are calculated if
         eb is set to True.
 
-        
-        :param eb:  Whether to include the E/B decomposition as well as the total 
+
+        :param eb:  Whether to include the E/B decomposition as well as the total
                     :math:`\\langle \\gamma^2\\rangle`.  (default: False)
 
         :returns:   (gamsq, vargamsq) if `eb == False` or
                     (gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e)  if `eb == True`
         """
         r = self.rnom
-        s = numpy.outer(1./r, self.meanr)  
+        s = numpy.outer(1./r, self.meanr)
         ssq = s*s
         Sp = numpy.zeros_like(s)
         sa = s[s<2]
@@ -580,7 +580,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         """Write the aperture mass statistics based on the correlation function to the
         file, file_name.
 
-        See :meth:`~treecorr.GGCorrelation.calculateMapSq` for an explanation of the m2_uform 
+        See :meth:`~treecorr.GGCorrelation.calculateMapSq` for an explanation of the m2_uform
         parameter.
 
         The output file will include the following columns:

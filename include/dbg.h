@@ -15,49 +15,72 @@
 #ifndef TreeCorr_dbg_H
 #define TreeCorr_dbg_H
 
-/* Put the following in the main program file:
-
-   std::ostream* dbgout=0;
-   bool XDEBUG=false;
-
-*/
-
-//
-// Set up debugging stuff
-//
+#ifdef DEBUGLOGGING
+// Python usually turns this on automatically.  If we are debugging, turn it off so assert works.
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+#endif
 
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <stdexcept>
+#include <cstddef>
+#include <cassert>
 
-extern std::ostream* dbgout;
-extern bool XDEBUG;
 
-#ifdef NDEBUG
-#define dbg if (false) (*dbgout)
-#define xdbg if (false) (*dbgout)
-#define xxdbg if (false) (*dbgout)
-#define Assert(x)
-#else
-#define dbg if (dbgout) (*dbgout)
-#define xdbg if (dbgout && XDEBUG) (*dbgout)
-#define xxdbg if (false) (*dbgout)
-#define Assert(x) \
-    do { \
-        if(!(x)) { \
-            dbg << "Error - Assert " #x " failed"<<std::endl; \
-            dbg << "on line "<<__LINE__<<" in file "<<__FILE__<<std::endl; \
-            std::cerr << "Error - Assert " #x " failed"<<std::endl; \
-            std::cerr << "on line "<<__LINE__<<" in file "<<__FILE__<<std::endl; \
-            exit(1); \
-        }  \
-    } while (false)
-#endif
+// Convenient debugging.
+// Use as a normal C++ stream:
+// dbg << "Here x = "<<x<<" and y = "<<y<<std::endl;
+// If DEBUGLOGGING is not enabled, the compiler optimizes it away, so it
+// doesn't take any CPU cycles.
+//
 
-inline void myerror(const std::string& s)
+#ifdef DEBUGLOGGING
+class Debugger // Use a Singleton model so it can be included multiple times.
 {
-    dbg << "Error: " << s << std::endl;
-    std::cerr << "Error: " << s << std::endl;
-    exit(1);
-}
+public:
+    std::ostream& get_dbgout() { return *dbgout; }
+    void set_dbgout(std::ostream* new_dbgout) { dbgout = new_dbgout; }
+    void set_verbose(int level) { verbose_level = level; }
+    bool do_level(int level) { return verbose_level >= level; }
+    int get_level() { return verbose_level; }
+
+    static Debugger& instance()
+    {
+        static Debugger _instance;
+        return _instance;
+    }
+
+private:
+    std::ostream* dbgout;
+    int verbose_level;
+
+    Debugger() : dbgout(&std::cout), verbose_level(1) {}
+    Debugger(const Debugger&);
+    void operator=(const Debugger&);
+};
+
+#define dbg if(Debugger::instance().do_level(1)) Debugger::instance().get_dbgout()
+#define xdbg if(Debugger::instance().do_level(2)) Debugger::instance().get_dbgout()
+#define xxdbg if(Debugger::instance().do_level(3)) Debugger::instance().get_dbgout()
+#define set_dbgout(dbgout) Debugger::instance().set_dbgout(dbgout)
+#define get_dbgout() Debugger::instance().get_dbgout()
+#define set_verbose(level) Debugger::instance().set_verbose(level)
+#define verbose_level Debugger::instance().get_level()
+#define XAssert(x) do { if (verbose_level >= 2) assert(x); } while (false)
+#define Assert(x) assert(x)
+#else
+#define dbg if(false) (std::cerr)
+#define xdbg if(false) (std::cerr)
+#define xxdbg if(false) (std::cerr)
+#define set_dbgout(dbgout)
+#define get_dbgout()
+#define set_verbose(level)
+#define XAssert(x)
+#define Assert(x) assert(x)
+#endif
 
 #endif

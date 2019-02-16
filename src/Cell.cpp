@@ -290,7 +290,7 @@ size_t SplitData(
                std::nth_element(vdata.begin()+start,middle,vdata.begin()+end,comp);
            } break;
       default :
-           myerror("Invalid SplitMethod");
+           throw std::runtime_error("Invalid SplitMethod");
     }
 
     if (mid == start || mid == end) {
@@ -347,7 +347,7 @@ Cell<D,C>::Cell(std::vector<CellData<D,C>*>& vdata,
                 _left = new Cell<D,C>(vdata,minsizesq,sm,start,mid);
                 _right = new Cell<D,C>(vdata,minsizesq,sm,mid,end);
             } catch (std::bad_alloc) {
-                myerror("out of memory - cannot create new Cell");
+                throw std::runtime_error("out of memory - cannot create new Cell");
             }
         } else {
             // This shouldn't be necessary for 2-point, but 3-point calculations sometimes
@@ -380,7 +380,7 @@ Cell<D,C>::Cell(CellData<D,C>* ave, double sizesq,
             _left = new Cell<D,C>(vdata,minsizesq,sm,start,mid);
             _right = new Cell<D,C>(vdata,minsizesq,sm,mid,end);
         } catch (std::bad_alloc) {
-            myerror("out of memory - cannot create new Cell");
+            throw std::runtime_error("out of memory - cannot create new Cell");
         }
     } else {
         _size = _sizesq = 0.;

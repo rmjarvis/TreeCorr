@@ -12,6 +12,10 @@
  *    and/or other materials provided with the distribution.
  */
 
+// Uncomment this to enable xassert, usually more time-consuming assert statements
+// Also to turn on dbg<< messages.
+//#define DEBUGLOGGING
+
 #include "dbg.h"
 #include "BinnedCorr2.h"
 #include "Split.h"
@@ -20,10 +24,6 @@
 #ifdef _OPENMP
 #include "omp.h"
 #endif
-
-// Switch these for more time-consuming Assert statements
-//#define XAssert(x) Assert(x)
-#define XAssert(x)
 
 template <int D1, int D2>
 BinnedCorr2<D1,D2>::BinnedCorr2(

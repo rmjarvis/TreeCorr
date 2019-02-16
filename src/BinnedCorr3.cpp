@@ -12,6 +12,8 @@
  *    and/or other materials provided with the distribution.
  */
 
+//#define DEBUGLOGGING
+
 #include "dbg.h"
 #include "BinnedCorr3.h"
 #include "Split.h"
@@ -20,10 +22,6 @@
 #ifdef _OPENMP
 #include "omp.h"
 #endif
-
-// Switch these for more time-consuming Assert statements
-//#define XAssert(x) Assert(x)
-#define XAssert(x)
 
 template <int D1, int D2, int D3>
 BinnedCorr3<D1,D2,D3>::BinnedCorr3(
@@ -200,7 +198,7 @@ void BinnedCorr3<D1,D2,D3>::process(const Field<D1,C>& field, bool dots)
 #endif
                 xdbg<<"field = \n";
 #ifndef NDEBUG
-                if (dbgout && XDEBUG) c1->WriteTree(*dbgout);
+                if (verbose_level >= 2) c1->WriteTree(get_dbgout());
 #endif
             }
             ProcessHelper<D1,D2,D3,C,M>::process3(bc3,c1);
@@ -243,25 +241,25 @@ void BinnedCorr3<D1,D2,D3>::process(const Field<D1,C>& field1, const Field<D2,C>
     Assert(n1 > 0);
     Assert(n2 > 0);
     Assert(n3 > 0);
-#ifndef NDEBUG
-    if (dbgout && XDEBUG) {
+#ifdef DEBUGLOGGING
+    if (verbose_level >= 2) {
         xdbg<<"field1: \n";
         for (int i=0;i<n1;++i) {
             xdbg<<"node "<<i<<std::endl;
             const Cell<D1,C>* c1 = field1.getCells()[i];
-            c1->WriteTree(*dbgout);
+            c1->WriteTree(get_dbgout());
         }
         xdbg<<"field2: \n";
         for (int i=0;i<n2;++i) {
             xdbg<<"node "<<i<<std::endl;
             const Cell<D2,C>* c2 = field2.getCells()[i];
-            c2->WriteTree(*dbgout);
+            c2->WriteTree(get_dbgout());
         }
         xdbg<<"field3: \n";
         for (int i=0;i<n3;++i) {
             xdbg<<"node "<<i<<std::endl;
             const Cell<D3,C>* c3 = field3.getCells()[i];
-            c3->WriteTree(*dbgout);
+            c3->WriteTree(get_dbgout());
         }
     }
 #endif

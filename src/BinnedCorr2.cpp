@@ -138,7 +138,7 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
             ProcessHelper<D1,D2,B,C,M>::process2(bc2,c1);
             for (int j=i+1;j<n1;++j) {
                 const Cell<D1,C>& c2 = *field.getCells()[j];
-                bc2.process11<C,M>(c1,c2);
+                bc2.process11<C,M>(c1,c2, BinTypeHelper<B>::doReverse());
             }
         }
 #ifdef _OPENMP
@@ -188,7 +188,7 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>&
             const Cell<D1,C>& c1 = *field1.getCells()[i];
             for (int j=0;j<n2;++j) {
                 const Cell<D2,C>& c2 = *field2.getCells()[j];
-                bc2.process11<C,M>(c1,c2);
+                bc2.process11<C,M>(c1,c2,false);
             }
         }
 #ifdef _OPENMP
@@ -246,7 +246,7 @@ void BinnedCorr2<D1,D2,B>::processPairwise(
             const double dsq = MetricHelper<M>::DistSq(c1.getPos(),c2.getPos(),s,s);
             if (BinTypeHelper<B>::DSqInRange(dsq, c1.getPos(), c2.getPos(),
                                              _minsep, _minsepsq, _maxsep, _maxsepsq)) {
-                bc2.template directProcess11<C,M>(c1,c2,dsq);
+                bc2.template directProcess11<C,M>(c1,c2,dsq,false);
             }
         }
 #ifdef _OPENMP
@@ -270,11 +270,11 @@ void BinnedCorr2<D1,D2,B>::process2(const Cell<D1,C>& c12)
     Assert(c12.getRight());
     process2<C,M>(*c12.getLeft());
     process2<C,M>(*c12.getRight());
-    process11<C,M>(*c12.getLeft(),*c12.getRight());
+    process11<C,M>(*c12.getLeft(),*c12.getRight(), BinTypeHelper<B>::doReverse());
 }
 
 template <int D1, int D2, int B> template <int C, int M>
-void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2)
+void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, bool do_reverse)
 {
     //dbg<<"Start process11 for "<<c1.getPos()<<",  "<<c2.getPos()<<"   ";
     //dbg<<"w = "<<c1.getW()<<", "<<c2.getW()<<std::endl;
@@ -321,26 +321,26 @@ void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2)
             Assert(c1.getRight());
             Assert(c2.getLeft());
             Assert(c2.getRight());
-            process11<C,M>(*c1.getLeft(),*c2.getLeft());
-            process11<C,M>(*c1.getLeft(),*c2.getRight());
-            process11<C,M>(*c1.getRight(),*c2.getLeft());
-            process11<C,M>(*c1.getRight(),*c2.getRight());
+            process11<C,M>(*c1.getLeft(),*c2.getLeft(),do_reverse);
+            process11<C,M>(*c1.getLeft(),*c2.getRight(),do_reverse);
+            process11<C,M>(*c1.getRight(),*c2.getLeft(),do_reverse);
+            process11<C,M>(*c1.getRight(),*c2.getRight(),do_reverse);
         } else {
             Assert(c1.getLeft());
             Assert(c1.getRight());
-            process11<C,M>(*c1.getLeft(),c2);
-            process11<C,M>(*c1.getRight(),c2);
+            process11<C,M>(*c1.getLeft(),c2,do_reverse);
+            process11<C,M>(*c1.getRight(),c2,do_reverse);
         }
     } else {
         if (split2) {
             Assert(c2.getLeft());
             Assert(c2.getRight());
-            process11<C,M>(c1,*c2.getLeft());
-            process11<C,M>(c1,*c2.getRight());
+            process11<C,M>(c1,*c2.getLeft(),do_reverse);
+            process11<C,M>(c1,*c2.getRight(),do_reverse);
         } else if (BinTypeHelper<B>::DSqInRange(dsq, c1.getPos(), c2.getPos(),
                                                 _minsep, _minsepsq, _maxsep, _maxsepsq)) {
             XAssert(NoSplit(c1,c2,sqrt(dsq),_b));
-            directProcess11<C,M>(c1,c2,dsq);
+            directProcess11<C,M>(c1,c2,dsq,do_reverse);
         }
     }
 }
@@ -454,7 +454,7 @@ struct DirectHelper<GData,GData>
 
 template <int D1, int D2, int B> template <int C, int M>
 void BinnedCorr2<D1,D2,B>::directProcess11(
-    const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double dsq)
+    const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double dsq, bool do_reverse)
 {
     //dbg<<"DirectProcess11: dsq = "<<dsq<<std::endl;
     XAssert(dsq >= _minsepsq);
@@ -483,7 +483,7 @@ void BinnedCorr2<D1,D2,B>::directProcess11(
     //dbg<<"n,w = "<<nn<<','<<ww<<" ==>  "<<_npairs[k]<<','<<_weight[k]<<std::endl;
 
     int k2 = -1;
-    if (D1 == D2 && BinTypeHelper<B>::doReversePair()) {
+    if (do_reverse) {
         k2 = BinTypeHelper<B>::CalculateBinK(c2.getPos(), c1.getPos(),
                                              logr, _logminsep, _binsize,
                                              r, _minsep, _maxsep);

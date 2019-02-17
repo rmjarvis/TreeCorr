@@ -27,7 +27,7 @@ struct BinTypeHelper;
 template <>
 struct BinTypeHelper<Log>
 {
-    static bool doReversePair() { return false; }
+    static bool doReverse() { return false; }
 
     static double calculateFullMaxSep(double minsep, double maxsep, int nbins, double binsize)
     { return maxsep; }
@@ -50,7 +50,7 @@ struct BinTypeHelper<Log>
 template <>
 struct BinTypeHelper<TwoD>
 {
-    static bool doReversePair() { return true; }
+    static bool doReverse() { return true; }
 
     static double calculateFullMaxSep(double minsep, double maxsep, int nbins, double binsize)
     { return maxsep * std::sqrt(2.); }

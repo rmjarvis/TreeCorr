@@ -272,8 +272,6 @@ class KGCorrelation(treecorr.BinnedCorr2):
                               in the pair (taken to be a lens) to the line of sight to the second
                               point (e.g. a lensed source galaxy).
                             - 'Arc' = the true great circle distance for spherical coordinates.
-                            - 'TwoD' = 2-dimensional binning from x = (-maxsep .. maxsep) and
-                              y = (-maxsep .. maxsep)
 
                             (default: 'Euclidean'; this value can also be given in the constructor
                             in the config dict.)

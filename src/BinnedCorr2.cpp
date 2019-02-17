@@ -660,18 +660,15 @@ void DestroyGGCorr(void* corr)
 
 
 template <int D>
-void ProcessAuto(void* corr, void* field, int dots, int coord, int metric)
+void ProcessAuto2b(BinnedCorr2<D,D>& corr, void* field, int dots, int coord, int metric)
 {
-    dbg<<"Start ProcessAutoNN\n";
     if (coord == Flat) {
         switch(metric) {
           case Euclidean:
-            static_cast<BinnedCorr2<D,D>*>(corr)->template process<Flat,Euclidean>(
-                *static_cast<Field<D,Flat>*>(field),dots);
+            corr.template process<Flat,Euclidean>(*static_cast<Field<D,Flat>*>(field),dots);
             break;
           case TwoD:
-            static_cast<BinnedCorr2<D,D>*>(corr)->template process<Flat,TwoD>(
-                *static_cast<Field<D,Flat>*>(field),dots);
+            corr.template process<Flat,TwoD>(*static_cast<Field<D,Flat>*>(field),dots);
             break;
           default:
             Assert(false);
@@ -679,20 +676,16 @@ void ProcessAuto(void* corr, void* field, int dots, int coord, int metric)
     } else {
         switch(metric) {
           case Euclidean:
-            static_cast<BinnedCorr2<D,D>*>(corr)->template process<ThreeD,Euclidean>(
-                *static_cast<Field<D,ThreeD>*>(field),dots);
+            corr.template process<ThreeD,Euclidean>(*static_cast<Field<D,ThreeD>*>(field),dots);
             break;
           case Perp:
-            static_cast<BinnedCorr2<D,D>*>(corr)->template process<ThreeD,Perp>(
-                *static_cast<Field<D,ThreeD>*>(field),dots);
+            corr.template process<ThreeD,Perp>(*static_cast<Field<D,ThreeD>*>(field),dots);
             break;
           case Lens:
-            static_cast<BinnedCorr2<D,D>*>(corr)->template process<ThreeD,Lens>(
-                *static_cast<Field<D,ThreeD>*>(field),dots);
+            corr.template process<ThreeD,Lens>(*static_cast<Field<D,ThreeD>*>(field),dots);
             break;
           case Arc:
-            static_cast<BinnedCorr2<D,D>*>(corr)->template process<Sphere,Arc>(
-                *static_cast<Field<D,Sphere>*>(field),dots);
+            corr.template process<Sphere,Arc>(*static_cast<Field<D,Sphere>*>(field),dots);
             break;
           default:
             Assert(false);
@@ -700,37 +693,43 @@ void ProcessAuto(void* corr, void* field, int dots, int coord, int metric)
     }
 }
 
+template <int D>
+void ProcessAuto2(void* corr, void* field, int dots, int coord, int metric)
+{
+    ProcessAuto2b(*(static_cast<BinnedCorr2<D,D>*>(corr)), field, dots, coord, metric);
+}
 
 void ProcessAutoNN(void* corr, void* field, int dots, int coord, int metric)
 {
     dbg<<"Start ProcessAutoNN\n";
-    ProcessAuto<NData>(corr, field, dots, coord, metric);
+    ProcessAuto2<NData>(corr, field, dots, coord, metric);
 }
 
 void ProcessAutoKK(void* corr, void* field, int dots, int coord, int metric)
 {
     dbg<<"Start ProcessAutoKK\n";
-    ProcessAuto<KData>(corr, field, dots, coord, metric);
+    ProcessAuto2<KData>(corr, field, dots, coord, metric);
 }
 
 void ProcessAutoGG(void* corr, void* field, int dots, int coord, int metric)
 {
     dbg<<"Start ProcessAutoGG\n";
-    ProcessAuto<GData>(corr, field, dots, coord, metric);
+    ProcessAuto2<GData>(corr, field, dots, coord, metric);
 }
 
 template <int D1, int D2>
-void ProcessCross(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+void ProcessCross2b(BinnedCorr2<D1,D2>& corr, void* field1, void* field2,
+                    int dots, int coord, int metric)
 {
     if (coord == Flat) {
         switch(metric) {
           case Euclidean:
-            static_cast<BinnedCorr2<D1,D2>*>(corr)->template process<Flat,Euclidean>(
+            corr.template process<Flat,Euclidean>(
                 *static_cast<Field<D1,Flat>*>(field1),
                 *static_cast<Field<D2,Flat>*>(field2),dots);
             break;
           case TwoD:
-            static_cast<BinnedCorr2<D1,D2>*>(corr)->template process<Flat,TwoD>(
+            corr.template process<Flat,TwoD>(
                 *static_cast<Field<D1,Flat>*>(field1),
                 *static_cast<Field<D2,Flat>*>(field2),dots);
             break;
@@ -740,22 +739,22 @@ void ProcessCross(void* corr, void* field1, void* field2, int dots, int coord, i
     } else {
         switch(metric) {
           case Euclidean:
-            static_cast<BinnedCorr2<D1,D2>*>(corr)->template process<ThreeD,Euclidean>(
+            corr.template process<ThreeD,Euclidean>(
                 *static_cast<Field<D1,ThreeD>*>(field1),
                 *static_cast<Field<D2,ThreeD>*>(field2),dots);
             break;
           case Perp:
-            static_cast<BinnedCorr2<D1,D2>*>(corr)->template process<ThreeD,Perp>(
+            corr.template process<ThreeD,Perp>(
                 *static_cast<Field<D1,ThreeD>*>(field1),
                 *static_cast<Field<D2,ThreeD>*>(field2),dots);
             break;
           case Lens:
-            static_cast<BinnedCorr2<D1,D2>*>(corr)->template process<ThreeD,Lens>(
+            corr.template process<ThreeD,Lens>(
                 *static_cast<Field<D1,ThreeD>*>(field1),
                 *static_cast<Field<D2,ThreeD>*>(field2),dots);
             break;
           case Arc:
-            static_cast<BinnedCorr2<D1,D2>*>(corr)->template process<Sphere,Arc>(
+            corr.template process<Sphere,Arc>(
                 *static_cast<Field<D1,Sphere>*>(field1),
                 *static_cast<Field<D2,Sphere>*>(field2),dots);
             break;
@@ -765,54 +764,61 @@ void ProcessCross(void* corr, void* field1, void* field2, int dots, int coord, i
     }
 }
 
+template <int D1, int D2>
+void ProcessCross2(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+{
+    ProcessCross2b(*static_cast<BinnedCorr2<D1,D2>*>(corr), field1, field2, dots, coord, metric);
+}
+
 void ProcessCrossNN(void* corr, void* field1, void* field2, int dots, int coord, int metric)
 {
     dbg<<"Start ProcessCrossNN\n";
-    ProcessCross<NData,NData>(corr, field1, field2, dots, coord, metric);
+    ProcessCross2<NData,NData>(corr, field1, field2, dots, coord, metric);
 }
 
 void ProcessCrossNK(void* corr, void* field1, void* field2, int dots, int coord, int metric)
 {
     dbg<<"Start ProcessCrossNK\n";
-    ProcessCross<NData,KData>(corr, field1, field2, dots, coord, metric);
+    ProcessCross2<NData,KData>(corr, field1, field2, dots, coord, metric);
 }
 
 void ProcessCrossNG(void* corr, void* field1, void* field2, int dots, int coord, int metric)
 {
     dbg<<"Start ProcessCrossNG\n";
-    ProcessCross<NData,GData>(corr, field1, field2, dots, coord, metric);
+    ProcessCross2<NData,GData>(corr, field1, field2, dots, coord, metric);
 }
 
 void ProcessCrossKK(void* corr, void* field1, void* field2, int dots, int coord, int metric)
 {
     dbg<<"Start ProcessCrossKK\n";
-    ProcessCross<KData,KData>(corr, field1, field2, dots, coord, metric);
+    ProcessCross2<KData,KData>(corr, field1, field2, dots, coord, metric);
 }
 
 void ProcessCrossKG(void* corr, void* field1, void* field2, int dots, int coord, int metric)
 {
     dbg<<"Start ProcessCrossKG\n";
-    ProcessCross<KData,GData>(corr, field1, field2, dots, coord, metric);
+    ProcessCross2<KData,GData>(corr, field1, field2, dots, coord, metric);
 }
 
 void ProcessCrossGG(void* corr, void* field1, void* field2, int dots, int coord, int metric)
 {
     dbg<<"Start ProcessCrossGG\n";
-    ProcessCross<GData,GData>(corr, field1, field2, dots, coord, metric);
+    ProcessCross2<GData,GData>(corr, field1, field2, dots, coord, metric);
 }
 
 template <int D1, int D2>
-void ProcessPair(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+void ProcessPair2b(BinnedCorr2<D1,D2>& corr, void* field1, void* field2,
+                   int dots, int coord, int metric)
 {
     if (coord == Flat) {
         switch(metric) {
           case Euclidean:
-            static_cast<BinnedCorr2<D1,D2>*>(corr)->template processPairwise<Flat,Euclidean>(
+            corr.template processPairwise<Flat,Euclidean>(
                 *static_cast<SimpleField<D1,Flat>*>(field1),
                 *static_cast<SimpleField<D2,Flat>*>(field2),dots);
             break;
           case TwoD:
-            static_cast<BinnedCorr2<D1,D2>*>(corr)->template processPairwise<Flat,TwoD>(
+            corr.template processPairwise<Flat,TwoD>(
                 *static_cast<SimpleField<D1,Flat>*>(field1),
                 *static_cast<SimpleField<D2,Flat>*>(field2),dots);
             break;
@@ -822,22 +828,22 @@ void ProcessPair(void* corr, void* field1, void* field2, int dots, int coord, in
     } else {
         switch(metric) {
           case Euclidean:
-            static_cast<BinnedCorr2<D1,D2>*>(corr)->template processPairwise<ThreeD,Euclidean>(
+            corr.template processPairwise<ThreeD,Euclidean>(
                 *static_cast<SimpleField<D1,ThreeD>*>(field1),
                 *static_cast<SimpleField<D2,ThreeD>*>(field2),dots);
             break;
           case Perp:
-            static_cast<BinnedCorr2<D1,D2>*>(corr)->template processPairwise<ThreeD,Perp>(
+            corr.template processPairwise<ThreeD,Perp>(
                 *static_cast<SimpleField<D1,ThreeD>*>(field1),
                 *static_cast<SimpleField<D2,ThreeD>*>(field2),dots);
             break;
           case Lens:
-            static_cast<BinnedCorr2<D1,D2>*>(corr)->template processPairwise<ThreeD,Lens>(
+            corr.template processPairwise<ThreeD,Lens>(
                 *static_cast<SimpleField<D1,ThreeD>*>(field1),
                 *static_cast<SimpleField<D2,ThreeD>*>(field2),dots);
             break;
           case Arc:
-            static_cast<BinnedCorr2<D1,D2>*>(corr)->template processPairwise<Sphere,Arc>(
+            corr.template processPairwise<Sphere,Arc>(
                 *static_cast<SimpleField<D1,Sphere>*>(field1),
                 *static_cast<SimpleField<D2,Sphere>*>(field2),dots);
             break;
@@ -847,40 +853,46 @@ void ProcessPair(void* corr, void* field1, void* field2, int dots, int coord, in
     }
 }
 
+template <int D1, int D2>
+void ProcessPair2(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+{
+    ProcessPair2b(*static_cast<BinnedCorr2<D1,D2>*>(corr), field1, field2, dots, coord, metric);
+}
+
 void ProcessPairNN(void* corr, void* field1, void* field2, int dots, int coord, int metric)
 {
     dbg<<"Start ProcessPairNN\n";
-    ProcessPair<NData,NData>(corr, field1, field2, dots, coord, metric);
+    ProcessPair2<NData,NData>(corr, field1, field2, dots, coord, metric);
 }
 
 void ProcessPairNK(void* corr, void* field1, void* field2, int dots, int coord, int metric)
 {
     dbg<<"Start ProcessPairNK\n";
-    ProcessPair<NData,KData>(corr, field1, field2, dots, coord, metric);
+    ProcessPair2<NData,KData>(corr, field1, field2, dots, coord, metric);
 }
 
 void ProcessPairNG(void* corr, void* field1, void* field2, int dots, int coord, int metric)
 {
     dbg<<"Start ProcessPairNG\n";
-    ProcessPair<NData,GData>(corr, field1, field2, dots, coord, metric);
+    ProcessPair2<NData,GData>(corr, field1, field2, dots, coord, metric);
 }
 
 void ProcessPairKK(void* corr, void* field1, void* field2, int dots, int coord, int metric)
 {
     dbg<<"Start ProcessPairKK\n";
-    ProcessPair<KData,KData>(corr, field1, field2, dots, coord, metric);
+    ProcessPair2<KData,KData>(corr, field1, field2, dots, coord, metric);
 }
 
 void ProcessPairKG(void* corr, void* field1, void* field2, int dots, int coord, int metric)
 {
     dbg<<"Start ProcessPairKG\n";
-    ProcessPair<KData,GData>(corr, field1, field2, dots, coord, metric);
+    ProcessPair2<KData,GData>(corr, field1, field2, dots, coord, metric);
 }
 
 void ProcessPairGG(void* corr, void* field1, void* field2, int dots, int coord, int metric)
 {
     dbg<<"Start ProcessPairGG\n";
-    ProcessPair<GData,GData>(corr, field1, field2, dots, coord, metric);
+    ProcessPair2<GData,GData>(corr, field1, field2, dots, coord, metric);
 }
 
 int SetOMPThreads(int num_threads)

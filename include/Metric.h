@@ -39,8 +39,6 @@ struct MetricHelper<Euclidean>
     //
     ///
 
-    static bool doReversePair() { return false; }
-
     static double DistSq(const Position<Flat>& p1, const Position<Flat>& p2,
                          double& s1, double& s2)
     {
@@ -51,12 +49,6 @@ struct MetricHelper<Euclidean>
     {
         double s=0.;
         return sqrt(DistSq(p1,p2,s,s));
-    }
-
-    static bool DSqInRange(double dsq, const Position<Flat>& p1, const Position<Flat>& p2,
-                           double minsep, double minsepsq, double maxsep, double maxsepsq)
-    {
-        return dsq >= minsepsq && dsq < maxsepsq;
     }
 
     static bool CCW(const Position<Flat>& p1, const Position<Flat>& p2, const Position<Flat>& p3)
@@ -75,12 +67,6 @@ struct MetricHelper<Euclidean>
                              double dsq, double maxsep, double maxsepsq, double maxrpar)
     { return dsq >= maxsepsq && dsq >= SQR(maxsep + s1ps2); }
 
-    static int CalculateBinK(const Position<Flat>& , const Position<Flat>& ,
-                             double logr, double logminr, double binsize,
-                             double, double, double)
-    { return int((logr - logminr) / binsize); }
-
-
     ///
     //
     // ThreeD
@@ -98,12 +84,6 @@ struct MetricHelper<Euclidean>
     {
         double s=0.;
         return sqrt(DistSq(p1,p2,s,s));
-    }
-
-    static bool DSqInRange(double dsq, const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                           double minsep, double minsepsq, double maxsep, double maxsepsq)
-    {
-        return dsq >= minsepsq && dsq < maxsepsq;
     }
 
     static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
@@ -126,10 +106,6 @@ struct MetricHelper<Euclidean>
                              double dsq, double maxsep, double maxsepsq, double maxrpar)
     { return dsq >= maxsepsq && dsq >= SQR(maxsep + s1ps2); }
 
-    static int CalculateBinK(const Position<ThreeD>& , const Position<ThreeD>& ,
-                             double logr, double logminr, double binsize,
-                             double, double, double)
-    { return int((logr - logminr) / binsize); }
 };
 
 //
@@ -141,8 +117,6 @@ struct MetricHelper<Euclidean>
 template <>
 struct MetricHelper<Perp>
 {
-    static bool doReversePair() { return false; }
-
     static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                          double& s1, double& s2)
     {
@@ -194,10 +168,6 @@ struct MetricHelper<Perp>
         double s=0.;
         return sqrt(DistSq(p1,p2,s,s));
     }
-
-    static bool DSqInRange(double dsq, const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                           double minsep, double minsepsq, double maxsep, double maxsepsq)
-    { return MetricHelper<Euclidean>::DSqInRange(dsq,p1,p2,minsep,minsepsq,maxsep,maxsepsq); }
 
     // This is the same as Euclidean
     static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
@@ -270,10 +240,6 @@ struct MetricHelper<Perp>
         return (d3sq + 2.*sqrt(d3sq * rparsq) + rparsq) * SQR(2.*s1ps2) <= SQR(dsq - maxsepsq);
     }
 
-    static int CalculateBinK(const Position<ThreeD>& , const Position<ThreeD>& ,
-                             double logr, double logminr, double binsize,
-                             double, double, double)
-    { return int((logr - logminr) / binsize); }
 };
 
 
@@ -286,8 +252,6 @@ struct MetricHelper<Perp>
 template <>
 struct MetricHelper<Lens>
 {
-    static bool doReversePair() { return false; }
-
 #if 1
     // The first option uses the chord distance at the distance of r1
     static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
@@ -336,19 +300,10 @@ struct MetricHelper<Lens>
         return sqrt(DistSq(p1,p2,s,s));
     }
 
-    static bool DSqInRange(double dsq, const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                           double minsep, double minsepsq, double maxsep, double maxsepsq)
-    { return MetricHelper<Euclidean>::DSqInRange(dsq,p1,p2,minsep,minsepsq,maxsep,maxsepsq); }
-
     // These two are the same as Euclidean
     static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                     const Position<ThreeD>& p3)
     { return MetricHelper<Euclidean>::CCW(p1,p2,p3); }
-
-    static int CalculateBinK(const Position<ThreeD>& , const Position<ThreeD>& ,
-                             double logr, double logminr, double binsize,
-                             double, double, double)
-    { return int((logr - logminr) / binsize); }
 
     // We've already accounted for the way that the raw s1+s2 may not be sufficient in DistSq
     // where we update s2 according to the relative distances.  So these two functions are
@@ -395,8 +350,6 @@ struct MetricHelper<Lens>
 template <>
 struct MetricHelper<Arc>
 {
-    static bool doReversePair() { return false; }
-
     static double DistSq(const Position<Sphere>& p1, const Position<Sphere>& p2,
                          double& s1, double& s2)
     { return SQR(Dist(p1,p2)); }
@@ -412,10 +365,6 @@ struct MetricHelper<Arc>
         return theta;
     }
 
-    static bool DSqInRange(double dsq, const Position<Sphere>& p1, const Position<Sphere>& p2,
-                           double minsep, double minsepsq, double maxsep, double maxsepsq)
-    { return MetricHelper<Euclidean>::DSqInRange(dsq,p1,p2,minsep,minsepsq,maxsep,maxsepsq); }
-
     // These are the same as Euclidean.
     static bool CCW(const Position<Sphere>& p1, const Position<Sphere>& p2,
                     const Position<Sphere>& p3)
@@ -429,92 +378,7 @@ struct MetricHelper<Arc>
                              double dsq, double maxsep, double maxsepsq, double maxrpar)
     { return MetricHelper<Euclidean>::TooLargeDist(p1,p2,s1ps2,dsq,maxsep,maxsepsq,maxrpar); }
 
-    static int CalculateBinK(const Position<Sphere>& , const Position<Sphere>& ,
-                             double logr, double logminr, double binsize,
-                             double, double, double)
-    { return int((logr - logminr) / binsize); }
 };
-
-
-// The TwoD metric is only valid for the Flat Coord.
-template <>
-struct MetricHelper<TwoD>
-{
-    static bool doReversePair() { return true; }
-
-    ///
-    //
-    // Flat
-    //
-    ///
-
-    // Most things are the same as Euclidean:
-    static double DistSq(const Position<Flat>& p1, const Position<Flat>& p2,
-                         double& s1, double& s2)
-    {
-        Position<Flat> r = p1-p2;
-        return r.normSq();
-    }
-    static double Dist(const Position<Flat>& p1, const Position<Flat>& p2)
-    {
-        double s=0.;
-        return sqrt(DistSq(p1,p2,s,s));
-    }
-
-    // This is different for TwoD.  We want to include out to the maximum in either direction.
-    static bool DSqInRange(double dsq, const Position<Flat>& p1, const Position<Flat>& p2,
-                           double minsep, double minsepsq, double maxsep, double maxsepsq)
-    {
-        if (dsq == 0. || dsq < minsepsq) return false;
-        else {
-            Position<Flat> r = p1-p2;
-            double d = std::max(std::abs(r.getX()), std::abs(r.getY()));
-            return d < maxsep;
-        }
-    }
-
-    static bool CCW(const Position<Flat>& p1, const Position<Flat>& p2, const Position<Flat>& p3)
-    {
-        // If cross product r21 x r31 > 0, then the points are counter-clockwise.
-        Position<Flat> r21 = p2 - p1;
-        Position<Flat> r31 = p3 - p1;
-        return r21.cross(r31) > 0.;
-    }
-
-    static bool TooSmallDist(const Position<Flat>& , const Position<Flat>& , double s1ps2,
-                             double dsq, double minsep, double minsepsq, double minrpar)
-    { return dsq < minsepsq && s1ps2 < minsep && dsq < SQR(minsep - s1ps2); }
-
-    // Similar to DSqInRange, this uses the max of dx or dy, not d.
-    static bool TooLargeDist(const Position<Flat>& p1, const Position<Flat>& p2, double s1ps2,
-                             double dsq, double maxsep, double maxsepsq, double maxrpar)
-    {
-        Position<Flat> r = p1-p2;
-        double d = std::max(std::abs(r.getX()), std::abs(r.getY()));
-        return d > maxsep + s1ps2;
-    }
-
-    // This is the one thing that is different.
-    // Here we compute a 1-d index into a 2-d binning array.
-    // The array is ordered as dx, dy = (-nb,-nb), ... (-b, -nb), (0,-nb), (b,-nb), ... (nb,-nb),
-    //                                  ...
-    //                                  (-nb,0), ... (-b,0), (0,0), (b,0), (2b,0), ... (nb,0),
-    //                                  (-nb,b), ... (-b,b), (0,b), (b,b), (2b,b), ... (nb,b),
-    //                                  ...
-    //                                  (-nb,nb), ... (-b,nb), (0,nb), (b,nb),  ... (nb,nb)
-    static int CalculateBinK(const Position<Flat>& p1, const Position<Flat>& p2,
-                             double , double , double binsize,
-                             double , double , double maxsep)
-    {
-        double dx = p2.getX() - p1.getX();
-        double dy = p2.getY() - p1.getY();
-        int i = int((dx + maxsep) / binsize);
-        int j = int((dy + maxsep) / binsize);
-        int n = int(2*maxsep / binsize+0.5);
-        return j*n + i;
-    }
-};
-
 
 #endif
 

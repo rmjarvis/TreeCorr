@@ -23,4 +23,4 @@
 //enum BinType { Log=1, Linear=2, TwoD=3 };
 
 // But this is how we need to do it in C.
-typedef enum { Log=1, Linear=2, TwoDx=3 } BinType;
+typedef enum { Log=1, Linear=2, TwoD=3 } BinType;

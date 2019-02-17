@@ -29,6 +29,9 @@ struct BinTypeHelper<Log>
 {
     static bool doReversePair() { return false; }
 
+    static double calculateFullMaxSep(double minsep, double maxsep, int nbins, double binsize)
+    { return maxsep; }
+
     template <int C>
     static bool DSqInRange(double dsq, const Position<C>& p1, const Position<C>& p2,
                            double minsep, double minsepsq, double maxsep, double maxsepsq)
@@ -45,9 +48,12 @@ struct BinTypeHelper<Log>
 
 // The TwoD metric is only valid for the Flat Coord.
 template <>
-struct BinTypeHelper<TwoDx>
+struct BinTypeHelper<TwoD>
 {
     static bool doReversePair() { return true; }
+
+    static double calculateFullMaxSep(double minsep, double maxsep, int nbins, double binsize)
+    { return maxsep * std::sqrt(2.); }
 
     // Note: Only C=Flat is valid here.
     template <int C>

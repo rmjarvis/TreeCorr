@@ -1208,36 +1208,31 @@ void DestroyGGGCorr(void* corr)
 
 
 template <int D>
-void ProcessAuto3(void* corr, void* field, int dots, int coord, int metric)
+void ProcessAuto3b(BinnedCorr3<D,D,D>& corr, void* field, int dots, int coord, int metric)
 {
-    dbg<<"D = "<<D<<std::endl;
-    dbg<<"corr = "<<corr<<std::endl;
-    dbg<<"field = "<<field<<std::endl;
-    dbg<<"dots = "<<dots<<std::endl;
-    dbg<<"coord = "<<coord<<std::endl;
-    dbg<<"metric = "<<metric<<std::endl;
     if (coord == Flat) {
         if (metric == Euclidean)
-            static_cast<BinnedCorr3<D,D,D>*>(corr)->template process<Flat,Euclidean>(
-                *static_cast<Field<D,Flat>*>(field),dots);
+            corr.template process<Flat,Euclidean>(*static_cast<Field<D,Flat>*>(field),dots);
         else
             Assert(false);
     } else {
         if (metric == Euclidean)
-            static_cast<BinnedCorr3<D,D,D>*>(corr)->template process<ThreeD,Euclidean>(
-                *static_cast<Field<D,ThreeD>*>(field),dots);
+            corr.template process<ThreeD,Euclidean>(*static_cast<Field<D,ThreeD>*>(field),dots);
         else if (metric == Perp)
-            static_cast<BinnedCorr3<D,D,D>*>(corr)->template process<ThreeD,Perp>(
-                *static_cast<Field<D,ThreeD>*>(field),dots);
+            corr.template process<ThreeD,Perp>(*static_cast<Field<D,ThreeD>*>(field),dots);
         else if (metric == Lens)
-            static_cast<BinnedCorr3<D,D,D>*>(corr)->template process<ThreeD,Lens>(
-                *static_cast<Field<D,ThreeD>*>(field),dots);
+            corr.template process<ThreeD,Lens>(*static_cast<Field<D,ThreeD>*>(field),dots);
         else if (metric == Arc)
-            static_cast<BinnedCorr3<D,D,D>*>(corr)->template process<Sphere,Arc>(
-                *static_cast<Field<D,Sphere>*>(field),dots);
+            corr.template process<Sphere,Arc>(*static_cast<Field<D,Sphere>*>(field),dots);
         else
             Assert(false);
     }
+}
+
+template <int D>
+void ProcessAuto3(void* corr, void* field, int dots, int coord, int metric)
+{
+    ProcessAuto3b(*(static_cast<BinnedCorr3<D,D,D>*>(corr)), field, dots, coord, metric);
 }
 
 void ProcessAutoNNN(void* corr, void* field, int dots, int coord, int metric)
@@ -1259,12 +1254,12 @@ void ProcessAutoGGG(void* corr, void* field, int dots, int coord, int metric)
 }
 
 template <int D1, int D2, int D3>
-void ProcessCross3(void* corr, void* field1, void* field2, void* field3, int dots,
-                   int coord, int metric)
+void ProcessCross3b(BinnedCorr3<D1,D2,D3>& corr, void* field1, void* field2, void* field3,
+                    int dots, int coord, int metric)
 {
     if (coord == Flat) {
         if (metric == Euclidean)
-            static_cast<BinnedCorr3<D1,D2,D3>*>(corr)->template process<Flat,Euclidean>(
+            corr.template process<Flat,Euclidean>(
                 *static_cast<Field<D1,Flat>*>(field1),
                 *static_cast<Field<D2,Flat>*>(field2),
                 *static_cast<Field<D3,Flat>*>(field3),dots);
@@ -1272,28 +1267,36 @@ void ProcessCross3(void* corr, void* field1, void* field2, void* field3, int dot
             Assert(false);
     } else {
         if (metric == Euclidean)
-            static_cast<BinnedCorr3<D1,D2,D3>*>(corr)->template process<ThreeD,Euclidean>(
+            corr.template process<ThreeD,Euclidean>(
                 *static_cast<Field<D1,ThreeD>*>(field1),
                 *static_cast<Field<D2,ThreeD>*>(field2),
                 *static_cast<Field<D3,ThreeD>*>(field3),dots);
         else if (metric == Perp)
-            static_cast<BinnedCorr3<D1,D2,D3>*>(corr)->template process<ThreeD,Perp>(
+            corr.template process<ThreeD,Perp>(
                 *static_cast<Field<D1,ThreeD>*>(field1),
                 *static_cast<Field<D2,ThreeD>*>(field2),
                 *static_cast<Field<D3,ThreeD>*>(field3),dots);
         else if (metric == Lens)
-            static_cast<BinnedCorr3<D1,D2,D3>*>(corr)->template process<ThreeD,Lens>(
+            corr.template process<ThreeD,Lens>(
                 *static_cast<Field<D1,ThreeD>*>(field1),
                 *static_cast<Field<D2,ThreeD>*>(field2),
                 *static_cast<Field<D3,ThreeD>*>(field3),dots);
         else if (metric == Arc)
-            static_cast<BinnedCorr3<D1,D2,D3>*>(corr)->template process<Sphere,Arc>(
+            corr.template process<Sphere,Arc>(
                 *static_cast<Field<D1,Sphere>*>(field1),
                 *static_cast<Field<D2,Sphere>*>(field2),
                 *static_cast<Field<D3,Sphere>*>(field3),dots);
         else
             Assert(false);
     }
+}
+
+template <int D1, int D2, int D3>
+void ProcessCross3(void* corr, void* field1, void* field2, void* field3,
+                   int dots, int coord, int metric)
+{
+    ProcessCross3b(*static_cast<BinnedCorr3<D1,D2,D3>*>(corr), field1, field2, field3,
+                   dots, coord, metric);
 }
 
 void ProcessCrossNNN(void* corr, void* field1, void* field2, void* field3, int dots,

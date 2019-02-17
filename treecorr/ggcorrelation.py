@@ -90,6 +90,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
         self.corr = treecorr._lib.BuildGGCorr(
+                self._bintype,
                 self._min_sep,self._max_sep,self._nbins,self.bin_size,self.b,
                 self.min_rpar, self.max_rpar,
                 dp(self.xip),dp(self.xip_im),dp(self.xim),dp(self.xim_im),
@@ -99,7 +100,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'corr'):    # In case __init__ failed to get that far
-            treecorr._lib.DestroyGGCorr(self.corr)
+            treecorr._lib.DestroyGGCorr(self.corr, self._bintype)
 
     def copy(self):
         import copy
@@ -153,7 +154,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         treecorr._lib.ProcessAutoGG(self.corr, field.data, self.output_dots,
-                                    self._coords, self._metric)
+                                    self._coords, self._bintype, self._metric)
 
 
     def process_cross(self, cat1, cat2, metric=None, num_threads=None):
@@ -191,7 +192,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         treecorr._lib.ProcessCrossGG(self.corr, f1.data, f2.data, self.output_dots,
-                                     self._coords, self._metric)
+                                     self._coords, self._bintype, self._metric)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -227,7 +228,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getGSimpleField()
 
         treecorr._lib.ProcessPairGG(self.corr, f1.data, f2.data, self.output_dots,
-                                    self._coords, self._metric)
+                                    self._coords, self._bintype, self._metric)
 
 
     def finalize(self, varg1, varg2):

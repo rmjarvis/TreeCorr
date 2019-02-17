@@ -115,6 +115,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
         self.corr = treecorr._lib.BuildNNNCorr(
+                self._bintype,
                 self._min_sep,self._max_sep,self.nbins,self.bin_size,self.b,
                 self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                 self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
@@ -127,7 +128,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'corr'):    # In case __init__ failed to get that far
-            treecorr._lib.DestroyNNNCorr(self.corr)
+            treecorr._lib.DestroyNNNCorr(self.corr, self._bintype)
 
     def copy(self):
         import copy
@@ -180,7 +181,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         treecorr._lib.ProcessAutoNNN(self.corr, field.data, self.output_dots,
-                                     self._coords, self._metric)
+                                     self._coords, self._bintype, self._metric)
         self.tot += (1./6.) * cat.sumw**3
 
     def process_cross21(self, cat1, cat2, metric=None, num_threads=None):
@@ -240,7 +241,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         treecorr._lib.ProcessCrossNNN(self.corr, f1.data, f2.data, f3.data, self.output_dots,
-                                      self._coords, self._metric)
+                                      self._coords, self._bintype, self._metric)
         self.tot += cat1.sumw * cat2.sumw * cat3.sumw / 6.0
 
 

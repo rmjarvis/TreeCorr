@@ -1117,7 +1117,8 @@ extern "C" {
 #include "BinnedCorr3_C.h"
 }
 
-void* BuildNNNCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+void* BuildNNNCorr(int bin_type,
+                   double minsep, double maxsep, int nbins, double binsize, double b,
                    double minu, double maxu, int nubins, double ubinsize, double bu,
                    double minv, double maxv, int nvbins, double vbinsize, double bv,
                    double minrpar, double maxrpar,
@@ -1138,7 +1139,8 @@ void* BuildNNNCorr(double minsep, double maxsep, int nbins, double binsize, doub
     return corr;
 }
 
-void* BuildKKKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+void* BuildKKKCorr(int bin_type,
+                   double minsep, double maxsep, int nbins, double binsize, double b,
                    double minu, double maxu, int nubins, double ubinsize, double bu,
                    double minv, double maxv, int nvbins, double vbinsize, double bv,
                    double minrpar, double maxrpar,
@@ -1161,7 +1163,8 @@ void* BuildKKKCorr(double minsep, double maxsep, int nbins, double binsize, doub
 }
 
 
-void* BuildGGGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+void* BuildGGGCorr(int bin_type,
+                   double minsep, double maxsep, int nbins, double binsize, double b,
                    double minu, double maxu, int nubins, double ubinsize, double bu,
                    double minv, double maxv, int nvbins, double vbinsize, double bv,
                    double minrpar, double maxrpar,
@@ -1185,21 +1188,21 @@ void* BuildGGGCorr(double minsep, double maxsep, int nbins, double binsize, doub
 }
 
 
-void DestroyNNNCorr(void* corr)
+void DestroyNNNCorr(void* corr, int bin_type)
 {
     dbg<<"Start DestroyNNNCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr3<NData,NData,NData,Log>*>(corr);
 }
 
-void DestroyKKKCorr(void* corr)
+void DestroyKKKCorr(void* corr, int bin_type)
 {
     dbg<<"Start DestroyKKKCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
     delete static_cast<BinnedCorr3<KData,KData,KData,Log>*>(corr);
 }
 
-void DestroyGGGCorr(void* corr)
+void DestroyGGGCorr(void* corr, int bin_type)
 {
     dbg<<"Start DestroyGGGCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
@@ -1230,27 +1233,27 @@ void ProcessAuto3b(BinnedCorr3<D,D,D,B>& corr, void* field, int dots, int coord,
 }
 
 template <int D>
-void ProcessAuto3(void* corr, void* field, int dots, int coord, int metric)
+void ProcessAuto3(void* corr, void* field, int dots, int coord, int bin_type, int metric)
 {
     ProcessAuto3b(*(static_cast<BinnedCorr3<D,D,D,Log>*>(corr)), field, dots, coord, metric);
 }
 
-void ProcessAutoNNN(void* corr, void* field, int dots, int coord, int metric)
+void ProcessAutoNNN(void* corr, void* field, int dots, int coord, int bin_type, int metric)
 {
     dbg<<"Start ProcessAutoNNN\n";
-    ProcessAuto3<NData>(corr, field, dots, coord, metric);
+    ProcessAuto3<NData>(corr, field, dots, coord, bin_type, metric);
 }
 
-void ProcessAutoKKK(void* corr, void* field, int dots, int coord, int metric)
+void ProcessAutoKKK(void* corr, void* field, int dots, int coord, int bin_type, int metric)
 {
     dbg<<"Start ProcessAutoKKK\n";
-    ProcessAuto3<KData>(corr, field, dots, coord, metric);
+    ProcessAuto3<KData>(corr, field, dots, coord, bin_type, metric);
 }
 
-void ProcessAutoGGG(void* corr, void* field, int dots, int coord, int metric)
+void ProcessAutoGGG(void* corr, void* field, int dots, int coord, int bin_type, int metric)
 {
     dbg<<"Start ProcessAutoGGG\n";
-    ProcessAuto3<GData>(corr, field, dots, coord, metric);
+    ProcessAuto3<GData>(corr, field, dots, coord, bin_type, metric);
 }
 
 template <int D1, int D2, int D3, int B>
@@ -1293,31 +1296,31 @@ void ProcessCross3b(BinnedCorr3<D1,D2,D3,B>& corr, void* field1, void* field2, v
 
 template <int D1, int D2, int D3>
 void ProcessCross3(void* corr, void* field1, void* field2, void* field3,
-                   int dots, int coord, int metric)
+                   int dots, int coord, int bin_type, int metric)
 {
     ProcessCross3b(*static_cast<BinnedCorr3<D1,D2,D3,Log>*>(corr), field1, field2, field3,
                    dots, coord, metric);
 }
 
 void ProcessCrossNNN(void* corr, void* field1, void* field2, void* field3, int dots,
-                     int coord, int metric)
+                     int coord, int bin_type, int metric)
 {
     dbg<<"Start ProcessCrossNNN\n";
-    ProcessCross3<NData,NData,NData>(corr, field1, field2, field3, dots, coord, metric);
+    ProcessCross3<NData,NData,NData>(corr, field1, field2, field3, dots, coord, bin_type, metric);
 }
 
 void ProcessCrossKKK(void* corr, void* field1, void* field2, void* field3, int dots,
-                     int coord, int metric)
+                     int coord, int bin_type, int metric)
 {
     dbg<<"Start ProcessCrossKKK\n";
-    ProcessCross3<KData,KData,KData>(corr, field1, field2, field3, dots, coord, metric);
+    ProcessCross3<KData,KData,KData>(corr, field1, field2, field3, dots, coord, bin_type, metric);
 }
 
 void ProcessCrossGGG(void* corr, void* field1, void* field2, void* field3, int dots,
-                     int coord, int metric)
+                     int coord, int bin_type, int metric)
 {
     dbg<<"Start ProcessCrossGGG\n";
-    ProcessCross3<GData,GData,GData>(corr, field1, field2, field3, dots, coord, metric);
+    ProcessCross3<GData,GData,GData>(corr, field1, field2, field3, dots, coord, bin_type, metric);
 }
 
 

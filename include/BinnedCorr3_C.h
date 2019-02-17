@@ -12,14 +12,16 @@
  *    and/or other materials provided with the distribution.
  */
 
-extern void* BuildNNNCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+extern void* BuildNNNCorr(int bin_type,
+                          double minsep, double maxsep, int nbins, double binsize, double b,
                           double minu, double maxu, int nubins, double ubinsize, double bu,
                           double minv, double maxv, int nvbins, double vbinsize, double bv,
                           double minrpar, double maxrpar,
                           double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
                           double* meand3, double* meanlogd3, double* meanu, double* meanv,
                           double* weight, double* ntri);
-extern void* BuildKKKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+extern void* BuildKKKCorr(int bin_type,
+                          double minsep, double maxsep, int nbins, double binsize, double b,
                           double minu, double maxu, int nubins, double ubinsize, double bu,
                           double minv, double maxv, int nvbins, double vbinsize, double bv,
                           double minrpar, double maxrpar,
@@ -27,7 +29,8 @@ extern void* BuildKKKCorr(double minsep, double maxsep, int nbins, double binsiz
                           double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
                           double* meand3, double* meanlogd3, double* meanu, double* meanv,
                           double* weight, double* ntri);
-extern void* BuildGGGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+extern void* BuildGGGCorr(int bin_type,
+                          double minsep, double maxsep, int nbins, double binsize, double b,
                           double minu, double maxu, int nubins, double ubinsize, double bu,
                           double minv, double maxv, int nvbins, double vbinsize, double bv,
                           double minrpar, double maxrpar,
@@ -36,57 +39,18 @@ extern void* BuildGGGCorr(double minsep, double maxsep, int nbins, double binsiz
                           double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
                           double* meand3, double* meanlogd3, double* meanu, double* meanv,
                           double* weight, double* ntri);
-/*
-extern void* BuildNNKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                          double minu, double maxu, int nubins, double ubinsize, double bu,
-                          double minv, double maxv, int nvbins, double vbinsize, double bv,
-                          double minrpar, double maxrpar,
-                          double* zeta,
-                          double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                          double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                          double* weight, double* ntri);
-extern void* BuildNNGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                          double minu, double maxu, int nubins, double ubinsize, double bu,
-                          double minv, double maxv, int nvbins, double vbinsize, double bv,
-                          double minrpar, double maxrpar,
-                          double* zeta, double* zeta_im,
-                          double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                          double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                          double* weight, double* ntri);
-extern void* BuildKKGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
-                          double minu, double maxu, int nubins, double ubinsize, double bu,
-                          double minv, double maxv, int nvbins, double vbinsize, double bv,
-                          double minrpar, double maxrpar,
-                          double* zeta, double* zeta_im,
-                          double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                          double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                          double* weight, double* ntri);
-*/
 
-extern void DestroyNNNCorr(void* corr);
-extern void DestroyKKKCorr(void* corr);
-extern void DestroyGGGCorr(void* corr);
-/*
-extern void DestroyNNKCorr(void* corr);
-extern void DestroyNNGCorr(void* corr);
-extern void DestroyKKGCorr(void* corr);
-*/
+extern void DestroyNNNCorr(void* corr, int bin_type);
+extern void DestroyKKKCorr(void* corr, int bin_type);
+extern void DestroyGGGCorr(void* corr, int bin_type);
 
-extern void ProcessAutoNNN(void* corr, void* field, int dots, int coord, int metric);
-extern void ProcessAutoKKK(void* corr, void* field, int dots, int coord, int metric);
-extern void ProcessAutoGGG(void* corr, void* field, int dots, int coord, int metric);
+extern void ProcessAutoNNN(void* corr, void* field, int dots, int coord, int bin_type, int metric);
+extern void ProcessAutoKKK(void* corr, void* field, int dots, int coord, int bin_type, int metric);
+extern void ProcessAutoGGG(void* corr, void* field, int dots, int coord, int bin_type, int metric);
 
 extern void ProcessCrossNNN(void* corr, void* field1, void* field2, void* field3, int dots,
-                            int coord, int metric);
+                            int coord, int bin_type, int metric);
 extern void ProcessCrossKKK(void* corr, void* field1, void* field2, void* field3, int dots,
-                            int coord, int metric);
+                            int coord, int bin_type, int metric);
 extern void ProcessCrossGGG(void* corr, void* field1, void* field2, void* field3, int dots,
-                            int coord, int metric);
-/*
-extern void ProcessCrossNNK(void* corr, void* field1, void* field2, void* field3, int dots,
-                            int coord, int metric);
-extern void ProcessCrossNNG(void* corr, void* field1, void* field2, void* field3, int dots,
-                            int coord, int metric);
-extern void ProcessCrossKKG(void* corr, void* field1, void* field2, void* field3, int dots,
-                            int coord, int metric);
-*/
+                            int coord, int bin_type, int metric);

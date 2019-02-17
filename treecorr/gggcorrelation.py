@@ -162,6 +162,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
         self.corr = treecorr._lib.BuildGGGCorr(
+                self._bintype,
                 self._min_sep,self._max_sep,self.nbins,self.bin_size,self.b,
                 self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                 self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
@@ -176,7 +177,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'corr'):    # In case __init__ failed to get that far
-            treecorr._lib.DestroyGGGCorr(self.corr)
+            treecorr._lib.DestroyGGGCorr(self.corr, self._bintype)
 
     def copy(self):
         import copy
@@ -229,7 +230,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         treecorr._lib.ProcessAutoGGG(self.corr, field.data, self.output_dots,
-                                     self._coords, self._metric)
+                                     self._coords, self._bintype, self._metric)
 
     def process_cross21(self, cat1, cat2, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where two of the
@@ -288,7 +289,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         treecorr._lib.ProcessCrossGGG(self.corr, f1.data, f2.data, f3.data, self.output_dots,
-                                      self._coords, self._metric)
+                                      self._coords, self._bintype, self._metric)
 
 
     def finalize(self, varg1, varg2, varg3):

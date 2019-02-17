@@ -465,7 +465,7 @@ void BinnedCorr2<D1,D2,B>::directProcess11(
     XAssert(_binsize != 0.);
     const int k = MetricHelper<M>::CalculateBinK(c1.getPos(), c2.getPos(),
                                                  logr, _logminsep, _binsize,
-                                                 r, _minsep, _maxsep)
+                                                 r, _minsep, _maxsep);
     XAssert(k >= 0);
     XAssert(k < _nbins);
     //dbg<<"r,logr,k = "<<r<<','<<logr<<','<<k<<std::endl;
@@ -527,135 +527,279 @@ extern "C" {
 #include "BinnedCorr2_C.h"
 }
 
-void* BuildNNCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+void* BuildNNCorr(int bin_type,
+                  double minsep, double maxsep, int nbins, double binsize, double b,
                   double minrpar, double maxrpar,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildNNCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr2<NData,NData,Log>(
-            minsep, maxsep, nbins, binsize, b,
-            minrpar, maxrpar,
-            0, 0, 0, 0,
-            meanr, meanlogr, weight, npairs));
+    void* corr=0;
+    switch(bin_type) {
+      case Log:
+           corr = static_cast<void*>(new BinnedCorr2<NData,NData,Log>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   0, 0, 0, 0,
+                   meanr, meanlogr, weight, npairs));
+            break;
+      case TwoD:
+           corr = static_cast<void*>(new BinnedCorr2<NData,NData,TwoD>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   0, 0, 0, 0,
+                   meanr, meanlogr, weight, npairs));
+            break;
+      default:
+            Assert(false);
+    }
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
-void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+void* BuildNKCorr(int bin_type,
+                  double minsep, double maxsep, int nbins, double binsize, double b,
                   double minrpar, double maxrpar,
                   double* xi,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildNKCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr2<NData,KData,Log>(
-            minsep, maxsep, nbins, binsize, b,
-            minrpar, maxrpar,
-            xi, 0, 0, 0,
-            meanr, meanlogr, weight, npairs));
+    void* corr=0;
+    switch(bin_type) {
+      case Log:
+           corr = static_cast<void*>(new BinnedCorr2<NData,KData,Log>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   xi, 0, 0, 0,
+                   meanr, meanlogr, weight, npairs));
+           break;
+      case TwoD:
+           corr = static_cast<void*>(new BinnedCorr2<NData,KData,TwoD>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   xi, 0, 0, 0,
+                   meanr, meanlogr, weight, npairs));
+           break;
+      default:
+           Assert(false);
+    }
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
-void* BuildNGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+void* BuildNGCorr(int bin_type,
+                  double minsep, double maxsep, int nbins, double binsize, double b,
                   double minrpar, double maxrpar,
                   double* xi, double* xi_im,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildNGCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr2<NData,GData,Log>(
-            minsep, maxsep, nbins, binsize, b,
-            minrpar, maxrpar,
-            xi, xi_im, 0, 0,
-            meanr, meanlogr, weight, npairs));
+    void* corr=0;
+    switch(bin_type) {
+      case Log:
+           corr = static_cast<void*>(new BinnedCorr2<NData,GData,Log>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   xi, xi_im, 0, 0,
+                   meanr, meanlogr, weight, npairs));
+           break;
+      case TwoD:
+           corr = static_cast<void*>(new BinnedCorr2<NData,GData,TwoD>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   xi, xi_im, 0, 0,
+                   meanr, meanlogr, weight, npairs));
+           break;
+      default:
+           Assert(false);
+    }
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
-void* BuildKKCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+void* BuildKKCorr(int bin_type,
+                  double minsep, double maxsep, int nbins, double binsize, double b,
                   double minrpar, double maxrpar,
                   double* xi,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildKKCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr2<KData,KData,Log>(
-            minsep, maxsep, nbins, binsize, b,
-            minrpar, maxrpar,
-            xi, 0, 0, 0,
-            meanr, meanlogr, weight, npairs));
+    void* corr=0;
+    switch(bin_type) {
+      case Log:
+           corr = static_cast<void*>(new BinnedCorr2<KData,KData,Log>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   xi, 0, 0, 0,
+                   meanr, meanlogr, weight, npairs));
+           break;
+      case TwoD:
+           corr = static_cast<void*>(new BinnedCorr2<KData,KData,TwoD>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   xi, 0, 0, 0,
+                   meanr, meanlogr, weight, npairs));
+           break;
+      default:
+           Assert(false);
+    }
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
-void* BuildKGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+void* BuildKGCorr(int bin_type,
+                  double minsep, double maxsep, int nbins, double binsize, double b,
                   double minrpar, double maxrpar,
                   double* xi, double* xi_im,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildKGCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr2<KData,GData,Log>(
-            minsep, maxsep, nbins, binsize, b,
-            minrpar, maxrpar,
-            xi, xi_im, 0, 0,
-            meanr, meanlogr, weight, npairs));
+    void* corr=0;
+    switch(bin_type) {
+      case Log:
+           corr = static_cast<void*>(new BinnedCorr2<KData,GData,Log>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   xi, xi_im, 0, 0,
+                   meanr, meanlogr, weight, npairs));
+           break;
+      case TwoD:
+           corr = static_cast<void*>(new BinnedCorr2<KData,GData,TwoD>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   xi, xi_im, 0, 0,
+                   meanr, meanlogr, weight, npairs));
+           break;
+      default:
+           Assert(false);
+    }
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
-void* BuildGGCorr(double minsep, double maxsep, int nbins, double binsize, double b,
+void* BuildGGCorr(int bin_type,
+                  double minsep, double maxsep, int nbins, double binsize, double b,
                   double minrpar, double maxrpar,
                   double* xip, double* xip_im, double* xim, double* xim_im,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildGGCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr2<GData,GData,Log>(
-            minsep, maxsep, nbins, binsize, b,
-            minrpar, maxrpar,
-            xip, xip_im, xim, xim_im,
-            meanr, meanlogr, weight, npairs));
+    void* corr=0;
+    switch(bin_type) {
+      case Log:
+           corr = static_cast<void*>(new BinnedCorr2<GData,GData,Log>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   xip, xip_im, xim, xim_im,
+                   meanr, meanlogr, weight, npairs));
+           break;
+      case TwoD:
+           corr = static_cast<void*>(new BinnedCorr2<GData,GData,TwoD>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   xip, xip_im, xim, xim_im,
+                   meanr, meanlogr, weight, npairs));
+           break;
+      default:
+           Assert(false);
+    }
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
-void DestroyNNCorr(void* corr)
+void DestroyNNCorr(void* corr, int bin_type)
 {
     dbg<<"Start DestroyNNCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr2<NData,NData,Log>*>(corr);
+    switch(bin_type) {
+      case Log:
+           delete static_cast<BinnedCorr2<NData,NData,Log>*>(corr);
+           break;
+      case TwoD:
+           delete static_cast<BinnedCorr2<NData,NData,TwoD>*>(corr);
+           break;
+      default:
+           Assert(false);
+    }
 }
 
-void DestroyNKCorr(void* corr)
+void DestroyNKCorr(void* corr, int bin_type)
 {
     dbg<<"Start DestroyNKCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr2<NData,KData,Log>*>(corr);
+    switch(bin_type) {
+      case Log:
+           delete static_cast<BinnedCorr2<NData,KData,Log>*>(corr);
+           break;
+      case TwoD:
+           delete static_cast<BinnedCorr2<NData,KData,TwoD>*>(corr);
+           break;
+      default:
+           Assert(false);
+    }
 }
 
-void DestroyNGCorr(void* corr)
+void DestroyNGCorr(void* corr, int bin_type)
 {
     dbg<<"Start DestroyNGCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr2<NData,GData,Log>*>(corr);
+    switch(bin_type) {
+      case Log:
+           delete static_cast<BinnedCorr2<NData,GData,Log>*>(corr);
+           break;
+      case TwoD:
+           delete static_cast<BinnedCorr2<NData,GData,TwoD>*>(corr);
+           break;
+      default:
+           Assert(false);
+    }
 }
 
-void DestroyKKCorr(void* corr)
+void DestroyKKCorr(void* corr, int bin_type)
 {
     dbg<<"Start DestroyKKCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr2<KData,KData,Log>*>(corr);
+    switch(bin_type) {
+      case Log:
+           delete static_cast<BinnedCorr2<KData,KData,Log>*>(corr);
+           break;
+      case TwoD:
+           delete static_cast<BinnedCorr2<KData,KData,TwoD>*>(corr);
+           break;
+      default:
+           Assert(false);
+    }
 }
 
-void DestroyKGCorr(void* corr)
+void DestroyKGCorr(void* corr, int bin_type)
 {
     dbg<<"Start DestroyKGCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr2<KData,GData,Log>*>(corr);
+    switch(bin_type) {
+      case Log:
+           delete static_cast<BinnedCorr2<KData,GData,Log>*>(corr);
+           break;
+      case TwoD:
+           delete static_cast<BinnedCorr2<KData,GData,TwoD>*>(corr);
+           break;
+      default:
+           Assert(false);
+    }
 }
 
-void DestroyGGCorr(void* corr)
+void DestroyGGCorr(void* corr, int bin_type)
 {
     dbg<<"Start DestroyGGCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr2<GData,GData,Log>*>(corr);
+    switch(bin_type) {
+      case Log:
+           delete static_cast<BinnedCorr2<GData,GData,Log>*>(corr);
+           break;
+      case TwoD:
+           delete static_cast<BinnedCorr2<GData,GData,TwoD>*>(corr);
+           break;
+      default:
+           Assert(false);
+    }
 }
 
 
@@ -694,27 +838,36 @@ void ProcessAuto2b(BinnedCorr2<D,D,B>& corr, void* field, int dots, int coord, i
 }
 
 template <int D>
-void ProcessAuto2(void* corr, void* field, int dots, int coord, int metric)
+void ProcessAuto2(void* corr, void* field, int dots, int coord, int bin_type, int metric)
 {
-    ProcessAuto2b(*(static_cast<BinnedCorr2<D,D,Log>*>(corr)), field, dots, coord, metric);
+    switch(bin_type) {
+      case Log:
+           ProcessAuto2b(*(static_cast<BinnedCorr2<D,D,Log>*>(corr)), field, dots, coord, metric);
+           break;
+      case TwoD:
+           ProcessAuto2b(*(static_cast<BinnedCorr2<D,D,TwoD>*>(corr)), field, dots, coord, metric);
+           break;
+      default:
+           Assert(false);
+    }
 }
 
-void ProcessAutoNN(void* corr, void* field, int dots, int coord, int metric)
+void ProcessAutoNN(void* corr, void* field, int dots, int coord, int bin_type, int metric)
 {
     dbg<<"Start ProcessAutoNN\n";
-    ProcessAuto2<NData>(corr, field, dots, coord, metric);
+    ProcessAuto2<NData>(corr, field, dots, coord, bin_type, metric);
 }
 
-void ProcessAutoKK(void* corr, void* field, int dots, int coord, int metric)
+void ProcessAutoKK(void* corr, void* field, int dots, int coord, int bin_type, int metric)
 {
     dbg<<"Start ProcessAutoKK\n";
-    ProcessAuto2<KData>(corr, field, dots, coord, metric);
+    ProcessAuto2<KData>(corr, field, dots, coord, bin_type, metric);
 }
 
-void ProcessAutoGG(void* corr, void* field, int dots, int coord, int metric)
+void ProcessAutoGG(void* corr, void* field, int dots, int coord, int bin_type, int metric)
 {
     dbg<<"Start ProcessAutoGG\n";
-    ProcessAuto2<GData>(corr, field, dots, coord, metric);
+    ProcessAuto2<GData>(corr, field, dots, coord, bin_type, metric);
 }
 
 template <int D1, int D2, int B>
@@ -765,46 +918,63 @@ void ProcessCross2b(BinnedCorr2<D1,D2,B>& corr, void* field1, void* field2,
 }
 
 template <int D1, int D2>
-void ProcessCross2(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+void ProcessCross2(void* corr, void* field1, void* field2, int dots, int coord,
+                   int bin_type, int metric)
 {
-    ProcessCross2b(*static_cast<BinnedCorr2<D1,D2,Log>*>(corr), field1, field2,
-                   dots, coord, metric);
+    switch(bin_type) {
+      case Log:
+           ProcessCross2b(*static_cast<BinnedCorr2<D1,D2,Log>*>(corr), field1, field2,
+                          dots, coord, metric);
+           break;
+      case TwoD:
+           ProcessCross2b(*static_cast<BinnedCorr2<D1,D2,TwoD>*>(corr), field1, field2,
+                          dots, coord, metric);
+           break;
+      default:
+           Assert(false);
+    }
 }
 
-void ProcessCrossNN(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+void ProcessCrossNN(void* corr, void* field1, void* field2, int dots, int coord,
+                    int bin_type, int metric)
 {
     dbg<<"Start ProcessCrossNN\n";
-    ProcessCross2<NData,NData>(corr, field1, field2, dots, coord, metric);
+    ProcessCross2<NData,NData>(corr, field1, field2, dots, coord, bin_type, metric);
 }
 
-void ProcessCrossNK(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+void ProcessCrossNK(void* corr, void* field1, void* field2, int dots, int coord,
+                    int bin_type, int metric)
 {
     dbg<<"Start ProcessCrossNK\n";
-    ProcessCross2<NData,KData>(corr, field1, field2, dots, coord, metric);
+    ProcessCross2<NData,KData>(corr, field1, field2, dots, coord, bin_type, metric);
 }
 
-void ProcessCrossNG(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+void ProcessCrossNG(void* corr, void* field1, void* field2, int dots, int coord,
+                    int bin_type, int metric)
 {
     dbg<<"Start ProcessCrossNG\n";
-    ProcessCross2<NData,GData>(corr, field1, field2, dots, coord, metric);
+    ProcessCross2<NData,GData>(corr, field1, field2, dots, coord, bin_type, metric);
 }
 
-void ProcessCrossKK(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+void ProcessCrossKK(void* corr, void* field1, void* field2, int dots, int coord,
+                    int bin_type, int metric)
 {
     dbg<<"Start ProcessCrossKK\n";
-    ProcessCross2<KData,KData>(corr, field1, field2, dots, coord, metric);
+    ProcessCross2<KData,KData>(corr, field1, field2, dots, coord, bin_type, metric);
 }
 
-void ProcessCrossKG(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+void ProcessCrossKG(void* corr, void* field1, void* field2, int dots, int coord,
+                    int bin_type, int metric)
 {
     dbg<<"Start ProcessCrossKG\n";
-    ProcessCross2<KData,GData>(corr, field1, field2, dots, coord, metric);
+    ProcessCross2<KData,GData>(corr, field1, field2, dots, coord, bin_type, metric);
 }
 
-void ProcessCrossGG(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+void ProcessCrossGG(void* corr, void* field1, void* field2, int dots, int coord,
+                    int bin_type, int metric)
 {
     dbg<<"Start ProcessCrossGG\n";
-    ProcessCross2<GData,GData>(corr, field1, field2, dots, coord, metric);
+    ProcessCross2<GData,GData>(corr, field1, field2, dots, coord, bin_type, metric);
 }
 
 template <int D1, int D2, int B>
@@ -855,46 +1025,63 @@ void ProcessPair2b(BinnedCorr2<D1,D2,B>& corr, void* field1, void* field2,
 }
 
 template <int D1, int D2>
-void ProcessPair2(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+void ProcessPair2(void* corr, void* field1, void* field2, int dots, int coord,
+                  int bin_type, int metric)
 {
-    ProcessPair2b(*static_cast<BinnedCorr2<D1,D2,Log>*>(corr), field1, field2,
-                  dots, coord, metric);
+    switch(bin_type) {
+      case Log:
+           ProcessPair2b(*static_cast<BinnedCorr2<D1,D2,Log>*>(corr), field1, field2,
+                         dots, coord, metric);
+           break;
+      case TwoD:
+           ProcessPair2b(*static_cast<BinnedCorr2<D1,D2,TwoD>*>(corr), field1, field2,
+                         dots, coord, metric);
+           break;
+      default:
+           Assert(false);
+    }
 }
 
-void ProcessPairNN(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+void ProcessPairNN(void* corr, void* field1, void* field2, int dots, int coord,
+                   int bin_type, int metric)
 {
     dbg<<"Start ProcessPairNN\n";
-    ProcessPair2<NData,NData>(corr, field1, field2, dots, coord, metric);
+    ProcessPair2<NData,NData>(corr, field1, field2, dots, coord, bin_type, metric);
 }
 
-void ProcessPairNK(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+void ProcessPairNK(void* corr, void* field1, void* field2, int dots, int coord,
+                   int bin_type, int metric)
 {
     dbg<<"Start ProcessPairNK\n";
-    ProcessPair2<NData,KData>(corr, field1, field2, dots, coord, metric);
+    ProcessPair2<NData,KData>(corr, field1, field2, dots, coord, bin_type, metric);
 }
 
-void ProcessPairNG(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+void ProcessPairNG(void* corr, void* field1, void* field2, int dots, int coord,
+                   int bin_type, int metric)
 {
     dbg<<"Start ProcessPairNG\n";
-    ProcessPair2<NData,GData>(corr, field1, field2, dots, coord, metric);
+    ProcessPair2<NData,GData>(corr, field1, field2, dots, coord, bin_type, metric);
 }
 
-void ProcessPairKK(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+void ProcessPairKK(void* corr, void* field1, void* field2, int dots, int coord,
+                   int bin_type, int metric)
 {
     dbg<<"Start ProcessPairKK\n";
-    ProcessPair2<KData,KData>(corr, field1, field2, dots, coord, metric);
+    ProcessPair2<KData,KData>(corr, field1, field2, dots, coord, bin_type, metric);
 }
 
-void ProcessPairKG(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+void ProcessPairKG(void* corr, void* field1, void* field2, int dots, int coord,
+                   int bin_type, int metric)
 {
     dbg<<"Start ProcessPairKG\n";
-    ProcessPair2<KData,GData>(corr, field1, field2, dots, coord, metric);
+    ProcessPair2<KData,GData>(corr, field1, field2, dots, coord, bin_type, metric);
 }
 
-void ProcessPairGG(void* corr, void* field1, void* field2, int dots, int coord, int metric)
+void ProcessPairGG(void* corr, void* field1, void* field2, int dots, int coord,
+                   int bin_type, int metric)
 {
     dbg<<"Start ProcessPairGG\n";
-    ProcessPair2<GData,GData>(corr, field1, field2, dots, coord, metric);
+    ProcessPair2<GData,GData>(corr, field1, field2, dots, coord, bin_type, metric);
 }
 
 int SetOMPThreads(int num_threads)

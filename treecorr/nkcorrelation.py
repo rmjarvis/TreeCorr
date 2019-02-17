@@ -83,6 +83,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
         self.corr = treecorr._lib.BuildNKCorr(
+                self._bintype,
                 self._min_sep,self._max_sep,self._nbins,self.bin_size,self.b,
                 self.min_rpar, self.max_rpar,
                 dp(self.xi),
@@ -92,7 +93,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'corr'):    # In case __init__ failed to get that far
-            treecorr._lib.DestroyNKCorr(self.corr)
+            treecorr._lib.DestroyNKCorr(self.corr, self._bintype)
 
     def copy(self):
         import copy
@@ -149,7 +150,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         treecorr._lib.ProcessCrossNK(self.corr, f1.data, f2.data, self.output_dots,
-                                     self._coords, self._metric)
+                                     self._coords, self._bintype, self._metric)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -185,7 +186,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getKSimpleField()
 
         treecorr._lib.ProcessPairNK(self.corr, f1.data, f2.data, self.output_dots,
-                                    self._coords, self._metric)
+                                    self._coords, self._bintype, self._metric)
 
 
     def finalize(self, vark):

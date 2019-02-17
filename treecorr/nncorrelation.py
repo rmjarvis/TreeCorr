@@ -84,6 +84,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
         self.corr = treecorr._lib.BuildNNCorr(
+                self._bintype,
                 self._min_sep,self._max_sep,self._nbins,self.bin_size,self.b,
                 self.min_rpar, self.max_rpar,
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
@@ -92,7 +93,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if hasattr(self,'corr'):    # In case __init__ failed to get that far
-            treecorr._lib.DestroyNNCorr(self.corr)
+            treecorr._lib.DestroyNNCorr(self.corr, self._bintype)
 
     def copy(self):
         import copy
@@ -145,7 +146,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         treecorr._lib.ProcessAutoNN(self.corr, field.data, self.output_dots,
-                                    self._coords, self._metric)
+                                    self._coords, self._bintype, self._metric)
         self.tot += 0.5 * cat.sumw**2
 
 
@@ -183,7 +184,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         treecorr._lib.ProcessCrossNN(self.corr, f1.data, f2.data, self.output_dots,
-                                     self._coords, self._metric)
+                                     self._coords, self._bintype, self._metric)
         self.tot += cat1.sumw*cat2.sumw
 
 
@@ -219,7 +220,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         f2 = cat2.getNSimpleField()
 
         treecorr._lib.ProcessPairNN(self.corr, f1.data, f2.data, self.output_dots,
-                                    self._coords, self._metric)
+                                    self._coords, self._bintype, self._metric)
         self.tot += cat1.weight
 
 

@@ -129,10 +129,18 @@ class BinnedCorr2(object):
                           in the pair (taken to be a lens) to the line of sight to the second
                           point (e.g. a lensed source galaxy).
                         - 'Arc' = the true great circle distance for spherical coordinates.
-                        - 'TwoD' = 2-dimensional binning from x = (-maxsep .. maxsep) and
-                          y = (-maxsep .. maxsep)
-
                         (default: 'Euclidean')
+
+    :param bin_type:    What type of binning should be used.  Options are:
+
+                        - 'Log' - logarithmic binning in the distance.  The bin steps will be
+                          uniform in log(r) from log(min_sep) .. log(max_sep).
+                        - 'Linear' - linear binning in the distance.  The bin steps will be
+                          uniform in r from min_sep .. max_sep.  [NOT IMPLEMENTED YET]
+                        - 'TwoD' = 2-dimensional binning from x = (-max_sep .. max_sep) and
+                          y = (-max_sep .. max_sep).  The bin steps will be uniform in both
+                          x and y.  (i.e. linear in x,y)
+                        (default: 'Log')
 
     :param min_rpar:    For the 'Rperp' metric, the minimum difference in Rparallel to allow
                         for pairs being included in the correlation function. (default: None)
@@ -181,6 +189,8 @@ class BinnedCorr2(object):
                 'The function form of the mass aperture.'),
         'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp', 'Rlens', 'Arc', 'TwoD'],
                 'Which metric to use for the distance measurements'),
+        'bin_type': (str, False, 'Log', ['Log', 'Linear', 'TwoD'],
+                'Which type of binning should be used'),
         'min_rpar': (float, False, None, None,
                 'For Rperp metric, the minimum difference in Rparallel for pairs to include'),
         'max_rpar': (float, False, None, None,
@@ -203,7 +213,7 @@ class BinnedCorr2(object):
         else:
             self.output_dots = False
 
-        metric = self.config.get('metric', None)
+        bin_type = self.config.get('bin_type', None)
 
         self.sep_units = treecorr.config.get(self.config,'sep_units',str,'radians')
         self.sep_unit_name = self.config.get('sep_units','')
@@ -211,49 +221,87 @@ class BinnedCorr2(object):
         if 'nbins' not in self.config:
             if 'max_sep' not in self.config:
                 raise AttributeError("Missing required parameter max_sep")
-            if 'min_sep' not in self.config:
+            if 'min_sep' not in self.config and bin_type != 'TwoD':
                 raise AttributeError("Missing required parameter min_sep")
             if 'bin_size' not in self.config:
                 raise AttributeError("Missing required parameter bin_size")
-            self.min_sep = float(self.config['min_sep'])
+            self.min_sep = float(self.config.get('min_sep',0))
             self.max_sep = float(self.config['max_sep'])
             if self.min_sep >= self.max_sep:
                 raise ValueError("max_sep must be larger than min_sep")
             self.bin_size = float(self.config['bin_size'])
-            self.nbins = int(math.ceil(math.log(self.max_sep/self.min_sep)/self.bin_size))
-            # Update max_sep given this value of nbins
-            self.max_sep = math.exp(self.nbins*self.bin_size)*self.min_sep
-            # TODO: add metric==TwoD here
+            self.nbins = None
         elif 'bin_size' not in self.config:
             if 'max_sep' not in self.config:
                 raise AttributeError("Missing required parameter max_sep")
-            if 'min_sep' not in self.config:
+            if 'min_sep' not in self.config and bin_type != 'TwoD':
                 raise AttributeError("Missing required parameter min_sep")
-            self.min_sep = float(self.config['min_sep'])
+            self.min_sep = float(self.config.get('min_sep',0))
             self.max_sep = float(self.config['max_sep'])
             if self.min_sep >= self.max_sep:
                 raise ValueError("max_sep must be larger than min_sep")
             self.nbins = int(self.config['nbins'])
-            if metric == 'TwoD':
-                self.bin_size = 2.*self.max_sep/self.nbins
-            else:
-                self.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
+            self.bin_size = None
         elif 'max_sep' not in self.config:
-            if 'min_sep' not in self.config:
+            if 'min_sep' not in self.config and bin_type != 'TwoD':
                 raise AttributeError("Missing required parameter min_sep")
-            self.min_sep = float(self.config['min_sep'])
+            self.min_sep = float(self.config.get('min_sep',0))
             self.nbins = int(self.config['nbins'])
             self.bin_size = float(self.config['bin_size'])
-            self.max_sep = math.exp(self.nbins*self.bin_size)*self.min_sep
-            # TODO: add metric==TwoD here
+            self.max_sep = None
         else:
+            if bin_type == 'TwoD':
+                raise AttributeError("Only 2 of max_sep, bin_size, nbins are allowed "
+                                     "for bin_type='TwoD'.")
             if 'min_sep' in self.config:
                 raise AttributeError("Only 3 of min_sep, max_sep, bin_size, nbins are allowed.")
             self.max_sep = float(self.config['max_sep'])
             self.nbins = int(self.config['nbins'])
             self.bin_size = float(self.config['bin_size'])
-            self.min_sep = self.max_sep*math.exp(-self.nbins*self.bin_size)
-            # TODO: add metric==TwoD here
+            self.min_sep = None
+
+        if bin_type == 'Log':
+            if self.nbins is None:
+                self.nbins = int(math.ceil(math.log(self.max_sep/self.min_sep)/self.bin_size))
+                # Update max_sep given this value of nbins
+                self.max_sep = math.exp(self.nbins*self.bin_size)*self.min_sep
+            elif self.bin_size is None:
+                self.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
+            elif self.max_sep is None:
+                self.max_sep = math.exp(self.nbins*self.bin_size)*self.min_sep
+            else:
+                self.min_sep = self.max_sep*math.exp(-self.nbins*self.bin_size)
+
+            # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
+            self.logr = numpy.linspace(0, self.nbins*self.bin_size, self.nbins, endpoint=False,
+                                       dtype=float)
+            # Offset by the position of the center of the first bin.
+            self.logr += math.log(self.min_sep) + 0.5*self.bin_size
+            self.rnom = numpy.exp(self.logr)
+            self._nbins = self.nbins
+            self._bintype = treecorr._lib.Log
+        elif bin_type == 'TwoD':
+            if self.nbins is None:
+                self.nbins = int(math.ceil(2.*self.max_sep / self.bin_size))
+                self.max_sep = self.nbins * self.bin_size / 2.
+            elif self.bin_size is None:
+                self.bin_size = 2.*self.max_sep/self.nbins
+            else:
+                self.max_sep = self.nbins * self.bin_size / 2.
+
+            sep = numpy.linspace(-self.max_sep, self.max_sep, self.nbins, endpoint=False,
+                                 dtype=float)
+            sep += 0.5 * self.bin_size
+            self.dx, self.dy = numpy.meshgrid(sep, sep)
+            self.rnom = numpy.sqrt(self.dx**2 + self.dy**2)
+            self.logr = numpy.zeros_like(self.rnom)
+            numpy.log(self.rnom, out=self.logr, where=self.rnom > 0)
+            self.logr[self.rnom==0.] = -numpy.inf
+            self._nbins = self.nbins**2
+            self._bintype = treecorr._lib.TwoD
+        else:
+            raise ValueError("bin_type %s not implemented yet."%bin_type)
+
         if self.sep_unit_name == '':
             self.logger.info("nbins = %d, min,max sep = %g..%g, bin_size = %g",
                              self.nbins, self.min_sep, self.max_sep, self.bin_size)
@@ -288,27 +336,8 @@ class BinnedCorr2(object):
         else:
             self.logger.debug("Using bin_slop = %g, b = %g",self.bin_slop,self.b)
 
-        if metric == 'TwoD':
-            sep = numpy.linspace(-self.max_sep, self.max_sep, self.nbins, endpoint=False,
-                                 dtype=float)
-            sep += 0.5 * self.bin_size
-            self.dx, self.dy = numpy.meshgrid(sep, sep)
-            self.rnom = numpy.sqrt(self.dx**2 + self.dy**2)
-            self.logr = numpy.zeros_like(self.rnom)
-            numpy.log(self.rnom, out=self.logr, where=self.rnom > 0)
-            self.logr[self.rnom==0.] = -numpy.inf
-            self._coords, self._metric = treecorr.util.parse_metric(metric, 'flat')
-            self._nbins = self.nbins**2
-        else:
-            # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
-            self.logr = numpy.linspace(0, self.nbins*self.bin_size, self.nbins, endpoint=False,
-                                       dtype=float)
-            # Offset by the position of the center of the first bin.
-            self.logr += math.log(self.min_sep) + 0.5*self.bin_size
-            self.rnom = numpy.exp(self.logr)
-            self._nbins = self.nbins
-            self._coords = None
-            self._metric = None
+        self._coords = None
+        self._metric = None
         self.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)
         self.max_rpar = treecorr.config.get(self.config,'max_rpar',float,sys.float_info.max)
 
@@ -342,9 +371,6 @@ class BinnedCorr2(object):
         treecorr.set_omp_threads(num_threads, self.logger)
 
     def _set_metric(self, metric, coords1, coords2=None):
-        if metric == 'TwoD' and self._metric != treecorr._lib.TwoD:
-            raise ValueError("metric=TwoD requires that the BinnedCorr2 object also be "
-                             "initialized with the metric='TwoD' kwarg")
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
         coords, metric = treecorr.util.parse_metric(metric, coords1, coords2)

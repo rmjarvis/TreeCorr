@@ -149,6 +149,14 @@ class BinnedCorr3(object):
 
                         (default: 'Euclidean')
 
+    :param bin_type:    What type of binning should be used.  The only valid option for 3pt is
+
+                        - 'Log' - logarithmic binning in the distance.  The bin steps will be
+                          uniform in log(r) from log(min_sep) .. log(max_sep).
+                        (default: 'Log')
+
+                        Note: u and v are always binned linearly.
+
     :param min_rpar:    For the 'Rperp' metric, the minimum difference in Rparallel to allow
                         for pairs being included in the correlation function. (default: None)
     :param max_rpar:    For the 'Rperp' metric, the maximum difference in Rparallel to allow
@@ -208,6 +216,8 @@ class BinnedCorr3(object):
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
         'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp', 'Rlens', 'Arc'],
                 'Which metric to use for the distance measurements'),
+        'bin_type': (str, False, 'Log', ['Log'],
+                'Which type of binning should be used'),
         'min_rpar': (float, False, None, None,
                 'For Rperp metric, the minimum difference in Rparallel for pairs to include'),
         'max_rpar': (float, False, None, None,
@@ -229,6 +239,11 @@ class BinnedCorr3(object):
             self.output_dots = treecorr.config.get(self.config,'verbose',int,0) >= 2
         else:
             self.output_dots = False
+
+        bin_type = self.config.get('bin_type', None)
+        if bin_type != 'Log':
+            raise ValueError("Invalid bin_type %s"%bin_type)
+        self._bintype = treecorr._lib.Log
 
         self.sep_units = treecorr.config.get(self.config,'sep_units',str,'radians')
         self.sep_unit_name = self.config.get('sep_units','')

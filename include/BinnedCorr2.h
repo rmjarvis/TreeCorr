@@ -77,6 +77,8 @@ protected:
     double _minsepsq;
     double _maxsepsq;
     double _bsq;
+    double _fullmaxsep;
+    double _fullmaxsepsq;
     int _coords; // Stores the kind of coordinates being used for the analysis.
 
     // These are usually allocated in the python layer and just built up here.

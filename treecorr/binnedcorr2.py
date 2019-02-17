@@ -187,7 +187,7 @@ class BinnedCorr2(object):
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
         'm2_uform' : (str, False, 'Crittenden', ['Crittenden', 'Schneider'],
                 'The function form of the mass aperture.'),
-        'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp', 'Rlens', 'Arc', 'TwoD'],
+        'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp', 'Rlens', 'Arc'],
                 'Which metric to use for the distance measurements'),
         'bin_type': (str, False, 'Log', ['Log', 'Linear', 'TwoD'],
                 'Which type of binning should be used'),

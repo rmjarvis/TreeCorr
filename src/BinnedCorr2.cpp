@@ -42,6 +42,8 @@ BinnedCorr2<D1,D2,B>::BinnedCorr2(
     _minsepsq = _minsep*_minsep;
     _maxsepsq = _maxsep*_maxsep;
     _bsq = _b * _b;
+    _fullmaxsep = BinTypeHelper<B>::calculateFullMaxSep(minsep, maxsep, nbins, binsize);
+    _fullmaxsepsq = _fullmaxsep*_fullmaxsep;
 }
 
 template <int D1, int D2, int B>
@@ -51,6 +53,7 @@ BinnedCorr2<D1,D2,B>::BinnedCorr2(const BinnedCorr2<D1,D2,B>& rhs, bool copy_dat
     _minrpar(rhs._minrpar), _maxrpar(rhs._maxrpar),
     _logminsep(rhs._logminsep), _halfminsep(rhs._halfminsep),
     _minsepsq(rhs._minsepsq), _maxsepsq(rhs._maxsepsq), _bsq(rhs._bsq),
+    _fullmaxsep(rhs._fullmaxsep), _fullmaxsepsq(rhs._fullmaxsepsq),
     _coords(rhs._coords), _owns_data(true),
     _xi(0,0,0,0), _weight(0)
 {
@@ -241,8 +244,8 @@ void BinnedCorr2<D1,D2,B>::processPairwise(
             const Cell<D2,C>& c2 = *field2.getCells()[i];
             double s=0.;
             const double dsq = MetricHelper<M>::DistSq(c1.getPos(),c2.getPos(),s,s);
-            if (MetricHelper<M>::DSqInRange(dsq, c1.getPos(), c2.getPos(),
-                                            _minsep, _minsepsq, _maxsep, _maxsepsq)) {
+            if (BinTypeHelper<B>::DSqInRange(dsq, c1.getPos(), c2.getPos(),
+                                             _minsep, _minsepsq, _maxsep, _maxsepsq)) {
                 bc2.template directProcess11<C,M>(c1,c2,dsq);
             }
         }
@@ -285,12 +288,12 @@ void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2)
     const double s1ps2 = s1+s2;
 
     //dbg<<"dsq = "<<dsq<<", s1ps2 = "<<s1ps2<<std::endl;
-    if (MetricHelper<M>::TooSmallDist(c1.getPos(), c2.getPos(), s1ps2, dsq, _minsep, _minsepsq,
-                                      _minrpar))
+    if (MetricHelper<M>::TooSmallDist(c1.getPos(), c2.getPos(), s1ps2, dsq,
+                                      _minsep, _minsepsq, _minrpar))
         return;
     //dbg<<"Not too small\n";
-    if (MetricHelper<M>::TooLargeDist(c1.getPos(), c2.getPos(), s1ps2, dsq, _maxsep, _maxsepsq,
-                                      _maxrpar))
+    if (MetricHelper<M>::TooLargeDist(c1.getPos(), c2.getPos(), s1ps2, dsq,
+                                      _fullmaxsep, _fullmaxsepsq, _maxrpar))
         return;
     //dbg<<"Not too large\n";
 
@@ -334,8 +337,8 @@ void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2)
             Assert(c2.getRight());
             process11<C,M>(c1,*c2.getLeft());
             process11<C,M>(c1,*c2.getRight());
-        } else if (MetricHelper<M>::DSqInRange(dsq, c1.getPos(), c2.getPos(),
-                                               _minsep, _minsepsq, _maxsep, _maxsepsq)) {
+        } else if (BinTypeHelper<B>::DSqInRange(dsq, c1.getPos(), c2.getPos(),
+                                                _minsep, _minsepsq, _maxsep, _maxsepsq)) {
             XAssert(NoSplit(c1,c2,sqrt(dsq),_b));
             directProcess11<C,M>(c1,c2,dsq);
         }
@@ -455,7 +458,7 @@ void BinnedCorr2<D1,D2,B>::directProcess11(
 {
     //dbg<<"DirectProcess11: dsq = "<<dsq<<std::endl;
     XAssert(dsq >= _minsepsq);
-    XAssert(dsq < _maxsepsq);
+    XAssert(dsq < _fullmaxsepsq);
     XAssert(c1.getSize()+c2.getSize() < sqrt(dsq)*_b + 0.0001);
 
     const double r = sqrt(dsq);
@@ -463,9 +466,9 @@ void BinnedCorr2<D1,D2,B>::directProcess11(
     XAssert(logr >= _logminsep);
 
     XAssert(_binsize != 0.);
-    const int k = MetricHelper<M>::CalculateBinK(c1.getPos(), c2.getPos(),
-                                                 logr, _logminsep, _binsize,
-                                                 r, _minsep, _maxsep);
+    const int k = BinTypeHelper<B>::CalculateBinK(c1.getPos(), c2.getPos(),
+                                                  logr, _logminsep, _binsize,
+                                                  r, _minsep, _maxsep);
     XAssert(k >= 0);
     XAssert(k < _nbins);
     //dbg<<"r,logr,k = "<<r<<','<<logr<<','<<k<<std::endl;
@@ -480,10 +483,10 @@ void BinnedCorr2<D1,D2,B>::directProcess11(
     //dbg<<"n,w = "<<nn<<','<<ww<<" ==>  "<<_npairs[k]<<','<<_weight[k]<<std::endl;
 
     int k2 = -1;
-    if (D1 == D2 && MetricHelper<M>::doReversePair()) {
-        k2 = MetricHelper<M>::CalculateBinK(c2.getPos(), c1.getPos(),
-                                            logr, _logminsep, _binsize,
-                                            r, _minsep, _maxsep);
+    if (D1 == D2 && BinTypeHelper<B>::doReversePair()) {
+        k2 = BinTypeHelper<B>::CalculateBinK(c2.getPos(), c1.getPos(),
+                                             logr, _logminsep, _binsize,
+                                             r, _minsep, _maxsep);
         XAssert(k2 >= 0);
         XAssert(k2 < _nbins);
         _npairs[k2] += nn;
@@ -811,9 +814,6 @@ void ProcessAuto2b(BinnedCorr2<D,D,B>& corr, void* field, int dots, int coord, i
           case Euclidean:
             corr.template process<Flat,Euclidean>(*static_cast<Field<D,Flat>*>(field),dots);
             break;
-          case TwoD:
-            corr.template process<Flat,TwoD>(*static_cast<Field<D,Flat>*>(field),dots);
-            break;
           default:
             Assert(false);
         }
@@ -878,11 +878,6 @@ void ProcessCross2b(BinnedCorr2<D1,D2,B>& corr, void* field1, void* field2,
         switch(metric) {
           case Euclidean:
             corr.template process<Flat,Euclidean>(
-                *static_cast<Field<D1,Flat>*>(field1),
-                *static_cast<Field<D2,Flat>*>(field2),dots);
-            break;
-          case TwoD:
-            corr.template process<Flat,TwoD>(
                 *static_cast<Field<D1,Flat>*>(field1),
                 *static_cast<Field<D2,Flat>*>(field2),dots);
             break;
@@ -985,11 +980,6 @@ void ProcessPair2b(BinnedCorr2<D1,D2,B>& corr, void* field1, void* field2,
         switch(metric) {
           case Euclidean:
             corr.template processPairwise<Flat,Euclidean>(
-                *static_cast<SimpleField<D1,Flat>*>(field1),
-                *static_cast<SimpleField<D2,Flat>*>(field2),dots);
-            break;
-          case TwoD:
-            corr.template processPairwise<Flat,TwoD>(
                 *static_cast<SimpleField<D1,Flat>*>(field1),
                 *static_cast<SimpleField<D2,Flat>*>(field2),dots);
             break;

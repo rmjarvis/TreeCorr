@@ -54,10 +54,11 @@ public:
     void process2(const Cell<D1,C>& c12);
 
     template <int C, int M>
-    void process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2);
+    void process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, bool do_reverse);
 
     template <int C, int M>
-    void directProcess11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double dsq);
+    void directProcess11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double dsq,
+                         bool do_reverse);
 
     // Note: op= only copies _data.  Not all the params.
     void operator=(const BinnedCorr2<D1,D2,B>& rhs);

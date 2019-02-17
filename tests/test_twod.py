@@ -170,6 +170,11 @@ def test_twod():
     print('max rel diff = ',np.max(np.abs(nn.npairs - counts)/np.abs(nn.npairs)))
     np.testing.assert_allclose(nn.npairs, counts, atol=1.e-7)
 
+    nn.process(cat1, cat1)
+    print('max abs diff = ',np.max(np.abs(nn.npairs - counts)))
+    print('max rel diff = ',np.max(np.abs(nn.npairs - counts)/np.abs(nn.npairs)))
+    np.testing.assert_allclose(nn.npairs, counts, atol=1.e-7)
+
     xi_brut, counts = corr2d(x, y, np.ones_like(kappa), np.ones_like(kappa),
                              w=1./kappa_err**2, rmax=max_sep, bins=nbins, return_counts=True)
     nn = treecorr.NNCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0)
@@ -177,6 +182,12 @@ def test_twod():
     print('max abs diff = ',np.max(np.abs(nn.weight - counts)))
     print('max rel diff = ',np.max(np.abs(nn.weight - counts)/np.abs(nn.weight)))
     np.testing.assert_allclose(nn.weight, counts, atol=1.e-7)
+
+    nn.process(cat2, cat2)
+    print('max abs diff = ',np.max(np.abs(nn.weight - counts)))
+    print('max rel diff = ',np.max(np.abs(nn.weight - counts)/np.abs(nn.weight)))
+    np.testing.assert_allclose(nn.weight, counts, atol=1.e-7)
+
 
     # The other two, NG and KG can't really be checked with the brute force
     # calculator we have here, so we're counting on the above being a sufficient

@@ -20,12 +20,13 @@
 
 #include "Cell.h"
 #include "Field.h"
+#include "BinType.h"
 
 template <int DC1, int DC2, int DC3>
 struct ZetaData;
 
 // BinnedCorr3 encapsulates a binned correlation function.
-template <int DC1, int DC2, int DC3>
+template <int DC1, int DC2, int DC3, int B>
 class BinnedCorr3
 {
 
@@ -68,8 +69,8 @@ public:
                           const double logr, const double u, const double v, const int index);
 
     // Note: op= only copies _data.  Not all the params.
-    void operator=(const BinnedCorr3<DC1,DC2,DC3>& rhs);
-    void operator+=(const BinnedCorr3<DC1,DC2,DC3>& rhs);
+    void operator=(const BinnedCorr3<DC1,DC2,DC3,B>& rhs);
+    void operator+=(const BinnedCorr3<DC1,DC2,DC3,B>& rhs);
 
 protected:
 

@@ -20,12 +20,13 @@
 
 #include "Cell.h"
 #include "Field.h"
+#include "BinType.h"
 
 template <int D1, int D2>
 struct XiData;
 
 // BinnedCorr2 encapsulates a binned correlation function.
-template <int D1, int D2>
+template <int D1, int D2, int B>
 class BinnedCorr2
 {
 
@@ -59,8 +60,8 @@ public:
     void directProcess11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double dsq);
 
     // Note: op= only copies _data.  Not all the params.
-    void operator=(const BinnedCorr2<D1,D2>& rhs);
-    void operator+=(const BinnedCorr2<D1,D2>& rhs);
+    void operator=(const BinnedCorr2<D1,D2,B>& rhs);
+    void operator+=(const BinnedCorr2<D1,D2,B>& rhs);
 
 protected:
 

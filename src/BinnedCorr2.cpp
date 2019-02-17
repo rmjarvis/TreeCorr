@@ -25,8 +25,8 @@
 #include "omp.h"
 #endif
 
-template <int D1, int D2>
-BinnedCorr2<D1,D2>::BinnedCorr2(
+template <int D1, int D2, int B>
+BinnedCorr2<D1,D2,B>::BinnedCorr2(
     double minsep, double maxsep, int nbins, double binsize, double b,
     double minrpar, double maxrpar,
     double* xi0, double* xi1, double* xi2, double* xi3,
@@ -44,8 +44,8 @@ BinnedCorr2<D1,D2>::BinnedCorr2(
     _bsq = _b * _b;
 }
 
-template <int D1, int D2>
-BinnedCorr2<D1,D2>::BinnedCorr2(const BinnedCorr2<D1,D2>& rhs, bool copy_data) :
+template <int D1, int D2, int B>
+BinnedCorr2<D1,D2,B>::BinnedCorr2(const BinnedCorr2<D1,D2,B>& rhs, bool copy_data) :
     _minsep(rhs._minsep), _maxsep(rhs._maxsep), _nbins(rhs._nbins),
     _binsize(rhs._binsize), _b(rhs._b),
     _minrpar(rhs._minrpar), _maxrpar(rhs._maxrpar),
@@ -64,8 +64,8 @@ BinnedCorr2<D1,D2>::BinnedCorr2(const BinnedCorr2<D1,D2>& rhs, bool copy_data) :
     else clear();
 }
 
-template <int D1, int D2>
-BinnedCorr2<D1,D2>::~BinnedCorr2()
+template <int D1, int D2, int B>
+BinnedCorr2<D1,D2,B>::~BinnedCorr2()
 {
     if (_owns_data) {
         _xi.delete_data(_nbins);
@@ -78,21 +78,21 @@ BinnedCorr2<D1,D2>::~BinnedCorr2()
 
 // BinnedCorr2::process2 is invalid if D1 != D2, so this helper struct lets us only call
 // process2 when D1 == D2.
-template <int D1, int D2, int C, int M>
+template <int D1, int D2, int B, int C, int M>
 struct ProcessHelper
 {
-    static void process2(BinnedCorr2<D1,D2>& , const Cell<D1,C>& ) {}
+    static void process2(BinnedCorr2<D1,D2,B>& , const Cell<D1,C>& ) {}
 };
 
-template <int D, int C, int M>
-struct ProcessHelper<D,D,C,M>
+template <int D, int B, int C, int M>
+struct ProcessHelper<D,D,B,C,M>
 {
-    static void process2(BinnedCorr2<D,D>& b, const Cell<D,C>& c12)
+    static void process2(BinnedCorr2<D,D,B>& b, const Cell<D,C>& c12)
     { b.template process2<C,M>(c12); }
 };
 
-template <int D1, int D2>
-void BinnedCorr2<D1,D2>::clear()
+template <int D1, int D2, int B>
+void BinnedCorr2<D1,D2,B>::clear()
 {
     _xi.clear(_nbins);
     for (int i=0; i<_nbins; ++i) _meanr[i] = 0.;
@@ -102,8 +102,8 @@ void BinnedCorr2<D1,D2>::clear()
     _coords = -1;
 }
 
-template <int D1, int D2> template <int C, int M>
-void BinnedCorr2<D1,D2>::process(const Field<D1,C>& field, bool dots)
+template <int D1, int D2, int B> template <int C, int M>
+void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
 {
     Assert(D1 == D2);
     Assert(_coords == -1 || _coords == C);
@@ -115,9 +115,9 @@ void BinnedCorr2<D1,D2>::process(const Field<D1,C>& field, bool dots)
 #pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
-        BinnedCorr2<D1,D2> bc2(*this,false);
+        BinnedCorr2<D1,D2,B> bc2(*this,false);
 #else
-        BinnedCorr2<D1,D2>& bc2 = *this;
+        BinnedCorr2<D1,D2,B>& bc2 = *this;
 #endif
 
 #ifdef _OPENMP
@@ -132,7 +132,7 @@ void BinnedCorr2<D1,D2>::process(const Field<D1,C>& field, bool dots)
                 if (dots) std::cout<<'.'<<std::flush;
             }
             const Cell<D1,C>& c1 = *field.getCells()[i];
-            ProcessHelper<D1,D2,C,M>::process2(bc2,c1);
+            ProcessHelper<D1,D2,B,C,M>::process2(bc2,c1);
             for (int j=i+1;j<n1;++j) {
                 const Cell<D1,C>& c2 = *field.getCells()[j];
                 bc2.process11<C,M>(c1,c2);
@@ -149,9 +149,9 @@ void BinnedCorr2<D1,D2>::process(const Field<D1,C>& field, bool dots)
     if (dots) std::cout<<std::endl;
 }
 
-template <int D1, int D2> template <int C, int M>
-void BinnedCorr2<D1,D2>::process(const Field<D1,C>& field1, const Field<D2,C>& field2,
-                                 bool dots)
+template <int D1, int D2, int B> template <int C, int M>
+void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>& field2,
+                                   bool dots)
 {
     Assert(_coords == -1 || _coords == C);
     _coords = C;
@@ -166,9 +166,9 @@ void BinnedCorr2<D1,D2>::process(const Field<D1,C>& field1, const Field<D2,C>& f
 #pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
-        BinnedCorr2<D1,D2> bc2(*this,false);
+        BinnedCorr2<D1,D2,B> bc2(*this,false);
 #else
-        BinnedCorr2<D1,D2>& bc2 = *this;
+        BinnedCorr2<D1,D2,B>& bc2 = *this;
 #endif
 
 #ifdef _OPENMP
@@ -199,8 +199,8 @@ void BinnedCorr2<D1,D2>::process(const Field<D1,C>& field1, const Field<D2,C>& f
     if (dots) std::cout<<std::endl;
 }
 
-template <int D1, int D2> template <int C, int M>
-void BinnedCorr2<D1,D2>::processPairwise(
+template <int D1, int D2, int B> template <int C, int M>
+void BinnedCorr2<D1,D2,B>::processPairwise(
     const SimpleField<D1,C>& field1, const SimpleField<D2,C>& field2, bool dots)
 {
     Assert(_coords == -1 || _coords == C);
@@ -218,9 +218,9 @@ void BinnedCorr2<D1,D2>::processPairwise(
 #pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
-        BinnedCorr2<D1,D2> bc2(*this,false);
+        BinnedCorr2<D1,D2,B> bc2(*this,false);
 #else
-        BinnedCorr2<D1,D2>& bc2 = *this;
+        BinnedCorr2<D1,D2,B>& bc2 = *this;
 #endif
 
 #ifdef _OPENMP
@@ -257,8 +257,8 @@ void BinnedCorr2<D1,D2>::processPairwise(
     if (dots) std::cout<<std::endl;
 }
 
-template <int D1, int D2> template <int C, int M>
-void BinnedCorr2<D1,D2>::process2(const Cell<D1,C>& c12)
+template <int D1, int D2, int B> template <int C, int M>
+void BinnedCorr2<D1,D2,B>::process2(const Cell<D1,C>& c12)
 {
     if (c12.getW() == 0.) return;
     if (c12.getSize() <= _halfminsep) return;
@@ -270,8 +270,8 @@ void BinnedCorr2<D1,D2>::process2(const Cell<D1,C>& c12)
     process11<C,M>(*c12.getLeft(),*c12.getRight());
 }
 
-template <int D1, int D2> template <int C, int M>
-void BinnedCorr2<D1,D2>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2)
+template <int D1, int D2, int B> template <int C, int M>
+void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2)
 {
     //dbg<<"Start process11 for "<<c1.getPos()<<",  "<<c2.getPos()<<"   ";
     //dbg<<"w = "<<c1.getW()<<", "<<c2.getW()<<std::endl;
@@ -449,8 +449,8 @@ struct DirectHelper<GData,GData>
     }
 };
 
-template <int D1, int D2> template <int C, int M>
-void BinnedCorr2<D1,D2>::directProcess11(
+template <int D1, int D2, int B> template <int C, int M>
+void BinnedCorr2<D1,D2,B>::directProcess11(
     const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double dsq)
 {
     //dbg<<"DirectProcess11: dsq = "<<dsq<<std::endl;
@@ -495,8 +495,8 @@ void BinnedCorr2<D1,D2>::directProcess11(
     DirectHelper<D1,D2>::template ProcessXi<C,M>(c1,c2,dsq,_xi,k,k2);
 }
 
-template <int D1, int D2>
-void BinnedCorr2<D1,D2>::operator=(const BinnedCorr2<D1,D2>& rhs)
+template <int D1, int D2, int B>
+void BinnedCorr2<D1,D2,B>::operator=(const BinnedCorr2<D1,D2,B>& rhs)
 {
     Assert(rhs._nbins == _nbins);
     _xi.copy(rhs._xi,_nbins);
@@ -506,8 +506,8 @@ void BinnedCorr2<D1,D2>::operator=(const BinnedCorr2<D1,D2>& rhs)
     for (int i=0; i<_nbins; ++i) _npairs[i] = rhs._npairs[i];
 }
 
-template <int D1, int D2>
-void BinnedCorr2<D1,D2>::operator+=(const BinnedCorr2<D1,D2>& rhs)
+template <int D1, int D2, int B>
+void BinnedCorr2<D1,D2,B>::operator+=(const BinnedCorr2<D1,D2,B>& rhs)
 {
     Assert(rhs._nbins == _nbins);
     _xi.add(rhs._xi,_nbins);
@@ -532,7 +532,7 @@ void* BuildNNCorr(double minsep, double maxsep, int nbins, double binsize, doubl
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildNNCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr2<NData,NData>(
+    void* corr = static_cast<void*>(new BinnedCorr2<NData,NData,Log>(
             minsep, maxsep, nbins, binsize, b,
             minrpar, maxrpar,
             0, 0, 0, 0,
@@ -547,7 +547,7 @@ void* BuildNKCorr(double minsep, double maxsep, int nbins, double binsize, doubl
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildNKCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr2<NData,KData>(
+    void* corr = static_cast<void*>(new BinnedCorr2<NData,KData,Log>(
             minsep, maxsep, nbins, binsize, b,
             minrpar, maxrpar,
             xi, 0, 0, 0,
@@ -562,7 +562,7 @@ void* BuildNGCorr(double minsep, double maxsep, int nbins, double binsize, doubl
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildNGCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr2<NData,GData>(
+    void* corr = static_cast<void*>(new BinnedCorr2<NData,GData,Log>(
             minsep, maxsep, nbins, binsize, b,
             minrpar, maxrpar,
             xi, xi_im, 0, 0,
@@ -577,7 +577,7 @@ void* BuildKKCorr(double minsep, double maxsep, int nbins, double binsize, doubl
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildKKCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr2<KData,KData>(
+    void* corr = static_cast<void*>(new BinnedCorr2<KData,KData,Log>(
             minsep, maxsep, nbins, binsize, b,
             minrpar, maxrpar,
             xi, 0, 0, 0,
@@ -592,7 +592,7 @@ void* BuildKGCorr(double minsep, double maxsep, int nbins, double binsize, doubl
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildKGCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr2<KData,GData>(
+    void* corr = static_cast<void*>(new BinnedCorr2<KData,GData,Log>(
             minsep, maxsep, nbins, binsize, b,
             minrpar, maxrpar,
             xi, xi_im, 0, 0,
@@ -607,7 +607,7 @@ void* BuildGGCorr(double minsep, double maxsep, int nbins, double binsize, doubl
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     dbg<<"Start BuildGGCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr2<GData,GData>(
+    void* corr = static_cast<void*>(new BinnedCorr2<GData,GData,Log>(
             minsep, maxsep, nbins, binsize, b,
             minrpar, maxrpar,
             xip, xip_im, xim, xim_im,
@@ -620,47 +620,47 @@ void DestroyNNCorr(void* corr)
 {
     dbg<<"Start DestroyNNCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr2<NData,NData>*>(corr);
+    delete static_cast<BinnedCorr2<NData,NData,Log>*>(corr);
 }
 
 void DestroyNKCorr(void* corr)
 {
     dbg<<"Start DestroyNKCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr2<NData,KData>*>(corr);
+    delete static_cast<BinnedCorr2<NData,KData,Log>*>(corr);
 }
 
 void DestroyNGCorr(void* corr)
 {
     dbg<<"Start DestroyNGCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr2<NData,GData>*>(corr);
+    delete static_cast<BinnedCorr2<NData,GData,Log>*>(corr);
 }
 
 void DestroyKKCorr(void* corr)
 {
     dbg<<"Start DestroyKKCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr2<KData,KData>*>(corr);
+    delete static_cast<BinnedCorr2<KData,KData,Log>*>(corr);
 }
 
 void DestroyKGCorr(void* corr)
 {
     dbg<<"Start DestroyKGCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr2<KData,GData>*>(corr);
+    delete static_cast<BinnedCorr2<KData,GData,Log>*>(corr);
 }
 
 void DestroyGGCorr(void* corr)
 {
     dbg<<"Start DestroyGGCorr\n";
     xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr2<GData,GData>*>(corr);
+    delete static_cast<BinnedCorr2<GData,GData,Log>*>(corr);
 }
 
 
-template <int D>
-void ProcessAuto2b(BinnedCorr2<D,D>& corr, void* field, int dots, int coord, int metric)
+template <int D, int B>
+void ProcessAuto2b(BinnedCorr2<D,D,B>& corr, void* field, int dots, int coord, int metric)
 {
     if (coord == Flat) {
         switch(metric) {
@@ -696,7 +696,7 @@ void ProcessAuto2b(BinnedCorr2<D,D>& corr, void* field, int dots, int coord, int
 template <int D>
 void ProcessAuto2(void* corr, void* field, int dots, int coord, int metric)
 {
-    ProcessAuto2b(*(static_cast<BinnedCorr2<D,D>*>(corr)), field, dots, coord, metric);
+    ProcessAuto2b(*(static_cast<BinnedCorr2<D,D,Log>*>(corr)), field, dots, coord, metric);
 }
 
 void ProcessAutoNN(void* corr, void* field, int dots, int coord, int metric)
@@ -717,8 +717,8 @@ void ProcessAutoGG(void* corr, void* field, int dots, int coord, int metric)
     ProcessAuto2<GData>(corr, field, dots, coord, metric);
 }
 
-template <int D1, int D2>
-void ProcessCross2b(BinnedCorr2<D1,D2>& corr, void* field1, void* field2,
+template <int D1, int D2, int B>
+void ProcessCross2b(BinnedCorr2<D1,D2,B>& corr, void* field1, void* field2,
                     int dots, int coord, int metric)
 {
     if (coord == Flat) {
@@ -767,7 +767,8 @@ void ProcessCross2b(BinnedCorr2<D1,D2>& corr, void* field1, void* field2,
 template <int D1, int D2>
 void ProcessCross2(void* corr, void* field1, void* field2, int dots, int coord, int metric)
 {
-    ProcessCross2b(*static_cast<BinnedCorr2<D1,D2>*>(corr), field1, field2, dots, coord, metric);
+    ProcessCross2b(*static_cast<BinnedCorr2<D1,D2,Log>*>(corr), field1, field2,
+                   dots, coord, metric);
 }
 
 void ProcessCrossNN(void* corr, void* field1, void* field2, int dots, int coord, int metric)
@@ -806,8 +807,8 @@ void ProcessCrossGG(void* corr, void* field1, void* field2, int dots, int coord,
     ProcessCross2<GData,GData>(corr, field1, field2, dots, coord, metric);
 }
 
-template <int D1, int D2>
-void ProcessPair2b(BinnedCorr2<D1,D2>& corr, void* field1, void* field2,
+template <int D1, int D2, int B>
+void ProcessPair2b(BinnedCorr2<D1,D2,B>& corr, void* field1, void* field2,
                    int dots, int coord, int metric)
 {
     if (coord == Flat) {
@@ -856,7 +857,8 @@ void ProcessPair2b(BinnedCorr2<D1,D2>& corr, void* field1, void* field2,
 template <int D1, int D2>
 void ProcessPair2(void* corr, void* field1, void* field2, int dots, int coord, int metric)
 {
-    ProcessPair2b(*static_cast<BinnedCorr2<D1,D2>*>(corr), field1, field2, dots, coord, metric);
+    ProcessPair2b(*static_cast<BinnedCorr2<D1,D2,Log>*>(corr), field1, field2,
+                  dots, coord, metric);
 }
 
 void ProcessPairNN(void* corr, void* field1, void* field2, int dots, int coord, int metric)

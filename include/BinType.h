@@ -33,20 +33,35 @@ struct BinTypeHelper<Log>
     { return maxsep; }
 
     template <int C>
-    static bool DSqInRange(double dsq, const Position<C>& p1, const Position<C>& p2,
+    static bool isDSqInRange(double dsq, const Position<C>& p1, const Position<C>& p2,
                            double minsep, double minsepsq, double maxsep, double maxsepsq)
     {
         return dsq >= minsepsq && dsq < maxsepsq;
     }
 
+    static bool tooSmallDist(double dsq, double s1ps2, double minsep, double minsepsq)
+    {
+        // d + s1ps2 < minsep
+        // d < minsep - s1ps2
+        // dsq < (minsep - s1ps2)^2  and  s1ps2 < minsep
+        return dsq < minsepsq && s1ps2 < minsep && dsq < SQR(minsep - s1ps2);
+    }
+    static bool tooLargeDist(double dsq, double s1ps2, double maxsep, double maxsepsq)
+    {
+        // d - s1ps2 > maxsep
+        // dsq > (maxsep + s1ps2)^2
+        return dsq >= maxsepsq && dsq >= SQR(maxsep + s1ps2);
+    }
+
     template <int C>
-    static int CalculateBinK(const Position<C>& , const Position<C>& ,
-                             double logr, double logminr, double binsize,
+    static int calculateBinK(const Position<C>& , const Position<C>& ,
+                             double logr, double logminsep, double binsize,
                              double, double, double)
-    { return int((logr - logminr) / binsize); }
+    { return int((logr - logminsep) / binsize); }
+
 };
 
-// The TwoD metric is only valid for the Flat Coord.
+// Note: The TwoD bin_type is only valid for the Flat Coord.
 template <>
 struct BinTypeHelper<TwoD>
 {
@@ -55,9 +70,9 @@ struct BinTypeHelper<TwoD>
     static double calculateFullMaxSep(double minsep, double maxsep, int nbins, double binsize)
     { return maxsep * std::sqrt(2.); }
 
-    // Note: Only C=Flat is valid here.
+    // Only C=Flat is valid here.
     template <int C>
-    static bool DSqInRange(double dsq, const Position<C>& p1, const Position<C>& p2,
+    static bool isDSqInRange(double dsq, const Position<C>& p1, const Position<C>& p2,
                            double minsep, double minsepsq, double maxsep, double maxsepsq)
     {
         if (dsq == 0. || dsq < minsepsq) return false;
@@ -68,8 +83,17 @@ struct BinTypeHelper<TwoD>
         }
     }
 
+    static bool tooSmallDist(double dsq, double s1ps2, double minsep, double minsepsq)
+    {
+        return dsq < minsepsq && s1ps2 < minsep && dsq < SQR(minsep - s1ps2);
+    }
+    static bool tooLargeDist(double dsq, double s1ps2, double maxsep, double maxsepsq)
+    {
+        return dsq >= 2.*maxsepsq && dsq >= SQR(sqrt(2.)*maxsep + s1ps2);
+    }
+
     template <int C>
-    static int CalculateBinK(const Position<C>& p1, const Position<C>& p2,
+    static int calculateBinK(const Position<C>& p1, const Position<C>& p2,
                              double , double , double binsize,
                              double , double , double maxsep)
     {

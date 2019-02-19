@@ -16,6 +16,7 @@ import numpy
 import treecorr
 import os
 import fitsio
+import time
 
 from test_helper import get_from_wiki, get_script_name
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
@@ -769,19 +770,24 @@ def test_rlens():
     print('true_gCr = ',true_gCr)
     print('true_gCi = ',true_gCi)
 
-    # Start with bin_slop == 0.  With only 100 lenses, this still runs very fast.
+    # Start with bin_slop == 0, which means brute force.
+    # With only 100 lenses, this still runs very fast.
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl, g1=gl.real, g2=gl.imag)
     source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
     gg0 = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
                                  metric='Rlens', bin_slop=0)
+    t0 = time.time()
     gg0.process(lens_cat, source_cat)
+    t1 = time.time()
 
     Rlens = gg0.meanr
     theory_gQ = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
 
     print('Results with bin_slop = 0:')
+    print('time = ',t1-t0)
     print('gg.npairs = ',gg0.npairs)
     print('true_npairs = ',true_npairs)
+    numpy.testing.assert_array_equal(gg0.npairs, true_npairs)
     print('gg.xim = ',gg0.xim)
     print('true_gQ = ',true_gQ)
     print('ratio = ',gg0.xim / true_gQ)
@@ -808,23 +814,68 @@ def test_rlens():
     print('max diff = ',max(abs(gg0.xim - theory_gQ)))
     assert max(abs(gg0.xim - theory_gQ)) < 4.e-5
 
-    # Now use a more normal value for bin_slop.
+    # With bin_slop nearly but not exactly 0, it should get the same npairs, but the
+    # shapes will be slightly off, since the directions won't be exactly right.
     gg1 = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                 metric='Rlens', bin_slop=0.5)
+                                 metric='Rlens', bin_slop=1.e-10)
+    t0 = time.time()
     gg1.process(lens_cat, source_cat)
+    t1 = time.time()
+
     Rlens = gg1.meanr
     theory_gQ = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
 
-    print('Results with bin_slop = 0.5')
+    print('Results with bin_slop = 1.e-10:')
+    print('time = ',t1-t0)
     print('gg.npairs = ',gg1.npairs)
+    print('true_npairs = ',true_npairs)
+    numpy.testing.assert_array_equal(gg1.npairs, true_npairs)
+    print('gg.xim = ',gg1.xim)
+    print('true_gQ = ',true_gQ)
+    print('ratio = ',gg1.xim / true_gQ)
+    print('diff = ',gg1.xim - true_gQ)
+    print('max diff = ',max(abs(gg1.xim - true_gQ)))
+    assert max(abs(gg1.xim - true_gQ)) < 2.e-5
+    print('gg.xim_im = ',gg1.xim_im)
+    assert max(abs(gg1.xim_im)) < 2.e-5
+    print('gg.xip = ',gg1.xip)
+    print('true_gCr = ',true_gCr)
+    print('diff = ',gg1.xip - true_gCr)
+    print('max diff = ',max(abs(gg1.xip - true_gCr)))
+    assert max(abs(gg1.xip - true_gCr)) < 2.e-5
+    print('gg.xip_im = ',gg1.xip_im)
+    print('true_gCi = ',true_gCi)
+    print('diff = ',gg1.xip_im - true_gCi)
+    print('max diff = ',max(abs(gg1.xip_im - true_gCi)))
+    assert max(abs(gg1.xip_im - true_gCi)) < 2.e-5
+
     print('gg.xim = ',gg1.xim)
     print('theory_gammat = ',theory_gQ)
     print('ratio = ',gg1.xim / theory_gQ)
     print('diff = ',gg1.xim - theory_gQ)
     print('max diff = ',max(abs(gg1.xim - theory_gQ)))
     assert max(abs(gg1.xim - theory_gQ)) < 4.e-5
-    print('gg.xim_im = ',gg1.xim_im)
-    assert max(abs(gg1.xim_im)) < 7.e-6
+
+    # Now use a more normal value for bin_slop.
+    gg2 = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                 metric='Rlens', bin_slop=0.5)
+    t0 = time.time()
+    gg2.process(lens_cat, source_cat)
+    t1 = time.time()
+    Rlens = gg2.meanr
+    theory_gQ = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+
+    print('Results with bin_slop = 0.5')
+    print('time = ',t1-t0)
+    print('gg.npairs = ',gg2.npairs)
+    print('gg.xim = ',gg2.xim)
+    print('theory_gammat = ',theory_gQ)
+    print('ratio = ',gg2.xim / theory_gQ)
+    print('diff = ',gg2.xim - theory_gQ)
+    print('max diff = ',max(abs(gg2.xim - theory_gQ)))
+    assert max(abs(gg2.xim - theory_gQ)) < 4.e-5
+    print('gg.xim_im = ',gg2.xim_im)
+    assert max(abs(gg2.xim_im)) < 7.e-6
 
     # Check that we get the same result using the corr2 executable:
     if __name__ == '__main__':
@@ -835,14 +886,14 @@ def test_rlens():
         p = subprocess.Popen( [corr2_exe,"gg_rlens.yaml"] )
         p.communicate()
         corr2_output = numpy.genfromtxt(os.path.join('output','gg_rlens.out'),names=True)
-        print('gg.xim = ',gg1.xim)
+        print('gg.xim = ',gg2.xim)
         print('from corr2 output = ',corr2_output['xim'])
-        print('ratio = ',corr2_output['xim']/gg1.xim)
-        print('diff = ',corr2_output['xim']-gg1.xim)
-        numpy.testing.assert_almost_equal(corr2_output['xim'], gg1.xim, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xim_im'], gg1.xim_im, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xip'], gg1.xip, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xip_im'], gg1.xip_im, decimal=6)
+        print('ratio = ',corr2_output['xim']/gg2.xim)
+        print('diff = ',corr2_output['xim']-gg2.xim)
+        numpy.testing.assert_almost_equal(corr2_output['xim'], gg2.xim, decimal=6)
+        numpy.testing.assert_almost_equal(corr2_output['xim_im'], gg2.xim_im, decimal=6)
+        numpy.testing.assert_almost_equal(corr2_output['xip'], gg2.xip, decimal=6)
+        numpy.testing.assert_almost_equal(corr2_output['xip_im'], gg2.xip_im, decimal=6)
 
     # Repeat with the sources being given as RA/Dec only.
     ral, decl = treecorr.CelestialCoord.xyz_to_radec(xl,yl,zl)
@@ -862,6 +913,7 @@ def test_rlens():
     print('Results with bin_slop = 0:')
     print('gg.npairs = ',gg0s.npairs)
     print('true_npairs = ',true_npairs)
+    numpy.testing.assert_array_equal(gg0s.npairs, true_npairs)
     print('gg.xim = ',gg0s.xim)
     print('true_gQ = ',true_gQ)
     print('ratio = ',gg0s.xim / true_gQ)
@@ -897,24 +949,24 @@ def test_rlens():
     assert max(abs(gg0s.npairs - gg0.npairs)) < 1.e-7
 
     # Now use a more normal value for bin_slop.
-    gg1s = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+    ggs2 = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
                                   metric='Rlens', bin_slop=0.5)
-    gg1s.process(lens_cat, source_cat)
-    Rlens = gg1s.meanr
+    ggs2.process(lens_cat, source_cat)
+    Rlens = ggs2.meanr
     theory_gQ = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
 
     print('Results with bin_slop = 0.5')
-    print('gg.npairs = ',gg1s.npairs)
-    print('gg.xim = ',gg1s.xim)
+    print('gg.npairs = ',ggs2.npairs)
+    print('gg.xim = ',ggs2.xim)
     print('theory_gammat = ',theory_gQ)
-    print('ratio = ',gg1s.xim / theory_gQ)
-    print('diff = ',gg1s.xim - theory_gQ)
-    print('max diff = ',max(abs(gg1s.xim - theory_gQ)))
+    print('ratio = ',ggs2.xim / theory_gQ)
+    print('diff = ',ggs2.xim - theory_gQ)
+    print('max diff = ',max(abs(ggs2.xim - theory_gQ)))
     # Not quite as accurate as above, since the cells that get used tend to be larger, so more
     # slop happens in the binning.
-    assert max(abs(gg1s.xim - theory_gQ)) < 4.e-5
-    print('gg.xim_im = ',gg1s.xim_im)
-    assert max(abs(gg1s.xim_im)) < 7.e-6
+    assert max(abs(ggs2.xim - theory_gQ)) < 4.e-5
+    print('gg.xim_im = ',ggs2.xim_im)
+    assert max(abs(ggs2.xim_im)) < 7.e-6
 
 
 def test_rperp():
@@ -993,7 +1045,8 @@ def test_rperp():
     print('true_gCr = ',true_gCr)
     print('true_gCi = ',true_gCi)
 
-    # Start with bin_slop == 0.  With only 100 lenses, this still runs very fast.
+    # Start with bin_slop = 0, which means brute force.
+    # With only 100 lenses, this still runs very fast.
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl, g1=gl.real, g2=gl.imag)
     source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
     gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
@@ -1006,6 +1059,46 @@ def test_rperp():
     print('Results with bin_slop = 0:')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
+    numpy.testing.assert_array_equal(gg.npairs, true_npairs)
+    print('gg.xim = ',gg.xim)
+    print('true_gQ = ',true_gQ)
+    print('ratio = ',gg.xim / true_gQ)
+    print('diff = ',gg.xim - true_gQ)
+    print('max diff = ',max(abs(gg.xim - true_gQ)))
+    assert max(abs(gg.xim - true_gQ)) < 1.e-5
+    print('gg.xim_im = ',gg.xim_im)
+    assert max(abs(gg.xim_im)) < 1.e-5
+    print('gg.xip = ',gg.xip)
+    print('true_gCr = ',true_gCr)
+    print('diff = ',gg.xip - true_gCr)
+    print('max diff = ',max(abs(gg.xip - true_gCr)))
+    assert max(abs(gg.xip - true_gCr)) < 1.e-5
+    print('gg.xip_im = ',gg.xip_im)
+    print('true_gCi = ',true_gCi)
+    print('diff = ',gg.xip_im - true_gCi)
+    print('max diff = ',max(abs(gg.xip_im - true_gCi)))
+    assert max(abs(gg.xip_im - true_gCi)) < 1.e-5
+
+    print('gg.xim = ',gg.xim)
+    print('theory_gammat = ',theory_gQ)
+    print('ratio = ',gg.xim / theory_gQ)
+    print('diff = ',gg.xim - theory_gQ)
+    print('max diff = ',max(abs(gg.xim - theory_gQ)))
+    assert max(abs(gg.xim - theory_gQ)) < 4.e-5
+
+    # With bin_slop nearly but not exactly 0, it should get the same npairs, but the
+    # shapes will be slightly off, since the directions won't be exactly right.
+    gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                metric='Rperp', bin_slop=1.e-10)
+    gg.process(lens_cat, source_cat)
+
+    Rperp = gg.meanr
+    theory_gQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+
+    print('Results with bin_slop = 1.e-10:')
+    print('gg.npairs = ',gg.npairs)
+    print('true_npairs = ',true_npairs)
+    numpy.testing.assert_array_equal(gg.npairs, true_npairs)
     print('gg.xim = ',gg.xim)
     print('true_gQ = ',true_gQ)
     print('ratio = ',gg.xim / true_gQ)
@@ -1073,7 +1166,7 @@ def test_rperp_local():
     # Same as above, but using min_rpar, max_rpar to get local (intrinsic alignment) correlations.
 
     nlens = 1
-    nsource = 500000
+    nsource = 1000000
     gamma0 = 0.05
     R0 = 10.
     L = 50. * R0
@@ -1165,7 +1258,8 @@ def test_rperp_local():
     print('true_gCr = ',true_gCr)
     print('true_gCi = ',true_gCi)
 
-    # Start with bin_slop == 0.  With only 100 lenses, this still runs very fast.
+    # Start with bin_slop == 0, which means brute force.
+    # With only 100 lenses, this still runs very fast.
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl, g1=gl.real, g2=gl.imag)
     source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
     gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
@@ -1178,6 +1272,7 @@ def test_rperp_local():
     print('Results with bin_slop = 0:')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
+    numpy.testing.assert_array_equal(gg.npairs, true_npairs)
     print('gg.xim = ',gg.xim)
     print('true_gQ = ',true_gQ)
     print('ratio = ',gg.xim / true_gQ)
@@ -1205,6 +1300,45 @@ def test_rperp_local():
     print('max diff = ',max(abs(gg.xim - theory_gQ)))
     assert max(abs(gg.xim - theory_gQ)) < 4.e-5
 
+    # Now small, but non-zero.
+    gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                metric='Rperp', bin_slop=1.e-10, min_rpar=-50, max_rpar=50)
+    gg.process(lens_cat, source_cat)
+
+    Rperp = gg.meanr
+    theory_gQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+
+    print('Results with bin_slop = 1.e-10:')
+    print('gg.npairs = ',gg.npairs)
+    print('true_npairs = ',true_npairs)
+    numpy.testing.assert_array_equal(gg.npairs, true_npairs)
+    print('gg.xim = ',gg.xim)
+    print('true_gQ = ',true_gQ)
+    print('ratio = ',gg.xim / true_gQ)
+    print('diff = ',gg.xim - true_gQ)
+    print('max diff = ',max(abs(gg.xim - true_gQ)))
+    assert max(abs(gg.xim - true_gQ)) < 1.e-5
+    print('gg.xim_im = ',gg.xim_im)
+    print('max = ',max(abs(gg.xim_im)))
+    assert max(abs(gg.xim_im)) < 1.e-4
+    print('gg.xip = ',gg.xip)
+    print('true_gCr = ',true_gCr)
+    print('diff = ',gg.xip - true_gCr)
+    print('max diff = ',max(abs(gg.xip - true_gCr)))
+    assert max(abs(gg.xip - true_gCr)) < 1.e-5
+    print('gg.xip_im = ',gg.xip_im)
+    print('true_gCi = ',true_gCi)
+    print('diff = ',gg.xip_im - true_gCi)
+    print('max diff = ',max(abs(gg.xip_im - true_gCi)))
+    assert max(abs(gg.xip_im - true_gCi)) < 1.e-5
+
+    print('gg.xim = ',gg.xim)
+    print('theory_gammat = ',theory_gQ)
+    print('ratio = ',gg.xim / theory_gQ)
+    print('diff = ',gg.xim - theory_gQ)
+    print('max diff = ',max(abs(gg.xim - theory_gQ)))
+    assert max(abs(gg.xim - theory_gQ)) < 4.e-5
+
     # Now use a more normal value for bin_slop.
     # Need a little smaller bin_slop here to help limit the number of galaxies without any
     # signal from contributing to the sum.
@@ -1214,7 +1348,7 @@ def test_rperp_local():
     Rperp = gg.meanr
     theory_gQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
 
-    print('Results with bin_slop = 0.5')
+    print('Results with bin_slop = 0.1')
     print('gg.npairs = ',gg.npairs)
     print('gg.xim = ',gg.xim)
     print('theory_gammat = ',theory_gQ)

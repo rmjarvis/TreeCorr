@@ -307,6 +307,21 @@ void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
         return;
     xdbg<<"Not too large separation\n";
 
+    int k=-1;
+    double r, logr;  // If singleBin is true, k is set to >=0 and these values are set.
+    if (_b > 0. &&
+        MetricHelper<M>::isRParInsideRange(rpar, s1ps2, _minrpar, _maxrpar) &&
+        BinTypeHelper<B>::singleBin(dsq, s1ps2, c1.getPos(), c2.getPos(),
+                                    _logminsep, _binsize, _minsep, _maxsep,
+                                    &k, &r, &logr)) {
+        xdbg<<"single bin.\n";
+        if (BinTypeHelper<B>::isDSqInRange(dsq, c1.getPos(), c2.getPos(),
+                                           _minsep, _minsepsq, _maxsep, _maxsepsq)) {
+            directProcess11<C,M>(c1,c2,dsq,do_reverse,k,r,logr);
+        }
+        return;
+    }
+
     // See if need to split:
     bool split1=false, split2=false;
     CalcSplitSq(split1,split2,dsq,s1,s2,_bsq);
@@ -464,24 +479,32 @@ struct DirectHelper<GData,GData>
 
 template <int D1, int D2, int B> template <int C, int M>
 void BinnedCorr2<D1,D2,B>::directProcess11(
-    const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double dsq, bool do_reverse)
+    const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double dsq, bool do_reverse,
+    int k, double r, double logr)
 {
     xdbg<<"DirectProcess11: dsq = "<<dsq<<std::endl;
     XAssert(dsq >= _minsepsq);
     XAssert(dsq < _fullmaxsepsq);
     XAssert(c1.getSize()+c2.getSize() < sqrt(dsq)*_b + 0.0001);
 
-    const double r = sqrt(dsq);
-    const double logr = log(dsq)/2.;
-    Assert(logr >= _logminsep);
-
     Assert(_binsize != 0.);
-    const int k = BinTypeHelper<B>::calculateBinK(c1.getPos(), c2.getPos(),
-                                                  logr, _logminsep, _binsize,
-                                                  r, _minsep, _maxsep);
+    if (k < 0) {
+        r = sqrt(dsq);
+        logr = log(r);
+        Assert(logr >= _logminsep);
+        k = BinTypeHelper<B>::calculateBinK(c1.getPos(), c2.getPos(),
+                                            logr, _logminsep, _binsize,
+                                            r, _minsep, _maxsep);
+    } else {
+        Assert(std::abs(r - sqrt(dsq)) < 1.e-10);
+        Assert(std::abs(logr - log(r)) < 1.e-10);
+        Assert(k == BinTypeHelper<B>::calculateBinK(c1.getPos(), c2.getPos(),
+                                                    logr, _logminsep, _binsize,
+                                                    r, _minsep, _maxsep));
+    }
     Assert(k >= 0);
     Assert(k < _nbins);
-    //dbg<<"r,logr,k = "<<r<<','<<logr<<','<<k<<std::endl;
+    xdbg<<"r,logr,k = "<<r<<','<<logr<<','<<k<<std::endl;
 
     double nn = double(c1.getN()) * double(c2.getN());
     _npairs[k] += nn;

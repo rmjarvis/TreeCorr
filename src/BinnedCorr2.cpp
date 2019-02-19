@@ -36,6 +36,7 @@ BinnedCorr2<D1,D2,B>::BinnedCorr2(
     _coords(-1), _owns_data(false),
     _xi(xi0,xi1,xi2,xi3), _meanr(meanr), _meanlogr(meanlogr), _weight(weight), _npairs(npairs)
 {
+    dbg<<"BinnedCorr2 constructor\n";
     // Some helpful variables we can calculate once here.
     _logminsep = log(_minsep);
     _halfminsep = 0.5*_minsep;
@@ -57,6 +58,7 @@ BinnedCorr2<D1,D2,B>::BinnedCorr2(const BinnedCorr2<D1,D2,B>& rhs, bool copy_dat
     _coords(rhs._coords), _owns_data(true),
     _xi(0,0,0,0), _weight(0)
 {
+    dbg<<"BinnedCorr2 copy constructor\n";
     _xi.new_data(_nbins);
     _meanr = new double[_nbins];
     _meanlogr = new double[_nbins];
@@ -70,6 +72,7 @@ BinnedCorr2<D1,D2,B>::BinnedCorr2(const BinnedCorr2<D1,D2,B>& rhs, bool copy_dat
 template <int D1, int D2, int B>
 BinnedCorr2<D1,D2,B>::~BinnedCorr2()
 {
+    dbg<<"BinnedCorr2 destructor\n";
     if (_owns_data) {
         _xi.delete_data(_nbins);
         delete [] _meanr; _meanr = 0;
@@ -244,8 +247,8 @@ void BinnedCorr2<D1,D2,B>::processPairwise(
             const Cell<D2,C>& c2 = *field2.getCells()[i];
             double s=0.;
             const double dsq = MetricHelper<M>::DistSq(c1.getPos(),c2.getPos(),s,s);
-            if (BinTypeHelper<B>::DSqInRange(dsq, c1.getPos(), c2.getPos(),
-                                             _minsep, _minsepsq, _maxsep, _maxsepsq)) {
+            if (BinTypeHelper<B>::isDSqInRange(dsq, c1.getPos(), c2.getPos(),
+                                               _minsep, _minsepsq, _maxsep, _maxsepsq)) {
                 bc2.template directProcess11<C,M>(c1,c2,dsq,false);
             }
         }
@@ -276,33 +279,40 @@ void BinnedCorr2<D1,D2,B>::process2(const Cell<D1,C>& c12)
 template <int D1, int D2, int B> template <int C, int M>
 void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, bool do_reverse)
 {
-    //dbg<<"Start process11 for "<<c1.getPos()<<",  "<<c2.getPos()<<"   ";
-    //dbg<<"w = "<<c1.getW()<<", "<<c2.getW()<<std::endl;
+    //set_verbose(2);
+    xdbg<<"Start process11 for "<<c1.getPos()<<",  "<<c2.getPos()<<"   ";
+    xdbg<<"w = "<<c1.getW()<<", "<<c2.getW()<<std::endl;
     if (c1.getW() == 0. || c2.getW() == 0.) return;
 
-    double s1 = c1.getSize();
-    double s2 = c2.getSize();
-    //dbg<<"s1,s2 = "<<s1<<','<<s2<<std::endl;
+    double s1 = c1.getSize(); // May be modified by DistSq function.
+    double s2 = c2.getSize(); // "
+    xdbg<<"s1,s2 = "<<s1<<','<<s2<<std::endl;
     const double dsq = MetricHelper<M>::DistSq(c1.getPos(),c2.getPos(),s1,s2);
-    //dbg<<"s1,s2 => "<<s1<<','<<s2<<std::endl;
+    xdbg<<"s1,s2 => "<<s1<<','<<s2<<std::endl;
     const double s1ps2 = s1+s2;
 
-    //dbg<<"dsq = "<<dsq<<", s1ps2 = "<<s1ps2<<std::endl;
-    if (MetricHelper<M>::TooSmallDist(c1.getPos(), c2.getPos(), s1ps2, dsq,
-                                      _minsep, _minsepsq, _minrpar))
+    double rpar = 0; // Gets set to correct value by this function if appropriate
+    if (MetricHelper<M>::isRParOutsideRange(c1.getPos(), c2.getPos(), s1ps2, _minrpar, _maxrpar,
+                                            rpar))
         return;
-    //dbg<<"Not too small\n";
-    if (MetricHelper<M>::TooLargeDist(c1.getPos(), c2.getPos(), s1ps2, dsq,
-                                      _fullmaxsep, _fullmaxsepsq, _maxrpar))
+    xdbg<<"RPar in range\n";
+
+    if (BinTypeHelper<B>::tooSmallDist(dsq, s1ps2, _minsep, _minsepsq) &&
+        MetricHelper<M>::tooSmallDist(c1.getPos(), c2.getPos(), dsq, rpar, s1ps2, _minsepsq))
         return;
-    //dbg<<"Not too large\n";
+    xdbg<<"Not too small separation\n";
+
+    if (BinTypeHelper<B>::tooLargeDist(dsq, s1ps2, _maxsep, _maxsepsq) &&
+        MetricHelper<M>::tooLargeDist(c1.getPos(), c2.getPos(), dsq, rpar, s1ps2, _fullmaxsepsq))
+        return;
+    xdbg<<"Not too large separation\n";
 
     // See if need to split:
     bool split1=false, split2=false;
     CalcSplitSq(split1,split2,dsq,s1,s2,_bsq);
-    //dbg<<"dsq = "<<dsq<<", s1ps2 = "<<s1ps2<<"  ";
-    //dbg<<"s1ps2 / d = "<<s1ps2 / sqrt(dsq)<<", b = "<<_b<<"  ";
-    //dbg<<"split = "<<split1<<','<<split2<<std::endl;
+    xdbg<<"dsq = "<<dsq<<", s1ps2 = "<<s1ps2<<"  ";
+    xdbg<<"s1ps2 / d = "<<s1ps2 / sqrt(dsq)<<", b = "<<_b<<"  ";
+    xdbg<<"split = "<<split1<<','<<split2<<std::endl;
 
     if (split1) {
         if (split2) {
@@ -337,8 +347,8 @@ void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
             Assert(c2.getRight());
             process11<C,M>(c1,*c2.getLeft(),do_reverse);
             process11<C,M>(c1,*c2.getRight(),do_reverse);
-        } else if (BinTypeHelper<B>::DSqInRange(dsq, c1.getPos(), c2.getPos(),
-                                                _minsep, _minsepsq, _maxsep, _maxsepsq)) {
+        } else if (BinTypeHelper<B>::isDSqInRange(dsq, c1.getPos(), c2.getPos(),
+                                                  _minsep, _minsepsq, _maxsep, _maxsepsq)) {
             XAssert(NoSplit(c1,c2,sqrt(dsq),_b));
             directProcess11<C,M>(c1,c2,dsq,do_reverse);
         }
@@ -456,21 +466,21 @@ template <int D1, int D2, int B> template <int C, int M>
 void BinnedCorr2<D1,D2,B>::directProcess11(
     const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double dsq, bool do_reverse)
 {
-    //dbg<<"DirectProcess11: dsq = "<<dsq<<std::endl;
+    xdbg<<"DirectProcess11: dsq = "<<dsq<<std::endl;
     XAssert(dsq >= _minsepsq);
     XAssert(dsq < _fullmaxsepsq);
     XAssert(c1.getSize()+c2.getSize() < sqrt(dsq)*_b + 0.0001);
 
     const double r = sqrt(dsq);
     const double logr = log(dsq)/2.;
-    XAssert(logr >= _logminsep);
+    Assert(logr >= _logminsep);
 
-    XAssert(_binsize != 0.);
-    const int k = BinTypeHelper<B>::CalculateBinK(c1.getPos(), c2.getPos(),
+    Assert(_binsize != 0.);
+    const int k = BinTypeHelper<B>::calculateBinK(c1.getPos(), c2.getPos(),
                                                   logr, _logminsep, _binsize,
                                                   r, _minsep, _maxsep);
-    XAssert(k >= 0);
-    XAssert(k < _nbins);
+    Assert(k >= 0);
+    Assert(k < _nbins);
     //dbg<<"r,logr,k = "<<r<<','<<logr<<','<<k<<std::endl;
 
     double nn = double(c1.getN()) * double(c2.getN());
@@ -480,15 +490,15 @@ void BinnedCorr2<D1,D2,B>::directProcess11(
     _meanr[k] += ww * r;
     _meanlogr[k] += ww * logr;
     _weight[k] += ww;
-    //dbg<<"n,w = "<<nn<<','<<ww<<" ==>  "<<_npairs[k]<<','<<_weight[k]<<std::endl;
+    xdbg<<"n,w = "<<nn<<','<<ww<<" ==>  "<<_npairs[k]<<','<<_weight[k]<<std::endl;
 
     int k2 = -1;
     if (do_reverse) {
-        k2 = BinTypeHelper<B>::CalculateBinK(c2.getPos(), c1.getPos(),
+        k2 = BinTypeHelper<B>::calculateBinK(c2.getPos(), c1.getPos(),
                                              logr, _logminsep, _binsize,
                                              r, _minsep, _maxsep);
-        XAssert(k2 >= 0);
-        XAssert(k2 < _nbins);
+        Assert(k2 >= 0);
+        Assert(k2 < _nbins);
         _npairs[k2] += nn;
         _meanr[k2] += ww * r;
         _meanlogr[k2] += ww * logr;

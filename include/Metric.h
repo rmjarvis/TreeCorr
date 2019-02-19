@@ -66,6 +66,13 @@ struct MetricHelper<Euclidean>
                                    double s1ps2, double minrpar, double maxrpar, double& rpar)
     { return false; }
 
+    // When we get to a point where we think all possible pairs fall into a single bin,
+    // then we also need to make sure we are fully in the range for rpar as well.  For
+    // Euclidean (and others that don't use rpar), this is always true, but Rper and Rlens
+    // have a check here.
+    static bool isRParInsideRange(double rpar, double s1ps2, double minrpar, double maxrpar)
+    { return true; }
+
     // The normal tests about whether a given distance is inside the binning range happen
     // in BinTypeHelper.  However, RPerp needs to do an additional check to make sure we
     // don't reject cell pairs prematurely.  For this and most metrics, these two checks
@@ -77,6 +84,7 @@ struct MetricHelper<Euclidean>
     static bool tooLargeDist(const Position<Flat>& p1, const Position<Flat>& p2,
                              double dsq, double rpar, double s1ps2, double maxsepsq)
     { return true; }
+
 
     ///
     //
@@ -212,8 +220,18 @@ struct MetricHelper<Perp>
         else return false;
     }
 
+    static bool isRParInsideRange(double rpar, double s1ps2, double minrpar, double maxrpar)
+    {
+        // Quick return if no min/max rpar
+        if (minrpar == -std::numeric_limits<double>::max() &&
+            maxrpar == std::numeric_limits<double>::max()) return true;
+        if (rpar - s1ps2 < minrpar) return false;
+        else if (rpar + s1ps2 > maxrpar) return false;
+        else return true;
+    }
+
     // This one is a bit subtle.  The maximum possible rp can be larger than just (rp + s1ps2).
-    // The most extreme case is if the two cells are in opposite directions from Earth.
+    // The most extreme case is if the two cells are in nearly opposite directions from Earth.
     // Of course, this won't happen too often in practice, but might as well use the
     // most conservative case here.  In this case, the cell size can serve both to
     // increase d by s1ps2 and decrease |r1-r2| by s1ps2.  So rp can become
@@ -315,6 +333,16 @@ struct MetricHelper<Lens>
         else return false;
     }
 
+    static bool isRParInsideRange(double rpar, double s1ps2, double minrpar, double maxrpar)
+    {
+        // Quick return if no min/max rpar
+        if (minrpar == -std::numeric_limits<double>::max() &&
+            maxrpar == std::numeric_limits<double>::max()) return true;
+        if (rpar - s1ps2 < minrpar) return false;
+        else if (rpar + s1ps2 > maxrpar) return false;
+        else return true;
+    }
+
     // We've already accounted for the way that the raw s1+s2 may not be sufficient in DistSq
     // where we update s2 according to the relative distances.  So there is nothing further to
     // do here.
@@ -360,6 +388,9 @@ struct MetricHelper<Arc>
     static bool isRParOutsideRange(const Position<Sphere>& p1, const Position<Sphere>& p2,
                                    double s1ps2, double minrpar, double maxrpar, double& rpar)
     { return false; }
+
+    static bool isRParInsideRange(double rpar, double s1ps2, double minrpar, double maxrpar)
+    { return true; }
 
     static bool tooSmallDist(const Position<Sphere>& p1, const Position<Sphere>& p2,
                              double dsq, double rpar, double s1ps2, double minsepsq)

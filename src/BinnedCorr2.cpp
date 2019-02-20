@@ -307,42 +307,30 @@ void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
         return;
     xdbg<<"Not too large separation\n";
 
-    int k=-1;
-    double logr;  // If singleBin comes back true, these are set to appropriate values
-    if (_b > 0. &&
-        MetricHelper<M>::isRParInsideRange(rpar, s1ps2, _minrpar, _maxrpar) &&
+    // Now check if these cells are small enough that it is ok to drop into a single bin.
+    int k;
+    double logr;  // If singleBin is true, these values are set for use by directProcess11
+    if (MetricHelper<M>::isRParInsideRange(rpar, s1ps2, _minrpar, _maxrpar) &&
         BinTypeHelper<B>::singleBin(dsq, s1ps2, c1.getPos(), c2.getPos(),
-                                    _logminsep, _binsize, _minsep, _maxsep,
-                                    &k, &logr)) {
-        xdbg<<"single bin.\n";
+                                    _binsize, _b, _bsq,
+                                    _logminsep, _minsep, _maxsep,
+                                    k, logr))
+    {
+        xdbg<<"Drop into single bin.\n";
         if (BinTypeHelper<B>::isDSqInRange(dsq, c1.getPos(), c2.getPos(),
                                            _minsep, _minsepsq, _maxsep, _maxsepsq)) {
-            directProcess11<C,M>(c1,c2,dsq,do_reverse,k,logr);
+            directProcess11<C,M>(c1,c2,dsq,do_reverse);
         }
-        return;
-    }
+    } else {
+        xdbg<<"Need to split.\n";
+        bool split1=false, split2=false;
+        double bsq_eff = BinTypeHelper<B>::getEffectiveBSq(dsq,_bsq);
+        CalcSplitSq(split1,split2,s1,s2,s1ps2,bsq_eff);
+        xdbg<<"dsq = "<<dsq<<", s1ps2 = "<<s1ps2<<"  ";
+        xdbg<<"s1ps2 / d = "<<s1ps2 / sqrt(dsq)<<", b = "<<_b<<"  ";
+        xdbg<<"split = "<<split1<<','<<split2<<std::endl;
 
-    // See if need to split:
-    bool split1=false, split2=false;
-    double bsq_eff = BinTypeHelper<B>::getEffectiveBSq(dsq, _bsq);
-    CalcSplitSq(split1,split2,s1,s2,s1ps2,bsq_eff);
-    xdbg<<"dsq = "<<dsq<<", s1ps2 = "<<s1ps2<<"  ";
-    xdbg<<"s1ps2 / d = "<<s1ps2 / sqrt(dsq)<<", b = "<<_b<<"  ";
-    xdbg<<"split = "<<split1<<','<<split2<<std::endl;
-
-    if (split1) {
-        if (split2) {
-            if (!c1.getLeft()) {
-                std::cerr<<"minsep = "<<_minsep<<", maxsep = "<<_maxsep<<std::endl;
-                std::cerr<<"minsepsq = "<<_minsepsq<<", maxsepsq = "<<_maxsepsq<<std::endl;
-                std::cerr<<"c1.Size = "<<c1.getSize()<<", c2.Size = "<<c2.getSize()<<std::endl;
-                std::cerr<<"c1.SizeSq = "<<c1.getSizeSq()<<
-                    ", c2.SizeSq = "<<c2.getSizeSq()<<std::endl;
-                std::cerr<<"c1.N = "<<c1.getN()<<", c2.N = "<<c2.getN()<<std::endl;
-                std::cerr<<"c1.Pos = "<<c1.getPos();
-                std::cerr<<", c2.Pos = "<<c2.getPos()<<std::endl;
-                std::cerr<<"dsq = "<<dsq<<", s1ps2 = "<<s1ps2<<std::endl;
-            }
+        if (split1 && split2) {
             Assert(c1.getLeft());
             Assert(c1.getRight());
             Assert(c2.getLeft());
@@ -351,22 +339,17 @@ void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
             process11<C,M>(*c1.getLeft(),*c2.getRight(),do_reverse);
             process11<C,M>(*c1.getRight(),*c2.getLeft(),do_reverse);
             process11<C,M>(*c1.getRight(),*c2.getRight(),do_reverse);
-        } else {
+        } else if (split1) {
             Assert(c1.getLeft());
             Assert(c1.getRight());
             process11<C,M>(*c1.getLeft(),c2,do_reverse);
             process11<C,M>(*c1.getRight(),c2,do_reverse);
-        }
-    } else {
-        if (split2) {
+        } else {
+            Assert(split2);
             Assert(c2.getLeft());
             Assert(c2.getRight());
             process11<C,M>(c1,*c2.getLeft(),do_reverse);
             process11<C,M>(c1,*c2.getRight(),do_reverse);
-        } else if (BinTypeHelper<B>::isDSqInRange(dsq, c1.getPos(), c2.getPos(),
-                                                  _minsep, _minsepsq, _maxsep, _maxsepsq)) {
-            XAssert(NoSplit(c1,c2,sqrt(dsq),_b));
-            directProcess11<C,M>(c1,c2,dsq,do_reverse);
         }
     }
 }

@@ -58,7 +58,7 @@ public:
 
     template <int C, int M>
     void directProcess11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double dsq,
-                         bool do_reverse, int k=-1, double r=0., double logr=0.);
+                         bool do_reverse, int k=-1, double logr=0.);
 
     // Note: op= only copies _data.  Not all the params.
     void operator=(const BinnedCorr2<D1,D2,B>& rhs);

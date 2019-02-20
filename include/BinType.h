@@ -29,6 +29,14 @@ struct BinTypeHelper<Log>
 {
     static bool doReverse() { return false; }
 
+    // For Log binning, the test for when to stop splitting is s1+s2 < b*d.
+    // This b*d is the "effective" b used by CalcSplit.
+    static double getEffectiveB(double d, double b)
+    { return d*b; }
+
+    static double getEffectiveBSq(double dsq, double bsq)
+    { return dsq*bsq; }
+
     static double calculateFullMaxSep(double minsep, double maxsep, int nbins, double binsize)
     { return maxsep; }
 
@@ -54,16 +62,16 @@ struct BinTypeHelper<Log>
     }
 
     template <int C>
-    static int calculateBinK(const Position<C>& , const Position<C>& ,
+    static int calculateBinK(const Position<C>& p1, const Position<C>& p2,
                              double logr, double logminsep, double binsize,
-                             double, double, double)
+                             double minsep, double maxsep)
     { return int((logr - logminsep) / binsize); }
 
     template <int C>
     static bool singleBin(double dsq, double s1ps2,
                           const Position<C>& p1, const Position<C>& p2,
                           double logminsep, double binsize, double minsep, double maxsep,
-                          int *xk, double* xr, double* xlogr)
+                          int *xk, double* xlogr)
     {
         xdbg<<"singleBin: "<<dsq<<"  "<<s1ps2<<std::endl;
         const double bsq = binsize * binsize;
@@ -71,8 +79,7 @@ struct BinTypeHelper<Log>
 
         if (s1ps2 == 0.) {
             // Trivial return, but need to set k, r, logr
-            *xr = std::sqrt(dsq);
-            *xlogr = std::log(*xr);
+            *xlogr = 0.5*std::log(dsq);
             *xk = int((*xlogr - logminsep) / binsize);
             return true;
         }
@@ -110,7 +117,6 @@ struct BinTypeHelper<Log>
         xdbg<<"ik1 == ik2 == ik\n";
 
         *xk = ik;
-        *xr = r;
         *xlogr = logr;
         return true;
     }
@@ -122,6 +128,13 @@ template <>
 struct BinTypeHelper<TwoD>
 {
     static bool doReverse() { return true; }
+
+    // Like Linear binning, the effective b is just b itself.
+    static double getEffectiveB(double d, double b)
+    { return b; }
+
+    static double getEffectiveBSq(double dsq, double bsq)
+    { return bsq; }
 
     static double calculateFullMaxSep(double minsep, double maxsep, int nbins, double binsize)
     { return maxsep * std::sqrt(2.); }
@@ -150,8 +163,8 @@ struct BinTypeHelper<TwoD>
 
     template <int C>
     static int calculateBinK(const Position<C>& p1, const Position<C>& p2,
-                             double , double , double binsize,
-                             double , double , double maxsep)
+                             double logr, double logminsep, double binsize,
+                             double minsep, double maxsep)
     {
         double dx = p2.getX() - p1.getX();
         double dy = p2.getY() - p1.getY();
@@ -165,7 +178,7 @@ struct BinTypeHelper<TwoD>
     static bool singleBin(double dsq, double s1ps2,
                           const Position<C>& p1, const Position<C>& p2,
                           double _logminsep, double _binsize, double _minsep, double _maxsep,
-                          int *k, double* r, double* logr)
+                          int *k, double* logr)
     {
         return false;
     }

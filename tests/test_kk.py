@@ -130,7 +130,17 @@ def test_large_scale():
     # Test very large scales, comparing Arc, Euclidean (spherical), and Euclidean (3d)
 
     # Distribute points uniformly in all directions.
-    ngal = 50000
+    if __name__ == '__main__':
+        ngal = 50000
+        tol = 1
+        nbins = 100
+        half = 50
+    else:
+        # Use fewer galaxies when running nosetests, so this is faster
+        ngal = 10000
+        tol = 3  # A factor by which we scale the tolerances to work with the smaller ngal.
+        nbins = 50
+        half = 25
     s = 1.
     numpy.random.seed(8675309)
     x = numpy.random.normal(0, s, (ngal,) )
@@ -139,7 +149,7 @@ def test_large_scale():
     r = numpy.sqrt( x*x + y*y + z*z )
     dec = numpy.arcsin(z/r)
     ra = numpy.arctan2(y,x)
-    r = numpy.ones_like(x)  # Overwrite with all r=1
+    r = numpy.ones_like(x)
 
     # Use x for "kappa" so there's a strong real correlation function
     cat1 = treecorr.Catalog(ra=ra, dec=dec, k=x, ra_units='rad', dec_units='rad')
@@ -148,7 +158,7 @@ def test_large_scale():
     config = {
         'min_sep' : 0.01,
         'max_sep' : 1.57,
-        'nbins' : 50,
+        'nbins' : nbins,
         'bin_slop' : 0.3,
         'verbose' : 1
     }
@@ -171,56 +181,55 @@ def test_large_scale():
 
     # meanr should be similar for sphere and chord, but euclid is larger, since the chord
     # distances have been scaled up to the real great circle distances
-    numpy.testing.assert_allclose(dd_sphere.meanr, dd_chord.meanr, rtol=1.e-3)
-    numpy.testing.assert_allclose(dd_chord.meanr[:24], dd_euclid.meanr[:24], rtol=1.e-3)
-    numpy.testing.assert_array_less(dd_chord.meanr[24:], dd_euclid.meanr[24:])
-    numpy.testing.assert_allclose(dd_sphere.meanlogr, dd_chord.meanlogr, atol=2.e-2)
-    numpy.testing.assert_allclose(dd_chord.meanlogr[:24], dd_euclid.meanlogr[:24], atol=2.e-2)
-    numpy.testing.assert_array_less(dd_chord.meanlogr[24:], dd_euclid.meanlogr[24:])
+    numpy.testing.assert_allclose(dd_sphere.meanr, dd_chord.meanr, rtol=1.e-3*tol)
+    numpy.testing.assert_allclose(dd_chord.meanr[:half], dd_euclid.meanr[:half], rtol=1.e-3*tol)
+    numpy.testing.assert_array_less(dd_chord.meanr[half:], dd_euclid.meanr[half:])
+    numpy.testing.assert_allclose(dd_sphere.meanlogr, dd_chord.meanlogr, atol=2.e-2*tol)
+    numpy.testing.assert_allclose(dd_chord.meanlogr[:half], dd_euclid.meanlogr[:half], atol=2.e-2*tol)
+    numpy.testing.assert_array_less(dd_chord.meanlogr[half:], dd_euclid.meanlogr[half:])
 
     # npairs is basically the same for chord and euclid since the only difference there comes from
     # differences in where they cut off the tree traversal, so the number of pairs is almost equal,
     # even though the separations in each bin are given a different nominal distance.
     # Sphere is smaller than both at all scales, since it is measuring the correlation
     # function on larger real scales at each position.
-    print('diff = ',(dd_chord.npairs-dd_euclid.npairs)/dd_euclid.npairs)
+    print('diff (c-e)/e = ',(dd_chord.npairs-dd_euclid.npairs)/dd_euclid.npairs)
     print('max = ',numpy.max(numpy.abs((dd_chord.npairs-dd_euclid.npairs)/dd_euclid.npairs)))
-    numpy.testing.assert_allclose(dd_chord.npairs, dd_euclid.npairs, rtol=1.e-3)
-    numpy.testing.assert_allclose(dd_sphere.npairs[:24], dd_euclid.npairs[:24], rtol=2.e-3)
-    numpy.testing.assert_array_less(dd_sphere.npairs[24:], dd_euclid.npairs[24:])
+    numpy.testing.assert_allclose(dd_chord.npairs, dd_euclid.npairs, rtol=1.e-3*tol)
+    print('diff (s-e)/e = ',(dd_sphere.npairs-dd_euclid.npairs)/dd_euclid.npairs)
+    numpy.testing.assert_allclose(dd_sphere.npairs[:half], dd_euclid.npairs[:half], rtol=3.e-3*tol)
+    numpy.testing.assert_array_less(dd_sphere.npairs[half:], dd_euclid.npairs[half:])
 
     # Renormalize by the actual spacing in log(r)
     renorm_euclid = dd_euclid.npairs / numpy.gradient(dd_euclid.meanlogr)
     renorm_sphere = dd_sphere.npairs / numpy.gradient(dd_sphere.meanlogr)
     # Then interpolate the euclid results to the values of the sphere distances
     interp_euclid = numpy.interp(dd_sphere.meanlogr, dd_euclid.meanlogr, renorm_euclid)
-    # Matches at higher precision now over the same range
+    # Matches at 3e-3 over whole range now.
     print('interp_euclid = ',interp_euclid)
     print('renorm_sphere = ',renorm_sphere)
     print('new diff = ',(renorm_sphere-interp_euclid)/renorm_sphere)
     print('max = ',numpy.max(numpy.abs((renorm_sphere-interp_euclid)/renorm_sphere)))
-    numpy.testing.assert_allclose(renorm_sphere[:24], interp_euclid[:24], rtol=4.e-4)
+    numpy.testing.assert_allclose(renorm_sphere, interp_euclid, rtol=3.e-3*tol)
 
     # And almost the full range at the same precision.
-    numpy.testing.assert_allclose(renorm_sphere[:43], interp_euclid[:43], rtol=2.e-3)
-    numpy.testing.assert_allclose(renorm_sphere, interp_euclid, rtol=1.e-2)
+    numpy.testing.assert_allclose(renorm_sphere[:-4], interp_euclid[:-4], rtol=2.e-3*tol)
+    numpy.testing.assert_allclose(renorm_sphere, interp_euclid, rtol=1.e-2*tol)
 
     # The xi values are similar.  The euclid and chord values start out basically identical,
     # but the distances are different.  The euclid and the sphere are actually the same function
     # so they match when rescaled to have the same distance values.
     print('diff euclid, chord = ',(dd_chord.xi-dd_euclid.xi)/dd_euclid.xi)
     print('max = ',numpy.max(numpy.abs((dd_chord.xi-dd_euclid.xi)/dd_euclid.xi)))
-    numpy.testing.assert_allclose(dd_chord.xi[:-1], dd_euclid.xi[:-1], rtol=1.e-3)
-    numpy.testing.assert_allclose(dd_chord.xi, dd_euclid.xi, rtol=3.e-3)
+    numpy.testing.assert_allclose(dd_chord.xi[:-8], dd_euclid.xi[:-8], rtol=1.e-3*tol)
+    numpy.testing.assert_allclose(dd_chord.xi, dd_euclid.xi, rtol=3.e-3*tol)
 
     interp_euclid = numpy.interp(dd_sphere.meanlogr, dd_euclid.meanlogr, dd_euclid.xi)
     print('interp_euclid = ',interp_euclid)
     print('sphere.xi = ',dd_sphere.xi)
     print('diff interp euclid, sphere = ',(dd_sphere.xi-interp_euclid))
     print('max = ',numpy.max(numpy.abs((dd_sphere.xi-interp_euclid))))
-    numpy.testing.assert_allclose(dd_sphere.xi[:36], interp_euclid[:36], atol=3.e-4)
-    numpy.testing.assert_allclose(dd_sphere.xi[:44], interp_euclid[:44], atol=1.e-3)
-    numpy.testing.assert_allclose(dd_sphere.xi, interp_euclid, atol=3.e-3)
+    numpy.testing.assert_allclose(dd_sphere.xi, interp_euclid, atol=1.e-3*tol)
 
 
 if __name__ == '__main__':

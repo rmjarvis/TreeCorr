@@ -681,7 +681,7 @@ def test_rlens():
 
     # Now use a more normal value for bin_slop.
     ng1s = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                  metric='Rlens', bin_slop=0.5)
+                                  metric='Rlens', bin_slop=0.3)
     ng1s.process(lens_cat, source_cat)
     Rlens = ng1s.meanr
     theory_gt = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)

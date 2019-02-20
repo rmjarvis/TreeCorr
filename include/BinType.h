@@ -95,9 +95,9 @@ struct BinTypeHelper<Log>
         // b = 0 means recurse all the way to the leaves.
         if (b == 0) return false;
 
-        // If s1+s2 > (0.5 * binsize + b) * r, then too big to fit, even if centered in bin.
-        b = 0;  // For now...
-        if (s1ps2sq > SQR(0.5*binsize + b) * dsq) {
+        // If s1+s2 > 0.5 * (binsize + b) * r, then the total leakage (on both sides perhaps)
+        // will be more than b.  I.e. too much slop.
+        if (s1ps2sq > 0.25 * SQR(binsize + b) * dsq) {
             return false;
         }
 
@@ -121,8 +121,7 @@ struct BinTypeHelper<Log>
         // s > (f*binsize + b) * r
         // s^2 > (f*binsize + b)^2 * dsq
         double f = std::min(frackk, 1.-frackk);
-        double b2 = 0.5*b;
-        if (s1ps2sq > SQR(f*binsize + b2) * dsq) {
+        if (s1ps2sq > SQR(f*binsize + b) * dsq) {
             return false;
         }
 
@@ -131,7 +130,7 @@ struct BinTypeHelper<Log>
         // So refine the test slightly to make sure we have a conservative check here.
         // log(r-x) > log(r) - x/r - x^2/r^2   (if x<r)
         // s/r + s^2/r^2 > f*binsize + b
-        if (s1ps2sq > SQR(frackk*binsize + b2 - s1ps2sq/dsq) * dsq) {
+        if (s1ps2sq > SQR(frackk*binsize + b - s1ps2sq/dsq) * dsq) {
             return false;
         }
 

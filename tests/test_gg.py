@@ -858,14 +858,14 @@ def test_rlens():
 
     # Now use a more normal value for bin_slop.
     gg2 = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                 metric='Rlens', bin_slop=0.5)
+                                 metric='Rlens', bin_slop=0.3)
     t0 = time.time()
     gg2.process(lens_cat, source_cat)
     t1 = time.time()
     Rlens = gg2.meanr
     theory_gQ = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
 
-    print('Results with bin_slop = 0.5')
+    print('Results with bin_slop = 0.3')
     print('time = ',t1-t0)
     print('gg.npairs = ',gg2.npairs)
     print('gg.xim = ',gg2.xim)
@@ -950,12 +950,12 @@ def test_rlens():
 
     # Now use a more normal value for bin_slop.
     ggs2 = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                  metric='Rlens', bin_slop=0.5)
+                                  metric='Rlens', bin_slop=0.3)
     ggs2.process(lens_cat, source_cat)
     Rlens = ggs2.meanr
     theory_gQ = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
 
-    print('Results with bin_slop = 0.5')
+    print('Results with bin_slop = 0.3')
     print('gg.npairs = ',ggs2.npairs)
     print('gg.xim = ',ggs2.xim)
     print('theory_gammat = ',theory_gQ)
@@ -1127,12 +1127,12 @@ def test_rperp():
 
     # Now use a more normal value for bin_slop.
     gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                metric='Rperp', bin_slop=0.5)
+                                metric='Rperp', bin_slop=0.3)
     gg.process(lens_cat, source_cat)
     Rperp = gg.meanr
     theory_gQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
 
-    print('Results with bin_slop = 0.5')
+    print('Results with bin_slop = 0.3')
     print('gg.npairs = ',gg.npairs)
     print('gg.xim = ',gg.xim)
     print('theory_gammat = ',theory_gQ)

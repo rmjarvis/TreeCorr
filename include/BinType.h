@@ -70,54 +70,74 @@ struct BinTypeHelper<Log>
     template <int C>
     static bool singleBin(double dsq, double s1ps2,
                           const Position<C>& p1, const Position<C>& p2,
-                          double logminsep, double binsize, double minsep, double maxsep,
-                          int *xk, double* xlogr)
+                          double binsize, double b, double bsq,
+                          double logminsep, double minsep, double maxsep,
+                          int& ik, double& logr)
     {
         xdbg<<"singleBin: "<<dsq<<"  "<<s1ps2<<std::endl;
-        const double bsq = binsize * binsize;
-        const double maxssq = bsq*dsq;
 
+        // If two leaves, stop splitting.
         if (s1ps2 == 0.) {
-            // Trivial return, but need to set k, r, logr
-            *xlogr = 0.5*std::log(dsq);
-            *xk = int((*xlogr - logminsep) / binsize);
+            logr = 0.5*std::log(dsq);
+            ik = int((logr - logminsep) / binsize);
             return true;
         }
 
-        // If s1+s2 > bin_size * r, then too big.
-        if (s1ps2*s1ps2 > maxssq) return false;
-        xdbg<<"not s1ps2 > maxss\n";
+        // Standard stop splitting criterion.
+        // s1 + s2 <= b * r
+        double s1ps2sq = s1ps2 * s1ps2;
+        if (s1ps2sq <= bsq*dsq) {
+            logr = 0.5*std::log(dsq);
+            ik = int((logr - logminsep) / binsize);
+            return true;
+        }
+
+        // b = 0 means recurse all the way to the leaves.
+        if (b == 0) return false;
+
+        // If s1+s2 > (0.5 * binsize + b) * r, then too big to fit, even if centered in bin.
+        b = 0;  // For now...
+        if (s1ps2sq > SQR(0.5*binsize + b) * dsq) {
+            return false;
+        }
 
         // Now there is a chance they could fit, depending on the exact position relative
         // to the bin center.
-        double r = std::sqrt(dsq);
-        double logr = std::log(r);
+        logr = 0.5*std::log(dsq);
         double kk = (logr - logminsep) / binsize;
-        int ik = int(kk);
+        ik = int(kk);
         double frackk = kk - ik;
         xdbg<<"kk, ik, frackk = "<<kk<<", "<<ik<<", "<<frackk<<std::endl;
-        xdbg<<"ik1 = "<<int( (std::log(r - s1ps2) - logminsep) / binsize )<<std::endl;
-        xdbg<<"ik2 = "<<int( (std::log(r + s1ps2) - logminsep) / binsize )<<std::endl;
+        xdbg<<"ik1 = "<<int( (std::log(sqrt(dsq) - s1ps2) - logminsep) / binsize )<<std::endl;
+        xdbg<<"ik2 = "<<int( (std::log(sqrt(dsq) + s1ps2) - logminsep) / binsize )<<std::endl;
 
         // Check how much kk can change for r +- s1ps2
-        // If it can change by more than frackk down or (1-frackk) up, then too big.
-        // log(r - x) < log(r) - x/r
-        // log(r + x) > log(r) + x/r + x^2/2r^2
-        if (s1ps2 > frackk * r) return false;
-        xdbg<<"not s1ps2 > frackk * r\n";
-        if (s1ps2 * r + 0.5 * s1ps2 * s1ps2 > (1.-frackk) * dsq) return false;
-        xdbg<<"not s1ps2/r + s1ps2^2/2r^2  > 1-frackk\n";
+        // If it can change by more than frackk+binslop/2 down or (1-frackk)+binslop/2 up,
+        // then too big.
+        // Use log(r+x) ~ log(r) + x/r
+        // So delta(kk) = s/r / binsize
+        // s/r / binsize > f + binslop
+        // s/r > f*binsize + binsize*binslop = f*binsize + b
+        // s > (f*binsize + b) * r
+        // s^2 > (f*binsize + b)^2 * dsq
+        double f = std::min(frackk, 1.-frackk);
+        double b2 = 0.5*b;
+        if (s1ps2sq > SQR(f*binsize + b2) * dsq) {
+            return false;
+        }
 
-        // Now we know it's close.  So worth it to do a couple extra logs to check whether
-        // we can stop splitting here.
-        int ik1 = int( (std::log(r - s1ps2) - logminsep) / binsize );
-        if (ik1 < ik) return false;
-        int ik2 = int( (std::log(r + s1ps2) - logminsep) / binsize );
-        if (ik2 > ik) return false;
-        xdbg<<"ik1 == ik2 == ik\n";
+        // This test is safe for the up direction, but slightly too liberal in the down
+        // direction.  log(r-x) < log(r) - x/r
+        // So refine the test slightly to make sure we have a conservative check here.
+        // log(r-x) > log(r) - x/r - x^2/r^2   (if x<r)
+        // s/r + s^2/r^2 > f*binsize + b
+        if (s1ps2sq > SQR(frackk*binsize + b2 - s1ps2sq/dsq) * dsq) {
+            return false;
+        }
 
-        *xk = ik;
-        *xlogr = logr;
+        xdbg<<"Both checks passed.\n";
+        XAssert(int( (std::log(sqrt(dsq) - s1ps2) - logminsep) / binsize ) == ik);
+        XAssert(int( (std::log(sqrt(dsq) + s1ps2) - logminsep) / binsize ) == ik);
         return true;
     }
 
@@ -177,11 +197,20 @@ struct BinTypeHelper<TwoD>
     template <int C>
     static bool singleBin(double dsq, double s1ps2,
                           const Position<C>& p1, const Position<C>& p2,
-                          double _logminsep, double _binsize, double _minsep, double _maxsep,
-                          int *k, double* logr)
+                          double binsize, double b, double bsq,
+                          double logminsep, double minsep, double maxsep,
+                          int& k, double& logr)
     {
+        // Standard stop splitting criterion.
+        if (s1ps2 <= b) {
+            logr = 0.5*std::log(dsq);
+            k = int((logr - logminsep) / binsize);
+            return true;
+        }
+
         return false;
     }
+
 
 };
 

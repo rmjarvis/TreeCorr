@@ -18,8 +18,8 @@
 #include "Cell.h"
 
 inline void CalcSplit(
-    bool& split1, bool& split2, const double d,
-    const double s1, const double s2, const double b)
+    bool& split1, bool& split2,
+    const double s1, const double s2, const double s1ps2, const double b)
 {
     // This function determines whether either input cell needs to be
     // split.  It is written as a template so that the second cell
@@ -29,17 +29,23 @@ inline void CalcSplit(
     // In normal operation, both are input as false, and we check
     // whether they need to be split.
     //
-    // If (s1+s2)/d > b, then we need to split one or both.
+    // For Log, the criterion is
+    //      (s1+s2)/d > b
+    // For Linear, the criterion is
+    //      (s1+s2) > b
+    // in which case, we need to split one or both.  This function
+    // models the latter formula, so for Log, b*d should be given as
+    // the input parameter b.
     //
-    // If s1 > b*d, then it doesn't matter what s2 is -- we should
+    // If s1 > b, then it doesn't matter what s2 is -- we should
     // definitely split c1.
-    // Likewise if s2 > b*d
+    // Likewise if s2 > b
     //
     // If neither of these conditions is true, then we test
-    // to see if s1+s2 > b*d
+    // to see if s1+s2 > b
     // If we're close to the threshold, it will generally be quicker
     // to only split the larger one.  But if both s1 and s2 are
-    // reasonably large (compared to b/d) then we will probably end
+    // reasonably large (compared to b) then we will probably end
     // up needing to split both, so go ahead and do so now.
     // This small vs. large test is quantified by the parameter
     // splitfactor.  I varied split factor with the 2-point
@@ -51,11 +57,9 @@ inline void CalcSplit(
     if (split1 && split2) return;
 
     const double splitfactor = 0.585;
-    // The split factor helps determine whether to split
-    // both cells or just one when the factor (s1+s2)/d
-    // is too large.
-    // If s1+s2 > f*d*b then split both.
-    // Otherwise just split the large Cell.
+    // The split factor helps determine whether to split both
+    // cells or just one when the factor (s1+s2) is too large.
+    // Split either cell if s > f*b.
     // The value of f was determined empirically by seeing
     // when the code ran fastest.  This may be specific
     // to the data I was testing it on, but I would guess
@@ -64,74 +68,45 @@ inline void CalcSplit(
 
     if (s2 > s1) {
         // Make s1 the larger value.
-        CalcSplit(split2,split1,d,s2,s1,b);
+        CalcSplit(split2,split1,s2,s1,s1ps2,b);
     } else if (s1 > 2.*s2) {
         // If one cell is more than 2x the size of the other, only split that one.
-        if (!split1) {
-            split1 = s1 > b*d;
-        } // else do nothing.
-    } else {
-        if (!split1) {
-            const double maxs = b*d;
-            split1 = s1 > maxs;
-            split2 = s2 > maxs;
-            if (!split1 && !split2) {
-                // If both are small, need to check the sum.
-                if (s1+s2 > maxs) {
-                    double modmax = splitfactor*maxs;
-                    split1 = true;
-                    split2 = (s2 > modmax);
-                }
-            }
-        } else if (split1) {
-            const double maxs = b*d;
-            split2 = s2 > maxs;
-        } else if (split2) {
-            const double maxs = b*d;
-            split1 = s1 > maxs;
-        } // else do nothing.
-    }
+        split1 |= s1 > b;
+    } else if (s1+s2 > b) {
+        split1 = true;  // Always split the larger one.
+        split2 |= s2 > splitfactor*b;  // And maybe the smaller one.
+    } // else don't split.
 }
 
 inline void CalcSplitSq(
-    bool& split1, bool& split2, const double dsq,
-    const double s1, const double s2, const double bsq)
+    bool& split1, bool& split2,
+    const double s1, const double s2, const double s1ps2, const double bsq)
 {
     // The same as above, but when we know the distance squared rather
     // than just the distance.  We get some speed up by saving the
     // square roots in some parts of the code.
     const double splitfactorsq = 0.3422;
+    if (split1 && split2) return;
     if (s2 > s1) {
-        // Make s1 the larger value.
-        CalcSplitSq(split2,split1,dsq,s2,s1,bsq);
+        CalcSplitSq(split2,split1,s2,s1,s1ps2,bsq);
     } else if (s1 > 2.*s2) {
-        // If one cell is more than 2x the size of the other, only split that one.
-        if (!split1) {
-            split1 = s1*s1 > bsq*dsq;
-        } // else do nothing.
+        split1 |= s1*s1 > bsq;
     } else {
         if (!split1) {
-            const double maxssq = bsq*dsq;
             const double s1sq = s1*s1;
             const double s2sq = s2*s2;
-            split1 = s1sq > maxssq;
-            split2 = s2sq > maxssq;
+            split1 = s1sq > bsq;
+            split2 |= s2sq > bsq;
             if (!split1 && !split2) {
-                const double s1ps2 = s1+s2;
                 // If both are small, need to check the sum.
-                if (s1ps2*s1ps2 > maxssq) {
-                    double modmax = splitfactorsq*maxssq;
+                if (s1ps2*s1ps2 > bsq) {
                     split1 = true;
-                    split2 = (s2sq > modmax);
+                    split2 = s2sq > splitfactorsq*bsq;
                 }
             }
-        } else if (split1) {
-            const double maxssq = bsq*dsq;
-            split2 = s2*s2 > maxssq;
-        } else if (split2) {
-            const double maxssq = bsq*dsq;
-            split1 = s1*s1 > maxssq;
-        } // else do nothing.
+        } else {
+            split2 = s2*s2 > splitfactorsq*bsq;
+        }
     }
 }
 

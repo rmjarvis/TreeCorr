@@ -429,12 +429,12 @@ class BinnedCorr3(object):
             self.bv = self.vbin_size * self.bin_slop
 
         if self.b > 0.100001:  # Add some numerical slop
-            self.logger.warn("Using bin_slop = %g, bin_size = %g",self.bin_slop,self.bin_size)
-            self.logger.warn("The b parameter is bin_slop * bin_size = %g",self.b)
-            self.logger.debug("bu = %g, bv = %g",self.bu,self.bv)
-            self.logger.warn("It is generally recommended to use b <= 0.1 for most applications.")
-            self.logger.warn("Larger values of this b parameter may result in significant "+
-                             "inaccuracies.")
+            self.logger.warning(
+                    "Using bin_slop = %g, bin_size = %g\n"%(self.bin_slop,self.bin_size)+
+                    "The b parameter is bin_slop * bin_size = %g"%(self.b)+
+                    "  bu = %g, bv = %g\n"%(self.bu,self.bv)+
+                    "It is generally recommended to use b <= 0.1 for most applications.\n"+
+                    "Larger values of this b parameter may result in significant inaccuracies.")
         else:
             self.logger.debug("Using bin_slop = %g, b = %g, bu = %g, bv = %g",
                               self.bin_slop,self.b,self.bu,self.bv)
@@ -529,11 +529,11 @@ class BinnedCorr3(object):
         coords, metric = treecorr.util.parse_metric(metric, coords1, coords2, coords3)
         if self._coords != None or self._metric != None:
             if coords != self._coords:
-                self.logger.warn("Detected a change in catalog coordinate systems. "
-                                 "This probably doesn't make sense!")
+                self.logger.warning("Detected a change in catalog coordinate systems. "+
+                                    "This probably doesn't make sense!")
             if metric != self._metric:
-                self.logger.warn("Detected a change in metric. "
-                                 "This probably doesn't make sense!")
+                self.logger.warning("Detected a change in metric. "+
+                                    "This probably doesn't make sense!")
         if metric not in ['Rlens', 'Rperp']:
             if self.min_rpar != -sys.float_info.max:
                 raise ValueError("min_rpar is only valid with either Rlens or Rperp metric.")

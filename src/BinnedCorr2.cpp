@@ -134,7 +134,9 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
 #pragma omp critical
 #endif
             {
-                //dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
+#ifdef _OPENMP
+                xdbg<<omp_get_thread_num()<<" "<<i<<std::endl;
+#endif
                 if (dots) std::cout<<'.'<<std::flush;
             }
             const Cell<D1,C>& c1 = *field.getCells()[i];
@@ -185,7 +187,9 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>&
 #pragma omp critical
 #endif
             {
-                //dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
+#ifdef _OPENMP
+                xdbg<<omp_get_thread_num()<<" "<<i<<std::endl;
+#endif
                 if (dots) std::cout<<'.'<<std::flush;
             }
             const Cell<D1,C>& c1 = *field1.getCells()[i];
@@ -239,7 +243,9 @@ void BinnedCorr2<D1,D2,B>::processPairwise(
 #pragma omp critical
 #endif
                 {
-                    //xdbg<<omp_get_thread_num()<<" "<<i<<std::endl;
+#ifdef _OPENMP
+                    xdbg<<omp_get_thread_num()<<" "<<i<<std::endl;
+#endif
                     std::cout<<'.'<<std::flush;
                 }
             }

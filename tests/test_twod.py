@@ -212,16 +212,16 @@ def test_twod_singlebin():
     nbins = 5  # Use very chunky bins, so more pairs of non-leaf cells can fall in single bin.
 
     # First use bin_slop=0 for reference
-    gg0 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0, max_top=0)
+    gg0 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0)
     t0 = time.time()
-    gg0.process(cat, num_threads=1)
+    gg0.process(cat)
     t1 = time.time()
     print('t for bs=0 = ',t1-t0)
 
     # Now do bin_slop << 1, but not 0.
-    gg1 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=1.e-10, max_top=0)
+    gg1 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=1.e-10)
     t0 = time.time()
-    gg1.process(cat, num_threads=1)
+    gg1.process(cat)
     t1 = time.time()
     print('t for bs=1.e-10 = ',t1-t0)
     print('max abs diff xip = ',np.max(np.abs(gg1.xip - gg0.xip)))
@@ -231,9 +231,10 @@ def test_twod_singlebin():
     np.testing.assert_allclose(gg1.xim, gg0.xim, atol=1.e-5)
 
     # Now do bin_slop = 0.1
-    gg2 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0.1)
+    gg2 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0.1,
+                                 max_top=4, verbose=3)
     t0 = time.time()
-    gg2.process(cat, num_threads=1)
+    gg2.process(cat)
     t1 = time.time()
     print('t for bs=0.1 = ',t1-t0)
     print('max abs diff npairs = ',np.max(np.abs(gg2.npairs - gg0.npairs)))
@@ -245,15 +246,15 @@ def test_twod_singlebin():
     np.testing.assert_allclose(gg2.xim, gg0.xim, atol=1.e-4)
 
     # Repeat with NG and KG so we can test those routines too.
-    ng0 = treecorr.NGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0, max_top=0)
+    ng0 = treecorr.NGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0)
     t0 = time.time()
-    ng0.process(cat, cat, num_threads=1)
+    ng0.process(cat, cat)
     t1 = time.time()
     print('t for bs=0 = ',t1-t0)
 
-    ng1 = treecorr.NGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=1.e-10, max_top=0)
+    ng1 = treecorr.NGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=1.e-10)
     t0 = time.time()
-    ng1.process(cat, cat, num_threads=1)
+    ng1.process(cat, cat)
     t1 = time.time()
     print('t for bs=1.e-10 = ',t1-t0)
     print('max abs diff ng.xi = ',np.max(np.abs(ng1.xi - ng0.xi)))
@@ -262,7 +263,7 @@ def test_twod_singlebin():
 
     ng2 = treecorr.NGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0.1)
     t0 = time.time()
-    ng2.process(cat, cat, num_threads=1)
+    ng2.process(cat, cat)
     t1 = time.time()
     print('t for bs=0.1 = ',t1-t0)
     print('max abs diff npairs = ',np.max(np.abs(ng2.npairs - ng0.npairs)))
@@ -271,9 +272,9 @@ def test_twod_singlebin():
     np.testing.assert_allclose(ng2.npairs, ng0.npairs, rtol=1.e-2)
     np.testing.assert_allclose(ng2.xi, ng0.xi, atol=5.e-4)
 
-    kg1 = treecorr.KGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=1.e-10, max_top=0)
+    kg1 = treecorr.KGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=1.e-10)
     t0 = time.time()
-    kg1.process(cat, cat, num_threads=1)
+    kg1.process(cat, cat)
     t1 = time.time()
     print('t for bs=1.e-10 = ',t1-t0)
     print('ng0.xi = ',ng0.xi)
@@ -287,7 +288,7 @@ def test_twod_singlebin():
 
     kg2 = treecorr.KGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0.1)
     t0 = time.time()
-    kg2.process(cat, cat, num_threads=1)
+    kg2.process(cat, cat)
     t1 = time.time()
     print('t for bs=0.1 = ',t1-t0)
     print('max abs diff npairs = ',np.max(np.abs(kg2.npairs - ng0.npairs)))

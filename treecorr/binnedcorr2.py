@@ -280,6 +280,8 @@ class BinnedCorr2(object):
             self.rnom = numpy.exp(self.logr)
             self._nbins = self.nbins
             self._bintype = treecorr._lib.Log
+            target_max_b = 0.1
+            bwarning_text = "b <= 0.1"
         elif bin_type == 'TwoD':
             if self.nbins is None:
                 self.nbins = int(math.ceil(2.*self.max_sep / self.bin_size))
@@ -299,6 +301,8 @@ class BinnedCorr2(object):
             self.logr[self.rnom==0.] = -numpy.inf
             self._nbins = self.nbins**2
             self._bintype = treecorr._lib.TwoD
+            target_max_b = 0.1 * self.bin_size
+            bwarning_text = "bin_slop <= 0.1"
         else:
             raise ValueError("bin_type %s not implemented yet."%bin_type)
 
@@ -322,17 +326,17 @@ class BinnedCorr2(object):
 
         self.bin_slop = treecorr.config.get(self.config,'bin_slop',float,-1.0)
         if self.bin_slop < 0.0:
-            if self.bin_size <= 0.1:
+            if self.bin_size <= target_max_b:
                 self.bin_slop = 1.0
             else:
-                self.bin_slop = 0.1/self.bin_size
+                self.bin_slop = target_max_b/self.bin_size
         self.b = self.bin_size * self.bin_slop
-        if self.b > 0.100001:  # Add some numerical slop
+        if self.b > target_max_b * 1.0001:  # Add some numerical slop
             self.logger.warning(
                     "Using bin_slop = %g, bin_size = %g\n"%(self.bin_slop,self.bin_size)+
                     "The b parameter is bin_slop * bin_size = %g\n"%(self.b)+
-                    "It is generally recommended to use b <= 0.1 for most applications.\n"+
-                    "Larger values of this b parameter may result in significant inaccuracies.")
+                    "It is generally recommended to use %s for most applications.\n"%bwarning_text+
+                    "Larger values of bin_slop may result in significant inaccuracies.")
         else:
             self.logger.debug("Using bin_slop = %g, b = %g",self.bin_slop,self.b)
 

@@ -65,7 +65,7 @@ def test_twod():
 
     # N random points in 2 dimensions
     np.random.seed(42)
-    N = 1000
+    N = 200
     x = np.random.uniform(-20, 20, N)
     y = np.random.uniform(-20, 20, N)
     
@@ -201,15 +201,15 @@ def test_twod_singlebin():
 
     # N random points in 2 dimensions
     np.random.seed(42)
-    N = 10000
+    N = 5000
     x = np.random.uniform(-20, 20, N)
     y = np.random.uniform(-20, 20, N)
     g1 = np.random.uniform(-0.2, 0.2, N)
     g2 = np.random.uniform(-0.2, 0.2, N)
-    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
+    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=10.*np.ones_like(x))
 
     max_sep = 21.
-    nbins = 11  # Use very chunky bins, so more pairs of non-leaf cells can fall in single bin.
+    nbins = 5  # Use very chunky bins, so more pairs of non-leaf cells can fall in single bin.
 
     # First use bin_slop=0 for reference
     gg0 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0, max_top=0)
@@ -225,28 +225,78 @@ def test_twod_singlebin():
     t1 = time.time()
     print('t for bs=1.e-10 = ',t1-t0)
     print('max abs diff xip = ',np.max(np.abs(gg1.xip - gg0.xip)))
-    print('max rel diff xip = ',np.max(np.abs(gg1.xip - gg0.xip)/np.abs(gg0.xip)))
     print('max abs diff xim = ',np.max(np.abs(gg1.xim - gg0.xim)))
-    print('max rel diff xim = ',np.max(np.abs(gg1.xim - gg0.xim)/np.abs(gg0.xim)))
     np.testing.assert_array_equal(gg1.npairs, gg0.npairs)
     np.testing.assert_allclose(gg1.xip, gg0.xip, atol=1.e-10)
-    np.testing.assert_allclose(gg1.xim, gg0.xim, atol=3.e-5)
+    np.testing.assert_allclose(gg1.xim, gg0.xim, atol=1.e-5)
 
     # Now do bin_slop = 0.1
-    gg1 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0.1)
+    gg2 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0.1)
     t0 = time.time()
-    gg1.process(cat, num_threads=1)
+    gg2.process(cat, num_threads=1)
     t1 = time.time()
     print('t for bs=0.1 = ',t1-t0)
-    print('max abs diff npairs = ',np.max(np.abs(gg1.npairs - gg0.npairs)))
-    print('max rel diff npairs = ',np.max(np.abs(gg1.npairs - gg0.npairs)/np.abs(gg0.npairs)))
-    print('max abs diff xip = ',np.max(np.abs(gg1.xip - gg0.xip)))
-    print('max rel diff xip = ',np.max(np.abs(gg1.xip - gg0.xip)/np.abs(gg0.xip)))
-    print('max abs diff xim = ',np.max(np.abs(gg1.xim - gg0.xim)))
-    print('max rel diff xim = ',np.max(np.abs(gg1.xim - gg0.xim)/np.abs(gg0.xim)))
-    np.testing.assert_allclose(gg1.npairs, gg0.npairs, rtol=3.e-3)
-    np.testing.assert_allclose(gg1.xip, gg0.xip, atol=1.e-4)
-    np.testing.assert_allclose(gg1.xim, gg0.xim, atol=1.e-4)
+    print('max abs diff npairs = ',np.max(np.abs(gg2.npairs - gg0.npairs)))
+    print('max rel diff npairs = ',np.max(np.abs(gg2.npairs - gg0.npairs)/np.abs(gg0.npairs)))
+    print('max abs diff xip = ',np.max(np.abs(gg2.xip - gg0.xip)))
+    print('max abs diff xim = ',np.max(np.abs(gg2.xim - gg0.xim)))
+    np.testing.assert_allclose(gg2.npairs, gg0.npairs, rtol=3.e-3)
+    np.testing.assert_allclose(gg2.xip, gg0.xip, atol=1.e-4)
+    np.testing.assert_allclose(gg2.xim, gg0.xim, atol=1.e-4)
+
+    # Repeat with NG and KG so we can test those routines too.
+    ng0 = treecorr.NGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0, max_top=0)
+    t0 = time.time()
+    ng0.process(cat, cat, num_threads=1)
+    t1 = time.time()
+    print('t for bs=0 = ',t1-t0)
+
+    ng1 = treecorr.NGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=1.e-10, max_top=0)
+    t0 = time.time()
+    ng1.process(cat, cat, num_threads=1)
+    t1 = time.time()
+    print('t for bs=1.e-10 = ',t1-t0)
+    print('max abs diff ng.xi = ',np.max(np.abs(ng1.xi - ng0.xi)))
+    np.testing.assert_array_equal(ng1.npairs, ng0.npairs)
+    np.testing.assert_allclose(ng1.xi, ng0.xi, atol=2.e-4)
+
+    ng2 = treecorr.NGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0.1)
+    t0 = time.time()
+    ng2.process(cat, cat, num_threads=1)
+    t1 = time.time()
+    print('t for bs=0.1 = ',t1-t0)
+    print('max abs diff npairs = ',np.max(np.abs(ng2.npairs - ng0.npairs)))
+    print('max rel diff npairs = ',np.max(np.abs(ng2.npairs - ng0.npairs)/np.abs(ng0.npairs)))
+    print('max abs diff ng.xi = ',np.max(np.abs(ng2.xi - ng0.xi)))
+    np.testing.assert_allclose(ng2.npairs, ng0.npairs, rtol=1.e-2)
+    np.testing.assert_allclose(ng2.xi, ng0.xi, atol=5.e-4)
+
+    kg1 = treecorr.KGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=1.e-10, max_top=0)
+    t0 = time.time()
+    kg1.process(cat, cat, num_threads=1)
+    t1 = time.time()
+    print('t for bs=1.e-10 = ',t1-t0)
+    print('ng0.xi = ',ng0.xi)
+    print('ng1.xi = ',ng1.xi)
+    print('kg1.xi = ',kg1.xi)
+    print('max abs diff kg.xi = ',np.max(np.abs(kg1.xi - 10.*ng0.xi)))
+    np.testing.assert_array_equal(kg1.npairs, ng0.npairs)
+    np.testing.assert_allclose(kg1.xi, 10.*ng0.xi, atol=2.e-3)
+    np.testing.assert_array_equal(kg1.npairs, ng1.npairs)
+    np.testing.assert_allclose(kg1.xi, 10.*ng1.xi, atol=1.e-10)
+
+    kg2 = treecorr.KGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0.1)
+    t0 = time.time()
+    kg2.process(cat, cat, num_threads=1)
+    t1 = time.time()
+    print('t for bs=0.1 = ',t1-t0)
+    print('max abs diff npairs = ',np.max(np.abs(kg2.npairs - ng0.npairs)))
+    print('max rel diff npairs = ',np.max(np.abs(kg2.npairs - ng0.npairs)/np.abs(ng0.npairs)))
+    print('max abs diff kg.xi = ',np.max(np.abs(kg2.xi - 10.*ng0.xi)))
+    np.testing.assert_allclose(kg2.npairs, ng0.npairs, rtol=1.e-2)
+    np.testing.assert_allclose(kg2.xi, 10.*ng0.xi, atol=5.e-3)
+    np.testing.assert_array_equal(kg2.npairs, ng2.npairs)
+    np.testing.assert_allclose(kg2.xi, 10.*ng2.xi, atol=1.e-10)
 
 if __name__ == '__main__':
     test_twod()

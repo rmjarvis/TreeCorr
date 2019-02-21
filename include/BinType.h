@@ -217,10 +217,10 @@ struct BinTypeHelper<TwoD>
         // If s1+s2 > 0.5 * (binsize + b), then the total leakage (on both sides perhaps)
         // will be more than b.  I.e. too much slop.
         if (s1ps2 > 0.5 * (binsize + b)) {
-            dbg<<s1ps2<<" > 0.5 * ("<<binsize<<" + "<<b<<")\n";
+            xdbg<<s1ps2<<" > 0.5 * ("<<binsize<<" + "<<b<<")\n";
             return false;
         }
-        dbg<<"Possible single bin case: "<<std::endl;
+        xdbg<<"Possible single bin case: "<<std::endl;
 
         // Now there is a chance they could fit, depending on the exact position relative
         // to the bin center.
@@ -228,17 +228,24 @@ struct BinTypeHelper<TwoD>
         double dy = p2.getY() - p1.getY();
         double ii = (dx + maxsep) / binsize;
         double jj = (dy + maxsep) / binsize;
-        dbg<<"dx,dy = "<<dx<<"  "<<dy<<std::endl;
-        dbg<<"ii,jj = "<<ii<<"  "<<jj<<std::endl;
+        xdbg<<"dx,dy = "<<dx<<"  "<<dy<<std::endl;
+        xdbg<<"ii,jj = "<<ii<<"  "<<jj<<std::endl;
 
         int i = int(ii);
         int j = int(jj);
-        dbg<<"ii, i = "<<ii<<", "<<i<<std::endl;
-        dbg<<"i1 = "<<int(ii - s1ps2/binsize)<<std::endl;
-        dbg<<"i2 = "<<int(ii + s1ps2/binsize)<<std::endl;
-        dbg<<"jj, j = "<<jj<<", "<<j<<std::endl;
-        dbg<<"j1 = "<<int(jj - s1ps2/binsize)<<std::endl;
-        dbg<<"j2 = "<<int(jj + s1ps2/binsize)<<std::endl;
+        xdbg<<"ii, i = "<<ii<<", "<<i<<std::endl;
+        xdbg<<"i1 = "<<int(ii - s1ps2/binsize)<<std::endl;
+        xdbg<<"i2 = "<<int(ii + s1ps2/binsize)<<std::endl;
+        xdbg<<"jj, j = "<<jj<<", "<<j<<std::endl;
+        xdbg<<"j1 = "<<int(jj - s1ps2/binsize)<<std::endl;
+        xdbg<<"j2 = "<<int(jj + s1ps2/binsize)<<std::endl;
+
+        // With TwoD, we need to be careful about the central bin, which includes d==0.
+        // We want to make sure to exclude pairs that are really one point repeated.
+        // So if s1ps2 > 0 (which is the case at this point) and we are in this bin, then
+        // return false so it can recurse down to exclude these non-pairs.
+        int mid = int(maxsep/binsize);
+        if (i == mid && j == mid) return false;
 
         // Check how much ii,jj can change for x,y +- s1ps2
         // This is simpler than the Log case, because we don't have to try to avoid
@@ -251,7 +258,7 @@ struct BinTypeHelper<TwoD>
         int n = int(2*maxsep / binsize+0.5);
         k = j*n + i;
         logr = 0.5*std::log(dsq);
-        dbg<<"Single bin returning true: "<<dx<<','<<dy<<','<<s1ps2<<','<<binsize<<std::endl;
+        xdbg<<"Single bin returning true: "<<dx<<','<<dy<<','<<s1ps2<<','<<binsize<<std::endl;
         return true;
     }
 };

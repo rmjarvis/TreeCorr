@@ -1,5 +1,6 @@
 import numpy as np
 import treecorr
+import time
 from scipy.spatial.distance import pdist, squareform
 
 def get_correlation_length_matrix(size, e1, e2):
@@ -119,7 +120,6 @@ def test_twod():
     # NB. Testing that min_sep = 0 is default
     kk = treecorr.KKCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0)
     kk.process(cat2, cat2)
-
     print('max abs diff = ',np.max(np.abs(kk.xi - xi_brut)))
     print('max rel diff = ',np.max(np.abs(kk.xi - xi_brut)/np.abs(kk.xi)))
     np.testing.assert_allclose(kk.xi, xi_brut, atol=1.e-7)
@@ -195,6 +195,59 @@ def test_twod():
     # admit I would prefer if we had a real test of these other two pairs, along with
     # xi- for GG.
 
-    
+def test_twod_singlebin():
+
+    # Test the singleBin function for TwoD bintype.
+
+    # N random points in 2 dimensions
+    np.random.seed(42)
+    N = 10000
+    x = np.random.uniform(-20, 20, N)
+    y = np.random.uniform(-20, 20, N)
+    g1 = np.random.uniform(-0.2, 0.2, N)
+    g2 = np.random.uniform(-0.2, 0.2, N)
+    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
+
+    max_sep = 21.
+    nbins = 11  # Use very chunky bins, so more pairs of non-leaf cells can fall in single bin.
+
+    # First use bin_slop=0 for reference
+    gg0 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0, max_top=0)
+    t0 = time.time()
+    gg0.process(cat, num_threads=1)
+    t1 = time.time()
+    print('t for bs=0 = ',t1-t0)
+
+    # Now do bin_slop << 1, but not 0.
+    gg1 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=1.e-10, max_top=0)
+    t0 = time.time()
+    gg1.process(cat, num_threads=1)
+    t1 = time.time()
+    print('t for bs=1.e-10 = ',t1-t0)
+    print('max abs diff xip = ',np.max(np.abs(gg1.xip - gg0.xip)))
+    print('max rel diff xip = ',np.max(np.abs(gg1.xip - gg0.xip)/np.abs(gg0.xip)))
+    print('max abs diff xim = ',np.max(np.abs(gg1.xim - gg0.xim)))
+    print('max rel diff xim = ',np.max(np.abs(gg1.xim - gg0.xim)/np.abs(gg0.xim)))
+    np.testing.assert_array_equal(gg1.npairs, gg0.npairs)
+    np.testing.assert_allclose(gg1.xip, gg0.xip, atol=1.e-10)
+    np.testing.assert_allclose(gg1.xim, gg0.xim, atol=3.e-5)
+
+    # Now do bin_slop = 0.1
+    gg1 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0.1)
+    t0 = time.time()
+    gg1.process(cat, num_threads=1)
+    t1 = time.time()
+    print('t for bs=0.1 = ',t1-t0)
+    print('max abs diff npairs = ',np.max(np.abs(gg1.npairs - gg0.npairs)))
+    print('max rel diff npairs = ',np.max(np.abs(gg1.npairs - gg0.npairs)/np.abs(gg0.npairs)))
+    print('max abs diff xip = ',np.max(np.abs(gg1.xip - gg0.xip)))
+    print('max rel diff xip = ',np.max(np.abs(gg1.xip - gg0.xip)/np.abs(gg0.xip)))
+    print('max abs diff xim = ',np.max(np.abs(gg1.xim - gg0.xim)))
+    print('max rel diff xim = ',np.max(np.abs(gg1.xim - gg0.xim)/np.abs(gg0.xim)))
+    np.testing.assert_allclose(gg1.npairs, gg0.npairs, rtol=3.e-3)
+    np.testing.assert_allclose(gg1.xip, gg0.xip, atol=1.e-4)
+    np.testing.assert_allclose(gg1.xim, gg0.xim, atol=1.e-4)
+
 if __name__ == '__main__':
     test_twod()
+    test_twod_singlebin()

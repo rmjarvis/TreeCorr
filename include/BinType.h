@@ -200,17 +200,60 @@ struct BinTypeHelper<TwoD>
                           double logminsep, double minsep, double maxsep,
                           int& k, double& logr)
     {
+        xdbg<<"singleBin: "<<dsq<<"  "<<s1ps2<<std::endl;
+
         // Standard stop splitting criterion.
+        // s1 + s2 <= b
         if (s1ps2 <= b) {
+            xdbg<<"Normal stop\n";
             logr = 0.5*std::log(dsq);
-            k = int((logr - logminsep) / binsize);
+            k = calculateBinK(p1,p2,0.,0.,binsize,0.,maxsep);
             return true;
         }
 
-        return false;
+        // b = 0 means recurse all the way to the leaves.
+        if (b == 0) return false;
+
+        // If s1+s2 > 0.5 * (binsize + b), then the total leakage (on both sides perhaps)
+        // will be more than b.  I.e. too much slop.
+        if (s1ps2 > 0.5 * (binsize + b)) {
+            dbg<<s1ps2<<" > 0.5 * ("<<binsize<<" + "<<b<<")\n";
+            return false;
+        }
+        dbg<<"Possible single bin case: "<<std::endl;
+
+        // Now there is a chance they could fit, depending on the exact position relative
+        // to the bin center.
+        double dx = p2.getX() - p1.getX();
+        double dy = p2.getY() - p1.getY();
+        double ii = (dx + maxsep) / binsize;
+        double jj = (dy + maxsep) / binsize;
+        dbg<<"dx,dy = "<<dx<<"  "<<dy<<std::endl;
+        dbg<<"ii,jj = "<<ii<<"  "<<jj<<std::endl;
+
+        int i = int(ii);
+        int j = int(jj);
+        dbg<<"ii, i = "<<ii<<", "<<i<<std::endl;
+        dbg<<"i1 = "<<int(ii - s1ps2/binsize)<<std::endl;
+        dbg<<"i2 = "<<int(ii + s1ps2/binsize)<<std::endl;
+        dbg<<"jj, j = "<<jj<<", "<<j<<std::endl;
+        dbg<<"j1 = "<<int(jj - s1ps2/binsize)<<std::endl;
+        dbg<<"j2 = "<<int(jj + s1ps2/binsize)<<std::endl;
+
+        // Check how much ii,jj can change for x,y +- s1ps2
+        // This is simpler than the Log case, because we don't have to try to avoid
+        // gratuitous log function calls.
+        if (ii - s1ps2/binsize < i) return false;
+        if (ii + s1ps2/binsize >= i+1) return false;
+        if (jj - s1ps2/binsize < j) return false;
+        if (jj + s1ps2/binsize >= j+1) return false;
+
+        int n = int(2*maxsep / binsize+0.5);
+        k = j*n + i;
+        logr = 0.5*std::log(dsq);
+        dbg<<"Single bin returning true: "<<dx<<','<<dy<<','<<s1ps2<<','<<binsize<<std::endl;
+        return true;
     }
-
-
 };
 
 

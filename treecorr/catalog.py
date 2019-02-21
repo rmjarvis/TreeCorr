@@ -605,7 +605,7 @@ class Catalog(object):
                                           'Setting w=0 for these points.')
                         self.w[self.wpos == 0.] = 0.
                 else:
-                    self.logger.warn('Some wpos values are zero, setting w=0 for these points.')
+                    self.logger.warning('Some wpos values are zero, setting w=0 for these points.')
                     self.w[self.wpos == 0.] = 0.
 
         if self.ra is not None:
@@ -648,8 +648,8 @@ class Catalog(object):
             if len(col.shape) != 1:
                 s = col.shape
                 col = col.reshape(-1)
-                self.logger.warn("Warning: Input %s column was not 1-d.",col_str)
-                self.logger.warn("         Reshaping from %s to %s",s,col.shape)
+                self.logger.warning("Warning: Input %s column was not 1-d.\n"%col_str +
+                                    "         Reshaping from %s to %s"%(s,col.shape))
         return col
 
 
@@ -662,8 +662,8 @@ class Catalog(object):
         """
         if col is not None and any(numpy.isnan(col)):
             index = numpy.where(numpy.isnan(col))[0]
-            self.logger.warn("Warning: NaNs found in %s column.  Skipping rows %s.",
-                             col_str,str(index.tolist()))
+            self.logger.warning("Warning: NaNs found in %s column.  Skipping rows %s."%(
+                                col_str,str(index.tolist())))
             if self.w is None:
                 self.w = numpy.ones_like(col, dtype=float)
             self.w[index] = 0
@@ -700,9 +700,9 @@ class Catalog(object):
                                        header=None, skiprows=skip)
             data = data.dropna(axis=0).values
         except ImportError:
-            self.logger.warn("Unable to import pandas..  Using numpy.genfromtxt instead.")
-            self.logger.warn("Installing pandas is recommended for increased speed when "+
-                             "reading ASCII catalogs.")
+            self.logger.warning("Unable to import pandas..  Using numpy.genfromtxt instead.\n"+
+                                "Installing pandas is recommended for increased speed when "+
+                                "reading ASCII catalogs.")
             data = numpy.genfromtxt(file_name, comments=comment_marker, delimiter=delimiter)
 
         self.logger.debug('read data from %s, num=%d',file_name,num)
@@ -798,9 +798,9 @@ class Catalog(object):
                 if isGColRequired(self.orig_config,num):
                     raise AttributeError("g1_col, g2_col are invalid for file %s"%file_name)
                 else:
-                    self.logger.warn("Warning: skipping g1_col, g2_col for %s, num=%d",
-                                     file_name,num)
-                    self.logger.warn("because they are invalid, but unneeded.")
+                    self.logger.warning("Warning: skipping g1_col, g2_col for %s, num=%d "%(
+                                        file_name,num) +
+                                        "because they are invalid, but unneeded.")
             else:
                 self.g1 = data[:,g1_col-1].astype(float)
                 self.logger.debug('read g1 = %s',str(self.g1))
@@ -813,8 +813,8 @@ class Catalog(object):
                 if isKColRequired(self.orig_config,num):
                     raise AttributeError("k_col is invalid for file %s"%file_name)
                 else:
-                    self.logger.warn("Warning: skipping k_col for %s, num=%d",file_name,num)
-                    self.logger.warn("because it is invalid, but unneeded.")
+                    self.logger.warning("Warning: skipping k_col for %s, num=%d "%(file_name,num)+
+                                        "because it is invalid, but unneeded.")
             else:
                 self.k = data[:,k_col-1].astype(float)
                 self.logger.debug('read k = %s',str(self.k))
@@ -955,9 +955,9 @@ class Catalog(object):
                     if isGColRequired(self.orig_config,num):
                         raise AttributeError("g1_col, g2_col are invalid for file %s"%file_name)
                     else:
-                        self.logger.warn("Warning: skipping g1_col, g2_col for %s, num=%d",
-                                        file_name,num)
-                        self.logger.warn("because they are invalid, but unneeded.")
+                        self.logger.warning("Warning: skipping g1_col, g2_col for %s, num=%d "%(
+                                            file_name,num) +
+                                            "because they are invalid, but unneeded.")
                 else:
                     self.g1 = fits[g1_hdu].read_column(g1_col).astype(float)
                     self.logger.debug('read g1 = %s',str(self.g1))
@@ -971,8 +971,9 @@ class Catalog(object):
                     if isKColRequired(self.orig_config,num):
                         raise AttributeError("k_col is invalid for file %s"%file_name)
                     else:
-                        self.logger.warn("Warning: skipping k_col for %s, num=%d",file_name,num)
-                        self.logger.warn("because it is invalid, but unneeded.")
+                        self.logger.warning("Warning: skipping k_col for %s, num=%d "%(
+                                            file_name,num)+
+                                            "because it is invalid, but unneeded.")
                 else:
                     self.k = fits[k_hdu].read_column(k_col).astype(float)
                     self.logger.debug('read k = %s',str(self.k))
@@ -1273,8 +1274,8 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
         with open(list_file,'r') as fin:
             file_names = [ f.strip() for f in fin ]
         if len(file_names) == 0:
-            logger.warn('Warning: %s provided, but no names were read from the file %s',
-                        list_key, list_file)
+            logger.warning("Warning: %s provided, but no names were read from the file %s"%(
+                           list_key, list_file))
             return []
     else:
         # If this key was required (i.e. file_name) then let the caller check this.
@@ -1287,7 +1288,7 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
     if not isinstance(file_names,list):
         file_names = file_names.split()
         if len(file_names) == 0:
-            logger.warn('Warning: %s provided, but it seems to be an empty string',key)
+            logger.warning("Warning: %s provided, but it seems to be an empty string"%(key))
             return []
     return [ Catalog(file_name, config, num, logger, is_rand) for file_name in file_names ]
 

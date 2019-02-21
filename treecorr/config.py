@@ -207,8 +207,8 @@ def check_config(config, params, aliases=None, logger=None):
         # Check if this is a deprecated alias
         if aliases and key in aliases:
             if logger:
-                logger.warn("The parameter %s is deprecated.  You should use %s instead.",
-                            key, aliases[key])
+                logger.warning("The parameter %s is deprecated.  You should use %s instead."%(
+                               key, aliases[key]))
             new_key = aliases[key]
             config[new_key] = config[key]
             del config[key]
@@ -415,7 +415,7 @@ def set_omp_threads(num_threads, logger=None):
             logger.info('Using %d threads.',num_threads)
         elif input_num_threads is not None and input_num_threads != 1:
             # Only warn if the user specifically asked for num_threads != 1.
-            logger.warn('Unable to use multiple threads, since OpenMP is not enabled.')
+            logger.warning("Unable to use multiple threads, since OpenMP is not enabled.")
 
     return num_threads
 

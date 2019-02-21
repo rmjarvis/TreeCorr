@@ -370,8 +370,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
                 rdw = self.tot / rd.tot
                 xi = (self.weight - rd.weight * rdw - dr.weight * drw + rr.weight * rrw)
         if numpy.any(rr.weight == 0):
-            self.logger.warn("Warning: Some bins for the randoms had no pairs.")
-            self.logger.warn("         Probably max_sep is larger than your field.")
+            self.logger.warning("Warning: Some bins for the randoms had no pairs.\n"+
+                                "         Probably max_sep is larger than your field.")
         mask1 = rr.weight != 0
         mask2 = rr.weight == 0
         xi[mask1] /= (rr.weight[mask1] * rrw)

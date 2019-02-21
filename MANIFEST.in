@@ -1,4 +1,8 @@
 include *.rst
 include TreeCorr_LICENSE
+include sample_config.yaml
 recursive-include treecorr *.h *.py *.so
-include tests/*.py
+recursive-include src *.cpp
+recursive-include include *.h
+recursive-include tests *.py *.ipynb *.yaml *.json *.config
+recursive-include scripts *

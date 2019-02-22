@@ -153,6 +153,7 @@ class BinnedCorr3(object):
 
                         - 'Log' - logarithmic binning in the distance.  The bin steps will be
                           uniform in log(r) from log(min_sep) .. log(max_sep).
+
                         (default: 'Log')
 
                         Note: u and v are always binned linearly.

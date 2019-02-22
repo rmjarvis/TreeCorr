@@ -34,6 +34,7 @@ extensions = [
     'sphinx.ext.mathjax',
     #'sphinx.ext.autosummary',
     'sphinx.ext.viewcode',
+    'sphinx.ext.autosectionlabel',
 ]
 
 # cf. http://stackoverflow.com/questions/2701998/sphinx-autodoc-is-not-automatic-enough

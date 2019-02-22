@@ -10,6 +10,7 @@ TreeCorr Documentation
    catalog
    field
    metric
+   bintype
    correlation2
    correlation3
    celestial

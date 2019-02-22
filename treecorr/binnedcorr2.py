@@ -129,6 +129,7 @@ class BinnedCorr2(object):
                           in the pair (taken to be a lens) to the line of sight to the second
                           point (e.g. a lensed source galaxy).
                         - 'Arc' = the true great circle distance for spherical coordinates.
+
                         (default: 'Euclidean')
 
     :param bin_type:    What type of binning should be used.  Options are:
@@ -140,6 +141,7 @@ class BinnedCorr2(object):
                         - 'TwoD' = 2-dimensional binning from x = (-max_sep .. max_sep) and
                           y = (-max_sep .. max_sep).  The bin steps will be uniform in both
                           x and y.  (i.e. linear in x,y)
+
                         (default: 'Log')
 
     :param min_rpar:    For the 'Rperp' metric, the minimum difference in Rparallel to allow

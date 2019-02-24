@@ -78,11 +78,11 @@ struct MetricHelper<Euclidean>
     // don't reject cell pairs prematurely.  For this and most metrics, these two checks
     // are trivially true (since only get here if the regular check passes).
     static bool tooSmallDist(const Position<Flat>& p1, const Position<Flat>& p2,
-                             double dsq, double rpar, double s1ps2, double minsepsq)
+                             double rsq, double rpar, double s1ps2, double minsepsq)
     { return true; }
 
     static bool tooLargeDist(const Position<Flat>& p1, const Position<Flat>& p2,
-                             double dsq, double rpar, double s1ps2, double maxsepsq)
+                             double rsq, double rpar, double s1ps2, double maxsepsq)
     { return true; }
 
 
@@ -122,11 +122,11 @@ struct MetricHelper<Euclidean>
     { return false; }
 
     static bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                             double dsq, double rpar, double s1ps2, double minsepsq)
+                             double rsq, double rpar, double s1ps2, double minsepsq)
     { return true; }
 
     static bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                             double dsq, double rpar, double s1ps2, double maxsepsq)
+                             double rsq, double rpar, double s1ps2, double maxsepsq)
     { return true; }
 
 };
@@ -145,7 +145,7 @@ struct MetricHelper<Perp>
     {
         // r_perp^2 + r_parallel^2 = d^2
         Position<ThreeD> r = p1-p2;
-        double dsq = r.normSq();
+        double d3sq = r.normSq();
         double r1sq = p1.normSq();
         double r2sq = p2.normSq();
         // r_parallel^2 = (r1-r2)^2 = r1^2 + r2^2 - 2r1r2
@@ -184,7 +184,7 @@ struct MetricHelper<Perp>
         }
 
         // This can end up negative with rounding errors.  So take the abs value to be safe.
-        return std::abs(dsq - rparsq);
+        return std::abs(d3sq - rparsq);
     }
     static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
     {
@@ -241,11 +241,11 @@ struct MetricHelper<Perp>
     // rp'^2 < minsep^2
     // rp^2 + 2(d + |rpar|) s1ps2 < minsepsq
     static bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                             double dsq, double& rpar, double s1ps2, double minsepsq)
+                             double rsq, double& rpar, double s1ps2, double minsepsq)
     {
         if (rpar == 0.) rpar = calculateRPar(p1,p2); // This might not have been calculated.
-        double d3 = sqrt(SQR(rpar) + dsq);  // The 3d distance.  Remember dsq is really rp^2.
-        return dsq + 2.*(d3 + std::abs(rpar)) * s1ps2 < minsepsq;
+        double d3 = sqrt(SQR(rpar) + rsq);  // The 3d distance.  Remember rsq is really rp^2.
+        return rsq + 2.*(d3 + std::abs(rpar)) * s1ps2 < minsepsq;
     }
 
     // This one is similar.  The minimum possible rp can be smaller than just (rp - s1ps2).
@@ -255,11 +255,11 @@ struct MetricHelper<Perp>
     // rp'^2 > maxsep^2
     // rp^2 - 2(d + |rpar|) s1ps2 > maxsepsq
     static bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                             double dsq, double rpar, double s1ps2, double maxsepsq)
+                             double rsq, double rpar, double s1ps2, double maxsepsq)
     {
         if (rpar == 0.) rpar = calculateRPar(p1,p2); // This might not have been calculated.
-        double d3 = sqrt(SQR(rpar) + dsq);  // The 3d distance.  Remember dsq is really rp^2.
-        return dsq - 2.*(d3 + std::abs(rpar)) * s1ps2 > maxsepsq;
+        double d3 = sqrt(SQR(rpar) + rsq);  // The 3d distance.  Remember rsq is really rp^2.
+        return rsq - 2.*(d3 + std::abs(rpar)) * s1ps2 > maxsepsq;
     }
 
 };
@@ -294,9 +294,9 @@ struct MetricHelper<Lens>
         //      s2' = r1/r2 s2
         s2 *= r1/r2;
 
-        double dsq = 2. * p1.cross(p2).normSq() / (r2*r2) / (1.+costheta);
+        double rsq = 2. * p1.cross(p2).normSq() / (r2*r2) / (1.+costheta);
         // I don't think rounding can make this negative, but just to be safe...
-        return std::abs(dsq);
+        return std::abs(rsq);
     }
 
     static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
@@ -347,11 +347,11 @@ struct MetricHelper<Lens>
     // where we update s2 according to the relative distances.  So there is nothing further to
     // do here.
     static bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                             double dsq, double rpar, double s1ps2, double minsepsq)
+                             double rsq, double rpar, double s1ps2, double minsepsq)
     { return true; }
 
     static bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                             double dsq, double rpar, double s1ps2, double maxsepsq)
+                             double rsq, double rpar, double s1ps2, double maxsepsq)
     { return true; }
 };
 
@@ -393,11 +393,11 @@ struct MetricHelper<Arc>
     { return true; }
 
     static bool tooSmallDist(const Position<Sphere>& p1, const Position<Sphere>& p2,
-                             double dsq, double rpar, double s1ps2, double minsepsq)
+                             double rsq, double rpar, double s1ps2, double minsepsq)
     { return true; }
 
     static bool tooLargeDist(const Position<Sphere>& p1, const Position<Sphere>& p2,
-                             double dsq, double rpar, double s1ps2, double maxsepsq)
+                             double rsq, double rpar, double s1ps2, double maxsepsq)
     { return true; }
 
 };

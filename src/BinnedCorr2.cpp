@@ -570,6 +570,13 @@ void* BuildNNCorr(int bin_type,
                    0, 0, 0, 0,
                    meanr, meanlogr, weight, npairs));
             break;
+      case Linear:
+           corr = static_cast<void*>(new BinnedCorr2<NData,NData,Linear>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   0, 0, 0, 0,
+                   meanr, meanlogr, weight, npairs));
+            break;
       case TwoD:
            corr = static_cast<void*>(new BinnedCorr2<NData,NData,TwoD>(
                    minsep, maxsep, nbins, binsize, b,
@@ -595,6 +602,13 @@ void* BuildNKCorr(int bin_type,
     switch(bin_type) {
       case Log:
            corr = static_cast<void*>(new BinnedCorr2<NData,KData,Log>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   xi, 0, 0, 0,
+                   meanr, meanlogr, weight, npairs));
+           break;
+      case Linear:
+           corr = static_cast<void*>(new BinnedCorr2<NData,KData,Linear>(
                    minsep, maxsep, nbins, binsize, b,
                    minrpar, maxrpar,
                    xi, 0, 0, 0,
@@ -630,6 +644,13 @@ void* BuildNGCorr(int bin_type,
                    xi, xi_im, 0, 0,
                    meanr, meanlogr, weight, npairs));
            break;
+      case Linear:
+           corr = static_cast<void*>(new BinnedCorr2<NData,GData,Linear>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   xi, xi_im, 0, 0,
+                   meanr, meanlogr, weight, npairs));
+           break;
       case TwoD:
            corr = static_cast<void*>(new BinnedCorr2<NData,GData,TwoD>(
                    minsep, maxsep, nbins, binsize, b,
@@ -655,6 +676,13 @@ void* BuildKKCorr(int bin_type,
     switch(bin_type) {
       case Log:
            corr = static_cast<void*>(new BinnedCorr2<KData,KData,Log>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   xi, 0, 0, 0,
+                   meanr, meanlogr, weight, npairs));
+           break;
+      case Linear:
+           corr = static_cast<void*>(new BinnedCorr2<KData,KData,Linear>(
                    minsep, maxsep, nbins, binsize, b,
                    minrpar, maxrpar,
                    xi, 0, 0, 0,
@@ -690,6 +718,13 @@ void* BuildKGCorr(int bin_type,
                    xi, xi_im, 0, 0,
                    meanr, meanlogr, weight, npairs));
            break;
+      case Linear:
+           corr = static_cast<void*>(new BinnedCorr2<KData,GData,Linear>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   xi, xi_im, 0, 0,
+                   meanr, meanlogr, weight, npairs));
+           break;
       case TwoD:
            corr = static_cast<void*>(new BinnedCorr2<KData,GData,TwoD>(
                    minsep, maxsep, nbins, binsize, b,
@@ -720,6 +755,13 @@ void* BuildGGCorr(int bin_type,
                    xip, xip_im, xim, xim_im,
                    meanr, meanlogr, weight, npairs));
            break;
+      case Linear:
+           corr = static_cast<void*>(new BinnedCorr2<GData,GData,Linear>(
+                   minsep, maxsep, nbins, binsize, b,
+                   minrpar, maxrpar,
+                   xip, xip_im, xim, xim_im,
+                   meanr, meanlogr, weight, npairs));
+           break;
       case TwoD:
            corr = static_cast<void*>(new BinnedCorr2<GData,GData,TwoD>(
                    minsep, maxsep, nbins, binsize, b,
@@ -742,6 +784,9 @@ void DestroyNNCorr(void* corr, int bin_type)
       case Log:
            delete static_cast<BinnedCorr2<NData,NData,Log>*>(corr);
            break;
+      case Linear:
+           delete static_cast<BinnedCorr2<NData,NData,Linear>*>(corr);
+           break;
       case TwoD:
            delete static_cast<BinnedCorr2<NData,NData,TwoD>*>(corr);
            break;
@@ -757,6 +802,9 @@ void DestroyNKCorr(void* corr, int bin_type)
     switch(bin_type) {
       case Log:
            delete static_cast<BinnedCorr2<NData,KData,Log>*>(corr);
+           break;
+      case Linear:
+           delete static_cast<BinnedCorr2<NData,KData,Linear>*>(corr);
            break;
       case TwoD:
            delete static_cast<BinnedCorr2<NData,KData,TwoD>*>(corr);
@@ -774,6 +822,9 @@ void DestroyNGCorr(void* corr, int bin_type)
       case Log:
            delete static_cast<BinnedCorr2<NData,GData,Log>*>(corr);
            break;
+      case Linear:
+           delete static_cast<BinnedCorr2<NData,GData,Linear>*>(corr);
+           break;
       case TwoD:
            delete static_cast<BinnedCorr2<NData,GData,TwoD>*>(corr);
            break;
@@ -789,6 +840,9 @@ void DestroyKKCorr(void* corr, int bin_type)
     switch(bin_type) {
       case Log:
            delete static_cast<BinnedCorr2<KData,KData,Log>*>(corr);
+           break;
+      case Linear:
+           delete static_cast<BinnedCorr2<KData,KData,Linear>*>(corr);
            break;
       case TwoD:
            delete static_cast<BinnedCorr2<KData,KData,TwoD>*>(corr);
@@ -806,6 +860,9 @@ void DestroyKGCorr(void* corr, int bin_type)
       case Log:
            delete static_cast<BinnedCorr2<KData,GData,Log>*>(corr);
            break;
+      case Linear:
+           delete static_cast<BinnedCorr2<KData,GData,Linear>*>(corr);
+           break;
       case TwoD:
            delete static_cast<BinnedCorr2<KData,GData,TwoD>*>(corr);
            break;
@@ -821,6 +878,9 @@ void DestroyGGCorr(void* corr, int bin_type)
     switch(bin_type) {
       case Log:
            delete static_cast<BinnedCorr2<GData,GData,Log>*>(corr);
+           break;
+      case Linear:
+           delete static_cast<BinnedCorr2<GData,GData,Linear>*>(corr);
            break;
       case TwoD:
            delete static_cast<BinnedCorr2<GData,GData,TwoD>*>(corr);
@@ -868,6 +928,9 @@ void ProcessAuto2(void* corr, void* field, int dots, int coord, int bin_type, in
     switch(bin_type) {
       case Log:
            ProcessAuto2b(*(static_cast<BinnedCorr2<D,D,Log>*>(corr)), field, dots, coord, metric);
+           break;
+      case Linear:
+           ProcessAuto2b(*(static_cast<BinnedCorr2<D,D,Linear>*>(corr)), field, dots, coord, metric);
            break;
       case TwoD:
            ProcessAuto2b(*(static_cast<BinnedCorr2<D,D,TwoD>*>(corr)), field, dots, coord, metric);
@@ -944,6 +1007,10 @@ void ProcessCross2(void* corr, void* field1, void* field2, int dots, int coord,
     switch(bin_type) {
       case Log:
            ProcessCross2b(*static_cast<BinnedCorr2<D1,D2,Log>*>(corr), field1, field2,
+                          dots, coord, metric);
+           break;
+      case Linear:
+           ProcessCross2b(*static_cast<BinnedCorr2<D1,D2,Linear>*>(corr), field1, field2,
                           dots, coord, metric);
            break;
       case TwoD:
@@ -1046,6 +1113,10 @@ void ProcessPair2(void* corr, void* field1, void* field2, int dots, int coord,
     switch(bin_type) {
       case Log:
            ProcessPair2b(*static_cast<BinnedCorr2<D1,D2,Log>*>(corr), field1, field2,
+                         dots, coord, metric);
+           break;
+      case Linear:
+           ProcessPair2b(*static_cast<BinnedCorr2<D1,D2,Linear>*>(corr), field1, field2,
                          dots, coord, metric);
            break;
       case TwoD:

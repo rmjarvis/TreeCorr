@@ -139,6 +139,94 @@ struct BinTypeHelper<Log>
 
 };
 
+template <>
+struct BinTypeHelper<Linear>
+{
+    static bool doReverse() { return false; }
+
+    // For Linear binning, the test for when to stop splitting is s1+s2 < b.
+    // So the effective b is just b itself.
+    static double getEffectiveB(double r, double b)
+    { return b; }
+
+    static double getEffectiveBSq(double rsq, double bsq)
+    { return bsq; }
+
+    static double calculateFullMaxSep(double minsep, double maxsep, int nbins, double binsize)
+    { return maxsep; }
+
+    // These next few calculations are the same as Log.
+    template <int C>
+    static bool isRSqInRange(double rsq, const Position<C>& p1, const Position<C>& p2,
+                           double minsep, double minsepsq, double maxsep, double maxsepsq)
+    {
+        return rsq >= minsepsq && rsq < maxsepsq;
+    }
+    static bool tooSmallDist(double rsq, double s1ps2, double minsep, double minsepsq)
+    {
+        return rsq < minsepsq && s1ps2 < minsep && rsq < SQR(minsep - s1ps2);
+    }
+    static bool tooLargeDist(double rsq, double s1ps2, double maxsep, double maxsepsq)
+    {
+        return rsq >= maxsepsq && rsq >= SQR(maxsep + s1ps2);
+    }
+
+    // Binning in r, not logr here, natch.
+    template <int C>
+    static int calculateBinK(const Position<C>& p1, const Position<C>& p2,
+                             double r, double logr, double binsize,
+                             double minsep, double maxsep, double logminsep)
+    { return int((r - minsep) / binsize); }
+
+    template <int C>
+    static bool singleBin(double rsq, double s1ps2,
+                          const Position<C>& p1, const Position<C>& p2,
+                          double binsize, double b, double bsq,
+                          double minsep, double maxsep, double logminsep,
+                          int& ik, double& r, double& logr)
+    {
+        xdbg<<"singleBin: "<<rsq<<"  "<<s1ps2<<std::endl;
+
+        // Standard stop splitting criterion.
+        // s1 + s2 <= b
+        // Note: this automatically includes the s1ps2 == 0 case, so don't do it separately.
+        if (s1ps2 <= b) return true;
+
+        // b = 0 means recurse all the way to the leaves.
+        if (b == 0) return false;
+
+        // If s1+s2 > 0.5 * (binsize + b), then the total leakage (on both sides perhaps)
+        // will be more than b.  I.e. too much slop.
+        if (s1ps2 > 0.5 * (binsize + b)) return false;
+
+        // Now there is a chance they could fit, depending on the exact position relative
+        // to the bin center.
+        r = sqrt(rsq);
+        double kk = (r - minsep) / binsize;
+        ik = int(kk);
+        double frackk = kk - ik;
+        xdbg<<"kk, ik, frackk = "<<kk<<", "<<ik<<", "<<frackk<<std::endl;
+        xdbg<<"ik1 = "<<int( (r - s1ps2 - minsep) / binsize )<<std::endl;
+        xdbg<<"ik2 = "<<int( (r + s1ps2 - minsep) / binsize )<<std::endl;
+
+        // Check how much kk can change for r +- s1ps2
+        // If it can change by more than frackk+binslop/2 down or (1-frackk)+binslop/2 up,
+        // then too big.
+        // delta(kk) = s / binsize
+        // s / binsize > f + binslop
+        // s > f*binsize + binsize*binslop
+        // s > f*binsize + b
+        double f = std::min(frackk, 1.-frackk);
+        if (s1ps2 > f*binsize + b) return false;
+
+        XAssert(int( (r - s1ps2 - minsep) / binsize ) == ik);
+        XAssert(int( (r + s1ps2 - minsep) / binsize ) == ik);
+        logr = std::log(r);
+        return true;
+    }
+
+};
+
 // Note: The TwoD bin_type is only valid for the Flat Coord.
 template <>
 struct BinTypeHelper<TwoD>

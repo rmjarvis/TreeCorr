@@ -611,6 +611,130 @@ def test_direct_partial():
     numpy.testing.assert_array_equal(ddb.npairs, true_npairs)
 
 
+def test_direct_linear():
+    # This is the same as test_direct_3d, but using linear binning
+
+    ngal = 100
+    s = 10.
+    numpy.random.seed(8675309)
+    x1 = numpy.random.normal(312, s, (ngal,) )
+    y1 = numpy.random.normal(728, s, (ngal,) )
+    z1 = numpy.random.normal(-932, s, (ngal,) )
+    r1 = numpy.sqrt( x1*x1 + y1*y1 + z1*z1 )
+    dec1 = numpy.arcsin(z1/r1)
+    ra1 = numpy.arctan2(y1,x1)
+    cat1 = treecorr.Catalog(ra=ra1, dec=dec1, r=r1, ra_units='rad', dec_units='rad')
+
+    x2 = numpy.random.normal(312, s, (ngal,) )
+    y2 = numpy.random.normal(728, s, (ngal,) )
+    z2 = numpy.random.normal(-932, s, (ngal,) )
+    r2 = numpy.sqrt( x2*x2 + y2*y2 + z2*z2 )
+    dec2 = numpy.arcsin(z2/r2)
+    ra2 = numpy.arctan2(y2,x2)
+    cat2 = treecorr.Catalog(ra=ra2, dec=dec2, r=r2, ra_units='rad', dec_units='rad')
+
+    min_sep = 1.
+    max_sep = 50.
+    nbins = 49
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+                                bin_type='Linear')
+    dd.process(cat1, cat2)
+    print('dd.npairs = ',dd.npairs)
+
+    true_npairs = numpy.zeros(nbins)
+    bin_size = (max_sep - min_sep) / nbins
+    for i in range(ngal):
+        for j in range(ngal):
+            rsq = (x1[i]-x2[j])**2 + (y1[i]-y2[j])**2 + (z1[i]-z2[j])**2
+            r = numpy.sqrt(rsq)
+            k = int(numpy.floor( (r-min_sep) / bin_size ))
+            if k < 0: continue
+            if k >= nbins: continue
+            true_npairs[k] += 1
+
+    print('true_npairs = ',true_npairs)
+    print('diff = ',dd.npairs - true_npairs)
+    numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+
+    # Can also specify coords directly as x,y,z
+    cat1 = treecorr.Catalog(x=x1, y=y1, z=z1)
+    cat2 = treecorr.Catalog(x=x2, y=y2, z=z2)
+    dd.process(cat1, cat2)
+    numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+
+    # Check that running Linear binning via the corr2 script works correctly.
+    file_name1 = os.path.join('data','nn_linear_data1.dat')
+    with open(file_name1, 'w') as fid:
+        for i in range(ngal):
+            fid.write(('%.20f %.20f %.20f\n')%(x1[i],y1[i],z1[i]))
+    file_name2 = os.path.join('data','nn_linear_data2.dat')
+    with open(file_name2, 'w') as fid:
+        for i in range(ngal):
+            fid.write(('%.20f %.20f %.20f\n')%(x2[i],y2[i],z2[i]))
+    L = 10*s
+    nrand = ngal
+    rx1 = (numpy.random.random_sample(nrand)-0.5) * L
+    ry1 = (numpy.random.random_sample(nrand)-0.5) * L
+    rz1 = (numpy.random.random_sample(nrand)-0.5) * L
+    rx2 = (numpy.random.random_sample(nrand)-0.5) * L
+    ry2 = (numpy.random.random_sample(nrand)-0.5) * L
+    rz2 = (numpy.random.random_sample(nrand)-0.5) * L
+    rcat1 = treecorr.Catalog(x=rx1, y=ry1, z=rz1)
+    rcat2 = treecorr.Catalog(x=rx2, y=ry2, z=rz2)
+    rand_file_name1 = os.path.join('data','nn_linear_rand1.dat')
+    with open(rand_file_name1, 'w') as fid:
+        for i in range(nrand):
+            fid.write(('%.20f %.20f %.20f\n')%(rx1[i],ry1[i],rz1[i]))
+    rand_file_name2 = os.path.join('data','nn_linear_rand2.dat')
+    with open(rand_file_name2, 'w') as fid:
+        for i in range(nrand):
+            fid.write(('%.20f %.20f %.20f\n')%(rx2[i],ry2[i],rz2[i]))
+    rr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+                                bin_type='Linear', verbose=0)
+    rr.process(rcat1,rcat2)
+    xi, varxi = dd.calculateXi(rr)
+
+    config = treecorr.config.read_config('nn_linear.yaml')
+    logger = treecorr.config.setup_logger(0)
+    treecorr.corr2(config, logger)
+    corr2_output = numpy.genfromtxt(os.path.join('output','nn_linear.out'), names=True,
+                                    skip_header=1)
+    print('corr2_output = ',corr2_output)
+    print('corr2_output.dtype = ',corr2_output.dtype)
+    print('rnom = ',dd.rnom)
+    print('       ',corr2_output['R_nom'])
+    numpy.testing.assert_almost_equal(corr2_output['R_nom'], dd.rnom, decimal=3)
+    print('DD = ',dd.npairs)
+    print('     ',corr2_output['DD'])
+    numpy.testing.assert_almost_equal(corr2_output['DD'], dd.npairs, decimal=3)
+    numpy.testing.assert_almost_equal(corr2_output['npairs'], dd.npairs, decimal=3)
+    print('RR = ',rr.npairs)
+    print('     ',corr2_output['RR'])
+    numpy.testing.assert_almost_equal(corr2_output['RR'], rr.npairs, decimal=3)
+    print('xi = ',xi)
+    print('from corr2 output = ',corr2_output['xi'])
+    print('diff = ',corr2_output['xi']-xi)
+    diff_index = numpy.where(numpy.abs(corr2_output['xi']-xi) > 1.e-5)[0]
+    print('different at ',diff_index)
+    print('xi[diffs] = ',xi[diff_index])
+    print('corr2.xi[diffs] = ',corr2_output['xi'][diff_index])
+    print('diff[diffs] = ',xi[diff_index] - corr2_output['xi'][diff_index])
+    numpy.testing.assert_almost_equal(corr2_output['xi'], xi, decimal=3)
+
+    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=1.e-16,
+                                bin_type='Linear')
+    dd.process(cat1, cat2)
+    numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+
+    # And again with no top-level recursion
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=1.e-16,
+                                bin_type='Linear', max_top=0)
+    dd.process(cat1, cat2)
+    numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+
+
+
 def test_nn():
     # Use a simple probability distribution for the galaxies:
     #
@@ -1141,7 +1265,6 @@ def test_perp_minmax():
         numpy.testing.assert_almost_equal(corr2_output['xi']/xi1, 1., decimal=3)
 
 
-
 if __name__ == '__main__':
     test_binnedcorr2()
     test_direct_count()
@@ -1150,6 +1273,7 @@ if __name__ == '__main__':
     test_direct_lens()
     test_direct_arc()
     test_direct_partial()
+    test_direct_linear()
     test_nn()
     test_3d()
     test_list()

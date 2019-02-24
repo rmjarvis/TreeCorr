@@ -137,7 +137,7 @@ class BinnedCorr2(object):
                         - 'Log' - logarithmic binning in the distance.  The bin steps will be
                           uniform in log(r) from log(min_sep) .. log(max_sep).
                         - 'Linear' - linear binning in the distance.  The bin steps will be
-                          uniform in r from min_sep .. max_sep.  [NOT IMPLEMENTED YET]
+                          uniform in r from min_sep .. max_sep.
                         - 'TwoD' = 2-dimensional binning from x = (-max_sep .. max_sep) and
                           y = (-max_sep .. max_sep).  The bin steps will be uniform in both
                           x and y.  (i.e. linear in x,y)
@@ -284,6 +284,27 @@ class BinnedCorr2(object):
             self._bintype = treecorr._lib.Log
             target_max_b = 0.1
             bwarning_text = "b <= 0.1"
+        elif bin_type == 'Linear':
+            if self.nbins is None:
+                self.nbins = int(math.ceil((self.max_sep-self.min_sep)/self.bin_size))
+                # Update max_sep given this value of nbins
+                self.max_sep = self.min_sep + self.nbins*self.bin_size
+            elif self.bin_size is None:
+                self.bin_size = (self.max_sep-self.min_sep)/self.nbins
+            elif self.max_sep is None:
+                self.max_sep = self.min_sep + self.nbins*self.bin_size
+            else:
+                self.min_sep = self.max_sep - self.nbins*self.bin_size
+
+            self.rnom = numpy.linspace(self.min_sep, self.max_sep, self.nbins, endpoint=False,
+                                       dtype=float)
+            # Offset by the position of the center of the first bin.
+            self.rnom += 0.5*self.bin_size
+            self.logr = numpy.log(self.rnom)
+            self._nbins = self.nbins
+            self._bintype = treecorr._lib.Linear
+            target_max_b = 0.1 * self.bin_size
+            bwarning_text = "bin_slop <= 0.1"
         elif bin_type == 'TwoD':
             if self.nbins is None:
                 self.nbins = int(math.ceil(2.*self.max_sep / self.bin_size))
@@ -306,7 +327,7 @@ class BinnedCorr2(object):
             target_max_b = 0.1 * self.bin_size
             bwarning_text = "bin_slop <= 0.1"
         else:
-            raise ValueError("bin_type %s not implemented yet."%bin_type)
+            raise ValueError("Invalid bin_type %s")
 
         if self.sep_unit_name == '':
             self.logger.info("nbins = %d, min,max sep = %g..%g, bin_size = %g",

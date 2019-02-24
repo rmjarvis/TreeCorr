@@ -1,7 +1,9 @@
 from __future__ import print_function
 import sys,os,glob,re
 import select
-
+import tempfile
+import subprocess
+import shutil
 
 try:
     from setuptools import setup, Extension
@@ -24,7 +26,7 @@ except ImportError:
     print("Using distutils version",distutils.__version__)
 
 
-#from distutils.command.install_headers import install_headers 
+#from distutils.command.install_headers import install_headers
 
 try:
     from sysconfig import get_config_vars
@@ -69,13 +71,14 @@ if "--debug" in sys.argv:
     copt['clang'].append('-g')
     copt['clang w/ OpenMP'].append('-g')
 
+local_tmp = 'tmp'
+
 def get_compiler(cc):
     """Try to figure out which kind of compiler this really is.
     In particular, try to distinguish between clang and gcc, either of which may
     be called cc or gcc.
     """
     cmd = [cc,'--version']
-    import subprocess
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines = p.stdout.readlines()
     print('compiler version information: ')
@@ -97,9 +100,15 @@ def get_compiler(cc):
         # clang 3.7 is the first with openmp support.  But Apple lies about the version
         # number of clang, so the most reliable thing to do is to just try the compilation
         # with the openmp flag and see if it works.
+        print('Compiler is Clang.  Checking if it is a version that supports OpenMP.')
         if try_cc(cc, 'clang w/ OpenMP'):
+            print("Yay! This version of clang supports OpenMP!")
             return 'clang w/ OpenMP'
         else:
+            print("\nSorry.  This version of clang doesn't seem to support OpenMP.\n")
+            print("If you think it should, you can try the above commands on the command line.")
+            print("You might need to add something to your C_INCLUDE_PATH or LIBRARY_PATH")
+            print("(and probabaly LD_LIBRARY_PATH) to get it to work.\n")
             return 'clang'
     elif 'gcc' in line:
         return 'gcc'
@@ -113,14 +122,132 @@ def get_compiler(cc):
         return 'icc'
     else:
         # OK, the main thing we need to know is what openmp flag we need for this compiler,
-        # so let's just try the various options and see what works.  Don't try icc, since 
+        # so let's just try the various options and see what works.  Don't try icc, since
         # the -openmp flag there gets treated as '-o penmp' by gcc and clang, which is bad.
         # Plus, icc should be detected correctly by the above procedure anyway.
+        print('Unknown compiler.')
         for cc_type in ['gcc', 'clang']:
+            print('Check if the compiler works like ',cc_type)
             if try_cc(cc, cc_type):
                 return cc_type
         # I guess none of them worked.  Now we really do have to bail.
+        print("None of these compile options worked.  Not adding any optimization flags.")
         return 'unknown'
+
+
+def try_compile(cpp_code, cc, cflags=[], lflags=[]):
+    """Check if compiling some code with the given compiler and flags works properly.
+    """
+    # Put the temporary files in a local tmp directory, so that they stick around after failures.
+    if not os.path.exists(local_tmp): os.makedirs(local_tmp)
+
+    # We delete these manually if successful.  Otherwise, we leave them in the tmp directory
+    # so the user can troubleshoot the problem if they were expecting it to work.
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.cpp', dir=local_tmp) as cpp_file:
+        cpp_file.write(cpp_code.encode())
+        cpp_name = cpp_file.name
+
+    # Just get a named temporary file to write to:
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.os', dir=local_tmp) as o_file:
+        o_name = o_file.name
+
+    # Another named temporary file for the executable
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.exe', dir=local_tmp) as exe_file:
+        exe_name = exe_file.name
+
+    # Try compiling with the given flags
+    cmd = [cc] + cflags + ['-c',cpp_name,'-o',o_name]
+    #print('cmd = ',' '.join(cmd))
+    try:
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        lines = p.stdout.readlines()
+        p.communicate()
+        #print('output = ',b''.join(lines).decode())
+        if p.returncode != 0:
+            print('Trying compile command:')
+            print(' '.join(cmd))
+            print('Output was:')
+            print('   ',b'   '.join(lines).decode())
+        returncode = p.returncode
+    except (IOError,OSError) as e:
+        print('Trying compile command:')
+        print(' '.join(cmd))
+        print('Caught error: ',repr(e))
+        returncode = 1
+    if returncode != 0:
+        # Don't delete files in case helpful for troubleshooting.
+        return False
+
+    # Link
+    cmd = [cc] + lflags + [o_name,'-o',exe_name]
+    #print('cmd = ',' '.join(cmd))
+    try:
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        lines = p.stdout.readlines()
+        p.communicate()
+        #print('output = ',b''.join(lines).decode())
+        returncode = p.returncode
+    except (IOError,OSError) as e:
+        returncode = 1
+
+    if returncode:
+        # The linker needs to be a c++ linker, which isn't 'cc'.  However, I couldn't figure
+        # out how to get setup.py to tell me the actual command to use for linking.  All the
+        # executables available from build_ext.compiler.executables are 'cc', not 'c++'.
+        # I think this must be related to the bugs about not handling c++ correctly.
+        #    http://bugs.python.org/issue9031
+        #    http://bugs.python.org/issue1222585
+        # So just switch it manually and see if that works.
+        if 'clang' in cc:
+            cpp = cc.replace('clang', 'clang++')
+        elif 'icc' in cc:
+            cpp = cc.replace('icc', 'icpc')
+        elif 'gcc' in cc:
+            cpp = cc.replace('gcc', 'g++')
+        elif ' cc' in cc:
+            cpp = cc.replace(' cc', ' c++')
+        elif cc == 'cc':
+            cpp = 'c++'
+        else:
+            comp_type = get_compiler(cc)
+            if comp_type == 'gcc':
+                cpp = 'g++'
+            elif comp_type == 'clang':
+                cpp = 'clang++'
+            elif comp_type == 'icc':
+                cpp = 'g++'
+            else:
+                cpp = 'c++'
+        cmd = [cpp] + lflags + [o_name,'-o',exe_name]
+        #print('cmd = ',' '.join(cmd))
+        try:
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            lines = p.stdout.readlines()
+            p.communicate()
+            #print('output = ',b''.join(lines).decode())
+            if p.returncode != 0:
+                print('Trying link command:')
+                print(' '.join(cmd))
+                print('Output was:')
+                print('   ',b'   '.join(lines).decode())
+            returncode = p.returncode
+        except (IOError,OSError) as e:
+            print('Trying to link using command:')
+            print(' '.join(cmd))
+            print('Caught error: ',repr(e))
+            returncode = 1
+
+    # Remove the temp files
+    if returncode != 0:
+        # Don't delete files in case helpful for troubleshooting.
+        return False
+    else:
+        os.remove(cpp_name)
+        os.remove(o_name)
+        if os.path.exists(exe_name):
+            os.remove(exe_name)
+        return True
+
 
 def try_cc(cc, cc_type):
     """
@@ -159,129 +286,30 @@ int main() {
     return 0;
 }
 """
-    import tempfile
-    cpp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.cpp')
-    cpp_file.write(cpp_code.encode())
-    cpp_file.close()
+    return try_compile(cpp_code, cc, copt[cc_type], lopt[cc_type])
 
-    # Just get a named temporary file to write to:
-    o_file = tempfile.NamedTemporaryFile(delete=False, suffix='.os')
-    o_file.close()
-
-    # Try compiling with the given flags
-    import subprocess
-    cmd = [cc] + copt[cc_type] + ['-c',cpp_file.name,'-o',o_file.name]
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    lines = p.stdout.readlines()
-    p.communicate()
-    if p.returncode != 0:
-        os.remove(cpp_file.name)
-        if os.path.exists(o_file.name):
-            os.remove(o_file.name)
-        return False
-
-    # Another named temporary file for the executable
-    exe_file = tempfile.NamedTemporaryFile(delete=False, suffix='.exe')
-    exe_file.close()
-
-    # Try linking
-    cmd = [cc] + lopt[cc_type] + [o_file.name,'-o',exe_file.name]
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    lines = p.stdout.readlines()
-    p.communicate()
-
-    if p.returncode and cc == 'cc':
-        # The linker needs to be a c++ linker, which isn't 'cc'.  However, I couldn't figure
-        # out how to get setup.py to tell me the actual command to use for linking.  All the
-        # executables available from build_ext.compiler.executables are 'cc', not 'c++'.
-        # I think this must be related to the bugs about not handling c++ correctly.
-        #    http://bugs.python.org/issue9031
-        #    http://bugs.python.org/issue1222585
-        # So just switch it manually and see if that works.
-        cmd = ['c++'] + lopt[cc_type] + [o_file.name,'-o',exe_file.name]
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        lines = p.stdout.readlines()
-        p.communicate()
-
-    # Remove the temp files
-    os.remove(cpp_file.name)
-    os.remove(o_file.name)
-    if os.path.exists(exe_file.name):
-        os.remove(exe_file.name)
-    return p.returncode == 0
 
 def check_ffi_compile(cc, cc_type):
     ffi_code = """
-#include "ffi.h"
-int main() {
-    return 0;
-}
-"""
-    import tempfile
-    ffi_file = tempfile.NamedTemporaryFile(delete=False, suffix='.c')
-    ffi_file.write(ffi_code.encode())
-    ffi_file.close()
-
-    # Just get a named temporary file to write to:
-    o_file = tempfile.NamedTemporaryFile(delete=False, suffix='.os')
-    o_file.close()
-
-    # Try compiling with the given flags
-    import subprocess
-    cmd = [cc] + copt[cc_type] + ['-c',ffi_file.name,'-o',o_file.name]
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    lines = p.stdout.readlines()
-    p.communicate()
-    if p.returncode != 0:
-        print('Unable to compile file with #include "ffi.h"')
-        print("Failed command is: ",' '.join(cmd))
-        # Try ffi/ffi.h
-        ffi_code = """
 #include "ffi/ffi.h"
 int main() {
     return 0;
 }
 """
-        ffi_file = open(ffi_file.name, ffi_file.mode)
-        ffi_file.write(ffi_code.encode())
-        ffi_file.close()
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        lines = p.stdout.readlines()
-        p.communicate()
-        if p.returncode != 0:
-            print('Unable to compile file with #include "ffi/ffi.h"')
-            print("Failed command is: ",' '.join(cmd))
-            print("Could not find ffi.h")
-            return False
+    print("Checking if you have ffi installed on your system...")
+    if try_compile(ffi_code, cc, copt[cc_type], lopt[cc_type]):
+        print('Found "ffi/ffi.h"')
+        return True
+    else:
+        print('Unable to compile file with #include "ffi/ffi.h"')
+        print('Trying ffi.h instead...')
+        ffi_code = ffi_code.replace('ffi/ffi.h', 'ffi.h')
+        if try_compile(ffi_code, cc, copt[cc_type], lopt[cc_type]):
+            print('Found "ffi.h"')
+            return True
         else:
-            print("Found ffi/ffi.h")
-    else:
-        print("Found ffi.h")
-
-    # Another named temporary file for the executable
-    exe_file = tempfile.NamedTemporaryFile(delete=False, suffix='.exe')
-    exe_file.close()
-
-    # Try linking
-    cmd = [cc] + lopt[cc_type] + ['-lffi'] + [o_file.name,'-o',exe_file.name]
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    lines = p.stdout.readlines()
-    p.communicate()
-
-    if p.returncode != 0:
-        print("Could not link with -lffi")
-        print("Failed command is: ",' '.join(cmd))
-        return False
-    else:
-        print("Successfully linked with -lffi")
-
-    # Remove the temp files only if all succeeded.
-    os.remove(ffi_file.name)
-    os.remove(o_file.name)
-    if os.path.exists(exe_file.name): 
-        os.remove(exe_file.name)
-
-    return True
+            print("Unable to compile when including either ffi/ffi.h or just ffi.h")
+            return False
 
 # Based on recipe 577058: http://code.activestate.com/recipes/577058/
 def query_yes_no(question, default="yes", timeout=30):
@@ -326,7 +354,6 @@ def query_yes_no(question, default="yes", timeout=30):
 
 def check_ffi(cc, cc_type):
     try:
-        raise ImportError
         import cffi
     except ImportError:
         # Then cffi will need to be installed.
@@ -434,7 +461,7 @@ if py_version <= '2.6':
     dependencies += ['argparse'] # These seem to have conflicting numpy requirements, so don't
                                  # include pandas with argparse.
 else:
-    dependencies += ['pandas'] 
+    dependencies += ['pandas']
 
 with open('README.rst') as file:
     long_description = file.read()
@@ -451,7 +478,7 @@ else:
     raise RuntimeError("Unable to find version string in %s." % (version_file,))
 print('TreeCorr version is %s'%(treecorr_version))
 
-dist = setup(name="TreeCorr", 
+dist = setup(name="TreeCorr",
       version=treecorr_version,
       author="Mike Jarvis",
       author_email="michael@jarvis.net",
@@ -492,3 +519,7 @@ if (hasattr(dist,'script_install_dir') and
     print('         Alternatively, you can specify a different prefix with --prefix=PREFIX,')
     print('         in which case the scripts will be installed in PREFIX/bin.')
     print('         If you are installing via pip use --install-option="--prefix=PREFIX"')
+
+# If we get to here, then all was fine.  Go ahead and delete the files in the tmp directory.
+print('Deleting temporary files in ',local_tmp)
+shutil.rmtree(local_tmp)

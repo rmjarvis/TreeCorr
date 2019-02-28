@@ -521,5 +521,6 @@ if (hasattr(dist,'script_install_dir') and
     print('         If you are installing via pip use --install-option="--prefix=PREFIX"')
 
 # If we get to here, then all was fine.  Go ahead and delete the files in the tmp directory.
-print('Deleting temporary files in ',local_tmp)
-shutil.rmtree(local_tmp)
+if os.path.exists(local_tmp):
+    print('Deleting temporary files in ',local_tmp)
+    shutil.rmtree(local_tmp)

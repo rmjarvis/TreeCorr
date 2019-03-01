@@ -74,7 +74,7 @@ struct MetricHelper<Euclidean>
     { return true; }
 
     // The normal tests about whether a given distance is inside the binning range happen
-    // in BinTypeHelper.  However, RPerp needs to do an additional check to make sure we
+    // in BinTypeHelper.  However, Rperp needs to do an additional check to make sure we
     // don't reject cell pairs prematurely.  For this and most metrics, these two checks
     // are trivially true (since only get here if the regular check passes).
     static bool tooSmallDist(const Position<Flat>& p1, const Position<Flat>& p2,
@@ -133,12 +133,14 @@ struct MetricHelper<Euclidean>
 
 //
 //
-// Perp is only valid for Coord == ThreeD
+// Rperp is only valid for Coord == ThreeD
 //
 //
 
+// For now, this is still Rperp in the python layer, and the next one is FisherRperp.
+// At version 4, Rperp will become an alias for FisherRperp, and this will be OldRperp.
 template <>
-struct MetricHelper<Perp>
+struct MetricHelper<OldRperp>
 {
     static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                          double& s1, double& s2)
@@ -199,12 +201,133 @@ struct MetricHelper<Perp>
 
     static double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
     {
-        //Position<ThreeD> r = p2-p1;
-        //Position<ThreeD> L = (p1+p2)*0.5;
-        //rpar = r.dot(L) / L.norm();
         double r1 = p1.norm();
         double r2 = p2.norm();
         return r2-r1;  // Positive if p2 is in background of p1.
+    }
+
+    static bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                                   double s1ps2, double minrpar, double maxrpar, double& rpar)
+    {
+        // Quick return if no min/max rpar
+        if (minrpar == -std::numeric_limits<double>::max() &&
+            maxrpar == std::numeric_limits<double>::max()) return false;
+
+        rpar = calculateRPar(p1,p2);
+        if (rpar + s1ps2 < minrpar) return true;
+        else if (rpar - s1ps2 > maxrpar) return true;
+        else return false;
+    }
+
+    static bool isRParInsideRange(double rpar, double s1ps2, double minrpar, double maxrpar)
+    {
+        // Quick return if no min/max rpar
+        if (minrpar == -std::numeric_limits<double>::max() &&
+            maxrpar == std::numeric_limits<double>::max()) return true;
+        if (rpar - s1ps2 < minrpar) return false;
+        else if (rpar + s1ps2 > maxrpar) return false;
+        else return true;
+    }
+
+    // This one is a bit subtle.  The maximum possible rp can be larger than just (rp + s1ps2).
+    // The most extreme case is if the two cells are in nearly opposite directions from Earth.
+    // Of course, this won't happen too often in practice, but might as well use the
+    // most conservative case here.  In this case, the cell size can serve both to
+    // increase d by s1ps2 and decrease |r1-r2| by s1ps2.  So rp can become
+    // rp'^2 = (d+s1ps2)^2 - (|rpar|-s1ps2)^2
+    //       = d^2 + 2d s1ps2 + s1ps2^2 - rpar^2 + 2|rpar| s1ps2 - s1ps2^2
+    //       = rp^2 + 2(d+|rpar|) s1ps2
+    // rp'^2 < minsep^2
+    // rp^2 + 2(d + |rpar|) s1ps2 < minsepsq
+    static bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                             double rsq, double& rpar, double s1ps2, double minsepsq)
+    {
+        if (rpar == 0.) rpar = calculateRPar(p1,p2); // This might not have been calculated.
+        double d3 = sqrt(SQR(rpar) + rsq);  // The 3d distance.  Remember rsq is really rp^2.
+        return rsq + 2.*(d3 + std::abs(rpar)) * s1ps2 < minsepsq;
+    }
+
+    // This one is similar.  The minimum possible rp can be smaller than just (rp - s1ps2).
+    // rp'^2 = (d-s1ps2)^2 - (|rpar|+s1ps2)^2
+    //       = d^2 - 2d s1ps2 + s1ps2^2 - rpar^2 - 2|rpar| s1ps2 - s1ps2^2
+    //       = rp^2 - 2(d+|rpar|) s1ps2
+    // rp'^2 > maxsep^2
+    // rp^2 - 2(d + |rpar|) s1ps2 > maxsepsq
+    static bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                             double rsq, double rpar, double s1ps2, double maxsepsq)
+    {
+        if (rpar == 0.) rpar = calculateRPar(p1,p2); // This might not have been calculated.
+        double d3 = sqrt(SQR(rpar) + rsq);  // The 3d distance.  Remember rsq is really rp^2.
+        return rsq - 2.*(d3 + std::abs(rpar)) * s1ps2 > maxsepsq;
+    }
+
+};
+
+template <>
+struct MetricHelper<Rperp>
+{
+    static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                         double& s1, double& s2)
+    {
+        // Follow Fisher et al, 1994 (MNRAS, 267, 927) to define:
+        //   L = (p1 + p2)/2
+        //   r = (p2 - p1)
+        //   r_par = |L . r| / |L|
+        //   r_perp^2 = |r|^2 - |r_par|^2
+        //
+        // It turns out that this simplifies to
+        //
+        //   r_perp = |p1 x p2| / |L|
+        //
+        Position<ThreeD> cross = p1.cross(p2);
+        Position<ThreeD> L = (p1+p2)*0.5;
+        double normLsq = L.normSq();
+
+        double rperpsq = cross.normSq() / normLsq;
+
+        // The maximum effect of a displacement s1 on the value of rperp is (normally)
+        //
+        //      delta r_perp = r2 s / |L|
+        //
+        // Assuming r1 < r2, this increases the impact of the cell radius s on this distance
+        // metric.  We thus need to scale up the input s1 by the factor r2/|L|.
+        //
+        // Similarly, the effect of s2 is decreased by the factor r1/|L|.
+        //
+        // However, we take the conservative approach of only increasing s for the closer point,
+        // not decreasing it for the farther one.
+        //
+        // Also note: for extreme geometries, this calculation isn't sufficient. The change
+        // in L can also be important.  Hence the below tooLargeDist and tooSmallDist functions.
+
+        double r1sq = p1.normSq();
+        double r2sq = p2.normSq();
+        if (r1sq < r2sq) {
+            if (s1 != 0.)
+                s1 *= sqrt(r2sq / normLsq);
+        } else {
+            if (s2 != 0.)
+                s2 *= sqrt(r1sq / normLsq);
+        }
+
+        return rperpsq;
+    }
+    static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    {
+        double s=0.;
+        return sqrt(DistSq(p1,p2,s,s));
+    }
+
+    // This is the same as Euclidean
+    static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                    const Position<ThreeD>& p3)
+    { return MetricHelper<Euclidean>::CCW(p1,p2,p3); }
+
+    static double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    {
+        Position<ThreeD> r = p2-p1;
+        Position<ThreeD> L = (p1+p2)*0.5;
+        return r.dot(L) / L.norm();
     }
 
     static bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,

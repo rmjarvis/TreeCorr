@@ -138,13 +138,6 @@ class BinnedCorr3(object):
                         - 'Euclidean' = straight line Euclidean distance between two points.
                           For spherical coordinates (ra,dec without r), this is the chord
                           distance between points on the unit sphere.
-                        - 'Rperp' = the perpendicular component of the distance. For two points
-                          with distance from Earth `r1, r2`, if `d` is the normal Euclidean
-                          distance and :math:`Rparallel = |r1-r2|`, then we define
-                          :math:`Rperp^2 = d^2 - Rparallel^2`.
-                        - 'Rlens' = the projected distance perpendicular to the first point
-                          in the pair (taken to be a lens) to the line of sight to the second
-                          point (e.g. a lensed source galaxy).
                         - 'Arc' = the true great circle distance for spherical coordinates.
 
                         (default: 'Euclidean')
@@ -157,11 +150,6 @@ class BinnedCorr3(object):
                         (default: 'Log')
 
                         Note: u and v are always binned linearly.
-
-    :param min_rpar:    For the 'Rperp' metric, the minimum difference in Rparallel to allow
-                        for pairs being included in the correlation function. (default: None)
-    :param max_rpar:    For the 'Rperp' metric, the maximum difference in Rparallel to allow
-                        for pairs being included in the correlation function. (default: None)
 
     :param num_threads: How many OpenMP threads to use during the calculation.
                         (default: use the number of cpu cores; this value can also be given in
@@ -215,14 +203,10 @@ class BinnedCorr3(object):
                 'The number of digits after the decimal in the output.'),
         'num_threads' : (int, False, None, None,
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
-        'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp', 'Rlens', 'Arc'],
+        'metric': (str, False, 'Euclidean', ['Euclidean', 'Arc'],
                 'Which metric to use for the distance measurements'),
         'bin_type': (str, False, 'Log', ['Log'],
                 'Which type of binning should be used'),
-        'min_rpar': (float, False, None, None,
-                'For Rperp metric, the minimum difference in Rparallel for pairs to include'),
-        'max_rpar': (float, False, None, None,
-                'For Rperp metric, the maximum difference in Rparallel for pairs to include'),
     }
 
     def __init__(self, config=None, logger=None, **kwargs):
@@ -535,15 +519,6 @@ class BinnedCorr3(object):
             if metric != self._metric:
                 self.logger.warning("Detected a change in metric. "+
                                     "This probably doesn't make sense!")
-        if metric not in ['Rlens', 'Rperp']:
-            if self.min_rpar != -sys.float_info.max:
-                raise ValueError("min_rpar is only valid with either Rlens or Rperp metric.")
-            if self.max_rpar != sys.float_info.max:
-                raise ValueError("max_rpar is only valid with either Rlens or Rperp metric.")
-        if metric in [treecorr._lib.Perp, treecorr._lib.Lens]:
-            if self.sep_units != 1.:
-                raise ValueError("sep_units is invalid with either Rlens or Rperp metric. "+
-                                 "min_sep and max_sep should be in the same units as r (or x,y,z)")
         self._coords = coords
         self._metric = metric
 

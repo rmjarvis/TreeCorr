@@ -16,6 +16,6 @@ max_sep: 140.
 bin_size: 0.1
 bin_slop: 0.5
 
-metric: Rperp
+metric: FisherRperp
 
 gg_file_name: output/gg_rperp.out

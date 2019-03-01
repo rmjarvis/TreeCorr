@@ -121,10 +121,17 @@ class BinnedCorr2(object):
                         - 'Euclidean' = straight line Euclidean distance between two points.
                           For spherical coordinates (ra,dec without r), this is the chord
                           distance between points on the unit sphere.
-                        - 'Rperp' = the perpendicular component of the distance. For two points
+                        - 'FisherRperp' = the perpendicular component of the distance, following
+                          the definitions in Fisher et al, 1994 (MNRAS, 267, 927). For two
+                          points with vector positions from Earth `r1, r2`, if :math:`r` is the
+                          vector :math:`r2-r1` and :math:`L = (r1+r2)/2`, then we take
+                          :math:`Rpar = L \cdot r / |L|` and :math:`Rperp^2 = d^2 - Rpar^2`.
+                        - 'OldRperp' = the perpendicular component of the distance. For two points
                           with distance from Earth `r1, r2`, if `d` is the normal Euclidean
-                          distance and :math:`Rparallel = |r1-r2|`, then we define
-                          :math:`Rperp^2 = d^2 - Rparallel^2`.
+                          distance, then we take :math:`Rpar = r2-r1` and
+                          :math:`Rperp^2 = d^2 - Rpar^2`.
+                        - 'Rperp' is currently an alias for OldRperp.  In version 4.0, it will
+                          switch to being equivalent to FisherRperp.
                         - 'Rlens' = the projected distance perpendicular to the first point
                           in the pair (taken to be a lens) to the line of sight to the second
                           point (e.g. a lensed source galaxy).
@@ -189,7 +196,8 @@ class BinnedCorr2(object):
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
         'm2_uform' : (str, False, 'Crittenden', ['Crittenden', 'Schneider'],
                 'The function form of the mass aperture.'),
-        'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp', 'Rlens', 'Arc'],
+        'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp', 'FisherRperp', 'OldRperp',
+                                             'Rlens', 'Arc'],
                 'Which metric to use for the distance measurements'),
         'bin_type': (str, False, 'Log', ['Log', 'Linear', 'TwoD'],
                 'Which type of binning should be used'),
@@ -403,17 +411,23 @@ class BinnedCorr2(object):
         coords, metric = treecorr.util.parse_metric(metric, coords1, coords2)
         if self._coords != None or self._metric != None:
             if coords != self._coords:
-                self.logger.warning("Detected a change in catalog coordinate systems. "+
+                self.logger.warning("Detected a change in catalog coordinate systems.\n"+
                                     "This probably doesn't make sense!")
             if metric != self._metric:
-                self.logger.warning("Detected a change in metric. "+
+                self.logger.warning("Detected a change in metric.\n"+
                                     "This probably doesn't make sense!")
-        if metric not in [treecorr._lib.Perp, treecorr._lib.Lens]:
+        if metric not in [treecorr._lib.Rperp, treecorr._lib.OldRperp, treecorr._lib.Lens]:
             if self.min_rpar != -sys.float_info.max:
                 raise ValueError("min_rpar is only valid with either Rlens or Rperp metric.")
             if self.max_rpar != sys.float_info.max:
                 raise ValueError("max_rpar is only valid with either Rlens or Rperp metric.")
-        if metric in [treecorr._lib.Perp, treecorr._lib.Lens]:
+        else:
+            if metric == 'OldRperp':
+                self.logger.warning(
+                    "WARNING: The definition of Rperp will change in version 4.0\n"
+                    "to match the definition in Fisher et al, 1994.\n"
+                    "The new definition can be used now with metric='FisherRperp'.\n"
+                    "After 4.0, the current Rperp will be available as metric='OldRperp'.\n")
             if self.sep_units != 1.:
                 raise ValueError("sep_units is invalid with either Rlens or Rperp metric. "+
                                  "min_sep and max_sep should be in the same units as r (or x,y,z)")

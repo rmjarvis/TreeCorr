@@ -404,7 +404,63 @@ def test_direct_perp():
     max_sep = 50.
     nbins = 50
     dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
-    dd.process(cat1, cat2, metric='Rperp')
+    dd.process(cat1, cat2, metric='FisherRperp')
+    print('dd.npairs = ',dd.npairs)
+
+    log_min_sep = numpy.log(min_sep)
+    log_max_sep = numpy.log(max_sep)
+    true_npairs = numpy.zeros(nbins)
+    bin_size = (log_max_sep - log_min_sep) / nbins
+    for i in range(ngal):
+        for j in range(ngal):
+            rsq = (x1[i]-x2[j])**2 + (y1[i]-y2[j])**2 + (z1[i]-z2[j])**2
+            Lsq = ((x1[i]+x2[j])**2 + (y1[i]+y2[j])**2 + (z1[i]+z2[j])**2) / 4.
+            rpar = abs(r1[i]**2-r2[j]**2) / (2.*numpy.sqrt(Lsq))
+            rsq -= rpar**2
+            logr = 0.5 * numpy.log(rsq)
+            k = int(numpy.floor( (logr-log_min_sep) / bin_size ))
+            if k < 0: continue
+            if k >= nbins: continue
+            true_npairs[k] += 1
+
+    print('true_npairs = ',true_npairs)
+    print('diff = ',dd.npairs - true_npairs)
+    numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+
+    # Can also specify coords directly as x,y,z
+    cat1 = treecorr.Catalog(x=x1, y=y1, z=z1)
+    cat2 = treecorr.Catalog(x=x2, y=y2, z=z2)
+    dd.process(cat1, cat2, metric='FisherRperp')
+    numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+
+
+def test_direct_old_perp():
+    # This is the same as the above test, but using the old perpendicular distance metric
+
+    ngal = 100
+    s = 10.
+    numpy.random.seed(8675309)
+    x1 = numpy.random.normal(312, s, (ngal,) )
+    y1 = numpy.random.normal(728, s, (ngal,) )
+    z1 = numpy.random.normal(-932, s, (ngal,) )
+    r1 = numpy.sqrt( x1*x1 + y1*y1 + z1*z1 )
+    dec1 = numpy.arcsin(z1/r1)
+    ra1 = numpy.arctan2(y1,x1)
+    cat1 = treecorr.Catalog(ra=ra1, dec=dec1, r=r1, ra_units='rad', dec_units='rad')
+
+    x2 = numpy.random.normal(312, s, (ngal,) )
+    y2 = numpy.random.normal(728, s, (ngal,) )
+    z2 = numpy.random.normal(-932, s, (ngal,) )
+    r2 = numpy.sqrt( x2*x2 + y2*y2 + z2*z2 )
+    dec2 = numpy.arcsin(z2/r2)
+    ra2 = numpy.arctan2(y2,x2)
+    cat2 = treecorr.Catalog(ra=ra2, dec=dec2, r=r2, ra_units='rad', dec_units='rad')
+
+    min_sep = 1.
+    max_sep = 50.
+    nbins = 50
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    dd.process(cat1, cat2, metric='OldRperp')
     print('dd.npairs = ',dd.npairs)
 
     log_min_sep = numpy.log(min_sep)
@@ -426,6 +482,12 @@ def test_direct_perp():
     numpy.testing.assert_array_equal(dd.npairs, true_npairs)
 
     # Can also specify coords directly as x,y,z
+    cat1 = treecorr.Catalog(x=x1, y=y1, z=z1)
+    cat2 = treecorr.Catalog(x=x2, y=y2, z=z2)
+    dd.process(cat1, cat2, metric='OldRperp')
+    numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+
+    # And for now, Rperp is the same as OldRperp
     cat1 = treecorr.Catalog(x=x1, y=y1, z=z1)
     cat2 = treecorr.Catalog(x=x2, y=y2, z=z2)
     dd.process(cat1, cat2, metric='Rperp')
@@ -1263,6 +1325,24 @@ def test_perp_minmax():
         print('ratio = ',corr2_output['xi']/xi1)
         print('diff = ',corr2_output['xi']-xi1)
         numpy.testing.assert_almost_equal(corr2_output['xi']/xi1, 1., decimal=3)
+
+    # Also check the new Rper metric
+    dd1 = treecorr.NNCorrelation(config)
+    dd1.process(dcat, metric='FisherRperp')
+
+    lower_min_sep = config['min_sep'] * numpy.exp(-2.*config['bin_size'])
+    more_nbins = config['nbins'] + 4
+    dd2 = treecorr.NNCorrelation(config, min_sep=lower_min_sep, nbins=more_nbins)
+    dd2.process(dcat, metric='FisherRperp')
+
+    print('dd1 npairs = ',dd1.npairs)
+    print('dd2 npairs = ',dd2.npairs[2:-2])
+    # First a basic sanity check.  The values not near the edge should be identical.
+    numpy.testing.assert_equal(dd1.npairs[2:-2], dd2.npairs[4:-4])
+    # The edge bins may differ slightly from the binning approximations (bin_slop and such),
+    # but the differences should be very small.  (When Erika reported the problem, the differences
+    # were a few percent, which ended up making a bit difference in the correlation function.)
+    numpy.testing.assert_almost_equal( dd1.npairs / dd2.npairs[2:-2], 1., decimal=4)
 
 
 if __name__ == '__main__':

@@ -18,6 +18,7 @@
 import treecorr
 import numpy
 import os
+import warnings
 
 def ensure_dir(target):
     d = os.path.dirname(target)
@@ -302,10 +303,14 @@ def parse_metric(metric, coords, coords2=None, coords3=None):
 
     if metric == 'Euclidean':
         m = treecorr._lib.Euclidean
-    elif metric == 'Rperp':
+    elif metric == 'Rperp' or metric == 'OldRperp':
         if coords != '3d':
-            raise ValueError("Rperp metric is only valid for catalogs with 3d positions.")
-        m = treecorr._lib.Perp
+            raise ValueError("%s metric is only valid for catalogs with 3d positions."%metric)
+        m = treecorr._lib.OldRperp
+    elif metric == 'FisherRperp':
+        if coords != '3d':
+            raise ValueError("%s metric is only valid for catalogs with 3d positions."%metric)
+        m = treecorr._lib.Rperp
     elif metric == 'Rlens':
         if auto:
             raise ValueError("Rlens metric is only valid for cross correlations.")

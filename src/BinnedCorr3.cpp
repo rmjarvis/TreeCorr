@@ -1222,8 +1222,10 @@ void ProcessAuto3b(BinnedCorr3<D,D,D,B>& corr, void* field, int dots, int coord,
     } else {
         if (metric == Euclidean)
             corr.template process<ThreeD,Euclidean>(*static_cast<Field<D,ThreeD>*>(field),dots);
-        else if (metric == Perp)
-            corr.template process<ThreeD,Perp>(*static_cast<Field<D,ThreeD>*>(field),dots);
+        else if (metric == Rperp)
+            corr.template process<ThreeD,Rperp>(*static_cast<Field<D,ThreeD>*>(field),dots);
+        else if (metric == OldRperp)
+            corr.template process<ThreeD,OldRperp>(*static_cast<Field<D,ThreeD>*>(field),dots);
         else if (metric == Lens)
             corr.template process<ThreeD,Lens>(*static_cast<Field<D,ThreeD>*>(field),dots);
         else if (metric == Arc)
@@ -1275,8 +1277,13 @@ void ProcessCross3b(BinnedCorr3<D1,D2,D3,B>& corr, void* field1, void* field2, v
                 *static_cast<Field<D1,ThreeD>*>(field1),
                 *static_cast<Field<D2,ThreeD>*>(field2),
                 *static_cast<Field<D3,ThreeD>*>(field3),dots);
-        else if (metric == Perp)
-            corr.template process<ThreeD,Perp>(
+        else if (metric == Rperp)
+            corr.template process<ThreeD,Rperp>(
+                *static_cast<Field<D1,ThreeD>*>(field1),
+                *static_cast<Field<D2,ThreeD>*>(field2),
+                *static_cast<Field<D3,ThreeD>*>(field3),dots);
+        else if (metric == OldRperp)
+            corr.template process<ThreeD,OldRperp>(
                 *static_cast<Field<D1,ThreeD>*>(field1),
                 *static_cast<Field<D2,ThreeD>*>(field2),
                 *static_cast<Field<D3,ThreeD>*>(field3),dots);

@@ -345,27 +345,34 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         all the possible triangles between three catalogs, you should call this
         multiple times with the different catalogs in different positions.
 
-        :param cat1:        A catalog or list of catalogs for the first N field.
-        :param cat2:        A catalog or list of catalogs for the second N field, if any.
-                            (default: None)
-        :param cat3:        A catalog or list of catalogs for the third N field, if any.
-                            (default: None)
-        :param metric:      Which metric to use for distance measurements.  Options are:
+        :param cat1:    A catalog or list of catalogs for the first N field.
+        :param cat2:    A catalog or list of catalogs for the second N field, if any.
+                        (default: None)
+        :param cat3:    A catalog or list of catalogs for the third N field, if any.
+                        (default: None)
+        :param metric:  Which metric to use for distance measurements.  Options are:
 
-                            - 'Euclidean' = straight line Euclidean distance between two points.
-                              For spherical coordinates (ra,dec without r), this is the chord
-                              distance between points on the unit sphere.
-                            - 'Rperp' = the perpendicular component of the distance. For two points
-                              with distance from Earth `r1, r2`, if `d` is the normal Euclidean
-                              distance and :math:`Rparallel = |r1-r2|`, then we define
-                              :math:`Rperp^2 = d^2 - Rparallel^2`.
-                            - 'Rlens' = the projected distance perpendicular to the first point
-                              in the pair (taken to be a lens) to the line of sight to the second
-                              point (e.g. a lensed source galaxy).
-                            - 'Arc' = the true great circle distance for spherical coordinates.
+                        - 'Euclidean' = straight line Euclidean distance between two points.
+                          For spherical coordinates (ra,dec without r), this is the chord
+                          distance between points on the unit sphere.
+                        - 'FisherRperp' = the perpendicular component of the distance, following
+                          the definitions in Fisher et al, 1994 (MNRAS, 267, 927). For two
+                          points with vector positions from Earth `r1, r2`, if :math:`r` is the
+                          vector :math:`r2-r1` and :math:`L = (r1+r2)/2`, then we take
+                          :math:`Rpar = L \cdot r / |L|` and :math:`Rperp^2 = d^2 - Rpar^2`.
+                        - 'OldRperp' = the perpendicular component of the distance. For two points
+                          with distance from Earth `r1, r2`, if `d` is the normal Euclidean
+                          distance, then we take :math:`Rpar = r2-r1` and
+                          :math:`Rperp^2 = d^2 - Rpar^2`.
+                        - 'Rperp' is currently an alias for OldRperp.  In version 4.0, it will
+                          switch to being equivalent to FisherRperp.
+                        - 'Rlens' = the projected distance perpendicular to the first point
+                          in the pair (taken to be a lens) to the line of sight to the second
+                          point (e.g. a lensed source galaxy).
+                        - 'Arc' = the true great circle distance for spherical coordinates.
 
-                            (default: 'Euclidean'; this value can also be given in the constructor
-                            in the config dict.)
+                        (default: 'Euclidean'; this value can also be given in the constructor
+                        in the config dict.)
 
         :param num_threads: How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in

@@ -16,7 +16,7 @@ max_sep: 300.
 bin_size: 0.1
 bin_slop: 0.1
 
-metric: Rperp
+metric: FisherRperp
 min_rpar: -50
 max_rpar: 50
 

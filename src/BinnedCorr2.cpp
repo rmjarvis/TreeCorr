@@ -315,7 +315,7 @@ void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
 
     // Now check if these cells are small enough that it is ok to drop into a single bin.
     int k=-1;
-    double r,logr;  // If singleBin is true, these values are set for use by directProcess11
+    double r=0,logr=0;  // If singleBin is true, these values are set for use by directProcess11
     if (MetricHelper<M>::isRParInsideRange(rpar, s1ps2, _minrpar, _maxrpar) &&
         BinTypeHelper<B>::singleBin(rsq, s1ps2, c1.getPos(), c2.getPos(),
                                     _binsize, _b, _bsq,
@@ -907,8 +907,11 @@ void ProcessAuto2b(BinnedCorr2<D,D,B>& corr, void* field, int dots, int coord, i
           case Euclidean:
             corr.template process<ThreeD,Euclidean>(*static_cast<Field<D,ThreeD>*>(field),dots);
             break;
-          case Perp:
-            corr.template process<ThreeD,Perp>(*static_cast<Field<D,ThreeD>*>(field),dots);
+          case Rperp:
+            corr.template process<ThreeD,Rperp>(*static_cast<Field<D,ThreeD>*>(field),dots);
+            break;
+          case OldRperp:
+            corr.template process<ThreeD,OldRperp>(*static_cast<Field<D,ThreeD>*>(field),dots);
             break;
           case Lens:
             corr.template process<ThreeD,Lens>(*static_cast<Field<D,ThreeD>*>(field),dots);
@@ -979,8 +982,13 @@ void ProcessCross2b(BinnedCorr2<D1,D2,B>& corr, void* field1, void* field2,
                 *static_cast<Field<D1,ThreeD>*>(field1),
                 *static_cast<Field<D2,ThreeD>*>(field2),dots);
             break;
-          case Perp:
-            corr.template process<ThreeD,Perp>(
+          case Rperp:
+            corr.template process<ThreeD,Rperp>(
+                *static_cast<Field<D1,ThreeD>*>(field1),
+                *static_cast<Field<D2,ThreeD>*>(field2),dots);
+            break;
+          case OldRperp:
+            corr.template process<ThreeD,OldRperp>(
                 *static_cast<Field<D1,ThreeD>*>(field1),
                 *static_cast<Field<D2,ThreeD>*>(field2),dots);
             break;
@@ -1085,8 +1093,13 @@ void ProcessPair2b(BinnedCorr2<D1,D2,B>& corr, void* field1, void* field2,
                 *static_cast<SimpleField<D1,ThreeD>*>(field1),
                 *static_cast<SimpleField<D2,ThreeD>*>(field2),dots);
             break;
-          case Perp:
-            corr.template processPairwise<ThreeD,Perp>(
+          case Rperp:
+            corr.template processPairwise<ThreeD,Rperp>(
+                *static_cast<SimpleField<D1,ThreeD>*>(field1),
+                *static_cast<SimpleField<D2,ThreeD>*>(field2),dots);
+            break;
+          case OldRperp:
+            corr.template processPairwise<ThreeD,OldRperp>(
                 *static_cast<SimpleField<D1,ThreeD>*>(field1),
                 *static_cast<SimpleField<D2,ThreeD>*>(field2),dots);
             break;

@@ -24,4 +24,4 @@
 //enum Metric { Euclidean=1, Perp=2, Lens=3, Arc=4 };
 
 // But this is how we need to do it in C.
-typedef enum { Euclidean=1, Perp=2, Lens=3, Arc=4 } Metric;
+typedef enum { Euclidean=1, Rperp=2, Lens=3, Arc=4, OldRperp=5 } Metric;

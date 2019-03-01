@@ -84,7 +84,7 @@ In this limit, the formula for :math:`d` reduces to
 
 This metric also permits the use of two other parameters, ``min_rpar`` and ``max_rpar``,
 which set the minimum and maximum values of :math:`r_\parallel` for pairs to be included in the
-correlations. 
+correlations.
 
 The sign of :math:`r_\parallel` is defined such that positive values mean
 the object from the second catalog is farther away.  Thus, if the first catalog represents
@@ -92,6 +92,49 @@ lenses and the second catalog represents lensed source galaxies, then setting
 ``min_rpar = 0`` will restrict the sources to being in the background of each lens.
 Similarly, setting ``min_rpar = -50``, ``max_rpar = 50`` will restrict the sources to be
 within 50 Mpc (say, assuming the catalog distances are given in Mpc) of the lenses.
+
+.. warning::
+
+    Starting in version 4.0, the "Rperp" name will switch over to being equivalent
+    to "FisherRperp".  At that point, to access this metric, you will need to
+    use "OldRperp" instead.  If you want your code to work equivalently in
+    both 3.x and 4.x, then you can already start using the name "OldRperp",
+    and your code should work the same before and after the switch.
+    Or you may want to switch to using "FisherRperp" now and investigate whether
+    the change has any impact on your science.
+
+
+"FisherRperp"
+-------------
+
+This is almost the same as the "Rperp" metric, except that the definition of
+:math:`r_\parallel` is changed to match the definition in Fisher et al, 1994
+(MNRAS, 267, 927).  Namely, if :math:`p_1` and :math:`p_2` are the vector
+positions from Earth for the two points, then
+
+:math:`r_\parallel = \frac{(p_1 + p_2) \cdot (p_2-p_1)}{2|L|}`
+
+The FisherRperp distance is then defined as
+
+:math:`d_{\rm FisherRperp} = \sqrt{d_{\rm Euclidean}^2 - r_\parallel^2}`
+
+As with the regular "Rperp", this metric permits the use of two other parameters,
+``min_rpar`` and ``max_rpar``,
+which set the minimum and maximum values of :math:`r_\parallel` for pairs to be included in the
+correlations.
+
+The sign of :math:`r_\parallel` is defined such that positive values mean
+the object from the second catalog is farther away.  Thus, if the first catalog represents
+lenses and the second catalog represents lensed source galaxies, then setting
+``min_rpar = 0`` will restrict the sources to being in the background of each lens.
+Similarly, setting ``min_rpar = -50``, ``max_rpar = 50`` will restrict the sources to be
+within 50 Mpc (say, assuming the catalog distances are given in Mpc) of the lenses.
+
+.. warning::
+
+    Starting in version 4.0, the "Rperp" name will switch over to being equivalent
+    to "FisherRperp", and the current "Rperp" will become "OldRperp".
+
 
 "Rlens"
 -------
@@ -111,7 +154,7 @@ of the lens galaxy.
 
 This metric also permits the use of two other parameters, ``min_rpar`` and ``max_rpar``,
 which set the minimum and maximum values of :math:`r_\parallel = r_2 - r_1` for pairs to be
-included in the correlations. 
+included in the correlations.
 
 The sign of :math:`r_\parallel` is defined such that positive values mean
 the object from the second catalog is farther away. Thus, setting

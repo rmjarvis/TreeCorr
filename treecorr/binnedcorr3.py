@@ -51,6 +51,20 @@ class BinnedCorr3(object):
     use one or if you want to change some parameters from what are in a config dict,
     then you can use normal kwargs, which take precedence over anything in the config dict.
 
+    There are only two implemented definitions for the distance between two points for
+    three-point corretions:
+
+        - 'Euclidean' = straight line Euclidean distance between two points.  For spherical
+          coordinates (ra,dec without r), this is the chord distance between points on the
+          unit sphere.
+        - 'Arc' = the true great circle distance for spherical coordinates.
+
+    Similarly, we have so far only implemented one binning type for three-point correlations.
+
+        - 'Log' - logarithmic binning in the distance.  The bin steps will be uniform in
+          log(r) from log(min_sep) .. log(max_sep). The u and v values  are binned linearly.
+
+
     :param config:      The configuration dict which defines attributes about how to read the file.
                         Any kwargs that are not those listed here will be added to the config,
                         so you can even omit the config dict and just enter all parameters you
@@ -133,23 +147,11 @@ class BinnedCorr3(object):
                         There will typically be of order 2^max_top top-level cells. (default: 10)
     :param precision:   The precision to use for the output values. This should be an integer,
                         which specifies how many digits to write. (default: 4)
-    :param metric:      Which metric to use for distance measurements.  Options are:
 
-                        - 'Euclidean' = straight line Euclidean distance between two points.
-                          For spherical coordinates (ra,dec without r), this is the chord
-                          distance between points on the unit sphere.
-                        - 'Arc' = the true great circle distance for spherical coordinates.
-
+    :param metric:      Which metric to use for distance measurements.  Options are given above.
                         (default: 'Euclidean')
-
-    :param bin_type:    What type of binning should be used.  The only valid option for 3pt is
-
-                        - 'Log' - logarithmic binning in the distance.  The bin steps will be
-                          uniform in log(r) from log(min_sep) .. log(max_sep).
-
+    :param bin_type:    What type of binning should be used. The only valid option is 'Log'.
                         (default: 'Log')
-
-                        Note: u and v are always binned linearly.
 
     :param num_threads: How many OpenMP threads to use during the calculation.
                         (default: use the number of cpu cores; this value can also be given in

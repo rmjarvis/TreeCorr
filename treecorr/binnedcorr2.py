@@ -44,6 +44,39 @@ class BinnedCorr2(object):
     use one or if you want to change some parameters from what are in a config dict,
     then you can use normal kwargs, which take precedence over anything in the config dict.
 
+    There are a number of possible definitions for the distance between two points, which
+    are appropriate for different use cases.  These are specified by the :metric: parameter.
+    The possible options are:
+
+        - 'Euclidean' = straight line Euclidean distance between two points.  For spherical
+          coordinates (ra,dec without r), this is the chord distance between points on the
+          unit sphere.
+        - 'FisherRperp' = the perpendicular component of the distance, following the
+          definitions in Fisher et al, 1994 (MNRAS, 267, 927). For two points with vector
+          positions from Earth `r1, r2`, if :math:`r` is the vector :math:`r2-r1` and
+          :math:`L = (r1+r2)/2`, then we take :math:`Rpar = L \cdot r / |L|` and
+          :math:`Rperp^2 = d^2 - Rpar^2`.
+        - 'OldRperp' = the perpendicular component of the distance. For two points with
+          distance from Earth `r1, r2`, if `d` is the normal Euclidean distance, then we
+          take :math:`Rpar = r2-r1` and :math:`Rperp^2 = d^2 - Rpar^2`.
+        - 'Rperp' is currently an alias for OldRperp.  In version 4.0, it will switch to
+          being equivalent to FisherRperp.
+        - 'Rlens' = the distance from the first object (taken to be a lens) to the line
+          connecting Earth and the second object (taken to be a lensed source).
+        - 'Arc' = the true great circle distance for spherical coordinates.
+
+    There are also a few different possibile binning prescriptions to define the range of
+    distances, which should be placed into each bin.
+
+        - 'Log' - logarithmic binning in the distance.  The bin steps will be uniform in
+          log(r) from log(min_sep) .. log(max_sep).
+        - 'Linear' - linear binning in the distance.  The bin steps will be uniform in r
+          from min_sep .. max_sep.
+        - 'TwoD' = 2-dimensional binning from x = (-max_sep .. max_sep) and
+          y = (-max_sep .. max_sep).  The bin steps will be uniform in both x and y.
+          (i.e. linear in x,y)
+
+
     :param config:      A configuration dict that can be used to pass in the below kwargs if
                         desired.  This dict is allowed to have addition entries in addition
                         to those listed below, which are ignored here. (default: NoneP
@@ -116,41 +149,11 @@ class BinnedCorr2(object):
                         with every item in the other catalog. (default: False)
     :param m2_uform:    The default functional form to use for aperture mass calculations.  See
                         :GGCorrelation.calculateMapSq: for more details. (default: 'Crittenden')
-    :param metric:      Which metric to use for distance measurements.  Options are:
 
-                        - 'Euclidean' = straight line Euclidean distance between two points.
-                          For spherical coordinates (ra,dec without r), this is the chord
-                          distance between points on the unit sphere.
-                        - 'FisherRperp' = the perpendicular component of the distance, following
-                          the definitions in Fisher et al, 1994 (MNRAS, 267, 927). For two
-                          points with vector positions from Earth `r1, r2`, if :math:`r` is the
-                          vector :math:`r2-r1` and :math:`L = (r1+r2)/2`, then we take
-                          :math:`Rpar = L \cdot r / |L|` and :math:`Rperp^2 = d^2 - Rpar^2`.
-                        - 'OldRperp' = the perpendicular component of the distance. For two points
-                          with distance from Earth `r1, r2`, if `d` is the normal Euclidean
-                          distance, then we take :math:`Rpar = r2-r1` and
-                          :math:`Rperp^2 = d^2 - Rpar^2`.
-                        - 'Rperp' is currently an alias for OldRperp.  In version 4.0, it will
-                          switch to being equivalent to FisherRperp.
-                        - 'Rlens' = the projected distance perpendicular to the first point
-                          in the pair (taken to be a lens) to the line of sight to the second
-                          point (e.g. a lensed source galaxy).
-                        - 'Arc' = the true great circle distance for spherical coordinates.
-
+    :param metric:      Which metric to use for distance measurements.  Options are listed above.
                         (default: 'Euclidean')
-
-    :param bin_type:    What type of binning should be used.  Options are:
-
-                        - 'Log' - logarithmic binning in the distance.  The bin steps will be
-                          uniform in log(r) from log(min_sep) .. log(max_sep).
-                        - 'Linear' - linear binning in the distance.  The bin steps will be
-                          uniform in r from min_sep .. max_sep.
-                        - 'TwoD' = 2-dimensional binning from x = (-max_sep .. max_sep) and
-                          y = (-max_sep .. max_sep).  The bin steps will be uniform in both
-                          x and y.  (i.e. linear in x,y)
-
+    :param bin_type:    What type of binning should be used.  Options are listed above.
                         (default: 'Log')
-
     :param min_rpar:    For the 'Rperp' metric, the minimum difference in Rparallel to allow
                         for pairs being included in the correlation function. (default: None)
     :param max_rpar:    For the 'Rperp' metric, the maximum difference in Rparallel to allow
@@ -416,13 +419,13 @@ class BinnedCorr2(object):
             if metric != self._metric:
                 self.logger.warning("Detected a change in metric.\n"+
                                     "This probably doesn't make sense!")
-        if metric not in [treecorr._lib.Rperp, treecorr._lib.OldRperp, treecorr._lib.Lens]:
+        if metric not in [treecorr._lib.Rperp, treecorr._lib.OldRperp, treecorr._lib.Rlens]:
             if self.min_rpar != -sys.float_info.max:
                 raise ValueError("min_rpar is only valid with either Rlens or Rperp metric.")
             if self.max_rpar != sys.float_info.max:
                 raise ValueError("max_rpar is only valid with either Rlens or Rperp metric.")
         else:
-            if metric == 'OldRperp':
+            if metric == 'Rperp':
                 self.logger.warning(
                     "WARNING: The definition of Rperp will change in version 4.0\n"
                     "to match the definition in Fisher et al, 1994.\n"

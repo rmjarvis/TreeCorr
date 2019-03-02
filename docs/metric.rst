@@ -145,12 +145,13 @@ coordinates (ra,dec).
 
 The distance is defined as
 
-:math:`d_{\rm Rlens} = 2 r_1 \sin(\theta / 2)`
+:math:`d_{\rm Rlens} = r_1 \sin(\theta)`
 
 where :math:`\theta` is the opening angle between the two objects and :math:`r_1` is the
-radial distance to the object in the first catalog (nominally the "lens" catalog).
-In other words, this is the chord distance between the two lines of sight at the radius
-of the lens galaxy.
+radial distance to the object in the first catalog.
+In other words, this is the distance from the first object (nominally the "lens") to the
+line of sight to the second object (nominally the "source").  This is commonly referred to
+as the impact parameter of the light path from the source as it passes the lens.
 
 This metric also permits the use of two other parameters, ``min_rpar`` and ``max_rpar``,
 which set the minimum and maximum values of :math:`r_\parallel = r_2 - r_1` for pairs to be

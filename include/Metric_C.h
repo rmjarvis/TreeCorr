@@ -16,12 +16,12 @@
 
 // We use a code for the metric to use:
 // Euclidean is Euclidean in (x,y) or (x,y,z)
-// Perp uses the perpendicular component of the separation as the distance
-// Lens uses the perpendicular component at the lens (the first catalog) distance
+// Rperp uses the perpendicular component of the separation as the distance
+// Rlens uses the perpendicular component at the lens (the first catalog) distance
 // Arc uses the great circle distance between two points on the sphere
 
 // This is the C++ way to do it.
-//enum Metric { Euclidean=1, Perp=2, Lens=3, Arc=4 };
+//enum Metric { Euclidean=1, Rperp=2, Rlens=3, Arc=4 };
 
 // But this is how we need to do it in C.
-typedef enum { Euclidean=1, Rperp=2, Lens=3, Arc=4, OldRperp=5 } Metric;
+typedef enum { Euclidean=1, Rperp=2, Rlens=3, Arc=4, OldRperp=5 } Metric;

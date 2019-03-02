@@ -20,7 +20,7 @@
 // Most of the functionality for building Cells and doing the correlation functions is the
 // same regardless of which kind of Cell we have (N, K, G) or which kind of positions we
 // are using (Flat, ThreeD, Sphere), or what metric we use for the distances between points
-// (Euclidean, Perp, Lens, Arc).  So most of the C++ code uses templates.
+// (Euclidean, Rperp, Rlens, Arc).  So most of the C++ code uses templates.
 //
 // D = NData for counts
 //     KData for kappa
@@ -31,8 +31,8 @@
 //     Sphere for spherical coordinates
 //
 // M = Euclidean for Euclidean distances in either (x,y) or (x,y,z)
-//     Perp for the perpendicular component of the 3D distance
-//     Lens for the perpendicular component at the location of the "lens" (c1)
+//     Rperp for the perpendicular component of the 3D distance
+//     Rlens for the perpendicular component at the location of the "lens" (c1)
 //     Arc for great circle distances on the sphere
 
 template <int D, int C>

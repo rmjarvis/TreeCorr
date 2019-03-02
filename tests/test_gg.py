@@ -727,12 +727,11 @@ def test_rlens():
     true_npairs = numpy.zeros((nbins,), dtype=int)
     print('Making shear vectors')
     for x,y,z,r,g in zip(xl,yl,zl,rl,gl):
-        # Use |r1 x r2| = |r1| |r2| sin(theta)
+        # Rlens = |r1 x r2| / |r2|
         xcross = ys * z - zs * y
         ycross = zs * x - xs * z
         zcross = xs * y - ys * x
-        sintheta = numpy.sqrt(xcross**2 + ycross**2 + zcross**2) / (rs * r)
-        Rlens = 2. * r * numpy.sin(numpy.arcsin(sintheta)/2)
+        Rlens = numpy.sqrt(xcross**2 + ycross**2 + zcross**2) / rs
 
         gammaQ = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
 

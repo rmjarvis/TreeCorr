@@ -390,36 +390,26 @@ struct MetricHelper<Rperp>
 
 //
 //
-// Lens is only valid for Coord == ThreeD
+// Rlens is only valid for Coord == ThreeD
 //
 //
 
 template <>
-struct MetricHelper<Lens>
+struct MetricHelper<Rlens>
 {
-    // The first option uses the chord distance at the distance of r1
+    // The distance is measured perpendicular to the p2 direction at the distance of p1.
     static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                          double& s1, double& s2)
     {
-        // theta = angle between p1, p2
-        // L/r1 = 2 sin(theta/2) = sin(theta) / cos(theta/2)
-        //      = sin(theta) sqrt(2/(1+cos(theta)))
-        // | p1 x p2 | = r1 r2 sin(theta)
-        // p1 . p2 = r1 r2 cos(theta)
-        //
-        // L^2 = r1^2 |p1xp2|^2/(r1^2 r2^2) (2 / (1+(p1.p2)/(r1 r2)))
-        //     = 2 * |p1xp2|^2 / r2^2 / (1 + (p1.p2)/r1r2)
-        double r1 = p1.norm();
-        double r2 = p2.norm();
-        double costheta = p1.dot(p2) / (r1*r2);
+        // Rlens = |p1 x p2| / |p2|
+        double r2sq = p2.normSq();
+        double rsq = p1.cross(p2).normSq() / r2sq;
 
-        // The effect of s2 needs to be modified here.  Its effect on rlens is
+        // The effect of s2 needs to be modified here.  Its effect on Rlens is approximately
         //      s2' = r1/r2 s2
-        s2 *= r1/r2;
+        s2 *= sqrt(p1.normSq() / r2sq);
 
-        double rsq = 2. * p1.cross(p2).normSq() / (r2*r2) / (1.+costheta);
-        // I don't think rounding can make this negative, but just to be safe...
-        return std::abs(rsq);
+        return rsq;
     }
 
     static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
@@ -435,12 +425,9 @@ struct MetricHelper<Lens>
 
     static double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
     {
-        //Position<ThreeD> r = p2-p1;
-        //Position<ThreeD> L = (p1+p2)*0.5;
-        //rpar = r.dot(L) / L.norm();
-        double r1 = p1.norm();
-        double r2 = p2.norm();
-        return r2-r1;  // Positive if p2 is in background of p1.
+        Position<ThreeD> r = p2-p1;
+        Position<ThreeD> L = (p1+p2)*0.5;
+        return r.dot(L) / L.norm();
     }
 
     static bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,

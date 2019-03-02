@@ -913,8 +913,8 @@ void ProcessAuto2b(BinnedCorr2<D,D,B>& corr, void* field, int dots, int coord, i
           case OldRperp:
             corr.template process<ThreeD,OldRperp>(*static_cast<Field<D,ThreeD>*>(field),dots);
             break;
-          case Lens:
-            corr.template process<ThreeD,Lens>(*static_cast<Field<D,ThreeD>*>(field),dots);
+          case Rlens:
+            corr.template process<ThreeD,Rlens>(*static_cast<Field<D,ThreeD>*>(field),dots);
             break;
           case Arc:
             corr.template process<Sphere,Arc>(*static_cast<Field<D,Sphere>*>(field),dots);
@@ -992,8 +992,8 @@ void ProcessCross2b(BinnedCorr2<D1,D2,B>& corr, void* field1, void* field2,
                 *static_cast<Field<D1,ThreeD>*>(field1),
                 *static_cast<Field<D2,ThreeD>*>(field2),dots);
             break;
-          case Lens:
-            corr.template process<ThreeD,Lens>(
+          case Rlens:
+            corr.template process<ThreeD,Rlens>(
                 *static_cast<Field<D1,ThreeD>*>(field1),
                 *static_cast<Field<D2,ThreeD>*>(field2),dots);
             break;
@@ -1103,8 +1103,8 @@ void ProcessPair2b(BinnedCorr2<D1,D2,B>& corr, void* field1, void* field2,
                 *static_cast<SimpleField<D1,ThreeD>*>(field1),
                 *static_cast<SimpleField<D2,ThreeD>*>(field2),dots);
             break;
-          case Lens:
-            corr.template processPairwise<ThreeD,Lens>(
+          case Rlens:
+            corr.template processPairwise<ThreeD,Rlens>(
                 *static_cast<SimpleField<D1,ThreeD>*>(field1),
                 *static_cast<SimpleField<D2,ThreeD>*>(field2),dots);
             break;

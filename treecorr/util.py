@@ -303,7 +303,7 @@ def parse_metric(metric, coords, coords2=None, coords3=None):
 
     if metric == 'Euclidean':
         m = treecorr._lib.Euclidean
-    elif metric == 'Rperp' or metric == 'OldRperp':
+    elif metric in ['Rperp', 'OldRperp']:
         if coords != '3d':
             raise ValueError("%s metric is only valid for catalogs with 3d positions."%metric)
         m = treecorr._lib.OldRperp
@@ -316,7 +316,7 @@ def parse_metric(metric, coords, coords2=None, coords3=None):
             raise ValueError("Rlens metric is only valid for cross correlations.")
         if coords != '3d':
             raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
-        m = treecorr._lib.Lens
+        m = treecorr._lib.Rlens
     elif metric == 'Arc':
         if coords != 'spherical':
             raise ValueError("Arc metric is only valid for catalogs with spherical positions.")

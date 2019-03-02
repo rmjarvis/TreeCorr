@@ -553,12 +553,11 @@ def test_rlens():
     true_npairs = numpy.zeros((nbins,), dtype=int)
     print('Making shear vectors')
     for x,y,z,r in zip(xl,yl,zl,rl):
-        # Use |r1 x r2| = |r1| |r2| sin(theta)
+        # Rlens = |r1 x r2| / |r2|
         xcross = ys * z - zs * y
         ycross = zs * x - xs * z
         zcross = xs * y - ys * x
-        sintheta = numpy.sqrt(xcross**2 + ycross**2 + zcross**2) / (rs * r)
-        Rlens = 2. * r * numpy.sin(numpy.arcsin(sintheta)/2)
+        Rlens = numpy.sqrt(xcross**2 + ycross**2 + zcross**2) / rs
 
         gammat = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
         # For the rotation, approximate that the x,z coords are approx the perpendicular plane.
@@ -736,12 +735,11 @@ def test_rlens_bkg():
         # This time, only give the true shear to the background galaxies.
         bkg = (rs > r)
 
-        # Use |r1 x r2| = |r1| |r2| sin(theta)
+        # Rlens = |r1 x r2| / |r2|
         xcross = ys[bkg] * z - zs[bkg] * y
         ycross = zs[bkg] * x - xs[bkg] * z
         zcross = xs[bkg] * y - ys[bkg] * x
-        sintheta = numpy.sqrt(xcross**2 + ycross**2 + zcross**2) / (rs[bkg] * r)
-        Rlens = 2. * r * numpy.sin(numpy.arcsin(sintheta)/2)
+        Rlens = numpy.sqrt(xcross**2 + ycross**2 + zcross**2) / (rs[bkg])
 
         gammat = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
         # For the rotation, approximate that the x,z coords are approx the perpendicular plane.
@@ -760,12 +758,11 @@ def test_rlens_bkg():
     true_gt = numpy.zeros( (nbins,) )
     true_npairs = numpy.zeros((nbins,), dtype=int)
     for x,y,z,r in zip(xl,yl,zl,rl):
-        # Use |r1 x r2| = |r1| |r2| sin(theta)
+        # Rlens = |r1 x r2| / |r2|
         xcross = ys * z - zs * y
         ycross = zs * x - xs * z
         zcross = xs * y - ys * x
-        sintheta = numpy.sqrt(xcross**2 + ycross**2 + zcross**2) / (rs * r)
-        Rlens = 2. * r * numpy.sin(numpy.arcsin(sintheta)/2)
+        Rlens = numpy.sqrt(xcross**2 + ycross**2 + zcross**2) / rs
         dx = xs/rs-x/r
         dz = zs/rs-z/r
         drsq = dx**2 + dz**2

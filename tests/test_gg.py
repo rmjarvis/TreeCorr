@@ -189,6 +189,8 @@ def test_gg():
     numpy.testing.assert_almost_equal(gg2.varxi, gg.varxi)
     numpy.testing.assert_almost_equal(gg2.weight, gg.weight)
     numpy.testing.assert_almost_equal(gg2.npairs, gg.npairs)
+    assert gg2.coords == gg.coords
+    assert gg2.metric == gg.metric
 
     # Also check the Schneider version.  The math isn't quite as nice here, but it is tractable
     # using a different formula than I used above:
@@ -453,7 +455,8 @@ def test_aardvark():
     corr2_exe = get_script_name('corr2')
     p = subprocess.Popen( [corr2_exe,"Aardvark.yaml","verbose=0"] )
     p.communicate()
-    corr2_output = numpy.genfromtxt(os.path.join('output','Aardvark.out'), names=True)
+    corr2_output = numpy.genfromtxt(os.path.join('output','Aardvark.out'), names=True,
+                                    skip_header=1)
     print('gg.xip = ',gg.xip)
     print('from corr2 output = ',corr2_output['xip'])
     print('ratio = ',corr2_output['xip']/gg.xip)

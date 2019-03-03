@@ -98,9 +98,8 @@ def gen_write_ascii(file_name, col_names, columns, params, prec=4):
     ensure_dir(file_name)
     with open(file_name, 'wb') as fid:
         if params is not None:
-            for key in params:
-                s = '## %s = %r\n'%(key,params[key])
-                fid.write(s.encode())
+            s = '## %r\n'%(params)
+            fid.write(s.encode())
         h = '#' + header + '\n'
         fid.write(h.encode())
         numpy.savetxt(fid, data, fmt=fmt)
@@ -155,12 +154,13 @@ def gen_read(file_name, file_type=None, logger=None):
         with open(file_name) as fid:
             header = fid.readline()
             params = {}
-            while header[1] == '#':
+            skip = 0
+            if header[1] == '#':
                 assert header[0] == '#'
-                key, value = header[2:].split('=')
-                params[key.strip()] = eval(value.strip())
+                params = eval(header[2:].strip())
                 header = fid.readline()
-        data = numpy.genfromtxt(file_name, names=True, skip_header=len(params))
+                skip = 1
+        data = numpy.genfromtxt(file_name, names=True, skip_header=skip)
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 
@@ -294,35 +294,45 @@ def parse_metric(metric, coords, coords2=None, coords3=None):
         if ( (coords2 != coords) or (coords3 is not None and coords3 != coords) ):
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
-    if coords == 'flat':
-        c = treecorr._lib.Flat
-    elif coords == 'spherical':
-        c = treecorr._lib.Sphere
-    else:
-        c = treecorr._lib.ThreeD
+    if coords not in ['flat', 'spherical', '3d']:
+        raise ValueError("Invalid coords %s"%coords)
 
-    if metric == 'Euclidean':
-        m = treecorr._lib.Euclidean
-    elif metric in ['Rperp', 'OldRperp']:
-        if coords != '3d':
-            raise ValueError("%s metric is only valid for catalogs with 3d positions."%metric)
-        m = treecorr._lib.OldRperp
-    elif metric == 'FisherRperp':
-        if coords != '3d':
-            raise ValueError("%s metric is only valid for catalogs with 3d positions."%metric)
-        m = treecorr._lib.Rperp
-    elif metric == 'Rlens':
-        if auto:
-            raise ValueError("Rlens metric is only valid for cross correlations.")
-        if coords != '3d':
-            raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
-        m = treecorr._lib.Rlens
-    elif metric == 'Arc':
-        if coords != 'spherical':
-            raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
-        m = treecorr._lib.Arc
-    else:
+    if metric not in ['Euclidean', 'Rperp', 'OldRperp', 'FisherRperp', 'Rlens', 'Arc']:
         raise ValueError("Invalid metric %s"%metric)
 
-    return c, m
+    if metric in ['Rperp', 'OldRperp', 'FisherRperp'] and coords != '3d':
+        raise ValueError("%s metric is only valid for catalogs with 3d positions."%metric)
+    if metric == 'Rlens' and auto:
+        raise ValueError("Rlens metric is only valid for cross correlations.")
+    if metric == 'Rlens' and coords != '3d':
+        raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
 
+    return coords, metric
+
+def coord_enum(coords):
+    """Return the C++-layer enum for the given string value of coords.
+    """
+    if coords == 'flat':
+        return treecorr._lib.Flat
+    elif coords == 'spherical':
+        return treecorr._lib.Sphere
+    elif coords == '3d':
+        return treecorr._lib.ThreeD
+    else:
+        raise ValueError("Invalid coords %s"%coords)
+
+def metric_enum(metric):
+    """Return the C++-layer enum for the given string value of metric.
+    """
+    if metric == 'Euclidean':
+        return treecorr._lib.Euclidean
+    elif metric in ['Rperp', 'OldRperp']:
+        return treecorr._lib.OldRperp
+    elif metric == 'FisherRperp':
+        return treecorr._lib.Rperp
+    elif metric == 'Rlens':
+        return treecorr._lib.Rlens
+    elif metric == 'Arc':
+        return treecorr._lib.Arc
+    else:
+        raise ValueError("Invalid metric %s"%metric)

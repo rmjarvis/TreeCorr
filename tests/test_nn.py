@@ -892,6 +892,8 @@ def test_nn():
         numpy.testing.assert_almost_equal(dd2.meanlogr/dd.meanlogr, 1., decimal=3)
         numpy.testing.assert_almost_equal(dd2.npairs/dd.npairs, 1., decimal=3)
         numpy.testing.assert_almost_equal(dd2.tot/dd.tot, 1., decimal=3)
+        assert dd2.coords == dd.coords
+        assert dd2.metric == dd.metric
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','nn_out1.fits')
@@ -939,6 +941,8 @@ def test_nn():
     numpy.testing.assert_almost_equal(dd2.meanlogr, dd.meanlogr)
     numpy.testing.assert_almost_equal(dd2.npairs, dd.npairs)
     numpy.testing.assert_almost_equal(dd2.tot, dd.tot)
+    assert dd2.coords == dd.coords
+    assert dd2.metric == dd.metric
 
     dd2.read(out_file_name3)
     numpy.testing.assert_almost_equal(dd2.logr, dd.logr)
@@ -946,6 +950,8 @@ def test_nn():
     numpy.testing.assert_almost_equal(dd2.meanlogr, dd.meanlogr)
     numpy.testing.assert_almost_equal(dd2.npairs, dd.npairs)
     numpy.testing.assert_almost_equal(dd2.tot, dd.tot)
+    assert dd2.coords == dd.coords
+    assert dd2.metric == dd.metric
 
 
 def test_3d():

@@ -467,7 +467,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         if prec is None:
             prec = self.config.get('precision', 4)
 
-        params = { 'tot' : self.tot }
+        params = { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric }
 
         treecorr.util.gen_write(
             file_name, col_names, columns, params=params,
@@ -498,6 +498,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.weight = data['DD']
         self.npairs = data['npairs']
         self.tot = params['tot']
+        self.coords = params['coords'].strip()
+        self.metric = params['metric'].strip()
         self._build_corr()
 
 

@@ -600,11 +600,11 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         if prec is None:
             prec = self.config.get('precision', 4)
 
-        params = { 'tot' : self.tot }
+        params = { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric }
 
         treecorr.util.gen_write(
-            file_name, col_names, columns, params=params,
-            prec=prec, file_type=file_type, logger=self.logger)
+            file_name, col_names, columns,
+            params=params, prec=prec, file_type=file_type, logger=self.logger)
 
 
     def read(self, file_name, file_type=None):
@@ -640,6 +640,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.weight = data['DDD'].reshape(s)
         self.ntri = data['ntri'].reshape(s)
         self.tot = params['tot']
+        self.coords = params['coords'].strip()
+        self.metric = params['metric'].strip()
         self._build_corr()
 
 

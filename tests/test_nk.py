@@ -172,6 +172,8 @@ def test_nk():
     numpy.testing.assert_almost_equal(nk2.varxi, nk.varxi)
     numpy.testing.assert_almost_equal(nk2.weight, nk.weight)
     numpy.testing.assert_almost_equal(nk2.npairs, nk.npairs)
+    assert nk2.coords == nk.coords
+    assert nk2.metric == nk.metric
 
 
 if __name__ == '__main__':

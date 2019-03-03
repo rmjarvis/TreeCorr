@@ -305,6 +305,8 @@ def test_ggg():
     numpy.testing.assert_almost_equal(ggg2.vargam, ggg.vargam)
     numpy.testing.assert_almost_equal(ggg2.weight, ggg.weight)
     numpy.testing.assert_almost_equal(ggg2.ntri, ggg.ntri)
+    assert ggg2.coords == ggg.coords
+    assert ggg2.metric == ggg.metric
 
 if __name__ == '__main__':
     test_ggg()

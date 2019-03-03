@@ -383,6 +383,8 @@ def test_ng():
     numpy.testing.assert_almost_equal(ng2.varxi, ng.varxi)
     numpy.testing.assert_almost_equal(ng2.weight, ng.weight)
     numpy.testing.assert_almost_equal(ng2.npairs, ng.npairs)
+    assert ng2.coords == ng.coords
+    assert ng2.metric == ng.metric
 
 
 def test_pieces():

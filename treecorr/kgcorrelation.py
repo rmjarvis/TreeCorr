@@ -318,13 +318,15 @@ class KGCorrelation(treecorr.BinnedCorr2):
         if prec is None:
             prec = self.config.get('precision', 4)
 
+        params = { 'coords' : self.coords, 'metric' : self.metric }
+
         treecorr.util.gen_write(
             file_name,
             ['R_nom','meanR','meanlogR','kgamT','kgamX','sigma','weight','npairs'],
             [ self.rnom, self.meanr, self.meanlogr,
               self.xi, self.xi_im, numpy.sqrt(self.varxi),
               self.weight, self.npairs ],
-            prec=prec, file_type=file_type, logger=self.logger)
+            params=params, prec=prec, file_type=file_type, logger=self.logger)
 
 
     def read(self, file_name, file_type=None):
@@ -343,7 +345,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Reading KG correlations from %s',file_name)
 
-        data, _ = treecorr.util.gen_read(file_name, file_type=file_type)
+        data, params = treecorr.util.gen_read(file_name, file_type=file_type)
         self.rnom = data['R_nom']
         self.logr = numpy.log(self.rnom)
         self.meanr = data['meanR']
@@ -353,6 +355,8 @@ class KGCorrelation(treecorr.BinnedCorr2):
         self.varxi = data['sigma']**2
         self.weight = data['weight']
         self.npairs = data['npairs']
+        self.coords = params['coords'].strip()
+        self.metric = params['metric'].strip()
         self._build_corr()
 
 

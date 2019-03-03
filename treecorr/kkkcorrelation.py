@@ -451,7 +451,8 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                     self.meand3, self.meanlogd3, self.meanu, self.meanv,
                     self.zeta, numpy.sqrt(self.varzeta), self.weight, self.ntri ]
 
-        params = { 'coords' : self.coords, 'metric' : self.metric }
+        params = { 'coords' : self.coords, 'metric' : self.metric,
+                   'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
         if prec is None:
             prec = self.config.get('precision', 4)
@@ -497,6 +498,8 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         self.ntri = data['ntri'].reshape(s)
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()
+        self.sep_units = params['sep_units'].strip()
+        self.bin_type = params['bin_type'].strip()
         self._build_corr()
 
 

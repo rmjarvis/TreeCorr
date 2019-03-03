@@ -600,7 +600,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         if prec is None:
             prec = self.config.get('precision', 4)
 
-        params = { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric }
+        params = { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric,
+                   'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
         treecorr.util.gen_write(
             file_name, col_names, columns,
@@ -642,6 +643,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.tot = params['tot']
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()
+        self.sep_units = params['sep_units'].strip()
+        self.bin_type = params['bin_type'].strip()
         self._build_corr()
 
 

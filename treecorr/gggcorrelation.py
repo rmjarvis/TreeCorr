@@ -534,7 +534,8 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                     self.gam2r, self.gam2i, self.gam3r, self.gam3i,
                     numpy.sqrt(self.vargam), self.weight, self.ntri ]
 
-        params = { 'coords' : self.coords, 'metric' : self.metric }
+        params = { 'coords' : self.coords, 'metric' : self.metric,
+                   'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
         if prec is None:
             prec = self.config.get('precision', 4)
@@ -587,5 +588,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.ntri = data['ntri'].reshape(s)
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()
+        self.sep_units = params['sep_units'].strip()
+        self.bin_type = params['bin_type'].strip()
 
 

@@ -206,6 +206,8 @@ def test_kkk():
     numpy.testing.assert_almost_equal(kkk2.ntri, kkk.ntri)
     assert kkk2.coords == kkk.coords
     assert kkk2.metric == kkk.metric
+    assert kkk2.sep_units == kkk.sep_units
+    assert kkk2.bin_type == kkk.bin_type
 
 if __name__ == '__main__':
     test_constant()

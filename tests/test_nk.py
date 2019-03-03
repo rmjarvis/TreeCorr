@@ -174,6 +174,8 @@ def test_nk():
     numpy.testing.assert_almost_equal(nk2.npairs, nk.npairs)
     assert nk2.coords == nk.coords
     assert nk2.metric == nk.metric
+    assert nk2.sep_units == nk.sep_units
+    assert nk2.bin_type == nk.bin_type
 
 
 if __name__ == '__main__':

@@ -1186,6 +1186,8 @@ def test_nnn():
     numpy.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
     assert ddd2.coords == ddd.coords
     assert ddd2.metric == ddd.metric
+    assert ddd2.sep_units == ddd.sep_units
+    assert ddd2.bin_type == ddd.bin_type
 
     ddd2.read(out_file_name2)
     numpy.testing.assert_almost_equal(ddd2.logr, ddd.logr)
@@ -1203,6 +1205,8 @@ def test_nnn():
     numpy.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
     assert ddd2.coords == ddd.coords
     assert ddd2.metric == ddd.metric
+    assert ddd2.sep_units == ddd.sep_units
+    assert ddd2.bin_type == ddd.bin_type
 
     # Test compensated zeta
     # This version computes the three-point function after subtracting off the appropriate
@@ -1285,6 +1289,8 @@ def test_nnn():
         numpy.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
         assert ddd2.coords == ddd.coords
         assert ddd2.metric == ddd.metric
+        assert ddd2.sep_units == ddd.sep_units
+        assert ddd2.bin_type == ddd.bin_type
 
         import subprocess
         corr3_exe = get_script_name('corr3')

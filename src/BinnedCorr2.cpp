@@ -111,6 +111,7 @@ void BinnedCorr2<D1,D2,B>::clear()
 template <int D1, int D2, int B> template <int C, int M>
 void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
 {
+    xdbg<<"Start process (auto): M,C = "<<M<<"  "<<C<<std::endl;
     Assert(D1 == D2);
     Assert(_coords == -1 || _coords == C);
     _coords = C;
@@ -161,6 +162,7 @@ template <int D1, int D2, int B> template <int C, int M>
 void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>& field2,
                                    bool dots)
 {
+    xdbg<<"Start process (cross): M,C = "<<M<<"  "<<C<<std::endl;
     Assert(_coords == -1 || _coords == C);
     _coords = C;
     const long n1 = field1.getNTopLevel();
@@ -293,7 +295,9 @@ void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
     double s1 = c1.getSize(); // May be modified by DistSq function.
     double s2 = c2.getSize(); // "
     xdbg<<"s1,s2 = "<<s1<<','<<s2<<std::endl;
+    xdbg<<"M,C = "<<M<<"  "<<C<<std::endl;
     const double rsq = MetricHelper<M>::DistSq(c1.getPos(),c2.getPos(),s1,s2);
+    xdbg<<"rsq = "<<rsq<<std::endl;
     xdbg<<"s1,s2 => "<<s1<<','<<s2<<std::endl;
     const double s1ps2 = s1+s2;
 
@@ -917,7 +921,10 @@ void ProcessAuto2b(BinnedCorr2<D,D,B>& corr, void* field, int dots, int coord, i
             corr.template process<ThreeD,Rlens>(*static_cast<Field<D,ThreeD>*>(field),dots);
             break;
           case Arc:
-            corr.template process<Sphere,Arc>(*static_cast<Field<D,Sphere>*>(field),dots);
+            if (coord == Sphere)
+                corr.template process<Sphere,Arc>(*static_cast<Field<D,Sphere>*>(field),dots);
+            else
+                corr.template process<ThreeD,Arc>(*static_cast<Field<D,ThreeD>*>(field),dots);
             break;
           default:
             Assert(false);
@@ -998,9 +1005,14 @@ void ProcessCross2b(BinnedCorr2<D1,D2,B>& corr, void* field1, void* field2,
                 *static_cast<Field<D2,ThreeD>*>(field2),dots);
             break;
           case Arc:
-            corr.template process<Sphere,Arc>(
-                *static_cast<Field<D1,Sphere>*>(field1),
-                *static_cast<Field<D2,Sphere>*>(field2),dots);
+            if (coord == Sphere)
+                corr.template process<Sphere,Arc>(
+                    *static_cast<Field<D1,Sphere>*>(field1),
+                    *static_cast<Field<D2,Sphere>*>(field2),dots);
+            else
+                corr.template process<ThreeD,Arc>(
+                    *static_cast<Field<D1,ThreeD>*>(field1),
+                    *static_cast<Field<D2,ThreeD>*>(field2),dots);
             break;
           default:
             Assert(false);
@@ -1109,9 +1121,14 @@ void ProcessPair2b(BinnedCorr2<D1,D2,B>& corr, void* field1, void* field2,
                 *static_cast<SimpleField<D2,ThreeD>*>(field2),dots);
             break;
           case Arc:
-            corr.template processPairwise<Sphere,Arc>(
-                *static_cast<SimpleField<D1,Sphere>*>(field1),
-                *static_cast<SimpleField<D2,Sphere>*>(field2),dots);
+            if (coord == Sphere)
+                corr.template processPairwise<Sphere,Arc>(
+                    *static_cast<SimpleField<D1,Sphere>*>(field1),
+                    *static_cast<SimpleField<D2,Sphere>*>(field2),dots);
+            else
+                corr.template processPairwise<ThreeD,Arc>(
+                    *static_cast<SimpleField<D1,ThreeD>*>(field1),
+                    *static_cast<SimpleField<D2,ThreeD>*>(field2),dots);
             break;
           default:
             Assert(false);

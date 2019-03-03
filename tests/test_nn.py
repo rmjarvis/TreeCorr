@@ -609,6 +609,36 @@ def test_direct_arc():
     print('diff = ',dd.npairs - true_npairs)
     numpy.testing.assert_array_equal(dd.npairs, true_npairs)
 
+    # Repeat with cat2 using 3d positions
+    cat2r = treecorr.Catalog(ra=ra2, dec=dec2, r=r2, ra_units='rad', dec_units='rad')
+    dd2r = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+                                  sep_units='arcmin')
+    dd2r.process(cat1, cat2r, metric='Arc')
+    print('dd2r.npairs = ',dd2r.npairs)
+    print('true_npairs = ',true_npairs)
+    print('diff = ',dd2r.npairs - true_npairs)
+    numpy.testing.assert_array_equal(dd2r.npairs, true_npairs)
+
+    # And cat1 with 3d positions
+    cat1r = treecorr.Catalog(ra=ra1, dec=dec1, r=r1, ra_units='rad', dec_units='rad')
+    dd1r = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+                                  sep_units='arcmin')
+    dd1r.process(cat1r, cat2, metric='Arc')
+    print('dd1r.npairs = ',dd1r.npairs)
+    print('true_npairs = ',true_npairs)
+    print('diff = ',dd1r.npairs - true_npairs)
+    numpy.testing.assert_array_equal(dd1r.npairs, true_npairs)
+
+    # And now both with 3d positions
+    ddr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+                                 sep_units='arcmin')
+    ddr.process(cat1r, cat2r, metric='Arc')
+    print('ddr.npairs = ',ddr.npairs)
+    print('true_npairs = ',true_npairs)
+    print('diff = ',ddr.npairs - true_npairs)
+    numpy.testing.assert_array_equal(ddr.npairs, true_npairs)
+
+
 
 def test_direct_partial():
     # There are two ways to specify using only parts of a catalog:

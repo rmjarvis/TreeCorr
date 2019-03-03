@@ -778,6 +778,13 @@ def test_rlens_bkg():
     # galaxies for each lens regardless of whether they had signal or not.
     true_gt = numpy.zeros( (nbins,) )
     true_npairs = numpy.zeros((nbins,), dtype=int)
+    # Along the way, do the same test for Arc metric.
+    min_sep_arc = 10   # arcmin
+    max_sep_arc = 200
+    min_sep_arc_rad = min_sep_arc * treecorr.arcmin / treecorr.radians
+    nbins_arc = int(numpy.ceil(numpy.log(max_sep_arc/min_sep_arc)/bin_size))
+    true_gt_arc = numpy.zeros( (nbins_arc,) )
+    true_npairs_arc = numpy.zeros((nbins_arc,), dtype=int)
     for x,y,z,r in zip(xl,yl,zl,rl):
         # Rlens = |r1 x r2| / |r2|
         xcross = ys * z - zs * y
@@ -794,7 +801,15 @@ def test_rlens_bkg():
         numpy.add.at(true_gt, index[mask], gt[mask])
         numpy.add.at(true_npairs, index[mask], 1)
 
+        # Arc bins by theta, which is arcsin(Rlens / r)
+        theta = numpy.arcsin(Rlens / r)
+        index = numpy.floor( numpy.log(theta / min_sep_arc_rad) / bin_size).astype(int)
+        mask = (index >= 0) & (index < nbins_arc) & bkg
+        numpy.add.at(true_gt_arc, index[mask], gt[mask])
+        numpy.add.at(true_npairs_arc, index[mask], 1)
+
     true_gt /= true_npairs
+    true_gt_arc /= true_npairs_arc
 
     # Start with bin_slop == 0.  With only 100 lenses, this still runs very fast.
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl)
@@ -872,6 +887,47 @@ def test_rlens_bkg():
         print('diff = ',corr2_output['gamT']-ng1.xi)
         numpy.testing.assert_almost_equal(corr2_output['gamT'], ng1.xi, decimal=6)
         numpy.testing.assert_almost_equal(corr2_output['gamX'], ng1.xi_im, decimal=6)
+
+    # Repeat with Arc metric
+    ng2 = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep_arc, max_sep=max_sep_arc,
+                                 metric='Arc', bin_slop=0, min_rpar=0, sep_units='arcmin')
+    ng2.process(lens_cat, source_cat)
+
+    print('Results with bin_slop = 0:')
+    print('ng.npairs = ',ng2.npairs)
+    print('true_npairs = ',true_npairs_arc)
+    print('ng.xi = ',ng2.xi)
+    print('true_gammat = ',true_gt_arc)
+    print('ratio = ',ng2.xi / true_gt_arc)
+    print('diff = ',ng2.xi - true_gt_arc)
+    print('max diff = ',max(abs(ng2.xi - true_gt_arc)))
+    assert max(abs(ng2.xi - true_gt_arc)) < 2.e-6
+
+    # Without min_rpar, this should fail.
+    lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl)
+    source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
+    ng2 = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep_arc, max_sep=max_sep_arc,
+                                 metric='Arc', bin_slop=0, sep_units='arcmin')
+    ng2.process(lens_cat, source_cat)
+    Rlens = ng2.meanr
+
+    print('Results without min_rpar')
+    print('ng.xi = ',ng2.xi)
+    print('true_gammat = ',true_gt_arc)
+    print('max diff = ',max(abs(ng2.xi - true_gt_arc)))
+    assert max(abs(ng2.xi - true_gt_arc)) > 2.e-3
+
+    # Now use a more normal value for bin_slop.
+    ng3 = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep_arc, max_sep=max_sep_arc,
+                                 metric='Arc', bin_slop=0.5, min_rpar=0, sep_units='arcmin')
+    ng3.process(lens_cat, source_cat)
+
+    print('Results with bin_slop = 0.5')
+    print('ng.npairs = ',ng3.npairs)
+    print('ng.xi = ',ng3.xi)
+    assert max(abs(ng3.xi - true_gt_arc)) < 1.e-3
+    print('ng.xi_im = ',ng3.xi_im)
+    assert max(abs(ng3.xi_im)) < 1.e-3
 
 
 def test_haloellip():

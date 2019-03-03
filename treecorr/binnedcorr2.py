@@ -205,9 +205,9 @@ class BinnedCorr2(object):
         'bin_type': (str, False, 'Log', ['Log', 'Linear', 'TwoD'],
                 'Which type of binning should be used'),
         'min_rpar': (float, False, None, None,
-                'For Rperp metric, the minimum difference in Rparallel for pairs to include'),
+                'The minimum difference in Rparallel for pairs to include'),
         'max_rpar': (float, False, None, None,
-                'For Rperp metric, the maximum difference in Rparallel for pairs to include'),
+                'The maximum difference in Rparallel for pairs to include'),
     }
 
     def __init__(self, config=None, logger=None, **kwargs):
@@ -411,7 +411,7 @@ class BinnedCorr2(object):
     def _set_metric(self, metric, coords1, coords2=None):
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Rperp', 'OldRperp', 'FisherRperp', 'Rlens']:
+        if metric not in ['Rperp', 'OldRperp', 'FisherRperp', 'Rlens', 'Arc']:
             if self.min_rpar != -sys.float_info.max:
                 raise ValueError("min_rpar is not valid for %s metric."%metric)
             if self.max_rpar != sys.float_info.max:
@@ -423,7 +423,7 @@ class BinnedCorr2(object):
                 "The new definition can be used now with metric='FisherRperp'.\n"
                 "After 4.0, the current Rperp will be available as metric='OldRperp'.\n")
         coords, metric = treecorr.util.parse_metric(metric, coords1, coords2)
-        if self.sep_units != '' and coords == '3d':
+        if self.sep_units != '' and coords == '3d' and metric != 'Arc':
             raise ValueError("sep_units is invalid with 3d coordinates. "
                              "min_sep and max_sep should be in the same units as r (or x,y,z).")
         if self.coords != None or self.metric != None:

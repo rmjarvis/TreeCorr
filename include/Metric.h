@@ -468,7 +468,7 @@ struct MetricHelper<Rlens>
 
 //
 //
-// Arc is only valid for Coord == Sphere
+// Arc is only valid for Coord == Sphere and Coord == ThreeD
 //
 //
 
@@ -495,13 +495,6 @@ struct MetricHelper<Arc>
                     const Position<Sphere>& p3)
     { return MetricHelper<Euclidean>::CCW(p1,p2,p3); }
 
-    static bool isRParOutsideRange(const Position<Sphere>& p1, const Position<Sphere>& p2,
-                                   double s1ps2, double minrpar, double maxrpar, double& rpar)
-    { return false; }
-
-    static bool isRParInsideRange(double rpar, double s1ps2, double minrpar, double maxrpar)
-    { return true; }
-
     static bool tooSmallDist(const Position<Sphere>& p1, const Position<Sphere>& p2,
                              double rsq, double rpar, double s1ps2, double minsepsq)
     { return true; }
@@ -510,6 +503,61 @@ struct MetricHelper<Arc>
                              double rsq, double rpar, double s1ps2, double maxsepsq)
     { return true; }
 
+    // For 3d coordinates, use the cross product to get sin(theta)
+    static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                         double& s1, double& s2)
+    { return SQR(Dist(p1,p2)); }
+
+    static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    {
+        // sin(theta) = |p1 x p2| / |p1| |p2|
+        double sintheta = sqrt( p1.cross(p2).normSq() / (p1.normSq() * p2.normSq()) );
+        double theta = std::asin(sintheta);
+        return theta;
+    }
+
+    // This is the same as Euclidean
+    static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                    const Position<ThreeD>& p3)
+    { return MetricHelper<Euclidean>::CCW(p1,p2,p3); }
+
+    static double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    {
+        Position<ThreeD> r = p2-p1;
+        Position<ThreeD> L = (p1+p2)*0.5;
+        return r.dot(L) / L.norm();
+    }
+
+    static bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                                   double s1ps2, double minrpar, double maxrpar, double& rpar)
+    {
+        // Quick return if no min/max rpar
+        if (minrpar == -std::numeric_limits<double>::max() &&
+            maxrpar == std::numeric_limits<double>::max()) return false;
+
+        rpar = calculateRPar(p1,p2);
+        if (rpar + s1ps2 < minrpar) return true;
+        else if (rpar - s1ps2 > maxrpar) return true;
+        else return false;
+    }
+
+    static bool isRParInsideRange(double rpar, double s1ps2, double minrpar, double maxrpar)
+    {
+        // Quick return if no min/max rpar
+        if (minrpar == -std::numeric_limits<double>::max() &&
+            maxrpar == std::numeric_limits<double>::max()) return true;
+        if (rpar - s1ps2 < minrpar) return false;
+        else if (rpar + s1ps2 > maxrpar) return false;
+        else return true;
+    }
+
+    static bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                             double rsq, double rpar, double s1ps2, double minsepsq)
+    { return true; }
+
+    static bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                             double rsq, double rpar, double s1ps2, double maxsepsq)
+    { return true; }
 };
 
 #endif

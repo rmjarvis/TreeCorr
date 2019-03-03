@@ -150,7 +150,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         min_size, max_size = self._get_minmax_size()
 
-        field = cat.getGField(min_size,max_size,self.split_method,self.max_top)
+        field = cat.getGField(min_size, max_size, self.split_method, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         treecorr._lib.ProcessAutoGG(self.corr, field.data, self.output_dots,
@@ -187,8 +187,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         min_size, max_size = self._get_minmax_size()
 
-        f1 = cat1.getGField(min_size,max_size,self.split_method,self.max_top)
-        f2 = cat2.getGField(min_size,max_size,self.split_method,self.max_top)
+        f1 = cat1.getGField(min_size, max_size, self.split_method, self.max_top, self.coords)
+        f2 = cat2.getGField(min_size, max_size, self.split_method, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         treecorr._lib.ProcessCrossGG(self.corr, f1.data, f2.data, self.output_dots,

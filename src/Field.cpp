@@ -12,6 +12,8 @@
  *    and/or other materials provided with the distribution.
  */
 
+//#define DEBUGLOGGING
+
 #include <cstddef>  // for ptrdiff_t
 #include "Field.h"
 #include "Cell.h"
@@ -171,7 +173,9 @@ Field<D,C>::Field(
     double minsize, double maxsize,
     int sm_int, int maxtop)
 {
+    //set_verbose(2);
     dbg<<"Starting to Build Field with "<<nobj<<" objects\n";
+    xdbg<<"D,C = "<<D<<','<<C<<std::endl;
     xdbg<<"First few values are:\n";
     for(int i=0;i<5;++i) {
         xdbg<<x[i]<<"  "<<y[i]<<"  "<<z[i]<<"  "<<g1[i]<<"  "<<g1[i]<<"  "<<k[i]<<"  "<<w[i]<<"  "<<wpos[i]<<std::endl;
@@ -231,6 +235,7 @@ Field<D,C>::Field(
 
     // delete any CellData elements that didn't get kept in the _cells object.
     for (size_t i=0;i<celldata.size();++i) if (celldata[i]) delete celldata[i];
+    //set_verbose(1);
 }
 
 template <int D, int C>

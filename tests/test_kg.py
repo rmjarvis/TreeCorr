@@ -218,6 +218,8 @@ def test_kg():
     numpy.testing.assert_almost_equal(kg2.varxi, kg.varxi)
     numpy.testing.assert_almost_equal(kg2.weight, kg.weight)
     numpy.testing.assert_almost_equal(kg2.npairs, kg.npairs)
+    assert kg2.coords == kg.coords
+    assert kg2.metric == kg.metric
 
 if __name__ == '__main__':
     test_single()

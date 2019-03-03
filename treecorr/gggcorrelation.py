@@ -533,11 +533,15 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                     self.gam0r, self.gam0i, self.gam1r, self.gam1i,
                     self.gam2r, self.gam2i, self.gam3r, self.gam3i,
                     numpy.sqrt(self.vargam), self.weight, self.ntri ]
+
+        params = { 'coords' : self.coords, 'metric' : self.metric }
+
         if prec is None:
             prec = self.config.get('precision', 4)
 
         treecorr.util.gen_write(
-            file_name, col_names, columns, prec=prec, file_type=file_type, logger=self.logger)
+            file_name, col_names, columns,
+            params=params, prec=prec, file_type=file_type, logger=self.logger)
 
 
     def read(self, file_name, file_type=None):
@@ -556,7 +560,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         """
         self.logger.info('Reading GGG correlations from %s',file_name)
 
-        data, _ = treecorr.util.gen_read(file_name, file_type=file_type)
+        data, params = treecorr.util.gen_read(file_name, file_type=file_type)
         s = self.logr.shape
         self.rnom = data['R_nom'].reshape(s)
         self.logr = numpy.log(self.rnom)
@@ -581,5 +585,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.vargam = data['sigma_gam'].reshape(s)**2
         self.weight = data['weight'].reshape(s)
         self.ntri = data['ntri'].reshape(s)
+        self.coords = params['coords'].strip()
+        self.metric = params['metric'].strip()
 
 

@@ -204,6 +204,8 @@ def test_kkk():
     numpy.testing.assert_almost_equal(kkk2.varzeta, kkk.varzeta)
     numpy.testing.assert_almost_equal(kkk2.weight, kkk.weight)
     numpy.testing.assert_almost_equal(kkk2.ntri, kkk.ntri)
+    assert kkk2.coords == kkk.coords
+    assert kkk2.metric == kkk.metric
 
 if __name__ == '__main__':
     test_constant()

@@ -374,8 +374,8 @@ class BinnedCorr2(object):
         else:
             self.logger.debug("Using bin_slop = %g, b = %g",self.bin_slop,self.b)
 
-        self._coords = None
-        self._metric = None
+        self.coords = None
+        self.metric = None
         self.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)
         self.max_rpar = treecorr.config.get(self.config,'max_rpar',float,sys.float_info.max)
 
@@ -411,34 +411,35 @@ class BinnedCorr2(object):
     def _set_metric(self, metric, coords1, coords2=None):
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
+        if metric not in ['Rperp', 'OldRperp', 'FisherRperp', 'Rlens']:
+            if self.min_rpar != -sys.float_info.max:
+                raise ValueError("min_rpar is not valid for %s metric."%metric)
+            if self.max_rpar != sys.float_info.max:
+                raise ValueError("max_rpar is not valid for %s metric."%metric)
+        if metric == 'Rperp':
+            self.logger.warning(
+                "WARNING: The definition of Rperp will change in version 4.0\n"
+                "to match the definition in Fisher et al, 1994.\n"
+                "The new definition can be used now with metric='FisherRperp'.\n"
+                "After 4.0, the current Rperp will be available as metric='OldRperp'.\n")
         coords, metric = treecorr.util.parse_metric(metric, coords1, coords2)
-        if self._coords != None or self._metric != None:
-            if coords != self._coords:
+        if self.sep_units != 1. and coords == '3d':
+            raise ValueError("sep_units is invalid with 3d coordinates. "
+                             "min_sep and max_sep should be in the same units as r (or x,y,z).")
+        if self.coords != None or self.metric != None:
+            if coords != self.coords:
                 self.logger.warning("Detected a change in catalog coordinate systems.\n"+
                                     "This probably doesn't make sense!")
-            if metric != self._metric:
+            if metric != self.metric:
                 self.logger.warning("Detected a change in metric.\n"+
                                     "This probably doesn't make sense!")
-        if metric not in [treecorr._lib.Rperp, treecorr._lib.OldRperp, treecorr._lib.Rlens]:
-            if self.min_rpar != -sys.float_info.max:
-                raise ValueError("min_rpar is only valid with either Rlens or Rperp metric.")
-            if self.max_rpar != sys.float_info.max:
-                raise ValueError("max_rpar is only valid with either Rlens or Rperp metric.")
-        else:
-            if metric == 'Rperp':
-                self.logger.warning(
-                    "WARNING: The definition of Rperp will change in version 4.0\n"
-                    "to match the definition in Fisher et al, 1994.\n"
-                    "The new definition can be used now with metric='FisherRperp'.\n"
-                    "After 4.0, the current Rperp will be available as metric='OldRperp'.\n")
-            if self.sep_units != 1.:
-                raise ValueError("sep_units is invalid with either Rlens or Rperp metric. "+
-                                 "min_sep and max_sep should be in the same units as r (or x,y,z)")
-        self._coords = coords
-        self._metric = metric
+        self.coords = coords  # These are the regular string values
+        self.metric = metric
+        self._coords = treecorr.util.coord_enum(coords)  # These are the C++-layer enums
+        self._metric = treecorr.util.metric_enum(metric)
 
     def _apply_units(self, mask):
-        if self._coords == treecorr._lib.Sphere and self._metric == treecorr._lib.Euclidean:
+        if self.coords == 'spherical' and self.metric == 'Euclidean':
             # Then our distances are all angles.  Convert from the chord distance to a real angle.
             # L = 2 sin(theta/2)
             self.meanr[mask] = 2. * numpy.arcsin(self.meanr[mask]/2.)
@@ -447,7 +448,7 @@ class BinnedCorr2(object):
         self.meanlogr[mask] -= self.log_sep_units
 
     def _get_minmax_size(self):
-        if self._metric == treecorr._lib.Euclidean:
+        if self.metric == 'Euclidean':
             # The minimum size cell that will be useful is one where two cells that just barely
             # don't split have (d + s1 + s2) = minsep
             # The largest s2 we need to worry about is s2 = 2s1.

@@ -448,8 +448,8 @@ class BinnedCorr3(object):
         self.v = numpy.tile(self.v1d[numpy.newaxis, numpy.newaxis, :],
                             (self.nbins, self.nubins, 1))
         self.rnom = numpy.exp(self.logr)
-        self._coords = None
-        self._metric = None
+        self.coords = None
+        self.metric = None
         self.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)
         self.max_rpar = treecorr.config.get(self.config,'max_rpar',float,sys.float_info.max)
 
@@ -514,18 +514,20 @@ class BinnedCorr3(object):
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
         coords, metric = treecorr.util.parse_metric(metric, coords1, coords2, coords3)
-        if self._coords != None or self._metric != None:
-            if coords != self._coords:
+        if self.coords != None or self.metric != None:
+            if coords != self.coords:
                 self.logger.warning("Detected a change in catalog coordinate systems. "+
                                     "This probably doesn't make sense!")
-            if metric != self._metric:
+            if metric != self.metric:
                 self.logger.warning("Detected a change in metric. "+
                                     "This probably doesn't make sense!")
-        self._coords = coords
-        self._metric = metric
+        self.coords = coords
+        self.metric = metric
+        self._coords = treecorr.util.coord_enum(coords)
+        self._metric = treecorr.util.metric_enum(metric)
 
     def _apply_units(self, mask):
-        if self._coords == treecorr._lib.Sphere and self._metric == treecorr._lib.Euclidean:
+        if self.coords == 'spherical' and self.metric == 'Euclidean':
             # Then our distances are all angles.  Convert from the chord distance to a real angle.
             # L = 2 sin(theta/2)
             self.meand1[mask] = 2. * numpy.arcsin(self.meand1[mask]/2.)
@@ -544,7 +546,7 @@ class BinnedCorr3(object):
 
     def _get_minmax_size(self):
         b = numpy.max( (self.b, self.bu, self.bv) )
-        if self._metric == treecorr._lib.Euclidean:
+        if self._metric == 'Euclidean':
             # The minimum separation we care about is that of the smallest size, which is
             # min_sep * min_u.  Do the same calculation as for 2pt to get to min_size.
             min_size = self._min_sep * self.min_u * b / (2.+3.*b)

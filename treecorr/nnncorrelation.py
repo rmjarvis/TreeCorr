@@ -313,6 +313,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                 self.max_v == other.max_v):
             raise ValueError("NNNCorrelation to be added is not compatible with this one.")
 
+        self._set_metric(other.metric, other.coords)
         self.meand1[:] += other.meand1[:]
         self.meanlogd1[:] += other.meanlogd1[:]
         self.meand2[:] += other.meand2[:]

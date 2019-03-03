@@ -19,6 +19,7 @@ import fitsio
 
 from test_helper import get_script_name
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
+from galsim_test_helpers import CaptureLog
 
 def test_single():
     # Use gamma_t(r) = gamma0 exp(-r^2/2r0^2) around a single lens
@@ -523,6 +524,22 @@ def test_pieces():
     numpy.testing.assert_almost_equal(pieces_ng2.xi*1.e1, full_ng.xi*1.e1, decimal=8)
     numpy.testing.assert_almost_equal(pieces_ng2.xi_im*1.e1, full_ng.xi_im*1.e1, decimal=8)
     numpy.testing.assert_almost_equal(pieces_ng2.varxi*1.e5, full_ng.varxi*1.e5, decimal=8)
+
+    # If trying to do this with different coords or metrics, it should give a warning
+    cat3d = treecorr.Catalog(x=xs[:10,0], y=ys[:10,0], z=xs[10:20,0], g1=g1[:10,0], g2=g2[:10,0])
+    with CaptureLog() as cl:
+        pieces_ng3 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25.,
+                                            logger=cl.logger)
+        pieces_ng3.process_cross(cat3d, cat3d)
+        pieces_ng3 += pieces_ng
+    assert "Detected a change in catalog coordinate systems" in cl.output
+
+    with CaptureLog() as cl:
+        pieces_ng4 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25.,
+                                            logger=cl.logger)
+        pieces_ng4.process_cross(cat3d, cat3d, metric='Rperp')
+        pieces_ng4 += pieces_ng3
+    assert "Detected a change in metric" in cl.output
 
 
 def test_rlens():

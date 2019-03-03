@@ -127,6 +127,8 @@ def test_kk():
     numpy.testing.assert_almost_equal(kk2.npairs, kk.npairs)
     assert kk2.coords == kk.coords
     assert kk2.metric == kk.metric
+    assert kk2.sep_units == kk.sep_units
+    assert kk2.bin_type == kk.bin_type
 
 def test_large_scale():
     # Test very large scales, comparing Arc, Euclidean (spherical), and Euclidean (3d)

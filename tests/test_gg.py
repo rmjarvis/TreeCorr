@@ -191,6 +191,8 @@ def test_gg():
     numpy.testing.assert_almost_equal(gg2.npairs, gg.npairs)
     assert gg2.coords == gg.coords
     assert gg2.metric == gg.metric
+    assert gg2.sep_units == gg.sep_units
+    assert gg2.bin_type == gg.bin_type
 
     # Also check the Schneider version.  The math isn't quite as nice here, but it is tractable
     # using a different formula than I used above:

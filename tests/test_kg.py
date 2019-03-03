@@ -220,6 +220,8 @@ def test_kg():
     numpy.testing.assert_almost_equal(kg2.npairs, kg.npairs)
     assert kg2.coords == kg.coords
     assert kg2.metric == kg.metric
+    assert kg2.sep_units == kg.sep_units
+    assert kg2.bin_type == kg.bin_type
 
 if __name__ == '__main__':
     test_single()

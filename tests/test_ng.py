@@ -385,6 +385,8 @@ def test_ng():
     numpy.testing.assert_almost_equal(ng2.npairs, ng.npairs)
     assert ng2.coords == ng.coords
     assert ng2.metric == ng.metric
+    assert ng2.sep_units == ng.sep_units
+    assert ng2.bin_type == ng.bin_type
 
 
 def test_pieces():

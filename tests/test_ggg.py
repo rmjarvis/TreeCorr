@@ -307,6 +307,8 @@ def test_ggg():
     numpy.testing.assert_almost_equal(ggg2.ntri, ggg.ntri)
     assert ggg2.coords == ggg.coords
     assert ggg2.metric == ggg.metric
+    assert ggg2.sep_units == ggg.sep_units
+    assert ggg2.bin_type == ggg.bin_type
 
 if __name__ == '__main__':
     test_ggg()

@@ -227,14 +227,14 @@ class BinnedCorr3(object):
         else:
             self.output_dots = False
 
-        bin_type = self.config.get('bin_type', None)
-        if bin_type != 'Log':
-            raise ValueError("Invalid bin_type %s"%bin_type)
+        self.bin_type = self.config.get('bin_type', None)
+        if self.bin_type != 'Log':
+            raise ValueError("Invalid bin_type %s"%self.bin_type)
         self._bintype = treecorr._lib.Log
 
-        self.sep_units = treecorr.config.get(self.config,'sep_units',str,'radians')
-        self.sep_unit_name = self.config.get('sep_units','')
-        self.log_sep_units = math.log(self.sep_units)
+        self.sep_units = self.config.get('sep_units','')
+        self._sep_units = treecorr.config.get(self.config,'sep_units',str,'radians')
+        self._log_sep_units = math.log(self._sep_units)
         if 'nbins' not in self.config:
             if 'max_sep' not in self.config:
                 raise AttributeError("Missing required parameter max_sep")
@@ -275,16 +275,16 @@ class BinnedCorr3(object):
             self.nbins = int(self.config['nbins'])
             self.bin_size = float(self.config['bin_size'])
             self.min_sep = self.max_sep*math.exp(-self.nbins*self.bin_size)
-        if self.sep_unit_name == '':
+        if self.sep_units == '':
             self.logger.info("r: nbins = %d, min,max sep = %g..%g, bin_size = %g",
                              self.nbins,self.min_sep,self.max_sep,self.bin_size)
         else:
             self.logger.info("r: nbins = %d, min,max sep = %g..%g %s, bin_size = %g",
-                             self.nbins,self.min_sep/self.sep_units,self.max_sep/self.sep_units,
-                             self.sep_unit_name,self.bin_size)
+                             self.nbins,self.min_sep/self._sep_units,self.max_sep/self._sep_units,
+                             self.sep_units,self.bin_size)
         # The underscore-prefixed names are in natural units (radians for angles)
-        self._min_sep = self.min_sep * self.sep_units
-        self._max_sep = self.max_sep * self.sep_units
+        self._min_sep = self.min_sep * self._sep_units
+        self._max_sep = self.max_sep * self._sep_units
 
         if 'nubins' not in self.config:
             self.min_u = float(self.config.get('min_u', 0.))
@@ -537,12 +537,12 @@ class BinnedCorr3(object):
             self.meand3[mask] = 2. * numpy.arcsin(self.meand3[mask]/2.)
             self.meanlogd3[mask] = numpy.log(2.*numpy.arcsin(numpy.exp(self.meanlogd3[mask])/2.))
 
-        self.meand1[mask] /= self.sep_units
-        self.meanlogd1[mask] -= self.log_sep_units
-        self.meand2[mask] /= self.sep_units
-        self.meanlogd2[mask] -= self.log_sep_units
-        self.meand3[mask] /= self.sep_units
-        self.meanlogd3[mask] -= self.log_sep_units
+        self.meand1[mask] /= self._sep_units
+        self.meanlogd1[mask] -= self._log_sep_units
+        self.meand2[mask] /= self._sep_units
+        self.meanlogd2[mask] -= self._log_sep_units
+        self.meand3[mask] /= self._sep_units
+        self.meanlogd3[mask] -= self._log_sep_units
 
     def _get_minmax_size(self):
         b = numpy.max( (self.b, self.bu, self.bv) )

@@ -226,15 +226,15 @@ class BinnedCorr2(object):
         else:
             self.output_dots = False
 
-        bin_type = self.config.get('bin_type', None)
+        self.bin_type = self.config.get('bin_type', None)
 
-        self.sep_units = treecorr.config.get(self.config,'sep_units',str,'radians')
-        self.sep_unit_name = self.config.get('sep_units','')
-        self.log_sep_units = math.log(self.sep_units)
+        self.sep_units = self.config.get('sep_units','')
+        self._sep_units = treecorr.config.get(self.config,'sep_units',str,'radians')
+        self._log_sep_units = math.log(self._sep_units)
         if 'nbins' not in self.config:
             if 'max_sep' not in self.config:
                 raise AttributeError("Missing required parameter max_sep")
-            if 'min_sep' not in self.config and bin_type != 'TwoD':
+            if 'min_sep' not in self.config and self.bin_type != 'TwoD':
                 raise AttributeError("Missing required parameter min_sep")
             if 'bin_size' not in self.config:
                 raise AttributeError("Missing required parameter bin_size")
@@ -247,7 +247,7 @@ class BinnedCorr2(object):
         elif 'bin_size' not in self.config:
             if 'max_sep' not in self.config:
                 raise AttributeError("Missing required parameter max_sep")
-            if 'min_sep' not in self.config and bin_type != 'TwoD':
+            if 'min_sep' not in self.config and self.bin_type != 'TwoD':
                 raise AttributeError("Missing required parameter min_sep")
             self.min_sep = float(self.config.get('min_sep',0))
             self.max_sep = float(self.config['max_sep'])
@@ -256,14 +256,14 @@ class BinnedCorr2(object):
             self.nbins = int(self.config['nbins'])
             self.bin_size = None
         elif 'max_sep' not in self.config:
-            if 'min_sep' not in self.config and bin_type != 'TwoD':
+            if 'min_sep' not in self.config and self.bin_type != 'TwoD':
                 raise AttributeError("Missing required parameter min_sep")
             self.min_sep = float(self.config.get('min_sep',0))
             self.nbins = int(self.config['nbins'])
             self.bin_size = float(self.config['bin_size'])
             self.max_sep = None
         else:
-            if bin_type == 'TwoD':
+            if self.bin_type == 'TwoD':
                 raise AttributeError("Only 2 of max_sep, bin_size, nbins are allowed "
                                      "for bin_type='TwoD'.")
             if 'min_sep' in self.config:
@@ -273,7 +273,7 @@ class BinnedCorr2(object):
             self.bin_size = float(self.config['bin_size'])
             self.min_sep = None
 
-        if bin_type == 'Log':
+        if self.bin_type == 'Log':
             if self.nbins is None:
                 self.nbins = int(math.ceil(math.log(self.max_sep/self.min_sep)/self.bin_size))
                 # Update max_sep given this value of nbins
@@ -295,7 +295,7 @@ class BinnedCorr2(object):
             self._bintype = treecorr._lib.Log
             target_max_b = 0.1
             bwarning_text = "b <= 0.1"
-        elif bin_type == 'Linear':
+        elif self.bin_type == 'Linear':
             if self.nbins is None:
                 self.nbins = int(math.ceil((self.max_sep-self.min_sep)/self.bin_size))
                 # Update max_sep given this value of nbins
@@ -316,7 +316,7 @@ class BinnedCorr2(object):
             self._bintype = treecorr._lib.Linear
             target_max_b = 0.1 * self.bin_size
             bwarning_text = "bin_slop <= 0.1"
-        elif bin_type == 'TwoD':
+        elif self.bin_type == 'TwoD':
             if self.nbins is None:
                 self.nbins = int(math.ceil(2.*self.max_sep / self.bin_size))
                 self.max_sep = self.nbins * self.bin_size / 2.
@@ -338,18 +338,18 @@ class BinnedCorr2(object):
             target_max_b = 0.1 * self.bin_size
             bwarning_text = "bin_slop <= 0.1"
         else:
-            raise ValueError("Invalid bin_type %s")
+            raise ValueError("Invalid bin_type %s"%self.bin_type)
 
-        if self.sep_unit_name == '':
+        if self.sep_units == '':
             self.logger.info("nbins = %d, min,max sep = %g..%g, bin_size = %g",
                              self.nbins, self.min_sep, self.max_sep, self.bin_size)
         else:
             self.logger.info("nbins = %d, min,max sep = %g..%g %s, bin_size = %g",
-                             self.nbins, self.min_sep, self.max_sep, self.sep_unit_name,
+                             self.nbins, self.min_sep, self.max_sep, self.sep_units,
                              self.bin_size)
         # The underscore-prefixed names are in natural units (radians for angles)
-        self._min_sep = self.min_sep * self.sep_units
-        self._max_sep = self.max_sep * self.sep_units
+        self._min_sep = self.min_sep * self._sep_units
+        self._max_sep = self.max_sep * self._sep_units
 
         self.split_method = self.config.get('split_method','mean')
         if self.split_method not in ['middle', 'median', 'mean', 'random']:
@@ -423,7 +423,7 @@ class BinnedCorr2(object):
                 "The new definition can be used now with metric='FisherRperp'.\n"
                 "After 4.0, the current Rperp will be available as metric='OldRperp'.\n")
         coords, metric = treecorr.util.parse_metric(metric, coords1, coords2)
-        if self.sep_units != 1. and coords == '3d':
+        if self.sep_units != '' and coords == '3d':
             raise ValueError("sep_units is invalid with 3d coordinates. "
                              "min_sep and max_sep should be in the same units as r (or x,y,z).")
         if self.coords != None or self.metric != None:
@@ -444,8 +444,8 @@ class BinnedCorr2(object):
             # L = 2 sin(theta/2)
             self.meanr[mask] = 2. * numpy.arcsin(self.meanr[mask]/2.)
             self.meanlogr[mask] = numpy.log( 2. * numpy.arcsin(numpy.exp(self.meanlogr[mask])/2.) )
-        self.meanr[mask] /= self.sep_units
-        self.meanlogr[mask] -= self.log_sep_units
+        self.meanr[mask] /= self._sep_units
+        self.meanlogr[mask] -= self._log_sep_units
 
     def _get_minmax_size(self):
         if self.metric == 'Euclidean':

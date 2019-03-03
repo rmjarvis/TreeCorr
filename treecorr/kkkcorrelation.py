@@ -320,6 +320,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                 self.max_v == other.max_v):
             raise ValueError("KKKCorrelation to be added is not compatible with this one.")
 
+        self._set_metric(other.metric, other.coords)
         self.zeta[:] += other.zeta[:]
         self.varzeta[:] += other.varzeta[:]
         self.meand1[:] += other.meand1[:]

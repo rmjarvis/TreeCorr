@@ -268,6 +268,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
                 self.max_sep == other.max_sep):
             raise ValueError("NNCorrelation to be added is not compatible with this one.")
 
+        self._set_metric(other.metric, other.coords)
         self.meanr.ravel()[:] += other.meanr.ravel()[:]
         self.meanlogr.ravel()[:] += other.meanlogr.ravel()[:]
         self.weight.ravel()[:] += other.weight.ravel()[:]

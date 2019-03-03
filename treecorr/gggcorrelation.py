@@ -382,6 +382,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                 self.max_v == other.max_v):
             raise ValueError("GGGCorrelation to be added is not compatible with this one.")
 
+        self._set_metric(other.metric, other.coords)
         self.gam0r[:] += other.gam0r[:]
         self.gam0i[:] += other.gam0i[:]
         self.gam1r[:] += other.gam1r[:]

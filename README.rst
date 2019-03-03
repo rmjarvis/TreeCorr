@@ -88,6 +88,7 @@ that is also relatively straightforward:
    - fitsio
    - pandas
    - pyyaml
+   - LSSTDESC.Coord
    - cffi
 
    The last dependency is the only one that typically could cause any problems, since it in

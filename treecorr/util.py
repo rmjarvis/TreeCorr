@@ -291,6 +291,20 @@ def parse_metric(metric, coords, coords2=None, coords3=None):
             if coords2 == 'spherical': coords2 = '3d'
             if coords3 == 'spherical': coords3 = '3d'
 
+        if metric == 'Arc':
+            # If all coords are 3d, then leave it 3d, but if any are spherical, convert
+            # them all to spherical.
+            if coords not in ['spherical', '3d']:
+                raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
+            if coords2  == '3d': coords2 = coords
+            elif coords2 == 'spherical': coords = coords2
+            else:
+                raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
+            if coords3 == '3d': coords3 = coords
+            elif coords3 == 'spherical': coords = coords3
+            elif coords3 != None:
+                raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
+
         if ( (coords2 != coords) or (coords3 is not None and coords3 != coords) ):
             raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 

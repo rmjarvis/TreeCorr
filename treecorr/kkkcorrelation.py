@@ -178,7 +178,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
         min_size, max_size = self._get_minmax_size()
 
-        field = cat.getKField(min_size,max_size,self.split_method,self.max_top)
+        field = cat.getKField(min_size, max_size, self.split_method, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         treecorr._lib.ProcessAutoKKK(self.corr, field.data, self.output_dots,
@@ -235,9 +235,9 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
         min_size, max_size = self._get_minmax_size()
 
-        f1 = cat1.getKField(min_size,max_size,self.split_method,self.max_top)
-        f2 = cat2.getKField(min_size,max_size,self.split_method,self.max_top)
-        f3 = cat3.getKField(min_size,max_size,self.split_method,self.max_top)
+        f1 = cat1.getKField(min_size, max_size, self.split_method, self.max_top, self.coords)
+        f2 = cat2.getKField(min_size, max_size, self.split_method, self.max_top, self.coords)
+        f3 = cat3.getKField(min_size, max_size, self.split_method, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         treecorr._lib.ProcessCrossKKK(self.corr, f1.data, f2.data, f3.data, self.output_dots,

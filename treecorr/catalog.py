@@ -979,7 +979,8 @@ class Catalog(object):
                     self.logger.debug('read k = %s',str(self.k))
 
 
-    def getNField(self, min_size, max_size, split_method=None, max_top=10, logger=None):
+    def getNField(self, min_size, max_size, split_method=None, max_top=10, coords=None,
+                  logger=None):
         """Return an NField based on the positions in this catalog.
 
         The NField object is cached, so this is efficient to call multiple times.
@@ -991,13 +992,14 @@ class Catalog(object):
                             constructor in the config dict.)
         :param max_top:     The maximum number of top layers to use when setting up the
                             field. (default: 10)
+        :param coords       The kind of coordinate system to use. (default self.coords)
         :param logger:      A logger file if desired (default: self.logger)
 
         :returns:           A :class:`~treecorr.NField` object
         """
         if split_method is None:
             split_method = treecorr.config.get(self.config,'split_method',str,'mean')
-        args = (min_size, max_size, split_method, max_top)
+        args = (min_size, max_size, split_method, max_top, coords)
         if args in self.nfields:
             nfield = self.nfields[args]
         else:
@@ -1008,7 +1010,8 @@ class Catalog(object):
         return nfield
 
 
-    def getKField(self, min_size, max_size, split_method=None, max_top=10, logger=None):
+    def getKField(self, min_size, max_size, split_method=None, max_top=10, coords=None,
+                  logger=None):
         """Return a KField based on the k values in this catalog.
 
         The KField object is cached, so this is efficient to call multiple times.
@@ -1020,13 +1023,14 @@ class Catalog(object):
                             constructor in the config dict.)
         :param max_top:     The maximum number of top layers to use when setting up the
                             field. (default: 10)
+        :param coords       The kind of coordinate system to use. (default self.coords)
         :param logger:      A logger file if desired (default: self.logger)
 
         :returns:           A :class:`~treecorr.KField` object
         """
         if split_method is None:
             split_method = treecorr.config.get(self.config,'split_method',str,'mean')
-        args = (min_size, max_size, split_method, max_top)
+        args = (min_size, max_size, split_method, max_top, coords)
         if args in self.kfields:
             kfield = self.kfields[args]
         else:
@@ -1039,7 +1043,8 @@ class Catalog(object):
         return kfield
 
 
-    def getGField(self, min_size, max_size, split_method=None, max_top=10, logger=None):
+    def getGField(self, min_size, max_size, split_method=None, max_top=10, coords=None,
+                  logger=None):
         """Return a GField based on the g1,g2 values in this catalog.
 
         The GField object is cached, so this is efficient to call multiple times.
@@ -1051,13 +1056,14 @@ class Catalog(object):
                             constructor in the config dict.)
         :param max_top:     The maximum number of top layers to use when setting up the
                             field. (default: 10)
+        :param coords       The kind of coordinate system to use. (default self.coords)
         :param logger:      A logger file if desired (default: self.logger)
 
         :returns:           A :class:`~treecorr.GField` object
         """
         if split_method is None:
             split_method = treecorr.config.get(self.config,'split_method',str,'mean')
-        args = (min_size, max_size, split_method, max_top)
+        args = (min_size, max_size, split_method, max_top, coords)
         if args in self.gfields:
             gfield = self.gfields[args]
         else:

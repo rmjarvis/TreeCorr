@@ -134,7 +134,7 @@ def test_twod():
     gg.process(cat1)
     print('max abs diff = ',np.max(np.abs(gg.xip - xi_brut)))
     print('max rel diff = ',np.max(np.abs(gg.xip - xi_brut)/np.abs(gg.xip)))
-    np.testing.assert_allclose(gg.xip, xi_brut, atol=1.e-7)
+    np.testing.assert_allclose(gg.xip, xi_brut, atol=2.e-7)
 
     xi_brut = corr2d(x, y, gamma, np.conj(gamma), w=1./kappa_err**2, rmax=max_sep, bins=nbins)
     # Check omitting max_sep
@@ -142,7 +142,7 @@ def test_twod():
     gg.process(cat2)
     print('max abs diff = ',np.max(np.abs(gg.xip - xi_brut)))
     print('max rel diff = ',np.max(np.abs(gg.xip - xi_brut)/np.abs(gg.xip)))
-    np.testing.assert_allclose(gg.xip, xi_brut, atol=1.e-7)
+    np.testing.assert_allclose(gg.xip, xi_brut, atol=2.e-7)
 
     # Check NK
     xi_brut = corr2d(x, y, np.ones_like(kappa), kappa, rmax=max_sep, bins=nbins)

@@ -450,13 +450,10 @@ def test_aardvark():
     print('max = ',max(abs(xim_err)))
     assert max(abs(xim_err)) < 5.e-8
 
-    # Check that we get the same result using the corr2 executable:
-    # Note: This is the only test of the corr2 executable that we do with nosetests.
-    # The other similar tests are blocked out with: if __name__ == '__main__':
-    import subprocess
-    corr2_exe = get_script_name('corr2')
-    p = subprocess.Popen( [corr2_exe,"Aardvark.yaml","verbose=0"] )
-    p.communicate()
+    # Check that we get the same result using the corr2 function
+    config = treecorr.config.read_config('Aardvark.yaml')
+    logger = treecorr.config.setup_logger(0)
+    treecorr.corr2(config, logger)
     corr2_output = numpy.genfromtxt(os.path.join('output','Aardvark.out'), names=True,
                                     skip_header=1)
     print('gg.xip = ',gg.xip)
@@ -476,6 +473,21 @@ def test_aardvark():
     assert max(abs(corr2_output['xip_im'])) < 3.e-7
     print('xim_im from corr2 output = ',corr2_output['xim_im'])
     print('max err = ',max(abs(corr2_output['xim_im'])))
+    assert max(abs(corr2_output['xim_im'])) < 1.e-7
+
+    # Check that we get the same result using the corr2 executable:
+    # Note: This is the only test of the corr2 executable that we do with nosetests.
+    # The other similar tests are blocked out with: if __name__ == '__main__':
+    import subprocess
+    corr2_exe = get_script_name('corr2')
+    p = subprocess.Popen( [corr2_exe,"Aardvark.yaml","verbose=0"] )
+    p.communicate()
+    corr2_output = numpy.genfromtxt(os.path.join('output','Aardvark.out'), names=True,
+                                    skip_header=1)
+    numpy.testing.assert_almost_equal(corr2_output['xip']/gg.xip, 1., decimal=3)
+
+    numpy.testing.assert_almost_equal(corr2_output['xim']/gg.xim, 1., decimal=3)
+    assert max(abs(corr2_output['xip_im'])) < 3.e-7
     assert max(abs(corr2_output['xim_im'])) < 1.e-7
 
     # As bin_slop decreases, the agreement should get even better.

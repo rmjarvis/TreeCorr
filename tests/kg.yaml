@@ -13,8 +13,8 @@ g2_col: [0,4]
 
 verbose: 1
 
-min_sep: 1.
-max_sep: 25.
+min_sep: 1
+max_sep: 25
 bin_size: 0.10
 sep_units: arcmin
 

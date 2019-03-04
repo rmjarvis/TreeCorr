@@ -17,8 +17,9 @@
 
 from __future__ import print_function
 import sys
-import treecorr
+from . import _lib
 import future.utils
+from .celestial import angle_units
 
 
 def parse_variable(config, v):
@@ -33,7 +34,8 @@ def parse_variable(config, v):
     key, value = v.split('=',1)
     key = key.strip()
     # Cut off any trailing comment
-    if '#' in value: value = value.split('#')[0]
+    if '#' in value:
+        value = value.split('#')[0]
     value = value.strip()
     if value[0] in ['{','[','(']:
         if value[-1] not in ['}',']',')']:
@@ -70,14 +72,12 @@ def parse_bool(value):
             try:
                 val = bool(int(value))
                 return val
-            except:
+            except Exception:
                 raise ValueError("Unable to parse %s as a bool."%value)
+    elif isinstance(value,(bool, int)):
+        return bool(value)
     else:
-        try:
-            val = bool(value)
-            return val
-        except:
-            raise ValueError("Unable to parse %s as a bool."%value)
+        raise ValueError("Unable to parse %s as a bool."%value)
 
 def parse_unit(value):
     """Parse the input value as a string that should be one of our valid angle units in
@@ -92,8 +92,9 @@ def parse_unit(value):
 
     :returns:       The given unit in radians.
     """
-    for unit in treecorr.angle_units.keys():
-        if value.startswith(unit): return treecorr.angle_units[unit]
+    for unit in angle_units.keys():
+        if value.startswith(unit):
+            return angle_units[unit]
     raise ValueError("Unable to parse %s as an angle unit"%value)
 
 
@@ -107,9 +108,12 @@ def read_config(file_name, file_type='auto'):
     :returns:           A config dict built from the configuration file.
     """
     if file_type == 'auto':
-        if file_name.endswith('.yaml'): file_type = 'yaml'
-        elif file_name.endswith('.json'): file_type = 'json'
-        elif file_name.endswith('.params'): file_type = 'params'
+        if file_name.endswith('.yaml'):
+            file_type = 'yaml'
+        elif file_name.endswith('.json'):
+            file_type = 'json'
+        elif file_name.endswith('.params'):
+            file_type = 'params'
         else:
             raise ValueError("Unable to determine the type of config file from the extension")
     if file_type == 'yaml':
@@ -142,7 +146,8 @@ def read_params_file(file_name):
                 pass
             elif v[0] == '+':
                 include_file_name = v[1:]
-                read_config(include_file_name)
+                config1 = read_config(include_file_name)
+                config.update(config1)
             else:
                 parse_variable(config,v)
     return config
@@ -151,17 +156,13 @@ def read_params_file(file_name):
 def setup_logger(verbose, log_file=None):
     """Parse the integer verbosity level from the command line args into a logging_level string
 
-    Note: This will update the verbosity if a previous call to setup_logger used a different
-    value for verbose.  However, it will not update the handler to use a different log_file
-    or switch between using a log_file and stdout.
-
     :param verbose:     An integer indicating what verbosity level to use.
     :param log_file:    If given, a file name to which to write the logging output.
                         If omitted or None, then output to stdout.
 
     :returns:           The logging.Logger object to use.
     """
-    import logging
+    import logging, os
     logging_levels = {  0: logging.CRITICAL,
                         1: logging.WARNING,
                         2: logging.INFO,
@@ -170,6 +171,15 @@ def setup_logger(verbose, log_file=None):
 
     # Setup logging to go to sys.stdout or (if requested) to an output file
     logger = logging.getLogger('treecorr')
+    # Should only be one handler.  If it is the wrong type, then clear it.
+    if len(logger.handlers) >= 1:
+        if log_file is None:
+            if isinstance(logger.handlers[0], logging.FileHandler):
+                logger.handlers.clear()
+        else:
+            if not (isinstance(logger.handlers[0], logging.FileHandler) and
+                    logger.handlers[0].baseFilename == os.path.abspath(log_file)):
+                logger.handlers.clear()
     if len(logger.handlers) == 0:  # only add handler once!
         if log_file is None:
             handle = logging.StreamHandler(stream=sys.stdout)
@@ -203,7 +213,7 @@ def check_config(config, params, aliases=None, logger=None):
 
     :returns:       The updated config dict.  The input config may be modified by this function.
     """
-    for key in config:
+    for key in list(config.keys()):
         # Check if this is a deprecated alias
         if aliases and key in aliases:
             if logger:
@@ -216,7 +226,7 @@ def check_config(config, params, aliases=None, logger=None):
 
         # Check that this is a valid key
         if key not in params:
-            raise AttributeError("Invalid parameter %s."%key)
+            raise ValueError("Invalid parameter %s."%key)
 
         value_type, may_be_list, default_value, valid_values = params[key][:4]
 
@@ -251,7 +261,8 @@ def check_config(config, params, aliases=None, logger=None):
 
     # Write the defaults for other parameters to simplify the syntax of getting the values
     for key in params:
-        if key in config: continue
+        if key in config:
+            continue
         value_type, may_be_list, default_value, valid_values = params[key][:4]
         if default_value is not None:
             config[key] = default_value
@@ -259,7 +270,7 @@ def check_config(config, params, aliases=None, logger=None):
     return config
 
 
-def print_params(params): # pragma: no cover
+def print_params(params):
     """Print the information about the valid parameters, given by the given params dict.
     See check_config for the structure of the params dict.
 
@@ -326,13 +337,8 @@ def get_from_list(config, key, num, value_type=str, default=None):
     if key in config:
         values = config[key]
         if isinstance(values, list):
-            if num > len(values):
-                raise ValueError("Not enough values in list for %s"%key)
-            return convert(values[num],value_type,key)
-        elif isinstance(values, str) and values[0] == '[' and values[-1] == ']':
-            values = eval(values)
-            if num > len(values):
-                raise ValueError("Not enough values in list for %s"%key)
+            if num >= len(values):
+                raise IndexError("num=%d is out of range of list for %s"%(num,key))
             return convert(values[num],value_type,key)
         else:
             return convert(values,value_type,key)
@@ -406,10 +412,10 @@ def set_omp_threads(num_threads, logger=None):
     # Tell OpenMP to use this many threads
     if logger:
         logger.debug('Telling OpenMP to use %d threads',num_threads)
-    num_threads = treecorr._lib.SetOMPThreads(num_threads)
+    num_threads = _lib.SetOMPThreads(num_threads)
 
     # Report back appropriately.
-    if logger: # pragma: no cover
+    if logger:
         logger.debug('OpenMP reports that it will use %d threads',num_threads)
         if num_threads > 1:
             logger.info('Using %d threads.',num_threads)

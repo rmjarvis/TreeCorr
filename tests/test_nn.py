@@ -1155,7 +1155,7 @@ def test_list():
     print('diff = ',xi-xix)
     numpy.testing.assert_almost_equal(xix/xi, 1., decimal=2)
 
-    # Check that we get the same result using the corr2 executable:
+    # Check that we get the same result using the corr2 function
     file_list = []
     rand_file_list = []
     for k in range(ncats):
@@ -1215,9 +1215,9 @@ def test_list():
     print('diff = ',corr2_output['xi']-xi)
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=3)
 
-    import subprocess
-    p = subprocess.Popen( [corr2_exe,"nn_list2.json","verbose=0"] )
-    p.communicate()
+    config = treecorr.config.read_config('nn_list2.json')
+    treecorr.config.parse_variable(config, 'verbose=0')
+    treecorr.corr2(config)
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_list2.out'),names=True,skip_header=1)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
@@ -1225,9 +1225,9 @@ def test_list():
     print('diff = ',corr2_output['xi']-xi)
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
 
-    import subprocess
-    p = subprocess.Popen( [corr2_exe,"nn_list3.params","verbose=0"] )
-    p.communicate()
+    config = treecorr.config.read_config('nn_list3.params')
+    treecorr.config.parse_variable(config, 'verbose=0')
+    treecorr.corr2(config)
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_list3.out'),names=True,skip_header=1)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
@@ -1235,7 +1235,17 @@ def test_list():
     print('diff = ',corr2_output['xi']-xi)
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
 
-    import subprocess
+    config = treecorr.config.read_config('nn_list4.config', file_type='yaml')
+    treecorr.config.parse_variable(config, 'verbose=0')
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','nn_list4.out'),names=True,skip_header=1)
+    print('xi = ',xi)
+    print('from corr2 output = ',corr2_output['xi'])
+    print('ratio = ',corr2_output['xi']/xi)
+    print('diff = ',corr2_output['xi']-xi)
+    numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
+
+    # Repeat with exe to test -f flag
     p = subprocess.Popen( [corr2_exe, "-f", "yaml", "nn_list4.config", "verbose=0"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_list4.out'),names=True,skip_header=1)
@@ -1245,9 +1255,9 @@ def test_list():
     print('diff = ',corr2_output['xi']-xi)
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
 
-    import subprocess
-    p = subprocess.Popen( [corr2_exe, "-f", "json", "nn_list5.config", "verbose=0"] )
-    p.communicate()
+    config = treecorr.config.read_config('nn_list5.config', file_type='json')
+    treecorr.config.parse_variable(config, 'verbose=0')
+    treecorr.corr2(config)
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_list5.out'),names=True,skip_header=1)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
@@ -1256,9 +1266,10 @@ def test_list():
     numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
 
     # For this one, the output file is in the current directory, which used to give an error.
-    import subprocess
-    p = subprocess.Popen( [corr2_exe, "-f", "params", "nn_list6.config", "verbose=0"] )
-    p.communicate()
+    config = treecorr.config.read_config('nn_list6.config', file_type='params')
+    treecorr.config.parse_variable(config, 'verbose=0')
+    print('config = ',config)
+    treecorr.corr2(config)
     output_file = 'nn_list6.out'
     corr2_output = numpy.genfromtxt(output_file,names=True,skip_header=1)
     print('xi = ',xi)

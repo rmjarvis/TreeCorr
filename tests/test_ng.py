@@ -17,9 +17,8 @@ import treecorr
 import os
 import fitsio
 
-from test_helper import get_script_name
+from test_helper import get_script_name, CaptureLog
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
-from galsim_test_helpers import CaptureLog
 
 def test_single():
     # Use gamma_t(r) = gamma0 exp(-r^2/2r0^2) around a single lens

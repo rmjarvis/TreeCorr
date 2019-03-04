@@ -12,13 +12,15 @@
 #    and/or other materials provided with the distribution.
 
 from __future__ import print_function
+import logging
+import sys
+import os
 
 def get_from_wiki(file_name):
     """We host some larger files used for the test suite separately on the TreeCorr wiki repo
     so people don't need to download them with the code when checking out the repo.
     Most people don't run the tests after all.
     """
-    import os
     local_file_name = os.path.join('data',file_name)
     url = 'https://github.com/rmjarvis/TreeCorr/wiki/' + file_name
     if not os.path.isfile(local_file_name):
@@ -53,7 +55,6 @@ def which(program):
     """
     Mimic functionality of unix which command
     """
-    import sys,os
     def is_exe(fpath):
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
@@ -75,7 +76,6 @@ def get_script_name(file_name):
     """
     Check if the file_name is in the path.  If not, prepend appropriate path to it.
     """
-    import os
     if which(file_name) is not None:
         return file_name
     else:

@@ -56,6 +56,6 @@ from .binnedcorr3 import BinnedCorr3
 from .nnncorrelation import NNNCorrelation
 from .kkkcorrelation import KKKCorrelation
 from .gggcorrelation import GGGCorrelation
-from .corr2 import corr2, print_corr2_params
-from .corr3 import corr3, print_corr3_params
+from .corr2 import corr2, print_corr2_params, corr2_valid_params, corr2_aliases
+from .corr3 import corr3, print_corr3_params, corr3_valid_params, corr3_aliases
 

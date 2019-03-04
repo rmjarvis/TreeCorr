@@ -86,3 +86,116 @@ def get_script_name(file_name):
         print('Warning: The script %s is not in the path.'%file_name)
         print('         Using explcit path for the test:',exe_file_name)
         return exe_file_name
+
+def timer(f):
+    import functools
+
+    @functools.wraps(f)
+    def f2(*args, **kwargs):
+        import time
+        t0 = time.time()
+        result = f(*args, **kwargs)
+        t1 = time.time()
+        fname = repr(f).split()[1]
+        print('time for %s = %.2f' % (fname, t1-t0))
+        return result
+    return f2
+
+
+class CaptureLog(object):
+    """A context manager that saves logging output into a string that is accessible for
+    checking in unit tests.
+
+    After exiting the context, the attribute `output` will have the logging output.
+
+    Sample usage:
+
+            >>> with CaptureLog() as cl:
+            ...     cl.logger.info('Do some stuff')
+            >>> assert cl.output == 'Do some stuff'
+
+    """
+    def __init__(self, level=3):
+        logging_levels = { 0: logging.CRITICAL,
+                           1: logging.WARNING,
+                           2: logging.INFO,
+                           3: logging.DEBUG }
+        self.logger = logging.getLogger('CaptureLog')
+        self.logger.setLevel(logging_levels[level])
+        try:
+            from StringIO import StringIO
+        except ImportError:
+            from io import StringIO
+        self.stream = StringIO()
+        self.handler = logging.StreamHandler(self.stream)
+        self.logger.addHandler(self.handler)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.handler.flush()
+        self.output = self.stream.getvalue().strip()
+        self.handler.close()
+
+
+# Replicate a small part of the nose package to get the `assert_raises` function/context-manager
+# without relying on nose as a dependency.
+import unittest
+class Dummy(unittest.TestCase):
+    def nop():
+        pass
+_t = Dummy('nop')
+assert_raises = getattr(_t, 'assertRaises')
+#if sys.version_info > (3,2):
+if False:
+    # Note: this should work, but at least sometimes it fails with:
+    #    RuntimeError: dictionary changed size during iteration
+    # cf. https://bugs.python.org/issue29620
+    # So just use our own (working) implementation for all Python versions.
+    assert_warns = getattr(_t, 'assertWarns')
+else:
+    from contextlib import contextmanager
+    import warnings
+    @contextmanager
+    def assert_warns_context(wtype):
+        # When used as a context manager
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            yield w
+        assert len(w) >= 1, "Expected warning %s was not raised."%(wtype)
+        assert issubclass(w[0].category, wtype), \
+                "Warning raised was the wrong type (got %s, expected %s)"%(
+                w[0].category, wtype)
+
+    def assert_warns(wtype, *args, **kwargs):
+        if len(args) == 0:
+            return assert_warns_context(wtype)
+        else:
+            # When used as a regular function
+            func = args[0]
+            args = args[1:]
+            with assert_warns(wtype):
+                res = func(*args, **kwargs)
+            return res
+
+del Dummy
+del _t
+
+# Context to make it easier to profile bits of the code
+class profile(object):
+    def __init__(self, sortby='tottime', nlines=30):
+        self.sortby = sortby
+        self.nlines = nlines
+
+    def __enter__(self):
+        import cProfile, pstats
+        self.pr = cProfile.Profile()
+        self.pr.enable()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        import pstats
+        self.pr.disable()
+        ps = pstats.Stats(self.pr).sort_stats(self.sortby)
+        ps.print_stats(self.nlines)

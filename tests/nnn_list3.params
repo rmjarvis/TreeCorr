@@ -9,13 +9,13 @@ verbose = 1
 
 min_sep = 30.
 max_sep = 50.
-nbins = 5
+nbins = 3
 min_u = 0
-max_u = 0.3
-nubins = 3
+max_u = 0.2
+nubins = 2
 min_v = 0.5
 max_v = 0.9
-nvbins = 5
+nvbins = 2
 
 nnn_file_name = output/nnn_list3.out
 nnn_statistic = simple

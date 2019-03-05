@@ -24,7 +24,7 @@ def test_single():
     # Use gamma_t(r) = gamma0 exp(-r^2/2r0^2) around a single lens
     # i.e. gamma(r) = -gamma0 exp(-r^2/2r0^2) (x+iy)^2/r^2
 
-    nsource = 1000000
+    nsource = 300000
     gamma0 = 0.05
     r0 = 10.
     L = 5. * r0
@@ -38,13 +38,13 @@ def test_single():
 
     lens_cat = treecorr.Catalog(x=[0], y=[0], x_units='arcmin', y_units='arcmin')
     source_cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
-    ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+    ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1)
     ng.process(lens_cat, source_cat)
 
     # log(<R>) != <logR>, but it should be close:
     print('meanlogr - log(meanr) = ',ng.meanlogr - numpy.log(ng.meanr))
-    numpy.testing.assert_almost_equal(ng.meanlogr, numpy.log(ng.meanr), decimal=3)
+    numpy.testing.assert_allclose(ng.meanlogr, numpy.log(ng.meanr), atol=1.e-3)
 
     r = ng.meanr
     true_gt = gamma0 * numpy.exp(-0.5*r**2/r0**2)
@@ -55,31 +55,29 @@ def test_single():
     print('ratio = ',ng.xi / true_gt)
     print('diff = ',ng.xi - true_gt)
     print('max diff = ',max(abs(ng.xi - true_gt)))
-    assert max(abs(ng.xi - true_gt)) < 4.e-4
-    assert max(abs(ng.xi_im)) < 3.e-5
+    numpy.testing.assert_allclose(ng.xi, true_gt, rtol=3.e-2)
+    numpy.testing.assert_allclose(ng.xi_im, 0, atol=1.e-4)
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        lens_cat.write(os.path.join('data','ng_single_lens.dat'))
-        source_cat.write(os.path.join('data','ng_single_source.dat'))
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"ng_single.yaml"] )
-        p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','ng_single.out'),names=True)
-        print('ng.xi = ',ng.xi)
-        print('from corr2 output = ',corr2_output['gamT'])
-        print('ratio = ',corr2_output['gamT']/ng.xi)
-        print('diff = ',corr2_output['gamT']-ng.xi)
-        numpy.testing.assert_almost_equal(corr2_output['gamT']/ng.xi, 1., decimal=3)
-
-        print('xi_im from corr2 output = ',corr2_output['gamX'])
-        assert max(abs(corr2_output['gamX'])) < 3.e-5
+    # Check that we get the same result using the corr2 function:
+    lens_cat.write(os.path.join('data','ng_single_lens.dat'))
+    source_cat.write(os.path.join('data','ng_single_source.dat'))
+    config = treecorr.read_config('ng_single.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','ng_single.out'), names=True,
+                                    skip_header=1)
+    print('ng.xi = ',ng.xi)
+    print('from corr2 output = ',corr2_output['gamT'])
+    print('ratio = ',corr2_output['gamT']/ng.xi)
+    print('diff = ',corr2_output['gamT']-ng.xi)
+    print('xi_im from corr2 output = ',corr2_output['gamX'])
+    numpy.testing.assert_allclose(corr2_output['gamT'], ng.xi, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['gamX'], 0, atol=1.e-4)
 
 
 def test_pairwise():
     # Test the same profile, but with the pairwise calcualtion:
-    nsource = 1000000
+    nsource = 300000
     gamma0 = 0.05
     r0 = 10.
     L = 5. * r0
@@ -96,7 +94,7 @@ def test_pairwise():
 
     lens_cat = treecorr.Catalog(x=dx, y=dx, x_units='arcmin', y_units='arcmin')
     source_cat = treecorr.Catalog(x=x+dx, y=y+dx, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
-    ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+    ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1, pairwise=True)
     ng.process(lens_cat, source_cat)
 
@@ -112,26 +110,25 @@ def test_pairwise():
     # I don't really understand why this comes out slightly less accurate.
     # I would have thought it would be slightly more accurate because it doesn't use the
     # approximations intrinsic to the tree calculation.
-    assert max(abs(ng.xi - true_gt)) < 4.e-4
-    assert max(abs(ng.xi_im)) < 3.e-5
+    numpy.testing.assert_allclose(ng.xi, true_gt, rtol=3.e-2)
+    numpy.testing.assert_allclose(ng.xi_im, 0, atol=1.e-4)
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        lens_cat.write(os.path.join('data','ng_pairwise_lens.dat'))
-        source_cat.write(os.path.join('data','ng_pairwise_source.dat'))
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"ng_pairwise.yaml"] )
-        p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','ng_pairwise.out'),names=True)
-        print('ng.xi = ',ng.xi)
-        print('from corr2 output = ',corr2_output['gamT'])
-        print('ratio = ',corr2_output['gamT']/ng.xi)
-        print('diff = ',corr2_output['gamT']-ng.xi)
-        numpy.testing.assert_almost_equal(corr2_output['gamT']/ng.xi, 1., decimal=3)
+    # Check that we get the same result using the corr2 function:
+    lens_cat.write(os.path.join('data','ng_pairwise_lens.dat'))
+    source_cat.write(os.path.join('data','ng_pairwise_source.dat'))
+    config = treecorr.read_config('ng_pairwise.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','ng_pairwise.out'), names=True,
+                                    skip_header=1)
+    print('ng.xi = ',ng.xi)
+    print('from corr2 output = ',corr2_output['gamT'])
+    print('ratio = ',corr2_output['gamT']/ng.xi)
+    print('diff = ',corr2_output['gamT']-ng.xi)
+    numpy.testing.assert_allclose(corr2_output['gamT'], ng.xi, rtol=1.e-3)
 
-        print('xi_im from corr2 output = ',corr2_output['gamX'])
-        assert max(abs(corr2_output['gamX'])) < 3.e-5
+    print('xi_im from corr2 output = ',corr2_output['gamX'])
+    numpy.testing.assert_allclose(corr2_output['gamX'], 0, atol=1.e-4)
 
 
 def test_spherical():
@@ -140,7 +137,7 @@ def test_spherical():
     # optimizations that are used by the TreeCorr code, thus serving as a useful test of
     # the latter.
 
-    nsource = 1000000
+    nsource = 300000
     gamma0 = 0.05
     r0 = 10. * treecorr.degrees
     L = 5. * r0
@@ -154,7 +151,7 @@ def test_spherical():
     r = numpy.sqrt(r2)
     theta = arctan2(y,x)
 
-    ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='deg',
+    ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='deg',
                                 verbose=1)
     r1 = numpy.exp(ng.logr) * treecorr.degrees
     true_gt = gamma0 * numpy.exp(-0.5*r1**2/r0**2)
@@ -223,7 +220,7 @@ def test_spherical():
         # The math seems to be right, since the last one that gets all the way to the pole
         # works, so I'm not sure what is going on.  It's just a few bins that get a bit less
         # accurate.  Possibly worth investigating further at some point...
-        assert max(abs(ng.xi - true_gt)) < 2.e-3
+        numpy.testing.assert_allclose(ng.xi, true_gt, rtol=0.1)
 
     # One more center that can be done very easily.  If the center is the north pole, then all
     # the tangential shears are pure (positive) g1.
@@ -243,26 +240,25 @@ def test_spherical():
     print('ratio = ',ng.xi / true_gt)
     print('diff = ',ng.xi - true_gt)
     print('max diff = ',max(abs(ng.xi - true_gt)))
-    assert max(abs(ng.xi - true_gt)) < 1.e-3
-    assert max(abs(ng.xi_im)) < 3.e-5
+    numpy.testing.assert_allclose(ng.xi, true_gt, rtol=0.1)
+    numpy.testing.assert_allclose(ng.xi_im, 0, atol=1.e-4)
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        lens_cat.write(os.path.join('data','ng_spherical_lens.dat'))
-        source_cat.write(os.path.join('data','ng_spherical_source.dat'))
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"ng_spherical.yaml"] )
-        p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','ng_spherical.out'),names=True)
-        print('ng.xi = ',ng.xi)
-        print('from corr2 output = ',corr2_output['gamT'])
-        print('ratio = ',corr2_output['gamT']/ng.xi)
-        print('diff = ',corr2_output['gamT']-ng.xi)
-        numpy.testing.assert_almost_equal(corr2_output['gamT']/ng.xi, 1., decimal=3)
+    # Check that we get the same result using the corr2 function:
+    lens_cat.write(os.path.join('data','ng_spherical_lens.dat'))
+    source_cat.write(os.path.join('data','ng_spherical_source.dat'))
+    config = treecorr.read_config('ng_spherical.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','ng_spherical.out'), names=True,
+                                    skip_header=1)
+    print('ng.xi = ',ng.xi)
+    print('from corr2 output = ',corr2_output['gamT'])
+    print('ratio = ',corr2_output['gamT']/ng.xi)
+    print('diff = ',corr2_output['gamT']-ng.xi)
+    numpy.testing.assert_allclose(corr2_output['gamT'], ng.xi, rtol=1.e-3)
 
-        print('xi_im from corr2 output = ',corr2_output['gamX'])
-        assert max(abs(corr2_output['gamX'])) < 3.e-5
+    print('xi_im from corr2 output = ',corr2_output['gamX'])
+    assert max(abs(corr2_output['gamX'])) < 3.e-5
 
 
 def test_ng():
@@ -291,7 +287,7 @@ def test_ng():
 
     lens_cat = treecorr.Catalog(x=xl, y=yl, x_units='arcmin', y_units='arcmin')
     source_cat = treecorr.Catalog(x=xs, y=ys, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
-    ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+    ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1)
     ng.process(lens_cat, source_cat)
 
@@ -304,14 +300,14 @@ def test_ng():
     print('ratio = ',ng.xi / true_gt)
     print('diff = ',ng.xi - true_gt)
     print('max diff = ',max(abs(ng.xi - true_gt)))
-    assert max(abs(ng.xi - true_gt)) < 4.e-3
-    assert max(abs(ng.xi_im)) < 4.e-3
+    numpy.testing.assert_allclose(ng.xi, true_gt, rtol=0.1)
+    numpy.testing.assert_allclose(ng.xi_im, 0, atol=5.e-3)
 
     nrand = nlens * 13
     xr = (numpy.random.random_sample(nrand)-0.5) * L
     yr = (numpy.random.random_sample(nrand)-0.5) * L
     rand_cat = treecorr.Catalog(x=xr, y=yr, x_units='arcmin', y_units='arcmin')
-    rg = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+    rg = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1)
     rg.process(rand_cat, source_cat)
     print('rg.xi = ',rg.xi)
@@ -324,28 +320,26 @@ def test_ng():
     print('max diff = ',max(abs(xi - true_gt)))
     # It turns out this doesn't come out much better.  I think the imprecision is mostly just due
     # to the smallish number of lenses, not to edge effects
-    assert max(abs(xi - true_gt)) < 4.e-3
-    assert max(abs(xi_im)) < 4.e-3
+    numpy.testing.assert_allclose(xi, true_gt, rtol=0.1)
+    numpy.testing.assert_allclose(xi_im, 0, atol=5.e-3)
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        lens_cat.write(os.path.join('data','ng_lens.dat'))
-        source_cat.write(os.path.join('data','ng_source.dat'))
-        rand_cat.write(os.path.join('data','ng_rand.dat'))
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"ng.yaml"] )
-        p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','ng.out'),names=True)
-        print('ng.xi = ',ng.xi)
-        print('xi = ',xi)
-        print('from corr2 output = ',corr2_output['gamT'])
-        print('ratio = ',corr2_output['gamT']/xi)
-        print('diff = ',corr2_output['gamT']-xi)
-        numpy.testing.assert_almost_equal(corr2_output['gamT']/xi, 1., decimal=3)
+    # Check that we get the same result using the corr2 function:
+    lens_cat.write(os.path.join('data','ng_lens.dat'))
+    source_cat.write(os.path.join('data','ng_source.dat'))
+    rand_cat.write(os.path.join('data','ng_rand.dat'))
+    config = treecorr.read_config('ng.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','ng.out'), names=True, skip_header=1)
+    print('ng.xi = ',ng.xi)
+    print('xi = ',xi)
+    print('from corr2 output = ',corr2_output['gamT'])
+    print('ratio = ',corr2_output['gamT']/xi)
+    print('diff = ',corr2_output['gamT']-xi)
+    numpy.testing.assert_allclose(corr2_output['gamT'], xi, rtol=1.e-3)
 
-        print('xi_im from corr2 output = ',corr2_output['gamX'])
-        assert max(abs(corr2_output['gamX'])) < 4.e-3
+    print('xi_im from corr2 output = ',corr2_output['gamX'])
+    assert max(abs(corr2_output['gamX'])) < 4.e-3
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','ng_out1.fits')
@@ -373,7 +367,7 @@ def test_ng():
     numpy.testing.assert_almost_equal(data['npairs'], ng.npairs)
 
     # Check the read function
-    ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+    ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
     ng2.read(out_file_name1)
     numpy.testing.assert_almost_equal(ng2.logr, ng.logr)
     numpy.testing.assert_almost_equal(ng2.meanr, ng.meanr)
@@ -464,13 +458,13 @@ def test_pieces():
     print('    max xi_im = ',numpy.max(full_ng.xi_im))
     print('max error in varxi = ',numpy.max(pieces_ng.varxi - full_ng.varxi),)
     print('    max varxi = ',numpy.max(full_ng.varxi))
-    numpy.testing.assert_almost_equal(pieces_ng.meanr, full_ng.meanr, decimal=2)
-    numpy.testing.assert_almost_equal(pieces_ng.meanlogr, full_ng.meanlogr, decimal=2)
-    numpy.testing.assert_almost_equal(pieces_ng.npairs*1.e-5, full_ng.npairs*1.e-5, decimal=2)
-    numpy.testing.assert_almost_equal(pieces_ng.weight*1.e-5, full_ng.weight*1.e-5, decimal=2)
-    numpy.testing.assert_almost_equal(pieces_ng.xi*1.e1, full_ng.xi*1.e1, decimal=2)
-    numpy.testing.assert_almost_equal(pieces_ng.xi_im*1.e1, full_ng.xi_im*1.e1, decimal=2)
-    numpy.testing.assert_almost_equal(pieces_ng.varxi*1.e5, full_ng.varxi*1.e5, decimal=2)
+    numpy.testing.assert_allclose(pieces_ng.meanr, full_ng.meanr, rtol=2.e-3)
+    numpy.testing.assert_allclose(pieces_ng.meanlogr, full_ng.meanlogr, atol=2.e-3)
+    numpy.testing.assert_allclose(pieces_ng.npairs, full_ng.npairs, rtol=3.e-2)
+    numpy.testing.assert_allclose(pieces_ng.weight, full_ng.weight, rtol=3.e-2)
+    numpy.testing.assert_allclose(pieces_ng.xi, full_ng.xi, rtol=0.1)
+    numpy.testing.assert_allclose(pieces_ng.xi_im, full_ng.xi_im, atol=2.e-3)
+    numpy.testing.assert_allclose(pieces_ng.varxi, full_ng.varxi, rtol=3.e-2)
 
     # A different way to do this can produce results that are essentially identical to the
     # full calculation.  We can use wpos = w, but set w = 0 for the items in the pieces catalogs
@@ -516,13 +510,13 @@ def test_pieces():
     print('    max xi_im = ',numpy.max(full_ng.xi_im))
     print('max error in varxi = ',numpy.max(pieces_ng2.varxi - full_ng.varxi),)
     print('    max varxi = ',numpy.max(full_ng.varxi))
-    numpy.testing.assert_almost_equal(pieces_ng2.meanr, full_ng.meanr, decimal=8)
-    numpy.testing.assert_almost_equal(pieces_ng2.meanlogr, full_ng.meanlogr, decimal=8)
-    numpy.testing.assert_almost_equal(pieces_ng2.npairs*1.e-5, full_ng.npairs*1.e-5, decimal=8)
-    numpy.testing.assert_almost_equal(pieces_ng2.weight*1.e-5, full_ng.weight*1.e-5, decimal=8)
-    numpy.testing.assert_almost_equal(pieces_ng2.xi*1.e1, full_ng.xi*1.e1, decimal=8)
-    numpy.testing.assert_almost_equal(pieces_ng2.xi_im*1.e1, full_ng.xi_im*1.e1, decimal=8)
-    numpy.testing.assert_almost_equal(pieces_ng2.varxi*1.e5, full_ng.varxi*1.e5, decimal=8)
+    numpy.testing.assert_allclose(pieces_ng2.meanr, full_ng.meanr, rtol=1.e-7)
+    numpy.testing.assert_allclose(pieces_ng2.meanlogr, full_ng.meanlogr, rtol=1.e-7)
+    numpy.testing.assert_allclose(pieces_ng2.npairs, full_ng.npairs, rtol=1.e-7)
+    numpy.testing.assert_allclose(pieces_ng2.weight, full_ng.weight, rtol=1.e-7)
+    numpy.testing.assert_allclose(pieces_ng2.xi, full_ng.xi, rtol=1.e-7)
+    numpy.testing.assert_allclose(pieces_ng2.xi_im, full_ng.xi_im, atol=1.e-10)
+    numpy.testing.assert_allclose(pieces_ng2.varxi, full_ng.varxi, rtol=1.e-7)
 
     # If trying to do this with different coords or metrics, it should give a warning
     cat3d = treecorr.Catalog(x=xs[:10,0], y=ys[:10,0], z=xs[10:20,0], g1=g1[:10,0], g2=g2[:10,0])
@@ -567,7 +561,7 @@ def test_rlens():
     # max_sep can't be too large, since the measured value starts to have shape noise for larger
     # values of separation.  We're not adding any shape noise directly, but the shear from other
     # lenses is effectively a shape noise, and that comes to dominate the measurement above ~4R0.
-    max_sep = 4.*R0
+    max_sep = 3.5*R0
     nbins = int(numpy.ceil(numpy.log(max_sep/min_sep)/bin_size))
     true_gt = numpy.zeros( (nbins,) )
     true_npairs = numpy.zeros((nbins,), dtype=int)
@@ -612,16 +606,16 @@ def test_rlens():
     print('ratio = ',ng0.xi / true_gt)
     print('diff = ',ng0.xi - true_gt)
     print('max diff = ',max(abs(ng0.xi - true_gt)))
-    assert max(abs(ng0.xi - true_gt)) < 2.e-6
     print('ng.xi_im = ',ng0.xi_im)
-    assert max(abs(ng0.xi_im)) < 1.e-6
+    numpy.testing.assert_allclose(ng0.xi, true_gt, rtol=1.e-3)
+    numpy.testing.assert_allclose(ng0.xi_im, 0, atol=1.e-6)
 
     print('ng.xi = ',ng0.xi)
     print('theory_gammat = ',theory_gt)
     print('ratio = ',ng0.xi / theory_gt)
     print('diff = ',ng0.xi - theory_gt)
     print('max diff = ',max(abs(ng0.xi - theory_gt)))
-    assert max(abs(ng0.xi - theory_gt)) < 4.e-5
+    numpy.testing.assert_allclose(ng0.xi, theory_gt, rtol=0.1)
 
     # Now use a more normal value for bin_slop.
     ng1 = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
@@ -637,25 +631,24 @@ def test_rlens():
     print('ratio = ',ng1.xi / theory_gt)
     print('diff = ',ng1.xi - theory_gt)
     print('max diff = ',max(abs(ng1.xi - theory_gt)))
-    assert max(abs(ng1.xi - theory_gt)) < 5.e-5
     print('ng.xi_im = ',ng1.xi_im)
-    assert max(abs(ng1.xi_im)) < 3.e-6
+    numpy.testing.assert_allclose(ng1.xi, true_gt, rtol=0.02)
+    numpy.testing.assert_allclose(ng1.xi_im, 0, atol=1.e-4)
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        lens_cat.write(os.path.join('data','ng_rlens_lens.dat'))
-        source_cat.write(os.path.join('data','ng_rlens_source.dat'))
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"ng_rlens.yaml"] )
-        p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','ng_rlens.out'),names=True)
-        print('ng.xi = ',ng1.xi)
-        print('from corr2 output = ',corr2_output['gamT'])
-        print('ratio = ',corr2_output['gamT']/ng1.xi)
-        print('diff = ',corr2_output['gamT']-ng1.xi)
-        numpy.testing.assert_almost_equal(corr2_output['gamT'], ng1.xi, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['gamX'], ng1.xi_im, decimal=6)
+    # Check that we get the same result using the corr2 function:
+    lens_cat.write(os.path.join('data','ng_rlens_lens.dat'))
+    source_cat.write(os.path.join('data','ng_rlens_source.dat'))
+    config = treecorr.read_config('ng_rlens.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','ng_rlens.out'), names=True,
+                                    skip_header=1)
+    print('ng.xi = ',ng1.xi)
+    print('from corr2 output = ',corr2_output['gamT'])
+    print('ratio = ',corr2_output['gamT']/ng1.xi)
+    print('diff = ',corr2_output['gamT']-ng1.xi)
+    numpy.testing.assert_allclose(corr2_output['gamT'], ng1.xi, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['gamX'], ng1.xi_im, rtol=1.e-3)
 
     # Repeat with the sources being given as RA/Dec only.
     ral, decl = treecorr.CelestialCoord.xyz_to_radec(xl,yl,zl)
@@ -683,20 +676,20 @@ def test_rlens():
     print('ratio = ',ng0s.xi / true_gt)
     print('diff = ',ng0s.xi - true_gt)
     print('max diff = ',max(abs(ng0s.xi - true_gt)))
-    assert max(abs(ng0s.xi - true_gt)) < 2.e-6
     print('ng.xi_im = ',ng0s.xi_im)
-    assert max(abs(ng0s.xi_im)) < 1.e-6
+    numpy.testing.assert_allclose(ng0s.xi, true_gt, rtol=1.e-4)
+    numpy.testing.assert_allclose(ng0s.xi_im, 0, atol=1.e-5)
 
     print('ng.xi = ',ng0s.xi)
     print('theory_gammat = ',theory_gt)
     print('ratio = ',ng0s.xi / theory_gt)
     print('diff = ',ng0s.xi - theory_gt)
     print('max diff = ',max(abs(ng0s.xi - theory_gt)))
-    assert max(abs(ng0s.xi - theory_gt)) < 4.e-5
+    numpy.testing.assert_allclose(ng0s.xi, theory_gt, rtol=0.05)
 
-    assert max(abs(ng0s.xi - ng0.xi)) < 1.e-7
-    assert max(abs(ng0s.xi_im - ng0.xi_im)) < 1.e-7
-    assert max(abs(ng0s.npairs - ng0.npairs)) < 1.e-7
+    numpy.testing.assert_allclose(ng0s.xi, ng0.xi, rtol=1.e-6)
+    numpy.testing.assert_allclose(ng0s.xi_im, 0, atol=1.e-6)
+    numpy.testing.assert_allclose(ng0s.npairs, ng0.npairs, atol=1.e-6)
 
     # Now use a more normal value for bin_slop.
     ng1s = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
@@ -712,16 +705,16 @@ def test_rlens():
     print('ratio = ',ng1s.xi / theory_gt)
     print('diff = ',ng1s.xi - theory_gt)
     print('max diff = ',max(abs(ng1s.xi - theory_gt)))
-    assert max(abs(ng1s.xi - theory_gt)) < 5.e-5
     print('ng.xi_im = ',ng1s.xi_im)
-    assert max(abs(ng1s.xi_im)) < 3.e-6
+    numpy.testing.assert_allclose(ng1s.xi, theory_gt, rtol=0.1)
+    numpy.testing.assert_allclose(ng1s.xi_im, 0, atol=1.e-5)
 
 
 def test_rlens_bkg():
     # Same as above, except limit the sources to be in the background of the lens.
 
     nlens = 100
-    nsource = 200000
+    nsource = 100000
     gamma0 = 0.05
     R0 = 10.
     L = 50. * R0
@@ -748,7 +741,7 @@ def test_rlens_bkg():
     # max_sep can't be too large, since the measured value starts to have shape noise for larger
     # values of separation.  We're not adding any shape noise directly, but the shear from other
     # lenses is effectively a shape noise, and that comes to dominate the measurement above ~4R0.
-    max_sep = 4.*R0
+    max_sep = 2.5*R0
     nbins = int(numpy.ceil(numpy.log(max_sep/min_sep)/bin_size))
     print('Making shear vectors')
     for x,y,z,r in zip(xl,yl,zl,rl):
@@ -828,16 +821,17 @@ def test_rlens_bkg():
     print('ratio = ',ng0.xi / true_gt)
     print('diff = ',ng0.xi - true_gt)
     print('max diff = ',max(abs(ng0.xi - true_gt)))
-    assert max(abs(ng0.xi - true_gt)) < 2.e-6
+    numpy.testing.assert_allclose(ng0.xi, true_gt, rtol=1.e-3)
 
     print('ng.xi = ',ng0.xi)
     print('theory_gammat = ',theory_gt)
     print('ratio = ',ng0.xi / theory_gt)
     print('diff = ',ng0.xi - theory_gt)
     print('max diff = ',max(abs(ng0.xi - theory_gt)))
-    assert max(abs(ng0.xi - theory_gt)) < 1.e-3
     print('ng.xi_im = ',ng0.xi_im)
-    assert max(abs(ng0.xi_im)) < 1.e-3
+    numpy.testing.assert_allclose(ng0.xi, theory_gt, rtol=0.5)
+    numpy.testing.assert_allclose(ng0.xi, theory_gt, atol=1.e-3)
+    numpy.testing.assert_allclose(ng0.xi_im, 0, atol=1.e-3)
 
     # Without min_rpar, this should fail.
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl)
@@ -867,25 +861,25 @@ def test_rlens_bkg():
     print('ratio = ',ng1.xi / theory_gt)
     print('diff = ',ng1.xi - theory_gt)
     print('max diff = ',max(abs(ng1.xi - theory_gt)))
-    assert max(abs(ng1.xi - theory_gt)) < 1.e-3
     print('ng.xi_im = ',ng1.xi_im)
-    assert max(abs(ng1.xi_im)) < 1.e-3
+    numpy.testing.assert_allclose(ng1.xi, theory_gt, rtol=0.5)
+    numpy.testing.assert_allclose(ng1.xi, theory_gt, atol=1.e-3)
+    numpy.testing.assert_allclose(ng1.xi_im, 0, atol=1.e-3)
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        lens_cat.write(os.path.join('data','ng_rlens_bkg_lens.dat'))
-        source_cat.write(os.path.join('data','ng_rlens_bkg_source.dat'))
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"ng_rlens_bkg.yaml"] )
-        p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','ng_rlens_bkg.out'),names=True)
-        print('ng.xi = ',ng1.xi)
-        print('from corr2 output = ',corr2_output['gamT'])
-        print('ratio = ',corr2_output['gamT']/ng1.xi)
-        print('diff = ',corr2_output['gamT']-ng1.xi)
-        numpy.testing.assert_almost_equal(corr2_output['gamT'], ng1.xi, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['gamX'], ng1.xi_im, decimal=6)
+    # Check that we get the same result using the corr2 function:
+    lens_cat.write(os.path.join('data','ng_rlens_bkg_lens.dat'))
+    source_cat.write(os.path.join('data','ng_rlens_bkg_source.dat'))
+    config = treecorr.read_config('ng_rlens_bkg.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','ng_rlens_bkg.out'), names=True,
+                                    skip_header=1)
+    print('ng.xi = ',ng1.xi)
+    print('from corr2 output = ',corr2_output['gamT'])
+    print('ratio = ',corr2_output['gamT']/ng1.xi)
+    print('diff = ',corr2_output['gamT']-ng1.xi)
+    numpy.testing.assert_allclose(corr2_output['gamT'], ng1.xi, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['gamX'], ng1.xi_im, atol=1.e-3)
 
     # Repeat with Arc metric
     ng2 = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep_arc, max_sep=max_sep_arc,
@@ -900,7 +894,8 @@ def test_rlens_bkg():
     print('ratio = ',ng2.xi / true_gt_arc)
     print('diff = ',ng2.xi - true_gt_arc)
     print('max diff = ',max(abs(ng2.xi - true_gt_arc)))
-    assert max(abs(ng2.xi - true_gt_arc)) < 2.e-6
+    numpy.testing.assert_allclose(ng2.xi, true_gt_arc, rtol=5.e-3)
+    numpy.testing.assert_allclose(ng2.xi_im, 0, atol=5.e-4)
 
     # Without min_rpar, this should fail.
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl)
@@ -924,9 +919,9 @@ def test_rlens_bkg():
     print('Results with bin_slop = 0.5')
     print('ng.npairs = ',ng3.npairs)
     print('ng.xi = ',ng3.xi)
-    assert max(abs(ng3.xi - true_gt_arc)) < 1.e-3
     print('ng.xi_im = ',ng3.xi_im)
-    assert max(abs(ng3.xi_im)) < 1.e-3
+    numpy.testing.assert_allclose(ng3.xi, true_gt_arc, rtol=1.e-2)
+    numpy.testing.assert_allclose(ng3.xi_im, 0, atol=1.e-3)
 
 
 def test_haloellip():
@@ -1028,9 +1023,7 @@ def test_haloellip():
     #       = - < int( (1 + e_halo cos(2t)) cos(2t) ) >
     #       = -0.5 <e_halo>
     print('expected signal = ',-0.5 * halo_mean_absg)
-    # These tests don't quite work at the 1% level of accuracy, but 2% seems to work for most.
-    # This is effected by checking that 1/2 the value matches 0.5 to 2 decimal places.
-    numpy.testing.assert_almost_equal(ng.xi, -0.5 * halo_mean_absg, decimal=2)
+    numpy.testing.assert_allclose(ng.xi, -0.5 * halo_mean_absg, rtol=0.01)
 
     # Next weight the halos by their absg.
     halo_cat2 = treecorr.Catalog(x=halo_x, y=halo_y, w=halo_absg,
@@ -1042,7 +1035,7 @@ def test_haloellip():
     # = 0.5 * <absg^2> / <absg>
     halo_mean_gsq = numpy.mean(halo_absg**2)
     print('expected signal = ',0.5 * halo_mean_gsq / halo_mean_absg)
-    numpy.testing.assert_almost_equal(ng.xi, -0.5 * halo_mean_gsq / halo_mean_absg, decimal=2)
+    numpy.testing.assert_allclose(ng.xi, -0.5 * halo_mean_gsq / halo_mean_absg, rtol=0.01)
 
     # Finally, use the unnormalized halo_g for the halo ellipticities
     halo_cat3 = treecorr.Catalog(x=halo_x, y=halo_y, g1=halo_g.real, g2=halo_g.imag)
@@ -1052,7 +1045,7 @@ def test_haloellip():
     # sum(absg * p*cos(2t)) / N
     # = 0.5 * <absg^2>
     print('expected signal = ',0.5 * halo_mean_gsq)
-    numpy.testing.assert_almost_equal(ng.xi, -0.5 * halo_mean_gsq, decimal=2)
+    numpy.testing.assert_allclose(ng.xi, -0.5 * halo_mean_gsq, rtol=0.01)
 
 
 if __name__ == '__main__':

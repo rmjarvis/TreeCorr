@@ -392,7 +392,7 @@ def test_direct_count_auto():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
 
-    ngal = 100
+    ngal = 50
     s = 10.
     numpy.random.seed(8675309)
     x = numpy.random.normal(0,s, (ngal,) )
@@ -504,20 +504,20 @@ def test_direct_count_auto():
     print('corr3_output.dtype = ',corr3_output.dtype)
     print('rnom = ',ddd.rnom.flatten())
     print('       ',corr3_output['R_nom'])
-    numpy.testing.assert_almost_equal(corr3_output['R_nom'], ddd.rnom.flatten(), decimal=3)
+    numpy.testing.assert_allclose(corr3_output['R_nom'], ddd.rnom.flatten(), rtol=1.e-3)
     print('unom = ',ddd.u.flatten())
     print('       ',corr3_output['u_nom'])
-    numpy.testing.assert_almost_equal(corr3_output['u_nom'], ddd.u.flatten(), decimal=3)
+    numpy.testing.assert_allclose(corr3_output['u_nom'], ddd.u.flatten(), rtol=1.e-3)
     print('vnom = ',ddd.v.flatten())
     print('       ',corr3_output['v_nom'])
-    numpy.testing.assert_almost_equal(corr3_output['v_nom'], ddd.v.flatten(), decimal=3)
+    numpy.testing.assert_allclose(corr3_output['v_nom'], ddd.v.flatten(), rtol=1.e-3)
     print('DDD = ',ddd.ntri.flatten())
     print('      ',corr3_output['DDD'])
-    numpy.testing.assert_almost_equal(corr3_output['DDD'], ddd.ntri.flatten(), decimal=3)
-    numpy.testing.assert_almost_equal(corr3_output['ntri'], ddd.ntri.flatten(), decimal=3)
+    numpy.testing.assert_allclose(corr3_output['DDD'], ddd.ntri.flatten(), rtol=1.e-3)
+    numpy.testing.assert_allclose(corr3_output['ntri'], ddd.ntri.flatten(), rtol=1.e-3)
     print('RRR = ',rrr.ntri.flatten())
     print('      ',corr3_output['RRR'])
-    numpy.testing.assert_almost_equal(corr3_output['RRR'], rrr.ntri.flatten(), decimal=3)
+    numpy.testing.assert_allclose(corr3_output['RRR'], rrr.ntri.flatten(), rtol=1.e-3)
     print('zeta = ',zeta.flatten())
     print('from corr3 output = ',corr3_output['zeta'])
     print('diff = ',corr3_output['zeta']-zeta.flatten())
@@ -526,16 +526,17 @@ def test_direct_count_auto():
     print('zeta[diffs] = ',zeta.flatten()[diff_index])
     print('corr3.zeta[diffs] = ',corr3_output['zeta'][diff_index])
     print('diff[diffs] = ',zeta.flatten()[diff_index] - corr3_output['zeta'][diff_index])
-    numpy.testing.assert_almost_equal(corr3_output['zeta'], zeta.flatten(), decimal=3)
+    numpy.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
 
     # Now calling out to the external corr3 executable.
+    # This is the only time we test the corr3 executable.  All other tests use corr3 function.
     import subprocess
     corr3_exe = get_script_name('corr3')
     p = subprocess.Popen( [corr3_exe,"nnn_direct.yaml","verbose=0"] )
     p.communicate()
     corr3_output = numpy.genfromtxt(os.path.join('output','nnn_direct.out'), names=True,
                                     skip_header=1)
-    numpy.testing.assert_almost_equal(corr3_output['zeta'], zeta.flatten(), decimal=3)
+    numpy.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
 
     # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -574,7 +575,7 @@ def test_direct_count_cross():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
 
-    ngal = 100
+    ngal = 50
     s = 10.
     numpy.random.seed(8675309)
     x1 = numpy.random.normal(0,s, (ngal,) )
@@ -665,18 +666,18 @@ def test_direct_count_cross():
 def test_direct_partial():
     # Test the two ways to only use parts of a catalog:
 
-    ngal = 200
+    ngal = 100
     s = 10.
     numpy.random.seed(8675309)
     x1 = numpy.random.normal(0,s, (ngal,) )
     y1 = numpy.random.normal(0,s, (ngal,) )
-    cat1a = treecorr.Catalog(x=x1, y=y1, first_row=28, last_row=144)
+    cat1a = treecorr.Catalog(x=x1, y=y1, first_row=28, last_row=84)
     x2 = numpy.random.normal(0,s, (ngal,) )
     y2 = numpy.random.normal(0,s, (ngal,) )
-    cat2a = treecorr.Catalog(x=x2, y=y2, first_row=48, last_row=129)
+    cat2a = treecorr.Catalog(x=x2, y=y2, first_row=48, last_row=99)
     x3 = numpy.random.normal(0,s, (ngal,) )
     y3 = numpy.random.normal(0,s, (ngal,) )
-    cat3a = treecorr.Catalog(x=x3, y=y3, first_row=82, last_row=167)
+    cat3a = treecorr.Catalog(x=x3, y=y3, first_row=22, last_row=67)
 
     min_sep = 1.
     max_sep = 50.
@@ -701,9 +702,9 @@ def test_direct_partial():
     bin_size = (log_max_sep - log_min_sep) / nbins
     ubin_size = (max_u-min_u) / nubins
     vbin_size = (max_v-min_v) / nvbins
-    for i in range(27,144):
-        for j in range(47,129):
-            for k in range(81,167):
+    for i in range(27,84):
+        for j in range(47,99):
+            for k in range(21,67):
                 d3 = numpy.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
                 d2 = numpy.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2)
                 d1 = numpy.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2)
@@ -728,18 +729,18 @@ def test_direct_partial():
                 if kv >= nvbins: continue
                 true_ntri[kr,ku,kv] += 1
 
-    #print('true_ntri = ',true_ntri)
-    #print('diff = ',ddda.ntri - true_ntri)
+    print('true_ntri = ',true_ntri)
+    print('diff = ',ddda.ntri - true_ntri)
     numpy.testing.assert_array_equal(ddda.ntri, true_ntri)
 
     # Now check that we get the same thing with all the points, but with w=0 for the ones
     # we don't want.
     w1 = numpy.zeros(ngal)
-    w1[27:144] = 1.
+    w1[27:84] = 1.
     w2 = numpy.zeros(ngal)
-    w2[47:129] = 1.
+    w2[47:99] = 1.
     w3 = numpy.zeros(ngal)
-    w3[81:167] = 1.
+    w3[21:67] = 1.
     cat1b = treecorr.Catalog(x=x1, y=y1, w=w1)
     cat2b = treecorr.Catalog(x=x2, y=y2, w=w2)
     cat3b = treecorr.Catalog(x=x3, y=y3, w=w3)
@@ -773,7 +774,7 @@ def is_ccw_3d(x1,y1,z1, x2,y2,z2, x3,y3,z3):
 def test_direct_3d_auto():
     # This is the same as the above test, but using the 3d correlations
 
-    ngal = 100
+    ngal = 50
     s = 10.
     numpy.random.seed(8675309)
     x = numpy.random.normal(312, s, (ngal,) )
@@ -896,7 +897,7 @@ def test_direct_3d_auto():
 def test_direct_3d_cross():
     # This is the same as the above test, but using the 3d correlations
 
-    ngal = 100
+    ngal = 50
     s = 10.
     numpy.random.seed(8675309)
     x1 = numpy.random.normal(312, s, (ngal,) )
@@ -1038,12 +1039,12 @@ def test_nnn():
         ngal = 20000
         nrand = 2 * ngal
         L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
-        req_factor = 1
+        tol_factor = 1
     else:
-        ngal = 5000
+        ngal = 2000
         nrand = ngal
-        L = 10. * s
-        req_factor = 5
+        L = 20. * s
+        tol_factor = 5
     numpy.random.seed(8675309)
     x = numpy.random.normal(0,s, (ngal,) )
     y = numpy.random.normal(0,s, (ngal,) )
@@ -1069,14 +1070,24 @@ def test_nnn():
     print('meanlogd1 - log(meand1) = ',ddd.meanlogd1 - numpy.log(ddd.meand1))
     print('meanlogd2 - log(meand2) = ',ddd.meanlogd2 - numpy.log(ddd.meand2))
     print('meanlogd3 - log(meand3) = ',ddd.meanlogd3 - numpy.log(ddd.meand3))
-    print('meanlogd3 - meanlogd2 - log(meanu) = ',ddd.meanlogd3 - ddd.meanlogd2 - numpy.log(ddd.meanu))
-    print('log(meand1-meand2) - meanlogd3 - log(meanv) = ',numpy.log(ddd.meand1-ddd.meand2) - ddd.meanlogd3 - numpy.log(ddd.meanv))
-    numpy.testing.assert_almost_equal(ddd.meanlogd1, numpy.log(ddd.meand1), decimal=3)
-    numpy.testing.assert_almost_equal(ddd.meanlogd2, numpy.log(ddd.meand2), decimal=3)
-    numpy.testing.assert_almost_equal(ddd.meanlogd3, numpy.log(ddd.meand3), decimal=3)
-    numpy.testing.assert_almost_equal(ddd.meanlogd3-ddd.meanlogd2, numpy.log(ddd.meanu), decimal=3)
-    numpy.testing.assert_almost_equal(numpy.log(ddd.meand1-ddd.meand2)-ddd.meanlogd3,
-                                      numpy.log(ddd.meanv), decimal=3)
+    print('meand3 / meand2 = ',ddd.meand3 / ddd.meand2)
+    print('meanu = ',ddd.meanu)
+    print('max diff = ',numpy.max(numpy.abs(ddd.meand3/ddd.meand2 -ddd.meanu)))
+    print('max rel diff = ',numpy.max(numpy.abs((ddd.meand3/ddd.meand2 -ddd.meanu)/ddd.meanu)))
+    print('(meand1 - meand2)/meand3 = ',(ddd.meand1-ddd.meand2) / ddd.meand3)
+    print('meanv = ',ddd.meanv)
+    print('max diff = ',numpy.max(numpy.abs((ddd.meand1-ddd.meand2)/ddd.meand3 -numpy.abs(ddd.meanv))))
+    print('max rel diff = ',numpy.max(numpy.abs(((ddd.meand1-ddd.meand2)/ddd.meand3-numpy.abs(ddd.meanv))/ddd.meanv)))
+    numpy.testing.assert_allclose(ddd.meanlogd1, numpy.log(ddd.meand1), rtol=1.e-3)
+    numpy.testing.assert_allclose(ddd.meanlogd2, numpy.log(ddd.meand2), rtol=1.e-3)
+    numpy.testing.assert_allclose(ddd.meanlogd3, numpy.log(ddd.meand3), rtol=1.e-3)
+    numpy.testing.assert_allclose(ddd.meand3/ddd.meand2, ddd.meanu, rtol=1.e-5 * tol_factor)
+    numpy.testing.assert_allclose((ddd.meand1-ddd.meand2)/ddd.meand3, numpy.abs(ddd.meanv),
+                                  rtol=1.e-5 * tol_factor, atol=1.e-5 * tol_factor)
+    numpy.testing.assert_allclose(ddd.meanlogd3-ddd.meanlogd2, numpy.log(ddd.meanu),
+                                  atol=1.e-3 * tol_factor)
+    numpy.testing.assert_allclose(numpy.log(ddd.meand1-ddd.meand2)-ddd.meanlogd3,
+                                  numpy.log(numpy.abs(ddd.meanv)), atol=2.e-3 * tol_factor)
 
     rx = (numpy.random.random_sample(nrand)-0.5) * L
     ry = (numpy.random.random_sample(nrand)-0.5) * L
@@ -1105,24 +1116,22 @@ def test_nnn():
     print('ratio = ',zeta / true_zeta)
     print('diff = ',zeta - true_zeta)
     print('max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)))
-    assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))/req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta))/req_factor,
-                                      numpy.log(numpy.abs(true_zeta))/req_factor, decimal=1)
+    numpy.testing.assert_allclose(zeta, true_zeta, rtol=0.1*tol_factor)
+    numpy.testing.assert_allclose(numpy.log(numpy.abs(zeta)), numpy.log(numpy.abs(true_zeta)),
+                                  atol=0.1*tol_factor)
 
-    # Check that we get the same result using the corr3 executable:
-    if __name__ == '__main__':
-        cat.write(os.path.join('data','nnn_data.dat'))
-        rand.write(os.path.join('data','nnn_rand.dat'))
-        import subprocess
-        corr3_exe = get_script_name('corr3')
-        p = subprocess.Popen( [corr3_exe,"nnn.yaml"] )
-        p.communicate()
-        corr3_output = numpy.genfromtxt(os.path.join('output','nnn.out'), names=True, skip_header=1)
-        print('zeta = ',zeta)
-        print('from corr3 output = ',corr3_output['zeta'])
-        print('ratio = ',corr3_output['zeta']/zeta.flatten())
-        print('diff = ',corr3_output['zeta']-zeta.flatten())
-        numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=3)
+    # Check that we get the same result using the corr3 function
+    cat.write(os.path.join('data','nnn_data.dat'))
+    rand.write(os.path.join('data','nnn_rand.dat'))
+    config = treecorr.config.read_config('nnn.yaml')
+    config['verbose'] = 0
+    treecorr.corr3(config)
+    corr3_output = numpy.genfromtxt(os.path.join('output','nnn.out'), names=True, skip_header=1)
+    print('zeta = ',zeta)
+    print('from corr3 output = ',corr3_output['zeta'])
+    print('ratio = ',corr3_output['zeta']/zeta.flatten())
+    print('diff = ',corr3_output['zeta']-zeta.flatten())
+    numpy.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','nnn_out1.fits')
@@ -1242,9 +1251,9 @@ def test_nnn():
         print('ratio = ',zeta / true_zeta)
         print('diff = ',zeta - true_zeta)
         print('max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)))
-        assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))/req_factor < 0.1
-        numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta))/req_factor,
-                                          numpy.log(numpy.abs(true_zeta))/req_factor, decimal=1)
+        numpy.testing.assert_allclose(zeta, true_zeta, rtol=0.1*tol_factor)
+        numpy.testing.assert_allclose(numpy.log(numpy.abs(zeta)), numpy.log(numpy.abs(true_zeta)),
+                                      atol=0.1*tol_factor)
 
         out_file_name3 = os.path.join('output','nnn_out3.fits')
         ddd.write(out_file_name3, rrr,drr,rdr,rrd,ddr,drd,rdd)
@@ -1292,11 +1301,9 @@ def test_nnn():
         assert ddd2.sep_units == ddd.sep_units
         assert ddd2.bin_type == ddd.bin_type
 
-        import subprocess
-        corr3_exe = get_script_name('corr3')
-        p = subprocess.Popen( [corr3_exe,"nnn_compensated.yaml"] )
-        p.communicate()
-
+        config = treecorr.config.read_config('nnn_compensated.yaml')
+        config['verbose'] = 0
+        treecorr.corr3(config)
         corr3_outfile = os.path.join('output','nnn_compensated.fits')
         corr3_output = fitsio.read(corr3_outfile)
         print('zeta = ',zeta)
@@ -1363,12 +1370,12 @@ def test_3d():
         ngal = 5000
         nrand = 20 * ngal
         L = 50. * s
-        req_factor = 1
+        tol_factor = 1
     else:
         ngal = 1000
         nrand = 5 * ngal
         L = 20. * s
-        req_factor = 5
+        tol_factor = 5
     numpy.random.seed(8675309)
     x = numpy.random.normal(xcen, s, (ngal,) )
     y = numpy.random.normal(ycen, s, (ngal,) )
@@ -1427,61 +1434,59 @@ def test_3d():
     print('ratio = ',(zeta / true_zeta).flatten())
     print('diff = ',(zeta - true_zeta).flatten())
     print('max rel diff = ',numpy.max(numpy.abs((zeta - true_zeta)/true_zeta)))
-    assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))/req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta))/req_factor,
-                                      numpy.log(numpy.abs(true_zeta))/req_factor, decimal=1)
+    numpy.testing.assert_allclose(zeta, true_zeta, rtol=0.1*tol_factor)
+    numpy.testing.assert_allclose(numpy.log(numpy.abs(zeta)), numpy.log(numpy.abs(true_zeta)),
+                                  atol=0.1*tol_factor)
 
-    # Check that we get the same result using the corr3 executable:
-    if __name__ == '__main__':
-        cat.write(os.path.join('data','nnn_3d_data.dat'))
-        rand.write(os.path.join('data','nnn_3d_rand.dat'))
-        import subprocess
-        corr3_exe = get_script_name('corr3')
-        p = subprocess.Popen( [corr3_exe,"nnn_3d.yaml"] )
-        p.communicate()
-        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_3d.out'), names=True, skip_header=1)
-        print('zeta = ',zeta.flatten())
-        print('from corr3 output = ',corr3_output['zeta'])
-        print('ratio = ',corr3_output['zeta']/zeta.flatten())
-        print('diff = ',corr3_output['zeta']-zeta.flatten())
-        numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=3)
+    # Check that we get the same result using the corr3 functin:
+    cat.write(os.path.join('data','nnn_3d_data.dat'))
+    rand.write(os.path.join('data','nnn_3d_rand.dat'))
+    config = treecorr.config.read_config('nnn_3d.yaml')
+    config['verbose'] = 0
+    treecorr.corr3(config)
+    corr3_output = numpy.genfromtxt(os.path.join('output','nnn_3d.out'), names=True, skip_header=1)
+    print('zeta = ',zeta.flatten())
+    print('from corr3 output = ',corr3_output['zeta'])
+    print('ratio = ',corr3_output['zeta']/zeta.flatten())
+    print('diff = ',corr3_output['zeta']-zeta.flatten())
+    numpy.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
 
-        # Check that we get the same thing when using x,y,z rather than ra,dec,r
-        cat = treecorr.Catalog(x=x, y=y, z=z)
-        rand = treecorr.Catalog(x=rx, y=ry, z=rz)
-        ddd.process(cat)
-        rrr.process(rand)
-        zeta, varzeta = ddd.calculateZeta(rrr)
-        assert numpy.max(numpy.abs((zeta - true_zeta)/true_zeta))/req_factor < 0.1
-        numpy.testing.assert_almost_equal(numpy.log(numpy.abs(zeta))/req_factor,
-                                          numpy.log(numpy.abs(true_zeta))/req_factor, decimal=1)
+    # Check that we get the same thing when using x,y,z rather than ra,dec,r
+    cat = treecorr.Catalog(x=x, y=y, z=z)
+    rand = treecorr.Catalog(x=rx, y=ry, z=rz)
+    ddd.process(cat)
+    rrr.process(rand)
+    zeta, varzeta = ddd.calculateZeta(rrr)
+    numpy.testing.assert_allclose(zeta, true_zeta, rtol=0.1*tol_factor)
+    numpy.testing.assert_allclose(numpy.log(numpy.abs(zeta)), numpy.log(numpy.abs(true_zeta)),
+                                  atol=0.1*tol_factor)
 
 
 def test_list():
     # Test that we can use a list of files for either data or rand or both.
-    ncats = 3
     data_cats = []
     rand_cats = []
 
-    ngal = 1000
+    ncats = 3
+    ngal = 100
+    nrand = 2 * ngal
     s = 10.
     L = 50. * s
     numpy.random.seed(8675309)
 
     min_sep = 30.
     max_sep = 50.
-    nbins = 5
+    nbins = 3
     min_u = 0
-    max_u = 0.3
-    nubins = 3
+    max_u = 0.2
+    nubins = 2
     min_v = 0.5
     max_v = 0.9
-    nvbins = 5
+    nvbins = 2
 
     x = numpy.random.normal(0,s, (ngal,ncats) )
     y = numpy.random.normal(0,s, (ngal,ncats) )
     data_cats = [ treecorr.Catalog(x=x[:,k], y=y[:,k]) for k in range(ncats) ]
-    nrand = 2 * ngal
     rx = (numpy.random.random_sample((nrand,ncats))-0.5) * L
     ry = (numpy.random.random_sample((nrand,ncats))-0.5) * L
     rand_cats = [ treecorr.Catalog(x=rx[:,k], y=ry[:,k]) for k in range(ncats) ]
@@ -1499,101 +1504,98 @@ def test_list():
     data_catx = treecorr.Catalog(x=x.reshape( (ngal*ncats,) ), y=y.reshape( (ngal*ncats,) ))
     dddx.process(data_catx)
     print('From single catalog: dddx.ntri = ',dddx.ntri)
-    # Only test to 1 digit, since there are now differences between the auto and cross related
+    # Only test to rtol=0.1, since there are now differences between the auto and cross related
     # to how they characterize triangles especially when d1 ~= d2 or d2 ~= d3.
-    numpy.testing.assert_almost_equal(numpy.log(ddd.ntri), numpy.log(dddx.ntri), decimal=1)
+    numpy.testing.assert_allclose(ddd.ntri, dddx.ntri, rtol=0.1)
 
-    # If we're running from nosetests, stop here.  That's a sufficient regression test.
-    # Otherwise continue to make sure that the full calculation works as expected including
-    # automatically running the multiple files from the corr3 executable with either just
-    # data, just rand or both as multiples.
-    if __name__ == "__main__":
-        rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+    rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins, verbose=1)
-        rrr.process(rand_cats)
-        print('rrr.ntri = ',rrr.ntri)
+    rrr.process(rand_cats)
+    print('rrr.ntri = ',rrr.ntri)
 
-        rrrx = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+    rrrx = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                    nubins=nubins, nvbins=nvbins, verbose=1)
-        rand_catx = treecorr.Catalog(x=rx.reshape( (nrand*ncats,) ), y=ry.reshape( (nrand*ncats,) ))
-        rrrx.process(rand_catx)
-        print('rrrx.ntri = ',rrrx.ntri)
-        numpy.testing.assert_almost_equal(numpy.log(ddd.ntri), numpy.log(dddx.ntri), decimal=1)
+    rand_catx = treecorr.Catalog(x=rx.reshape( (nrand*ncats,) ), y=ry.reshape( (nrand*ncats,) ))
+    rrrx.process(rand_catx)
+    print('rrrx.ntri = ',rrrx.ntri)
+    numpy.testing.assert_allclose(ddd.ntri, dddx.ntri, rtol=0.1)
 
-        zeta, varzeta = ddd.calculateZeta(rrr)
-        zetax, varzetax = dddx.calculateZeta(rrrx)
-        print('zeta = ',zeta)
-        print('zetax = ',zetax)
-        #print('ratio = ',zeta/zetax)
-        #print('diff = ',zeta-zetax)
-        numpy.testing.assert_almost_equal(zetax/zeta, 1., decimal=1)
+    zeta, varzeta = ddd.calculateZeta(rrr)
+    zetax, varzetax = dddx.calculateZeta(rrrx)
+    print('zeta = ',zeta)
+    print('zetax = ',zetax)
+    #print('ratio = ',zeta/zetax)
+    #print('diff = ',zeta-zetax)
+    numpy.testing.assert_allclose(zeta, zetax, rtol=0.1)
 
-        # Check that we get the same result using the corr3 executable:
-        file_list = []
-        rand_file_list = []
-        for k in range(ncats):
-            file_name = os.path.join('data','nnn_list_data%d.dat'%k)
-            data_cats[k].write(file_name)
-            file_list.append(file_name)
+    # Check that we get the same result using the corr3 function:
+    file_list = []
+    rand_file_list = []
+    for k in range(ncats):
+        file_name = os.path.join('data','nnn_list_data%d.dat'%k)
+        data_cats[k].write(file_name)
+        file_list.append(file_name)
 
-            rand_file_name = os.path.join('data','nnn_list_rand%d.dat'%k)
-            rand_cats[k].write(rand_file_name)
-            rand_file_list.append(rand_file_name)
+        rand_file_name = os.path.join('data','nnn_list_rand%d.dat'%k)
+        rand_cats[k].write(rand_file_name)
+        rand_file_list.append(rand_file_name)
 
-        list_name = os.path.join('data','nnn_list_data_files.txt')
-        with open(list_name, 'w') as fid:
-            for file_name in file_list:
-                fid.write('%s\n'%file_name)
-        rand_list_name = os.path.join('data','nnn_list_rand_files.txt')
-        with open(rand_list_name, 'w') as fid:
-            for file_name in rand_file_list:
-                fid.write('%s\n'%file_name)
+    list_name = os.path.join('data','nnn_list_data_files.txt')
+    with open(list_name, 'w') as fid:
+        for file_name in file_list:
+            fid.write('%s\n'%file_name)
+    rand_list_name = os.path.join('data','nnn_list_rand_files.txt')
+    with open(rand_list_name, 'w') as fid:
+        for file_name in rand_file_list:
+            fid.write('%s\n'%file_name)
 
-        file_namex = os.path.join('data','nnn_list_datax.dat')
-        data_catx.write(file_namex)
+    file_namex = os.path.join('data','nnn_list_datax.dat')
+    data_catx.write(file_namex)
 
-        rand_file_namex = os.path.join('data','nnn_list_randx.dat')
-        rand_catx.write(rand_file_namex)
+    rand_file_namex = os.path.join('data','nnn_list_randx.dat')
+    rand_catx.write(rand_file_namex)
 
-        import subprocess
-        corr3_exe = get_script_name('corr3')
-        p = subprocess.Popen( [corr3_exe,"nnn_list1.yaml"] )
-        p.communicate()
-        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list1.out'), names=True, skip_header=1)
-        print('zeta = ',zeta)
-        print('from corr3 output = ',corr3_output['zeta'])
-        print('ratio = ',corr3_output['zeta']/zeta.flatten())
-        print('diff = ',corr3_output['zeta']-zeta.flatten())
-        numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=3)
+    config = treecorr.config.read_config('nnn_list1.yaml')
+    config['verbose'] = 0
+    treecorr.corr3(config)
+    corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list1.out'), names=True, skip_header=1)
+    print('zeta = ',zeta)
+    print('from corr3 output = ',corr3_output['zeta'])
+    print('ratio = ',corr3_output['zeta']/zeta.flatten())
+    print('diff = ',corr3_output['zeta']-zeta.flatten())
+    numpy.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
 
-        p = subprocess.Popen( [corr3_exe,"nnn_list2.json"] )
-        p.communicate()
-        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list2.out'), names=True, skip_header=1)
-        print('zeta = ',zeta)
-        print('from corr3 output = ',corr3_output['zeta'])
-        print('ratio = ',corr3_output['zeta']/zeta.flatten())
-        print('diff = ',corr3_output['zeta']-zeta.flatten())
-        numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=1)
+    config = treecorr.config.read_config('nnn_list2.json')
+    config['verbose'] = 0
+    treecorr.corr3(config)
+    corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list2.out'), names=True, skip_header=1)
+    print('zeta = ',zeta)
+    print('from corr3 output = ',corr3_output['zeta'])
+    print('ratio = ',corr3_output['zeta']/zeta.flatten())
+    print('diff = ',corr3_output['zeta']-zeta.flatten())
+    numpy.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=0.05)
 
-        p = subprocess.Popen( [corr3_exe,"nnn_list3.params"] )
-        p.communicate()
-        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list3.out'), names=True, skip_header=1)
-        print('zeta = ',zeta)
-        print('from corr3 output = ',corr3_output['zeta'])
-        print('ratio = ',corr3_output['zeta']/zeta.flatten())
-        print('diff = ',corr3_output['zeta']-zeta.flatten())
-        numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=1)
+    config = treecorr.config.read_config('nnn_list3.params')
+    config['verbose'] = 0
+    treecorr.corr3(config)
+    corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list3.out'), names=True, skip_header=1)
+    print('zeta = ',zeta)
+    print('from corr3 output = ',corr3_output['zeta'])
+    print('ratio = ',corr3_output['zeta']/zeta.flatten())
+    print('diff = ',corr3_output['zeta']-zeta.flatten())
+    numpy.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=0.05)
 
-        p = subprocess.Popen( [corr3_exe, "nnn_list4.config", "-f", "params"] )
-        p.communicate()
-        corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list4.out'), names=True, skip_header=1)
-        print('zeta = ',zeta)
-        print('from corr3 output = ',corr3_output['zeta'])
-        print('ratio = ',corr3_output['zeta']/zeta.flatten())
-        print('diff = ',corr3_output['zeta']-zeta.flatten())
-        numpy.testing.assert_almost_equal(corr3_output['zeta']/zeta.flatten(), 1., decimal=1)
+    config = treecorr.config.read_config('nnn_list4.config', file_type='params')
+    config['verbose'] = 0
+    treecorr.corr3(config)
+    corr3_output = numpy.genfromtxt(os.path.join('output','nnn_list4.out'), names=True, skip_header=1)
+    print('zeta = ',zeta)
+    print('from corr3 output = ',corr3_output['zeta'])
+    print('ratio = ',corr3_output['zeta']/zeta.flatten())
+    print('diff = ',corr3_output['zeta']-zeta.flatten())
+    numpy.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
 
 
 if __name__ == '__main__':

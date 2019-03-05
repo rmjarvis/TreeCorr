@@ -23,7 +23,7 @@ def test_single():
     # Use gamma_t(r) = gamma0 exp(-r^2/2r0^2) around a single lens
     # i.e. gamma(r) = -gamma0 exp(-r^2/2r0^2) (x+iy)^2/r^2
 
-    nsource = 1000000
+    nsource = 100000
     gamma0 = 0.05
     kappa = 0.23
     r0 = 10.
@@ -38,13 +38,13 @@ def test_single():
 
     lens_cat = treecorr.Catalog(x=[0], y=[0], k=[kappa],  x_units='arcmin', y_units='arcmin')
     source_cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
-    kg = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+    kg = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1)
     kg.process(lens_cat, source_cat)
 
     # log(<R>) != <logR>, but it should be close:
     print('meanlogr - log(meanr) = ',kg.meanlogr - numpy.log(kg.meanr))
-    numpy.testing.assert_almost_equal(kg.meanlogr, numpy.log(kg.meanr), decimal=3)
+    numpy.testing.assert_allclose(kg.meanlogr, numpy.log(kg.meanr), atol=1.e-3)
 
     r = kg.meanr
     true_kgt = kappa * gamma0 * numpy.exp(-0.5*r**2/r0**2)
@@ -55,31 +55,30 @@ def test_single():
     print('ratio = ',kg.xi / true_kgt)
     print('diff = ',kg.xi - true_kgt)
     print('max diff = ',max(abs(kg.xi - true_kgt)))
-    assert max(abs(kg.xi - true_kgt)) < 4.e-4
-    assert max(abs(kg.xi_im)) < 3.e-5
+    numpy.testing.assert_allclose(kg.xi, true_kgt, rtol=1.e-2)
+    numpy.testing.assert_allclose(kg.xi_im, 0, atol=1.e-4)
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        lens_cat.write(os.path.join('data','kg_single_lens.dat'))
-        source_cat.write(os.path.join('data','kg_single_source.dat'))
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"kg_single.yaml"] )
-        p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','kg_single.out'),names=True)
-        print('kg.xi = ',kg.xi)
-        print('from corr2 output = ',corr2_output['kgamT'])
-        print('ratio = ',corr2_output['kgamT']/kg.xi)
-        print('diff = ',corr2_output['kgamT']-kg.xi)
-        numpy.testing.assert_almost_equal(corr2_output['kgamT']/kg.xi, 1., decimal=3)
+    # Check that we get the same result using the corr2 function:
+    lens_cat.write(os.path.join('data','kg_single_lens.dat'))
+    source_cat.write(os.path.join('data','kg_single_source.dat'))
+    config = treecorr.read_config('kg_single.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','kg_single.out'), names=True,
+                                    skip_header=1)
+    print('kg.xi = ',kg.xi)
+    print('from corr2 output = ',corr2_output['kgamT'])
+    print('ratio = ',corr2_output['kgamT']/kg.xi)
+    print('diff = ',corr2_output['kgamT']-kg.xi)
+    numpy.testing.assert_allclose(corr2_output['kgamT'], kg.xi, rtol=1.e-3)
 
-        print('xi_im from corr2 output = ',corr2_output['kgamX'])
-        assert max(abs(corr2_output['kgamX'])) < 3.e-5
+    print('xi_im from corr2 output = ',corr2_output['kgamX'])
+    numpy.testing.assert_allclose(corr2_output['kgamX'], 0., atol=1.e-4)
 
 
 def test_pairwise():
     # Test the same profile, but with the pairwise calcualtion:
-    nsource = 1000000
+    nsource = 100000
     gamma0 = 0.05
     kappa = 0.23
     r0 = 10.
@@ -98,7 +97,7 @@ def test_pairwise():
 
     lens_cat = treecorr.Catalog(x=dx, y=dx, k=k, x_units='arcmin', y_units='arcmin')
     source_cat = treecorr.Catalog(x=x+dx, y=y+dx, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
-    kg = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+    kg = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1, pairwise=True)
     kg.process(lens_cat, source_cat)
 
@@ -111,45 +110,47 @@ def test_pairwise():
     print('ratio = ',kg.xi / true_kgt)
     print('diff = ',kg.xi - true_kgt)
     print('max diff = ',max(abs(kg.xi - true_kgt)))
-    assert max(abs(kg.xi - true_kgt)) < 4.e-4
-    assert max(abs(kg.xi_im)) < 3.e-5
+    numpy.testing.assert_allclose(kg.xi, true_kgt, rtol=1.e-2)
+    numpy.testing.assert_allclose(kg.xi_im, 0, atol=1.e-4)
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        lens_cat.write(os.path.join('data','kg_pairwise_lens.dat'))
-        source_cat.write(os.path.join('data','kg_pairwise_source.dat'))
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"kg_pairwise.yaml"] )
-        p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','kg_pairwise.out'),names=True)
-        print('kg.xi = ',kg.xi)
-        print('from corr2 output = ',corr2_output['kgamT'])
-        print('ratio = ',corr2_output['kgamT']/kg.xi)
-        print('diff = ',corr2_output['kgamT']-kg.xi)
-        numpy.testing.assert_almost_equal(corr2_output['kgamT']/kg.xi, 1., decimal=3)
+    # Check that we get the same result using the corr2 function
+    lens_cat.write(os.path.join('data','kg_pairwise_lens.dat'))
+    source_cat.write(os.path.join('data','kg_pairwise_source.dat'))
+    config = treecorr.read_config('kg_pairwise.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','kg_pairwise.out'), names=True,
+                                    skip_header=1)
+    print('kg.xi = ',kg.xi)
+    print('from corr2 output = ',corr2_output['kgamT'])
+    print('ratio = ',corr2_output['kgamT']/kg.xi)
+    print('diff = ',corr2_output['kgamT']-kg.xi)
+    numpy.testing.assert_allclose(corr2_output['kgamT'], kg.xi, rtol=1.e-3)
 
-        print('xi_im from corr2 output = ',corr2_output['kgamX'])
-        assert max(abs(corr2_output['kgamX'])) < 3.e-5
+    print('xi_im from corr2 output = ',corr2_output['kgamX'])
+    numpy.testing.assert_allclose(corr2_output['kgamX'], 0., atol=1.e-4)
 
 
 def test_kg():
     # Use gamma_t(r) = gamma0 exp(-r^2/2r0^2) around a bunch of foreground lenses.
     # i.e. gamma(r) = -gamma0 exp(-r^2/2r0^2) (x+iy)^2/r^2
+    # For each lens, we divide this by a random kappa value assigned to that lens, so
+    # the final kg output shoudl be just gamma_t.
 
     nlens = 1000
-    nsource = 100000
-    gamma0 = 0.05
+    nsource = 30000
     r0 = 10.
     L = 50. * r0
+
+    gamma0 = 0.05
     numpy.random.seed(8675309)
     xl = (numpy.random.random_sample(nlens)-0.5) * L
     yl = (numpy.random.random_sample(nlens)-0.5) * L
+    kl = numpy.random.normal(0.23, 0.05, (nlens,) )
     xs = (numpy.random.random_sample(nsource)-0.5) * L
     ys = (numpy.random.random_sample(nsource)-0.5) * L
     g1 = numpy.zeros( (nsource,) )
     g2 = numpy.zeros( (nsource,) )
-    kl = numpy.random.normal(0.23, 0.05, (nlens,) )
     for x,y,k in zip(xl,yl,kl):
         dx = xs-x
         dy = ys-y
@@ -160,7 +161,7 @@ def test_kg():
 
     lens_cat = treecorr.Catalog(x=xl, y=yl, k=kl, x_units='arcmin', y_units='arcmin')
     source_cat = treecorr.Catalog(x=xs, y=ys, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
-    kg = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+    kg = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1)
     kg.process(lens_cat, source_cat)
 
@@ -173,26 +174,24 @@ def test_kg():
     print('ratio = ',kg.xi / true_gt)
     print('diff = ',kg.xi - true_gt)
     print('max diff = ',max(abs(kg.xi - true_gt)))
-    assert max(abs(kg.xi - true_gt)) < 4.e-3
-    assert max(abs(kg.xi_im)) < 4.e-3
+    numpy.testing.assert_allclose(kg.xi, true_gt, rtol=0.1)
+    numpy.testing.assert_allclose(kg.xi_im, 0., atol=1.e-2)
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        lens_cat.write(os.path.join('data','kg_lens.dat'))
-        source_cat.write(os.path.join('data','kg_source.dat'))
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"kg.yaml"] )
-        p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','kg.out'),names=True)
-        print('kg.xi = ',kg.xi)
-        print('from corr2 output = ',corr2_output['kgamT'])
-        print('ratio = ',corr2_output['kgamT']/kg.xi)
-        print('diff = ',corr2_output['kgamT']-kg.xi)
-        numpy.testing.assert_almost_equal(corr2_output['kgamT']/kg.xi, 1., decimal=3)
+    # Check that we get the same result using the corr2 function:
+    lens_cat.write(os.path.join('data','kg_lens.dat'))
+    source_cat.write(os.path.join('data','kg_source.dat'))
+    config = treecorr.read_config('kg.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','kg.out'), names=True, skip_header=1)
+    print('kg.xi = ',kg.xi)
+    print('from corr2 output = ',corr2_output['kgamT'])
+    print('ratio = ',corr2_output['kgamT']/kg.xi)
+    print('diff = ',corr2_output['kgamT']-kg.xi)
+    numpy.testing.assert_allclose(corr2_output['kgamT'], kg.xi, rtol=1.e-3)
 
-        print('xi_im from corr2 output = ',corr2_output['kgamX'])
-        assert max(abs(corr2_output['kgamX'])) < 4.e-3
+    print('xi_im from corr2 output = ',corr2_output['kgamX'])
+    numpy.testing.assert_allclose(corr2_output['kgamX'], 0., atol=1.e-2)
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','kg_out1.fits')
@@ -208,7 +207,7 @@ def test_kg():
     numpy.testing.assert_almost_equal(data['npairs'], kg.npairs)
 
     # Check the read function
-    kg2 = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+    kg2 = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
     kg2.read(out_file_name1)
     numpy.testing.assert_almost_equal(kg2.logr, kg.logr)
     numpy.testing.assert_almost_equal(kg2.meanr, kg.meanr)

@@ -15,6 +15,6 @@ min_sep: 13.
 max_sep: 40.
 bin_size: 0.1
 metric: Rlens
-bin_slop: 0.5
+bin_slop: 0.3
 
 gg_file_name: output/gg_rlens.out

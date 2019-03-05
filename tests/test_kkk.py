@@ -22,7 +22,7 @@ from test_helper import get_script_name
 def test_constant():
     # A fairly trivial test is to use a constant value of kappa everywhere.
 
-    ngal = 2000
+    ngal = 500
     A = 0.05
     L = 100.
     numpy.random.seed(8675309)
@@ -47,19 +47,19 @@ def test_constant():
                                   sep_units='arcmin', verbose=1)
     kkk.process(cat)
     print('kkk.zeta = ',kkk.zeta.flatten())
-    numpy.testing.assert_almost_equal(kkk.zeta, A**3, decimal=10)
+    numpy.testing.assert_allclose(kkk.zeta, A**3, rtol=1.e-5)
 
     # Should also work as a cross-correlation
     kkk.process(cat, cat, cat)
     print('as cross-correlation: kkk.zeta = ',kkk.zeta.flatten())
-    numpy.testing.assert_almost_equal(kkk.zeta, A**3, decimal=10)
+    numpy.testing.assert_allclose(kkk.zeta, A**3, rtol=1.e-5)
 
     # Now add some noise to the values. It should still work, but at slightly lower accuracy.
     kappa += 0.001 * (numpy.random.random_sample(ngal)-0.5)
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     kkk.process(cat)
     print('with noise: kkk.zeta = ',kkk.zeta.flatten())
-    numpy.testing.assert_almost_equal(kkk.zeta, A**3, decimal=6)
+    numpy.testing.assert_allclose(kkk.zeta, A**3, rtol=3.e-3)
 
 
 def test_kkk():
@@ -80,12 +80,12 @@ def test_kkk():
     if __name__ == '__main__':
         ngal = 200000
         L = 30. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
-        req_factor = 1
+        tol_factor = 1
     else:
         # Looser tests from nosetests that don't take so long to run.
-        ngal = 5000
-        L = 10. * s
-        req_factor = 5
+        ngal = 10000
+        L = 20. * s
+        tol_factor = 5
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(ngal)-0.5) * L
     y = (numpy.random.random_sample(ngal)-0.5) * L
@@ -110,17 +110,27 @@ def test_kkk():
     kkk.process(cat)
 
     # log(<d>) != <logd>, but it should be close:
-    #print('meanlogd1 - log(meand1) = ',kkk.meanlogd1 - numpy.log(kkk.meand1))
-    #print('meanlogd2 - log(meand2) = ',kkk.meanlogd2 - numpy.log(kkk.meand2))
-    #print('meanlogd3 - log(meand3) = ',kkk.meanlogd3 - numpy.log(kkk.meand3))
-    #print('meanlogd3 - meanlogd2 - log(meanu) = ',kkk.meanlogd3 - kkk.meanlogd2 - numpy.log(kkk.meanu))
-    #print('log(meand1-meand2) - meanlogd3 - log(meanv) = ',numpy.log(kkk.meand1-kkk.meand2) - kkk.meanlogd3 - numpy.log(numpy.abs(kkk.meanv)))
-    numpy.testing.assert_almost_equal(kkk.meanlogd1, numpy.log(kkk.meand1), decimal=3)
-    numpy.testing.assert_almost_equal(kkk.meanlogd2, numpy.log(kkk.meand2), decimal=3)
-    numpy.testing.assert_almost_equal(kkk.meanlogd3, numpy.log(kkk.meand3), decimal=3)
-    numpy.testing.assert_almost_equal(kkk.meanlogd3-kkk.meanlogd2, numpy.log(kkk.meanu), decimal=3)
-    numpy.testing.assert_almost_equal(numpy.log(kkk.meand1-kkk.meand2)-kkk.meanlogd3,
-                                      numpy.log(numpy.abs(kkk.meanv)), decimal=3)
+    print('meanlogd1 - log(meand1) = ',kkk.meanlogd1 - numpy.log(kkk.meand1))
+    print('meanlogd2 - log(meand2) = ',kkk.meanlogd2 - numpy.log(kkk.meand2))
+    print('meanlogd3 - log(meand3) = ',kkk.meanlogd3 - numpy.log(kkk.meand3))
+    print('meand3 / meand2 = ',kkk.meand3 / kkk.meand2)
+    print('meanu = ',kkk.meanu)
+    print('max diff = ',numpy.max(numpy.abs(kkk.meand3/kkk.meand2 -kkk.meanu)))
+    print('max rel diff = ',numpy.max(numpy.abs((kkk.meand3/kkk.meand2 -kkk.meanu)/kkk.meanu)))
+    print('(meand1 - meand2)/meand3 = ',(kkk.meand1-kkk.meand2) / kkk.meand3)
+    print('meanv = ',kkk.meanv)
+    print('max diff = ',numpy.max(numpy.abs((kkk.meand1-kkk.meand2)/kkk.meand3 -numpy.abs(kkk.meanv))))
+    print('max rel diff = ',numpy.max(numpy.abs(((kkk.meand1-kkk.meand2)/kkk.meand3-numpy.abs(kkk.meanv))/kkk.meanv)))
+    numpy.testing.assert_allclose(kkk.meanlogd1, numpy.log(kkk.meand1), rtol=1.e-3)
+    numpy.testing.assert_allclose(kkk.meanlogd2, numpy.log(kkk.meand2), rtol=1.e-3)
+    numpy.testing.assert_allclose(kkk.meanlogd3, numpy.log(kkk.meand3), rtol=1.e-3)
+    numpy.testing.assert_allclose(kkk.meand3/kkk.meand2, kkk.meanu, rtol=1.e-5 * tol_factor)
+    numpy.testing.assert_allclose((kkk.meand1-kkk.meand2)/kkk.meand3, numpy.abs(kkk.meanv),
+                                  rtol=1.e-5 * tol_factor, atol=1.e-5 * tol_factor)
+    numpy.testing.assert_allclose(kkk.meanlogd3-kkk.meanlogd2, numpy.log(kkk.meanu),
+                                  atol=1.e-3 * tol_factor)
+    numpy.testing.assert_allclose(numpy.log(kkk.meand1-kkk.meand2)-kkk.meanlogd3,
+                                  numpy.log(numpy.abs(kkk.meanv)), atol=2.e-3 * tol_factor)
 
     d1 = kkk.meand1
     d2 = kkk.meand2
@@ -144,23 +154,17 @@ def test_kkk():
     #print('ratio = ',kkk.zeta / true_zeta)
     #print('diff = ',kkk.zeta - true_zeta)
     print('max rel diff = ',numpy.max(numpy.abs((kkk.zeta - true_zeta)/true_zeta)))
-    assert numpy.max(numpy.abs((kkk.zeta - true_zeta)/true_zeta)) / req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(kkk.zeta)) / req_factor,
-                                      numpy.log(numpy.abs(true_zeta)) / req_factor, decimal=1)
+    numpy.testing.assert_allclose(kkk.zeta, true_zeta, rtol=0.1 * tol_factor)
+    numpy.testing.assert_allclose(numpy.log(numpy.abs(kkk.zeta)), numpy.log(numpy.abs(true_zeta)),
+                                  atol=0.1 * tol_factor)
 
-    # Check that we get the same result using the corr3 executable:
-    if __name__ == '__main__':
-        cat.write(os.path.join('data','kkk_data.dat'))
-        import subprocess
-        corr3_exe = get_script_name('corr3')
-        p = subprocess.Popen( [corr3_exe,"kkk.yaml"] )
-        p.communicate()
-        corr3_output = numpy.genfromtxt(os.path.join('output','kkk.out'), names=True)
-        #print('zeta = ',kkk.zeta)
-        #print('from corr3 output = ',corr3_output['zeta'])
-        #print('ratio = ',corr3_output['zeta']/kkk.zeta.flatten())
-        #print('diff = ',corr3_output['zeta']-kkk.zeta.flatten())
-        numpy.testing.assert_almost_equal(corr3_output['zeta']/kkk.zeta.flatten(), 1., decimal=3)
+    # Check that we get the same result using the corr3 functin:
+    cat.write(os.path.join('data','kkk_data.dat'))
+    config = treecorr.config.read_config('kkk.yaml')
+    config['verbose'] = 0
+    treecorr.corr3(config)
+    corr3_output = numpy.genfromtxt(os.path.join('output','kkk.out'), names=True, skip_header=1)
+    numpy.testing.assert_almost_equal(corr3_output['zeta'], kkk.zeta.flatten())
 
     # Check the fits write option
     out_file_name = os.path.join('output','kkk_out.fits')

@@ -11,10 +11,10 @@ g2_col: 5
 
 verbose: 1
 
-min_sep: 45.
-max_sep: 140.
+min_sep: 22.5
+max_sep: 60.
 bin_size: 0.1
-bin_slop: 0.5
+bin_slop: 0.3
 
 metric: FisherRperp
 

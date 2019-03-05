@@ -334,9 +334,10 @@ def test_check():
 def test_print():
     """Test print_params.
     """
-    # This really just checks that the function does something.
+    # This really just checks that the functions do something.
     # It doesn't check the output for accuracy.
     treecorr.print_corr2_params()
+    treecorr.print_corr3_params()
 
 
 def test_get():

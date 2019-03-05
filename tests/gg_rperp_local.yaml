@@ -11,8 +11,8 @@ g2_col: 5
 
 verbose: 1
 
-min_sep: 10.
-max_sep: 300.
+min_sep: 20.
+max_sep: 250.
 bin_size: 0.1
 bin_slop: 0.1
 

@@ -286,14 +286,14 @@ def test_direct_count():
     print('corr2_output.dtype = ',corr2_output.dtype)
     print('rnom = ',dd.rnom)
     print('       ',corr2_output['R_nom'])
-    numpy.testing.assert_almost_equal(corr2_output['R_nom'], dd.rnom, decimal=3)
+    numpy.testing.assert_allclose(corr2_output['R_nom'], dd.rnom, rtol=1.e-3)
     print('DD = ',dd.npairs)
     print('      ',corr2_output['DD'])
-    numpy.testing.assert_almost_equal(corr2_output['DD'], dd.npairs, decimal=3)
-    numpy.testing.assert_almost_equal(corr2_output['npairs'], dd.npairs, decimal=3)
+    numpy.testing.assert_allclose(corr2_output['DD'], dd.npairs, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['npairs'], dd.npairs, rtol=1.e-3)
     print('RR = ',rr.npairs)
     print('      ',corr2_output['RR'])
-    numpy.testing.assert_almost_equal(corr2_output['RR'], rr.npairs, decimal=3)
+    numpy.testing.assert_allclose(corr2_output['RR'], rr.npairs, rtol=1.e-3)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
     print('diff = ',corr2_output['xi']-xi)
@@ -302,16 +302,18 @@ def test_direct_count():
     print('xi[diffs] = ',xi[diff_index])
     print('corr2.xi[diffs] = ',corr2_output['xi'][diff_index])
     print('diff[diffs] = ',xi[diff_index] - corr2_output['xi'][diff_index])
-    numpy.testing.assert_almost_equal(corr2_output['xi'], xi, decimal=3)
+    numpy.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
 
     # Now calling out to the external corr2 executable.
+    # Note: This is one of very few times we test the corr2 executable.
+    # For most things, we just run the corr2 function so the test coverage is recorded.
     import subprocess
     corr2_exe = get_script_name('corr2')
     p = subprocess.Popen( [corr2_exe,"nn_direct.yaml","verbose=0"] )
     p.communicate()
     corr2_output = numpy.genfromtxt(os.path.join('output','nn_direct.out'), names=True,
                                     skip_header=1)
-    numpy.testing.assert_almost_equal(corr2_output['xi'], xi, decimal=3)
+    numpy.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
 
     # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
     dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=1.e-16)
@@ -323,6 +325,16 @@ def test_direct_count():
                                 max_top=0)
     dd.process(cat1, cat2)
     numpy.testing.assert_array_equal(dd.npairs, true_npairs)
+
+    # Do this one with corr2 to test the automatic output_dots=True functionality.
+    # It's not particularly annoying with max_top = 0.
+    config = treecorr.config.read_config('nn_direct.yaml')
+    config['verbose'] = 2
+    config['max_top'] = 0
+    config['bin_slop'] = 1.e-16
+    treecorr.corr2(config)
+    data = numpy.genfromtxt(config['nn_file_name'], names=True, skip_header=1)
+    numpy.testing.assert_array_equal(data['npairs'], true_npairs)
 
 
 def test_direct_3d():
@@ -788,14 +800,14 @@ def test_direct_linear():
     print('corr2_output.dtype = ',corr2_output.dtype)
     print('rnom = ',dd.rnom)
     print('       ',corr2_output['R_nom'])
-    numpy.testing.assert_almost_equal(corr2_output['R_nom'], dd.rnom, decimal=3)
+    numpy.testing.assert_allclose(corr2_output['R_nom'], dd.rnom, rtol=1.e-3)
     print('DD = ',dd.npairs)
     print('     ',corr2_output['DD'])
-    numpy.testing.assert_almost_equal(corr2_output['DD'], dd.npairs, decimal=3)
-    numpy.testing.assert_almost_equal(corr2_output['npairs'], dd.npairs, decimal=3)
+    numpy.testing.assert_allclose(corr2_output['DD'], dd.npairs, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['npairs'], dd.npairs, rtol=1.e-3)
     print('RR = ',rr.npairs)
     print('     ',corr2_output['RR'])
-    numpy.testing.assert_almost_equal(corr2_output['RR'], rr.npairs, decimal=3)
+    numpy.testing.assert_allclose(corr2_output['RR'], rr.npairs, rtol=1.e-3)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
     print('diff = ',corr2_output['xi']-xi)
@@ -804,7 +816,7 @@ def test_direct_linear():
     print('xi[diffs] = ',xi[diff_index])
     print('corr2.xi[diffs] = ',corr2_output['xi'][diff_index])
     print('diff[diffs] = ',xi[diff_index] - corr2_output['xi'][diff_index])
-    numpy.testing.assert_almost_equal(corr2_output['xi'], xi, decimal=3)
+    numpy.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
 
     # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
     dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=1.e-16,
@@ -840,12 +852,12 @@ def test_nn():
         ngal = 1000000
         nrand = 5 * ngal
         L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
-        req_factor = 1
+        tol_factor = 1
     else:
         ngal = 100000
         nrand = 2 * ngal
         L = 20. * s
-        req_factor = 3
+        tol_factor = 3
     numpy.random.seed(8675309)
     x = numpy.random.normal(0,s, (ngal,) )
     y = numpy.random.normal(0,s, (ngal,) )
@@ -858,7 +870,7 @@ def test_nn():
 
     # log(<R>) != <logR>, but it should be close:
     print('meanlogr - log(meanr) = ',dd.meanlogr - numpy.log(dd.meanr))
-    numpy.testing.assert_almost_equal(dd.meanlogr, numpy.log(dd.meanr), decimal=3)
+    numpy.testing.assert_allclose(dd.meanlogr, numpy.log(dd.meanr), atol=1.e-3)
 
     rx = (numpy.random.random_sample(nrand)-0.5) * L
     ry = (numpy.random.random_sample(nrand)-0.5) * L
@@ -885,9 +897,9 @@ def test_nn():
     # This isn't super accurate.  But the agreement improves as L increase, so I think it is
     # merely a matter of the finite field and the integrals going to infinity.  (Sort of, since
     # we still have L in there.)
-    assert max(abs(xi - true_xi)/true_xi)/req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi))/req_factor,
-                                      numpy.log(numpy.abs(true_xi))/req_factor, decimal=1)
+    numpy.testing.assert_allclose(xi, true_xi, rtol=0.1*tol_factor)
+    numpy.testing.assert_allclose(numpy.log(numpy.abs(xi)), numpy.log(numpy.abs(true_xi)),
+                                  atol=0.1*tol_factor)
 
     simple_xi, simple_varxi = dd.calculateXi(rr)
     print('simple xi = ',simple_xi)
@@ -896,36 +908,34 @@ def test_nn():
     # slightly less accurate in this case.  Probably because the mask is simple (a box), so
     # the difference is relatively minor.  The error is slightly higher in this case, but testing
     # that it is everywhere < 0.1 is still appropriate.
-    assert max(abs(simple_xi - true_xi)/true_xi)/req_factor < 0.1
+    numpy.testing.assert_allclose(simple_xi, true_xi, rtol=0.1*tol_factor)
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        cat.write(os.path.join('data','nn_data.dat'))
-        rand.write(os.path.join('data','nn_rand.dat'))
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"nn.yaml"] )
-        p.communicate()
-        out_file_name = os.path.join('output','nn.out')
-        corr2_output = numpy.genfromtxt(out_file_name, names=True, skip_header=1)
-        print('xi = ',xi)
-        print('from corr2 output = ',corr2_output['xi'])
-        print('ratio = ',corr2_output['xi']/xi)
-        print('diff = ',corr2_output['xi']-xi)
-        numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=3)
+    # Check that we get the same result using the corr2 function:
+    cat.write(os.path.join('data','nn_data.dat'))
+    rand.write(os.path.join('data','nn_rand.dat'))
+    config = treecorr.config.read_config('nn.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    out_file_name = os.path.join('output','nn.out')
+    corr2_output = numpy.genfromtxt(out_file_name, names=True, skip_header=1)
+    print('xi = ',xi)
+    print('from corr2 output = ',corr2_output['xi'])
+    print('ratio = ',corr2_output['xi']/xi)
+    print('diff = ',corr2_output['xi']-xi)
+    numpy.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
 
-        # Check the read function (not at very high accuracy for the ASCII I/O)
-        dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
-        dd2.read(out_file_name)
-        numpy.testing.assert_almost_equal(dd2.logr/dd.logr, 1., decimal=3)
-        numpy.testing.assert_almost_equal(dd2.meanr/dd.meanr, 1., decimal=3)
-        numpy.testing.assert_almost_equal(dd2.meanlogr/dd.meanlogr, 1., decimal=3)
-        numpy.testing.assert_almost_equal(dd2.npairs/dd.npairs, 1., decimal=3)
-        numpy.testing.assert_almost_equal(dd2.tot/dd.tot, 1., decimal=3)
-        assert dd2.coords == dd.coords
-        assert dd2.metric == dd.metric
-        assert dd2.sep_units == dd.sep_units
-        assert dd2.bin_type == dd.bin_type
+    # Check the read function (not at very high accuracy for the ASCII I/O)
+    dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+    dd2.read(out_file_name)
+    numpy.testing.assert_allclose(dd2.logr, dd.logr, rtol=1.e-3)
+    numpy.testing.assert_allclose(dd2.meanr, dd.meanr, rtol=1.e-3)
+    numpy.testing.assert_allclose(dd2.meanlogr, dd.meanlogr, rtol=1.e-3)
+    numpy.testing.assert_allclose(dd2.npairs, dd.npairs, rtol=1.e-3)
+    numpy.testing.assert_allclose(dd2.tot, dd.tot, rtol=1.e-3)
+    assert dd2.coords == dd.coords
+    assert dd2.metric == dd.metric
+    assert dd2.sep_units == dd.sep_units
+    assert dd2.bin_type == dd.bin_type
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','nn_out1.fits')
@@ -1013,12 +1023,12 @@ def test_3d():
         ngal = 100000
         nrand = 5 * ngal
         L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
-        req_factor = 1
+        tol_factor = 1
     else:
         ngal = 20000
         nrand = 2 * ngal
         L = 20. * s
-        req_factor = 3
+        tol_factor = 3
     numpy.random.seed(8675309)
     x = numpy.random.normal(xcen, s, (ngal,) )
     y = numpy.random.normal(ycen, s, (ngal,) )
@@ -1057,43 +1067,41 @@ def test_3d():
     print('ratio = ',xi / true_xi)
     print('diff = ',xi - true_xi)
     print('max rel diff = ',max(abs((xi - true_xi)/true_xi)))
-    assert max(abs(xi - true_xi)/true_xi)/req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi))/req_factor,
-                                      numpy.log(numpy.abs(true_xi))/req_factor, decimal=1)
+    numpy.testing.assert_allclose(xi, true_xi, rtol=0.1*tol_factor)
+    numpy.testing.assert_allclose(numpy.log(numpy.abs(xi)), numpy.log(numpy.abs(true_xi)),
+                                  rtol=0.1*tol_factor)
 
     simple_xi, varxi = dd.calculateXi(rr)
     print('simple xi = ',simple_xi)
     print('max rel diff = ',max(abs((simple_xi - true_xi)/true_xi)))
-    assert max(abs(simple_xi - true_xi)/true_xi)/req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(simple_xi))/req_factor,
-                                      numpy.log(numpy.abs(true_xi))/req_factor, decimal=1)
+    numpy.testing.assert_allclose(simple_xi, true_xi, rtol=0.1*tol_factor)
+    numpy.testing.assert_allclose(numpy.log(numpy.abs(simple_xi)), numpy.log(numpy.abs(true_xi)),
+                                  rtol=0.1*tol_factor)
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        cat.write(os.path.join('data','nn_3d_data.dat'))
-        rand.write(os.path.join('data','nn_3d_rand.dat'))
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"nn_3d.yaml"] )
-        p.communicate()
+    # Check that we get the same result using the corr2 function:
+    cat.write(os.path.join('data','nn_3d_data.dat'))
+    rand.write(os.path.join('data','nn_3d_rand.dat'))
+    config = treecorr.config.read_config('nn_3d.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
 
-        corr2_outfile = os.path.join('output','nn_3d.fits')
-        corr2_output = fitsio.read(corr2_outfile)
-        print('xi = ',xi)
-        print('from corr2 output = ',corr2_output['xi'])
-        print('ratio = ',corr2_output['xi']/xi)
-        print('diff = ',corr2_output['xi']-xi)
+    corr2_outfile = os.path.join('output','nn_3d.fits')
+    corr2_output = fitsio.read(corr2_outfile)
+    print('xi = ',xi)
+    print('from corr2 output = ',corr2_output['xi'])
+    print('ratio = ',corr2_output['xi']/xi)
+    print('diff = ',corr2_output['xi']-xi)
 
-        numpy.testing.assert_almost_equal(corr2_output['R_nom'], numpy.exp(dd.logr))
-        numpy.testing.assert_almost_equal(corr2_output['meanR'], dd.meanr)
-        numpy.testing.assert_almost_equal(corr2_output['meanlogR'], dd.meanlogr)
-        numpy.testing.assert_almost_equal(corr2_output['xi'], xi)
-        numpy.testing.assert_almost_equal(corr2_output['sigma_xi'], numpy.sqrt(varxi))
-        numpy.testing.assert_almost_equal(corr2_output['DD'], dd.npairs)
-        numpy.testing.assert_almost_equal(corr2_output['RR'], rr.npairs * (dd.tot / rr.tot))
-        numpy.testing.assert_almost_equal(corr2_output['DR'], dr.npairs * (dd.tot / dr.tot))
-        header = fitsio.read_header(corr2_outfile, 1)
-        numpy.testing.assert_almost_equal(header['tot'], dd.tot)
+    numpy.testing.assert_almost_equal(corr2_output['R_nom'], numpy.exp(dd.logr))
+    numpy.testing.assert_almost_equal(corr2_output['meanR'], dd.meanr)
+    numpy.testing.assert_almost_equal(corr2_output['meanlogR'], dd.meanlogr)
+    numpy.testing.assert_almost_equal(corr2_output['xi'], xi)
+    numpy.testing.assert_almost_equal(corr2_output['sigma_xi'], numpy.sqrt(varxi))
+    numpy.testing.assert_almost_equal(corr2_output['DD'], dd.npairs)
+    numpy.testing.assert_almost_equal(corr2_output['RR'], rr.npairs * (dd.tot / rr.tot))
+    numpy.testing.assert_almost_equal(corr2_output['DR'], dr.npairs * (dd.tot / dr.tot))
+    header = fitsio.read_header(corr2_outfile, 1)
+    numpy.testing.assert_almost_equal(header['tot'], dd.tot)
 
     # And repeat with Catalogs that use x,y,z
     cat = treecorr.Catalog(x=x, y=y, z=z)
@@ -1102,9 +1110,9 @@ def test_3d():
     rr.process(rand)
     dr.process(cat,rand)
     xi, varxi = dd.calculateXi(rr,dr)
-    assert max(abs(xi - true_xi)/true_xi)/req_factor < 0.1
-    numpy.testing.assert_almost_equal(numpy.log(numpy.abs(xi))/req_factor,
-                                      numpy.log(numpy.abs(true_xi))/req_factor, decimal=1)
+    numpy.testing.assert_allclose(xi, true_xi, rtol=0.1*tol_factor)
+    numpy.testing.assert_allclose(numpy.log(numpy.abs(xi)), numpy.log(numpy.abs(true_xi)),
+                                  rtol=0.1*tol_factor)
 
 
 def test_list():
@@ -1153,7 +1161,7 @@ def test_list():
     print('xix = ',xix)
     print('ratio = ',xi/xix)
     print('diff = ',xi-xix)
-    numpy.testing.assert_almost_equal(xix/xi, 1., decimal=2)
+    numpy.testing.assert_allclose(xix, xi, rtol=0.02)
 
     # Check that we get the same result using the corr2 function
     file_list = []
@@ -1201,9 +1209,9 @@ def test_list():
     print('from corr2 output = ',corr2_output['xi'])
     print('ratio = ',corr2_output['xi']/xi)
     print('diff = ',corr2_output['xi']-xi)
-    numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=3)
+    numpy.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
 
-    # Now calling out to the external corr2 executable.
+    # Now calling out to the external corr2 executable to test it with extra command-line params
     import subprocess
     corr2_exe = get_script_name('corr2')
     p = subprocess.Popen( [corr2_exe,"nn_list1.yaml","verbose=0"] )
@@ -1213,7 +1221,7 @@ def test_list():
     print('from corr2 output = ',corr2_output['xi'])
     print('ratio = ',corr2_output['xi']/xi)
     print('diff = ',corr2_output['xi']-xi)
-    numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=3)
+    numpy.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
 
     config = treecorr.config.read_config('nn_list2.json')
     treecorr.config.parse_variable(config, 'verbose=0')
@@ -1223,7 +1231,7 @@ def test_list():
     print('from corr2 output = ',corr2_output['xi'])
     print('ratio = ',corr2_output['xi']/xi)
     print('diff = ',corr2_output['xi']-xi)
-    numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
+    numpy.testing.assert_allclose(corr2_output['xi'], xi, rtol=2.e-2)
 
     config = treecorr.config.read_config('nn_list3.params')
     treecorr.config.parse_variable(config, 'verbose=0')
@@ -1233,7 +1241,7 @@ def test_list():
     print('from corr2 output = ',corr2_output['xi'])
     print('ratio = ',corr2_output['xi']/xi)
     print('diff = ',corr2_output['xi']-xi)
-    numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
+    numpy.testing.assert_allclose(corr2_output['xi'], xi, rtol=2.e-2)
 
     config = treecorr.config.read_config('nn_list4.config', file_type='yaml')
     treecorr.config.parse_variable(config, 'verbose=0')
@@ -1243,7 +1251,7 @@ def test_list():
     print('from corr2 output = ',corr2_output['xi'])
     print('ratio = ',corr2_output['xi']/xi)
     print('diff = ',corr2_output['xi']-xi)
-    numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
+    numpy.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-2)
 
     # Repeat with exe to test -f flag
     p = subprocess.Popen( [corr2_exe, "-f", "yaml", "nn_list4.config", "verbose=0"] )
@@ -1253,7 +1261,7 @@ def test_list():
     print('from corr2 output = ',corr2_output['xi'])
     print('ratio = ',corr2_output['xi']/xi)
     print('diff = ',corr2_output['xi']-xi)
-    numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
+    numpy.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-2)
 
     config = treecorr.config.read_config('nn_list5.config', file_type='json')
     treecorr.config.parse_variable(config, 'verbose=0')
@@ -1263,7 +1271,7 @@ def test_list():
     print('from corr2 output = ',corr2_output['xi'])
     print('ratio = ',corr2_output['xi']/xi)
     print('diff = ',corr2_output['xi']-xi)
-    numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
+    numpy.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-2)
 
     # For this one, the output file is in the current directory, which used to give an error.
     config = treecorr.config.read_config('nn_list6.config', file_type='params')
@@ -1276,7 +1284,7 @@ def test_list():
     print('from corr2 output = ',corr2_output['xi'])
     print('ratio = ',corr2_output['xi']/xi)
     print('diff = ',corr2_output['xi']-xi)
-    numpy.testing.assert_almost_equal(corr2_output['xi']/xi, 1., decimal=2)
+    numpy.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-2)
     # Move it to the output directory now to keep the current directory clean.
     mv_output_file = os.path.join('output',output_file)
     if os.path.exists(mv_output_file):
@@ -1307,6 +1315,7 @@ def test_perp_minmax():
     if __name__ != "__main__":
         config['nbins'] = 5
         config['bin_size'] = 0.1
+        config['last_row'] = 30000  # Full catalog has 100,000 objects
 
     get_from_wiki('nn_perp_data.dat')
     dcat = treecorr.Catalog('data/nn_perp_data.dat', config)
@@ -1326,7 +1335,7 @@ def test_perp_minmax():
     # The edge bins may differ slightly from the binning approximations (bin_slop and such),
     # but the differences should be very small.  (When Erika reported the problem, the differences
     # were a few percent, which ended up making a bit difference in the correlation function.)
-    numpy.testing.assert_almost_equal( dd1.npairs / dd2.npairs[2:-2], 1., decimal=4)
+    numpy.testing.assert_allclose(dd1.npairs, dd2.npairs[2:-2], rtol=1.e-6)
 
     if __name__ == '__main__':
         # If we're running from the command line, go ahead and finish the calculation
@@ -1344,7 +1353,7 @@ def test_perp_minmax():
         rr2.process(rcat, metric='Rperp')
         print('rr1 npairs = ',rr1.npairs)
         print('rr2 npairs = ',rr2.npairs[2:-2])
-        numpy.testing.assert_almost_equal( rr1.npairs / rr2.npairs[2:-2], 1., decimal=4)
+        numpy.testing.assert_allclose(rr1.npairs, rr2.npairs[2:-2], rtol=1.e-6)
 
         dr1 = treecorr.NNCorrelation(config)
         dr1.process(dcat, rcat, metric='Rperp')
@@ -1352,25 +1361,13 @@ def test_perp_minmax():
         dr2.process(dcat, rcat, metric='Rperp')
         print('dr1 npairs = ',dr1.npairs)
         print('dr2 npairs = ',dr2.npairs[2:-2])
-        numpy.testing.assert_almost_equal( dr1.npairs / dr2.npairs[2:-2], 1., decimal=4)
+        numpy.testing.assert_allclose(dr1.npairs, dr2.npairs[2:-2], rtol=1.e-6)
 
         xi1, varxi1 = dd1.calculateXi(rr1, dr1)
         xi2, varxi2 = dd2.calculateXi(rr2, dr2)
         print('xi1 = ',xi1)
         print('xi2 = ',xi2[2:-2])
-        numpy.testing.assert_almost_equal( xi1 / xi2[2:-2], 1., decimal=2)
-
-        # Check that we get the same result with the corr2 executable.
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"nn_rperp.yaml","verbose=0"] )
-        p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','nn_rperp.out'),names=True,skip_header=1)
-        print('xi = ',xi1)
-        print('from corr2 output = ',corr2_output['xi'])
-        print('ratio = ',corr2_output['xi']/xi1)
-        print('diff = ',corr2_output['xi']-xi1)
-        numpy.testing.assert_almost_equal(corr2_output['xi']/xi1, 1., decimal=3)
+        numpy.testing.assert_allclose(xi1, xi2[2:-2], rtol=1.e-6)
 
     # Also check the new Rper metric
     dd1 = treecorr.NNCorrelation(config)
@@ -1388,7 +1385,7 @@ def test_perp_minmax():
     # The edge bins may differ slightly from the binning approximations (bin_slop and such),
     # but the differences should be very small.  (When Erika reported the problem, the differences
     # were a few percent, which ended up making a bit difference in the correlation function.)
-    numpy.testing.assert_almost_equal( dd1.npairs / dd2.npairs[2:-2], 1., decimal=4)
+    numpy.testing.assert_allclose(dd1.npairs, dd2.npairs[2:-2], rtol=1.e-6)
 
 
 if __name__ == '__main__':

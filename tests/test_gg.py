@@ -41,11 +41,13 @@ def test_gg():
     if __name__ == "__main__":
         ngal = 1000000
         L = 50.*r0  # Not infinity, so this introduces some error.  Our integrals were to infinity.
-        req_factor = 1
+        tol_factor = 1
     else:
-        ngal = 200000
+        ngal = 100000
         L = 50.*r0
-        req_factor = 3
+        # Rather than have a single set tolerance, we tune the tolerances for the above
+        # __main__ setup, but scale up by a factor of 5 for the quicker run.
+        tol_factor = 5
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(ngal)-0.5) * L
     y = (numpy.random.random_sample(ngal)-0.5) * L
@@ -60,7 +62,7 @@ def test_gg():
 
     # log(<R>) != <logR>, but it should be close:
     print('meanlogr - log(meanr) = ',gg.meanlogr - numpy.log(gg.meanr))
-    numpy.testing.assert_almost_equal(gg.meanlogr, numpy.log(gg.meanr), decimal=3)
+    numpy.testing.assert_allclose(gg.meanlogr, numpy.log(gg.meanr), atol=1.e-3)
 
     r = gg.meanr
     temp = numpy.pi/16. * gamma0**2 * (r0/L)**2 * numpy.exp(-0.25*r**2/r0**2)
@@ -72,26 +74,26 @@ def test_gg():
     print('ratio = ',gg.xip / true_xip)
     print('diff = ',gg.xip - true_xip)
     print('max diff = ',max(abs(gg.xip - true_xip)))
-    assert max(abs(gg.xip - true_xip))/req_factor < 3.e-7
+    assert max(abs(gg.xip - true_xip)) < 3.e-7 * tol_factor
     print('xip_im = ',gg.xip_im)
-    assert max(abs(gg.xip_im))/req_factor < 2.e-7
+    assert max(abs(gg.xip_im)) < 2.e-7 * tol_factor
 
     print('gg.xim = ',gg.xim)
     print('true_xim = ',true_xim)
     print('ratio = ',gg.xim / true_xim)
     print('diff = ',gg.xim - true_xim)
     print('max diff = ',max(abs(gg.xim - true_xim)))
-    assert max(abs(gg.xim - true_xim))/req_factor < 3.e-7
+    assert max(abs(gg.xim - true_xim)) < 3.e-7 * tol_factor
     print('xim_im = ',gg.xim_im)
-    assert max(abs(gg.xim_im))/req_factor < 1.e-7
+    assert max(abs(gg.xim_im)) < 1.e-7 * tol_factor
 
     # Should also work as a cross-correlation with itself
     gg.process(cat,cat)
-    numpy.testing.assert_almost_equal(gg.meanlogr, numpy.log(gg.meanr), decimal=3)
-    assert max(abs(gg.xip - true_xip))/req_factor < 3.e-7
-    assert max(abs(gg.xip_im))/req_factor < 2.e-7
-    assert max(abs(gg.xim - true_xim))/req_factor < 3.e-7
-    assert max(abs(gg.xim_im))/req_factor < 1.e-7
+    numpy.testing.assert_allclose(gg.meanlogr, numpy.log(gg.meanr), atol=1.e-3)
+    assert max(abs(gg.xip - true_xip)) < 3.e-7 * tol_factor
+    assert max(abs(gg.xip_im)) < 2.e-7 * tol_factor
+    assert max(abs(gg.xim - true_xim)) < 3.e-7 * tol_factor
+    assert max(abs(gg.xim_im)) < 1.e-7 * tol_factor
 
     # Check MapSq calculation:
     # cf. http://adsabs.harvard.edu/abs/2004MNRAS.352..338J
@@ -115,51 +117,49 @@ def test_gg():
     # agreement is pretty good if we skip the first 16 elements.
     # Well, it gets bad again at the end, but those values are small enough that they still
     # pass this test.
-    assert max(abs(mapsq[16:]-true_mapsq[16:]))/req_factor < 3.e-8
+    assert max(abs(mapsq[16:]-true_mapsq[16:])) < 3.e-8 * tol_factor
     print('mxsq = ',mxsq)
     print('max = ',max(abs(mxsq)))
     print('max[16:] = ',max(abs(mxsq[16:])))
-    assert max(abs(mxsq[16:]))/req_factor < 3.e-8
+    assert max(abs(mxsq[16:])) < 3.e-8 * tol_factor
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        cat.write(os.path.join('data','gg.dat'))
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"gg.yaml"] )
-        p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','gg.out'), names=True)
-        print('gg.xip = ',gg.xip)
-        print('from corr2 output = ',corr2_output['xip'])
-        print('ratio = ',corr2_output['xip']/gg.xip)
-        print('diff = ',corr2_output['xip']-gg.xip)
-        numpy.testing.assert_almost_equal(corr2_output['xip']/gg.xip, 1., decimal=3)
+    # Check that we get the same result using the corr2 function:
+    cat.write(os.path.join('data','gg.dat'))
+    config = treecorr.read_config('gg.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','gg.out'), names=True, skip_header=1)
+    print('gg.xip = ',gg.xip)
+    print('from corr2 output = ',corr2_output['xip'])
+    print('ratio = ',corr2_output['xip']/gg.xip)
+    print('diff = ',corr2_output['xip']-gg.xip)
+    numpy.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
 
-        print('gg.xim = ',gg.xim)
-        print('from corr2 output = ',corr2_output['xim'])
-        print('ratio = ',corr2_output['xim']/gg.xim)
-        print('diff = ',corr2_output['xim']-gg.xim)
-        numpy.testing.assert_almost_equal(corr2_output['xim']/gg.xim, 1., decimal=3)
+    print('gg.xim = ',gg.xim)
+    print('from corr2 output = ',corr2_output['xim'])
+    print('ratio = ',corr2_output['xim']/gg.xim)
+    print('diff = ',corr2_output['xim']-gg.xim)
+    numpy.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
 
-        print('xip_im from corr2 output = ',corr2_output['xip_im'])
-        print('max err = ',max(abs(corr2_output['xip_im'])))
-        assert max(abs(corr2_output['xip_im']))/req_factor < 2.e-7
-        print('xim_im from corr2 output = ',corr2_output['xim_im'])
-        print('max err = ',max(abs(corr2_output['xim_im'])))
-        assert max(abs(corr2_output['xim_im']))/req_factor < 1.e-7
+    print('xip_im from corr2 output = ',corr2_output['xip_im'])
+    print('max err = ',max(abs(corr2_output['xip_im'])))
+    assert max(abs(corr2_output['xip_im'])) < 2.e-7 * tol_factor
+    print('xim_im from corr2 output = ',corr2_output['xim_im'])
+    print('max err = ',max(abs(corr2_output['xim_im'])))
+    assert max(abs(corr2_output['xim_im'])) < 1.e-7 * tol_factor
 
-        corr2_output2 = numpy.genfromtxt(os.path.join('output','gg_m2.out'), names=True)
-        print('mapsq = ',mapsq)
-        print('from corr2 output = ',corr2_output2['Mapsq'])
-        print('ratio = ',corr2_output2['Mapsq']/mapsq)
-        print('diff = ',corr2_output2['Mapsq']-mapsq)
-        numpy.testing.assert_almost_equal(corr2_output2['Mapsq']/mapsq, 1., decimal=3)
+    corr2_output2 = numpy.genfromtxt(os.path.join('output','gg_m2.out'), names=True)
+    print('mapsq = ',mapsq)
+    print('from corr2 output = ',corr2_output2['Mapsq'])
+    print('ratio = ',corr2_output2['Mapsq']/mapsq)
+    print('diff = ',corr2_output2['Mapsq']-mapsq)
+    numpy.testing.assert_allclose(corr2_output2['Mapsq'], mapsq, rtol=1.e-3)
 
-        print('mxsq = ',mxsq)
-        print('from corr2 output = ',corr2_output2['Mxsq'])
-        print('ratio = ',corr2_output2['Mxsq']/mxsq)
-        print('diff = ',corr2_output2['Mxsq']-mxsq)
-        numpy.testing.assert_almost_equal(corr2_output2['Mxsq']/mxsq, 1., decimal=3)
+    print('mxsq = ',mxsq)
+    print('from corr2 output = ',corr2_output2['Mxsq'])
+    print('ratio = ',corr2_output2['Mxsq']/mxsq)
+    print('diff = ',corr2_output2['Mxsq']-mxsq)
+    numpy.testing.assert_allclose(corr2_output2['Mxsq'], mxsq, rtol=1.e-3)
 
     # Check the fits write option
     out_file_name = os.path.join('output','gg_out.fits')
@@ -213,11 +213,11 @@ def test_gg():
         print('max diff[20:] = ',max(abs(mapsq[20:] - true_mapsq[20:])))
         # This one stays ratty longer, so we need to skip the first 20 and also loosen the
         # test a bit.
-        assert max(abs(mapsq[20:]-true_mapsq[20:])) < 7.e-8
+        assert max(abs(mapsq[20:]-true_mapsq[20:])) < 7.e-8 * tol_factor
         print('mxsq = ',mxsq)
         print('max = ',max(abs(mxsq)))
         print('max[20:] = ',max(abs(mxsq[20:])))
-        assert max(abs(mxsq[20:])) < 7.e-8
+        assert max(abs(mxsq[20:])) < 7.e-8 * tol_factor
 
     except ImportError:
         # Don't require scipy if the user doesn't have it.
@@ -235,11 +235,11 @@ def test_spherical():
     if __name__ == "__main__":
         nsource = 1000000
         L = 50.*r0  # Not infinity, so this introduces some error.  Our integrals were to infinity.
-        req_factor = 1
+        tol_factor = 1
     else:
-        nsource = 200000
+        nsource = 100000
         L = 50.*r0
-        req_factor = 3
+        tol_factor = 5
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(nsource)-0.5) * L
     y = (numpy.random.random_sample(nsource)-0.5) * L
@@ -322,14 +322,14 @@ def test_spherical():
         # The math seems to be right, since the last one that gets all the way to the pole
         # works, so I'm not sure what is going on.  It's just a few bins that get a bit less
         # accurate.  Possibly worth investigating further at some point...
-        assert max(abs(gg.xip - true_xip))/req_factor < 3.e-7
+        assert max(abs(gg.xip - true_xip)) < 3.e-7 * tol_factor
 
         print('gg.xim = ',gg.xim)
         print('true_xim = ',true_xim)
         print('ratio = ',gg.xim / true_xim)
         print('diff = ',gg.xim - true_xim)
         print('max diff = ',max(abs(gg.xim - true_xim)))
-        assert max(abs(gg.xim - true_xim))/req_factor < 2.e-7
+        assert max(abs(gg.xim - true_xim)) < 2.e-7 * tol_factor
 
     # One more center that can be done very easily.  If the center is the north pole, then all
     # the tangential shears are pure (positive) g1.
@@ -349,8 +349,8 @@ def test_spherical():
     print('ratio = ',gg.xip / true_xip)
     print('diff = ',gg.xip - true_xip)
     print('max diff = ',max(abs(gg.xip - true_xip)))
-    assert max(abs(gg.xip - true_xip))/req_factor < 3.e-7
-    assert max(abs(gg.xip_im))/req_factor < 3.e-7
+    assert max(abs(gg.xip - true_xip)) < 3.e-7 * tol_factor
+    assert max(abs(gg.xip_im)) < 3.e-7 * tol_factor
 
     print('gg.xim = ',gg.xim)
     print('gg.xim_im = ',gg.xim_im)
@@ -358,34 +358,33 @@ def test_spherical():
     print('ratio = ',gg.xim / true_xim)
     print('diff = ',gg.xim - true_xim)
     print('max diff = ',max(abs(gg.xim - true_xim)))
-    assert max(abs(gg.xim - true_xim))/req_factor < 2.e-7
-    assert max(abs(gg.xim_im))/req_factor < 2.e-7
+    assert max(abs(gg.xim - true_xim)) < 2.e-7 * tol_factor
+    assert max(abs(gg.xim_im)) < 2.e-7 * tol_factor
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        cat.write(os.path.join('data','gg_spherical.dat'))
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"gg_spherical.yaml"] )
-        p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','gg_spherical.out'), names=True)
-        print('gg.xip = ',gg.xip)
-        print('from corr2 output = ',corr2_output['xip'])
-        print('ratio = ',corr2_output['xip']/gg.xip)
-        print('diff = ',corr2_output['xip']-gg.xip)
-        numpy.testing.assert_almost_equal(corr2_output['xip']/gg.xip, 1., decimal=3)
+    # Check that we get the same result using the corr2 function
+    cat.write(os.path.join('data','gg_spherical.dat'))
+    config = treecorr.read_config('gg_spherical.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','gg_spherical.out'), names=True,
+                                    skip_header=1)
+    print('gg.xip = ',gg.xip)
+    print('from corr2 output = ',corr2_output['xip'])
+    print('ratio = ',corr2_output['xip']/gg.xip)
+    print('diff = ',corr2_output['xip']-gg.xip)
+    numpy.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
 
-        print('gg.xim = ',gg.xim)
-        print('from corr2 output = ',corr2_output['xim'])
-        print('ratio = ',corr2_output['xim']/gg.xim)
-        print('diff = ',corr2_output['xim']-gg.xim)
-        numpy.testing.assert_almost_equal(corr2_output['xim']/gg.xim, 1., decimal=3)
+    print('gg.xim = ',gg.xim)
+    print('from corr2 output = ',corr2_output['xim'])
+    print('ratio = ',corr2_output['xim']/gg.xim)
+    print('diff = ',corr2_output['xim']-gg.xim)
+    numpy.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
 
-        print('xip_im from corr2 output = ',corr2_output['xip_im'])
-        assert max(abs(corr2_output['xip_im']))/req_factor < 3.e-7
+    print('xip_im from corr2 output = ',corr2_output['xip_im'])
+    assert max(abs(corr2_output['xip_im'])) < 3.e-7 * tol_factor
 
-        print('xim_im from corr2 output = ',corr2_output['xim_im'])
-        assert max(abs(corr2_output['xim_im']))/req_factor < 2.e-7
+    print('xim_im from corr2 output = ',corr2_output['xim_im'])
+    assert max(abs(corr2_output['xim_im'])) < 2.e-7 * tol_factor
 
 
 def test_aardvark():
@@ -451,44 +450,29 @@ def test_aardvark():
     assert max(abs(xim_err)) < 5.e-8
 
     # Check that we get the same result using the corr2 function
-    config = treecorr.config.read_config('Aardvark.yaml')
-    logger = treecorr.config.setup_logger(0)
-    treecorr.corr2(config, logger)
-    corr2_output = numpy.genfromtxt(os.path.join('output','Aardvark.out'), names=True,
-                                    skip_header=1)
-    print('gg.xip = ',gg.xip)
-    print('from corr2 output = ',corr2_output['xip'])
-    print('ratio = ',corr2_output['xip']/gg.xip)
-    print('diff = ',corr2_output['xip']-gg.xip)
-    numpy.testing.assert_almost_equal(corr2_output['xip']/gg.xip, 1., decimal=3)
+    # There's nothing new here coverage-wise, so only do this when running from command line.
+    if __name__ == '__main__':
+        treecorr.corr2(config)
+        corr2_output = numpy.genfromtxt(os.path.join('output','Aardvark.out'), names=True,
+                                        skip_header=1)
+        print('gg.xip = ',gg.xip)
+        print('from corr2 output = ',corr2_output['xip'])
+        print('ratio = ',corr2_output['xip']/gg.xip)
+        print('diff = ',corr2_output['xip']-gg.xip)
+        numpy.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
 
-    print('gg.xim = ',gg.xim)
-    print('from corr2 output = ',corr2_output['xim'])
-    print('ratio = ',corr2_output['xim']/gg.xim)
-    print('diff = ',corr2_output['xim']-gg.xim)
-    numpy.testing.assert_almost_equal(corr2_output['xim']/gg.xim, 1., decimal=3)
+        print('gg.xim = ',gg.xim)
+        print('from corr2 output = ',corr2_output['xim'])
+        print('ratio = ',corr2_output['xim']/gg.xim)
+        print('diff = ',corr2_output['xim']-gg.xim)
+        numpy.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
 
-    print('xip_im from corr2 output = ',corr2_output['xip_im'])
-    print('max err = ',max(abs(corr2_output['xip_im'])))
-    assert max(abs(corr2_output['xip_im'])) < 3.e-7
-    print('xim_im from corr2 output = ',corr2_output['xim_im'])
-    print('max err = ',max(abs(corr2_output['xim_im'])))
-    assert max(abs(corr2_output['xim_im'])) < 1.e-7
-
-    # Check that we get the same result using the corr2 executable:
-    # Note: This is the only test of the corr2 executable that we do with nosetests.
-    # The other similar tests are blocked out with: if __name__ == '__main__':
-    import subprocess
-    corr2_exe = get_script_name('corr2')
-    p = subprocess.Popen( [corr2_exe,"Aardvark.yaml","verbose=0"] )
-    p.communicate()
-    corr2_output = numpy.genfromtxt(os.path.join('output','Aardvark.out'), names=True,
-                                    skip_header=1)
-    numpy.testing.assert_almost_equal(corr2_output['xip']/gg.xip, 1., decimal=3)
-
-    numpy.testing.assert_almost_equal(corr2_output['xim']/gg.xim, 1., decimal=3)
-    assert max(abs(corr2_output['xip_im'])) < 3.e-7
-    assert max(abs(corr2_output['xim_im'])) < 1.e-7
+        print('xip_im from corr2 output = ',corr2_output['xip_im'])
+        print('max err = ',max(abs(corr2_output['xip_im'])))
+        assert max(abs(corr2_output['xip_im'])) < 3.e-7
+        print('xim_im from corr2 output = ',corr2_output['xim_im'])
+        print('max err = ',max(abs(corr2_output['xim_im'])))
+        assert max(abs(corr2_output['xim_im'])) < 1.e-7
 
     # As bin_slop decreases, the agreement should get even better.
     # This test is slow, so only do it if running test_gg.py directly.
@@ -584,8 +568,19 @@ def test_haloellip():
     than normalizing it.
     """
 
-    nlens = 1000
-    nsource = 10000  # sources per lens
+    if __name__ == '__main__':
+        # It's hard to get enough sources/lenses to get very high precision on these tests.
+        # We settle on a number that lead to 3% accuracy.  Increasing nlens and nsource
+        # lead to high accuracy.
+        nlens = 1000
+        nsource = 10000  # sources per lens
+        tol = 3.e-2
+    else:
+        # For nosetests runs, use 10x fewer lenses and 2x larger tolerance
+        nlens = 100
+        nsource = 10000
+        tol = 6.e-2
+
     ntot = nsource * nlens
     L = 100000.  # The side length in which the lenses are placed
     R = 10.      # The (rms) radius of the associated sources from the lenses
@@ -643,12 +638,10 @@ def test_haloellip():
     print('gg.xim = ',gg.xim)
     # The net signal here is just <absg> * e_b
     print('expected signal = ',e_b * lens_mean_absg)
-    # These tests don't quite work at the 1% level of accuracy, but 2% seems to work for most.
-    # This is effected by checking that 1/2 the value matches 0.5 to 2 decimal places.
-    numpy.testing.assert_almost_equal(gg.xim/(e_b * lens_mean_absg)/2., 0.5, decimal=2)
+    numpy.testing.assert_allclose(gg.xim, e_b * lens_mean_absg, rtol=tol)
     print('gg.xip = ',gg.xip)
     print('expected signal = ',e_a * lens_mean_absg)
-    numpy.testing.assert_almost_equal(gg.xip/(e_a * lens_mean_absg)/2, 0.5, decimal=2)
+    numpy.testing.assert_allclose(gg.xip, e_a * lens_mean_absg, rtol=tol)
 
     # Next weight the lenses by their absg.
     lens_cat2 = treecorr.Catalog(x=lens_x, y=lens_y, g1=lens_g1/lens_absg, g2=lens_g2/lens_absg,
@@ -661,12 +654,10 @@ def test_haloellip():
     # = <absg^2> * e_b / <absg>
     lens_mean_gsq = numpy.mean(lens_absg**2)
     print('expected signal = ',e_b * lens_mean_gsq / lens_mean_absg)
-    numpy.testing.assert_almost_equal(gg.xim/(e_b * lens_mean_gsq / lens_mean_absg)/2., 0.5,
-                                      decimal=2)
+    numpy.testing.assert_allclose(gg.xim, e_b * lens_mean_gsq / lens_mean_absg, rtol=tol)
     print('gg.xip = ',gg.xip)
     print('expected signal = ',e_a * lens_mean_gsq / lens_mean_absg)
-    numpy.testing.assert_almost_equal(gg.xip/(e_a * lens_mean_gsq / lens_mean_absg)/2., 0.5,
-                                      decimal=2)
+    numpy.testing.assert_allclose(gg.xip, e_a * lens_mean_gsq / lens_mean_absg, rtol=tol)
 
     # Finally, use the unnormalized lens_g for the lens ellipticities
     lens_cat3 = treecorr.Catalog(x=lens_x, y=lens_y, g1=lens_g1, g2=lens_g2)
@@ -677,11 +668,11 @@ def test_haloellip():
     # = sum(absg[i]^2 * e_b) / N
     # = <absg^2> * e_b
     print('expected signal = ',e_b * lens_mean_gsq)
-    # This one is slightly less accurate.  But easily passes at 3% accuracy.
-    numpy.testing.assert_almost_equal(gg.xim/(e_b * lens_mean_gsq)/3., 0.333, decimal=2)
+    # This one is slightly less accurate.  But easily passes at 4% accuracy.
+    numpy.testing.assert_allclose(gg.xim, e_b * lens_mean_gsq, rtol=tol*1.5)
     print('gg.xip = ',gg.xip)
     print('expected signal = ',e_a * lens_mean_gsq)
-    numpy.testing.assert_almost_equal(gg.xip/(e_a * lens_mean_gsq)/2., 0.5, decimal=2)
+    numpy.testing.assert_allclose(gg.xip, e_a * lens_mean_gsq, rtol=tol*1.5)
 
     # It's worth noting that exactly half the signal is in each of g1, g2, so for things
     # like SDSS, you can use only g2, for instance, which avoids some insidious systematic
@@ -696,10 +687,10 @@ def test_haloellip():
     # artificial, as I placed the exact signal down with no shape noise, the increased shape
     # noise is a lot more than previously here.  So I had to drop the precision by a factor of
     # 5 relative to what I did above.
-    numpy.testing.assert_almost_equal(gg.xim/(e_b * lens_mean_absg/2.)/10., 0.1, decimal=2)
+    numpy.testing.assert_allclose(gg.xim, e_b * lens_mean_absg/2., rtol=tol*5)
     print('gg.xip = ',gg.xip)
     print('expected signal = ',e_a * lens_mean_absg / 2.)
-    numpy.testing.assert_almost_equal(gg.xip/(e_a * lens_mean_absg/2.)/10, 0.1, decimal=2)
+    numpy.testing.assert_allclose(gg.xip, e_a * lens_mean_absg/2., rtol=tol*5)
 
 def test_rlens():
     # Similar to test_rlens in test_ng.py, but we give the lenses a shape and do a GG correlation.
@@ -893,23 +884,22 @@ def test_rlens():
     print('gg.xim_im = ',gg2.xim_im)
     assert max(abs(gg2.xim_im)) < 7.e-6
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        lens_cat.write(os.path.join('data','gg_rlens_lens.dat'))
-        source_cat.write(os.path.join('data','gg_rlens_source.dat'))
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"gg_rlens.yaml"] )
-        p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','gg_rlens.out'),names=True)
-        print('gg.xim = ',gg2.xim)
-        print('from corr2 output = ',corr2_output['xim'])
-        print('ratio = ',corr2_output['xim']/gg2.xim)
-        print('diff = ',corr2_output['xim']-gg2.xim)
-        numpy.testing.assert_almost_equal(corr2_output['xim'], gg2.xim, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xim_im'], gg2.xim_im, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xip'], gg2.xip, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xip_im'], gg2.xip_im, decimal=6)
+    # Check that we get the same result using the corr2 function
+    lens_cat.write(os.path.join('data','gg_rlens_lens.dat'))
+    source_cat.write(os.path.join('data','gg_rlens_source.dat'))
+    config = treecorr.read_config('gg_rlens.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','gg_rlens.out'),names=True,
+                                    skip_header=1)
+    print('gg.xim = ',gg2.xim)
+    print('from corr2 output = ',corr2_output['xim'])
+    print('ratio = ',corr2_output['xim']/gg2.xim)
+    print('diff = ',corr2_output['xim']-gg2.xim)
+    numpy.testing.assert_allclose(corr2_output['xim'], gg2.xim, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['xim_im'], gg2.xim_im, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['xip'], gg2.xip, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['xip_im'], gg2.xip_im, rtol=1.e-3)
 
     # Repeat with the sources being given as RA/Dec only.
     ral, decl = treecorr.CelestialCoord.xyz_to_radec(xl,yl,zl)
@@ -989,7 +979,7 @@ def test_rperp():
     # Same as above, but using Rperp.
 
     nlens = 100
-    nsource = 200000
+    nsource = 100000
     gamma0 = 0.05
     R0 = 5.
     L = 100. * R0
@@ -1161,30 +1151,29 @@ def test_rperp():
     print('gg.xim_im = ',gg.xim_im)
     assert max(abs(gg.xim_im)) < 1.e-5
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        lens_cat.write(os.path.join('data','gg_rperp_lens.dat'))
-        source_cat.write(os.path.join('data','gg_rperp_source.dat'))
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"gg_rperp.yaml"] )
-        p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','gg_rperp.out'),names=True)
-        print('gg.xim = ',gg.xim)
-        print('from corr2 output = ',corr2_output['xim'])
-        print('ratio = ',corr2_output['xim']/gg.xim)
-        print('diff = ',corr2_output['xim']-gg.xim)
-        numpy.testing.assert_almost_equal(corr2_output['xim'], gg.xim, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xim_im'], gg.xim_im, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xip'], gg.xip, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xip_im'], gg.xip_im, decimal=6)
+    # Check that we get the same result using the corr2 function
+    lens_cat.write(os.path.join('data','gg_rperp_lens.dat'))
+    source_cat.write(os.path.join('data','gg_rperp_source.dat'))
+    config = treecorr.read_config('gg_rperp.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','gg_rperp.out'),names=True,
+                                    skip_header=1)
+    print('gg.xim = ',gg.xim)
+    print('from corr2 output = ',corr2_output['xim'])
+    print('ratio = ',corr2_output['xim']/gg.xim)
+    print('diff = ',corr2_output['xim']-gg.xim)
+    numpy.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['xim_im'], gg.xim_im, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
 
 
 def test_rperp_local():
     # Same as above, but using min_rpar, max_rpar to get local (intrinsic alignment) correlations.
 
     nlens = 1
-    nsource = 1000000
+    nsource = 100000
     gamma0 = 0.05
     R0 = 5.
     L = 100. * R0
@@ -1212,8 +1201,8 @@ def test_rperp_local():
     bin_size = 0.1
     # The min/max sep range can be larger here than above, since we're not diluted by the signal
     # from other background galaxies around different lenses.
-    min_sep = 2*R0
-    max_sep = 30.*R0
+    min_sep = 4*R0
+    max_sep = 50.*R0
     # Because the Rperp values are a lot larger than the Rlens values, use a larger scale radius
     # in the gaussian signal.
     R1 = 4. * R0
@@ -1379,29 +1368,28 @@ def test_rperp_local():
     print('gg.xim_im = ',gg.xim_im)
     assert max(abs(gg.xim_im)) < 1.e-4
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        lens_cat.write(os.path.join('data','gg_rperp_local_lens.dat'))
-        source_cat.write(os.path.join('data','gg_rperp_local_source.dat'))
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"gg_rperp_local.yaml"] )
-        p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','gg_rperp_local.out'),names=True)
-        print('gg.xim = ',gg.xim)
-        print('from corr2 output = ',corr2_output['xim'])
-        print('ratio = ',corr2_output['xim']/gg.xim)
-        print('diff = ',corr2_output['xim']-gg.xim)
-        numpy.testing.assert_almost_equal(corr2_output['xim'], gg.xim, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xim_im'], gg.xim_im, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xip'], gg.xip, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xip_im'], gg.xip_im, decimal=6)
+    # Check that we get the same result using the corr2 function
+    lens_cat.write(os.path.join('data','gg_rperp_local_lens.dat'))
+    source_cat.write(os.path.join('data','gg_rperp_local_source.dat'))
+    config = treecorr.read_config('gg_rperp_local.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','gg_rperp_local.out'),names=True,
+                                    skip_header=1)
+    print('gg.xim = ',gg.xim)
+    print('from corr2 output = ',corr2_output['xim'])
+    print('ratio = ',corr2_output['xim']/gg.xim)
+    print('diff = ',corr2_output['xim']-gg.xim)
+    numpy.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['xim_im'], gg.xim_im, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
 
 def test_oldrperp():
     # Same as above, but using OldRperp.
 
     nlens = 100
-    nsource = 200000
+    nsource = 100000
     gamma0 = 0.05
     R0 = 10.
     L = 50. * R0
@@ -1428,7 +1416,7 @@ def test_oldrperp():
     bin_size = 0.1
     # min_sep is set so the first bin doesn't have 0 pairs.
     # Both this and max_sep need to be larger than what we used for Rlens.
-    min_sep = 4.5*R0
+    min_sep = 5.*R0
     # max_sep can't be too large, since the measured value starts to have shape noise for larger
     # values of separation.  We're not adding any shape noise directly, but the shear from other
     # lenses is effectively a shape noise, and that comes to dominate the measurement above ~4R0.
@@ -1571,30 +1559,29 @@ def test_oldrperp():
     print('gg.xim_im = ',gg.xim_im)
     assert max(abs(gg.xim_im)) < 1.e-5
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        lens_cat.write(os.path.join('data','gg_rperp_lens.dat'))
-        source_cat.write(os.path.join('data','gg_rperp_source.dat'))
-        import subprocess
-        corr2_exe = get_script_name('corr2')
-        p = subprocess.Popen( [corr2_exe,"gg_rperp.yaml"] )
-        p.communicate()
-        corr2_output = numpy.genfromtxt(os.path.join('output','gg_rperp.out'),names=True)
-        print('gg.xim = ',gg.xim)
-        print('from corr2 output = ',corr2_output['xim'])
-        print('ratio = ',corr2_output['xim']/gg.xim)
-        print('diff = ',corr2_output['xim']-gg.xim)
-        numpy.testing.assert_almost_equal(corr2_output['xim'], gg.xim, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xim_im'], gg.xim_im, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xip'], gg.xip, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xip_im'], gg.xip_im, decimal=6)
+    # Check that we get the same result using the corr2 function:
+    lens_cat.write(os.path.join('data','gg_oldrperp_lens.dat'))
+    source_cat.write(os.path.join('data','gg_oldrperp_source.dat'))
+    config = treecorr.read_config('gg_oldrperp.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','gg_oldrperp.out'),names=True,
+                                    skip_header=1)
+    print('gg.xim = ',gg.xim)
+    print('from corr2 output = ',corr2_output['xim'])
+    print('ratio = ',corr2_output['xim']/gg.xim)
+    print('diff = ',corr2_output['xim']-gg.xim)
+    numpy.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['xim_im'], gg.xim_im, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
 
 
-def test_rperp_local():
+def test_oldrperp_local():
     # Same as above, but using min_rpar, max_rpar to get local (intrinsic alignment) correlations.
 
     nlens = 1
-    nsource = 1000000
+    nsource = 500000
     gamma0 = 0.05
     R0 = 10.
     L = 50. * R0
@@ -1787,22 +1774,22 @@ def test_rperp_local():
     print('gg.xim_im = ',gg.xim_im)
     assert max(abs(gg.xim_im)) < 1.e-4
 
-    # Check that we get the same result using the corr2 executable:
-    if __name__ == '__main__':
-        lens_cat.write(os.path.join('data','gg_oldrperp_local_lens.dat'))
-        source_cat.write(os.path.join('data','gg_oldrperp_local_source.dat'))
-        config = treecorr.config.read_config('gg_rperp_local.yaml')
-        logger = treecorr.config.setup_logger(0)
-        treecorr.corr2(config, logger, metric='OldRPerp')
-        corr2_output = numpy.genfromtxt(os.path.join('output','gg_oldrperp_local.out'),names=True)
-        print('gg.xim = ',gg.xim)
-        print('from corr2 output = ',corr2_output['xim'])
-        print('ratio = ',corr2_output['xim']/gg.xim)
-        print('diff = ',corr2_output['xim']-gg.xim)
-        numpy.testing.assert_almost_equal(corr2_output['xim'], gg.xim, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xim_im'], gg.xim_im, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xip'], gg.xip, decimal=6)
-        numpy.testing.assert_almost_equal(corr2_output['xip_im'], gg.xip_im, decimal=6)
+    # Check that we get the same result using the corr2 function:
+    lens_cat.write(os.path.join('data','gg_oldrperp_local_lens.dat'))
+    source_cat.write(os.path.join('data','gg_oldrperp_local_source.dat'))
+    config = treecorr.config.read_config('gg_oldrperp_local.yaml')
+    logger = treecorr.config.setup_logger(0)
+    treecorr.corr2(config, logger)
+    corr2_output = numpy.genfromtxt(os.path.join('output','gg_oldrperp_local.out'),names=True,
+                                    skip_header=1)
+    print('gg.xim = ',gg.xim)
+    print('from corr2 output = ',corr2_output['xim'])
+    print('ratio = ',corr2_output['xim']/gg.xim)
+    print('diff = ',corr2_output['xim']-gg.xim)
+    numpy.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['xim_im'], gg.xim_im, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
 
 
 if __name__ == '__main__':

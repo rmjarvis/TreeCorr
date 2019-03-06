@@ -148,6 +148,7 @@ def test_gg():
     print('max err = ',max(abs(corr2_output['xim_im'])))
     assert max(abs(corr2_output['xim_im'])) < 1.e-7 * tol_factor
 
+    # Check m2 output
     corr2_output2 = numpy.genfromtxt(os.path.join('output','gg_m2.out'), names=True)
     print('mapsq = ',mapsq)
     print('from corr2 output = ',corr2_output2['Mapsq'])
@@ -159,6 +160,13 @@ def test_gg():
     print('from corr2 output = ',corr2_output2['Mxsq'])
     print('ratio = ',corr2_output2['Mxsq']/mxsq)
     print('diff = ',corr2_output2['Mxsq']-mxsq)
+    numpy.testing.assert_allclose(corr2_output2['Mxsq'], mxsq, rtol=1.e-3)
+
+    # OK to have m2 output, but not gg
+    del config['gg_file_name']
+    treecorr.corr2(config)
+    corr2_output2 = numpy.genfromtxt(os.path.join('output','gg_m2.out'), names=True)
+    numpy.testing.assert_allclose(corr2_output2['Mapsq'], mapsq, rtol=1.e-3)
     numpy.testing.assert_allclose(corr2_output2['Mxsq'], mxsq, rtol=1.e-3)
 
     # Check the fits write option

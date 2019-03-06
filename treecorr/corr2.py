@@ -187,11 +187,12 @@ def corr2(config, logger=None):
             rr = treecorr.NNCorrelation(config,logger)
             rr.process(rand1)
             logger.info("Done RR calculation for norm")
-            dr = None
             if config['nn_statistic'] == 'compensated':
                 dr = treecorr.NNCorrelation(config,logger)
                 dr.process(cat1,rand1)
                 logger.info("Done DR calculation for norm")
+            else:
+                dr = None
             ng.writeNorm(config['norm_file_name'],gg,dd,rr,dr,rg,m2_uform=config['m2_uform'])
             logger.warning("Wrote Norm values to %s",config['norm_file_name'])
 

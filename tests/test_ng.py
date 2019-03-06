@@ -17,7 +17,7 @@ import treecorr
 import os
 import fitsio
 
-from test_helper import get_script_name, CaptureLog
+from test_helper import get_script_name, CaptureLog, assert_raises
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
 
 def test_single():
@@ -258,7 +258,7 @@ def test_spherical():
     numpy.testing.assert_allclose(corr2_output['gamT'], ng.xi, rtol=1.e-3)
 
     print('xi_im from corr2 output = ',corr2_output['gamX'])
-    assert max(abs(corr2_output['gamX'])) < 3.e-5
+    numpy.testing.assert_allclose(corr2_output['gamX'], 0., atol=3.e-5)
 
 
 def test_ng():
@@ -303,7 +303,7 @@ def test_ng():
     numpy.testing.assert_allclose(ng.xi, true_gt, rtol=0.1)
     numpy.testing.assert_allclose(ng.xi_im, 0, atol=5.e-3)
 
-    nrand = nlens * 13
+    nrand = nlens * 3
     xr = (numpy.random.random_sample(nrand)-0.5) * L
     yr = (numpy.random.random_sample(nrand)-0.5) * L
     rand_cat = treecorr.Catalog(x=xr, y=yr, x_units='arcmin', y_units='arcmin')
@@ -337,9 +337,16 @@ def test_ng():
     print('ratio = ',corr2_output['gamT']/xi)
     print('diff = ',corr2_output['gamT']-xi)
     numpy.testing.assert_allclose(corr2_output['gamT'], xi, rtol=1.e-3)
-
     print('xi_im from corr2 output = ',corr2_output['gamX'])
-    assert max(abs(corr2_output['gamX'])) < 4.e-3
+    numpy.testing.assert_allclose(corr2_output['gamX'], 0., atol=4.e-3)
+
+    # In the corr2 context, you can turn off the compensated bit, even if there are randoms
+    # (e.g. maybe you only want randoms for some nn calculation, but not ng.)
+    config['ng_statistic'] = 'simple'
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','ng.out'), names=True, skip_header=1)
+    xi_simple, _, _ = ng.calculateXi()
+    numpy.testing.assert_allclose(corr2_output['gamT'], xi_simple, rtol=1.e-3)
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','ng_out1.fits')
@@ -381,6 +388,165 @@ def test_ng():
     assert ng2.metric == ng.metric
     assert ng2.sep_units == ng.sep_units
     assert ng2.bin_type == ng.bin_type
+
+
+def test_nmap():
+    # Same scenario as above.
+    # Use gamma_t(r) = gamma0 exp(-r^2/2r0^2) around a bunch of foreground lenses.
+    # i.e. gamma(r) = -gamma0 exp(-r^2/2r0^2) (x+iy)^2/r^2
+
+    # Crittenden NMap = int_0^inf gamma_t(r) T(r/R) rdr/R^2
+    #                 = gamma0/4 r0^4 (r0^2 + 6R^2) / (r0^2 + 2R^2)^3
+
+    nlens = 1000
+    nsource = 10000
+    gamma0 = 0.05
+    r0 = 10.
+    L = 50. * r0
+    numpy.random.seed(8675309)
+    xl = (numpy.random.random_sample(nlens)-0.5) * L
+    yl = (numpy.random.random_sample(nlens)-0.5) * L
+    xs = (numpy.random.random_sample(nsource)-0.5) * L
+    ys = (numpy.random.random_sample(nsource)-0.5) * L
+    g1 = numpy.zeros( (nsource,) )
+    g2 = numpy.zeros( (nsource,) )
+    for x,y in zip(xl,yl):
+        dx = xs-x
+        dy = ys-y
+        r2 = dx**2 + dy**2
+        gammat = gamma0 * numpy.exp(-0.5*r2/r0**2)
+        g1 += -gammat * (dx**2-dy**2)/r2
+        g2 += -gammat * (2.*dx*dy)/r2
+
+    lens_cat = treecorr.Catalog(x=xl, y=yl, x_units='arcmin', y_units='arcmin')
+    source_cat = treecorr.Catalog(x=xs, y=ys, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
+    # Measure ng with a factor of 2 extra at high and low ends
+    ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=0.5, max_sep=40., sep_units='arcmin',
+                                verbose=1)
+    ng.process(lens_cat, source_cat)
+
+    r = ng.meanr
+    true_nmap = 0.25 * gamma0 * r0**4 * (r0**2 + 6*r**2) / (r0**2 + 2*r**2)**3
+    nmap, nmx, varnmap = ng.calculateNMap()
+
+    print('nmap = ',nmap)
+    print('nmx = ',nmx)
+    print('true_nmap = ',true_nmap)
+    mask = (1 < r) & (r < 20)
+    print('ratio = ',nmap[mask] / true_nmap[mask])
+    print('max rel diff = ',max(abs((nmap[mask] - true_nmap[mask])/true_nmap[mask])))
+    numpy.testing.assert_allclose(nmap[mask], true_nmap[mask], rtol=0.1)
+    numpy.testing.assert_allclose(nmx[mask], 0, atol=5.e-3)
+
+    nrand = nlens * 3
+    xr = (numpy.random.random_sample(nrand)-0.5) * L
+    yr = (numpy.random.random_sample(nrand)-0.5) * L
+    rand_cat = treecorr.Catalog(x=xr, y=yr, x_units='arcmin', y_units='arcmin')
+    rg = treecorr.NGCorrelation(bin_size=0.1, min_sep=0.5, max_sep=40., sep_units='arcmin',
+                                verbose=1)
+    rg.process(rand_cat, source_cat)
+    nmap, nmx, varnmap = ng.calculateNMap(rg, m2_uform='Crittenden')
+    print('compensated nmap = ',nmap)
+    print('ratio = ',nmap[mask] / true_nmap[mask])
+    print('max rel diff = ',max(abs((nmap[mask] - true_nmap[mask])/true_nmap[mask])))
+    numpy.testing.assert_allclose(nmap[mask], true_nmap[mask], rtol=0.1)
+    numpy.testing.assert_allclose(nmx[mask], 0, atol=5.e-3)
+
+    # Check that we get the same result using the corr2 function:
+    lens_cat.write(os.path.join('data','ng_nmap_lens.dat'))
+    source_cat.write(os.path.join('data','ng_nmap_source.dat'))
+    rand_cat.write(os.path.join('data','ng_nmap_rand.dat'))
+    config = treecorr.read_config('ng_nmap.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','ng_nmap.out'), names=True)
+    numpy.testing.assert_allclose(corr2_output['NMap'], nmap, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['NMx'], nmx, atol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['sig_nmap'], numpy.sqrt(varnmap), rtol=1.e-3)
+
+    # Can also skip the randoms (even if listed in the file)
+    config['nn_statistic'] = 'simple'
+    config['precision'] = 5
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','ng_nmap.out'), names=True)
+    numpy.testing.assert_allclose(corr2_output['NMap'], nmap, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['NMx'], nmx, atol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['sig_nmap'], numpy.sqrt(varnmap), rtol=1.e-3)
+
+    # And check the norm output file, which adds a few columns
+    dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=0.5, max_sep=40., sep_units='arcmin',
+                                verbose=1)
+    dd.process(lens_cat)
+    rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=0.5, max_sep=40., sep_units='arcmin',
+                                verbose=1)
+    rr.process(rand_cat)
+    gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=0.5, max_sep=40., sep_units='arcmin',
+                                verbose=1)
+    gg.process(source_cat)
+    napsq, varnap = dd.calculateNapSq(rr, m2_uform='Crittenden')
+    mapsq, mapsq_im, mxsq, mxsq_im, varmap = gg.calculateMapSq(m2_uform='Crittenden')
+    nmap_norm = nmap**2 / napsq / mapsq
+    napsq_mapsq = napsq / mapsq
+    corr2_output = numpy.genfromtxt(os.path.join('output','ng_norm.out'), names=True)
+    numpy.testing.assert_allclose(corr2_output['NMap'], nmap, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['NMx'], nmx, atol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['sig_nmap'], numpy.sqrt(varnmap), rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['Napsq'], napsq, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['sig_napsq'], numpy.sqrt(varnap), rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['Mapsq'], mapsq, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['sig_mapsq'], numpy.sqrt(varmap), rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['NMap_norm'], nmap_norm, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['Nsq_Mapsq'], napsq_mapsq, rtol=1.e-3)
+
+    # Finally, let's also check the Schneider definition.
+    # It doesn't have a nice closed form solution (as far as I can figure out at least).
+    # but it does look qualitatively similar to the Crittenden one.
+    # Just its definition of R is different, so we need to compare a different subset to
+    # get a decent match.  Also, the amplitude is different by a factor of 6/5.
+    nmap_sch, nmx_sch, varnmap_sch = ng.calculateNMap(rg, m2_uform='Schneider')
+    print('Schneider nmap = ',nmap_sch[10:] * 5./6.)
+    print('Crittenden nmap = ',nmap[:-10])
+    print('ratio = ',nmap_sch[10:]*5./6. / nmap[:-10])
+    numpy.testing.assert_allclose(nmap_sch[10:]*5./6., nmap[:-10], rtol=0.1)
+
+    napsq_sch, varnap_sch = dd.calculateNapSq(rr, m2_uform='Schneider')
+    mapsq_sch, _, mxsq_sch, _, varmap_sch = gg.calculateMapSq(m2_uform='Schneider')
+    print('Schneider napsq = ',napsq_sch[10:] * 5./6.)
+    print('Crittenden napsq = ',napsq[:-10])
+    print('ratio = ',napsq_sch[10:]*5./6. / napsq[:-10])
+    print('diff = ',napsq_sch[10:]*5./6. - napsq[:-10])
+
+    print('Schneider mapsq = ',mapsq_sch[10:] * 5./6.)
+    print('Crittenden mapsq = ',mapsq[:-10])
+    print('ratio = ',mapsq_sch[10:]*5./6. / mapsq[:-10])
+
+    # These have zero crossings, where they have slightly different shapes, so the agreement
+    # isn't as good as with nmap.
+    numpy.testing.assert_allclose(napsq_sch[10:]*5./6., napsq[:-10], rtol=0.2, atol=5.e-3)
+    numpy.testing.assert_allclose(mapsq_sch[10:]*5./6., mapsq[:-10], rtol=0.2, atol=5.e-5)
+
+    nmap_norm_sch = nmap_sch**2 / napsq_sch / mapsq_sch
+    napsq_mapsq_sch = napsq_sch / mapsq_sch
+
+    config['m2_uform'] = 'Schneider'
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','ng_norm.out'), names=True)
+    numpy.testing.assert_allclose(corr2_output['NMap'], nmap_sch, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['NMx'], nmx_sch, atol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['sig_nmap'], numpy.sqrt(varnmap_sch), rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['Napsq'], napsq_sch, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['sig_napsq'], numpy.sqrt(varnap_sch), rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['Mapsq'], mapsq_sch, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['sig_mapsq'], numpy.sqrt(varmap_sch), rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['NMap_norm'], nmap_norm_sch, rtol=1.e-3)
+    numpy.testing.assert_allclose(corr2_output['Nsq_Mapsq'], napsq_mapsq_sch, rtol=1.e-3)
+
+    with assert_raises(ValueError):
+        ng.calculateNMap(m2_uform='Other')
+    with assert_raises(ValueError):
+        dd.calculateNapSq(rr, m2_uform='Other')
+    with assert_raises(ValueError):
+        gg.calculateMapSq(m2_uform='Other')
 
 
 def test_pieces():

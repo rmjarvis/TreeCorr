@@ -1,0 +1,22 @@
+
+file_name: data/ng_nmap_lens.dat
+file_name2: data/ng_nmap_source.dat
+rand_file_name: data/ng_nmap_rand.dat
+
+x_col: 1
+y_col: 2
+x_units: arcmin
+y_units: arcmin
+
+g1_col: [0, 3]
+g2_col: [0, 4]
+
+verbose: 1
+
+min_sep: 0.5
+max_sep: 40.
+bin_size: 0.1
+sep_units: arcmin
+
+nm_file_name: output/ng_nmap.out
+norm_file_name: output/ng_norm.out

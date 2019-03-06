@@ -475,9 +475,9 @@ def test_omp():
     # It's hard to tell what happens in the next step, since we can't control what
     # treecorr._lib.SetOMPThreads does.  It depends on whether OpenMP is enabled and
     # how many cores are available.  So let's mock it up.
-    if sys.version_info < (3,): return
-    from unittest.mock import patch
-    with patch('treecorr.config._lib') as _lib:
+    if sys.version_info < (3,): return  # mock only available on python 3
+    from unittest import mock
+    with mock.patch('treecorr.config._lib') as _lib:
         # First mock with OpenMP enables and able to use lots of threads
         _lib.SetOMPThreads = lambda x: x
         assert treecorr.set_omp_threads(20) == 20

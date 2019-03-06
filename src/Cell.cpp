@@ -233,7 +233,12 @@ size_t select_random(size_t lo, size_t hi)
     if (lo == hi) {
         return lo;
     } else {
-        size_t mid = int((rand() / RAND_MAX) * (hi-lo+1)) + lo;
+        // Get a random number between 0.1 and 0.9
+        double r = rand();
+        r /= RAND_MAX;
+        r *= 0.8;
+        r += 0.1;
+        size_t mid = size_t(r * (hi-lo+1)) + lo;
         if (mid > hi) mid = hi;  // Just in case rand() == RAND_MAX
         return mid;
     }

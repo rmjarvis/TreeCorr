@@ -15,9 +15,11 @@ from __future__ import print_function
 import numpy
 import treecorr
 import os
+import sys
 import fitsio
+from unittest.mock import patch
 
-from test_helper import get_script_name
+from test_helper import get_script_name, CaptureLog, assert_raises
 
 def test_single():
     # Use kappa(r) = kappa0 exp(-r^2/2r0^2) (1-r^2/2r0^2) around a single lens
@@ -50,8 +52,8 @@ def test_single():
     numpy.testing.assert_allclose(nk.xi, true_k, rtol=1.e-2, atol=1.e-4)
 
     # Check that we get the same result using the corr2 function
-    lens_cat.write(os.path.join('data','nk_single_lens.dat'))
-    source_cat.write(os.path.join('data','nk_single_source.dat'))
+    lens_cat.write(os.path.join('data','nk_single_lens.fits'))
+    source_cat.write(os.path.join('data','nk_single_source.fits'))
     config = treecorr.read_config('nk_single.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
@@ -61,6 +63,16 @@ def test_single():
     print('from corr2 output = ',corr2_output['kappa'])
     print('ratio = ',corr2_output['kappa']/nk.xi)
     print('diff = ',corr2_output['kappa']-nk.xi)
+    numpy.testing.assert_allclose(corr2_output['kappa'], nk.xi, rtol=1.e-3)
+
+    # There is special handling for single-row catalogs when using numpy.genfromtxt rather
+    # than pandas.  So mock it up to make sure we test it.
+    with patch.dict(sys.modules, {'pandas':None}):
+        with CaptureLog() as cl:
+            treecorr.corr2(config, logger=cl.logger)
+        assert "Unable to import pandas" in cl.output
+    corr2_output = numpy.genfromtxt(os.path.join('output','nk_single.out'), names=True,
+                                    skip_header=1)
     numpy.testing.assert_allclose(corr2_output['kappa'], nk.xi, rtol=1.e-3)
 
 
@@ -123,9 +135,9 @@ def test_nk():
     numpy.testing.assert_allclose(nk.xi, true_k, rtol=0.05, atol=1.e-3)
 
     # Check that we get the same result using the corr2 function
-    lens_cat.write(os.path.join('data','nk_lens.dat'))
-    source_cat.write(os.path.join('data','nk_source.dat'))
-    rand_cat.write(os.path.join('data','nk_rand.dat'))
+    lens_cat.write(os.path.join('data','nk_lens.fits'))
+    source_cat.write(os.path.join('data','nk_source.fits'))
+    rand_cat.write(os.path.join('data','nk_rand.fits'))
     config = treecorr.read_config('nk.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
@@ -136,6 +148,14 @@ def test_nk():
     print('ratio = ',corr2_output['kappa']/xi)
     print('diff = ',corr2_output['kappa']-xi)
     numpy.testing.assert_allclose(corr2_output['kappa'], xi, rtol=1.e-3)
+
+    # In the corr2 context, you can turn off the compensated bit, even if there are randoms
+    # (e.g. maybe you only want randoms for some nn calculation, but not nk.)
+    config['nk_statistic'] = 'simple'
+    treecorr.corr2(config)
+    corr2_output = numpy.genfromtxt(os.path.join('output','nk.out'), names=True, skip_header=1)
+    xi_simple, _ = nk.calculateXi()
+    numpy.testing.assert_allclose(corr2_output['kappa'], xi_simple, rtol=1.e-3)
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','nk_out1.fits')

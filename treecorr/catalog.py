@@ -601,7 +601,7 @@ class Catalog(object):
             if numpy.any(self.wpos == 0.):
                 if self.nontrivial_w:
                     if numpy.any(self.w[self.wpos == 0.] != 0.):
-                        self.logger.error('Some wpos values = 0 but have w!=0. This is invalid.\n',
+                        self.logger.error('Some wpos values = 0 but have w!=0. This is invalid.\n'
                                           'Setting w=0 for these points.')
                         self.w[self.wpos == 0.] = 0.
                 else:
@@ -689,7 +689,7 @@ class Catalog(object):
             # and skip them by hand.
             skip = 0
             with open(file_name, 'r') as fid:
-                for line in fid:
+                for line in fid:  # pragma: no break
                     if line.startswith(comment_marker): skip += 1
                     else: break
             if delimiter is None:
@@ -708,10 +708,10 @@ class Catalog(object):
         self.logger.debug('read data from %s, num=%d',file_name,num)
         self.logger.debug('data shape = %s',str(data.shape))
 
-        # If only one row, then the shape comes in as one-d.  Reshape it:
+        # If only one row, and not using pands, then the shape comes in as one-d.  Reshape it:
         if len(data.shape) == 1:
             data = data.reshape(1,-1)
-        if len(data.shape) != 2:
+        if len(data.shape) != 2:  # pragma: no cover
             raise IOError('Unable to parse the input catalog as a 2-d array')
         ncols = data.shape[1]
 
@@ -732,15 +732,15 @@ class Catalog(object):
         # Read x,y or ra,dec
         if x_col != 0 or y_col != 0:
             if x_col <= 0 or x_col > ncols:
-                raise AttributeError("x_col missing or invalid for file %s"%file_name)
+                raise ValueError("x_col missing or invalid for file %s"%file_name)
             if y_col <= 0 or y_col > ncols:
-                raise AttributeError("y_col missing or invalid for file %s"%file_name)
+                raise ValueError("y_col missing or invalid for file %s"%file_name)
             if ra_col != 0:
-                raise AttributeError("ra_col not allowed in conjunction with x/y cols")
+                raise ValueError("ra_col not allowed in conjunction with x/y cols")
             if dec_col != 0:
-                raise AttributeError("dec_col not allowed in conjunction with x/y cols")
+                raise ValueError("dec_col not allowed in conjunction with x/y cols")
             if r_col != 0:
-                raise AttributeError("r_col not allowed in conjunction with x/y cols")
+                raise ValueError("r_col not allowed in conjunction with x/y cols")
             # NB. astype always copies, even if the type is already correct.
             # We actually want this, since it makes the result contiguous in memory,
             # which we will need.
@@ -753,11 +753,11 @@ class Catalog(object):
                 self.logger.debug('read r = %s',str(self.r))
         elif ra_col != 0 or dec_col != 0:
             if ra_col <= 0 or ra_col > ncols:
-                raise AttributeError("ra_col missing or invalid for file %s"%file_name)
+                raise ValueError("ra_col missing or invalid for file %s"%file_name)
             if dec_col <= 0 or dec_col > ncols:
-                raise AttributeError("dec_col missing or invalid for file %s"%file_name)
+                raise ValueError("dec_col missing or invalid for file %s"%file_name)
             if z_col != 0:
-                raise AttributeError("z_col not allowed in conjunction with ra/dec cols")
+                raise ValueError("z_col not allowed in conjunction with ra/dec cols")
             self.ra = data[:,ra_col-1].astype(float)
             self.logger.debug('read ra = %s',str(self.ra))
             self.dec = data[:,dec_col-1].astype(float)
@@ -766,26 +766,26 @@ class Catalog(object):
                 self.r = data[:,r_col-1].astype(float)
                 self.logger.debug('read r = %s',str(self.r))
         else:
-            raise AttributeError("No valid position columns specified for file %s"%file_name)
+            raise ValueError("No valid position columns specified for file %s"%file_name)
 
         # Read w
         if w_col != 0:
             if w_col <= 0 or w_col > ncols:
-                raise AttributeError("w_col is invalid for file %s"%file_name)
+                raise ValueError("w_col is invalid for file %s"%file_name)
             self.w = data[:,w_col-1].astype(float)
             self.logger.debug('read w = %s',str(self.w))
 
         # Read wpos
         if wpos_col != 0:
             if wpos_col <= 0 or wpos_col > ncols:
-                raise AttributeError("wpos_col is invalid for file %s"%file_name)
+                raise ValueError("wpos_col is invalid for file %s"%file_name)
             self.wpos = data[:,wpos_col-1].astype(float)
             self.logger.debug('read wpos = %s',str(self.wpos))
 
         # Read flag
         if flag_col != 0:
             if flag_col <= 0 or flag_col > ncols:
-                raise AttributeError("flag_col is invalid for file %s"%file_name)
+                raise ValueError("flag_col is invalid for file %s"%file_name)
             self.flag = data[:,flag_col-1].astype(int)
             self.logger.debug('read flag = %s',str(self.flag))
 
@@ -796,7 +796,7 @@ class Catalog(object):
         if (g1_col != 0 or g2_col != 0):
             if g1_col <= 0 or g1_col > ncols or g2_col <= 0 or g2_col > ncols:
                 if isGColRequired(self.orig_config,num):
-                    raise AttributeError("g1_col, g2_col are invalid for file %s"%file_name)
+                    raise ValueError("g1_col, g2_col are invalid for file %s"%file_name)
                 else:
                     self.logger.warning("Warning: skipping g1_col, g2_col for %s, num=%d "%(
                                         file_name,num) +
@@ -811,7 +811,7 @@ class Catalog(object):
         if k_col != 0:
             if k_col <= 0 or k_col > ncols:
                 if isKColRequired(self.orig_config,num):
-                    raise AttributeError("k_col is invalid for file %s"%file_name)
+                    raise ValueError("k_col is invalid for file %s"%file_name)
                 else:
                     self.logger.warning("Warning: skipping k_col for %s, num=%d "%(file_name,num)+
                                         "because it is invalid, but unneeded.")
@@ -848,35 +848,35 @@ class Catalog(object):
         # Check that position cols are valid:
         if x_col != '0' or y_col != '0':
             if x_col == '0':
-                raise AttributeError("x_col missing for file %s"%file_name)
+                raise ValueError("x_col missing for file %s"%file_name)
             if y_col == '0':
-                raise AttributeError("y_col missing for file %s"%file_name)
+                raise ValueError("y_col missing for file %s"%file_name)
             if ra_col != '0':
-                raise AttributeError("ra_col not allowed in conjunction with x/y cols")
+                raise ValueError("ra_col not allowed in conjunction with x/y cols")
             if dec_col != '0':
-                raise AttributeError("dec_col not allowed in conjunction with x/y cols")
+                raise ValueError("dec_col not allowed in conjunction with x/y cols")
             if r_col != '0':
-                raise AttributeError("r_col not allowed in conjunction with x/y cols")
+                raise ValueError("r_col not allowed in conjunction with x/y cols")
         elif ra_col != '0' or dec_col != '0':
             if ra_col == '0':
-                raise AttributeError("ra_col missing for file %s"%file_name)
+                raise ValueError("ra_col missing for file %s"%file_name)
             if dec_col == '0':
-                raise AttributeError("dec_col missing for file %s"%file_name)
+                raise ValueError("dec_col missing for file %s"%file_name)
             if z_col != '0':
-                raise AttributeError("z_col not allowed in conjunction with ra/dec cols")
+                raise ValueError("z_col not allowed in conjunction with ra/dec cols")
         else:
-            raise AttributeError("No valid position columns specified for file %s"%file_name)
+            raise ValueError("No valid position columns specified for file %s"%file_name)
 
         # Check that g1,g2,k cols are valid
         if g1_col == '0' and isGColRequired(self.orig_config,num):
-            raise AttributeError("g1_col is missing for file %s"%file_name)
+            raise ValueError("g1_col is missing for file %s"%file_name)
         if g2_col == '0' and isGColRequired(self.orig_config,num):
-            raise AttributeError("g2_col is missing for file %s"%file_name)
+            raise ValueError("g2_col is missing for file %s"%file_name)
         if k_col == '0' and isKColRequired(self.orig_config,num):
-            raise AttributeError("k_col is missing for file %s"%file_name)
+            raise ValueError("k_col is missing for file %s"%file_name)
 
         if (g1_col != '0' and g2_col == '0') or (g1_col == '0' and g2_col != '0'):
-            raise AttributeError("g1_col, g2_col are invalid for file %s"%file_name)
+            raise ValueError("g1_col, g2_col are invalid for file %s"%file_name)
 
         # OK, now go ahead and read all the columns.
         hdu = treecorr.config.get_from_list(self.config,'hdu',num,int,1)
@@ -888,9 +888,9 @@ class Catalog(object):
                 x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
                 y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
                 if x_col not in fits[x_hdu].get_colnames():
-                    raise AttributeError("x_col is invalid for file %s"%file_name)
+                    raise ValueError("x_col is invalid for file %s"%file_name)
                 if y_col not in fits[y_hdu].get_colnames():
-                    raise AttributeError("y_col is invalid for file %s"%file_name)
+                    raise ValueError("y_col is invalid for file %s"%file_name)
                 self.x = fits[x_hdu].read_column(x_col).astype(float)
                 self.logger.debug('read x = %s',str(self.x))
                 self.y = fits[y_hdu].read_column(y_col).astype(float)
@@ -898,16 +898,16 @@ class Catalog(object):
                 if z_col != '0':
                     z_hdu = treecorr.config.get_from_list(self.config,'z_hdu',num,int,hdu)
                     if z_col not in fits[z_hdu].get_colnames():
-                        raise AttributeError("z_col is invalid for file %s"%file_name)
+                        raise ValueError("z_col is invalid for file %s"%file_name)
                     self.z = fits[z_hdu].read_column(z_col).astype(float)
                     self.logger.debug('read z = %s',str(self.z))
             else:
                 ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
                 dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
                 if ra_col not in fits[ra_hdu].get_colnames():
-                    raise AttributeError("ra_col is invalid for file %s"%file_name)
+                    raise ValueError("ra_col is invalid for file %s"%file_name)
                 if dec_col not in fits[dec_hdu].get_colnames():
-                    raise AttributeError("dec_col is invalid for file %s"%file_name)
+                    raise ValueError("dec_col is invalid for file %s"%file_name)
                 self.ra = fits[ra_hdu].read_column(ra_col).astype(float)
                 self.logger.debug('read ra = %s',str(self.ra))
                 self.dec = fits[dec_hdu].read_column(dec_col).astype(float)
@@ -915,7 +915,7 @@ class Catalog(object):
                 if r_col != '0':
                     r_hdu = treecorr.config.get_from_list(self.config,'r_hdu',num,int,hdu)
                     if r_col not in fits[r_hdu].get_colnames():
-                        raise AttributeError("r_col is invalid for file %s"%file_name)
+                        raise ValueError("r_col is invalid for file %s"%file_name)
                     self.r = fits[r_hdu].read_column(r_col).astype(float)
                     self.logger.debug('read r = %s',str(self.r))
 
@@ -923,7 +923,7 @@ class Catalog(object):
             if w_col != '0':
                 w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,int,hdu)
                 if w_col not in fits[w_hdu].get_colnames():
-                    raise AttributeError("w_col is invalid for file %s"%file_name)
+                    raise ValueError("w_col is invalid for file %s"%file_name)
                 self.w = fits[w_hdu].read_column(w_col).astype(float)
                 self.logger.debug('read w = %s',str(self.w))
 
@@ -931,7 +931,7 @@ class Catalog(object):
             if wpos_col != '0':
                 wpos_hdu = treecorr.config.get_from_list(self.config,'wpos_hdu',num,int,hdu)
                 if wpos_col not in fits[wpos_hdu].get_colnames():
-                    raise AttributeError("wpos_col is invalid for file %s"%file_name)
+                    raise ValueError("wpos_col is invalid for file %s"%file_name)
                 self.wpos = fits[wpos_hdu].read_column(wpos_col).astype(float)
                 self.logger.debug('read wpos = %s',str(self.wpos))
 
@@ -939,7 +939,7 @@ class Catalog(object):
             if flag_col != '0':
                 flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
                 if flag_col not in fits[flag_hdu].get_colnames():
-                    raise AttributeError("flag_col is invalid for file %s"%file_name)
+                    raise ValueError("flag_col is invalid for file %s"%file_name)
                 self.flag = fits[flag_hdu].read_column(flag_col).astype(int)
                 self.logger.debug('read flag = %s',str(self.flag))
 
@@ -953,7 +953,7 @@ class Catalog(object):
                 if (g1_col not in fits[g1_hdu].get_colnames() or
                     g2_col not in fits[g2_hdu].get_colnames()):
                     if isGColRequired(self.orig_config,num):
-                        raise AttributeError("g1_col, g2_col are invalid for file %s"%file_name)
+                        raise ValueError("g1_col, g2_col are invalid for file %s"%file_name)
                     else:
                         self.logger.warning("Warning: skipping g1_col, g2_col for %s, num=%d "%(
                                             file_name,num) +
@@ -969,7 +969,7 @@ class Catalog(object):
                 k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
                 if k_col not in fits[k_hdu].get_colnames():
                     if isKColRequired(self.orig_config,num):
-                        raise AttributeError("k_col is invalid for file %s"%file_name)
+                        raise ValueError("k_col is invalid for file %s"%file_name)
                     else:
                         self.logger.warning("Warning: skipping k_col for %s, num=%d "%(
                                             file_name,num)+
@@ -1091,8 +1091,9 @@ class Catalog(object):
         else:
             if logger is None:
                 logger = self.logger
-            self.nsimplefield = treecorr.NSimpleField(self,*args,logger=logger)
-        return self.nsimplefield
+            nsimplefield = treecorr.NSimpleField(self,*args,logger=logger)
+            self.nsimplefields[args] = nsimplefield
+        return nsimplefield
 
 
     def getKSimpleField(self, logger=None):
@@ -1110,8 +1111,9 @@ class Catalog(object):
         else:
             if logger is None:
                 logger = self.logger
-            self.ksimplefield = treecorr.KSimpleField(self,*args,logger=logger)
-        return self.ksimplefield
+            ksimplefield = treecorr.KSimpleField(self,*args,logger=logger)
+            self.ksimplefields[args] = ksimplefield
+        return ksimplefield
 
 
     def getGSimpleField(self, logger=None):
@@ -1129,8 +1131,9 @@ class Catalog(object):
         else:
             if logger is None:
                 logger = self.logger
-            self.gsimplefield = treecorr.GSimpleField(self,*args,logger=logger)
-        return self.gsimplefield
+            gsimplefield = treecorr.GSimpleField(self,*args,logger=logger)
+            self.gsimplefields[args] = gsimplefield
+        return gsimplefield
 
     def write(self, file_name, file_type=None, cat_precision=None):
         """Write the catalog to a file.
@@ -1270,19 +1273,15 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
                 treecorr.config.get(config,'verbose',int,0), config.get('log_file',None))
 
     if key is None and list_key is None:
-        raise AttributeError("Must provide either %s or %s."%(key,list_key))
+        raise AttributeError("Must provide either key or list_key")
     if key is not None and key in config:
         if list_key in config:
-            raise AttributeError("Cannot provide both %s and %s."%(key,list_key))
+            raise AttributeError("Cannot provide both key and list_key")
         file_names = config[key]
     elif list_key is not None and list_key in config:
         list_file = config[list_key]
         with open(list_file,'r') as fin:
             file_names = [ f.strip() for f in fin ]
-        if len(file_names) == 0:
-            logger.warning("Warning: %s provided, but no names were read from the file %s"%(
-                           list_key, list_file))
-            return []
     else:
         # If this key was required (i.e. file_name) then let the caller check this.
         return []
@@ -1293,9 +1292,6 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
             is_rand = 'rand' in list_key
     if not isinstance(file_names,list):
         file_names = file_names.split()
-        if len(file_names) == 0:
-            logger.warning("Warning: %s provided, but it seems to be an empty string"%(key))
-            return []
     return [ Catalog(file_name, config, num, logger, is_rand) for file_name in file_names ]
 
 
@@ -1339,7 +1335,7 @@ def calculateVarK(cat_list):
         vark = 0
         sumw = 0
         for cat in cat_list:
-            sumw += cat.vark * cat.sumw
+            vark += cat.vark * cat.sumw
             sumw += cat.sumw
         return vark / sumw
 

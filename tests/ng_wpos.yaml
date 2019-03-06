@@ -1,0 +1,25 @@
+
+file_name: data/ng_wpos_lens.fits
+file_name2:
+    - data/ng_wpos_source0.fits
+    - data/ng_wpos_source1.fits
+    - data/ng_wpos_source2.fits
+
+x_col: x
+y_col: y
+x_units: arcmin
+y_units: arcmin
+
+g1_col: g1
+g2_col: g2
+w_col: [0, w]
+wpos_col: [0, wpos]
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 25.
+bin_size: 0.10
+sep_units: arcmin
+
+ng_file_name: output/ng_wpos.fits

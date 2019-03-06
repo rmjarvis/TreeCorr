@@ -1,4 +1,5 @@
 Aardvark.fit
+*.fits
 *.png
 *.dat
 *.csv

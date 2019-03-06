@@ -569,6 +569,16 @@ def test_direct_count_auto():
     #print('diff = ',ddd.ntri - true_ntri)
     numpy.testing.assert_array_equal(ddd.ntri, true_ntri)
 
+    # Do this one with corr3 to test the automatic output_dots=True functionality.
+    # It's not particularly annoying with max_top = 0.
+    config = treecorr.config.read_config('nnn_direct.yaml')
+    config['verbose'] = 2
+    config['max_top'] = 0
+    config['bin_slop'] = 1.e-16
+    treecorr.corr3(config)
+    data = numpy.genfromtxt(config['nnn_file_name'], names=True, skip_header=1)
+    numpy.testing.assert_array_equal(data['ntri'], true_ntri.flatten())
+    numpy.testing.assert_allclose(data['zeta'], zeta.flatten(), rtol=1.e-3)
 
 
 def test_direct_count_cross():

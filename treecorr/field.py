@@ -88,7 +88,8 @@ class NField(object):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
 
-        if hasattr(self,'data'):    # In case __init__ failed to get that far
+        # In case __init__ failed to get that far
+        if hasattr(self,'data'):  # pragma: no branch
             if self.flat:
                 treecorr._lib.DestroyNFieldFlat(self.data)
             elif self.spher:
@@ -174,7 +175,8 @@ class KField(object):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
 
-        if hasattr(self,'data'):    # In case __init__ failed to get that far
+        # In case __init__ failed to get that far
+        if hasattr(self,'data'):  # pragma: no branch
             if self.flat:
                 treecorr._lib.DestroyKFieldFlat(self.data)
             elif self.spher:
@@ -261,7 +263,8 @@ class GField(object):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
 
-        if hasattr(self,'data'):    # In case __init__ failed to get that far
+        # In case __init__ failed to get that far
+        if hasattr(self,'data'):  # pragma: no branch
             if self.flat:
                 treecorr._lib.DestroyGFieldFlat(self.data)
             elif self.spher:
@@ -324,7 +327,8 @@ class NSimpleField(object):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
 
-        if hasattr(self,'data'):    # In case __init__ failed to get that far
+        # In case __init__ failed to get that far
+        if hasattr(self,'data'):  # pragma: no branch
             if self.flat:
                 treecorr._lib.DestroyNSimpleFieldFlat(self.data)
             elif self.spher:
@@ -380,7 +384,8 @@ class KSimpleField(object):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
 
-        if hasattr(self,'data'):    # In case __init__ failed to get that far
+        # In case __init__ failed to get that far
+        if hasattr(self,'data'):  # pragma: no branch
             if self.flat:
                 treecorr._lib.DestroyKSimpleFieldFlat(self.data)
             elif self.spher:
@@ -436,7 +441,8 @@ class GSimpleField(object):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
 
-        if hasattr(self,'data'):    # In case __init__ failed to get that far
+        # In case __init__ failed to get that far
+        if hasattr(self,'data'):  # pragma: no branch
             if self.flat:
                 treecorr._lib.DestroyGSimpleFieldFlat(self.data)
             elif self.spher:

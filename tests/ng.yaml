@@ -1,15 +1,15 @@
 
-file_name: data/ng_lens.dat
-file_name2: data/ng_source.dat
-rand_file_name: data/ng_rand.dat
+file_name: data/ng_lens.fits
+file_name2: data/ng_source.fits
+rand_file_name: data/ng_rand.fits
 
-x_col: 1
-y_col: 2
+x_col: x
+y_col: y
 x_units: arcmin
 y_units: arcmin
 
-g1_col: [0, 3]
-g2_col: [0, 4]
+g1_col: g1
+g2_col: g2
 
 verbose: 1
 

@@ -1,14 +1,14 @@
 
-file_name: data/nk_lens.dat
-file_name2: data/nk_source.dat
-rand_file_name: data/nk_rand.dat
+file_name: data/nk_lens.fits
+file_name2: data/nk_source.fits
+rand_file_name: data/nk_rand.fits
 
-x_col: 1
-y_col: 2
+x_col: x
+y_col: y
 x_units: arcmin
 y_units: arcmin
 
-k_col: 3
+k_col: k
 
 verbose: 1
 

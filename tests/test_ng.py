@@ -15,7 +15,9 @@ from __future__ import print_function
 import numpy
 import treecorr
 import os
+import sys
 import fitsio
+from unittest.mock import patch
 
 from test_helper import get_script_name, CaptureLog, assert_raises
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
@@ -73,6 +75,31 @@ def test_single():
     print('xi_im from corr2 output = ',corr2_output['gamX'])
     numpy.testing.assert_allclose(corr2_output['gamT'], ng.xi, rtol=1.e-3)
     numpy.testing.assert_allclose(corr2_output['gamX'], 0, atol=1.e-4)
+
+    # There is special handling for single-row catalogs when using numpy.genfromtxt rather
+    # than pandas.  So mock it up to make sure we test it.
+    with patch.dict(sys.modules, {'pandas':None}):
+        with CaptureLog() as cl:
+            treecorr.corr2(config, logger=cl.logger)
+        assert "Unable to import pandas" in cl.output
+    corr2_output = numpy.genfromtxt(os.path.join('output','ng_single.out'), names=True,
+                                    skip_header=1)
+    numpy.testing.assert_allclose(corr2_output['gamT'], ng.xi, rtol=1.e-3)
+
+    # Check that adding results with different coords or metric emits a warning.
+    lens_cat2 = treecorr.Catalog(x=[0], y=[0], z=[0])
+    source_cat2 = treecorr.Catalog(x=x, y=y, z=x, g1=g1, g2=g2)
+    ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., logger=cl.logger)
+    ng2.process_cross(lens_cat2, source_cat2)
+    with CaptureLog() as cl:
+        ng2 += ng
+    assert "Detected a change in catalog coordinate systems" in cl.output
+
+    ng3 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., logger=cl.logger)
+    ng3.process_cross(lens_cat2, source_cat2, metric='Rperp')
+    with CaptureLog() as cl:
+        ng3 += ng2
+    assert "Detected a change in metric" in cl.output
 
 
 def test_pairwise():
@@ -324,9 +351,9 @@ def test_ng():
     numpy.testing.assert_allclose(xi_im, 0, atol=5.e-3)
 
     # Check that we get the same result using the corr2 function:
-    lens_cat.write(os.path.join('data','ng_lens.dat'))
-    source_cat.write(os.path.join('data','ng_source.dat'))
-    rand_cat.write(os.path.join('data','ng_rand.dat'))
+    lens_cat.write(os.path.join('data','ng_lens.fits'))
+    source_cat.write(os.path.join('data','ng_source.fits'))
+    rand_cat.write(os.path.join('data','ng_rand.fits'))
     config = treecorr.read_config('ng.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
@@ -684,21 +711,22 @@ def test_pieces():
     numpy.testing.assert_allclose(pieces_ng2.xi_im, full_ng.xi_im, atol=1.e-10)
     numpy.testing.assert_allclose(pieces_ng2.varxi, full_ng.varxi, rtol=1.e-7)
 
-    # If trying to do this with different coords or metrics, it should give a warning
-    cat3d = treecorr.Catalog(x=xs[:10,0], y=ys[:10,0], z=xs[10:20,0], g1=g1[:10,0], g2=g2[:10,0])
-    with CaptureLog() as cl:
-        pieces_ng3 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25.,
-                                            logger=cl.logger)
-        pieces_ng3.process_cross(cat3d, cat3d)
-        pieces_ng3 += pieces_ng
-    assert "Detected a change in catalog coordinate systems" in cl.output
-
-    with CaptureLog() as cl:
-        pieces_ng4 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=25.,
-                                            logger=cl.logger)
-        pieces_ng4.process_cross(cat3d, cat3d, metric='Rperp')
-        pieces_ng4 += pieces_ng3
-    assert "Detected a change in metric" in cl.output
+    # Try this with corr2
+    lens_cat.write(os.path.join('data','ng_wpos_lens.fits'))
+    for i, sc in enumerate(source_cats2):
+        sc.write(os.path.join('data','ng_wpos_source%d.fits'%i))
+    config = treecorr.read_config('ng_wpos.yaml')
+    config['verbose'] = 0
+    treecorr.corr2(config)
+    data = fitsio.read(config['ng_file_name'])
+    print('data.dtype = ',data.dtype)
+    numpy.testing.assert_allclose(data['meanR'], full_ng.meanr, rtol=1.e-7)
+    numpy.testing.assert_allclose(data['meanlogR'], full_ng.meanlogr, rtol=1.e-7)
+    numpy.testing.assert_allclose(data['npairs'], full_ng.npairs, rtol=1.e-7)
+    numpy.testing.assert_allclose(data['weight'], full_ng.weight, rtol=1.e-7)
+    numpy.testing.assert_allclose(data['gamT'], full_ng.xi, rtol=1.e-7)
+    numpy.testing.assert_allclose(data['gamX'], full_ng.xi_im, atol=1.e-10)
+    numpy.testing.assert_allclose(data['sigma']**2, full_ng.varxi, rtol=1.e-7)
 
 
 def test_rlens():

@@ -17,7 +17,6 @@ import treecorr
 import os
 import sys
 import fitsio
-from unittest.mock import patch
 
 from test_helper import get_script_name, CaptureLog, assert_raises
 
@@ -67,7 +66,9 @@ def test_single():
 
     # There is special handling for single-row catalogs when using numpy.genfromtxt rather
     # than pandas.  So mock it up to make sure we test it.
-    with patch.dict(sys.modules, {'pandas':None}):
+    if sys.version_info < (3,): return  # mock only available on python 3
+    from unittest import mock
+    with mock.patch.dict(sys.modules, {'pandas':None}):
         with CaptureLog() as cl:
             treecorr.corr2(config, logger=cl.logger)
         assert "Unable to import pandas" in cl.output

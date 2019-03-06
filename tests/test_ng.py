@@ -17,7 +17,6 @@ import treecorr
 import os
 import sys
 import fitsio
-from unittest.mock import patch
 
 from test_helper import get_script_name, CaptureLog, assert_raises
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
@@ -76,9 +75,26 @@ def test_single():
     numpy.testing.assert_allclose(corr2_output['gamT'], ng.xi, rtol=1.e-3)
     numpy.testing.assert_allclose(corr2_output['gamX'], 0, atol=1.e-4)
 
+    # Check that adding results with different coords or metric emits a warning.
+    lens_cat2 = treecorr.Catalog(x=[0], y=[0], z=[0])
+    source_cat2 = treecorr.Catalog(x=x, y=y, z=x, g1=g1, g2=g2)
+    with CaptureLog() as cl:
+        ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., logger=cl.logger)
+        ng2.process_cross(lens_cat2, source_cat2)
+        ng2 += ng
+    assert "Detected a change in catalog coordinate systems" in cl.output
+
+    with CaptureLog() as cl:
+        ng3 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., logger=cl.logger)
+        ng3.process_cross(lens_cat2, source_cat2, metric='Rperp')
+        ng3 += ng2
+    assert "Detected a change in metric" in cl.output
+
     # There is special handling for single-row catalogs when using numpy.genfromtxt rather
     # than pandas.  So mock it up to make sure we test it.
-    with patch.dict(sys.modules, {'pandas':None}):
+    if sys.version_info < (3,): return  # mock only available on python 3
+    from unittest import mock
+    with mock.patch.dict(sys.modules, {'pandas':None}):
         with CaptureLog() as cl:
             treecorr.corr2(config, logger=cl.logger)
         assert "Unable to import pandas" in cl.output
@@ -86,20 +102,6 @@ def test_single():
                                     skip_header=1)
     numpy.testing.assert_allclose(corr2_output['gamT'], ng.xi, rtol=1.e-3)
 
-    # Check that adding results with different coords or metric emits a warning.
-    lens_cat2 = treecorr.Catalog(x=[0], y=[0], z=[0])
-    source_cat2 = treecorr.Catalog(x=x, y=y, z=x, g1=g1, g2=g2)
-    ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., logger=cl.logger)
-    ng2.process_cross(lens_cat2, source_cat2)
-    with CaptureLog() as cl:
-        ng2 += ng
-    assert "Detected a change in catalog coordinate systems" in cl.output
-
-    ng3 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., logger=cl.logger)
-    ng3.process_cross(lens_cat2, source_cat2, metric='Rperp')
-    with CaptureLog() as cl:
-        ng3 += ng2
-    assert "Detected a change in metric" in cl.output
 
 
 def test_pairwise():

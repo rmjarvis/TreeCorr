@@ -408,18 +408,23 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         .. math::
 
+            U(r) &= \\frac{1}{2\\pi} (1-r^2) \\exp(-r^2/2) \\\\
             T_\\times(s) = \\frac{s^2}{128} (12-s^2) \\exp(-s^2/4)
+
+        cf. Crittenden, et al (2002): ApJ, 568, 20
 
         If m2_uform == 'Schneider':
 
         .. math::
 
+            U(r) &= \\frac{9}{\\pi} (1-r^2) (1/3-r^2) \\\\
             T_\\times(s) = \\frac{18}{\\pi} s^2 \\arccos(s/2) -
             \\frac{3}{40\\pi} s^3 \\sqrt{4-s^2} (196 - 74s^2 + 14s^4 - s^6)
 
-        cf. Schneider, et al (2001): http://xxx.lanl.gov/abs/astro-ph/0112441
-        These formulae are not in there, but the derivation is similar to the derivations
-        of T+ and T- in that paper.
+        cf. Schneider, et al (2002): A&A, 389, 729
+
+        In neither case is this formula in the above papers, but the derivation is similar
+        to the derivations of T+ and T- in Schneider et al.
 
         :param rg:          An NGCorrelation using random locations as the lenses, if desired.
                             (default: None)
@@ -445,7 +450,9 @@ class NGCorrelation(treecorr.BinnedCorr2):
             Tx = numpy.zeros_like(s)
             sa = s[s<2.]
             ssqa = ssq[s<2.]
-            Tx[s<2.] = 18./numpy.pi * ssqa * numpy.arccos(sa/2.)
+            Tx[s<2.] = 196. + ssqa*(-74. + ssqa*(14. - ssqa))
+            Tx[s<2.] *= -3./(40.*numpy.pi) * sa * ssqa * numpy.sqrt(4.-sa**2)
+            Tx[s<2.] += 18./numpy.pi * ssqa * numpy.arccos(sa/2.)
         Tx *= ssq
 
         xi, xi_im, varxi = self.calculateXi(rg)

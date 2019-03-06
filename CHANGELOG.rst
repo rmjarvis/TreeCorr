@@ -57,3 +57,4 @@ Bug fixes:
   where NNCorrelation and NNNCorrelation did not round trip correctly through
   a FITS output file.  Now the tot attribute is set properly when reading.
 - Fixed the Catalog.copy() method, which wasn't working properly.
+- Fixed an error in the Schneider NMap calculation.

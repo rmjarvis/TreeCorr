@@ -510,6 +510,35 @@ class NNCorrelation(treecorr.BinnedCorr2):
     def calculateNapSq(self, rr, dr=None, rd=None, m2_uform=None):
         """Calculate the correlary to the aperture mass statistics for counts.
 
+        .. math::
+
+            \\langle N_{ap}^2 \\rangle(R) &= \\int_{0}^{rmax} \\frac{r dr}{2R^2}
+            \\left [ T_+\\left(\\frac{r}{R}\\right) \\xi(r) \\right] \\\\
+
+        The m2_uform parameter sets which definition of the aperture mass to use.
+        The default is to use 'Crittenden'.
+
+        If m2_uform == 'Crittenden':
+
+        .. math::
+
+            U(r) &= \\frac{1}{2\\pi} (1-r^2) \\exp(-r^2/2) \\\\
+            T_+(s) &= \\frac{s^4 - 16s^2 + 32}{128} \\exp(-s^2/4) \\\\
+            rmax &= \\infty
+
+        cf. Crittenden, et al (2002): ApJ, 568, 20
+
+        If m2_uform == 'Schneider':
+
+        .. math::
+
+            U(r) &= \\frac{9}{\\pi} (1-r^2) (1/3-r^2) \\\\
+            T_+(s) &= \\frac{12}{5\\pi} (2-15s^2) \\arccos(s/2)
+            + \\frac{1}{100\\pi} s \\sqrt{4-s^2} (120 + 2320s^2 - 754s^4 + 132s^6 - 9s^8) \\\\
+            rmax &= 2R
+
+        cf. Schneider, et al (2002): A&A, 389, 729
+
         This is used by NGCorrelation.writeNorm.  See that function and also
         GGCorrelation.calculateMapSq() for more details.
 

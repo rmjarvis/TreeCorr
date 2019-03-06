@@ -447,6 +447,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
             T_-(s) &= \\frac{s^4}{128} \\exp(-s^2/4) \\\\
             rmax &= \\infty
 
+        cf. Crittenden, et al (2002): ApJ, 568, 20
+
         If m2_uform == 'Schneider':
 
         .. math::
@@ -458,7 +460,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
             T_-(s) &= \\frac{3}{70\\pi} s^3 (4-s^2)^{7/2} \\\\
             rmax &= 2R
 
-        cf. Schneider, et al (2001): http://xxx.lanl.gov/abs/astro-ph/0112441
+        cf. Schneider, et al (2002): A&A, 389, 729
 
         :param m2_uform:    Which form to use for the aperture mass, as described above.
                             (default: 'Crittenden'; this value can also be given in the

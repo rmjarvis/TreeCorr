@@ -16,12 +16,13 @@ import numpy
 import treecorr
 import os
 import fitsio
+import time
 
-from test_helper import get_from_wiki, get_script_name
+from test_helper import get_from_wiki, get_script_name, CaptureLog
 
-def test_binnedcorr2():
+def test_log_binning():
     import math
-    # Test some basic properties of the base class
+    # Test some basic properties of the base class with respect to Log binning
 
     # Check the different ways to set up the binning:
     # Omit bin_size
@@ -207,6 +208,192 @@ def test_binnedcorr2():
     numpy.testing.assert_almost_equal(nn.b, 0.15)
 
 
+def test_linear_binning():
+    import math
+    # Test some basic properties of the base class with respect to Linear binning
+
+    # Check the different ways to set up the binning:
+    # Omit bin_size
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, bin_type='Linear')
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
+    assert nn.min_sep == 5.
+    assert nn.max_sep == 20.
+    assert nn.nbins == 20
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, nn.max_sep-nn.min_sep)
+    numpy.testing.assert_almost_equal(nn.rnom[0], nn.min_sep + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.rnom[-1], nn.max_sep - 0.5*nn.bin_size)
+    assert len(nn.rnom) == nn.nbins
+    assert len(nn.logr) == nn.nbins
+
+    # Omit min_sep
+    nn = treecorr.NNCorrelation(max_sep=20, nbins=20, bin_size=0.1, bin_type='Linear')
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
+    assert nn.bin_size == 0.1
+    assert nn.max_sep == 20.
+    assert nn.nbins == 20
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, nn.max_sep-nn.min_sep)
+    numpy.testing.assert_almost_equal(nn.rnom[0], nn.min_sep + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.rnom[-1],nn.max_sep - 0.5*nn.bin_size)
+    assert len(nn.rnom) == nn.nbins
+    assert len(nn.logr) == nn.nbins
+
+    # Omit max_sep
+    nn = treecorr.NNCorrelation(min_sep=5, nbins=20, bin_size=0.1, bin_type='Linear')
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
+    assert nn.bin_size == 0.1
+    assert nn.min_sep == 5.
+    assert nn.nbins == 20
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, nn.max_sep-nn.min_sep)
+    numpy.testing.assert_almost_equal(nn.rnom[0], nn.min_sep + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.rnom[-1], nn.max_sep - 0.5*nn.bin_size)
+    assert len(nn.rnom) == nn.nbins
+    assert len(nn.logr) == nn.nbins
+
+    # Omit nbins
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_type='Linear')
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
+    assert nn.bin_size == 0.1
+    assert nn.min_sep == 5.
+    assert nn.max_sep >= 20.
+    assert nn.max_sep <= 20.*math.exp(nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, nn.max_sep-nn.min_sep)
+    numpy.testing.assert_almost_equal(nn.rnom[0], nn.min_sep + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.rnom[-1], nn.max_sep - 0.5*nn.bin_size)
+    assert len(nn.rnom) == nn.nbins
+    assert len(nn.logr) == nn.nbins
+
+    # Check the use of sep_units
+    # radians
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='radians', bin_type='Linear')
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
+    numpy.testing.assert_almost_equal(nn.min_sep, 5.)
+    numpy.testing.assert_almost_equal(nn.max_sep, 20.)
+    numpy.testing.assert_almost_equal(nn._min_sep, 5.)
+    numpy.testing.assert_almost_equal(nn._max_sep, 20.)
+    assert nn.min_sep == 5.
+    assert nn.max_sep == 20.
+    assert nn.nbins == 20
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, nn.max_sep-nn.min_sep)
+    numpy.testing.assert_almost_equal(nn.rnom[0], 5 + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.rnom[-1], 20 - 0.5*nn.bin_size)
+    assert len(nn.rnom) == nn.nbins
+    assert len(nn.logr) == nn.nbins
+
+    # arcsec
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcsec', bin_type='Linear')
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
+    numpy.testing.assert_almost_equal(nn.min_sep, 5.)
+    numpy.testing.assert_almost_equal(nn.max_sep, 20.)
+    numpy.testing.assert_almost_equal(nn._min_sep, 5. * math.pi/180/3600)
+    numpy.testing.assert_almost_equal(nn._max_sep, 20. * math.pi/180/3600)
+    assert nn.nbins == 20
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, nn.max_sep-nn.min_sep)
+    # Note that rnom is in the separation units, not radians.
+    numpy.testing.assert_almost_equal(nn.rnom[0], 5 + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.rnom[-1], 20 - 0.5*nn.bin_size)
+    assert len(nn.rnom) == nn.nbins
+    assert len(nn.logr) == nn.nbins
+
+    # arcmin
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcmin', bin_type='Linear')
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
+    numpy.testing.assert_almost_equal(nn.min_sep, 5.)
+    numpy.testing.assert_almost_equal(nn.max_sep, 20.)
+    numpy.testing.assert_almost_equal(nn._min_sep, 5. * math.pi/180/60)
+    numpy.testing.assert_almost_equal(nn._max_sep, 20. * math.pi/180/60)
+    assert nn.nbins == 20
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, nn.max_sep-nn.min_sep)
+    numpy.testing.assert_almost_equal(nn.rnom[0], 5 + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.rnom[-1], 20 - 0.5*nn.bin_size)
+    assert len(nn.rnom) == nn.nbins
+    assert len(nn.logr) == nn.nbins
+
+    # degrees
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='degrees', bin_type='Linear')
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
+    numpy.testing.assert_almost_equal(nn.min_sep, 5.)
+    numpy.testing.assert_almost_equal(nn.max_sep, 20.)
+    numpy.testing.assert_almost_equal(nn._min_sep, 5. * math.pi/180)
+    numpy.testing.assert_almost_equal(nn._max_sep, 20. * math.pi/180)
+    assert nn.nbins == 20
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, nn.max_sep-nn.min_sep)
+    numpy.testing.assert_almost_equal(nn.rnom[0], 5 + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.rnom[-1], 20 - 0.5*nn.bin_size)
+    assert len(nn.rnom) == nn.nbins
+    assert len(nn.logr) == nn.nbins
+
+    # hours
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='hours', bin_type='Linear')
+    print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
+    numpy.testing.assert_almost_equal(nn.min_sep, 5.)
+    numpy.testing.assert_almost_equal(nn.max_sep, 20.)
+    numpy.testing.assert_almost_equal(nn._min_sep, 5. * math.pi/12)
+    numpy.testing.assert_almost_equal(nn._max_sep, 20. * math.pi/12)
+    assert nn.nbins == 20
+    numpy.testing.assert_almost_equal(nn.bin_size * nn.nbins, nn.max_sep-nn.min_sep)
+    numpy.testing.assert_almost_equal(nn.rnom[0], 5 + 0.5*nn.bin_size)
+    numpy.testing.assert_almost_equal(nn.rnom[-1], 20 - 0.5*nn.bin_size)
+    assert len(nn.rnom) == nn.nbins
+    assert len(nn.logr) == nn.nbins
+
+    # Check bin_slop
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_type='Linear')
+    print(nn.bin_size,nn.bin_slop,nn.b)
+    assert nn.bin_size == 0.1
+    numpy.testing.assert_almost_equal(nn.bin_slop, 0.1)
+    numpy.testing.assert_almost_equal(nn.b, 0.01)
+
+    with CaptureLog() as cl:
+        nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=1.0,
+                                    bin_type='Linear', logger=cl.logger)
+    assert "It is generally recommended to use bin_slop <= 0.1" in cl.output
+    print(nn.bin_size,nn.bin_slop,nn.b)
+    assert nn.bin_size == 0.1
+    assert nn.bin_slop == 1.0
+    numpy.testing.assert_almost_equal(nn.b, 0.1)
+
+    with CaptureLog() as cl:
+        nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=0.2,
+                                    bin_type='Linear', logger=cl.logger)
+    assert "It is generally recommended to use bin_slop <= 0.1" in cl.output
+    print(nn.bin_size,nn.bin_slop,nn.b)
+    assert nn.bin_size == 0.1
+    assert nn.bin_slop == 0.2
+    numpy.testing.assert_almost_equal(nn.b, 0.02)
+
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=0.0,
+                                bin_type='Linear')
+    print(nn.bin_size,nn.bin_slop,nn.b)
+    assert nn.bin_size == 0.1
+    assert nn.bin_slop == 0.0
+    assert nn.b == 0.0
+
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=2.0, verbose=0,
+                                bin_type='Linear')
+    print(nn.bin_size,nn.bin_slop,nn.b)
+    assert nn.bin_size == 0.1
+    assert nn.bin_slop == 2.0
+    numpy.testing.assert_almost_equal(nn.b, 0.2)
+
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.4, bin_slop=1.0, verbose=0,
+                                bin_type='Linear')
+    print(nn.bin_size,nn.bin_slop,nn.b)
+    assert nn.bin_size == 0.4
+    assert nn.bin_slop == 1.0
+    numpy.testing.assert_almost_equal(nn.b, 0.4)
+
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.4, bin_type='Linear')
+    print(nn.bin_size,nn.bin_slop,nn.b)
+    assert nn.bin_size == 0.4
+    numpy.testing.assert_almost_equal(nn.b, 0.04)
+    numpy.testing.assert_almost_equal(nn.bin_slop, 0.1)
+
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.05, bin_type='Linear')
+    print(nn.bin_size,nn.bin_slop,nn.b)
+    assert nn.bin_size == 0.05
+    numpy.testing.assert_almost_equal(nn.bin_slop, 0.1)
+    numpy.testing.assert_almost_equal(nn.b, 0.005)
+
 
 def test_direct_count():
     # If the catalogs are small enough, we can do a direct count of the number of pairs
@@ -226,7 +413,7 @@ def test_direct_count():
     max_sep = 50.
     nbins = 50
     dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
-    dd.process(cat1, cat2)
+    dd.process(cat1, cat2, num_threads=1)
     print('dd.npairs = ',dd.npairs)
 
     log_min_sep = numpy.log(min_sep)
@@ -789,7 +976,13 @@ def test_direct_linear():
     rr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
                                 bin_type='Linear', verbose=0)
     rr.process(rcat1,rcat2)
-    xi, varxi = dd.calculateXi(rr)
+    dr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+                                bin_type='Linear', verbose=0)
+    dr.process(cat1,rcat2)
+    rd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+                                bin_type='Linear', verbose=0)
+    rd.process(rcat1,cat2)
+    xi, varxi = dd.calculateXi(rr, dr, rd)
 
     config = treecorr.config.read_config('nn_linear.yaml')
     logger = treecorr.config.setup_logger(0)
@@ -863,8 +1056,7 @@ def test_nn():
     y = numpy.random.normal(0,s, (ngal,) )
 
     cat = treecorr.Catalog(x=x, y=y, x_units='arcmin', y_units='arcmin')
-    dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                verbose=1)
+    dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
     dd.process(cat)
     print('dd.npairs = ',dd.npairs)
 
@@ -875,13 +1067,11 @@ def test_nn():
     rx = (numpy.random.random_sample(nrand)-0.5) * L
     ry = (numpy.random.random_sample(nrand)-0.5) * L
     rand = treecorr.Catalog(x=rx,y=ry, x_units='arcmin', y_units='arcmin')
-    rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                verbose=1)
+    rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
     rr.process(rand)
     print('rr.npairs = ',rr.npairs)
 
-    dr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                verbose=1)
+    dr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
     dr.process(cat,rand)
     print('dr.npairs = ',dr.npairs)
 
@@ -1387,9 +1577,67 @@ def test_perp_minmax():
     # were a few percent, which ended up making a bit difference in the correlation function.)
     numpy.testing.assert_allclose(dd1.npairs, dd2.npairs[2:-2], rtol=1.e-6)
 
+def test_split():
+    # Time the various split_method options.
+
+    ngal = 10000
+    numpy.random.seed(8675309)
+    s = 10
+    x = numpy.random.normal(0,s, (ngal,) )
+    y = numpy.random.normal(0,s, (ngal,) )
+    z = numpy.random.normal(0,s, (ngal,) )
+    cat = treecorr.Catalog(x=x, y=y, z=z)
+
+    dd_mean = treecorr.NNCorrelation(bin_size=0.1, min_sep=5., max_sep=25., split_method='mean')
+    t0 = time.time()
+    dd_mean.process(cat)
+    t1 = time.time()
+    print('mean: time = ',t1-t0)
+    print('npairs = ',dd_mean.npairs)
+
+    dd_median = treecorr.NNCorrelation(bin_size=0.1, min_sep=5., max_sep=25., split_method='median')
+    t0 = time.time()
+    dd_median.process(cat)
+    t1 = time.time()
+    print('median: time = ',t1-t0)
+    print('npairs = ',dd_median.npairs)
+
+    dd_middle = treecorr.NNCorrelation(bin_size=0.1, min_sep=5., max_sep=25., split_method='middle')
+    t0 = time.time()
+    dd_middle.process(cat)
+    t1 = time.time()
+    print('middle: time = ',t1-t0)
+    print('npairs = ',dd_middle.npairs)
+
+    dd_random1 = treecorr.NNCorrelation(bin_size=0.1, min_sep=5., max_sep=25., split_method='random')
+    t0 = time.time()
+    dd_random1.process(cat, num_threads=1)
+    t1 = time.time()
+    print('random1: time = ',t1-t0)
+    print('npairs = ',dd_random1.npairs)
+
+    # Random should be non-deterministic, so check a second version of it.
+    # Need to clear the cache to get it to rebuild though.
+    cat.nfields.clear()
+    dd_random2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=5., max_sep=25., split_method='random')
+    t0 = time.time()
+    dd_random2.process(cat, num_threads=1)
+    t1 = time.time()
+    print('random2: time = ',t1-t0)
+    print('npairs = ',dd_random2.npairs)
+
+    # They should all be different, but not very.
+    dd_list = [dd_mean, dd_median, dd_middle, dd_random1, dd_random2]
+    for dd1 in dd_list:
+        for dd2 in dd_list:
+            if dd1 is dd2: continue
+            assert not numpy.all(dd1.npairs == dd2.npairs)
+            numpy.testing.assert_allclose(dd1.npairs, dd2.npairs,rtol=1.e-2)
+
 
 if __name__ == '__main__':
-    test_binnedcorr2()
+    test_log_binning()
+    test_linear_binning()
     test_direct_count()
     test_direct_3d()
     test_direct_perp()
@@ -1401,3 +1649,4 @@ if __name__ == '__main__':
     test_3d()
     test_list()
     test_perp_minmax()
+    test_split()

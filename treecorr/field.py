@@ -22,7 +22,7 @@ def _parse_split_method(split_method):
     if split_method == 'middle': return 0
     elif split_method == 'median': return 1
     elif split_method == 'mean': return 2
-    else: return 3
+    else: return 3  # random
 
 
 class NField(object):

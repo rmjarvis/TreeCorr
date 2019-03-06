@@ -17,5 +17,4 @@ nbins: 49
 bin_slop: 0
 bin_type: Linear
 
-nn_statistic: simple
 nn_file_name: output/nn_linear.out

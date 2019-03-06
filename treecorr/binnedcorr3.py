@@ -222,10 +222,8 @@ class BinnedCorr3(object):
 
         if 'output_dots' in self.config:
             self.output_dots = treecorr.config.get(self.config,'output_dots',bool)
-        elif 'verbose' in self.config:
-            self.output_dots = treecorr.config.get(self.config,'verbose',int,0) >= 2
         else:
-            self.output_dots = False
+            self.output_dots = treecorr.config.get(self.config,'verbose',int,0) >= 2
 
         self.bin_type = self.config.get('bin_type', None)
         if self.bin_type != 'Log':

@@ -51,8 +51,8 @@ def test_single():
     numpy.testing.assert_allclose(nk.xi, true_k, rtol=1.e-2, atol=1.e-4)
 
     # Check that we get the same result using the corr2 function
-    lens_cat.write(os.path.join('data','nk_single_lens.fits'))
-    source_cat.write(os.path.join('data','nk_single_source.fits'))
+    lens_cat.write(os.path.join('data','nk_single_lens.dat'))
+    source_cat.write(os.path.join('data','nk_single_source.dat'))
     config = treecorr.read_config('nk_single.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)

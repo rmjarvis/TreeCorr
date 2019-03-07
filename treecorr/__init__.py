@@ -41,7 +41,6 @@ for file_name in glob.glob(os.path.join(include_dir,'*_C.h')):
 _lib = _ffi.dlopen(lib_file)
 
 from . import util
-from .celestial import CelestialCoord, angle_units, arcsec, arcmin, degrees, hours, radians
 from .config import read_config, set_omp_threads
 from .catalog import Catalog, read_catalogs, calculateVarG, calculateVarK
 from .binnedcorr2 import BinnedCorr2

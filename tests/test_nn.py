@@ -16,6 +16,7 @@ import numpy
 import treecorr
 import os
 import fitsio
+import coord
 import time
 
 from test_helper import get_from_wiki, get_script_name, CaptureLog
@@ -794,10 +795,10 @@ def test_direct_arc():
     bin_size = (log_max_sep - log_min_sep) / nbins
     for i in range(ngal):
         for j in range(ngal):
-            c1 = treecorr.CelestialCoord(ra1[i],dec1[i])
-            c2 = treecorr.CelestialCoord(ra2[j],dec2[j])
+            c1 = coord.CelestialCoord(ra1[i] * coord.radians, dec1[i] * coord.radians)
+            c2 = coord.CelestialCoord(ra2[j] * coord.radians, dec2[j] * coord.radians)
             theta = c1.distanceTo(c2)
-            theta /= treecorr.arcmin
+            theta /= coord.arcmin
             logr = numpy.log(theta)
             k = int(numpy.floor( (logr-log_min_sep) / bin_size ))
             if k < 0: continue
@@ -1225,8 +1226,8 @@ def test_3d():
     z = numpy.random.normal(zcen, s, (ngal,) )
 
     r = numpy.sqrt(x*x+y*y+z*z)
-    dec = numpy.arcsin(z/r) / treecorr.degrees
-    ra = numpy.arctan2(y,x) / treecorr.degrees
+    dec = numpy.arcsin(z/r) * coord.radians / coord.degrees
+    ra = numpy.arctan2(y,x) * coord.radians / coord.degrees
 
     cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='deg', dec_units='deg')
     dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=1)
@@ -1237,8 +1238,8 @@ def test_3d():
     ry = (numpy.random.random_sample(nrand)-0.5) * L + ycen
     rz = (numpy.random.random_sample(nrand)-0.5) * L + zcen
     rr = numpy.sqrt(rx*rx+ry*ry+rz*rz)
-    rdec = numpy.arcsin(rz/rr) / treecorr.degrees
-    rra = numpy.arctan2(ry,rx) / treecorr.degrees
+    rdec = numpy.arcsin(rz/rr) * coord.radians / coord.degrees
+    rra = numpy.arctan2(ry,rx) * coord.radians / coord.degrees
     rand = treecorr.Catalog(ra=rra, dec=rdec, r=rr, ra_units='deg', dec_units='deg')
     rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=1)
     rr.process(rand)

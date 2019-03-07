@@ -15,10 +15,11 @@
 .. module:: binnedcorr3
 """
 
-import treecorr
 import math
 import numpy
 import sys
+import coord
+import treecorr
 
 class BinnedCorr3(object):
     """This class stores the results of a 3-point correlation calculation, along with some
@@ -167,7 +168,7 @@ class BinnedCorr3(object):
                 'The minimum separation to include in the output.'),
         'max_sep' : (float, False, None, None,
                 'The maximum separation to include in the output.'),
-        'sep_units' : (str, False, None, treecorr.angle_units.keys(),
+        'sep_units' : (str, False, None, coord.AngleUnit.valid_names,
                 'The units to use for min_sep and max_sep.  Also the units of the output distances'),
         'bin_slop' : (float, False, None, None,
                 'The fraction of a bin width by which it is ok to let the pairs miss the correct bin.',

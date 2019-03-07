@@ -13,11 +13,12 @@
 
 from __future__ import print_function
 import numpy
-import treecorr
 import os
 import time
+import coord
 import warnings
 from numpy import pi
+import treecorr
 
 from test_helper import get_from_wiki, CaptureLog
 
@@ -309,8 +310,8 @@ def test_direct():
 
     cat2 = treecorr.Catalog(ra=ra, dec=dec, w=w, g1=g1, g2=g2, k=k,
                             ra_units='hours', dec_units='degrees')
-    numpy.testing.assert_almost_equal(cat2.ra, ra * treecorr.hours)
-    numpy.testing.assert_almost_equal(cat2.dec, dec * treecorr.degrees)
+    numpy.testing.assert_almost_equal(cat2.ra, ra * coord.hours / coord.radians)
+    numpy.testing.assert_almost_equal(cat2.dec, dec * coord.degrees / coord.radians)
     numpy.testing.assert_almost_equal(cat2.w, w)
     numpy.testing.assert_almost_equal(cat2.g1, g1)
     numpy.testing.assert_almost_equal(cat2.g2, g2)
@@ -464,8 +465,8 @@ def test_nan():
     good = ~mask
     assert cat2.ntot == nobj
     assert cat2.nobj == numpy.sum(good)
-    numpy.testing.assert_almost_equal(cat2.ra[good], ra[good] * treecorr.hours)
-    numpy.testing.assert_almost_equal(cat2.dec[good], dec[good] * treecorr.degrees)
+    numpy.testing.assert_almost_equal(cat2.ra[good], ra[good] * coord.hours / coord.radians)
+    numpy.testing.assert_almost_equal(cat2.dec[good], dec[good] * coord.degrees / coord.radians)
     numpy.testing.assert_almost_equal(cat2.r[good], r[good])
     numpy.testing.assert_almost_equal(cat2.w[good], w[good])
     numpy.testing.assert_almost_equal(cat2.wpos[good], wpos[good])

@@ -19,7 +19,7 @@ from __future__ import print_function
 import sys
 from . import _lib
 import future.utils
-from .celestial import angle_units
+import coord
 
 
 def parse_variable(config, v):
@@ -80,21 +80,21 @@ def parse_bool(value):
         raise ValueError("Unable to parse %s as a bool."%value)
 
 def parse_unit(value):
-    """Parse the input value as a string that should be one of our valid angle units in
-    the treecorr.angle_units dict.
+    """Parse the input value as a string that should be one of the valid angle units in
+    coord.AngleUnit.valid_names.
 
     The value is allowed to merely start with one of the unit names.  So 'deg', 'degree',
-    'degrees' all convert to 'deg' which is the key in the angle_units dict.
-    The return value in this case would be treecorr.angle_units['deg'], which has the
-    value pi/180.
+    'degrees' all convert to 'deg' which is the name in coord.AngleUnit.valid_names.
+    The return value in this case would be coord.AngleUnit.from_name('deg').value,
+    which has the value pi/180.
 
     :param value:   The unit as a string value to parse.
 
     :returns:       The given unit in radians.
     """
-    for unit in angle_units.keys():
+    for unit in coord.AngleUnit.valid_names:
         if value.startswith(unit):
-            return angle_units[unit]
+            return coord.AngleUnit.from_name(value).value
     raise ValueError("Unable to parse %s as an angle unit"%value)
 
 

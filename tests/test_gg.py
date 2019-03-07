@@ -16,6 +16,7 @@ import numpy
 import treecorr
 import os
 import fitsio
+import coord
 import time
 
 from test_helper import get_from_wiki, get_script_name
@@ -239,7 +240,7 @@ def test_spherical():
     # the latter.
 
     gamma0 = 0.05
-    r0 = 10. * treecorr.arcmin
+    r0 = 10. * coord.arcmin / coord.radians
     if __name__ == "__main__":
         nsource = 1000000
         L = 50.*r0  # Not infinity, so this introduces some error.  Our integrals were to infinity.
@@ -259,7 +260,7 @@ def test_spherical():
 
     gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
                                 verbose=1)
-    r1 = numpy.exp(gg.logr) * treecorr.arcmin
+    r1 = numpy.exp(gg.logr) * (coord.arcmin / coord.radians)
     temp = numpy.pi/16. * gamma0**2 * (r0/L)**2 * numpy.exp(-0.25*r1**2/r0**2)
     true_xip = temp * (r1**4 - 16.*r1**2*r0**2 + 32.*r0**4)/r0**4
     true_xim = temp * r1**4/r0**4
@@ -910,8 +911,8 @@ def test_rlens():
     numpy.testing.assert_allclose(corr2_output['xip_im'], gg2.xip_im, rtol=1.e-3)
 
     # Repeat with the sources being given as RA/Dec only.
-    ral, decl = treecorr.CelestialCoord.xyz_to_radec(xl,yl,zl)
-    ras, decs = treecorr.CelestialCoord.xyz_to_radec(xs,ys,zs)
+    ral, decl = coord.CelestialCoord.xyz_to_radec(xl,yl,zl)
+    ras, decs = coord.CelestialCoord.xyz_to_radec(xs,ys,zs)
     lens_cat = treecorr.Catalog(ra=ral, dec=decl, ra_units='radians', dec_units='radians', r=rl,
                                 g1=gl.real, g2=gl.imag)
     source_cat = treecorr.Catalog(ra=ras, dec=decs, ra_units='radians', dec_units='radians',

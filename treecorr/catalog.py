@@ -15,8 +15,9 @@
 .. module:: catalog
 """
 
-import treecorr
 import numpy
+import coord
+import treecorr
 
 class Catalog(object):
     """A classs storing the catalog information for a particular set of objects
@@ -287,13 +288,13 @@ class Catalog(object):
         'r_col' : (str, True, '0', None,
                 'Which column to use for r.  Only valid with ra,dec. ',
                 'Should be an integer for ASCII catalogs.'),
-        'x_units' : (str, True, None, treecorr.angle_units.keys(),
+        'x_units' : (str, True, None, coord.AngleUnit.valid_names,
                 'The units of x values.'),
-        'y_units' : (str, True, None, treecorr.angle_units.keys(),
+        'y_units' : (str, True, None, coord.AngleUnit.valid_names,
                 'The units of y values.'),
-        'ra_units' : (str, True, None, treecorr.angle_units.keys(),
+        'ra_units' : (str, True, None, coord.AngleUnit.valid_names,
                 'The units of ra values. Required when using ra_col.'),
-        'dec_units' : (str, True, None, treecorr.angle_units.keys(),
+        'dec_units' : (str, True, None, coord.AngleUnit.valid_names,
                 'The units of dec values. Required when using dec_col.'),
         'g1_col' : (str, True, '0', None,
                 'Which column to use for g1. Should be an integer for ASCII catalogs.'),
@@ -613,7 +614,7 @@ class Catalog(object):
             assert self.x is None
             assert self.y is None
             assert self.z is None
-            self.x, self.y, self.z = treecorr.CelestialCoord.radec_to_xyz(self.ra, self.dec)
+            self.x, self.y, self.z = coord.CelestialCoord.radec_to_xyz(self.ra, self.dec)
             if self.r is None:
                 self.coords = 'spherical'
             else:

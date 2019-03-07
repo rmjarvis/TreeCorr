@@ -16,6 +16,7 @@ import numpy
 import treecorr
 import os
 import fitsio
+import coord
 
 from test_helper import get_script_name
 
@@ -1392,8 +1393,8 @@ def test_3d():
     z = numpy.random.normal(zcen, s, (ngal,) )
 
     r = numpy.sqrt(x*x+y*y+z*z)
-    dec = numpy.arcsin(z/r) / treecorr.degrees
-    ra = numpy.arctan2(y,x) / treecorr.degrees
+    dec = numpy.arcsin(z/r) * (coord.radians / coord.degrees)
+    ra = numpy.arctan2(y,x) * (coord.radians / coord.degrees)
 
     min_sep = 10.
     max_sep = 20.
@@ -1416,8 +1417,8 @@ def test_3d():
     ry = (numpy.random.random_sample(nrand)-0.5) * L + ycen
     rz = (numpy.random.random_sample(nrand)-0.5) * L + zcen
     rr = numpy.sqrt(rx*rx+ry*ry+rz*rz)
-    rdec = numpy.arcsin(rz/rr) / treecorr.degrees
-    rra = numpy.arctan2(ry,rx) / treecorr.degrees
+    rdec = numpy.arcsin(rz/rr) * (coord.radians / coord.degrees)
+    rra = numpy.arctan2(ry,rx) * (coord.radians / coord.degrees)
 
     rand = treecorr.Catalog(ra=rra, dec=rdec, r=rr, ra_units='deg', dec_units='deg')
     rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,

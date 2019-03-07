@@ -16,6 +16,7 @@ import numpy
 import treecorr
 import os
 import sys
+import coord
 import fitsio
 
 from test_helper import get_script_name, CaptureLog, assert_raises
@@ -168,7 +169,7 @@ def test_spherical():
 
     nsource = 300000
     gamma0 = 0.05
-    r0 = 10. * treecorr.degrees
+    r0 = 10. * coord.degrees / coord.radians
     L = 5. * r0
     numpy.random.seed(8675309)
     x = (numpy.random.random_sample(nsource)-0.5) * L
@@ -182,7 +183,7 @@ def test_spherical():
 
     ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='deg',
                                 verbose=1)
-    r1 = numpy.exp(ng.logr) * treecorr.degrees
+    r1 = numpy.exp(ng.logr) * (coord.degrees / coord.radians)
     true_gt = gamma0 * numpy.exp(-0.5*r1**2/r0**2)
 
     # Test this around several central points
@@ -847,8 +848,8 @@ def test_rlens():
     numpy.testing.assert_allclose(corr2_output['gamX'], ng1.xi_im, rtol=1.e-3)
 
     # Repeat with the sources being given as RA/Dec only.
-    ral, decl = treecorr.CelestialCoord.xyz_to_radec(xl,yl,zl)
-    ras, decs = treecorr.CelestialCoord.xyz_to_radec(xs,ys,zs)
+    ral, decl = coord.CelestialCoord.xyz_to_radec(xl,yl,zl)
+    ras, decs = coord.CelestialCoord.xyz_to_radec(xs,ys,zs)
     lens_cat = treecorr.Catalog(ra=ral, dec=decl, ra_units='radians', dec_units='radians', r=rl)
     source_cat = treecorr.Catalog(ra=ras, dec=decs, ra_units='radians', dec_units='radians',
                                   g1=g1, g2=g2)
@@ -969,7 +970,7 @@ def test_rlens_bkg():
     # Along the way, do the same test for Arc metric.
     min_sep_arc = 10   # arcmin
     max_sep_arc = 200
-    min_sep_arc_rad = min_sep_arc * treecorr.arcmin / treecorr.radians
+    min_sep_arc_rad = min_sep_arc * coord.arcmin / coord.radians
     nbins_arc = int(numpy.ceil(numpy.log(max_sep_arc/min_sep_arc)/bin_size))
     true_gt_arc = numpy.zeros( (nbins_arc,) )
     true_npairs_arc = numpy.zeros((nbins_arc,), dtype=int)

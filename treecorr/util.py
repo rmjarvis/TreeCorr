@@ -16,7 +16,7 @@
 """
 
 import treecorr
-import numpy
+import numpy as np
 import os
 import warnings
 
@@ -83,7 +83,7 @@ def gen_write_ascii(file_name, col_names, columns, params, prec=4):
     :param prec:        Output precision for ASCII. (default: 4)
     """
     ncol = len(col_names)
-    data = numpy.empty( (len(columns[0]), ncol) )
+    data = np.empty( (len(columns[0]), ncol) )
     for i,col in enumerate(columns):
         data[:,i] = col
 
@@ -102,7 +102,7 @@ def gen_write_ascii(file_name, col_names, columns, params, prec=4):
             fid.write(s.encode())
         h = '#' + header + '\n'
         fid.write(h.encode())
-        numpy.savetxt(fid, data, fmt=fmt)
+        np.savetxt(fid, data, fmt=fmt)
 
 
 def gen_write_fits(file_name, col_names, columns, params):
@@ -115,7 +115,7 @@ def gen_write_fits(file_name, col_names, columns, params):
     """
     import fitsio
     ensure_dir(file_name)
-    data = numpy.empty(len(columns[0]), dtype=[ (name,'f8') for name in col_names ])
+    data = np.empty(len(columns[0]), dtype=[ (name,'f8') for name in col_names ])
     for (name, col) in zip(col_names, columns):
         data[name] = col
     fitsio.write(file_name, data, header=params, clobber=True)
@@ -160,7 +160,7 @@ def gen_read(file_name, file_type=None, logger=None):
                 params = eval(header[2:].strip())
                 header = fid.readline()
                 skip = 1
-        data = numpy.genfromtxt(file_name, names=True, skip_header=skip)
+        data = np.genfromtxt(file_name, names=True, skip_header=skip)
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 

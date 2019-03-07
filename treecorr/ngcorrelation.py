@@ -16,7 +16,7 @@
 """
 
 import treecorr
-import numpy
+import numpy as np
 
 
 class NGCorrelation(treecorr.BinnedCorr2):
@@ -73,13 +73,13 @@ class NGCorrelation(treecorr.BinnedCorr2):
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
-        self.xi = numpy.zeros_like(self.rnom, dtype=float)
-        self.xi_im = numpy.zeros_like(self.rnom, dtype=float)
-        self.varxi = numpy.zeros_like(self.rnom, dtype=float)
-        self.meanr = numpy.zeros_like(self.rnom, dtype=float)
-        self.meanlogr = numpy.zeros_like(self.rnom, dtype=float)
-        self.weight = numpy.zeros_like(self.rnom, dtype=float)
-        self.npairs = numpy.zeros_like(self.rnom, dtype=float)
+        self.xi = np.zeros_like(self.rnom, dtype=float)
+        self.xi_im = np.zeros_like(self.rnom, dtype=float)
+        self.varxi = np.zeros_like(self.rnom, dtype=float)
+        self.meanr = np.zeros_like(self.rnom, dtype=float)
+        self.meanlogr = np.zeros_like(self.rnom, dtype=float)
+        self.weight = np.zeros_like(self.rnom, dtype=float)
+        self.npairs = np.zeros_like(self.rnom, dtype=float)
         self._build_corr()
         self.logger.debug('Finished building NGCorr')
 
@@ -354,7 +354,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
             file_name,
             ['R_nom','meanR','meanlogR','gamT','gamX','sigma','weight','npairs'],
             [ self.rnom, self.meanr, self.meanlogr,
-              xi, xi_im, numpy.sqrt(varxi), self.weight, self.npairs ],
+              xi, xi_im, np.sqrt(varxi), self.weight, self.npairs ],
             params=params, prec=prec, file_type=file_type, logger=self.logger)
 
 
@@ -376,7 +376,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         data, params = treecorr.util.gen_read(file_name, file_type=file_type)
         self.rnom = data['R_nom']
-        self.logr = numpy.log(self.rnom)
+        self.logr = np.log(self.rnom)
         self.meanr = data['meanR']
         self.meanlogr = data['meanlogR']
         self.xi = data['gamT']
@@ -441,18 +441,18 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         # Make s a matrix, so we can eventually do the integral by doing a matrix product.
         r = self.rnom
-        s = numpy.outer(1./r, self.meanr)
+        s = np.outer(1./r, self.meanr)
         ssq = s*s
         if m2_uform == 'Crittenden':
-            exp_factor = numpy.exp(-ssq/4.)
+            exp_factor = np.exp(-ssq/4.)
             Tx = ssq * (12. - ssq) / 128. * exp_factor
         else:
-            Tx = numpy.zeros_like(s)
+            Tx = np.zeros_like(s)
             sa = s[s<2.]
             ssqa = ssq[s<2.]
             Tx[s<2.] = 196. + ssqa*(-74. + ssqa*(14. - ssqa))
-            Tx[s<2.] *= -3./(40.*numpy.pi) * sa * ssqa * numpy.sqrt(4.-sa**2)
-            Tx[s<2.] += 18./numpy.pi * ssqa * numpy.arccos(sa/2.)
+            Tx[s<2.] *= -3./(40.*np.pi) * sa * ssqa * np.sqrt(4.-sa**2)
+            Tx[s<2.] += 18./np.pi * ssqa * np.arccos(sa/2.)
         Tx *= ssq
 
         xi, xi_im, varxi = self.calculateXi(rg)
@@ -508,7 +508,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         treecorr.util.gen_write(
             file_name,
             ['R','NMap','NMx','sig_nmap'],
-            [ self.rnom, nmap, nmx, numpy.sqrt(varnmap) ],
+            [ self.rnom, nmap, nmx, np.sqrt(varnmap) ],
             prec=prec, file_type=file_type, logger=self.logger)
 
 
@@ -591,8 +591,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
               'Napsq','sig_napsq','Mapsq','sig_mapsq',
               'NMap_norm','sig_norm','Nsq_Mapsq','sig_nn_mm' ],
             [ self.rnom,
-              nmap, nmx, numpy.sqrt(varnmap),
-              nsq, numpy.sqrt(varnsq), mapsq, numpy.sqrt(varmapsq),
-              nmnorm, numpy.sqrt(varnmnorm), nnnorm, numpy.sqrt(varnnnorm) ],
+              nmap, nmx, np.sqrt(varnmap),
+              nsq, np.sqrt(varnsq), mapsq, np.sqrt(varmapsq),
+              nmnorm, np.sqrt(varnmnorm), nnnorm, np.sqrt(varnnnorm) ],
             prec=prec, file_type=file_type, logger=self.logger)
 

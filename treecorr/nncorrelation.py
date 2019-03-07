@@ -16,7 +16,7 @@
 """
 
 import treecorr
-import numpy
+import numpy as np
 
 
 class NNCorrelation(treecorr.BinnedCorr2):
@@ -73,10 +73,10 @@ class NNCorrelation(treecorr.BinnedCorr2):
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
-        self.meanr = numpy.zeros_like(self.rnom, dtype=float)
-        self.meanlogr = numpy.zeros_like(self.rnom, dtype=float)
-        self.weight = numpy.zeros_like(self.rnom, dtype=float)
-        self.npairs = numpy.zeros_like(self.rnom, dtype=float)
+        self.meanr = np.zeros_like(self.rnom, dtype=float)
+        self.meanlogr = np.zeros_like(self.rnom, dtype=float)
+        self.weight = np.zeros_like(self.rnom, dtype=float)
+        self.npairs = np.zeros_like(self.rnom, dtype=float)
         self.tot = 0.
         self._build_corr()
         self.logger.debug('Finished building NNCorr')
@@ -357,7 +357,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
                     raise RuntimeError("rd has tot=0.")
                 rdw = self.tot / rd.tot
                 xi = (self.weight - rd.weight * rdw - dr.weight * drw + rr.weight * rrw)
-        if numpy.any(rr.weight == 0):
+        if np.any(rr.weight == 0):
             self.logger.warning("Warning: Some bins for the randoms had no pairs.\n"+
                                 "         Probably max_sep is larger than your field.")
         mask1 = rr.weight != 0
@@ -365,7 +365,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         xi[mask1] /= (rr.weight[mask1] * rrw)
         xi[mask2] = 0
 
-        varxi = numpy.zeros_like(rr.weight)
+        varxi = np.zeros_like(rr.weight)
         varxi[mask1] = 1./ (rr.weight[mask1] * rrw)
 
         return xi, varxi
@@ -452,7 +452,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
             xi, varxi = self.calculateXi(rr,dr,rd)
 
             col_names += [ 'xi','sigma_xi','DD','RR' ]
-            columns += [ xi, numpy.sqrt(varxi),
+            columns += [ xi, np.sqrt(varxi),
                          self.weight, rr.weight * (self.tot/rr.tot) ]
 
             if dr is not None and rd is not None:
@@ -494,7 +494,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         data, params = treecorr.util.gen_read(file_name, file_type=file_type)
         self.rnom = data['R_nom']
-        self.logr = numpy.log(self.rnom)
+        self.logr = np.log(self.rnom)
         self.meanr = data['meanR']
         self.meanlogr = data['meanlogR']
         self.weight = data['DD']
@@ -559,17 +559,17 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         # Make s a matrix, so we can eventually do the integral by doing a matrix product.
         r = self.rnom
-        s = numpy.outer(1./r, self.meanr)
+        s = np.outer(1./r, self.meanr)
         ssq = s*s
         if m2_uform == 'Crittenden':
-            exp_factor = numpy.exp(-ssq/4.)
+            exp_factor = np.exp(-ssq/4.)
             Tp = (32. + ssq*(-16. + ssq)) / 128. * exp_factor
         else:
-            Tp = numpy.zeros_like(s)
+            Tp = np.zeros_like(s)
             sa = s[s<2.]
             ssqa = ssq[s<2.]
-            Tp[s<2.] = 12./(5.*numpy.pi) * (2.-15.*ssqa) * numpy.arccos(sa/2.)
-            Tp[s<2.] += 1./(100.*numpy.pi) * sa * numpy.sqrt(4.-ssqa) * (
+            Tp[s<2.] = 12./(5.*np.pi) * (2.-15.*ssqa) * np.arccos(sa/2.)
+            Tp[s<2.] += 1./(100.*np.pi) * sa * np.sqrt(4.-ssqa) * (
                         120. + ssqa*(2320. + ssqa*(-754. + ssqa*(132. - 9.*ssqa))))
         Tp *= ssq
 

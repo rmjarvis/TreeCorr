@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 from __future__ import print_function
-import numpy
+import numpy as np
 import treecorr
 import os
 import fitsio
@@ -25,10 +25,10 @@ def test_constant():
     ngal = 500
     A = 0.05
     L = 100.
-    numpy.random.seed(8675309)
-    x = (numpy.random.random_sample(ngal)-0.5) * L
-    y = (numpy.random.random_sample(ngal)-0.5) * L
-    kappa = A * numpy.ones(ngal)
+    np.random.seed(8675309)
+    x = (np.random.random_sample(ngal)-0.5) * L
+    y = (np.random.random_sample(ngal)-0.5) * L
+    kappa = A * np.ones(ngal)
 
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
 
@@ -47,19 +47,19 @@ def test_constant():
                                   sep_units='arcmin', verbose=1)
     kkk.process(cat)
     print('kkk.zeta = ',kkk.zeta.flatten())
-    numpy.testing.assert_allclose(kkk.zeta, A**3, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, A**3, rtol=1.e-5)
 
     # Should also work as a cross-correlation
     kkk.process(cat, cat, cat)
     print('as cross-correlation: kkk.zeta = ',kkk.zeta.flatten())
-    numpy.testing.assert_allclose(kkk.zeta, A**3, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, A**3, rtol=1.e-5)
 
     # Now add some noise to the values. It should still work, but at slightly lower accuracy.
-    kappa += 0.001 * (numpy.random.random_sample(ngal)-0.5)
+    kappa += 0.001 * (np.random.random_sample(ngal)-0.5)
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     kkk.process(cat)
     print('with noise: kkk.zeta = ',kkk.zeta.flatten())
-    numpy.testing.assert_allclose(kkk.zeta, A**3, rtol=3.e-3)
+    np.testing.assert_allclose(kkk.zeta, A**3, rtol=3.e-3)
 
 
 def test_kkk():
@@ -86,11 +86,11 @@ def test_kkk():
         ngal = 10000
         L = 20. * s
         tol_factor = 5
-    numpy.random.seed(8675309)
-    x = (numpy.random.random_sample(ngal)-0.5) * L
-    y = (numpy.random.random_sample(ngal)-0.5) * L
+    np.random.seed(8675309)
+    x = (np.random.random_sample(ngal)-0.5) * L
+    y = (np.random.random_sample(ngal)-0.5) * L
     r2 = (x**2 + y**2)/s**2
-    kappa = A * numpy.exp(-r2/2.)
+    kappa = A * np.exp(-r2/2.)
 
     min_sep = 11.
     max_sep = 15.
@@ -110,32 +110,32 @@ def test_kkk():
     kkk.process(cat)
 
     # log(<d>) != <logd>, but it should be close:
-    print('meanlogd1 - log(meand1) = ',kkk.meanlogd1 - numpy.log(kkk.meand1))
-    print('meanlogd2 - log(meand2) = ',kkk.meanlogd2 - numpy.log(kkk.meand2))
-    print('meanlogd3 - log(meand3) = ',kkk.meanlogd3 - numpy.log(kkk.meand3))
+    print('meanlogd1 - log(meand1) = ',kkk.meanlogd1 - np.log(kkk.meand1))
+    print('meanlogd2 - log(meand2) = ',kkk.meanlogd2 - np.log(kkk.meand2))
+    print('meanlogd3 - log(meand3) = ',kkk.meanlogd3 - np.log(kkk.meand3))
     print('meand3 / meand2 = ',kkk.meand3 / kkk.meand2)
     print('meanu = ',kkk.meanu)
-    print('max diff = ',numpy.max(numpy.abs(kkk.meand3/kkk.meand2 -kkk.meanu)))
-    print('max rel diff = ',numpy.max(numpy.abs((kkk.meand3/kkk.meand2 -kkk.meanu)/kkk.meanu)))
+    print('max diff = ',np.max(np.abs(kkk.meand3/kkk.meand2 -kkk.meanu)))
+    print('max rel diff = ',np.max(np.abs((kkk.meand3/kkk.meand2 -kkk.meanu)/kkk.meanu)))
     print('(meand1 - meand2)/meand3 = ',(kkk.meand1-kkk.meand2) / kkk.meand3)
     print('meanv = ',kkk.meanv)
-    print('max diff = ',numpy.max(numpy.abs((kkk.meand1-kkk.meand2)/kkk.meand3 -numpy.abs(kkk.meanv))))
-    print('max rel diff = ',numpy.max(numpy.abs(((kkk.meand1-kkk.meand2)/kkk.meand3-numpy.abs(kkk.meanv))/kkk.meanv)))
-    numpy.testing.assert_allclose(kkk.meanlogd1, numpy.log(kkk.meand1), rtol=1.e-3)
-    numpy.testing.assert_allclose(kkk.meanlogd2, numpy.log(kkk.meand2), rtol=1.e-3)
-    numpy.testing.assert_allclose(kkk.meanlogd3, numpy.log(kkk.meand3), rtol=1.e-3)
-    numpy.testing.assert_allclose(kkk.meand3/kkk.meand2, kkk.meanu, rtol=1.e-5 * tol_factor)
-    numpy.testing.assert_allclose((kkk.meand1-kkk.meand2)/kkk.meand3, numpy.abs(kkk.meanv),
+    print('max diff = ',np.max(np.abs((kkk.meand1-kkk.meand2)/kkk.meand3 -np.abs(kkk.meanv))))
+    print('max rel diff = ',np.max(np.abs(((kkk.meand1-kkk.meand2)/kkk.meand3-np.abs(kkk.meanv))/kkk.meanv)))
+    np.testing.assert_allclose(kkk.meanlogd1, np.log(kkk.meand1), rtol=1.e-3)
+    np.testing.assert_allclose(kkk.meanlogd2, np.log(kkk.meand2), rtol=1.e-3)
+    np.testing.assert_allclose(kkk.meanlogd3, np.log(kkk.meand3), rtol=1.e-3)
+    np.testing.assert_allclose(kkk.meand3/kkk.meand2, kkk.meanu, rtol=1.e-5 * tol_factor)
+    np.testing.assert_allclose((kkk.meand1-kkk.meand2)/kkk.meand3, np.abs(kkk.meanv),
                                   rtol=1.e-5 * tol_factor, atol=1.e-5 * tol_factor)
-    numpy.testing.assert_allclose(kkk.meanlogd3-kkk.meanlogd2, numpy.log(kkk.meanu),
+    np.testing.assert_allclose(kkk.meanlogd3-kkk.meanlogd2, np.log(kkk.meanu),
                                   atol=1.e-3 * tol_factor)
-    numpy.testing.assert_allclose(numpy.log(kkk.meand1-kkk.meand2)-kkk.meanlogd3,
-                                  numpy.log(numpy.abs(kkk.meanv)), atol=2.e-3 * tol_factor)
+    np.testing.assert_allclose(np.log(kkk.meand1-kkk.meand2)-kkk.meanlogd3,
+                                  np.log(np.abs(kkk.meanv)), atol=2.e-3 * tol_factor)
 
     d1 = kkk.meand1
     d2 = kkk.meand2
     d3 = kkk.meand3
-    #print('rnom = ',numpy.exp(kkk.logr))
+    #print('rnom = ',np.exp(kkk.logr))
     #print('unom = ',kkk.u)
     #print('vnom = ',kkk.v)
     #print('d1 = ',d1)
@@ -146,16 +146,16 @@ def test_kkk():
     # correct area by subtracting off 2d2 from L, which should give a slightly better estimate
     # of the correct area to use here.
     L = L - 2.*d2
-    true_zeta = (2.*numpy.pi/3) * A**3 * (s/L)**2 * numpy.exp(-(d1**2+d2**2+d3**2)/(6.*s**2))
+    true_zeta = (2.*np.pi/3) * A**3 * (s/L)**2 * np.exp(-(d1**2+d2**2+d3**2)/(6.*s**2))
 
     #print('ntri = ',kkk.ntri)
     print('zeta = ',kkk.zeta)
     print('true_zeta = ',true_zeta)
     #print('ratio = ',kkk.zeta / true_zeta)
     #print('diff = ',kkk.zeta - true_zeta)
-    print('max rel diff = ',numpy.max(numpy.abs((kkk.zeta - true_zeta)/true_zeta)))
-    numpy.testing.assert_allclose(kkk.zeta, true_zeta, rtol=0.1 * tol_factor)
-    numpy.testing.assert_allclose(numpy.log(numpy.abs(kkk.zeta)), numpy.log(numpy.abs(true_zeta)),
+    print('max rel diff = ',np.max(np.abs((kkk.zeta - true_zeta)/true_zeta)))
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(np.log(np.abs(kkk.zeta)), np.log(np.abs(true_zeta)),
                                   atol=0.1 * tol_factor)
 
     # Check that we get the same result using the corr3 functin:
@@ -163,28 +163,28 @@ def test_kkk():
     config = treecorr.config.read_config('kkk.yaml')
     config['verbose'] = 0
     treecorr.corr3(config)
-    corr3_output = numpy.genfromtxt(os.path.join('output','kkk.out'), names=True, skip_header=1)
-    numpy.testing.assert_almost_equal(corr3_output['zeta'], kkk.zeta.flatten())
+    corr3_output = np.genfromtxt(os.path.join('output','kkk.out'), names=True, skip_header=1)
+    np.testing.assert_almost_equal(corr3_output['zeta'], kkk.zeta.flatten())
 
     # Check the fits write option
     out_file_name = os.path.join('output','kkk_out.fits')
     kkk.write(out_file_name)
     data = fitsio.read(out_file_name)
-    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(kkk.logr).flatten())
-    numpy.testing.assert_almost_equal(data['u_nom'], kkk.u.flatten())
-    numpy.testing.assert_almost_equal(data['v_nom'], kkk.v.flatten())
-    numpy.testing.assert_almost_equal(data['meand1'], kkk.meand1.flatten())
-    numpy.testing.assert_almost_equal(data['meanlogd1'], kkk.meanlogd1.flatten())
-    numpy.testing.assert_almost_equal(data['meand2'], kkk.meand2.flatten())
-    numpy.testing.assert_almost_equal(data['meanlogd2'], kkk.meanlogd2.flatten())
-    numpy.testing.assert_almost_equal(data['meand3'], kkk.meand3.flatten())
-    numpy.testing.assert_almost_equal(data['meanlogd3'], kkk.meanlogd3.flatten())
-    numpy.testing.assert_almost_equal(data['meanu'], kkk.meanu.flatten())
-    numpy.testing.assert_almost_equal(data['meanv'], kkk.meanv.flatten())
-    numpy.testing.assert_almost_equal(data['zeta'], kkk.zeta.flatten())
-    numpy.testing.assert_almost_equal(data['sigma_zeta'], numpy.sqrt(kkk.varzeta.flatten()))
-    numpy.testing.assert_almost_equal(data['weight'], kkk.weight.flatten())
-    numpy.testing.assert_almost_equal(data['ntri'], kkk.ntri.flatten())
+    np.testing.assert_almost_equal(data['R_nom'], np.exp(kkk.logr).flatten())
+    np.testing.assert_almost_equal(data['u_nom'], kkk.u.flatten())
+    np.testing.assert_almost_equal(data['v_nom'], kkk.v.flatten())
+    np.testing.assert_almost_equal(data['meand1'], kkk.meand1.flatten())
+    np.testing.assert_almost_equal(data['meanlogd1'], kkk.meanlogd1.flatten())
+    np.testing.assert_almost_equal(data['meand2'], kkk.meand2.flatten())
+    np.testing.assert_almost_equal(data['meanlogd2'], kkk.meanlogd2.flatten())
+    np.testing.assert_almost_equal(data['meand3'], kkk.meand3.flatten())
+    np.testing.assert_almost_equal(data['meanlogd3'], kkk.meanlogd3.flatten())
+    np.testing.assert_almost_equal(data['meanu'], kkk.meanu.flatten())
+    np.testing.assert_almost_equal(data['meanv'], kkk.meanv.flatten())
+    np.testing.assert_almost_equal(data['zeta'], kkk.zeta.flatten())
+    np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(kkk.varzeta.flatten()))
+    np.testing.assert_almost_equal(data['weight'], kkk.weight.flatten())
+    np.testing.assert_almost_equal(data['ntri'], kkk.ntri.flatten())
 
     # Check the read function
     # Note: These don't need the flatten. The read function should reshape them to the right shape.
@@ -193,21 +193,21 @@ def test_kkk():
                                    nubins=nubins, nvbins=nvbins,
                                    sep_units='arcmin', verbose=1)
     kkk2.read(out_file_name)
-    numpy.testing.assert_almost_equal(kkk2.logr, kkk.logr)
-    numpy.testing.assert_almost_equal(kkk2.u, kkk.u)
-    numpy.testing.assert_almost_equal(kkk2.v, kkk.v)
-    numpy.testing.assert_almost_equal(kkk2.meand1, kkk.meand1)
-    numpy.testing.assert_almost_equal(kkk2.meanlogd1, kkk.meanlogd1)
-    numpy.testing.assert_almost_equal(kkk2.meand2, kkk.meand2)
-    numpy.testing.assert_almost_equal(kkk2.meanlogd2, kkk.meanlogd2)
-    numpy.testing.assert_almost_equal(kkk2.meand3, kkk.meand3)
-    numpy.testing.assert_almost_equal(kkk2.meanlogd3, kkk.meanlogd3)
-    numpy.testing.assert_almost_equal(kkk2.meanu, kkk.meanu)
-    numpy.testing.assert_almost_equal(kkk2.meanv, kkk.meanv)
-    numpy.testing.assert_almost_equal(kkk2.zeta, kkk.zeta)
-    numpy.testing.assert_almost_equal(kkk2.varzeta, kkk.varzeta)
-    numpy.testing.assert_almost_equal(kkk2.weight, kkk.weight)
-    numpy.testing.assert_almost_equal(kkk2.ntri, kkk.ntri)
+    np.testing.assert_almost_equal(kkk2.logr, kkk.logr)
+    np.testing.assert_almost_equal(kkk2.u, kkk.u)
+    np.testing.assert_almost_equal(kkk2.v, kkk.v)
+    np.testing.assert_almost_equal(kkk2.meand1, kkk.meand1)
+    np.testing.assert_almost_equal(kkk2.meanlogd1, kkk.meanlogd1)
+    np.testing.assert_almost_equal(kkk2.meand2, kkk.meand2)
+    np.testing.assert_almost_equal(kkk2.meanlogd2, kkk.meanlogd2)
+    np.testing.assert_almost_equal(kkk2.meand3, kkk.meand3)
+    np.testing.assert_almost_equal(kkk2.meanlogd3, kkk.meanlogd3)
+    np.testing.assert_almost_equal(kkk2.meanu, kkk.meanu)
+    np.testing.assert_almost_equal(kkk2.meanv, kkk.meanv)
+    np.testing.assert_almost_equal(kkk2.zeta, kkk.zeta)
+    np.testing.assert_almost_equal(kkk2.varzeta, kkk.varzeta)
+    np.testing.assert_almost_equal(kkk2.weight, kkk.weight)
+    np.testing.assert_almost_equal(kkk2.ntri, kkk.ntri)
     assert kkk2.coords == kkk.coords
     assert kkk2.metric == kkk.metric
     assert kkk2.sep_units == kkk.sep_units

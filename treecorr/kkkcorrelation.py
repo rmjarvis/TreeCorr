@@ -16,7 +16,7 @@
 """
 
 import treecorr
-import numpy
+import numpy as np
 
 
 class KKKCorrelation(treecorr.BinnedCorr3):
@@ -97,18 +97,18 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
 
         shape = (self.nbins, self.nubins, self.nvbins)
-        self.zeta = numpy.zeros(shape, dtype=float)
-        self.varzeta = numpy.zeros(shape, dtype=float)
-        self.meand1 = numpy.zeros(shape, dtype=float)
-        self.meanlogd1 = numpy.zeros(shape, dtype=float)
-        self.meand2 = numpy.zeros(shape, dtype=float)
-        self.meanlogd2 = numpy.zeros(shape, dtype=float)
-        self.meand3 = numpy.zeros(shape, dtype=float)
-        self.meanlogd3 = numpy.zeros(shape, dtype=float)
-        self.meanu = numpy.zeros(shape, dtype=float)
-        self.meanv = numpy.zeros(shape, dtype=float)
-        self.weight = numpy.zeros(shape, dtype=float)
-        self.ntri = numpy.zeros(shape, dtype=float)
+        self.zeta = np.zeros(shape, dtype=float)
+        self.varzeta = np.zeros(shape, dtype=float)
+        self.meand1 = np.zeros(shape, dtype=float)
+        self.meanlogd1 = np.zeros(shape, dtype=float)
+        self.meand2 = np.zeros(shape, dtype=float)
+        self.meanlogd2 = np.zeros(shape, dtype=float)
+        self.meand3 = np.zeros(shape, dtype=float)
+        self.meanlogd3 = np.zeros(shape, dtype=float)
+        self.meanu = np.zeros(shape, dtype=float)
+        self.meanv = np.zeros(shape, dtype=float)
+        self.weight = np.zeros(shape, dtype=float)
+        self.ntri = np.zeros(shape, dtype=float)
         self._build_corr()
         self.logger.debug('Finished building KKKCorr')
 
@@ -279,9 +279,9 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         self.meanu[mask2] = self.u[mask2]
         self.meanv[mask2] = self.v[mask2]
         self.meand3[mask2] = self.u[mask2] * self.meand2[mask2]
-        self.meanlogd3[mask2] = numpy.log(self.meand3[mask2])
+        self.meanlogd3[mask2] = np.log(self.meand3[mask2])
         self.meand1[mask2] = self.v[mask2] * self.meand3[mask2] + self.meand2[mask2]
-        self.meanlogd1[mask2] = numpy.log(self.meand1[mask2])
+        self.meanlogd1[mask2] = np.log(self.meand1[mask2])
 
 
     def clear(self):
@@ -450,7 +450,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         columns = [ self.rnom, self.u, self.v,
                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                     self.meand3, self.meanlogd3, self.meanu, self.meanv,
-                    self.zeta, numpy.sqrt(self.varzeta), self.weight, self.ntri ]
+                    self.zeta, np.sqrt(self.varzeta), self.weight, self.ntri ]
 
         params = { 'coords' : self.coords, 'metric' : self.metric,
                    'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
@@ -482,7 +482,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         data, params = treecorr.util.gen_read(file_name, file_type=file_type)
         s = self.logr.shape
         self.rnom = data['R_nom'].reshape(s)
-        self.logr = numpy.log(self.rnom)
+        self.logr = np.log(self.rnom)
         self.u = data['u_nom'].reshape(s)
         self.v = data['v_nom'].reshape(s)
         self.meand1 = data['meand1'].reshape(s)

@@ -15,7 +15,7 @@
 .. module:: catalog
 """
 
-import numpy
+import numpy as np
 import coord
 import treecorr
 
@@ -484,7 +484,7 @@ class Catalog(object):
                 ignore_flag = ~ok_flag
             # If we don't already have a weight column, make one with all values = 1.
             if self.w is None:
-                self.w = numpy.ones_like(self.flag, dtype=float)
+                self.w = np.ones_like(self.flag, dtype=float)
             self.w[(self.flag & ignore_flag)!=0] = 0
             self.logger.debug('Applied flag: w => %s',str(self.w))
 
@@ -561,18 +561,18 @@ class Catalog(object):
         # Calculate some summary parameters here that will typically be needed
         if self.w is not None:
             self.nontrivial_w = True
-            self.nobj = numpy.sum(self.w != 0)
-            self.sumw = numpy.sum(self.w)
+            self.nobj = np.sum(self.w != 0)
+            self.sumw = np.sum(self.w)
             if self.sumw == 0.:
                 raise RuntimeError("Catalog has invalid sumw == 0")
             if self.g1 is not None:
-                self.varg = numpy.sum(self.w**2 * (self.g1**2 + self.g2**2))
+                self.varg = np.sum(self.w**2 * (self.g1**2 + self.g2**2))
                 # The 2 is because we need the variance _per componenet_.
                 self.varg /= 2.*self.sumw
             else:
                 self.varg = 0.
             if self.k is not None:
-                self.vark = numpy.sum(self.w**2 * self.k**2)
+                self.vark = np.sum(self.w**2 * self.k**2)
                 self.vark /= self.sumw
             else:
                 self.vark = 0.
@@ -581,14 +581,14 @@ class Catalog(object):
             self.nobj = self.ntot
             self.sumw = self.ntot
             if self.g1 is not None:
-                self.varg = numpy.sum(self.g1**2 + self.g2**2) / (2.*self.nobj)
+                self.varg = np.sum(self.g1**2 + self.g2**2) / (2.*self.nobj)
             else:
                 self.varg = 0.
             if self.k is not None:
-                self.vark = numpy.sum(self.k**2) / self.nobj
+                self.vark = np.sum(self.k**2) / self.nobj
             else:
                 self.vark = 0.
-            self.w = numpy.ones((self.ntot), dtype=float)
+            self.w = np.ones((self.ntot), dtype=float)
 
         # Copy w to wpos if necessary (Do this after checkForNaN's, since this may set some
         # entries to have w=0.)
@@ -599,9 +599,9 @@ class Catalog(object):
         else:
             self.nontrivial_wpos = True
             # Also check that any wpos == 0 points also have w == 0
-            if numpy.any(self.wpos == 0.):
+            if np.any(self.wpos == 0.):
                 if self.nontrivial_w:
-                    if numpy.any(self.w[self.wpos == 0.] != 0.):
+                    if np.any(self.w[self.wpos == 0.] != 0.):
                         self.logger.error('Some wpos values = 0 but have w!=0. This is invalid.\n'
                                           'Setting w=0 for these points.')
                         self.w[self.wpos == 0.] = 0.
@@ -645,7 +645,7 @@ class Catalog(object):
         :returns:       The column converted to a 1-d numpy array.
         """
         if col is not None:
-            col = numpy.array(col,dtype=dtype)
+            col = np.array(col,dtype=dtype)
             if len(col.shape) != 1:
                 s = col.shape
                 col = col.reshape(-1)
@@ -661,12 +661,12 @@ class Catalog(object):
 
         :param col_str: The name of the column.  Used only as information in logging output.
         """
-        if col is not None and any(numpy.isnan(col)):
-            index = numpy.where(numpy.isnan(col))[0]
+        if col is not None and any(np.isnan(col)):
+            index = np.where(np.isnan(col))[0]
             self.logger.warning("Warning: NaNs found in %s column.  Skipping rows %s."%(
                                 col_str,str(index.tolist())))
             if self.w is None:
-                self.w = numpy.ones_like(col, dtype=float)
+                self.w = np.ones_like(col, dtype=float)
             self.w[index] = 0
 
     def read_ascii(self, file_name, num=0, is_rand=False):
@@ -678,7 +678,6 @@ class Catalog(object):
 
         :param is_rand:     Is this a random catalog? (default: False)
         """
-        import numpy
         comment_marker = self.config.get('comment_marker','#')
         delimiter = self.config.get('delimiter',None)
         try:
@@ -701,10 +700,10 @@ class Catalog(object):
                                        header=None, skiprows=skip)
             data = data.dropna(axis=0).values
         except ImportError:
-            self.logger.warning("Unable to import pandas..  Using numpy.genfromtxt instead.\n"+
+            self.logger.warning("Unable to import pandas..  Using np.genfromtxt instead.\n"+
                                 "Installing pandas is recommended for increased speed when "+
                                 "reading ASCII catalogs.")
-            data = numpy.genfromtxt(file_name, comments=comment_marker, delimiter=delimiter)
+            data = np.genfromtxt(file_name, comments=comment_marker, delimiter=delimiter)
 
         self.logger.debug('read data from %s, num=%d',file_name,num)
         self.logger.debug('data shape = %s',str(data.shape))
@@ -1172,7 +1171,6 @@ class Catalog(object):
                                 config dict.)
         """
         self.logger.info('Writing catalog to %s',file_name)
-        import numpy
 
         col_names = []
         columns = []

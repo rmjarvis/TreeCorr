@@ -16,11 +16,317 @@ import numpy as np
 import treecorr
 import os
 import sys
-import coord
 import fitsio
+import coord
 
-from test_helper import get_script_name, CaptureLog, assert_raises
+from test_helper import get_script_name, do_pickle, CaptureLog, assert_raises
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
+
+def test_direct():
+    # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
+    # This should exactly match the treecorr result if bin_slop=0.
+
+    ngal = 200
+    s = 10.
+    np.random.seed(8675309)
+    x1 = np.random.normal(0,s, (ngal,) )
+    y1 = np.random.normal(0,s, (ngal,) )
+    w1 = np.random.random(ngal)
+
+    x2 = np.random.normal(0,s, (ngal,) )
+    y2 = np.random.normal(0,s, (ngal,) )
+    w2 = np.random.random(ngal)
+    g12 = np.random.normal(0,0.2, (ngal,) )
+    g22 = np.random.normal(0,0.2, (ngal,) )
+
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1)
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g12, g2=g22)
+
+    min_sep = 1.
+    max_sep = 50.
+    nbins = 50
+    bin_size = np.log(max_sep/min_sep) / nbins
+    ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    ng.process(cat1, cat2)
+
+    true_npairs = np.zeros(nbins, dtype=int)
+    true_weight = np.zeros(nbins, dtype=float)
+    true_xi = np.zeros(nbins, dtype=complex)
+    for i in range(ngal):
+        # It's hard to do all the pairs at once with numpy operations (although maybe possible).
+        # But we can at least do all the pairs for each entry in cat1 at once with arrays.
+        rsq = (x1[i]-x2)**2 + (y1[i]-y2)**2
+        r = np.sqrt(rsq)
+        logr = np.log(r)
+        expmialpha = ((x1[i]-x2) - 1j*(y1[i]-y2)) / r
+
+        ww = w1[i] * w2
+        xi = -ww * (g12 + 1j*g22) * expmialpha**2
+
+        index = np.floor(np.log(r/min_sep) / bin_size).astype(int)
+        mask = (index >= 0) & (index < nbins)
+        np.add.at(true_npairs, index[mask], 1)
+        np.add.at(true_weight, index[mask], ww[mask])
+        np.add.at(true_xi, index[mask], xi[mask])
+
+    true_xi /= true_weight
+
+    print('true_npairs = ',true_npairs)
+    print('diff = ',ng.npairs - true_npairs)
+    np.testing.assert_array_equal(ng.npairs, true_npairs)
+
+    print('true_weight = ',true_weight)
+    print('diff = ',ng.weight - true_weight)
+    np.testing.assert_allclose(ng.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+
+    print('true_xi = ',true_xi)
+    print('ng.xi = ',ng.xi)
+    print('ng.xi_im = ',ng.xi_im)
+    np.testing.assert_allclose(ng.xi, true_xi.real, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(ng.xi_im, true_xi.imag, rtol=1.e-4, atol=1.e-8)
+
+    # Check that running via the corr2 script works correctly.
+    config = treecorr.config.read_config('configs/ng_direct.yaml')
+    cat1.write(config['file_name'])
+    cat2.write(config['file_name2'])
+    treecorr.corr2(config)
+    data = fitsio.read(config['ng_file_name'])
+    np.testing.assert_allclose(data['R_nom'], ng.rnom)
+    np.testing.assert_allclose(data['npairs'], ng.npairs)
+    np.testing.assert_allclose(data['weight'], ng.weight)
+    np.testing.assert_allclose(data['gamT'], ng.xi, rtol=1.e-3)
+    np.testing.assert_allclose(data['gamX'], ng.xi_im, rtol=1.e-3)
+
+    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # And don't do any top-level recursion so we actually test not going to the leaves.
+    ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=1.e-16,
+                                max_top=0)
+    ng.process(cat1, cat2)
+    np.testing.assert_array_equal(ng.npairs, true_npairs)
+    np.testing.assert_allclose(ng.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ng.xi, true_xi.real, rtol=1.e-3, atol=3.e-4)
+    np.testing.assert_allclose(ng.xi_im, true_xi.imag, atol=3.e-4)
+
+    # Check a few basic operations with a NGCorrelation object.
+    do_pickle(ng)
+
+    ng2 = ng.copy()
+    ng2 += ng
+    np.testing.assert_allclose(ng2.npairs, 2*ng.npairs)
+    np.testing.assert_allclose(ng2.weight, 2*ng.weight)
+    np.testing.assert_allclose(ng2.meanr, 2*ng.meanr)
+    np.testing.assert_allclose(ng2.meanlogr, 2*ng.meanlogr)
+    np.testing.assert_allclose(ng2.xi, 2*ng.xi)
+    np.testing.assert_allclose(ng2.xi_im, 2*ng.xi_im)
+
+    ng2.clear()
+    ng2 += ng
+    np.testing.assert_allclose(ng2.npairs, ng.npairs)
+    np.testing.assert_allclose(ng2.weight, ng.weight)
+    np.testing.assert_allclose(ng2.meanr, ng.meanr)
+    np.testing.assert_allclose(ng2.meanlogr, ng.meanlogr)
+    np.testing.assert_allclose(ng2.xi, ng.xi)
+    np.testing.assert_allclose(ng2.xi_im, ng.xi_im)
+
+    ascii_name = 'output/ng_ascii.txt'
+    ng.write(ascii_name, precision=16)
+    ng3 = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    ng3.read(ascii_name)
+    np.testing.assert_allclose(ng3.npairs, ng.npairs)
+    np.testing.assert_allclose(ng3.weight, ng.weight)
+    np.testing.assert_allclose(ng3.meanr, ng.meanr)
+    np.testing.assert_allclose(ng3.meanlogr, ng.meanlogr)
+    np.testing.assert_allclose(ng3.xi, ng.xi)
+    np.testing.assert_allclose(ng3.xi_im, ng.xi_im)
+
+    fits_name = 'output/ng_fits.fits'
+    ng.write(fits_name)
+    ng4 = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    ng4.read(fits_name)
+    np.testing.assert_allclose(ng4.npairs, ng.npairs)
+    np.testing.assert_allclose(ng4.weight, ng.weight)
+    np.testing.assert_allclose(ng4.meanr, ng.meanr)
+    np.testing.assert_allclose(ng4.meanlogr, ng.meanlogr)
+    np.testing.assert_allclose(ng4.xi, ng.xi)
+    np.testing.assert_allclose(ng4.xi_im, ng.xi_im)
+
+
+def test_direct_spherical():
+    # Repeat in spherical coords
+
+    ngal = 100
+    s = 10.
+    np.random.seed(8675309)
+    x1 = np.random.normal(0,s, (ngal,) )
+    y1 = np.random.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
+    z1 = np.random.normal(0,s, (ngal,) )
+    w1 = np.random.random(ngal)
+
+    x2 = np.random.normal(0,s, (ngal,) )
+    y2 = np.random.normal(0,s, (ngal,) ) + 200
+    z2 = np.random.normal(0,s, (ngal,) )
+    w2 = np.random.random(ngal)
+    g12 = np.random.normal(0,0.2, (ngal,) )
+    g22 = np.random.normal(0,0.2, (ngal,) )
+
+    ra1, dec1 = coord.CelestialCoord.xyz_to_radec(x1,y1,z1)
+    ra2, dec2 = coord.CelestialCoord.xyz_to_radec(x2,y2,z2)
+
+    cat1 = treecorr.Catalog(ra=ra1, dec=dec1, ra_units='rad', dec_units='rad', w=w1)
+    cat2 = treecorr.Catalog(ra=ra2, dec=dec2, ra_units='rad', dec_units='rad', w=w2, g1=g12, g2=g22)
+
+    min_sep = 1.
+    max_sep = 10.
+    nbins = 50
+    bin_size = np.log(max_sep/min_sep) / nbins
+    ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                sep_units='deg', bin_slop=0.)
+    ng.process(cat1, cat2)
+
+    r1 = np.sqrt(x1**2 + y1**2 + z1**2)
+    r2 = np.sqrt(x2**2 + y2**2 + z2**2)
+    x1 /= r1;  y1 /= r1;  z1 /= r1
+    x2 /= r2;  y2 /= r2;  z2 /= r2
+
+    north_pole = coord.CelestialCoord(0*coord.radians, 90*coord.degrees)
+
+    true_npairs = np.zeros(nbins, dtype=int)
+    true_weight = np.zeros(nbins, dtype=float)
+    true_xi = np.zeros(nbins, dtype=complex)
+
+    c1 = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra1, dec1)]
+    c2 = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra2, dec2)]
+    for i in range(ngal):
+        for j in range(ngal):
+            rsq = (x1[i]-x2[j])**2 + (y1[i]-y2[j])**2 + (z1[i]-z2[j])**2
+            r = np.sqrt(rsq)
+            r *= coord.radians / coord.degrees
+            logr = np.log(r)
+
+            index = np.floor(np.log(r/min_sep) / bin_size).astype(int)
+            if index < 0 or index >= nbins:
+                continue
+
+            # Rotate shears to coordinates where line connecting is horizontal.
+            # Original orientation is where north is up.
+            theta1 = 90*coord.degrees - c1[i].angleBetween(north_pole, c2[j])
+            theta2 = 90*coord.degrees - c2[j].angleBetween(c1[i], north_pole)
+            exp2theta1 = np.cos(2*theta1) + 1j * np.sin(2*theta1)
+            expm2theta2 = np.cos(2*theta2) - 1j * np.sin(2*theta2)
+
+            g2 = g12[j] + 1j * g22[j]
+            g2 *= expm2theta2
+
+            ww = w1[i] * w2[j]
+            xi = -w1[i] * w2[j] * g2
+
+            true_npairs[index] += 1
+            true_weight[index] += ww
+            true_xi[index] += xi
+
+    true_xi /= true_weight
+
+    print('true_npairs = ',true_npairs)
+    print('diff = ',ng.npairs - true_npairs)
+    np.testing.assert_array_equal(ng.npairs, true_npairs)
+
+    print('true_weight = ',true_weight)
+    print('diff = ',ng.weight - true_weight)
+    np.testing.assert_allclose(ng.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+
+    print('true_xi = ',true_xi)
+    print('ng.xi = ',ng.xi)
+    print('ng.xi_im = ',ng.xi_im)
+    np.testing.assert_allclose(ng.xi, true_xi.real, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(ng.xi_im, true_xi.imag, rtol=1.e-4, atol=1.e-8)
+
+    # Check that running via the corr2 script works correctly.
+    config = treecorr.config.read_config('configs/ng_direct_spherical.yaml')
+    cat1.write(config['file_name'])
+    cat2.write(config['file_name2'])
+    treecorr.corr2(config)
+    data = fitsio.read(config['ng_file_name'])
+    np.testing.assert_allclose(data['R_nom'], ng.rnom)
+    np.testing.assert_allclose(data['npairs'], ng.npairs)
+    np.testing.assert_allclose(data['weight'], ng.weight)
+    np.testing.assert_allclose(data['gamT'], ng.xi, rtol=1.e-3)
+    np.testing.assert_allclose(data['gamX'], ng.xi_im, rtol=1.e-3)
+
+    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # And don't do any top-level recursion so we actually test not going to the leaves.
+    ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                sep_units='deg', bin_slop=1.e-16, max_top=0)
+    ng.process(cat1, cat2)
+    np.testing.assert_array_equal(ng.npairs, true_npairs)
+    np.testing.assert_allclose(ng.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ng.xi, true_xi.real, rtol=1.e-3, atol=2.e-4)
+    np.testing.assert_allclose(ng.xi_im, true_xi.imag, atol=2.e-4)
+
+
+def test_pairwise():
+    # Test the pairwise option.
+
+    ngal = 1000
+    s = 10.
+    np.random.seed(8675309)
+    x1 = np.random.normal(0,s, (ngal,) )
+    y1 = np.random.normal(0,s, (ngal,) )
+    w1 = np.random.random(ngal)
+
+    x2 = np.random.normal(0,s, (ngal,) )
+    y2 = np.random.normal(0,s, (ngal,) )
+    w2 = np.random.random(ngal)
+    g12 = np.random.normal(0,0.2, (ngal,) )
+    g22 = np.random.normal(0,0.2, (ngal,) )
+
+    w1 = np.ones_like(w1)
+    w2 = np.ones_like(w2)
+
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1)
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g12, g2=g22)
+
+    min_sep = 5.
+    max_sep = 50.
+    nbins = 10
+    bin_size = np.log(max_sep/min_sep) / nbins
+    ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    ng.process_pairwise(cat1, cat2)
+    ng.finalize(cat2.varg)
+
+    true_npairs = np.zeros(nbins, dtype=int)
+    true_weight = np.zeros(nbins, dtype=float)
+    true_xi = np.zeros(nbins, dtype=complex)
+
+    rsq = (x1-x2)**2 + (y1-y2)**2
+    r = np.sqrt(rsq)
+    logr = np.log(r)
+    expmialpha = ((x1-x2) - 1j*(y1-y2)) / r
+
+    ww = w1 * w2
+    xi = -ww * (g12 - 1j*g22) * expmialpha**2
+
+    index = np.floor(np.log(r/min_sep) / bin_size).astype(int)
+    mask = (index >= 0) & (index < nbins)
+    np.add.at(true_npairs, index[mask], 1)
+    np.add.at(true_weight, index[mask], ww[mask])
+    np.add.at(true_xi, index[mask], xi[mask])
+
+    true_xi /= true_weight
+
+    np.testing.assert_array_equal(ng.npairs, true_npairs)
+    np.testing.assert_allclose(ng.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ng.xi, true_xi.real, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(ng.xi_im, true_xi.imag, rtol=1.e-4, atol=1.e-8)
+
+    # If cats have names, then the logger will mention them.
+    # Also, test running with optional args.
+    cat1.name = "first"
+    cat2.name = "second"
+    with CaptureLog() as cl:
+        ng.logger = cl.logger
+        ng.process_pairwise(cat1, cat2, metric='Euclidean', num_threads=2)
+    assert "for cats first, second" in cl.output
+
 
 def test_single():
     # Use gamma_t(r) = gamma0 exp(-r^2/2r0^2) around a single lens

@@ -198,10 +198,6 @@ def corr2(config, logger=None):
 
     # Do NN correlation function if necessary
     if 'nn_file_name' in config:
-        if len(rand1) == 0:
-            raise AttributeError("rand_file_name is required for NN correlation")
-        if len(cat2) > 0 and len(rand2) == 0:
-            raise AttributeError("rand_file_name2 is required for NN cross-correlation")
         logger.warning("Performing DD calculations...")
         dd = treecorr.NNCorrelation(config,logger)
         dd.process(cat1,cat2)
@@ -209,7 +205,10 @@ def corr2(config, logger=None):
 
         dr = None
         rd = None
-        if len(cat2) == 0:
+        if len(rand1) == 0:
+            logger.warning("No random catalogs given.  Only doing npairs calculation.")
+            rr = None
+        elif len(cat2) == 0:
             logger.warning("Performing RR calculations...")
             rr = treecorr.NNCorrelation(config,logger)
             rr.process(rand1)
@@ -221,6 +220,8 @@ def corr2(config, logger=None):
                 dr.process(cat1,rand1)
                 logger.info("Done DR calculations.")
         else:
+            if len(rand2) == 0:
+                raise AttributeError("rand_file_name2 is required when file_name2 is given")
             logger.warning("Performing RR calculations...")
             rr = treecorr.NNCorrelation(config,logger)
             rr.process(rand1,rand2)

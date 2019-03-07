@@ -19,8 +19,372 @@ import fitsio
 import coord
 import time
 
-from test_helper import get_from_wiki, get_script_name
+from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
+
+def test_direct():
+    # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
+    # This should exactly match the treecorr result if bin_slop=0.
+
+    ngal = 200
+    s = 10.
+    np.random.seed(8675309)
+    x1 = np.random.normal(0,s, (ngal,) )
+    y1 = np.random.normal(0,s, (ngal,) )
+    w1 = np.random.random(ngal)
+    g11 = np.random.normal(0,0.2, (ngal,) )
+    g21 = np.random.normal(0,0.2, (ngal,) )
+
+    x2 = np.random.normal(0,s, (ngal,) )
+    y2 = np.random.normal(0,s, (ngal,) )
+    w2 = np.random.random(ngal)
+    g12 = np.random.normal(0,0.2, (ngal,) )
+    g22 = np.random.normal(0,0.2, (ngal,) )
+
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g11, g2=g21)
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g12, g2=g22)
+
+    min_sep = 1.
+    max_sep = 50.
+    nbins = 50
+    bin_size = np.log(max_sep/min_sep) / nbins
+    gg = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    gg.process(cat1, cat2)
+
+    true_npairs = np.zeros(nbins, dtype=int)
+    true_weight = np.zeros(nbins, dtype=float)
+    true_xip = np.zeros(nbins, dtype=complex)
+    true_xim = np.zeros(nbins, dtype=complex)
+    for i in range(ngal):
+        # It's hard to do all the pairs at once with numpy operations (although maybe possible).
+        # But we can at least do all the pairs for each entry in cat1 at once with arrays.
+        rsq = (x1[i]-x2)**2 + (y1[i]-y2)**2
+        r = np.sqrt(rsq)
+        logr = np.log(r)
+        expmialpha = ((x1[i]-x2) - 1j*(y1[i]-y2)) / r
+
+        ww = w1[i] * w2
+        xip = ww * (g11[i] + 1j*g21[i]) * (g12 - 1j*g22)
+        xim = ww * (g11[i] + 1j*g21[i]) * (g12 + 1j*g22) * expmialpha**4
+
+        index = np.floor(np.log(r/min_sep) / bin_size).astype(int)
+        mask = (index >= 0) & (index < nbins)
+        np.add.at(true_npairs, index[mask], 1)
+        np.add.at(true_weight, index[mask], ww[mask])
+        np.add.at(true_xip, index[mask], xip[mask])
+        np.add.at(true_xim, index[mask], xim[mask])
+
+    true_xip /= true_weight
+    true_xim /= true_weight
+
+    print('true_npairs = ',true_npairs)
+    print('diff = ',gg.npairs - true_npairs)
+    np.testing.assert_array_equal(gg.npairs, true_npairs)
+
+    print('true_weight = ',true_weight)
+    print('diff = ',gg.weight - true_weight)
+    np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+
+    print('true_xip = ',true_xip)
+    print('gg.xip = ',gg.xip)
+    print('gg.xip_im = ',gg.xip_im)
+    np.testing.assert_allclose(gg.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
+    print('true_xim = ',true_xim)
+    print('gg.xim = ',gg.xim)
+    print('gg.xim_im = ',gg.xim_im)
+    np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(gg.xim_im, true_xim.imag, rtol=1.e-4, atol=1.e-8)
+
+    # Check that running via the corr2 script works correctly.
+    config = treecorr.config.read_config('configs/gg_direct.yaml')
+    cat1.write(config['file_name'])
+    cat2.write(config['file_name2'])
+    treecorr.corr2(config)
+    data = fitsio.read(config['gg_file_name'])
+    np.testing.assert_allclose(data['R_nom'], gg.rnom)
+    np.testing.assert_allclose(data['npairs'], gg.npairs)
+    np.testing.assert_allclose(data['weight'], gg.weight)
+    np.testing.assert_allclose(data['xip'], gg.xip, rtol=1.e-3)
+    np.testing.assert_allclose(data['xip_im'], gg.xip_im, rtol=1.e-3)
+    np.testing.assert_allclose(data['xim'], gg.xim, rtol=1.e-3)
+    np.testing.assert_allclose(data['xim_im'], gg.xim_im, rtol=1.e-3)
+
+    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # And don't do any top-level recursion so we actually test not going to the leaves.
+    gg = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=1.e-16,
+                                max_top=0)
+    gg.process(cat1, cat2)
+    np.testing.assert_array_equal(gg.npairs, true_npairs)
+    np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(gg.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
+    print('true_xim = ',true_xim)
+    print('gg.xim = ',gg.xim)
+    print('gg.xim_im = ',gg.xim_im)
+    print('diff = ',gg.xim - true_xim.real)
+    print('max diff = ',np.max(np.abs(gg.xim - true_xim.real)))
+    print('rel diff = ',(gg.xim - true_xim.real)/true_xim.real)
+    # This is the one that is highly affected by the approximation from averaging the shears
+    # before projecting, rather than averaging each shear projected to its own connecting line.
+    np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-3, atol=2.e-4)
+    np.testing.assert_allclose(gg.xim_im, true_xim.imag, atol=1.e-3)
+
+    # Check a few basic operations with a GGCorrelation object.
+    do_pickle(gg)
+
+    gg2 = gg.copy()
+    gg2 += gg
+    np.testing.assert_allclose(gg2.npairs, 2*gg.npairs)
+    np.testing.assert_allclose(gg2.weight, 2*gg.weight)
+    np.testing.assert_allclose(gg2.meanr, 2*gg.meanr)
+    np.testing.assert_allclose(gg2.meanlogr, 2*gg.meanlogr)
+    np.testing.assert_allclose(gg2.xip, 2*gg.xip)
+    np.testing.assert_allclose(gg2.xip_im, 2*gg.xip_im)
+    np.testing.assert_allclose(gg2.xim, 2*gg.xim)
+    np.testing.assert_allclose(gg2.xim_im, 2*gg.xim_im)
+
+    gg2.clear()
+    gg2 += gg
+    np.testing.assert_allclose(gg2.npairs, gg.npairs)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.meanr, gg.meanr)
+    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr)
+    np.testing.assert_allclose(gg2.xip, gg.xip)
+    np.testing.assert_allclose(gg2.xip_im, gg.xip_im)
+    np.testing.assert_allclose(gg2.xim, gg.xim)
+    np.testing.assert_allclose(gg2.xim_im, gg.xim_im)
+
+    ascii_name = 'output/gg_ascii.txt'
+    gg.write(ascii_name, precision=16)
+    gg3 = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    gg3.read(ascii_name)
+    np.testing.assert_allclose(gg3.npairs, gg.npairs)
+    np.testing.assert_allclose(gg3.weight, gg.weight)
+    np.testing.assert_allclose(gg3.meanr, gg.meanr)
+    np.testing.assert_allclose(gg3.meanlogr, gg.meanlogr)
+    np.testing.assert_allclose(gg3.xip, gg.xip)
+    np.testing.assert_allclose(gg3.xip_im, gg.xip_im)
+    np.testing.assert_allclose(gg3.xim, gg.xim)
+    np.testing.assert_allclose(gg3.xim_im, gg.xim_im)
+
+    fits_name = 'output/gg_fits.fits'
+    gg.write(fits_name)
+    gg4 = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    gg4.read(fits_name)
+    np.testing.assert_allclose(gg4.npairs, gg.npairs)
+    np.testing.assert_allclose(gg4.weight, gg.weight)
+    np.testing.assert_allclose(gg4.meanr, gg.meanr)
+    np.testing.assert_allclose(gg4.meanlogr, gg.meanlogr)
+    np.testing.assert_allclose(gg4.xip, gg.xip)
+    np.testing.assert_allclose(gg4.xip_im, gg.xip_im)
+    np.testing.assert_allclose(gg4.xim, gg.xim)
+    np.testing.assert_allclose(gg4.xim_im, gg.xim_im)
+
+
+def test_direct_spherical():
+    # Repeat in spherical coords
+
+    ngal = 100
+    s = 10.
+    np.random.seed(8675309)
+    x1 = np.random.normal(0,s, (ngal,) )
+    y1 = np.random.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
+    z1 = np.random.normal(0,s, (ngal,) )
+    w1 = np.random.random(ngal)
+    g11 = np.random.normal(0,0.2, (ngal,) )
+    g21 = np.random.normal(0,0.2, (ngal,) )
+
+    x2 = np.random.normal(0,s, (ngal,) )
+    y2 = np.random.normal(0,s, (ngal,) ) + 200
+    z2 = np.random.normal(0,s, (ngal,) )
+    w2 = np.random.random(ngal)
+    g12 = np.random.normal(0,0.2, (ngal,) )
+    g22 = np.random.normal(0,0.2, (ngal,) )
+
+    ra1, dec1 = coord.CelestialCoord.xyz_to_radec(x1,y1,z1)
+    ra2, dec2 = coord.CelestialCoord.xyz_to_radec(x2,y2,z2)
+
+    cat1 = treecorr.Catalog(ra=ra1, dec=dec1, ra_units='rad', dec_units='rad', w=w1, g1=g11, g2=g21)
+    cat2 = treecorr.Catalog(ra=ra2, dec=dec2, ra_units='rad', dec_units='rad', w=w2, g1=g12, g2=g22)
+
+    min_sep = 1.
+    max_sep = 10.
+    nbins = 50
+    bin_size = np.log(max_sep/min_sep) / nbins
+    gg = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                sep_units='deg', bin_slop=0.)
+    gg.process(cat1, cat2)
+
+    r1 = np.sqrt(x1**2 + y1**2 + z1**2)
+    r2 = np.sqrt(x2**2 + y2**2 + z2**2)
+    x1 /= r1;  y1 /= r1;  z1 /= r1
+    x2 /= r2;  y2 /= r2;  z2 /= r2
+
+    north_pole = coord.CelestialCoord(0*coord.radians, 90*coord.degrees)
+
+    true_npairs = np.zeros(nbins, dtype=int)
+    true_weight = np.zeros(nbins, dtype=float)
+    true_xip = np.zeros(nbins, dtype=complex)
+    true_xim = np.zeros(nbins, dtype=complex)
+
+    rad_min_sep = min_sep * coord.degrees / coord.radians
+    c1 = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra1, dec1)]
+    c2 = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra2, dec2)]
+    for i in range(ngal):
+        for j in range(ngal):
+            rsq = (x1[i]-x2[j])**2 + (y1[i]-y2[j])**2 + (z1[i]-z2[j])**2
+            r = np.sqrt(rsq)
+            logr = np.log(r)
+
+            index = np.floor(np.log(r/rad_min_sep) / bin_size).astype(int)
+            if index < 0 or index >= nbins:
+                continue
+
+            # Rotate shears to coordinates where line connecting is horizontal.
+            # Original orientation is where north is up.
+            theta1 = 90*coord.degrees - c1[i].angleBetween(north_pole, c2[j])
+            theta2 = 90*coord.degrees - c2[j].angleBetween(north_pole, c1[i])
+            exp2theta1 = np.cos(2*theta1) + 1j * np.sin(2*theta1)
+            exp2theta2 = np.cos(2*theta2) + 1j * np.sin(2*theta2)
+
+            g1 = g11[i] + 1j * g21[i]
+            g2 = g12[j] + 1j * g22[j]
+            g1 *= exp2theta1
+            g2 *= exp2theta2
+
+            ww = w1[i] * w2[j]
+            xip = ww * g1 * np.conjugate(g2)
+            xim = ww * g1 * g2
+
+            true_npairs[index] += 1
+            true_weight[index] += ww
+            true_xip[index] += xip
+            true_xim[index] += xim
+
+    true_xip /= true_weight
+    true_xim /= true_weight
+
+    print('true_npairs = ',true_npairs)
+    print('diff = ',gg.npairs - true_npairs)
+    np.testing.assert_array_equal(gg.npairs, true_npairs)
+
+    print('true_weight = ',true_weight)
+    print('diff = ',gg.weight - true_weight)
+    np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+
+    print('true_xip = ',true_xip)
+    print('gg.xip = ',gg.xip)
+    print('gg.xip_im = ',gg.xip_im)
+    np.testing.assert_allclose(gg.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
+    print('true_xim = ',true_xim)
+    print('gg.xim = ',gg.xim)
+    print('gg.xim_im = ',gg.xim_im)
+    np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(gg.xim_im, true_xim.imag, rtol=1.e-4, atol=1.e-8)
+
+    # Check that running via the corr2 script works correctly.
+    config = treecorr.config.read_config('configs/gg_direct_spherical.yaml')
+    cat1.write(config['file_name'])
+    cat2.write(config['file_name2'])
+    treecorr.corr2(config)
+    data = fitsio.read(config['gg_file_name'])
+    np.testing.assert_allclose(data['R_nom'], gg.rnom)
+    np.testing.assert_allclose(data['npairs'], gg.npairs)
+    np.testing.assert_allclose(data['weight'], gg.weight)
+    np.testing.assert_allclose(data['xip'], gg.xip, rtol=1.e-3)
+    np.testing.assert_allclose(data['xip_im'], gg.xip_im, rtol=1.e-3)
+    np.testing.assert_allclose(data['xim'], gg.xim, rtol=1.e-3)
+    np.testing.assert_allclose(data['xim_im'], gg.xim_im, rtol=1.e-3)
+
+    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # And don't do any top-level recursion so we actually test not going to the leaves.
+    gg = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                sep_units='deg', bin_slop=1.e-16, max_top=0)
+    gg.process(cat1, cat2)
+    np.testing.assert_array_equal(gg.npairs, true_npairs)
+    np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(gg.xip, true_xip.real, rtol=1.e-3, atol=1.e-6)
+    np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-3, atol=1.e-6)
+    diff = np.abs(gg.xim - true_xim.real)
+    reldiff = diff / true_xim.real
+    np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-3, atol=2.e-4)
+    np.testing.assert_allclose(gg.xim_im, true_xim.imag, rtol=1.e-3, atol=2.e-4)
+
+
+def test_pairwise():
+    # Test the pairwise option.
+
+    ngal = 1000
+    s = 10.
+    np.random.seed(8675309)
+    x1 = np.random.normal(0,s, (ngal,) )
+    y1 = np.random.normal(0,s, (ngal,) )
+    w1 = np.random.random(ngal)
+    g11 = np.random.normal(0,0.2, (ngal,) )
+    g21 = np.random.normal(0,0.2, (ngal,) )
+
+    x2 = np.random.normal(0,s, (ngal,) )
+    y2 = np.random.normal(0,s, (ngal,) )
+    w2 = np.random.random(ngal)
+    g12 = np.random.normal(0,0.2, (ngal,) )
+    g22 = np.random.normal(0,0.2, (ngal,) )
+
+    w1 = np.ones_like(w1)
+    w2 = np.ones_like(w2)
+
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g11, g2=g21)
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g12, g2=g22)
+
+    min_sep = 5.
+    max_sep = 50.
+    nbins = 10
+    bin_size = np.log(max_sep/min_sep) / nbins
+    gg = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    gg.process_pairwise(cat1, cat2)
+    gg.finalize(cat1.varg, cat2.varg)
+
+    true_npairs = np.zeros(nbins, dtype=int)
+    true_weight = np.zeros(nbins, dtype=float)
+    true_xip = np.zeros(nbins, dtype=complex)
+    true_xim = np.zeros(nbins, dtype=complex)
+
+    rsq = (x1-x2)**2 + (y1-y2)**2
+    r = np.sqrt(rsq)
+    logr = np.log(r)
+    expmialpha = ((x1-x2) - 1j*(y1-y2)) / r
+
+    ww = w1 * w2
+    xip = ww * (g11 + 1j*g21) * (g12 - 1j*g22)
+    xim = ww * (g11 + 1j*g21) * (g12 + 1j*g22) * expmialpha**4
+
+    index = np.floor(np.log(r/min_sep) / bin_size).astype(int)
+    mask = (index >= 0) & (index < nbins)
+    np.add.at(true_npairs, index[mask], 1)
+    np.add.at(true_weight, index[mask], ww[mask])
+    np.add.at(true_xip, index[mask], xip[mask])
+    np.add.at(true_xim, index[mask], xim[mask])
+
+    true_xip /= true_weight
+    true_xim /= true_weight
+
+    np.testing.assert_array_equal(gg.npairs, true_npairs)
+    np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(gg.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(gg.xim_im, true_xim.imag, rtol=1.e-4, atol=1.e-8)
+
+    # If cats have names, then the logger will mention them.
+    # Also, test running with optional args.
+    cat1.name = "first"
+    cat2.name = "second"
+    with CaptureLog() as cl:
+        gg.logger = cl.logger
+        gg.process_pairwise(cat1, cat2, metric='Euclidean', num_threads=2)
+    assert "for cats first, second" in cl.output
+
 
 def test_gg():
     # cf. http://adsabs.harvard.edu/abs/2002A%26A...389..729S for the basic formulae I use here.
@@ -107,7 +471,7 @@ def test_gg():
     #       T-(s) = s^4/128 exp(-s^2/4)
     true_mapsq = 6.*np.pi * gamma0**2 * r0**8 * r**4 / (L**2 * (r**2+r0**2)**5)
 
-    mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq('Crittenden')
+    mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq()
     print('mapsq = ',mapsq)
     print('true_mapsq = ',true_mapsq)
     print('ratio = ',mapsq/true_mapsq)

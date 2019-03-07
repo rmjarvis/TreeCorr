@@ -16,8 +16,292 @@ import numpy as np
 import treecorr
 import os
 import fitsio
+import coord
 
-from test_helper import get_script_name
+from test_helper import get_script_name, do_pickle, CaptureLog
+
+def test_direct():
+    # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
+    # This should exactly match the treecorr result if bin_slop=0.
+
+    ngal = 200
+    s = 10.
+    np.random.seed(8675309)
+    x1 = np.random.normal(0,s, (ngal,) )
+    y1 = np.random.normal(0,s, (ngal,) )
+    w1 = np.random.random(ngal)
+    k1 = np.random.normal(10,1, (ngal,) )
+
+    x2 = np.random.normal(0,s, (ngal,) )
+    y2 = np.random.normal(0,s, (ngal,) )
+    w2 = np.random.random(ngal)
+    k2 = np.random.normal(0,3, (ngal,) )
+
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1)
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2)
+
+    min_sep = 1.
+    max_sep = 50.
+    nbins = 50
+    bin_size = np.log(max_sep/min_sep) / nbins
+    kk = treecorr.KKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    kk.process(cat1, cat2)
+
+    true_npairs = np.zeros(nbins, dtype=int)
+    true_weight = np.zeros(nbins, dtype=float)
+    true_xi = np.zeros(nbins, dtype=float)
+    for i in range(ngal):
+        # It's hard to do all the pairs at once with numpy operations (although maybe possible).
+        # But we can at least do all the pairs for each entry in cat1 at once with arrays.
+        rsq = (x1[i]-x2)**2 + (y1[i]-y2)**2
+        r = np.sqrt(rsq)
+        logr = np.log(r)
+        expmialpha = ((x1[i]-x2) - 1j*(y1[i]-y2)) / r
+
+        ww = w1[i] * w2
+        xi = ww * k1[i] * k2
+
+        index = np.floor(np.log(r/min_sep) / bin_size).astype(int)
+        mask = (index >= 0) & (index < nbins)
+        np.add.at(true_npairs, index[mask], 1)
+        np.add.at(true_weight, index[mask], ww[mask])
+        np.add.at(true_xi, index[mask], xi[mask])
+
+    true_xi /= true_weight
+
+    print('true_npairs = ',true_npairs)
+    print('diff = ',kk.npairs - true_npairs)
+    np.testing.assert_array_equal(kk.npairs, true_npairs)
+
+    print('true_weight = ',true_weight)
+    print('diff = ',kk.weight - true_weight)
+    np.testing.assert_allclose(kk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+
+    print('true_xi = ',true_xi)
+    print('kk.xi = ',kk.xi)
+    np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-4, atol=1.e-8)
+
+    # Check that running via the corr2 script works correctly.
+    config = treecorr.config.read_config('configs/kk_direct.yaml')
+    cat1.write(config['file_name'])
+    cat2.write(config['file_name2'])
+    treecorr.corr2(config)
+    data = fitsio.read(config['kk_file_name'])
+    np.testing.assert_allclose(data['R_nom'], kk.rnom)
+    np.testing.assert_allclose(data['npairs'], kk.npairs)
+    np.testing.assert_allclose(data['weight'], kk.weight)
+    np.testing.assert_allclose(data['xi'], kk.xi, rtol=1.e-3)
+
+    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # And don't do any top-level recursion so we actually test not going to the leaves.
+    kk = treecorr.KKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=1.e-16,
+                                max_top=0)
+    kk.process(cat1, cat2)
+    np.testing.assert_array_equal(kk.npairs, true_npairs)
+    np.testing.assert_allclose(kk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-4, atol=1.e-8)
+
+    # Check a few basic operations with a KKCorrelation object.
+    do_pickle(kk)
+
+    kk2 = kk.copy()
+    kk2 += kk
+    np.testing.assert_allclose(kk2.npairs, 2*kk.npairs)
+    np.testing.assert_allclose(kk2.weight, 2*kk.weight)
+    np.testing.assert_allclose(kk2.meanr, 2*kk.meanr)
+    np.testing.assert_allclose(kk2.meanlogr, 2*kk.meanlogr)
+    np.testing.assert_allclose(kk2.xi, 2*kk.xi)
+
+    kk2.clear()
+    kk2 += kk
+    np.testing.assert_allclose(kk2.npairs, kk.npairs)
+    np.testing.assert_allclose(kk2.weight, kk.weight)
+    np.testing.assert_allclose(kk2.meanr, kk.meanr)
+    np.testing.assert_allclose(kk2.meanlogr, kk.meanlogr)
+    np.testing.assert_allclose(kk2.xi, kk.xi)
+
+    ascii_name = 'output/kk_ascii.txt'
+    kk.write(ascii_name, precision=16)
+    kk3 = treecorr.KKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    kk3.read(ascii_name)
+    np.testing.assert_allclose(kk3.npairs, kk.npairs)
+    np.testing.assert_allclose(kk3.weight, kk.weight)
+    np.testing.assert_allclose(kk3.meanr, kk.meanr)
+    np.testing.assert_allclose(kk3.meanlogr, kk.meanlogr)
+    np.testing.assert_allclose(kk3.xi, kk.xi)
+
+    fits_name = 'output/kk_fits.fits'
+    kk.write(fits_name)
+    kk4 = treecorr.KKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    kk4.read(fits_name)
+    np.testing.assert_allclose(kk4.npairs, kk.npairs)
+    np.testing.assert_allclose(kk4.weight, kk.weight)
+    np.testing.assert_allclose(kk4.meanr, kk.meanr)
+    np.testing.assert_allclose(kk4.meanlogr, kk.meanlogr)
+    np.testing.assert_allclose(kk4.xi, kk.xi)
+
+
+def test_direct_spherical():
+    # Repeat in spherical coords
+
+    ngal = 100
+    s = 10.
+    np.random.seed(8675309)
+    x1 = np.random.normal(0,s, (ngal,) )
+    y1 = np.random.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
+    z1 = np.random.normal(0,s, (ngal,) )
+    w1 = np.random.random(ngal)
+    k1 = np.random.normal(10,1, (ngal,) )
+
+    x2 = np.random.normal(0,s, (ngal,) )
+    y2 = np.random.normal(0,s, (ngal,) ) + 200
+    z2 = np.random.normal(0,s, (ngal,) )
+    w2 = np.random.random(ngal)
+    k2 = np.random.normal(0,3, (ngal,) )
+
+    ra1, dec1 = coord.CelestialCoord.xyz_to_radec(x1,y1,z1)
+    ra2, dec2 = coord.CelestialCoord.xyz_to_radec(x2,y2,z2)
+
+    cat1 = treecorr.Catalog(ra=ra1, dec=dec1, ra_units='rad', dec_units='rad', w=w1, k=k1)
+    cat2 = treecorr.Catalog(ra=ra2, dec=dec2, ra_units='rad', dec_units='rad', w=w2, k=k2)
+
+    min_sep = 1.
+    max_sep = 10.
+    nbins = 50
+    bin_size = np.log(max_sep/min_sep) / nbins
+    kk = treecorr.KKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                sep_units='deg', bin_slop=0.)
+    kk.process(cat1, cat2)
+
+    r1 = np.sqrt(x1**2 + y1**2 + z1**2)
+    r2 = np.sqrt(x2**2 + y2**2 + z2**2)
+    x1 /= r1;  y1 /= r1;  z1 /= r1
+    x2 /= r2;  y2 /= r2;  z2 /= r2
+
+    north_pole = coord.CelestialCoord(0*coord.radians, 90*coord.degrees)
+
+    true_npairs = np.zeros(nbins, dtype=int)
+    true_weight = np.zeros(nbins, dtype=float)
+    true_xi = np.zeros(nbins, dtype=float)
+
+    c1 = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra1, dec1)]
+    c2 = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra2, dec2)]
+    for i in range(ngal):
+        for j in range(ngal):
+            rsq = (x1[i]-x2[j])**2 + (y1[i]-y2[j])**2 + (z1[i]-z2[j])**2
+            r = np.sqrt(rsq)
+            r *= coord.radians / coord.degrees
+            logr = np.log(r)
+
+            index = np.floor(np.log(r/min_sep) / bin_size).astype(int)
+            if index < 0 or index >= nbins:
+                continue
+
+            ww = w1[i] * w2[j]
+            xi = ww * k1[i] * k2[j]
+
+            true_npairs[index] += 1
+            true_weight[index] += ww
+            true_xi[index] += xi
+
+    true_xi /= true_weight
+
+    print('true_npairs = ',true_npairs)
+    print('diff = ',kk.npairs - true_npairs)
+    np.testing.assert_array_equal(kk.npairs, true_npairs)
+
+    print('true_weight = ',true_weight)
+    print('diff = ',kk.weight - true_weight)
+    np.testing.assert_allclose(kk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+
+    print('true_xi = ',true_xi)
+    print('kk.xi = ',kk.xi)
+    np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-4, atol=1.e-8)
+
+    # Check that running via the corr2 script works correctly.
+    config = treecorr.config.read_config('configs/kk_direct_spherical.yaml')
+    cat1.write(config['file_name'])
+    cat2.write(config['file_name2'])
+    treecorr.corr2(config)
+    data = fitsio.read(config['kk_file_name'])
+    np.testing.assert_allclose(data['R_nom'], kk.rnom)
+    np.testing.assert_allclose(data['npairs'], kk.npairs)
+    np.testing.assert_allclose(data['weight'], kk.weight)
+    np.testing.assert_allclose(data['xi'], kk.xi, rtol=1.e-3)
+
+    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # And don't do any top-level recursion so we actually test not going to the leaves.
+    kk = treecorr.KKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                sep_units='deg', bin_slop=1.e-16, max_top=0)
+    kk.process(cat1, cat2)
+    np.testing.assert_array_equal(kk.npairs, true_npairs)
+    np.testing.assert_allclose(kk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-3, atol=1.e-6)
+
+
+def test_pairwise():
+    # Test the pairwise option.
+
+    ngal = 1000
+    s = 10.
+    np.random.seed(8675309)
+    x1 = np.random.normal(0,s, (ngal,) )
+    y1 = np.random.normal(0,s, (ngal,) )
+    w1 = np.random.random(ngal)
+    k1 = np.random.normal(10,1, (ngal,) )
+
+    x2 = np.random.normal(0,s, (ngal,) )
+    y2 = np.random.normal(0,s, (ngal,) )
+    w2 = np.random.random(ngal)
+    k2 = np.random.normal(0,3, (ngal,) )
+
+    w1 = np.ones_like(w1)
+    w2 = np.ones_like(w2)
+
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1)
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2)
+
+    min_sep = 5.
+    max_sep = 50.
+    nbins = 10
+    bin_size = np.log(max_sep/min_sep) / nbins
+    kk = treecorr.KKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    kk.process_pairwise(cat1, cat2)
+    kk.finalize(cat1.vark, cat2.vark)
+
+    true_npairs = np.zeros(nbins, dtype=int)
+    true_weight = np.zeros(nbins, dtype=float)
+    true_xi = np.zeros(nbins, dtype=float)
+
+    rsq = (x1-x2)**2 + (y1-y2)**2
+    r = np.sqrt(rsq)
+    logr = np.log(r)
+    expmialpha = ((x1-x2) - 1j*(y1-y2)) / r
+
+    ww = w1 * w2
+    xi = ww * k1 * k2
+
+    index = np.floor(np.log(r/min_sep) / bin_size).astype(int)
+    mask = (index >= 0) & (index < nbins)
+    np.add.at(true_npairs, index[mask], 1)
+    np.add.at(true_weight, index[mask], ww[mask])
+    np.add.at(true_xi, index[mask], xi[mask])
+
+    true_xi /= true_weight
+
+    np.testing.assert_array_equal(kk.npairs, true_npairs)
+    np.testing.assert_allclose(kk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-4, atol=1.e-8)
+
+    # If cats have names, then the logger will mention them.
+    # Also, test running with optional args.
+    cat1.name = "first"
+    cat2.name = "second"
+    with CaptureLog() as cl:
+        kk.logger = cl.logger
+        kk.process_pairwise(cat1, cat2, metric='Euclidean', num_threads=2)
+    assert "for cats first, second" in cl.output
+
 
 def test_constant():
     # A fairly trivial test is to use a constant value of kappa everywhere.
@@ -173,49 +457,49 @@ def test_large_scale():
         'bin_slop' : 0.2,
         'verbose' : 1
     }
-    dd_sphere = treecorr.KKCorrelation(config)
-    dd_chord = treecorr.KKCorrelation(config)
-    dd_euclid = treecorr.KKCorrelation(config)
-    dd_euclid.process(cat1, metric='Euclidean')
-    dd_sphere.process(cat1, metric='Arc')
-    dd_chord.process(cat2, metric='Euclidean')
+    kk_sphere = treecorr.KKCorrelation(config)
+    kk_chord = treecorr.KKCorrelation(config)
+    kk_euclid = treecorr.KKCorrelation(config)
+    kk_euclid.process(cat1, metric='Euclidean')
+    kk_sphere.process(cat1, metric='Arc')
+    kk_chord.process(cat2, metric='Euclidean')
 
     for tag in [ 'rnom', 'logr', 'meanr', 'meanlogr', 'npairs', 'xi' ]:
-        for name, dd in [ ('Euclid', dd_euclid), ('Sphere', dd_sphere), ('Chord', dd_chord) ]:
+        for name, dd in [ ('Euclid', kk_euclid), ('Sphere', kk_sphere), ('Chord', kk_chord) ]:
             print(name, tag, '=', getattr(dd,tag))
 
     # rnom and logr should be identical
-    np.testing.assert_array_equal(dd_sphere.rnom, dd_euclid.rnom)
-    np.testing.assert_array_equal(dd_chord.rnom, dd_euclid.rnom)
-    np.testing.assert_array_equal(dd_sphere.logr, dd_euclid.logr)
-    np.testing.assert_array_equal(dd_chord.logr, dd_euclid.logr)
+    np.testing.assert_array_equal(kk_sphere.rnom, kk_euclid.rnom)
+    np.testing.assert_array_equal(kk_chord.rnom, kk_euclid.rnom)
+    np.testing.assert_array_equal(kk_sphere.logr, kk_euclid.logr)
+    np.testing.assert_array_equal(kk_chord.logr, kk_euclid.logr)
 
     # meanr should be similar for sphere and chord, but euclid is larger, since the chord
     # distances have been scaled up to the real great circle distances
-    np.testing.assert_allclose(dd_sphere.meanr, dd_chord.meanr, rtol=1.e-3*tol)
-    np.testing.assert_allclose(dd_chord.meanr[:half], dd_euclid.meanr[:half], rtol=1.e-3*tol)
-    np.testing.assert_array_less(dd_chord.meanr[half:], dd_euclid.meanr[half:])
-    np.testing.assert_allclose(dd_sphere.meanlogr, dd_chord.meanlogr, atol=2.e-2*tol)
-    np.testing.assert_allclose(dd_chord.meanlogr[:half], dd_euclid.meanlogr[:half], atol=2.e-2*tol)
-    np.testing.assert_array_less(dd_chord.meanlogr[half:], dd_euclid.meanlogr[half:])
+    np.testing.assert_allclose(kk_sphere.meanr, kk_chord.meanr, rtol=1.e-3*tol)
+    np.testing.assert_allclose(kk_chord.meanr[:half], kk_euclid.meanr[:half], rtol=1.e-3*tol)
+    np.testing.assert_array_less(kk_chord.meanr[half:], kk_euclid.meanr[half:])
+    np.testing.assert_allclose(kk_sphere.meanlogr, kk_chord.meanlogr, atol=2.e-2*tol)
+    np.testing.assert_allclose(kk_chord.meanlogr[:half], kk_euclid.meanlogr[:half], atol=2.e-2*tol)
+    np.testing.assert_array_less(kk_chord.meanlogr[half:], kk_euclid.meanlogr[half:])
 
     # npairs is basically the same for chord and euclid since the only difference there comes from
     # differences in where they cut off the tree traversal, so the number of pairs is almost equal,
     # even though the separations in each bin are given a different nominal distance.
     # Sphere is smaller than both at all scales, since it is measuring the correlation
     # function on larger real scales at each position.
-    print('diff (c-e)/e = ',(dd_chord.npairs-dd_euclid.npairs)/dd_euclid.npairs)
-    print('max = ',np.max(np.abs((dd_chord.npairs-dd_euclid.npairs)/dd_euclid.npairs)))
-    np.testing.assert_allclose(dd_chord.npairs, dd_euclid.npairs, rtol=1.e-3*tol)
-    print('diff (s-e)/e = ',(dd_sphere.npairs-dd_euclid.npairs)/dd_euclid.npairs)
-    np.testing.assert_allclose(dd_sphere.npairs[:half], dd_euclid.npairs[:half], rtol=3.e-3*tol)
-    np.testing.assert_array_less(dd_sphere.npairs[half:], dd_euclid.npairs[half:])
+    print('diff (c-e)/e = ',(kk_chord.npairs-kk_euclid.npairs)/kk_euclid.npairs)
+    print('max = ',np.max(np.abs((kk_chord.npairs-kk_euclid.npairs)/kk_euclid.npairs)))
+    np.testing.assert_allclose(kk_chord.npairs, kk_euclid.npairs, rtol=1.e-3*tol)
+    print('diff (s-e)/e = ',(kk_sphere.npairs-kk_euclid.npairs)/kk_euclid.npairs)
+    np.testing.assert_allclose(kk_sphere.npairs[:half], kk_euclid.npairs[:half], rtol=3.e-3*tol)
+    np.testing.assert_array_less(kk_sphere.npairs[half:], kk_euclid.npairs[half:])
 
     # Renormalize by the actual spacing in log(r)
-    renorm_euclid = dd_euclid.npairs / np.gradient(dd_euclid.meanlogr)
-    renorm_sphere = dd_sphere.npairs / np.gradient(dd_sphere.meanlogr)
+    renorm_euclid = kk_euclid.npairs / np.gradient(kk_euclid.meanlogr)
+    renorm_sphere = kk_sphere.npairs / np.gradient(kk_sphere.meanlogr)
     # Then interpolate the euclid results to the values of the sphere distances
-    interp_euclid = np.interp(dd_sphere.meanlogr, dd_euclid.meanlogr, renorm_euclid)
+    interp_euclid = np.interp(kk_sphere.meanlogr, kk_euclid.meanlogr, renorm_euclid)
     # Matches at 3e-3 over whole range now.
     print('interp_euclid = ',interp_euclid)
     print('renorm_sphere = ',renorm_sphere)
@@ -230,17 +514,17 @@ def test_large_scale():
     # The xi values are similar.  The euclid and chord values start out basically identical,
     # but the distances are different.  The euclid and the sphere are actually the same function
     # so they match when rescaled to have the same distance values.
-    print('diff euclid, chord = ',(dd_chord.xi-dd_euclid.xi)/dd_euclid.xi)
-    print('max = ',np.max(np.abs((dd_chord.xi-dd_euclid.xi)/dd_euclid.xi)))
-    np.testing.assert_allclose(dd_chord.xi[:-8], dd_euclid.xi[:-8], rtol=1.e-3*tol)
-    np.testing.assert_allclose(dd_chord.xi, dd_euclid.xi, rtol=3.e-3*tol)
+    print('diff euclid, chord = ',(kk_chord.xi-kk_euclid.xi)/kk_euclid.xi)
+    print('max = ',np.max(np.abs((kk_chord.xi-kk_euclid.xi)/kk_euclid.xi)))
+    np.testing.assert_allclose(kk_chord.xi[:-8], kk_euclid.xi[:-8], rtol=1.e-3*tol)
+    np.testing.assert_allclose(kk_chord.xi, kk_euclid.xi, rtol=3.e-3*tol)
 
-    interp_euclid = np.interp(dd_sphere.meanlogr, dd_euclid.meanlogr, dd_euclid.xi)
+    interp_euclid = np.interp(kk_sphere.meanlogr, kk_euclid.meanlogr, kk_euclid.xi)
     print('interp_euclid = ',interp_euclid)
-    print('sphere.xi = ',dd_sphere.xi)
-    print('diff interp euclid, sphere = ',(dd_sphere.xi-interp_euclid))
-    print('max = ',np.max(np.abs((dd_sphere.xi-interp_euclid))))
-    np.testing.assert_allclose(dd_sphere.xi, interp_euclid, atol=1.e-3*tol)
+    print('sphere.xi = ',kk_sphere.xi)
+    print('diff interp euclid, sphere = ',(kk_sphere.xi-interp_euclid))
+    print('max = ',np.max(np.abs((kk_sphere.xi-interp_euclid))))
+    np.testing.assert_allclose(kk_sphere.xi, interp_euclid, atol=1.e-3*tol)
 
 
 if __name__ == '__main__':

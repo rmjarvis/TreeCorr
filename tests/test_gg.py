@@ -132,7 +132,7 @@ def test_gg():
 
     # Check that we get the same result using the corr2 function:
     cat.write(os.path.join('data','gg.dat'))
-    config = treecorr.read_config('gg.yaml')
+    config = treecorr.read_config('configs/gg.yaml')
     config['verbose'] = 0
     config['precision'] = 8
     treecorr.corr2(config)
@@ -379,7 +379,7 @@ def test_spherical():
 
     # Check that we get the same result using the corr2 function
     cat.write(os.path.join('data','gg_spherical.dat'))
-    config = treecorr.read_config('gg_spherical.yaml')
+    config = treecorr.read_config('configs/gg_spherical.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','gg_spherical.out'), names=True,
@@ -410,7 +410,7 @@ def test_aardvark():
 
     get_from_wiki('Aardvark.fit')
     file_name = os.path.join('data','Aardvark.fit')
-    config = treecorr.read_config('Aardvark.yaml')
+    config = treecorr.read_config('configs/Aardvark.yaml')
     config['verbose'] = 1
     cat1 = treecorr.Catalog(file_name, config)
     gg = treecorr.GGCorrelation(config)
@@ -903,7 +903,7 @@ def test_rlens():
     # Check that we get the same result using the corr2 function
     lens_cat.write(os.path.join('data','gg_rlens_lens.dat'))
     source_cat.write(os.path.join('data','gg_rlens_source.dat'))
-    config = treecorr.read_config('gg_rlens.yaml')
+    config = treecorr.read_config('configs/gg_rlens.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','gg_rlens.out'),names=True, skip_header=1)
@@ -1169,7 +1169,7 @@ def test_rperp():
     # Check that we get the same result using the corr2 function
     lens_cat.write(os.path.join('data','gg_rperp_lens.dat'))
     source_cat.write(os.path.join('data','gg_rperp_source.dat'))
-    config = treecorr.read_config('gg_rperp.yaml')
+    config = treecorr.read_config('configs/gg_rperp.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','gg_rperp.out'),names=True,
@@ -1386,7 +1386,7 @@ def test_rperp_local():
     # Check that we get the same result using the corr2 function
     lens_cat.write(os.path.join('data','gg_rperp_local_lens.dat'))
     source_cat.write(os.path.join('data','gg_rperp_local_source.dat'))
-    config = treecorr.read_config('gg_rperp_local.yaml')
+    config = treecorr.read_config('configs/gg_rperp_local.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','gg_rperp_local.out'),names=True,
@@ -1577,7 +1577,7 @@ def test_oldrperp():
     # Check that we get the same result using the corr2 function:
     lens_cat.write(os.path.join('data','gg_oldrperp_lens.dat'))
     source_cat.write(os.path.join('data','gg_oldrperp_source.dat'))
-    config = treecorr.read_config('gg_oldrperp.yaml')
+    config = treecorr.read_config('configs/gg_oldrperp.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','gg_oldrperp.out'),names=True,
@@ -1792,7 +1792,7 @@ def test_oldrperp_local():
     # Check that we get the same result using the corr2 function:
     lens_cat.write(os.path.join('data','gg_oldrperp_local_lens.dat'))
     source_cat.write(os.path.join('data','gg_oldrperp_local_source.dat'))
-    config = treecorr.config.read_config('gg_oldrperp_local.yaml')
+    config = treecorr.config.read_config('configs/gg_oldrperp_local.yaml')
     logger = treecorr.config.setup_logger(0)
     treecorr.corr2(config, logger)
     corr2_output = np.genfromtxt(os.path.join('output','gg_oldrperp_local.out'),names=True,

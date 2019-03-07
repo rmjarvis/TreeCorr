@@ -63,7 +63,7 @@ def test_single():
     # Check that we get the same result using the corr2 function:
     lens_cat.write(os.path.join('data','ng_single_lens.dat'))
     source_cat.write(os.path.join('data','ng_single_source.dat'))
-    config = treecorr.read_config('ng_single.yaml')
+    config = treecorr.read_config('configs/ng_single.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','ng_single.out'), names=True,
@@ -146,7 +146,7 @@ def test_pairwise():
     # Check that we get the same result using the corr2 function:
     lens_cat.write(os.path.join('data','ng_pairwise_lens.dat'))
     source_cat.write(os.path.join('data','ng_pairwise_source.dat'))
-    config = treecorr.read_config('ng_pairwise.yaml')
+    config = treecorr.read_config('configs/ng_pairwise.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','ng_pairwise.out'), names=True,
@@ -276,7 +276,7 @@ def test_spherical():
     # Check that we get the same result using the corr2 function:
     lens_cat.write(os.path.join('data','ng_spherical_lens.dat'))
     source_cat.write(os.path.join('data','ng_spherical_source.dat'))
-    config = treecorr.read_config('ng_spherical.yaml')
+    config = treecorr.read_config('configs/ng_spherical.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','ng_spherical.out'), names=True,
@@ -357,7 +357,7 @@ def test_ng():
     lens_cat.write(os.path.join('data','ng_lens.fits'))
     source_cat.write(os.path.join('data','ng_source.fits'))
     rand_cat.write(os.path.join('data','ng_rand.fits'))
-    config = treecorr.read_config('ng.yaml')
+    config = treecorr.read_config('configs/ng.yaml')
     config['verbose'] = 0
     config['precision'] = 8
     treecorr.corr2(config)
@@ -487,7 +487,7 @@ def test_nmap():
     lens_cat.write(os.path.join('data','ng_nmap_lens.dat'))
     source_cat.write(os.path.join('data','ng_nmap_source.dat'))
     rand_cat.write(os.path.join('data','ng_nmap_rand.dat'))
-    config = treecorr.read_config('ng_nmap.yaml')
+    config = treecorr.read_config('configs/ng_nmap.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','ng_nmap.out'), names=True)
@@ -719,7 +719,7 @@ def test_pieces():
     lens_cat.write(os.path.join('data','ng_wpos_lens.fits'))
     for i, sc in enumerate(source_cats2):
         sc.write(os.path.join('data','ng_wpos_source%d.fits'%i))
-    config = treecorr.read_config('ng_wpos.yaml')
+    config = treecorr.read_config('configs/ng_wpos.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
     data = fitsio.read(config['ng_file_name'])
@@ -836,7 +836,7 @@ def test_rlens():
     # Check that we get the same result using the corr2 function:
     lens_cat.write(os.path.join('data','ng_rlens_lens.dat'))
     source_cat.write(os.path.join('data','ng_rlens_source.dat'))
-    config = treecorr.read_config('ng_rlens.yaml')
+    config = treecorr.read_config('configs/ng_rlens.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','ng_rlens.out'), names=True,
@@ -1067,7 +1067,7 @@ def test_rlens_bkg():
     # Check that we get the same result using the corr2 function:
     lens_cat.write(os.path.join('data','ng_rlens_bkg_lens.dat'))
     source_cat.write(os.path.join('data','ng_rlens_bkg_source.dat'))
-    config = treecorr.read_config('ng_rlens_bkg.yaml')
+    config = treecorr.read_config('configs/ng_rlens_bkg.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','ng_rlens_bkg.out'), names=True,

@@ -99,7 +99,7 @@ def test_kk():
 
     # Check that we get the same result using the corr2 function
     cat.write(os.path.join('data','kk.dat'))
-    config = treecorr.read_config('kk.yaml')
+    config = treecorr.read_config('configs/kk.yaml')
     config['verbose'] = 0
     config['precision'] = 8
     treecorr.corr2(config)

@@ -53,7 +53,7 @@ def test_single():
     # Check that we get the same result using the corr2 function
     lens_cat.write(os.path.join('data','nk_single_lens.dat'))
     source_cat.write(os.path.join('data','nk_single_source.dat'))
-    config = treecorr.read_config('nk_single.yaml')
+    config = treecorr.read_config('configs/nk_single.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','nk_single.out'), names=True,
@@ -139,7 +139,7 @@ def test_nk():
     lens_cat.write(os.path.join('data','nk_lens.fits'))
     source_cat.write(os.path.join('data','nk_source.fits'))
     rand_cat.write(os.path.join('data','nk_rand.fits'))
-    config = treecorr.read_config('nk.yaml')
+    config = treecorr.read_config('configs/nk.yaml')
     config['verbose'] = 0
     config['precision'] = 8
     treecorr.corr2(config)

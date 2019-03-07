@@ -160,7 +160,7 @@ def test_kkk():
 
     # Check that we get the same result using the corr3 functin:
     cat.write(os.path.join('data','kkk_data.dat'))
-    config = treecorr.config.read_config('kkk.yaml')
+    config = treecorr.config.read_config('configs/kkk.yaml')
     config['verbose'] = 0
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','kkk.out'), names=True, skip_header=1)

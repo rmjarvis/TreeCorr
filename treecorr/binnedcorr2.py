@@ -16,7 +16,7 @@
 """
 
 import math
-import numpy
+import numpy as np
 import sys
 import coord
 import treecorr
@@ -285,11 +285,11 @@ class BinnedCorr2(object):
                 self.min_sep = self.max_sep*math.exp(-self.nbins*self.bin_size)
 
             # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
-            self.logr = numpy.linspace(0, self.nbins*self.bin_size, self.nbins, endpoint=False,
+            self.logr = np.linspace(0, self.nbins*self.bin_size, self.nbins, endpoint=False,
                                        dtype=float)
             # Offset by the position of the center of the first bin.
             self.logr += math.log(self.min_sep) + 0.5*self.bin_size
-            self.rnom = numpy.exp(self.logr)
+            self.rnom = np.exp(self.logr)
             self._nbins = self.nbins
             self._bintype = treecorr._lib.Log
             target_max_b = 0.1
@@ -306,11 +306,11 @@ class BinnedCorr2(object):
             else:
                 self.min_sep = self.max_sep - self.nbins*self.bin_size
 
-            self.rnom = numpy.linspace(self.min_sep, self.max_sep, self.nbins, endpoint=False,
+            self.rnom = np.linspace(self.min_sep, self.max_sep, self.nbins, endpoint=False,
                                        dtype=float)
             # Offset by the position of the center of the first bin.
             self.rnom += 0.5*self.bin_size
-            self.logr = numpy.log(self.rnom)
+            self.logr = np.log(self.rnom)
             self._nbins = self.nbins
             self._bintype = treecorr._lib.Linear
             target_max_b = 0.1 * self.bin_size
@@ -324,14 +324,14 @@ class BinnedCorr2(object):
             else:
                 self.max_sep = self.nbins * self.bin_size / 2.
 
-            sep = numpy.linspace(-self.max_sep, self.max_sep, self.nbins, endpoint=False,
+            sep = np.linspace(-self.max_sep, self.max_sep, self.nbins, endpoint=False,
                                  dtype=float)
             sep += 0.5 * self.bin_size
-            self.dx, self.dy = numpy.meshgrid(sep, sep)
-            self.rnom = numpy.sqrt(self.dx**2 + self.dy**2)
-            self.logr = numpy.zeros_like(self.rnom)
-            numpy.log(self.rnom, out=self.logr, where=self.rnom > 0)
-            self.logr[self.rnom==0.] = -numpy.inf
+            self.dx, self.dy = np.meshgrid(sep, sep)
+            self.rnom = np.sqrt(self.dx**2 + self.dy**2)
+            self.logr = np.zeros_like(self.rnom)
+            np.log(self.rnom, out=self.logr, where=self.rnom > 0)
+            self.logr[self.rnom==0.] = -np.inf
             self._nbins = self.nbins**2
             self._bintype = treecorr._lib.TwoD
             target_max_b = 0.1 * self.bin_size
@@ -441,8 +441,8 @@ class BinnedCorr2(object):
         if self.coords == 'spherical' and self.metric == 'Euclidean':
             # Then our distances are all angles.  Convert from the chord distance to a real angle.
             # L = 2 sin(theta/2)
-            self.meanr[mask] = 2. * numpy.arcsin(self.meanr[mask]/2.)
-            self.meanlogr[mask] = numpy.log( 2. * numpy.arcsin(numpy.exp(self.meanlogr[mask])/2.) )
+            self.meanr[mask] = 2. * np.arcsin(self.meanr[mask]/2.)
+            self.meanlogr[mask] = np.log( 2. * np.arcsin(np.exp(self.meanlogr[mask])/2.) )
         self.meanr[mask] /= self._sep_units
         self.meanlogr[mask] -= self._log_sep_units
 

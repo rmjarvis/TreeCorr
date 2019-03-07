@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 from __future__ import print_function
-import numpy
+import numpy as np
 import treecorr
 import os
 import fitsio
@@ -49,12 +49,12 @@ def test_gg():
         # Rather than have a single set tolerance, we tune the tolerances for the above
         # __main__ setup, but scale up by a factor of 5 for the quicker run.
         tol_factor = 5
-    numpy.random.seed(8675309)
-    x = (numpy.random.random_sample(ngal)-0.5) * L
-    y = (numpy.random.random_sample(ngal)-0.5) * L
+    np.random.seed(8675309)
+    x = (np.random.random_sample(ngal)-0.5) * L
+    y = (np.random.random_sample(ngal)-0.5) * L
     r2 = (x**2 + y**2)/r0**2
-    g1 = -gamma0 * numpy.exp(-r2/2.) * (x**2-y**2)/r0**2
-    g2 = -gamma0 * numpy.exp(-r2/2.) * (2.*x*y)/r0**2
+    g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
+    g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
 
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
@@ -62,11 +62,11 @@ def test_gg():
     gg.process(cat)
 
     # log(<R>) != <logR>, but it should be close:
-    print('meanlogr - log(meanr) = ',gg.meanlogr - numpy.log(gg.meanr))
-    numpy.testing.assert_allclose(gg.meanlogr, numpy.log(gg.meanr), atol=1.e-3)
+    print('meanlogr - log(meanr) = ',gg.meanlogr - np.log(gg.meanr))
+    np.testing.assert_allclose(gg.meanlogr, np.log(gg.meanr), atol=1.e-3)
 
     r = gg.meanr
-    temp = numpy.pi/16. * gamma0**2 * (r0/L)**2 * numpy.exp(-0.25*r**2/r0**2)
+    temp = np.pi/16. * gamma0**2 * (r0/L)**2 * np.exp(-0.25*r**2/r0**2)
     true_xip = temp * (r**4 - 16.*r**2*r0**2 + 32.*r0**4)/r0**4
     true_xim = temp * r**4/r0**4
 
@@ -90,7 +90,7 @@ def test_gg():
 
     # Should also work as a cross-correlation with itself
     gg.process(cat,cat)
-    numpy.testing.assert_allclose(gg.meanlogr, numpy.log(gg.meanr), atol=1.e-3)
+    np.testing.assert_allclose(gg.meanlogr, np.log(gg.meanr), atol=1.e-3)
     assert max(abs(gg.xip - true_xip)) < 3.e-7 * tol_factor
     assert max(abs(gg.xip_im)) < 2.e-7 * tol_factor
     assert max(abs(gg.xim - true_xim)) < 3.e-7 * tol_factor
@@ -105,7 +105,7 @@ def test_gg():
     #          = 0
     # where T+(s) = (s^4-16s^2+32)/128 exp(-s^2/4)
     #       T-(s) = s^4/128 exp(-s^2/4)
-    true_mapsq = 6.*numpy.pi * gamma0**2 * r0**8 * r**4 / (L**2 * (r**2+r0**2)**5)
+    true_mapsq = 6.*np.pi * gamma0**2 * r0**8 * r**4 / (L**2 * (r**2+r0**2)**5)
 
     mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq('Crittenden')
     print('mapsq = ',mapsq)
@@ -129,18 +129,18 @@ def test_gg():
     config = treecorr.read_config('gg.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
-    corr2_output = numpy.genfromtxt(os.path.join('output','gg.out'), names=True, skip_header=1)
+    corr2_output = np.genfromtxt(os.path.join('output','gg.out'), names=True, skip_header=1)
     print('gg.xip = ',gg.xip)
     print('from corr2 output = ',corr2_output['xip'])
     print('ratio = ',corr2_output['xip']/gg.xip)
     print('diff = ',corr2_output['xip']-gg.xip)
-    numpy.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
 
     print('gg.xim = ',gg.xim)
     print('from corr2 output = ',corr2_output['xim'])
     print('ratio = ',corr2_output['xim']/gg.xim)
     print('diff = ',corr2_output['xim']-gg.xim)
-    numpy.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
 
     print('xip_im from corr2 output = ',corr2_output['xip_im'])
     print('max err = ',max(abs(corr2_output['xip_im'])))
@@ -150,54 +150,54 @@ def test_gg():
     assert max(abs(corr2_output['xim_im'])) < 1.e-7 * tol_factor
 
     # Check m2 output
-    corr2_output2 = numpy.genfromtxt(os.path.join('output','gg_m2.out'), names=True)
+    corr2_output2 = np.genfromtxt(os.path.join('output','gg_m2.out'), names=True)
     print('mapsq = ',mapsq)
     print('from corr2 output = ',corr2_output2['Mapsq'])
     print('ratio = ',corr2_output2['Mapsq']/mapsq)
     print('diff = ',corr2_output2['Mapsq']-mapsq)
-    numpy.testing.assert_allclose(corr2_output2['Mapsq'], mapsq, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output2['Mapsq'], mapsq, rtol=1.e-3)
 
     print('mxsq = ',mxsq)
     print('from corr2 output = ',corr2_output2['Mxsq'])
     print('ratio = ',corr2_output2['Mxsq']/mxsq)
     print('diff = ',corr2_output2['Mxsq']-mxsq)
-    numpy.testing.assert_allclose(corr2_output2['Mxsq'], mxsq, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output2['Mxsq'], mxsq, rtol=1.e-3)
 
     # OK to have m2 output, but not gg
     del config['gg_file_name']
     treecorr.corr2(config)
-    corr2_output2 = numpy.genfromtxt(os.path.join('output','gg_m2.out'), names=True)
-    numpy.testing.assert_allclose(corr2_output2['Mapsq'], mapsq, rtol=1.e-3)
-    numpy.testing.assert_allclose(corr2_output2['Mxsq'], mxsq, rtol=1.e-3)
+    corr2_output2 = np.genfromtxt(os.path.join('output','gg_m2.out'), names=True)
+    np.testing.assert_allclose(corr2_output2['Mapsq'], mapsq, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output2['Mxsq'], mxsq, rtol=1.e-3)
 
     # Check the fits write option
     out_file_name = os.path.join('output','gg_out.fits')
     gg.write(out_file_name)
     data = fitsio.read(out_file_name)
-    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(gg.logr))
-    numpy.testing.assert_almost_equal(data['meanR'], gg.meanr)
-    numpy.testing.assert_almost_equal(data['meanlogR'], gg.meanlogr)
-    numpy.testing.assert_almost_equal(data['xip'], gg.xip)
-    numpy.testing.assert_almost_equal(data['xim'], gg.xim)
-    numpy.testing.assert_almost_equal(data['xip_im'], gg.xip_im)
-    numpy.testing.assert_almost_equal(data['xim_im'], gg.xim_im)
-    numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(gg.varxi))
-    numpy.testing.assert_almost_equal(data['weight'], gg.weight)
-    numpy.testing.assert_almost_equal(data['npairs'], gg.npairs)
+    np.testing.assert_almost_equal(data['R_nom'], np.exp(gg.logr))
+    np.testing.assert_almost_equal(data['meanR'], gg.meanr)
+    np.testing.assert_almost_equal(data['meanlogR'], gg.meanlogr)
+    np.testing.assert_almost_equal(data['xip'], gg.xip)
+    np.testing.assert_almost_equal(data['xim'], gg.xim)
+    np.testing.assert_almost_equal(data['xip_im'], gg.xip_im)
+    np.testing.assert_almost_equal(data['xim_im'], gg.xim_im)
+    np.testing.assert_almost_equal(data['sigma_xi'], np.sqrt(gg.varxi))
+    np.testing.assert_almost_equal(data['weight'], gg.weight)
+    np.testing.assert_almost_equal(data['npairs'], gg.npairs)
 
     # Check the read function
     gg2 = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin')
     gg2.read(out_file_name)
-    numpy.testing.assert_almost_equal(gg2.logr, gg.logr)
-    numpy.testing.assert_almost_equal(gg2.meanr, gg.meanr)
-    numpy.testing.assert_almost_equal(gg2.meanlogr, gg.meanlogr)
-    numpy.testing.assert_almost_equal(gg2.xip, gg.xip)
-    numpy.testing.assert_almost_equal(gg2.xim, gg.xim)
-    numpy.testing.assert_almost_equal(gg2.xip_im, gg.xip_im)
-    numpy.testing.assert_almost_equal(gg2.xim_im, gg.xim_im)
-    numpy.testing.assert_almost_equal(gg2.varxi, gg.varxi)
-    numpy.testing.assert_almost_equal(gg2.weight, gg.weight)
-    numpy.testing.assert_almost_equal(gg2.npairs, gg.npairs)
+    np.testing.assert_almost_equal(gg2.logr, gg.logr)
+    np.testing.assert_almost_equal(gg2.meanr, gg.meanr)
+    np.testing.assert_almost_equal(gg2.meanlogr, gg.meanlogr)
+    np.testing.assert_almost_equal(gg2.xip, gg.xip)
+    np.testing.assert_almost_equal(gg2.xim, gg.xim)
+    np.testing.assert_almost_equal(gg2.xip_im, gg.xip_im)
+    np.testing.assert_almost_equal(gg2.xim_im, gg.xim_im)
+    np.testing.assert_almost_equal(gg2.varxi, gg.varxi)
+    np.testing.assert_almost_equal(gg2.weight, gg.weight)
+    np.testing.assert_almost_equal(gg2.npairs, gg.npairs)
     assert gg2.coords == gg.coords
     assert gg2.metric == gg.metric
     assert gg2.sep_units == gg.sep_units
@@ -211,7 +211,7 @@ def test_gg():
     try:
         from scipy.special import iv
         x = 0.5*r**2/r0**2
-        true_mapsq = 144.*numpy.pi * gamma0**2 * r0**2 / (L**2 * x**2) * numpy.exp(-x) * iv(4,x)
+        true_mapsq = 144.*np.pi * gamma0**2 * r0**2 / (L**2 * x**2) * np.exp(-x) * iv(4,x)
 
         mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq('Schneider')
         print('Schneider mapsq = ',mapsq)
@@ -249,19 +249,19 @@ def test_spherical():
         nsource = 100000
         L = 50.*r0
         tol_factor = 5
-    numpy.random.seed(8675309)
-    x = (numpy.random.random_sample(nsource)-0.5) * L
-    y = (numpy.random.random_sample(nsource)-0.5) * L
+    np.random.seed(8675309)
+    x = (np.random.random_sample(nsource)-0.5) * L
+    y = (np.random.random_sample(nsource)-0.5) * L
     r2 = x**2 + y**2
-    g1 = -gamma0 * numpy.exp(-r2/2./r0**2) * (x**2-y**2)/r0**2
-    g2 = -gamma0 * numpy.exp(-r2/2./r0**2) * (2.*x*y)/r0**2
-    r = numpy.sqrt(r2)
+    g1 = -gamma0 * np.exp(-r2/2./r0**2) * (x**2-y**2)/r0**2
+    g2 = -gamma0 * np.exp(-r2/2./r0**2) * (2.*x*y)/r0**2
+    r = np.sqrt(r2)
     theta = arctan2(y,x)
 
     gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
                                 verbose=1)
-    r1 = numpy.exp(gg.logr) * (coord.arcmin / coord.radians)
-    temp = numpy.pi/16. * gamma0**2 * (r0/L)**2 * numpy.exp(-0.25*r1**2/r0**2)
+    r1 = np.exp(gg.logr) * (coord.arcmin / coord.radians)
+    temp = np.pi/16. * gamma0**2 * (r0/L)**2 * np.exp(-0.25*r1**2/r0**2)
     true_xip = temp * (r1**4 - 16.*r1**2*r0**2 + 32.*r0**4)/r0**4
     true_xim = temp * r1**4/r0**4
 
@@ -292,12 +292,12 @@ def test_spherical():
         b = arccos(cosb)
         cosA = (cos(a) - cos(b)*cos(c)) / (sin(b)*sin(c))
         #A = arccos(cosA)
-        A = numpy.zeros_like(cosA)
+        A = np.zeros_like(cosA)
         A[abs(cosA)<1] = arccos(cosA[abs(cosA)<1])
         A[cosA<=-1] = pi
         cosC = (cos(c) - cos(a)*cos(b)) / (sin(a)*sin(b))
         #C = arccos(cosC)
-        C = numpy.zeros_like(cosC)
+        C = np.zeros_like(cosC)
         C[abs(cosC)<1] = arccos(cosC[abs(cosC)<1])
         C[cosC<=-1] = pi
         C[x<0] *= -1.
@@ -346,9 +346,9 @@ def test_spherical():
     dec0 = pi/2.
     ra = theta
     dec = pi/2. - 2.*arcsin(r/2.)
-    gammat = -gamma0 * r2/r0**2 * numpy.exp(-r2/2./r0**2)
+    gammat = -gamma0 * r2/r0**2 * np.exp(-r2/2./r0**2)
 
-    cat = treecorr.Catalog(ra=ra, dec=dec, g1=gammat, g2=numpy.zeros_like(gammat), ra_units='rad',
+    cat = treecorr.Catalog(ra=ra, dec=dec, g1=gammat, g2=np.zeros_like(gammat), ra_units='rad',
                            dec_units='rad')
     gg.process(cat)
 
@@ -375,19 +375,19 @@ def test_spherical():
     config = treecorr.read_config('gg_spherical.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
-    corr2_output = numpy.genfromtxt(os.path.join('output','gg_spherical.out'), names=True,
+    corr2_output = np.genfromtxt(os.path.join('output','gg_spherical.out'), names=True,
                                     skip_header=1)
     print('gg.xip = ',gg.xip)
     print('from corr2 output = ',corr2_output['xip'])
     print('ratio = ',corr2_output['xip']/gg.xip)
     print('diff = ',corr2_output['xip']-gg.xip)
-    numpy.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
 
     print('gg.xim = ',gg.xim)
     print('from corr2 output = ',corr2_output['xim'])
     print('ratio = ',corr2_output['xim']/gg.xim)
     print('diff = ',corr2_output['xim']-gg.xim)
-    numpy.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
 
     print('xip_im from corr2 output = ',corr2_output['xip_im'])
     assert max(abs(corr2_output['xip_im'])) < 3.e-7 * tol_factor
@@ -410,7 +410,7 @@ def test_aardvark():
     gg.process(cat1)
 
     direct_file_name = os.path.join('data','Aardvark.direct')
-    direct_data = numpy.genfromtxt(direct_file_name)
+    direct_data = np.genfromtxt(direct_file_name)
     direct_xip = direct_data[:,3]
     direct_xim = direct_data[:,4]
 
@@ -441,7 +441,7 @@ def test_aardvark():
     # spaced in log of the chord distance, rather than the great circle distance.
 
     bs0_file_name = os.path.join('data','Aardvark.bs0')
-    bs0_data = numpy.genfromtxt(bs0_file_name)
+    bs0_data = np.genfromtxt(bs0_file_name)
     bs0_xip = bs0_data[:,2]
     bs0_xim = bs0_data[:,3]
 
@@ -462,19 +462,19 @@ def test_aardvark():
     # There's nothing new here coverage-wise, so only do this when running from command line.
     if __name__ == '__main__':
         treecorr.corr2(config)
-        corr2_output = numpy.genfromtxt(os.path.join('output','Aardvark.out'), names=True,
+        corr2_output = np.genfromtxt(os.path.join('output','Aardvark.out'), names=True,
                                         skip_header=1)
         print('gg.xip = ',gg.xip)
         print('from corr2 output = ',corr2_output['xip'])
         print('ratio = ',corr2_output['xip']/gg.xip)
         print('diff = ',corr2_output['xip']-gg.xip)
-        numpy.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
+        np.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
 
         print('gg.xim = ',gg.xim)
         print('from corr2 output = ',corr2_output['xim'])
         print('ratio = ',corr2_output['xim']/gg.xim)
         print('diff = ',corr2_output['xim']-gg.xim)
-        numpy.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
+        np.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
 
         print('xip_im from corr2 output = ',corr2_output['xip_im'])
         print('max err = ',max(abs(corr2_output['xip_im'])))
@@ -512,21 +512,21 @@ def test_shuffle():
     gamma0 = 0.05
     r0 = 10.
     L = 5. * r0
-    numpy.random.seed(8675309)
-    x = (numpy.random.random_sample(ngal)-0.5) * L
-    y = (numpy.random.random_sample(ngal)-0.5) * L
+    np.random.seed(8675309)
+    x = (np.random.random_sample(ngal)-0.5) * L
+    y = (np.random.random_sample(ngal)-0.5) * L
     r2 = (x**2 + y**2)/r0**2
-    g1 = -gamma0 * numpy.exp(-r2/2.) * (x**2-y**2)/r0**2
-    g2 = -gamma0 * numpy.exp(-r2/2.) * (2.*x*y)/r0**2
+    g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
+    g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
 
     cat_u = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
     gg_u = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=30., verbose=1)
     gg_u.process(cat_u)
 
-    # Put these in a single 2d array so we can easily use numpy.random.shuffle
-    data = numpy.array( [x, y, g1, g2] ).T
+    # Put these in a single 2d array so we can easily use np.random.shuffle
+    data = np.array( [x, y, g1, g2] ).T
     print('data = ',data)
-    numpy.random.shuffle(data)
+    np.random.shuffle(data)
 
     cat_s = treecorr.Catalog(x=data[:,0], y=data[:,1], g1=data[:,2], g2=data[:,3])
     gg_s = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=30., verbose=1)
@@ -597,34 +597,34 @@ def test_haloellip():
                  # with the one lens we used for assigning its shear value.
 
     # Lenses are randomly located with random shapes.
-    numpy.random.seed(8675309)
-    lens_g1 = numpy.random.normal(0., 0.1, (nlens,))
-    lens_g2 = numpy.random.normal(0., 0.1, (nlens,))
+    np.random.seed(8675309)
+    lens_g1 = np.random.normal(0., 0.1, (nlens,))
+    lens_g2 = np.random.normal(0., 0.1, (nlens,))
     lens_g = lens_g1 + 1j * lens_g2
-    lens_absg = numpy.abs(lens_g)
-    lens_x = (numpy.random.random_sample(nlens)-0.5) * L
-    lens_y = (numpy.random.random_sample(nlens)-0.5) * L
+    lens_absg = np.abs(lens_g)
+    lens_x = (np.random.random_sample(nlens)-0.5) * L
+    lens_y = (np.random.random_sample(nlens)-0.5) * L
     print('Made lenses')
 
     e_a = 0.17  # The amplitude of the constant part of the signal
     e_b = 0.23  # The amplitude of the quadrupole part of the signal
-    source_g1 = numpy.empty(ntot)
-    source_g2 = numpy.empty(ntot)
-    source_x = numpy.empty(ntot)
-    source_y = numpy.empty(ntot)
+    source_g1 = np.empty(ntot)
+    source_g2 = np.empty(ntot)
+    source_x = np.empty(ntot)
+    source_y = np.empty(ntot)
     # For the sources, place 100 galaxies around each lens with the expected azimuthal pattern
     # I just use a constant |g| for the amplitude, not a real radial pattern.
     for i in range(nlens):
         # First build the signal as it appears in the coordinate system where the halo
         # is oriented along the x-axis
-        dx = numpy.random.normal(0., 10., (nsource,))
-        dy = numpy.random.normal(0., 10., (nsource,))
+        dx = np.random.normal(0., 10., (nsource,))
+        dy = np.random.normal(0., 10., (nsource,))
         z = dx + 1j * dy
-        exp2iphi = z**2 / numpy.abs(z)**2
+        exp2iphi = z**2 / np.abs(z)**2
         source_g = e_a + e_b * exp2iphi**2
         # Now rotate the whole system by the phase of the lens ellipticity.
         exp2ialpha = lens_g[i] / lens_absg[i]
-        expialpha = numpy.sqrt(exp2ialpha)
+        expialpha = np.sqrt(exp2ialpha)
         source_g *= exp2ialpha
         z *= expialpha
         # Also scale the signal by |lens_g|
@@ -638,7 +638,7 @@ def test_haloellip():
 
     source_cat = treecorr.Catalog(x=source_x, y=source_y, g1=source_g1, g2=source_g2)
     gg = treecorr.GGCorrelation(min_sep=1, max_sep=30, bin_size=0.1)
-    lens_mean_absg = numpy.mean(lens_absg)
+    lens_mean_absg = np.mean(lens_absg)
     print('mean_absg = ',lens_mean_absg)
 
     # First the original version where we only use the phase of the lens ellipticities:
@@ -647,10 +647,10 @@ def test_haloellip():
     print('gg.xim = ',gg.xim)
     # The net signal here is just <absg> * e_b
     print('expected signal = ',e_b * lens_mean_absg)
-    numpy.testing.assert_allclose(gg.xim, e_b * lens_mean_absg, rtol=tol)
+    np.testing.assert_allclose(gg.xim, e_b * lens_mean_absg, rtol=tol)
     print('gg.xip = ',gg.xip)
     print('expected signal = ',e_a * lens_mean_absg)
-    numpy.testing.assert_allclose(gg.xip, e_a * lens_mean_absg, rtol=tol)
+    np.testing.assert_allclose(gg.xip, e_a * lens_mean_absg, rtol=tol)
 
     # Next weight the lenses by their absg.
     lens_cat2 = treecorr.Catalog(x=lens_x, y=lens_y, g1=lens_g1/lens_absg, g2=lens_g2/lens_absg,
@@ -661,12 +661,12 @@ def test_haloellip():
     # sum(w * e_b*absg[i]) / sum(w)
     # = sum(absg[i]^2 * e_b) / sum(absg[i])
     # = <absg^2> * e_b / <absg>
-    lens_mean_gsq = numpy.mean(lens_absg**2)
+    lens_mean_gsq = np.mean(lens_absg**2)
     print('expected signal = ',e_b * lens_mean_gsq / lens_mean_absg)
-    numpy.testing.assert_allclose(gg.xim, e_b * lens_mean_gsq / lens_mean_absg, rtol=tol)
+    np.testing.assert_allclose(gg.xim, e_b * lens_mean_gsq / lens_mean_absg, rtol=tol)
     print('gg.xip = ',gg.xip)
     print('expected signal = ',e_a * lens_mean_gsq / lens_mean_absg)
-    numpy.testing.assert_allclose(gg.xip, e_a * lens_mean_gsq / lens_mean_absg, rtol=tol)
+    np.testing.assert_allclose(gg.xip, e_a * lens_mean_gsq / lens_mean_absg, rtol=tol)
 
     # Finally, use the unnormalized lens_g for the lens ellipticities
     lens_cat3 = treecorr.Catalog(x=lens_x, y=lens_y, g1=lens_g1, g2=lens_g2)
@@ -678,16 +678,16 @@ def test_haloellip():
     # = <absg^2> * e_b
     print('expected signal = ',e_b * lens_mean_gsq)
     # This one is slightly less accurate.  But easily passes at 4% accuracy.
-    numpy.testing.assert_allclose(gg.xim, e_b * lens_mean_gsq, rtol=tol*1.5)
+    np.testing.assert_allclose(gg.xim, e_b * lens_mean_gsq, rtol=tol*1.5)
     print('gg.xip = ',gg.xip)
     print('expected signal = ',e_a * lens_mean_gsq)
-    numpy.testing.assert_allclose(gg.xip, e_a * lens_mean_gsq, rtol=tol*1.5)
+    np.testing.assert_allclose(gg.xip, e_a * lens_mean_gsq, rtol=tol*1.5)
 
     # It's worth noting that exactly half the signal is in each of g1, g2, so for things
     # like SDSS, you can use only g2, for instance, which avoids some insidious systematic
     # errors related to the scan direction.
     source_cat2 = treecorr.Catalog(x=source_x, y=source_y,
-                                   g1=numpy.zeros_like(source_g2), g2=source_g2)
+                                   g1=np.zeros_like(source_g2), g2=source_g2)
     gg.process(lens_cat1, source_cat2)
     print('gg.xim = ',gg.xim)
     print('expected signal = ',e_b * lens_mean_absg / 2.)
@@ -696,10 +696,10 @@ def test_haloellip():
     # artificial, as I placed the exact signal down with no shape noise, the increased shape
     # noise is a lot more than previously here.  So I had to drop the precision by a factor of
     # 5 relative to what I did above.
-    numpy.testing.assert_allclose(gg.xim, e_b * lens_mean_absg/2., rtol=tol*5)
+    np.testing.assert_allclose(gg.xim, e_b * lens_mean_absg/2., rtol=tol*5)
     print('gg.xip = ',gg.xip)
     print('expected signal = ',e_a * lens_mean_absg / 2.)
-    numpy.testing.assert_allclose(gg.xip, e_a * lens_mean_absg/2., rtol=tol*5)
+    np.testing.assert_allclose(gg.xip, e_a * lens_mean_absg/2., rtol=tol*5)
 
 def test_rlens():
     # Similar to test_rlens in test_ng.py, but we give the lenses a shape and do a GG correlation.
@@ -710,26 +710,26 @@ def test_rlens():
     gamma0 = 0.05
     R0 = 10.
     L = 50. * R0
-    numpy.random.seed(8675309)
+    np.random.seed(8675309)
 
     # Lenses are randomly located with random shapes.
-    xl = (numpy.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
-    zl = (numpy.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
-    yl = numpy.random.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
-    rl = numpy.sqrt(xl**2 + yl**2 + zl**2)
-    g1l = numpy.random.normal(0., 0.1, (nlens,))
-    g2l = numpy.random.normal(0., 0.1, (nlens,))
+    xl = (np.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
+    zl = (np.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
+    yl = np.random.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
+    rl = np.sqrt(xl**2 + yl**2 + zl**2)
+    g1l = np.random.normal(0., 0.1, (nlens,))
+    g2l = np.random.normal(0., 0.1, (nlens,))
     gl = g1l + 1j * g2l
-    gl /= numpy.abs(gl)
+    gl /= np.abs(gl)
     print('Made lenses')
 
     # For the signal, we'll do a pure quadrupole halo lens signal.  cf. test_haloellip()
-    xs = (numpy.random.random_sample(nsource)-0.5) * L
-    zs = (numpy.random.random_sample(nsource)-0.5) * L
-    ys = numpy.random.random_sample(nsource) * 8*L + 160*L  # 80000 < z < 84000
-    rs = numpy.sqrt(xs**2 + ys**2 + zs**2)
-    g1 = numpy.zeros( (nsource,) )
-    g2 = numpy.zeros( (nsource,) )
+    xs = (np.random.random_sample(nsource)-0.5) * L
+    zs = (np.random.random_sample(nsource)-0.5) * L
+    ys = np.random.random_sample(nsource) * 8*L + 160*L  # 80000 < z < 84000
+    rs = np.sqrt(xs**2 + ys**2 + zs**2)
+    g1 = np.zeros( (nsource,) )
+    g2 = np.zeros( (nsource,) )
     bin_size = 0.1
     # min_sep is set so the first bin doesn't have 0 pairs.
     min_sep = 1.3*R0
@@ -737,20 +737,20 @@ def test_rlens():
     # values of separation.  We're not adding any shape noise directly, but the shear from other
     # lenses is effectively a shape noise, and that comes to dominate the measurement above ~4R0.
     max_sep = 4.*R0
-    nbins = int(numpy.ceil(numpy.log(max_sep/min_sep)/bin_size))
-    true_gQ = numpy.zeros( (nbins,) )
-    true_gCr = numpy.zeros( (nbins,) )
-    true_gCi = numpy.zeros( (nbins,) )
-    true_npairs = numpy.zeros((nbins,), dtype=int)
+    nbins = int(np.ceil(np.log(max_sep/min_sep)/bin_size))
+    true_gQ = np.zeros( (nbins,) )
+    true_gCr = np.zeros( (nbins,) )
+    true_gCi = np.zeros( (nbins,) )
+    true_npairs = np.zeros((nbins,), dtype=int)
     print('Making shear vectors')
     for x,y,z,r,g in zip(xl,yl,zl,rl,gl):
         # Rlens = |r1 x r2| / |r2|
         xcross = ys * z - zs * y
         ycross = zs * x - xs * z
         zcross = xs * y - ys * x
-        Rlens = numpy.sqrt(xcross**2 + ycross**2 + zcross**2) / rs
+        Rlens = np.sqrt(xcross**2 + ycross**2 + zcross**2) / rs
 
-        gammaQ = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+        gammaQ = gamma0 * np.exp(-0.5*Rlens**2/R0**2)
 
         # For the alpha angle, approximate that the x,z coords are approx the perpendicular plane.
         # So just normalize back to the unit sphere and do the 2d projection calculation.
@@ -758,26 +758,26 @@ def test_rlens():
         dx = xs/rs-x/r
         dz = zs/rs-z/r
         expialpha = dx + 1j*dz
-        expialpha /= numpy.abs(expialpha)
+        expialpha /= np.abs(expialpha)
 
         # In frame where halo is along x axis,
         #   g_source = gammaQ exp(4itheta)
         # In real frame, theta = alpha - phi, and we need to rotate the shear an extra exp(2iphi)
         #   g_source = gammaQ exp(4ialpha) exp(-2iphi)
-        gQ = gammaQ * expialpha**4 * numpy.conj(g)
+        gQ = gammaQ * expialpha**4 * np.conj(g)
         g1 += gQ.real
         g2 += gQ.imag
 
-        index = numpy.floor( numpy.log(Rlens/min_sep) / bin_size).astype(int)
+        index = np.floor( np.log(Rlens/min_sep) / bin_size).astype(int)
         mask = (index >= 0) & (index < nbins)
-        numpy.add.at(true_gQ, index[mask], gammaQ[mask])
-        numpy.add.at(true_npairs, index[mask], 1)
+        np.add.at(true_gQ, index[mask], gammaQ[mask])
+        np.add.at(true_npairs, index[mask], 1)
 
         # We aren't intentionally making a constant term, but there will be some C signal due to
         # the finite number of pairs being rendered.  So let's figure out how much there is.
-        gC = gQ * numpy.conj(g)
-        numpy.add.at(true_gCr, index[mask], gC[mask].real)
-        numpy.add.at(true_gCi, index[mask], -gC[mask].imag)
+        gC = gQ * np.conj(g)
+        np.add.at(true_gCr, index[mask], gC[mask].real)
+        np.add.at(true_gCi, index[mask], -gC[mask].imag)
 
     true_gQ /= true_npairs
     true_gCr /= true_npairs
@@ -797,13 +797,13 @@ def test_rlens():
     t1 = time.time()
 
     Rlens = gg0.meanr
-    theory_gQ = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+    theory_gQ = gamma0 * np.exp(-0.5*Rlens**2/R0**2)
 
     print('Results with bin_slop = 0:')
     print('time = ',t1-t0)
     print('gg.npairs = ',gg0.npairs)
     print('true_npairs = ',true_npairs)
-    numpy.testing.assert_array_equal(gg0.npairs, true_npairs)
+    np.testing.assert_array_equal(gg0.npairs, true_npairs)
     print('gg.xim = ',gg0.xim)
     print('true_gQ = ',true_gQ)
     print('ratio = ',gg0.xim / true_gQ)
@@ -839,13 +839,13 @@ def test_rlens():
     t1 = time.time()
 
     Rlens = gg1.meanr
-    theory_gQ = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+    theory_gQ = gamma0 * np.exp(-0.5*Rlens**2/R0**2)
 
     print('Results with bin_slop = 1.e-10:')
     print('time = ',t1-t0)
     print('gg.npairs = ',gg1.npairs)
     print('true_npairs = ',true_npairs)
-    numpy.testing.assert_array_equal(gg1.npairs, true_npairs)
+    np.testing.assert_array_equal(gg1.npairs, true_npairs)
     print('gg.xim = ',gg1.xim)
     print('true_gQ = ',true_gQ)
     print('ratio = ',gg1.xim / true_gQ)
@@ -879,7 +879,7 @@ def test_rlens():
     gg2.process(lens_cat, source_cat)
     t1 = time.time()
     Rlens = gg2.meanr
-    theory_gQ = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+    theory_gQ = gamma0 * np.exp(-0.5*Rlens**2/R0**2)
 
     print('Results with bin_slop = 0.3')
     print('time = ',t1-t0)
@@ -899,16 +899,16 @@ def test_rlens():
     config = treecorr.read_config('gg_rlens.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
-    corr2_output = numpy.genfromtxt(os.path.join('output','gg_rlens.out'),names=True,
+    corr2_output = np.genfromtxt(os.path.join('output','gg_rlens.out'),names=True,
                                     skip_header=1)
     print('gg.xim = ',gg2.xim)
     print('from corr2 output = ',corr2_output['xim'])
     print('ratio = ',corr2_output['xim']/gg2.xim)
     print('diff = ',corr2_output['xim']-gg2.xim)
-    numpy.testing.assert_allclose(corr2_output['xim'], gg2.xim, rtol=1.e-3)
-    numpy.testing.assert_allclose(corr2_output['xim_im'], gg2.xim_im, rtol=1.e-3)
-    numpy.testing.assert_allclose(corr2_output['xip'], gg2.xip, rtol=1.e-3)
-    numpy.testing.assert_allclose(corr2_output['xip_im'], gg2.xip_im, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xim'], gg2.xim, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xim_im'], gg2.xim_im, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xip'], gg2.xip, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xip_im'], gg2.xip_im, rtol=1.e-3)
 
     # Repeat with the sources being given as RA/Dec only.
     ral, decl = coord.CelestialCoord.xyz_to_radec(xl,yl,zl)
@@ -923,12 +923,12 @@ def test_rlens():
     gg0s.process(lens_cat, source_cat)
 
     Rlens = gg0s.meanr
-    theory_gQ = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+    theory_gQ = gamma0 * np.exp(-0.5*Rlens**2/R0**2)
 
     print('Results with bin_slop = 0:')
     print('gg.npairs = ',gg0s.npairs)
     print('true_npairs = ',true_npairs)
-    numpy.testing.assert_array_equal(gg0s.npairs, true_npairs)
+    np.testing.assert_array_equal(gg0s.npairs, true_npairs)
     print('gg.xim = ',gg0s.xim)
     print('true_gQ = ',true_gQ)
     print('ratio = ',gg0s.xim / true_gQ)
@@ -968,7 +968,7 @@ def test_rlens():
                                   metric='Rlens', bin_slop=0.3)
     ggs2.process(lens_cat, source_cat)
     Rlens = ggs2.meanr
-    theory_gQ = gamma0 * numpy.exp(-0.5*Rlens**2/R0**2)
+    theory_gQ = gamma0 * np.exp(-0.5*Rlens**2/R0**2)
 
     print('Results with bin_slop = 0.3')
     print('gg.npairs = ',ggs2.npairs)
@@ -992,26 +992,26 @@ def test_rperp():
     gamma0 = 0.05
     R0 = 5.
     L = 100. * R0
-    numpy.random.seed(8675309)
+    np.random.seed(8675309)
 
     # Lenses are randomly located with random shapes.
-    xl = (numpy.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
-    zl = (numpy.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
-    yl = numpy.random.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
-    rl = numpy.sqrt(xl**2 + yl**2 + zl**2)
-    g1l = numpy.random.normal(0., 0.1, (nlens,))
-    g2l = numpy.random.normal(0., 0.1, (nlens,))
+    xl = (np.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
+    zl = (np.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
+    yl = np.random.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
+    rl = np.sqrt(xl**2 + yl**2 + zl**2)
+    g1l = np.random.normal(0., 0.1, (nlens,))
+    g2l = np.random.normal(0., 0.1, (nlens,))
     gl = g1l + 1j * g2l
-    gl /= numpy.abs(gl)
+    gl /= np.abs(gl)
     print('Made lenses')
 
     # For the signal, we'll do a pure quadrupole halo lens signal.  cf. test_haloellip()
-    xs = (numpy.random.random_sample(nsource)-0.5) * L
-    zs = (numpy.random.random_sample(nsource)-0.5) * L
-    ys = numpy.random.random_sample(nsource) * 8*L + 160*L  # 80000 < z < 84000
-    rs = numpy.sqrt(xs**2 + ys**2 + zs**2)
-    g1 = numpy.zeros( (nsource,) )
-    g2 = numpy.zeros( (nsource,) )
+    xs = (np.random.random_sample(nsource)-0.5) * L
+    zs = (np.random.random_sample(nsource)-0.5) * L
+    ys = np.random.random_sample(nsource) * 8*L + 160*L  # 80000 < z < 84000
+    rs = np.sqrt(xs**2 + ys**2 + zs**2)
+    g1 = np.zeros( (nsource,) )
+    g2 = np.zeros( (nsource,) )
     bin_size = 0.1
     # min_sep is set so the first bin doesn't have 0 pairs.
     # Both this and max_sep need to be larger than what we used for Rlens.
@@ -1023,37 +1023,37 @@ def test_rperp():
     # Because the Rperp values are a lot larger than the Rlens values, use a larger scale radius
     # in the gaussian signal.
     R1 = 4. * R0
-    nbins = int(numpy.ceil(numpy.log(max_sep/min_sep)/bin_size))
-    true_gQ = numpy.zeros( (nbins,) )
-    true_gCr = numpy.zeros( (nbins,) )
-    true_gCi = numpy.zeros( (nbins,) )
-    true_npairs = numpy.zeros((nbins,), dtype=int)
+    nbins = int(np.ceil(np.log(max_sep/min_sep)/bin_size))
+    true_gQ = np.zeros( (nbins,) )
+    true_gCr = np.zeros( (nbins,) )
+    true_gCi = np.zeros( (nbins,) )
+    true_npairs = np.zeros((nbins,), dtype=int)
     print('Making shear vectors')
     for x,y,z,r,g in zip(xl,yl,zl,rl,gl):
         dsq = (x-xs)**2 + (y-ys)**2 + (z-zs)**2
         Lsq = ((x+xs)**2 + (y+ys)**2 + (z+zs)**2) / 4.
-        Rpar = abs(rs**2 - r**2) / (2 * numpy.sqrt(Lsq))
+        Rpar = abs(rs**2 - r**2) / (2 * np.sqrt(Lsq))
         Rperpsq = dsq - Rpar**2
-        Rperp = numpy.sqrt(Rperpsq)
-        gammaQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+        Rperp = np.sqrt(Rperpsq)
+        gammaQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
         dx = xs/rs-x/r
         dz = zs/rs-z/r
         expialpha = dx + 1j*dz
-        expialpha /= numpy.abs(expialpha)
+        expialpha /= np.abs(expialpha)
 
-        gQ = gammaQ * expialpha**4 * numpy.conj(g)
+        gQ = gammaQ * expialpha**4 * np.conj(g)
         g1 += gQ.real
         g2 += gQ.imag
 
-        index = numpy.floor( numpy.log(Rperp/min_sep) / bin_size).astype(int)
+        index = np.floor( np.log(Rperp/min_sep) / bin_size).astype(int)
         mask = (index >= 0) & (index < nbins)
-        numpy.add.at(true_gQ, index[mask], gammaQ[mask])
-        numpy.add.at(true_npairs, index[mask], 1)
+        np.add.at(true_gQ, index[mask], gammaQ[mask])
+        np.add.at(true_npairs, index[mask], 1)
 
-        gC = gQ * numpy.conj(g)
-        numpy.add.at(true_gCr, index[mask], gC[mask].real)
-        numpy.add.at(true_gCi, index[mask], -gC[mask].imag)
+        gC = gQ * np.conj(g)
+        np.add.at(true_gCr, index[mask], gC[mask].real)
+        np.add.at(true_gCi, index[mask], -gC[mask].imag)
 
     true_gQ /= true_npairs
     true_gCr /= true_npairs
@@ -1071,12 +1071,12 @@ def test_rperp():
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
-    theory_gQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+    theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
     print('Results with bin_slop = 0:')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
-    numpy.testing.assert_array_equal(gg.npairs, true_npairs)
+    np.testing.assert_array_equal(gg.npairs, true_npairs)
     print('gg.xim = ',gg.xim)
     print('true_gQ = ',true_gQ)
     print('ratio = ',gg.xim / true_gQ)
@@ -1110,12 +1110,12 @@ def test_rperp():
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
-    theory_gQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+    theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
     print('Results with bin_slop = 1.e-10:')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
-    numpy.testing.assert_array_equal(gg.npairs, true_npairs)
+    np.testing.assert_array_equal(gg.npairs, true_npairs)
     print('gg.xim = ',gg.xim)
     print('true_gQ = ',true_gQ)
     print('ratio = ',gg.xim / true_gQ)
@@ -1147,7 +1147,7 @@ def test_rperp():
                                 metric='FisherRperp', bin_slop=0.3)
     gg.process(lens_cat, source_cat)
     Rperp = gg.meanr
-    theory_gQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+    theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
     print('Results with bin_slop = 0.3')
     print('gg.npairs = ',gg.npairs)
@@ -1166,16 +1166,16 @@ def test_rperp():
     config = treecorr.read_config('gg_rperp.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
-    corr2_output = numpy.genfromtxt(os.path.join('output','gg_rperp.out'),names=True,
+    corr2_output = np.genfromtxt(os.path.join('output','gg_rperp.out'),names=True,
                                     skip_header=1)
     print('gg.xim = ',gg.xim)
     print('from corr2 output = ',corr2_output['xim'])
     print('ratio = ',corr2_output['xim']/gg.xim)
     print('diff = ',corr2_output['xim']-gg.xim)
-    numpy.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
-    numpy.testing.assert_allclose(corr2_output['xim_im'], gg.xim_im, rtol=1.e-3)
-    numpy.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
-    numpy.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xim_im'], gg.xim_im, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
 
 
 def test_rperp_local():
@@ -1186,27 +1186,27 @@ def test_rperp_local():
     gamma0 = 0.05
     R0 = 5.
     L = 100. * R0
-    numpy.random.seed(8675309)
+    np.random.seed(8675309)
 
     # Lenses are randomly located with random shapes.
-    xl = (numpy.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
-    zl = (numpy.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
-    yl = numpy.random.random_sample(nlens) * 8*L + 10*L  # 5000 < z < 9000
-    rl = numpy.sqrt(xl**2 + yl**2 + zl**2)
-    g1l = numpy.random.normal(0., 0.1, (nlens,))
-    g2l = numpy.random.normal(0., 0.1, (nlens,))
+    xl = (np.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
+    zl = (np.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
+    yl = np.random.random_sample(nlens) * 8*L + 10*L  # 5000 < z < 9000
+    rl = np.sqrt(xl**2 + yl**2 + zl**2)
+    g1l = np.random.normal(0., 0.1, (nlens,))
+    g2l = np.random.normal(0., 0.1, (nlens,))
     gl = g1l + 1j * g2l
-    gl /= numpy.abs(gl)
+    gl /= np.abs(gl)
     print('Made lenses')
 
     # For the signal, we'll do a pure quadrupole halo lens signal.  cf. test_haloellip()
     # We also only apply it to sources within L of the lens.
-    xs = (numpy.random.random_sample(nsource)-0.5) * L
-    zs = (numpy.random.random_sample(nsource)-0.5) * L
-    ys = numpy.random.random_sample(nsource) * 8*L + 10*L  # 5000 < z < 9000
-    rs = numpy.sqrt(xs**2 + ys**2 + zs**2)
-    g1 = numpy.zeros( (nsource,) )
-    g2 = numpy.zeros( (nsource,) )
+    xs = (np.random.random_sample(nsource)-0.5) * L
+    zs = (np.random.random_sample(nsource)-0.5) * L
+    ys = np.random.random_sample(nsource) * 8*L + 10*L  # 5000 < z < 9000
+    rs = np.sqrt(xs**2 + ys**2 + zs**2)
+    g1 = np.zeros( (nsource,) )
+    g2 = np.zeros( (nsource,) )
     bin_size = 0.1
     # The min/max sep range can be larger here than above, since we're not diluted by the signal
     # from other background galaxies around different lenses.
@@ -1215,25 +1215,25 @@ def test_rperp_local():
     # Because the Rperp values are a lot larger than the Rlens values, use a larger scale radius
     # in the gaussian signal.
     R1 = 4. * R0
-    nbins = int(numpy.ceil(numpy.log(max_sep/min_sep)/bin_size))
+    nbins = int(np.ceil(np.log(max_sep/min_sep)/bin_size))
 
     print('Making shear vectors')
     for x,y,z,r,g in zip(xl,yl,zl,rl,gl):
         # This time, only apply the shape to the nearby galaxies.
-        near = numpy.abs(rs-r) < 50
+        near = np.abs(rs-r) < 50
 
         dsq = (x-xs[near])**2 + (y-ys[near])**2 + (z-zs[near])**2
         Lsq = ((x+xs[near])**2 + (y+ys[near])**2 + (z+zs[near])**2) / 4.
-        Rpar = abs(rs[near]**2 - r**2) / (2 * numpy.sqrt(Lsq))
-        Rperp = numpy.sqrt(dsq - Rpar**2)
-        gammaQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+        Rpar = abs(rs[near]**2 - r**2) / (2 * np.sqrt(Lsq))
+        Rperp = np.sqrt(dsq - Rpar**2)
+        gammaQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
         dx = (xs/rs)[near]-x/r
         dz = (zs/rs)[near]-z/r
         expialpha = dx + 1j*dz
-        expialpha /= numpy.abs(expialpha)
+        expialpha /= np.abs(expialpha)
 
-        gQ = gammaQ * expialpha**4 * numpy.conj(g)
+        gQ = gammaQ * expialpha**4 * np.conj(g)
         g1[near] += gQ.real
         g2[near] += gQ.imag
 
@@ -1241,33 +1241,33 @@ def test_rperp_local():
     # go back and calculate the true_g values, since we need to include the contamination signal
     # from galaxies that are nearby multiple halos.
     print('Calculating true shears')
-    true_gQ = numpy.zeros( (nbins,) )
-    true_gCr = numpy.zeros( (nbins,) )
-    true_gCi = numpy.zeros( (nbins,) )
-    true_npairs = numpy.zeros((nbins,), dtype=int)
+    true_gQ = np.zeros( (nbins,) )
+    true_gCr = np.zeros( (nbins,) )
+    true_gCi = np.zeros( (nbins,) )
+    true_npairs = np.zeros((nbins,), dtype=int)
     for x,y,z,r,g in zip(xl,yl,zl,rl,gl):
-        near = numpy.abs(rs-r) < 50
+        near = np.abs(rs-r) < 50
 
         dsq = (x-xs[near])**2 + (y-ys[near])**2 + (z-zs[near])**2
         Lsq = ((x+xs[near])**2 + (y+ys[near])**2 + (z+zs[near])**2) / 4.
-        Rpar = abs(rs[near]**2 - r**2) / (2 * numpy.sqrt(Lsq))
-        Rperp = numpy.sqrt(dsq - Rpar**2)
+        Rpar = abs(rs[near]**2 - r**2) / (2 * np.sqrt(Lsq))
+        Rperp = np.sqrt(dsq - Rpar**2)
 
         dx = (xs/rs)[near]-x/r
         dz = (zs/rs)[near]-z/r
         expmialpha = dx - 1j*dz
-        expmialpha /= numpy.abs(expmialpha)
+        expmialpha /= np.abs(expmialpha)
         gs = (g1 + 1j * g2)[near]
         gQ = gs * expmialpha**4 * g
 
-        index = numpy.floor( numpy.log(Rperp/min_sep) / bin_size).astype(int)
+        index = np.floor( np.log(Rperp/min_sep) / bin_size).astype(int)
         mask = (index >= 0) & (index < nbins)
-        numpy.add.at(true_gQ, index[mask], gQ[mask].real)
-        numpy.add.at(true_npairs, index[mask], 1)
+        np.add.at(true_gQ, index[mask], gQ[mask].real)
+        np.add.at(true_npairs, index[mask], 1)
 
-        gC = gs * numpy.conj(g)
-        numpy.add.at(true_gCr, index[mask], gC[mask].real)
-        numpy.add.at(true_gCi, index[mask], -gC[mask].imag)
+        gC = gs * np.conj(g)
+        np.add.at(true_gCr, index[mask], gC[mask].real)
+        np.add.at(true_gCi, index[mask], -gC[mask].imag)
 
     true_gQ /= true_npairs
     true_gCr /= true_npairs
@@ -1285,12 +1285,12 @@ def test_rperp_local():
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
-    theory_gQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+    theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
     print('Results with bin_slop = 0:')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
-    numpy.testing.assert_array_equal(gg.npairs, true_npairs)
+    np.testing.assert_array_equal(gg.npairs, true_npairs)
     print('gg.xim = ',gg.xim)
     print('true_gQ = ',true_gQ)
     print('ratio = ',gg.xim / true_gQ)
@@ -1324,12 +1324,12 @@ def test_rperp_local():
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
-    theory_gQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+    theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
     print('Results with bin_slop = 1.e-10:')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
-    numpy.testing.assert_array_equal(gg.npairs, true_npairs)
+    np.testing.assert_array_equal(gg.npairs, true_npairs)
     print('gg.xim = ',gg.xim)
     print('true_gQ = ',true_gQ)
     print('ratio = ',gg.xim / true_gQ)
@@ -1364,7 +1364,7 @@ def test_rperp_local():
                                 metric='FisherRperp', bin_slop=0.1, min_rpar=-50, max_rpar=50)
     gg.process(lens_cat, source_cat)
     Rperp = gg.meanr
-    theory_gQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+    theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
     print('Results with bin_slop = 0.1')
     print('gg.npairs = ',gg.npairs)
@@ -1383,16 +1383,16 @@ def test_rperp_local():
     config = treecorr.read_config('gg_rperp_local.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
-    corr2_output = numpy.genfromtxt(os.path.join('output','gg_rperp_local.out'),names=True,
+    corr2_output = np.genfromtxt(os.path.join('output','gg_rperp_local.out'),names=True,
                                     skip_header=1)
     print('gg.xim = ',gg.xim)
     print('from corr2 output = ',corr2_output['xim'])
     print('ratio = ',corr2_output['xim']/gg.xim)
     print('diff = ',corr2_output['xim']-gg.xim)
-    numpy.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
-    numpy.testing.assert_allclose(corr2_output['xim_im'], gg.xim_im, rtol=1.e-3)
-    numpy.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
-    numpy.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xim_im'], gg.xim_im, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
 
 def test_oldrperp():
     # Same as above, but using OldRperp.
@@ -1402,26 +1402,26 @@ def test_oldrperp():
     gamma0 = 0.05
     R0 = 10.
     L = 50. * R0
-    numpy.random.seed(8675309)
+    np.random.seed(8675309)
 
     # Lenses are randomly located with random shapes.
-    xl = (numpy.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
-    zl = (numpy.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
-    yl = numpy.random.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
-    rl = numpy.sqrt(xl**2 + yl**2 + zl**2)
-    g1l = numpy.random.normal(0., 0.1, (nlens,))
-    g2l = numpy.random.normal(0., 0.1, (nlens,))
+    xl = (np.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
+    zl = (np.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
+    yl = np.random.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
+    rl = np.sqrt(xl**2 + yl**2 + zl**2)
+    g1l = np.random.normal(0., 0.1, (nlens,))
+    g2l = np.random.normal(0., 0.1, (nlens,))
     gl = g1l + 1j * g2l
-    gl /= numpy.abs(gl)
+    gl /= np.abs(gl)
     print('Made lenses')
 
     # For the signal, we'll do a pure quadrupole halo lens signal.  cf. test_haloellip()
-    xs = (numpy.random.random_sample(nsource)-0.5) * L
-    zs = (numpy.random.random_sample(nsource)-0.5) * L
-    ys = numpy.random.random_sample(nsource) * 8*L + 160*L  # 80000 < z < 84000
-    rs = numpy.sqrt(xs**2 + ys**2 + zs**2)
-    g1 = numpy.zeros( (nsource,) )
-    g2 = numpy.zeros( (nsource,) )
+    xs = (np.random.random_sample(nsource)-0.5) * L
+    zs = (np.random.random_sample(nsource)-0.5) * L
+    ys = np.random.random_sample(nsource) * 8*L + 160*L  # 80000 < z < 84000
+    rs = np.sqrt(xs**2 + ys**2 + zs**2)
+    g1 = np.zeros( (nsource,) )
+    g2 = np.zeros( (nsource,) )
     bin_size = 0.1
     # min_sep is set so the first bin doesn't have 0 pairs.
     # Both this and max_sep need to be larger than what we used for Rlens.
@@ -1433,35 +1433,35 @@ def test_oldrperp():
     # Because the Rperp values are a lot larger than the Rlens values, use a larger scale radius
     # in the gaussian signal.
     R1 = 4. * R0
-    nbins = int(numpy.ceil(numpy.log(max_sep/min_sep)/bin_size))
-    true_gQ = numpy.zeros( (nbins,) )
-    true_gCr = numpy.zeros( (nbins,) )
-    true_gCi = numpy.zeros( (nbins,) )
-    true_npairs = numpy.zeros((nbins,), dtype=int)
+    nbins = int(np.ceil(np.log(max_sep/min_sep)/bin_size))
+    true_gQ = np.zeros( (nbins,) )
+    true_gCr = np.zeros( (nbins,) )
+    true_gCi = np.zeros( (nbins,) )
+    true_npairs = np.zeros((nbins,), dtype=int)
     print('Making shear vectors')
     for x,y,z,r,g in zip(xl,yl,zl,rl,gl):
         dsq = (x-xs)**2 + (y-ys)**2 + (z-zs)**2
         rparsq = (r-rs)**2
-        Rperp = numpy.sqrt(dsq - rparsq)
-        gammaQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+        Rperp = np.sqrt(dsq - rparsq)
+        gammaQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
         dx = xs/rs-x/r
         dz = zs/rs-z/r
         expialpha = dx + 1j*dz
-        expialpha /= numpy.abs(expialpha)
+        expialpha /= np.abs(expialpha)
 
-        gQ = gammaQ * expialpha**4 * numpy.conj(g)
+        gQ = gammaQ * expialpha**4 * np.conj(g)
         g1 += gQ.real
         g2 += gQ.imag
 
-        index = numpy.floor( numpy.log(Rperp/min_sep) / bin_size).astype(int)
+        index = np.floor( np.log(Rperp/min_sep) / bin_size).astype(int)
         mask = (index >= 0) & (index < nbins)
-        numpy.add.at(true_gQ, index[mask], gammaQ[mask])
-        numpy.add.at(true_npairs, index[mask], 1)
+        np.add.at(true_gQ, index[mask], gammaQ[mask])
+        np.add.at(true_npairs, index[mask], 1)
 
-        gC = gQ * numpy.conj(g)
-        numpy.add.at(true_gCr, index[mask], gC[mask].real)
-        numpy.add.at(true_gCi, index[mask], -gC[mask].imag)
+        gC = gQ * np.conj(g)
+        np.add.at(true_gCr, index[mask], gC[mask].real)
+        np.add.at(true_gCi, index[mask], -gC[mask].imag)
 
     true_gQ /= true_npairs
     true_gCr /= true_npairs
@@ -1479,12 +1479,12 @@ def test_oldrperp():
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
-    theory_gQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+    theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
     print('Results with bin_slop = 0:')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
-    numpy.testing.assert_array_equal(gg.npairs, true_npairs)
+    np.testing.assert_array_equal(gg.npairs, true_npairs)
     print('gg.xim = ',gg.xim)
     print('true_gQ = ',true_gQ)
     print('ratio = ',gg.xim / true_gQ)
@@ -1518,12 +1518,12 @@ def test_oldrperp():
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
-    theory_gQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+    theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
     print('Results with bin_slop = 1.e-10:')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
-    numpy.testing.assert_array_equal(gg.npairs, true_npairs)
+    np.testing.assert_array_equal(gg.npairs, true_npairs)
     print('gg.xim = ',gg.xim)
     print('true_gQ = ',true_gQ)
     print('ratio = ',gg.xim / true_gQ)
@@ -1555,7 +1555,7 @@ def test_oldrperp():
                                 metric='Rperp', bin_slop=0.3)
     gg.process(lens_cat, source_cat)
     Rperp = gg.meanr
-    theory_gQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+    theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
     print('Results with bin_slop = 0.3')
     print('gg.npairs = ',gg.npairs)
@@ -1574,16 +1574,16 @@ def test_oldrperp():
     config = treecorr.read_config('gg_oldrperp.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
-    corr2_output = numpy.genfromtxt(os.path.join('output','gg_oldrperp.out'),names=True,
+    corr2_output = np.genfromtxt(os.path.join('output','gg_oldrperp.out'),names=True,
                                     skip_header=1)
     print('gg.xim = ',gg.xim)
     print('from corr2 output = ',corr2_output['xim'])
     print('ratio = ',corr2_output['xim']/gg.xim)
     print('diff = ',corr2_output['xim']-gg.xim)
-    numpy.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
-    numpy.testing.assert_allclose(corr2_output['xim_im'], gg.xim_im, rtol=1.e-3)
-    numpy.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
-    numpy.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xim_im'], gg.xim_im, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
 
 
 def test_oldrperp_local():
@@ -1594,27 +1594,27 @@ def test_oldrperp_local():
     gamma0 = 0.05
     R0 = 10.
     L = 50. * R0
-    numpy.random.seed(8675309)
+    np.random.seed(8675309)
 
     # Lenses are randomly located with random shapes.
-    xl = (numpy.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
-    zl = (numpy.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
-    yl = numpy.random.random_sample(nlens) * 8*L + 10*L  # 5000 < z < 9000
-    rl = numpy.sqrt(xl**2 + yl**2 + zl**2)
-    g1l = numpy.random.normal(0., 0.1, (nlens,))
-    g2l = numpy.random.normal(0., 0.1, (nlens,))
+    xl = (np.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
+    zl = (np.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
+    yl = np.random.random_sample(nlens) * 8*L + 10*L  # 5000 < z < 9000
+    rl = np.sqrt(xl**2 + yl**2 + zl**2)
+    g1l = np.random.normal(0., 0.1, (nlens,))
+    g2l = np.random.normal(0., 0.1, (nlens,))
     gl = g1l + 1j * g2l
-    gl /= numpy.abs(gl)
+    gl /= np.abs(gl)
     print('Made lenses')
 
     # For the signal, we'll do a pure quadrupole halo lens signal.  cf. test_haloellip()
     # We also only apply it to sources within L of the lens.
-    xs = (numpy.random.random_sample(nsource)-0.5) * L
-    zs = (numpy.random.random_sample(nsource)-0.5) * L
-    ys = numpy.random.random_sample(nsource) * 8*L + 10*L  # 5000 < z < 9000
-    rs = numpy.sqrt(xs**2 + ys**2 + zs**2)
-    g1 = numpy.zeros( (nsource,) )
-    g2 = numpy.zeros( (nsource,) )
+    xs = (np.random.random_sample(nsource)-0.5) * L
+    zs = (np.random.random_sample(nsource)-0.5) * L
+    ys = np.random.random_sample(nsource) * 8*L + 10*L  # 5000 < z < 9000
+    rs = np.sqrt(xs**2 + ys**2 + zs**2)
+    g1 = np.zeros( (nsource,) )
+    g2 = np.zeros( (nsource,) )
     bin_size = 0.1
     # The min/max sep range can be larger here than above, since we're not diluted by the signal
     # from other background galaxies around different lenses.
@@ -1623,24 +1623,24 @@ def test_oldrperp_local():
     # Because the Rperp values are a lot larger than the Rlens values, use a larger scale radius
     # in the gaussian signal.
     R1 = 4. * R0
-    nbins = int(numpy.ceil(numpy.log(max_sep/min_sep)/bin_size))
+    nbins = int(np.ceil(np.log(max_sep/min_sep)/bin_size))
 
     print('Making shear vectors')
     for x,y,z,r,g in zip(xl,yl,zl,rl,gl):
         # This time, only apply the shape to the nearby galaxies.
-        near = numpy.abs(rs-r) < 50
+        near = np.abs(rs-r) < 50
 
         dsq = (x-xs[near])**2 + (y-ys[near])**2 + (z-zs[near])**2
         rparsq = (r-rs[near])**2
-        Rperp = numpy.sqrt(dsq - rparsq)
-        gammaQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+        Rperp = np.sqrt(dsq - rparsq)
+        gammaQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
         dx = (xs/rs)[near]-x/r
         dz = (zs/rs)[near]-z/r
         expialpha = dx + 1j*dz
-        expialpha /= numpy.abs(expialpha)
+        expialpha /= np.abs(expialpha)
 
-        gQ = gammaQ * expialpha**4 * numpy.conj(g)
+        gQ = gammaQ * expialpha**4 * np.conj(g)
         g1[near] += gQ.real
         g2[near] += gQ.imag
 
@@ -1648,32 +1648,32 @@ def test_oldrperp_local():
     # go back and calculate the true_g values, since we need to include the contamination signal
     # from galaxies that are nearby multiple halos.
     print('Calculating true shears')
-    true_gQ = numpy.zeros( (nbins,) )
-    true_gCr = numpy.zeros( (nbins,) )
-    true_gCi = numpy.zeros( (nbins,) )
-    true_npairs = numpy.zeros((nbins,), dtype=int)
+    true_gQ = np.zeros( (nbins,) )
+    true_gCr = np.zeros( (nbins,) )
+    true_gCi = np.zeros( (nbins,) )
+    true_npairs = np.zeros((nbins,), dtype=int)
     for x,y,z,r,g in zip(xl,yl,zl,rl,gl):
-        near = numpy.abs(rs-r) < 50
+        near = np.abs(rs-r) < 50
 
         dsq = (x-xs[near])**2 + (y-ys[near])**2 + (z-zs[near])**2
         rparsq = (r-rs[near])**2
-        Rperp = numpy.sqrt(dsq - rparsq)
+        Rperp = np.sqrt(dsq - rparsq)
 
         dx = (xs/rs)[near]-x/r
         dz = (zs/rs)[near]-z/r
         expmialpha = dx - 1j*dz
-        expmialpha /= numpy.abs(expmialpha)
+        expmialpha /= np.abs(expmialpha)
         gs = (g1 + 1j * g2)[near]
         gQ = gs * expmialpha**4 * g
 
-        index = numpy.floor( numpy.log(Rperp/min_sep) / bin_size).astype(int)
+        index = np.floor( np.log(Rperp/min_sep) / bin_size).astype(int)
         mask = (index >= 0) & (index < nbins)
-        numpy.add.at(true_gQ, index[mask], gQ[mask].real)
-        numpy.add.at(true_npairs, index[mask], 1)
+        np.add.at(true_gQ, index[mask], gQ[mask].real)
+        np.add.at(true_npairs, index[mask], 1)
 
-        gC = gs * numpy.conj(g)
-        numpy.add.at(true_gCr, index[mask], gC[mask].real)
-        numpy.add.at(true_gCi, index[mask], -gC[mask].imag)
+        gC = gs * np.conj(g)
+        np.add.at(true_gCr, index[mask], gC[mask].real)
+        np.add.at(true_gCi, index[mask], -gC[mask].imag)
 
     true_gQ /= true_npairs
     true_gCr /= true_npairs
@@ -1691,12 +1691,12 @@ def test_oldrperp_local():
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
-    theory_gQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+    theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
     print('Results with bin_slop = 0:')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
-    numpy.testing.assert_array_equal(gg.npairs, true_npairs)
+    np.testing.assert_array_equal(gg.npairs, true_npairs)
     print('gg.xim = ',gg.xim)
     print('true_gQ = ',true_gQ)
     print('ratio = ',gg.xim / true_gQ)
@@ -1730,12 +1730,12 @@ def test_oldrperp_local():
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
-    theory_gQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+    theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
     print('Results with bin_slop = 1.e-10:')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
-    numpy.testing.assert_array_equal(gg.npairs, true_npairs)
+    np.testing.assert_array_equal(gg.npairs, true_npairs)
     print('gg.xim = ',gg.xim)
     print('true_gQ = ',true_gQ)
     print('ratio = ',gg.xim / true_gQ)
@@ -1770,7 +1770,7 @@ def test_oldrperp_local():
                                 metric='OldRperp', bin_slop=0.1, min_rpar=-50, max_rpar=50)
     gg.process(lens_cat, source_cat)
     Rperp = gg.meanr
-    theory_gQ = gamma0 * numpy.exp(-0.5*Rperp**2/R1**2)
+    theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
     print('Results with bin_slop = 0.1')
     print('gg.npairs = ',gg.npairs)
@@ -1789,16 +1789,16 @@ def test_oldrperp_local():
     config = treecorr.config.read_config('gg_oldrperp_local.yaml')
     logger = treecorr.config.setup_logger(0)
     treecorr.corr2(config, logger)
-    corr2_output = numpy.genfromtxt(os.path.join('output','gg_oldrperp_local.out'),names=True,
+    corr2_output = np.genfromtxt(os.path.join('output','gg_oldrperp_local.out'),names=True,
                                     skip_header=1)
     print('gg.xim = ',gg.xim)
     print('from corr2 output = ',corr2_output['xim'])
     print('ratio = ',corr2_output['xim']/gg.xim)
     print('diff = ',corr2_output['xim']-gg.xim)
-    numpy.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
-    numpy.testing.assert_allclose(corr2_output['xim_im'], gg.xim_im, rtol=1.e-3)
-    numpy.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
-    numpy.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xim_im'], gg.xim_im, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
 
 
 if __name__ == '__main__':

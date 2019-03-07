@@ -16,7 +16,7 @@
 """
 
 import treecorr
-import numpy
+import numpy as np
 
 def _parse_split_method(split_method):
     if split_method == 'middle': return 0

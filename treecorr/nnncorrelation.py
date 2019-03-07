@@ -16,7 +16,7 @@
 """
 
 import treecorr
-import numpy
+import numpy as np
 
 
 class NNNCorrelation(treecorr.BinnedCorr3):
@@ -98,16 +98,16 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
 
         shape = (self.nbins, self.nubins, self.nvbins)
-        self.meand1 = numpy.zeros(shape, dtype=float)
-        self.meanlogd1 = numpy.zeros(shape, dtype=float)
-        self.meand2 = numpy.zeros(shape, dtype=float)
-        self.meanlogd2 = numpy.zeros(shape, dtype=float)
-        self.meand3 = numpy.zeros(shape, dtype=float)
-        self.meanlogd3 = numpy.zeros(shape, dtype=float)
-        self.meanu = numpy.zeros(shape, dtype=float)
-        self.meanv = numpy.zeros(shape, dtype=float)
-        self.weight = numpy.zeros(shape, dtype=float)
-        self.ntri = numpy.zeros(shape, dtype=float)
+        self.meand1 = np.zeros(shape, dtype=float)
+        self.meanlogd1 = np.zeros(shape, dtype=float)
+        self.meand2 = np.zeros(shape, dtype=float)
+        self.meanlogd2 = np.zeros(shape, dtype=float)
+        self.meand3 = np.zeros(shape, dtype=float)
+        self.meanlogd3 = np.zeros(shape, dtype=float)
+        self.meanu = np.zeros(shape, dtype=float)
+        self.meanv = np.zeros(shape, dtype=float)
+        self.weight = np.zeros(shape, dtype=float)
+        self.ntri = np.zeros(shape, dtype=float)
         self.tot = 0.
         self._build_corr()
         self.logger.debug('Finished building NNNCorr')
@@ -273,9 +273,9 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.meanu[mask2] = self.u[mask2]
         self.meanv[mask2] = self.v[mask2]
         self.meand3[mask2] = self.u[mask2] * self.meand2[mask2]
-        self.meanlogd3[mask2] = numpy.log(self.meand3[mask2])
+        self.meanlogd3[mask2] = np.log(self.meand3[mask2])
         self.meand1[mask2] = self.v[mask2] * self.meand3[mask2] + self.meand2[mask2]
-        self.meanlogd1[mask2] = numpy.log(self.meand1[mask2])
+        self.meanlogd1[mask2] = np.log(self.meand1[mask2])
 
 
     def clear(self):
@@ -455,7 +455,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             rddw = self.tot / rdd.tot
             zeta = (self.weight + rrd.weight * rrdw + rdr.weight * rdrw + drr.weight * drrw
                     - ddr.weight * ddrw - drd.weight * drdw - rdd.weight * rddw - rrr.weight * rrrw)
-        if numpy.any(rrr.weight == 0):
+        if np.any(rrr.weight == 0):
             self.logger.warning("Warning: Some bins for the randoms had no triangles.\n"+
                                 "         Probably max_sep is larger than your field.")
         mask1 = rrr.weight != 0
@@ -463,7 +463,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         zeta[mask1] /= (rrr.weight[mask1] * rrrw)
         zeta[mask2] = 0
 
-        varzeta = numpy.zeros_like(rrr.weight)
+        varzeta = np.zeros_like(rrr.weight)
         varzeta[mask1] = 1./ (rrr.weight[mask1] * rrrw)
 
         return zeta, varzeta
@@ -587,7 +587,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             zeta, varzeta = self.calculateZeta(rrr,drr,rdr,rrd,ddr,drd,rdd)
 
             col_names += [ 'zeta','sigma_zeta','DDD','RRR' ]
-            columns += [ zeta, numpy.sqrt(varzeta),
+            columns += [ zeta, np.sqrt(varzeta),
                          self.weight, rrr.weight * (self.tot/rrr.tot) ]
 
             if drr is not None:
@@ -628,7 +628,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         data, params = treecorr.util.gen_read(file_name, file_type=file_type)
         s = self.logr.shape
         self.rnom = data['R_nom'].reshape(s)
-        self.logr = numpy.log(self.rnom)
+        self.logr = np.log(self.rnom)
         self.u = data['u_nom'].reshape(s)
         self.v = data['v_nom'].reshape(s)
         self.meand1 = data['meand1'].reshape(s)

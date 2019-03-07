@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 from __future__ import print_function
-import numpy
+import numpy as np
 import treecorr
 import os
 import fitsio
@@ -25,23 +25,23 @@ def test_constant():
     ngal = 100000
     A = 0.05
     L = 100.
-    numpy.random.seed(8675309)
-    x = (numpy.random.random_sample(ngal)-0.5) * L
-    y = (numpy.random.random_sample(ngal)-0.5) * L
-    kappa = A * numpy.ones(ngal)
+    np.random.seed(8675309)
+    x = (np.random.random_sample(ngal)-0.5) * L
+    y = (np.random.random_sample(ngal)-0.5) * L
+    kappa = A * np.ones(ngal)
 
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     kk = treecorr.KKCorrelation(bin_size=0.1, min_sep=0.1, max_sep=10., sep_units='arcmin')
     kk.process(cat)
     print('kk.xi = ',kk.xi)
-    numpy.testing.assert_allclose(kk.xi, A**2, rtol=1.e-6)
+    np.testing.assert_allclose(kk.xi, A**2, rtol=1.e-6)
 
     # Now add some noise to the values. It should still work, but at slightly lower accuracy.
-    kappa += 0.001 * (numpy.random.random_sample(ngal)-0.5)
+    kappa += 0.001 * (np.random.random_sample(ngal)-0.5)
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     kk.process(cat)
     print('kk.xi = ',kk.xi)
-    numpy.testing.assert_allclose(kk.xi, A**2, rtol=1.e-3)
+    np.testing.assert_allclose(kk.xi, A**2, rtol=1.e-3)
 
 
 def test_kk():
@@ -67,11 +67,11 @@ def test_kk():
         tol_factor = 2
 
     A = 0.05
-    numpy.random.seed(8675309)
-    x = (numpy.random.random_sample(ngal)-0.5) * L
-    y = (numpy.random.random_sample(ngal)-0.5) * L
+    np.random.seed(8675309)
+    x = (np.random.random_sample(ngal)-0.5) * L
+    y = (np.random.random_sample(ngal)-0.5) * L
     r2 = (x**2 + y**2)/s**2
-    kappa = A * numpy.exp(-r2/2.)
+    kappa = A * np.exp(-r2/2.)
 
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     kk = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
@@ -79,58 +79,58 @@ def test_kk():
     kk.process(cat)
 
     # log(<R>) != <logR>, but it should be close:
-    print('meanlogr - log(meanr) = ',kk.meanlogr - numpy.log(kk.meanr))
-    numpy.testing.assert_allclose(kk.meanlogr, numpy.log(kk.meanr), atol=1.e-3)
+    print('meanlogr - log(meanr) = ',kk.meanlogr - np.log(kk.meanr))
+    np.testing.assert_allclose(kk.meanlogr, np.log(kk.meanr), atol=1.e-3)
 
     r = kk.meanr
-    true_xi = numpy.pi * A**2 * (s/L)**2 * numpy.exp(-0.25*r**2/s**2)
+    true_xi = np.pi * A**2 * (s/L)**2 * np.exp(-0.25*r**2/s**2)
     print('kk.xi = ',kk.xi)
     print('true_xi = ',true_xi)
     print('ratio = ',kk.xi / true_xi)
     print('diff = ',kk.xi - true_xi)
     print('max diff = ',max(abs(kk.xi - true_xi)))
     print('max rel diff = ',max(abs((kk.xi - true_xi)/true_xi)))
-    numpy.testing.assert_allclose(kk.xi, true_xi, rtol=0.1*tol_factor)
+    np.testing.assert_allclose(kk.xi, true_xi, rtol=0.1*tol_factor)
 
     # It should also work as a cross-correlation of this cat with itself
     kk.process(cat,cat)
-    numpy.testing.assert_allclose(kk.meanlogr, numpy.log(kk.meanr), atol=1.e-3)
-    numpy.testing.assert_allclose(kk.xi, true_xi, rtol=0.1*tol_factor)
+    np.testing.assert_allclose(kk.meanlogr, np.log(kk.meanr), atol=1.e-3)
+    np.testing.assert_allclose(kk.xi, true_xi, rtol=0.1*tol_factor)
 
     # Check that we get the same result using the corr2 function
     cat.write(os.path.join('data','kk.dat'))
     config = treecorr.read_config('kk.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
-    corr2_output = numpy.genfromtxt(os.path.join('output','kk.out'), names=True, skip_header=1)
+    corr2_output = np.genfromtxt(os.path.join('output','kk.out'), names=True, skip_header=1)
     print('kk.xi = ',kk.xi)
     print('from corr2 output = ',corr2_output['xi'])
     print('ratio = ',corr2_output['xi']/kk.xi)
     print('diff = ',corr2_output['xi']-kk.xi)
-    numpy.testing.assert_allclose(corr2_output['xi'], kk.xi, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xi'], kk.xi, rtol=1.e-3)
 
     # Check the fits write option
     out_file_name = os.path.join('output','kk_out.fits')
     kk.write(out_file_name)
     data = fitsio.read(out_file_name)
-    numpy.testing.assert_almost_equal(data['R_nom'], numpy.exp(kk.logr))
-    numpy.testing.assert_almost_equal(data['meanR'], kk.meanr)
-    numpy.testing.assert_almost_equal(data['meanlogR'], kk.meanlogr)
-    numpy.testing.assert_almost_equal(data['xi'], kk.xi)
-    numpy.testing.assert_almost_equal(data['sigma_xi'], numpy.sqrt(kk.varxi))
-    numpy.testing.assert_almost_equal(data['weight'], kk.weight)
-    numpy.testing.assert_almost_equal(data['npairs'], kk.npairs)
+    np.testing.assert_almost_equal(data['R_nom'], np.exp(kk.logr))
+    np.testing.assert_almost_equal(data['meanR'], kk.meanr)
+    np.testing.assert_almost_equal(data['meanlogR'], kk.meanlogr)
+    np.testing.assert_almost_equal(data['xi'], kk.xi)
+    np.testing.assert_almost_equal(data['sigma_xi'], np.sqrt(kk.varxi))
+    np.testing.assert_almost_equal(data['weight'], kk.weight)
+    np.testing.assert_almost_equal(data['npairs'], kk.npairs)
 
     # Check the read function
     kk2 = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin')
     kk2.read(out_file_name)
-    numpy.testing.assert_almost_equal(kk2.logr, kk.logr)
-    numpy.testing.assert_almost_equal(kk2.meanr, kk.meanr)
-    numpy.testing.assert_almost_equal(kk2.meanlogr, kk.meanlogr)
-    numpy.testing.assert_almost_equal(kk2.xi, kk.xi)
-    numpy.testing.assert_almost_equal(kk2.varxi, kk.varxi)
-    numpy.testing.assert_almost_equal(kk2.weight, kk.weight)
-    numpy.testing.assert_almost_equal(kk2.npairs, kk.npairs)
+    np.testing.assert_almost_equal(kk2.logr, kk.logr)
+    np.testing.assert_almost_equal(kk2.meanr, kk.meanr)
+    np.testing.assert_almost_equal(kk2.meanlogr, kk.meanlogr)
+    np.testing.assert_almost_equal(kk2.xi, kk.xi)
+    np.testing.assert_almost_equal(kk2.varxi, kk.varxi)
+    np.testing.assert_almost_equal(kk2.weight, kk.weight)
+    np.testing.assert_almost_equal(kk2.npairs, kk.npairs)
     assert kk2.coords == kk.coords
     assert kk2.metric == kk.metric
     assert kk2.sep_units == kk.sep_units
@@ -152,14 +152,14 @@ def test_large_scale():
         nbins = 50
         half = 25
     s = 1.
-    numpy.random.seed(8675309)
-    x = numpy.random.normal(0, s, (ngal,) )
-    y = numpy.random.normal(0, s, (ngal,) )
-    z = numpy.random.normal(0, s, (ngal,) )
-    r = numpy.sqrt( x*x + y*y + z*z )
-    dec = numpy.arcsin(z/r)
-    ra = numpy.arctan2(y,x)
-    r = numpy.ones_like(x)
+    np.random.seed(8675309)
+    x = np.random.normal(0, s, (ngal,) )
+    y = np.random.normal(0, s, (ngal,) )
+    z = np.random.normal(0, s, (ngal,) )
+    r = np.sqrt( x*x + y*y + z*z )
+    dec = np.arcsin(z/r)
+    ra = np.arctan2(y,x)
+    r = np.ones_like(x)
 
     # Use x for "kappa" so there's a strong real correlation function
     cat1 = treecorr.Catalog(ra=ra, dec=dec, k=x, ra_units='rad', dec_units='rad')
@@ -184,19 +184,19 @@ def test_large_scale():
             print(name, tag, '=', getattr(dd,tag))
 
     # rnom and logr should be identical
-    numpy.testing.assert_array_equal(dd_sphere.rnom, dd_euclid.rnom)
-    numpy.testing.assert_array_equal(dd_chord.rnom, dd_euclid.rnom)
-    numpy.testing.assert_array_equal(dd_sphere.logr, dd_euclid.logr)
-    numpy.testing.assert_array_equal(dd_chord.logr, dd_euclid.logr)
+    np.testing.assert_array_equal(dd_sphere.rnom, dd_euclid.rnom)
+    np.testing.assert_array_equal(dd_chord.rnom, dd_euclid.rnom)
+    np.testing.assert_array_equal(dd_sphere.logr, dd_euclid.logr)
+    np.testing.assert_array_equal(dd_chord.logr, dd_euclid.logr)
 
     # meanr should be similar for sphere and chord, but euclid is larger, since the chord
     # distances have been scaled up to the real great circle distances
-    numpy.testing.assert_allclose(dd_sphere.meanr, dd_chord.meanr, rtol=1.e-3*tol)
-    numpy.testing.assert_allclose(dd_chord.meanr[:half], dd_euclid.meanr[:half], rtol=1.e-3*tol)
-    numpy.testing.assert_array_less(dd_chord.meanr[half:], dd_euclid.meanr[half:])
-    numpy.testing.assert_allclose(dd_sphere.meanlogr, dd_chord.meanlogr, atol=2.e-2*tol)
-    numpy.testing.assert_allclose(dd_chord.meanlogr[:half], dd_euclid.meanlogr[:half], atol=2.e-2*tol)
-    numpy.testing.assert_array_less(dd_chord.meanlogr[half:], dd_euclid.meanlogr[half:])
+    np.testing.assert_allclose(dd_sphere.meanr, dd_chord.meanr, rtol=1.e-3*tol)
+    np.testing.assert_allclose(dd_chord.meanr[:half], dd_euclid.meanr[:half], rtol=1.e-3*tol)
+    np.testing.assert_array_less(dd_chord.meanr[half:], dd_euclid.meanr[half:])
+    np.testing.assert_allclose(dd_sphere.meanlogr, dd_chord.meanlogr, atol=2.e-2*tol)
+    np.testing.assert_allclose(dd_chord.meanlogr[:half], dd_euclid.meanlogr[:half], atol=2.e-2*tol)
+    np.testing.assert_array_less(dd_chord.meanlogr[half:], dd_euclid.meanlogr[half:])
 
     # npairs is basically the same for chord and euclid since the only difference there comes from
     # differences in where they cut off the tree traversal, so the number of pairs is almost equal,
@@ -204,42 +204,42 @@ def test_large_scale():
     # Sphere is smaller than both at all scales, since it is measuring the correlation
     # function on larger real scales at each position.
     print('diff (c-e)/e = ',(dd_chord.npairs-dd_euclid.npairs)/dd_euclid.npairs)
-    print('max = ',numpy.max(numpy.abs((dd_chord.npairs-dd_euclid.npairs)/dd_euclid.npairs)))
-    numpy.testing.assert_allclose(dd_chord.npairs, dd_euclid.npairs, rtol=1.e-3*tol)
+    print('max = ',np.max(np.abs((dd_chord.npairs-dd_euclid.npairs)/dd_euclid.npairs)))
+    np.testing.assert_allclose(dd_chord.npairs, dd_euclid.npairs, rtol=1.e-3*tol)
     print('diff (s-e)/e = ',(dd_sphere.npairs-dd_euclid.npairs)/dd_euclid.npairs)
-    numpy.testing.assert_allclose(dd_sphere.npairs[:half], dd_euclid.npairs[:half], rtol=3.e-3*tol)
-    numpy.testing.assert_array_less(dd_sphere.npairs[half:], dd_euclid.npairs[half:])
+    np.testing.assert_allclose(dd_sphere.npairs[:half], dd_euclid.npairs[:half], rtol=3.e-3*tol)
+    np.testing.assert_array_less(dd_sphere.npairs[half:], dd_euclid.npairs[half:])
 
     # Renormalize by the actual spacing in log(r)
-    renorm_euclid = dd_euclid.npairs / numpy.gradient(dd_euclid.meanlogr)
-    renorm_sphere = dd_sphere.npairs / numpy.gradient(dd_sphere.meanlogr)
+    renorm_euclid = dd_euclid.npairs / np.gradient(dd_euclid.meanlogr)
+    renorm_sphere = dd_sphere.npairs / np.gradient(dd_sphere.meanlogr)
     # Then interpolate the euclid results to the values of the sphere distances
-    interp_euclid = numpy.interp(dd_sphere.meanlogr, dd_euclid.meanlogr, renorm_euclid)
+    interp_euclid = np.interp(dd_sphere.meanlogr, dd_euclid.meanlogr, renorm_euclid)
     # Matches at 3e-3 over whole range now.
     print('interp_euclid = ',interp_euclid)
     print('renorm_sphere = ',renorm_sphere)
     print('new diff = ',(renorm_sphere-interp_euclid)/renorm_sphere)
-    print('max = ',numpy.max(numpy.abs((renorm_sphere-interp_euclid)/renorm_sphere)))
-    numpy.testing.assert_allclose(renorm_sphere, interp_euclid, rtol=3.e-3*tol)
+    print('max = ',np.max(np.abs((renorm_sphere-interp_euclid)/renorm_sphere)))
+    np.testing.assert_allclose(renorm_sphere, interp_euclid, rtol=3.e-3*tol)
 
     # And almost the full range at the same precision.
-    numpy.testing.assert_allclose(renorm_sphere[:-4], interp_euclid[:-4], rtol=2.e-3*tol)
-    numpy.testing.assert_allclose(renorm_sphere, interp_euclid, rtol=1.e-2*tol)
+    np.testing.assert_allclose(renorm_sphere[:-4], interp_euclid[:-4], rtol=2.e-3*tol)
+    np.testing.assert_allclose(renorm_sphere, interp_euclid, rtol=1.e-2*tol)
 
     # The xi values are similar.  The euclid and chord values start out basically identical,
     # but the distances are different.  The euclid and the sphere are actually the same function
     # so they match when rescaled to have the same distance values.
     print('diff euclid, chord = ',(dd_chord.xi-dd_euclid.xi)/dd_euclid.xi)
-    print('max = ',numpy.max(numpy.abs((dd_chord.xi-dd_euclid.xi)/dd_euclid.xi)))
-    numpy.testing.assert_allclose(dd_chord.xi[:-8], dd_euclid.xi[:-8], rtol=1.e-3*tol)
-    numpy.testing.assert_allclose(dd_chord.xi, dd_euclid.xi, rtol=3.e-3*tol)
+    print('max = ',np.max(np.abs((dd_chord.xi-dd_euclid.xi)/dd_euclid.xi)))
+    np.testing.assert_allclose(dd_chord.xi[:-8], dd_euclid.xi[:-8], rtol=1.e-3*tol)
+    np.testing.assert_allclose(dd_chord.xi, dd_euclid.xi, rtol=3.e-3*tol)
 
-    interp_euclid = numpy.interp(dd_sphere.meanlogr, dd_euclid.meanlogr, dd_euclid.xi)
+    interp_euclid = np.interp(dd_sphere.meanlogr, dd_euclid.meanlogr, dd_euclid.xi)
     print('interp_euclid = ',interp_euclid)
     print('sphere.xi = ',dd_sphere.xi)
     print('diff interp euclid, sphere = ',(dd_sphere.xi-interp_euclid))
-    print('max = ',numpy.max(numpy.abs((dd_sphere.xi-interp_euclid))))
-    numpy.testing.assert_allclose(dd_sphere.xi, interp_euclid, atol=1.e-3*tol)
+    print('max = ',np.max(np.abs((dd_sphere.xi-interp_euclid))))
+    np.testing.assert_allclose(dd_sphere.xi, interp_euclid, atol=1.e-3*tol)
 
 
 if __name__ == '__main__':

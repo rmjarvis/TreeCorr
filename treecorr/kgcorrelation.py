@@ -16,7 +16,7 @@
 """
 
 import treecorr
-import numpy
+import numpy as np
 
 
 class KGCorrelation(treecorr.BinnedCorr2):
@@ -72,13 +72,13 @@ class KGCorrelation(treecorr.BinnedCorr2):
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
-        self.xi = numpy.zeros_like(self.rnom, dtype=float)
-        self.xi_im = numpy.zeros_like(self.rnom, dtype=float)
-        self.varxi = numpy.zeros_like(self.rnom, dtype=float)
-        self.meanr = numpy.zeros_like(self.rnom, dtype=float)
-        self.meanlogr = numpy.zeros_like(self.rnom, dtype=float)
-        self.weight = numpy.zeros_like(self.rnom, dtype=float)
-        self.npairs = numpy.zeros_like(self.rnom, dtype=float)
+        self.xi = np.zeros_like(self.rnom, dtype=float)
+        self.xi_im = np.zeros_like(self.rnom, dtype=float)
+        self.varxi = np.zeros_like(self.rnom, dtype=float)
+        self.meanr = np.zeros_like(self.rnom, dtype=float)
+        self.meanlogr = np.zeros_like(self.rnom, dtype=float)
+        self.weight = np.zeros_like(self.rnom, dtype=float)
+        self.npairs = np.zeros_like(self.rnom, dtype=float)
         self._build_corr()
         self.logger.debug('Finished building KGCorr')
 
@@ -326,7 +326,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
             file_name,
             ['R_nom','meanR','meanlogR','kgamT','kgamX','sigma','weight','npairs'],
             [ self.rnom, self.meanr, self.meanlogr,
-              self.xi, self.xi_im, numpy.sqrt(self.varxi),
+              self.xi, self.xi_im, np.sqrt(self.varxi),
               self.weight, self.npairs ],
             params=params, prec=prec, file_type=file_type, logger=self.logger)
 
@@ -349,7 +349,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
 
         data, params = treecorr.util.gen_read(file_name, file_type=file_type)
         self.rnom = data['R_nom']
-        self.logr = numpy.log(self.rnom)
+        self.logr = np.log(self.rnom)
         self.meanr = data['meanR']
         self.meanlogr = data['meanlogR']
         self.xi = data['kgamT']

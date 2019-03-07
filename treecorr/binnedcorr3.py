@@ -16,7 +16,7 @@
 """
 
 import math
-import numpy
+import numpy as np
 import sys
 import coord
 import treecorr
@@ -426,27 +426,27 @@ class BinnedCorr3(object):
                               self.bin_slop,self.b,self.bu,self.bv)
 
         # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
-        self.logr1d = numpy.linspace(start=0, stop=self.nbins*self.bin_size,
+        self.logr1d = np.linspace(start=0, stop=self.nbins*self.bin_size,
                                    num=self.nbins, endpoint=False)
         # Offset by the position of the center of the first bin.
         self.logr1d += math.log(self.min_sep) + 0.5*self.bin_size
 
-        self.u1d = numpy.linspace(start=0, stop=self.nubins*self.ubin_size,
+        self.u1d = np.linspace(start=0, stop=self.nubins*self.ubin_size,
                                   num=self.nubins, endpoint=False)
         self.u1d += self.min_u + 0.5*self.ubin_size
 
-        self.v1d = numpy.linspace(start=0, stop=self.nvbins*self.vbin_size,
+        self.v1d = np.linspace(start=0, stop=self.nvbins*self.vbin_size,
                                   num=self.nvbins, endpoint=False)
         self.v1d += self.min_v + 0.5*self.vbin_size
 
         shape = (self.nbins, self.nubins, self.nvbins)
-        self.logr = numpy.tile(self.logr1d[:, numpy.newaxis, numpy.newaxis],
+        self.logr = np.tile(self.logr1d[:, np.newaxis, np.newaxis],
                                (1, self.nubins, self.nvbins))
-        self.u = numpy.tile(self.u1d[numpy.newaxis, :, numpy.newaxis],
+        self.u = np.tile(self.u1d[np.newaxis, :, np.newaxis],
                             (self.nbins, 1, self.nvbins))
-        self.v = numpy.tile(self.v1d[numpy.newaxis, numpy.newaxis, :],
+        self.v = np.tile(self.v1d[np.newaxis, np.newaxis, :],
                             (self.nbins, self.nubins, 1))
-        self.rnom = numpy.exp(self.logr)
+        self.rnom = np.exp(self.logr)
         self.coords = None
         self.metric = None
         self.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)
@@ -529,12 +529,12 @@ class BinnedCorr3(object):
         if self.coords == 'spherical' and self.metric == 'Euclidean':
             # Then our distances are all angles.  Convert from the chord distance to a real angle.
             # L = 2 sin(theta/2)
-            self.meand1[mask] = 2. * numpy.arcsin(self.meand1[mask]/2.)
-            self.meanlogd1[mask] = numpy.log(2.*numpy.arcsin(numpy.exp(self.meanlogd1[mask])/2.))
-            self.meand2[mask] = 2. * numpy.arcsin(self.meand2[mask]/2.)
-            self.meanlogd2[mask] = numpy.log(2.*numpy.arcsin(numpy.exp(self.meanlogd2[mask])/2.))
-            self.meand3[mask] = 2. * numpy.arcsin(self.meand3[mask]/2.)
-            self.meanlogd3[mask] = numpy.log(2.*numpy.arcsin(numpy.exp(self.meanlogd3[mask])/2.))
+            self.meand1[mask] = 2. * np.arcsin(self.meand1[mask]/2.)
+            self.meanlogd1[mask] = np.log(2.*np.arcsin(np.exp(self.meanlogd1[mask])/2.))
+            self.meand2[mask] = 2. * np.arcsin(self.meand2[mask]/2.)
+            self.meanlogd2[mask] = np.log(2.*np.arcsin(np.exp(self.meanlogd2[mask])/2.))
+            self.meand3[mask] = 2. * np.arcsin(self.meand3[mask]/2.)
+            self.meanlogd3[mask] = np.log(2.*np.arcsin(np.exp(self.meanlogd3[mask])/2.))
 
         self.meand1[mask] /= self._sep_units
         self.meanlogd1[mask] -= self._log_sep_units
@@ -544,7 +544,7 @@ class BinnedCorr3(object):
         self.meanlogd3[mask] -= self._log_sep_units
 
     def _get_minmax_size(self):
-        b = numpy.max( (self.b, self.bu, self.bv) )
+        b = np.max( (self.b, self.bu, self.bv) )
         if self._metric == 'Euclidean':
             # The minimum separation we care about is that of the smallest size, which is
             # min_sep * min_u.  Do the same calculation as for 2pt to get to min_size.

@@ -16,7 +16,7 @@
 """
 
 import treecorr
-import numpy
+import numpy as np
 
 
 class GGCorrelation(treecorr.BinnedCorr2):
@@ -75,15 +75,15 @@ class GGCorrelation(treecorr.BinnedCorr2):
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
-        self.xip = numpy.zeros_like(self.rnom, dtype=float)
-        self.xim = numpy.zeros_like(self.rnom, dtype=float)
-        self.xip_im = numpy.zeros_like(self.rnom, dtype=float)
-        self.xim_im = numpy.zeros_like(self.rnom, dtype=float)
-        self.varxi = numpy.zeros_like(self.rnom, dtype=float)
-        self.meanr = numpy.zeros_like(self.rnom, dtype=float)
-        self.meanlogr = numpy.zeros_like(self.rnom, dtype=float)
-        self.weight = numpy.zeros_like(self.rnom, dtype=float)
-        self.npairs = numpy.zeros_like(self.rnom, dtype=float)
+        self.xip = np.zeros_like(self.rnom, dtype=float)
+        self.xim = np.zeros_like(self.rnom, dtype=float)
+        self.xip_im = np.zeros_like(self.rnom, dtype=float)
+        self.xim_im = np.zeros_like(self.rnom, dtype=float)
+        self.varxi = np.zeros_like(self.rnom, dtype=float)
+        self.meanr = np.zeros_like(self.rnom, dtype=float)
+        self.meanlogr = np.zeros_like(self.rnom, dtype=float)
+        self.weight = np.zeros_like(self.rnom, dtype=float)
+        self.npairs = np.zeros_like(self.rnom, dtype=float)
         self._build_corr()
         self.logger.debug('Finished building GGCorr')
 
@@ -382,7 +382,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
             file_name,
             ['R_nom','meanR','meanlogR','xip','xim','xip_im','xim_im','sigma_xi','weight','npairs'],
             [ self.rnom, self.meanr, self.meanlogr,
-              self.xip, self.xim, self.xip_im, self.xim_im, numpy.sqrt(self.varxi),
+              self.xip, self.xim, self.xip_im, self.xim_im, np.sqrt(self.varxi),
               self.weight, self.npairs ],
             params=params, prec=prec, file_type=file_type, logger=self.logger)
 
@@ -405,7 +405,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         data, params = treecorr.util.gen_read(file_name, file_type=file_type)
         self.rnom = data['R_nom']
-        self.logr = numpy.log(data['R_nom'])
+        self.logr = np.log(data['R_nom'])
         self.meanr = data['meanR']
         self.meanlogr = data['meanlogR']
         self.xip = data['xip']
@@ -475,21 +475,21 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         # Make s a matrix, so we can eventually do the integral by doing a matrix product.
         r = self.rnom
-        s = numpy.outer(1./r, self.meanr)
+        s = np.outer(1./r, self.meanr)
         ssq = s*s
         if m2_uform == 'Crittenden':
-            exp_factor = numpy.exp(-ssq/4.)
+            exp_factor = np.exp(-ssq/4.)
             Tp = (32. + ssq*(-16. + ssq)) / 128. * exp_factor
             Tm = ssq * ssq / 128. * exp_factor
         else:
-            Tp = numpy.zeros_like(s)
-            Tm = numpy.zeros_like(s)
+            Tp = np.zeros_like(s)
+            Tm = np.zeros_like(s)
             sa = s[s<2.]
             ssqa = ssq[s<2.]
-            Tp[s<2.] = 12./(5.*numpy.pi) * (2.-15.*ssqa) * numpy.arccos(sa/2.)
-            Tp[s<2.] += 1./(100.*numpy.pi) * sa * numpy.sqrt(4.-ssqa) * (
+            Tp[s<2.] = 12./(5.*np.pi) * (2.-15.*ssqa) * np.arccos(sa/2.)
+            Tp[s<2.] += 1./(100.*np.pi) * sa * np.sqrt(4.-ssqa) * (
                         120. + ssqa*(2320. + ssqa*(-754. + ssqa*(132. - 9.*ssqa))))
-            Tm[s<2.] = 3./(70.*numpy.pi) * sa * ssqa * (4.-ssqa)**3.5
+            Tm[s<2.] = 3./(70.*np.pi) * sa * ssqa * (4.-ssqa)**3.5
         Tp *= ssq
         Tm *= ssq
 
@@ -543,12 +543,12 @@ class GGCorrelation(treecorr.BinnedCorr2):
                     (gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e)  if `eb == True`
         """
         r = self.rnom
-        s = numpy.outer(1./r, self.meanr)
+        s = np.outer(1./r, self.meanr)
         ssq = s*s
-        Sp = numpy.zeros_like(s)
+        Sp = np.zeros_like(s)
         sa = s[s<2]
         ssqa = ssq[s<2]
-        Sp[s<2.] = 1./numpy.pi * (4.*numpy.arccos(sa/2.) - sa*numpy.sqrt(4.-ssqa))
+        Sp[s<2.] = 1./np.pi * (4.*np.arccos(sa/2.) - sa*np.sqrt(4.-ssqa))
         Sp *= ssq
 
         # Now do the integral by taking the matrix products.
@@ -560,9 +560,9 @@ class GGCorrelation(treecorr.BinnedCorr2):
         # Stop here if eb == False
         if not eb: return gamsq, vargamsq
 
-        Sm = numpy.empty_like(s)
-        Sm[s<2.] = 1./(ssqa*numpy.pi) * (sa*numpy.sqrt(4.-ssqa)*(6.-ssqa)
-                                              -8.*(3.-ssqa)*numpy.arcsin(sa/2.))
+        Sm = np.empty_like(s)
+        Sm[s<2.] = 1./(ssqa*np.pi) * (sa*np.sqrt(4.-ssqa)*(6.-ssqa)
+                                              -8.*(3.-ssqa)*np.arcsin(sa/2.))
         Sm[s>=2.] = 4.*(ssq[s>=2]-3.)/ssq[s>=2]
         # This already includes the extra ssq factor.
 
@@ -617,8 +617,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
             file_name,
             ['R','Mapsq','Mxsq','MMxa','MMxb','sig_map','Gamsq','sig_gam'],
             [ self.rnom,
-              mapsq, mxsq, mapsq_im, -mxsq_im, numpy.sqrt(varmapsq),
-              gamsq, numpy.sqrt(vargamsq) ],
+              mapsq, mxsq, mapsq_im, -mxsq_im, np.sqrt(varmapsq),
+              gamsq, np.sqrt(vargamsq) ],
             prec=prec, file_type=file_type, logger=self.logger)
 
 

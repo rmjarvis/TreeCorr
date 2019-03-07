@@ -300,7 +300,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
             return self.xi - rk.xi, self.varxi + rk.varxi
 
 
-    def write(self, file_name, rk=None, file_type=None, prec=None):
+    def write(self, file_name, rk=None, file_type=None, precision=None):
         """Write the correlation function to the file, file_name.
 
         - If rk is None, the simple correlation function :math:`\\langle \\kappa \\rangle(R)` is
@@ -328,14 +328,14 @@ class NKCorrelation(treecorr.BinnedCorr2):
                             (default: None)
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
-        :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
+        :param precision:   For ASCII output catalogs, the desired precision. (default: 4;
                             this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing NK correlations to %s',file_name)
 
         xi, varxi = self.calculateXi(rk)
-        if prec is None:
-            prec = self.config.get('precision', 4)
+        if precision is None:
+            precision = self.config.get('precision', 4)
 
         params = { 'coords' : self.coords, 'metric' : self.metric,
                    'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
@@ -345,7 +345,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
             ['R_nom','meanR','meanlogR','kappa','sigma','weight','npairs'],
             [ self.rnom, self.meanr, self.meanlogr,
               xi, np.sqrt(varxi), self.weight, self.npairs ],
-            params=params, prec=prec, file_type=file_type, logger=self.logger)
+            params=params, precision=precision, file_type=file_type, logger=self.logger)
 
 
     def read(self, file_name, file_type=None):

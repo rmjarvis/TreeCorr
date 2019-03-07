@@ -308,7 +308,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
             return (self.xi - rg.xi), (self.xi_im - rg.xi_im), (self.varxi + rg.varxi)
 
 
-    def write(self, file_name, rg=None, file_type=None, prec=None):
+    def write(self, file_name, rg=None, file_type=None, precision=None):
         """Write the correlation function to the file, file_name.
 
         - If rg is None, the simple correlation function :math:`\\langle \\gamma_T\\rangle` is used.
@@ -338,14 +338,14 @@ class NGCorrelation(treecorr.BinnedCorr2):
                             (default: None)
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
-        :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
+        :param precision:   For ASCII output catalogs, the desired precision. (default: 4;
                             this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing NG correlations to %s',file_name)
 
         xi, xi_im, varxi = self.calculateXi(rg)
-        if prec is None:
-            prec = self.config.get('precision', 4)
+        if precision is None:
+            precision = self.config.get('precision', 4)
 
         params = { 'coords' : self.coords, 'metric' : self.metric,
                    'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
@@ -355,7 +355,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
             ['R_nom','meanR','meanlogR','gamT','gamX','sigma','weight','npairs'],
             [ self.rnom, self.meanr, self.meanlogr,
               xi, xi_im, np.sqrt(varxi), self.weight, self.npairs ],
-            params=params, prec=prec, file_type=file_type, logger=self.logger)
+            params=params, precision=precision, file_type=file_type, logger=self.logger)
 
 
     def read(self, file_name, file_type=None):
@@ -471,7 +471,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         return nmap, nmx, varnmap
 
 
-    def writeNMap(self, file_name, rg=None, m2_uform=None, file_type=None, prec=None):
+    def writeNMap(self, file_name, rg=None, m2_uform=None, file_type=None, precision=None):
         """Write the cross correlation of the foreground galaxy counts with the aperture mass
         based on the correlation function to the file, file_name.
 
@@ -496,24 +496,24 @@ class NGCorrelation(treecorr.BinnedCorr2):
                             this value can also be given in the constructor in the config dict.)
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
-        :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
+        :param precision:   For ASCII output catalogs, the desired precision. (default: 4;
                             this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing NMap from NG correlations to %s',file_name)
 
         nmap, nmx, varnmap = self.calculateNMap(rg=rg, m2_uform=m2_uform)
-        if prec is None:
-            prec = self.config.get('precision', 4)
+        if precision is None:
+            precision = self.config.get('precision', 4)
 
         treecorr.util.gen_write(
             file_name,
             ['R','NMap','NMx','sig_nmap'],
             [ self.rnom, nmap, nmx, np.sqrt(varnmap) ],
-            prec=prec, file_type=file_type, logger=self.logger)
+            precision=precision, file_type=file_type, logger=self.logger)
 
 
     def writeNorm(self, file_name, gg, dd, rr, dr=None, rg=None, m2_uform=None, file_type=None,
-                  prec=None):
+                  precision=None):
         """Write the normalized aperture mass cross-correlation to the file, file_name.
 
         The combination :math:`\\langle N M_{ap}\\rangle^2 / \\langle M_{ap}^2\\rangle
@@ -568,7 +568,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
                             this value can also be given in the constructor in the config dict.)
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
-        :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
+        :param precision:   For ASCII output catalogs, the desired precision. (default: 4;
                             this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing Norm from NG correlations to %s',file_name)
@@ -581,8 +581,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         varnmnorm = nmnorm**2 * (4. * varnmap / nmap**2 + varnsq / nsq**2 + varmapsq / mapsq**2)
         nnnorm = nsq / mapsq
         varnnnorm = nnnorm**2 * (varnsq / nsq**2 + varmapsq / mapsq**2)
-        if prec is None:
-            prec = self.config.get('precision', 4)
+        if precision is None:
+            precision = self.config.get('precision', 4)
 
         treecorr.util.gen_write(
             file_name,
@@ -594,5 +594,5 @@ class NGCorrelation(treecorr.BinnedCorr2):
               nmap, nmx, np.sqrt(varnmap),
               nsq, np.sqrt(varnsq), mapsq, np.sqrt(varmapsq),
               nmnorm, np.sqrt(varnmnorm), nnnorm, np.sqrt(varnnnorm) ],
-            prec=prec, file_type=file_type, logger=self.logger)
+            precision=precision, file_type=file_type, logger=self.logger)
 

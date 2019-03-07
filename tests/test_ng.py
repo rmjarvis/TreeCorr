@@ -359,6 +359,7 @@ def test_ng():
     rand_cat.write(os.path.join('data','ng_rand.fits'))
     config = treecorr.read_config('ng.yaml')
     config['verbose'] = 0
+    config['precision'] = 8
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','ng.out'), names=True, skip_header=1)
     print('ng.xi = ',ng.xi)

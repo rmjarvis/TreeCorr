@@ -27,7 +27,7 @@ def ensure_dir(target):
             os.makedirs(d)
 
 
-def gen_write(file_name, col_names, columns, params=None, prec=4, file_type=None, logger=None):
+def gen_write(file_name, col_names, columns, params=None, precision=4, file_type=None, logger=None):
     """Write some columns to an output file with the given column names.
 
     We do this basic functionality a lot, so put the code to do it in one place.
@@ -37,7 +37,7 @@ def gen_write(file_name, col_names, columns, params=None, prec=4, file_type=None
     :param columns:     A list of numpy arrays with the data to write.
     :param params:      A dict of extra parameters to write at the top of the output file (for
                         ASCII output) or in the header (for FITS output).  (default: None)
-    :param prec:        Output precision for ASCII. (default: 4)
+    :param precision:   Output precision for ASCII. (default: 4)
     :param file_type:   Which kind of file to write to. (default: determine from the file_name
                         extension)
     :param logger:      If desired, a logger object for logging. (default: None)
@@ -67,12 +67,12 @@ def gen_write(file_name, col_names, columns, params=None, prec=4, file_type=None
     if file_type == 'FITS':
         gen_write_fits(file_name, col_names, columns, params)
     elif file_type == 'ASCII':
-        gen_write_ascii(file_name, col_names, columns, params, prec=prec)
+        gen_write_ascii(file_name, col_names, columns, params, precision=precision)
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 
 
-def gen_write_ascii(file_name, col_names, columns, params, prec=4):
+def gen_write_ascii(file_name, col_names, columns, params, precision=4):
     """Write some columns to an output ASCII file with the given column names.
 
     :param file_name:   The name of the file to write to.
@@ -80,21 +80,21 @@ def gen_write_ascii(file_name, col_names, columns, params, prec=4):
                         in a header comment line at the top of the output file.
     :param columns:     A list of numpy arrays with the data to write.
     :param params:      A dict of extra parameters to write at the top of the output file.
-    :param prec:        Output precision for ASCII. (default: 4)
+    :param precision:   Output precision for ASCII. (default: 4)
     """
     ncol = len(col_names)
     data = np.empty( (len(columns[0]), ncol) )
     for i,col in enumerate(columns):
         data[:,i] = col
 
-    width = prec+8
+    width = precision+8
     # Note: python 2.6 needs the numbers, so can't just do "{:^%d}"*ncol
     # Also, I have the first one be 1 shorter to allow space for the initial #.
     header_form = "{0:^%d}"%(width-1)
     for i in range(1,ncol):
         header_form += " {%d:^%d}"%(i,width)
     header = header_form.format(*col_names)
-    fmt = '%%%d.%de'%(width,prec)
+    fmt = '%%%d.%de'%(width,precision)
     ensure_dir(file_name)
     with open(file_name, 'wb') as fid:
         if params is not None:

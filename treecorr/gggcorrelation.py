@@ -471,7 +471,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.finalize(varg1,varg2,varg3)
 
 
-    def write(self, file_name, file_type=None, prec=None):
+    def write(self, file_name, file_type=None, precision=None):
         """Write the correlation function to the file, file_name.
 
         As described in the doc string for :class:`~treecorr.GGGCorrelation`, we use the
@@ -519,7 +519,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         :param file_name:   The name of the file to write to.
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
-        :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
+        :param precision:   For ASCII output catalogs, the desired precision. (default: 4;
                             this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing GGG correlations to %s',file_name)
@@ -538,12 +538,12 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         params = { 'coords' : self.coords, 'metric' : self.metric,
                    'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
-        if prec is None:
-            prec = self.config.get('precision', 4)
+        if precision is None:
+            precision = self.config.get('precision', 4)
 
         treecorr.util.gen_write(
             file_name, col_names, columns,
-            params=params, prec=prec, file_type=file_type, logger=self.logger)
+            params=params, precision=precision, file_type=file_type, logger=self.logger)
 
 
     def read(self, file_name, file_type=None):

@@ -1106,6 +1106,7 @@ def test_nn():
     rand.write(os.path.join('data','nn_rand.dat'))
     config = treecorr.config.read_config('nn.yaml')
     config['verbose'] = 0
+    config['precision'] = 8
     treecorr.corr2(config)
     out_file_name = os.path.join('output','nn.out')
     corr2_output = np.genfromtxt(out_file_name, names=True, skip_header=1)

@@ -470,7 +470,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
 
     def write(self, file_name, rrr=None, drr=None, rdr=None, rrd=None,
-              ddr=None, drd=None, rdd=None, file_type=None, prec=None):
+              ddr=None, drd=None, rdd=None, file_type=None, precision=None):
         """Write the correlation function to the file, file_name.
 
         Normally, at least rrr should be provided, but if this is None, then only the
@@ -566,7 +566,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         :param rdd:         RDD if desired. (default: None)
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
                             the type automatically from the extension of file_name.)
-        :param prec:        For ASCII output catalogs, the desired precision. (default: 4;
+        :param precision:   For ASCII output catalogs, the desired precision. (default: 4;
                             this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing NNN correlations to %s',file_name)
@@ -598,15 +598,15 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             col_names += [ 'ntri' ]
             columns += [ self.ntri ]
 
-        if prec is None:
-            prec = self.config.get('precision', 4)
+        if precision is None:
+            precision = self.config.get('precision', 4)
 
         params = { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric,
                    'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
         treecorr.util.gen_write(
             file_name, col_names, columns,
-            params=params, prec=prec, file_type=file_type, logger=self.logger)
+            params=params, precision=precision, file_type=file_type, logger=self.logger)
 
 
     def read(self, file_name, file_type=None):

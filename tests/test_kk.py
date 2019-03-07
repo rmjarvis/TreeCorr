@@ -101,6 +101,7 @@ def test_kk():
     cat.write(os.path.join('data','kk.dat'))
     config = treecorr.read_config('kk.yaml')
     config['verbose'] = 0
+    config['precision'] = 8
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','kk.out'), names=True, skip_header=1)
     print('kk.xi = ',kk.xi)

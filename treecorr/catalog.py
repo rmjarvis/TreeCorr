@@ -689,7 +689,7 @@ class Catalog(object):
             # and skip them by hand.
             skip = 0
             with open(file_name, 'r') as fid:
-                for line in fid:  # pragma: no break
+                for line in fid:  # pragma: no branch
                     if line.startswith(comment_marker): skip += 1
                     else: break
             if delimiter is None:
@@ -1207,12 +1207,10 @@ class Catalog(object):
             columns.append(self.k)
 
         if cat_precision is None:
-            prec = treecorr.config.get(self.config,'cat_precision',int,16)
-        else:
-            prec = cat_precision
+            cat_precision = treecorr.config.get(self.config,'cat_precision',int,16)
 
-        treecorr.util.gen_write(
-            file_name, col_names, columns, prec=prec, file_type=file_type, logger=self.logger)
+        treecorr.util.gen_write(file_name, col_names, columns, precision=cat_precision,
+                                file_type=file_type, logger=self.logger)
 
     def copy(self):
         import copy

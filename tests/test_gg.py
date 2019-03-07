@@ -124,10 +124,17 @@ def test_gg():
     print('max[16:] = ',max(abs(mxsq[16:])))
     assert max(abs(mxsq[16:])) < 3.e-8 * tol_factor
 
+    mapsq_file = 'output/gg_m2.txt'
+    gg.writeMapSq(mapsq_file, precision=16)
+    data = np.genfromtxt(os.path.join('output','gg_m2.txt'), names=True)
+    np.testing.assert_allclose(data['Mapsq'], mapsq)
+    np.testing.assert_allclose(data['Mxsq'], mxsq)
+
     # Check that we get the same result using the corr2 function:
     cat.write(os.path.join('data','gg.dat'))
     config = treecorr.read_config('gg.yaml')
     config['verbose'] = 0
+    config['precision'] = 8
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','gg.out'), names=True, skip_header=1)
     print('gg.xip = ',gg.xip)
@@ -899,8 +906,7 @@ def test_rlens():
     config = treecorr.read_config('gg_rlens.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
-    corr2_output = np.genfromtxt(os.path.join('output','gg_rlens.out'),names=True,
-                                    skip_header=1)
+    corr2_output = np.genfromtxt(os.path.join('output','gg_rlens.out'),names=True, skip_header=1)
     print('gg.xim = ',gg2.xim)
     print('from corr2 output = ',corr2_output['xim'])
     print('ratio = ',corr2_output['xim']/gg2.xim)

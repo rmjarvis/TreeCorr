@@ -182,6 +182,7 @@ def test_kg():
     source_cat.write(os.path.join('data','kg_source.dat'))
     config = treecorr.read_config('kg.yaml')
     config['verbose'] = 0
+    config['precision'] = 8
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','kg.out'), names=True, skip_header=1)
     print('kg.xi = ',kg.xi)

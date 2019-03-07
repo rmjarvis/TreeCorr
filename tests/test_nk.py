@@ -141,6 +141,7 @@ def test_nk():
     rand_cat.write(os.path.join('data','nk_rand.fits'))
     config = treecorr.read_config('nk.yaml')
     config['verbose'] = 0
+    config['precision'] = 8
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','nk.out'), names=True, skip_header=1)
     print('nk.xi = ',nk.xi)

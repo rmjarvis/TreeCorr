@@ -97,8 +97,28 @@ class KKCorrelation(treecorr.BinnedCorr2):
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
-        if hasattr(self,'corr'):    # In case __init__ failed to get that far
+        # In case __init__ failed to get that far
+        if hasattr(self,'corr'):  # pragma: no branch
             treecorr._lib.DestroyKKCorr(self.corr, self._bintype)
+
+    def __eq__(self, other):
+        return (isinstance(other, KKCorrelation) and
+                self.nbins == other.nbins and
+                self.bin_size == other.bin_size and
+                self.min_sep == other.min_sep and
+                self.max_sep == other.max_sep and
+                self.sep_units == other.sep_units and
+                self.coords == other.coords and
+                self.bin_type == other.bin_type and
+                self.bin_slop == other.bin_slop and
+                self.min_rpar == other.min_rpar and
+                self.max_rpar == other.max_rpar and
+                np.array_equal(self.meanr, other.meanr) and
+                np.array_equal(self.meanlogr, other.meanlogr) and
+                np.array_equal(self.xi, other.xi) and
+                np.array_equal(self.varxi, other.varxi) and
+                np.array_equal(self.weight, other.weight) and
+                np.array_equal(self.npairs, other.npairs))
 
     def copy(self):
         import copy
@@ -266,7 +286,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         self.npairs.ravel()[:] = 0
 
     def __iadd__(self, other):
-        """Add a second GGCorrelation's data to this one.
+        """Add a second KKCorrelation's data to this one.
 
         Note: For this to make sense, both Correlation objects should have been using
         process_auto and/or process_cross, and they should not have had finalize called yet.

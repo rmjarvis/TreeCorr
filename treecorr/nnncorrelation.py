@@ -127,8 +127,41 @@ class NNNCorrelation(treecorr.BinnedCorr3):
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
-        if hasattr(self,'corr'):    # In case __init__ failed to get that far
+        # In case __init__ failed to get that far
+        if hasattr(self,'corr'):  # pragma: no branch
             treecorr._lib.DestroyNNNCorr(self.corr, self._bintype)
+
+    def __eq__(self, other):
+        return (isinstance(other, NNNCorrelation) and
+                self.nbins == other.nbins and
+                self.bin_size == other.bin_size and
+                self.min_sep == other.min_sep and
+                self.max_sep == other.max_sep and
+                self.sep_units == other.sep_units and
+                self.min_u == other.min_u and
+                self.max_u == other.max_u and
+                self.nubins == other.nubins and
+                self.ubin_size == other.ubin_size and
+                self.min_v == other.min_v and
+                self.max_v == other.max_v and
+                self.nvbins == other.nvbins and
+                self.vbin_size == other.vbin_size and
+                self.coords == other.coords and
+                self.bin_type == other.bin_type and
+                self.bin_slop == other.bin_slop and
+                self.min_rpar == other.min_rpar and
+                self.max_rpar == other.max_rpar and
+                self.tot == other.tot and
+                np.array_equal(self.meand1, other.meand1) and
+                np.array_equal(self.meanlogd1, other.meanlogd1) and
+                np.array_equal(self.meand2, other.meand2) and
+                np.array_equal(self.meanlogd2, other.meanlogd2) and
+                np.array_equal(self.meand3, other.meand3) and
+                np.array_equal(self.meanlogd3, other.meanlogd3) and
+                np.array_equal(self.meanu, other.meanu) and
+                np.array_equal(self.meanv, other.meanv) and
+                np.array_equal(self.weight, other.weight) and
+                np.array_equal(self.ntri, other.ntri))
 
     def copy(self):
         import copy

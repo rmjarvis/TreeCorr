@@ -1,0 +1,22 @@
+file_name: data/kg_direct_cat1.fits
+file_name2: data/kg_direct_cat2.fits
+
+x_col: x
+y_col: y
+x_units: arcmin
+y_units: arcmin
+
+k_col: k
+g1_col: g1
+g2_col: g2
+w_col: w
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 50.
+nbins: 50
+sep_units: arcmin
+bin_slop: 0
+
+kg_file_name: output/kg_direct.fits

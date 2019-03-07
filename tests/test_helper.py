@@ -199,3 +199,40 @@ class profile(object):
         self.pr.disable()
         ps = pstats.Stats(self.pr).sort_stats(self.sortby)
         ps.print_stats(self.nlines)
+
+
+def do_pickle(obj1, func = lambda x : x):
+    """Check that the object is picklable.  Also that it has basic == and != functionality.
+    """
+    try:
+        import cPickle as pickle
+    except:
+        import pickle
+    import copy
+    print('Try pickling ',str(obj1))
+
+    #print('pickled obj1 = ',pickle.dumps(obj1))
+    obj2 = pickle.loads(pickle.dumps(obj1))
+    assert obj2 is not obj1
+    #print('obj1 = ',repr(obj1))
+    #print('obj2 = ',repr(obj2))
+    f1 = func(obj1)
+    f2 = func(obj2)
+    #print('func(obj1) = ',repr(f1))
+    #print('func(obj2) = ',repr(f2))
+    assert f1 == f2
+
+    # Check that == works properly if the other thing isn't the same type.
+    assert f1 != object()
+    assert object() != f1
+
+    obj3 = copy.copy(obj1)
+    assert obj3 is not obj1
+    f3 = func(obj3)
+    assert f3 == f1
+
+    obj4 = copy.deepcopy(obj1)
+    assert obj4 is not obj1
+    f4 = func(obj4)
+    assert f4 == f1
+

@@ -1,0 +1,21 @@
+file_name: data/ng_direct_sph_cat1.fits
+file_name2: data/ng_direct_sph_cat2.fits
+
+ra_col: ra
+dec_col: dec
+ra_units: radians
+dec_units: radians
+
+g1_col: g1
+g2_col: g2
+w_col: w
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 10.
+nbins: 50
+sep_units: degrees
+bin_slop: 0
+
+ng_file_name: output/ng_direct_sph.fits

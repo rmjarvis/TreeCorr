@@ -465,7 +465,7 @@ def test_direct_count():
     xi, varxi = dd.calculateXi(rr)
 
     # First do this via the corr2 function.
-    config = treecorr.config.read_config('nn_direct.yaml')
+    config = treecorr.config.read_config('configs/nn_direct.yaml')
     logger = treecorr.config.setup_logger(0)
     treecorr.corr2(config, logger)
     corr2_output = np.genfromtxt(os.path.join('output','nn_direct.out'), names=True,
@@ -497,7 +497,7 @@ def test_direct_count():
     # For most things, we just run the corr2 function so the test coverage is recorded.
     import subprocess
     corr2_exe = get_script_name('corr2')
-    p = subprocess.Popen( [corr2_exe,"nn_direct.yaml","verbose=0"] )
+    p = subprocess.Popen( [corr2_exe,"configs/nn_direct.yaml","verbose=0"] )
     p.communicate()
     corr2_output = np.genfromtxt(os.path.join('output','nn_direct.out'), names=True,
                                     skip_header=1)
@@ -516,7 +516,7 @@ def test_direct_count():
 
     # Do this one with corr2 to test the automatic output_dots=True functionality.
     # It's not particularly annoying with max_top = 0.
-    config = treecorr.config.read_config('nn_direct.yaml')
+    config = treecorr.config.read_config('configs/nn_direct.yaml')
     config['verbose'] = 2
     config['max_top'] = 0
     config['bin_slop'] = 1.e-16
@@ -985,7 +985,7 @@ def test_direct_linear():
     rd.process(rcat1,cat2)
     xi, varxi = dd.calculateXi(rr, dr, rd)
 
-    config = treecorr.config.read_config('nn_linear.yaml')
+    config = treecorr.config.read_config('configs/nn_linear.yaml')
     logger = treecorr.config.setup_logger(0)
     treecorr.corr2(config, logger)
     corr2_output = np.genfromtxt(os.path.join('output','nn_linear.out'), names=True,
@@ -1104,7 +1104,7 @@ def test_nn():
     # Check that we get the same result using the corr2 function:
     cat.write(os.path.join('data','nn_data.dat'))
     rand.write(os.path.join('data','nn_rand.dat'))
-    config = treecorr.config.read_config('nn.yaml')
+    config = treecorr.config.read_config('configs/nn.yaml')
     config['verbose'] = 0
     config['precision'] = 8
     treecorr.corr2(config)
@@ -1273,7 +1273,7 @@ def test_3d():
     # Check that we get the same result using the corr2 function:
     cat.write(os.path.join('data','nn_3d_data.dat'))
     rand.write(os.path.join('data','nn_3d_rand.dat'))
-    config = treecorr.config.read_config('nn_3d.yaml')
+    config = treecorr.config.read_config('configs/nn_3d.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
 
@@ -1393,7 +1393,7 @@ def test_list():
                 fid.write(('%.8f %.8f\n')%(rx[i,k],ry[i,k]))
 
     # First do this via the corr2 function.
-    config = treecorr.config.read_config('nn_list1.yaml')
+    config = treecorr.config.read_config('configs/nn_list1.yaml')
     logger = treecorr.config.setup_logger(0)
     treecorr.corr2(config, logger)
     corr2_output = np.genfromtxt(os.path.join('output','nn_list1.out'),names=True,skip_header=1)
@@ -1406,7 +1406,7 @@ def test_list():
     # Now calling out to the external corr2 executable to test it with extra command-line params
     import subprocess
     corr2_exe = get_script_name('corr2')
-    p = subprocess.Popen( [corr2_exe,"nn_list1.yaml","verbose=0"] )
+    p = subprocess.Popen( [corr2_exe,"configs/nn_list1.yaml","verbose=0"] )
     p.communicate()
     corr2_output = np.genfromtxt(os.path.join('output','nn_list1.out'),names=True,skip_header=1)
     print('xi = ',xi)
@@ -1415,7 +1415,7 @@ def test_list():
     print('diff = ',corr2_output['xi']-xi)
     np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
 
-    config = treecorr.config.read_config('nn_list2.json')
+    config = treecorr.config.read_config('configs/nn_list2.json')
     treecorr.config.parse_variable(config, 'verbose=0')
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','nn_list2.out'),names=True,skip_header=1)
@@ -1425,7 +1425,7 @@ def test_list():
     print('diff = ',corr2_output['xi']-xi)
     np.testing.assert_allclose(corr2_output['xi'], xi, rtol=2.e-2)
 
-    config = treecorr.config.read_config('nn_list3.params')
+    config = treecorr.config.read_config('configs/nn_list3.params')
     treecorr.config.parse_variable(config, 'verbose=0')
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','nn_list3.out'),names=True,skip_header=1)
@@ -1435,7 +1435,7 @@ def test_list():
     print('diff = ',corr2_output['xi']-xi)
     np.testing.assert_allclose(corr2_output['xi'], xi, rtol=2.e-2)
 
-    config = treecorr.config.read_config('nn_list4.config', file_type='yaml')
+    config = treecorr.config.read_config('configs/nn_list4.config', file_type='yaml')
     treecorr.config.parse_variable(config, 'verbose=0')
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','nn_list4.out'),names=True,skip_header=1)
@@ -1446,7 +1446,7 @@ def test_list():
     np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-2)
 
     # Repeat with exe to test -f flag
-    p = subprocess.Popen( [corr2_exe, "-f", "yaml", "nn_list4.config", "verbose=0"] )
+    p = subprocess.Popen( [corr2_exe, "-f", "yaml", "configs/nn_list4.config", "verbose=0"] )
     p.communicate()
     corr2_output = np.genfromtxt(os.path.join('output','nn_list4.out'),names=True,skip_header=1)
     print('xi = ',xi)
@@ -1455,7 +1455,7 @@ def test_list():
     print('diff = ',corr2_output['xi']-xi)
     np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-2)
 
-    config = treecorr.config.read_config('nn_list5.config', file_type='json')
+    config = treecorr.config.read_config('configs/nn_list5.config', file_type='json')
     treecorr.config.parse_variable(config, 'verbose=0')
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','nn_list5.out'),names=True,skip_header=1)
@@ -1466,7 +1466,7 @@ def test_list():
     np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-2)
 
     # For this one, the output file is in the current directory, which used to give an error.
-    config = treecorr.config.read_config('nn_list6.config', file_type='params')
+    config = treecorr.config.read_config('configs/nn_list6.config', file_type='params')
     treecorr.config.parse_variable(config, 'verbose=0')
     print('config = ',config)
     treecorr.corr2(config)

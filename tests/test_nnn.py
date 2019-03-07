@@ -496,7 +496,7 @@ def test_direct_count_auto():
     zeta, varzeta = ddd.calculateZeta(rrr)
 
     # First do this via the corr3 function.
-    config = treecorr.config.read_config('nnn_direct.yaml')
+    config = treecorr.config.read_config('configs/nnn_direct.yaml')
     logger = treecorr.config.setup_logger(0)
     treecorr.corr3(config, logger)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_direct.out'), names=True,
@@ -533,7 +533,7 @@ def test_direct_count_auto():
     # This is the only time we test the corr3 executable.  All other tests use corr3 function.
     import subprocess
     corr3_exe = get_script_name('corr3')
-    p = subprocess.Popen( [corr3_exe,"nnn_direct.yaml","verbose=0"] )
+    p = subprocess.Popen( [corr3_exe,"configs/nnn_direct.yaml","verbose=0"] )
     p.communicate()
     corr3_output = np.genfromtxt(os.path.join('output','nnn_direct.out'), names=True,
                                     skip_header=1)
@@ -572,7 +572,7 @@ def test_direct_count_auto():
 
     # Do this one with corr3 to test the automatic output_dots=True functionality.
     # It's not particularly annoying with max_top = 0.
-    config = treecorr.config.read_config('nnn_direct.yaml')
+    config = treecorr.config.read_config('configs/nnn_direct.yaml')
     config['verbose'] = 2
     config['max_top'] = 0
     config['bin_slop'] = 1.e-16
@@ -1134,7 +1134,7 @@ def test_nnn():
     # Check that we get the same result using the corr3 function
     cat.write(os.path.join('data','nnn_data.dat'))
     rand.write(os.path.join('data','nnn_rand.dat'))
-    config = treecorr.config.read_config('nnn.yaml')
+    config = treecorr.config.read_config('configs/nnn.yaml')
     config['verbose'] = 0
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','nnn.out'), names=True, skip_header=1)
@@ -1312,7 +1312,7 @@ def test_nnn():
         assert ddd2.sep_units == ddd.sep_units
         assert ddd2.bin_type == ddd.bin_type
 
-        config = treecorr.config.read_config('nnn_compensated.yaml')
+        config = treecorr.config.read_config('configs/nnn_compensated.yaml')
         config['verbose'] = 0
         treecorr.corr3(config)
         corr3_outfile = os.path.join('output','nnn_compensated.fits')
@@ -1452,7 +1452,7 @@ def test_3d():
     # Check that we get the same result using the corr3 functin:
     cat.write(os.path.join('data','nnn_3d_data.dat'))
     rand.write(os.path.join('data','nnn_3d_rand.dat'))
-    config = treecorr.config.read_config('nnn_3d.yaml')
+    config = treecorr.config.read_config('configs/nnn_3d.yaml')
     config['verbose'] = 0
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_3d.out'), names=True, skip_header=1)
@@ -1568,7 +1568,7 @@ def test_list():
     rand_file_namex = os.path.join('data','nnn_list_randx.dat')
     rand_catx.write(rand_file_namex)
 
-    config = treecorr.config.read_config('nnn_list1.yaml')
+    config = treecorr.config.read_config('configs/nnn_list1.yaml')
     config['verbose'] = 0
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_list1.out'), names=True, skip_header=1)
@@ -1578,7 +1578,7 @@ def test_list():
     print('diff = ',corr3_output['zeta']-zeta.flatten())
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
 
-    config = treecorr.config.read_config('nnn_list2.json')
+    config = treecorr.config.read_config('configs/nnn_list2.json')
     config['verbose'] = 0
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_list2.out'), names=True, skip_header=1)
@@ -1588,7 +1588,7 @@ def test_list():
     print('diff = ',corr3_output['zeta']-zeta.flatten())
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=0.05)
 
-    config = treecorr.config.read_config('nnn_list3.params')
+    config = treecorr.config.read_config('configs/nnn_list3.params')
     config['verbose'] = 0
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_list3.out'), names=True, skip_header=1)
@@ -1598,7 +1598,7 @@ def test_list():
     print('diff = ',corr3_output['zeta']-zeta.flatten())
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=0.05)
 
-    config = treecorr.config.read_config('nnn_list4.config', file_type='params')
+    config = treecorr.config.read_config('configs/nnn_list4.config', file_type='params')
     config['verbose'] = 0
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_list4.out'), names=True, skip_header=1)

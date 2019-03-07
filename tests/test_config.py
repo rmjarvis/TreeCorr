@@ -23,7 +23,7 @@ from test_helper import CaptureLog, assert_raises
 def test_parse_variables():
     """Test parse_variables functionality
     """
-    config = treecorr.read_config('nn.yaml')
+    config = treecorr.read_config('configs/nn.yaml')
 
     # parse_variables is used by corr2 executable to add or change items in config
     # with extra command line arguments
@@ -118,7 +118,7 @@ def test_read():
     # The config files for nn_list are designed to hit all the major features here.
     # Tests that use these config files are in test_nn.py:test_list()
 
-    config1 = treecorr.config.read_config('nn_list1.yaml')
+    config1 = treecorr.config.read_config('configs/nn_list1.yaml')
     assert config1 == {
         'file_list': 'data/nn_list_data_files.txt',
         'rand_file_list': 'data/nn_list_rand_files.txt',
@@ -132,7 +132,7 @@ def test_read():
         'nn_statistic': 'simple',
     }
 
-    config2 = treecorr.config.read_config('nn_list2.json')
+    config2 = treecorr.config.read_config('configs/nn_list2.json')
     assert config2 == {
         'file_list': 'data/nn_list_data_files.txt',
         'rand_file_name': 'data/nn_list_randx.dat',
@@ -146,7 +146,7 @@ def test_read():
         'nn_statistic': 'simple',
     }
 
-    config3 = treecorr.config.read_config('nn_list3.params')
+    config3 = treecorr.config.read_config('configs/nn_list3.params')
     assert config3 == {
         'file_name': 'data/nn_list_datax.dat',
         'rand_file_name': ['data/nn_list_rand0.dat', 'data/nn_list_rand1.dat',
@@ -161,7 +161,7 @@ def test_read():
         'nn_statistic': 'simple',
     }
 
-    config4 = treecorr.config.read_config('nn_list4.config', file_type='yaml')
+    config4 = treecorr.config.read_config('configs/nn_list4.config', file_type='yaml')
     assert config4 == {
         'file_list': 'data/nn_list_data_files.txt',
         'rand_file_list': 'data/nn_list_rand_files.txt',
@@ -177,7 +177,7 @@ def test_read():
         'nn_statistic': 'simple',
     }
 
-    config5 = treecorr.config.read_config('nn_list5.config', file_type='json')
+    config5 = treecorr.config.read_config('configs/nn_list5.config', file_type='json')
     assert config5 == {
         'file_list': 'data/nn_list_data_files.txt',
         'rand_file_name': 'data/nn_list_randx.dat',
@@ -193,7 +193,7 @@ def test_read():
         'nn_statistic': 'simple',
     }
 
-    config6 = treecorr.config.read_config('nn_list6.config', file_type='params')
+    config6 = treecorr.config.read_config('configs/nn_list6.config', file_type='params')
     assert config6 == {
         'file_name': ['data/nn_list_data0.dat', 'data/nn_list_data1.dat', 'data/nn_list_data2.dat'],
         'rand_file_name': ['data/nn_list_rand0.dat', 'data/nn_list_rand1.dat', 'data/nn_list_rand2.dat'],
@@ -210,9 +210,9 @@ def test_read():
     }
 
     with assert_raises(ValueError):
-        treecorr.config.read_config('nn_list6.config', file_type='simple')
+        treecorr.config.read_config('configs/nn_list6.config', file_type='simple')
     with assert_raises(ValueError):
-        treecorr.config.read_config('nn_list6.config')
+        treecorr.config.read_config('configs/nn_list6.config')
 
 
 def test_logger():
@@ -262,7 +262,7 @@ def test_check():
     """Test checking the validity of config values.
     """
     # First a simple case with no conflicts
-    config1 = treecorr.read_config('kg.yaml')
+    config1 = treecorr.read_config('configs/kg.yaml')
     valid_params = treecorr.corr2_valid_params
     config2 = treecorr.config.check_config(config1.copy(), valid_params)
 
@@ -343,7 +343,7 @@ def test_print():
 def test_get():
     """Test getting a parameter from a config dict
     """
-    config1 = treecorr.read_config('kg.yaml')
+    config1 = treecorr.read_config('configs/kg.yaml')
     assert treecorr.config.get(config1, 'x_col', int) == 1
     assert treecorr.config.get(config1, 'x_col', str) == '1'
     assert treecorr.config.get(config1, 'x_col') == '1'
@@ -386,7 +386,7 @@ def test_merge():
     """Test merging two config dicts.
     """
     # First a simple case with no conflicts
-    config1 = treecorr.read_config('Aardvark.yaml')
+    config1 = treecorr.read_config('configs/Aardvark.yaml')
     kwargs = { 'cat_precision' : 10 }
     valid_params = treecorr.Catalog._valid_params
     config2 = treecorr.config.merge_config(config1, kwargs, valid_params)

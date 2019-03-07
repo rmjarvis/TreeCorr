@@ -217,7 +217,7 @@ def test_ggg():
 
     # Check that we get the same result using the corr3 function:
     cat.write(os.path.join('data','ggg_data.dat'))
-    config = treecorr.config.read_config('ggg.yaml')
+    config = treecorr.config.read_config('configs/ggg.yaml')
     config['verbose'] = 0
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','ggg.out'), names=True, skip_header=1)

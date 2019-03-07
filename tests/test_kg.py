@@ -61,7 +61,7 @@ def test_single():
     # Check that we get the same result using the corr2 function:
     lens_cat.write(os.path.join('data','kg_single_lens.dat'))
     source_cat.write(os.path.join('data','kg_single_source.dat'))
-    config = treecorr.read_config('kg_single.yaml')
+    config = treecorr.read_config('configs/kg_single.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','kg_single.out'), names=True,
@@ -116,7 +116,7 @@ def test_pairwise():
     # Check that we get the same result using the corr2 function
     lens_cat.write(os.path.join('data','kg_pairwise_lens.dat'))
     source_cat.write(os.path.join('data','kg_pairwise_source.dat'))
-    config = treecorr.read_config('kg_pairwise.yaml')
+    config = treecorr.read_config('configs/kg_pairwise.yaml')
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','kg_pairwise.out'), names=True,
@@ -180,7 +180,7 @@ def test_kg():
     # Check that we get the same result using the corr2 function:
     lens_cat.write(os.path.join('data','kg_lens.dat'))
     source_cat.write(os.path.join('data','kg_source.dat'))
-    config = treecorr.read_config('kg.yaml')
+    config = treecorr.read_config('configs/kg.yaml')
     config['verbose'] = 0
     config['precision'] = 8
     treecorr.corr2(config)

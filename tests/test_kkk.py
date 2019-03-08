@@ -16,8 +16,270 @@ import numpy as np
 import treecorr
 import os
 import fitsio
+import coord
 
-from test_helper import get_script_name
+from test_helper import get_script_name, do_pickle
+
+def test_direct():
+    # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
+    # This should exactly match the treecorr result if bin_slop=0.
+
+    ngal = 100
+    s = 10.
+    np.random.seed(8675309)
+    x = np.random.normal(0,s, (ngal,) )
+    y = np.random.normal(0,s, (ngal,) )
+    w = np.random.random(ngal)
+    kap = np.random.normal(0,3, (ngal,) )
+
+    cat = treecorr.Catalog(x=x, y=y, w=w, k=kap)
+
+    min_sep = 1.
+    bin_size = 0.2
+    nrbins = 10
+    nubins = 5
+    nvbins = 10
+    max_sep = min_sep * np.exp(nrbins * bin_size)
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, bin_slop=0.)
+    kkk.process(cat, num_threads=1)
+
+    true_ntri = np.zeros((nrbins, nubins, nvbins), dtype=int)
+    true_weight = np.zeros((nrbins, nubins, nvbins), dtype=float)
+    true_zeta = np.zeros((nrbins, nubins, nvbins), dtype=float)
+    for i in range(ngal):
+        for j in range(i+1,ngal):
+            for k in range(j+1,ngal):
+                d12 = np.sqrt((x[i]-x[j])**2 + (y[i]-y[j])**2)
+                d23 = np.sqrt((x[j]-x[k])**2 + (y[j]-y[k])**2)
+                d31 = np.sqrt((x[k]-x[i])**2 + (y[k]-y[i])**2)
+
+                d3, d2, d1 = sorted([d12, d23, d31])
+                rindex = np.floor(np.log(d2/min_sep) / bin_size).astype(int)
+                if rindex < 0 or rindex >= nrbins: continue
+
+                if [d1, d2, d3] == [d23, d31, d12]: ii,jj,kk = i,j,k
+                elif [d1, d2, d3] == [d23, d12, d31]: ii,jj,kk = i,k,j
+                elif [d1, d2, d3] == [d31, d12, d23]: ii,jj,kk = j,k,i
+                elif [d1, d2, d3] == [d31, d23, d12]: ii,jj,kk = j,i,k
+                elif [d1, d2, d3] == [d12, d23, d31]: ii,jj,kk = k,i,j
+                elif [d1, d2, d3] == [d12, d31, d23]: ii,jj,kk = k,j,i
+                else: assert False
+                # Now use ii, jj, kk rather than i,j,k, to get the indices
+                # that correspond to the points in the right order.
+
+                u = d3/d2
+                v = (d1-d2)/d3
+                if (x[jj]-x[ii])*(y[kk]-y[ii]) < (x[kk]-x[ii])*(y[jj]-y[ii]):
+                    v = -v
+
+                uindex = np.floor(u / bin_size).astype(int)
+                assert 0 <= uindex < nubins
+                vindex = np.floor((v+1) / bin_size).astype(int)
+                assert 0 <= vindex < nvbins
+
+                www = w[i] * w[j] * w[k]
+                zeta = www * kap[i] * kap[j] * kap[k]
+
+                true_ntri[rindex,uindex,vindex] += 1
+                true_weight[rindex,uindex,vindex] += www
+                true_zeta[rindex,uindex,vindex] += zeta
+
+    pos = true_weight > 0
+    true_zeta[pos] /= true_weight[pos]
+
+    np.testing.assert_array_equal(kkk.ntri, true_ntri)
+    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
+
+    # Check that running via the corr3 script works correctly.
+    config = treecorr.config.read_config('configs/kkk_direct.yaml')
+    cat.write(config['file_name'])
+    treecorr.corr3(config)
+    data = fitsio.read(config['kkk_file_name'])
+    np.testing.assert_allclose(data['R_nom'], kkk.rnom.flatten())
+    np.testing.assert_allclose(data['u_nom'], kkk.u.flatten())
+    np.testing.assert_allclose(data['v_nom'], kkk.v.flatten())
+    np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten())
+    np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
+    np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
+
+    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # And don't do any top-level recursion so we actually test not going to the leaves.
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                  bin_slop=1.e-16, max_top=0)
+    kkk.process(cat)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri)
+    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
+
+    # Check a few basic operations with a GGCorrelation object.
+    do_pickle(kkk)
+
+    kkk2 = kkk.copy()
+    kkk2 += kkk
+    np.testing.assert_allclose(kkk2.ntri, 2*kkk.ntri)
+    np.testing.assert_allclose(kkk2.weight, 2*kkk.weight)
+    np.testing.assert_allclose(kkk2.meand1, 2*kkk.meand1)
+    np.testing.assert_allclose(kkk2.meand2, 2*kkk.meand2)
+    np.testing.assert_allclose(kkk2.meand3, 2*kkk.meand3)
+    np.testing.assert_allclose(kkk2.meanlogd1, 2*kkk.meanlogd1)
+    np.testing.assert_allclose(kkk2.meanlogd2, 2*kkk.meanlogd2)
+    np.testing.assert_allclose(kkk2.meanlogd3, 2*kkk.meanlogd3)
+    np.testing.assert_allclose(kkk2.meanu, 2*kkk.meanu)
+    np.testing.assert_allclose(kkk2.meanv, 2*kkk.meanv)
+    np.testing.assert_allclose(kkk2.zeta, 2*kkk.zeta)
+
+    kkk2.clear()
+    kkk2 += kkk
+    np.testing.assert_allclose(kkk2.ntri, kkk.ntri)
+    np.testing.assert_allclose(kkk2.weight, kkk.weight)
+    np.testing.assert_allclose(kkk2.meand1, kkk.meand1)
+    np.testing.assert_allclose(kkk2.meand2, kkk.meand2)
+    np.testing.assert_allclose(kkk2.meand3, kkk.meand3)
+    np.testing.assert_allclose(kkk2.meanlogd1, kkk.meanlogd1)
+    np.testing.assert_allclose(kkk2.meanlogd2, kkk.meanlogd2)
+    np.testing.assert_allclose(kkk2.meanlogd3, kkk.meanlogd3)
+    np.testing.assert_allclose(kkk2.meanu, kkk.meanu)
+    np.testing.assert_allclose(kkk2.meanv, kkk.meanv)
+    np.testing.assert_allclose(kkk2.zeta, kkk.zeta)
+
+    ascii_name = 'output/kkk_ascii.txt'
+    kkk.write(ascii_name, precision=16)
+    kkk3 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
+    kkk3.read(ascii_name)
+    np.testing.assert_allclose(kkk3.ntri, kkk.ntri)
+    np.testing.assert_allclose(kkk3.weight, kkk.weight)
+    np.testing.assert_allclose(kkk3.meand1, kkk.meand1)
+    np.testing.assert_allclose(kkk3.meand2, kkk.meand2)
+    np.testing.assert_allclose(kkk3.meand3, kkk.meand3)
+    np.testing.assert_allclose(kkk3.meanlogd1, kkk.meanlogd1)
+    np.testing.assert_allclose(kkk3.meanlogd2, kkk.meanlogd2)
+    np.testing.assert_allclose(kkk3.meanlogd3, kkk.meanlogd3)
+    np.testing.assert_allclose(kkk3.meanu, kkk.meanu)
+    np.testing.assert_allclose(kkk3.meanv, kkk.meanv)
+    np.testing.assert_allclose(kkk3.zeta, kkk.zeta)
+
+    fits_name = 'output/kkk_fits.fits'
+    kkk.write(fits_name)
+    kkk4 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
+    kkk4.read(fits_name)
+    np.testing.assert_allclose(kkk4.ntri, kkk.ntri)
+    np.testing.assert_allclose(kkk4.weight, kkk.weight)
+    np.testing.assert_allclose(kkk4.meand1, kkk.meand1)
+    np.testing.assert_allclose(kkk4.meand2, kkk.meand2)
+    np.testing.assert_allclose(kkk4.meand3, kkk.meand3)
+    np.testing.assert_allclose(kkk4.meanlogd1, kkk.meanlogd1)
+    np.testing.assert_allclose(kkk4.meanlogd2, kkk.meanlogd2)
+    np.testing.assert_allclose(kkk4.meanlogd3, kkk.meanlogd3)
+    np.testing.assert_allclose(kkk4.meanu, kkk.meanu)
+    np.testing.assert_allclose(kkk4.meanv, kkk.meanv)
+    np.testing.assert_allclose(kkk4.zeta, kkk.zeta)
+
+def test_direct_spherical():
+    # Repeat in spherical coords
+
+    ngal = 50
+    s = 10.
+    np.random.seed(8675309)
+    x = np.random.normal(0,s, (ngal,) )
+    y = np.random.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
+    z = np.random.normal(0,s, (ngal,) )
+    w = np.random.random(ngal)
+    kap = np.random.normal(0,3, (ngal,) )
+    w = np.ones_like(w)
+
+    ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
+
+    cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w, k=kap)
+
+    min_sep = 1.
+    bin_size = 0.2
+    nrbins = 10
+    nubins = 5
+    nvbins = 10
+    max_sep = min_sep * np.exp(nrbins * bin_size)
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                  sep_units='deg', bin_slop=0.)
+    kkk.process(cat, num_threads=1)
+
+    r = np.sqrt(x**2 + y**2 + z**2)
+    x /= r;  y /= r;  z /= r
+    north_pole = coord.CelestialCoord(0*coord.radians, 90*coord.degrees)
+
+    true_ntri = np.zeros((nrbins, nubins, nvbins), dtype=int)
+    true_weight = np.zeros((nrbins, nubins, nvbins), dtype=float)
+    true_zeta = np.zeros((nrbins, nubins, nvbins), dtype=float)
+
+    rad_min_sep = min_sep * coord.degrees / coord.radians
+    rad_max_sep = max_sep * coord.degrees / coord.radians
+    c = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra, dec)]
+    for i in range(ngal):
+        for j in range(i+1,ngal):
+            for k in range(j+1,ngal):
+                d12 = np.sqrt((x[i]-x[j])**2 + (y[i]-y[j])**2 + (z[i]-z[j])**2)
+                d23 = np.sqrt((x[j]-x[k])**2 + (y[j]-y[k])**2 + (z[j]-z[k])**2)
+                d31 = np.sqrt((x[k]-x[i])**2 + (y[k]-y[i])**2 + (z[k]-z[i])**2)
+
+                d3, d2, d1 = sorted([d12, d23, d31])
+                rindex = np.floor(np.log(d2/rad_min_sep) / bin_size).astype(int)
+                if rindex < 0 or rindex >= nrbins: continue
+
+                if [d1, d2, d3] == [d23, d31, d12]: ii,jj,kk = i,j,k
+                elif [d1, d2, d3] == [d23, d12, d31]: ii,jj,kk = i,k,j
+                elif [d1, d2, d3] == [d31, d12, d23]: ii,jj,kk = j,k,i
+                elif [d1, d2, d3] == [d31, d23, d12]: ii,jj,kk = j,i,k
+                elif [d1, d2, d3] == [d12, d23, d31]: ii,jj,kk = k,i,j
+                elif [d1, d2, d3] == [d12, d31, d23]: ii,jj,kk = k,j,i
+                else: assert False
+                # Now use ii, jj, kk rather than i,j,k, to get the indices
+                # that correspond to the points in the right order.
+
+                u = d3/d2
+                v = (d1-d2)/d3
+                if ( ((x[jj]-x[ii])*(y[kk]-y[ii]) - (x[kk]-x[ii])*(y[jj]-y[ii])) * z[ii] +
+                     ((y[jj]-y[ii])*(z[kk]-z[ii]) - (y[kk]-y[ii])*(z[jj]-z[ii])) * x[ii] +
+                     ((z[jj]-z[ii])*(x[kk]-x[ii]) - (z[kk]-z[ii])*(x[jj]-x[ii])) * y[ii] ) > 0:
+                    v = -v
+
+                uindex = np.floor(u / bin_size).astype(int)
+                assert 0 <= uindex < nubins
+                vindex = np.floor((v+1) / bin_size).astype(int)
+                assert 0 <= vindex < nvbins
+
+                www = w[i] * w[j] * w[k]
+                zeta = www * kap[i] * kap[j] * kap[k]
+
+                true_ntri[rindex,uindex,vindex] += 1
+                true_weight[rindex,uindex,vindex] += www
+                true_zeta[rindex,uindex,vindex] += zeta
+
+    pos = true_weight > 0
+    true_zeta[pos] /= true_weight[pos]
+
+    np.testing.assert_array_equal(kkk.ntri, true_ntri)
+    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-4, atol=1.e-6)
+
+    # Check that running via the corr3 script works correctly.
+    config = treecorr.config.read_config('configs/kkk_direct_spherical.yaml')
+    cat.write(config['file_name'])
+    treecorr.corr3(config)
+    data = fitsio.read(config['kkk_file_name'])
+    np.testing.assert_allclose(data['R_nom'], kkk.rnom.flatten())
+    np.testing.assert_allclose(data['u_nom'], kkk.u.flatten())
+    np.testing.assert_allclose(data['v_nom'], kkk.v.flatten())
+    np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten())
+    np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
+    np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
+
+    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # And don't do any top-level recursion so we actually test not going to the leaves.
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                  sep_units='deg', bin_slop=1.e-16, max_top=0)
+    kkk.process(cat)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri)
+    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-4, atol=1.e-6)
 
 def test_constant():
     # A fairly trivial test is to use a constant value of kappa everywhere.

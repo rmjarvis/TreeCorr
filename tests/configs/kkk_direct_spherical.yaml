@@ -1,0 +1,21 @@
+
+file_name: data/kkk_direct_sph_cat.fits
+
+ra_col: ra
+dec_col: dec
+ra_units: radians
+dec_units: radians
+k_col: k
+w_col: w
+
+verbose: 1
+
+min_sep: 1.
+bin_size: 0.2
+nbins: 10
+sep_units: degrees
+nubins: 5
+nvbins: 10
+bin_slop: 0
+
+kkk_file_name: output/kkk_direct_sph.fits

@@ -168,22 +168,22 @@ def corr3(config, logger=None):
 
     # Do NNN correlation function if necessary
     if 'nnn_file_name' in config:
-        if len(rand1) == 0:
-            raise AttributeError("rand_file_name is required for NNN correlation")
-        if len(cat2) > 0 and len(rand2) == 0:
-            raise AttributeError("rand_file_name2 is required for NNN cross-correlation")
-        if len(cat3) > 0 and len(rand3) == 0:
-            raise AttributeError("rand_file_name3 is required for NNN cross-correlation")
-        if (len(cat2) > 0) != (len(cat3) > 0):
-            raise NotImplementedError(
-                "Cannot yet handle 3-point corrleations with only two catalogs. "+
-                "Need both cat2 and cat3.")
         logger.warning("Performing DDD calculations...")
         ddd = treecorr.NNNCorrelation(config,logger)
         ddd.process(cat1,cat2,cat3)
         logger.info("Done DDD calculations.")
 
-        if len(cat2) == 0:
+
+        drr = None
+        rdr = None
+        rrd = None
+        ddr = None
+        drd = None
+        rdd = None
+        if len(rand1) == 0:
+            logger.warning("No random catalogs given.  Only doing ntri calculation.")
+            rrr = None
+        elif len(cat2) == 0:
             logger.warning("Performing RRR calculations...")
             rrr = treecorr.NNNCorrelation(config,logger)
             rrr.process(rand1)
@@ -193,12 +193,20 @@ def corr3(config, logger=None):
             cat2 = cat3 = cat1
             rand2 = rand3 = rand1
         else:
+            if len(rand2) == 0:
+                raise AttributeError("rand_file_name2 is required when file_name2 is given")
+            if len(cat3) > 0 and len(rand3) == 0:
+                raise AttributeError("rand_file_name3 is required when file_name3 is given")
+            if (len(cat2) > 0) != (len(cat3) > 0):
+                raise NotImplementedError(
+                    "Cannot yet handle 3-point corrleations with only two catalogs. "+
+                    "Need both cat2 and cat3.")
             logger.warning("Performing RRR calculations...")
             rrr = treecorr.NNNCorrelation(config,logger)
             rrr.process(rand1,rand2,rand3)
             logger.info("Done RRR calculations.")
 
-        if config['nnn_statistic'] == 'compensated':
+        if rrr is not None and config['nnn_statistic'] == 'compensated':
             logger.warning("Performing DRR calculations...")
             drr = treecorr.NNNCorrelation(config,logger)
             drr.process(cat1,rand2,rand3)
@@ -223,9 +231,7 @@ def corr3(config, logger=None):
             rdd = treecorr.NNNCorrelation(config,logger)
             rdd.process(rand1,cat2,cat3)
             logger.info("Done RDD calculations.")
-            ddd.write(config['nnn_file_name'],rrr,drr,rdr,rrd,ddr,drd,rdd)
-        else:
-            ddd.write(config['nnn_file_name'],rrr)
+        ddd.write(config['nnn_file_name'],rrr,drr,rdr,rrd,ddr,drd,rdd)
 
     # Do KKK correlation function if necessary
     if 'kkk_file_name' in config:

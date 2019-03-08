@@ -18,7 +18,7 @@ import os
 import fitsio
 import coord
 
-from test_helper import get_script_name
+from test_helper import get_script_name, do_pickle
 
 def test_binnedcorr3():
     import math
@@ -564,7 +564,7 @@ def test_direct_count_auto():
     # This should be equivalent to processing a cross correlation with each catalog being
     # the same thing.
     ddd.clear()
-    ddd.process(cat,cat,cat)
+    ddd.process(cat,cat,cat, num_threads=1)
     #print('ddd.ntri = ',ddd.ntri)
     #print('true_ntri => ',true_ntri)
     #print('diff = ',ddd.ntri - true_ntri)
@@ -580,6 +580,164 @@ def test_direct_count_auto():
     data = np.genfromtxt(config['nnn_file_name'], names=True, skip_header=1)
     np.testing.assert_array_equal(data['ntri'], true_ntri.flatten())
     np.testing.assert_allclose(data['zeta'], zeta.flatten(), rtol=1.e-3)
+
+    # Check a few basic operations with a GGCorrelation object.
+    do_pickle(ddd)
+
+    ddd2 = ddd.copy()
+    ddd2 += ddd
+    np.testing.assert_allclose(ddd2.ntri, 2*ddd.ntri)
+    np.testing.assert_allclose(ddd2.weight, 2*ddd.weight)
+    np.testing.assert_allclose(ddd2.meand1, 2*ddd.meand1)
+    np.testing.assert_allclose(ddd2.meand2, 2*ddd.meand2)
+    np.testing.assert_allclose(ddd2.meand3, 2*ddd.meand3)
+    np.testing.assert_allclose(ddd2.meanlogd1, 2*ddd.meanlogd1)
+    np.testing.assert_allclose(ddd2.meanlogd2, 2*ddd.meanlogd2)
+    np.testing.assert_allclose(ddd2.meanlogd3, 2*ddd.meanlogd3)
+    np.testing.assert_allclose(ddd2.meanu, 2*ddd.meanu)
+    np.testing.assert_allclose(ddd2.meanv, 2*ddd.meanv)
+
+    ddd2.clear()
+    ddd2 += ddd
+    np.testing.assert_allclose(ddd2.ntri, ddd.ntri)
+    np.testing.assert_allclose(ddd2.weight, ddd.weight)
+    np.testing.assert_allclose(ddd2.meand1, ddd.meand1)
+    np.testing.assert_allclose(ddd2.meand2, ddd.meand2)
+    np.testing.assert_allclose(ddd2.meand3, ddd.meand3)
+    np.testing.assert_allclose(ddd2.meanlogd1, ddd.meanlogd1)
+    np.testing.assert_allclose(ddd2.meanlogd2, ddd.meanlogd2)
+    np.testing.assert_allclose(ddd2.meanlogd3, ddd.meanlogd3)
+    np.testing.assert_allclose(ddd2.meanu, ddd.meanu)
+    np.testing.assert_allclose(ddd2.meanv, ddd.meanv)
+
+    ascii_name = 'output/nnn_ascii.txt'
+    ddd.write(ascii_name, precision=16)
+    ddd3 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                   min_u=min_u, max_u=max_u, nubins=nubins,
+                                   min_v=min_v, max_v=max_v, nvbins=nvbins)
+    ddd3.read(ascii_name)
+    np.testing.assert_allclose(ddd3.ntri, ddd.ntri)
+    np.testing.assert_allclose(ddd3.weight, ddd.weight)
+    np.testing.assert_allclose(ddd3.meand1, ddd.meand1)
+    np.testing.assert_allclose(ddd3.meand2, ddd.meand2)
+    np.testing.assert_allclose(ddd3.meand3, ddd.meand3)
+    np.testing.assert_allclose(ddd3.meanlogd1, ddd.meanlogd1)
+    np.testing.assert_allclose(ddd3.meanlogd2, ddd.meanlogd2)
+    np.testing.assert_allclose(ddd3.meanlogd3, ddd.meanlogd3)
+    np.testing.assert_allclose(ddd3.meanu, ddd.meanu)
+    np.testing.assert_allclose(ddd3.meanv, ddd.meanv)
+
+    fits_name = 'output/nnn_fits.fits'
+    ddd.write(fits_name)
+    ddd4 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                   min_u=min_u, max_u=max_u, nubins=nubins,
+                                   min_v=min_v, max_v=max_v, nvbins=nvbins)
+    ddd4.read(fits_name)
+    np.testing.assert_allclose(ddd4.ntri, ddd.ntri)
+    np.testing.assert_allclose(ddd4.weight, ddd.weight)
+    np.testing.assert_allclose(ddd4.meand1, ddd.meand1)
+    np.testing.assert_allclose(ddd4.meand2, ddd.meand2)
+    np.testing.assert_allclose(ddd4.meand3, ddd.meand3)
+    np.testing.assert_allclose(ddd4.meanlogd1, ddd.meanlogd1)
+    np.testing.assert_allclose(ddd4.meanlogd2, ddd.meanlogd2)
+    np.testing.assert_allclose(ddd4.meanlogd3, ddd.meanlogd3)
+    np.testing.assert_allclose(ddd4.meanu, ddd.meanu)
+    np.testing.assert_allclose(ddd4.meanv, ddd.meanv)
+
+
+def test_direct_spherical():
+    # Repeat in spherical coords
+
+    ngal = 50
+    s = 10.
+    np.random.seed(8675309)
+    x = np.random.normal(0,s, (ngal,) )
+    y = np.random.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
+    z = np.random.normal(0,s, (ngal,) )
+    w = np.random.random(ngal)
+
+    ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
+
+    cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w)
+
+    min_sep = 1.
+    bin_size = 0.2
+    nrbins = 10
+    nubins = 5
+    nvbins = 10
+    max_sep = min_sep * np.exp(nrbins * bin_size)
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                  sep_units='deg', bin_slop=0.)
+    ddd.process(cat, num_threads=1)
+
+    r = np.sqrt(x**2 + y**2 + z**2)
+    x /= r;  y /= r;  z /= r
+    north_pole = coord.CelestialCoord(0*coord.radians, 90*coord.degrees)
+
+    true_ntri = np.zeros((nrbins, nubins, nvbins), dtype=int)
+    true_weight = np.zeros((nrbins, nubins, nvbins), dtype=float)
+
+    rad_min_sep = min_sep * coord.degrees / coord.radians
+    rad_max_sep = max_sep * coord.degrees / coord.radians
+    c = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra, dec)]
+    for i in range(ngal):
+        for j in range(i+1,ngal):
+            for k in range(j+1,ngal):
+                d12 = np.sqrt((x[i]-x[j])**2 + (y[i]-y[j])**2 + (z[i]-z[j])**2)
+                d23 = np.sqrt((x[j]-x[k])**2 + (y[j]-y[k])**2 + (z[j]-z[k])**2)
+                d31 = np.sqrt((x[k]-x[i])**2 + (y[k]-y[i])**2 + (z[k]-z[i])**2)
+
+                d3, d2, d1 = sorted([d12, d23, d31])
+                rindex = np.floor(np.log(d2/rad_min_sep) / bin_size).astype(int)
+                if rindex < 0 or rindex >= nrbins: continue
+
+                if [d1, d2, d3] == [d23, d31, d12]: ii,jj,kk = i,j,k
+                elif [d1, d2, d3] == [d23, d12, d31]: ii,jj,kk = i,k,j
+                elif [d1, d2, d3] == [d31, d12, d23]: ii,jj,kk = j,k,i
+                elif [d1, d2, d3] == [d31, d23, d12]: ii,jj,kk = j,i,k
+                elif [d1, d2, d3] == [d12, d23, d31]: ii,jj,kk = k,i,j
+                elif [d1, d2, d3] == [d12, d31, d23]: ii,jj,kk = k,j,i
+                else: assert False
+                # Now use ii, jj, kk rather than i,j,k, to get the indices
+                # that correspond to the points in the right order.
+
+                u = d3/d2
+                v = (d1-d2)/d3
+                if ( ((x[jj]-x[ii])*(y[kk]-y[ii]) - (x[kk]-x[ii])*(y[jj]-y[ii])) * z[ii] +
+                     ((y[jj]-y[ii])*(z[kk]-z[ii]) - (y[kk]-y[ii])*(z[jj]-z[ii])) * x[ii] +
+                     ((z[jj]-z[ii])*(x[kk]-x[ii]) - (z[kk]-z[ii])*(x[jj]-x[ii])) * y[ii] ) > 0:
+                    v = -v
+
+                uindex = np.floor(u / bin_size).astype(int)
+                assert 0 <= uindex < nubins
+                vindex = np.floor((v+1) / bin_size).astype(int)
+                assert 0 <= vindex < nvbins
+
+                www = w[i] * w[j] * w[k]
+                true_ntri[rindex,uindex,vindex] += 1
+                true_weight[rindex,uindex,vindex] += www
+
+    np.testing.assert_array_equal(ddd.ntri, true_ntri)
+    np.testing.assert_allclose(ddd.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+
+    # Check that running via the corr3 script works correctly.
+    config = treecorr.config.read_config('configs/nnn_direct_spherical.yaml')
+    cat.write(config['file_name'])
+    treecorr.corr3(config)
+    data = fitsio.read(config['nnn_file_name'])
+    np.testing.assert_allclose(data['R_nom'], ddd.rnom.flatten())
+    np.testing.assert_allclose(data['u_nom'], ddd.u.flatten())
+    np.testing.assert_allclose(data['v_nom'], ddd.v.flatten())
+    np.testing.assert_allclose(data['ntri'], ddd.ntri.flatten())
+    np.testing.assert_allclose(data['DDD'], ddd.weight.flatten())
+
+    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # And don't do any top-level recursion so we actually test not going to the leaves.
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                  sep_units='deg', bin_slop=1.e-16, max_top=0)
+    ddd.process(cat)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri)
+    np.testing.assert_allclose(ddd.weight, true_weight, rtol=1.e-5, atol=1.e-8)
 
 
 def test_direct_count_cross():
@@ -1504,14 +1662,14 @@ def test_list():
 
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                  nubins=nubins, nvbins=nvbins, verbose=1)
+                                  nubins=nubins, nvbins=nvbins, bin_slop=0.1, verbose=1)
     ddd.process(data_cats)
     print('From multiple catalogs: ddd.ntri = ',ddd.ntri)
 
     # Now do the same thing with one big catalog
     dddx = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                   nubins=nubins, nvbins=nvbins, verbose=1)
+                                   nubins=nubins, nvbins=nvbins, bin_slop=0.1, verbose=1)
     data_catx = treecorr.Catalog(x=x.reshape( (ngal*ncats,) ), y=y.reshape( (ngal*ncats,) ))
     dddx.process(data_catx)
     print('From single catalog: dddx.ntri = ',dddx.ntri)
@@ -1521,13 +1679,13 @@ def test_list():
 
     rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                  nubins=nubins, nvbins=nvbins, verbose=1)
+                                  nubins=nubins, nvbins=nvbins, bin_slop=0.1, verbose=1)
     rrr.process(rand_cats)
     print('rrr.ntri = ',rrr.ntri)
 
     rrrx = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                   nubins=nubins, nvbins=nvbins, verbose=1)
+                                   nubins=nubins, nvbins=nvbins, bin_slop=0.1, verbose=1)
     rand_catx = treecorr.Catalog(x=rx.reshape( (nrand*ncats,) ), y=ry.reshape( (nrand*ncats,) ))
     rrrx.process(rand_catx)
     print('rrrx.ntri = ',rrrx.ntri)
@@ -1570,6 +1728,7 @@ def test_list():
 
     config = treecorr.config.read_config('configs/nnn_list1.yaml')
     config['verbose'] = 0
+    config['bin_slop'] = 0.1
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_list1.out'), names=True, skip_header=1)
     print('zeta = ',zeta)
@@ -1580,6 +1739,7 @@ def test_list():
 
     config = treecorr.config.read_config('configs/nnn_list2.json')
     config['verbose'] = 0
+    config['bin_slop'] = 0.1
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_list2.out'), names=True, skip_header=1)
     print('zeta = ',zeta)
@@ -1590,6 +1750,7 @@ def test_list():
 
     config = treecorr.config.read_config('configs/nnn_list3.params')
     config['verbose'] = 0
+    config['bin_slop'] = 0.1
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_list3.out'), names=True, skip_header=1)
     print('zeta = ',zeta)
@@ -1600,6 +1761,7 @@ def test_list():
 
     config = treecorr.config.read_config('configs/nnn_list4.config', file_type='params')
     config['verbose'] = 0
+    config['bin_slop'] = 0.1
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_list4.out'), names=True, skip_header=1)
     print('zeta = ',zeta)

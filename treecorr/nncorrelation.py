@@ -511,7 +511,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Reading NN correlations from %s',file_name)
 
-        data, params = treecorr.util.gen_read(file_name, file_type=file_type)
+        data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
         self.rnom = data['R_nom']
         self.logr = np.log(self.rnom)
         self.meanr = data['meanR']

@@ -61,12 +61,12 @@ def gen_write(file_name, col_names, columns, params=None, precision=4, file_type
             file_type = 'FITS'
         else:
             file_type = 'ASCII'
-        if logger:
+        if logger:  # pragma: no branch  (We always provide a logger.)
             logger.info("file_type assumed to be %s from the file name.",file_type)
 
-    if file_type == 'FITS':
+    if file_type.upper() == 'FITS':
         gen_write_fits(file_name, col_names, columns, params)
-    elif file_type == 'ASCII':
+    elif file_type.upper() == 'ASCII':
         gen_write_ascii(file_name, col_names, columns, params, precision=precision)
     else:
         raise ValueError("Invalid file_type %s"%file_type)
@@ -143,19 +143,19 @@ def gen_read(file_name, file_type=None, logger=None):
             file_type = 'FITS'
         else:
             file_type = 'ASCII'
-        if logger:
+        if logger:  # pragma: no branch  (We always provide a logger.)
             logger.info("file_type assumed to be %s from the file name.",file_type)
 
-    if file_type == 'FITS':
+    if file_type.upper() == 'FITS':
         import fitsio
         data = fitsio.read(file_name)
         params = fitsio.read_header(file_name, 1)
-    elif file_type == 'ASCII':
+    elif file_type.upper() == 'ASCII':
         with open(file_name) as fid:
             header = fid.readline()
             params = {}
             skip = 0
-            if header[1] == '#':
+            if header[1] == '#':  # pragma: no branch  (All our files have this.)
                 assert header[0] == '#'
                 params = eval(header[2:].strip())
                 header = fid.readline()
@@ -292,21 +292,23 @@ def parse_metric(metric, coords, coords2=None, coords3=None):
             if coords3 == 'spherical': coords3 = '3d'
 
         if metric == 'Arc':
-            # If all coords are 3d, then leave it 3d, but if any are spherical, convert
-            # them all to spherical.
             if coords not in ['spherical', '3d']:
                 raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
-            if coords2  == '3d': coords2 = coords
-            elif coords2 == 'spherical': coords = coords2
+            # If all coords are 3d, then leave it 3d, but if any are spherical,
+            # then convert to spherical.
+            if all([c in [None, '3d'] for c in [coords, coords2, coords3]]):
+                # Leave coords as '3d'
+                pass
+            elif any([c == 'spherical' for c in [coords, coords2, coords3]]):
+                # Switch to spherical
+                coords = 'spherical'
+            elif any([c not in [None, 'spherical', '3d'] for c in [coords, coords2, coords3]]):
+                raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
             else:
-                raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
-            if coords3 == '3d': coords3 = coords
-            elif coords3 == 'spherical': coords = coords3
-            elif coords3 != None:
-                raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
-
-        if ( (coords2 != coords) or (coords3 is not None and coords3 != coords) ):
-            raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+                raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+        else:
+            if ( (coords2 != coords) or (coords3 is not None and coords3 != coords) ):
+                raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
 
     if coords not in ['flat', 'spherical', '3d']:
         raise ValueError("Invalid coords %s"%coords)

@@ -514,7 +514,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         """
         self.logger.info('Reading KKK correlations from %s',file_name)
 
-        data, params = treecorr.util.gen_read(file_name, file_type=file_type)
+        data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
         s = self.logr.shape
         self.rnom = data['R_nom'].reshape(s)
         self.logr = np.log(self.rnom)

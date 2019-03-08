@@ -386,7 +386,7 @@ def test_merge():
     """Test merging two config dicts.
     """
     # First a simple case with no conflicts
-    config1 = treecorr.read_config('configs/Aardvark.yaml')
+    config1 = treecorr.read_config('Aardvark.yaml')
     kwargs = { 'cat_precision' : 10 }
     valid_params = treecorr.Catalog._valid_params
     config2 = treecorr.config.merge_config(config1, kwargs, valid_params)

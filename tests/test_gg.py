@@ -774,7 +774,7 @@ def test_aardvark():
 
     get_from_wiki('Aardvark.fit')
     file_name = os.path.join('data','Aardvark.fit')
-    config = treecorr.read_config('configs/Aardvark.yaml')
+    config = treecorr.read_config('Aardvark.yaml')
     config['verbose'] = 1
     cat1 = treecorr.Catalog(file_name, config)
     gg = treecorr.GGCorrelation(config)

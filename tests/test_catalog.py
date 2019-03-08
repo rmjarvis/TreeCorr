@@ -235,7 +235,7 @@ def test_ascii():
 def test_fits():
     get_from_wiki('Aardvark.fit')
     file_name = os.path.join('data','Aardvark.fit')
-    config = treecorr.read_config('configs/Aardvark.yaml')
+    config = treecorr.read_config('Aardvark.yaml')
     config['verbose'] = 1
 
     # Just test a few random particular values

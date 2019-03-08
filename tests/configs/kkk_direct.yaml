@@ -1,0 +1,21 @@
+
+file_name: data/kkk_direct_cat.fits
+
+x_col: x
+y_col: y
+x_units: arcmin
+y_units: arcmin
+k_col: k
+w_col: w
+
+verbose: 1
+
+min_sep: 1.
+bin_size: 0.2
+nbins: 10
+sep_units: arcmin
+nubins: 5
+nvbins: 10
+bin_slop: 0
+
+kkk_file_name: output/kkk_direct.fits

@@ -152,7 +152,6 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                 self.bin_slop == other.bin_slop and
                 self.min_rpar == other.min_rpar and
                 self.max_rpar == other.max_rpar and
-                self.tot == other.tot and
                 np.array_equal(self.meand1, other.meand1) and
                 np.array_equal(self.meanlogd1, other.meanlogd1) and
                 np.array_equal(self.meand2, other.meand2) and

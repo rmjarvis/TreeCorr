@@ -138,7 +138,7 @@ struct ProjectHelper<Sphere>
         double sin2A = 2.*sinA*cosA / normAsq;
 
         // In fact, A is not really the angles by which we want to rotate the shear.
-        // We really want to rotae by the angle between due _east_ and c, not _north_.
+        // We really want to rotate by the angle between due _east_ and c, not _north_.
         //
         // exp(-2ialpha) = exp(-2i (A - Pi/2) )
         //               = exp(iPi) * exp(-2iA)
@@ -146,40 +146,6 @@ struct ProjectHelper<Sphere>
 
         std::complex<double> expm2ialpha(-cos2A,sin2A);
         g2 *= expm2ialpha;
-    }
-
-    static void ProjectShear1(
-        const Position<Sphere>& p1, const Position<Sphere>& p2, std::complex<double>& g1)
-    {
-        // It is similar for the shear at p1:
-
-        // cos(B) = (sin(dec2) - sin(dec1) cos(c)) / (cos(dec1) sin(c))
-        //        = (sin(dec2) cos(dec1)^2 - sin(dec1) (x1 x2 + y1 y2)) / (cos(dec1) sin(c))
-        //        = (z2 (1-z1^2) - z1 (x1 x2 + y1 y2)) / (cos(dec1) sin(c))
-        //        = (z2 - z1 (x1 x2 + y1 y2 + z1 z2)) / (cos(dec1) sin(c))
-        //        = (z2-z1 + z1*dsq/2) / (cos(dec1) sin(c))
-        // sin(B) / sin(b) = sin(C) / sin(c)
-        // sin(B) = cos(dec2) sin(C) / sin(c)
-        //        = (y1 x2 - x1 y2) / (cos(dec1) sin(c))
-        double z1 = p1.getZ();
-        double z2 = p2.getZ();
-        double s = 0.;
-        double dsq = MetricHelper<Euclidean>::DistSq(p1,p2,s,s);
-        double cosB = (z2-z1) + 0.5*z1*dsq;  // These are unnormalized.
-        double sinB = p1.getY()*p2.getX() - p1.getX()*p2.getY();
-        double cosBsq = cosB*cosB;
-        double sinBsq = sinB*sinB;
-        double normBsq = cosBsq + sinBsq;
-        Assert(normBsq != 0.);
-        double cos2B = (cosBsq - sinBsq) / normBsq;
-        double sin2B = 2.*sinB*cosB / normBsq;
-
-        // exp(-2ibeta)  = exp(-2i (Pi/2 - B) )
-        //               = exp(-iPi) * exp(2iB)
-        //               = - exp(2iB)
-
-        std::complex<double> expm2ibeta(-cos2B,-sin2B);
-        g1 *= expm2ibeta;
     }
 
     template <int DC1>
@@ -200,7 +166,7 @@ struct ProjectHelper<Sphere>
         const Position<Sphere>& p2 = c2.getData().getPos();
         g1 = c1.getData().getWG();
         g2 = c2.getData().getWG();
-        ProjectShear1(p1,p2,g1);
+        ProjectShear2(p2,p1,g1);
         ProjectShear2(p1,p2,g2);
     }
     static void ProjectShears(
@@ -215,9 +181,9 @@ struct ProjectHelper<Sphere>
         g2 = c2.getData().getWG();
         g3 = c3.getData().getWG();
 
-        ProjectShear1(p1,cen,g1);
-        ProjectShear1(p2,cen,g2);
-        ProjectShear1(p3,cen,g3);
+        ProjectShear2(cen,p1,g1);
+        ProjectShear2(cen,p2,g2);
+        ProjectShear2(cen,p3,g3);
     }
 };
 
@@ -249,7 +215,7 @@ struct ProjectHelper<ThreeD>
         Position<Sphere> sp2(p2);
         g1 = c1.getData().getWG();
         g2 = c2.getData().getWG();
-        ProjectHelper<Sphere>::ProjectShear1(sp1,sp2,g1);
+        ProjectHelper<Sphere>::ProjectShear2(sp2,sp1,g1);
         ProjectHelper<Sphere>::ProjectShear2(sp1,sp2,g2);
     }
 
@@ -264,13 +230,14 @@ struct ProjectHelper<ThreeD>
         Position<Sphere> sp2(p2);
         Position<Sphere> sp3(p3);
         Position<Sphere> cen = (sp1 + sp2 + sp3)/3.;
+        cen.normalize();
         g1 = c1.getData().getWG();
         g2 = c2.getData().getWG();
         g3 = c3.getData().getWG();
 
-        ProjectHelper<Sphere>::ProjectShear1(sp1,cen,g1);
-        ProjectHelper<Sphere>::ProjectShear1(sp2,cen,g2);
-        ProjectHelper<Sphere>::ProjectShear1(sp3,cen,g3);
+        ProjectHelper<Sphere>::ProjectShear2(cen,sp1,g1);
+        ProjectHelper<Sphere>::ProjectShear2(cen,sp2,g2);
+        ProjectHelper<Sphere>::ProjectShear2(cen,sp3,g3);
     }
 };
 

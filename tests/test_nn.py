@@ -543,9 +543,9 @@ def test_direct_count():
     np.testing.assert_allclose(dd2.meanlogr, dd.meanlogr)
 
     ascii_name = 'output/dd_ascii.txt'
-    dd.write(ascii_name, precision=16)
+    dd.write(ascii_name, precision=16, file_type='ascii')
     dd3 = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
-    dd3.read(ascii_name)
+    dd3.read(ascii_name, file_type='ascii')
     np.testing.assert_allclose(dd3.npairs, dd.npairs)
     np.testing.assert_allclose(dd3.weight, dd.weight)
     np.testing.assert_allclose(dd3.meanr, dd.meanr)

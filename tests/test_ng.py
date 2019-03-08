@@ -1527,7 +1527,7 @@ def test_haloellip():
     #       = - < int( (1 + e_halo cos(2t)) cos(2t) ) >
     #       = -0.5 <e_halo>
     print('expected signal = ',-0.5 * halo_mean_absg)
-    np.testing.assert_allclose(ng.xi, -0.5 * halo_mean_absg, rtol=0.02)
+    np.testing.assert_allclose(ng.xi, -0.5 * halo_mean_absg, rtol=0.01)
 
     # Next weight the halos by their absg.
     halo_cat2 = treecorr.Catalog(x=halo_x, y=halo_y, w=halo_absg,

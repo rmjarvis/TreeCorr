@@ -408,16 +408,6 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         if not isinstance(cat1,list): cat1 = [cat1]
         if cat2 is not None and not isinstance(cat2,list): cat2 = [cat2]
         if cat3 is not None and not isinstance(cat3,list): cat3 = [cat3]
-        if len(cat1) == 0:
-            raise ValueError("No catalogs provided for cat1")
-        if cat2 is not None and len(cat2) == 0:
-            cat2 = None
-        if cat3 is not None and len(cat3) == 0:
-            cat3 = None
-        if cat2 is None and cat3 is not None:
-            raise NotImplementedError("No partial cross KKK yet.")
-        if cat3 is None and cat2 is not None:
-            raise NotImplementedError("No partial cross KKK yet.")
 
         if cat2 is None and cat3 is None:
             vark1 = treecorr.calculateVarK(cat1)
@@ -425,6 +415,8 @@ class KKKCorrelation(treecorr.BinnedCorr3):
             vark3 = vark1
             self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
             self._process_all_auto(cat1, metric, num_threads)
+        elif (cat2 is None) != (cat3 is None):
+            raise NotImplementedError("No partial cross GGG yet.")
         else:
             assert cat2 is not None and cat3 is not None
             vark1 = treecorr.calculateVarK(cat1)

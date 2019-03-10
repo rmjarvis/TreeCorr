@@ -129,12 +129,12 @@ def corr2(config, logger=None):
 
     # Read in the input files.  Each of these is a list.
     cat1 = treecorr.read_catalogs(config, 'file_name', 'file_list', 0, logger)
-    if len(cat1) == 0:
+    if cat1 is None:
         raise AttributeError("Either file_name or file_list is required")
     cat2 = treecorr.read_catalogs(config, 'file_name2', 'file_list2', 1, logger)
     rand1 = treecorr.read_catalogs(config, 'rand_file_name', 'rand_file_list', 0, logger)
     rand2 = treecorr.read_catalogs(config, 'rand_file_name2', 'rand_file_list2', 1, logger)
-    if len(cat2) == 0 and len(rand2) > 0:
+    if cat2 is None and rand2 is not None:
         raise AttributeError("rand_file_name2 is invalid without file_name2")
     logger.info("Done reading input catalogs")
 
@@ -153,7 +153,7 @@ def corr2(config, logger=None):
 
     # Do NG correlation function if necessary
     if 'ng_file_name' in config or 'nm_file_name' in config or 'norm_file_name' in config:
-        if len(cat2) == 0:
+        if cat2 is None:
             raise AttributeError("file_name2 is required for ng correlation")
         logger.warning("Performing NG calculations...")
         ng = treecorr.NGCorrelation(config,logger)
@@ -162,7 +162,7 @@ def corr2(config, logger=None):
 
         # The default ng_statistic is compensated _iff_ rand files are given.
         rg = None
-        if len(rand1) == 0:
+        if rand1 is None:
             if config.get('ng_statistic',None) == 'compensated':
                 raise AttributeError("rand_files is required for ng_statistic = compensated")
         elif config.get('ng_statistic','compensated') == 'compensated':
@@ -205,10 +205,10 @@ def corr2(config, logger=None):
 
         dr = None
         rd = None
-        if len(rand1) == 0:
+        if rand1 is None:
             logger.warning("No random catalogs given.  Only doing npairs calculation.")
             rr = None
-        elif len(cat2) == 0:
+        elif cat2 is None:
             logger.warning("Performing RR calculations...")
             rr = treecorr.NNCorrelation(config,logger)
             rr.process(rand1)
@@ -220,7 +220,7 @@ def corr2(config, logger=None):
                 dr.process(cat1,rand1)
                 logger.info("Done DR calculations.")
         else:
-            if len(rand2) == 0:
+            if rand2 is None:
                 raise AttributeError("rand_file_name2 is required when file_name2 is given")
             logger.warning("Performing RR calculations...")
             rr = treecorr.NNCorrelation(config,logger)
@@ -249,7 +249,7 @@ def corr2(config, logger=None):
 
     # Do NG correlation function if necessary
     if 'nk_file_name' in config:
-        if len(cat2) == 0:
+        if cat2 is None:
             raise AttributeError("file_name2 is required for nk correlation")
         logger.warning("Performing NK calculations...")
         nk = treecorr.NKCorrelation(config,logger)
@@ -257,7 +257,7 @@ def corr2(config, logger=None):
         logger.info("Done NK calculation.")
 
         rk = None
-        if len(rand1) == 0:
+        if rand1 is None:
             if config.get('nk_statistic',None) == 'compensated':
                 raise AttributeError("rand_files is required for nk_statistic = compensated")
         elif config.get('nk_statistic','compensated') == 'compensated':
@@ -270,7 +270,7 @@ def corr2(config, logger=None):
 
     # Do KG correlation function if necessary
     if 'kg_file_name' in config:
-        if len(cat2) == 0:
+        if cat2 is None:
             raise AttributeError("file_name2 is required for kg correlation")
         logger.warning("Performing KG calculations...")
         kg = treecorr.KGCorrelation(config,logger)

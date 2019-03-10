@@ -334,10 +334,8 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         if not isinstance(cat1,list): cat1 = [cat1]
         if cat2 is not None and not isinstance(cat2,list): cat2 = [cat2]
-        if len(cat1) == 0:
-            raise ValueError("No catalogs provided for cat1")
 
-        if cat2 is None or len(cat2) == 0:
+        if cat2 is None:
             vark1 = treecorr.calculateVarK(cat1)
             vark2 = vark1
             self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))

@@ -285,104 +285,53 @@ class BinnedCorr3(object):
         self._min_sep = self.min_sep * self._sep_units
         self._max_sep = self.max_sep * self._sep_units
 
+        self.min_u = float(self.config.get('min_u', 0.))
+        self.max_u = float(self.config.get('max_u', 1.))
+        if self.min_u >= self.max_u:
+            raise ValueError("max_u must be larger than min_u")
+        self.ubin_size = float(self.config.get('ubin_size', self.bin_size))
         if 'nubins' not in self.config:
-            self.min_u = float(self.config.get('min_u', 0.))
-            self.max_u = float(self.config.get('max_u', 1.))
-            self.ubin_size = float(self.config.get('ubin_size', self.bin_size))
-            if self.min_u >= self.max_u:
-                raise ValueError("max_u must be larger than min_u")
-            self.nubins = int(math.ceil((self.max_u-self.min_u)/self.ubin_size))
-            self.min_u = self.max_u - self.nubins*self.ubin_size
-            if self.min_u < 0.:
-                self.min_u = 0.
-                self.ubin_size = (self.max_u-self.min_u)/self.nubins
-        elif 'ubin_size' not in self.config:
-            self.min_u = float(self.config.get('min_u', 0.))
-            self.max_u = float(self.config.get('max_u', 1.))
-            if self.min_u >= self.max_u:
-                raise ValueError("max_u must be larger than min_u")
-            self.nubins = int(self.config['nubins'])
-            self.ubin_size = (self.max_u-self.min_u)/self.nubins
-        elif 'min_u' not in self.config:
-            self.max_u = float(self.config.get('max_u', 1.))
-            self.nubins = int(self.config['nubins'])
-            self.ubin_size = float(self.config['ubin_size'])
-            if self.ubin_size * (self.nubins-1) >= 1.:
-                raise ValueError("Cannot specify ubin_size * nubins > 1.")
-            self.min_u = self.max_u - self.nubins*self.ubin_size
-            if self.min_u < 0.:
-                self.min_u = 0.
-                self.ubin_size = (self.max_u-self.min_u)/self.nubins
-        else:
-            if 'max_u' in self.config:
+            self.nubins = int(math.ceil((self.max_u-self.min_u-1.e-10)/self.ubin_size))
+        elif 'max_u' in self.config and 'min_u' in self.config and 'ubin_size' in self.config:
                 raise AttributeError("Only 3 of min_u, max_u, ubin_size, nubins are allowed.")
-            self.min_u = float(self.config['min_u'])
-            self.nubins = int(self.config['nubins'])
-            self.ubin_size = float(self.config['ubin_size'])
-            if self.ubin_size * (self.nubins-1) >= 1.:
-                raise ValueError("Cannot specify ubin_size * nubins > 1.")
-            self.max_u = self.min_u + self.nubins*self.ubin_size
-            if self.max_u > 1.:
-                self.max_u = 1.
-                self.ubin_size = (self.max_u-self.min_u)/self.nubins
+        else:
+            self.nubins = self.config['nubins']
+            # Allow min or max u to be implicit from nubins and ubin_size
+            if 'ubin_size' in self.config:
+                if 'min_u' not in self.config:
+                    self.min_u = max(self.max_u - self.nubins * self.ubin_size, 0.)
+                if 'max_u' not in self.config:
+                    self.max_u = min(self.min_u + self.nubins * self.ubin_size, 1.)
+        # Adjust ubin_size given the other values
+        self.ubin_size = (self.max_u-self.min_u)/self.nubins
         self.logger.info("u: nbins = %d, min,max = %g..%g, bin_size = %g",
                          self.nubins,self.min_u,self.max_u,self.ubin_size)
 
+        self.min_v = float(self.config.get('min_v', -1.))
+        self.max_v = float(self.config.get('max_v', 1.))
+        if self.min_v >= self.max_v:
+            raise ValueError("max_v must be larger than min_v")
+        self.vbin_size = float(self.config.get('vbin_size', self.bin_size))
         if 'nvbins' not in self.config:
-            self.min_v = float(self.config.get('min_v', -1.))
-            self.max_v = float(self.config.get('max_v', 1.))
-            self.vbin_size = float(self.config.get('vbin_size', self.bin_size))
-            if self.min_v >= self.max_v:
-                raise ValueError("max_v must be larger than min_v")
-            self.nvbins = int(math.ceil((self.max_v-self.min_v)/self.vbin_size))
-            # If one of min_v or max_v is specified, keep it exact.
-            # Otherwise expand both values out as needed.  Also, make sure nvbins is even.
-            if ('min_v' in self.config) == ('max_v' in self.config):
-                if self.nvbins % 2 == 1: self.nvbins += 1
-                cen = (self.min_v + self.max_v)/2.
-                self.min_v = cen - self.nvbins*self.vbin_size/2.
-                self.max_v = cen + self.nvbins*self.vbin_size/2.
-            elif 'min_v' in config:
-                self.max_v = self.min_v + self.nvbins*self.vbin_size
-            else:
-                self.min_v = self.max_v - self.nvbins*self.vbin_size
-            if self.min_v < -1.:
-                self.min_v = -1.
-            if self.max_v > 1.:
-                self.max_v = 1.
-            self.vbin_size = (self.max_v-self.min_v)/self.nvbins
-        elif 'vbin_size' not in self.config:
-            self.min_v = float(self.config.get('min_v', -1.))
-            self.max_v = float(self.config.get('max_v', 1.))
-            if self.min_v >= self.max_v:
-                raise ValueError("max_v must be larger than min_v")
-            self.nvbins = int(self.config['nvbins'])
-            self.vbin_size = (self.max_v-self.min_v)/self.nvbins
-        elif 'min_v' not in self.config and 'max_v' not in self.config:
-            self.nvbins = int(self.config['nvbins'])
-            self.vbin_size = float(self.config['vbin_size'])
-            if self.vbin_size * (self.nvbins-1) >= 1.:
-                raise ValueError("Cannot specify vbin_size * nvbins > 1.")
-            self.max_v = self.nvbins*self.vbin_size
-            if self.max_v > 1.: self.max_v = 1.
-            self.min_v = -self.max_v
-            self.vbin_size = (self.max_v-self.min_v)/self.nvbins
-        elif 'min_v' in self.config:
-            if 'max_v' in self.config:
+            self.nvbins = int(math.ceil((self.max_v-self.min_v-1.e-10)/self.vbin_size))
+            if 'min_v' not in self.config and 'max_v' not in self.config:
+                # Make sure nvbins is even when range is implicitly [-1,1]
+                self.nvbins += self.nvbins%2
+        elif 'max_v' in self.config and 'min_v' in self.config and 'vbin_size' in self.config:
                 raise AttributeError("Only 3 of min_v, max_v, vbin_size, nvbins are allowed.")
-            self.min_v = float(self.config['min_v'])
-            self.nvbins = int(self.config['nvbins'])
-            self.vbin_size = float(self.config['vbin_size'])
-            self.max_v = self.min_v + self.nvbins*self.vbin_size
-            if self.max_v > 1.:
-                raise ValueError("Cannot specify min_v + vbin_size * nvbins > 1.")
         else:
-            self.max_v = float(self.config['max_v'])
-            self.nvbins = int(self.config['nvbins'])
-            self.vbin_size = float(self.config['vbin_size'])
-            self.min_v = self.max_v - self.nvbins*self.vbin_size
-            if self.min_v < -1.:
-                raise ValueError("Cannot specify max_v - vbin_size * nvbins < -1.")
+            self.nvbins = self.config['nvbins']
+            # Allow min or max v to be implicit from nvbins and vbin_size
+            if 'vbin_size' in self.config:
+                if 'min_v' not in self.config and 'max_v' not in self.config:
+                    self.max_v = min(self.nvbins * self.vbin_size / 2., 1.)
+                    self.min_v = -self.max_v
+                if 'min_v' not in self.config:
+                    self.min_v = max(self.max_v - self.nvbins * self.vbin_size, -1.)
+                if 'max_v' not in self.config:
+                    self.max_v = min(self.min_v + self.nvbins * self.vbin_size, 1.)
+        # Adjust vbin_size given the other values
+        self.vbin_size = (self.max_v-self.min_v)/self.nvbins
         self.logger.info("v: nbins = %d, min,max = %g..%g, bin_size = %g",
                          self.nvbins,self.min_v,self.max_v,self.vbin_size)
 

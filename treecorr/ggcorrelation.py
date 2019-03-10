@@ -350,10 +350,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         if not isinstance(cat1,list): cat1 = [cat1]
         if cat2 is not None and not isinstance(cat2,list): cat2 = [cat2]
-        if len(cat1) == 0:
-            raise AttributeError("No catalogs provided for cat1")
 
-        if cat2 is None or len(cat2) == 0:
+        if cat2 is None:
             varg1 = treecorr.calculateVarG(cat1)
             varg2 = varg1
             self.logger.info("varg = %f: sig_sn (per component) = %f",varg1,math.sqrt(varg1))

@@ -1,0 +1,24 @@
+
+file_name: data/nnn_direct_arc_cat.fits
+
+ra_col: ra
+dec_col: dec
+ra_units: radians
+dec_units: radians
+w_col: w
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 180.
+nbins: 50
+sep_units: degrees
+nubins: 5
+ubin_size: 0.2
+nvbins: 10
+vbin_size: 0.2
+bin_slop: 0
+
+metric: Arc
+
+nnn_file_name: output/nnn_direct_arc.fits

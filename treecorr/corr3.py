@@ -78,16 +78,6 @@ corr3_valid_params = {
     #'kg_file_name' : (str, False, None, None,
             #'The output filename for kappa-shear correlation function.'),
 
-    # Derived output quantities
-
-    #'m3_file_name' : (str, False, None, None,
-            #'The output filename for the aperture mass statistics.'),
-    #'m3_uform' : (str, False, 'Crittenden', ['Crittenden', 'Schneider'],
-            #'The function form of the aperture.'),
-    #'nm_file_name' : (str, False, None, None,
-            #'The output filename for <N Map> and related values.'),
-    #'norm_file_name' : (str, False, None,  None,
-            #'The output filename for <N Map>^2/<N^2><Map^2> and related values.'),
 }
 
 # Add in the valid parameters for the relevant classes
@@ -156,15 +146,12 @@ def corr3(config, logger=None):
     logger.info("Done reading input catalogs")
 
     # Do GGG correlation function if necessary
-    if 'ggg_file_name' in config: #or 'm3_file_name' in config:
+    if 'ggg_file_name' in config:
         logger.warning("Performing GGG calculations...")
         ggg = treecorr.GGGCorrelation(config,logger)
         ggg.process(cat1,cat2,cat3)
         logger.info("Done GGG calculations.")
-        if 'ggg_file_name' in config:
-            ggg.write(config['ggg_file_name'])
-        if 'm3_file_name' in config:
-            ggg.writeMapSq(config['m3_file_name'])
+        ggg.write(config['ggg_file_name'])
 
     # Do NNN correlation function if necessary
     if 'nnn_file_name' in config:
@@ -172,7 +159,6 @@ def corr3(config, logger=None):
         ddd = treecorr.NNNCorrelation(config,logger)
         ddd.process(cat1,cat2,cat3)
         logger.info("Done DDD calculations.")
-
 
         drr = None
         rdr = None

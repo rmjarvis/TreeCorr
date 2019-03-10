@@ -734,6 +734,133 @@ def test_direct_count_auto():
     np.testing.assert_allclose(ddd4.meanv, ddd.meanv)
 
 
+def test_direct_count_cross():
+    # If the catalogs are small enough, we can do a direct count of the number of triangles
+    # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
+
+    ngal = 50
+    s = 10.
+    np.random.seed(8675309)
+    x1 = np.random.normal(0,s, (ngal,) )
+    y1 = np.random.normal(0,s, (ngal,) )
+    cat1 = treecorr.Catalog(x=x1, y=y1)
+    x2 = np.random.normal(0,s, (ngal,) )
+    y2 = np.random.normal(0,s, (ngal,) )
+    cat2 = treecorr.Catalog(x=x2, y=y2)
+    x3 = np.random.normal(0,s, (ngal,) )
+    y3 = np.random.normal(0,s, (ngal,) )
+    cat3 = treecorr.Catalog(x=x3, y=y3)
+
+    min_sep = 1.
+    max_sep = 50.
+    nbins = 50
+    min_u = 0.13
+    max_u = 0.89
+    nubins = 10
+    min_v = -0.83
+    max_v = 0.59
+    nvbins = 20
+
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0., verbose=1)
+    ddd.process(cat1, cat2, cat3)
+    #print('ddd.ntri = ',ddd.ntri)
+
+    log_min_sep = np.log(min_sep)
+    log_max_sep = np.log(max_sep)
+    true_ntri = np.zeros( (nbins, nubins, nvbins) )
+    bin_size = (log_max_sep - log_min_sep) / nbins
+    ubin_size = (max_u-min_u) / nubins
+    vbin_size = (max_v-min_v) / nvbins
+    for i in range(ngal):
+        for j in range(ngal):
+            for k in range(ngal):
+                d3 = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
+                d2 = np.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2)
+                d1 = np.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2)
+                if d3 == 0.: continue
+                if d2 == 0.: continue
+                if d1 == 0.: continue
+                if d1 < d2 or d2 < d3: continue;
+                ccw = is_ccw(x1[i],y1[i],x2[j],y2[j],x3[k],y3[k])
+                r = d2
+                u = d3/d2
+                v = (d1-d2)/d3
+                if not ccw:
+                    v = -v
+                kr = int(np.floor( (np.log(r)-log_min_sep) / bin_size ))
+                ku = int(np.floor( (u-min_u) / ubin_size ))
+                kv = int(np.floor( (v-min_v) / vbin_size ))
+                if kr < 0: continue
+                if kr >= nbins: continue
+                if ku < 0: continue
+                if ku >= nubins: continue
+                if kv < 0: continue
+                if kv >= nvbins: continue
+                true_ntri[kr,ku,kv] += 1
+
+    #print('true_ntri = ',true_ntri)
+    #print('diff = ',ddd.ntri - true_ntri)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=1.e-16, verbose=1)
+    ddd.process(cat1, cat2, cat3)
+    #print('binslop > 0: ddd.ntri = ',ddd.ntri)
+    #print('diff = ',ddd.ntri - true_ntri)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # And again with no top-level recursion
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=1.e-16, verbose=1, max_top=0)
+    ddd.process(cat1, cat2, cat3)
+    #print('max_top = 0: ddd.ntri = ',ddd.ntri)
+    #print('true_ntri = ',true_ntri)
+    #print('diff = ',ddd.ntri - true_ntri)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # Check that running via the corr3 script works correctly.
+    config = treecorr.config.read_config('configs/nnn_direct_cross.yaml')
+    cat1.write(config['file_name'])
+    cat2.write(config['file_name2'])
+    cat3.write(config['file_name3'])
+    L = 10*s
+    nrand = ngal
+    for rname in ['rand_file_name', 'rand_file_name2', 'rand_file_name3']:
+        rx = (np.random.random_sample(nrand)-0.5) * L
+        ry = (np.random.random_sample(nrand)-0.5) * L
+        rcat = treecorr.Catalog(x=rx, y=ry)
+        rcat.write(config[rname])
+
+    config = treecorr.config.read_config('configs/nnn_direct_cross.yaml')
+    config['verbose'] = 0
+    treecorr.corr3(config)
+    corr3_output = np.genfromtxt(os.path.join('output','nnn_direct_cross.out'), names=True,
+                                    skip_header=1)
+    print('corr3_output = ',corr3_output)
+    print('corr3_output.dtype = ',corr3_output.dtype)
+    print('rnom = ',ddd.rnom.flatten())
+    print('       ',corr3_output['R_nom'])
+    np.testing.assert_allclose(corr3_output['R_nom'], ddd.rnom.flatten(), rtol=1.e-3)
+    print('unom = ',ddd.u.flatten())
+    print('       ',corr3_output['u_nom'])
+    np.testing.assert_allclose(corr3_output['u_nom'], ddd.u.flatten(), rtol=1.e-3)
+    print('vnom = ',ddd.v.flatten())
+    print('       ',corr3_output['v_nom'])
+    np.testing.assert_allclose(corr3_output['v_nom'], ddd.v.flatten(), rtol=1.e-3)
+    print('DDD = ',ddd.ntri.flatten())
+    print('      ',corr3_output['DDD'])
+    np.testing.assert_allclose(corr3_output['DDD'], ddd.ntri.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['ntri'], ddd.ntri.flatten(), rtol=1.e-3)
+
+
 def test_direct_spherical():
     # Repeat in spherical coords
 
@@ -829,97 +956,104 @@ def test_direct_spherical():
     np.testing.assert_allclose(ddd.weight, true_weight, rtol=1.e-5, atol=1.e-8)
 
 
-def test_direct_count_cross():
-    # If the catalogs are small enough, we can do a direct count of the number of triangles
-    # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
+def test_direct_arc():
+    # Repeat the spherical test with metric='Arc'
 
-    ngal = 50
+    ngal = 5
     s = 10.
     np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) )
-    cat1 = treecorr.Catalog(x=x1, y=y1)
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) )
-    cat2 = treecorr.Catalog(x=x2, y=y2)
-    x3 = np.random.normal(0,s, (ngal,) )
-    y3 = np.random.normal(0,s, (ngal,) )
-    cat3 = treecorr.Catalog(x=x3, y=y3)
+    x = np.random.normal(0,s, (ngal,) )
+    y = np.random.normal(0,s, (ngal,) ) + 200  # Large angles this time.
+    z = np.random.normal(0,s, (ngal,) )
+    w = np.random.random(ngal)
+
+    ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
+
+    cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w)
 
     min_sep = 1.
-    max_sep = 50.
-    nbins = 50
-    min_u = 0.13
-    max_u = 0.89
-    nubins = 10
-    min_v = -0.83
-    max_v = 0.59
-    nvbins = 20
+    max_sep = 180.
+    nrbins = 50
+    nubins = 5
+    nvbins = 10
+    bin_size = np.log((max_sep / min_sep)) / nrbins
+    ubin_size = 0.2
+    vbin_size = 0.2
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                  nubins=nubins, ubin_size=ubin_size,
+                                  nvbins=nvbins, vbin_size=vbin_size,
+                                  sep_units='deg', bin_slop=0.)
+    ddd.process(cat, metric='Arc', num_threads=1)
 
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                  min_u=min_u, max_u=max_u, nubins=nubins,
-                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0., verbose=1)
-    ddd.process(cat1, cat2, cat3)
-    #print('ddd.ntri = ',ddd.ntri)
+    r = np.sqrt(x**2 + y**2 + z**2)
+    x /= r;  y /= r;  z /= r
+    north_pole = coord.CelestialCoord(0*coord.radians, 90*coord.degrees)
 
-    log_min_sep = np.log(min_sep)
-    log_max_sep = np.log(max_sep)
-    true_ntri = np.zeros( (nbins, nubins, nvbins) )
-    bin_size = (log_max_sep - log_min_sep) / nbins
-    ubin_size = (max_u-min_u) / nubins
-    vbin_size = (max_v-min_v) / nvbins
+    true_ntri = np.zeros((nrbins, nubins, nvbins), dtype=int)
+    true_weight = np.zeros((nrbins, nubins, nvbins), dtype=float)
+
+    c = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra, dec)]
     for i in range(ngal):
-        for j in range(ngal):
-            for k in range(ngal):
-                d3 = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
-                d2 = np.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2)
-                d1 = np.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2)
-                if d3 == 0.: continue
-                if d2 == 0.: continue
-                if d1 == 0.: continue
-                if d1 < d2 or d2 < d3: continue;
-                ccw = is_ccw(x1[i],y1[i],x2[j],y2[j],x3[k],y3[k])
-                r = d2
+        for j in range(i+1,ngal):
+            for k in range(j+1,ngal):
+                d12 = c[i].distanceTo(c[j]) / coord.degrees
+                d23 = c[j].distanceTo(c[k]) / coord.degrees
+                d31 = c[k].distanceTo(c[i]) / coord.degrees
+
+                d3, d2, d1 = sorted([d12, d23, d31])
+                rindex = np.floor(np.log(d2/min_sep) / bin_size).astype(int)
+                if rindex < 0 or rindex >= nrbins: continue
+
+                if [d1, d2, d3] == [d23, d31, d12]: ii,jj,kk = i,j,k
+                elif [d1, d2, d3] == [d23, d12, d31]: ii,jj,kk = i,k,j
+                elif [d1, d2, d3] == [d31, d12, d23]: ii,jj,kk = j,k,i
+                elif [d1, d2, d3] == [d31, d23, d12]: ii,jj,kk = j,i,k
+                elif [d1, d2, d3] == [d12, d23, d31]: ii,jj,kk = k,i,j
+                elif [d1, d2, d3] == [d12, d31, d23]: ii,jj,kk = k,j,i
+                else: assert False
+                # Now use ii, jj, kk rather than i,j,k, to get the indices
+                # that correspond to the points in the right order.
+
                 u = d3/d2
                 v = (d1-d2)/d3
-                if not ccw:
+                if ( ((x[jj]-x[ii])*(y[kk]-y[ii]) - (x[kk]-x[ii])*(y[jj]-y[ii])) * z[ii] +
+                     ((y[jj]-y[ii])*(z[kk]-z[ii]) - (y[kk]-y[ii])*(z[jj]-z[ii])) * x[ii] +
+                     ((z[jj]-z[ii])*(x[kk]-x[ii]) - (z[kk]-z[ii])*(x[jj]-x[ii])) * y[ii] ) > 0:
                     v = -v
-                kr = int(np.floor( (np.log(r)-log_min_sep) / bin_size ))
-                ku = int(np.floor( (u-min_u) / ubin_size ))
-                kv = int(np.floor( (v-min_v) / vbin_size ))
-                if kr < 0: continue
-                if kr >= nbins: continue
-                if ku < 0: continue
-                if ku >= nubins: continue
-                if kv < 0: continue
-                if kv >= nvbins: continue
-                true_ntri[kr,ku,kv] += 1
 
-    #print('true_ntri = ',true_ntri)
-    #print('diff = ',ddd.ntri - true_ntri)
+                uindex = np.floor(u / ubin_size).astype(int)
+                assert 0 <= uindex < nubins
+                vindex = np.floor((v+1) / vbin_size).astype(int)
+                assert 0 <= vindex < nvbins
+
+                www = w[i] * w[j] * w[k]
+                true_ntri[rindex,uindex,vindex] += 1
+                true_weight[rindex,uindex,vindex] += www
+
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
+    np.testing.assert_allclose(ddd.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+
+    # Check that running via the corr3 script works correctly.
+    config = treecorr.config.read_config('configs/nnn_direct_arc.yaml')
+    cat.write(config['file_name'])
+    treecorr.corr3(config)
+    data = fitsio.read(config['nnn_file_name'])
+    np.testing.assert_allclose(data['R_nom'], ddd.rnom.flatten())
+    np.testing.assert_allclose(data['u_nom'], ddd.u.flatten())
+    np.testing.assert_allclose(data['v_nom'], ddd.v.flatten())
+    np.testing.assert_allclose(data['ntri'], ddd.ntri.flatten())
+    np.testing.assert_allclose(data['DDD'], ddd.weight.flatten())
 
     # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                  min_u=min_u, max_u=max_u, nubins=nubins,
-                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=1)
-    ddd.process(cat1, cat2, cat3)
-    #print('binslop > 0: ddd.ntri = ',ddd.ntri)
-    #print('diff = ',ddd.ntri - true_ntri)
+    # And don't do any top-level recursion so we actually test not going to the leaves.
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                  nubins=nubins, ubin_size=ubin_size,
+                                  nvbins=nvbins, vbin_size=vbin_size,
+                                  sep_units='deg', bin_slop=1.e-16, max_top=0)
+    ddd.process(cat)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
+    np.testing.assert_allclose(ddd.weight, true_weight, rtol=1.e-5, atol=1.e-8)
 
-    # And again with no top-level recursion
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                  min_u=min_u, max_u=max_u, nubins=nubins,
-                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=1, max_top=0)
-    ddd.process(cat1, cat2, cat3)
-    #print('max_top = 0: ddd.ntri = ',ddd.ntri)
-    #print('true_ntri = ',true_ntri)
-    #print('diff = ',ddd.ntri - true_ntri)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
 def test_direct_partial():
     # Test the two ways to only use parts of a catalog:
@@ -1475,123 +1609,124 @@ def test_nnn():
     assert ddd2.sep_units == ddd.sep_units
     assert ddd2.bin_type == ddd.bin_type
 
+    # Stop here for nosetests runs.
+    if __name__ != '__main__':
+        return
     # Test compensated zeta
     # This version computes the three-point function after subtracting off the appropriate
     # two-point functions xi(d1) + xi(d2) + xi(d3), where [cf. test_nn() in test_nn.py]
     # xi(r) = 1/4pi (L/s)^2 exp(-r^2/4s^2) - 1
-    if __name__ == '__main__':
-        ddr = ddd.copy()
-        drd = ddd.copy()
-        rdd = ddd.copy()
-        drr = ddd.copy()
-        rdr = ddd.copy()
-        rrd = ddd.copy()
+    ddr = ddd.copy()
+    drd = ddd.copy()
+    rdd = ddd.copy()
+    drr = ddd.copy()
+    rdr = ddd.copy()
+    rrd = ddd.copy()
 
-        ddr.process(cat,cat,rand)
-        drd.process(cat,rand,cat)
-        rdd.process(rand,cat,cat)
-        drr.process(cat,rand,rand)
-        rdr.process(rand,cat,rand)
-        rrd.process(rand,rand,cat)
+    ddr.process(cat,cat,rand)
+    drd.process(cat,rand,cat)
+    rdd.process(rand,cat,cat)
+    drr.process(cat,rand,rand)
+    rdr.process(rand,cat,rand)
+    rrd.process(rand,rand,cat)
 
-        zeta, varzeta = ddd.calculateZeta(rrr,drr,rdr,rrd,ddr,drd,rdd)
-        print('compensated zeta = ',zeta)
+    zeta, varzeta = ddd.calculateZeta(rrr,drr,rdr,rrd,ddr,drd,rdd)
+    print('compensated zeta = ',zeta)
 
-        xi1 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d1**2/(4.*s**2)) - 1.
-        xi2 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d2**2/(4.*s**2)) - 1.
-        xi3 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d3**2/(4.*s**2)) - 1.
-        print('xi1 = ',xi1)
-        print('xi2 = ',xi2)
-        print('xi3 = ',xi3)
-        print('true_zeta + xi1 + xi2 + xi3 = ',true_zeta)
-        true_zeta -= xi1 + xi2 + xi3
-        print('true_zeta => ',true_zeta)
-        print('ratio = ',zeta / true_zeta)
-        print('diff = ',zeta - true_zeta)
-        print('max rel diff = ',np.max(np.abs((zeta - true_zeta)/true_zeta)))
-        np.testing.assert_allclose(zeta, true_zeta, rtol=0.1*tol_factor)
-        np.testing.assert_allclose(np.log(np.abs(zeta)), np.log(np.abs(true_zeta)),
-                                      atol=0.1*tol_factor)
+    xi1 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d1**2/(4.*s**2)) - 1.
+    xi2 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d2**2/(4.*s**2)) - 1.
+    xi3 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d3**2/(4.*s**2)) - 1.
+    print('xi1 = ',xi1)
+    print('xi2 = ',xi2)
+    print('xi3 = ',xi3)
+    print('true_zeta + xi1 + xi2 + xi3 = ',true_zeta)
+    true_zeta -= xi1 + xi2 + xi3
+    print('true_zeta => ',true_zeta)
+    print('ratio = ',zeta / true_zeta)
+    print('diff = ',zeta - true_zeta)
+    print('max rel diff = ',np.max(np.abs((zeta - true_zeta)/true_zeta)))
+    np.testing.assert_allclose(zeta, true_zeta, rtol=0.1*tol_factor)
+    np.testing.assert_allclose(np.log(np.abs(zeta)), np.log(np.abs(true_zeta)), atol=0.1*tol_factor)
 
-        out_file_name3 = os.path.join('output','nnn_out3.fits')
-        ddd.write(out_file_name3, rrr,drr,rdr,rrd,ddr,drd,rdd)
-        data = fitsio.read(out_file_name3)
-        np.testing.assert_almost_equal(data['R_nom'], np.exp(ddd.logr).flatten())
-        np.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
-        np.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
-        np.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
-        np.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
-        np.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
-        np.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
-        np.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
-        np.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
-        np.testing.assert_almost_equal(data['meanu'], ddd.meanu.flatten())
-        np.testing.assert_almost_equal(data['meanv'], ddd.meanv.flatten())
-        np.testing.assert_almost_equal(data['zeta'], zeta.flatten())
-        np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(varzeta).flatten())
-        np.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
-        np.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
-        np.testing.assert_almost_equal(data['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
-        np.testing.assert_almost_equal(data['RDR'], rdr.ntri.flatten() * (ddd.tot / rdr.tot))
-        np.testing.assert_almost_equal(data['RRD'], rrd.ntri.flatten() * (ddd.tot / rrd.tot))
-        np.testing.assert_almost_equal(data['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
-        np.testing.assert_almost_equal(data['DRD'], drd.ntri.flatten() * (ddd.tot / drd.tot))
-        np.testing.assert_almost_equal(data['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
-        header = fitsio.read_header(out_file_name3, 1)
-        np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
+    out_file_name3 = os.path.join('output','nnn_out3.fits')
+    ddd.write(out_file_name3, rrr,drr,rdr,rrd,ddr,drd,rdd)
+    data = fitsio.read(out_file_name3)
+    np.testing.assert_almost_equal(data['R_nom'], np.exp(ddd.logr).flatten())
+    np.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
+    np.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
+    np.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
+    np.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
+    np.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
+    np.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
+    np.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
+    np.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
+    np.testing.assert_almost_equal(data['meanu'], ddd.meanu.flatten())
+    np.testing.assert_almost_equal(data['meanv'], ddd.meanv.flatten())
+    np.testing.assert_almost_equal(data['zeta'], zeta.flatten())
+    np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(varzeta).flatten())
+    np.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
+    np.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+    np.testing.assert_almost_equal(data['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
+    np.testing.assert_almost_equal(data['RDR'], rdr.ntri.flatten() * (ddd.tot / rdr.tot))
+    np.testing.assert_almost_equal(data['RRD'], rrd.ntri.flatten() * (ddd.tot / rrd.tot))
+    np.testing.assert_almost_equal(data['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
+    np.testing.assert_almost_equal(data['DRD'], drd.ntri.flatten() * (ddd.tot / drd.tot))
+    np.testing.assert_almost_equal(data['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
+    header = fitsio.read_header(out_file_name3, 1)
+    np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
-        ddd2.read(out_file_name3)
-        np.testing.assert_almost_equal(ddd2.logr, ddd.logr)
-        np.testing.assert_almost_equal(ddd2.u, ddd.u)
-        np.testing.assert_almost_equal(ddd2.v, ddd.v)
-        np.testing.assert_almost_equal(ddd2.meand1, ddd.meand1)
-        np.testing.assert_almost_equal(ddd2.meanlogd1, ddd.meanlogd1)
-        np.testing.assert_almost_equal(ddd2.meand2, ddd.meand2)
-        np.testing.assert_almost_equal(ddd2.meanlogd2, ddd.meanlogd2)
-        np.testing.assert_almost_equal(ddd2.meand3, ddd.meand3)
-        np.testing.assert_almost_equal(ddd2.meanlogd3, ddd.meanlogd3)
-        np.testing.assert_almost_equal(ddd2.meanu, ddd.meanu)
-        np.testing.assert_almost_equal(ddd2.meanv, ddd.meanv)
-        np.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
-        np.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
-        assert ddd2.coords == ddd.coords
-        assert ddd2.metric == ddd.metric
-        assert ddd2.sep_units == ddd.sep_units
-        assert ddd2.bin_type == ddd.bin_type
+    ddd2.read(out_file_name3)
+    np.testing.assert_almost_equal(ddd2.logr, ddd.logr)
+    np.testing.assert_almost_equal(ddd2.u, ddd.u)
+    np.testing.assert_almost_equal(ddd2.v, ddd.v)
+    np.testing.assert_almost_equal(ddd2.meand1, ddd.meand1)
+    np.testing.assert_almost_equal(ddd2.meanlogd1, ddd.meanlogd1)
+    np.testing.assert_almost_equal(ddd2.meand2, ddd.meand2)
+    np.testing.assert_almost_equal(ddd2.meanlogd2, ddd.meanlogd2)
+    np.testing.assert_almost_equal(ddd2.meand3, ddd.meand3)
+    np.testing.assert_almost_equal(ddd2.meanlogd3, ddd.meanlogd3)
+    np.testing.assert_almost_equal(ddd2.meanu, ddd.meanu)
+    np.testing.assert_almost_equal(ddd2.meanv, ddd.meanv)
+    np.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
+    np.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
+    assert ddd2.coords == ddd.coords
+    assert ddd2.metric == ddd.metric
+    assert ddd2.sep_units == ddd.sep_units
+    assert ddd2.bin_type == ddd.bin_type
 
-        config = treecorr.config.read_config('configs/nnn_compensated.yaml')
-        config['verbose'] = 0
-        treecorr.corr3(config)
-        corr3_outfile = os.path.join('output','nnn_compensated.fits')
-        corr3_output = fitsio.read(corr3_outfile)
-        print('zeta = ',zeta)
-        print('from corr3 output = ',corr3_output['zeta'])
-        print('ratio = ',corr3_output['zeta']/zeta.flatten())
-        print('diff = ',corr3_output['zeta']-zeta.flatten())
+    config = treecorr.config.read_config('configs/nnn_compensated.yaml')
+    config['verbose'] = 0
+    treecorr.corr3(config)
+    corr3_outfile = os.path.join('output','nnn_compensated.fits')
+    corr3_output = fitsio.read(corr3_outfile)
+    print('zeta = ',zeta)
+    print('from corr3 output = ',corr3_output['zeta'])
+    print('ratio = ',corr3_output['zeta']/zeta.flatten())
+    print('diff = ',corr3_output['zeta']-zeta.flatten())
 
-        np.testing.assert_almost_equal(corr3_output['R_nom'], np.exp(ddd.logr).flatten())
-        np.testing.assert_almost_equal(corr3_output['u_nom'], ddd.u.flatten())
-        np.testing.assert_almost_equal(corr3_output['v_nom'], ddd.v.flatten())
-        np.testing.assert_almost_equal(corr3_output['meand1'], ddd.meand1.flatten())
-        np.testing.assert_almost_equal(corr3_output['meanlogd1'], ddd.meanlogd1.flatten())
-        np.testing.assert_almost_equal(corr3_output['meand2'], ddd.meand2.flatten())
-        np.testing.assert_almost_equal(corr3_output['meanlogd2'], ddd.meanlogd2.flatten())
-        np.testing.assert_almost_equal(corr3_output['meand3'], ddd.meand3.flatten())
-        np.testing.assert_almost_equal(corr3_output['meanlogd3'], ddd.meanlogd3.flatten())
-        np.testing.assert_almost_equal(corr3_output['meanu'], ddd.meanu.flatten())
-        np.testing.assert_almost_equal(corr3_output['meanv'], ddd.meanv.flatten())
-        np.testing.assert_almost_equal(corr3_output['zeta'], zeta.flatten())
-        np.testing.assert_almost_equal(corr3_output['sigma_zeta'], np.sqrt(varzeta).flatten())
-        np.testing.assert_almost_equal(corr3_output['DDD'], ddd.ntri.flatten())
-        np.testing.assert_almost_equal(corr3_output['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
-        np.testing.assert_almost_equal(corr3_output['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
-        np.testing.assert_almost_equal(corr3_output['RDR'], rdr.ntri.flatten() * (ddd.tot / rdr.tot))
-        np.testing.assert_almost_equal(corr3_output['RRD'], rrd.ntri.flatten() * (ddd.tot / rrd.tot))
-        np.testing.assert_almost_equal(corr3_output['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
-        np.testing.assert_almost_equal(corr3_output['DRD'], drd.ntri.flatten() * (ddd.tot / drd.tot))
-        np.testing.assert_almost_equal(corr3_output['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
-        header = fitsio.read_header(corr3_outfile, 1)
-        np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
+    np.testing.assert_almost_equal(corr3_output['R_nom'], np.exp(ddd.logr).flatten())
+    np.testing.assert_almost_equal(corr3_output['u_nom'], ddd.u.flatten())
+    np.testing.assert_almost_equal(corr3_output['v_nom'], ddd.v.flatten())
+    np.testing.assert_almost_equal(corr3_output['meand1'], ddd.meand1.flatten())
+    np.testing.assert_almost_equal(corr3_output['meanlogd1'], ddd.meanlogd1.flatten())
+    np.testing.assert_almost_equal(corr3_output['meand2'], ddd.meand2.flatten())
+    np.testing.assert_almost_equal(corr3_output['meanlogd2'], ddd.meanlogd2.flatten())
+    np.testing.assert_almost_equal(corr3_output['meand3'], ddd.meand3.flatten())
+    np.testing.assert_almost_equal(corr3_output['meanlogd3'], ddd.meanlogd3.flatten())
+    np.testing.assert_almost_equal(corr3_output['meanu'], ddd.meanu.flatten())
+    np.testing.assert_almost_equal(corr3_output['meanv'], ddd.meanv.flatten())
+    np.testing.assert_almost_equal(corr3_output['zeta'], zeta.flatten())
+    np.testing.assert_almost_equal(corr3_output['sigma_zeta'], np.sqrt(varzeta).flatten())
+    np.testing.assert_almost_equal(corr3_output['DDD'], ddd.ntri.flatten())
+    np.testing.assert_almost_equal(corr3_output['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+    np.testing.assert_almost_equal(corr3_output['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
+    np.testing.assert_almost_equal(corr3_output['RDR'], rdr.ntri.flatten() * (ddd.tot / rdr.tot))
+    np.testing.assert_almost_equal(corr3_output['RRD'], rrd.ntri.flatten() * (ddd.tot / rrd.tot))
+    np.testing.assert_almost_equal(corr3_output['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
+    np.testing.assert_almost_equal(corr3_output['DRD'], drd.ntri.flatten() * (ddd.tot / drd.tot))
+    np.testing.assert_almost_equal(corr3_output['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
+    header = fitsio.read_header(corr3_outfile, 1)
+    np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
 
 
@@ -1864,9 +1999,11 @@ if __name__ == '__main__':
     test_binnedcorr3()
     test_direct_count_auto()
     test_direct_count_cross()
+    test_direct_spherical()
+    test_direct_arc()
+    test_direct_partial()
     test_direct_3d_auto()
     test_direct_3d_cross()
-    test_direct_partial()
     test_nnn()
     test_3d()
     test_list()

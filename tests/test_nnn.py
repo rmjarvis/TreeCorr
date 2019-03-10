@@ -70,6 +70,7 @@ def test_binnedcorr3():
     assert nnn.nbins == 20
     check_defaultuv(nnn)
     check_arrays(nnn)
+
     # Specify min, max, n for u,v too.
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20,
                                   min_u=0.2, max_u=0.9, nubins=12,
@@ -98,6 +99,7 @@ def test_binnedcorr3():
     assert nnn.nbins == 20
     check_defaultuv(nnn)
     check_arrays(nnn)
+
     # Specify max, n, bs for u,v too.
     nnn = treecorr.NNNCorrelation(max_sep=20, nbins=20, bin_size=0.1,
                                   max_u=0.9, nubins=3, ubin_size=0.05,
@@ -108,10 +110,10 @@ def test_binnedcorr3():
     assert nnn.bin_size == 0.1
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
-    assert nnn.ubin_size == 0.05
+    assert np.isclose(nnn.ubin_size, 0.05)
     assert nnn.max_u == 0.9
     assert nnn.nubins == 3
-    assert nnn.vbin_size == 0.05
+    assert np.isclose(nnn.vbin_size, 0.05)
     assert nnn.max_v == 0.2
     assert nnn.nvbins == 4
     check_arrays(nnn)
@@ -137,10 +139,10 @@ def test_binnedcorr3():
     assert nnn.bin_size == 0.1
     assert nnn.nbins == 20
     assert nnn.min_u == 0.7
-    assert nnn.ubin_size == 0.05
+    assert np.isclose(nnn.ubin_size, 0.05)
     assert nnn.nubins == 4
     assert nnn.min_v == -0.2
-    assert nnn.vbin_size == 0.05
+    assert np.isclose(nnn.vbin_size, 0.05)
     assert nnn.nvbins == 4
     check_arrays(nnn)
 
@@ -166,15 +168,102 @@ def test_binnedcorr3():
     assert nnn.max_sep >= 20.
     assert nnn.max_sep < 20. * np.exp(nnn.bin_size)
     assert nnn.bin_size == 0.1
-    assert nnn.min_u <= 0.2
-    assert nnn.min_u >= 0.2 - nnn.ubin_size
+    assert nnn.min_u == 0.2
     assert nnn.max_u == 0.9
-    assert nnn.ubin_size == 0.03
-    assert nnn.min_v <= -0.2
-    assert nnn.min_v >= -0.2 - nnn.vbin_size
-    assert nnn.max_v >= 0.2
-    assert nnn.min_v <= 0.2 + nnn.vbin_size
-    assert nnn.vbin_size == 0.07
+    assert nnn.nubins == 24
+    assert np.isclose(nnn.ubin_size, 0.7/24)
+    assert nnn.min_v == -0.2
+    assert nnn.max_v == 0.2
+    assert nnn.nvbins == 6
+    assert np.isclose(nnn.vbin_size, 0.4/6)
+    check_arrays(nnn)
+
+    # If only one of min/max v are set, respect that
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
+                                  min_u=0.2, ubin_size=0.03,
+                                  min_v=-0.2, vbin_size=0.07)
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
+    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
+    assert nnn.min_u == 0.2
+    assert nnn.max_u == 1.
+    assert nnn.nubins == 27
+    assert np.isclose(nnn.ubin_size, 0.8/27)
+    assert nnn.min_v == -0.2
+    assert nnn.max_v == 1.
+    assert nnn.nvbins == 18
+    assert np.isclose(nnn.vbin_size, 1.2/18)
+    check_arrays(nnn)
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
+                                  max_u=0.2, ubin_size=0.03,
+                                  max_v=-0.2, vbin_size=0.07)
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
+    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
+    assert nnn.min_u == 0.
+    assert nnn.max_u == 0.2
+    assert nnn.nubins == 7
+    assert np.isclose(nnn.ubin_size, 0.2/7)
+    assert nnn.min_v == -1.
+    assert nnn.max_v == -0.2
+    assert nnn.nvbins == 12
+    assert np.isclose(nnn.vbin_size, 0.8/12)
+    check_arrays(nnn)
+
+    # If only vbin_size is set for v, automatically figure out others.
+    # (And if necessary adjust the bin_size down a bit.)
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
+                                  ubin_size=0.3, vbin_size=0.3)
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
+    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
+    assert nnn.bin_size == 0.1
+    assert nnn.min_sep == 5.
+    assert nnn.min_u == 0.
+    assert nnn.max_u == 1.
+    assert nnn.nubins == 4
+    assert np.isclose(nnn.ubin_size, 0.25)
+    assert nnn.min_v == -1.
+    assert nnn.max_v == 1.
+    assert nnn.nvbins == 8
+    assert np.isclose(nnn.vbin_size, 0.25)
+    check_arrays(nnn)
+
+    # If only nvbins is set for v, automatically figure out others.
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
+                                  nubins=5, nvbins=5)
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
+    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
+    assert nnn.bin_size == 0.1
+    assert nnn.min_sep == 5.
+    assert nnn.min_u == 0.
+    assert nnn.max_u == 1.
+    assert nnn.nubins == 5
+    assert np.isclose(nnn.ubin_size,0.2)
+    assert nnn.min_v == -1.
+    assert nnn.max_v == 1.
+    assert nnn.nvbins == 5
+    assert np.isclose(nnn.vbin_size,0.4)
+    check_arrays(nnn)
+
+    # If both nvbins and vbin_size are set, set min/max automatically
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
+                                  ubin_size=0.1, nubins=5,
+                                  vbin_size=0.1, nvbins=5)
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
+    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
+    assert nnn.bin_size == 0.1
+    assert nnn.min_sep == 5.
+    assert nnn.ubin_size == 0.1
+    assert nnn.nubins == 5
+    assert nnn.max_u == 1.
+    assert np.isclose(nnn.min_u,0.5)
+    assert nnn.vbin_size == 0.1
+    assert nnn.nvbins == 5
+    assert np.isclose(nnn.min_v,-0.25)
+    assert np.isclose(nnn.max_v,0.25)
     check_arrays(nnn)
 
     # Check the use of sep_units
@@ -261,104 +350,104 @@ def test_binnedcorr3():
     # Check bin_slop
     # Start with default behavior
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
-                                  min_u=0.2, max_u=0.9, ubin_size=0.03,
-                                  min_v=-0.2, max_v=0.2, vbin_size=0.07)
+                                  min_u=0.0, max_u=0.9, ubin_size=0.03,
+                                  min_v=-0.21, max_v=0.21, vbin_size=0.07)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)
     assert nnn.bin_slop == 1.0
     assert nnn.bin_size == 0.1
-    assert nnn.ubin_size == 0.03
-    assert nnn.vbin_size == 0.07
+    assert np.isclose(nnn.ubin_size, 0.03)
+    assert np.isclose(nnn.vbin_size, 0.07)
     np.testing.assert_almost_equal(nnn.b, 0.1)
     np.testing.assert_almost_equal(nnn.bu, 0.03)
     np.testing.assert_almost_equal(nnn.bv, 0.07)
 
     # Explicitly set bin_slop=1.0 does the same thing.
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=1.0,
-                                  min_u=0.2, max_u=0.9, ubin_size=0.03,
-                                  min_v=-0.2, max_v=0.2, vbin_size=0.07)
+                                  min_u=0.0, max_u=0.9, ubin_size=0.03,
+                                  min_v=-0.21, max_v=0.21, vbin_size=0.07)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)
     assert nnn.bin_slop == 1.0
     assert nnn.bin_size == 0.1
-    assert nnn.ubin_size == 0.03
-    assert nnn.vbin_size == 0.07
+    assert np.isclose(nnn.ubin_size, 0.03)
+    assert np.isclose(nnn.vbin_size, 0.07)
     np.testing.assert_almost_equal(nnn.b, 0.1)
     np.testing.assert_almost_equal(nnn.bu, 0.03)
     np.testing.assert_almost_equal(nnn.bv, 0.07)
 
     # Use a smaller bin_slop
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=0.2,
-                                  min_u=0.2, max_u=0.9, ubin_size=0.03,
-                                  min_v=-0.2, max_v=0.2, vbin_size=0.07)
+                                  min_u=0.0, max_u=0.9, ubin_size=0.03,
+                                  min_v=-0.21, max_v=0.21, vbin_size=0.07)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)
     assert nnn.bin_slop == 0.2
     assert nnn.bin_size == 0.1
-    assert nnn.ubin_size == 0.03
-    assert nnn.vbin_size == 0.07
+    assert np.isclose(nnn.ubin_size, 0.03)
+    assert np.isclose(nnn.vbin_size, 0.07)
     np.testing.assert_almost_equal(nnn.b, 0.02)
     np.testing.assert_almost_equal(nnn.bu, 0.006)
     np.testing.assert_almost_equal(nnn.bv, 0.014)
 
     # Use bin_slop == 0
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=0.0,
-                                  min_u=0.2, max_u=0.9, ubin_size=0.03,
-                                  min_v=-0.2, max_v=0.2, vbin_size=0.07)
+                                  min_u=0.0, max_u=0.9, ubin_size=0.03,
+                                  min_v=-0.21, max_v=0.21, vbin_size=0.07)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)
     assert nnn.bin_slop == 0.0
     assert nnn.bin_size == 0.1
-    assert nnn.ubin_size == 0.03
-    assert nnn.vbin_size == 0.07
+    assert np.isclose(nnn.ubin_size, 0.03)
+    assert np.isclose(nnn.vbin_size, 0.07)
     np.testing.assert_almost_equal(nnn.b, 0.0)
     np.testing.assert_almost_equal(nnn.bu, 0.0)
     np.testing.assert_almost_equal(nnn.bv, 0.0)
 
     # Bigger bin_slop
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=2.0,
-                                  min_u=0.2, max_u=0.9, ubin_size=0.03,
-                                  min_v=-0.2, max_v=0.2, vbin_size=0.07, verbose=0)
+                                  min_u=0.0, max_u=0.9, ubin_size=0.03,
+                                  min_v=-0.21, max_v=0.21, vbin_size=0.07, verbose=0)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)
     assert nnn.bin_slop == 2.0
     assert nnn.bin_size == 0.1
-    assert nnn.ubin_size == 0.03
-    assert nnn.vbin_size == 0.07
+    assert np.isclose(nnn.ubin_size, 0.03)
+    assert np.isclose(nnn.vbin_size, 0.07)
     np.testing.assert_almost_equal(nnn.b, 0.2)
     np.testing.assert_almost_equal(nnn.bu, 0.06)
     np.testing.assert_almost_equal(nnn.bv, 0.14)
 
     # With bin_size > 0.1, explicit bin_slop=1.0 is accepted.
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.4, bin_slop=1.0,
-                                  min_u=0.2, max_u=0.9, ubin_size=0.03,
-                                  min_v=-0.2, max_v=0.2, vbin_size=0.07, verbose=0)
+                                  min_u=0.0, max_u=0.9, ubin_size=0.03,
+                                  min_v=-0.21, max_v=0.21, vbin_size=0.07, verbose=0)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)
     assert nnn.bin_slop == 1.0
     assert nnn.bin_size == 0.4
-    assert nnn.ubin_size == 0.03
-    assert nnn.vbin_size == 0.07
+    assert np.isclose(nnn.ubin_size, 0.03)
+    assert np.isclose(nnn.vbin_size, 0.07)
     np.testing.assert_almost_equal(nnn.b, 0.4)
     np.testing.assert_almost_equal(nnn.bu, 0.03)
     np.testing.assert_almost_equal(nnn.bv, 0.07)
 
     # But implicit bin_slop is reduced so that b = 0.1
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.4,
-                                  min_u=0.2, max_u=0.9, ubin_size=0.03,
-                                  min_v=-0.2, max_v=0.2, vbin_size=0.07)
+                                  min_u=0.0, max_u=0.9, ubin_size=0.03,
+                                  min_v=-0.21, max_v=0.21, vbin_size=0.07)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)
     assert nnn.bin_size == 0.4
-    assert nnn.ubin_size == 0.03
-    assert nnn.vbin_size == 0.07
+    assert np.isclose(nnn.ubin_size, 0.03)
+    assert np.isclose(nnn.vbin_size, 0.07)
     np.testing.assert_almost_equal(nnn.b, 0.1)
     np.testing.assert_almost_equal(nnn.bu, 0.03)
     np.testing.assert_almost_equal(nnn.bv, 0.07)
@@ -366,14 +455,14 @@ def test_binnedcorr3():
 
     # Separately for each of the three parameters
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.05,
-                                  min_u=0.2, max_u=0.9, ubin_size=0.3,
-                                  min_v=-0.2, max_v=0.2, vbin_size=0.17)
+                                  min_u=0.0, max_u=0.9, ubin_size=0.3,
+                                  min_v=-0.17, max_v=0.17, vbin_size=0.17)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)
     assert nnn.bin_size == 0.05
-    assert nnn.ubin_size == 0.3
-    assert nnn.vbin_size == 0.17
+    assert np.isclose(nnn.ubin_size, 0.3)
+    assert np.isclose(nnn.vbin_size, 0.17)
     np.testing.assert_almost_equal(nnn.b, 0.05)
     np.testing.assert_almost_equal(nnn.bu, 0.1)
     np.testing.assert_almost_equal(nnn.bv, 0.1)

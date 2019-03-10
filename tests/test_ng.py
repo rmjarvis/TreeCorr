@@ -1453,7 +1453,7 @@ def test_haloellip():
     """
 
     nhalo = 10
-    nsource = 1000000  # sources per halo
+    nsource = 100000  # sources per halo
     ntot = nsource * nhalo
     L = 100000.  # The side length in which the halos are placed
     R = 10.      # The (rms) radius of the associated sources from the halos
@@ -1494,7 +1494,7 @@ def test_haloellip():
         # This doesn't have an analytic solution, but a few iterations of Newton-Raphson
         # should work well enough.
         u = t.copy()
-        for i in range(4):
+        for k in range(4):
             u -= (u - t + 0.5 * absg * np.sin(2.*u)) / (1. + absg * np.cos(2.*u))
 
         z = r * np.exp(1j * u)
@@ -1527,7 +1527,7 @@ def test_haloellip():
     #       = - < int( (1 + e_halo cos(2t)) cos(2t) ) >
     #       = -0.5 <e_halo>
     print('expected signal = ',-0.5 * halo_mean_absg)
-    np.testing.assert_allclose(ng.xi, -0.5 * halo_mean_absg, rtol=0.01)
+    np.testing.assert_allclose(ng.xi, -0.5 * halo_mean_absg, rtol=0.05)
 
     # Next weight the halos by their absg.
     halo_cat2 = treecorr.Catalog(x=halo_x, y=halo_y, w=halo_absg,
@@ -1539,7 +1539,7 @@ def test_haloellip():
     # = 0.5 * <absg^2> / <absg>
     halo_mean_gsq = np.mean(halo_absg**2)
     print('expected signal = ',0.5 * halo_mean_gsq / halo_mean_absg)
-    np.testing.assert_allclose(ng.xi, -0.5 * halo_mean_gsq / halo_mean_absg, rtol=0.01)
+    np.testing.assert_allclose(ng.xi, -0.5 * halo_mean_gsq / halo_mean_absg, rtol=0.05)
 
     # Finally, use the unnormalized halo_g for the halo ellipticities
     halo_cat3 = treecorr.Catalog(x=halo_x, y=halo_y, g1=halo_g.real, g2=halo_g.imag)
@@ -1549,7 +1549,7 @@ def test_haloellip():
     # sum(absg * p*cos(2t)) / N
     # = 0.5 * <absg^2>
     print('expected signal = ',0.5 * halo_mean_gsq)
-    np.testing.assert_allclose(ng.xi, -0.5 * halo_mean_gsq, rtol=0.01)
+    np.testing.assert_allclose(ng.xi, -0.5 * halo_mean_gsq, rtol=0.05)
 
 
 if __name__ == '__main__':

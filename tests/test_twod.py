@@ -14,7 +14,6 @@
 import numpy as np
 import treecorr
 import time
-from scipy.spatial.distance import pdist, squareform
 
 def get_correlation_length_matrix(size, e1, e2):
 
@@ -75,6 +74,11 @@ def corr2d(x, y, kappa1, kappa2, w=None, rmax=1., bins=513, return_counts=False)
 
 
 def test_twod():
+    try:
+        from scipy.spatial.distance import pdist, squareform
+    except ImportError:
+        print('Skipping test_twod, since uses scipy, and scipy is not installed.')
+        return
 
     # N random points in 2 dimensions
     np.random.seed(42)

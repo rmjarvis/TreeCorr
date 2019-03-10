@@ -484,6 +484,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         cf. Schneider, et al (2002): A&A, 389, 729
 
+        .. note::
+
+            This function is only implemented for Log binning.
+
+
         :param m2_uform:    Which form to use for the aperture mass, as described above.
                             (default: 'Crittenden'; this value can also be given in the
                             constructor in the config dict.)
@@ -494,6 +499,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
             m2_uform = treecorr.config.get(self.config,'m2_uform',str,'Crittenden')
         if m2_uform not in ['Crittenden', 'Schneider']:
             raise ValueError("Invalid m2_uform")
+        if self.bin_type is not 'Log':
+            raise ValueError("calculateMapSq requires Log binning.")
 
         # Make s a matrix, so we can eventually do the integral by doing a matrix product.
         r = self.rnom
@@ -552,10 +559,14 @@ class GGCorrelation(treecorr.BinnedCorr2):
             s>=2, & 4(s^2-3)/(s^4)
             \\end{cases}
 
-        cf Schneider, et al, 2001: http://adsabs.harvard.edu/abs/2002A%26A...389..729S
+        cf. Schneider, et al (2002): A&A, 389, 729
 
         The default behavior is not to compute the E/B versions.  They are calculated if
         eb is set to True.
+
+        .. note::
+
+            This function is only implemented for Log binning.
 
 
         :param eb:  Whether to include the E/B decomposition as well as the total
@@ -564,14 +575,16 @@ class GGCorrelation(treecorr.BinnedCorr2):
         :returns:   (gamsq, vargamsq) if `eb == False` or
                     (gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e)  if `eb == True`
         """
+        if self.bin_type is not 'Log':
+            raise ValueError("calculateGamSq requires Log binning.")
+
         r = self.rnom
         s = np.outer(1./r, self.meanr)
         ssq = s*s
         Sp = np.zeros_like(s)
         sa = s[s<2]
         ssqa = ssq[s<2]
-        Sp[s<2.] = 1./np.pi * (4.*np.arccos(sa/2.) - sa*np.sqrt(4.-ssqa))
-        Sp *= ssq
+        Sp[s<2.] = 1./np.pi * ssqa * (4.*np.arccos(sa/2.) - sa*np.sqrt(4.-ssqa))
 
         # Now do the integral by taking the matrix products.
         # Note that dlogr = bin_size
@@ -584,7 +597,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         Sm = np.empty_like(s)
         Sm[s<2.] = 1./(ssqa*np.pi) * (sa*np.sqrt(4.-ssqa)*(6.-ssqa)
-                                              -8.*(3.-ssqa)*np.arcsin(sa/2.))
+                                                 -8.*(3.-ssqa)*np.arcsin(sa/2.))
         Sm[s>=2.] = 4.*(ssq[s>=2]-3.)/ssq[s>=2]
         # This already includes the extra ssq factor.
 

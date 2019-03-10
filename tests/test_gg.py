@@ -13,11 +13,11 @@
 
 from __future__ import print_function
 import numpy as np
-import treecorr
 import os
 import fitsio
 import coord
 import time
+import treecorr
 
 from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
@@ -439,18 +439,19 @@ def test_gg():
     print('ratio = ',gg.xip / true_xip)
     print('diff = ',gg.xip - true_xip)
     print('max diff = ',max(abs(gg.xip - true_xip)))
-    assert max(abs(gg.xip - true_xip)) < 3.e-7 * tol_factor
+    # It's within 10% everywhere except at the zero crossings.
+    np.testing.assert_allclose(gg.xip, true_xip, rtol=0.1 * tol_factor, atol=1.e-7 * tol_factor)
     print('xip_im = ',gg.xip_im)
-    assert max(abs(gg.xip_im)) < 2.e-7 * tol_factor
+    np.testing.assert_allclose(gg.xip_im, 0, atol=2.e-7 * tol_factor)
 
     print('gg.xim = ',gg.xim)
     print('true_xim = ',true_xim)
     print('ratio = ',gg.xim / true_xim)
     print('diff = ',gg.xim - true_xim)
     print('max diff = ',max(abs(gg.xim - true_xim)))
-    assert max(abs(gg.xim - true_xim)) < 3.e-7 * tol_factor
+    np.testing.assert_allclose(gg.xim, true_xim, rtol=0.1 * tol_factor, atol=2.e-7 * tol_factor)
     print('xim_im = ',gg.xim_im)
-    assert max(abs(gg.xim_im)) < 1.e-7 * tol_factor
+    np.testing.assert_allclose(gg.xim_im, 0, atol=1.e-7 * tol_factor)
 
     # Should also work as a cross-correlation with itself
     gg.process(cat,cat)
@@ -482,11 +483,11 @@ def test_gg():
     # agreement is pretty good if we skip the first 16 elements.
     # Well, it gets bad again at the end, but those values are small enough that they still
     # pass this test.
-    assert max(abs(mapsq[16:]-true_mapsq[16:])) < 3.e-8 * tol_factor
+    np.testing.assert_allclose(mapsq[16:], true_mapsq[16:], rtol=0.1 * tol_factor, atol=1.e-9 * tol_factor)
     print('mxsq = ',mxsq)
     print('max = ',max(abs(mxsq)))
     print('max[16:] = ',max(abs(mxsq[16:])))
-    assert max(abs(mxsq[16:])) < 3.e-8 * tol_factor
+    np.testing.assert_allclose(mxsq[16:], 0., atol=3.e-8 * tol_factor)
 
     mapsq_file = 'output/gg_m2.txt'
     gg.writeMapSq(mapsq_file, precision=16)
@@ -505,20 +506,20 @@ def test_gg():
     print('from corr2 output = ',corr2_output['xip'])
     print('ratio = ',corr2_output['xip']/gg.xip)
     print('diff = ',corr2_output['xip']-gg.xip)
-    np.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-4)
 
     print('gg.xim = ',gg.xim)
     print('from corr2 output = ',corr2_output['xim'])
     print('ratio = ',corr2_output['xim']/gg.xim)
     print('diff = ',corr2_output['xim']-gg.xim)
-    np.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-4)
 
     print('xip_im from corr2 output = ',corr2_output['xip_im'])
     print('max err = ',max(abs(corr2_output['xip_im'])))
-    assert max(abs(corr2_output['xip_im'])) < 2.e-7 * tol_factor
+    np.testing.assert_allclose(corr2_output['xip_im'], 0, atol=2.e-7 * tol_factor)
     print('xim_im from corr2 output = ',corr2_output['xim_im'])
     print('max err = ',max(abs(corr2_output['xim_im'])))
-    assert max(abs(corr2_output['xim_im'])) < 1.e-7 * tol_factor
+    np.testing.assert_allclose(corr2_output['xim_im'], 0, atol=2.e-7 * tol_factor)
 
     # Check m2 output
     corr2_output2 = np.genfromtxt(os.path.join('output','gg_m2.out'), names=True)
@@ -526,49 +527,49 @@ def test_gg():
     print('from corr2 output = ',corr2_output2['Mapsq'])
     print('ratio = ',corr2_output2['Mapsq']/mapsq)
     print('diff = ',corr2_output2['Mapsq']-mapsq)
-    np.testing.assert_allclose(corr2_output2['Mapsq'], mapsq, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output2['Mapsq'], mapsq, rtol=1.e-4)
 
     print('mxsq = ',mxsq)
     print('from corr2 output = ',corr2_output2['Mxsq'])
     print('ratio = ',corr2_output2['Mxsq']/mxsq)
     print('diff = ',corr2_output2['Mxsq']-mxsq)
-    np.testing.assert_allclose(corr2_output2['Mxsq'], mxsq, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output2['Mxsq'], mxsq, rtol=1.e-4)
 
     # OK to have m2 output, but not gg
     del config['gg_file_name']
     treecorr.corr2(config)
     corr2_output2 = np.genfromtxt(os.path.join('output','gg_m2.out'), names=True)
-    np.testing.assert_allclose(corr2_output2['Mapsq'], mapsq, rtol=1.e-3)
-    np.testing.assert_allclose(corr2_output2['Mxsq'], mxsq, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output2['Mapsq'], mapsq, rtol=1.e-4)
+    np.testing.assert_allclose(corr2_output2['Mxsq'], mxsq, rtol=1.e-4)
 
     # Check the fits write option
     out_file_name = os.path.join('output','gg_out.fits')
     gg.write(out_file_name)
     data = fitsio.read(out_file_name)
-    np.testing.assert_almost_equal(data['R_nom'], np.exp(gg.logr))
-    np.testing.assert_almost_equal(data['meanR'], gg.meanr)
-    np.testing.assert_almost_equal(data['meanlogR'], gg.meanlogr)
-    np.testing.assert_almost_equal(data['xip'], gg.xip)
-    np.testing.assert_almost_equal(data['xim'], gg.xim)
-    np.testing.assert_almost_equal(data['xip_im'], gg.xip_im)
-    np.testing.assert_almost_equal(data['xim_im'], gg.xim_im)
-    np.testing.assert_almost_equal(data['sigma_xi'], np.sqrt(gg.varxi))
-    np.testing.assert_almost_equal(data['weight'], gg.weight)
-    np.testing.assert_almost_equal(data['npairs'], gg.npairs)
+    np.testing.assert_allclose(data['R_nom'], np.exp(gg.logr))
+    np.testing.assert_allclose(data['meanR'], gg.meanr)
+    np.testing.assert_allclose(data['meanlogR'], gg.meanlogr)
+    np.testing.assert_allclose(data['xip'], gg.xip)
+    np.testing.assert_allclose(data['xim'], gg.xim)
+    np.testing.assert_allclose(data['xip_im'], gg.xip_im)
+    np.testing.assert_allclose(data['xim_im'], gg.xim_im)
+    np.testing.assert_allclose(data['sigma_xi'], np.sqrt(gg.varxi))
+    np.testing.assert_allclose(data['weight'], gg.weight)
+    np.testing.assert_allclose(data['npairs'], gg.npairs)
 
     # Check the read function
     gg2 = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin')
     gg2.read(out_file_name)
-    np.testing.assert_almost_equal(gg2.logr, gg.logr)
-    np.testing.assert_almost_equal(gg2.meanr, gg.meanr)
-    np.testing.assert_almost_equal(gg2.meanlogr, gg.meanlogr)
-    np.testing.assert_almost_equal(gg2.xip, gg.xip)
-    np.testing.assert_almost_equal(gg2.xim, gg.xim)
-    np.testing.assert_almost_equal(gg2.xip_im, gg.xip_im)
-    np.testing.assert_almost_equal(gg2.xim_im, gg.xim_im)
-    np.testing.assert_almost_equal(gg2.varxi, gg.varxi)
-    np.testing.assert_almost_equal(gg2.weight, gg.weight)
-    np.testing.assert_almost_equal(gg2.npairs, gg.npairs)
+    np.testing.assert_allclose(gg2.logr, gg.logr)
+    np.testing.assert_allclose(gg2.meanr, gg.meanr)
+    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr)
+    np.testing.assert_allclose(gg2.xip, gg.xip)
+    np.testing.assert_allclose(gg2.xim, gg.xim)
+    np.testing.assert_allclose(gg2.xip_im, gg.xip_im)
+    np.testing.assert_allclose(gg2.xim_im, gg.xim_im)
+    np.testing.assert_allclose(gg2.varxi, gg.varxi)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.npairs, gg.npairs)
     assert gg2.coords == gg.coords
     assert gg2.metric == gg.metric
     assert gg2.sep_units == gg.sep_units
@@ -580,28 +581,64 @@ def test_gg():
     #          = 576 pi gamma0^2 r0^6/(L^2 R^4) exp(-R^2/2r0^2) (I4(R^2/2r0^2)
     # where I4 is the modified Bessel function with nu=4.
     try:
-        from scipy.special import iv
-        x = 0.5*r**2/r0**2
-        true_mapsq = 144.*np.pi * gamma0**2 * r0**2 / (L**2 * x**2) * np.exp(-x) * iv(4,x)
-
-        mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq('Schneider')
-        print('Schneider mapsq = ',mapsq)
-        print('true_mapsq = ',true_mapsq)
-        print('ratio = ',mapsq/true_mapsq)
-        print('diff = ',mapsq-true_mapsq)
-        print('max diff = ',max(abs(mapsq - true_mapsq)))
-        print('max diff[20:] = ',max(abs(mapsq[20:] - true_mapsq[20:])))
-        # This one stays ratty longer, so we need to skip the first 20 and also loosen the
-        # test a bit.
-        assert max(abs(mapsq[20:]-true_mapsq[20:])) < 7.e-8 * tol_factor
-        print('mxsq = ',mxsq)
-        print('max = ',max(abs(mxsq)))
-        print('max[20:] = ',max(abs(mxsq[20:])))
-        assert max(abs(mxsq[20:])) < 7.e-8 * tol_factor
-
+        from scipy.special import iv, jv
     except ImportError:
         # Don't require scipy if the user doesn't have it.
         print('Skipping tests of Schneider aperture mass, since scipy.special not available.')
+        return
+    x = 0.5*r**2/r0**2
+    true_mapsq = 144.*np.pi * gamma0**2 * r0**2 / (L**2 * x**2) * np.exp(-x) * iv(4,x)
+
+    mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq('Schneider')
+    print('Schneider mapsq = ',mapsq)
+    print('true_mapsq = ',true_mapsq)
+    print('ratio = ',mapsq/true_mapsq)
+    print('diff = ',mapsq-true_mapsq)
+    print('max diff = ',max(abs(mapsq - true_mapsq)))
+    print('max diff[26:] = ',max(abs(mapsq[26:] - true_mapsq[26:])))
+    # This one stays ratty longer, so we need to skip the first 26.
+    np.testing.assert_allclose(mapsq[26:], true_mapsq[26:], rtol=0.1 * tol_factor, atol=1.e-9 * tol_factor)
+    print('mxsq = ',mxsq)
+    print('max = ',max(abs(mxsq)))
+    print('max[26:] = ',max(abs(mxsq[26:])))
+    np.testing.assert_allclose(mxsq[26:], 0, atol=3.e-8 * tol_factor)
+
+    # Finally, check the <gamma^2>(R) calculation.
+    # Gam^2(R) = int k P(k) Wth(kR) dk
+    #          = 2pi gamma0^2 (r0/L)^2 exp(-r^2/2r0^2)  *
+    #               (BesselI(0, r^2/2r0^2) - BesselI(1, r^2/2r0^2))
+    x = 0.5*r**2/r0**2
+    true_gamsq = 2.*np.pi*gamma0**2 * r0**2 / L**2 * np.exp(-x) * (iv(0,x) - iv(1,x))
+
+    gamsq, vargamsq = gg.calculateGamSq()
+    print('gamsq = ',gamsq)
+    print('true_gamsq = ',true_gamsq)
+    print('ratio = ',gamsq/true_gamsq)
+    print('diff = ',gamsq-true_gamsq)
+    print('max diff = ',max(abs(gamsq - true_gamsq)))
+    print('max rel diff[12:33] = ',max(abs((gamsq[12:33] - true_gamsq[12:33])/true_gamsq[12:33])))
+    # This is only close in a narrow range of scales
+    np.testing.assert_allclose(gamsq[12:33], true_gamsq[12:33], rtol=0.1 * tol_factor)
+    # Everywhere else it is less (since integral misses unmeasured power at both ends).
+    np.testing.assert_array_less(gamsq, true_gamsq)
+
+    # With E/B decomposition, it's ok over a larger range of scales.
+    gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_eb = gg.calculateGamSq(eb=True)
+    print('gamsq_e = ',gamsq_e)
+    print('true_gamsq = ',true_gamsq)
+    print('ratio = ',gamsq_e/true_gamsq)
+    print('diff = ',gamsq_e-true_gamsq)
+    print('max diff = ',max(abs(gamsq_e - true_gamsq)))
+    print('rel diff[6:41] = ',(gamsq_e[6:41] - true_gamsq[6:41])/true_gamsq[6:41])
+    print('max rel diff[6:41] = ',max(abs((gamsq_e[6:41] - true_gamsq[6:41])/true_gamsq[6:41])))
+    # This is only close in a narrow range of scales
+    np.testing.assert_allclose(gamsq_e[6:41], true_gamsq[6:41], rtol=0.1 * tol_factor)
+    print('gamsq_b = ',gamsq_b)
+    np.testing.assert_allclose(gamsq_b[6:41], 0, atol=1.e-6 * tol_factor)
+
+    # The Gamsq columns were already output in the above m2_output run of corr2.
+    np.testing.assert_allclose(corr2_output2['Gamsq'], gamsq, rtol=1.e-4)
+
 
 
 def test_spherical():

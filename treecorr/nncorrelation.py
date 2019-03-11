@@ -358,32 +358,42 @@ class NNCorrelation(treecorr.BinnedCorr2):
         if dr is None:
             if rd is None:
                 xi = (self.weight - rr.weight * rrw)
+                varxi_factor = (1 + rrw)**2
             else:
                 if rd.tot == 0:
                     raise RuntimeError("rd has tot=0.")
                 rdw = self.tot / rd.tot
                 xi = (self.weight - 2.*rd.weight * rdw + rr.weight * rrw)
+                varxi_factor = (1 + 2*rdw + rrw)**2
         else:
             if dr.tot == 0:
                 raise RuntimeError("dr has tot=0.")
             drw = self.tot / dr.tot
             if rd is None:
                 xi = (self.weight - 2.*dr.weight * drw + rr.weight * rrw)
+                varxi_factor = (1 + 2*drw + rrw)**2
             else:
                 if rd.tot == 0:
                     raise RuntimeError("rd has tot=0.")
                 rdw = self.tot / rd.tot
                 xi = (self.weight - rd.weight * rdw - dr.weight * drw + rr.weight * rrw)
+                varxi_factor = (1 + drw + rdw + rrw)**2
         if np.any(rr.weight == 0):
-            self.logger.warning("Warning: Some bins for the randoms had no pairs.\n"+
-                                "         Probably max_sep is larger than your field.")
+            self.logger.warning("Warning: Some bins for the randoms had no pairs.")
         mask1 = rr.weight != 0
         mask2 = rr.weight == 0
         xi[mask1] /= (rr.weight[mask1] * rrw)
         xi[mask2] = 0
 
         varxi = np.zeros_like(rr.weight)
-        varxi[mask1] = 1./ (rr.weight[mask1] * rrw)
+        # Note: The varxi_factor is almost completely empirical.
+        #       It gives the increase in the variance over the case where RR >> DD.
+        #       I don't have an a priori derivation that this is the right factor to apply
+        #       when the random catalog is not >> larger than the data.  So it's possible that
+        #       some other factor is more correct.
+        #       But it seems to give relatively close results compared to the empirical variance.
+        #       cf. test_nn.py:test_varxi
+        varxi[mask1] = varxi_factor / (rr.weight[mask1] * rrw)
 
         return xi, varxi
 

@@ -1444,6 +1444,14 @@ def test_3d():
     r = dd.meanr
     true_xi = 1./(8.*np.pi**1.5) * (L/s)**3 * np.exp(-0.25*r**2/s**2) - 1.
 
+    simple_xi, varxi = dd.calculateXi(rr)
+    print('simple xi = ',simple_xi)
+    print('true_xi = ',true_xi)
+    print('max rel diff = ',max(abs((simple_xi - true_xi)/true_xi)))
+    np.testing.assert_allclose(simple_xi, true_xi, rtol=0.1*tol_factor)
+    np.testing.assert_allclose(np.log(np.abs(simple_xi)), np.log(np.abs(true_xi)),
+                                  rtol=0.1*tol_factor)
+
     xi, varxi = dd.calculateXi(rr,dr)
     print('xi = ',xi)
     print('true_xi = ',true_xi)
@@ -1452,13 +1460,6 @@ def test_3d():
     print('max rel diff = ',max(abs((xi - true_xi)/true_xi)))
     np.testing.assert_allclose(xi, true_xi, rtol=0.1*tol_factor)
     np.testing.assert_allclose(np.log(np.abs(xi)), np.log(np.abs(true_xi)),
-                                  rtol=0.1*tol_factor)
-
-    simple_xi, varxi = dd.calculateXi(rr)
-    print('simple xi = ',simple_xi)
-    print('max rel diff = ',max(abs((simple_xi - true_xi)/true_xi)))
-    np.testing.assert_allclose(simple_xi, true_xi, rtol=0.1*tol_factor)
-    np.testing.assert_allclose(np.log(np.abs(simple_xi)), np.log(np.abs(true_xi)),
                                   rtol=0.1*tol_factor)
 
     # Check that we get the same result using the corr2 function:
@@ -1826,6 +1827,115 @@ def test_split():
             if dd1 is dd2: continue
             assert not np.all(dd1.npairs == dd2.npairs)
             np.testing.assert_allclose(dd1.npairs, dd2.npairs,rtol=1.e-2)
+
+
+def test_varxi():
+    # Test that varxi is correct (or close) based on actual variance of many runs.
+
+    L = 100
+    np.random.seed(8675309)
+
+    if __name__ == '__main__':
+        ngal = 50
+        nrand = 200
+        nruns = 50000
+        tol_factor = 1
+    else:
+        ngal = 50
+        nrand = 100
+        nruns = 1000
+        tol_factor = 5
+
+    all_dds = []
+    all_drs = []
+    all_rrs = []
+    for run in range(nruns):
+        x1 = (np.random.random_sample(ngal)-0.5) * L
+        y1 = (np.random.random_sample(ngal)-0.5) * L
+        x2 = (np.random.random_sample(nrand)-0.5) * L
+        y2 = (np.random.random_sample(nrand)-0.5) * L
+
+        data = treecorr.Catalog(x=x1, y=y1)
+        rand = treecorr.Catalog(x=x2, y=y2)
+        dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=6., max_sep=13.)
+        dr = treecorr.NNCorrelation(bin_size=0.1, min_sep=6., max_sep=13.)
+        rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=6., max_sep=13.)
+        dd.process(data)
+        dr.process(data, rand)
+        rr.process(rand)
+        all_dds.append(dd)
+        all_drs.append(dr)
+        all_rrs.append(rr)
+        print('.', end='', flush=True)
+    print()
+
+    print('Uncompensated:')
+
+    all_xis = [dd.calculateXi(rr) for dd,rr in zip(all_dds, all_rrs)]
+    mean_wt = np.mean([dd.weight for dd in all_dds], axis=0)
+    mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
+    var_xi = np.var([xi[0] for xi in all_xis], axis=0)
+    mean_varxi = np.mean([xi[1] for xi in all_xis], axis=0)
+
+    print('mean_xi = ',mean_xi)
+    print('mean_wt = ',mean_wt)
+    print('mean_varxi = ',mean_varxi)
+    print('var_xi = ',var_xi)
+    print('ratio = ',var_xi / mean_varxi)
+    print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
+    print('diff = ',var_xi - mean_varxi)
+    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.1 * tol_factor)
+
+    print('Compensated:')
+
+    all_xis = [dd.calculateXi(rr, dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
+    mean_wt = np.mean([nk.weight for nk in all_dds], axis=0)
+    mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
+    var_xi = np.var([xi[0] for xi in all_xis], axis=0)
+    mean_varxi = np.mean([xi[1] for xi in all_xis], axis=0)
+
+    print('mean_xi = ',mean_xi)
+    print('mean_wt = ',mean_wt)
+    print('mean_varxi = ',mean_varxi)
+    print('var_xi = ',var_xi)
+    print('ratio = ',var_xi / mean_varxi)
+    print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
+    print('diff = ',var_xi - mean_varxi)
+    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.05 * tol_factor)
+
+    print('Compensated with both dr and rd:')
+
+    all_xis = [dd.calculateXi(rr, dr, dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
+    mean_wt = np.mean([nk.weight for nk in all_dds], axis=0)
+    mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
+    var_xi = np.var([xi[0] for xi in all_xis], axis=0)
+    mean_varxi = np.mean([xi[1] for xi in all_xis], axis=0)
+
+    print('mean_xi = ',mean_xi)
+    print('mean_wt = ',mean_wt)
+    print('mean_varxi = ',mean_varxi)
+    print('var_xi = ',var_xi)
+    print('ratio = ',var_xi / mean_varxi)
+    print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
+    print('diff = ',var_xi - mean_varxi)
+    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.05 * tol_factor)
+
+    print('Compensated with just rd')
+
+    all_xis = [dd.calculateXi(rr, rd=dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
+    mean_wt = np.mean([nk.weight for nk in all_dds], axis=0)
+    mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
+    var_xi = np.var([xi[0] for xi in all_xis], axis=0)
+    mean_varxi = np.mean([xi[1] for xi in all_xis], axis=0)
+
+    print('mean_xi = ',mean_xi)
+    print('mean_wt = ',mean_wt)
+    print('mean_varxi = ',mean_varxi)
+    print('var_xi = ',var_xi)
+    print('ratio = ',var_xi / mean_varxi)
+    print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
+    print('diff = ',var_xi - mean_varxi)
+    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.05 * tol_factor)
 
 
 if __name__ == '__main__':

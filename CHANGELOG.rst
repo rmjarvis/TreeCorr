@@ -58,3 +58,4 @@ Bug fixes:
   a FITS output file.  Now the tot attribute is set properly when reading.
 - Fixed the Catalog.copy() method, which wasn't working properly.
 - Fixed an error in the Schneider NMap calculation.
+- Fixed a factor of 2 missing in the estimate of varxi.  (#72)

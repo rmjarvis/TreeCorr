@@ -2209,7 +2209,7 @@ def test_oldrperp_local():
 
 
 def test_varxi():
-    # Test that varxi is correct (or close) based on actual variance of 100 runs.
+    # Test that varxi is correct (or close) based on actual variance of many runs.
 
     # Same gamma pattern as in test_gg().  Although the signal doesn't actually matter at all here.
     gamma0 = 0.05

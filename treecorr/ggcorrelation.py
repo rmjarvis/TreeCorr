@@ -274,7 +274,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.xim_im[mask1] /= self.weight[mask1]
         self.meanr[mask1] /= self.weight[mask1]
         self.meanlogr[mask1] /= self.weight[mask1]
-        self.varxi[mask1] = varg1 * varg2 / self.weight[mask1]
+        self.varxi[mask1] = 2 * varg1 * varg2 / self.weight[mask1]
 
         # Update the units of meanr, meanlogr
         self._apply_units(mask1)

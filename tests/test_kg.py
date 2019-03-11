@@ -530,7 +530,63 @@ def test_kg():
     assert kg2.sep_units == kg.sep_units
     assert kg2.bin_type == kg.bin_type
 
+
+def test_varxi():
+    # Test that varxi is correct (or close) based on actual variance of many runs.
+
+    # Signal doesn't matter much.  Use the one from test_gg.
+    gamma0 = 0.05
+    kappa0 = 0.03
+    r0 = 10.
+    L = 50.*r0
+    np.random.seed(8675309)
+
+    # Note: to get a good estimate of var(xi), you need a lot of runs.  The number of
+    # runs matters much more than the number of galaxies for getting this to pass.
+    if __name__ == '__main__':
+        ngal = 1000
+        nruns = 50000
+        tol_factor = 1
+    else:
+        ngal = 100
+        nruns = 5000
+        tol_factor = 5
+
+    all_kgs = []
+    for run in range(nruns):
+        # In addition to the shape noise below, there is shot noise from the random x,y positions.
+        x = (np.random.random_sample(ngal)-0.5) * L
+        y = (np.random.random_sample(ngal)-0.5) * L
+        r2 = (x**2 + y**2)/r0**2
+        g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
+        g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
+        k = kappa0 * np.exp(-r2/2.)
+        # This time, add some shape noise (different each run).
+        g1 += np.random.normal(0, 0.3, size=ngal)
+        g2 += np.random.normal(0, 0.3, size=ngal)
+        k += np.random.normal(0, 0.1, size=ngal)
+
+        cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k)
+        kg = treecorr.KGCorrelation(bin_size=0.1, min_sep=10., max_sep=100.)
+        kg.process(cat, cat)
+        all_kgs.append(kg)
+        print('.', end='', flush=True)
+    print()
+
+    mean_xi = np.mean([kg.xi for kg in all_kgs], axis=0)
+    var_xi = np.var([kg.xi for kg in all_kgs], axis=0)
+    mean_varxi = np.mean([kg.varxi for kg in all_kgs], axis=0)
+
+    print('mean_xi = ',mean_xi)
+    print('mean_varxi = ',mean_varxi)
+    print('var_xi = ',var_xi)
+    print('ratio = ',var_xi / mean_varxi)
+    print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
+    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.02 * tol_factor)
+
+
 if __name__ == '__main__':
     test_single()
     test_pairwise()
     test_kg()
+    test_varxi()

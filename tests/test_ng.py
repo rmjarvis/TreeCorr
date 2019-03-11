@@ -1551,6 +1551,97 @@ def test_haloellip():
     print('expected signal = ',0.5 * halo_mean_gsq)
     np.testing.assert_allclose(ng.xi, -0.5 * halo_mean_gsq, rtol=0.05)
 
+def test_varxi():
+    # Test that varxi is correct (or close) based on actual variance of many runs.
+
+    # Signal doesn't matter much.  Use the one from test_gg.
+    gamma0 = 0.05
+    r0 = 10.
+    L = 10 * r0
+    np.random.seed(8675309)
+
+    # Note: to get a good estimate of var(xi), you need a lot of runs.  The number of
+    # runs matters much more than the number of galaxies for getting this to pass.
+    # In addition, I found that the variance was significantly underestimated when there
+    # were lots of lenses.  I guess because there were multiple lenses that paired with the
+    # same sources in a given bin, which increased the variance of the mean <g>.
+    # So there might be some adjustment that would help improve the estimate of varxi,
+    # but at least this unit test shows that it's fairly accurate for *some* scenario.
+    if __name__ == '__main__':
+        nlens = 1
+        nsource = 1000
+        nrand = 10
+        nruns = 50000
+        tol_factor = 1
+    else:
+        nlens = 1
+        nsource = 100
+        nrand = 2
+        nruns = 5000
+        tol_factor = 5
+
+    lens = treecorr.Catalog(x=[0], y=[0])
+    all_ngs = []
+    all_rgs = []
+    for run in range(nruns):
+        x2 = (np.random.random_sample(nsource)-0.5) * L
+        y2 = (np.random.random_sample(nsource)-0.5) * L
+        x3 = (np.random.random_sample(nrand)-0.5) * L
+        y3 = (np.random.random_sample(nrand)-0.5) * L
+
+        r2 = (x2**2 + y2**2)/r0**2
+        g1 = -gamma0 * np.exp(-r2/2.) * (x2**2-y2**2)/r0**2
+        g2 = -gamma0 * np.exp(-r2/2.) * (2.*x2*y2)/r0**2
+        # This time, add some shape noise (different each run).
+        g1 += np.random.normal(0, 0.1, size=nsource)
+        g2 += np.random.normal(0, 0.1, size=nsource)
+
+        source = treecorr.Catalog(x=x2, y=y2, g1=g1, g2=g2)
+        rand = treecorr.Catalog(x=x3, y=y3)
+        ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=5., max_sep=20.)
+        rg = treecorr.NGCorrelation(bin_size=0.1, min_sep=5., max_sep=20.)
+        ng.process(lens, source)
+        rg.process(rand, source)
+        all_ngs.append(ng)
+        all_rgs.append(rg)
+        print('.', end='', flush=True)
+    print()
+
+    print('Uncompensated:')
+
+    all_xis = [ng.calculateXi() for ng in all_ngs]
+    mean_wt = np.mean([ng.weight for ng in all_ngs], axis=0)
+    mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
+    var_xi = np.var([xi[0] for xi in all_xis], axis=0)
+    mean_varxi = np.mean([xi[2] for xi in all_xis], axis=0)
+
+    print('mean_xi = ',mean_xi)
+    print('mean_wt = ',mean_wt)
+    print('mean_varxi = ',mean_varxi)
+    print('var_xi = ',var_xi)
+    print('ratio = ',var_xi / mean_varxi)
+    print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
+    print('diff = ',var_xi - mean_varxi)
+    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.03 * tol_factor)
+
+    print('Compensated:')
+
+    all_xis = [ng.calculateXi(rg) for (ng,rg) in zip(all_ngs, all_rgs)]
+    mean_wt = np.mean([ng.weight for ng in all_ngs], axis=0)
+    mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
+    var_xi = np.var([xi[0] for xi in all_xis], axis=0)
+    mean_varxi = np.mean([xi[2] for xi in all_xis], axis=0)
+
+    print('mean_xi = ',mean_xi)
+    print('mean_wt = ',mean_wt)
+    print('mean_varxi = ',mean_varxi)
+    print('var_xi = ',var_xi)
+    print('ratio = ',var_xi / mean_varxi)
+    print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
+    print('diff = ',var_xi - mean_varxi)
+    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.02 * tol_factor)
+
+
 
 if __name__ == '__main__':
     test_single()
@@ -1561,3 +1652,4 @@ if __name__ == '__main__':
     test_rlens()
     test_rlens_bkg()
     test_haloellip()
+    test_varxi()

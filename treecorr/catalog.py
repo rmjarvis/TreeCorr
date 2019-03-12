@@ -1246,8 +1246,6 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
     At least one of key or list_key must be provided.  If both are provided, then only
     one of these should be in the config dict.
 
-    If neither key nor list_key is found in the config dict, then None is returned.
-
     num indicates which key to use if any of the fields like x_col, flip_g1, etc. are lists.
     The default is 0, which means to use the first item in the list if they are lists.
 
@@ -1281,7 +1279,7 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
             file_names = [ f.strip() for f in fin ]
     else:
         # If this key was required (i.e. file_name) then let the caller check this.
-        return None
+        return []
     if is_rand is None:
         if key is not None:
             is_rand = 'rand' in key
@@ -1289,10 +1287,7 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
             is_rand = 'rand' in list_key
     if not isinstance(file_names,list):
         file_names = file_names.split()
-    if len(file_names) == 0:
-        return None
-    else:
-        return [ Catalog(file_name, config, num, logger, is_rand) for file_name in file_names ]
+    return [ Catalog(file_name, config, num, logger, is_rand) for file_name in file_names ]
 
 
 def calculateVarG(cat_list):

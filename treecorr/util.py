@@ -299,16 +299,17 @@ def parse_metric(metric, coords, coords2=None, coords3=None):
             if all([c in [None, '3d'] for c in [coords, coords2, coords3]]):
                 # Leave coords as '3d'
                 pass
+            elif any([c not in [None, 'spherical', '3d'] for c in [coords, coords2, coords3]]):
+                raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
             elif any([c == 'spherical' for c in [coords, coords2, coords3]]):
                 # Switch to spherical
                 coords = 'spherical'
-            elif any([c not in [None, 'spherical', '3d'] for c in [coords, coords2, coords3]]):
-                raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
-            else:
-                raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+            else:  # pragma: no cover
+                # This is impossible now, but here in case we add additional coordinates.
+                raise ValueError("Cannot correlate catalogs with different coordinate systems.")
         else:
             if ( (coords2 != coords) or (coords3 is not None and coords3 != coords) ):
-                raise AttributeError("Cannot correlate catalogs with different coordinate systems.")
+                raise ValueError("Cannot correlate catalogs with different coordinate systems.")
 
     if coords not in ['flat', 'spherical', '3d']:
         raise ValueError("Invalid coords %s"%coords)

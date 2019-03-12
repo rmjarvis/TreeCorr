@@ -132,13 +132,20 @@ def corr3(config, logger=None):
 
     # Read in the input files.  Each of these is a list.
     cat1 = treecorr.read_catalogs(config, 'file_name', 'file_list', 0, logger)
-    if cat1 is None:
-        raise AttributeError("Either file_name or file_list is required")
     cat2 = treecorr.read_catalogs(config, 'file_name2', 'rand_file_list2', 1, logger)
     cat3 = treecorr.read_catalogs(config, 'file_name3', 'rand_file_list3', 1, logger)
     rand1 = treecorr.read_catalogs(config, 'rand_file_name', 'rand_file_list', 0, logger)
     rand2 = treecorr.read_catalogs(config, 'rand_file_name2', 'rand_file_list2', 1, logger)
     rand3 = treecorr.read_catalogs(config, 'rand_file_name3', 'rand_file_list3', 1, logger)
+    if len(cat1) == 0:
+        raise AttributeError("Either file_name or file_list is required")
+    if len(cat2) == 0: cat2 = None
+    if len(cat3) == 0: cat3 = None
+    if len(rand1) == 0: rand1 = None
+    if len(rand2) == 0: rand2 = None
+    if len(rand3) == 0: rand3 = None
+    if cat2 is None and rand2 is not None:
+        raise AttributeError("rand_file_name2 is invalid without file_name2")
     if cat2 is None and rand2 is not None:
         raise AttributeError("rand_file_name2 is invalid without file_name2")
     if cat3 is None and rand3 is not None:

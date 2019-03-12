@@ -559,8 +559,6 @@ def test_varxi():
         kk = treecorr.KKCorrelation(bin_size=0.1, min_sep=10., max_sep=100.)
         kk.process(cat)
         all_kks.append(kk)
-        print('.', end='', flush=True)
-    print()
 
     mean_xi = np.mean([kk.xi for kk in all_kks], axis=0)
     var_xi = np.var([kk.xi for kk in all_kks], axis=0)

@@ -2245,8 +2245,6 @@ def test_varxi():
                                     verbose=1)
         gg.process(cat)
         all_ggs.append(gg)
-        print('.', end='', flush=True)
-    print()
 
     mean_xip = np.mean([gg.xip for gg in all_ggs], axis=0)
     var_xip = np.var([gg.xip for gg in all_ggs], axis=0)

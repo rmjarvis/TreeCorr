@@ -1874,8 +1874,6 @@ def test_varxi():
         all_dds.append(dd)
         all_drs.append(dr)
         all_rrs.append(rr)
-        print('.', end='', flush=True)
-    print()
 
     print('Uncompensated:')
 

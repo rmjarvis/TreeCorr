@@ -526,6 +526,11 @@ struct SortHelper
             return true;
         }
 
+        // Stop if any side is exactly 0 and elements are leaves
+        if (s2==0 && s3==0 && d1sq == 0) return true;
+        if (s1==0 && s3==0 && d2sq == 0) return true;
+        if (s1==0 && s2==0 && d3sq == 0) return true;
+
         return false;
     }
 };
@@ -675,6 +680,11 @@ struct SortHelper<D,D,D,true,C,M>
             xdbg<<"|v| cannot be as large as minabsv\n";
             return true;
         }
+
+        // Stop if any side is exactly 0 and elements are leaves
+        if (s2==0 && s3==0 && d1sq == 0) return true;
+        if (s1==0 && s3==0 && d2sq == 0) return true;
+        if (s1==0 && s2==0 && d3sq == 0) return true;
 
         return false;
     }

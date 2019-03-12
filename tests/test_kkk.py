@@ -103,6 +103,24 @@ def test_direct():
     np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
     np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
 
+    # Also check the "cross" calculation.  (Real cross doesn't work, but this should.)
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, bin_slop=0.)
+    kkk.process(cat, cat, cat, num_threads=1)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri)
+    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
+
+    config['file_name2'] = config['file_name']
+    config['file_name3'] = config['file_name']
+    treecorr.corr3(config)
+    data = fitsio.read(config['kkk_file_name'])
+    np.testing.assert_allclose(data['R_nom'], kkk.rnom.flatten())
+    np.testing.assert_allclose(data['u_nom'], kkk.u.flatten())
+    np.testing.assert_allclose(data['v_nom'], kkk.v.flatten())
+    np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten())
+    np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
+    np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
+
     # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
     # And don't do any top-level recursion so we actually test not going to the leaves.
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,

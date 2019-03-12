@@ -782,12 +782,12 @@ def test_nmap():
     rg = treecorr.NGCorrelation(bin_size=0.1, min_sep=0.5, max_sep=40., sep_units='arcmin',
                                 verbose=1)
     rg.process(rand_cat, source_cat)
-    nmap, nmx, varnmap = ng.calculateNMap(rg, m2_uform='Crittenden')
-    print('compensated nmap = ',nmap)
-    print('ratio = ',nmap[mask] / true_nmap[mask])
-    print('max rel diff = ',max(abs((nmap[mask] - true_nmap[mask])/true_nmap[mask])))
-    np.testing.assert_allclose(nmap[mask], true_nmap[mask], rtol=0.1)
-    np.testing.assert_allclose(nmx[mask], 0, atol=5.e-3)
+    nmap2, nmx2, varnmap2 = ng.calculateNMap(rg, m2_uform='Crittenden')
+    print('compensated nmap = ',nmap2)
+    print('ratio = ',nmap2[mask] / true_nmap[mask])
+    print('max rel diff = ',max(abs((nmap2[mask] - true_nmap[mask])/true_nmap[mask])))
+    np.testing.assert_allclose(nmap2[mask], true_nmap[mask], rtol=0.1)
+    np.testing.assert_allclose(nmx2[mask], 0, atol=5.e-3)
 
     # Check that we get the same result using the corr2 function:
     lens_cat.write(os.path.join('data','ng_nmap_lens.dat'))
@@ -797,13 +797,13 @@ def test_nmap():
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','ng_nmap.out'), names=True)
-    np.testing.assert_allclose(corr2_output['NMap'], nmap, rtol=1.e-3)
-    np.testing.assert_allclose(corr2_output['NMx'], nmx, atol=1.e-3)
-    np.testing.assert_allclose(corr2_output['sig_nmap'], np.sqrt(varnmap), rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['NMap'], nmap2, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['NMx'], nmx2, atol=1.e-3)
+    np.testing.assert_allclose(corr2_output['sig_nmap'], np.sqrt(varnmap2), rtol=1.e-3)
 
     # Can also skip the randoms (even if listed in the file)
-    config['nn_statistic'] = 'simple'
-    config['precision'] = 5
+    config['ng_statistic'] = 'simple'
+    config['nn_statistic'] = 'simple'  # For the later Norm tests
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','ng_nmap.out'), names=True)
     np.testing.assert_allclose(corr2_output['NMap'], nmap, rtol=1.e-3)
@@ -835,12 +835,34 @@ def test_nmap():
     np.testing.assert_allclose(corr2_output['NMap_norm'], nmap_norm, rtol=1.e-3)
     np.testing.assert_allclose(corr2_output['Nsq_Mapsq'], napsq_mapsq, rtol=1.e-3)
 
+    # Also check writing to fits file.
+    # For grins, also check the explicit file_type option (which is rarely necessary)
+    fits_name = os.path.join('output', 'ng_nmap.zzz')
+    ng.writeNMap(fits_name, file_type='fits')
+    data = fitsio.read(fits_name)
+    np.testing.assert_allclose(data['NMap'], nmap, rtol=1.e-8)
+    np.testing.assert_allclose(data['NMx'], nmx, atol=1.e-8)
+    np.testing.assert_allclose(data['sig_nmap'], np.sqrt(varnmap), rtol=1.e-8)
+
+    fits_name = os.path.join('output', 'ng_norm.zzz')
+    ng.writeNorm(fits_name, gg, dd, rr, file_type='fits')
+    data = fitsio.read(fits_name)
+    np.testing.assert_allclose(data['NMap'], nmap, rtol=1.e-6)
+    np.testing.assert_allclose(data['NMx'], nmx, atol=1.e-6)
+    np.testing.assert_allclose(data['sig_nmap'], np.sqrt(varnmap), rtol=1.e-6)
+    np.testing.assert_allclose(data['Napsq'], napsq, rtol=1.e-6)
+    np.testing.assert_allclose(data['sig_napsq'], np.sqrt(varnap), rtol=1.e-6)
+    np.testing.assert_allclose(data['Mapsq'], mapsq, rtol=1.e-6)
+    np.testing.assert_allclose(data['sig_mapsq'], np.sqrt(varmap), rtol=1.e-6)
+    np.testing.assert_allclose(data['NMap_norm'], nmap_norm, rtol=1.e-6)
+    np.testing.assert_allclose(data['Nsq_Mapsq'], napsq_mapsq, rtol=1.e-6)
+
     # Finally, let's also check the Schneider definition.
     # It doesn't have a nice closed form solution (as far as I can figure out at least).
     # but it does look qualitatively similar to the Crittenden one.
     # Just its definition of R is different, so we need to compare a different subset to
     # get a decent match.  Also, the amplitude is different by a factor of 6/5.
-    nmap_sch, nmx_sch, varnmap_sch = ng.calculateNMap(rg, m2_uform='Schneider')
+    nmap_sch, nmx_sch, varnmap_sch = ng.calculateNMap(m2_uform='Schneider')
     print('Schneider nmap = ',nmap_sch[10:] * 5./6.)
     print('Crittenden nmap = ',nmap[:-10])
     print('ratio = ',nmap_sch[10:]*5./6. / nmap[:-10])
@@ -866,6 +888,7 @@ def test_nmap():
     napsq_mapsq_sch = napsq_sch / mapsq_sch
 
     config['m2_uform'] = 'Schneider'
+    config['precision'] = 5
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','ng_norm.out'), names=True)
     np.testing.assert_allclose(corr2_output['NMap'], nmap_sch, rtol=1.e-3)

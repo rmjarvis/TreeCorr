@@ -1029,6 +1029,14 @@ def test_direct_arc():
     print('diff = ',ddr.npairs - true_npairs)
     np.testing.assert_array_equal(ddr.npairs, true_npairs)
 
+    # Can't use flat with Arc
+    cat2f = treecorr.Catalog(x=x2, y=y2, x_units='rad', y_units='rad')
+    with assert_raises(ValueError):
+        ddr.process(cat1, cat2f, metric='Arc')
+    with assert_raises(ValueError):
+        ddr.process(cat2f, cat2, metric='Arc')
+    with assert_raises(ValueError):
+        ddr.process(cat2f, cat2r, metric='Arc')
 
 
 def test_direct_partial():

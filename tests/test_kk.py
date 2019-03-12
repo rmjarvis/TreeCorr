@@ -551,11 +551,13 @@ def test_varxi():
         # In addition to the shape noise below, there is shot noise from the random x,y positions.
         x = (np.random.random_sample(ngal)-0.5) * L
         y = (np.random.random_sample(ngal)-0.5) * L
+        # Varied weights are hard, but at least check that non-unit weights work correctly.
+        w = np.ones_like(x) * 5
         r2 = (x**2 + y**2)/r0**2
         k = kappa0 * np.exp(-r2/2.)
         k += np.random.normal(0, 0.1, size=ngal)
 
-        cat = treecorr.Catalog(x=x, y=y, k=k)
+        cat = treecorr.Catalog(x=x, y=y, w=w, k=k)
         kk = treecorr.KKCorrelation(bin_size=0.1, min_sep=10., max_sep=100.)
         kk.process(cat)
         all_kks.append(kk)

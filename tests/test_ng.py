@@ -1618,8 +1618,10 @@ def test_varxi():
         # This time, add some shape noise (different each run).
         g1 += np.random.normal(0, 0.1, size=nsource)
         g2 += np.random.normal(0, 0.1, size=nsource)
+        # Varied weights are hard, but at least check that non-unit weights work correctly.
+        w = np.ones_like(x2) * 5
 
-        source = treecorr.Catalog(x=x2, y=y2, g1=g1, g2=g2)
+        source = treecorr.Catalog(x=x2, y=y2, w=w, g1=g1, g2=g2)
         rand = treecorr.Catalog(x=x3, y=y3)
         ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=5., max_sep=20.)
         rg = treecorr.NGCorrelation(bin_size=0.1, min_sep=5., max_sep=20.)

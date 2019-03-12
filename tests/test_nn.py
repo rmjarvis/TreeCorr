@@ -1862,9 +1862,12 @@ def test_varxi():
         y1 = (np.random.random_sample(ngal)-0.5) * L
         x2 = (np.random.random_sample(nrand)-0.5) * L
         y2 = (np.random.random_sample(nrand)-0.5) * L
+        # Varied weights are hard, but at least check that non-unit weights work correctly.
+        w = np.ones_like(x2) * 5
+        wr = np.ones_like(x2) * 0.3
 
-        data = treecorr.Catalog(x=x1, y=y1)
-        rand = treecorr.Catalog(x=x2, y=y2)
+        data = treecorr.Catalog(x=x1, y=y1, w=w)
+        rand = treecorr.Catalog(x=x2, y=y2, w=wr)
         dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=6., max_sep=13.)
         dr = treecorr.NNCorrelation(bin_size=0.1, min_sep=6., max_sep=13.)
         rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=6., max_sep=13.)
@@ -1879,12 +1882,14 @@ def test_varxi():
 
     all_xis = [dd.calculateXi(rr) for dd,rr in zip(all_dds, all_rrs)]
     mean_wt = np.mean([dd.weight for dd in all_dds], axis=0)
+    mean_np = np.mean([dd.npairs for dd in all_dds], axis=0)
     mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
     var_xi = np.var([xi[0] for xi in all_xis], axis=0)
     mean_varxi = np.mean([xi[1] for xi in all_xis], axis=0)
 
     print('mean_xi = ',mean_xi)
     print('mean_wt = ',mean_wt)
+    print('mean_np = ',mean_np)
     print('mean_varxi = ',mean_varxi)
     print('var_xi = ',var_xi)
     print('ratio = ',var_xi / mean_varxi)
@@ -1895,13 +1900,15 @@ def test_varxi():
     print('Compensated:')
 
     all_xis = [dd.calculateXi(rr, dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
-    mean_wt = np.mean([nk.weight for nk in all_dds], axis=0)
+    mean_wt = np.mean([dd.weight for dd in all_dds], axis=0)
+    mean_np = np.mean([dd.npairs for dd in all_dds], axis=0)
     mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
     var_xi = np.var([xi[0] for xi in all_xis], axis=0)
     mean_varxi = np.mean([xi[1] for xi in all_xis], axis=0)
 
     print('mean_xi = ',mean_xi)
     print('mean_wt = ',mean_wt)
+    print('mean_np = ',mean_np)
     print('mean_varxi = ',mean_varxi)
     print('var_xi = ',var_xi)
     print('ratio = ',var_xi / mean_varxi)
@@ -1912,7 +1919,7 @@ def test_varxi():
     print('Compensated with both dr and rd:')
 
     all_xis = [dd.calculateXi(rr, dr, dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
-    mean_wt = np.mean([nk.weight for nk in all_dds], axis=0)
+    mean_wt = np.mean([dd.weight for dd in all_dds], axis=0)
     mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
     var_xi = np.var([xi[0] for xi in all_xis], axis=0)
     mean_varxi = np.mean([xi[1] for xi in all_xis], axis=0)
@@ -1929,7 +1936,7 @@ def test_varxi():
     print('Compensated with just rd')
 
     all_xis = [dd.calculateXi(rr, rd=dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
-    mean_wt = np.mean([nk.weight for nk in all_dds], axis=0)
+    mean_wt = np.mean([dd.weight for dd in all_dds], axis=0)
     mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
     var_xi = np.var([xi[0] for xi in all_xis], axis=0)
     mean_varxi = np.mean([xi[1] for xi in all_xis], axis=0)

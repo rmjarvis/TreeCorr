@@ -495,9 +495,9 @@ class GGGCorrelation(treecorr.BinnedCorr3):
             raise NotImplementedError("No partial cross GGG yet.")
         else:
             assert cat2 is not None and cat3 is not None
-            varg1 = treecorr.calculateVarK(cat1)
-            varg2 = treecorr.calculateVarK(cat2)
-            varg3 = treecorr.calculateVarK(cat3)
+            varg1 = treecorr.calculateVarG(cat1)
+            varg2 = treecorr.calculateVarG(cat2)
+            varg3 = treecorr.calculateVarG(cat3)
             self.logger.info("varg1 = %f: sig_g = %f",varg1,math.sqrt(varg1))
             self.logger.info("varg2 = %f: sig_g = %f",varg2,math.sqrt(varg2))
             self.logger.info("varg3 = %f: sig_g = %f",varg3,math.sqrt(varg3))

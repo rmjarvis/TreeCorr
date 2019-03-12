@@ -533,8 +533,6 @@ def test_varxi():
         rk.process(rand, source)
         all_nks.append(nk)
         all_rks.append(rk)
-        print('.', end='', flush=True)
-    print()
 
     print('Uncompensated:')
 

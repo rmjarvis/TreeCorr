@@ -570,8 +570,6 @@ def test_varxi():
         kg = treecorr.KGCorrelation(bin_size=0.1, min_sep=10., max_sep=100.)
         kg.process(cat, cat)
         all_kgs.append(kg)
-        print('.', end='', flush=True)
-    print()
 
     mean_xi = np.mean([kg.xi for kg in all_kgs], axis=0)
     var_xi = np.var([kg.xi for kg in all_kgs], axis=0)

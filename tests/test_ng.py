@@ -1604,8 +1604,6 @@ def test_varxi():
         rg.process(rand, source)
         all_ngs.append(ng)
         all_rgs.append(rg)
-        print('.', end='', flush=True)
-    print()
 
     print('Uncompensated:')
 

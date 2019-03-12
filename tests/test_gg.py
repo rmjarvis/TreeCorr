@@ -2228,11 +2228,14 @@ def test_varxi():
         nruns = 5000
         tol_factor = 5
 
+
     all_ggs = []
     for run in range(nruns):
         # In addition to the shape noise below, there is shot noise from the random x,y positions.
         x = (np.random.random_sample(ngal)-0.5) * L
         y = (np.random.random_sample(ngal)-0.5) * L
+        # Varied weights are hard, but at least check that non-unit weights work correctly.
+        w = np.ones_like(x) * 5
         r2 = (x**2 + y**2)/r0**2
         g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
         g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
@@ -2240,7 +2243,7 @@ def test_varxi():
         g1 += np.random.normal(0, 0.3, size=ngal)
         g2 += np.random.normal(0, 0.3, size=ngal)
 
-        cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
+        cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
         gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=10., max_sep=100., sep_units='arcmin',
                                     verbose=1)
         gg.process(cat)

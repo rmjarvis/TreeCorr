@@ -327,6 +327,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
             self._process_all_cross(cat1,cat2,metric,num_threads)
         self.finalize()
 
+    def _mean_weight(self):
+        mean_np = np.mean(self.npairs)
+        return 1 if mean_np == 0 else np.mean(self.weight)/mean_np
 
     def calculateXi(self, rr, dr=None, rd=None):
         """Calculate the correlation function given another correlation function of random
@@ -354,46 +357,61 @@ class NNCorrelation(treecorr.BinnedCorr2):
         if rr.tot == 0:
             raise RuntimeError("rr has tot=0.")
 
-        rrw = self.tot / rr.tot
+        # rrf is the factor to scale rr weights to get something commensurate to the dd density.
+        rrf = self.tot / rr.tot
+
+        # ddw and rrw are the mean weight of the dd and rr pairs.
+        # This is only needed for the variance estimate, since there is shot noise on the
+        # number of pairs, not the weight.
+        ddw = self._mean_weight()
+        rrw = rr._mean_weight()
+
         if dr is None:
             if rd is None:
-                xi = (self.weight - rr.weight * rrw)
-                varxi_factor = (1 + rrw)**2
+                xi = (self.weight - rr.weight * rrf)
+                varxi_factor = 1 + rrf*rrw/ddw
             else:
                 if rd.tot == 0:
                     raise RuntimeError("rd has tot=0.")
-                rdw = self.tot / rd.tot
-                xi = (self.weight - 2.*rd.weight * rdw + rr.weight * rrw)
-                varxi_factor = (1 + 2*rdw + rrw)**2
+                rdf = self.tot / rd.tot
+                rdw = rd._mean_weight()
+                xi = (self.weight - 2.*rd.weight * rdf + rr.weight * rrf)
+                varxi_factor = 1 + 2*rdf*rdw/ddw + rrf*rrw/ddw
         else:
             if dr.tot == 0:
                 raise RuntimeError("dr has tot=0.")
-            drw = self.tot / dr.tot
+            drf = self.tot / dr.tot
+            drw = dr._mean_weight()
             if rd is None:
-                xi = (self.weight - 2.*dr.weight * drw + rr.weight * rrw)
-                varxi_factor = (1 + 2*drw + rrw)**2
+                xi = (self.weight - 2.*dr.weight * drf + rr.weight * rrf)
+                varxi_factor = 1 + 2*drf*drw/ddw + rrf*rrw/ddw
             else:
                 if rd.tot == 0:
                     raise RuntimeError("rd has tot=0.")
-                rdw = self.tot / rd.tot
-                xi = (self.weight - rd.weight * rdw - dr.weight * drw + rr.weight * rrw)
-                varxi_factor = (1 + drw + rdw + rrw)**2
+                rdf = self.tot / rd.tot
+                rdw = rd._mean_weight()
+                xi = (self.weight - rd.weight * rdf - dr.weight * drf + rr.weight * rrf)
+                varxi_factor = 1 + drf*drw/ddw + rdf*rdw/ddw + rrf*rrw/ddw
         if np.any(rr.weight == 0):
             self.logger.warning("Warning: Some bins for the randoms had no pairs.")
         mask1 = rr.weight != 0
         mask2 = rr.weight == 0
-        xi[mask1] /= (rr.weight[mask1] * rrw)
+        xi[mask1] /= (rr.weight[mask1] * rrf)
         xi[mask2] = 0
 
         varxi = np.zeros_like(rr.weight)
-        # Note: The varxi_factor is almost completely empirical.
+        # Note: The use of varxi_factor here is semi-empirical.
         #       It gives the increase in the variance over the case where RR >> DD.
-        #       I don't have an a priori derivation that this is the right factor to apply
-        #       when the random catalog is not >> larger than the data.  So it's possible that
-        #       some other factor is more correct.
-        #       But it seems to give relatively close results compared to the empirical variance.
+        #       I don't have a good derivation that this is the right factor to apply
+        #       when the random catalog is not >> larger than the data.
+        #       When I tried to derive this from first principles, I get the below formula,
+        #       but without the **2.  So I'm not sure why this factor needs to be squared.
+        #       It seems at least plausible that I missed something in the derivation that
+        #       leads to this getting squared, but I can't really justify it.
+        #       But it's also possible that this is wrong...
+        #       Anyway, it seems to give good results compared to the empirical variance.
         #       cf. test_nn.py:test_varxi
-        varxi[mask1] = varxi_factor / (rr.weight[mask1] * rrw)
+        varxi[mask1] = ddw * varxi_factor**2 / (rr.weight[mask1] * rrf)
 
         return xi, varxi
 

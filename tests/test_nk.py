@@ -524,8 +524,10 @@ def test_varxi():
         r2 = (x2**2 + y2**2)/r0**2
         k = kappa0 * np.exp(-r2/2.) * (1.-r2/2.)
         k += np.random.normal(0, 0.1, size=nsource)
+        # Varied weights are hard, but at least check that non-unit weights work correctly.
+        w = np.ones_like(x2) * 5
 
-        source = treecorr.Catalog(x=x2, y=y2, k=k)
+        source = treecorr.Catalog(x=x2, y=y2, w=w, k=k)
         rand = treecorr.Catalog(x=x3, y=y3)
         nk = treecorr.NKCorrelation(bin_size=0.1, min_sep=6., max_sep=15.)
         rk = treecorr.NKCorrelation(bin_size=0.1, min_sep=6., max_sep=15.)

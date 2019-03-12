@@ -150,14 +150,6 @@ class GGGCorrelation(treecorr.BinnedCorr3):
     def gam2(self): return self.gam2r + 1j * self.gam2i
     @property
     def gam3(self): return self.gam3r + 1j * self.gam3i
-    @gam0.setter
-    def gam0(self, g0): self.gam0r = g0.real; self.gam0i = g0.imag
-    @gam1.setter
-    def gam1(self, g1): self.gam1r = g1.real; self.gam1i = g1.imag
-    @gam2.setter
-    def gam2(self, g2): self.gam2r = g2.real; self.gam2i = g2.imag
-    @gam3.setter
-    def gam3(self, g3): self.gam3r = g3.real; self.gam3i = g3.imag
 
     def _build_corr(self):
         from treecorr.util import double_ptr as dp

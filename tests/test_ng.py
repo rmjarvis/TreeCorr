@@ -820,7 +820,7 @@ def test_nmap():
     gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=0.5, max_sep=40., sep_units='arcmin',
                                 verbose=1)
     gg.process(source_cat)
-    napsq, varnap = dd.calculateNapSq(rr, m2_uform='Crittenden')
+    napsq, varnap = dd.calculateNapSq(rr)
     mapsq, mapsq_im, mxsq, mxsq_im, varmap = gg.calculateMapSq(m2_uform='Crittenden')
     nmap_norm = nmap**2 / napsq / mapsq
     napsq_mapsq = napsq / mapsq

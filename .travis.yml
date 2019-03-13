@@ -6,8 +6,8 @@ language: python
 
 python:
     - 2.7
-    - 3.5
     - 3.6
+    - 3.7
 
 before_install:
     - sudo apt-get install -y libffi-dev
@@ -28,7 +28,6 @@ cache:
 script: 
     - python setup.py install --prefix=$HOME
     - cd tests
-    - nosetests -vs test_catalog.py
     - nosetests -v --with-coverage --cover-package=treecorr
     - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then py.test --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env; fi
 

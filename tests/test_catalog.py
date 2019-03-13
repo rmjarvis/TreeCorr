@@ -717,6 +717,7 @@ def test_field():
     # when doing this manually.  The real functionality tests of using the fields are
     # all elsewhere.
 
+    print('Start test_field')
     ngal = 2000
     s = 10.
     np.random.seed(8675309)
@@ -847,7 +848,9 @@ def test_field():
     assert nfield3 not in [v[3] for v in cat1.nfields.cache.values()]
 
     # Can also resize to 0
+    print('before resize_cache(0)')
     cat1.resize_cache(0)
+    print('after resize_cache(0)')
     t0 = time.time()
     nfield1 = cat1.getNField(1,1000)
     nfield2 = cat1.getNField(0.01, 1)
@@ -874,9 +877,11 @@ def test_field():
     assert nfield1b not in [v[3] for v in cat1.nfields.cache.values()]
     assert nfield2b not in [v[3] for v in cat1.nfields.cache.values()]
     assert nfield3b not in [v[3] for v in cat1.nfields.cache.values()]
+    print('done')
 
 
 def test_lru():
+    print('Start test_lru')
     f = lambda x: x+1
     size = 10
     # Test correct size cache gets created
@@ -936,6 +941,7 @@ def test_lru():
     assert cache.root[1] == cache.root
 
     assert_raises(ValueError, cache.resize, -20)
+    print('Done test_lru')
 
 
 if __name__ == '__main__':

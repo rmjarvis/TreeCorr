@@ -65,6 +65,11 @@ def gen_write(file_name, col_names, columns, params=None, precision=4, file_type
             logger.info("file_type assumed to be %s from the file name.",file_type)
 
     if file_type.upper() == 'FITS':
+        try:
+            import fitsio
+        except ImportError:
+            logger.error("Unable to import fitsio.  Cannot write to %s"%file_name)
+            raise
         gen_write_fits(file_name, col_names, columns, params)
     elif file_type.upper() == 'ASCII':
         gen_write_ascii(file_name, col_names, columns, params, precision=precision)
@@ -147,7 +152,11 @@ def gen_read(file_name, file_type=None, logger=None):
             logger.info("file_type assumed to be %s from the file name.",file_type)
 
     if file_type.upper() == 'FITS':
-        import fitsio
+        try:
+            import fitsio
+        except ImportError:
+            logger.error("Unable to import fitsio.  Cannot read %s"%file_name)
+            raise
         data = fitsio.read(file_name)
         params = fitsio.read_header(file_name, 1)
     elif file_type.upper() == 'ASCII':

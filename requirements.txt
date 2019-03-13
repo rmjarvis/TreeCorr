@@ -1,8 +1,6 @@
 argparse; python_version == '2.6'
-numpy
-pandas==0.18
-pyyaml
-future
-cffi
-fitsio
-LSSTDESC.Coord
+numpy>=1.14
+pyyaml>=3.13
+future>=0.17
+cffi>=1.12
+LSSTDESC.Coord>=1.1

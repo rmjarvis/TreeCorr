@@ -19,7 +19,8 @@ before_install:
 install:
     - pip install -U -r requirements.txt
     # Extra packages only needed for testing:
-    - pip install -U matplotlib pytest codecov nbval ipykernel scipy
+    - pip install -U -r test_requirements.txt
+    - pip install -U matplotlib pytest codecov nbval ipykernel
 
 cache:
     - pip: true

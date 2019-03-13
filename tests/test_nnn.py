@@ -15,7 +15,6 @@ from __future__ import print_function
 import numpy as np
 import treecorr
 import os
-import fitsio
 import coord
 
 from test_helper import get_script_name, do_pickle
@@ -716,6 +715,12 @@ def test_direct_count_auto():
     np.testing.assert_allclose(ddd3.meanu, ddd.meanu)
     np.testing.assert_allclose(ddd3.meanv, ddd.meanv)
 
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
+
     fits_name = 'output/nnn_fits.fits'
     ddd.write(fits_name)
     ddd4 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -936,6 +941,12 @@ def test_direct_spherical():
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
     np.testing.assert_allclose(ddd.weight, true_weight, rtol=1.e-5, atol=1.e-8)
 
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
+
     # Check that running via the corr3 script works correctly.
     config = treecorr.config.read_config('configs/nnn_direct_spherical.yaml')
     cat.write(config['file_name'])
@@ -1032,6 +1043,12 @@ def test_direct_arc():
 
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
     np.testing.assert_allclose(ddd.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
 
     # Check that running via the corr3 script works correctly.
     config = treecorr.config.read_config('configs/nnn_direct_arc.yaml')
@@ -1525,6 +1542,12 @@ def test_nnn():
     print('diff = ',corr3_output['zeta']-zeta.flatten())
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
 
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
+
     # Check the fits write option
     out_file_name1 = os.path.join('output','nnn_out1.fits')
     ddd.write(out_file_name1)
@@ -1647,6 +1670,12 @@ def test_nnn():
     print('max rel diff = ',np.max(np.abs((zeta - true_zeta)/true_zeta)))
     np.testing.assert_allclose(zeta, true_zeta, rtol=0.1*tol_factor)
     np.testing.assert_allclose(np.log(np.abs(zeta)), np.log(np.abs(true_zeta)), atol=0.1*tol_factor)
+
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
 
     out_file_name3 = os.path.join('output','nnn_out3.fits')
     ddd.write(out_file_name3, rrr,drr,rdr,rrd,ddr,drd,rdd)

@@ -14,7 +14,6 @@
 from __future__ import print_function
 import numpy as np
 import os
-import fitsio
 import coord
 import time
 import treecorr
@@ -95,6 +94,12 @@ def test_direct():
     print('gg.xim_im = ',gg.xim_im)
     np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-4, atol=1.e-8)
     np.testing.assert_allclose(gg.xim_im, true_xim.imag, rtol=1.e-4, atol=1.e-8)
+
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/gg_direct.yaml')
@@ -283,6 +288,12 @@ def test_direct_spherical():
     print('gg.xim_im = ',gg.xim_im)
     np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-4, atol=1.e-8)
     np.testing.assert_allclose(gg.xim_im, true_xim.imag, rtol=1.e-4, atol=1.e-8)
+
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/gg_direct_spherical.yaml')
@@ -541,6 +552,12 @@ def test_gg():
     corr2_output2 = np.genfromtxt(os.path.join('output','gg_m2.out'), names=True)
     np.testing.assert_allclose(corr2_output2['Mapsq'], mapsq, rtol=1.e-4)
     np.testing.assert_allclose(corr2_output2['Mxsq'], mxsq, rtol=1.e-4)
+
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
 
     # Check the fits write option
     out_file_name = os.path.join('output','gg_out.fits')
@@ -805,6 +822,11 @@ def test_spherical():
 
 
 def test_aardvark():
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping Aardvark test, since fitsio is not installed')
+        return
 
     # Eric Suchyta did a brute force calculation of the Aardvark catalog, so it is useful to
     # compare the output from my code with that.

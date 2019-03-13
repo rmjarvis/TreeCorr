@@ -16,7 +16,6 @@ import numpy as np
 import treecorr
 import os
 import sys
-import fitsio
 import coord
 
 from test_helper import get_script_name, do_pickle, CaptureLog, assert_raises
@@ -80,6 +79,12 @@ def test_direct():
     print('nk.xi = ',nk.xi)
     np.testing.assert_allclose(nk.xi, true_xi, rtol=1.e-4, atol=1.e-8)
 
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
+
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/nk_direct.yaml')
     cat1.write(config['file_name'])
@@ -128,6 +133,12 @@ def test_direct():
     np.testing.assert_allclose(nk3.meanr, nk.meanr)
     np.testing.assert_allclose(nk3.meanlogr, nk.meanlogr)
     np.testing.assert_allclose(nk3.xi, nk.xi)
+
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
 
     fits_name = 'output/nk_fits.fits'
     nk.write(fits_name)
@@ -222,6 +233,12 @@ def test_direct_spherical():
     print('true_xi = ',true_xi)
     print('nk.xi = ',nk.xi)
     np.testing.assert_allclose(nk.xi, true_xi, rtol=1.e-4, atol=1.e-8)
+
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/nk_direct_spherical.yaml')
@@ -420,6 +437,12 @@ def test_nk():
     # It turns out this doesn't come out much better.  I think the imprecision is mostly just due
     # to the smallish number of lenses, not to edge effects
     np.testing.assert_allclose(nk.xi, true_k, rtol=0.05, atol=1.e-3)
+
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
 
     # Check that we get the same result using the corr2 function
     lens_cat.write(os.path.join('data','nk_lens.fits'))

@@ -16,10 +16,10 @@ functions.
 - 3-point correlations currently can only be auto-correlations.  This includes
   shear-shear-shear, count-count-count, and kappa-kappa-kappa.  The cross
   varieties are planned to be added in the near future.
-- Both 2- and 3-point functions can be done with the correct curved-sky 
+- Both 2- and 3-point functions can be done with the correct curved-sky
   calculation using RA, Dec coordinates, on a Euclidean tangent plane, or in
   3D using either (RA,Dec,r) or (x,y,z) positions.
-- The front end is in Python, which can be used as a Python module or as a 
+- The front end is in Python, which can be used as a Python module or as a
   standalone executable using configuration files. (The executable is corr2
   for 2-point and corr3 for 3-point.)
 - The actual computation of the correlation functions is done in C++ using ball
@@ -29,7 +29,7 @@ functions.
   for a bin size b=0.1 in log(r).  It scales as b^(-2).  This is the slowest
   of the various kinds of 2-point correlations, so others will be a bit faster,
   but with the same scaling with N and b.
-- The running time for 3-point functions are highly variable depending on the 
+- The running time for 3-point functions are highly variable depending on the
   range of triangle geometries you are calculating.  They are significantly
   slower than the 2-point functions, but many orders of magnitude faster than
   brute force algorithms.
@@ -42,8 +42,8 @@ functions.
   at mikejarvis17 at gmail.  Or post an issue (see below) if you have any
   problems with the code.
 
-The code is licensed under a FreeBSD license.  Essentially, you can use the 
-code in any way you want, but if you distribute it, you need to include the 
+The code is licensed under a FreeBSD license.  Essentially, you can use the
+code in any way you want, but if you distribute it, you need to include the
 file ``TreeCorr_LICENSE`` with the distribution.  See that file for details.
 
 
@@ -85,8 +85,6 @@ that is also relatively straightforward:
 
    - numpy
    - future
-   - fitsio
-   - pandas
    - pyyaml
    - LSSTDESC.Coord
    - cffi
@@ -149,12 +147,28 @@ that is also relatively straightforward:
             setenv LIBRARY_PATH "$LIBRARY_PATH":{prefix}/lib
             setenv LD_LIBRARY_PATH "$LD_LIBRARY_PATH":{prefix}/lib
 
+2. (optional) Install optional dependencies.
 
-2. Download the zip file or tarball for the latest release from:
+   Two additional modules are not required for basic TreeCorr operations, but are
+   potentially useful.
+
+   a) fitsio is required for reading FITS catalogs or writing to FITS output files.
+
+   b) pandas will signficantly speed up reading from ASCII catalogs.
+
+   These are both pip installable:
+
+        pip install fitsio
+        pip install pandas
+
+   But they are not installed with TreeCorr automatically.
+
+
+3. Download the zip file or tarball for the latest release from:
 
    https://github.com/rmjarvis/TreeCorr/releases/
 
-3. Unzip the archive with either of the following (depending on which kind
+4. Unzip the archive with either of the following (depending on which kind
    of archive you downloaded)::
 
         unzip TreeCorr-3.4.0.zip
@@ -164,7 +178,7 @@ that is also relatively straightforward:
 
         cd TreeCorr-3.4.0
 
-4. Install with the normal setup.py options.  Typically this would be the
+5. Install with the normal setup.py options.  Typically this would be the
    command::
 
         python setup.py install --prefix=~
@@ -181,7 +195,7 @@ that is also relatively straightforward:
         There is a bug with numpy that it sometimes doesn't install correctly
         when included as a setup.py dependency:
 
-            https://github.com/numpy/numpy/issues/1458  
+            https://github.com/numpy/numpy/issues/1458
 
         The bug was marked closed in 2012, but I've gotten it with numpy
         versions since then. Installation failed with a traceback that ended
@@ -200,7 +214,7 @@ that is also relatively straightforward:
 
 
 
-5. (optional) If you want to run the unit tests, you can do the following::
+6. (optional) If you want to run the unit tests, you can do the following::
 
         cd tests
         nosetests
@@ -218,7 +232,7 @@ This software is able to compute several varieties of two-point correlations:
 :GG:  Two-point shear-shear correlation function.
 
 :KK:  Nominally the two-point kappa-kappa correlation function, although any
-      scalar quantity can be used as "kappa".  In lensing, kappa is the 
+      scalar quantity can be used as "kappa".  In lensing, kappa is the
       convergence, but this could be used for temperature, size, etc.
 
 :NG:  Cross-correlation of counts with shear.  This is what is often called
@@ -227,7 +241,7 @@ This software is able to compute several varieties of two-point correlations:
 :NK:  Cross-correlation of counts with kappa.  Again, "kappa here can be any scalar
       quantity.
 
-:KG:  Cross-correlation of convergence with shear.  Like the NG calculation, but 
+:KG:  Cross-correlation of convergence with shear.  Like the NG calculation, but
       weighting the pairs by the kappa values the foreground points.
 
 
@@ -255,21 +269,21 @@ which is the name of a configuration file::
     corr2 config_file
     corr3 config_file
 
-A sample configuration file for corr2 is provided, called sample.params.  
+A sample configuration file for corr2 is provided, called sample.params.
 See the TreeCorr wiki page
 
 https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters
 
 for the complete documentation about the allowed parameters.
 
-You can also specify parameters on the command line after the name of 
+You can also specify parameters on the command line after the name of
 the configuration file. e.g.::
 
     corr2 config_file file_name=file1.dat gg_file_name=file1.out
     corr2 config_file file_name=file2.dat gg_file_name=file2.out
     ...
 
-This can be useful when running the program from a script for lots of input 
+This can be useful when running the program from a script for lots of input
 files.
 
 
@@ -295,9 +309,9 @@ following::
     >>> xip = gg.xip  # The xi_plus correlation function
     >>> xim = gg.xim  # The xi_minus correlation function
 
-The different correlation functions each have their own class.  You can 
+The different correlation functions each have their own class.  You can
 access the Python documentation by calling help on the appropriate class
-to get more details about the different kwarg options, attributes, and 
+to get more details about the different kwarg options, attributes, and
 methods for each::
 
     >>> help(NNCorrelation)
@@ -345,7 +359,7 @@ Requesting features
 
 If you would like to request a new feature, do the same thing.  Open a new
 issue and fill in the details of the feature you would like added to TreeCorr.
-Or if there is already an issue for your desired feature, please add to the 
+Or if there is already an issue for your desired feature, please add to the
 discussion, describing your use case.  The more people who say they want a
 feature, the more likely I am to get around to it sooner than later.
 

@@ -15,7 +15,6 @@ from __future__ import print_function
 import numpy as np
 import treecorr
 import os
-import fitsio
 import coord
 
 from test_helper import get_script_name, do_pickle
@@ -90,6 +89,12 @@ def test_direct():
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
+
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
 
     # Check that running via the corr3 script works correctly.
     config = treecorr.config.read_config('configs/kkk_direct.yaml')
@@ -278,6 +283,12 @@ def test_direct_spherical():
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-4, atol=1.e-6)
 
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
+
     # Check that running via the corr3 script works correctly.
     config = treecorr.config.read_config('configs/kkk_direct_spherical.yaml')
     cat.write(config['file_name'])
@@ -445,6 +456,12 @@ def test_kkk():
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','kkk.out'), names=True, skip_header=1)
     np.testing.assert_almost_equal(corr3_output['zeta'], kkk.zeta.flatten())
+
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
 
     # Check the fits write option
     out_file_name = os.path.join('output','kkk_out.fits')

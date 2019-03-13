@@ -15,7 +15,6 @@ from __future__ import print_function
 import numpy as np
 import treecorr
 import os
-import fitsio
 import coord
 
 from test_helper import get_script_name, do_pickle
@@ -128,6 +127,12 @@ def test_direct():
     np.testing.assert_allclose(ggg.gam1, true_gam1, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5, atol=1.e-8)
+
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
 
     # Check that running via the corr3 script works correctly.
     config = treecorr.config.read_config('configs/ggg_direct.yaml')
@@ -409,6 +414,12 @@ def test_direct_spherical():
     np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
 
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
+
     # Check that running via the corr3 script works correctly.
     config = treecorr.config.read_config('configs/ggg_direct_spherical.yaml')
     cat.write(config['file_name'])
@@ -655,6 +666,12 @@ def test_ggg():
     np.testing.assert_allclose(corr3_output['gam2i'], ggg.gam2i.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['gam3r'], ggg.gam3r.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['gam3i'], ggg.gam3i.flatten(), rtol=1.e-3)
+
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','ggg_out1.fits')

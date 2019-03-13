@@ -456,12 +456,9 @@ ext=Extension("treecorr._treecorr",
               depends=headers,
               undef_macros = undef_macros)
 
-dependencies = ['numpy', 'future', 'cffi', 'fitsio', 'pyyaml']
+dependencies = ['numpy', 'future', 'cffi', 'pyyaml']
 if py_version <= '2.6':
-    dependencies += ['argparse'] # These seem to have conflicting numpy requirements, so don't
-                                 # include pandas with argparse.
-else:
-    dependencies += ['pandas']
+    dependencies += ['argparse']
 
 with open('README.rst') as file:
     long_description = file.read()
@@ -505,22 +502,48 @@ dist = setup(name="TreeCorr",
 #print('Installing headers to ',cmd.install_dir)
 #cmd.run()
 
+# Check if pandas and fitsio are installed.
+try:
+    import pandas
+except ImportError:
+    print("""
+NOTE: While not a required dependency, if you plan to use TreeCorr to read in
+      ASCII catalogs, we highly recommend installing pandas.  It is much faster
+      than the numpy ASCII reader, which will be used when pandas is not
+      available.  To install pandas, simply type
+            pip install pandas
+""")
+
+try:
+    import fitsio
+except ImportError:
+    print("""
+NOTE: While not a required dependency, if you plan to use TreeCorr to read FITS
+      catalogs or write FITS output files, then fitsio will be required.
+      To install fitiso, simply type
+            pip install fitsio
+""")
+
 # Check that the path includes the directory where the scripts are installed.
 real_env_path = [os.path.realpath(d) for d in os.environ['PATH'].split(':')]
 if (hasattr(dist,'script_install_dir') and
     dist.script_install_dir not in os.environ['PATH'].split(':') and
     os.path.realpath(dist.script_install_dir) not in real_env_path):
 
-    print('\nWARNING: The TreeCorr executables were installed in a directory not in your PATH')
-    print('         If you want to use the executables, you should add the directory')
-    print('\n             ',dist.script_install_dir,'\n')
-    print('         to your path.  The current path is')
-    print('\n             ',os.environ['PATH'],'\n')
-    print('         Alternatively, you can specify a different prefix with --prefix=PREFIX,')
-    print('         in which case the scripts will be installed in PREFIX/bin.')
-    print('         If you are installing via pip use --install-option="--prefix=PREFIX"')
+    print("""
+WARNING: The TreeCorr executables were installed in a directory not in your PATH
+         If you want to use the executables, you should add the directory
+             %s
+         to your path.  The current path is
+            %s
+         Alternatively, you can specify a different prefix with --prefix=PREFIX,
+         in which case the scripts will be installed in PREFIX/bin.
+         If you are installing via pip use --install-option="--prefix=PREFIX"
+
+"""%(dist.script_install_dir, os.environ['PATH']))
 
 # If we get to here, then all was fine.  Go ahead and delete the files in the tmp directory.
 if os.path.exists(local_tmp):
     print('Deleting temporary files in ',local_tmp)
     shutil.rmtree(local_tmp)
+

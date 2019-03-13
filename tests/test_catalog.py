@@ -233,6 +233,12 @@ def test_ascii():
 
 
 def test_fits():
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
+
     get_from_wiki('Aardvark.fit')
     file_name = os.path.join('data','Aardvark.fit')
     config = treecorr.read_config('Aardvark.yaml')
@@ -667,6 +673,12 @@ def test_write():
     assert cat2r_asc.g1 is None
     assert cat2r_asc.g2 is None
     assert cat2r_asc.k is None
+
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
 
     # Test FITS output
     cat1.write(os.path.join('output','cat1.fits'), file_type='FITS')

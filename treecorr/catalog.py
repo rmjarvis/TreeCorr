@@ -838,7 +838,11 @@ class Catalog(object):
 
         :param is_rand:     Is this a random catalog? (default: False)
         """
-        import fitsio
+        try:
+            import fitsio
+        except ImportError:
+            self.logger.error("Unable to import fitsio.  Cannot read catalog %s"%file_name)
+            raise
 
         # Get the column names
         x_col = treecorr.config.get_from_list(self.config,'x_col',num,str,'0')

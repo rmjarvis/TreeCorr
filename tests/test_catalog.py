@@ -20,7 +20,7 @@ import warnings
 from numpy import pi
 import treecorr
 
-from test_helper import get_from_wiki, CaptureLog
+from test_helper import get_from_wiki, CaptureLog, assert_raises
 
 def test_ascii():
 
@@ -801,6 +801,130 @@ def test_field():
     print('ksimplefield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
 
+    # By default, only one is saved.  Check resize_cache option.
+    cat1.resize_cache(3)
+    assert len(cat1.nfields.cache) == 3
+    assert len(cat1.kfields.cache) == 3
+    assert len(cat1.gfields.cache) == 3
+    assert len(cat1.nsimplefields.cache) == 3
+    assert len(cat1.ksimplefields.cache) == 3
+    assert len(cat1.gsimplefields.cache) == 3
+
+    t0 = time.time()
+    nfield1 = cat1.getNField(1,1000)
+    nfield2 = cat1.getNField(0.01, 1)
+    nfield3 = cat1.getNField(1,300, logger=logger)
+    t1 = time.time()
+    nfield1b = cat1.getNField(1,1000)
+    nfield2b = cat1.getNField(0.01, 1)
+    nfield3b = cat1.getNField(1,300, logger=logger)
+    t2 = time.time()
+    print('after resize(3) nfield: ',t1-t0,t2-t1)
+    assert t2-t1 < t1-t0
+    assert nfield1b is nfield1
+    assert nfield2b is nfield2
+    assert nfield3b is nfield3
+    assert nfield1 in [v[3] for v in cat1.nfields.cache.values()]
+    assert nfield2 in [v[3] for v in cat1.nfields.cache.values()]
+    assert nfield3 in [v[3] for v in cat1.nfields.cache.values()]
+
+    # clear_cache will manually remove them.
+    cat1.clear_cache()
+    assert nfield1 not in [v[3] for v in cat1.nfields.cache.values()]
+    assert nfield2 not in [v[3] for v in cat1.nfields.cache.values()]
+    assert nfield3 not in [v[3] for v in cat1.nfields.cache.values()]
+
+    # Can also resize to 0
+    cat1.resize_cache(0)
+    t0 = time.time()
+    nfield1 = cat1.getNField(1,1000)
+    nfield2 = cat1.getNField(0.01, 1)
+    nfield3 = cat1.getNField(1,300, logger=logger)
+    t1 = time.time()
+    nfield1b = cat1.getNField(1,1000)
+    nfield2b = cat1.getNField(0.01, 1)
+    nfield3b = cat1.getNField(1,300, logger=logger)
+    t2 = time.time()
+    # This time, not much time difference.
+    print('after resize(0) nfield: ',t1-t0,t2-t1)
+    assert len(cat1.nfields.cache) == 0
+    assert len(cat1.kfields.cache) == 0
+    assert len(cat1.gfields.cache) == 0
+    assert len(cat1.nsimplefields.cache) == 0
+    assert len(cat1.ksimplefields.cache) == 0
+    assert len(cat1.gsimplefields.cache) == 0
+    assert nfield1b is not nfield1
+    assert nfield2b is not nfield2
+    assert nfield3b is not nfield3
+    assert nfield1 not in [v[3] for v in cat1.nfields.cache.values()]
+    assert nfield2 not in [v[3] for v in cat1.nfields.cache.values()]
+    assert nfield3 not in [v[3] for v in cat1.nfields.cache.values()]
+    assert nfield1b not in [v[3] for v in cat1.nfields.cache.values()]
+    assert nfield2b not in [v[3] for v in cat1.nfields.cache.values()]
+    assert nfield3b not in [v[3] for v in cat1.nfields.cache.values()]
+
+
+def test_lru():
+    f = lambda x: x+1
+    size = 10
+    # Test correct size cache gets created
+    cache = treecorr.util.LRU_Cache(f, maxsize=size)
+    assert len(cache.cache) == size
+    # Insert f(0) = 1 into cache and check that we can get it back
+    assert cache(0) == f(0)
+    assert cache(0) == f(0)
+
+    # Manually manipulate cache so we can check for hit
+    cache.cache[(0,)][3] = 2
+    assert cache(0) == 2
+
+    # Insert (and check) 1 thru size into cache.  This should bump out the (0,).
+    for i in range(1, size+1):
+        assert cache(i) == f(i)
+    assert (0,) not in cache.cache
+
+    # Test non-destructive cache expansion
+    newsize = 20
+    cache.resize(newsize)
+    for i in range(1, size+1):
+        assert (i,) in cache.cache
+        assert cache(i) == f(i)
+    assert len(cache.cache) == 20
+
+    # Add new items until the (1,) gets bumped
+    for i in range(size+1, newsize+2):
+        assert cache(i) == f(i)
+    assert (1,) not in cache.cache
+
+    # "Resize" to same size does nothing.
+    cache.resize(newsize)
+    assert len(cache.cache) == 20
+    assert (1,) not in cache.cache
+    for i in range(2, newsize+2):
+        assert (i,) in cache.cache
+
+    # Test mostly non-destructive cache contraction.
+    # Already bumped (0,) and (1,), so (2,) should be the first to get bumped
+    for i in range(newsize-1, size, -1):
+        assert (newsize - (i - 1),) in cache.cache
+        cache.resize(i)
+        assert (newsize - (i - 1),) not in cache.cache
+
+    # Check if is works with size=0
+    cache.resize(0)
+    print('cache.cache = ',cache.cache)
+    print('cache.root = ',cache.root)
+    assert cache.root[0] == cache.root
+    assert cache.root[1] == cache.root
+    for i in range(10):
+        assert cache(i) == f(i)
+    print('=> cache.cache = ',cache.cache)
+    print('=> cache.root = ',cache.root)
+    assert cache.root[0] == cache.root
+    assert cache.root[1] == cache.root
+
+    assert_raises(ValueError, cache.resize, -20)
+
 
 if __name__ == '__main__':
     test_ascii()
@@ -811,3 +935,4 @@ if __name__ == '__main__':
     test_list()
     test_write()
     test_field()
+    test_lru()

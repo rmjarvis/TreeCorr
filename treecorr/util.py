@@ -167,8 +167,7 @@ def gen_read(file_name, file_type=None, logger=None):
     return data, params
 
 
-# This is not currently being used.  But leave it here in case useful again.
-class LRU_Cache:  # pragma: no cover
+class LRU_Cache:
     """ Simplified Least Recently Used Cache.
     Mostly stolen from http://code.activestate.com/recipes/577970-simplified-lru-cache/,
     but added a method for dynamic resizing.  The least recently used cached item is
@@ -196,41 +195,39 @@ class LRU_Cache:  # pragma: no cover
     """
     def __init__(self, user_function, maxsize=1024):
         # Link layout:     [PREV, NEXT, KEY, RESULT]
-        self.root = root = [None, None, None, None]
+        self.root = [None, None, None, None]
         self.user_function = user_function
-        self.cache = cache = {}
+        self.cache = {}
 
-        last = root
+        last = self.root
         for i in range(maxsize):
             key = object()
-            cache[key] = last[1] = last = [last, root, key, None]
-        root[0] = last
+            self.cache[key] = last[1] = last = [last, self.root, key, None]
+        self.root[0] = last
 
-    def __call__(self, *key):
-        cache = self.cache
-        root = self.root
-        link = cache.get(key)
+    def __call__(self, *key, **kwargs):
+        link = self.cache.get(key)
         if link is not None:
             # Cache hit: move link to last position
             link_prev, link_next, _, result = link
             link_prev[1] = link_next
             link_next[0] = link_prev
-            last = root[0]
-            last[1] = root[0] = link
+            last = self.root[0]
+            last[1] = self.root[0] = link
             link[0] = last
-            link[1] = root
+            link[1] = self.root
             return result
         # Cache miss: evaluate and insert new key/value at root, then increment root
         #             so that just-evaluated value is in last position.
-        result = self.user_function(*key)
-        root[2] = key
-        root[3] = result
-        oldroot = root
-        root = self.root = root[1]
-        root[2], oldkey = None, root[2]
-        root[3], oldvalue = None, root[3]
-        del cache[oldkey]
-        cache[key] = oldroot
+        result = self.user_function(*key, **kwargs)
+        self.root[2] = key
+        self.root[3] = result
+        oldroot = self.root
+        self.root = self.root[1]
+        self.root[2], oldkey = None, self.root[2]
+        self.root[3], oldvalue = None, self.root[3]
+        self.cache[key] = oldroot
+        del self.cache[oldkey]
         return result
 
     def resize(self, maxsize):
@@ -245,24 +242,35 @@ class LRU_Cache:  # pragma: no cover
         if maxsize == oldsize:
             return
         else:
-            root = self.root
-            cache = self.cache
-            if maxsize < oldsize:
+            if maxsize < 0:
+                raise ValueError("Invalid maxsize")
+            elif maxsize < oldsize:
                 for i in range(oldsize - maxsize):
                     # Delete root.next
-                    current_next_link = root[1]
-                    new_next_link = root[1] = root[1][1]
-                    new_next_link[0] = root
-                    del cache[current_next_link[2]]
-            elif maxsize > oldsize:
+                    current_next_link = self.root[1]
+                    new_next_link = self.root[1] = self.root[1][1]
+                    new_next_link[0] = self.root
+                    del self.cache[current_next_link[2]]
+            else: # maxsize > oldsize:
                 for i in range(maxsize - oldsize):
                     # Insert between root and root.next
                     key = object()
-                    cache[key] = link = [root, root[1], key, None]
-                    root[1][0] = link
-                    root[1] = link
-            else:
-                raise ValueError("Invalid maxsize: {0:}".format(maxsize))
+                    self.cache[key] = link = [self.root, self.root[1], key, None]
+                    self.root[1][0] = link
+                    self.root[1] = link
+
+    def clear(self):
+        """ Clear all items from the cache.
+        """
+        maxsize = len(self.cache)
+        self.cache.clear()
+        last = self.root
+        for i in range(maxsize):
+            last[3] = None  # Sever pointer to any existing result.
+            key = object()
+            self.cache[key] = last[1] = last = [last, self.root, key, None]
+        self.root[0] = last
+
 
 def double_ptr(x):
     """

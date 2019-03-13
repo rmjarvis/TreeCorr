@@ -383,13 +383,22 @@ class Catalog(object):
         self.g2 = None
         self.k = None
 
-        # Some dicts to store fields that get made.  Indexed by the args used to make the fields.
-        self.nfields = {}
-        self.kfields = {}
-        self.gfields = {}
-        self.nsimplefields = {}
-        self.ksimplefields = {}
-        self.gsimplefields = {}
+        # Make simple functions that call NField, etc. with self ast the first argument.
+
+        def get_nfield(*args, **kwargs): return treecorr.NField(self, *args, **kwargs)
+        def get_kfield(*args, **kwargs): return treecorr.KField(self, *args, **kwargs)
+        def get_gfield(*args, **kwargs): return treecorr.GField(self, *args, **kwargs)
+        def get_nsimplefield(*args, **kwargs): return treecorr.NSimpleField(self, *args, **kwargs)
+        def get_ksimplefield(*args, **kwargs): return treecorr.KSimpleField(self, *args, **kwargs)
+        def get_gsimplefield(*args, **kwargs): return treecorr.GSimpleField(self, *args, **kwargs)
+
+        # Now wrap these in LRU_Caches with (initially) just 1 element being cached.
+        self.nfields = treecorr.util.LRU_Cache(get_nfield, 1)
+        self.kfields = treecorr.util.LRU_Cache(get_kfield, 1)
+        self.gfields = treecorr.util.LRU_Cache(get_gfield, 1)
+        self.nsimplefields = treecorr.util.LRU_Cache(get_nsimplefield, 1)
+        self.ksimplefields = treecorr.util.LRU_Cache(get_ksimplefield, 1)
+        self.gsimplefields = treecorr.util.LRU_Cache(get_gsimplefield, 1)
 
         # First style -- read from a file
         if file_name is not None:
@@ -979,11 +988,103 @@ class Catalog(object):
                     self.logger.debug('read k = %s',str(self.k))
 
 
+    def resize_cache(self, maxsize):
+        """Resize all field caches.
+
+        The various kinds of fields built from this catalog are cached.  This may or may not
+        be an optimization for your use case.  Normally only a single field is built for a
+        given catalog, and it is usually efficient to cache it, so it can be reused multiple
+        times.  E.g. for the usual Landy-Szalay NN calculation:
+
+            >>> dd.process(data_cat)
+            >>> rr.process(rand_cat)
+            >>> dr.process(data_cat, rand_cat)
+
+        the third line will be able to reuse the same fields built for the data and randoms
+        in the first two lines.
+
+        However, if you are making many different fields from the same catalog -- for instance
+        because you keep changing the min_sep and max_sep for different calls -- then saving
+        them all will tend to blow up the memory.
+
+        Therefore, the default number of fields (of each type) to cache is 1.  This lets the
+        first use case be efficient, but not use too much memory for the latter case.
+
+        If you prefer a different behavior, this method lets you change the number of fields to
+        cache.  The cache is an LRU (Least Recently Used) cache, which means only the n most
+        recently used fields are saved.  I.e. when it is full, the least recently used field
+        is removed from the cache.
+
+        If you call this with maxsize=0, then caching will be turned off.  A new field will be
+        built each time you call a process function with this catalog.
+
+        If you call this with maxsize>1, then mutiple fields will be saved according to whatever
+        number you set.  This will use more memory, but may be an optimization for you depending
+        on what your are doing.
+
+        Finally, if you want to set different sizes for the different kinds of fields, then
+        you can call resize separately for the different caches:
+
+            >>> cat.nfields.resize(maxsize)
+            >>> cat.kfields.resize(maxsize)
+            >>> cat.gfields.resize(maxsize)
+            >>> cat.nsimplefields.resize(maxsize)
+            >>> cat.ksimplefields.resize(maxsize)
+            >>> cat.gsimplefields.resize(maxsize)
+
+        :param maxsize: The new maximum number of fields of each type to cache.
+        """
+        self.nfields.resize(maxsize)
+        self.kfields.resize(maxsize)
+        self.gfields.resize(maxsize)
+        self.nsimplefields.resize(maxsize)
+        self.ksimplefields.resize(maxsize)
+        self.gsimplefields.resize(maxsize)
+
+
+    def clear_cache(self):
+        """Clear all field caches.
+
+        The various kinds of fields built from this catalog are cached.  This may or may not
+        be an optimization for your use case.  Normally only a single field is built for a
+        given catalog, and it is usually efficient to cache it, so it can be reused multiple
+        times.  E.g. for the usual Landy-Szalay NN calculation:
+
+            >>> dd.process(data_cat)
+            >>> rr.process(rand_cat)
+            >>> dr.process(data_cat, rand_cat)
+
+        the third line will be able to reuse the same fields built for the data and randoms
+        in the first two lines.
+
+        However, this also means that the memory used for the field will persist as long as
+        the catalog object does.  If you need to recover this memory and don't want to delete
+        the catalog yet, this method lets you clear the cache.
+
+        There are separate caches for each kind of field.  If you want to clear just one or
+        some of them, you can call clear separately for the different caches:
+
+            >>> cat.nfields.clear()
+            >>> cat.kfields.clear()
+            >>> cat.gfields.clear()
+            >>> cat.nsimplefields.clear()
+            >>> cat.ksimplefields.clear()
+            >>> cat.gsimplefields.clear()
+        """
+        self.nfields.clear()
+        self.kfields.clear()
+        self.gfields.clear()
+        self.nsimplefields.clear()
+        self.ksimplefields.clear()
+        self.gsimplefields.clear()
+
+
     def getNField(self, min_size, max_size, split_method=None, max_top=10, coords=None,
                   logger=None):
         """Return an NField based on the positions in this catalog.
 
         The NField object is cached, so this is efficient to call multiple times.
+        cf. resize_cache() and clear_cache()
 
         :param min_size:    The minimum radius cell required (usually min_sep).
         :param max_size:    The maximum radius cell required (usually max_sep).
@@ -999,15 +1100,10 @@ class Catalog(object):
         """
         if split_method is None:
             split_method = treecorr.config.get(self.config,'split_method',str,'mean')
-        args = (min_size, max_size, split_method, max_top, coords)
-        if args in self.nfields:
-            nfield = self.nfields[args]
-        else:
-            if logger is None:
-                logger = self.logger
-            nfield = treecorr.NField(self,*args,logger=logger)
-            self.nfields[args] = nfield
-        return nfield
+        if logger is None:
+            logger = self.logger
+        return self.nfields(min_size, max_size, split_method, max_top, coords,
+                            logger=logger)
 
 
     def getKField(self, min_size, max_size, split_method=None, max_top=10, coords=None,
@@ -1015,6 +1111,7 @@ class Catalog(object):
         """Return a KField based on the k values in this catalog.
 
         The KField object is cached, so this is efficient to call multiple times.
+        cf. resize_cache() and clear_cache()
 
         :param min_size:    The minimum radius cell required (usually min_sep).
         :param max_size:    The maximum radius cell required (usually max_sep).
@@ -1030,17 +1127,12 @@ class Catalog(object):
         """
         if split_method is None:
             split_method = treecorr.config.get(self.config,'split_method',str,'mean')
-        args = (min_size, max_size, split_method, max_top, coords)
-        if args in self.kfields:
-            kfield = self.kfields[args]
-        else:
-            if logger is None:
-                logger = self.logger
-            if self.k is None:
-                raise AttributeError("k is not defined.")
-            kfield = treecorr.KField(self,*args,logger=logger)
-            self.kfields[args] = kfield
-        return kfield
+        if self.k is None:
+            raise AttributeError("k is not defined.")
+        if logger is None:
+            logger = self.logger
+        return self.kfields(min_size, max_size, split_method, max_top, coords,
+                            logger=logger)
 
 
     def getGField(self, min_size, max_size, split_method=None, max_top=10, coords=None,
@@ -1048,6 +1140,7 @@ class Catalog(object):
         """Return a GField based on the g1,g2 values in this catalog.
 
         The GField object is cached, so this is efficient to call multiple times.
+        cf. resize_cache() and clear_cache()
 
         :param min_size:    The minimum radius cell required (usually min_sep).
         :param max_size:    The maximum radius cell required (usually max_sep).
@@ -1063,77 +1156,61 @@ class Catalog(object):
         """
         if split_method is None:
             split_method = treecorr.config.get(self.config,'split_method',str,'mean')
-        args = (min_size, max_size, split_method, max_top, coords)
-        if args in self.gfields:
-            gfield = self.gfields[args]
-        else:
-            if logger is None:
-                logger = self.logger
-            if self.g1 is None or self.g2 is None:
-                raise AttributeError("g1,g2 are not defined.")
-            gfield = treecorr.GField(self,*args,logger=logger)
-            self.gfields[args] = gfield
-        return gfield
+        if self.g1 is None or self.g2 is None:
+            raise AttributeError("g1,g2 are not defined.")
+        if logger is None:
+            logger = self.logger
+        return self.gfields(min_size, max_size, split_method, max_top, coords,
+                            logger=logger)
 
 
     def getNSimpleField(self, logger=None):
         """Return an NSimpleField based on the positions in this catalog.
 
         The NSimpleField object is cached, so this is efficient to call multiple times.
+        cf. resize_cache() and clear_cache()
 
         :param logger:      A logger file if desired (default: self.logger)
 
         :returns:           A :class:`~treecorr.NSimpleField` object
         """
-        args = ()
-        if args in self.nsimplefields:
-            nsimplefield = self.nsimplefields[args]
-        else:
-            if logger is None:
-                logger = self.logger
-            nsimplefield = treecorr.NSimpleField(self,*args,logger=logger)
-            self.nsimplefields[args] = nsimplefield
-        return nsimplefield
+        if logger is None:
+            logger = self.logger
+        return self.nsimplefields(logger=logger)
 
 
     def getKSimpleField(self, logger=None):
         """Return a KSimpleField based on the k values in this catalog.
 
         The KSimpleField object is cached, so this is efficient to call multiple times.
+        cf. resize_cache() and clear_cache()
 
         :param logger:      A logger file if desired (default: self.logger)
 
         :returns:           A :class:`~treecorr.KSimpleField` object
         """
-        args = ()
-        if args in self.ksimplefields:
-            ksimplefield = self.ksimplefields[args]
-        else:
-            if logger is None:
-                logger = self.logger
-            ksimplefield = treecorr.KSimpleField(self,*args,logger=logger)
-            self.ksimplefields[args] = ksimplefield
-        return ksimplefield
+        if self.k is None:
+            raise AttributeError("k is not defined.")
+        if logger is None:
+            logger = self.logger
+        return self.ksimplefields(logger=logger)
 
 
     def getGSimpleField(self, logger=None):
         """Return a GSimpleField based on the g1,g2 values in this catalog.
 
         The GSimpleField object is cached, so this is efficient to call multiple times.
+        cf. resize_cache() and clear_cache()
 
         :param logger:      A logger file if desired (default: self.logger)
 
         :returns:           A :class:`~treecorr.GSimpleField` object
         """
-        args = ()
-        if args in self.gsimplefields:
-            gsimplefield = self.gsimplefields[args]
-        else:
-            if logger is None:
-                logger = self.logger
-            gsimplefield = treecorr.GSimpleField(self,*args,logger=logger)
-            self.gsimplefields[args] = gsimplefield
-        return gsimplefield
+        if self.g1 is None or self.g2 is None:
+            raise AttributeError("g1,g2 are not defined.")
+        if logger is None:
+            logger = self.logger
+        return self.gsimplefields(logger=logger)
 
     def write(self, file_name, file_type=None, cat_precision=None):
         """Write the catalog to a file.

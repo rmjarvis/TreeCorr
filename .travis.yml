@@ -7,7 +7,7 @@ language: python
 python:
     - 2.7
     - 3.6
-    - 3.7
+    #- 3.7  Not available yet.  Try again later.
 
 before_install:
     - sudo apt-get install -y libffi-dev

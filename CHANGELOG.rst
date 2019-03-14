@@ -6,15 +6,20 @@ with the change:
 
 https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+3.4%22+is%3Aclosed
 
-Dependency changes:
--------------------
+Dependency changes
+------------------
 
 - Added dependency on LSSTDESC.Coord, and removed the TreeCorr implementation
   of the same functionality.
+- Made fitsio and pandas dependencies optional, which means that setup.py won't
+  automatically install them for you.  If you plan to use TreeCorr with FITS
+  files, you will need to install fitsio yourself.  Pandas is never required,
+  but if you plan to use TreeCorr with ASCII input catalogs, installing pandas
+  will provide a performance improvement. (#57)
 
 
-API changes:
-------------
+API changes
+-----------
 
 - Added some attributes of the various Correlation objects to the output files
   to improve serialization -- the ability to write to a file and then read back
@@ -23,22 +28,40 @@ API changes:
   top with the relevant information.  Therefore, if you are reading from ASCII
   output files, you might need to slightly change your code to skip the first
   line.  (e.g. with np.genfromtxt(..., skip_header=1).)
+- Updated the caching of the fields built for a given catalog to only cache
+  one (the most recently built) field, rather than all fields built.  If you
+  had been relying on multiple fields being cached, this could lead to a
+  performance regression for you.  However, you can update the number of
+  fields cached with catalog.resize_cache(n). (#53)
 
 
-New features:
--------------
+Performance Improvements
+------------------------
+
+- Improved efficiency of runs that use bin_slop < 1. (Especially << 1). (#16)
+- Reduced the memory required for the constructed trees slightly. (By 8 bytes
+  per galaxy.)
+- Updated the caching of the fields to allow for more flexibility about how
+  many fields are cached for a given catalog.  The default is to cache 1 field,
+  which is normally appropriate, but you can use catalog.resize_cache(n) to
+  either increase this number or to tell it not to cache at all (n=0). (#53)
+- Added a catalog.clear_cache() function, which lets you manually clear the
+  cache to release the memory of the cached field(s). (#53)
+- Improved both the speed and accuracy of the Rlens metric calculation.
+
+
+New features
+------------
 
 - Added a new concept, called bin_type for all the Correlation objects.  There
   are currently three possible options for bin_type:
   - 'Log' is equivalent to the previous behavior of binning in log space.
   - 'Linear' bins linearly in r.  (#5)
   - 'TwoD' bins linearly in x and y.  (#70)
-- Improved efficiency of runs that use bin_slop < 1. (Especially << 1). (#16)
 - Added a distinction between bin_slop=0 and bin_slop>0, but very close
   (say 1.e-16).  The former will traverse the tree all the way to the
   leaves, never grouping objects into cells.  The latter will group objects
   when all pairs fall into the same bin.
-- Improved both the speed and accuracy of the Rlens metric calculation.
 - Added the ability to use min_rpar and max_rpar with the Arc metric. (#61)
 - Added a different definition of Rperp, called FisherRperp, which follows
   the definition in Fisher et al, 1994.  This definition is both more standard
@@ -50,8 +73,8 @@ New features:
   clang compiler. (#75)
 
 
-Bug fixes:
-----------
+Bug fixes
+---------
 
 - Added tot attribute to the NN and NNN output files, which fixes an error
   where NNCorrelation and NNNCorrelation did not round trip correctly through

@@ -602,21 +602,19 @@ class Catalog(object):
         # Copy w to wpos if necessary (Do this after checkForNaN's, since this may set some
         # entries to have w=0.)
         if self.wpos is None:
-            self.nontrivial_wpos = False
-            self.wpos = self.w
             self.logger.debug('Using w for wpos')
         else:
-            self.nontrivial_wpos = True
-            # Also check that any wpos == 0 points also have w == 0
+            # Check that any wpos == 0 points also have w == 0
             if np.any(self.wpos == 0.):
-                if self.nontrivial_w:
+                if self.w is None:
+                    self.logger.warning('Some wpos values are zero, setting w=0 for these points.')
+                    self.w = np.ones((self.ntot), dtype=float)
+                    self.w[self.wpos == 0.] = 0.
+                else:
                     if np.any(self.w[self.wpos == 0.] != 0.):
                         self.logger.error('Some wpos values = 0 but have w!=0. This is invalid.\n'
                                           'Setting w=0 for these points.')
                         self.w[self.wpos == 0.] = 0.
-                else:
-                    self.logger.warning('Some wpos values are zero, setting w=0 for these points.')
-                    self.w[self.wpos == 0.] = 0.
 
         if self.ra is not None:
             # Should have already been checked above, so just use assert here.
@@ -1237,7 +1235,7 @@ class Catalog(object):
             :y:         if self.y is not None
             :z:         if self.z is not None
             :w:         if self.w is not None and self.nontrivial_w
-            :wpos:      if self.wpos is not None and self.nontrivial_wpos
+            :wpos:      if self.wpos is not None
             :g1:        if self.g1 is not None
             :g2:        if self.g2 is not None
             :k:         if self.k is not None
@@ -1274,7 +1272,7 @@ class Catalog(object):
         if self.nontrivial_w:
             col_names.append('w')
             columns.append(self.w)
-        if self.nontrivial_wpos:
+        if self.wpos is not None:
             col_names.append('wpos')
             columns.append(self.wpos)
         if self.g1 is not None:

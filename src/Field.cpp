@@ -33,8 +33,8 @@ bool XDEBUG = false;
 // to build the actual Cells.
 template <int D, int C>
 void SetupTopLevelCells(
-    std::vector<CellData<D,C>*>& celldata, double maxsizesq,
-    SplitMethod sm, size_t start, size_t end, int maxtop,
+    std::vector<std::pair<CellData<D,C>*,double> >& celldata,
+    double maxsizesq, SplitMethod sm, size_t start, size_t end, int maxtop,
     std::vector<CellData<D,C>*>& top_data,
     std::vector<double>& top_sizesq,
     std::vector<size_t>& top_start, std::vector<size_t>& top_end)
@@ -50,8 +50,8 @@ void SetupTopLevelCells(
     double sizesq;
     if (end-start == 1) {
         xdbg<<"Only 1 CellData entry: size = 0\n";
-        ave = celldata[start];
-        celldata[start] = 0; // Make sure the calling function doesn't delete this!
+        ave = celldata[start].first;
+        celldata[start].first = 0; // Make sure the calling function doesn't delete this!
         sizesq = 0.;
     } else {
         ave = new CellData<D,C>(celldata,start,end);
@@ -95,22 +95,22 @@ template <>
 struct CellDataHelper<NData,Flat>
 {
     static CellData<NData,Flat>* build(double x, double y, double,
-                                       double , double , double, double w, double wpos)
-    { return new CellData<NData,Flat>(Position<Flat>(x,y), w, wpos); }
+                                       double , double , double, double w)
+    { return new CellData<NData,Flat>(Position<Flat>(x,y), w); }
 };
 template <>
 struct CellDataHelper<KData,Flat>
 {
     static CellData<KData,Flat>* build(double x, double y, double,
-                                       double , double , double k, double w, double wpos)
-    { return new CellData<KData,Flat>(Position<Flat>(x,y), k, w, wpos); }
+                                       double , double , double k, double w)
+    { return new CellData<KData,Flat>(Position<Flat>(x,y), k, w); }
 };
 template <>
 struct CellDataHelper<GData,Flat>
 {
     static CellData<GData,Flat>* build(double x, double y,  double,
-                                       double g1, double g2, double, double w, double wpos)
-    { return new CellData<GData,Flat>(Position<Flat>(x,y), std::complex<double>(g1,g2), w, wpos); }
+                                       double g1, double g2, double, double w)
+    { return new CellData<GData,Flat>(Position<Flat>(x,y), std::complex<double>(g1,g2), w); }
 };
 
 
@@ -118,25 +118,22 @@ template <>
 struct CellDataHelper<NData,ThreeD>
 {
     static CellData<NData,ThreeD>* build(double x, double y, double z,
-                                         double , double , double, double w, double wpos)
-    { return new CellData<NData,ThreeD>(Position<ThreeD>(x,y,z), w, wpos); }
+                                         double , double , double, double w)
+    { return new CellData<NData,ThreeD>(Position<ThreeD>(x,y,z), w); }
 };
 template <>
 struct CellDataHelper<KData,ThreeD>
 {
     static CellData<KData,ThreeD>* build(double x, double y, double z,
-                                         double , double , double k, double w, double wpos)
-    { return new CellData<KData,ThreeD>(Position<ThreeD>(x,y,z), k, w, wpos); }
+                                         double , double , double k, double w)
+    { return new CellData<KData,ThreeD>(Position<ThreeD>(x,y,z), k, w); }
 };
 template <>
 struct CellDataHelper<GData,ThreeD>
 {
     static CellData<GData,ThreeD>* build(double x, double y, double z,
-                                         double g1, double g2, double, double w, double wpos)
-    {
-        return new CellData<GData,ThreeD>(Position<ThreeD>(x,y,z), std::complex<double>(g1,g2),
-                                          w, wpos);
-    }
+                                         double g1, double g2, double, double w)
+    { return new CellData<GData,ThreeD>(Position<ThreeD>(x,y,z), std::complex<double>(g1,g2), w); }
 };
 
 
@@ -145,26 +142,26 @@ template <>
 struct CellDataHelper<NData,Sphere>
 {
     static CellData<NData,Sphere>* build(double x, double y, double z,
-                                         double , double , double, double w, double wpos)
-    { return new CellData<NData,Sphere>(Position<Sphere>(x,y,z), w, wpos); }
+                                         double , double , double, double w)
+    { return new CellData<NData,Sphere>(Position<Sphere>(x,y,z), w); }
 };
 template <>
 struct CellDataHelper<KData,Sphere>
 {
     static CellData<KData,Sphere>* build(double x, double y, double z,
-                                         double , double , double k, double w, double wpos)
-    { return new CellData<KData,Sphere>(Position<Sphere>(x,y,z), k, w, wpos); }
+                                         double , double , double k, double w)
+    { return new CellData<KData,Sphere>(Position<Sphere>(x,y,z), k, w); }
 };
 template <>
 struct CellDataHelper<GData,Sphere>
 {
     static CellData<GData,Sphere>* build(double x, double y, double z,
-                                         double g1, double g2, double, double w, double wpos)
-    {
-        return new CellData<GData,Sphere>(Position<Sphere>(x,y,z), std::complex<double>(g1,g2),
-                                          w, wpos);
-    }
+                                         double g1, double g2, double, double w)
+    { return new CellData<GData,Sphere>(Position<Sphere>(x,y,z), std::complex<double>(g1,g2), w); }
 };
+
+inline double get_wpos(double* wpos, double* w, int i)
+{ return wpos ? wpos[i] : w[i]; }
 
 template <int D, int C>
 Field<D,C>::Field(
@@ -178,21 +175,27 @@ Field<D,C>::Field(
     xdbg<<"D,C = "<<D<<','<<C<<std::endl;
     xdbg<<"First few values are:\n";
     for(int i=0;i<5;++i) {
-        xdbg<<x[i]<<"  "<<y[i]<<"  "<<z[i]<<"  "<<g1[i]<<"  "<<g1[i]<<"  "<<k[i]<<"  "<<w[i]<<"  "<<wpos[i]<<std::endl;
+        xdbg<<x[i]<<"  "<<y[i]<<"  "<<z[i]<<"  "<<g1[i]<<"  "<<g1[i]<<"  "<<k[i]<<"  "<<w[i]<<"  "<<get_wpos(wpos,w,i)<<std::endl;
     }
-    std::vector<CellData<D,C>*> celldata;
+    std::vector<std::pair<CellData<D,C>*,double> > celldata;
     celldata.reserve(nobj);
     if (z) {
-        for(int i=0;i<nobj;++i)
-            if (wpos[i] != 0.)
-                celldata.push_back(CellDataHelper<D,C>::build(x[i],y[i],z[i],g1[i],g2[i],k[i],
-                                                              w[i],wpos[i]));
+        for(int i=0;i<nobj;++i) {
+            double wp = get_wpos(wpos,w,1);
+            if (wp != 0.)
+                celldata.push_back(std::make_pair(
+                        CellDataHelper<D,C>::build(x[i],y[i],z[i],g1[i],g2[i],k[i],w[i]),
+                        wp));
+        }
     } else {
         Assert(C == Flat);
-        for(int i=0;i<nobj;++i)
-            if (wpos[i] != 0.)
-                celldata.push_back(CellDataHelper<D,C>::build(x[i],y[i],0.,g1[i],g2[i],k[i],
-                                                              w[i],wpos[i]));
+        for(int i=0;i<nobj;++i) {
+            double wp = get_wpos(wpos,w,1);
+            if (wp != 0.)
+                celldata.push_back(std::make_pair(
+                        CellDataHelper<D,C>::build(x[i],y[i],0.,g1[i],g2[i],k[i],w[i]),
+                        wp));
+        }
     }
     dbg<<"Built celldata with "<<celldata.size()<<" entries\n";
 
@@ -234,7 +237,7 @@ Field<D,C>::Field(
     }
 
     // delete any CellData elements that didn't get kept in the _cells object.
-    for (size_t i=0;i<celldata.size();++i) if (celldata[i]) delete celldata[i];
+    for (size_t i=0;i<celldata.size();++i) if (celldata[i].first) delete celldata[i].first;
     //set_verbose(1);
 }
 
@@ -251,19 +254,25 @@ SimpleField<D,C>::SimpleField(
 {
     // This bit is the same as the start of the Field constructor.
     dbg<<"Starting to Build SimpleField with "<<nobj<<" objects\n";
-    std::vector<CellData<D,C>*> celldata;
+    std::vector<std::pair<CellData<D,C>*,double> > celldata;
     celldata.reserve(nobj);
     if (z) {
-        for(long i=0;i<nobj;++i)
-            if (wpos[i] != 0.)
-                celldata.push_back(CellDataHelper<D,C>::build(x[i],y[i],z[i],g1[i],g2[i],k[i],
-                                                              w[i],wpos[i]));
+        for(long i=0;i<nobj;++i) {
+            double wp = get_wpos(wpos,w,1);
+            if (wp != 0.)
+                celldata.push_back(std::make_pair(
+                        CellDataHelper<D,C>::build(x[i],y[i],z[i],g1[i],g2[i],k[i],w[i]),
+                        wp));
+        }
     } else {
         Assert(C == Flat);
-        for(long i=0;i<nobj;++i)
-            if (wpos[i] != 0.)
-                celldata.push_back(CellDataHelper<D,C>::build(x[i],y[i],0.,g1[i],g2[i],k[i],
-                                                              w[i],wpos[i]));
+        for(long i=0;i<nobj;++i) {
+            double wp = get_wpos(wpos,w,1);
+            if (wp != 0.)
+                celldata.push_back(std::make_pair(
+                        CellDataHelper<D,C>::build(x[i],y[i],0.,g1[i],g2[i],k[i],w[i]),
+                        wp));
+        }
     }
     dbg<<"Built celldata with "<<celldata.size()<<" entries\n";
 
@@ -274,7 +283,7 @@ SimpleField<D,C>::SimpleField(
 #pragma omp parallel for
 #endif
     for(ptrdiff_t i=0;i<n;++i)
-        _cells[i] = new Cell<D,C>(celldata[i]);
+        _cells[i] = new Cell<D,C>(celldata[i].first);
 }
 
 template <int D, int C>

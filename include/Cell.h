@@ -50,30 +50,29 @@ class CellData<NData,C>
 public:
     CellData() {}
 
-    CellData(const Position<C>& pos, double w, double wpos) :
-        _pos(pos), _w(w), _wpos(wpos), _n(w != 0.) {}
+    CellData(const Position<C>& pos, double w) :
+        _pos(pos), _w(w), _n(w != 0.) {}
 
     template <int C2>
-    CellData(const Position<C2>& pos, double w, double wpos) :
-        _pos(pos), _w(w), _wpos(wpos), _n(w != 0.) {}
+    CellData(const Position<C2>& pos, double w) :
+        _pos(pos), _w(w), _n(w != 0.) {}
 
-    CellData(const std::vector<CellData<NData,C>*>& vdata,
+    CellData(const std::vector<std::pair<CellData<NData,C>*,double> >& vdata,
              size_t start, size_t end);
 
     // This doesn't do anything, but is provided for consistency with the other
     // kinds of CellData.
-    void finishAverages(const std::vector<CellData<NData,C>*>&, size_t , size_t ) {}
+    void finishAverages(const std::vector<std::pair<CellData<NData,C>*,double> >&,
+                        size_t , size_t ) {}
 
     const Position<C>& getPos() const { return _pos; }
     double getW() const { return _w; }
-    double getWPos() const { return _wpos; }
     long getN() const { return _n; }
 
 private:
 
     Position<C> _pos;
     float _w;
-    float _wpos;
     long _n;
 };
 
@@ -87,25 +86,26 @@ class CellData<KData,C>
 public:
     CellData() {}
 
-    CellData(const Position<C>& pos, double k, double w, double wpos) :
-        _pos(pos), _wk(w*k), _w(w), _wpos(wpos), _n(w != 0.)
+    CellData(const Position<C>& pos, double k, double w) :
+        _pos(pos), _wk(w*k), _w(w), _n(w != 0.)
     {}
 
     template <int C2>
-    CellData(const Position<C2>& pos, double k, double w, double wpos) :
-        _pos(pos), _wk(w*k), _w(w), _wpos(wpos), _n(w != 0.)
+    CellData(const Position<C2>& pos, double k, double w) :
+        _pos(pos), _wk(w*k), _w(w), _n(w != 0.)
     {}
 
-    CellData(const std::vector<CellData<KData,C>*>& vdata, size_t start, size_t end);
+    CellData(const std::vector<std::pair<CellData<KData,C>*,double> >& vdata,
+             size_t start, size_t end);
 
     // The above constructor just computes the mean pos, since sometimes that's all we
     // need.  So this function will finish the rest of the construction when desired.
-    void finishAverages(const std::vector<CellData<KData,C>*>& vdata, size_t start, size_t end);
+    void finishAverages(const std::vector<std::pair<CellData<KData,C>*,double> >&,
+                        size_t start, size_t end);
 
     const Position<C>& getPos() const { return _pos; }
     double getWK() const { return _wk; }
     double getW() const { return _w; }
-    double getWPos() const { return _wpos; }
     long getN() const { return _n; }
 
 private:
@@ -113,7 +113,6 @@ private:
     Position<C> _pos;
     float _wk;
     float _w;
-    float _wpos;
     long _n;
 };
 
@@ -127,25 +126,26 @@ class CellData<GData,C>
 public:
     CellData() {}
 
-    CellData(const Position<C>& pos, const std::complex<double>& g, double w, double wpos) :
-        _pos(pos), _wg(w*g), _w(w), _wpos(wpos), _n(w != 0.)
+    CellData(const Position<C>& pos, const std::complex<double>& g, double w) :
+        _pos(pos), _wg(w*g), _w(w), _n(w != 0.)
     {}
 
     template <int C2>
-    CellData(const Position<C2>& pos, const std::complex<double>& g, double w, double wpos) :
-        _pos(pos), _wg(w*g), _w(w), _wpos(wpos), _n(w != 0.)
+    CellData(const Position<C2>& pos, const std::complex<double>& g, double w) :
+        _pos(pos), _wg(w*g), _w(w), _n(w != 0.)
     {}
 
-    CellData(const std::vector<CellData<GData,C>*>& vdata, size_t start, size_t end);
+    CellData(const std::vector<std::pair<CellData<GData,C>*,double> >& vdata,
+             size_t start, size_t end);
 
     // The above constructor just computes the mean pos, since sometimes that's all we
     // need.  So this function will finish the rest of the construction when desired.
-    void finishAverages(const std::vector<CellData<GData,C>*>& vdata, size_t start, size_t end);
+    void finishAverages(const std::vector<std::pair<CellData<GData,C>*,double> >&,
+                        size_t start, size_t end);
 
     const Position<C>& getPos() const { return _pos; }
     std::complex<double> getWG() const { return _wg; }
     double getW() const { return _w; }
-    double getWPos() const { return _wpos; }
     long getN() const { return _n; }
 
 private:
@@ -153,7 +153,6 @@ private:
     Position<C> _pos;
     std::complex<float> _wg;
     float _w;
-    float _wpos;
     long _n;
 };
 
@@ -177,10 +176,11 @@ public:
 
     Cell(CellData<D,C>* data) : _size(0.), _sizesq(0.), _data(data), _left(0), _right(0) {}
 
-    Cell(std::vector<CellData<D,C>*>& vdata,
+    Cell(std::vector<std::pair<CellData<D,C>*,double> >& vdata,
          double minsizesq, SplitMethod sm, size_t start, size_t end);
 
-    Cell(CellData<D,C>* ave, double sizesq, std::vector<CellData<D,C>*>& vdata,
+    Cell(CellData<D,C>* ave, double sizesq,
+         std::vector<std::pair<CellData<D,C>*,double> >& vdata,
          double minsizesq, SplitMethod sm, size_t start, size_t end);
 
     ~Cell()
@@ -197,7 +197,6 @@ public:
     const CellData<D,C>& getData() const { return *_data; }
     const Position<C>& getPos() const { return _data->getPos(); }
     double getW() const { return _data->getW(); }
-    double getWPos() const { return _data->getWPos(); }
     long getN() const { return _data->getN(); }
 
     double getSize() const { return _size; }
@@ -226,12 +225,12 @@ protected:
 
 template <int D, int C>
 double CalculateSizeSq(
-    const Position<C>& cen, const std::vector<CellData<D,C>*>& vdata,
+    const Position<C>& cen, const std::vector<std::pair<CellData<D,C>*,double> >& vdata,
     size_t start, size_t end);
 
 template <int D, int C>
 size_t SplitData(
-    std::vector<CellData<D,C>*>& vdata, SplitMethod sm,
+    std::vector<std::pair<CellData<D,C>*,double> >& vdata, SplitMethod sm,
     size_t start, size_t end, const Position<C>& meanpos);
 
 template <int D, int C>

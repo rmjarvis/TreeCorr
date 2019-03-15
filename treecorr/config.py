@@ -128,7 +128,7 @@ def read_config(file_name, file_type='auto'):
 def read_yaml_file(file_name):
     import yaml
     with open(file_name) as fin:
-        config = yaml.load(fin.read())
+        config = yaml.safe_load(fin.read())
     return config
 
 def read_json_file(file_name):

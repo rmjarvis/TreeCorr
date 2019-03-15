@@ -37,6 +37,28 @@ const double IOTA = 1.e-10;
 enum DataType { NData=1 , KData=2 , GData=3 };
 
 
+// This is usually what we store in the leaf cells. It has size 4, which is always <= the
+// size of a pointer on modern machines, so it never adds any space to the memory needed.
+// (Since it is in a union with the _right pointer.)
+struct LeafInfo
+{
+    long index;
+};
+
+// This is used when building.  We don't need to store the wpos values, but we need them
+// while we're building up the tree.
+struct WPosLeafInfo : public LeafInfo
+{
+    double wpos;
+};
+
+// When we decide we're at a leaf, but we have >1 index to include, we use this instead.
+struct ListLeafInfo
+{
+    std::vector<long>* indices;
+};
+
+
 // This class encapsulates the differences in the different kinds of data being
 // stored in a Cell.  It is used both for the input data from the file and also
 // for the mean values for a given Cell.  Some extra useful information is sometimes
@@ -57,12 +79,12 @@ public:
     CellData(const Position<C2>& pos, double w) :
         _pos(pos), _w(w), _n(w != 0.) {}
 
-    CellData(const std::vector<std::pair<CellData<NData,C>*,double> >& vdata,
+    CellData(const std::vector<std::pair<CellData<NData,C>*,WPosLeafInfo> >& vdata,
              size_t start, size_t end);
 
     // This doesn't do anything, but is provided for consistency with the other
     // kinds of CellData.
-    void finishAverages(const std::vector<std::pair<CellData<NData,C>*,double> >&,
+    void finishAverages(const std::vector<std::pair<CellData<NData,C>*,WPosLeafInfo> >&,
                         size_t , size_t ) {}
 
     const Position<C>& getPos() const { return _pos; }
@@ -95,12 +117,12 @@ public:
         _pos(pos), _wk(w*k), _w(w), _n(w != 0.)
     {}
 
-    CellData(const std::vector<std::pair<CellData<KData,C>*,double> >& vdata,
+    CellData(const std::vector<std::pair<CellData<KData,C>*,WPosLeafInfo> >& vdata,
              size_t start, size_t end);
 
     // The above constructor just computes the mean pos, since sometimes that's all we
     // need.  So this function will finish the rest of the construction when desired.
-    void finishAverages(const std::vector<std::pair<CellData<KData,C>*,double> >&,
+    void finishAverages(const std::vector<std::pair<CellData<KData,C>*,WPosLeafInfo> >&,
                         size_t start, size_t end);
 
     const Position<C>& getPos() const { return _pos; }
@@ -135,12 +157,12 @@ public:
         _pos(pos), _wg(w*g), _w(w), _n(w != 0.)
     {}
 
-    CellData(const std::vector<std::pair<CellData<GData,C>*,double> >& vdata,
+    CellData(const std::vector<std::pair<CellData<GData,C>*,WPosLeafInfo> >& vdata,
              size_t start, size_t end);
 
     // The above constructor just computes the mean pos, since sometimes that's all we
     // need.  So this function will finish the rest of the construction when desired.
-    void finishAverages(const std::vector<std::pair<CellData<GData,C>*,double> >&,
+    void finishAverages(const std::vector<std::pair<CellData<GData,C>*,WPosLeafInfo> >&,
                         size_t start, size_t end);
 
     const Position<C>& getPos() const { return _pos; }
@@ -174,24 +196,30 @@ public:
     // The structure also keeps track of some averages and sums about
     // the galaxies which are used in the correlation function calculations.
 
-    Cell(CellData<D,C>* data) : _size(0.), _sizesq(0.), _data(data), _left(0), _right(0) {}
+    Cell(CellData<D,C>* data, const LeafInfo& info) :
+        _size(0.), _sizesq(0.), _data(data), _left(0), _info(info) {}
 
-    Cell(std::vector<std::pair<CellData<D,C>*,double> >& vdata,
+    Cell(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
          double minsizesq, SplitMethod sm, size_t start, size_t end);
 
     Cell(CellData<D,C>* ave, double sizesq,
-         std::vector<std::pair<CellData<D,C>*,double> >& vdata,
+         std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
          double minsizesq, SplitMethod sm, size_t start, size_t end);
+
+    void finishInit(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
+                    double minsizesq, SplitMethod sm, size_t start, size_t end);
 
     ~Cell()
     {
         Assert(_data);
-        delete (_data);
         if (_left) {
             Assert(_right);
             delete _left;
             delete _right;
-        }
+        } else if (_data->getN() > 1) {
+            delete _listinfo.indices;
+        } // if !left and N==1, then _info, which doesn't need anything to be deleted.
+        delete (_data);
     }
 
     const CellData<D,C>& getData() const { return *_data; }
@@ -205,7 +233,8 @@ public:
     double getAllSize() const { return _size; }
 
     const Cell<D,C>* getLeft() const { return _left; }
-    const Cell<D,C>* getRight() const { return _right; }
+    const Cell<D,C>* getRight() const { return _left ? _right : 0; }
+    const LeafInfo* getInfo() const { return _left ? 0 : &_info; }
 
     long countLeaves() const;
     std::vector<const Cell<D,C>*> getAllLeaves() const;
@@ -220,17 +249,21 @@ protected:
 
     CellData<D,C>* _data;
     Cell<D,C>* _left;
-    Cell<D,C>* _right;
+    union {
+        Cell<D,C>* _right;      // Use this when _left != 0
+        LeafInfo _info;         // Use this when _left == 0 and N == 1
+        ListLeafInfo _listinfo; // Use this when _left == 0 and N > 1
+    };
 };
 
 template <int D, int C>
 double CalculateSizeSq(
-    const Position<C>& cen, const std::vector<std::pair<CellData<D,C>*,double> >& vdata,
+    const Position<C>& cen, const std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end);
 
 template <int D, int C>
 size_t SplitData(
-    std::vector<std::pair<CellData<D,C>*,double> >& vdata, SplitMethod sm,
+    std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, SplitMethod sm,
     size_t start, size_t end, const Position<C>& meanpos);
 
 template <int D, int C>

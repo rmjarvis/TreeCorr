@@ -33,7 +33,7 @@ bool XDEBUG = false;
 // to build the actual Cells.
 template <int D, int C>
 void SetupTopLevelCells(
-    std::vector<std::pair<CellData<D,C>*,double> >& celldata,
+    std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& celldata,
     double maxsizesq, SplitMethod sm, size_t start, size_t end, int maxtop,
     std::vector<CellData<D,C>*>& top_data,
     std::vector<double>& top_sizesq,
@@ -160,8 +160,13 @@ struct CellDataHelper<GData,Sphere>
     { return new CellData<GData,Sphere>(Position<Sphere>(x,y,z), std::complex<double>(g1,g2), w); }
 };
 
-inline double get_wpos(double* wpos, double* w, int i)
-{ return wpos ? wpos[i] : w[i]; }
+inline WPosLeafInfo get_wpos(double* wpos, double* w, int i)
+{
+    WPosLeafInfo wp;
+    wp.wpos = wpos ? wpos[i] : w[i];
+    wp.index = i;
+    return wp;
+}
 
 template <int D, int C>
 Field<D,C>::Field(
@@ -175,14 +180,14 @@ Field<D,C>::Field(
     xdbg<<"D,C = "<<D<<','<<C<<std::endl;
     xdbg<<"First few values are:\n";
     for(int i=0;i<5;++i) {
-        xdbg<<x[i]<<"  "<<y[i]<<"  "<<z[i]<<"  "<<g1[i]<<"  "<<g1[i]<<"  "<<k[i]<<"  "<<w[i]<<"  "<<get_wpos(wpos,w,i)<<std::endl;
+        xdbg<<x[i]<<"  "<<y[i]<<"  "<<z[i]<<"  "<<g1[i]<<"  "<<g1[i]<<"  "<<k[i]<<"  "<<w[i]<<"  "<<get_wpos(wpos,w,i).wpos<<std::endl;
     }
-    std::vector<std::pair<CellData<D,C>*,double> > celldata;
+    std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> > celldata;
     celldata.reserve(nobj);
     if (z) {
         for(int i=0;i<nobj;++i) {
-            double wp = get_wpos(wpos,w,1);
-            if (wp != 0.)
+            WPosLeafInfo wp = get_wpos(wpos,w,i);
+            if (wp.wpos != 0.)
                 celldata.push_back(std::make_pair(
                         CellDataHelper<D,C>::build(x[i],y[i],z[i],g1[i],g2[i],k[i],w[i]),
                         wp));
@@ -190,8 +195,8 @@ Field<D,C>::Field(
     } else {
         Assert(C == Flat);
         for(int i=0;i<nobj;++i) {
-            double wp = get_wpos(wpos,w,1);
-            if (wp != 0.)
+            WPosLeafInfo wp = get_wpos(wpos,w,i);
+            if (wp.wpos != 0.)
                 celldata.push_back(std::make_pair(
                         CellDataHelper<D,C>::build(x[i],y[i],0.,g1[i],g2[i],k[i],w[i]),
                         wp));
@@ -254,12 +259,12 @@ SimpleField<D,C>::SimpleField(
 {
     // This bit is the same as the start of the Field constructor.
     dbg<<"Starting to Build SimpleField with "<<nobj<<" objects\n";
-    std::vector<std::pair<CellData<D,C>*,double> > celldata;
+    std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> > celldata;
     celldata.reserve(nobj);
     if (z) {
         for(long i=0;i<nobj;++i) {
-            double wp = get_wpos(wpos,w,1);
-            if (wp != 0.)
+            WPosLeafInfo wp = get_wpos(wpos,w,i);
+            if (wp.wpos != 0.)
                 celldata.push_back(std::make_pair(
                         CellDataHelper<D,C>::build(x[i],y[i],z[i],g1[i],g2[i],k[i],w[i]),
                         wp));
@@ -267,8 +272,8 @@ SimpleField<D,C>::SimpleField(
     } else {
         Assert(C == Flat);
         for(long i=0;i<nobj;++i) {
-            double wp = get_wpos(wpos,w,1);
-            if (wp != 0.)
+            WPosLeafInfo wp = get_wpos(wpos,w,i);
+            if (wp.wpos != 0.)
                 celldata.push_back(std::make_pair(
                         CellDataHelper<D,C>::build(x[i],y[i],0.,g1[i],g2[i],k[i],w[i]),
                         wp));
@@ -283,7 +288,7 @@ SimpleField<D,C>::SimpleField(
 #pragma omp parallel for
 #endif
     for(ptrdiff_t i=0;i<n;++i)
-        _cells[i] = new Cell<D,C>(celldata[i].first);
+        _cells[i] = new Cell<D,C>(celldata[i].first, celldata[i].second);
 }
 
 template <int D, int C>

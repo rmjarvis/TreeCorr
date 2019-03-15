@@ -34,16 +34,16 @@ class NField(object):
         >>> nfield = cat.getNField(min_size, max_size, b)
 
     :param cat:         The catalog from which to make the field.
-    :param min_size:    The minimum radius cell required (usually min_sep).
-    :param max_size:    The maximum radius cell required (usually max_sep).
+    :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)
+    :param max_size:    The maximum radius cell required (usually max_sep). (default: None)
     :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                         (default: 'mean')
     :param max_top:     The maximum number of top layers to use when setting up the field.
                         (default: 10)
-    :param coords       The kind of coordinate system to use. (default cat.coords)
+    :param coords       The kind of coordinate system to use. (default: cat.coords)
     :param logger:      A logger file if desired (default: None)
     """
-    def __init__(self, cat, min_size, max_size, split_method='mean', max_top=10, coords=None,
+    def __init__(self, cat, min_size=0, max_size=None, split_method='mean', max_top=10, coords=None,
                  logger=None):
         from treecorr.util import double_ptr as dp
         if logger:
@@ -52,8 +52,8 @@ class NField(object):
             else:
                 logger.info('Building NField')
 
-        self.min_size = min_size
-        self.max_size = max_size
+        self.min_size = float(min_size)
+        self.max_size = float(max_size) if max_size is not None else 1.e300
         self.split_method = split_method
         self._sm = _parse_split_method(split_method)
         self.max_top = int(max_top)
@@ -90,16 +90,16 @@ class KField(object):
         >>> kfield = cat.getKField(min_size, max_size, b)
 
     :param cat:         The catalog from which to make the field.
-    :param min_size:    The minimum radius cell required (usually min_sep).
-    :param max_size:    The maximum radius cell required (usually max_sep).
+    :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)
+    :param max_size:    The maximum radius cell required (usually max_sep). (default: None)
     :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                         (default: 'mean')
-    :param max_top:     The maximum number of top layers to use when setting up the
-                        field. (default: 10)
-    :param coords       The kind of coordinate system to use. (default cat.coords)
+    :param max_top:     The maximum number of top layers to use when setting up the field.
+                        (default: 10)
+    :param coords       The kind of coordinate system to use. (default: cat.coords)
     :param logger:      A logger file if desired (default: None)
     """
-    def __init__(self, cat, min_size, max_size, split_method='mean', max_top=10, coords=None,
+    def __init__(self, cat, min_size=0, max_size=None, split_method='mean', max_top=10, coords=None,
                  logger=None):
         from treecorr.util import double_ptr as dp
         if logger:
@@ -108,8 +108,8 @@ class KField(object):
             else:
                 logger.info('Building KField')
 
-        self.min_size = min_size
-        self.max_size = max_size
+        self.min_size = float(min_size)
+        self.max_size = float(max_size) if max_size is not None else 1.e300
         self.split_method = split_method
         self._sm = _parse_split_method(split_method)
         self.max_top = int(max_top)
@@ -149,16 +149,16 @@ class GField(object):
         >>> gfield = cat.getGField(min_size, max_size, b)
 
     :param cat:         The catalog from which to make the field.
-    :param min_size:    The minimum radius cell required (usually min_sep).
-    :param max_size:    The maximum radius cell required (usually max_sep).
+    :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)
+    :param max_size:    The maximum radius cell required (usually max_sep). (default: None)
     :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                         (default: 'mean')
-    :param max_top:     The maximum number of top layers to use when setting up the
-                        field. (default: 10)
-    :param coords       The kind of coordinate system to use. (default cat.coords)
+    :param max_top:     The maximum number of top layers to use when setting up the field.
+                        (default: 10)
+    :param coords       The kind of coordinate system to use. (default: cat.coords)
     :param logger:      A logger file if desired (default: None)
     """
-    def __init__(self, cat, min_size, max_size, split_method='mean', max_top=10, coords=None,
+    def __init__(self, cat, min_size=0, max_size=None, split_method='mean', max_top=10, coords=None,
                  logger=None):
         from treecorr.util import double_ptr as dp
         if logger:
@@ -167,8 +167,8 @@ class GField(object):
             else:
                 logger.info('Building GField')
 
-        self.min_size = min_size
-        self.max_size = max_size
+        self.min_size = float(min_size)
+        self.max_size = float(max_size) if max_size is not None else 1.e300
         self.split_method = split_method
         self._sm = _parse_split_method(split_method)
         self.max_top = int(max_top)

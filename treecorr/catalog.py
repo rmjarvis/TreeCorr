@@ -1081,21 +1081,21 @@ class Catalog(object):
         self.gsimplefields.clear()
 
 
-    def getNField(self, min_size, max_size, split_method=None, max_top=10, coords=None,
+    def getNField(self, min_size=0, max_size=None, split_method=None, max_top=10, coords=None,
                   logger=None):
         """Return an NField based on the positions in this catalog.
 
         The NField object is cached, so this is efficient to call multiple times.
         cf. resize_cache() and clear_cache()
 
-        :param min_size:    The minimum radius cell required (usually min_sep).
-        :param max_size:    The maximum radius cell required (usually max_sep).
+        :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)
+        :param max_size:    The maximum radius cell required (usually max_sep). (default: None)
         :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                             (default: 'mean'; this value can also be given in the Catalog
                             constructor in the config dict.)
         :param max_top:     The maximum number of top layers to use when setting up the
                             field. (default: 10)
-        :param coords       The kind of coordinate system to use. (default self.coords)
+        :param coords       The kind of coordinate system to use. (default: self.coords)
         :param logger:      A logger file if desired (default: self.logger)
 
         :returns:           A :class:`~treecorr.NField` object
@@ -1108,15 +1108,15 @@ class Catalog(object):
                             logger=logger)
 
 
-    def getKField(self, min_size, max_size, split_method=None, max_top=10, coords=None,
+    def getKField(self, min_size=0, max_size=None, split_method=None, max_top=10, coords=None,
                   logger=None):
         """Return a KField based on the k values in this catalog.
 
         The KField object is cached, so this is efficient to call multiple times.
         cf. resize_cache() and clear_cache()
 
-        :param min_size:    The minimum radius cell required (usually min_sep).
-        :param max_size:    The maximum radius cell required (usually max_sep).
+        :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)
+        :param max_size:    The maximum radius cell required (usually max_sep). (default: None)
         :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                             (default: 'mean'; this value can also be given in the Catalog
                             constructor in the config dict.)
@@ -1137,15 +1137,15 @@ class Catalog(object):
                             logger=logger)
 
 
-    def getGField(self, min_size, max_size, split_method=None, max_top=10, coords=None,
+    def getGField(self, min_size=0, max_size=None, split_method=None, max_top=10, coords=None,
                   logger=None):
         """Return a GField based on the g1,g2 values in this catalog.
 
         The GField object is cached, so this is efficient to call multiple times.
         cf. resize_cache() and clear_cache()
 
-        :param min_size:    The minimum radius cell required (usually min_sep).
-        :param max_size:    The maximum radius cell required (usually max_sep).
+        :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)
+        :param max_size:    The maximum radius cell required (usually max_sep). (default: None)
         :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                             (default: 'mean'; this value can also be given in the Catalog
                             constructor in the config dict.)

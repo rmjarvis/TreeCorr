@@ -383,7 +383,7 @@ class Catalog(object):
         self.g2 = None
         self.k = None
 
-        # Make simple functions that call NField, etc. with self ast the first argument.
+        # Make simple functions that call NField, etc. with self as the first argument.
 
         def get_nfield(*args, **kwargs): return treecorr.NField(self, *args, **kwargs)
         def get_kfield(*args, **kwargs): return treecorr.KField(self, *args, **kwargs)

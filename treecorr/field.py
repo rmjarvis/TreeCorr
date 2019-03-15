@@ -55,34 +55,17 @@ class NField(object):
         self.min_size = min_size
         self.max_size = max_size
         self.split_method = split_method
-        sm = _parse_split_method(split_method)
-        if coords is None:
-            coords = cat.coords
-        self.coords = coords
+        self._sm = _parse_split_method(split_method)
+        self.max_top = int(max_top)
+        self.coords = coords if coords is not None else cat.coords
+        self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
 
-        if coords == 'flat':
-            self.flat = True
-            self.data = treecorr._lib.BuildNFieldFlat(dp(cat.x),dp(cat.y),
-                                                      dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                      min_size,max_size,sm,max_top)
-            if logger:
-                logger.debug('Finished building NField 2D')
-        else:
-            self.flat = False
-            if coords == 'spherical':
-                self.data = treecorr._lib.BuildNFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                            dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                            min_size,max_size,sm,max_top)
-                self.spher = True
-                if logger:
-                    logger.debug('Finished building NField Sphere')
-            else:
-                self.data = treecorr._lib.BuildNField3D(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                        dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                        min_size,max_size,sm,max_top)
-                self.spher = False
-                if logger:
-                    logger.debug('Finished building NField 3D')
+        self.data = treecorr._lib.BuildNField(dp(cat.x), dp(cat.y), dp(cat.z),
+                                              dp(cat.w), dp(cat.wpos), cat.ntot,
+                                              self.min_size, self.max_size, self._sm,
+                                              self.max_top, self._coords)
+        if logger:
+            logger.debug('Finished building NField (%s)',self.coords)
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -90,22 +73,12 @@ class NField(object):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            if self.flat:
-                treecorr._lib.DestroyNFieldFlat(self.data)
-            elif self.spher:
-                treecorr._lib.DestroyNFieldSphere(self.data)
-            else:
-                treecorr._lib.DestroyNField3D(self.data)
+            treecorr._lib.DestroyNField(self.data, self._coords)
 
     @property
     def nTopLevelNodes(self):
         """The number of top-level nodes."""
-        if self.flat:
-            return treecorr._lib.NFieldFlatGetNTopLevel(self.data)
-        elif self.spher:
-            return treecorr._lib.NFieldSphereGetNTopLevel(self.data)
-        else:
-            return treecorr._lib.NField3DGetNTopLevel(self.data)
+        return treecorr._lib.NFieldGetNTopLevel(self.data, self._coords)
 
 
 class KField(object):
@@ -138,37 +111,18 @@ class KField(object):
         self.min_size = min_size
         self.max_size = max_size
         self.split_method = split_method
-        sm = _parse_split_method(split_method)
-        if coords is None:
-            coords = cat.coords
-        self.coords = coords
+        self._sm = _parse_split_method(split_method)
+        self.max_top = int(max_top)
+        self.coords = coords if coords is not None else cat.coords
+        self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
 
-        if coords == 'flat':
-            self.flat = True
-            self.data = treecorr._lib.BuildKFieldFlat(dp(cat.x),dp(cat.y),
-                                                      dp(cat.k),
-                                                      dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                      min_size,max_size,sm,max_top)
-            if logger:
-                logger.debug('Finished building KField Flat')
-        else:
-            self.flat = False
-            if coords == 'spherical':
-                self.data = treecorr._lib.BuildKFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                            dp(cat.k),
-                                                            dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                            min_size,max_size,sm,max_top)
-                self.spher = True
-                if logger:
-                    logger.debug('Finished building KField Sphere')
-            else:
-                self.data = treecorr._lib.BuildKField3D(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                        dp(cat.k),
-                                                        dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                        min_size,max_size,sm,max_top)
-                self.spher = False
-                if logger:
-                    logger.debug('Finished building KField 3D')
+        self.data = treecorr._lib.BuildKField(dp(cat.x), dp(cat.y), dp(cat.z),
+                                              dp(cat.k),
+                                              dp(cat.w), dp(cat.wpos), cat.ntot,
+                                              self.min_size, self.max_size, self._sm,
+                                              self.max_top, self._coords)
+        if logger:
+            logger.debug('Finished building KField (%s)',self.coords)
 
 
     def __del__(self):
@@ -177,22 +131,12 @@ class KField(object):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            if self.flat:
-                treecorr._lib.DestroyKFieldFlat(self.data)
-            elif self.spher:
-                treecorr._lib.DestroyKFieldSphere(self.data)
-            else:
-                treecorr._lib.DestroyKField3D(self.data)
+            treecorr._lib.DestroyKField(self.data, self._coords)
 
     @property
     def nTopLevelNodes(self):
         """The number of top-level nodes."""
-        if self.flat:
-            return treecorr._lib.NFieldFlatGetNTopLevel(self.data)
-        elif self.spher:
-            return treecorr._lib.NFieldSphereGetNTopLevel(self.data)
-        else:
-            return treecorr._lib.NField3DGetNTopLevel(self.data)
+        return treecorr._lib.NFieldGetNTopLevel(self.data, self._coords)
 
 
 
@@ -226,37 +170,18 @@ class GField(object):
         self.min_size = min_size
         self.max_size = max_size
         self.split_method = split_method
-        sm = _parse_split_method(split_method)
-        if coords is None:
-            coords = cat.coords
-        self.coords = coords
+        self._sm = _parse_split_method(split_method)
+        self.max_top = int(max_top)
+        self.coords = coords if coords is not None else cat.coords
+        self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
 
-        if coords == 'flat':
-            self.flat = True
-            self.data = treecorr._lib.BuildGFieldFlat(dp(cat.x),dp(cat.y),
-                                                      dp(cat.g1),dp(cat.g2),
-                                                      dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                      min_size,max_size,sm,max_top)
-            if logger:
-                logger.debug('Finished building GField Flat')
-        else:
-            self.flat = False
-            if coords == 'spherical':
-                self.data = treecorr._lib.BuildGFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                            dp(cat.g1),dp(cat.g2),
-                                                            dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                            min_size,max_size,sm,max_top)
-                self.spher = True
-                if logger:
-                    logger.debug('Finished building GField Sphere')
-            else:
-                self.data = treecorr._lib.BuildGField3D(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                        dp(cat.g1),dp(cat.g2),
-                                                        dp(cat.w),dp(cat.wpos),cat.ntot,
-                                                        min_size,max_size,sm,max_top)
-                self.spher = False
-                if logger:
-                    logger.debug('Finished building GField 3D')
+        self.data = treecorr._lib.BuildGField(dp(cat.x), dp(cat.y), dp(cat.z),
+                                              dp(cat.g1), dp(cat.g2),
+                                              dp(cat.w), dp(cat.wpos), cat.ntot,
+                                              self.min_size, self.max_size, self._sm,
+                                              self.max_top, self._coords)
+        if logger:
+            logger.debug('Finished building GField (%s)',self.coords)
 
 
     def __del__(self):
@@ -265,22 +190,12 @@ class GField(object):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            if self.flat:
-                treecorr._lib.DestroyGFieldFlat(self.data)
-            elif self.spher:
-                treecorr._lib.DestroyGFieldSphere(self.data)
-            else:
-                treecorr._lib.DestroyGField3D(self.data)
+            treecorr._lib.DestroyGField(self.data, self._coords)
 
     @property
     def nTopLevelNodes(self):
         """The number of top-level nodes."""
-        if self.flat:
-            return treecorr._lib.GFieldFlatGetNTopLevel(self.data)
-        elif self.spher:
-            return treecorr._lib.GFieldSphereGetNTopLevel(self.data)
-        else:
-            return treecorr._lib.GField3DGetNTopLevel(self.data)
+        return treecorr._lib.GFieldGetNTopLevel(self.data, self._coords)
 
 
 class NSimpleField(object):
@@ -301,27 +216,13 @@ class NSimpleField(object):
             else:
                 logger.info('Building NSimpleField')
         self.coords = cat.coords
+        self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
 
-        if self.coords == 'flat':
-            self.flat = True
-            self.data = treecorr._lib.BuildNSimpleFieldFlat(dp(cat.x),dp(cat.y),
-                                                            dp(cat.w),dp(cat.wpos),cat.ntot)
-            if logger:
-                logger.debug('Finished building NSimpleField Flat')
-        else:
-            self.flat = False
-            if self.coords == 'spherical':
-                self.data = treecorr._lib.BuildNSimpleFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                                  dp(cat.w),dp(cat.wpos),cat.ntot)
-                self.spher = True
-                if logger:
-                    logger.debug('Finished building NSimpleField Sphere')
-            else:
-                self.data = treecorr._lib.BuildNSimpleField3D(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                              dp(cat.w),dp(cat.wpos),cat.ntot)
-                self.spher = False
-                if logger:
-                    logger.debug('Finished building NSimpleField 3D')
+        self.data = treecorr._lib.BuildNSimpleField(dp(cat.x), dp(cat.y), dp(cat.z),
+                                                    dp(cat.w), dp(cat.wpos), cat.ntot,
+                                                    self._coords)
+        if logger:
+            logger.debug('Finished building NSimpleField (%s)',self.coords)
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -329,12 +230,7 @@ class NSimpleField(object):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            if self.flat:
-                treecorr._lib.DestroyNSimpleFieldFlat(self.data)
-            elif self.spher:
-                treecorr._lib.DestroyNSimpleFieldSphere(self.data)
-            else:
-                treecorr._lib.DestroyNSimpleField3D(self.data)
+            treecorr._lib.DestroyNSimpleField(self.data, self._coords)
 
 
 class KSimpleField(object):
@@ -355,30 +251,14 @@ class KSimpleField(object):
             else:
                 logger.info('Building KSimpleField')
         self.coords = cat.coords
+        self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
 
-        if self.coords == 'flat':
-            self.flat = True
-            self.data = treecorr._lib.BuildKSimpleFieldFlat(dp(cat.x),dp(cat.y),
-                                                            dp(cat.k),
-                                                            dp(cat.w),dp(cat.wpos),cat.ntot)
-            if logger:
-                logger.debug('Finished building KSimpleField Flat')
-        else:
-            self.flat = False
-            if self.coords == 'spherical':
-                self.data = treecorr._lib.BuildKSimpleFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                                  dp(cat.k),
-                                                                  dp(cat.w),dp(cat.wpos),cat.ntot)
-                self.spher = True
-                if logger:
-                    logger.debug('Finished building KSimpleField Sphere')
-            else:
-                self.data = treecorr._lib.BuildKSimpleField3D(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                              dp(cat.k),
-                                                              dp(cat.w),dp(cat.wpos),cat.ntot)
-                self.spher = False
-                if logger:
-                    logger.debug('Finished building KSimpleField 3D')
+        self.data = treecorr._lib.BuildKSimpleField(dp(cat.x), dp(cat.y), dp(cat.z),
+                                                    dp(cat.k),
+                                                    dp(cat.w), dp(cat.wpos), cat.ntot,
+                                                    self._coords)
+        if logger:
+            logger.debug('Finished building KSimpleField (%s)',self.coords)
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -386,12 +266,7 @@ class KSimpleField(object):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            if self.flat:
-                treecorr._lib.DestroyKSimpleFieldFlat(self.data)
-            elif self.spher:
-                treecorr._lib.DestroyKSimpleFieldSphere(self.data)
-            else:
-                treecorr._lib.DestroyKSimpleField3D(self.data)
+            treecorr._lib.DestroyKSimpleField(self.data, self._coords)
 
 
 class GSimpleField(object):
@@ -412,30 +287,14 @@ class GSimpleField(object):
             else:
                 logger.info('Building GSimpleField')
         self.coords = cat.coords
+        self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
 
-        if self.coords == 'flat':
-            self.flat = True
-            self.data = treecorr._lib.BuildGSimpleFieldFlat(dp(cat.x),dp(cat.y),
-                                                            dp(cat.g1),dp(cat.g2),
-                                                            dp(cat.w),dp(cat.wpos),cat.ntot)
-            if logger:
-                logger.debug('Finished building GSimpleField Flat')
-        else:
-            self.flat = False
-            if self.coords == 'spherical':
-                self.data = treecorr._lib.BuildGSimpleFieldSphere(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                                  dp(cat.g1),dp(cat.g2),
-                                                                  dp(cat.w),dp(cat.wpos),cat.ntot)
-                self.spher = True
-                if logger:
-                    logger.debug('Finished building GSimpleField Sphere')
-            else:
-                self.data = treecorr._lib.BuildGSimpleField3D(dp(cat.x),dp(cat.y),dp(cat.z),
-                                                              dp(cat.g1),dp(cat.g2),
-                                                              dp(cat.w),dp(cat.wpos),cat.ntot)
-                self.spher = False
-                if logger:
-                    logger.debug('Finished building GSimpleField 3D')
+        self.data = treecorr._lib.BuildGSimpleField(dp(cat.x), dp(cat.y), dp(cat.z),
+                                                    dp(cat.g1), dp(cat.g2),
+                                                    dp(cat.w), dp(cat.wpos), cat.ntot,
+                                                    self._coords)
+        if logger:
+            logger.debug('Finished building KSimpleField (%s)',self.coords)
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
@@ -443,10 +302,5 @@ class GSimpleField(object):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            if self.flat:
-                treecorr._lib.DestroyGSimpleFieldFlat(self.data)
-            elif self.spher:
-                treecorr._lib.DestroyGSimpleFieldSphere(self.data)
-            else:
-                treecorr._lib.DestroyGSimpleField3D(self.data)
+            treecorr._lib.DestroyGSimpleField(self.data, self._coords)
 

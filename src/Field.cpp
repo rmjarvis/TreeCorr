@@ -308,355 +308,180 @@ extern "C" {
 #include "Field_C.h"
 }
 
-void* BuildGFieldFlat(double* x, double* y, double* g1, double* g2,
-                      double* w, double* wpos, long nobj,
-                      double minsize, double maxsize,
-                      int sm_int, int maxtop)
+template <int D>
+void* BuildField(double* x, double* y, double* z, double* g1, double* g2, double* k,
+                 double* w, double* wpos, long nobj,
+                 double minsize, double maxsize,
+                 int sm_int, int maxtop, int coords)
 {
-    dbg<<"Start BuildGFieldFlat\n";
-    // Use w for k in this call to make sure k[i] is valid and won't seg fault.
-    // The actual value of k[i] is ignored.
-    Field<GData,Flat>* field = new Field<GData,Flat>(x, y, 0, g1, g2, w,
-                                                     w, wpos, nobj,
-                                                     minsize, maxsize,
-                                                     sm_int, maxtop);
+    dbg<<"Start BuildField "<<D<<"  "<<coords<<std::endl;
+    void* field=0;
+    switch(coords) {
+      case Flat:
+           // Note: Use w for k, since we access k[i], even though value will be ignored.
+           field = static_cast<void*>(new Field<D,Flat>(x, y, 0, g1, g2, k,
+                                                        w, wpos, nobj,
+                                                        minsize, maxsize,
+                                                        sm_int, maxtop));
+           break;
+      case Sphere:
+           field = static_cast<void*>(new Field<D,Sphere>(x, y, z, g1, g2, k,
+                                                          w, wpos, nobj,
+                                                          minsize, maxsize,
+                                                          sm_int, maxtop));
+           break;
+      case ThreeD:
+           field = static_cast<void*>(new Field<D,ThreeD>(x, y, z, g1, g2, k,
+                                                          w, wpos, nobj,
+                                                          minsize, maxsize,
+                                                          sm_int, maxtop));
+           break;
+    }
     xdbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
-}
-void* BuildGField3D(double* x, double* y, double* z, double* g1, double* g2,
-                    double* w, double* wpos, long nobj,
-                    double minsize, double maxsize,
-                    int sm_int, int maxtop)
-{
-    dbg<<"Start BuildGField3D\n";
-    Field<GData,ThreeD>* field = new Field<GData,ThreeD>(x, y, z, g1, g2, w,
-                                                         w, wpos, nobj,
-                                                         minsize, maxsize,
-                                                         sm_int, maxtop);
-    dbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
-}
-void* BuildGFieldSphere(double* x, double* y, double* z, double* g1, double* g2,
-                        double* w, double* wpos, long nobj,
-                        double minsize, double maxsize,
-                        int sm_int, int maxtop)
-{
-    dbg<<"Start BuildGField3D\n";
-    Field<GData,Sphere>* field = new Field<GData,Sphere>(x, y, z, g1, g2, w,
-                                                         w, wpos, nobj,
-                                                         minsize, maxsize,
-                                                         sm_int, maxtop);
-    xdbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
+    return field;
 }
 
-void* BuildKFieldFlat(double* x, double* y, double* k,
-                      double* w, double* wpos, long nobj,
-                      double minsize, double maxsize,
-                      int sm_int, int maxtop)
+void* BuildGField(double* x, double* y, double* z, double* g1, double* g2,
+                  double* w, double* wpos, long nobj,
+                  double minsize, double maxsize,
+                  int sm_int, int maxtop, int coords)
 {
-    dbg<<"Start BuildKFieldFlat\n";
-    Field<KData,Flat>* field = new Field<KData,Flat>(x, y, 0, w, w, k,
-                                                     w, wpos, nobj,
-                                                     minsize, maxsize,
-                                                     sm_int, maxtop);
-    xdbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
-}
-void* BuildKField3D(double* x, double* y, double* z, double* k,
-                    double* w, double* wpos, long nobj,
-                    double minsize, double maxsize,
-                    int sm_int, int maxtop)
-{
-    dbg<<"Start BuildKField3D\n";
-    Field<KData,ThreeD>* field = new Field<KData,ThreeD>(x, y, z, w, w, k,
-                                                         w, wpos, nobj,
-                                                         minsize, maxsize,
-                                                         sm_int, maxtop);
-    dbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
-}
-void* BuildKFieldSphere(double* x, double* y, double* z, double* k,
-                        double* w, double* wpos, long nobj,
-                        double minsize, double maxsize,
-                        int sm_int, int maxtop)
-{
-    dbg<<"Start BuildKField3D\n";
-    Field<KData,Sphere>* field = new Field<KData,Sphere>(x, y, z, w, w, k,
-                                                         w, wpos, nobj,
-                                                         minsize, maxsize,
-                                                         sm_int, maxtop);
-    xdbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
-}
-
-void* BuildNFieldFlat(double* x, double* y,
-                      double* w, double* wpos, long nobj,
-                      double minsize, double maxsize,
-                      int sm_int, int maxtop)
-{
-    dbg<<"Start BuildNFieldFlat\n";
-    Field<NData,Flat>* field = new Field<NData,Flat>(x, y, 0, w, w, w,
-                                                     w, wpos, nobj,
-                                                     minsize, maxsize,
-                                                     sm_int, maxtop);
-    xdbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
-}
-void* BuildNField3D(double* x, double* y, double* z,
-                    double* w, double* wpos, long nobj,
-                    double minsize, double maxsize,
-                    int sm_int, int maxtop)
-{
-    dbg<<"Start BuildNField3D\n";
-    Field<NData,ThreeD>* field = new Field<NData,ThreeD>(x, y, z, w, w, w,
-                                                         w, wpos, nobj,
-                                                         minsize, maxsize,
-                                                         sm_int, maxtop);
-    dbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
-}
-void* BuildNFieldSphere(double* x, double* y, double* z,
-                        double* w, double* wpos, long nobj,
-                        double minsize, double maxsize,
-                        int sm_int, int maxtop)
-{
-    dbg<<"Start BuildNField3D\n";
-    Field<NData,Sphere>* field = new Field<NData,Sphere>(x, y, z, w, w, w,
-                                                         w, wpos, nobj,
-                                                         minsize, maxsize,
-                                                         sm_int, maxtop);
-    xdbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
-}
-
-void DestroyGFieldFlat(void* field)
-{
-    dbg<<"Start DestroyGFieldFlat\n";
-    xdbg<<"field = "<<field<<std::endl;
-    delete static_cast<Field<GData,Flat>*>(field);
-}
-void DestroyGField3D(void* field)
-{
-    dbg<<"Start DestroyGField3D\n";
-    dbg<<"field = "<<field<<std::endl;
-    delete static_cast<Field<GData,ThreeD>*>(field);
-}
-void DestroyGFieldSphere(void* field)
-{
-    dbg<<"Start DestroyGField3D\n";
-    xdbg<<"field = "<<field<<std::endl;
-    delete static_cast<Field<GData,Sphere>*>(field);
-}
-
-void DestroyKFieldFlat(void* field)
-{
-    dbg<<"Start DestroyKFieldFlat\n";
-    xdbg<<"field = "<<field<<std::endl;
-    delete static_cast<Field<KData,Flat>*>(field);
-}
-void DestroyKField3D(void* field)
-{
-    dbg<<"Start DestroyKField3D\n";
-    dbg<<"field = "<<field<<std::endl;
-    delete static_cast<Field<KData,ThreeD>*>(field);
-}
-void DestroyKFieldSphere(void* field)
-{
-    dbg<<"Start DestroyKField3D\n";
-    xdbg<<"field = "<<field<<std::endl;
-    delete static_cast<Field<KData,Sphere>*>(field);
-}
-
-void DestroyNFieldFlat(void* field)
-{
-    dbg<<"Start DestroyNFieldFlat\n";
-    xdbg<<"field = "<<field<<std::endl;
-    delete static_cast<Field<NData,Flat>*>(field);
-}
-void DestroyNField3D(void* field)
-{
-    dbg<<"Start DestroyNField3D\n";
-    dbg<<"field = "<<field<<std::endl;
-    delete static_cast<Field<NData,ThreeD>*>(field);
-}
-void DestroyNFieldSphere(void* field)
-{
-    dbg<<"Start DestroyNField3D\n";
-    xdbg<<"field = "<<field<<std::endl;
-    delete static_cast<Field<NData,Sphere>*>(field);
+    // Note: Use w for k, since we access k[i], even though value will be ignored.
+    return BuildField<GData>(x,y,z, g1,g2,w, w,wpos,nobj, minsize,maxsize, sm_int,maxtop,coords);
 }
 
 
-void* BuildGSimpleFieldFlat(double* x, double* y, double* g1, double* g2,
-                            double* w, double* wpos, long nobj)
+void* BuildKField(double* x, double* y, double* z, double* k,
+                  double* w, double* wpos, long nobj,
+                  double minsize, double maxsize,
+                  int sm_int, int maxtop, int coords)
 {
-    dbg<<"Start BuildGSimpleFieldFlat\n";
-    // Use w for k in this call to make sure k[i] is valid and won't seg fault.
-    // The actual value of k[i] is ignored.
-    SimpleField<GData,Flat>* field = new SimpleField<GData,Flat>(x, y, 0, g1, g2, w,
-                                                                 w, wpos, nobj);
-    xdbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
-}
-void* BuildGSimpleField3D(double* x, double* y, double* z, double* g1, double* g2,
-                          double* w, double* wpos, long nobj)
-{
-    dbg<<"Start BuildGSimpleField3D\n";
-    SimpleField<GData,ThreeD>* field = new SimpleField<GData,ThreeD>(
-        x, y, z, g1, g2, w,
-        w, wpos, nobj);
-    dbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
-}
-void* BuildGSimpleFieldSphere(double* x, double* y, double* z, double* g1, double* g2,
-                              double* w, double* wpos, long nobj)
-{
-    dbg<<"Start BuildGSimpleField3D\n";
-    SimpleField<GData,Sphere>* field = new SimpleField<GData,Sphere>(
-        x, y, z, g1, g2, w,
-        w, wpos, nobj);
-    xdbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
+    // Note: Use w for g1,g2, since we access g1[i],g2[i] even though values are ignored.
+    return BuildField<KData>(x,y,z, w,w,k, w,wpos,nobj, minsize,maxsize, sm_int,maxtop,coords);
 }
 
-void* BuildKSimpleFieldFlat(double* x, double* y, double* k,
-                            double* w, double* wpos, long nobj)
+void* BuildNField(double* x, double* y, double* z,
+                  double* w, double* wpos, long nobj,
+                  double minsize, double maxsize,
+                  int sm_int, int maxtop, int coords)
 {
-    dbg<<"Start BuildKSimpleFieldFlat\n";
-    SimpleField<KData,Flat>* field = new SimpleField<KData,Flat>(
-        x, y, 0, w, w, k,
-        w, wpos, nobj);
-    xdbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
-}
-void* BuildKSimpleField3D(double* x, double* y, double* z, double* k,
-                          double* w, double* wpos, long nobj)
-{
-    dbg<<"Start BuildKSimpleField3D\n";
-    SimpleField<KData,ThreeD>* field = new SimpleField<KData,ThreeD>(
-        x, y, z, w, w, k,
-        w, wpos, nobj);
-    dbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
-}
-void* BuildKSimpleFieldSphere(double* x, double* y, double* z, double* k,
-                              double* w, double* wpos, long nobj)
-{
-    dbg<<"Start BuildKSimpleField3D\n";
-    SimpleField<KData,Sphere>* field = new SimpleField<KData,Sphere>(
-        x, y, z, w, w, k,
-        w, wpos, nobj);
-    xdbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
+    // Note: Use w for g1,g2,k for same reasons as above.
+    return BuildField<NData>(x,y,z, w,w,w, w,wpos,nobj, minsize,maxsize, sm_int,maxtop,coords);
 }
 
-void* BuildNSimpleFieldFlat(double* x, double* y,
-                            double* w, double* wpos, long nobj)
+template <int D>
+void DestroyField(void* field, int coords)
 {
-    dbg<<"Start BuildNSimpleFieldFlat\n";
-    SimpleField<NData,Flat>* field = new SimpleField<NData,Flat>(
-        x, y, 0, w, w, w,
-        w, wpos, nobj);
+    dbg<<"Start DestroyField "<<D<<"  "<<coords<<std::endl;
     xdbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
-}
-void* BuildNSimpleField3D(double* x, double* y, double* z,
-                          double* w, double* wpos, long nobj)
-{
-    dbg<<"Start BuildNSimpleField3D\n";
-    SimpleField<NData,ThreeD>* field = new SimpleField<NData,ThreeD>(
-        x, y, z, w, w, w,
-        w, wpos, nobj);
-    dbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
-}
-void* BuildNSimpleFieldSphere(double* x, double* y, double* z,
-                              double* w, double* wpos, long nobj)
-{
-    dbg<<"Start BuildNSimpleField3D\n";
-    SimpleField<NData,Sphere>* field = new SimpleField<NData,Sphere>(
-        x, y, z, w, w, w,
-        w, wpos, nobj);
-    xdbg<<"field = "<<field<<std::endl;
-    return static_cast<void*>(field);
+    switch(coords) {
+      case Flat:
+           delete static_cast<Field<D,Flat>*>(field);
+           break;
+      case Sphere:
+           delete static_cast<Field<D,Sphere>*>(field);
+           break;
+      case ThreeD:
+           delete static_cast<Field<D,ThreeD>*>(field);
+           break;
+    }
 }
 
-void DestroyGSimpleFieldFlat(void* field)
+void DestroyGField(void* field, int coords)
+{ DestroyField<GData>(field, coords); }
+
+void DestroyKField(void* field, int coords)
+{ DestroyField<KData>(field, coords); }
+
+void DestroyNField(void* field, int coords)
+{ DestroyField<NData>(field, coords); }
+
+template <int D>
+void* BuildSimpleField(double* x, double* y, double* z, double* g1, double* g2, double* k,
+                       double* w, double* wpos, long nobj, int coords)
 {
-    dbg<<"Start DestroyGSimpleFieldFlat\n";
+    dbg<<"Start BuildSimpleField "<<D<<"  "<<coords<<std::endl;
+    void* field=0;
+    switch (coords) {
+      case Flat:
+           field = static_cast<void*>(new SimpleField<D,Flat>(x, y, 0, g1, g2, k,
+                                                              w, wpos, nobj));
+           break;
+      case Sphere:
+           field = static_cast<void*>(new SimpleField<D,Sphere>(x, y, z, g1, g2, k,
+                                                                w, wpos, nobj));
+           break;
+      case ThreeD:
+           field = static_cast<void*>(new SimpleField<D,ThreeD>(x, y, z, g1, g2, k,
+                                                                w, wpos, nobj));
+           break;
+    }
     xdbg<<"field = "<<field<<std::endl;
-    delete static_cast<SimpleField<GData,Flat>*>(field);
-}
-void DestroyGSimpleField3D(void* field)
-{
-    dbg<<"Start DestroyGSimpleField3D\n";
-    dbg<<"field = "<<field<<std::endl;
-    delete static_cast<SimpleField<GData,ThreeD>*>(field);
-}
-void DestroyGSimpleFieldSphere(void* field)
-{
-    dbg<<"Start DestroyGSimpleField3D\n";
-    xdbg<<"field = "<<field<<std::endl;
-    delete static_cast<SimpleField<GData,Sphere>*>(field);
+    return field;
 }
 
-void DestroyKSimpleFieldFlat(void* field)
+void* BuildGSimpleField(double* x, double* y, double* z, double* g1, double* g2,
+                        double* w, double* wpos, long nobj, int coords)
+{ return BuildSimpleField<GData>(x,y,z,g1,g2,w,w,wpos,nobj,coords); }
+
+void* BuildKSimpleField(double* x, double* y, double* z, double* k,
+                        double* w, double* wpos, long nobj, int coords)
+{ return BuildSimpleField<KData>(x,y,z,w,w,k,w,wpos,nobj,coords); }
+
+void* BuildNSimpleField(double* x, double* y, double* z,
+                        double* w, double* wpos, long nobj, int coords)
+{ return BuildSimpleField<NData>(x,y,z,w,w,w,w,wpos,nobj,coords); }
+
+template <int D>
+void DestroySimpleField(void* field, int coords)
 {
-    dbg<<"Start DestroyKSimpleFieldFlat\n";
+    dbg<<"Start DestroySimpleField "<<D<<"  "<<coords<<std::endl;
     xdbg<<"field = "<<field<<std::endl;
-    delete static_cast<SimpleField<KData,Flat>*>(field);
-}
-void DestroyKSimpleField3D(void* field)
-{
-    dbg<<"Start DestroyKSimpleField3D\n";
-    dbg<<"field = "<<field<<std::endl;
-    delete static_cast<SimpleField<KData,ThreeD>*>(field);
-}
-void DestroyKSimpleFieldSphere(void* field)
-{
-    dbg<<"Start DestroyKSimpleField3D\n";
-    xdbg<<"field = "<<field<<std::endl;
-    delete static_cast<SimpleField<KData,Sphere>*>(field);
+    switch(coords) {
+      case Flat:
+           delete static_cast<SimpleField<D,Flat>*>(field);
+           break;
+      case Sphere:
+           delete static_cast<SimpleField<D,Sphere>*>(field);
+           break;
+      case ThreeD:
+           delete static_cast<SimpleField<D,ThreeD>*>(field);
+           break;
+    }
 }
 
-void DestroyNSimpleFieldFlat(void* field)
+void DestroyGSimpleField(void* field, int coords)
+{ DestroySimpleField<GData>(field, coords); }
+
+void DestroyKSimpleField(void* field, int coords)
+{ DestroySimpleField<KData>(field, coords); }
+
+void DestroyNSimpleField(void* field, int coords)
+{ DestroySimpleField<NData>(field, coords); }
+
+template <int D>
+long GetNTopLevel(void* field, int coords)
 {
-    dbg<<"Start DestroyNSimpleFieldFlat\n";
-    xdbg<<"field = "<<field<<std::endl;
-    delete static_cast<SimpleField<NData,Flat>*>(field);
-}
-void DestroyNSimpleField3D(void* field)
-{
-    dbg<<"Start DestroyNSimpleField3D\n";
-    dbg<<"field = "<<field<<std::endl;
-    delete static_cast<SimpleField<NData,ThreeD>*>(field);
-}
-void DestroyNSimpleFieldSphere(void* field)
-{
-    dbg<<"Start DestroyNSimpleField3D\n";
-    xdbg<<"field = "<<field<<std::endl;
-    delete static_cast<SimpleField<NData,Sphere>*>(field);
+    switch(coords) {
+      case Flat:
+           return static_cast<Field<D,Flat>*>(field)->getNTopLevel();
+           break;
+      case Sphere:
+           return static_cast<Field<D,Sphere>*>(field)->getNTopLevel();
+           break;
+      case ThreeD:
+           return static_cast<Field<D,ThreeD>*>(field)->getNTopLevel();
+           break;
+    }
+    return 0;  // Can't get here, but saves a compiler warning
 }
 
-long GFieldFlatGetNTopLevel(void* field)
-{ return static_cast<Field<GData,Flat>*>(field)->getNTopLevel(); }
-long GField3DGetNTopLevel(void* field)
-{ return static_cast<Field<GData,ThreeD>*>(field)->getNTopLevel(); }
-long GFieldSphereGetNTopLevel(void* field)
-{ return static_cast<Field<GData,Sphere>*>(field)->getNTopLevel(); }
+long GFieldGetNTopLevel(void* field, int coords)
+{ return GetNTopLevel<GData>(field, coords); }
 
-long KFieldFlatGetNTopLevel(void* field)
-{ return static_cast<Field<KData,Flat>*>(field)->getNTopLevel(); }
-long KField3DGetNTopLevel(void* field)
-{ return static_cast<Field<KData,ThreeD>*>(field)->getNTopLevel(); }
-long KFieldSphereGetNTopLevel(void* field)
-{ return static_cast<Field<KData,Sphere>*>(field)->getNTopLevel(); }
+long KFieldGetNTopLevel(void* field, int coords)
+{ return GetNTopLevel<KData>(field, coords); }
 
-long NFieldFlatGetNTopLevel(void* field)
-{ return static_cast<Field<NData,Flat>*>(field)->getNTopLevel(); }
-long NField3DGetNTopLevel(void* field)
-{ return static_cast<Field<NData,ThreeD>*>(field)->getNTopLevel(); }
-long NFieldSphereGetNTopLevel(void* field)
-{ return static_cast<Field<NData,Sphere>*>(field)->getNTopLevel(); }
+long NFieldGetNTopLevel(void* field, int coords)
+{ return GetNTopLevel<NData>(field, coords); }
 

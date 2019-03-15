@@ -12,6 +12,8 @@
  *    and/or other materials provided with the distribution.
  */
 
+//#define DEBUGLOGGING
+
 #include <sys/time.h>
 #include <fstream>
 
@@ -26,7 +28,7 @@
 
 template <int D, int C>
 double CalculateSizeSq(
-    const Position<C>& cen, const std::vector<std::pair<CellData<D,C>*,double> >& vdata,
+    const Position<C>& cen, const std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
     double sizesq = 0.;
@@ -40,11 +42,11 @@ double CalculateSizeSq(
 
 template <int D, int C>
 void BuildCellData(
-    const std::vector<std::pair<CellData<D,C>*,double> >& vdata, size_t start, size_t end,
+    const std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, size_t start, size_t end,
     Position<C>& pos, float& w, long& n)
 {
     Assert(start < end);
-    double wp = vdata[start].second;
+    double wp = vdata[start].second.wpos;
     pos = vdata[start].first->getPos() * wp;
     w = vdata[start].first->getW();
     n = (w != 0);
@@ -71,25 +73,25 @@ void BuildCellData(
 
 template <int C>
 CellData<NData,C>::CellData(
-    const std::vector<std::pair<CellData<NData,C>*,double> >& vdata, size_t start, size_t end) :
+    const std::vector<std::pair<CellData<NData,C>*,WPosLeafInfo> >& vdata, size_t start, size_t end) :
     _w(0.), _n(0)
 { BuildCellData(vdata,start,end,_pos,_w,_n); }
 
 template <int C>
 CellData<KData,C>::CellData(
-    const std::vector<std::pair<CellData<KData,C>*,double> >& vdata, size_t start, size_t end) :
+    const std::vector<std::pair<CellData<KData,C>*,WPosLeafInfo> >& vdata, size_t start, size_t end) :
     _wk(0.), _w(0.), _n(0)
 { BuildCellData(vdata,start,end,_pos,_w,_n); }
 
 template <int C>
 CellData<GData,C>::CellData(
-    const std::vector<std::pair<CellData<GData,C>*,double> >& vdata, size_t start, size_t end) :
+    const std::vector<std::pair<CellData<GData,C>*,WPosLeafInfo> >& vdata, size_t start, size_t end) :
     _wg(0.), _w(0.), _n(0)
 { BuildCellData(vdata,start,end,_pos,_w,_n); }
 
 template <int C>
 void CellData<KData,C>::finishAverages(
-    const std::vector<std::pair<CellData<KData,C>*,double> >& vdata, size_t start, size_t end)
+    const std::vector<std::pair<CellData<KData,C>*,WPosLeafInfo> >& vdata, size_t start, size_t end)
 {
     // Accumulate in double precision for better accuracy.
     double dwk = 0.;
@@ -99,7 +101,7 @@ void CellData<KData,C>::finishAverages(
 
 template <>
 void CellData<GData,Flat>::finishAverages(
-    const std::vector<std::pair<CellData<GData,Flat>*,double> >& vdata, size_t start, size_t end)
+    const std::vector<std::pair<CellData<GData,Flat>*,WPosLeafInfo> >& vdata, size_t start, size_t end)
 {
     // Accumulate in double precision for better accuracy.
     std::complex<double> dwg(0.);
@@ -109,15 +111,16 @@ void CellData<GData,Flat>::finishAverages(
 
 template <int C>
 std::complex<double> ParallelTransportShift(
-    const std::vector<std::pair<CellData<GData,C>*,double> >& vdata,
+    const std::vector<std::pair<CellData<GData,C>*,WPosLeafInfo> >& vdata,
     const Position<C>& center, size_t start, size_t end)
 {
     // For the average shear, we need to parallel transport each one to the center
     // to account for the different coordinate systems for each measurement.
-    //xdbg<<"Finish Averages for Center = "<<center<<std::endl;
+    xdbg<<"Finish Averages for Center = "<<center<<std::endl;
     std::complex<double> dwg=0.;
     for(size_t i=start;i<end;++i) {
-        //xxdbg<<"Project shear "<<(vdata[i]->wg/vdata[i]->w)<<" at point "<<vdata[i]->getPos()<<std::endl;
+        xxdbg<<"Project shear "<<(vdata[i].first->getWG()/vdata[i].first->getW())<<
+            " at point "<<vdata[i].first->getPos()<<std::endl;
         // This is a lot like the ProjectShear function in BinCorr2.cpp
         // The difference is that here, we just rotate the single shear by
         // (Pi-A-B).  See the comments in ProjectShear2 for understanding
@@ -135,8 +138,8 @@ std::complex<double> ParallelTransportShift(
         double cosB = z2*(1.-z1*z1) - z1*temp;
         double sinB = sinA;
         double normBsq = sinB*sinB + cosB*cosB;
-        //xxdbg<<"A = atan("<<sinA<<"/"<<cosA<<") = "<<atan2(sinA,cosA)*180./M_PI<<std::endl;
-        //xxdbg<<"B = atan("<<sinB<<"/"<<cosB<<") = "<<atan2(sinB,cosB)*180./M_PI<<std::endl;
+        xxdbg<<"A = atan("<<sinA<<"/"<<cosA<<") = "<<atan2(sinA,cosA)*180./M_PI<<std::endl;
+        xxdbg<<"B = atan("<<sinB<<"/"<<cosB<<") = "<<atan2(sinB,cosB)*180./M_PI<<std::endl;
         if (normAsq == 0. || normBsq == 0.) {
             // Then this point is at the center, no need to project.
             dwg += vdata[i].first->getWG();
@@ -146,11 +149,11 @@ std::complex<double> ParallelTransportShift(
             // sin(beta) = sin(A+B)
             double cosbeta = -cosA * cosB + sinA * sinB;
             double sinbeta = sinA * cosB + cosA * sinB;
-            //xxdbg<<"beta = "<<atan2(sinbeta,cosbeta)*180/M_PI<<std::endl;
+            xxdbg<<"beta = "<<atan2(sinbeta,cosbeta)*180/M_PI<<std::endl;
             std::complex<double> expibeta(cosbeta,-sinbeta);
-            //xxdbg<<"expibeta = "<<expibeta/sqrt(normAsq*normBsq)<<std::endl;
+            xxdbg<<"expibeta = "<<expibeta/sqrt(normAsq*normBsq)<<std::endl;
             std::complex<double> exp2ibeta = (expibeta * expibeta) / (normAsq*normBsq);
-            //xxdbg<<"exp2ibeta = "<<exp2ibeta<<std::endl;
+            xxdbg<<"exp2ibeta = "<<exp2ibeta<<std::endl;
             dwg += vdata[i].first->getWG() * exp2ibeta;
         }
     }
@@ -160,14 +163,14 @@ std::complex<double> ParallelTransportShift(
 // These two need to do the same thing, so pull it out into the above function.
 template <>
 void CellData<GData,ThreeD>::finishAverages(
-    const std::vector<std::pair<CellData<GData,ThreeD>*,double> >& vdata, size_t start, size_t end)
+    const std::vector<std::pair<CellData<GData,ThreeD>*,WPosLeafInfo> >& vdata, size_t start, size_t end)
 {
     _wg = ParallelTransportShift(vdata,_pos,start,end);
 }
 
 template <>
 void CellData<GData,Sphere>::finishAverages(
-    const std::vector<std::pair<CellData<GData,Sphere>*,double> >& vdata, size_t start, size_t end)
+    const std::vector<std::pair<CellData<GData,Sphere>*,WPosLeafInfo> >& vdata, size_t start, size_t end)
 {
     _wg = ParallelTransportShift(vdata,_pos,start,end);
 }
@@ -182,8 +185,8 @@ struct DataCompare
 {
     int split;
     DataCompare(int s) : split(s) {}
-    bool operator()(const std::pair<CellData<D,C>*,double> cd1,
-                    const std::pair<CellData<D,C>*,double> cd2) const
+    bool operator()(const std::pair<CellData<D,C>*,WPosLeafInfo> cd1,
+                    const std::pair<CellData<D,C>*,WPosLeafInfo> cd2) const
     { return cd1.first->getPos().get(split) < cd2.first->getPos().get(split); }
 };
 
@@ -194,7 +197,7 @@ struct DataCompareToValue
     double splitvalue;
 
     DataCompareToValue(int s, double v) : split(s), splitvalue(v) {}
-    bool operator()(const std::pair<CellData<D,C>*,double> cd) const
+    bool operator()(const std::pair<CellData<D,C>*,WPosLeafInfo> cd) const
     { return cd.first->getPos().get(split) < splitvalue; }
 };
 
@@ -248,7 +251,7 @@ size_t select_random(size_t lo, size_t hi)
 
 template <int D, int C>
 size_t SplitData(
-    std::vector<std::pair<CellData<D,C>*,double> >& vdata, SplitMethod sm,
+    std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, SplitMethod sm,
     size_t start, size_t end, const Position<C>& meanpos)
 {
     Assert(end-start > 1);
@@ -264,7 +267,7 @@ size_t SplitData(
            { // Middle is the average of the min and max value of x or y
                double splitvalue = b.getMiddle(split);
                DataCompareToValue<D,C> comp(split,splitvalue);
-               typename std::vector<std::pair<CellData<D,C>*,double> >::iterator middle =
+               typename std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >::iterator middle =
                    std::partition(vdata.begin()+start,vdata.begin()+end,comp);
                mid = middle - vdata.begin();
            } break;
@@ -272,7 +275,7 @@ size_t SplitData(
            { // Median is the point which divides the group into equal numbers
                DataCompare<D,C> comp(split);
                mid = (start+end)/2;
-               typename std::vector<std::pair<CellData<D,C>*,double> >::iterator middle =
+               typename std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >::iterator middle =
                    vdata.begin()+mid;
                std::nth_element(vdata.begin()+start,middle,vdata.begin()+end,comp);
            } break;
@@ -280,7 +283,7 @@ size_t SplitData(
            { // Mean is the weighted average value of x or y
                double splitvalue = meanpos.get(split);
                DataCompareToValue<D,C> comp(split,splitvalue);
-               typename std::vector<std::pair<CellData<D,C>*,double> >::iterator middle =
+               typename std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >::iterator middle =
                    std::partition(vdata.begin()+start,vdata.begin()+end,comp);
                mid = middle - vdata.begin();
            } break;
@@ -294,7 +297,7 @@ size_t SplitData(
                // result should be mid=2.  Otherwise, we want roughly 1/4 and 3/4 of the span.
                mid = select_random(end-3*(end-start)/4,start+3*(end-start)/4);
 
-               typename std::vector<std::pair<CellData<D,C>*,double> >::iterator middle =
+               typename std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >::iterator middle =
                    vdata.begin()+mid;
                std::nth_element(vdata.begin()+start,middle,vdata.begin()+end,comp);
            } break;
@@ -327,7 +330,7 @@ size_t SplitData(
 }
 
 template <int D, int C>
-Cell<D,C>::Cell(std::vector<std::pair<CellData<D,C>*,double> >& vdata,
+Cell<D,C>::Cell(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
                  double minsizesq, SplitMethod sm, size_t start, size_t end) :
     _size(0.), _sizesq(0.), _left(0), _right(0)
 {
@@ -336,52 +339,44 @@ Cell<D,C>::Cell(std::vector<std::pair<CellData<D,C>*,double> >& vdata,
     Assert(end > start);
 
     if (end - start == 1) {
-        //xdbg<<"Make leaf cell from "<<*vdata[start]<<std::endl;
-        //xdbg<<"size = "<<_size<<std::endl;
+        xdbg<<"Make leaf cell from "<<*vdata[start].first<<std::endl;
+        xdbg<<"size = "<<_size<<std::endl;
         _data = vdata[start].first;
         vdata[start].first = 0; // Make sure calling routine doesn't delete this one!
+        _info = vdata[start].second;  // This only copies as a LeafInfo, so throws away wpos.
     } else {
         _data = new CellData<D,C>(vdata,start,end);
         _data->finishAverages(vdata,start,end);
-        //xdbg<<"Make cell from "<<start<<".."<<end<<" = "<<*_data<<std::endl;
+        xdbg<<"Make cell from "<<start<<".."<<end<<" = "<<*_data<<std::endl;
 
         _sizesq = CalculateSizeSq(_data->getPos(),vdata,start,end);
         Assert(_sizesq >= 0.);
 
-        if (_sizesq > minsizesq) {
-            _size = sqrt(_sizesq);
-            //xdbg<<"size = "<<_size<<std::endl;
-            size_t mid = SplitData(vdata,sm,start,end,_data->getPos());
-            try {
-                _left = new Cell<D,C>(vdata,minsizesq,sm,start,mid);
-                _right = new Cell<D,C>(vdata,minsizesq,sm,mid,end);
-            } catch (std::bad_alloc) {
-                throw std::runtime_error("out of memory - cannot create new Cell");
-            }
-        } else {
-            // This shouldn't be necessary for 2-point, but 3-point calculations sometimes
-            // have triangles that have two sides that are almost the same, so splits can
-            // go arbitrarily small to switch which one is d1,d2 or d2,d3.  This isn't
-            // actually an important distinction, so just abort that by calling the size
-            // exactly zero.
-            _size = _sizesq = 0.;
-        }
+        finishInit(vdata, minsizesq, sm, start, end);
     }
 }
 
 template <int D, int C>
 Cell<D,C>::Cell(CellData<D,C>* ave, double sizesq,
-                 std::vector<std::pair<CellData<D,C>*,double> >& vdata,
+                 std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
                  double minsizesq, SplitMethod sm, size_t start, size_t end) :
     _sizesq(sizesq), _data(ave), _left(0), _right(0)
 {
+    xdbg<<"Make cell starting with ave = "<<*ave<<std::endl;
+    xdbg<<"size = "<<_size<<std::endl;
     Assert(sizesq >= 0.);
-    //xdbg<<"Make cell starting with ave = "<<*ave<<std::endl;
-    //xdbg<<"size = "<<_size<<std::endl;
     Assert(vdata.size()>0);
     Assert(end <= vdata.size());
     Assert(end > start);
 
+    finishInit(vdata, minsizesq, sm, start, end);
+}
+
+template <int D, int C>
+void Cell<D,C>::finishInit(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
+                           double minsizesq, SplitMethod sm, size_t start, size_t end)
+{
+    xdbg<<"finishInit: sizesq = "<<_sizesq<<" cf. "<<minsizesq<<std::endl;
     if (_sizesq > minsizesq) {
         _size = sqrt(_sizesq);
         size_t mid = SplitData(vdata,sm,start,end,_data->getPos());
@@ -393,6 +388,9 @@ Cell<D,C>::Cell(CellData<D,C>* ave, double sizesq,
         }
     } else {
         _size = _sizesq = 0.;
+        Assert(_data->getN() > 1);
+        _listinfo.indices = new std::vector<long>(end-start);
+        for (int i=start; i<end; ++i) (*_listinfo.indices)[i-start] = vdata[i].second.index;
     }
 }
 
@@ -404,7 +402,6 @@ long Cell<D,C>::countLeaves() const
         return _left->countLeaves() + _right->countLeaves();
     } else return 1;
 }
-
 
 template <int D, int C>
 std::vector<const Cell<D,C>*> Cell<D,C>::getAllLeaves() const
@@ -461,37 +458,37 @@ template class Cell<GData,Sphere>;
 
 template double CalculateSizeSq(
     const Position<Flat>& cen,
-    const std::vector<std::pair<CellData<NData,Flat>*,double> >& vdata,
+    const std::vector<std::pair<CellData<NData,Flat>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
     const Position<ThreeD>& cen,
-    const std::vector<std::pair<CellData<NData,ThreeD>*,double> >& vdata,
+    const std::vector<std::pair<CellData<NData,ThreeD>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
     const Position<Sphere>& cen,
-    const std::vector<std::pair<CellData<NData,Sphere>*,double> >& vdata,
+    const std::vector<std::pair<CellData<NData,Sphere>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
     const Position<Flat>& cen,
-    const std::vector<std::pair<CellData<KData,Flat>*,double> >& vdata,
+    const std::vector<std::pair<CellData<KData,Flat>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
     const Position<ThreeD>& cen,
-    const std::vector<std::pair<CellData<KData,ThreeD>*,double> >& vdata,
+    const std::vector<std::pair<CellData<KData,ThreeD>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
     const Position<Sphere>& cen,
-    const std::vector<std::pair<CellData<KData,Sphere>*,double> >& vdata,
+    const std::vector<std::pair<CellData<KData,Sphere>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
     const Position<Flat>& cen,
-    const std::vector<std::pair<CellData<GData,Flat>*,double> >& vdata,
+    const std::vector<std::pair<CellData<GData,Flat>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
     const Position<ThreeD>& cen,
-    const std::vector<std::pair<CellData<GData,ThreeD>*,double> >& vdata,
+    const std::vector<std::pair<CellData<GData,ThreeD>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end);
 template double CalculateSizeSq(
     const Position<Sphere>& cen,
-    const std::vector<std::pair<CellData<GData,Sphere>*,double> >& vdata,
+    const std::vector<std::pair<CellData<GData,Sphere>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end);

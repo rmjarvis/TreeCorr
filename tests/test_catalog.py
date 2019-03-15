@@ -717,7 +717,6 @@ def test_field():
     # when doing this manually.  The real functionality tests of using the fields are
     # all elsewhere.
 
-    print('Start test_field')
     ngal = 2000
     s = 10.
     np.random.seed(8675309)
@@ -750,6 +749,9 @@ def test_field():
     nfield2b = cat2.getNField(0.01, 1)
     nfield3b = cat3.getNField(1,300, logger=logger)
     t2 = time.time()
+    assert cat1.nfields.count == 1
+    assert cat2.nfields.count == 1
+    assert cat3.nfields.count == 1
     # The second time, they should already be made and taken from the cache, so much faster.
     print('nfield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
@@ -763,6 +765,9 @@ def test_field():
     gfield2b = cat2.getGField(0.01, 1)
     gfield3b = cat3.getGField(1,300, logger=logger)
     t2 = time.time()
+    assert cat1.gfields.count == 1
+    assert cat2.gfields.count == 1
+    assert cat3.gfields.count == 1
     print('gfield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
 
@@ -775,6 +780,9 @@ def test_field():
     kfield2b = cat2.getKField(0.01, 1)
     kfield3b = cat3.getKField(1,300, logger=logger)
     t2 = time.time()
+    assert cat1.kfields.count == 1
+    assert cat2.kfields.count == 1
+    assert cat3.kfields.count == 1
     print('kfield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
 
@@ -787,6 +795,9 @@ def test_field():
     nsimplefield2b = cat2.getNSimpleField()
     nsimplefield3b = cat3.getNSimpleField(logger=logger)
     t2 = time.time()
+    assert cat1.nsimplefields.count == 1
+    assert cat2.nsimplefields.count == 1
+    assert cat3.nsimplefields.count == 1
     print('nsimplefield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
 
@@ -799,6 +810,9 @@ def test_field():
     gsimplefield2b = cat2.getGSimpleField()
     gsimplefield3b = cat3.getGSimpleField(logger=logger)
     t2 = time.time()
+    assert cat1.gsimplefields.count == 1
+    assert cat2.gsimplefields.count == 1
+    assert cat3.gsimplefields.count == 1
     print('gsimplefield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
 
@@ -811,17 +825,26 @@ def test_field():
     ksimplefield2b = cat2.getKSimpleField()
     ksimplefield3b = cat3.getKSimpleField(logger=logger)
     t2 = time.time()
+    assert cat1.ksimplefields.count == 1
+    assert cat2.ksimplefields.count == 1
+    assert cat3.ksimplefields.count == 1
     print('ksimplefield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
 
     # By default, only one is saved.  Check resize_cache option.
     cat1.resize_cache(3)
-    assert len(cat1.nfields.cache) == 3
-    assert len(cat1.kfields.cache) == 3
-    assert len(cat1.gfields.cache) == 3
-    assert len(cat1.nsimplefields.cache) == 3
-    assert len(cat1.ksimplefields.cache) == 3
-    assert len(cat1.gsimplefields.cache) == 3
+    assert cat1.nfields.size == 3
+    assert cat1.kfields.size == 3
+    assert cat1.gfields.size == 3
+    assert cat1.nsimplefields.size == 3
+    assert cat1.ksimplefields.size == 3
+    assert cat1.gsimplefields.size == 3
+    assert cat1.nfields.count == 1
+    assert cat1.kfields.count == 1
+    assert cat1.gfields.count == 1
+    assert cat1.nsimplefields.count == 1
+    assert cat1.ksimplefields.count == 1
+    assert cat1.gsimplefields.count == 1
 
     t0 = time.time()
     nfield1 = cat1.getNField(1,1000)
@@ -832,6 +855,7 @@ def test_field():
     nfield2b = cat1.getNField(0.01, 1)
     nfield3b = cat1.getNField(1,300, logger=logger)
     t2 = time.time()
+    assert cat1.nfields.count == 3
     print('after resize(3) nfield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
     assert nfield1b is nfield1
@@ -846,11 +870,17 @@ def test_field():
     assert nfield1 not in [v[3] for v in cat1.nfields.cache.values()]
     assert nfield2 not in [v[3] for v in cat1.nfields.cache.values()]
     assert nfield3 not in [v[3] for v in cat1.nfields.cache.values()]
+    assert cat1.nfields.count == 0
+    assert cat1.gfields.count == 0
+    assert cat1.kfields.count == 0
+    assert cat1.nsimplefields.count == 0
+    assert cat1.gsimplefields.count == 0
+    assert cat1.ksimplefields.count == 0
 
     # Can also resize to 0
-    print('before resize_cache(0)')
     cat1.resize_cache(0)
-    print('after resize_cache(0)')
+    assert cat1.nfields.count == 0
+    assert cat1.nfields.size == 0
     t0 = time.time()
     nfield1 = cat1.getNField(1,1000)
     nfield2 = cat1.getNField(0.01, 1)
@@ -862,12 +892,7 @@ def test_field():
     t2 = time.time()
     # This time, not much time difference.
     print('after resize(0) nfield: ',t1-t0,t2-t1)
-    assert len(cat1.nfields.cache) == 0
-    assert len(cat1.kfields.cache) == 0
-    assert len(cat1.gfields.cache) == 0
-    assert len(cat1.nsimplefields.cache) == 0
-    assert len(cat1.ksimplefields.cache) == 0
-    assert len(cat1.gsimplefields.cache) == 0
+    assert cat1.nfields.count == 0
     assert nfield1b is not nfield1
     assert nfield2b is not nfield2
     assert nfield3b is not nfield3
@@ -877,28 +902,36 @@ def test_field():
     assert nfield1b not in [v[3] for v in cat1.nfields.cache.values()]
     assert nfield2b not in [v[3] for v in cat1.nfields.cache.values()]
     assert nfield3b not in [v[3] for v in cat1.nfields.cache.values()]
-    print('done')
 
 
 def test_lru():
-    print('Start test_lru')
     f = lambda x: x+1
     size = 10
     # Test correct size cache gets created
     cache = treecorr.util.LRU_Cache(f, maxsize=size)
     assert len(cache.cache) == size
+    assert cache.size == size
+    assert cache.count == 0
     # Insert f(0) = 1 into cache and check that we can get it back
     assert cache(0) == f(0)
+    assert cache.size == size
+    assert cache.count == 1
     assert cache(0) == f(0)
+    assert cache.size == size
+    assert cache.count == 1
 
     # Manually manipulate cache so we can check for hit
     cache.cache[(0,)][3] = 2
+    cache.count += 1
     assert cache(0) == 2
+    assert cache.count == 2
 
     # Insert (and check) 1 thru size into cache.  This should bump out the (0,).
     for i in range(1, size+1):
         assert cache(i) == f(i)
     assert (0,) not in cache.cache
+    assert cache.size == size
+    assert cache.count == size
 
     # Test non-destructive cache expansion
     newsize = 20
@@ -906,19 +939,27 @@ def test_lru():
     for i in range(1, size+1):
         assert (i,) in cache.cache
         assert cache(i) == f(i)
-    assert len(cache.cache) == 20
+    assert len(cache.cache) == newsize
+    assert cache.size == newsize
+    assert cache.count == size
 
     # Add new items until the (1,) gets bumped
     for i in range(size+1, newsize+2):
         assert cache(i) == f(i)
     assert (1,) not in cache.cache
+    assert cache.size == newsize
+    assert cache.count == newsize
 
     # "Resize" to same size does nothing.
     cache.resize(newsize)
-    assert len(cache.cache) == 20
+    assert len(cache.cache) == newsize
+    assert cache.size == newsize
+    assert cache.count == newsize
     assert (1,) not in cache.cache
     for i in range(2, newsize+2):
         assert (i,) in cache.cache
+    assert cache.size == newsize
+    assert cache.count == newsize
 
     # Test mostly non-destructive cache contraction.
     # Already bumped (0,) and (1,), so (2,) should be the first to get bumped
@@ -933,15 +974,18 @@ def test_lru():
     print('cache.root = ',cache.root)
     assert cache.root[0] == cache.root
     assert cache.root[1] == cache.root
+    assert cache.size == 0
+    assert cache.count == 0
     for i in range(10):
         assert cache(i) == f(i)
     print('=> cache.cache = ',cache.cache)
     print('=> cache.root = ',cache.root)
     assert cache.root[0] == cache.root
     assert cache.root[1] == cache.root
+    assert cache.size == 0
+    assert cache.count == 0
 
     assert_raises(ValueError, cache.resize, -20)
-    print('Done test_lru')
 
 
 if __name__ == '__main__':

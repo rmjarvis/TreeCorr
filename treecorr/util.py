@@ -213,6 +213,7 @@ class LRU_Cache:
             key = object()
             self.cache[key] = last[1] = last = [last, self.root, key, None]
         self.root[0] = last
+        self.count = 0
 
     def __call__(self, *key, **kwargs):
         link = self.cache.get(key)
@@ -237,6 +238,7 @@ class LRU_Cache:
         self.root[3], oldvalue = None, self.root[3]
         self.cache[key] = oldroot
         del self.cache[oldkey]
+        if self.count < self.size: self.count += 1
         return result
 
     def resize(self, maxsize):
@@ -260,6 +262,7 @@ class LRU_Cache:
                     new_next_link = self.root[1] = self.root[1][1]
                     new_next_link[0] = self.root
                     del self.cache[current_next_link[2]]
+                self.count = min(self.count, maxsize)
             else: # maxsize > oldsize:
                 for i in range(maxsize - oldsize):
                     # Insert between root and root.next
@@ -279,6 +282,11 @@ class LRU_Cache:
             key = object()
             self.cache[key] = last[1] = last = [last, self.root, key, None]
         self.root[0] = last
+        self.count = 0
+
+    @property
+    def size(self):
+        return len(self.cache)
 
 
 def double_ptr(x):

@@ -80,23 +80,46 @@ class NField(object):
         """The number of top-level nodes."""
         return treecorr._lib.NFieldGetNTopLevel(self.data, self._coords)
 
-    def count_near(self, x, y, z, sep):
+    def count_near(self, *args, **kwargs):
         """Count how many points are near a given coordinate.
 
-        Note: This function requires the coordinate to be given as (x,y,z) and the separation
-              in compatible units.  There is also a version of this function in the Catalog
-              class, which allows for more flexible specification of the coordinate
-              (e.g. using ra, dec).
+        There are several options for how to specify the reference coordinate, which depends
+        on the type of coordinate system this field implements.
 
-        :param x:       The x coordinate of the location for which to count nearby points.
-        :param y:       The y coordinate of the location for which to count nearby points.
-        :param z:       The z coordinate of the location for which to count nearby points.
-        :param sep:     The separation distance
+        1. If self.coords == 'flat', you should provide:
+
+            :param x:       The x coordinate of the location for which to count nearby points.
+            :param y:       The y coordinate of the location for which to count nearby points.
+            :param sep:     The separation distance
+
+        2. If self.coords == '3d', you should provide:
+
+        Either
+            :param x:       The x coordinate of the location for which to count nearby points.
+            :param y:       The y coordinate of the location for which to count nearby points.
+            :param z:       The z coordinate of the location for which to count nearby points.
+            :param sep:     The separation distance
+
+        Or
+            :param ra:      The right ascension of the location for which to count nearby points.
+            :param dec:     The declination of the location for which to count nearby points.
+            :param r:       The distance to the location for which to count nearby points.
+            :param sep:     The separation distance
+
+        3. If self.coords == 'spherical', you should provide:
+
+            :param ra:      The right ascension of the location for which to count nearby points.
+            :param dec:     The declination of the location for which to count nearby points.
+            :param sep:     The separation distance as an angle
+
+        In all cases, for parameters that angles (ra, dec, sep for 'spherical'), you may either
+        provide this quantity as a coord.Angle instance, or you may provide ra_units, dec_units
+        or sep_units respectively to specify which angular units are providing.
+
+        Finally, in cases where ra, dec are allowed, you may instead provide a
+        coord.CelestialCoord instance as the first argument to specify both RA and Dec.
         """
-        x = float(x)
-        y = float(y)
-        z = float(z)
-        sep = float(sep)
+        x,y,z,sep = treecorr.util.parse_xyzsep(args, kwargs, self._coords)
         return treecorr._lib.NFieldCountNear(self.data, x, y, z, sep, self._coords)
 
 
@@ -157,23 +180,14 @@ class KField(object):
         """The number of top-level nodes."""
         return treecorr._lib.NFieldGetNTopLevel(self.data, self._coords)
 
-    def count_near(self, x, y, z, sep):
+    def count_near(self, *args, **kwargs):
         """Count how many points are near a given coordinate.
 
-        Note: This function requires the coordinate to be given as (x,y,z) and the separation
-              in compatible units.  There is also a version of this function in the Catalog
-              class, which allows for more flexible specification of the coordinate
-              (e.g. using ra, dec).
-
-        :param x:       The x coordinate of the location for which to count nearby points.
-        :param y:       The y coordinate of the location for which to count nearby points.
-        :param z:       The z coordinate of the location for which to count nearby points.
-        :param sep:     The separation distance
+        There are several options for how to specify the reference coordinate, which depends
+        on the type of coordinate system this field implements.  See NField.count_near
+        for details.
         """
-        x = float(x)
-        y = float(y)
-        z = float(z)
-        sep = float(sep)
+        x,y,z,sep = treecorr.util.parse_xyzsep(args, kwargs, self._coords)
         return treecorr._lib.KFieldCountNear(self.data, x, y, z, sep, self._coords)
 
 
@@ -235,23 +249,14 @@ class GField(object):
         """The number of top-level nodes."""
         return treecorr._lib.GFieldGetNTopLevel(self.data, self._coords)
 
-    def count_near(self, x, y, z, sep):
+    def count_near(self, *args, **kwargs):
         """Count how many points are near a given coordinate.
 
-        Note: This function requires the coordinate to be given as (x,y,z) and the separation
-              in compatible units.  There is also a version of this function in the Catalog
-              class, which allows for more flexible specification of the coordinate
-              (e.g. using ra, dec).
-
-        :param x:       The x coordinate of the location for which to count nearby points.
-        :param y:       The y coordinate of the location for which to count nearby points.
-        :param z:       The z coordinate of the location for which to count nearby points.
-        :param sep:     The separation distance
+        There are several options for how to specify the reference coordinate, which depends
+        on the type of coordinate system this field implements.  See NField.count_near
+        for details.
         """
-        x = float(x)
-        y = float(y)
-        z = float(z)
-        sep = float(sep)
+        x,y,z,sep = treecorr.util.parse_xyzsep(args, kwargs, self._coords)
         return treecorr._lib.GFieldCountNear(self.data, x, y, z, sep, self._coords)
 
 

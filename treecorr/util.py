@@ -19,6 +19,7 @@ import treecorr
 import numpy as np
 import os
 import warnings
+import coord
 
 def ensure_dir(target):
     d = os.path.dirname(target)
@@ -381,3 +382,216 @@ def metric_enum(metric):
         return treecorr._lib.Arc
     else:
         raise ValueError("Invalid metric %s"%metric)
+
+def parse_xyzsep(args, kwargs, _coords):
+    """Parse the different options for passing a coordinate and separation.
+
+    The allowed parameters are:
+
+    1. If _coords == Flat:
+
+        :param x:       The x coordinate of the location for which to count nearby points.
+        :param y:       The y coordinate of the location for which to count nearby points.
+        :param sep:     The separation distance
+
+    2. If _coords == ThreeD:
+
+    Either
+        :param x:       The x coordinate of the location for which to count nearby points.
+        :param y:       The y coordinate of the location for which to count nearby points.
+        :param z:       The z coordinate of the location for which to count nearby points.
+        :param sep:     The separation distance
+
+    Or
+        :param ra:      The right ascension of the location for which to count nearby points.
+        :param dec:     The declination of the location for which to count nearby points.
+        :param r:       The distance to the location for which to count nearby points.
+        :param sep:     The separation distance
+
+    3. If _coords == Sphere:
+
+        :param ra:      The right ascension of the location for which to count nearby points.
+        :param dec:     The declination of the location for which to count nearby points.
+        :param sep:     The separation distance as an angle
+
+    For all angle parameters (ra, dec, sep), this quantity may be a coord.Angle instance, or
+    units maybe be provided as ra_units, dec_units or sep_units respectively.
+
+    Finally, in cases where ra, dec are allowed, a coord.CelestialCoord instance may be
+    provided as the first argument.
+
+    :returns: The effective (x, y, z, sep) as a tuple.
+    """
+    radec = False
+    if _coords == treecorr._lib.Flat:
+        if len(args) == 0:
+            if 'x' not in kwargs:
+                raise TypeError("Missing required argument x")
+            if 'y' not in kwargs:
+                raise TypeError("Missing required argument y")
+            if 'sep' not in kwargs:
+                raise TypeError("Missing required argument sep")
+            x = kwargs.pop('x')
+            y = kwargs.pop('y')
+            sep = kwargs.pop('sep')
+        elif len(args) == 1:
+            raise TypeError("x,y should be given as either args or kwargs, not mixed.")
+        elif len(args) == 2:
+            if 'sep' not in kwargs:
+                raise TypeError("Missing required argument sep")
+            x,y = args
+            sep = kwargs.pop('sep')
+        elif len(args) == 3:
+            x,y,sep = args
+        else:
+            raise TypeError("Too many positional args")
+        z = 0
+
+    elif _coords == treecorr._lib.ThreeD:
+        if len(args) == 0:
+            if 'x' in kwargs:
+                if 'y' not in kwargs:
+                    raise TypeError("Missing required argument y")
+                if 'z' not in kwargs:
+                    raise TypeError("Missing required argument z")
+                x = kwargs.pop('x')
+                y = kwargs.pop('y')
+                z = kwargs.pop('z')
+            else:
+                if 'ra' not in kwargs:
+                    raise TypeError("Missing required argument ra")
+                if 'dec' not in kwargs:
+                    raise TypeError("Missing required argument dec")
+                ra = kwargs.pop('ra')
+                dec = kwargs.pop('dec')
+                radec = True
+                if 'r' not in kwargs:
+                    raise TypeError("Missing required argument r")
+                r = kwargs['r']
+            if 'sep' not in kwargs:
+                raise TypeError("Missing required argument sep")
+            sep = kwargs.pop('sep')
+        elif len(args) == 1:
+            if not isinstance(args[0], coord.CelestialCoord):
+                raise TypeError("Invalid unnamed argument %r"%args[0])
+            ra = args[0].ra
+            dec = args[0].dec
+            radec = True
+            if 'r' not in kwargs:
+                raise TypeError("Missing required argument r")
+            r = kwargs.pop('r')
+            if 'sep' not in kwargs:
+                raise TypeError("Missing required argument sep")
+            sep = kwargs.pop('sep')
+        elif len(args) == 2:
+            if isinstance(args[0], coord.CelestialCoord):
+                ra = args[0].ra
+                dec = args[0].dec
+                radec = True
+                r = args[1]
+            else:
+                ra, dec = args
+                radec = True
+                if 'r' not in kwargs:
+                    raise TypeError("Missing required argument r")
+                r = kwargs.pop('r')
+            if 'sep' not in kwargs:
+                raise TypeError("Missing required argument sep")
+            sep = kwargs.pop('sep')
+        elif len(args) == 3:
+            if isinstance(args[0], coord.CelestialCoord):
+                ra = args[0].ra
+                dec = args[0].dec
+                radec = True
+                r = args[1]
+                sep = args[2]
+            elif isinstance(args[0], coord.Angle):
+                ra, dec, r = args
+                radec = True
+                if 'sep' not in kwargs:
+                    raise TypeError("Missing required argument sep")
+                sep = kwargs.pop('sep')
+            elif 'ra_units' in kwargs or 'dec_units' in kwargs:
+                ra, dec, r = args
+                radec = True
+                if 'sep' not in kwargs:
+                    raise TypeError("Missing required argument sep")
+                sep = kwargs.pop('sep')
+            else:
+                x, y, z = args
+                if 'sep' not in kwargs:
+                    raise TypeError("Missing required argument sep")
+                sep = kwargs.pop('sep')
+        elif len(args) == 4:
+            if isinstance(args[0], coord.Angle):
+                ra, dec, r, sep = args
+                radec = True
+            elif 'ra_units' in kwargs or 'dec_units' in kwargs:
+                ra, dec, r, sep = args
+                radec = True
+            else:
+                x, y, z, sep = args
+        else:
+            raise TypeError("Too many positional args")
+
+    else:  # Sphere
+        if len(args) == 0:
+            if 'ra' not in kwargs:
+                raise TypeError("Missing required argument ra")
+            if 'dec' not in kwargs:
+                raise TypeError("Missing required argument dec")
+            ra = kwargs.pop('ra')
+            dec = kwargs.pop('dec')
+            radec = True
+            if 'sep' not in kwargs:
+                raise TypeError("Missing required argument sep")
+            sep = kwargs.pop('sep')
+        elif len(args) == 1:
+            if not isinstance(args[0], coord.CelestialCoord):
+                raise TypeError("Invalid unnamed argument %r"%args[0])
+            ra = args[0].ra
+            dec = args[0].dec
+            radec = True
+            if 'sep' not in kwargs:
+                raise TypeError("Missing required argument sep")
+            sep = kwargs.pop('sep')
+        elif len(args) == 2:
+            if isinstance(args[0], coord.CelestialCoord):
+                ra = args[0].ra
+                dec = args[0].dec
+                radec = True
+                sep = args[1]
+            else:
+                ra, dec = args
+                radec = True
+                if 'sep' not in kwargs:
+                    raise TypeError("Missing required argument sep")
+                sep = kwargs.pop('sep')
+        elif len(args) == 3:
+            ra, dec, sep = args
+            radec = True
+        else:
+            raise TypeError("Too many positional args")
+        if not isinstance(sep, coord.Angle):
+            if 'sep_units' not in kwargs:
+                raise TypeError("Missing required argument sep_units")
+            sep = sep * coord.AngleUnit.from_name(kwargs['sep_units'])
+        # We actually want the chord distance for this angle.
+        sep = 2. * np.sin(sep/2.)
+
+    if radec:
+        if not isinstance(ra, coord.Angle):
+            if 'ra_units' not in kwargs:
+                raise TypeError("Missing required argument ra_units")
+            ra = ra * coord.AngleUnit.from_name(kwargs['ra_units'])
+        if not isinstance(dec, coord.Angle):
+            if 'dec_units' not in kwargs:
+                raise TypeError("Missing required argument dec_units")
+            dec = dec * coord.AngleUnit.from_name(kwargs['dec_units'])
+        x,y,z = coord.CelestialCoord(ra, dec).get_xyz()
+        if _coords == treecorr._lib.ThreeD:
+            x *= r
+            y *= r
+            z *= r
+
+    return float(x), float(y), float(z), float(sep)

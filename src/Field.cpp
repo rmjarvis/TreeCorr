@@ -253,6 +253,64 @@ Field<D,C>::~Field()
 }
 
 template <int D, int C>
+long CountNear(const Cell<D,C>* cell, const Position<C>& pos, double sep, double sepsq)
+{
+    double s = cell->getSize();
+    const double dsq = (cell->getPos() - pos).normSq();
+    dbg<<"CountNear: "<<cell->getPos()<<"  "<<pos<<"  "<<dsq<<"  "<<s<<"  "<<sepsq<<std::endl;
+
+    // If s == 0, then just check dsq
+    if (s==0.) {
+        if (dsq <= sepsq) {
+            dbg<<"s==0, d < sep   N = "<<cell->getN()<<std::endl;
+            Assert(sqrt(dsq) <= sep);
+            return cell->getN();
+        }
+        else {
+            Assert(sqrt(dsq) > sep);
+            dbg<<"s==0, d >= sep\n";
+            return 0;
+        }
+    } else {
+        // If d - s > sep, then no points are close enough.
+        if (dsq > sepsq && dsq > SQR(sep+s)) {
+            Assert(sqrt(dsq) - s > sep);
+            dbg<<"d - s > sep: "<<sqrt(dsq)-s<<" > "<<sep<<std::endl;
+            return 0;
+        }
+
+        // If d + s < sep, then all points are close enough.
+        if (dsq <= sepsq && s < sep && dsq <= SQR(sep-s)) {
+            Assert(sqrt(dsq) + s <= sep);
+            dbg<<"d + s <= sep: "<<sqrt(dsq)+s<<" <= "<<sep<<"  N = "<<cell->getN()<<std::endl;
+            return cell->getN();
+        }
+
+        // Otherwise check the subcells.
+        Assert(cell->getLeft());
+        Assert(cell->getRight());
+        dbg<<"Recurse to subcells\n";
+        return (CountNear(cell->getLeft(), pos, sep, sepsq) +
+                CountNear(cell->getRight(), pos, sep, sepsq));
+    }
+}
+
+template <int D, int C>
+long Field<D,C>::countNear(double x, double y, double z, double sep) const
+{
+    Position<C> pos(x,y,z);
+    double sepsq = sep*sep;
+    long ntot = 0;
+    dbg<<"Start countNear: "<<_cells.size()<<" top level cells\n";
+    for(size_t i=0; i<_cells.size(); ++i) {
+        dbg<<"Top level "<<i<<" with N="<<_cells[i]->getN()<<std::endl;
+        ntot += CountNear(_cells[i], pos, sep, sepsq);
+        dbg<<"ntot -> "<<ntot<<std::endl;
+    }
+    return ntot;
+}
+
+template <int D, int C>
 SimpleField<D,C>::SimpleField(
     double* x, double* y, double* z, double* g1, double* g2, double* k,
     double* w, double* wpos, long nobj)
@@ -397,6 +455,58 @@ void DestroyNField(void* field, int coords)
 { DestroyField<NData>(field, coords); }
 
 template <int D>
+long GetNTopLevel(void* field, int coords)
+{
+    switch(coords) {
+      case Flat:
+           return static_cast<Field<D,Flat>*>(field)->getNTopLevel();
+           break;
+      case Sphere:
+           return static_cast<Field<D,Sphere>*>(field)->getNTopLevel();
+           break;
+      case ThreeD:
+           return static_cast<Field<D,ThreeD>*>(field)->getNTopLevel();
+           break;
+    }
+    return 0;  // Can't get here, but saves a compiler warning
+}
+
+long GFieldGetNTopLevel(void* field, int coords)
+{ return GetNTopLevel<GData>(field, coords); }
+
+long KFieldGetNTopLevel(void* field, int coords)
+{ return GetNTopLevel<KData>(field, coords); }
+
+long NFieldGetNTopLevel(void* field, int coords)
+{ return GetNTopLevel<NData>(field, coords); }
+
+template <int D>
+long CountNear(void* field, double x, double y, double z, double sep, int coords)
+{
+    switch(coords) {
+      case Flat:
+           return static_cast<Field<D,Flat>*>(field)->countNear(x,y,z,sep);
+           break;
+      case Sphere:
+           return static_cast<Field<D,Sphere>*>(field)->countNear(x,y,z,sep);
+           break;
+      case ThreeD:
+           return static_cast<Field<D,ThreeD>*>(field)->countNear(x,y,z,sep);
+           break;
+    }
+    return 0;  // Can't get here, but saves a compiler warning
+}
+
+long GFieldCountNear(void* field, double x, double y, double z, double sep, int coords)
+{ return CountNear<GData>(field, x, y, z, sep, coords); }
+
+long KFieldCountNear(void* field, double x, double y, double z, double sep, int coords)
+{ return CountNear<KData>(field, x, y, z, sep, coords); }
+
+long NFieldCountNear(void* field, double x, double y, double z, double sep, int coords)
+{ return CountNear<NData>(field, x, y, z, sep, coords); }
+
+template <int D>
 void* BuildSimpleField(double* x, double* y, double* z, double* g1, double* g2, double* k,
                        double* w, double* wpos, long nobj, int coords)
 {
@@ -459,29 +569,4 @@ void DestroyKSimpleField(void* field, int coords)
 void DestroyNSimpleField(void* field, int coords)
 { DestroySimpleField<NData>(field, coords); }
 
-template <int D>
-long GetNTopLevel(void* field, int coords)
-{
-    switch(coords) {
-      case Flat:
-           return static_cast<Field<D,Flat>*>(field)->getNTopLevel();
-           break;
-      case Sphere:
-           return static_cast<Field<D,Sphere>*>(field)->getNTopLevel();
-           break;
-      case ThreeD:
-           return static_cast<Field<D,ThreeD>*>(field)->getNTopLevel();
-           break;
-    }
-    return 0;  // Can't get here, but saves a compiler warning
-}
-
-long GFieldGetNTopLevel(void* field, int coords)
-{ return GetNTopLevel<GData>(field, coords); }
-
-long KFieldGetNTopLevel(void* field, int coords)
-{ return GetNTopLevel<KData>(field, coords); }
-
-long NFieldGetNTopLevel(void* field, int coords)
-{ return GetNTopLevel<NData>(field, coords); }
 

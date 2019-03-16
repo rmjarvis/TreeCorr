@@ -80,6 +80,25 @@ class NField(object):
         """The number of top-level nodes."""
         return treecorr._lib.NFieldGetNTopLevel(self.data, self._coords)
 
+    def count_near(self, x, y, z, sep):
+        """Count how many points are near a given coordinate.
+
+        Note: This function requires the coordinate to be given as (x,y,z) and the separation
+              in compatible units.  There is also a version of this function in the Catalog
+              class, which allows for more flexible specification of the coordinate
+              (e.g. using ra, dec).
+
+        :param x:       The x coordinate of the location for which to count nearby points.
+        :param y:       The y coordinate of the location for which to count nearby points.
+        :param z:       The z coordinate of the location for which to count nearby points.
+        :param sep:     The separation distance
+        """
+        x = float(x)
+        y = float(y)
+        z = float(z)
+        sep = float(sep)
+        return treecorr._lib.NFieldCountNear(self.data, x, y, z, sep, self._coords)
+
 
 class KField(object):
     """This class stores the kappa field in a tree structure from which it is efficient
@@ -137,6 +156,25 @@ class KField(object):
     def nTopLevelNodes(self):
         """The number of top-level nodes."""
         return treecorr._lib.NFieldGetNTopLevel(self.data, self._coords)
+
+    def count_near(self, x, y, z, sep):
+        """Count how many points are near a given coordinate.
+
+        Note: This function requires the coordinate to be given as (x,y,z) and the separation
+              in compatible units.  There is also a version of this function in the Catalog
+              class, which allows for more flexible specification of the coordinate
+              (e.g. using ra, dec).
+
+        :param x:       The x coordinate of the location for which to count nearby points.
+        :param y:       The y coordinate of the location for which to count nearby points.
+        :param z:       The z coordinate of the location for which to count nearby points.
+        :param sep:     The separation distance
+        """
+        x = float(x)
+        y = float(y)
+        z = float(z)
+        sep = float(sep)
+        return treecorr._lib.KFieldCountNear(self.data, x, y, z, sep, self._coords)
 
 
 
@@ -196,6 +234,25 @@ class GField(object):
     def nTopLevelNodes(self):
         """The number of top-level nodes."""
         return treecorr._lib.GFieldGetNTopLevel(self.data, self._coords)
+
+    def count_near(self, x, y, z, sep):
+        """Count how many points are near a given coordinate.
+
+        Note: This function requires the coordinate to be given as (x,y,z) and the separation
+              in compatible units.  There is also a version of this function in the Catalog
+              class, which allows for more flexible specification of the coordinate
+              (e.g. using ra, dec).
+
+        :param x:       The x coordinate of the location for which to count nearby points.
+        :param y:       The y coordinate of the location for which to count nearby points.
+        :param z:       The z coordinate of the location for which to count nearby points.
+        :param sep:     The separation distance
+        """
+        x = float(x)
+        y = float(y)
+        z = float(z)
+        sep = float(sep)
+        return treecorr._lib.GFieldCountNear(self.data, x, y, z, sep, self._coords)
 
 
 class NSimpleField(object):

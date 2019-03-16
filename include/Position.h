@@ -19,6 +19,7 @@
 
 // The Coord enum is defined here:
 #include "Position_C.h"
+#include "dbg.h"
 
 template <typename T>
 inline T SQR(T x) { return x * x; }
@@ -46,6 +47,11 @@ public:
         _normsq = rhs._normsq; _norm = rhs._norm;
         return *this;
     }
+
+    // A convenience constructor to be parallel with 3d positions so I can do things like
+    // Position<C> pos(x,y,z) when z=0 for Flat.
+    Position(double x, double y, double z) : _x(x), _y(y), _normsq(0.), _norm(0.)
+    { Assert(z==0.); }
 
     double getX() const { return _x; }
     double getY() const { return _y; }
@@ -226,14 +232,14 @@ public:
     Position<Sphere>& operator/=(double a)
     { Position<ThreeD>::operator/=(a); return *this; }
 
-    Position<Sphere> operator+(const Position<Sphere>& p2) const
-    { Position<Sphere> p1 = *this; p1 += p2; return p1; }
-    Position<Sphere> operator-(const Position<Sphere>& p2) const
-    { Position<Sphere> p1 = *this; p1 -= p2; return p1; }
-    Position<Sphere> operator*(double a) const
-    { Position<Sphere> p1 = *this; p1 *= a; return p1; }
-    Position<Sphere> operator/(double a) const
-    { Position<Sphere> p1 = *this; p1 /= a; return p1; }
+    Position<ThreeD> operator+(const Position<Sphere>& p2) const
+    { Position<ThreeD> p1 = *this; p1 += p2; return p1; }
+    Position<ThreeD> operator-(const Position<Sphere>& p2) const
+    { Position<ThreeD> p1 = *this; p1 -= p2; return p1; }
+    Position<ThreeD> operator*(double a) const
+    { Position<ThreeD> p1 = *this; p1 *= a; return p1; }
+    Position<ThreeD> operator/(double a) const
+    { Position<ThreeD> p1 = *this; p1 /= a; return p1; }
 
 }; // Position<Sphere>
 

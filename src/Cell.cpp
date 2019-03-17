@@ -238,13 +238,11 @@ size_t select_random(size_t lo, size_t hi)
     if (lo == hi) {
         return lo;
     } else {
-        // Get a random number between 0.1 and 0.9
+        // Get a random number between 0 and 1
         double r = rand();
         r /= RAND_MAX;
-        r *= 0.8;
-        r += 0.1;
         size_t mid = size_t(r * (hi-lo+1)) + lo;
-        if (mid > hi) mid = hi;  // Just in case rand() == RAND_MAX
+        if (mid > hi) mid = hi;  // Just in case
         return mid;
     }
 }
@@ -294,8 +292,8 @@ size_t SplitData(
                // The code for RANDOM is same as MEDIAN except for the next line.
                // Note: The lo and hi values are slightly subtle.  We want to make sure if there
                // are only two values, we actually split.  So if start=1, end=3, the only possible
-               // result should be mid=2.  Otherwise, we want roughly 1/4 and 3/4 of the span.
-               mid = select_random(end-3*(end-start)/4,start+3*(end-start)/4);
+               // result should be mid=2.  Otherwise, we want roughly 2/5 and 3/5 of the span.
+               mid = select_random(end-3*(end-start)/5,start+3*(end-start)/5);
 
                typename std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >::iterator middle =
                    vdata.begin()+mid;

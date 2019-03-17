@@ -402,6 +402,19 @@ long Cell<D,C>::countLeaves() const
 }
 
 template <int D, int C>
+bool Cell<D,C>::includesIndex(long index) const
+{
+    if (_left) {
+        return _left->includesIndex(index) || _right->includesIndex(index);
+    } else if (getN() == 1) {
+        return _info.index == index;
+    } else {
+        const std::vector<long>& indices = *_listinfo.indices;
+        return std::find(indices.begin(), indices.end(), index) != indices.end();
+    }
+}
+
+template <int D, int C>
 std::vector<const Cell<D,C>*> Cell<D,C>::getAllLeaves() const
 {
     std::vector<const Cell<D,C>*> ret;

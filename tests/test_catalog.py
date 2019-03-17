@@ -752,6 +752,9 @@ def test_field():
     assert cat1.nfields.count == 1
     assert cat2.nfields.count == 1
     assert cat3.nfields.count == 1
+    assert nfield1 is cat1.nfields.last_value
+    assert nfield2 is cat2.nfields.last_value
+    assert nfield3 is cat3.nfields.last_value
     # The second time, they should already be made and taken from the cache, so much faster.
     print('nfield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
@@ -861,15 +864,16 @@ def test_field():
     assert nfield1b is nfield1
     assert nfield2b is nfield2
     assert nfield3b is nfield3
-    assert nfield1 in [v[3] for v in cat1.nfields.cache.values()]
-    assert nfield2 in [v[3] for v in cat1.nfields.cache.values()]
-    assert nfield3 in [v[3] for v in cat1.nfields.cache.values()]
+    assert nfield1 in cat1.nfields.values()
+    assert nfield2 in cat1.nfields.values()
+    assert nfield3 in cat1.nfields.values()
+    assert nfield3 is cat1.nfields.last_value
 
     # clear_cache will manually remove them.
     cat1.clear_cache()
-    assert nfield1 not in [v[3] for v in cat1.nfields.cache.values()]
-    assert nfield2 not in [v[3] for v in cat1.nfields.cache.values()]
-    assert nfield3 not in [v[3] for v in cat1.nfields.cache.values()]
+    print('values = ',cat1.nfields.values())
+    print('len(cache) = ',len(cat1.nfields.cache))
+    assert len(cat1.nfields.values()) == 0
     assert cat1.nfields.count == 0
     assert cat1.gfields.count == 0
     assert cat1.kfields.count == 0
@@ -896,12 +900,8 @@ def test_field():
     assert nfield1b is not nfield1
     assert nfield2b is not nfield2
     assert nfield3b is not nfield3
-    assert nfield1 not in [v[3] for v in cat1.nfields.cache.values()]
-    assert nfield2 not in [v[3] for v in cat1.nfields.cache.values()]
-    assert nfield3 not in [v[3] for v in cat1.nfields.cache.values()]
-    assert nfield1b not in [v[3] for v in cat1.nfields.cache.values()]
-    assert nfield2b not in [v[3] for v in cat1.nfields.cache.values()]
-    assert nfield3b not in [v[3] for v in cat1.nfields.cache.values()]
+    assert len(cat1.nfields.values()) == 0
+    assert cat1.nfields.last_value is None
 
 
 def test_lru():

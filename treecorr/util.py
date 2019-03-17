@@ -242,6 +242,15 @@ class LRU_Cache:
         if self.count < self.size: self.count += 1
         return result
 
+    def values(self):
+        """Lists all items stored in the cache"""
+        return list([v[3] for v in self.cache.values() if v[3] is not None])
+
+    @property
+    def last_value(self):
+        """Return the most recently used value"""
+        return self.root[0][3]
+
     def resize(self, maxsize):
         """ Resize the cache.  Increasing the size of the cache is non-destructive, i.e.,
         previously cached inputs remain in the cache.  Decreasing the size of the cache will

@@ -25,60 +25,64 @@ def _parse_split_method(split_method):
     else: return 3  # random
 
 
-class NField(object):
-    """This class stores the positions in a tree structure from which it is efficient
-    to compute the two-point correlation functions.
+class Field(object):
+    """A Field in TreeCorr is the object that stores the tree structure we use for efficient
+    calculation of the correlation functions.
 
-    An NField is typically created from a Catalog object using
+    The root "cell" in the tree has information about the whole field, including the total
+    number of points, the total weight, the mean position, the size (by whcih we mean the
+    maximum distance of any point from the mean position), and possibly more information depending
+    on which kind of field we have.
 
-        >>> nfield = cat.getNField(min_size, max_size, b)
+    It also points to two sub-cells which each describe about half the points.  These are commonly
+    referred to as "daughter cells".  They in turn point to two more cells each, and so on until
+    we get to cells that are considered "small enough" according to the `min_size` parameter given
+    in the constructor.  These lowest level cells are referred to as "leaves".
 
-    :param cat:         The catalog from which to make the field.
-    :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)
-    :param max_size:    The maximum radius cell required (usually max_sep). (default: None)
-    :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
-                        (default: 'mean')
-    :param max_top:     The maximum number of top layers to use when setting up the field.
-                        (default: 10)
-    :param coords       The kind of coordinate system to use. (default: cat.coords)
-    :param logger:      A logger file if desired (default: None)
+    Technically, a Field doesn't have just one of these trees.  To make parallel computation
+    more efficient, we actually skip the first few layers of the tree as described above and
+    store a list of root cells.  The three parameters that determine how many of these there
+    will be are `max_size`, `min_top`, and `max_top`::
+
+        - `max_size` sets the maximum size cell that we want to make sure we have in the trees,
+          so the root cells will be at least this large.  The default is None, which means
+          we care about all sizes, so there may be only one root cell (but typically more
+          because of `min_top`).
+        - `min_top` sets the minimum number of initial levels to skip.  The default is 3,
+          which means there will be at least 8 root cells (assuming ntot >= 8).
+        - `max_top` sets the maximum number of initial levels to skip.  The default is 10,
+          which means there could be up to 1024 root cells.
+
+    Finally, the `split_method` parameter sets how the points in a cell should be divided
+    when forming the two daughter cells.  The split is always done according to whichever
+    dimension has the largest extent.  E.g. if max(|x - meanx|) is larger than max(|y - meany|)
+    and (for 3d) max(|z - meanz|), then it will split according to the x values.  But then
+    it may split in different ways according to `split_method`.  The allowed values are::
+
+        - 'mean' means to divide the points at the average (mean) value of x, y or z.
+        - 'median' means to divide the points at the median value of x, y, or z.
+        - 'middle' means to divide the points at midpoint between the minimum and maximum values.
+        - 'random' means to divide the points randomly somewhere between the 40th and 60th
+          percentile locations in the sorted list.
+
+    Field itself is an abstract base class for the specific types of field classes.
+    As such, it cannot be constructed directly.  You should make one of the concrete subclasses:
+
+        - NField describes a field of objects to be counted only.
+        - KField describes a field of points sampling a scalar field (e.g. kappa in the
+          weak lensing context).  In addition to the above values, cells keep track of
+          the mean kappa value in the given region.
+        - GField describes a field of points sampling a spinor field (e.g. gamma in the
+          weak lensing context).  In addition to the above values, cells keep track of
+          the mean (complex) gamma value in the given region.
     """
-    def __init__(self, cat, min_size=0, max_size=None, split_method='mean', max_top=10, coords=None,
-                 logger=None):
-        from treecorr.util import double_ptr as dp
-        if logger:
-            if cat.name != '':
-                logger.info('Building NField from cat %s',cat.name)
-            else:
-                logger.info('Building NField')
-
-        self.min_size = float(min_size)
-        self.max_size = float(max_size) if max_size is not None else 1.e300
-        self.split_method = split_method
-        self._sm = _parse_split_method(split_method)
-        self.max_top = int(max_top)
-        self.coords = coords if coords is not None else cat.coords
-        self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
-
-        self.data = treecorr._lib.BuildNField(dp(cat.x), dp(cat.y), dp(cat.z),
-                                              dp(cat.w), dp(cat.wpos), cat.ntot,
-                                              self.min_size, self.max_size, self._sm,
-                                              self.max_top, self._coords)
-        if logger:
-            logger.debug('Finished building NField (%s)',self.coords)
-
-    def __del__(self):
-        # Using memory allocated from the C layer means we have to explicitly deallocate it
-        # rather than being able to rely on the Python memory manager.
-
-        # In case __init__ failed to get that far
-        if hasattr(self,'data'):  # pragma: no branch
-            treecorr._lib.DestroyNField(self.data, self._coords)
+    def __init__(self):
+        raise NotImplementedError("Field is an abstract base class.  It cannot be instantiated.")
 
     @property
     def nTopLevelNodes(self):
         """The number of top-level nodes."""
-        return treecorr._lib.NFieldGetNTopLevel(self.data, self._coords)
+        return treecorr._lib.FieldGetNTopLevel(self.data, self._d, self._coords)
 
     def count_near(self, *args, **kwargs):
         """Count how many points are near a given coordinate.
@@ -120,12 +124,64 @@ class NField(object):
         coord.CelestialCoord instance as the first argument to specify both RA and Dec.
         """
         x,y,z,sep = treecorr.util.parse_xyzsep(args, kwargs, self._coords)
-        return treecorr._lib.NFieldCountNear(self.data, x, y, z, sep, self._coords)
+        return treecorr._lib.FieldCountNear(self.data, x, y, z, sep, self._d, self._coords)
 
 
-class KField(object):
-    """This class stores the kappa field in a tree structure from which it is efficient
-    to compute the two-point correlation functions.
+class NField(Field):
+    """This class stores the positions and number of objects in a tree structure from which it is
+    efficient to compute correlation functions.
+
+    An NField is typically created from a Catalog object using
+
+        >>> nfield = cat.getNField(min_size, max_size, b)
+
+    :param cat:         The catalog from which to make the field.
+    :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)
+    :param max_size:    The maximum radius cell required (usually max_sep). (default: None)
+    :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
+                        (default: 'mean')
+    :param max_top:     The maximum number of top layers to use when setting up the field.
+                        (default: 10)
+    :param coords       The kind of coordinate system to use. (default: cat.coords)
+    :param logger:      A logger file if desired (default: None)
+    """
+    def __init__(self, cat, min_size=0, max_size=None, split_method='mean', max_top=10, coords=None,
+                 logger=None):
+        from treecorr.util import double_ptr as dp
+        if logger:
+            if cat.name != '':
+                logger.info('Building NField from cat %s',cat.name)
+            else:
+                logger.info('Building NField')
+
+        self.min_size = float(min_size)
+        self.max_size = float(max_size) if max_size is not None else 1.e300
+        self.split_method = split_method
+        self._sm = _parse_split_method(split_method)
+        self.max_top = int(max_top)
+        self._d = 1  # NData
+        self.coords = coords if coords is not None else cat.coords
+        self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
+
+        self.data = treecorr._lib.BuildNField(dp(cat.x), dp(cat.y), dp(cat.z),
+                                              dp(cat.w), dp(cat.wpos), cat.ntot,
+                                              self.min_size, self.max_size, self._sm,
+                                              self.max_top, self._coords)
+        if logger:
+            logger.debug('Finished building NField (%s)',self.coords)
+
+    def __del__(self):
+        # Using memory allocated from the C layer means we have to explicitly deallocate it
+        # rather than being able to rely on the Python memory manager.
+
+        # In case __init__ failed to get that far
+        if hasattr(self,'data'):  # pragma: no branch
+            treecorr._lib.DestroyNField(self.data, self._coords)
+
+
+class KField(Field):
+    """This class stores the values of a scalar field (kappa in the weak lensing context) in a
+    tree structure from which it is efficient to compute correlation functions.
 
     A KField is typically created from a Catalog object using
 
@@ -154,6 +210,7 @@ class KField(object):
         self.max_size = float(max_size) if max_size is not None else 1.e300
         self.split_method = split_method
         self._sm = _parse_split_method(split_method)
+        self._d = 2  # KData
         self.max_top = int(max_top)
         self.coords = coords if coords is not None else cat.coords
         self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
@@ -166,7 +223,6 @@ class KField(object):
         if logger:
             logger.debug('Finished building KField (%s)',self.coords)
 
-
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
@@ -175,26 +231,10 @@ class KField(object):
         if hasattr(self,'data'):  # pragma: no branch
             treecorr._lib.DestroyKField(self.data, self._coords)
 
-    @property
-    def nTopLevelNodes(self):
-        """The number of top-level nodes."""
-        return treecorr._lib.NFieldGetNTopLevel(self.data, self._coords)
 
-    def count_near(self, *args, **kwargs):
-        """Count how many points are near a given coordinate.
-
-        There are several options for how to specify the reference coordinate, which depends
-        on the type of coordinate system this field implements.  See NField.count_near
-        for details.
-        """
-        x,y,z,sep = treecorr.util.parse_xyzsep(args, kwargs, self._coords)
-        return treecorr._lib.KFieldCountNear(self.data, x, y, z, sep, self._coords)
-
-
-
-class GField(object):
-    """This class stores the shear field in a tree structure from which it is efficient
-    to compute the two-point correlation functions.
+class GField(Field):
+    """This class stores the values of a spinor field (gamma in the weak lensing context) in a
+    tree structure from which it is efficient to compute correlation functions.
 
     A GField is typically created from a Catalog object using
 
@@ -223,6 +263,7 @@ class GField(object):
         self.max_size = float(max_size) if max_size is not None else 1.e300
         self.split_method = split_method
         self._sm = _parse_split_method(split_method)
+        self._d = 3  # GData
         self.max_top = int(max_top)
         self.coords = coords if coords is not None else cat.coords
         self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
@@ -235,7 +276,6 @@ class GField(object):
         if logger:
             logger.debug('Finished building GField (%s)',self.coords)
 
-
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
@@ -244,23 +284,24 @@ class GField(object):
         if hasattr(self,'data'):  # pragma: no branch
             treecorr._lib.DestroyGField(self.data, self._coords)
 
-    @property
-    def nTopLevelNodes(self):
-        """The number of top-level nodes."""
-        return treecorr._lib.GFieldGetNTopLevel(self.data, self._coords)
 
-    def count_near(self, *args, **kwargs):
-        """Count how many points are near a given coordinate.
+class SimpleField(object):
+    """A SimpleField is like a Field, but only stores the leaves as a list, skipping all the
+    tree stuff.
 
-        There are several options for how to specify the reference coordinate, which depends
-        on the type of coordinate system this field implements.  See NField.count_near
-        for details.
-        """
-        x,y,z,sep = treecorr.util.parse_xyzsep(args, kwargs, self._coords)
-        return treecorr._lib.GFieldCountNear(self.data, x, y, z, sep, self._coords)
+    Again, this is an abstract base class, which cannot be instantiated.  You should
+    make one of the concrete subclasses:
+
+        - NSimpleField describes a field of objects to be counted only.
+        - KSimpleField describes a field of points sampling a scalar field.
+        - GSimpleField describes a field of points sampling a spinor field.
+    """
+    def __init__(self):
+        raise NotImplementedError(
+            "SimpleField is an abstract base class.  It cannot be instantiated.")
 
 
-class NSimpleField(object):
+class NSimpleField(SimpleField):
     """This class stores the positions as a list, skipping all the tree stuff.
 
     An NSimpleField is typically created from a Catalog object using
@@ -295,7 +336,7 @@ class NSimpleField(object):
             treecorr._lib.DestroyNSimpleField(self.data, self._coords)
 
 
-class KSimpleField(object):
+class KSimpleField(SimpleField):
     """This class stores the kappa field as a list, skipping all the tree stuff.
 
     A KSimpleField is typically created from a Catalog object using
@@ -331,7 +372,7 @@ class KSimpleField(object):
             treecorr._lib.DestroyKSimpleField(self.data, self._coords)
 
 
-class GSimpleField(object):
+class GSimpleField(SimpleField):
     """This class stores the shear field as a list, skipping all the tree stuff.
 
     A GSimpleField is typically created from a Catalog object using

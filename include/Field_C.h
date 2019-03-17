@@ -31,13 +31,9 @@ extern void DestroyGField(void* field, int coords);
 extern void DestroyKField(void* field, int coords);
 extern void DestroyNField(void* field, int coords);
 
-extern long NFieldGetNTopLevel(void* field, int coords);
-extern long KFieldGetNTopLevel(void* field, int coords);
-extern long GFieldGetNTopLevel(void* field, int coords);
-
-extern long NFieldCountNear(void* field, double x, double y, double z, double sep, int coords);
-extern long KFieldCountNear(void* field, double x, double y, double z, double sep, int coords);
-extern long GFieldCountNear(void* field, double x, double y, double z, double sep, int coords);
+extern long FieldGetNTopLevel(void* field, int d, int coords);
+extern long FieldCountNear(void* field, double x, double y, double z, double sep,
+                           int d, int coords);
 
 extern void* BuildGSimpleField(double* x, double* y, double* z, double* g1, double* g2,
                                double* w, double* wpos, long nobj, int coords);

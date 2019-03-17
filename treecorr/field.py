@@ -15,8 +15,9 @@
 .. module:: field
 """
 
-import treecorr
 import numpy as np
+import weakref
+import treecorr
 
 def _parse_split_method(split_method):
     if split_method == 'middle': return 0
@@ -84,8 +85,73 @@ class Field(object):
         """The number of top-level nodes."""
         return treecorr._lib.FieldGetNTopLevel(self.data, self._d, self._coords)
 
+    @property
+    def cat(self):
+        # _cat is a weakref.  This gets back to a Catalog object.
+        return self._cat()
+
     def count_near(self, *args, **kwargs):
         """Count how many points are near a given coordinate.
+
+        Use the existing tree structure to count how many points are within some given separation
+        of a target coordinate.
+
+        There are several options for how to specify the reference coordinate, which depends
+        on the type of coordinate system this field implements.
+
+        1. If self.coords == 'flat', you should provide:
+
+            :param x:       The x coordinate of the location for which to count nearby points.
+            :param y:       The y coordinate of the location for which to count nearby points.
+            :param sep:     The separation distance
+
+        2. If self.coords == '3d', you should provide:
+
+        Either
+            :param x:       The x coordinate of the location for which to count nearby points.
+            :param y:       The y coordinate of the location for which to count nearby points.
+            :param z:       The z coordinate of the location for which to count nearby points.
+            :param sep:     The separation distance
+
+        Or
+            :param ra:      The right ascension of the location for which to count nearby points.
+            :param dec:     The declination of the location for which to count nearby points.
+            :param r:       The distance to the location for which to count nearby points.
+            :param sep:     The separation distance
+
+        3. If self.coords == 'spherical', you should provide:
+
+            :param ra:      The right ascension of the location for which to count nearby points.
+            :param dec:     The declination of the location for which to count nearby points.
+            :param sep:     The separation distance as an angle
+
+        In all cases, for parameters that angles (ra, dec, sep for 'spherical'), you may either
+        provide this quantity as a coord.Angle instance, or you may provide ra_units, dec_units
+        or sep_units respectively to specify which angular units are providing.
+
+        Finally, in cases where ra, dec are allowed, you may instead provide a
+        coord.CelestialCoord instance as the first argument to specify both RA and Dec.
+        """
+        if self.min_size == 0:
+            # If min_size = 0, then regular method is already exact.
+            x,y,z,sep = treecorr.util.parse_xyzsep(args, kwargs, self._coords)
+            return self._count_near(x, y, z, sep)
+        else:
+            # Otherwise, we need to expand the radius a bit and then check the actual radii
+            # using the catalog values.  This is already done in get_near, so just do that
+            # and take the len of the result.
+            return len(self.get_near(*args, **kwargs))
+
+    def _count_near(self, x, y, z, sep):
+        # If self.min_size > 0, these results may be approximate, since the tree will have
+        # grouped points within this separation together.
+        return treecorr._lib.FieldCountNear(self.data, x, y, z, sep, self._d, self._coords)
+
+    def get_near(self, *args, **kwargs):
+        """Get the indices of points near a given coordinate.
+
+        Use the existing tree structure to find the points that are within some given separation
+        of a target coordinate.
 
         There are several options for how to specify the reference coordinate, which depends
         on the type of coordinate system this field implements.
@@ -124,7 +190,34 @@ class Field(object):
         coord.CelestialCoord instance as the first argument to specify both RA and Dec.
         """
         x,y,z,sep = treecorr.util.parse_xyzsep(args, kwargs, self._coords)
-        return treecorr._lib.FieldCountNear(self.data, x, y, z, sep, self._d, self._coords)
+        if self.min_size == 0:
+            # If min_size == 0, then regular method is already exact.
+            ind = self._get_near(x, y, z, sep)
+        else:
+            # Expand the radius by the minimum size of the cells.
+            sep1 = sep + self.min_size
+            # Get those indices
+            ind = self._get_near(x, y, z, sep1)
+            # Now check the actual radii of these points using the catalog x,y,z values.
+            rsq = (self.cat.x[ind]-x)**2 + (self.cat.y[ind]-y)**2
+            if self._coords != treecorr._lib.Flat:
+                rsq += (self.cat.z[ind]-z)**2
+            # Select the ones with r < sep
+            near = rsq < sep**2
+            ind = ind[near]
+        # It comes back unsorted, so sort it.  (Not really required, but nicer output.)
+        return np.sort(ind)
+
+    def _get_near(self, x, y, z, sep):
+        # If self.min_size > 0, these results may be approximate, since the tree will have
+        # grouped points within this separation together.
+        from treecorr.util import long_ptr as lp
+        # First count how many there are, so we can allocate the array for the indices.
+        n = self._count_near(x, y, z, sep)
+        ind = np.empty(n, dtype=int)
+        # Now fill the array with the indices of the nearby points.
+        treecorr._lib.FieldGetNear(self.data, x, y, z, sep, self._d, self._coords, lp(ind), n)
+        return ind
 
 
 class NField(Field):
@@ -154,6 +247,7 @@ class NField(Field):
             else:
                 logger.info('Building NField')
 
+        self._cat = weakref.ref(cat)
         self.min_size = float(min_size)
         self.max_size = float(max_size) if max_size is not None else 1.e300
         self.split_method = split_method
@@ -206,6 +300,7 @@ class KField(Field):
             else:
                 logger.info('Building KField')
 
+        self._cat = weakref.ref(cat)
         self.min_size = float(min_size)
         self.max_size = float(max_size) if max_size is not None else 1.e300
         self.split_method = split_method
@@ -259,6 +354,7 @@ class GField(Field):
             else:
                 logger.info('Building GField')
 
+        self._cat = weakref.ref(cat)
         self.min_size = float(min_size)
         self.max_size = float(max_size) if max_size is not None else 1.e300
         self.split_method = split_method

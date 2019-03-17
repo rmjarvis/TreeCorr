@@ -302,6 +302,69 @@ long Field<D,C>::countNear(double x, double y, double z, double sep) const
 }
 
 template <int D, int C>
+void GetNear(const Cell<D,C>* cell, const Position<C>& pos, double sep, double sepsq,
+             long* indices, int& k, int n)
+{
+    double s = cell->getSize();
+    const double dsq = (cell->getPos() - pos).normSq();
+    dbg<<"GetNear: "<<cell->getPos()<<"  "<<pos<<"  "<<dsq<<"  "<<s<<"  "<<sepsq<<std::endl;
+
+    // If s == 0, then just check dsq
+    if (s==0.) {
+        if (dsq <= sepsq) {
+            dbg<<"s==0, d < sep   N = "<<cell->getN()<<std::endl;
+            Assert(sqrt(dsq) <= sep);
+            Assert(k < n);
+            long n1 = cell->getN();
+            Assert(k + n1 <= n);
+            // This shouldn't happen, but if it does, we can get a seg fault, so check.
+            if (k + n1 > n) return;
+            if (n1 == 1) {
+                dbg<<"N == 1 case\n";
+                indices[k++] = cell->getInfo().index;
+            } else {
+                dbg<<"N > 1 case: "<<n1<<std::endl;
+                std::vector<long>* leaf_indices = cell->getListInfo().indices;
+                Assert(leaf_indices->size() == n1);
+                for (int m=0; m<n1; ++m)
+                    indices[k++] = (*leaf_indices)[m];
+            }
+            Assert(k <= n);
+        } else {
+            Assert(sqrt(dsq) > sep);
+            dbg<<"s==0, d >= sep\n";
+        }
+    } else {
+        // If d - s > sep, then no points are close enough.
+        if (dsq > sepsq && dsq > SQR(sep+s)) {
+            Assert(sqrt(dsq) - s > sep);
+            dbg<<"d - s > sep: "<<sqrt(dsq)-s<<" > "<<sep<<std::endl;
+        } else {
+            // Otherwise check the subcells.
+            Assert(cell->getLeft());
+            Assert(cell->getRight());
+            dbg<<"Recurse to subcells\n";
+            GetNear(cell->getLeft(), pos, sep, sepsq, indices, k, n);
+            GetNear(cell->getRight(), pos, sep, sepsq, indices, k, n);
+        }
+    }
+}
+
+template <int D, int C>
+void Field<D,C>::getNear(double x, double y, double z, double sep, long* indices, int n) const
+{
+    Position<C> pos(x,y,z);
+    double sepsq = sep*sep;
+    dbg<<"Start countNear: "<<_cells.size()<<" top level cells\n";
+    int k = 0;
+    for(size_t i=0; i<_cells.size(); ++i) {
+        dbg<<"Top level "<<i<<" with N="<<_cells[i]->getN()<<std::endl;
+        GetNear(_cells[i], pos, sep, sepsq, indices, k, n);
+        dbg<<"k -> "<<k<<std::endl;
+    }
+}
+
+template <int D, int C>
 SimpleField<D,C>::SimpleField(
     double* x, double* y, double* z, double* g1, double* g2, double* k,
     double* w, double* wpos, long nobj)
@@ -509,6 +572,39 @@ long FieldCountNear(void* field, double x, double y, double z, double sep, int d
            break;
     }
     return 0;  // Can't get here, but saves a compiler warning
+}
+
+template <int D>
+void FieldGetNear1(void* field, double x, double y, double z, double sep, int coords,
+                   long* indices, int n)
+{
+    switch(coords) {
+      case Flat:
+           static_cast<Field<D,Flat>*>(field)->getNear(x,y,z,sep,indices,n);
+           break;
+      case Sphere:
+           static_cast<Field<D,Sphere>*>(field)->getNear(x,y,z,sep,indices,n);
+           break;
+      case ThreeD:
+           static_cast<Field<D,ThreeD>*>(field)->getNear(x,y,z,sep,indices,n);
+           break;
+    }
+}
+
+void FieldGetNear(void* field, double x, double y, double z, double sep, int d, int coords,
+                  long* indices, int n)
+{
+    switch(d) {
+      case NData:
+           FieldGetNear1<NData>(field, x, y, z, sep, coords, indices, n);
+           break;
+      case KData:
+           FieldGetNear1<KData>(field, x, y, z, sep, coords, indices, n);
+           break;
+      case GData:
+           FieldGetNear1<GData>(field, x, y, z, sep, coords, indices, n);
+           break;
+    }
 }
 
 template <int D>

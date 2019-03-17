@@ -49,6 +49,7 @@ public:
     long getNTopLevel() const { return long(_cells.size()); }
     const std::vector<Cell<D,C>*>& getCells() const { return _cells; }
     long countNear(double x, double y, double z, double sep) const;
+    void getNear(double x, double y, double z, double sep, long* indices, int n) const;
 
 private:
 

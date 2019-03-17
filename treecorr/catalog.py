@@ -17,6 +17,7 @@
 
 import numpy as np
 import coord
+import weakref
 import treecorr
 
 class Catalog(object):
@@ -102,6 +103,14 @@ class Catalog(object):
                  'flat' = 2-dimensional flat coordinates.  Set when x,y are given.
                  'spherical' = spherical coordinates.  Set when ra,dec are given.
                  '3d' = 3-dimensional coordinates.  Set when x,y,z or ra,dec,r are given.
+
+        :field:  If any of the get?Field methods have been called to construct a field from
+                 this catalog (either explicitly or implicitly via a corr.process() command),
+                 then this attribute will hold the most recent field to have been constructed.
+                 Note: it holds this field as a weakref, so if caching is turned off with
+                 resize_cache(0), and the field has been garbage collected, then this attribute
+                 will be None.
+
 
     :param file_name:   The name of the catalog file to be read in. (default: None, in which case
                         the columns need to be entered directly with `x`, `y`, etc.)
@@ -382,6 +391,7 @@ class Catalog(object):
         self.g1 = None
         self.g2 = None
         self.k = None
+        self._field = lambda : None  # Acts like a dead weakref
 
         # Make simple functions that call NField, etc. with self as the first argument.
 
@@ -1079,7 +1089,14 @@ class Catalog(object):
         self.nsimplefields.clear()
         self.ksimplefields.clear()
         self.gsimplefields.clear()
+        self._field = lambda : None  # Acts like a dead weakref
 
+    @property
+    def field(self):
+        # The default is to return None here.
+        # This might also return None if weakref has expired.
+        # But if the weakref is alive, this returns the field we want.
+        return self._field()
 
     def getNField(self, min_size=0, max_size=None, split_method=None, max_top=10, coords=None,
                   logger=None):
@@ -1104,8 +1121,10 @@ class Catalog(object):
             split_method = treecorr.config.get(self.config,'split_method',str,'mean')
         if logger is None:
             logger = self.logger
-        return self.nfields(min_size, max_size, split_method, max_top, coords,
-                            logger=logger)
+        field = self.nfields(min_size, max_size, split_method, max_top, coords,
+                             logger=logger)
+        self._field = weakref.ref(field)
+        return field
 
 
     def getKField(self, min_size=0, max_size=None, split_method=None, max_top=10, coords=None,
@@ -1133,8 +1152,10 @@ class Catalog(object):
             raise AttributeError("k is not defined.")
         if logger is None:
             logger = self.logger
-        return self.kfields(min_size, max_size, split_method, max_top, coords,
-                            logger=logger)
+        field = self.kfields(min_size, max_size, split_method, max_top, coords,
+                             logger=logger)
+        self._field = weakref.ref(field)
+        return field
 
 
     def getGField(self, min_size=0, max_size=None, split_method=None, max_top=10, coords=None,
@@ -1162,8 +1183,10 @@ class Catalog(object):
             raise AttributeError("g1,g2 are not defined.")
         if logger is None:
             logger = self.logger
-        return self.gfields(min_size, max_size, split_method, max_top, coords,
-                            logger=logger)
+        field = self.gfields(min_size, max_size, split_method, max_top, coords,
+                             logger=logger)
+        self._field = weakref.ref(field)
+        return field
 
 
     def getNSimpleField(self, logger=None):

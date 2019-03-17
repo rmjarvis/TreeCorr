@@ -236,8 +236,10 @@ public:
     const Cell<D,C>* getRight() const { return _left ? _right : 0; }
     const LeafInfo* getInfo() const { return _left ? 0 : &_info; }
 
+    // These are mostly used for debugging purposes.
     long countLeaves() const;
     std::vector<const Cell<D,C>*> getAllLeaves() const;
+    bool includesIndex(long index) const;
 
     void Write(std::ostream& os) const;
     void WriteTree(std::ostream& os, int indent=0) const;

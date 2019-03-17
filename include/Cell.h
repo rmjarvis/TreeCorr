@@ -234,7 +234,8 @@ public:
 
     const Cell<D,C>* getLeft() const { return _left; }
     const Cell<D,C>* getRight() const { return _left ? _right : 0; }
-    const LeafInfo* getInfo() const { return _left ? 0 : &_info; }
+    const LeafInfo& getInfo() const { Assert(!_left && getN()==1); return _info; }
+    const ListLeafInfo& getListInfo() const { Assert(!_left && getN()!=1); return _listinfo; }
 
     // These are mostly used for debugging purposes.
     long countLeaves() const;

@@ -455,7 +455,7 @@ void DestroyNField(void* field, int coords)
 { DestroyField<NData>(field, coords); }
 
 template <int D>
-long GetNTopLevel(void* field, int coords)
+long FieldGetNTopLevel1(void* field, int coords)
 {
     switch(coords) {
       case Flat:
@@ -471,17 +471,24 @@ long GetNTopLevel(void* field, int coords)
     return 0;  // Can't get here, but saves a compiler warning
 }
 
-long GFieldGetNTopLevel(void* field, int coords)
-{ return GetNTopLevel<GData>(field, coords); }
-
-long KFieldGetNTopLevel(void* field, int coords)
-{ return GetNTopLevel<KData>(field, coords); }
-
-long NFieldGetNTopLevel(void* field, int coords)
-{ return GetNTopLevel<NData>(field, coords); }
+long FieldGetNTopLevel(void* field, int d, int coords)
+{
+    switch(d) {
+      case NData:
+        return FieldGetNTopLevel1<NData>(field, coords);
+        break;
+      case KData:
+        return FieldGetNTopLevel1<KData>(field, coords);
+        break;
+      case GData:
+        return FieldGetNTopLevel1<GData>(field, coords);
+        break;
+    }
+    return 0;  // Can't get here, but saves a compiler warning
+}
 
 template <int D>
-long CountNear(void* field, double x, double y, double z, double sep, int coords)
+long FieldCountNear1(void* field, double x, double y, double z, double sep, int coords)
 {
     switch(coords) {
       case Flat:
@@ -497,14 +504,21 @@ long CountNear(void* field, double x, double y, double z, double sep, int coords
     return 0;  // Can't get here, but saves a compiler warning
 }
 
-long GFieldCountNear(void* field, double x, double y, double z, double sep, int coords)
-{ return CountNear<GData>(field, x, y, z, sep, coords); }
-
-long KFieldCountNear(void* field, double x, double y, double z, double sep, int coords)
-{ return CountNear<KData>(field, x, y, z, sep, coords); }
-
-long NFieldCountNear(void* field, double x, double y, double z, double sep, int coords)
-{ return CountNear<NData>(field, x, y, z, sep, coords); }
+long FieldCountNear(void* field, double x, double y, double z, double sep, int d, int coords)
+{
+    switch(d) {
+      case NData:
+           return FieldCountNear1<NData>(field, x, y, z, sep, coords);
+           break;
+      case KData:
+           return FieldCountNear1<KData>(field, x, y, z, sep, coords);
+           break;
+      case GData:
+           return FieldCountNear1<GData>(field, x, y, z, sep, coords);
+           break;
+    }
+    return 0;  // Can't get here, but saves a compiler warning
+}
 
 template <int D>
 void* BuildSimpleField(double* x, double* y, double* z, double* g1, double* g2, double* k,

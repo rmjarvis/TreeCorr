@@ -17,6 +17,7 @@ import os
 import time
 import coord
 import warnings
+import gc
 from numpy import pi
 import treecorr
 
@@ -740,6 +741,10 @@ def test_field():
     cat3 = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k, w=w)
     logger = treecorr.config.setup_logger(1)
 
+    assert cat1.field is None  # Before calling get*Field, this is None.
+    assert cat2.field is None
+    assert cat3.field is None
+
     t0 = time.time()
     nfield1 = cat1.getNField(1,1000)
     nfield2 = cat2.getNField(0.01, 1)
@@ -752,9 +757,12 @@ def test_field():
     assert cat1.nfields.count == 1
     assert cat2.nfields.count == 1
     assert cat3.nfields.count == 1
-    assert nfield1 is cat1.nfields.last_value
-    assert nfield2 is cat2.nfields.last_value
-    assert nfield3 is cat3.nfields.last_value
+    assert cat1.nfields.last_value is nfield1
+    assert cat2.nfields.last_value is nfield2
+    assert cat3.nfields.last_value is nfield3
+    assert cat1.field is nfield1
+    assert cat2.field is nfield2
+    assert cat3.field is nfield3
     # The second time, they should already be made and taken from the cache, so much faster.
     print('nfield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
@@ -771,6 +779,9 @@ def test_field():
     assert cat1.gfields.count == 1
     assert cat2.gfields.count == 1
     assert cat3.gfields.count == 1
+    assert cat1.field is gfield1
+    assert cat2.field is gfield2
+    assert cat3.field is gfield3
     print('gfield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
 
@@ -786,6 +797,9 @@ def test_field():
     assert cat1.kfields.count == 1
     assert cat2.kfields.count == 1
     assert cat3.kfields.count == 1
+    assert cat1.field is kfield1
+    assert cat2.field is kfield2
+    assert cat3.field is kfield3
     print('kfield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
 
@@ -801,6 +815,9 @@ def test_field():
     assert cat1.nsimplefields.count == 1
     assert cat2.nsimplefields.count == 1
     assert cat3.nsimplefields.count == 1
+    assert cat1.field is kfield1   # SimpleFields don't supplant the field attribute
+    assert cat2.field is kfield2
+    assert cat3.field is kfield3
     print('nsimplefield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
 
@@ -816,6 +833,9 @@ def test_field():
     assert cat1.gsimplefields.count == 1
     assert cat2.gsimplefields.count == 1
     assert cat3.gsimplefields.count == 1
+    assert cat1.field is kfield1   # SimpleFields don't supplant the field attribute
+    assert cat2.field is kfield2
+    assert cat3.field is kfield3
     print('gsimplefield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
 
@@ -831,6 +851,9 @@ def test_field():
     assert cat1.ksimplefields.count == 1
     assert cat2.ksimplefields.count == 1
     assert cat3.ksimplefields.count == 1
+    assert cat1.field is kfield1   # SimpleFields don't supplant the field attribute
+    assert cat2.field is kfield2
+    assert cat3.field is kfield3
     print('ksimplefield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
 
@@ -848,6 +871,7 @@ def test_field():
     assert cat1.nsimplefields.count == 1
     assert cat1.ksimplefields.count == 1
     assert cat1.gsimplefields.count == 1
+    assert cat1.field is kfield1
 
     t0 = time.time()
     nfield1 = cat1.getNField(1,1000)
@@ -864,10 +888,11 @@ def test_field():
     assert nfield1b is nfield1
     assert nfield2b is nfield2
     assert nfield3b is nfield3
-    assert nfield1 in cat1.nfields.values()
+    assert cat1.nfields.values()
     assert nfield2 in cat1.nfields.values()
     assert nfield3 in cat1.nfields.values()
-    assert nfield3 is cat1.nfields.last_value
+    assert cat1.nfields.last_value is nfield3
+    assert cat1.field is nfield3
 
     # clear_cache will manually remove them.
     cat1.clear_cache()
@@ -880,6 +905,7 @@ def test_field():
     assert cat1.nsimplefields.count == 0
     assert cat1.gsimplefields.count == 0
     assert cat1.ksimplefields.count == 0
+    assert cat1.field is None
 
     # Can also resize to 0
     cat1.resize_cache(0)
@@ -902,6 +928,14 @@ def test_field():
     assert nfield3b is not nfield3
     assert len(cat1.nfields.values()) == 0
     assert cat1.nfields.last_value is None
+
+    # The field still holds this, since it hasn't been garbage collected.
+    assert cat1.field is nfield3b
+    del nfield3b  # Delete the version from this scope so it can be garbage collected.
+    print('before garbage collection: cat1.field = ',cat1.field)
+    gc.collect()
+    print('after garbage collection: cat1.field = ',cat1.field)
+    assert cat1.field is None
 
 
 def test_lru():

@@ -323,7 +323,7 @@ def long_ptr(x):
 
     :returns:   A version of the array that can be passed to cffi C functions.
     """
-    if x is None:
+    if x is None:  # pragma: no cover   (I don't ever have x=None for this one.)
         return treecorr._ffi.cast('long*', 0)
     else:
         return treecorr._ffi.cast('long*', x.ctypes.data)

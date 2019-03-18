@@ -577,6 +577,22 @@ class Catalog(object):
         self.checkForNaN(self.w,'w')
         self.checkForNaN(self.wpos,'wpos')
 
+        # Copy w to wpos if necessary (Do this after checkForNaN's, since this may set some
+        # entries to have w=0.)
+        if self.wpos is None:
+            self.logger.debug('Using w for wpos')
+        else:
+            # Check that any wpos == 0 points also have w == 0
+            if np.any(self.wpos == 0.):
+                if self.w is None:
+                    self.logger.warning('Some wpos values are zero, setting w=0 for these points.')
+                    self.w = np.ones((self.ntot), dtype=float)
+                else:
+                    if np.any(self.w[self.wpos == 0.] != 0.):
+                        self.logger.error('Some wpos values = 0 but have w!=0. This is invalid.\n'
+                                          'Setting w=0 for these points.')
+                self.w[self.wpos == 0.] = 0.
+
         # Calculate some summary parameters here that will typically be needed
         if self.w is not None:
             self.nontrivial_w = True
@@ -608,23 +624,6 @@ class Catalog(object):
             else:
                 self.vark = 0.
             self.w = np.ones((self.ntot), dtype=float)
-
-        # Copy w to wpos if necessary (Do this after checkForNaN's, since this may set some
-        # entries to have w=0.)
-        if self.wpos is None:
-            self.logger.debug('Using w for wpos')
-        else:
-            # Check that any wpos == 0 points also have w == 0
-            if np.any(self.wpos == 0.):
-                if self.w is None:
-                    self.logger.warning('Some wpos values are zero, setting w=0 for these points.')
-                    self.w = np.ones((self.ntot), dtype=float)
-                    self.w[self.wpos == 0.] = 0.
-                else:
-                    if np.any(self.w[self.wpos == 0.] != 0.):
-                        self.logger.error('Some wpos values = 0 but have w!=0. This is invalid.\n'
-                                          'Setting w=0 for these points.')
-                        self.w[self.wpos == 0.] = 0.
 
         if self.ra is not None:
             # Should have already been checked above, so just use assert here.

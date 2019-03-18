@@ -305,8 +305,8 @@ class KField(Field):
         self.max_size = float(max_size) if max_size is not None else 1.e300
         self.split_method = split_method
         self._sm = _parse_split_method(split_method)
-        self._d = 2  # KData
         self.max_top = int(max_top)
+        self._d = 2  # KData
         self.coords = coords if coords is not None else cat.coords
         self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
 
@@ -359,8 +359,8 @@ class GField(Field):
         self.max_size = float(max_size) if max_size is not None else 1.e300
         self.split_method = split_method
         self._sm = _parse_split_method(split_method)
-        self._d = 3  # GData
         self.max_top = int(max_top)
+        self._d = 3  # GData
         self.coords = coords if coords is not None else cat.coords
         self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
 

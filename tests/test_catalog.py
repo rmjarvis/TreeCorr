@@ -110,8 +110,8 @@ def test_ascii():
     cat4 = treecorr.Catalog(file_name, config)
     np.testing.assert_almost_equal(cat4.w[flags < 16], 1.)
     np.testing.assert_almost_equal(cat4.w[flags >= 16], 0.)
-    config['w_col'] = 8  # Put it back for later.
-    config['wpos_col'] = 11  # Put them back for later.
+    config['w_col'] = 8  # Put them back for later.
+    config['wpos_col'] = 11
 
     # Check different units for x,y
     config['x_units'] = 'arcsec'
@@ -227,10 +227,13 @@ def test_ascii():
     np.testing.assert_almost_equal(cat10.w, w)
 
     # And if there is wpos, but no w, copy over the zeros, but not the other values
-    cat10 = treecorr.Catalog(file_name, config, w_col=0, wpos_col=11, flag_col=0)
+    with CaptureLog() as cl:
+        cat10 = treecorr.Catalog(file_name, config, w_col=0, wpos_col=11, flag_col=0,
+                                 logger=cl.logger)
     np.testing.assert_almost_equal(cat10.wpos, wpos)
     np.testing.assert_almost_equal(cat10.w[wpos==0], 0)
     np.testing.assert_almost_equal(cat10.w[wpos!=0], 1)
+    assert 'Some wpos values are zero, setting w=0 for these points' in cl.output
 
 
 def test_fits():

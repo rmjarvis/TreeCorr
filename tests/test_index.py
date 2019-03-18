@@ -15,6 +15,7 @@ from __future__ import print_function
 import numpy as np
 import time
 import coord
+import gc
 import treecorr
 
 from test_helper import CaptureLog, assert_raises
@@ -158,6 +159,10 @@ def test_count_near():
     assert n6 == n1
     assert n7 == n1
     assert n8 == n1
+
+    # I haven't figured this out yet, but in python 3.7, if I omit this, then
+    # things eventually hang when garbage collecting the fields.
+    gc.collect()
 
 
 def test_get_near():

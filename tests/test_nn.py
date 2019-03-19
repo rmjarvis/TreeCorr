@@ -1974,6 +1974,41 @@ def test_varxi():
     np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.05 * tol_factor)
 
 
+def test_sph_linear():
+
+    # Initially, there was an error using linear binning with sep_units.
+    # This isn't always with Spherical coords, but that's the most typical case.
+    # This unit test recapitulates the code in the report from Ismael Ferrero.
+    config = {
+        'nbins': 9,
+        'min_sep'  : 0.5,
+        'max_sep'  : 9.5,
+        'sep_units':'degrees',
+        'bin_type': 'Linear',
+        'bin_slop' : 0.05,
+        'metric' : 'Arc'
+    }
+
+    ngal = 100000
+    x = np.random.normal(10, 1, (ngal,) )
+    y = np.random.normal(30, 1, (ngal,) )
+    z = np.random.normal(20, 1, (ngal,) )
+    r = np.sqrt(x*x+y*y+z*z)
+    dec = np.arcsin(z/r) * coord.radians / coord.degrees
+    ra = np.arctan2(y,x) * coord.radians / coord.degrees
+
+    cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='deg', dec_units='deg')
+
+    dd = treecorr.NNCorrelation(config)
+    dd.process(cat, num_threads=1)
+
+    print('dd.rnom = ',dd.rnom)
+    print('dd.meanr = ',dd.meanr)
+    print('dd.npairs = ',dd.npairs)
+    np.testing.assert_allclose(dd.rnom, range(1,10))
+    np.testing.assert_allclose(dd.meanr, range(1,10), rtol=0.1)
+
+
 if __name__ == '__main__':
     test_log_binning()
     test_linear_binning()
@@ -1989,3 +2024,4 @@ if __name__ == '__main__':
     test_list()
     test_perp_minmax()
     test_split()
+    test_sph_linear()

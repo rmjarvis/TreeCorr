@@ -116,7 +116,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         from treecorr.util import double_ptr as dp
         self.corr = treecorr._lib.BuildKKKCorr(
                 self._bintype,
-                self._min_sep,self._max_sep,self.nbins,self.bin_size,self.b,
+                self._min_sep,self._max_sep,self.nbins,self._bin_size,self.b,
                 self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                 self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
                 self.min_rpar, self.max_rpar,

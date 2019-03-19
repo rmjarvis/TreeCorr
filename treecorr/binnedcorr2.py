@@ -293,7 +293,8 @@ class BinnedCorr2(object):
             self._nbins = self.nbins
             self._bintype = treecorr._lib.Log
             min_log_bin_size = self.bin_size
-            bwarning_text = "b <= 0.1"
+            max_log_bin_size = self.bin_size
+            max_good_slop = 0.1 / self.bin_size
         elif self.bin_type == 'Linear':
             if self.nbins is None:
                 self.nbins = int(math.ceil((self.max_sep-self.min_sep)/self.bin_size))
@@ -314,7 +315,8 @@ class BinnedCorr2(object):
             self._nbins = self.nbins
             self._bintype = treecorr._lib.Linear
             min_log_bin_size = self.bin_size / self.max_sep
-            bwarning_text = "bin_slop <= 0.1"
+            max_log_bin_size = self.bin_size / (self.min_sep + self.bin_size/2)
+            max_good_slop = 0.1 / max_log_bin_size
         elif self.bin_type == 'TwoD':
             if self.nbins is None:
                 self.nbins = int(math.ceil(2.*self.max_sep / self.bin_size))
@@ -335,7 +337,8 @@ class BinnedCorr2(object):
             self._nbins = self.nbins**2
             self._bintype = treecorr._lib.TwoD
             min_log_bin_size = self.bin_size / self.max_sep
-            bwarning_text = "bin_slop <= 0.1"
+            max_log_bin_size = self.bin_size / (self.min_sep + self.bin_size/2)
+            max_good_slop = 0.1 / max_log_bin_size
         else:
             raise ValueError("Invalid bin_type %s"%self.bin_type)
 
@@ -363,17 +366,13 @@ class BinnedCorr2(object):
 
         self.bin_slop = treecorr.config.get(self.config,'bin_slop',float,-1.0)
         if self.bin_slop < 0.0:
-            if min_log_bin_size <= 0.1:
-                self.bin_slop = 1.0
-            else:
-                self.bin_slop = 0.1 / min_log_bin_size
+            self.bin_slop = min(max_good_slop, 1.0)
         self.b = min_log_bin_size * self.bin_slop
-        if self.b > 0.10001:  # Add some numerical slop
+        if self.bin_slop > max_good_slop + 0.0001:  # Add some numerical slop
             self.logger.warning(
-                    "Using bin_slop = %g, bin_size = %g\n"%(self.bin_slop,self.bin_size)+
-                    "The b parameter is bin_slop * %g = %g\n"%(min_log_bin_size,self.b)+
-                    "It is generally recommended to use %s for most applications.\n"%bwarning_text+
-                    "Larger values of bin_slop (and hence b) may result in significant inaccuracies.")
+                "Using bin_slop = %g, bin_size = %g, b = %g\n"%(self.bin_slop,self.bin_size,self.b)+
+                "It is recommended to use bin_slop <= %s in this case.\n"%max_good_slop+
+                "Larger values of bin_slop (and hence b) may result in significant inaccuracies.")
         else:
             self.logger.debug("Using bin_slop = %g, b = %g",self.bin_slop,self.b)
 

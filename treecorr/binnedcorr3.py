@@ -284,6 +284,8 @@ class BinnedCorr3(object):
         # The underscore-prefixed names are in natural units (radians for angles)
         self._min_sep = self.min_sep * self._sep_units
         self._max_sep = self.max_sep * self._sep_units
+        self._bin_size = self.bin_size  # There is not Linear, but if I add it, need to apply
+                                        # units to _bin_size in that case as well.
 
         self.min_u = float(self.config.get('min_u', 0.))
         self.max_u = float(self.config.get('max_u', 1.))

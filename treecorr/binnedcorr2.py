@@ -290,6 +290,9 @@ class BinnedCorr2(object):
             # Offset by the position of the center of the first bin.
             self.logr += math.log(self.min_sep) + 0.5*self.bin_size
             self.rnom = np.exp(self.logr)
+            half_bin = np.exp(0.5*self.bin_size)
+            self.left_edges = self.rnom / half_bin
+            self.right_edges = self.rnom * half_bin
             self._nbins = self.nbins
             self._bintype = treecorr._lib.Log
             min_log_bin_size = self.bin_size
@@ -311,6 +314,8 @@ class BinnedCorr2(object):
                                        dtype=float)
             # Offset by the position of the center of the first bin.
             self.rnom += 0.5*self.bin_size
+            self.left_edges = self.rnom - 0.5*self.bin_size
+            self.right_edges = self.rnom + 0.5*self.bin_size
             self.logr = np.log(self.rnom)
             self._nbins = self.nbins
             self._bintype = treecorr._lib.Linear
@@ -330,6 +335,10 @@ class BinnedCorr2(object):
                                  dtype=float)
             sep += 0.5 * self.bin_size
             self.dx, self.dy = np.meshgrid(sep, sep)
+            self.left_edges = self.dx - 0.5*self.bin_size
+            self.right_edges = self.dx + 0.5*self.bin_size
+            self.bottom_edges = self.dy - 0.5*self.bin_size
+            self.top_edges = self.dy + 0.5*self.bin_size
             self.rnom = np.sqrt(self.dx**2 + self.dy**2)
             self.logr = np.zeros_like(self.rnom)
             np.log(self.rnom, out=self.logr, where=self.rnom > 0)
@@ -472,3 +481,74 @@ class BinnedCorr2(object):
             # (And for the max_size, always split 10 levels for the top-level cells.)
             return 0., 0.
 
+    def sample_pairs(self, n, cat1, cat2, min_sep, max_sep, metric=None):
+        """Return a random sample of n pairs whose separations fall between min_sep and max_sep.
+
+        This would typically be used to get some random subset of the indices of pairs that
+        fell into a particular bin of the correlation.  E.g. to get 100 pairs from the third
+        bin of a BinnedCorr2 instance, corr, you could write::
+
+            >>> min_sep = corr.left_edges[2]   # third bin has i=2
+            >>> max_sep = corr.right_edges[2]
+            >>> i1, i2, sep = corr.sample_pairs(100, cat1, cat2, min_sep, max_sep)
+
+        The min_sep and max_sep should use the same units as were defined which constructing
+        the corr instance.
+
+        The selection process will also use the same bin_slop as specified (either explicitly or
+        implicitly) when constructing the corr instance.  This means that some of the pairs may
+        have actual separations slightly outside of the specified range.  If you want a selection
+        using an exact range without any slop, you should construct a new Correlation instance
+        with bin_slop=0, and call sample_pairs with that.
+
+        Also, note that min_sep and max_sep may be arbitrary.  There is no requirement that they
+        be edges of one of the standard bins for this correlation function.  There is also no
+        requirement that this correlation instance has already accumulated pairs via a call
+        to process with these catalogs.
+
+        :param n:           How many samples to return.
+        :param cat1:        The catalog from which to sample the first object of each pair.
+        :param cat2:        The catalog from which to sample the second object of each pair.
+                            (This may be the same as cat1.)
+        :param min_sep:     The minimum separation for the returned pairs (modulo some slop
+                            allowed by the bin_slop parameter).
+        :param max_sep:     The maximum separation for the returned pairs (modulo some slop
+                            allowed by the bin_slop parameter).
+        :param metric:      Which metric to use.  See :meth:`~treecorr.NNCorrelation.process` for
+                            details.  (default: self.metric, or 'Euclidean' if not set yet)
+
+        :returns: (i1, i2, sep) as a tuple of numpy arrays
+        """
+        from .util import long_ptr as lp
+        from .util import double_ptr as dp
+
+        if metric is None:
+            metric = self.config.get('metric', 'Euclidean')
+
+        self._set_metric(metric, cat1.coords, cat2.coords)
+
+        f1 = cat1.field
+        f2 = cat2.field
+
+        if f1 is None or f1._coords != self._coords:
+            self.logger.debug("In sample_pairs, making default field for cat1")
+            f1 = cat1.getNField()
+        if f2 is None or f2._coords != self._coords:
+            self.logger.debug("In sample_pairs, making default field for cat2")
+            f2 = cat2.getNField()
+
+        i1 = np.zeros(n, dtype=int)
+        i2 = np.zeros(n, dtype=int)
+        sep = np.zeros(n, dtype=float)
+        ntot = treecorr._lib.SamplePairs(self.corr, f1.data, f2.data, min_sep, max_sep,
+                                         f1._d, f2._d, self._coords, self._metric,
+                                         self._bintype, lp(i1), lp(i2), dp(sep), n)
+
+        if ntot < n:
+            n = ntot
+            i1 = i1[:n]
+            i2 = i2[:n]
+            sep = sep[:n]
+        self.logger.info("Sampled %d pairs out of a total of %d.", n, ntot)
+
+        return i1, i2, sep

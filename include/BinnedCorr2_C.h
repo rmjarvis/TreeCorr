@@ -81,3 +81,6 @@ extern void ProcessPairGG(void* corr, void* field1, void* field2, int dots, int 
 
 extern int SetOMPThreads(int num_threads);
 
+extern long SamplePairs(void* corr, void* field1, void* field2, double min_sep, double max_sep,
+                        int d1, int d2, int coords, int metric, int bin_type,
+                        long* i1, long* i2, double* sep, int n);

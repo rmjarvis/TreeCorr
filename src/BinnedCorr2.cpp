@@ -20,6 +20,10 @@
 #include "BinnedCorr2.h"
 #include "Split.h"
 #include "ProjectHelper.h"
+#include "Metric.h"
+#include <vector>
+#include <set>
+#include <map>
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -548,6 +552,345 @@ void BinnedCorr2<D1,D2,B>::operator+=(const BinnedCorr2<D1,D2,B>& rhs)
     for (int i=0; i<_nbins; ++i) _weight[i] += rhs._weight[i];
     for (int i=0; i<_nbins; ++i) _npairs[i] += rhs._npairs[i];
 }
+
+template <int D1, int D2, int B> template <int C, int M>
+long BinnedCorr2<D1,D2,B>::samplePairs(
+    const Field<D1, C>& field1, const Field<D2, C>& field2,
+    double minsep, double maxsep, long* i1, long* i2, double* sep, int n)
+{
+    Assert(_coords == -1 || _coords == C);
+    _coords = C;
+    const long n1 = field1.getNTopLevel();
+    const long n2 = field2.getNTopLevel();
+    dbg<<"field1 has "<<n1<<" top level nodes\n";
+    dbg<<"field2 has "<<n2<<" top level nodes\n";
+    Assert(n1 > 0);
+    Assert(n2 > 0);
+
+    double minsepsq = minsep*minsep;
+    double maxsepsq = maxsep*maxsep;
+
+    long k=0;
+    for (int i=0;i<n1;++i) {
+        const Cell<D1,C>& c1 = *field1.getCells()[i];
+        for (int j=0;j<n2;++j) {
+            const Cell<D2,C>& c2 = *field2.getCells()[j];
+            samplePairs<C,M>(c1, c2, minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+        }
+    }
+    return k;
+}
+
+template <int D1, int D2, int B> template <int C, int M>
+void BinnedCorr2<D1,D2,B>::samplePairs(
+    const Cell<D1, C>& c1, const Cell<D2, C>& c2,
+    double minsep, double minsepsq, double maxsep, double maxsepsq,
+    long* i1, long* i2, double* sep, int n, long& k)
+{
+    // This tracks process11, but we only select pairs at the end, not call directProcess11
+    xdbg<<"Start samplePairs for "<<c1.getPos()<<",  "<<c2.getPos()<<"   ";
+    xdbg<<"w = "<<c1.getW()<<", "<<c2.getW()<<std::endl;
+    if (c1.getW() == 0. || c2.getW() == 0.) return;
+
+    double s1 = c1.getSize(); // May be modified by DistSq function.
+    double s2 = c2.getSize(); // "
+    xdbg<<"s1,s2 = "<<s1<<','<<s2<<std::endl;
+    xdbg<<"M,C = "<<M<<"  "<<C<<std::endl;
+    const double rsq = MetricHelper<M>::DistSq(c1.getPos(),c2.getPos(),s1,s2);
+    xdbg<<"rsq = "<<rsq<<std::endl;
+    xdbg<<"s1,s2 => "<<s1<<','<<s2<<std::endl;
+    const double s1ps2 = s1+s2;
+
+    double rpar = 0; // Gets set to correct value by this function if appropriate
+    if (MetricHelper<M>::isRParOutsideRange(c1.getPos(), c2.getPos(), s1ps2, _minrpar, _maxrpar,
+                                            rpar))
+        return;
+    xdbg<<"RPar in range\n";
+
+    if (BinTypeHelper<B>::tooSmallDist(rsq, s1ps2, minsep, minsepsq) &&
+        MetricHelper<M>::tooSmallDist(c1.getPos(), c2.getPos(), rsq, rpar, s1ps2, minsepsq))
+        return;
+    xdbg<<"Not too small separation\n";
+
+    if (BinTypeHelper<B>::tooLargeDist(rsq, s1ps2, maxsep, maxsepsq) &&
+        MetricHelper<M>::tooLargeDist(c1.getPos(), c2.getPos(), rsq, rpar, s1ps2, maxsepsq))
+        return;
+    xdbg<<"Not too large separation\n";
+
+    // Now check if these cells are small enough that it is ok to drop into a single bin.
+    int kk=-1;
+    double r=0,logr=0;  // If singleBin is true, these values are set for use by directProcess11
+    if (MetricHelper<M>::isRParInsideRange(rpar, s1ps2, _minrpar, _maxrpar) &&
+        BinTypeHelper<B>::singleBin(rsq, s1ps2, c1.getPos(), c2.getPos(),
+                                    _binsize, _b, _bsq,
+                                    _minsep, _maxsep, _logminsep,
+                                    kk, r, logr))
+    {
+        xdbg<<"Drop into single bin.\n";
+        xdbg<<"rsq = "<<rsq<<std::endl;
+        xdbg<<"minsepsq = "<<minsepsq<<std::endl;
+        xdbg<<"maxsepsq = "<<maxsepsq<<std::endl;
+        if (BinTypeHelper<B>::isRSqInRange(rsq, c1.getPos(), c2.getPos(),
+                                           minsep, minsepsq, maxsep, maxsepsq)) {
+            sampleFrom<C,M>(c1,c2,rsq,r,i1,i2,sep,n,k);
+        }
+    } else {
+        xdbg<<"Need to split.\n";
+        bool split1=false, split2=false;
+        double bsq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq,_bsq);
+        CalcSplitSq(split1,split2,s1,s2,s1ps2,bsq_eff);
+        xdbg<<"rsq = "<<rsq<<", s1ps2 = "<<s1ps2<<"  ";
+        xdbg<<"s1ps2 / r = "<<s1ps2 / sqrt(rsq)<<", b = "<<_b<<"  ";
+        xdbg<<"split = "<<split1<<','<<split2<<std::endl;
+
+        if (split1 && split2) {
+            Assert(c1.getLeft());
+            Assert(c1.getRight());
+            Assert(c2.getLeft());
+            Assert(c2.getRight());
+            samplePairs<C,M>(*c1.getLeft(), *c2.getLeft(),
+                             minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<C,M>(*c1.getLeft(), *c2.getRight(),
+                             minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<C,M>(*c1.getRight(), *c2.getLeft(),
+                             minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<C,M>(*c1.getRight(), *c2.getRight(),
+                             minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+        } else if (split1) {
+            Assert(c1.getLeft());
+            Assert(c1.getRight());
+            samplePairs<C,M>(*c1.getLeft(), c2,
+                             minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<C,M>(*c1.getRight(), c2,
+                             minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+        } else {
+            Assert(split2);
+            Assert(c2.getLeft());
+            Assert(c2.getRight());
+            samplePairs<C,M>(c1, *c2.getLeft(),
+                             minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<C,M>(c1, *c2.getRight(),
+                             minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+        }
+    }
+}
+
+void SelectRandomFrom(long m, std::vector<long>& selection)
+{
+    dbg<<"SelectRandomFrom("<<m<<", "<<selection.size()<<")\n";
+    long n = selection.size();
+    // There are two algorithms here.
+    // Floyd's algorithm is efficient for m >> n.
+    // Fisher-Yates is efficient for m not much > n.
+    // I don't know exactly the transition for when Floyd's becomes the better choice.
+    // So I'm somewhat arbitrarily picking 3*n.
+    if (m > 3*n) {
+        dbg<<"Floyd's algorithm\n";
+        // Floyd's algorithm
+        // O(n) in memory, but slightly more than O(n) in time, especially as m ~ n.
+        std::set<long> selected;
+        while (long(selected.size()) < n) {
+            double urd = rand();
+            urd /= RAND_MAX;        // 0 < urd < 1
+            long j = long(urd * m); // 0 <= j < m
+            if (j == m) j = m-1;    // Just in case.
+            std::pair<std::set<long>::iterator,bool> ret = selected.insert(j);
+            if (ret.second) {
+                // Then insertion happened.  I.e. not already present.
+                // Also write it to the end of the selection list
+                selection[selected.size()-1] = j;
+            }
+        }
+    } else {
+        dbg<<"Fisher-Yates\n";
+        // Fisher-Yates shuffle up through n elements
+        // O(n) in time, but O(m) in memory.
+        std::vector<long> full(m);
+        for (long i=0; i<m; ++i) full[i] = i;
+        for (long i=0; i<n; ++i) {
+            double urd = rand();
+            urd /= RAND_MAX;            // 0 < urd < 1
+            long j = long(urd * (m-i)); // 0 <= j < m-i
+            j += i;                     // i <= j < m
+            if (j == m) j = m-1;        // Just in case.
+            std::swap(full[i], full[j]);
+        }
+        std::copy(full.begin(), full.begin()+n, selection.begin());
+    }
+}
+
+template <int D1, int D2, int B> template <int C, int M>
+void BinnedCorr2<D1,D2,B>::sampleFrom(
+    const Cell<D1, C>& c1, const Cell<D2, C>& c2, double rsq, double r,
+    long* i1, long* i2, double* sep, int n, long& k)
+{
+    // At the start, k pairs will already have been considered for selection.
+    // Of these min(k,n) will have been selected for inclusion in the lists.
+
+    // If we consider each pair one at a time, then the algorithm to end up with a
+    // uniform probability that any given pair is selected is as follows.
+    // 1. When k < n, always select the next pair.
+    // 2. When k >= n, select the next pair with probability n/(k+1).
+    // 3. If selected, replace a random pair currently in the list with the new pair.
+
+    // Proof that for all k >= n, all pairs fromm i=1..k have P(selected) = n/k:
+    //
+    // 1. If k==n, then all items are selected with probability 1 = n/k.
+    // 2. If true for some k>=n, then for step k+1:
+    //    - probability for i=k+1 is n/(k+1)
+    //    - probability for i<=k is
+    //      P(already selected) * P(remains in list | alread selected)
+    //      = n/k * (P(i=k+1 not selected) + P(i=k+1 is selected, but given pair is not replaced))
+    //      = n/k * ( (1 - n/(k+1)) + n/(k+1) * (n-1)/n )
+    //      = n/k * ( (k+1 - n + n-1)/(k+1) )
+    //      = n/k * ( k/(k+1) )
+    //      = n/(k+1)
+    // QED
+
+    // In practice, we usually have many pairs to add, not just one at a time.  So we want to
+    // try to do the net result of m passes of the above algorithm.
+    // Consider 3 cases:
+    // 1. k+m<=n:           Take all m pairs
+    // 2. m<=n:             Just do m passes of the above algorithm.
+    // 3. k+m>n and m>n:    Choose n pairs randomly without replacement from full k+m set.
+    //                      For the selected pairs with k<=i<k+m, either place in the next spot
+    //                      (if k<n) or randomly replace one of the ones that was already there.
+
+    long n1 = c1.getN();
+    long n2 = c2.getN();
+    long m = n1 * n2;
+
+    std::vector<const Cell<D1,C>*> leaf1 = c1.getAllLeaves();
+    std::vector<const Cell<D2,C>*> leaf2 = c2.getAllLeaves();
+
+    if (r == 0.) {
+        r = sqrt(rsq);
+    } else {
+        XAssert(std::abs(r - sqrt(rsq)) < 1.e-10*r);
+    }
+    dbg<<"sampleFrom: "<<c1.getN()<<"  "<<c2.getN()<<"  "<<rsq<<"  "<<r<<std::endl;
+    dbg<<"   n1,n2,k,n,m = "<<n1<<','<<n2<<','<<k<<','<<n<<','<<m<<std::endl;
+
+    if (k + m <= n) {
+        // Case 1
+        dbg<<"Case 1: take all pairs\n";
+        for (size_t p1=0; p1<leaf1.size(); ++p1) {
+            int nn1 = leaf1[p1]->getN();
+            for (int q1=0; q1<nn1; ++q1) {
+                int index1;
+                if (nn1 == 1) index1 = leaf1[p1]->getInfo().index;
+                else index1 = (*leaf1[p1]->getListInfo().indices)[q1];
+                for (size_t p2=0; p2<leaf2.size(); ++p2) {
+                    int nn2 = leaf2[p2]->getN();
+                    for (int q2=0; q2<nn2; ++q2) {
+                        int index2;
+                        if (nn2 == 1) index2 = leaf2[p2]->getInfo().index;
+                        else index2 = (*leaf2[p2]->getListInfo().indices)[q2];
+                        i1[k] = index1;
+                        i2[k] = index2;
+                        sep[k] = r;
+                        ++k;
+                    }
+                }
+            }
+        }
+    } else if (m <= n) {
+        // Case 2
+        dbg<<"Case 2: Check one at a time.\n";
+        for (size_t p1=0; p1<leaf1.size(); ++p1) {
+            int nn1 = leaf1[p1]->getN();
+            for (int q1=0; q1<nn1; ++q1) {
+                int index1;
+                if (nn1 == 1) index1 = leaf1[p1]->getInfo().index;
+                else index1 = (*leaf1[p1]->getListInfo().indices)[q1];
+                for (size_t p2=0; p2<leaf2.size(); ++p2) {
+                    int nn2 = leaf2[p2]->getN();
+                    for (int q2=0; q2<nn2; ++q2) {
+                        int index2;
+                        if (nn2 == 1) index2 = leaf2[p2]->getInfo().index;
+                        else index2 = (*leaf2[p2]->getListInfo().indices)[q2];
+                        int j = k;  // j is where in the lists we will place this
+                        if (k >= n) {
+                            double urd = rand();
+                            urd /= RAND_MAX;  // 0 < urd < 1
+                            j = int(urd * (k+1)); // 0 <= j < k+1
+                        }
+                        if (j < n)  {
+                            i1[j] = index1;
+                            i2[j] = index2;
+                            sep[j] = r;
+                        }
+                        ++k;
+                    }
+                }
+            }
+        }
+    } else {
+        // Case 3
+        dbg<<"Case 3: Select n without replacement\n";
+        std::vector<long> selection(n);
+        SelectRandomFrom(k+m, selection);
+        // If any items in k<=i<n are from the original set, put them in their original place.
+        for(int i=k;i<n;++i) {
+            int j = selection[i];
+            if (j < n) std::swap(selection[i], selection[j]);
+        }
+
+        // Now any items with j >= k can replace the value at their i in this list.
+        std::map<long, long> places;
+        for(int i=0;i<n;++i) {
+            int j = selection[i];
+            if (j >= k) places[j] = i;
+        }
+        if (places.size() == 0) {
+            // If nothing selected from the new set, then we're done.
+            k += m;
+            return;
+        }
+
+        std::map<long, long>::iterator next = places.begin();
+
+        int i=k;  // When i is in the map, place it at places[i]
+        for (size_t p1=0; p1<leaf1.size(); ++p1) {
+            int nn1 = leaf1[p1]->getN();
+            for (int q1=0; q1<nn1; ++q1) {
+                dbg<<"i = "<<i<<", next = "<<next->first<<"  "<<next->second<<std::endl;
+                Assert(i <= next->first);
+                if (next->first > i + n2) {
+                    // Then skip this loop through the second vector
+                    i += n2;
+                    continue;
+                }
+                int index1;
+                if (nn1 == 1) index1 = leaf1[p1]->getInfo().index;
+                else index1 = (*leaf1[p1]->getListInfo().indices)[q1];
+                for (size_t p2=0; p2<leaf2.size(); ++p2) {
+                    int nn2 = leaf2[p2]->getN();
+                    for (int q2=0; q2<nn2; ++q2,++i) {
+                        if (i == next->first) {
+                            dbg<<"Use i = "<<i<<std::endl;
+                            int index2;
+                            if (nn2 == 1) index2 = leaf2[p2]->getInfo().index;
+                            else index2 = (*leaf2[p2]->getListInfo().indices)[q2];
+                            long j = next->second;
+                            i1[j] = index1;
+                            i2[j] = index2;
+                            sep[j] = r;
+                            ++next;
+                        }
+                        if (next == places.end()) break;
+                    }
+                    if (next == places.end()) break;
+                }
+                if (next == places.end()) break;
+            }
+            if (next == places.end()) break;
+        }
+        dbg<<"Done: i = "<<i<<", k+m = "<<k+m<<std::endl;
+        k += m;
+    }
+}
+
 
 //
 //
@@ -1209,5 +1552,133 @@ int SetOMPThreads(int num_threads)
     return 1;
 #endif
 }
+
+template <int M, int D1, int D2, int B>
+long SamplePairs4(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2,
+                  double minsep, double maxsep,
+                  int coords, long* i1, long* i2, double* sep, int n)
+{
+    switch(coords) {
+      case Flat:
+           Assert(MetricHelper<M>::_Flat == int(Flat));
+           return corr->template samplePairs<MetricHelper<M>::_Flat, M>(
+               *static_cast<Field<D1,MetricHelper<M>::_Flat>*>(field1),
+               *static_cast<Field<D2,MetricHelper<M>::_Flat>*>(field2),
+               minsep, maxsep, i1, i2, sep, n);
+           break;
+      case Sphere:
+           Assert(MetricHelper<M>::_Sphere == int(Sphere));
+           return corr->template samplePairs<MetricHelper<M>::_Sphere, M>(
+               *static_cast<Field<D1,MetricHelper<M>::_Sphere>*>(field1),
+               *static_cast<Field<D2,MetricHelper<M>::_Sphere>*>(field2),
+               minsep, maxsep, i1, i2, sep, n);
+           break;
+      case ThreeD:
+           Assert(MetricHelper<M>::_ThreeD == int(ThreeD));
+           return corr->template samplePairs<MetricHelper<M>::_ThreeD, M>(
+               *static_cast<Field<D1,MetricHelper<M>::_ThreeD>*>(field1),
+               *static_cast<Field<D2,MetricHelper<M>::_ThreeD>*>(field2),
+               minsep, maxsep, i1, i2, sep, n);
+           break;
+    }
+    return 0;
+}
+template <int D1, int D2, int B>
+long SamplePairs3(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2,
+                  double minsep, double maxsep,
+                  int coords, int metric, long* i1, long* i2, double* sep, int n)
+{
+    switch(metric) {
+      case Euclidean:
+           return SamplePairs4<Euclidean>(corr, field1, field2, minsep, maxsep,
+                                          coords, i1, i2, sep, n);
+           break;
+      case Rperp:
+           return SamplePairs4<Rperp>(corr, field1, field2, minsep, maxsep,
+                                      coords, i1, i2, sep, n);
+           break;
+      case OldRperp:
+           return SamplePairs4<OldRperp>(corr, field1, field2, minsep, maxsep,
+                                         coords, i1, i2, sep, n);
+           break;
+      case Rlens:
+           return SamplePairs4<Rlens>(corr, field1, field2, minsep, maxsep,
+                                      coords, i1, i2, sep, n);
+           break;
+      case Arc:
+           return SamplePairs4<Arc>(corr, field1, field2, minsep, maxsep,
+                                    coords, i1, i2, sep, n);
+           break;
+    }
+    return 0;
+}
+
+template <int D1, int D2>
+long SamplePairs2(void* corr, void* field1, void* field2, double minsep, double maxsep,
+                  int coords, int metric, int bin_type,
+                  long* i1, long* i2, double* sep, int n)
+{
+    switch(bin_type) {
+      case Log:
+           return SamplePairs3(static_cast<BinnedCorr2<D1,D2,Log>*>(corr),
+                               field1, field2, minsep, maxsep,
+                               coords, metric, i1, i2, sep, n);
+           break;
+      case Linear:
+           return SamplePairs3(static_cast<BinnedCorr2<D1,D2,Linear>*>(corr),
+                               field1, field2, minsep, maxsep,
+                               coords, metric, i1, i2, sep, n);
+           break;
+      case TwoD:
+           // TwoD not implemented.
+           break;
+    }
+    return 0;
+}
+
+
+template <int D1>
+long SamplePairs1(void* corr, void* field1, void* field2, double minsep, double maxsep,
+                  int d2, int coords, int metric, int bin_type,
+                  long* i1, long* i2, double* sep, int n)
+{
+    switch(d2) {
+      case NData:
+           return SamplePairs2<D1,NData>(corr, field1, field2, minsep, maxsep,
+                                         coords, metric, bin_type, i1, i2, sep, n);
+           break;
+      case KData:
+           return SamplePairs2<D1,KData>(corr, field1, field2, minsep, maxsep,
+                                         coords, metric, bin_type, i1, i2, sep, n);
+           break;
+      case GData:
+           return SamplePairs2<D1,GData>(corr, field1, field2, minsep, maxsep,
+                                         coords, metric, bin_type, i1, i2, sep, n);
+           break;
+    }
+    return 0;
+}
+
+long SamplePairs(void* corr, void* field1, void* field2, double minsep, double maxsep,
+                 int d1, int d2, int coords, int metric, int bin_type,
+                 long* i1, long* i2, double* sep, int n)
+{
+    switch(d1) {
+      case NData:
+           return SamplePairs1<NData>(corr, field1, field2, minsep, maxsep,
+                                      d2, coords, metric, bin_type, i1, i2, sep, n);
+           break;
+      case KData:
+           return SamplePairs1<KData>(corr, field1, field2, minsep, maxsep,
+                                      d2, coords, metric, bin_type, i1, i2, sep, n);
+           break;
+      case GData:
+           return SamplePairs1<GData>(corr, field1, field2, minsep, maxsep,
+                                      d2, coords, metric, bin_type, i1, i2, sep, n);
+           break;
+    }
+    return 0;
+}
+
 
 

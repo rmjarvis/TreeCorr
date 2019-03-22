@@ -33,6 +33,14 @@ struct MetricHelper;
 template <>
 struct MetricHelper<Euclidean>
 {
+    // For each metric, we have enum values with allowed coordinate systems mapped to
+    // the normal enum value for that system, but disallowed coordinates mapped to one
+    // of the allowed ones, so that when we instantiate the templates, we don't get
+    // compiler errors from trying to instantiate functions that don't exist.
+    //
+    // For Euclidean, all coordinate systems are allowed.
+    enum { _Flat=Flat, _ThreeD=ThreeD, _Sphere=Sphere };
+
     ///
     //
     // Flat
@@ -142,6 +150,8 @@ struct MetricHelper<Euclidean>
 template <>
 struct MetricHelper<OldRperp>
 {
+    enum { _Flat=ThreeD, _ThreeD=ThreeD, _Sphere=ThreeD };
+
     static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                          double& s1, double& s2)
     {
@@ -266,6 +276,8 @@ struct MetricHelper<OldRperp>
 template <>
 struct MetricHelper<Rperp>
 {
+    enum { _Flat=ThreeD, _ThreeD=ThreeD, _Sphere=ThreeD };
+
     static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                          double& s1, double& s2)
     {
@@ -397,6 +409,8 @@ struct MetricHelper<Rperp>
 template <>
 struct MetricHelper<Rlens>
 {
+    enum { _Flat=ThreeD, _ThreeD=ThreeD, _Sphere=ThreeD };
+
     // The distance is measured perpendicular to the p2 direction at the distance of p1.
     static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                          double& s1, double& s2)
@@ -475,6 +489,8 @@ struct MetricHelper<Rlens>
 template <>
 struct MetricHelper<Arc>
 {
+    enum { _Flat=ThreeD, _ThreeD=ThreeD, _Sphere=Sphere };
+
     static double DistSq(const Position<Sphere>& p1, const Position<Sphere>& p2,
                          double& s1, double& s2)
     { return SQR(Dist(p1,p2)); }

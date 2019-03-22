@@ -290,6 +290,102 @@ def test_get_near():
     np.testing.assert_array_equal(i5, i1)
 
 
+def test_sample_pairs():
+
+    nobj = 10000
+    np.random.seed(8675309)
+    x1 = np.random.random_sample(nobj)   # All from 0..1
+    y1 = np.random.random_sample(nobj)
+    z1 = np.random.random_sample(nobj)
+    w1 = np.random.random_sample(nobj)
+    use = np.random.randint(30, size=nobj).astype(float)
+    w1[use == 0] = 0
+    g11 = np.random.random_sample(nobj)
+    g21 = np.random.random_sample(nobj)
+    k1 = np.random.random_sample(nobj)
+
+    x2 = np.random.random_sample(nobj)   # All from 0..1
+    y2 = np.random.random_sample(nobj)
+    z2 = np.random.random_sample(nobj)
+    w2 = np.random.random_sample(nobj)
+    use = np.random.randint(30, size=nobj).astype(float)
+    w2[use == 0] = 0
+    g12 = np.random.random_sample(nobj)
+    g22 = np.random.random_sample(nobj)
+    k2 = np.random.random_sample(nobj)
+
+    # Start with flat coords
+
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g11, g2=g21, k=k1)
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g12, g2=g22, k=k2)
+
+    # Note: extend range low enough that some bins have < 100 pairs.
+    nn = treecorr.NNCorrelation(min_sep=0.001, max_sep=0.01, bin_size=0.1, max_top=0)
+    nn.process(cat1, cat2, num_threads=1)
+    print('rnom = ',nn.rnom)
+    print('npairs = ',nn.npairs.astype(int))
+
+    # Start with a bin near the bottom with < 100 pairs
+    # This only exercises case 1 in the sampleFrom function.
+    b = 1
+    i1, i2, sep = nn.sample_pairs(100, cat1, cat2,
+                                  min_sep=nn.left_edges[b], max_sep=nn.right_edges[b])
+
+    print('i1 = ',i1)
+    print('i2 = ',i2)
+    print('sep = ',sep)
+    assert nn.npairs[b] <= 100  # i.e. make sure these next tests are what we want to do.
+    assert len(i1) == nn.npairs[b]
+    assert len(i2) == nn.npairs[b]
+    assert len(sep) == nn.npairs[b]
+    actual_sep = ((x1[i1]-x2[i2])**2 + (y1[i1]-y2[i2])**2)**0.5
+    np.testing.assert_allclose(sep, actual_sep, rtol=0.1)  # half bin size with slop.
+    np.testing.assert_array_less(sep, nn.right_edges[b])
+    np.testing.assert_array_less(nn.left_edges[b], sep)
+
+    # Next one that still isn't too many pairs, but more than 100
+    # This exercises cases 1,2 in the sampleFrom function.
+    b = 10
+    i1, i2, sep = nn.sample_pairs(100, cat1, cat2,
+                                  min_sep=nn.left_edges[b], max_sep=nn.right_edges[b])
+
+    print('i1 = ',i1)
+    print('i2 = ',i2)
+    print('sep = ',sep)
+    assert nn.npairs[b] > 100
+    assert len(i1) == 100
+    assert len(i2) == 100
+    assert len(sep) == 100
+    actual_sep = ((x1[i1]-x2[i2])**2 + (y1[i1]-y2[i2])**2)**0.5
+    np.testing.assert_allclose(sep, actual_sep, rtol=0.1)
+    np.testing.assert_array_less(sep, nn.right_edges[b])
+    np.testing.assert_array_less(nn.left_edges[b], sep)
+
+    # To exercise case 3, we need to go to larger separations, so the recursion
+    # more often stops before getting to the leaves.
+    nn = treecorr.NNCorrelation(min_sep=0.4, max_sep=1.0, bin_size=0.1, max_top=0)
+    nn.process(cat1, cat2, num_threads=1)
+    print('rnom = ',nn.rnom)
+    print('npairs = ',nn.npairs.astype(int))
+    for b in [0,5]:
+        i1, i2, sep = nn.sample_pairs(100, cat1, cat2,
+                                      min_sep=nn.left_edges[b], max_sep=nn.right_edges[b])
+
+        print('len(npairs) = ',len(nn.npairs))
+        print('npairs = ',nn.npairs)
+        print('i1 = ',i1)
+        print('i2 = ',i2)
+        print('sep = ',sep)
+        assert len(i1) == 100
+        assert len(i2) == 100
+        assert len(sep) == 100
+        actual_sep = ((x1[i1]-x2[i2])**2 + (y1[i1]-y2[i2])**2)**0.5
+        np.testing.assert_allclose(sep, actual_sep, rtol=0.1)
+        np.testing.assert_array_less(sep, nn.right_edges[b])
+        np.testing.assert_array_less(nn.left_edges[b], sep)
+
+
 if __name__ == '__main__':
     test_count_near()
     test_get_near()
+    test_sample_pairs()

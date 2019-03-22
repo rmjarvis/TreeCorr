@@ -342,6 +342,7 @@ Cell<D,C>::Cell(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
         _data = vdata[start].first;
         vdata[start].first = 0; // Make sure calling routine doesn't delete this one!
         _info = vdata[start].second;  // This only copies as a LeafInfo, so throws away wpos.
+        xdbg<<"_info.index = "<<_info.index<<"  "<<vdata[start].second.index<<std::endl;
     } else {
         _data = new CellData<D,C>(vdata,start,end);
         _data->finishAverages(vdata,start,end);
@@ -386,9 +387,16 @@ void Cell<D,C>::finishInit(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >&
         }
     } else {
         _size = _sizesq = 0.;
-        Assert(_data->getN() > 1);
-        _listinfo.indices = new std::vector<long>(end-start);
-        for (int i=start; i<end; ++i) (*_listinfo.indices)[i-start] = vdata[i].second.index;
+        if (_data->getN() == 1) {
+            _info = vdata[start].second;
+            xdbg<<"_info.index = "<<_info.index<<"  "<<vdata[start].second.index<<std::endl;
+        } else {
+            _listinfo.indices = new std::vector<long>(end-start);
+            for (int i=start; i<end; ++i) {
+                xdbg<<"Set indices["<<i-start<<"] = "<<vdata[i].second.index<<std::endl;
+                (*_listinfo.indices)[i-start] = vdata[i].second.index;
+            }
+        }
     }
 }
 
@@ -425,7 +433,6 @@ std::vector<const Cell<D,C>*> Cell<D,C>::getAllLeaves() const
         temp = _right->getAllLeaves();
         ret.insert(ret.end(),temp.begin(),temp.end());
     } else {
-        Assert(!_right);
         ret.push_back(this);
     }
     return ret;

@@ -71,6 +71,12 @@ New features
   current Rperp metric, and it will remain available as such after 4.0. (#73)
 - Added better messaging when OpenMP is not found to work with the available
   clang compiler. (#75)
+- Added new methods Field.count_near and Field.get_near, which return the
+  number of or the indices of points in the field that are near a given
+  other coordinate.  (#44)
+- Added new method BinnedCorr2.sample_pairs, which returns a random sampling
+  of pairs within a given range of separations.  E.g. a sample of pairs that
+  fell into a given bin of the correlation function. (#67)
 
 
 Bug fixes

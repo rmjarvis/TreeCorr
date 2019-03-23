@@ -1455,7 +1455,10 @@ def test_rlens_bkg():
     print('ratio = ',ng2.xi / true_gt_arc)
     print('diff = ',ng2.xi - true_gt_arc)
     print('max diff = ',max(abs(ng2.xi - true_gt_arc)))
+    np.testing.assert_array_equal(ng2.npairs, true_npairs_arc)
     np.testing.assert_allclose(ng2.xi, true_gt_arc, rtol=5.e-3)
+    print('ng.xi_im = ',ng2.xi_im)
+    print('max im = ',max(abs(ng2.xi_im)))
     np.testing.assert_allclose(ng2.xi_im, 0, atol=5.e-4)
 
     # Without min_rpar, this should fail.
@@ -1480,8 +1483,9 @@ def test_rlens_bkg():
     print('Results with bin_slop = 0.5')
     print('ng.npairs = ',ng3.npairs)
     print('ng.xi = ',ng3.xi)
+    print('ratio = ',ng3.xi / true_gt_arc)
     print('ng.xi_im = ',ng3.xi_im)
-    np.testing.assert_allclose(ng3.xi, true_gt_arc, rtol=1.e-2)
+    np.testing.assert_allclose(ng3.xi, true_gt_arc, rtol=1.e-2, atol=5.e-5)
     np.testing.assert_allclose(ng3.xi_im, 0, atol=1.e-3)
 
 

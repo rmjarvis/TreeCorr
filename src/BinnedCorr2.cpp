@@ -306,8 +306,8 @@ void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
     const double s1ps2 = s1+s2;
 
     double rpar = 0; // Gets set to correct value by this function if appropriate
-    if (MetricHelper<M>::isRParOutsideRange(c1.getPos(), c2.getPos(), s1ps2, _minrpar, _maxrpar,
-                                            rpar))
+    if (MetricHelper<M>::isRParOutsideRange(c1.getPos(), c2.getPos(), s1ps2,
+                                            _minrpar, _maxrpar, rpar))
         return;
     xdbg<<"RPar in range\n";
 
@@ -324,7 +324,8 @@ void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
     // Now check if these cells are small enough that it is ok to drop into a single bin.
     int k=-1;
     double r=0,logr=0;  // If singleBin is true, these values are set for use by directProcess11
-    if (MetricHelper<M>::isRParInsideRange(rpar, s1ps2, _minrpar, _maxrpar) &&
+    if (MetricHelper<M>::isRParInsideRange(c1.getPos(), c2.getPos(), s1ps2,
+                                           _minrpar, _maxrpar, rpar) &&
         BinTypeHelper<B>::singleBin(rsq, s1ps2, c1.getPos(), c2.getPos(),
                                     _binsize, _b, _bsq,
                                     _minsep, _maxsep, _logminsep,
@@ -602,8 +603,8 @@ void BinnedCorr2<D1,D2,B>::samplePairs(
     const double s1ps2 = s1+s2;
 
     double rpar = 0; // Gets set to correct value by this function if appropriate
-    if (MetricHelper<M>::isRParOutsideRange(c1.getPos(), c2.getPos(), s1ps2, _minrpar, _maxrpar,
-                                            rpar))
+    if (MetricHelper<M>::isRParOutsideRange(c1.getPos(), c2.getPos(), s1ps2,
+                                            _minrpar, _maxrpar, rpar))
         return;
     xdbg<<"RPar in range\n";
 
@@ -620,7 +621,8 @@ void BinnedCorr2<D1,D2,B>::samplePairs(
     // Now check if these cells are small enough that it is ok to drop into a single bin.
     int kk=-1;
     double r=0,logr=0;  // If singleBin is true, these values are set for use by directProcess11
-    if (MetricHelper<M>::isRParInsideRange(rpar, s1ps2, _minrpar, _maxrpar) &&
+    if (MetricHelper<M>::isRParInsideRange(c1.getPos(), c2.getPos(), s1ps2,
+                                           _minrpar, _maxrpar, rpar) &&
         BinTypeHelper<B>::singleBin(rsq, s1ps2, c1.getPos(), c2.getPos(),
                                     _binsize, _b, _bsq,
                                     _minsep, _maxsep, _logminsep,

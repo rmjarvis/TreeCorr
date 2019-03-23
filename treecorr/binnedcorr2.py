@@ -501,6 +501,11 @@ class BinnedCorr2(object):
         using an exact range without any slop, you should construct a new Correlation instance
         with bin_slop=0, and call sample_pairs with that.
 
+        The returned separations will likewise correspond to the separation of the cells in the
+        tree where the correlation function would have decided that the pair falls into the
+        given bin.  Therefore, if these cells were not leaf cells, then they will not typically
+        be equal to the real separation for the given metric.
+
         Also, note that min_sep and max_sep may be arbitrary.  There is no requirement that they
         be edges of one of the standard bins for this correlation function.  There is also no
         requirement that this correlation instance has already accumulated pairs via a call

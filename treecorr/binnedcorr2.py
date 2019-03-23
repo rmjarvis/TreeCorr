@@ -531,6 +531,9 @@ class BinnedCorr2(object):
         f2 = cat2.field
 
         if f1 is None or f1._coords != self._coords:
+            # I don't really know if it's possible to get the coords out of sync,
+            # so the 2nd check might be superfluous.
+            # The first one though is definitely possible, so we need to check that.
             self.logger.debug("In sample_pairs, making default field for cat1")
             f1 = cat1.getNField()
         if f2 is None or f2._coords != self._coords:

@@ -363,26 +363,72 @@ def test_sample_pairs():
 
     # To exercise case 3, we need to go to larger separations, so the recursion
     # more often stops before getting to the leaves.
-    nn = treecorr.NNCorrelation(min_sep=0.4, max_sep=1.0, bin_size=0.1, max_top=0)
-    nn.process(cat1, cat2, num_threads=1)
-    print('rnom = ',nn.rnom)
-    print('npairs = ',nn.npairs.astype(int))
-    for b in [0,5]:
-        i1, i2, sep = nn.sample_pairs(100, cat1, cat2,
-                                      min_sep=nn.left_edges[b], max_sep=nn.right_edges[b])
+    # Also switch to 3d coordinates.
 
-        print('len(npairs) = ',len(nn.npairs))
-        print('npairs = ',nn.npairs)
+    cat1 = treecorr.Catalog(x=x1, y=y1, z=z1, w=w1, g1=g11, g2=g21, k=k1)
+    cat2 = treecorr.Catalog(x=x2, y=y2, z=z2, w=w2, g1=g12, g2=g22, k=k2)
+
+    gg = treecorr.GGCorrelation(min_sep=0.4, max_sep=1.0, bin_size=0.1, max_top=0)
+    gg.process(cat1, cat2, num_threads=1)
+    print('rnom = ',gg.rnom)
+    print('npairs = ',gg.npairs.astype(int))
+    for b in [0,5]:
+        i1, i2, sep = gg.sample_pairs(100, cat1, cat2,
+                                      min_sep=gg.left_edges[b], max_sep=gg.right_edges[b])
+
+        print('len(npairs) = ',len(gg.npairs))
+        print('npairs = ',gg.npairs)
         print('i1 = ',i1)
         print('i2 = ',i2)
         print('sep = ',sep)
         assert len(i1) == 100
         assert len(i2) == 100
         assert len(sep) == 100
-        actual_sep = ((x1[i1]-x2[i2])**2 + (y1[i1]-y2[i2])**2)**0.5
+        actual_sep = ((x1[i1]-x2[i2])**2 + (y1[i1]-y2[i2])**2 + (z1[i1]-z2[i2])**2)**0.5
         np.testing.assert_allclose(sep, actual_sep, rtol=0.1)
-        np.testing.assert_array_less(sep, nn.right_edges[b])
-        np.testing.assert_array_less(nn.left_edges[b], sep)
+        np.testing.assert_array_less(sep, gg.right_edges[b])
+        np.testing.assert_array_less(gg.left_edges[b], sep)
+
+    # Check a different metric.
+    # Also ability to generate the field automatically.
+    cat1.clear_cache()  # Clears the previously made cat1.field
+    cat2.clear_cache()  # and cat2.field
+
+    b = 3
+    with CaptureLog() as cl:
+        nk = treecorr.NKCorrelation(min_sep=0.4, max_sep=1.0, bin_size=0.1, max_top=0,
+                                    logger=cl.logger)
+        i1, i2, sep = nk.sample_pairs(100, cat1, cat2, metric='Arc',
+                                      min_sep=nk.left_edges[b], max_sep=nk.right_edges[b])
+    print(cl.output)
+    nk.process(cat1, cat2, metric='Arc')
+    print('len(npairs) = ',len(nk.npairs))
+    print('npairs = ',nk.npairs)
+    assert "Sampled %d pairs out of a total of %d"%(100, nk.npairs[b]) in cl.output
+    print('i1 = ',i1)
+    print('i2 = ',i2)
+    print('sep = ',sep)
+    assert len(i1) == 100
+    assert len(i2) == 100
+    assert len(sep) == 100
+    r1 = (x1**2 + y1**2 + z1**2)**0.5
+    r2 = (x2**2 + y2**2 + z2**2)**0.5
+    xx1 = x1/r1
+    yy1 = y1/r1
+    zz1 = z1/r1
+    xx2 = x2/r2
+    yy2 = y2/r2
+    zz2 = z2/r2
+    chord_sep = ((xx1[i1]-xx2[i2])**2 + (yy1[i1]-yy2[i2])**2 + (zz1[i1]-zz2[i2])**2)**0.5
+    arc_sep = np.arcsin(chord_sep/2.)*2.
+    print('arc_sep = ',arc_sep)
+    np.testing.assert_allclose(sep, arc_sep, rtol=0.1)
+    np.testing.assert_array_less(sep, nk.right_edges[b])
+    np.testing.assert_array_less(nk.left_edges[b], sep)
+
+
+
+
 
 
 if __name__ == '__main__':

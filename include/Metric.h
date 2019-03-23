@@ -78,7 +78,8 @@ struct MetricHelper<Euclidean>
     // then we also need to make sure we are fully in the range for rpar as well.  For
     // Euclidean (and others that don't use rpar), this is always true, but Rper and Rlens
     // have a check here.
-    static bool isRParInsideRange(double rpar, double s1ps2, double minrpar, double maxrpar)
+    static bool isRParInsideRange(const Position<Flat>& p1, const Position<Flat>& p2,
+                                  double s1ps2, double minrpar, double maxrpar, double rpar)
     { return true; }
 
     // The normal tests about whether a given distance is inside the binning range happen
@@ -128,6 +129,10 @@ struct MetricHelper<Euclidean>
     static bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                                    double s1ps2, double minrpar, double maxrpar, double& rpar)
     { return false; }
+
+    static bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                                  double s1ps2, double minrpar, double maxrpar, double rpar)
+    { return true; }
 
     static bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                              double rsq, double rpar, double s1ps2, double minsepsq)
@@ -229,7 +234,8 @@ struct MetricHelper<OldRperp>
         else return false;
     }
 
-    static bool isRParInsideRange(double rpar, double s1ps2, double minrpar, double maxrpar)
+    static bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                                  double s1ps2, double minrpar, double maxrpar, double rpar)
     {
         // Quick return if no min/max rpar
         if (minrpar == -std::numeric_limits<double>::max() &&
@@ -355,7 +361,8 @@ struct MetricHelper<Rperp>
         else return false;
     }
 
-    static bool isRParInsideRange(double rpar, double s1ps2, double minrpar, double maxrpar)
+    static bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                                  double s1ps2, double minrpar, double maxrpar, double rpar)
     {
         // Quick return if no min/max rpar
         if (minrpar == -std::numeric_limits<double>::max() &&
@@ -457,7 +464,8 @@ struct MetricHelper<Rlens>
         else return false;
     }
 
-    static bool isRParInsideRange(double rpar, double s1ps2, double minrpar, double maxrpar)
+    static bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                                  double s1ps2, double minrpar, double maxrpar, double rpar)
     {
         // Quick return if no min/max rpar
         if (minrpar == -std::numeric_limits<double>::max() &&
@@ -557,17 +565,22 @@ struct MetricHelper<Arc>
         if (minrpar == -std::numeric_limits<double>::max() &&
             maxrpar == std::numeric_limits<double>::max()) return false;
 
+        // Remember that s1ps2 has been scaled to be the values on the unit circle.
+        // So scale them back up here.
+        s1ps2 *= std::max(p1.norm(), p2.norm());
         rpar = calculateRPar(p1,p2);
         if (rpar + s1ps2 < minrpar) return true;
         else if (rpar - s1ps2 > maxrpar) return true;
         else return false;
     }
 
-    static bool isRParInsideRange(double rpar, double s1ps2, double minrpar, double maxrpar)
+    static bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                                  double s1ps2, double minrpar, double maxrpar, double rpar)
     {
         // Quick return if no min/max rpar
         if (minrpar == -std::numeric_limits<double>::max() &&
             maxrpar == std::numeric_limits<double>::max()) return true;
+        s1ps2 *= std::max(p1.norm(), p2.norm());
         if (rpar - s1ps2 < minrpar) return false;
         else if (rpar + s1ps2 > maxrpar) return false;
         else return true;

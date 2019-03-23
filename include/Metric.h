@@ -522,12 +522,18 @@ struct MetricHelper<Arc>
     // For 3d coordinates, use the cross product to get sin(theta)
     static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                          double& s1, double& s2)
-    { return SQR(Dist(p1,p2)); }
+    {
+        double dsq = SQR(Dist(p1,p2));
+        // Also the sizes need to be converted to the effective size on the unit sphere
+        s1 /= p1.norm();
+        s2 /= p2.norm();
+        return dsq;
+    }
 
     static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
     {
         // sin(theta) = |p1 x p2| / |p1| |p2|
-        double sintheta = sqrt( p1.cross(p2).normSq() / (p1.normSq() * p2.normSq()) );
+        double sintheta = p1.cross(p2).norm() / (p1.norm() * p2.norm());
         double theta = std::asin(sintheta);
         return theta;
     }

@@ -329,7 +329,7 @@ size_t SplitData(
 
 template <int D, int C>
 Cell<D,C>::Cell(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
-                 double minsizesq, SplitMethod sm, size_t start, size_t end) :
+                 double minsizesq, SplitMethod sm, bool brute, size_t start, size_t end) :
     _size(0.), _sizesq(0.), _left(0), _right(0)
 {
     Assert(vdata.size()>0);
@@ -351,37 +351,39 @@ Cell<D,C>::Cell(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
         _sizesq = CalculateSizeSq(_data->getPos(),vdata,start,end);
         Assert(_sizesq >= 0.);
 
-        finishInit(vdata, minsizesq, sm, start, end);
+        finishInit(vdata, minsizesq, sm, brute, start, end);
     }
 }
 
 template <int D, int C>
 Cell<D,C>::Cell(CellData<D,C>* ave, double sizesq,
                  std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
-                 double minsizesq, SplitMethod sm, size_t start, size_t end) :
+                 double minsizesq, SplitMethod sm, bool brute, size_t start, size_t end) :
     _sizesq(sizesq), _data(ave), _left(0), _right(0)
 {
     xdbg<<"Make cell starting with ave = "<<*ave<<std::endl;
-    xdbg<<"size = "<<_size<<std::endl;
+    xdbg<<"size = "<<_size<<", brute = "<<brute<<std::endl;
     Assert(sizesq >= 0.);
     Assert(vdata.size()>0);
     Assert(end <= vdata.size());
     Assert(end > start);
 
-    finishInit(vdata, minsizesq, sm, start, end);
+    finishInit(vdata, minsizesq, sm, brute, start, end);
 }
 
 template <int D, int C>
 void Cell<D,C>::finishInit(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
-                           double minsizesq, SplitMethod sm, size_t start, size_t end)
+                           double minsizesq, SplitMethod sm, bool brute, size_t start, size_t end)
 {
-    xdbg<<"finishInit: sizesq = "<<_sizesq<<" cf. "<<minsizesq<<std::endl;
+    xdbg<<"finishInit: sizesq = "<<_sizesq<<" cf. "<<minsizesq<<", brute="<<brute<<std::endl;
     if (_sizesq > minsizesq) {
-        _size = sqrt(_sizesq);
+        _size = brute ? std::numeric_limits<double>::infinity() : sqrt(_sizesq);
+        if (brute) _sizesq = std::numeric_limits<double>::infinity();
+        xdbg<<"size,sizesq = "<<_size<<","<<_sizesq<<std::endl;
         size_t mid = SplitData(vdata,sm,start,end,_data->getPos());
         try {
-            _left = new Cell<D,C>(vdata,minsizesq,sm,start,mid);
-            _right = new Cell<D,C>(vdata,minsizesq,sm,mid,end);
+            _left = new Cell<D,C>(vdata,minsizesq,sm,brute,start,mid);
+            _right = new Cell<D,C>(vdata,minsizesq,sm,brute,mid,end);
         } catch (std::bad_alloc) {
             throw std::runtime_error("out of memory - cannot create new Cell");
         }

@@ -23,7 +23,7 @@ from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
 
 def test_direct():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
-    # This should exactly match the treecorr result if bin_slop=0.
+    # This should exactly match the treecorr result if brute=True.
 
     ngal = 200
     s = 10.
@@ -45,7 +45,7 @@ def test_direct():
     max_sep = 50.
     nbins = 50
     bin_size = np.log(max_sep/min_sep) / nbins
-    ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     ng.process(cat1, cat2)
 
     true_npairs = np.zeros(nbins, dtype=int)
@@ -102,9 +102,9 @@ def test_direct():
     np.testing.assert_allclose(data['gamT'], ng.xi, rtol=1.e-3)
     np.testing.assert_allclose(data['gamX'], ng.xi_im, rtol=1.e-3)
 
-    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
-    ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=1.e-16,
+    ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0,
                                 max_top=0)
     ng.process(cat1, cat2)
     np.testing.assert_array_equal(ng.npairs, true_npairs)
@@ -185,7 +185,7 @@ def test_direct_spherical():
     nbins = 50
     bin_size = np.log(max_sep/min_sep) / nbins
     ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                sep_units='deg', bin_slop=0.)
+                                sep_units='deg', brute=True)
     ng.process(cat1, cat2)
 
     r1 = np.sqrt(x1**2 + y1**2 + z1**2)
@@ -263,10 +263,10 @@ def test_direct_spherical():
     np.testing.assert_allclose(data['gamT'], ng.xi, rtol=1.e-3)
     np.testing.assert_allclose(data['gamX'], ng.xi_im, rtol=1.e-3)
 
-    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
     ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                sep_units='deg', bin_slop=1.e-16, max_top=0)
+                                sep_units='deg', bin_slop=0, max_top=0)
     ng.process(cat1, cat2)
     np.testing.assert_array_equal(ng.npairs, true_npairs)
     np.testing.assert_allclose(ng.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -1149,17 +1149,17 @@ def test_rlens():
         np.add.at(true_npairs, index[mask], 1)
     true_gt /= true_npairs
 
-    # Start with bin_slop == 0.  With only 100 lenses, this still runs very fast.
+    # Start with brute force.  With only 100 lenses, this still runs very fast.
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl)
     source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
     ng0 = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                 metric='Rlens', bin_slop=0)
+                                 metric='Rlens', brute=True)
     ng0.process(lens_cat, source_cat)
 
     Rlens = ng0.meanr
     theory_gt = gamma0 * np.exp(-0.5*Rlens**2/R0**2)
 
-    print('Results with bin_slop = 0:')
+    print('Results with brute force:')
     print('ng.npairs = ',ng0.npairs)
     print('true_npairs = ',true_npairs)
     print('ng.xi = ',ng0.xi)
@@ -1218,18 +1218,18 @@ def test_rlens():
     source_cat = treecorr.Catalog(ra=ras, dec=decs, ra_units='radians', dec_units='radians',
                                   g1=g1, g2=g2)
 
-    # Again, start with bin_slop == 0.
-    # This version should be identical to the 3D version.  When bin_slop != 0, it won't be
+    # Again, start with brute force.
+    # This version should be identical to the 3D version.  When bin_slop = 0, it won't be
     # exactly identical, since the tree construction will have different decisions along the
     # way (since everything is at the same radius here), but the results are consistent.
     ng0s = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                  metric='Rlens', bin_slop=0)
+                                  metric='Rlens', brute=True)
     ng0s.process(lens_cat, source_cat)
 
     Rlens = ng0s.meanr
     theory_gt = gamma0 * np.exp(-0.5*Rlens**2/R0**2)
 
-    print('Results when sources have no radius information, first bin_slop=0')
+    print('Results when sources have no radius information, first brute force')
     print('ng.npairs = ',ng0s.npairs)
     print('true_npairs = ',true_npairs)
     print('ng.xi = ',ng0s.xi)
@@ -1259,7 +1259,7 @@ def test_rlens():
     Rlens = ng1s.meanr
     theory_gt = gamma0 * np.exp(-0.5*Rlens**2/R0**2)
 
-    print('Results with bin_slop = 0.5')
+    print('Results with bin_slop = 0.3')
     print('ng.npairs = ',ng1s.npairs)
     print('ng.xi = ',ng1s.xi)
     print('theory_gammat = ',theory_gt)
@@ -1364,17 +1364,17 @@ def test_rlens_bkg():
     true_gt /= true_npairs
     true_gt_arc /= true_npairs_arc
 
-    # Start with bin_slop == 0.  With only 100 lenses, this still runs very fast.
+    # Start with brute force.  With only 100 lenses, this still runs very fast.
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl)
     source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
     ng0 = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                 metric='Rlens', bin_slop=0, min_rpar=0)
+                                 metric='Rlens', brute=True, min_rpar=0)
     ng0.process(lens_cat, source_cat)
 
     Rlens = ng0.meanr
     theory_gt = gamma0 * np.exp(-0.5*Rlens**2/R0**2)
 
-    print('Results with bin_slop = 0:')
+    print('Results with brute=True:')
     print('ng.npairs = ',ng0.npairs)
     print('true_npairs = ',true_npairs)
     print('ng.xi = ',ng0.xi)
@@ -1398,7 +1398,7 @@ def test_rlens_bkg():
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl)
     source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
     ng0 = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                 metric='Rlens', bin_slop=0)
+                                 metric='Rlens', brute=True)
     ng0.process(lens_cat, source_cat)
     Rlens = ng0.meanr
 
@@ -1444,10 +1444,10 @@ def test_rlens_bkg():
 
     # Repeat with Arc metric
     ng2 = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep_arc, max_sep=max_sep_arc,
-                                 metric='Arc', bin_slop=0, min_rpar=0, sep_units='arcmin')
+                                 metric='Arc', brute=True, min_rpar=0, sep_units='arcmin')
     ng2.process(lens_cat, source_cat)
 
-    print('Results with bin_slop = 0:')
+    print('Results with brute=True:')
     print('ng.npairs = ',ng2.npairs)
     print('true_npairs = ',true_npairs_arc)
     print('ng.xi = ',ng2.xi)
@@ -1465,7 +1465,7 @@ def test_rlens_bkg():
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl)
     source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
     ng2 = treecorr.NGCorrelation(bin_size=bin_size, min_sep=min_sep_arc, max_sep=max_sep_arc,
-                                 metric='Arc', bin_slop=0, sep_units='arcmin')
+                                 metric='Arc', brute=True, sep_units='arcmin')
     ng2.process(lens_cat, source_cat)
     Rlens = ng2.meanr
 

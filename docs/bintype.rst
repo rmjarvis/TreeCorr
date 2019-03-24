@@ -129,15 +129,14 @@ down, so the resulting counts come out pretty close to correct.  Furthermore, th
 number of pairs within the specified range is always correct, since each pair is placed
 in some bin.
 
-Finally, there is a distinction between ``bin_slop=0`` and ``bin_slop \ll 1``.
-Internally, the former will *always* traverse the tree all the way to the leaves.  So
+Finally, there is a distinction between ``bin_slop=0`` and ``brute=True``.
+Internally, the latter will *always* traverse the tree all the way to the leaves.  So
 every pair will be calculated individually.  This is the brute force calculation.
-If ``bin_slop`` is very, very small, but not equal to 0, then it will allow for the
-traversal to stop early if all possible pairs in a given pair of cells fall into the same bin.
-This can be quite a large speedup in some cases.  And especially for NN correlations, there
-is no disadvantage to doing so.
+However, ``bin_slop=0`` will allow for the traversal to stop early if all possible pairs in a
+given pair of cells fall into the same bin.  This can be quite a large speedup in some cases.
+And especially for NN correlations, there is no disadvantage to doing so.
 
 For shear correlations, there can be a slight difference between using ``bin_slop=0`` and
-``bin_slop=1.e-20`` (or some other similarly negligible value) because the shear projections
-won't be precisely equal in the two cases.  If the difference is seen to matter for you,
-this is probably a sign that you should decrease your bin size.
+``brute=True`` because the shear projections won't be precisely equal in the two cases.
+If the difference is seen to matter for you, this is probably a sign that you should decrease
+your bin size.

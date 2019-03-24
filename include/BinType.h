@@ -94,9 +94,6 @@ struct BinTypeHelper<Log>
         double s1ps2sq = s1ps2 * s1ps2;
         if (s1ps2sq <= bsq*rsq) return true;
 
-        // b = 0 means recurse all the way to the leaves.
-        if (b == 0) return false;
-
         // If s1+s2 > 0.5 * (binsize + b) * r, then the total leakage (on both sides perhaps)
         // will be more than b.  I.e. too much slop.
         if (s1ps2sq > 0.25 * SQR(binsize + b) * rsq) return false;
@@ -191,9 +188,6 @@ struct BinTypeHelper<Linear>
         // s1 + s2 <= b
         // Note: this automatically includes the s1ps2 == 0 case, so don't do it separately.
         if (s1ps2 <= b) return true;
-
-        // b = 0 means recurse all the way to the leaves.
-        if (b == 0) return false;
 
         // If s1+s2 > 0.5 * (binsize + b), then the total leakage (on both sides perhaps)
         // will be more than b.  I.e. too much slop.
@@ -296,9 +290,6 @@ struct BinTypeHelper<TwoD>
         // Standard stop splitting criterion.
         // s1 + s2 <= b
         if (s1ps2 <= b) return true;
-
-        // b = 0 means recurse all the way to the leaves.
-        if (b == 0) return false;
 
         // If s1+s2 > 0.5 * (binsize + b), then the total leakage (on both sides perhaps)
         // will be more than b.  I.e. too much slop.

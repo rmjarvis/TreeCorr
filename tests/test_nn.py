@@ -407,7 +407,7 @@ def test_direct_count():
     min_sep = 1.
     max_sep = 50.
     nbins = 50
-    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     dd.process(cat1, cat2, num_threads=1)
     print('dd.npairs = ',dd.npairs)
 
@@ -453,7 +453,7 @@ def test_direct_count():
     with open(rand_file_name2, 'w') as fid:
         for i in range(nrand):
             fid.write(('%.20f %.20f\n')%(rx2[i],ry2[i]))
-    rr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+    rr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True,
                                 verbose=0)
     rr.process(rcat1,rcat2)
     xi, varxi = dd.calculateXi(rr)
@@ -497,13 +497,13 @@ def test_direct_count():
                                     skip_header=1)
     np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
 
-    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
-    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=1.e-16)
+    # Repeat with binslop = 0, since the code flow is different from brute=True
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0)
     dd.process(cat1, cat2)
     np.testing.assert_array_equal(dd.npairs, true_npairs)
 
     # And again with no top-level recursion
-    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=1.e-16,
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0,
                                 max_top=0)
     dd.process(cat1, cat2)
     np.testing.assert_array_equal(dd.npairs, true_npairs)
@@ -513,7 +513,7 @@ def test_direct_count():
     config = treecorr.config.read_config('configs/nn_direct.yaml')
     config['verbose'] = 2
     config['max_top'] = 0
-    config['bin_slop'] = 1.e-16
+    config['bin_slop'] = 0
     treecorr.corr2(config)
     data = np.genfromtxt(config['nn_file_name'], names=True, skip_header=1)
     np.testing.assert_array_equal(data['npairs'], true_npairs)
@@ -589,7 +589,7 @@ def test_direct_spherical():
     nbins = 50
     bin_size = np.log(max_sep/min_sep) / nbins
     dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                sep_units='deg', bin_slop=0.)
+                                sep_units='deg', brute=True)
     dd.process(cat1, cat2)
 
     r1 = np.sqrt(x1**2 + y1**2 + z1**2)
@@ -655,10 +655,10 @@ def test_direct_spherical():
     np.testing.assert_allclose(data['npairs'], dd.npairs)
     np.testing.assert_allclose(data['DD'], dd.weight)
 
-    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
     dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                sep_units='deg', bin_slop=1.e-16, max_top=0)
+                                sep_units='deg', bin_slop=0, max_top=0)
     dd.process(cat1, cat2)
     np.testing.assert_array_equal(dd.npairs, true_npairs)
     np.testing.assert_allclose(dd.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -746,7 +746,7 @@ def test_direct_3d():
     min_sep = 1.
     max_sep = 50.
     nbins = 50
-    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     dd.process(cat1, cat2)
     print('dd.npairs = ',dd.npairs)
 
@@ -799,7 +799,7 @@ def test_direct_perp():
     min_sep = 1.
     max_sep = 50.
     nbins = 50
-    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     dd.process(cat1, cat2, metric='FisherRperp')
     print('dd.npairs = ',dd.npairs)
 
@@ -855,7 +855,7 @@ def test_direct_old_perp():
     min_sep = 1.
     max_sep = 50.
     nbins = 50
-    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     dd.process(cat1, cat2, metric='OldRperp')
     print('dd.npairs = ',dd.npairs)
 
@@ -913,7 +913,7 @@ def test_direct_lens():
     min_sep = 1.
     max_sep = 50.
     nbins = 50
-    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     dd.process(cat1, cat2, metric='Rlens')
     print('dd.npairs = ',dd.npairs)
 
@@ -980,7 +980,7 @@ def test_direct_arc():
     min_sep = 1.
     max_sep = 50.
     nbins = 50
-    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True,
                                 sep_units='arcmin')
     dd.process(cat1, cat2, metric='Arc')
     print('dd.npairs = ',dd.npairs)
@@ -1007,7 +1007,7 @@ def test_direct_arc():
 
     # Repeat with cat2 using 3d positions
     cat2r = treecorr.Catalog(ra=ra2, dec=dec2, r=r2, ra_units='rad', dec_units='rad')
-    dd2r = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+    dd2r = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True,
                                   sep_units='arcmin')
     dd2r.process(cat1, cat2r, metric='Arc')
     print('dd2r.npairs = ',dd2r.npairs)
@@ -1017,7 +1017,7 @@ def test_direct_arc():
 
     # And cat1 with 3d positions
     cat1r = treecorr.Catalog(ra=ra1, dec=dec1, r=r1, ra_units='rad', dec_units='rad')
-    dd1r = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+    dd1r = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True,
                                   sep_units='arcmin')
     dd1r.process(cat1r, cat2, metric='Arc')
     print('dd1r.npairs = ',dd1r.npairs)
@@ -1026,7 +1026,7 @@ def test_direct_arc():
     np.testing.assert_array_equal(dd1r.npairs, true_npairs)
 
     # And now both with 3d positions
-    ddr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+    ddr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True,
                                  sep_units='arcmin')
     ddr.process(cat1r, cat2r, metric='Arc')
     print('ddr.npairs = ',ddr.npairs)
@@ -1064,7 +1064,7 @@ def test_direct_partial():
     min_sep = 1.
     max_sep = 50.
     nbins = 50
-    dda = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    dda = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     dda.process(cat1a, cat2a)
     print('dda.npairs = ',dda.npairs)
 
@@ -1093,7 +1093,7 @@ def test_direct_partial():
     w2[47:129] = 1.
     cat1b = treecorr.Catalog(x=x1, y=y1, w=w1)
     cat2b = treecorr.Catalog(x=x2, y=y2, w=w2)
-    ddb = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    ddb = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     ddb.process(cat1b, cat2b)
     print('ddb.npairs = ',ddb.npairs)
     print('diff = ',ddb.npairs - true_npairs)
@@ -1125,7 +1125,7 @@ def test_direct_linear():
     min_sep = 1.
     max_sep = 50.
     nbins = 49
-    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True,
                                 bin_type='Linear')
     dd.process(cat1, cat2)
     print('dd.npairs = ',dd.npairs)
@@ -1178,13 +1178,13 @@ def test_direct_linear():
     with open(rand_file_name2, 'w') as fid:
         for i in range(nrand):
             fid.write(('%.20f %.20f %.20f\n')%(rx2[i],ry2[i],rz2[i]))
-    rr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+    rr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True,
                                 bin_type='Linear', verbose=0)
     rr.process(rcat1,rcat2)
-    dr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+    dr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True,
                                 bin_type='Linear', verbose=0)
     dr.process(cat1,rcat2)
-    rd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.,
+    rd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True,
                                 bin_type='Linear', verbose=0)
     rd.process(rcat1,cat2)
     xi, varxi = dd.calculateXi(rr, dr, rd)
@@ -1216,14 +1216,14 @@ def test_direct_linear():
     print('diff[diffs] = ',xi[diff_index] - corr2_output['xi'][diff_index])
     np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
 
-    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
-    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=1.e-16,
+    # Repeat with binslop = 0
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0,
                                 bin_type='Linear')
     dd.process(cat1, cat2)
     np.testing.assert_array_equal(dd.npairs, true_npairs)
 
     # And again with no top-level recursion
-    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=1.e-16,
+    dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0,
                                 bin_type='Linear', max_top=0)
     dd.process(cat1, cat2)
     np.testing.assert_array_equal(dd.npairs, true_npairs)

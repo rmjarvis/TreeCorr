@@ -111,9 +111,17 @@ class BinnedCorr2(object):
     :param bin_slop:    How much slop to allow in the placement of pairs in the bins.
                         If bin_slop = 1, then the bin into which a particular pair is placed may
                         be incorrect by at most 1.0 bin widths.  (default: None, which means to
-                        use bin_slop=1 if bin_size <= 0.1, or 0.1/bin_size if bin_size > 0.1.
-                        This mean the error will be at most 0.1 in log(sep), which has been found
-                        to yield good results for most application.
+                        use a bin_slop that gives a maximum error of 10% on any bin, which has
+                        been found to yield good results for most application.
+    :param brute:       Whether to use the "brute force" algorithm.  (default: False) Options are:
+
+                        - False (the default): Stop at non-leaf cells whenever the error in the
+                          separation is compatible with the given bin_slop.
+                        - True: Go to the leaves for both catalogs.
+                        - 1: Always go to the leaves for cat1, but stop at non-leaf cells of cat2
+                          when the error is compatible with the given bin_slop.
+                        - 2: Always go to the leaves for cat2, but stop at non-leaf cells of cat1
+                          when the error is compatible with the given bin_slop.
 
     :param verbose:     If no logger is provided, this will optionally specify a logging level to
                         use:
@@ -179,6 +187,8 @@ class BinnedCorr2(object):
         'bin_slop' : (float, False, None, None,
                 'The fraction of a bin width by which it is ok to let the pairs miss the correct bin.',
                 'The default is to use 1 if bin_size <= 0.1, or 0.1/bin_size if bin_size > 0.1.'),
+        'brute' : (bool, False, False, [False, True, 1, 2],
+                'Whether to use brute-force algorithm'),
         'verbose' : (int, False, 1, [0, 1, 2, 3],
                 'How verbose the code should be during processing. ',
                 '0 = Errors Only, 1 = Warnings, 2 = Progress, 3 = Debugging'),
@@ -385,6 +395,11 @@ class BinnedCorr2(object):
         else:
             self.logger.debug("Using bin_slop = %g, b = %g",self.bin_slop,self.b)
 
+        self.brute = treecorr.config.get(self.config,'brute',bool,False)
+        if self.brute:
+            self.logger.info("Doing brute force calculation%s.",
+                             self.brute==1 and " for first field" or
+                             (self.brute==2 and " for second field" or ""))
         self.coords = None
         self.metric = None
         self.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)
@@ -499,7 +514,7 @@ class BinnedCorr2(object):
         implicitly) when constructing the corr instance.  This means that some of the pairs may
         have actual separations slightly outside of the specified range.  If you want a selection
         using an exact range without any slop, you should construct a new Correlation instance
-        with bin_slop=0, and call sample_pairs with that.
+        with brute=True or bin_slop=0, and call sample_pairs with that.
 
         The returned separations will likewise correspond to the separation of the cells in the
         tree where the correlation function would have decided that the pair falls into the
@@ -540,10 +555,14 @@ class BinnedCorr2(object):
             # so the 2nd check might be superfluous.
             # The first one though is definitely possible, so we need to check that.
             self.logger.debug("In sample_pairs, making default field for cat1")
-            f1 = cat1.getNField()
+            min_size, max_size = self._get_minmax_size()
+            f1 = cat1.getNField(min_size, max_size, self.split_method,
+                                bool(self.brute), self.max_top, self.coords)
         if f2 is None or f2._coords != self._coords:
             self.logger.debug("In sample_pairs, making default field for cat2")
-            f2 = cat2.getNField()
+            min_size, max_size = self._get_minmax_size()
+            f2 = cat2.getNField(min_size, max_size, self.split_method,
+                                bool(self.brute), self.max_top, self.coords)
 
         i1 = np.zeros(n, dtype=int)
         i2 = np.zeros(n, dtype=int)

@@ -164,14 +164,14 @@ Field<D,C>::Field(
     double* x, double* y, double* z, double* g1, double* g2, double* k,
     double* w, double* wpos, long nobj,
     double minsize, double maxsize,
-    int sm_int, int maxtop)
+    int sm_int, bool brute, int maxtop)
 {
     //set_verbose(2);
     dbg<<"Starting to Build Field with "<<nobj<<" objects\n";
     xdbg<<"D,C = "<<D<<','<<C<<std::endl;
     xdbg<<"First few values are:\n";
     for(int i=0;i<5;++i) {
-        xdbg<<x[i]<<"  "<<y[i]<<"  "<<z[i]<<"  "<<g1[i]<<"  "<<g1[i]<<"  "<<k[i]<<"  "<<w[i]<<"  "<<get_wpos(wpos,w,i).wpos<<std::endl;
+        xdbg<<x[i]<<"  "<<y[i]<<"  "<<(z?z[i]:0)<<"  "<<g1[i]<<"  "<<g2[i]<<"  "<<k[i]<<"  "<<w[i]<<"  "<<(wpos?wpos[i]:0)<<std::endl;
     }
     std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> > celldata;
     celldata.reserve(nobj);
@@ -226,7 +226,7 @@ Field<D,C>::Field(
 #pragma omp parallel for
 #endif
     for(ptrdiff_t i=0;i<n;++i) {
-        _cells[i] = new Cell<D,C>(top_data[i],top_sizesq[i],celldata,minsizesq,sm,
+        _cells[i] = new Cell<D,C>(top_data[i],top_sizesq[i],celldata,minsizesq,sm,brute,
                                   top_start[i],top_end[i]);
         xdbg<<i<<": "<<_cells[i]->getN()<<"  "<<_cells[i]->getW()<<"  "<<
             _cells[i]->getPos()<<"  "<<_cells[i]->getSize()<<"  "<<_cells[i]->getSizeSq()<<std::endl;
@@ -424,7 +424,7 @@ template <int D>
 void* BuildField(double* x, double* y, double* z, double* g1, double* g2, double* k,
                  double* w, double* wpos, long nobj,
                  double minsize, double maxsize,
-                 int sm_int, int maxtop, int coords)
+                 int sm_int, int brute, int maxtop, int coords)
 {
     dbg<<"Start BuildField "<<D<<"  "<<coords<<std::endl;
     void* field=0;
@@ -434,19 +434,19 @@ void* BuildField(double* x, double* y, double* z, double* g1, double* g2, double
            field = static_cast<void*>(new Field<D,Flat>(x, y, 0, g1, g2, k,
                                                         w, wpos, nobj,
                                                         minsize, maxsize,
-                                                        sm_int, maxtop));
+                                                        sm_int, bool(brute), maxtop));
            break;
       case Sphere:
            field = static_cast<void*>(new Field<D,Sphere>(x, y, z, g1, g2, k,
                                                           w, wpos, nobj,
                                                           minsize, maxsize,
-                                                          sm_int, maxtop));
+                                                          sm_int, bool(brute), maxtop));
            break;
       case ThreeD:
            field = static_cast<void*>(new Field<D,ThreeD>(x, y, z, g1, g2, k,
                                                           w, wpos, nobj,
                                                           minsize, maxsize,
-                                                          sm_int, maxtop));
+                                                          sm_int, bool(brute), maxtop));
            break;
     }
     xdbg<<"field = "<<field<<std::endl;
@@ -456,29 +456,29 @@ void* BuildField(double* x, double* y, double* z, double* g1, double* g2, double
 void* BuildGField(double* x, double* y, double* z, double* g1, double* g2,
                   double* w, double* wpos, long nobj,
                   double minsize, double maxsize,
-                  int sm_int, int maxtop, int coords)
+                  int sm_int, int brute, int maxtop, int coords)
 {
     // Note: Use w for k, since we access k[i], even though value will be ignored.
-    return BuildField<GData>(x,y,z, g1,g2,w, w,wpos,nobj, minsize,maxsize, sm_int,maxtop,coords);
+    return BuildField<GData>(x,y,z, g1,g2,w, w,wpos,nobj, minsize,maxsize, sm_int,brute,maxtop,coords);
 }
 
 
 void* BuildKField(double* x, double* y, double* z, double* k,
                   double* w, double* wpos, long nobj,
                   double minsize, double maxsize,
-                  int sm_int, int maxtop, int coords)
+                  int sm_int, int brute, int maxtop, int coords)
 {
     // Note: Use w for g1,g2, since we access g1[i],g2[i] even though values are ignored.
-    return BuildField<KData>(x,y,z, w,w,k, w,wpos,nobj, minsize,maxsize, sm_int,maxtop,coords);
+    return BuildField<KData>(x,y,z, w,w,k, w,wpos,nobj, minsize,maxsize, sm_int,brute,maxtop,coords);
 }
 
 void* BuildNField(double* x, double* y, double* z,
                   double* w, double* wpos, long nobj,
                   double minsize, double maxsize,
-                  int sm_int, int maxtop, int coords)
+                  int sm_int, int brute, int maxtop, int coords)
 {
     // Note: Use w for g1,g2,k for same reasons as above.
-    return BuildField<NData>(x,y,z, w,w,w, w,wpos,nobj, minsize,maxsize, sm_int,maxtop,coords);
+    return BuildField<NData>(x,y,z, w,w,w, w,wpos,nobj, minsize,maxsize, sm_int,brute,maxtop,coords);
 }
 
 template <int D>

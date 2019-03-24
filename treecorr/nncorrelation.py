@@ -161,7 +161,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         min_size, max_size = self._get_minmax_size()
 
-        field = cat.getNField(min_size, max_size, self.split_method, self.max_top, self.coords)
+        field = cat.getNField(min_size, max_size, self.split_method,
+                              bool(self.brute), self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         treecorr._lib.ProcessAutoNN(self.corr, field.data, self.output_dots,
@@ -198,8 +199,10 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         min_size, max_size = self._get_minmax_size()
 
-        f1 = cat1.getNField(min_size, max_size, self.split_method, self.max_top, self.coords)
-        f2 = cat2.getNField(min_size, max_size, self.split_method, self.max_top, self.coords)
+        f1 = cat1.getNField(min_size, max_size, self.split_method,
+                            self.brute in [True, 1], self.max_top, self.coords)
+        f2 = cat2.getNField(min_size, max_size, self.split_method,
+                            self.brute in [True, 2], self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         treecorr._lib.ProcessCrossNN(self.corr, f1.data, f2.data, self.output_dots,

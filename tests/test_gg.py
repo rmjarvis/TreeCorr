@@ -23,7 +23,7 @@ from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
 
 def test_direct():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
-    # This should exactly match the treecorr result if bin_slop=0.
+    # This should exactly match the treecorr result if brute_force=True
 
     ngal = 200
     s = 10.
@@ -47,7 +47,7 @@ def test_direct():
     max_sep = 50.
     nbins = 50
     bin_size = np.log(max_sep/min_sep) / nbins
-    gg = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    gg = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     gg.process(cat1, cat2)
 
     true_npairs = np.zeros(nbins, dtype=int)
@@ -115,9 +115,9 @@ def test_direct():
     np.testing.assert_allclose(data['xim'], gg.xim, rtol=1.e-3)
     np.testing.assert_allclose(data['xim_im'], gg.xim_im, rtol=1.e-3)
 
-    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # Repeat with binslop = 0.
     # And don't do any top-level recursion so we actually test not going to the leaves.
-    gg = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=1.e-16,
+    gg = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0,
                                 max_top=0)
     gg.process(cat1, cat2)
     np.testing.assert_array_equal(gg.npairs, true_npairs)
@@ -218,7 +218,7 @@ def test_direct_spherical():
     nbins = 50
     bin_size = np.log(max_sep/min_sep) / nbins
     gg = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                sep_units='deg', bin_slop=0.)
+                                sep_units='deg', brute=True)
     gg.process(cat1, cat2)
 
     r1 = np.sqrt(x1**2 + y1**2 + z1**2)
@@ -309,10 +309,10 @@ def test_direct_spherical():
     np.testing.assert_allclose(data['xim'], gg.xim, rtol=1.e-3)
     np.testing.assert_allclose(data['xim_im'], gg.xim_im, rtol=1.e-3)
 
-    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
     gg = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                sep_units='deg', bin_slop=1.e-16, max_top=0)
+                                sep_units='deg', bin_slop=0, max_top=0)
     gg.process(cat1, cat2)
     np.testing.assert_array_equal(gg.npairs, true_npairs)
     np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -865,8 +865,7 @@ def test_aardvark():
 
     # However, after some back and forth about the calculation, we concluded that Eric hadn't
     # done the spherical trig correctly to get the shears relative to the great circle joining
-    # the two positions.  So let's compare with my own brute force calculation (i.e. using
-    # bin_slop = 0):
+    # the two positions.  So let's compare with my own brute force calculation.
     # This also has the advantage that the radial bins are done the same way -- uniformly
     # spaced in log of the chord distance, rather than the great circle distance.
 
@@ -1216,12 +1215,12 @@ def test_rlens():
     print('true_gCr = ',true_gCr)
     print('true_gCi = ',true_gCi)
 
-    # Start with bin_slop == 0, which means brute force.
+    # Start with brute force.
     # With only 100 lenses, this still runs very fast.
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl, g1=gl.real, g2=gl.imag)
     source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
     gg0 = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                 metric='Rlens', bin_slop=0)
+                                 metric='Rlens', brute=True)
     t0 = time.time()
     gg0.process(lens_cat, source_cat)
     t1 = time.time()
@@ -1229,7 +1228,7 @@ def test_rlens():
     Rlens = gg0.meanr
     theory_gQ = gamma0 * np.exp(-0.5*Rlens**2/R0**2)
 
-    print('Results with bin_slop = 0:')
+    print('Results with brute force:')
     print('time = ',t1-t0)
     print('gg.npairs = ',gg0.npairs)
     print('true_npairs = ',true_npairs)
@@ -1260,10 +1259,10 @@ def test_rlens():
     print('max diff = ',max(abs(gg0.xim - theory_gQ)))
     assert max(abs(gg0.xim - theory_gQ)) < 4.e-5
 
-    # With bin_slop nearly but not exactly 0, it should get the same npairs, but the
-    # shapes will be slightly off, since the directions won't be exactly right.
+    # With bin_slop = 0, it should get the same npairs, but the shapes will be slightly off, since
+    # the directions won't be exactly right.
     gg1 = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                 metric='Rlens', bin_slop=1.e-10)
+                                 metric='Rlens', bin_slop=0)
     t0 = time.time()
     gg1.process(lens_cat, source_cat)
     t1 = time.time()
@@ -1271,7 +1270,7 @@ def test_rlens():
     Rlens = gg1.meanr
     theory_gQ = gamma0 * np.exp(-0.5*Rlens**2/R0**2)
 
-    print('Results with bin_slop = 1.e-10:')
+    print('Results with bin_slop = 0:')
     print('time = ',t1-t0)
     print('gg.npairs = ',gg1.npairs)
     print('true_npairs = ',true_npairs)
@@ -1348,13 +1347,13 @@ def test_rlens():
                                   g1=g1, g2=g2)
 
     gg0s = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                  metric='Rlens', bin_slop=0)
+                                  metric='Rlens', brute=True)
     gg0s.process(lens_cat, source_cat)
 
     Rlens = gg0s.meanr
     theory_gQ = gamma0 * np.exp(-0.5*Rlens**2/R0**2)
 
-    print('Results with bin_slop = 0:')
+    print('Results with brute=True')
     print('gg.npairs = ',gg0s.npairs)
     print('true_npairs = ',true_npairs)
     np.testing.assert_array_equal(gg0s.npairs, true_npairs)
@@ -1385,7 +1384,7 @@ def test_rlens():
     assert max(abs(gg0s.xim - theory_gQ)) < 4.e-5
 
     # This should be identical to the 3d version, since going all the way to leaves.
-    # (The next test with bin_slop = 1 will be different, since tree creation is different.)
+    # (The next test will be different, since tree creation is different.)
     assert max(abs(gg0s.xim - gg0.xim)) < 1.e-7
     assert max(abs(gg0s.xip - gg0.xip)) < 1.e-7
     assert max(abs(gg0s.xim_im - gg0.xim_im)) < 1.e-7
@@ -1491,18 +1490,18 @@ def test_rperp():
     print('true_gCr = ',true_gCr)
     print('true_gCi = ',true_gCi)
 
-    # Start with bin_slop = 0, which means brute force.
+    # Start with brute force.
     # With only 100 lenses, this still runs very fast.
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl, g1=gl.real, g2=gl.imag)
     source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
     gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                metric='FisherRperp', bin_slop=0)
+                                metric='FisherRperp', brute=True)
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
     theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
-    print('Results with bin_slop = 0:')
+    print('Results with brute=True')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
     np.testing.assert_array_equal(gg.npairs, true_npairs)
@@ -1532,16 +1531,16 @@ def test_rperp():
     print('max diff = ',max(abs(gg.xim - theory_gQ)))
     assert max(abs(gg.xim - theory_gQ)) < 4.e-5
 
-    # With bin_slop nearly but not exactly 0, it should get the same npairs, but the
-    # shapes will be slightly off, since the directions won't be exactly right.
+    # With bin_slop = 0, it should get the same npairs, but the shapes will be slightly off,
+    # since the directions won't be exactly right.
     gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                metric='FisherRperp', bin_slop=1.e-10)
+                                metric='FisherRperp', bin_slop=0)
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
     theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
-    print('Results with bin_slop = 1.e-10:')
+    print('Results with bin_slop = 0:')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
     np.testing.assert_array_equal(gg.npairs, true_npairs)
@@ -1705,18 +1704,18 @@ def test_rperp_local():
     print('true_gCr = ',true_gCr)
     print('true_gCi = ',true_gCi)
 
-    # Start with bin_slop == 0, which means brute force.
+    # Start with brute force.
     # With only 100 lenses, this still runs very fast.
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl, g1=gl.real, g2=gl.imag)
     source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
     gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                metric='FisherRperp', bin_slop=0, min_rpar=-50, max_rpar=50)
+                                metric='FisherRperp', brute=True, min_rpar=-50, max_rpar=50)
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
     theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
-    print('Results with bin_slop = 0:')
+    print('Results with brute force:')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
     np.testing.assert_array_equal(gg.npairs, true_npairs)
@@ -1747,15 +1746,15 @@ def test_rperp_local():
     print('max diff = ',max(abs(gg.xim - theory_gQ)))
     assert max(abs(gg.xim - theory_gQ)) < 4.e-5
 
-    # Now small, but non-zero.
+    # Now bin_slop=0
     gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                metric='FisherRperp', bin_slop=1.e-10, min_rpar=-50, max_rpar=50)
+                                metric='FisherRperp', bin_slop=0, min_rpar=-50, max_rpar=50)
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
     theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
-    print('Results with bin_slop = 1.e-10:')
+    print('Results with bin_slop = 0:')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
     np.testing.assert_array_equal(gg.npairs, true_npairs)
@@ -1899,18 +1898,18 @@ def test_oldrperp():
     print('true_gCr = ',true_gCr)
     print('true_gCi = ',true_gCi)
 
-    # Start with bin_slop = 0, which means brute force.
+    # Start with brute force.
     # With only 100 lenses, this still runs very fast.
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl, g1=gl.real, g2=gl.imag)
     source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
     gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                metric='Rperp', bin_slop=0)
+                                metric='Rperp', brute=True)
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
     theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
-    print('Results with bin_slop = 0:')
+    print('Results with brute force:')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
     np.testing.assert_array_equal(gg.npairs, true_npairs)
@@ -1940,16 +1939,16 @@ def test_oldrperp():
     print('max diff = ',max(abs(gg.xim - theory_gQ)))
     assert max(abs(gg.xim - theory_gQ)) < 4.e-5
 
-    # With bin_slop nearly but not exactly 0, it should get the same npairs, but the
-    # shapes will be slightly off, since the directions won't be exactly right.
+    # With bin_slop = 0, it should get the same npairs, but the shapes will be slightly off,
+    # since the directions won't be exactly right.
     gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                metric='Rperp', bin_slop=1.e-10)
+                                metric='Rperp', bin_slop=0)
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
     theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
-    print('Results with bin_slop = 1.e-10:')
+    print('Results with bin_slop = 0:')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
     np.testing.assert_array_equal(gg.npairs, true_npairs)
@@ -2111,18 +2110,18 @@ def test_oldrperp_local():
     print('true_gCr = ',true_gCr)
     print('true_gCi = ',true_gCi)
 
-    # Start with bin_slop == 0, which means brute force.
+    # Start with brute force.
     # With only 100 lenses, this still runs very fast.
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl, g1=gl.real, g2=gl.imag)
     source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
     gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                metric='OldRperp', bin_slop=0, min_rpar=-50, max_rpar=50)
+                                metric='OldRperp', brute=True, min_rpar=-50, max_rpar=50)
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
     theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
-    print('Results with bin_slop = 0:')
+    print('Results with brute force:')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
     np.testing.assert_array_equal(gg.npairs, true_npairs)
@@ -2153,15 +2152,15 @@ def test_oldrperp_local():
     print('max diff = ',max(abs(gg.xim - theory_gQ)))
     assert max(abs(gg.xim - theory_gQ)) < 4.e-5
 
-    # Now small, but non-zero.
+    # Now bin_slop=0
     gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                metric='OldRperp', bin_slop=1.e-10, min_rpar=-50, max_rpar=50)
+                                metric='OldRperp', bin_slop=0, min_rpar=-50, max_rpar=50)
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
     theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
 
-    print('Results with bin_slop = 1.e-10:')
+    print('Results with bin_slop = 0:')
     print('gg.npairs = ',gg.npairs)
     print('true_npairs = ',true_npairs)
     np.testing.assert_array_equal(gg.npairs, true_npairs)

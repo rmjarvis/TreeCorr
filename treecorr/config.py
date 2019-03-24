@@ -75,7 +75,7 @@ def parse_bool(value):
             except Exception:
                 raise ValueError("Unable to parse %s as a bool."%value)
     elif isinstance(value,(bool, int)):
-        return bool(value)
+        return int(value)
     else:
         raise ValueError("Unable to parse %s as a bool."%value)
 

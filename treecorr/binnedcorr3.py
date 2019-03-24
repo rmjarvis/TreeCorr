@@ -119,6 +119,13 @@ class BinnedCorr3(object):
     :param min_v:       Analogous to min_sep for the v direction. (default: -1)
     :param max_v:       Analogous to max_sep for the v direction. (default: 1)
 
+    :param brute:       Whether to use the "brute force" algorithm.  (default: False) Options are:
+
+                        - False (the default): Stop at non-leaf cells whenever the error in the
+                          separation is compatible with the given bin_slop.
+                        - True: Go to the leaves for all catalogs.
+                        (The number options allowed for 2pt correlations are not enabled here.)
+
     :param verbose:     If no logger is provided, this will optionally specify a logging level to
                         use:
 
@@ -189,6 +196,8 @@ class BinnedCorr3(object):
                 'The minimum v to include in the output.'),
         'max_v' : (float, False, None, None,
                 'The maximum v to include in the output.'),
+        'brute' : (bool, False, False, [False, True],
+                'Whether to use brute-force algorithm'),
         'verbose' : (int, False, 1, [0, 1, 2, 3],
                 'How verbose the code should be during processing. ',
                 '0 = Errors Only, 1 = Warnings, 2 = Progress, 3 = Debugging'),
@@ -398,6 +407,9 @@ class BinnedCorr3(object):
         self.v = np.tile(self.v1d[np.newaxis, np.newaxis, :],
                             (self.nbins, self.nubins, 1))
         self.rnom = np.exp(self.logr)
+        self.brute = treecorr.config.get(self.config,'brute',bool,False)
+        if self.brute:
+            self.logger.info("Doing brute force calculation.",)
         self.coords = None
         self.metric = None
         self.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)

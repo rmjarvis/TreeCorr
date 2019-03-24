@@ -200,14 +200,14 @@ public:
         _size(0.), _sizesq(0.), _data(data), _left(0), _info(info) {}
 
     Cell(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
-         double minsizesq, SplitMethod sm, size_t start, size_t end);
+         double minsizesq, SplitMethod sm, bool brute, size_t start, size_t end);
 
     Cell(CellData<D,C>* ave, double sizesq,
          std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
-         double minsizesq, SplitMethod sm, size_t start, size_t end);
+         double minsizesq, SplitMethod sm, bool brute, size_t start, size_t end);
 
     void finishInit(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
-                    double minsizesq, SplitMethod sm, size_t start, size_t end);
+                    double minsizesq, SplitMethod sm, bool brute, size_t start, size_t end);
 
     ~Cell()
     {

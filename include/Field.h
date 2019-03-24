@@ -42,7 +42,7 @@ public:
     Field(double* x, double* y, double* z, double* g1, double* g2, double* k,
           double* w, double* wpos, long nobj,
           double minsize, double maxsize,
-          int sm_int, int maxtop);
+          int sm_int, bool brute, int maxtop);
     ~Field();
 
     long getNObj() const { return _nobj; }

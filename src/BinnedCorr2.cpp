@@ -679,7 +679,7 @@ void BinnedCorr2<D1,D2,B>::samplePairs(
 
 void SelectRandomFrom(long m, std::vector<long>& selection)
 {
-    dbg<<"SelectRandomFrom("<<m<<", "<<selection.size()<<")\n";
+    xdbg<<"SelectRandomFrom("<<m<<", "<<selection.size()<<")\n";
     long n = selection.size();
     // There are two algorithms here.
     // Floyd's algorithm is efficient for m >> n.
@@ -770,12 +770,12 @@ void BinnedCorr2<D1,D2,B>::sampleFrom(
     } else {
         XAssert(std::abs(r - sqrt(rsq)) < 1.e-10*r);
     }
-    dbg<<"sampleFrom: "<<c1.getN()<<"  "<<c2.getN()<<"  "<<rsq<<"  "<<r<<std::endl;
-    dbg<<"   n1,n2,k,n,m = "<<n1<<','<<n2<<','<<k<<','<<n<<','<<m<<std::endl;
+    xdbg<<"sampleFrom: "<<c1.getN()<<"  "<<c2.getN()<<"  "<<rsq<<"  "<<r<<std::endl;
+    xdbg<<"   n1,n2,k,n,m = "<<n1<<','<<n2<<','<<k<<','<<n<<','<<m<<std::endl;
 
     if (k + m <= n) {
         // Case 1
-        dbg<<"Case 1: take all pairs\n";
+        xdbg<<"Case 1: take all pairs\n";
         for (size_t p1=0; p1<leaf1.size(); ++p1) {
             int nn1 = leaf1[p1]->getN();
             for (int q1=0; q1<nn1; ++q1) {
@@ -798,7 +798,7 @@ void BinnedCorr2<D1,D2,B>::sampleFrom(
         }
     } else if (m <= n) {
         // Case 2
-        dbg<<"Case 2: Check one at a time.\n";
+        xdbg<<"Case 2: Check one at a time.\n";
         for (size_t p1=0; p1<leaf1.size(); ++p1) {
             int nn1 = leaf1[p1]->getN();
             for (int q1=0; q1<nn1; ++q1) {
@@ -829,7 +829,7 @@ void BinnedCorr2<D1,D2,B>::sampleFrom(
         }
     } else {
         // Case 3
-        dbg<<"Case 3: Select n without replacement\n";
+        xdbg<<"Case 3: Select n without replacement\n";
         std::vector<long> selection(n);
         SelectRandomFrom(k+m, selection);
         // If any items in k<=i<n are from the original set, put them in their original place.
@@ -856,7 +856,7 @@ void BinnedCorr2<D1,D2,B>::sampleFrom(
         for (size_t p1=0; p1<leaf1.size(); ++p1) {
             int nn1 = leaf1[p1]->getN();
             for (int q1=0; q1<nn1; ++q1) {
-                dbg<<"i = "<<i<<", next = "<<next->first<<"  "<<next->second<<std::endl;
+                xdbg<<"i = "<<i<<", next = "<<next->first<<"  "<<next->second<<std::endl;
                 Assert(i <= next->first);
                 if (next->first > i + n2) {
                     // Then skip this loop through the second vector
@@ -870,7 +870,7 @@ void BinnedCorr2<D1,D2,B>::sampleFrom(
                     int nn2 = leaf2[p2]->getN();
                     for (int q2=0; q2<nn2; ++q2,++i) {
                         if (i == next->first) {
-                            dbg<<"Use i = "<<i<<std::endl;
+                            xdbg<<"Use i = "<<i<<std::endl;
                             int index2;
                             if (nn2 == 1) index2 = leaf2[p2]->getInfo().index;
                             else index2 = (*leaf2[p2]->getListInfo().indices)[q2];
@@ -888,7 +888,7 @@ void BinnedCorr2<D1,D2,B>::sampleFrom(
             }
             if (next == places.end()) break;
         }
-        dbg<<"Done: i = "<<i<<", k+m = "<<k+m<<std::endl;
+        xdbg<<"Done: i = "<<i<<", k+m = "<<k+m<<std::endl;
         k += m;
     }
 }

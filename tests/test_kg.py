@@ -21,7 +21,7 @@ from test_helper import get_script_name, do_pickle, CaptureLog
 
 def test_direct():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
-    # This should exactly match the treecorr result if bin_slop=0.
+    # This should exactly match the treecorr result if brute=True.
 
     ngal = 200
     s = 10.
@@ -44,7 +44,7 @@ def test_direct():
     max_sep = 50.
     nbins = 50
     bin_size = np.log(max_sep/min_sep) / nbins
-    kg = treecorr.KGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0.)
+    kg = treecorr.KGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     kg.process(cat1, cat2)
 
     true_npairs = np.zeros(nbins, dtype=int)
@@ -101,9 +101,9 @@ def test_direct():
     np.testing.assert_allclose(data['kgamT'], kg.xi, rtol=1.e-3)
     np.testing.assert_allclose(data['kgamX'], kg.xi_im, rtol=1.e-3)
 
-    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # Repeat with binslop = 0, since code is different for bin_slop=0 and brute=True.
     # And don't do any top-level recursion so we actually test not going to the leaves.
-    kg = treecorr.KGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=1.e-16,
+    kg = treecorr.KGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0,
                                 max_top=0)
     kg.process(cat1, cat2)
     np.testing.assert_array_equal(kg.npairs, true_npairs)
@@ -185,7 +185,7 @@ def test_direct_spherical():
     nbins = 50
     bin_size = np.log(max_sep/min_sep) / nbins
     kg = treecorr.KGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                sep_units='deg', bin_slop=0.)
+                                sep_units='deg', brute=True)
     kg.process(cat1, cat2)
 
     r1 = np.sqrt(x1**2 + y1**2 + z1**2)
@@ -260,10 +260,10 @@ def test_direct_spherical():
     np.testing.assert_allclose(data['kgamT'], kg.xi, rtol=1.e-3)
     np.testing.assert_allclose(data['kgamX'], kg.xi_im, rtol=1.e-3)
 
-    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
     kg = treecorr.KGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                sep_units='deg', bin_slop=1.e-16, max_top=0)
+                                sep_units='deg', bin_slop=0, max_top=0)
     kg.process(cat1, cat2)
     np.testing.assert_array_equal(kg.npairs, true_npairs)
     np.testing.assert_allclose(kg.weight, true_weight, rtol=1.e-5, atol=1.e-8)

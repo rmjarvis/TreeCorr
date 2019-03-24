@@ -15,17 +15,17 @@
 extern void* BuildGField(double* x, double* y, double* z, double* g1, double* g2,
                          double* w, double* wpos, long nobj,
                          double minsize, double maxsize,
-                         int sm_int, int maxtop, int coords);
+                         int sm_int, int brute, int maxtop, int coords);
 
 extern void* BuildKField(double* x, double* y, double* z, double* k,
                          double* w, double* wpos, long nobj,
                          double minsize, double maxsize,
-                         int sm_int, int maxtop, int coords);
+                         int sm_int, int brute, int maxtop, int coords);
 
 extern void* BuildNField(double* x, double* y, double* z,
                          double* w, double* wpos, long nobj,
                          double minsize, double maxsize,
-                         int sm_int, int maxtop, int coords);
+                         int sm_int, int brute, int maxtop, int coords);
 
 extern void DestroyGField(void* field, int coords);
 extern void DestroyKField(void* field, int coords);

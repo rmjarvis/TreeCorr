@@ -116,7 +116,8 @@ def test_twod():
     xi_brut = corr2d(x, y, kappa, kappa, w=None, rmax=max_sep, bins=nbins)
 
     cat1 = treecorr.Catalog(x=x, y=y, k=kappa, g1=gamma1, g2=gamma2)
-    kk = treecorr.KKCorrelation(min_sep=0., max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0)
+    kk = treecorr.KKCorrelation(min_sep=0., max_sep=max_sep, nbins=nbins, bin_type='TwoD',
+                                brute=True)
 
     # First the simplest case to get right: cross correlation of the catalog with itself.
     kk.process(cat1, cat1)
@@ -135,7 +136,7 @@ def test_twod():
     xi_brut = corr2d(x, y, kappa, kappa, w=1./kappa_err**2, rmax=max_sep, bins=nbins)
     cat2 = treecorr.Catalog(x=x, y=y, k=kappa, g1=gamma1, g2=gamma2, w=1./kappa_err**2)
     # NB. Testing that min_sep = 0 is default
-    kk = treecorr.KKCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0)
+    kk = treecorr.KKCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', brute=True)
     kk.process(cat2, cat2)
     print('max abs diff = ',np.max(np.abs(kk.xi - xi_brut)))
     print('max rel diff = ',np.max(np.abs(kk.xi - xi_brut)/np.abs(kk.xi)))
@@ -147,7 +148,7 @@ def test_twod():
     # Check GG
     xi_brut = corr2d(x, y, gamma, np.conj(gamma), rmax=max_sep, bins=nbins)
     # Equivalent bin_size = 2.  Check omitting nbins
-    gg = treecorr.GGCorrelation(max_sep=max_sep, bin_size=2., bin_type='TwoD', bin_slop=0)
+    gg = treecorr.GGCorrelation(max_sep=max_sep, bin_size=2., bin_type='TwoD', brute=True)
     gg.process(cat1)
     print('max abs diff = ',np.max(np.abs(gg.xip - xi_brut)))
     print('max rel diff = ',np.max(np.abs(gg.xip - xi_brut)/np.abs(gg.xip)))
@@ -155,7 +156,7 @@ def test_twod():
 
     xi_brut = corr2d(x, y, gamma, np.conj(gamma), w=1./kappa_err**2, rmax=max_sep, bins=nbins)
     # Check omitting max_sep
-    gg = treecorr.GGCorrelation(bin_size=2, nbins=nbins, bin_type='TwoD', bin_slop=0)
+    gg = treecorr.GGCorrelation(bin_size=2, nbins=nbins, bin_type='TwoD', brute=True)
     gg.process(cat2)
     print('max abs diff = ',np.max(np.abs(gg.xip - xi_brut)))
     print('max rel diff = ',np.max(np.abs(gg.xip - xi_brut)/np.abs(gg.xip)))
@@ -164,7 +165,7 @@ def test_twod():
     # Check NK
     xi_brut = corr2d(x, y, np.ones_like(kappa), kappa, rmax=max_sep, bins=nbins)
     # Check slightly smaller max_sep gets rounded up.
-    nk = treecorr.NKCorrelation(max_sep=max_sep-0.5, bin_size=2, bin_type='TwoD', bin_slop=0)
+    nk = treecorr.NKCorrelation(max_sep=max_sep-0.5, bin_size=2, bin_type='TwoD', brute=True)
     nk.process(cat1, cat1)
     print('max abs diff = ',np.max(np.abs(nk.xi - xi_brut)))
     print('max rel diff = ',np.max(np.abs(nk.xi - xi_brut)/np.abs(nk.xi)))
@@ -172,7 +173,7 @@ def test_twod():
 
     xi_brut = corr2d(x, y, np.ones_like(kappa), kappa, w=1./kappa_err**2, rmax=max_sep, bins=nbins)
     # Check very small, but non-zeo min_sep
-    nk = treecorr.NKCorrelation(min_sep=1.e-6, max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0)
+    nk = treecorr.NKCorrelation(min_sep=1.e-6, max_sep=max_sep, nbins=nbins, bin_type='TwoD', brute=True)
     nk.process(cat2, cat2)
     print('max abs diff = ',np.max(np.abs(nk.xi - xi_brut)))
     print('max rel diff = ',np.max(np.abs(nk.xi - xi_brut)/np.abs(nk.xi)))
@@ -181,7 +182,7 @@ def test_twod():
     # Check NN
     xi_brut, counts = corr2d(x, y, np.ones_like(kappa), np.ones_like(kappa),
                              rmax=max_sep, bins=nbins, return_counts=True)
-    nn = treecorr.NNCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0)
+    nn = treecorr.NNCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', brute=True)
     nn.process(cat1)
     print('max abs diff = ',np.max(np.abs(nn.npairs - counts)))
     print('max rel diff = ',np.max(np.abs(nn.npairs - counts)/np.abs(nn.npairs)))
@@ -194,7 +195,7 @@ def test_twod():
 
     xi_brut, counts = corr2d(x, y, np.ones_like(kappa), np.ones_like(kappa),
                              w=1./kappa_err**2, rmax=max_sep, bins=nbins, return_counts=True)
-    nn = treecorr.NNCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0)
+    nn = treecorr.NNCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', brute=True)
     nn.process(cat2)
     print('max abs diff = ',np.max(np.abs(nn.weight - counts)))
     print('max rel diff = ',np.max(np.abs(nn.weight - counts)/np.abs(nn.weight)))
@@ -228,15 +229,15 @@ def test_twod_singlebin():
     max_sep = 21.
     nbins = 5  # Use very chunky bins, so more pairs of non-leaf cells can fall in single bin.
 
-    # First use bin_slop=0 for reference
-    gg0 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0)
+    # First use brute force for reference
+    gg0 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', brute=True)
     t0 = time.time()
     gg0.process(cat)
     t1 = time.time()
     print('t for bs=0 = ',t1-t0)
 
-    # Now do bin_slop << 1, but not 0.
-    gg1 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=1.e-10)
+    # Now do bin_slop = 0
+    gg1 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0)
     t0 = time.time()
     gg1.process(cat)
     t1 = time.time()
@@ -263,13 +264,13 @@ def test_twod_singlebin():
     np.testing.assert_allclose(gg2.xim, gg0.xim, atol=1.e-4)
 
     # Repeat with NG and KG so we can test those routines too.
-    ng0 = treecorr.NGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0)
+    ng0 = treecorr.NGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', brute=True)
     t0 = time.time()
     ng0.process(cat, cat)
     t1 = time.time()
     print('t for bs=0 = ',t1-t0)
 
-    ng1 = treecorr.NGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=1.e-10)
+    ng1 = treecorr.NGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0)
     t0 = time.time()
     ng1.process(cat, cat)
     t1 = time.time()
@@ -289,7 +290,7 @@ def test_twod_singlebin():
     np.testing.assert_allclose(ng2.npairs, ng0.npairs, rtol=1.e-2)
     np.testing.assert_allclose(ng2.xi, ng0.xi, atol=5.e-4)
 
-    kg1 = treecorr.KGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=1.e-10)
+    kg1 = treecorr.KGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0)
     t0 = time.time()
     kg1.process(cat, cat)
     t1 = time.time()

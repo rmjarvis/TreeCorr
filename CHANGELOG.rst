@@ -33,6 +33,13 @@ API changes
   had been relying on multiple fields being cached, this could lead to a
   performance regression for you.  However, you can update the number of
   fields cached with catalog.resize_cache(n). (#53)
+- Using bin_slop=0 no longer does the brute force calculation.  Rather, it
+  stops traversing the tree when all pairs for a given pair of cells would
+  fall into the same bin.  This distinction is normally not important, and
+  the new behavior is merely a performance increase.  However, there is a
+  numerical difference for shear correlations, as the shear projection is not
+  exactly equivalent.  To obtain the brute force calculation, use the new
+  `brute=True` option.
 
 
 Performance Improvements
@@ -77,6 +84,8 @@ New features
 - Added new method BinnedCorr2.sample_pairs, which returns a random sampling
   of pairs within a given range of separations.  E.g. a sample of pairs that
   fell into a given bin of the correlation function. (#67)
+- Added `brute` option for Correlation instances.  This is equivalent to the
+  old behavior of `bin_slop=0`.
 
 
 Bug fixes

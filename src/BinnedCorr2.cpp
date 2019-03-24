@@ -29,6 +29,10 @@
 #include "omp.h"
 #endif
 
+// When we need a compile-time max, use this rather than std::max, which only became valid
+// for compile-time constexpr in C++14, which we don't require.
+#define MAX(a,b) (a > b ? a : b)
+
 template <int D1, int D2, int B>
 BinnedCorr2<D1,D2,B>::BinnedCorr2(
     double minsep, double maxsep, int nbins, double binsize, double b,
@@ -1638,23 +1642,27 @@ long SamplePairs2(void* corr, void* field1, void* field2, double minsep, double 
     return 0;
 }
 
-
 template <int D1>
 long SamplePairs1(void* corr, void* field1, void* field2, double minsep, double maxsep,
                   int d2, int coords, int metric, int bin_type,
                   long* i1, long* i2, double* sep, int n)
 {
+    // Note: we only ever call this with d2 >= d1, so the MAX bit below is equivalent to
+    // just using d2 for the cases that actually get called, but doing this saves some
+    // compile time and some size in the final library from not instantiating templates
+    // that aren't needed.
+    Assert(d2 >= D1);
     switch(d2) {
       case NData:
-           return SamplePairs2<D1,NData>(corr, field1, field2, minsep, maxsep,
+           return SamplePairs2<D1,MAX(D1,NData)>(corr, field1, field2, minsep, maxsep,
                                          coords, metric, bin_type, i1, i2, sep, n);
            break;
       case KData:
-           return SamplePairs2<D1,KData>(corr, field1, field2, minsep, maxsep,
+           return SamplePairs2<D1,MAX(D1,KData)>(corr, field1, field2, minsep, maxsep,
                                          coords, metric, bin_type, i1, i2, sep, n);
            break;
       case GData:
-           return SamplePairs2<D1,GData>(corr, field1, field2, minsep, maxsep,
+           return SamplePairs2<D1,MAX(D1,GData)>(corr, field1, field2, minsep, maxsep,
                                          coords, metric, bin_type, i1, i2, sep, n);
            break;
     }

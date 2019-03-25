@@ -96,6 +96,9 @@ class KKKCorrelation(treecorr.BinnedCorr3):
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
 
+        self._d1 = 2  # KData
+        self._d2 = 2  # KData
+        self._d3 = 2  # KData
         shape = (self.nbins, self.nubins, self.nvbins)
         self.zeta = np.zeros(shape, dtype=float)
         self.varzeta = np.zeros(shape, dtype=float)
@@ -114,13 +117,14 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
-        self.corr = treecorr._lib.BuildKKKCorr(
-                self._bintype,
+        self.corr = treecorr._lib.BuildCorr3(
+                self._d1, self._d2, self._d3, self._bintype,
                 self._min_sep,self._max_sep,self.nbins,self._bin_size,self.b,
                 self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                 self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
                 self.min_rpar, self.max_rpar,
-                dp(self.zeta),
+                dp(self.zeta), dp(None), dp(None), dp(None),
+                dp(None), dp(None), dp(None), dp(None),
                 dp(self.meand1), dp(self.meanlogd1), dp(self.meand2), dp(self.meanlogd2),
                 dp(self.meand3), dp(self.meanlogd3), dp(self.meanu), dp(self.meanv),
                 dp(self.weight), dp(self.ntri));
@@ -130,7 +134,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         # rather than being able to rely on the Python memory manager.
         # In case __init__ failed to get that far
         if hasattr(self,'corr'):  # pragma: no branch
-            treecorr._lib.DestroyKKKCorr(self.corr, self._bintype)
+            treecorr._lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3, self._bintype)
 
     def __eq__(self, other):
         return (isinstance(other, KKKCorrelation) and
@@ -217,8 +221,8 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                               bool(self.brute), self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        treecorr._lib.ProcessAutoKKK(self.corr, field.data, self.output_dots,
-                                     self._coords, self._bintype, self._metric)
+        treecorr._lib.ProcessAuto3(self.corr, field.data, self.output_dots,
+                                   field._d, self._coords, self._bintype, self._metric)
 
     def process_cross21(self, cat1, cat2, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where two of the
@@ -279,8 +283,8 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                             bool(self.brute), self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        treecorr._lib.ProcessCrossKKK(self.corr, f1.data, f2.data, f3.data, self.output_dots,
-                                      self._coords, self._bintype, self._metric)
+        treecorr._lib.ProcessCross3(self.corr, f1.data, f2.data, f3.data, self.output_dots,
+                                    f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
 
 
     def finalize(self, vark1, vark2, vark3):

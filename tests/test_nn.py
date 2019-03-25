@@ -408,7 +408,7 @@ def test_direct_count():
     max_sep = 50.
     nbins = 50
     dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
-    dd.process(cat1, cat2, num_threads=1)
+    dd.process(cat1, cat2)
     print('dd.npairs = ',dd.npairs)
 
     log_min_sep = np.log(min_sep)
@@ -1830,7 +1830,7 @@ def test_split():
 
     dd_random1 = treecorr.NNCorrelation(bin_size=0.1, min_sep=5., max_sep=25., split_method='random')
     t0 = time.time()
-    dd_random1.process(cat, num_threads=1)
+    dd_random1.process(cat)
     t1 = time.time()
     print('random1: time = ',t1-t0)
     print('npairs = ',dd_random1.npairs)
@@ -1840,7 +1840,7 @@ def test_split():
     cat.nfields.clear()
     dd_random2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=5., max_sep=25., split_method='random')
     t0 = time.time()
-    dd_random2.process(cat, num_threads=1)
+    dd_random2.process(cat)
     t1 = time.time()
     print('random2: time = ',t1-t0)
     print('npairs = ',dd_random2.npairs)

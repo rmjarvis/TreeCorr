@@ -97,6 +97,9 @@ class NNNCorrelation(treecorr.BinnedCorr3):
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
 
+        self._d1 = 1  # NData
+        self._d2 = 1  # NData
+        self._d3 = 1  # NData
         shape = (self.nbins, self.nubins, self.nvbins)
         self.meand1 = np.zeros(shape, dtype=float)
         self.meanlogd1 = np.zeros(shape, dtype=float)
@@ -114,12 +117,14 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
-        self.corr = treecorr._lib.BuildNNNCorr(
-                self._bintype,
+        self.corr = treecorr._lib.BuildCorr3(
+                self._d1, self._d2, self._d3, self._bintype,
                 self._min_sep,self._max_sep,self.nbins,self._bin_size,self.b,
                 self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                 self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
                 self.min_rpar, self.max_rpar,
+                dp(None), dp(None), dp(None), dp(None),
+                dp(None), dp(None), dp(None), dp(None),
                 dp(self.meand1), dp(self.meanlogd1), dp(self.meand2), dp(self.meanlogd2),
                 dp(self.meand3), dp(self.meanlogd3), dp(self.meanu), dp(self.meanv),
                 dp(self.weight), dp(self.ntri));
@@ -129,7 +134,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         # rather than being able to rely on the Python memory manager.
         # In case __init__ failed to get that far
         if hasattr(self,'corr'):  # pragma: no branch
-            treecorr._lib.DestroyNNNCorr(self.corr, self._bintype)
+            treecorr._lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3, self._bintype)
 
     def __eq__(self, other):
         return (isinstance(other, NNNCorrelation) and
@@ -214,8 +219,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                               bool(self.brute), self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        treecorr._lib.ProcessAutoNNN(self.corr, field.data, self.output_dots,
-                                     self._coords, self._bintype, self._metric)
+        treecorr._lib.ProcessAuto3(self.corr, field.data, self.output_dots,
+                                   field._d, self._coords, self._bintype, self._metric)
         self.tot += (1./6.) * cat.sumw**3
 
     def process_cross21(self, cat1, cat2, metric=None, num_threads=None):
@@ -277,8 +282,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                             bool(self.brute), self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        treecorr._lib.ProcessCrossNNN(self.corr, f1.data, f2.data, f3.data, self.output_dots,
-                                      self._coords, self._bintype, self._metric)
+        treecorr._lib.ProcessCross3(self.corr, f1.data, f2.data, f3.data, self.output_dots,
+                                    f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
         self.tot += cat1.sumw * cat2.sumw * cat3.sumw / 6.0
 
 

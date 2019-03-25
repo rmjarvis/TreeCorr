@@ -71,6 +71,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
+        self._d1 = 1  # NData
+        self._d2 = 2  # KData
         self.xi = np.zeros_like(self.rnom, dtype=float)
         self.varxi = np.zeros_like(self.rnom, dtype=float)
         self.meanr = np.zeros_like(self.rnom, dtype=float)
@@ -82,11 +84,11 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
-        self.corr = treecorr._lib.BuildNKCorr(
-                self._bintype,
+        self.corr = treecorr._lib.BuildCorr2(
+                self._d1, self._d2, self._bintype,
                 self._min_sep,self._max_sep,self._nbins,self._bin_size,self.b,
                 self.min_rpar, self.max_rpar,
-                dp(self.xi),
+                dp(self.xi), dp(None), dp(None), dp(None),
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
 
     def __del__(self):
@@ -94,7 +96,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         # rather than being able to rely on the Python memory manager.
         # In case __init__ failed to get that far
         if hasattr(self,'corr'):  # pragma: no branch
-            treecorr._lib.DestroyNKCorr(self.corr, self._bintype)
+            treecorr._lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
 
     def __eq__(self, other):
         return (isinstance(other, NKCorrelation) and
@@ -171,8 +173,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
                             self.brute in [True, 2], self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        treecorr._lib.ProcessCrossNK(self.corr, f1.data, f2.data, self.output_dots,
-                                     self._coords, self._bintype, self._metric)
+        treecorr._lib.ProcessCross2(self.corr, f1.data, f2.data, self.output_dots,
+                                    f1._d, f2._d, self._coords, self._bintype, self._metric)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -207,8 +209,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
         f1 = cat1.getNSimpleField()
         f2 = cat2.getKSimpleField()
 
-        treecorr._lib.ProcessPairNK(self.corr, f1.data, f2.data, self.output_dots,
-                                    self._coords, self._bintype, self._metric)
+        treecorr._lib.ProcessPair(self.corr, f1.data, f2.data, self.output_dots,
+                                  f1._d, f2._d, self._coords, self._bintype, self._metric)
 
 
     def finalize(self, vark):

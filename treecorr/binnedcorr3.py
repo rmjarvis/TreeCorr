@@ -456,8 +456,7 @@ class BinnedCorr3(object):
                     self.process_cross(c1,c3,c2, metric, num_threads)
                     self.process_cross(c3,c1,c2, metric, num_threads)
 
-    # These are not actually implemented yet.
-    def _process_all_cross(self, cat1, cat2, cat3, metric, num_threads): # pragma: nocover
+    def _process_all_cross(self, cat1, cat2, cat3, metric, num_threads):
         for c1 in cat1:
             for c2 in cat2:
                 for c3 in cat3:

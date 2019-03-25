@@ -21,7 +21,7 @@ from test_helper import get_script_name, do_pickle
 
 def test_direct():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
-    # This should exactly match the treecorr result if bin_slop=0.
+    # This should exactly match the treecorr result if brute=True.
 
     ngal = 100
     s = 10.
@@ -39,7 +39,7 @@ def test_direct():
     nubins = 5
     nvbins = 10
     max_sep = min_sep * np.exp(nrbins * bin_size)
-    kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, bin_slop=0.)
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True)
     kkk.process(cat, num_threads=2)
 
     true_ntri = np.zeros((nrbins, nubins, nvbins), dtype=int)
@@ -109,7 +109,7 @@ def test_direct():
     np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
 
     # Also check the "cross" calculation.  (Real cross doesn't work, but this should.)
-    kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, bin_slop=0.)
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True)
     kkk.process(cat, cat, cat, num_threads=2)
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -126,10 +126,10 @@ def test_direct():
     np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
     np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
 
-    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                  bin_slop=1.e-16, max_top=0)
+                                  bin_slop=0, max_top=0)
     kkk.process(cat)
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -222,7 +222,7 @@ def test_direct_spherical():
     nvbins = 10
     max_sep = min_sep * np.exp(nrbins * bin_size)
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                  sep_units='deg', bin_slop=0.)
+                                  sep_units='deg', brute=True)
     kkk.process(cat)
 
     r = np.sqrt(x**2 + y**2 + z**2)
@@ -301,10 +301,10 @@ def test_direct_spherical():
     np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
     np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
 
-    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                  sep_units='deg', bin_slop=1.e-16, max_top=0)
+                                  sep_units='deg', bin_slop=0, max_top=0)
     kkk.process(cat)
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)

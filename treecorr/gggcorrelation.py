@@ -119,6 +119,9 @@ class GGGCorrelation(treecorr.BinnedCorr3):
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
 
+        self._d1 = 3  # GData
+        self._d2 = 3  # GData
+        self._d3 = 3  # GData
         shape = (self.nbins, self.nubins, self.nvbins)
         self.gam0r = np.zeros(shape, dtype=float)
         self.gam1r = np.zeros(shape, dtype=float)
@@ -153,8 +156,8 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
-        self.corr = treecorr._lib.BuildGGGCorr(
-                self._bintype,
+        self.corr = treecorr._lib.BuildCorr3(
+                self._d1, self._d2, self._d3, self._bintype,
                 self._min_sep,self._max_sep,self.nbins,self._bin_size,self.b,
                 self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                 self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
@@ -170,7 +173,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         # rather than being able to rely on the Python memory manager.
         # In case __init__ failed to get that far
         if hasattr(self,'corr'):  # pragma: no branch
-            treecorr._lib.DestroyGGGCorr(self.corr, self._bintype)
+            treecorr._lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3, self._bintype)
 
     def __eq__(self, other):
         return (isinstance(other, GGGCorrelation) and
@@ -264,8 +267,8 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                               bool(self.brute), self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        treecorr._lib.ProcessAutoGGG(self.corr, field.data, self.output_dots,
-                                     self._coords, self._bintype, self._metric)
+        treecorr._lib.ProcessAuto3(self.corr, field.data, self.output_dots,
+                                   field._d, self._coords, self._bintype, self._metric)
 
     def process_cross21(self, cat1, cat2, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where two of the
@@ -326,8 +329,8 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                             bool(self.brute), self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        treecorr._lib.ProcessCrossGGG(self.corr, f1.data, f2.data, f3.data, self.output_dots,
-                                      self._coords, self._bintype, self._metric)
+        treecorr._lib.ProcessCross3(self.corr, f1.data, f2.data, f3.data, self.output_dots,
+                                    f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
 
 
     def finalize(self, varg1, varg2, varg3):

@@ -226,7 +226,7 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field, bool dots)
 
 template <int D1, int D2, int D3, int B> template <int C, int M>
 void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field1, const Field<D2,C>& field2,
-                                    const Field<D3,C>& field3, bool dots)
+                                      const Field<D3,C>& field3, bool dots)
 {
     xdbg<<"_coords = "<<_coords<<std::endl;
     xdbg<<"C = "<<C<<std::endl;
@@ -306,10 +306,10 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field1, const Field<D2,
     if (dots) std::cout<<std::endl;
 }
 
-// Does all triangles with 3 points in c123
 template <int D1, int D2, int D3, int B> template <int C, int M>
 void BinnedCorr3<D1,D2,D3,B>::process3(const Cell<D1,C>* c123)
 {
+    // Does all triangles with 3 points in c123
     xdbg<<"Process3: c123 = "<<c123->getData().getPos()<<"  "<<"  "<<c123->getSize()<<"  "<<c123->getData().getN()<<std::endl;
     if (c123->getW() == 0) {
         xdbg<<"    w == 0.  return\n";
@@ -328,11 +328,11 @@ void BinnedCorr3<D1,D2,D3,B>::process3(const Cell<D1,C>* c123)
     process21<true,C,M>(c123->getRight(),c123->getLeft());
 }
 
-// Does all triangles with two points in c12 and 3rd point in c3
-// This version is allowed to swap the positions of points 1,2,3
 template <int D1, int D2, int D3, int B> template <bool sort, int C, int M>
 void BinnedCorr3<D1,D2,D3,B>::process21(const Cell<D1,C>* c12, const Cell<D3,C>* c3)
 {
+    // Does all triangles with two points in c12 and 3rd point in c3
+    // This version is allowed to swap the positions of points 1,2,3
     xdbg<<"Process21: c12 = "<<c12->getData().getPos()<<"  "<<"  "<<c12->getSize()<<"  "<<c12->getData().getN()<<std::endl;
     xdbg<<"           c3  = "<<c3->getData().getPos()<<"  "<<"  "<<c3->getSize()<<"  "<<c3->getData().getN()<<std::endl;
 
@@ -690,12 +690,12 @@ struct SortHelper<D,D,D,true,C,M>
     }
 };
 
-// Does all triangles with 1 point each in c1, c2, c3
 template <int D1, int D2, int D3, int B> template <bool sort, int C, int M>
 void BinnedCorr3<D1,D2,D3,B>::process111(
     const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D3,C>* c3,
     double d1sq, double d2sq, double d3sq)
 {
+    // Does all triangles with 1 point each in c1, c2, c3
     if (c1->getW() == 0) {
         xdbg<<"    w1 == 0.  return\n";
         return;
@@ -1128,196 +1128,253 @@ extern "C" {
 #include "BinnedCorr3_C.h"
 }
 
-void* BuildNNNCorr(int bin_type,
-                   double minsep, double maxsep, int nbins, double binsize, double b,
-                   double minu, double maxu, int nubins, double ubinsize, double bu,
-                   double minv, double maxv, int nvbins, double vbinsize, double bv,
-                   double minrpar, double maxrpar,
-                   double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                   double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                   double* weight, double* ntri)
+
+template <int D1, int D2, int D3>
+void* BuildCorr3c(int bin_type,
+                  double minsep, double maxsep, int nbins, double binsize, double b,
+                  double minu, double maxu, int nubins, double ubinsize, double bu,
+                  double minv, double maxv, int nvbins, double vbinsize, double bv,
+                  double minrpar, double maxrpar,
+                  double* zeta0, double* zeta1, double* zeta2, double* zeta3,
+                  double* zeta4, double* zeta5, double* zeta6, double* zeta7,
+                  double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
+                  double* meand3, double* meanlogd3, double* meanu, double* meanv,
+                  double* weight, double* ntri)
 {
-    dbg<<"Start BuildNNNCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr3<NData,NData,NData,Log>(
+    Assert(bin_type == Log);
+    return static_cast<void*>(new BinnedCorr3<D1,D2,D3,Log>(
             minsep, maxsep, nbins, binsize, b,
             minu, maxu, nubins, ubinsize, bu,
             minv, maxv, nvbins, vbinsize, bv,
             minrpar, maxrpar,
-            0, 0, 0, 0, 0, 0, 0, 0,
+            zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
             meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
             weight, ntri));
+}
+
+void* BuildCorr3(int d1, int d2, int d3, int bin_type,
+                 double minsep, double maxsep, int nbins, double binsize, double b,
+                 double minu, double maxu, int nubins, double ubinsize, double bu,
+                 double minv, double maxv, int nvbins, double vbinsize, double bv,
+                 double minrpar, double maxrpar,
+                 double* zeta0, double* zeta1, double* zeta2, double* zeta3,
+                 double* zeta4, double* zeta5, double* zeta6, double* zeta7,
+                 double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
+                 double* meand3, double* meanlogd3, double* meanu, double* meanv,
+                 double* weight, double* ntri)
+{
+    dbg<<"Start BuildCorr3 "<<d1<<" "<<d2<<" "<<d3<<" "<<bin_type<<std::endl;
+    void* corr=0;
+    Assert(d2 == d1);
+    Assert(d3 == d1);
+    switch(d1) {
+      case NData:
+           corr = BuildCorr3c<NData,NData,NData>(
+               bin_type, minsep, maxsep, nbins, binsize, b,
+               minu, maxu, nubins, ubinsize, bu,
+               minv, maxv, nvbins, vbinsize, bv,
+               minrpar, maxrpar,
+               zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
+               meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
+               weight, ntri);
+           break;
+      case KData:
+           corr = BuildCorr3c<KData,KData,KData>(
+               bin_type, minsep, maxsep, nbins, binsize, b,
+               minu, maxu, nubins, ubinsize, bu,
+               minv, maxv, nvbins, vbinsize, bv,
+               minrpar, maxrpar,
+               zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
+               meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
+               weight, ntri);
+           break;
+      case GData:
+           corr = BuildCorr3c<GData,GData,GData>(
+               bin_type, minsep, maxsep, nbins, binsize, b,
+               minu, maxu, nubins, ubinsize, bu,
+               minv, maxv, nvbins, vbinsize, bv,
+               minrpar, maxrpar,
+               zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
+               meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
+               weight, ntri);
+           break;
+      default:
+           Assert(false);
+    }
     xdbg<<"corr = "<<corr<<std::endl;
     return corr;
 }
 
-void* BuildKKKCorr(int bin_type,
-                   double minsep, double maxsep, int nbins, double binsize, double b,
-                   double minu, double maxu, int nubins, double ubinsize, double bu,
-                   double minv, double maxv, int nvbins, double vbinsize, double bv,
-                   double minrpar, double maxrpar,
-                   double* zeta,
-                   double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                   double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                   double* weight, double* ntri)
+template <int D1, int D2, int D3>
+void DestroyCorr3c(void* corr, int bin_type)
 {
-    dbg<<"Start BuildKKKCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr3<KData,KData,KData,Log>(
-            minsep, maxsep, nbins, binsize, b,
-            minu, maxu, nubins, ubinsize, bu,
-            minv, maxv, nvbins, vbinsize, bv,
-            minrpar, maxrpar,
-            zeta, 0, 0, 0, 0, 0, 0, 0,
-            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
-            weight, ntri));
-    xdbg<<"corr = "<<corr<<std::endl;
-    return corr;
+    Assert(bin_type == Log);  // This is the only one we have yet.
+    delete static_cast<BinnedCorr3<D1,D2,D3,Log>*>(corr);
 }
 
-
-void* BuildGGGCorr(int bin_type,
-                   double minsep, double maxsep, int nbins, double binsize, double b,
-                   double minu, double maxu, int nubins, double ubinsize, double bu,
-                   double minv, double maxv, int nvbins, double vbinsize, double bv,
-                   double minrpar, double maxrpar,
-                   double* gam0r, double* gam0i, double* gam1r, double* gam1i,
-                   double* gam2r, double* gam2i, double* gam3r, double* gam3i,
-                   double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                   double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                   double* weight, double* ntri)
+void DestroyCorr3(void* corr, int d1, int d2, int d3, int bin_type)
 {
-    dbg<<"Start BuildGGGCorr\n";
-    void* corr = static_cast<void*>(new BinnedCorr3<GData,GData,GData,Log>(
-            minsep, maxsep, nbins, binsize, b,
-            minu, maxu, nubins, ubinsize, bu,
-            minv, maxv, nvbins, vbinsize, bv,
-            minrpar, maxrpar,
-            gam0r, gam0i, gam1r, gam1i, gam2r, gam2i, gam3r, gam3i,
-            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
-            weight, ntri));
+    dbg<<"Start DestroyCorr "<<d1<<" "<<d2<<" "<<d3<<" "<<bin_type<<std::endl;
     xdbg<<"corr = "<<corr<<std::endl;
-    return corr;
+    Assert(d2 == d1); // For now don't bother with the next two layers to resolve these.
+    Assert(d3 == d1);
+    switch(d1) {
+      case NData:
+           DestroyCorr3c<NData, NData, NData>(corr, bin_type);
+           break;
+      case KData:
+           DestroyCorr3c<KData, KData, KData>(corr, bin_type);
+           break;
+      case GData:
+           DestroyCorr3c<GData, GData, GData>(corr, bin_type);
+           break;
+      default:
+           Assert(false);
+    }
 }
 
-
-void DestroyNNNCorr(void* corr, int bin_type)
+template <int M, int D, int B>
+void ProcessAuto3e(BinnedCorr3<D,D,D,B>* corr, void* field, int dots, int coords)
 {
-    dbg<<"Start DestroyNNNCorr\n";
-    xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr3<NData,NData,NData,Log>*>(corr);
+    switch(coords) {
+      case Flat:
+           Assert(MetricHelper<M>::_Flat == int(Flat));
+           corr->template process<MetricHelper<M>::_Flat,M>(
+               *static_cast<Field<D,MetricHelper<M>::_Flat>*>(field), dots);
+           break;
+      case Sphere:
+           Assert(MetricHelper<M>::_Sphere == int(Sphere));
+           corr->template process<MetricHelper<M>::_Sphere,M>(
+               *static_cast<Field<D,MetricHelper<M>::_Sphere>*>(field), dots);
+           break;
+      case ThreeD:
+           Assert(MetricHelper<M>::_ThreeD == int(ThreeD));
+           corr->template process<MetricHelper<M>::_ThreeD,M>(
+               *static_cast<Field<D,MetricHelper<M>::_ThreeD>*>(field), dots);
+           break;
+      default:
+           Assert(false);
+    }
 }
-
-void DestroyKKKCorr(void* corr, int bin_type)
-{
-    dbg<<"Start DestroyKKKCorr\n";
-    xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr3<KData,KData,KData,Log>*>(corr);
-}
-
-void DestroyGGGCorr(void* corr, int bin_type)
-{
-    dbg<<"Start DestroyGGGCorr\n";
-    xdbg<<"corr = "<<corr<<std::endl;
-    delete static_cast<BinnedCorr3<GData,GData,GData,Log>*>(corr);
-}
-
 
 template <int D, int B>
-void ProcessAuto3b(BinnedCorr3<D,D,D,B>& corr, void* field, int dots, int coord, int metric)
+void ProcessAuto3d(BinnedCorr3<D,D,D,B>* corr, void* field, int dots, int coords, int metric)
 {
-    if (coord == Flat) {
-        if (metric == Euclidean)
-            corr.template process<Flat,Euclidean>(*static_cast<Field<D,Flat>*>(field),dots);
-        else
-            Assert(false);
-    } else {
-        if (metric == Euclidean)
-            corr.template process<ThreeD,Euclidean>(*static_cast<Field<D,ThreeD>*>(field),dots);
-        else if (metric == Arc)
-            corr.template process<Sphere,Arc>(*static_cast<Field<D,Sphere>*>(field),dots);
-        else
-            Assert(false);
+    switch(metric) {
+      case Euclidean:
+           ProcessAuto3e<Euclidean>(corr, field, dots, coords);
+           break;
+      case Arc:
+           ProcessAuto3e<Arc>(corr, field, dots, coords);
+           break;
+      default:
+           Assert(false);
     }
 }
 
 template <int D>
-void ProcessAuto3(void* corr, void* field, int dots, int coord, int bin_type, int metric)
+void ProcessAuto3c(void* corr, void* field, int dots, int coords, int bin_type, int metric)
 {
-    ProcessAuto3b(*(static_cast<BinnedCorr3<D,D,D,Log>*>(corr)), field, dots, coord, metric);
+    Assert(bin_type == Log);
+    ProcessAuto3d(static_cast<BinnedCorr3<D,D,D,Log>*>(corr), field, dots, coords, metric);
 }
 
-void ProcessAutoNNN(void* corr, void* field, int dots, int coord, int bin_type, int metric)
+void ProcessAuto3(void* corr, void* field, int dots, int d, int coords, int bin_type, int metric)
 {
-    dbg<<"Start ProcessAutoNNN\n";
-    ProcessAuto3<NData>(corr, field, dots, coord, bin_type, metric);
+    dbg<<"Start ProcessAuto3 "<<d<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
+
+    switch(d) {
+      case NData:
+           ProcessAuto3c<NData>(corr, field, dots, coords, bin_type, metric);
+           break;
+      case KData:
+           ProcessAuto3c<KData>(corr, field, dots, coords, bin_type, metric);
+           break;
+      case GData:
+           ProcessAuto3c<GData>(corr, field, dots, coords, bin_type, metric);
+           break;
+      default:
+           Assert(false);
+    }
 }
 
-void ProcessAutoKKK(void* corr, void* field, int dots, int coord, int bin_type, int metric)
+template <int M, int D1, int D2, int D3, int B>
+void ProcessCross3e(BinnedCorr3<D1,D2,D3,B>* corr, void* field1, void* field2, void* field3,
+                    int dots, int coords)
 {
-    dbg<<"Start ProcessAutoKKK\n";
-    ProcessAuto3<KData>(corr, field, dots, coord, bin_type, metric);
-}
-
-void ProcessAutoGGG(void* corr, void* field, int dots, int coord, int bin_type, int metric)
-{
-    dbg<<"Start ProcessAutoGGG\n";
-    ProcessAuto3<GData>(corr, field, dots, coord, bin_type, metric);
+    switch(coords) {
+      case Flat:
+           Assert(MetricHelper<M>::_Flat == int(Flat));
+           corr->template process<MetricHelper<M>::_Flat,M>(
+               *static_cast<Field<D1,MetricHelper<M>::_Flat>*>(field1),
+               *static_cast<Field<D2,MetricHelper<M>::_Flat>*>(field2),
+               *static_cast<Field<D3,MetricHelper<M>::_Flat>*>(field3), dots);
+           break;
+      case Sphere:
+           Assert(MetricHelper<M>::_Sphere == int(Sphere));
+           corr->template process<Sphere,M>(
+               *static_cast<Field<D1,MetricHelper<M>::_Sphere>*>(field1),
+               *static_cast<Field<D2,MetricHelper<M>::_Sphere>*>(field2),
+               *static_cast<Field<D3,MetricHelper<M>::_Sphere>*>(field3), dots);
+           break;
+      case ThreeD:
+           Assert(MetricHelper<M>::_ThreeD == int(ThreeD));
+           corr->template process<ThreeD,M>(
+               *static_cast<Field<D1,MetricHelper<M>::_ThreeD>*>(field1),
+               *static_cast<Field<D2,MetricHelper<M>::_ThreeD>*>(field2),
+               *static_cast<Field<D3,MetricHelper<M>::_ThreeD>*>(field3), dots);
+           break;
+      default:
+           Assert(false);
+    }
 }
 
 template <int D1, int D2, int D3, int B>
-void ProcessCross3b(BinnedCorr3<D1,D2,D3,B>& corr, void* field1, void* field2, void* field3,
-                    int dots, int coord, int metric)
+void ProcessCross3d(BinnedCorr3<D1,D2,D3,B>* corr, void* field1, void* field2, void* field3,
+                    int dots, int coords, int metric)
 {
-    if (coord == Flat) {
-        if (metric == Euclidean)
-            corr.template process<Flat,Euclidean>(
-                *static_cast<Field<D1,Flat>*>(field1),
-                *static_cast<Field<D2,Flat>*>(field2),
-                *static_cast<Field<D3,Flat>*>(field3),dots);
-        else
-            Assert(false);
-    } else {
-        if (metric == Euclidean)
-            corr.template process<ThreeD,Euclidean>(
-                *static_cast<Field<D1,ThreeD>*>(field1),
-                *static_cast<Field<D2,ThreeD>*>(field2),
-                *static_cast<Field<D3,ThreeD>*>(field3),dots);
-        else if (metric == Arc)
-            corr.template process<Sphere,Arc>(
-                *static_cast<Field<D1,Sphere>*>(field1),
-                *static_cast<Field<D2,Sphere>*>(field2),
-                *static_cast<Field<D3,Sphere>*>(field3),dots);
-        else
-            Assert(false);
+    switch(metric) {
+      case Euclidean:
+           ProcessCross3e<Euclidean>(corr, field1, field2, field3, dots, coords);
+           break;
+      case Arc:
+           ProcessCross3e<Arc>(corr, field1, field2, field3, dots, coords);
+           break;
+      default:
+           Assert(false);
     }
 }
 
 template <int D1, int D2, int D3>
-void ProcessCross3(void* corr, void* field1, void* field2, void* field3,
-                   int dots, int coord, int bin_type, int metric)
+void ProcessCross3c(void* corr, void* field1, void* field2, void* field3, int dots,
+                    int bin_type, int coords, int metric)
 {
-    ProcessCross3b(*static_cast<BinnedCorr3<D1,D2,D3,Log>*>(corr), field1, field2, field3,
-                   dots, coord, metric);
+    Assert(bin_type == Log);
+    ProcessCross3d(static_cast<BinnedCorr3<D1,D2,D3,Log>*>(corr), field1, field2, field3, dots,
+                   coords, metric);
 }
 
-void ProcessCrossNNN(void* corr, void* field1, void* field2, void* field3, int dots,
-                     int coord, int bin_type, int metric)
+void ProcessCross3(void* corr, void* field1, void* field2, void* field3, int dots,
+                   int d1, int d2, int d3, int coords, int bin_type, int metric)
 {
-    dbg<<"Start ProcessCrossNNN\n";
-    ProcessCross3<NData,NData,NData>(corr, field1, field2, field3, dots, coord, bin_type, metric);
+    dbg<<"Start ProcessCross3 "<<d1<<" "<<d2<<" "<<d3<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
+
+    Assert(d2 == d1);
+    Assert(d3 == d1);
+    switch(d1) {
+      case NData:
+           ProcessCross3c<NData,NData,NData>(corr, field1, field2, field3, dots,
+                                             bin_type, coords, metric);
+           break;
+      case KData:
+           ProcessCross3c<KData,KData,KData>(corr, field1, field2, field3, dots,
+                                             bin_type, coords, metric);
+           break;
+      case GData:
+           ProcessCross3c<GData,GData,GData>(corr, field1, field2, field3, dots,
+                                             bin_type, coords, metric);
+           break;
+      default:
+           Assert(false);
+    }
 }
-
-void ProcessCrossKKK(void* corr, void* field1, void* field2, void* field3, int dots,
-                     int coord, int bin_type, int metric)
-{
-    dbg<<"Start ProcessCrossKKK\n";
-    ProcessCross3<KData,KData,KData>(corr, field1, field2, field3, dots, coord, bin_type, metric);
-}
-
-void ProcessCrossGGG(void* corr, void* field1, void* field2, void* field3, int dots,
-                     int coord, int bin_type, int metric)
-{
-    dbg<<"Start ProcessCrossGGG\n";
-    ProcessCross3<GData,GData,GData>(corr, field1, field2, field3, dots, coord, bin_type, metric);
-}
-
-

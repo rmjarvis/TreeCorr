@@ -41,7 +41,7 @@ def test_direct():
     nvbins = 10
     max_sep = min_sep * np.exp(nrbins * bin_size)
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, bin_slop=0.)
-    ggg.process(cat, num_threads=1)
+    ggg.process(cat, num_threads=2)
 
     true_ntri = np.zeros((nrbins, nubins, nvbins), dtype=int)
     true_weight = np.zeros((nrbins, nubins, nvbins), dtype=float)
@@ -155,7 +155,7 @@ def test_direct():
 
     # Also check the "cross" calculation.  (Real cross doesn't work, but this should.)
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, bin_slop=0.)
-    ggg.process(cat, cat, cat, num_threads=1)
+    ggg.process(cat, cat, cat, num_threads=2)
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
@@ -318,7 +318,7 @@ def test_direct_spherical():
     max_sep = min_sep * np.exp(nrbins * bin_size)
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   sep_units='deg', bin_slop=0.)
-    ggg.process(cat, num_threads=1)
+    ggg.process(cat)
 
     r = np.sqrt(x**2 + y**2 + z**2)
     x /= r;  y /= r;  z /= r

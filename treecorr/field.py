@@ -420,6 +420,7 @@ class NSimpleField(SimpleField):
                 logger.info('Building NSimpleField from cat %s',cat.name)
             else:
                 logger.info('Building NSimpleField')
+        self._d = 1  # NData
         self.coords = cat.coords
         self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
 
@@ -455,6 +456,7 @@ class KSimpleField(SimpleField):
                 logger.info('Building KSimpleField from cat %s',cat.name)
             else:
                 logger.info('Building KSimpleField')
+        self._d = 2  # KData
         self.coords = cat.coords
         self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
 
@@ -491,6 +493,7 @@ class GSimpleField(SimpleField):
                 logger.info('Building GSimpleField from cat %s',cat.name)
             else:
                 logger.info('Building GSimpleField')
+        self._d = 3  # GData
         self.coords = cat.coords
         self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
 

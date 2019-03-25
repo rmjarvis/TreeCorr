@@ -568,8 +568,8 @@ class BinnedCorr2(object):
         i2 = np.zeros(n, dtype=int)
         sep = np.zeros(n, dtype=float)
         ntot = treecorr._lib.SamplePairs(self.corr, f1.data, f2.data, min_sep, max_sep,
-                                         f1._d, f2._d, self._coords, self._metric,
-                                         self._bintype, lp(i1), lp(i2), dp(sep), n)
+                                         f1._d, f2._d, self._coords, self._bintype, self._metric,
+                                         lp(i1), lp(i2), dp(sep), n)
 
         if ntot < n:
             n = ntot

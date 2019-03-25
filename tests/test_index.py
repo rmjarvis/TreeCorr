@@ -321,7 +321,7 @@ def test_sample_pairs():
 
     # Note: extend range low enough that some bins have < 100 pairs.
     nn = treecorr.NNCorrelation(min_sep=0.001, max_sep=0.01, bin_size=0.1, max_top=0)
-    nn.process(cat1, cat2, num_threads=1)
+    nn.process(cat1, cat2)
     print('rnom = ',nn.rnom)
     print('npairs = ',nn.npairs.astype(int))
 
@@ -369,7 +369,7 @@ def test_sample_pairs():
     cat2 = treecorr.Catalog(x=x2, y=y2, z=z2, w=w2, g1=g12, g2=g22, k=k2)
 
     gg = treecorr.GGCorrelation(min_sep=0.4, max_sep=1.0, bin_size=0.1, max_top=0)
-    gg.process(cat1, cat2, num_threads=1)
+    gg.process(cat1, cat2)
     print('rnom = ',gg.rnom)
     print('npairs = ',gg.npairs.astype(int))
     for b in [0,5]:

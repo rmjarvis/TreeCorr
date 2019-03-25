@@ -652,7 +652,7 @@ def test_direct_count_auto():
     # This should be equivalent to processing a cross correlation with each catalog being
     # the same thing.
     ddd.clear()
-    ddd.process(cat,cat,cat, num_threads=1)
+    ddd.process(cat,cat,cat, num_threads=2)
     #print('ddd.ntri = ',ddd.ntri)
     #print('true_ntri => ',true_ntri)
     #print('diff = ',ddd.ntri - true_ntri)
@@ -889,7 +889,7 @@ def test_direct_spherical():
     max_sep = min_sep * np.exp(nrbins * bin_size)
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   sep_units='deg', bin_slop=0.)
-    ddd.process(cat, num_threads=1)
+    ddd.process(cat, num_threads=2)
 
     r = np.sqrt(x**2 + y**2 + z**2)
     x /= r;  y /= r;  z /= r
@@ -994,7 +994,7 @@ def test_direct_arc():
                                   nubins=nubins, ubin_size=ubin_size,
                                   nvbins=nvbins, vbin_size=vbin_size,
                                   sep_units='deg', bin_slop=0.)
-    ddd.process(cat, metric='Arc', num_threads=1)
+    ddd.process(cat, metric='Arc')
 
     r = np.sqrt(x**2 + y**2 + z**2)
     x /= r;  y /= r;  z /= r

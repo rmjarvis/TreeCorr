@@ -16,11 +16,11 @@
 
 #include <sys/time.h>
 #include <fstream>
+#include <limits>
 
 #include "dbg.h"
 #include "Cell.h"
 #include "Bounds.h"
-#include "Metric.h"
 
 //
 // CellData
@@ -33,8 +33,7 @@ double CalculateSizeSq(
 {
     double sizesq = 0.;
     for(size_t i=start;i<end;++i) {
-        double s=0.;
-        double devsq = MetricHelper<Euclidean>::DistSq(cen,vdata[i].first->getPos(),s,s);
+        double devsq = (cen-vdata[i].first->getPos()).normSq();
         if (devsq > sizesq) sizesq = devsq;
     }
     return sizesq;

@@ -126,8 +126,7 @@ struct ProjectHelper<Sphere>
         // sin(A)^2 + cos(A)^2 = 1
         double z1 = p1.getZ();
         double z2 = p2.getZ();
-        double s = 0.;
-        double dsq = MetricHelper<Euclidean>::DistSq(p1,p2,s,s);
+        double dsq = (p1-p2).normSq();
         double cosA = (z1-z2) + 0.5*z2*dsq;  // These are unnormalized.
         double sinA = p1.getY()*p2.getX() - p1.getX()*p2.getY();
         double cosAsq = cosA*cosA;

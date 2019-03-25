@@ -265,7 +265,7 @@ void BinnedCorr2<D1,D2,B>::processPairwise(
             const double rsq = MetricHelper<M>::DistSq(c1.getPos(),c2.getPos(),s,s);
             if (BinTypeHelper<B>::isRSqInRange(rsq, c1.getPos(), c2.getPos(),
                                                _minsep, _minsepsq, _maxsep, _maxsepsq)) {
-                bc2.template directProcess11<C,M>(c1,c2,rsq,false);
+                bc2.template directProcess11(c1,c2,rsq,false);
             }
         }
 #ifdef _OPENMP
@@ -338,7 +338,7 @@ void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
         xdbg<<"Drop into single bin.\n";
         if (BinTypeHelper<B>::isRSqInRange(rsq, c1.getPos(), c2.getPos(),
                                            _minsep, _minsepsq, _maxsep, _maxsepsq)) {
-            directProcess11<C,M>(c1,c2,rsq,do_reverse,k,r,logr);
+            directProcess11(c1,c2,rsq,do_reverse,k,r,logr);
         }
     } else {
         xdbg<<"Need to split.\n";
@@ -381,7 +381,7 @@ struct DirectHelper;
 template <>
 struct DirectHelper<NData,NData>
 {
-    template <int C, int M>
+    template <int C>
     static void ProcessXi(
         const Cell<NData,C>& , const Cell<NData,C>& , const double ,
         XiData<NData,NData>& , int, int )
@@ -391,7 +391,7 @@ struct DirectHelper<NData,NData>
 template <>
 struct DirectHelper<NData,KData>
 {
-    template <int C, int M>
+    template <int C>
     static void ProcessXi(
         const Cell<NData,C>& c1, const Cell<KData,C>& c2, const double ,
         XiData<NData,KData>& xi, int k, int )
@@ -401,7 +401,7 @@ struct DirectHelper<NData,KData>
 template <>
 struct DirectHelper<NData,GData>
 {
-    template <int C, int M>
+    template <int C>
     static void ProcessXi(
         const Cell<NData,C>& c1, const Cell<GData,C>& c2, const double rsq,
         XiData<NData,GData>& xi, int k, int )
@@ -419,7 +419,7 @@ struct DirectHelper<NData,GData>
 template <>
 struct DirectHelper<KData,KData>
 {
-    template <int C, int M>
+    template <int C>
     static void ProcessXi(
         const Cell<KData,C>& c1, const Cell<KData,C>& c2, const double ,
         XiData<KData,KData>& xi, int k, int k2)
@@ -433,7 +433,7 @@ struct DirectHelper<KData,KData>
 template <>
 struct DirectHelper<KData,GData>
 {
-    template <int C, int M>
+    template <int C>
     static void ProcessXi(
         const Cell<KData,C>& c1, const Cell<GData,C>& c2, const double rsq,
         XiData<KData,GData>& xi, int k, int )
@@ -451,7 +451,7 @@ struct DirectHelper<KData,GData>
 template <>
 struct DirectHelper<GData,GData>
 {
-    template <int C, int M>
+    template <int C>
     static void ProcessXi(
         const Cell<GData,C>& c1, const Cell<GData,C>& c2, const double rsq,
         XiData<GData,GData>& xi, int k, int k2)
@@ -480,7 +480,7 @@ struct DirectHelper<GData,GData>
     }
 };
 
-template <int D1, int D2, int B> template <int C, int M>
+template <int D1, int D2, int B> template <int C>
 void BinnedCorr2<D1,D2,B>::directProcess11(
     const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double rsq, bool do_reverse,
     int k, double r, double logr)
@@ -533,7 +533,7 @@ void BinnedCorr2<D1,D2,B>::directProcess11(
         _weight[k2] += ww;
     }
 
-    DirectHelper<D1,D2>::template ProcessXi<C,M>(c1,c2,rsq,_xi,k,k2);
+    DirectHelper<D1,D2>::template ProcessXi<C>(c1,c2,rsq,_xi,k,k2);
 }
 
 template <int D1, int D2, int B>
@@ -638,7 +638,7 @@ void BinnedCorr2<D1,D2,B>::samplePairs(
         xdbg<<"maxsepsq = "<<maxsepsq<<std::endl;
         if (BinTypeHelper<B>::isRSqInRange(rsq, c1.getPos(), c2.getPos(),
                                            minsep, minsepsq, maxsep, maxsepsq)) {
-            sampleFrom<C,M>(c1,c2,rsq,r,i1,i2,sep,n,k);
+            sampleFrom(c1,c2,rsq,r,i1,i2,sep,n,k);
         }
     } else {
         xdbg<<"Need to split.\n";
@@ -725,7 +725,7 @@ void SelectRandomFrom(long m, std::vector<long>& selection)
     }
 }
 
-template <int D1, int D2, int B> template <int C, int M>
+template <int D1, int D2, int B> template <int C>
 void BinnedCorr2<D1,D2,B>::sampleFrom(
     const Cell<D1, C>& c1, const Cell<D2, C>& c2, double rsq, double r,
     long* i1, long* i2, double* sep, int n, long& k)

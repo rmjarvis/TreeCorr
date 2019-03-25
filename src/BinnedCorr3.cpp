@@ -137,31 +137,35 @@ void BinnedCorr3<D1,D2,D3,B>::clear()
 template <int D1, int D2, int D3, int B, int C, int M>
 struct ProcessHelper
 {
-    static void process3(BinnedCorr3<D1,D2,D3,B>& , const Cell<D1,C>* ) {}
-    static void process21(BinnedCorr3<D1,D2,D3,B>& , const Cell<D1,C>*, const Cell<D3,C>* ) {}
+    static void process3(BinnedCorr3<D1,D2,D3,B>& , const Cell<D1,C>*, const MetricHelper<M>&) {}
+    static void process21(BinnedCorr3<D1,D2,D3,B>& , const Cell<D1,C>*, const Cell<D3,C>*,
+                          const MetricHelper<M>&) {}
     static void process111(BinnedCorr3<D1,D2,D3,B>& , const Cell<D1,C>*, const Cell<D2,C>*,
-                           const Cell<D3,C>* ) {}
+                           const Cell<D3,C>*, const MetricHelper<M>&) {}
 };
 
 template <int D1, int D3, int B, int C, int M>
 struct ProcessHelper<D1,D1,D3,B,C,M>
 {
-    static void process3(BinnedCorr3<D1,D1,D3,B>& b, const Cell<D1,C>* ) {}
-    static void process21(BinnedCorr3<D1,D1,D3,B>& b, const Cell<D1,C>* , const Cell<D3,C>* ) {}
+    static void process3(BinnedCorr3<D1,D1,D3,B>& b, const Cell<D1,C>*, const MetricHelper<M>&) {}
+    static void process21(BinnedCorr3<D1,D1,D3,B>& b, const Cell<D1,C>* , const Cell<D3,C>*,
+                          const MetricHelper<M>&) {}
     static void process111(BinnedCorr3<D1,D1,D3,B>& b, const Cell<D1,C>* , const Cell<D1,C>*,
-                           const Cell<D3,C>* ) {}
+                           const Cell<D3,C>*, const MetricHelper<M>&) {}
 };
 
 template <int D, int B, int C, int M>
 struct ProcessHelper<D,D,D,B,C,M>
 {
-    static void process3(BinnedCorr3<D,D,D,B>& b, const Cell<D,C>* c123)
-    { b.template process3<C,M>(c123); }
-    static void process21(BinnedCorr3<D,D,D,B>& b, const Cell<D,C>* c12, const Cell<D,C>* c3)
-    { b.template process21<true,C,M>(c12,c3); }
+    static void process3(BinnedCorr3<D,D,D,B>& b, const Cell<D,C>* c123,
+                         const MetricHelper<M>& metric)
+    { b.template process3<C,M>(c123, metric); }
+    static void process21(BinnedCorr3<D,D,D,B>& b, const Cell<D,C>* c12, const Cell<D,C>* c3,
+                          const MetricHelper<M>& metric)
+    { b.template process21<true,C,M>(c12,c3, metric); }
     static void process111(BinnedCorr3<D,D,D,B>& b, const Cell<D,C>* c1, const Cell<D,C>* c2,
-                           const Cell<D,C>* c3)
-    { b.template process111<true,C,M>(c1,c2,c3); }
+                           const Cell<D,C>* c3, const MetricHelper<M>& metric)
+    { b.template process111<true,C,M>(c1,c2,c3, metric); }
 };
 
 template <int D1, int D2, int D3, int B> template <int C, int M>
@@ -174,6 +178,9 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field, bool dots)
     xdbg<<"field has "<<n1<<" top level nodes\n";
     dbg<<"zeta[0] = "<<_zeta<<std::endl;
     Assert(n1 > 0);
+
+    MetricHelper<M> metric(_minrpar, _maxrpar);
+
 #ifdef _OPENMP
 #pragma omp parallel
     {
@@ -201,14 +208,14 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field, bool dots)
                 if (verbose_level >= 2) c1->WriteTree(get_dbgout());
 #endif
             }
-            ProcessHelper<D1,D2,D3,B,C,M>::process3(bc3,c1);
+            ProcessHelper<D1,D2,D3,B,C,M>::process3(bc3,c1, metric);
             for (int j=i+1;j<n1;++j) {
                 const Cell<D1,C>* c2 = field.getCells()[j];
-                ProcessHelper<D1,D2,D3,B,C,M>::process21(bc3,c1,c2);
-                ProcessHelper<D1,D2,D3,B,C,M>::process21(bc3,c2,c1);
+                ProcessHelper<D1,D2,D3,B,C,M>::process21(bc3,c1,c2, metric);
+                ProcessHelper<D1,D2,D3,B,C,M>::process21(bc3,c2,c1, metric);
                 for (int k=j+1;k<n1;++k) {
                     const Cell<D1,C>* c3 = field.getCells()[k];
-                    ProcessHelper<D1,D2,D3,B,C,M>::process111(bc3,c1,c2,c3);
+                    ProcessHelper<D1,D2,D3,B,C,M>::process111(bc3,c1,c2,c3, metric);
                 }
             }
         }
@@ -241,6 +248,9 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field1, const Field<D2,
     Assert(n1 > 0);
     Assert(n2 > 0);
     Assert(n3 > 0);
+
+    MetricHelper<M> metric(_minrpar, _maxrpar);
+
 #ifdef DEBUGLOGGING
     if (verbose_level >= 2) {
         xdbg<<"field1: \n";
@@ -291,7 +301,7 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field1, const Field<D2,
                 const Cell<D2,C>* c2 = field2.getCells()[j];
                 for (int k=0;k<n3;++k) {
                     const Cell<D3,C>* c3 = field3.getCells()[k];
-                    bc3.template process111<false,C,M>(c1,c2,c3);
+                    bc3.template process111<false,C,M>(c1, c2, c3, metric);
                 }
             }
         }
@@ -307,7 +317,7 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field1, const Field<D2,
 }
 
 template <int D1, int D2, int D3, int B> template <int C, int M>
-void BinnedCorr3<D1,D2,D3,B>::process3(const Cell<D1,C>* c123)
+void BinnedCorr3<D1,D2,D3,B>::process3(const Cell<D1,C>* c123, const MetricHelper<M>& metric)
 {
     // Does all triangles with 3 points in c123
     xdbg<<"Process3: c123 = "<<c123->getData().getPos()<<"  "<<"  "<<c123->getSize()<<"  "<<c123->getData().getN()<<std::endl;
@@ -322,14 +332,15 @@ void BinnedCorr3<D1,D2,D3,B>::process3(const Cell<D1,C>* c123)
 
     Assert(c123->getLeft());
     Assert(c123->getRight());
-    process3<C,M>(c123->getLeft());
-    process3<C,M>(c123->getRight());
-    process21<true,C,M>(c123->getLeft(),c123->getRight());
-    process21<true,C,M>(c123->getRight(),c123->getLeft());
+    process3<C,M>(c123->getLeft(), metric);
+    process3<C,M>(c123->getRight(), metric);
+    process21<true,C,M>(c123->getLeft(),c123->getRight(), metric);
+    process21<true,C,M>(c123->getRight(),c123->getLeft(), metric);
 }
 
 template <int D1, int D2, int D3, int B> template <bool sort, int C, int M>
-void BinnedCorr3<D1,D2,D3,B>::process21(const Cell<D1,C>* c12, const Cell<D3,C>* c3)
+void BinnedCorr3<D1,D2,D3,B>::process21(const Cell<D1,C>* c12, const Cell<D3,C>* c3,
+                                        const MetricHelper<M>& metric)
 {
     // Does all triangles with two points in c12 and 3rd point in c3
     // This version is allowed to swap the positions of points 1,2,3
@@ -356,8 +367,7 @@ void BinnedCorr3<D1,D2,D3,B>::process21(const Cell<D1,C>* c12, const Cell<D3,C>*
 
     double s12 = c12->getSize();
     double s3 = c3->getSize();
-    double d2sq = MetricHelper<M>::DistSq(c12->getData().getPos(), c3->getData().getPos(),
-                                          s12, s3);
+    double d2sq = metric.DistSq(c12->getData().getPos(), c3->getData().getPos(), s12, s3);
     double s12ps3 = s12 + s3;
 
     // If all possible triangles will have d2 < minsep, then abort the recursion here.
@@ -387,9 +397,9 @@ void BinnedCorr3<D1,D2,D3,B>::process21(const Cell<D1,C>* c12, const Cell<D3,C>*
 
     Assert(c12->getLeft());
     Assert(c12->getRight());
-    process21<true,C,M>(c12->getLeft(),c3);
-    process21<true,C,M>(c12->getRight(),c3);
-    process111<true,C,M>(c12->getLeft(),c12->getRight(),c3);
+    process21<true,C,M>(c12->getLeft(), c3, metric);
+    process21<true,C,M>(c12->getRight(), c3, metric);
+    process111<true,C,M>(c12->getLeft(), c12->getRight(), c3, metric);
 }
 
 // A helper to calculate the distances and possibly sort the points.
@@ -399,6 +409,7 @@ struct SortHelper
 {
     static void sort3(
         const Cell<D1,C>*& c1, const Cell<D2,C>*& c2, const Cell<D3,C>*& c3,
+        const MetricHelper<M>& metric,
         double& d1sq, double& d2sq, double& d3sq)
     {
         // TODO: Think about what the right thing to do with s1,s2,s3 is when the metric
@@ -406,11 +417,11 @@ struct SortHelper
         //       for non-Euclidean metrics.
         double s=0.;
         if (d1sq == 0.)
-            d1sq = MetricHelper<M>::DistSq(c2->getData().getPos(), c3->getData().getPos(), s,s);
+            d1sq = metric.DistSq(c2->getData().getPos(), c3->getData().getPos(), s,s);
         if (d2sq == 0.)
-            d2sq = MetricHelper<M>::DistSq(c1->getData().getPos(), c3->getData().getPos(), s,s);
+            d2sq = metric.DistSq(c1->getData().getPos(), c3->getData().getPos(), s,s);
         if (d3sq == 0.)
-            d3sq = MetricHelper<M>::DistSq(c1->getData().getPos(), c2->getData().getPos(), s,s);
+            d3sq = metric.DistSq(c1->getData().getPos(), c2->getData().getPos(), s,s);
     }
     static bool stop111(
         double d1sq, double d2sq, double d3sq, double d2,
@@ -541,15 +552,16 @@ struct SortHelper<D,D,D,true,C,M>
 {
     static void sort3(
         const Cell<D,C>*& c1, const Cell<D,C>*& c2, const Cell<D,C>*& c3,
+        const MetricHelper<M>& metric,
         double& d1sq, double& d2sq, double& d3sq)
     {
         double s=0.;
         if (d1sq == 0.)
-            d1sq = MetricHelper<M>::DistSq(c2->getData().getPos(), c3->getData().getPos(), s,s);
+            d1sq = metric.DistSq(c2->getData().getPos(), c3->getData().getPos(), s,s);
         if (d2sq == 0.)
-            d2sq = MetricHelper<M>::DistSq(c1->getData().getPos(), c3->getData().getPos(), s,s);
+            d2sq = metric.DistSq(c1->getData().getPos(), c3->getData().getPos(), s,s);
         if (d3sq == 0.)
-            d3sq = MetricHelper<M>::DistSq(c1->getData().getPos(), c2->getData().getPos(), s,s);
+            d3sq = metric.DistSq(c1->getData().getPos(), c2->getData().getPos(), s,s);
 
         // Need to end up with d3 < d2 < d1
         if (d1sq < d2sq) {
@@ -693,6 +705,7 @@ struct SortHelper<D,D,D,true,C,M>
 template <int D1, int D2, int D3, int B> template <bool sort, int C, int M>
 void BinnedCorr3<D1,D2,D3,B>::process111(
     const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D3,C>* c3,
+    const MetricHelper<M>& metric,
     double d1sq, double d2sq, double d3sq)
 {
     // Does all triangles with 1 point each in c1, c2, c3
@@ -710,7 +723,7 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
     }
 
     // Calculate the distances if they aren't known yet, and sort so that d3 < d2 < d1
-    SortHelper<D1,D2,D3,sort,C,M>::sort3(c1,c2,c3,d1sq,d2sq,d3sq);
+    SortHelper<D1,D2,D3,sort,C,M>::sort3(c1,c2,c3,metric,d1sq,d2sq,d3sq);
 
     xdbg<<"Process111: c1 = "<<c1->getData().getPos()<<"  "<<"  "<<c1->getSize()<<"  "<<c1->getData().getN()<<std::endl;
     xdbg<<"            c2 = "<<c2->getData().getPos()<<"  "<<"  "<<c2->getSize()<<"  "<<c2->getData().getN()<<std::endl;
@@ -865,24 +878,24 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
                 Assert(c2->getRight());
                 Assert(c3->getLeft());
                 Assert(c3->getRight());
-                process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3->getLeft());
-                process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3->getRight());
-                process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3->getLeft());
-                process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3->getRight());
-                process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3->getLeft());
-                process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3->getRight());
-                process111<sort,C,M>(c1->getRight(),c2->getRight(),c3->getLeft());
-                process111<sort,C,M>(c1->getRight(),c2->getRight(),c3->getRight());
+                process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3->getLeft(),metric);
+                process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3->getRight(),metric);
+                process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3->getLeft(),metric);
+                process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3->getRight(),metric);
+                process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3->getLeft(),metric);
+                process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3->getRight(),metric);
+                process111<sort,C,M>(c1->getRight(),c2->getRight(),c3->getLeft(),metric);
+                process111<sort,C,M>(c1->getRight(),c2->getRight(),c3->getRight(),metric);
             } else {
                 // split 1,2
                 Assert(c1->getLeft());
                 Assert(c1->getRight());
                 Assert(c2->getLeft());
                 Assert(c2->getRight());
-                process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3);
-                process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3);
-                process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3);
-                process111<sort,C,M>(c1->getRight(),c2->getRight(),c3);
+                process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3,metric);
+                process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3,metric);
+                process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3,metric);
+                process111<sort,C,M>(c1->getRight(),c2->getRight(),c3,metric);
             }
         } else {
             if (split3) {
@@ -891,16 +904,16 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
                 Assert(c1->getRight());
                 Assert(c3->getLeft());
                 Assert(c3->getRight());
-                process111<sort,C,M>(c1->getLeft(),c2,c3->getLeft());
-                process111<sort,C,M>(c1->getLeft(),c2,c3->getRight());
-                process111<sort,C,M>(c1->getRight(),c2,c3->getLeft());
-                process111<sort,C,M>(c1->getRight(),c2,c3->getRight());
+                process111<sort,C,M>(c1->getLeft(),c2,c3->getLeft(),metric);
+                process111<sort,C,M>(c1->getLeft(),c2,c3->getRight(),metric);
+                process111<sort,C,M>(c1->getRight(),c2,c3->getLeft(),metric);
+                process111<sort,C,M>(c1->getRight(),c2,c3->getRight(),metric);
             } else {
                 // split 1 only
                 Assert(c1->getLeft());
                 Assert(c1->getRight());
-                process111<sort,C,M>(c1->getLeft(),c2,c3,d1sq);
-                process111<sort,C,M>(c1->getRight(),c2,c3,d1sq);
+                process111<sort,C,M>(c1->getLeft(),c2,c3,metric,d1sq);
+                process111<sort,C,M>(c1->getRight(),c2,c3,metric,d1sq);
             }
         }
     } else {
@@ -911,24 +924,24 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
                 Assert(c2->getRight());
                 Assert(c3->getLeft());
                 Assert(c3->getRight());
-                process111<sort,C,M>(c1,c2->getLeft(),c3->getLeft());
-                process111<sort,C,M>(c1,c2->getLeft(),c3->getRight());
-                process111<sort,C,M>(c1,c2->getRight(),c3->getLeft());
-                process111<sort,C,M>(c1,c2->getRight(),c3->getRight());
+                process111<sort,C,M>(c1,c2->getLeft(),c3->getLeft(),metric);
+                process111<sort,C,M>(c1,c2->getLeft(),c3->getRight(),metric);
+                process111<sort,C,M>(c1,c2->getRight(),c3->getLeft(),metric);
+                process111<sort,C,M>(c1,c2->getRight(),c3->getRight(),metric);
             } else {
                 // split 2 only
                 Assert(c2->getLeft());
                 Assert(c2->getRight());
-                process111<sort,C,M>(c1,c2->getLeft(),c3,0.,d2sq);
-                process111<sort,C,M>(c1,c2->getRight(),c3,0.,d2sq);
+                process111<sort,C,M>(c1,c2->getLeft(),c3,metric,0.,d2sq);
+                process111<sort,C,M>(c1,c2->getRight(),c3,metric,0.,d2sq);
             }
         } else {
             if (split3) {
                 // split 3 only
                 Assert(c3->getLeft());
                 Assert(c3->getRight());
-                process111<sort,C,M>(c1,c2,c3->getLeft(),0.,0.,d3sq);
-                process111<sort,C,M>(c1,c2,c3->getRight(),0.,0.,d3sq);
+                process111<sort,C,M>(c1,c2,c3->getLeft(),metric,0.,0.,d3sq);
+                process111<sort,C,M>(c1,c2,c3->getRight(),metric,0.,0.,d3sq);
             } else {
                 // No splits required.
                 // Now we can check to make sure the final d2, u, v are in the right ranges.
@@ -943,8 +956,8 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
                     return;
                 }
 
-                if (!MetricHelper<M>::CCW(c1->getData().getPos(), c2->getData().getPos(),
-                                          c3->getData().getPos()))
+                if (!metric.CCW(c1->getData().getPos(), c2->getData().getPos(),
+                                c3->getData().getPos()))
                     v = -v;
                 if (v < _minv || v >= _maxv) {
                     xdbg<<"v not in minv .. maxv\n";

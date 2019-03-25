@@ -15,8 +15,6 @@
 #ifndef TreeCorr_ProjectHelper_H
 #define TreeCorr_ProjectHelper_H
 
-#include "Metric.h"
-
 // For the direct processing, we need a helper struct to handle some of the projections
 // we need to do to the shear values.
 template <int C>

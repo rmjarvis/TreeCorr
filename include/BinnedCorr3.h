@@ -21,6 +21,7 @@
 #include "Cell.h"
 #include "Field.h"
 #include "BinType.h"
+#include "Metric.h"
 
 template <int DC1, int DC2, int DC3>
 struct ZetaData;
@@ -54,13 +55,14 @@ public:
 
     // Main worker functions for calculating the result
     template <int C, int M>
-    void process3(const Cell<DC1,C>* c123);
+    void process3(const Cell<DC1,C>* c123, const MetricHelper<M>& metric);
 
     template <bool sort, int C, int M>
-    void process21(const Cell<DC1,C>* c12, const Cell<DC3,C>* c3);
+    void process21(const Cell<DC1,C>* c12, const Cell<DC3,C>* c3, const MetricHelper<M>& metric);
 
     template <bool sort, int C, int M>
     void process111(const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const Cell<DC3,C>* c3,
+                    const MetricHelper<M>& metric,
                     double d1sq=0., double d2sq=0., double d3sq=0.);
 
     template <int C, int M>

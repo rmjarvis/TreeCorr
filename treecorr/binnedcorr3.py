@@ -160,6 +160,10 @@ class BinnedCorr3(object):
                         (default: 'Euclidean')
     :param bin_type:    What type of binning should be used. The only valid option is 'Log'.
                         (default: 'Log')
+    :param min_rpar:    For the 'Rperp' metric, the minimum difference in Rparallel to allow
+                        for pairs being included in the correlation function. (default: None)
+    :param max_rpar:    For the 'Rperp' metric, the maximum difference in Rparallel to allow
+                        for pairs being included in the correlation function. (default: None)
 
     :param num_threads: How many OpenMP threads to use during the calculation.
                         (default: use the number of cpu cores; this value can also be given in
@@ -219,6 +223,10 @@ class BinnedCorr3(object):
                 'Which metric to use for the distance measurements'),
         'bin_type': (str, False, 'Log', ['Log'],
                 'Which type of binning should be used'),
+        'min_rpar': (float, False, None, None,
+                'The minimum difference in Rparallel for pairs to include'),
+        'max_rpar': (float, False, None, None,
+                'The maximum difference in Rparallel for pairs to include'),
     }
 
     def __init__(self, config=None, logger=None, **kwargs):

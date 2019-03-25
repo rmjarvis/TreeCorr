@@ -13,18 +13,18 @@
  */
 
 extern void* BuildCorr2(int d1, int d2, int bin_type,
-                       double minsep, double maxsep, int nbins, double binsize, double b,
-                       double minrpar, double maxrpar,
-                       double* xip, double* xip_im, double* xim, double* xim_im,
-                       double* meanr, double* meanlogr, double* weight, double* npairs);
+                        double minsep, double maxsep, int nbins, double binsize, double b,
+                        double minrpar, double maxrpar, double xp, double yp, double zp,
+                        double* xip, double* xip_im, double* xim, double* xim_im,
+                        double* meanr, double* meanlogr, double* weight, double* npairs);
 
 extern void DestroyCorr2(void* corr, int d1, int d2, int bin_type);
 
 extern void ProcessAuto2(void* corr, void* field, int dots,
-                        int d, int coord, int bin_type, int metric);
+                         int d, int coord, int bin_type, int metric);
 
 extern void ProcessCross2(void* corr, void* field1, void* field2, int dots,
-                         int d1, int d2, int coord, int bin_type, int metric);
+                          int d1, int d2, int coord, int bin_type, int metric);
 
 extern void ProcessPair(void* corr, void* field1, void* field2, int dots,
                         int d1, int d2, int coord, int bin_type, int metric);

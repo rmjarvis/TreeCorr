@@ -161,7 +161,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                 self._min_sep,self._max_sep,self.nbins,self._bin_size,self.b,
                 self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                 self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
-                self.min_rpar, self.max_rpar,
+                self.min_rpar, self.max_rpar, self.xperiod, self.yperiod, self.zperiod,
                 dp(self.gam0r), dp(self.gam0i), dp(self.gam1r), dp(self.gam1i),
                 dp(self.gam2r), dp(self.gam2i), dp(self.gam3r), dp(self.gam3i),
                 dp(self.meand1), dp(self.meanlogd1), dp(self.meand2), dp(self.meanlogd2),
@@ -195,6 +195,9 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                 self.bin_slop == other.bin_slop and
                 self.min_rpar == other.min_rpar and
                 self.max_rpar == other.max_rpar and
+                self.xperiod == other.xperiod and
+                self.yperiod == other.yperiod and
+                self.zperiod == other.zperiod and
                 np.array_equal(self.meand1, other.meand1) and
                 np.array_equal(self.meanlogd1, other.meanlogd1) and
                 np.array_equal(self.meand2, other.meand2) and

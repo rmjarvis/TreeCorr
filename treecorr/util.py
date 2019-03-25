@@ -365,7 +365,7 @@ def parse_metric(metric, coords, coords2=None, coords3=None):
     if coords not in ['flat', 'spherical', '3d']:
         raise ValueError("Invalid coords %s"%coords)
 
-    if metric not in ['Euclidean', 'Rperp', 'OldRperp', 'FisherRperp', 'Rlens', 'Arc']:
+    if metric not in ['Euclidean', 'Rperp', 'OldRperp', 'FisherRperp', 'Rlens', 'Arc', 'Periodic']:
         raise ValueError("Invalid metric %s"%metric)
 
     if metric in ['Rperp', 'OldRperp', 'FisherRperp'] and coords != '3d':
@@ -402,6 +402,8 @@ def metric_enum(metric):
         return treecorr._lib.Rlens
     elif metric == 'Arc':
         return treecorr._lib.Arc
+    elif metric == 'Periodic':
+        return treecorr._lib.Periodic
     else:
         raise ValueError("Invalid metric %s"%metric)
 

@@ -44,7 +44,7 @@ struct MetricHelper<Euclidean>
 
     // We always have the constructor take all arguments that someone might need.  But
     // we only save them as values in the struct if this metric will actually need them.
-    MetricHelper(double minrpar=0, double maxrpar=0) {}
+    MetricHelper(double minrpar=0, double maxrpar=0, double xp=0, double yp=0, double zp=0) {}
 
     ///
     //
@@ -163,7 +163,7 @@ struct MetricHelper<OldRperp>
 
     double minrpar, maxrpar;
 
-    MetricHelper(double _minrpar, double _maxrpar) :
+    MetricHelper(double _minrpar, double _maxrpar, double xp=0, double yp=0, double zp=0) :
         minrpar(_minrpar), maxrpar(_maxrpar) {}
 
     double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
@@ -299,7 +299,7 @@ struct MetricHelper<Rperp>
 
     double minrpar, maxrpar;
 
-    MetricHelper(double _minrpar, double _maxrpar) :
+    MetricHelper(double _minrpar, double _maxrpar, double xp=0, double yp=0, double zp=0) :
         minrpar(_minrpar), maxrpar(_maxrpar) {}
 
     double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
@@ -442,7 +442,7 @@ struct MetricHelper<Rlens>
 
     double minrpar, maxrpar;
 
-    MetricHelper(double _minrpar, double _maxrpar) :
+    MetricHelper(double _minrpar, double _maxrpar, double xp=0, double yp=0, double zp=0) :
         minrpar(_minrpar), maxrpar(_maxrpar) {}
 
     // The distance is measured perpendicular to the p2 direction at the distance of p1.
@@ -532,7 +532,7 @@ struct MetricHelper<Arc>
 
     double minrpar, maxrpar;
 
-    MetricHelper(double _minrpar, double _maxrpar) :
+    MetricHelper(double _minrpar, double _maxrpar, double xp=0, double yp=0, double zp=0) :
         minrpar(_minrpar), maxrpar(_maxrpar) {}
 
     double DistSq(const Position<Sphere>& p1, const Position<Sphere>& p2,
@@ -630,6 +630,123 @@ struct MetricHelper<Arc>
         else if (rpar + s1ps2 > maxrpar) return false;
         else return true;
     }
+
+    bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                      double rsq, double rpar, double s1ps2, double minsepsq) const
+    { return true; }
+
+    bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                      double rsq, double rpar, double s1ps2, double maxsepsq) const
+    { return true; }
+};
+
+//
+// Periodic is like Euclidean, except that the edges of the range wrap around, and the
+// distance is the smaller of (x2-x1) % xperiod and (x1-x2) % xperiod.
+//
+
+template <>
+struct MetricHelper<Periodic>
+{
+    enum { _Flat=Flat, _ThreeD=ThreeD, _Sphere=ThreeD };
+
+    // The period in each direction.
+    double xp, yp, zp;
+
+    MetricHelper(double minrpar, double maxrpar, double _xp, double _yp, double _zp) :
+        xp(_xp), yp(_yp), zp(_zp) {}
+
+    ///
+    //
+    // Flat
+    //
+    ///
+
+    double DistSq(const Position<Flat>& p1, const Position<Flat>& p2,
+                  double& s1, double& s2) const
+    {
+        Position<Flat> r = p1-p2;
+        return r.normSq();
+    }
+    double Dist(const Position<Flat>& p1, const Position<Flat>& p2) const
+    {
+        double s=0.;
+        return sqrt(DistSq(p1,p2,s,s));
+    }
+
+    bool CCW(const Position<Flat>& p1, const Position<Flat>& p2, const Position<Flat>& p3) const
+    {
+        // If cross product r21 x r31 > 0, then the points are counter-clockwise.
+        Position<Flat> r21 = p2 - p1;
+        Position<Flat> r31 = p3 - p1;
+        return r21.cross(r31) > 0.;
+    }
+
+    // Some metrics keep track of whether the r_parallel distance is within some range.
+    // This function checks if two cells are fully outside the range, in which case we can
+    // throw them out and not recurse futher.  For Euclidean, this is trivially false.
+    bool isRParOutsideRange(const Position<Flat>& p1, const Position<Flat>& p2,
+                            double s1ps2, double& rpar) const
+    { return false; }
+
+    // When we get to a point where we think all possible pairs fall into a single bin,
+    // then we also need to make sure we are fully in the range for rpar as well.  For
+    // Euclidean (and others that don't use rpar), this is always true, but Rper and Rlens
+    // have a check here.
+    bool isRParInsideRange(const Position<Flat>& p1, const Position<Flat>& p2,
+                           double s1ps2, double rpar) const
+    { return true; }
+
+    // The normal tests about whether a given distance is inside the binning range happen
+    // in BinTypeHelper.  However, Rperp needs to do an additional check to make sure we
+    // don't reject cell pairs prematurely.  For this and most metrics, these two checks
+    // are trivially true (since only get here if the regular check passes).
+    bool tooSmallDist(const Position<Flat>& p1, const Position<Flat>& p2,
+                      double rsq, double rpar, double s1ps2, double minsepsq) const
+    { return true; }
+
+    bool tooLargeDist(const Position<Flat>& p1, const Position<Flat>& p2,
+                      double rsq, double rpar, double s1ps2, double maxsepsq) const
+    { return true; }
+
+
+    ///
+    //
+    // ThreeD
+    //
+    ///
+
+    double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                  double& s1, double& s2) const
+    {
+        Position<ThreeD> r = p1-p2;
+        return r.normSq();
+    }
+    double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
+    {
+        double s=0.;
+        return sqrt(DistSq(p1,p2,s,s));
+    }
+
+    bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+             const Position<ThreeD>& p3) const
+    {
+        // Now it's slightly more complicated, since the points are in three dimensions.  We do
+        // the same thing, computing the cross product with respect to point p1.  Then if the
+        // cross product points back toward Earth, the points are viewed as counter-clockwise.
+        // We check this last point by the dot product with p1.
+        Position<ThreeD> r21 = p2-p1;
+        Position<ThreeD> r31 = p3-p1;
+        return r21.cross(r31).dot(p1) < 0.;
+    }
+
+    bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                            double s1ps2, double& rpar) const
+    { return false; }
+
+    bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                           double s1ps2, double rpar) const
+    { return true; }
 
     bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                       double rsq, double rpar, double s1ps2, double minsepsq) const

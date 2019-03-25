@@ -36,11 +36,11 @@
 template <int D1, int D2, int B>
 BinnedCorr2<D1,D2,B>::BinnedCorr2(
     double minsep, double maxsep, int nbins, double binsize, double b,
-    double minrpar, double maxrpar,
+    double minrpar, double maxrpar, double xp, double yp, double zp,
     double* xi0, double* xi1, double* xi2, double* xi3,
     double* meanr, double* meanlogr, double* weight, double* npairs) :
     _minsep(minsep), _maxsep(maxsep), _nbins(nbins), _binsize(binsize), _b(b),
-    _minrpar(minrpar), _maxrpar(maxrpar),
+    _minrpar(minrpar), _maxrpar(maxrpar), _xp(xp), _yp(yp), _zp(zp),
     _coords(-1), _owns_data(false),
     _xi(xi0,xi1,xi2,xi3), _meanr(meanr), _meanlogr(meanlogr), _weight(weight), _npairs(npairs)
 {
@@ -60,6 +60,7 @@ BinnedCorr2<D1,D2,B>::BinnedCorr2(const BinnedCorr2<D1,D2,B>& rhs, bool copy_dat
     _minsep(rhs._minsep), _maxsep(rhs._maxsep), _nbins(rhs._nbins),
     _binsize(rhs._binsize), _b(rhs._b),
     _minrpar(rhs._minrpar), _maxrpar(rhs._maxrpar),
+    _xp(rhs._xp), _yp(rhs._yp), _zp(rhs._zp),
     _logminsep(rhs._logminsep), _halfminsep(rhs._halfminsep),
     _minsepsq(rhs._minsepsq), _maxsepsq(rhs._maxsepsq), _bsq(rhs._bsq),
     _fullmaxsep(rhs._fullmaxsep), _fullmaxsepsq(rhs._fullmaxsepsq),
@@ -127,7 +128,7 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
     dbg<<"field has "<<n1<<" top level nodes\n";
     Assert(n1 > 0);
 
-    MetricHelper<M> metric(_minrpar, _maxrpar);
+    MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -183,7 +184,7 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>&
     Assert(n1 > 0);
     Assert(n2 > 0);
 
-    MetricHelper<M> metric(_minrpar, _maxrpar);
+    MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -236,7 +237,7 @@ void BinnedCorr2<D1,D2,B>::processPairwise(
     xdbg<<"field2 has "<<nobj2<<" objects\n";
     Assert(nobj > 0);
     Assert(nobj == nobj2);
-    MetricHelper<M> metric(_minrpar, _maxrpar);
+    MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
     const long sqrtn = long(sqrt(double(nobj)));
 
@@ -577,7 +578,7 @@ long BinnedCorr2<D1,D2,B>::samplePairs(
     Assert(n1 > 0);
     Assert(n2 > 0);
 
-    MetricHelper<M> metric(_minrpar, _maxrpar);
+    MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
     double minsepsq = minsep*minsep;
     double maxsepsq = maxsep*maxsep;
@@ -916,24 +917,24 @@ extern "C" {
 template <int D1, int D2>
 void* BuildCorr2b(int bin_type,
                   double minsep, double maxsep, int nbins, double binsize, double b,
-                  double minrpar, double maxrpar,
+                  double minrpar, double maxrpar, double xp, double yp, double zp,
                   double* xi0, double* xi1, double* xi2, double* xi3,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
     switch(bin_type) {
       case Log:
            return static_cast<void*>(new BinnedCorr2<D1,D2,Log>(
-                   minsep, maxsep, nbins, binsize, b, minrpar, maxrpar,
+                   minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp,
                    xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs));
            break;
       case Linear:
            return static_cast<void*>(new BinnedCorr2<D1,D2,Linear>(
-                   minsep, maxsep, nbins, binsize, b, minrpar, maxrpar,
+                   minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp,
                    xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs));
            break;
       case TwoD:
            return static_cast<void*>(new BinnedCorr2<D1,D2,TwoD>(
-                   minsep, maxsep, nbins, binsize, b, minrpar, maxrpar,
+                   minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp,
                    xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs));
            break;
       default:
@@ -945,7 +946,7 @@ void* BuildCorr2b(int bin_type,
 template <int D1>
 void* BuildCorr2a(int d2, int bin_type,
                   double minsep, double maxsep, int nbins, double binsize, double b,
-                  double minrpar, double maxrpar,
+                  double minrpar, double maxrpar, double xp, double yp, double zp,
                   double* xi0, double* xi1, double* xi2, double* xi3,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
@@ -957,21 +958,21 @@ void* BuildCorr2a(int d2, int bin_type,
       case NData:
            return BuildCorr2b<D1,MAX(D1,NData)>(bin_type,
                                                 minsep, maxsep, nbins, binsize, b,
-                                                minrpar, maxrpar,
+                                                minrpar, maxrpar, xp, yp, zp,
                                                 xi0, xi1, xi2, xi3,
                                                 meanr, meanlogr, weight, npairs);
            break;
       case KData:
            return BuildCorr2b<D1,MAX(D1,KData)>(bin_type,
-                                                minsep, maxsep, nbins, binsize,
-                                                b, minrpar, maxrpar,
+                                                minsep, maxsep, nbins, binsize, b,
+                                                minrpar, maxrpar, xp, yp, zp,
                                                 xi0, xi1, xi2, xi3,
                                                 meanr, meanlogr, weight, npairs);
            break;
       case GData:
            return BuildCorr2b<D1,MAX(D1,GData)>(bin_type,
-                                                minsep, maxsep, nbins, binsize,
-                                                b, minrpar, maxrpar,
+                                                minsep, maxsep, nbins, binsize, b,
+                                                minrpar, maxrpar, xp, yp, zp,
                                                 xi0, xi1, xi2, xi3,
                                                 meanr, meanlogr, weight, npairs);
            break;
@@ -984,7 +985,7 @@ void* BuildCorr2a(int d2, int bin_type,
 
 void* BuildCorr2(int d1, int d2, int bin_type,
                  double minsep, double maxsep, int nbins, double binsize, double b,
-                 double minrpar, double maxrpar,
+                 double minrpar, double maxrpar, double xp, double yp, double zp,
                  double* xi0, double* xi1, double* xi2, double* xi3,
                  double* meanr, double* meanlogr, double* weight, double* npairs)
 {
@@ -993,17 +994,20 @@ void* BuildCorr2(int d1, int d2, int bin_type,
     switch(d1) {
       case NData:
            corr = BuildCorr2a<NData>(d2, bin_type,
-                                     minsep, maxsep, nbins, binsize, b, minrpar, maxrpar,
+                                     minsep, maxsep, nbins, binsize, b,
+                                     minrpar, maxrpar, xp, yp, zp,
                                      xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs);
            break;
       case KData:
            corr = BuildCorr2a<KData>(d2, bin_type,
-                                     minsep, maxsep, nbins, binsize, b, minrpar, maxrpar,
+                                     minsep, maxsep, nbins, binsize, b,
+                                     minrpar, maxrpar, xp, yp, zp,
                                      xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs);
            break;
       case GData:
            corr = BuildCorr2a<GData>(d2, bin_type,
-                                     minsep, maxsep, nbins, binsize, b, minrpar, maxrpar,
+                                     minsep, maxsep, nbins, binsize, b,
+                                     minrpar, maxrpar, xp, yp, zp,
                                      xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs);
            break;
       default:
@@ -1112,6 +1116,9 @@ void ProcessAuto2c(BinnedCorr2<D,D,B>* corr, void* field, int dots,
       case Arc:
            ProcessAuto2d<Arc>(corr, field, dots, coords);
            break;
+      case Periodic:
+           ProcessAuto2d<Periodic>(corr, field, dots, coords);
+           break;
       default:
            Assert(false);
     }
@@ -1201,6 +1208,9 @@ void ProcessCross2c(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2, int 
            break;
       case Arc:
            ProcessCross2d<Arc>(corr, field1, field2, dots, coords);
+           break;
+      case Periodic:
+           ProcessCross2d<Periodic>(corr, field1, field2, dots, coords);
            break;
       default:
            Assert(false);
@@ -1324,6 +1334,9 @@ void ProcessPair2d(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2, int d
            break;
       case Arc:
            ProcessPair2d<Arc>(corr, field1, field2, dots, coords);
+           break;
+      case Periodic:
+           ProcessPair2d<Periodic>(corr, field1, field2, dots, coords);
            break;
       default:
            Assert(false);
@@ -1466,6 +1479,10 @@ long SamplePairs2d(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2,
       case Arc:
            return SamplePairs2d<Arc>(corr, field1, field2, minsep, maxsep,
                                      coords, i1, i2, sep, n);
+           break;
+      case Periodic:
+           return SamplePairs2d<Periodic>(corr, field1, field2, minsep, maxsep,
+                                          coords, i1, i2, sep, n);
            break;
       default:
            Assert(false);

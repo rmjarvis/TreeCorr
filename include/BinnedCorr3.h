@@ -36,7 +36,7 @@ public:
     BinnedCorr3(double minsep, double maxsep, int nbins, double binsize, double b,
                 double minu, double maxu, int nubins, double ubinsize, double bu,
                 double minv, double maxv, int nvbins, double vbinsize, double bv,
-                double minrpar, double maxrpar,
+                double minrpar, double maxrpar, double xp, double yp, double zp,
                 double* zeta0, double* zeta1, double* zeta2, double* zeta3,
                 double* zeta4, double* zeta5, double* zeta6, double* zeta7,
                 double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
@@ -91,8 +91,8 @@ protected:
     int _nvbins;
     double _vbinsize;
     double _bv;
-    double _minrpar;
-    double _maxrpar;
+    double _minrpar, _maxrpar;
+    double _xp, _yp, _zp;
     double _logminsep;
     double _halfminsep;
     double _halfmind3;

@@ -501,7 +501,7 @@ def test_direct_count_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0., verbose=1)
+                                  brute=True, verbose=1)
     ddd.process(cat)
     #print('ddd.ntri = ',ddd.ntri)
 
@@ -579,7 +579,7 @@ def test_direct_count_auto():
     rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=0)
+                                  brute=True, verbose=0)
     rrr.process(rcat)
     zeta, varzeta = ddd.calculateZeta(rrr)
 
@@ -627,11 +627,11 @@ def test_direct_count_auto():
                                     skip_header=1)
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
 
-    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # Repeat with binslop = 0, since the code flow is different from bture=True
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=1)
+                                  bin_slop=0, verbose=1)
     ddd.process(cat)
     #print('ddd.ntri = ',ddd.ntri)
     #print('true_ntri => ',true_ntri)
@@ -642,7 +642,7 @@ def test_direct_count_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=1, max_top=0)
+                                  bin_slop=0, verbose=1, max_top=0)
     ddd.process(cat)
     #print('ddd.ntri = ',ddd.ntri)
     #print('true_ntri => ',true_ntri)
@@ -663,7 +663,7 @@ def test_direct_count_auto():
     config = treecorr.config.read_config('configs/nnn_direct.yaml')
     config['verbose'] = 2
     config['max_top'] = 0
-    config['bin_slop'] = 1.e-16
+    config['bin_slop'] = 0
     treecorr.corr3(config)
     data = np.genfromtxt(config['nnn_file_name'], names=True, skip_header=1)
     np.testing.assert_array_equal(data['ntri'], true_ntri.flatten())
@@ -741,7 +741,7 @@ def test_direct_count_auto():
 
 def test_direct_count_cross():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
-    # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
+    # to see if comes out right.  This should exactly match the treecorr code if brute=True
 
     ngal = 50
     s = 10.
@@ -769,7 +769,7 @@ def test_direct_count_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0., verbose=1)
+                                  brute=True, verbose=1)
     ddd.process(cat1, cat2, cat3)
     #print('ddd.ntri = ',ddd.ntri)
 
@@ -810,11 +810,11 @@ def test_direct_count_cross():
     #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
-    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # Repeat with binslop = 0
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=1)
+                                  bin_slop=0, verbose=1)
     ddd.process(cat1, cat2, cat3)
     #print('binslop > 0: ddd.ntri = ',ddd.ntri)
     #print('diff = ',ddd.ntri - true_ntri)
@@ -824,7 +824,7 @@ def test_direct_count_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=1, max_top=0)
+                                  bin_slop=0, verbose=1, max_top=0)
     ddd.process(cat1, cat2, cat3)
     #print('max_top = 0: ddd.ntri = ',ddd.ntri)
     #print('true_ntri = ',true_ntri)
@@ -888,7 +888,7 @@ def test_direct_spherical():
     nvbins = 10
     max_sep = min_sep * np.exp(nrbins * bin_size)
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                  sep_units='deg', bin_slop=0.)
+                                  sep_units='deg', brute=True)
     ddd.process(cat, num_threads=2)
 
     r = np.sqrt(x**2 + y**2 + z**2)
@@ -958,10 +958,10 @@ def test_direct_spherical():
     np.testing.assert_allclose(data['ntri'], ddd.ntri.flatten())
     np.testing.assert_allclose(data['DDD'], ddd.weight.flatten())
 
-    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                  sep_units='deg', bin_slop=1.e-16, max_top=0)
+                                  sep_units='deg', bin_slop=0, max_top=0)
     ddd.process(cat)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
     np.testing.assert_allclose(ddd.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -993,7 +993,7 @@ def test_direct_arc():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   nubins=nubins, ubin_size=ubin_size,
                                   nvbins=nvbins, vbin_size=vbin_size,
-                                  sep_units='deg', bin_slop=0.)
+                                  sep_units='deg', brute=True)
     ddd.process(cat, metric='Arc')
 
     r = np.sqrt(x**2 + y**2 + z**2)
@@ -1061,12 +1061,12 @@ def test_direct_arc():
     np.testing.assert_allclose(data['ntri'], ddd.ntri.flatten())
     np.testing.assert_allclose(data['DDD'], ddd.weight.flatten())
 
-    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   nubins=nubins, ubin_size=ubin_size,
                                   nvbins=nvbins, vbin_size=vbin_size,
-                                  sep_units='deg', bin_slop=1.e-16, max_top=0)
+                                  sep_units='deg', bin_slop=0, max_top=0)
     ddd.process(cat)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
     np.testing.assert_allclose(ddd.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -1101,7 +1101,7 @@ def test_direct_partial():
     ddda = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, nubins=nubins,
                                    min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                   bin_slop=0.)
+                                   brute=True)
     ddda.process(cat1a, cat2a, cat3a)
     #print('ddda.ntri = ',ddda.ntri)
 
@@ -1156,7 +1156,7 @@ def test_direct_partial():
     dddb = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, nubins=nubins,
                                    min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                   bin_slop=0.)
+                                   brute=True)
     dddb.process(cat1b, cat2b, cat3b)
     #print('dddb.ntri = ',dddb.ntri)
     #print('diff = ',dddb.ntri - true_ntri)
@@ -1206,7 +1206,7 @@ def test_direct_3d_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0., verbose=1)
+                                  brute=True, verbose=1)
     ddd.process(cat)
     #print('ddd.ntri = ',ddd.ntri)
 
@@ -1268,11 +1268,11 @@ def test_direct_3d_auto():
     #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
-    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # Repeat with binslop = 0
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=1)
+                                  bin_slop=0, verbose=1)
     ddd.process(cat)
     #print('ddd.ntri = ',ddd.ntri)
     #print('diff = ',ddd.ntri - true_ntri)
@@ -1282,7 +1282,7 @@ def test_direct_3d_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=1, max_top=0)
+                                  bin_slop=0, verbose=1, max_top=0)
     ddd.process(cat)
     #print('ddd.ntri = ',ddd.ntri)
     #print('true_ntri => ',true_ntri)
@@ -1345,7 +1345,7 @@ def test_direct_3d_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0., verbose=1)
+                                  brute=True, verbose=1)
     ddd.process(cat1, cat2, cat3)
     #print('ddd.ntri = ',ddd.ntri)
 
@@ -1389,11 +1389,11 @@ def test_direct_3d_cross():
     #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
-    # Repeat with binslop not precisely 0, since the code flow is different for bin_slop == 0.
+    # Repeat with binslop = 0
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=1)
+                                  bin_slop=0, verbose=1)
     ddd.process(cat1, cat2, cat3)
     #print('binslop > 0: ddd.ntri = ',ddd.ntri)
     #print('diff = ',ddd.ntri - true_ntri)
@@ -1403,7 +1403,7 @@ def test_direct_3d_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=1.e-16, verbose=1, max_top=0)
+                                  bin_slop=0, verbose=1, max_top=0)
     ddd.process(cat1, cat2, cat3)
     #print('max_top = 0: ddd.ntri = ',ddd.ntri)
     #print('true_ntri = ',true_ntri)

@@ -1301,6 +1301,28 @@ def test_rlens():
     print('max diff = ',max(abs(gg1.xim - theory_gQ)))
     assert max(abs(gg1.xim - theory_gQ)) < 4.e-5
 
+    # Can also do brute force just on one cat or the other.
+    # In this case, just cat2 is equivalent to full brute force, since nlens << nsource.
+    gg1a = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                  metric='Rlens', bin_slop=0, brute=1)
+    gg1a.process(lens_cat, source_cat)
+    assert lens_cat.field.brute == True
+    assert source_cat.field.brute == False
+    gg1b = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                  metric='Rlens', bin_slop=0, brute=2)
+    gg1b.process(lens_cat, source_cat)
+    assert lens_cat.field.brute == False
+    assert source_cat.field.brute == True
+
+    assert max(abs(gg0.xim - true_gQ)) < 2.e-6
+    assert max(abs(gg1.xim - true_gQ)) < 2.e-5
+    assert max(abs(gg1a.xim - true_gQ)) < 2.e-5
+    assert max(abs(gg1b.xim - true_gQ)) < 2.e-6
+    assert max(abs(gg0.xip - true_gCr)) < 2.e-6
+    assert max(abs(gg1.xip - true_gCr)) < 2.e-5
+    assert max(abs(gg1a.xip - true_gCr)) < 2.e-5
+    assert max(abs(gg1b.xip - true_gCr)) < 2.e-6
+
     # Now use a more normal value for bin_slop.
     gg2 = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
                                  metric='Rlens', bin_slop=0.3)

@@ -56,7 +56,7 @@ public:
     template <int C, int M>
     void process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, bool do_reverse);
 
-    template <int C, int M>
+    template <int C>
     void directProcess11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double dsq,
                          bool do_reverse, int k=-1, double r=0., double logr=0.);
 
@@ -72,7 +72,7 @@ public:
     void samplePairs(const Cell<D1, C>& c1, const Cell<D2, C>& c2,
                      double min_sep, double min_sepsq, double max_sep, double max_sepsq,
                      long* i1, long* i2, double* sep, int n, long& k);
-    template <int C, int M>
+    template <int C>
     void sampleFrom(const Cell<D1, C>& c1, const Cell<D2, C>& c2, double rsq, double r,
                     long* i1, long* i2, double* sep, int n, long& k);
 

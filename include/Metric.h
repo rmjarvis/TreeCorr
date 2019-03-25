@@ -24,6 +24,7 @@
 template <int M>
 struct MetricHelper;
 
+
 //
 //
 // Euclidean is valid for Coord == Flat, ThreeD, or Sphere
@@ -41,25 +42,28 @@ struct MetricHelper<Euclidean>
     // For Euclidean, all coordinate systems are allowed.
     enum { _Flat=Flat, _ThreeD=ThreeD, _Sphere=Sphere };
 
+    // We always have the constructor take all arguments that someone might need.  But
+    // we only save them as values in the struct if this metric will actually need them.
+    MetricHelper(double minrpar=0, double maxrpar=0) {}
+
     ///
     //
     // Flat
     //
     ///
 
-    static double DistSq(const Position<Flat>& p1, const Position<Flat>& p2,
-                         double& s1, double& s2)
+    double DistSq(const Position<Flat>& p1, const Position<Flat>& p2, double& s1, double& s2) const
     {
         Position<Flat> r = p1-p2;
         return r.normSq();
     }
-    static double Dist(const Position<Flat>& p1, const Position<Flat>& p2)
+    double Dist(const Position<Flat>& p1, const Position<Flat>& p2) const
     {
         double s=0.;
         return sqrt(DistSq(p1,p2,s,s));
     }
 
-    static bool CCW(const Position<Flat>& p1, const Position<Flat>& p2, const Position<Flat>& p3)
+    bool CCW(const Position<Flat>& p1, const Position<Flat>& p2, const Position<Flat>& p3) const
     {
         // If cross product r21 x r31 > 0, then the points are counter-clockwise.
         Position<Flat> r21 = p2 - p1;
@@ -70,28 +74,28 @@ struct MetricHelper<Euclidean>
     // Some metrics keep track of whether the r_parallel distance is within some range.
     // This function checks if two cells are fully outside the range, in which case we can
     // throw them out and not recurse futher.  For Euclidean, this is trivially false.
-    static bool isRParOutsideRange(const Position<Flat>& p1, const Position<Flat>& p2,
-                                   double s1ps2, double minrpar, double maxrpar, double& rpar)
+    bool isRParOutsideRange(const Position<Flat>& p1, const Position<Flat>& p2,
+                            double s1ps2, double& rpar) const
     { return false; }
 
     // When we get to a point where we think all possible pairs fall into a single bin,
     // then we also need to make sure we are fully in the range for rpar as well.  For
     // Euclidean (and others that don't use rpar), this is always true, but Rper and Rlens
     // have a check here.
-    static bool isRParInsideRange(const Position<Flat>& p1, const Position<Flat>& p2,
-                                  double s1ps2, double minrpar, double maxrpar, double rpar)
+    bool isRParInsideRange(const Position<Flat>& p1, const Position<Flat>& p2,
+                           double s1ps2, double rpar) const
     { return true; }
 
     // The normal tests about whether a given distance is inside the binning range happen
     // in BinTypeHelper.  However, Rperp needs to do an additional check to make sure we
     // don't reject cell pairs prematurely.  For this and most metrics, these two checks
     // are trivially true (since only get here if the regular check passes).
-    static bool tooSmallDist(const Position<Flat>& p1, const Position<Flat>& p2,
-                             double rsq, double rpar, double s1ps2, double minsepsq)
+    bool tooSmallDist(const Position<Flat>& p1, const Position<Flat>& p2,
+                      double rsq, double rpar, double s1ps2, double minsepsq) const
     { return true; }
 
-    static bool tooLargeDist(const Position<Flat>& p1, const Position<Flat>& p2,
-                             double rsq, double rpar, double s1ps2, double maxsepsq)
+    bool tooLargeDist(const Position<Flat>& p1, const Position<Flat>& p2,
+                      double rsq, double rpar, double s1ps2, double maxsepsq) const
     { return true; }
 
 
@@ -102,20 +106,20 @@ struct MetricHelper<Euclidean>
     //
     ///
 
-    static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                         double& s1, double& s2)
+    double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                  double& s1, double& s2) const
     {
         Position<ThreeD> r = p1-p2;
         return r.normSq();
     }
-    static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
     {
         double s=0.;
         return sqrt(DistSq(p1,p2,s,s));
     }
 
-    static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                    const Position<ThreeD>& p3)
+    bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+             const Position<ThreeD>& p3) const
     {
         // Now it's slightly more complicated, since the points are in three dimensions.  We do
         // the same thing, computing the cross product with respect to point p1.  Then if the
@@ -126,20 +130,20 @@ struct MetricHelper<Euclidean>
         return r21.cross(r31).dot(p1) < 0.;
     }
 
-    static bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                                   double s1ps2, double minrpar, double maxrpar, double& rpar)
+    bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                            double s1ps2, double& rpar) const
     { return false; }
 
-    static bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                                  double s1ps2, double minrpar, double maxrpar, double rpar)
+    bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                           double s1ps2, double rpar) const
     { return true; }
 
-    static bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                             double rsq, double rpar, double s1ps2, double minsepsq)
+    bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                      double rsq, double rpar, double s1ps2, double minsepsq) const
     { return true; }
 
-    static bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                             double rsq, double rpar, double s1ps2, double maxsepsq)
+    bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                      double rsq, double rpar, double s1ps2, double maxsepsq) const
     { return true; }
 
 };
@@ -157,8 +161,13 @@ struct MetricHelper<OldRperp>
 {
     enum { _Flat=ThreeD, _ThreeD=ThreeD, _Sphere=ThreeD };
 
-    static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                         double& s1, double& s2)
+    double minrpar, maxrpar;
+
+    MetricHelper(double _minrpar, double _maxrpar) :
+        minrpar(_minrpar), maxrpar(_maxrpar) {}
+
+    double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                  double& s1, double& s2) const
     {
         // r_perp^2 + r_parallel^2 = d^2
         Position<ThreeD> r = p1-p2;
@@ -203,26 +212,30 @@ struct MetricHelper<OldRperp>
         // This can end up negative with rounding errors.  So take the abs value to be safe.
         return std::abs(d3sq - rparsq);
     }
-    static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
     {
         double s=0.;
         return sqrt(DistSq(p1,p2,s,s));
     }
 
     // This is the same as Euclidean
-    static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                    const Position<ThreeD>& p3)
-    { return MetricHelper<Euclidean>::CCW(p1,p2,p3); }
+    bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+             const Position<ThreeD>& p3) const
+    {
+        Position<ThreeD> r21 = p2-p1;
+        Position<ThreeD> r31 = p3-p1;
+        return r21.cross(r31).dot(p1) < 0.;
+    }
 
-    static double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
     {
         double r1 = p1.norm();
         double r2 = p2.norm();
         return r2-r1;  // Positive if p2 is in background of p1.
     }
 
-    static bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                                   double s1ps2, double minrpar, double maxrpar, double& rpar)
+    bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                            double s1ps2, double& rpar) const
     {
         // Quick return if no min/max rpar
         if (minrpar == -std::numeric_limits<double>::max() &&
@@ -234,8 +247,8 @@ struct MetricHelper<OldRperp>
         else return false;
     }
 
-    static bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                                  double s1ps2, double minrpar, double maxrpar, double rpar)
+    bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                           double s1ps2, double rpar) const
     {
         // Quick return if no min/max rpar
         if (minrpar == -std::numeric_limits<double>::max() &&
@@ -255,8 +268,8 @@ struct MetricHelper<OldRperp>
     //       = rp^2 + 2(d+|rpar|) s1ps2
     // rp'^2 < minsep^2
     // rp^2 + 2(d + |rpar|) s1ps2 < minsepsq
-    static bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                             double rsq, double& rpar, double s1ps2, double minsepsq)
+    bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                      double rsq, double& rpar, double s1ps2, double minsepsq) const
     {
         if (rpar == 0.) rpar = calculateRPar(p1,p2); // This might not have been calculated.
         double d3 = sqrt(SQR(rpar) + rsq);  // The 3d distance.  Remember rsq is really rp^2.
@@ -269,8 +282,8 @@ struct MetricHelper<OldRperp>
     //       = rp^2 - 2(d+|rpar|) s1ps2
     // rp'^2 > maxsep^2
     // rp^2 - 2(d + |rpar|) s1ps2 > maxsepsq
-    static bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                             double rsq, double rpar, double s1ps2, double maxsepsq)
+    bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                      double rsq, double rpar, double s1ps2, double maxsepsq) const
     {
         if (rpar == 0.) rpar = calculateRPar(p1,p2); // This might not have been calculated.
         double d3 = sqrt(SQR(rpar) + rsq);  // The 3d distance.  Remember rsq is really rp^2.
@@ -284,8 +297,13 @@ struct MetricHelper<Rperp>
 {
     enum { _Flat=ThreeD, _ThreeD=ThreeD, _Sphere=ThreeD };
 
-    static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                         double& s1, double& s2)
+    double minrpar, maxrpar;
+
+    MetricHelper(double _minrpar, double _maxrpar) :
+        minrpar(_minrpar), maxrpar(_maxrpar) {}
+
+    double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                  double& s1, double& s2) const
     {
         // Follow Fisher et al, 1994 (MNRAS, 267, 927) to define:
         //   L = (p1 + p2)/2
@@ -330,26 +348,30 @@ struct MetricHelper<Rperp>
 
         return rperpsq;
     }
-    static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
     {
         double s=0.;
         return sqrt(DistSq(p1,p2,s,s));
     }
 
     // This is the same as Euclidean
-    static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                    const Position<ThreeD>& p3)
-    { return MetricHelper<Euclidean>::CCW(p1,p2,p3); }
+    bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+             const Position<ThreeD>& p3) const
+    {
+        Position<ThreeD> r21 = p2-p1;
+        Position<ThreeD> r31 = p3-p1;
+        return r21.cross(r31).dot(p1) < 0.;
+    }
 
-    static double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
     {
         Position<ThreeD> r = p2-p1;
         Position<ThreeD> L = (p1+p2)*0.5;
         return r.dot(L) / L.norm();
     }
 
-    static bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                                   double s1ps2, double minrpar, double maxrpar, double& rpar)
+    bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                            double s1ps2, double& rpar) const
     {
         // Quick return if no min/max rpar
         if (minrpar == -std::numeric_limits<double>::max() &&
@@ -361,8 +383,8 @@ struct MetricHelper<Rperp>
         else return false;
     }
 
-    static bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                                  double s1ps2, double minrpar, double maxrpar, double rpar)
+    bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                           double s1ps2, double rpar) const
     {
         // Quick return if no min/max rpar
         if (minrpar == -std::numeric_limits<double>::max() &&
@@ -382,8 +404,8 @@ struct MetricHelper<Rperp>
     //       = rp^2 + 2(d+|rpar|) s1ps2
     // rp'^2 < minsep^2
     // rp^2 + 2(d + |rpar|) s1ps2 < minsepsq
-    static bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                             double rsq, double& rpar, double s1ps2, double minsepsq)
+    bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                      double rsq, double& rpar, double s1ps2, double minsepsq) const
     {
         if (rpar == 0.) rpar = calculateRPar(p1,p2); // This might not have been calculated.
         double d3 = sqrt(SQR(rpar) + rsq);  // The 3d distance.  Remember rsq is really rp^2.
@@ -396,8 +418,8 @@ struct MetricHelper<Rperp>
     //       = rp^2 - 2(d+|rpar|) s1ps2
     // rp'^2 > maxsep^2
     // rp^2 - 2(d + |rpar|) s1ps2 > maxsepsq
-    static bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                             double rsq, double rpar, double s1ps2, double maxsepsq)
+    bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                      double rsq, double rpar, double s1ps2, double maxsepsq) const
     {
         if (rpar == 0.) rpar = calculateRPar(p1,p2); // This might not have been calculated.
         double d3 = sqrt(SQR(rpar) + rsq);  // The 3d distance.  Remember rsq is really rp^2.
@@ -418,9 +440,14 @@ struct MetricHelper<Rlens>
 {
     enum { _Flat=ThreeD, _ThreeD=ThreeD, _Sphere=ThreeD };
 
+    double minrpar, maxrpar;
+
+    MetricHelper(double _minrpar, double _maxrpar) :
+        minrpar(_minrpar), maxrpar(_maxrpar) {}
+
     // The distance is measured perpendicular to the p2 direction at the distance of p1.
-    static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                         double& s1, double& s2)
+    double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                  double& s1, double& s2) const
     {
         // Rlens = |p1 x p2| / |p2|
         double r2sq = p2.normSq();
@@ -433,26 +460,30 @@ struct MetricHelper<Rlens>
         return rsq;
     }
 
-    static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
     {
         double s=0.;
         return sqrt(DistSq(p1,p2,s,s));
     }
 
     // This is the same as Euclidean
-    static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                    const Position<ThreeD>& p3)
-    { return MetricHelper<Euclidean>::CCW(p1,p2,p3); }
+    bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+             const Position<ThreeD>& p3) const
+    {
+        Position<ThreeD> r21 = p2-p1;
+        Position<ThreeD> r31 = p3-p1;
+        return r21.cross(r31).dot(p1) < 0.;
+    }
 
-    static double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
     {
         Position<ThreeD> r = p2-p1;
         Position<ThreeD> L = (p1+p2)*0.5;
         return r.dot(L) / L.norm();
     }
 
-    static bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                                   double s1ps2, double minrpar, double maxrpar, double& rpar)
+    bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                            double s1ps2, double& rpar) const
     {
         // Quick return if no min/max rpar
         if (minrpar == -std::numeric_limits<double>::max() &&
@@ -464,8 +495,8 @@ struct MetricHelper<Rlens>
         else return false;
     }
 
-    static bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                                  double s1ps2, double minrpar, double maxrpar, double rpar)
+    bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                           double s1ps2, double rpar) const
     {
         // Quick return if no min/max rpar
         if (minrpar == -std::numeric_limits<double>::max() &&
@@ -478,12 +509,12 @@ struct MetricHelper<Rlens>
     // We've already accounted for the way that the raw s1+s2 may not be sufficient in DistSq
     // where we update s2 according to the relative distances.  So there is nothing further to
     // do here.
-    static bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                             double rsq, double rpar, double s1ps2, double minsepsq)
+    bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                      double rsq, double rpar, double s1ps2, double minsepsq) const
     { return true; }
 
-    static bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                             double rsq, double rpar, double s1ps2, double maxsepsq)
+    bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                      double rsq, double rpar, double s1ps2, double maxsepsq) const
     { return true; }
 };
 
@@ -499,37 +530,47 @@ struct MetricHelper<Arc>
 {
     enum { _Flat=ThreeD, _ThreeD=ThreeD, _Sphere=Sphere };
 
-    static double DistSq(const Position<Sphere>& p1, const Position<Sphere>& p2,
-                         double& s1, double& s2)
+    double minrpar, maxrpar;
+
+    MetricHelper(double _minrpar, double _maxrpar) :
+        minrpar(_minrpar), maxrpar(_maxrpar) {}
+
+    double DistSq(const Position<Sphere>& p1, const Position<Sphere>& p2,
+                  double& s1, double& s2) const
     { return SQR(Dist(p1,p2)); }
 
-    static double Dist(const Position<Sphere>& p1, const Position<Sphere>& p2)
+    double Dist(const Position<Sphere>& p1, const Position<Sphere>& p2) const
     {
         // theta = angle between p1, p2
         // L = 2 sin(theta/2)
         // L is the normal Euclidean distance.
         // theta is the Arc distance.
-        double L = MetricHelper<Euclidean>::Dist(p1,p2);
+        Position<ThreeD> r = p1-p2;
+        double L = r.norm();
         double theta = 2. * std::asin(L/2.);
         return theta;
     }
 
     // These are the same as Euclidean.
-    static bool CCW(const Position<Sphere>& p1, const Position<Sphere>& p2,
-                    const Position<Sphere>& p3)
-    { return MetricHelper<Euclidean>::CCW(p1,p2,p3); }
+    bool CCW(const Position<Sphere>& p1, const Position<Sphere>& p2,
+             const Position<Sphere>& p3) const
+    {
+        Position<ThreeD> r21 = p2-p1;
+        Position<ThreeD> r31 = p3-p1;
+        return r21.cross(r31).dot(p1) < 0.;
+    }
 
-    static bool tooSmallDist(const Position<Sphere>& p1, const Position<Sphere>& p2,
-                             double rsq, double rpar, double s1ps2, double minsepsq)
+    bool tooSmallDist(const Position<Sphere>& p1, const Position<Sphere>& p2,
+                      double rsq, double rpar, double s1ps2, double minsepsq) const
     { return true; }
 
-    static bool tooLargeDist(const Position<Sphere>& p1, const Position<Sphere>& p2,
-                             double rsq, double rpar, double s1ps2, double maxsepsq)
+    bool tooLargeDist(const Position<Sphere>& p1, const Position<Sphere>& p2,
+                      double rsq, double rpar, double s1ps2, double maxsepsq) const
     { return true; }
 
     // For 3d coordinates, use the cross product to get sin(theta)
-    static double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                         double& s1, double& s2)
+    double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                  double& s1, double& s2) const
     {
         double dsq = SQR(Dist(p1,p2));
         // Also the sizes need to be converted to the effective size on the unit sphere
@@ -538,7 +579,7 @@ struct MetricHelper<Arc>
         return dsq;
     }
 
-    static double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
     {
         // sin(theta) = |p1 x p2| / |p1| |p2|
         double sintheta = p1.cross(p2).norm() / (p1.norm() * p2.norm());
@@ -547,19 +588,23 @@ struct MetricHelper<Arc>
     }
 
     // This is the same as Euclidean
-    static bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                    const Position<ThreeD>& p3)
-    { return MetricHelper<Euclidean>::CCW(p1,p2,p3); }
+    bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+             const Position<ThreeD>& p3) const
+    {
+        Position<ThreeD> r21 = p2-p1;
+        Position<ThreeD> r31 = p3-p1;
+        return r21.cross(r31).dot(p1) < 0.;
+    }
 
-    static double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
     {
         Position<ThreeD> r = p2-p1;
         Position<ThreeD> L = (p1+p2)*0.5;
         return r.dot(L) / L.norm();
     }
 
-    static bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                                   double s1ps2, double minrpar, double maxrpar, double& rpar)
+    bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                            double s1ps2, double& rpar) const
     {
         // Quick return if no min/max rpar
         if (minrpar == -std::numeric_limits<double>::max() &&
@@ -574,8 +619,8 @@ struct MetricHelper<Arc>
         else return false;
     }
 
-    static bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                                  double s1ps2, double minrpar, double maxrpar, double rpar)
+    bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                           double s1ps2, double rpar) const
     {
         // Quick return if no min/max rpar
         if (minrpar == -std::numeric_limits<double>::max() &&
@@ -586,13 +631,14 @@ struct MetricHelper<Arc>
         else return true;
     }
 
-    static bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                             double rsq, double rpar, double s1ps2, double minsepsq)
+    bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                      double rsq, double rpar, double s1ps2, double minsepsq) const
     { return true; }
 
-    static bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
-                             double rsq, double rpar, double s1ps2, double maxsepsq)
+    bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                      double rsq, double rpar, double s1ps2, double maxsepsq) const
     { return true; }
+
 };
 
 #endif

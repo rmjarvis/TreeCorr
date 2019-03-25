@@ -21,6 +21,7 @@
 #include "Cell.h"
 #include "Field.h"
 #include "BinType.h"
+#include "Metric.h"
 
 template <int D1, int D2>
 struct XiData;
@@ -51,10 +52,11 @@ public:
 
     // Main worker functions for calculating the result
     template <int C, int M>
-    void process2(const Cell<D1,C>& c12);
+    void process2(const Cell<D1,C>& c12, const MetricHelper<M>& m);
 
     template <int C, int M>
-    void process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, bool do_reverse);
+    void process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, const MetricHelper<M>& m,
+                   bool do_reverse);
 
     template <int C>
     void directProcess11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double dsq,
@@ -69,7 +71,7 @@ public:
     long samplePairs(const Field<D1, C>& field1, const Field<D2, C>& field2,
                      double min_sep, double max_sep, long* i1, long* i2, double* sep, int n);
     template <int C, int M>
-    void samplePairs(const Cell<D1, C>& c1, const Cell<D2, C>& c2,
+    void samplePairs(const Cell<D1, C>& c1, const Cell<D2, C>& c2, const MetricHelper<M>& m,
                      double min_sep, double min_sepsq, double max_sep, double max_sepsq,
                      long* i1, long* i2, double* sep, int n, long& k);
     template <int C>

@@ -90,7 +90,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.corr = treecorr._lib.BuildCorr2(
                 self._d1, self._d2, self._bintype,
                 self._min_sep,self._max_sep,self._nbins,self._bin_size,self.b,
-                self.min_rpar, self.max_rpar,
+                self.min_rpar, self.max_rpar, self.xperiod, self.yperiod, self.zperiod,
                 dp(self.xi),dp(self.xi_im), dp(None), dp(None),
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
 
@@ -113,6 +113,9 @@ class NGCorrelation(treecorr.BinnedCorr2):
                 self.bin_slop == other.bin_slop and
                 self.min_rpar == other.min_rpar and
                 self.max_rpar == other.max_rpar and
+                self.xperiod == other.xperiod and
+                self.yperiod == other.yperiod and
+                self.zperiod == other.zperiod and
                 np.array_equal(self.meanr, other.meanr) and
                 np.array_equal(self.meanlogr, other.meanlogr) and
                 np.array_equal(self.xi, other.xi) and

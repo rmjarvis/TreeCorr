@@ -28,7 +28,7 @@ BinnedCorr3<D1,D2,D3,B>::BinnedCorr3(
     double minsep, double maxsep, int nbins, double binsize, double b,
     double minu, double maxu, int nubins, double ubinsize, double bu,
     double minv, double maxv, int nvbins, double vbinsize, double bv,
-    double minrpar, double maxrpar,
+    double minrpar, double maxrpar, double xp, double yp, double zp,
     double* zeta0, double* zeta1, double* zeta2, double* zeta3,
     double* zeta4, double* zeta5, double* zeta6, double* zeta7,
     double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
@@ -37,7 +37,7 @@ BinnedCorr3<D1,D2,D3,B>::BinnedCorr3(
     _minsep(minsep), _maxsep(maxsep), _nbins(nbins), _binsize(binsize), _b(b),
     _minu(minu), _maxu(maxu), _nubins(nubins), _ubinsize(ubinsize), _bu(bu),
     _minv(minv), _maxv(maxv), _nvbins(nvbins), _vbinsize(vbinsize), _bv(bv),
-    _minrpar(minrpar), _maxrpar(maxrpar),
+    _minrpar(minrpar), _maxrpar(maxrpar), _xp(xp), _yp(yp), _zp(zp),
     _coords(-1), _owns_data(false),
     _zeta(zeta0,zeta1,zeta2,zeta3,zeta4,zeta5,zeta6,zeta7),
     _meand1(meand1), _meanlogd1(meanlogd1), _meand2(meand2), _meanlogd2(meanlogd2),
@@ -179,7 +179,7 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field, bool dots)
     dbg<<"zeta[0] = "<<_zeta<<std::endl;
     Assert(n1 > 0);
 
-    MetricHelper<M> metric(_minrpar, _maxrpar);
+    MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -249,7 +249,7 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field1, const Field<D2,
     Assert(n2 > 0);
     Assert(n3 > 0);
 
-    MetricHelper<M> metric(_minrpar, _maxrpar);
+    MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
 #ifdef DEBUGLOGGING
     if (verbose_level >= 2) {
@@ -1147,7 +1147,7 @@ void* BuildCorr3c(int bin_type,
                   double minsep, double maxsep, int nbins, double binsize, double b,
                   double minu, double maxu, int nubins, double ubinsize, double bu,
                   double minv, double maxv, int nvbins, double vbinsize, double bv,
-                  double minrpar, double maxrpar,
+                  double minrpar, double maxrpar, double xp, double yp, double zp,
                   double* zeta0, double* zeta1, double* zeta2, double* zeta3,
                   double* zeta4, double* zeta5, double* zeta6, double* zeta7,
                   double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
@@ -1159,7 +1159,7 @@ void* BuildCorr3c(int bin_type,
             minsep, maxsep, nbins, binsize, b,
             minu, maxu, nubins, ubinsize, bu,
             minv, maxv, nvbins, vbinsize, bv,
-            minrpar, maxrpar,
+            minrpar, maxrpar, xp, yp, zp,
             zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
             meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
             weight, ntri));
@@ -1169,7 +1169,7 @@ void* BuildCorr3(int d1, int d2, int d3, int bin_type,
                  double minsep, double maxsep, int nbins, double binsize, double b,
                  double minu, double maxu, int nubins, double ubinsize, double bu,
                  double minv, double maxv, int nvbins, double vbinsize, double bv,
-                 double minrpar, double maxrpar,
+                 double minrpar, double maxrpar, double xp, double yp, double zp,
                  double* zeta0, double* zeta1, double* zeta2, double* zeta3,
                  double* zeta4, double* zeta5, double* zeta6, double* zeta7,
                  double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
@@ -1186,7 +1186,7 @@ void* BuildCorr3(int d1, int d2, int d3, int bin_type,
                bin_type, minsep, maxsep, nbins, binsize, b,
                minu, maxu, nubins, ubinsize, bu,
                minv, maxv, nvbins, vbinsize, bv,
-               minrpar, maxrpar,
+               minrpar, maxrpar, xp, yp, zp,
                zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
                meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
                weight, ntri);
@@ -1196,7 +1196,7 @@ void* BuildCorr3(int d1, int d2, int d3, int bin_type,
                bin_type, minsep, maxsep, nbins, binsize, b,
                minu, maxu, nubins, ubinsize, bu,
                minv, maxv, nvbins, vbinsize, bv,
-               minrpar, maxrpar,
+               minrpar, maxrpar, xp, yp, zp,
                zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
                meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
                weight, ntri);
@@ -1206,7 +1206,7 @@ void* BuildCorr3(int d1, int d2, int d3, int bin_type,
                bin_type, minsep, maxsep, nbins, binsize, b,
                minu, maxu, nubins, ubinsize, bu,
                minv, maxv, nvbins, vbinsize, bv,
-               minrpar, maxrpar,
+               minrpar, maxrpar, xp, yp, zp,
                zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
                meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
                weight, ntri);
@@ -1280,6 +1280,9 @@ void ProcessAuto3d(BinnedCorr3<D,D,D,B>* corr, void* field, int dots, int coords
       case Arc:
            ProcessAuto3e<Arc>(corr, field, dots, coords);
            break;
+      case Periodic:
+           ProcessAuto3e<Periodic>(corr, field, dots, coords);
+           break;
       default:
            Assert(false);
     }
@@ -1325,14 +1328,14 @@ void ProcessCross3e(BinnedCorr3<D1,D2,D3,B>* corr, void* field1, void* field2, v
            break;
       case Sphere:
            Assert(MetricHelper<M>::_Sphere == int(Sphere));
-           corr->template process<Sphere,M>(
+           corr->template process<MetricHelper<M>::_Sphere,M>(
                *static_cast<Field<D1,MetricHelper<M>::_Sphere>*>(field1),
                *static_cast<Field<D2,MetricHelper<M>::_Sphere>*>(field2),
                *static_cast<Field<D3,MetricHelper<M>::_Sphere>*>(field3), dots);
            break;
       case ThreeD:
            Assert(MetricHelper<M>::_ThreeD == int(ThreeD));
-           corr->template process<ThreeD,M>(
+           corr->template process<MetricHelper<M>::_ThreeD,M>(
                *static_cast<Field<D1,MetricHelper<M>::_ThreeD>*>(field1),
                *static_cast<Field<D2,MetricHelper<M>::_ThreeD>*>(field2),
                *static_cast<Field<D3,MetricHelper<M>::_ThreeD>*>(field3), dots);
@@ -1352,6 +1355,9 @@ void ProcessCross3d(BinnedCorr3<D1,D2,D3,B>* corr, void* field1, void* field2, v
            break;
       case Arc:
            ProcessCross3e<Arc>(corr, field1, field2, field3, dots, coords);
+           break;
+      case Periodic:
+           ProcessCross3e<Periodic>(corr, field1, field2, field3, dots, coords);
            break;
       default:
            Assert(false);

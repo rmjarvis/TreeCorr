@@ -164,6 +164,14 @@ class BinnedCorr3(object):
                         for pairs being included in the correlation function. (default: None)
     :param max_rpar:    For the 'Rperp' metric, the maximum difference in Rparallel to allow
                         for pairs being included in the correlation function. (default: None)
+    :param period:      For the 'Periodic' metric, the period to use in the all directions.
+                        (default: None)
+    :param xperiod:     For the 'Periodic' metric, the period to use in the x direction.
+                        (default: period)
+    :param yperiod:     For the 'Periodic' metric, the period to use in the y direction.
+                        (default: period)
+    :param zperiod:     For the 'Periodic' metric, the period to use in the z direction.
+                        (default: period)
 
     :param num_threads: How many OpenMP threads to use during the calculation.
                         (default: use the number of cpu cores; this value can also be given in
@@ -227,6 +235,14 @@ class BinnedCorr3(object):
                 'The minimum difference in Rparallel for pairs to include'),
         'max_rpar': (float, False, None, None,
                 'The maximum difference in Rparallel for pairs to include'),
+        'period': (float, False, None, None,
+                'The period to use for all directions for the Periodic metric'),
+        'xperiod': (float, False, None, None,
+                'The period to use for the x direction for the Periodic metric'),
+        'yperiod': (float, False, None, None,
+                'The period to use for the y direction for the Periodic metric'),
+        'zperiod': (float, False, None, None,
+                'The period to use for the z direction for the Periodic metric'),
     }
 
     def __init__(self, config=None, logger=None, **kwargs):
@@ -422,6 +438,10 @@ class BinnedCorr3(object):
         self.metric = None
         self.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)
         self.max_rpar = treecorr.config.get(self.config,'max_rpar',float,sys.float_info.max)
+        period = treecorr.config.get(self.config,'period',float,0)
+        self.xperiod = treecorr.config.get(self.config,'xperiod',float,period)
+        self.yperiod = treecorr.config.get(self.config,'yperiod',float,period)
+        self.zperiod = treecorr.config.get(self.config,'zperiod',float,period)
 
     def _process_all_auto(self, cat1, metric, num_threads):
         # I'm not sure which of these is more intuitive, but both are correct...
@@ -490,6 +510,12 @@ class BinnedCorr3(object):
             if metric != self.metric:
                 self.logger.warning("Detected a change in metric. "+
                                     "This probably doesn't make sense!")
+        if metric == 'Periodic':
+            if self.xperiod == 0 or self.yperiod == 0 or (coords=='3d' and self.zperiod == 0):
+                raise ValueError("Periodic metric requires setting the period to use.")
+        else:
+            if self.xperiod != 0 or self.yperiod != 0 or self.zperiod != 0:
+                raise ValueError("period options are not valid for %s metric."%metric)
         self.coords = coords
         self.metric = metric
         self._coords = treecorr.util.coord_enum(coords)

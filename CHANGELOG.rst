@@ -86,6 +86,8 @@ New features
   fell into a given bin of the correlation function. (#67)
 - Added `brute` option for Correlation instances.  This is equivalent to the
   old behavior of `bin_slop=0`.
+- Added 'Periodic' metric. (#56)
+- Added `min_top` option for Fields.
 
 
 Bug fixes

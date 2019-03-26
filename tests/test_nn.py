@@ -396,12 +396,12 @@ def test_direct_count():
 
     ngal = 100
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
     cat1 = treecorr.Catalog(x=x1, y=y1)
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) )
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
     cat2 = treecorr.Catalog(x=x2, y=y2)
 
     min_sep = 1.
@@ -439,10 +439,10 @@ def test_direct_count():
             fid.write(('%.20f %.20f\n')%(x2[i],y2[i]))
     L = 10*s
     nrand = ngal
-    rx1 = (np.random.random_sample(nrand)-0.5) * L
-    ry1 = (np.random.random_sample(nrand)-0.5) * L
-    rx2 = (np.random.random_sample(nrand)-0.5) * L
-    ry2 = (np.random.random_sample(nrand)-0.5) * L
+    rx1 = (rng.random_sample(nrand)-0.5) * L
+    ry1 = (rng.random_sample(nrand)-0.5) * L
+    rx2 = (rng.random_sample(nrand)-0.5) * L
+    ry2 = (rng.random_sample(nrand)-0.5) * L
     rcat1 = treecorr.Catalog(x=rx1, y=ry1)
     rcat2 = treecorr.Catalog(x=rx2, y=ry2)
     rand_file_name1 = os.path.join('data','nn_direct_rand1.dat')
@@ -567,16 +567,16 @@ def test_direct_spherical():
 
     ngal = 100
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
-    z1 = np.random.normal(0,s, (ngal,) )
-    w1 = np.random.random(ngal)
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
+    z1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
 
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) ) + 200
-    z2 = np.random.normal(0,s, (ngal,) )
-    w2 = np.random.random(ngal)
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) ) + 200
+    z2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
 
     ra1, dec1 = coord.CelestialCoord.xyz_to_radec(x1,y1,z1)
     ra2, dec2 = coord.CelestialCoord.xyz_to_radec(x2,y2,z2)
@@ -669,14 +669,14 @@ def test_pairwise():
 
     ngal = 1000
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) )
-    w1 = np.random.random(ngal)
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
 
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) )
-    w2 = np.random.random(ngal)
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
 
     w1 = np.ones_like(w1)
     w2 = np.ones_like(w2)
@@ -726,18 +726,18 @@ def test_direct_3d():
 
     ngal = 100
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(312, s, (ngal,) )
-    y1 = np.random.normal(728, s, (ngal,) )
-    z1 = np.random.normal(-932, s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(312, s, (ngal,) )
+    y1 = rng.normal(728, s, (ngal,) )
+    z1 = rng.normal(-932, s, (ngal,) )
     r1 = np.sqrt( x1*x1 + y1*y1 + z1*z1 )
     dec1 = np.arcsin(z1/r1)
     ra1 = np.arctan2(y1,x1)
     cat1 = treecorr.Catalog(ra=ra1, dec=dec1, r=r1, ra_units='rad', dec_units='rad')
 
-    x2 = np.random.normal(312, s, (ngal,) )
-    y2 = np.random.normal(728, s, (ngal,) )
-    z2 = np.random.normal(-932, s, (ngal,) )
+    x2 = rng.normal(312, s, (ngal,) )
+    y2 = rng.normal(728, s, (ngal,) )
+    z2 = rng.normal(-932, s, (ngal,) )
     r2 = np.sqrt( x2*x2 + y2*y2 + z2*z2 )
     dec2 = np.arcsin(z2/r2)
     ra2 = np.arctan2(y2,x2)
@@ -779,18 +779,18 @@ def test_direct_perp():
 
     ngal = 100
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(312, s, (ngal,) )
-    y1 = np.random.normal(728, s, (ngal,) )
-    z1 = np.random.normal(-932, s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(312, s, (ngal,) )
+    y1 = rng.normal(728, s, (ngal,) )
+    z1 = rng.normal(-932, s, (ngal,) )
     r1 = np.sqrt( x1*x1 + y1*y1 + z1*z1 )
     dec1 = np.arcsin(z1/r1)
     ra1 = np.arctan2(y1,x1)
     cat1 = treecorr.Catalog(ra=ra1, dec=dec1, r=r1, ra_units='rad', dec_units='rad')
 
-    x2 = np.random.normal(312, s, (ngal,) )
-    y2 = np.random.normal(728, s, (ngal,) )
-    z2 = np.random.normal(-932, s, (ngal,) )
+    x2 = rng.normal(312, s, (ngal,) )
+    y2 = rng.normal(728, s, (ngal,) )
+    z2 = rng.normal(-932, s, (ngal,) )
     r2 = np.sqrt( x2*x2 + y2*y2 + z2*z2 )
     dec2 = np.arcsin(z2/r2)
     ra2 = np.arctan2(y2,x2)
@@ -835,18 +835,18 @@ def test_direct_old_perp():
 
     ngal = 100
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(312, s, (ngal,) )
-    y1 = np.random.normal(728, s, (ngal,) )
-    z1 = np.random.normal(-932, s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(312, s, (ngal,) )
+    y1 = rng.normal(728, s, (ngal,) )
+    z1 = rng.normal(-932, s, (ngal,) )
     r1 = np.sqrt( x1*x1 + y1*y1 + z1*z1 )
     dec1 = np.arcsin(z1/r1)
     ra1 = np.arctan2(y1,x1)
     cat1 = treecorr.Catalog(ra=ra1, dec=dec1, r=r1, ra_units='rad', dec_units='rad')
 
-    x2 = np.random.normal(312, s, (ngal,) )
-    y2 = np.random.normal(728, s, (ngal,) )
-    z2 = np.random.normal(-932, s, (ngal,) )
+    x2 = rng.normal(312, s, (ngal,) )
+    y2 = rng.normal(728, s, (ngal,) )
+    z2 = rng.normal(-932, s, (ngal,) )
     r2 = np.sqrt( x2*x2 + y2*y2 + z2*z2 )
     dec2 = np.arcsin(z2/r2)
     ra2 = np.arctan2(y2,x2)
@@ -893,18 +893,18 @@ def test_direct_lens():
 
     ngal = 100
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(312, s, (ngal,) )
-    y1 = np.random.normal(728, s, (ngal,) )
-    z1 = np.random.normal(-932, s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(312, s, (ngal,) )
+    y1 = rng.normal(728, s, (ngal,) )
+    z1 = rng.normal(-932, s, (ngal,) )
     r1 = np.sqrt( x1*x1 + y1*y1 + z1*z1 )
     dec1 = np.arcsin(z1/r1)
     ra1 = np.arctan2(y1,x1)
     cat1 = treecorr.Catalog(ra=ra1, dec=dec1, r=r1, ra_units='rad', dec_units='rad')
 
-    x2 = np.random.normal(312, s, (ngal,) )
-    y2 = np.random.normal(728, s, (ngal,) )
-    z2 = np.random.normal(-932, s, (ngal,) )
+    x2 = rng.normal(312, s, (ngal,) )
+    y2 = rng.normal(728, s, (ngal,) )
+    z2 = rng.normal(-932, s, (ngal,) )
     r2 = np.sqrt( x2*x2 + y2*y2 + z2*z2 )
     dec2 = np.arcsin(z2/r2)
     ra2 = np.arctan2(y2,x2)
@@ -960,18 +960,18 @@ def test_direct_arc():
 
     ngal = 100
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(312, s, (ngal,) )
-    y1 = np.random.normal(728, s, (ngal,) )
-    z1 = np.random.normal(-932, s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(312, s, (ngal,) )
+    y1 = rng.normal(728, s, (ngal,) )
+    z1 = rng.normal(-932, s, (ngal,) )
     r1 = np.sqrt( x1*x1 + y1*y1 + z1*z1 )
     dec1 = np.arcsin(z1/r1)
     ra1 = np.arctan2(y1,x1)
     cat1 = treecorr.Catalog(ra=ra1, dec=dec1, ra_units='rad', dec_units='rad')
 
-    x2 = np.random.normal(312, s, (ngal,) )
-    y2 = np.random.normal(728, s, (ngal,) )
-    z2 = np.random.normal(-932, s, (ngal,) )
+    x2 = rng.normal(312, s, (ngal,) )
+    y2 = rng.normal(728, s, (ngal,) )
+    z2 = rng.normal(-932, s, (ngal,) )
     r2 = np.sqrt( x2*x2 + y2*y2 + z2*z2 )
     dec2 = np.arcsin(z2/r2)
     ra2 = np.arctan2(y2,x2)
@@ -1053,12 +1053,12 @@ def test_direct_partial():
     # First test first_row, last_row
     ngal = 200
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
     cat1a = treecorr.Catalog(x=x1, y=y1, first_row=28, last_row=144)
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) )
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
     cat2a = treecorr.Catalog(x=x2, y=y2, first_row=48, last_row=129)
 
     min_sep = 1.
@@ -1105,18 +1105,18 @@ def test_direct_linear():
 
     ngal = 100
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(312, s, (ngal,) )
-    y1 = np.random.normal(728, s, (ngal,) )
-    z1 = np.random.normal(-932, s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(312, s, (ngal,) )
+    y1 = rng.normal(728, s, (ngal,) )
+    z1 = rng.normal(-932, s, (ngal,) )
     r1 = np.sqrt( x1*x1 + y1*y1 + z1*z1 )
     dec1 = np.arcsin(z1/r1)
     ra1 = np.arctan2(y1,x1)
     cat1 = treecorr.Catalog(ra=ra1, dec=dec1, r=r1, ra_units='rad', dec_units='rad')
 
-    x2 = np.random.normal(312, s, (ngal,) )
-    y2 = np.random.normal(728, s, (ngal,) )
-    z2 = np.random.normal(-932, s, (ngal,) )
+    x2 = rng.normal(312, s, (ngal,) )
+    y2 = rng.normal(728, s, (ngal,) )
+    z2 = rng.normal(-932, s, (ngal,) )
     r2 = np.sqrt( x2*x2 + y2*y2 + z2*z2 )
     dec2 = np.arcsin(z2/r2)
     ra2 = np.arctan2(y2,x2)
@@ -1162,12 +1162,12 @@ def test_direct_linear():
             fid.write(('%.20f %.20f %.20f\n')%(x2[i],y2[i],z2[i]))
     L = 10*s
     nrand = ngal
-    rx1 = (np.random.random_sample(nrand)-0.5) * L
-    ry1 = (np.random.random_sample(nrand)-0.5) * L
-    rz1 = (np.random.random_sample(nrand)-0.5) * L
-    rx2 = (np.random.random_sample(nrand)-0.5) * L
-    ry2 = (np.random.random_sample(nrand)-0.5) * L
-    rz2 = (np.random.random_sample(nrand)-0.5) * L
+    rx1 = (rng.random_sample(nrand)-0.5) * L
+    ry1 = (rng.random_sample(nrand)-0.5) * L
+    rz1 = (rng.random_sample(nrand)-0.5) * L
+    rx2 = (rng.random_sample(nrand)-0.5) * L
+    ry2 = (rng.random_sample(nrand)-0.5) * L
+    rz2 = (rng.random_sample(nrand)-0.5) * L
     rcat1 = treecorr.Catalog(x=rx1, y=ry1, z=rz1)
     rcat2 = treecorr.Catalog(x=rx2, y=ry2, z=rz2)
     rand_file_name1 = os.path.join('data','nn_linear_rand1.dat')
@@ -1256,9 +1256,9 @@ def test_nn():
         nrand = 2 * ngal
         L = 20. * s
         tol_factor = 3
-    np.random.seed(8675309)
-    x = np.random.normal(0,s, (ngal,) )
-    y = np.random.normal(0,s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) )
 
     cat = treecorr.Catalog(x=x, y=y, x_units='arcmin', y_units='arcmin')
     dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
@@ -1269,8 +1269,8 @@ def test_nn():
     print('meanlogr - log(meanr) = ',dd.meanlogr - np.log(dd.meanr))
     np.testing.assert_allclose(dd.meanlogr, np.log(dd.meanr), atol=1.e-3)
 
-    rx = (np.random.random_sample(nrand)-0.5) * L
-    ry = (np.random.random_sample(nrand)-0.5) * L
+    rx = (rng.random_sample(nrand)-0.5) * L
+    ry = (rng.random_sample(nrand)-0.5) * L
     rand = treecorr.Catalog(x=rx,y=ry, x_units='arcmin', y_units='arcmin')
     rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
     rr.process(rand)
@@ -1431,10 +1431,10 @@ def test_3d():
         nrand = 2 * ngal
         L = 20. * s
         tol_factor = 3
-    np.random.seed(8675309)
-    x = np.random.normal(xcen, s, (ngal,) )
-    y = np.random.normal(ycen, s, (ngal,) )
-    z = np.random.normal(zcen, s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(xcen, s, (ngal,) )
+    y = rng.normal(ycen, s, (ngal,) )
+    z = rng.normal(zcen, s, (ngal,) )
 
     r = np.sqrt(x*x+y*y+z*z)
     dec = np.arcsin(z/r) * coord.radians / coord.degrees
@@ -1445,9 +1445,9 @@ def test_3d():
     dd.process(cat)
     print('dd.npairs = ',dd.npairs)
 
-    rx = (np.random.random_sample(nrand)-0.5) * L + xcen
-    ry = (np.random.random_sample(nrand)-0.5) * L + ycen
-    rz = (np.random.random_sample(nrand)-0.5) * L + zcen
+    rx = (rng.random_sample(nrand)-0.5) * L + xcen
+    ry = (rng.random_sample(nrand)-0.5) * L + ycen
+    rz = (rng.random_sample(nrand)-0.5) * L + zcen
     rr = np.sqrt(rx*rx+ry*ry+rz*rz)
     rdec = np.arcsin(rz/rr) * coord.radians / coord.degrees
     rra = np.arctan2(ry,rx) * coord.radians / coord.degrees
@@ -1528,7 +1528,7 @@ def test_list():
     # Test that we can use a list of files for either data or rand or both.
 
     nobj = 5000
-    np.random.seed(8675309)
+    rng = np.random.RandomState(8675309)
 
     ncats = 3
     data_cats = []
@@ -1536,13 +1536,12 @@ def test_list():
 
     s = 10.
     L = 50. * s
-    np.random.seed(8675309)
 
-    x = np.random.normal(0,s, (nobj,ncats) )
-    y = np.random.normal(0,s, (nobj,ncats) )
+    x = rng.normal(0,s, (nobj,ncats) )
+    y = rng.normal(0,s, (nobj,ncats) )
     data_cats = [ treecorr.Catalog(x=x[:,k],y=y[:,k]) for k in range(ncats) ]
-    rx = (np.random.random_sample((nobj,ncats))-0.5) * L
-    ry = (np.random.random_sample((nobj,ncats))-0.5) * L
+    rx = (rng.random_sample((nobj,ncats))-0.5) * L
+    ry = (rng.random_sample((nobj,ncats))-0.5) * L
     rand_cats = [ treecorr.Catalog(x=rx[:,k],y=ry[:,k]) for k in range(ncats) ]
 
     dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=1)
@@ -1800,11 +1799,11 @@ def test_split():
     # Time the various split_method options.
 
     ngal = 10000
-    np.random.seed(8675309)
+    rng = np.random.RandomState(8675309)
     s = 10
-    x = np.random.normal(0,s, (ngal,) )
-    y = np.random.normal(0,s, (ngal,) )
-    z = np.random.normal(0,s, (ngal,) )
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) )
+    z = rng.normal(0,s, (ngal,) )
     cat = treecorr.Catalog(x=x, y=y, z=z)
 
     dd_mean = treecorr.NNCorrelation(bin_size=0.1, min_sep=5., max_sep=25., split_method='mean')
@@ -1858,7 +1857,7 @@ def test_varxi():
     # Test that varxi is correct (or close) based on actual variance of many runs.
 
     L = 100
-    np.random.seed(8675309)
+    rng = np.random.RandomState(8675309)
 
     if __name__ == '__main__':
         ngal = 50
@@ -1875,10 +1874,10 @@ def test_varxi():
     all_drs = []
     all_rrs = []
     for run in range(nruns):
-        x1 = (np.random.random_sample(ngal)-0.5) * L
-        y1 = (np.random.random_sample(ngal)-0.5) * L
-        x2 = (np.random.random_sample(nrand)-0.5) * L
-        y2 = (np.random.random_sample(nrand)-0.5) * L
+        x1 = (rng.random_sample(ngal)-0.5) * L
+        y1 = (rng.random_sample(ngal)-0.5) * L
+        x2 = (rng.random_sample(nrand)-0.5) * L
+        y2 = (rng.random_sample(nrand)-0.5) * L
         # Varied weights are hard, but at least check that non-unit weights work correctly.
         w = np.ones_like(x2) * 5
         wr = np.ones_like(x2) * 0.3
@@ -1983,10 +1982,11 @@ def test_sph_linear():
         'metric' : 'Arc'
     }
 
+    rng = np.random.RandomState(8675309)
     ngal = 100000
-    x = np.random.normal(10, 1, (ngal,) )
-    y = np.random.normal(30, 1, (ngal,) )
-    z = np.random.normal(20, 1, (ngal,) )
+    x = rng.normal(10, 1, (ngal,) )
+    y = rng.normal(30, 1, (ngal,) )
+    z = rng.normal(20, 1, (ngal,) )
     r = np.sqrt(x*x+y*y+z*z)
     dec = np.arcsin(z/r) * coord.radians / coord.degrees
     ra = np.arctan2(y,x) * coord.radians / coord.degrees

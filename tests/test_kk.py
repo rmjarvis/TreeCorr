@@ -25,16 +25,16 @@ def test_direct():
 
     ngal = 200
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) )
-    w1 = np.random.random(ngal)
-    k1 = np.random.normal(10,1, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
+    k1 = rng.normal(10,1, (ngal,) )
 
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) )
-    w2 = np.random.random(ngal)
-    k2 = np.random.normal(0,3, (ngal,) )
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
+    k2 = rng.normal(0,3, (ngal,) )
 
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1)
     cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2)
@@ -151,18 +151,18 @@ def test_direct_spherical():
 
     ngal = 100
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
-    z1 = np.random.normal(0,s, (ngal,) )
-    w1 = np.random.random(ngal)
-    k1 = np.random.normal(10,1, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
+    z1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
+    k1 = rng.normal(10,1, (ngal,) )
 
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) ) + 200
-    z2 = np.random.normal(0,s, (ngal,) )
-    w2 = np.random.random(ngal)
-    k2 = np.random.normal(0,3, (ngal,) )
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) ) + 200
+    z2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
+    k2 = rng.normal(0,3, (ngal,) )
 
     ra1, dec1 = coord.CelestialCoord.xyz_to_radec(x1,y1,z1)
     ra2, dec2 = coord.CelestialCoord.xyz_to_radec(x2,y2,z2)
@@ -255,16 +255,16 @@ def test_pairwise():
 
     ngal = 1000
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) )
-    w1 = np.random.random(ngal)
-    k1 = np.random.normal(10,1, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
+    k1 = rng.normal(10,1, (ngal,) )
 
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) )
-    w2 = np.random.random(ngal)
-    k2 = np.random.normal(0,3, (ngal,) )
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
+    k2 = rng.normal(0,3, (ngal,) )
 
     w1 = np.ones_like(w1)
     w2 = np.ones_like(w2)
@@ -320,9 +320,9 @@ def test_constant():
     ngal = 100000
     A = 0.05
     L = 100.
-    np.random.seed(8675309)
-    x = (np.random.random_sample(ngal)-0.5) * L
-    y = (np.random.random_sample(ngal)-0.5) * L
+    rng = np.random.RandomState(8675309)
+    x = (rng.random_sample(ngal)-0.5) * L
+    y = (rng.random_sample(ngal)-0.5) * L
     kappa = A * np.ones(ngal)
 
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
@@ -332,7 +332,7 @@ def test_constant():
     np.testing.assert_allclose(kk.xi, A**2, rtol=1.e-6)
 
     # Now add some noise to the values. It should still work, but at slightly lower accuracy.
-    kappa += 0.001 * (np.random.random_sample(ngal)-0.5)
+    kappa += 0.001 * (rng.random_sample(ngal)-0.5)
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     kk.process(cat)
     print('kk.xi = ',kk.xi)
@@ -362,9 +362,9 @@ def test_kk():
         tol_factor = 2
 
     A = 0.05
-    np.random.seed(8675309)
-    x = (np.random.random_sample(ngal)-0.5) * L
-    y = (np.random.random_sample(ngal)-0.5) * L
+    rng = np.random.RandomState(8675309)
+    x = (rng.random_sample(ngal)-0.5) * L
+    y = (rng.random_sample(ngal)-0.5) * L
     r2 = (x**2 + y**2)/s**2
     kappa = A * np.exp(-r2/2.)
 
@@ -454,10 +454,10 @@ def test_large_scale():
         nbins = 50
         half = 25
     s = 1.
-    np.random.seed(8675309)
-    x = np.random.normal(0, s, (ngal,) )
-    y = np.random.normal(0, s, (ngal,) )
-    z = np.random.normal(0, s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0, s, (ngal,) )
+    y = rng.normal(0, s, (ngal,) )
+    z = rng.normal(0, s, (ngal,) )
     r = np.sqrt( x*x + y*y + z*z )
     dec = np.arcsin(z/r)
     ra = np.arctan2(y,x)
@@ -550,7 +550,7 @@ def test_varxi():
     kappa0 = 0.03
     r0 = 10.
     L = 50.*r0
-    np.random.seed(8675309)
+    rng = np.random.RandomState(8675309)
 
     # Note: to get a good estimate of var(xi), you need a lot of runs.  The number of
     # runs matters much more than the number of galaxies for getting this to pass.
@@ -566,13 +566,13 @@ def test_varxi():
     all_kks = []
     for run in range(nruns):
         # In addition to the shape noise below, there is shot noise from the random x,y positions.
-        x = (np.random.random_sample(ngal)-0.5) * L
-        y = (np.random.random_sample(ngal)-0.5) * L
+        x = (rng.random_sample(ngal)-0.5) * L
+        y = (rng.random_sample(ngal)-0.5) * L
         # Varied weights are hard, but at least check that non-unit weights work correctly.
         w = np.ones_like(x) * 5
         r2 = (x**2 + y**2)/r0**2
         k = kappa0 * np.exp(-r2/2.)
-        k += np.random.normal(0, 0.1, size=ngal)
+        k += rng.normal(0, 0.1, size=ngal)
 
         cat = treecorr.Catalog(x=x, y=y, w=w, k=k)
         kk = treecorr.KKCorrelation(bin_size=0.1, min_sep=10., max_sep=100.)

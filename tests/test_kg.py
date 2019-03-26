@@ -25,17 +25,17 @@ def test_direct():
 
     ngal = 200
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) )
-    w1 = np.random.random(ngal)
-    k1 = np.random.normal(5,1, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
+    k1 = rng.normal(5,1, (ngal,) )
 
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) )
-    w2 = np.random.random(ngal)
-    g12 = np.random.normal(0,0.2, (ngal,) )
-    g22 = np.random.normal(0,0.2, (ngal,) )
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
+    g12 = rng.normal(0,0.2, (ngal,) )
+    g22 = rng.normal(0,0.2, (ngal,) )
 
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1)
     cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g12, g2=g22)
@@ -160,19 +160,19 @@ def test_direct_spherical():
 
     ngal = 100
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
-    z1 = np.random.normal(0,s, (ngal,) )
-    w1 = np.random.random(ngal)
-    k1 = np.random.normal(5,1, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
+    z1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
+    k1 = rng.normal(5,1, (ngal,) )
 
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) ) + 200
-    z2 = np.random.normal(0,s, (ngal,) )
-    w2 = np.random.random(ngal)
-    g12 = np.random.normal(0,0.2, (ngal,) )
-    g22 = np.random.normal(0,0.2, (ngal,) )
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) ) + 200
+    z2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
+    g12 = rng.normal(0,0.2, (ngal,) )
+    g22 = rng.normal(0,0.2, (ngal,) )
 
     ra1, dec1 = coord.CelestialCoord.xyz_to_radec(x1,y1,z1)
     ra2, dec2 = coord.CelestialCoord.xyz_to_radec(x2,y2,z2)
@@ -276,17 +276,17 @@ def test_pairwise():
 
     ngal = 1000
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) )
-    w1 = np.random.random(ngal)
-    k1 = np.random.normal(5,1, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
+    k1 = rng.normal(5,1, (ngal,) )
 
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) )
-    w2 = np.random.random(ngal)
-    g12 = np.random.normal(0,0.2, (ngal,) )
-    g22 = np.random.normal(0,0.2, (ngal,) )
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
+    g12 = rng.normal(0,0.2, (ngal,) )
+    g22 = rng.normal(0,0.2, (ngal,) )
 
     w1 = np.ones_like(w1)
     w2 = np.ones_like(w2)
@@ -346,9 +346,9 @@ def test_single():
     kappa = 0.23
     r0 = 10.
     L = 5. * r0
-    np.random.seed(8675309)
-    x = (np.random.random_sample(nsource)-0.5) * L
-    y = (np.random.random_sample(nsource)-0.5) * L
+    rng = np.random.RandomState(8675309)
+    x = (rng.random_sample(nsource)-0.5) * L
+    y = (rng.random_sample(nsource)-0.5) * L
     r2 = (x**2 + y**2)
     gammat = gamma0 * np.exp(-0.5*r2/r0**2)
     g1 = -gammat * (x**2-y**2)/r2
@@ -401,16 +401,16 @@ def test_pairwise():
     kappa = 0.23
     r0 = 10.
     L = 5. * r0
-    np.random.seed(8675309)
-    x = (np.random.random_sample(nsource)-0.5) * L
-    y = (np.random.random_sample(nsource)-0.5) * L
+    rng = np.random.RandomState(8675309)
+    x = (rng.random_sample(nsource)-0.5) * L
+    y = (rng.random_sample(nsource)-0.5) * L
     r2 = (x**2 + y**2)
     gammat = gamma0 * np.exp(-0.5*r2/r0**2)
     g1 = -gammat * (x**2-y**2)/r2
     g2 = -gammat * (2.*x*y)/r2
 
-    dx = (np.random.random_sample(nsource)-0.5) * L
-    dx = (np.random.random_sample(nsource)-0.5) * L
+    dx = (rng.random_sample(nsource)-0.5) * L
+    dx = (rng.random_sample(nsource)-0.5) * L
     k = kappa * np.ones(nsource)
 
     lens_cat = treecorr.Catalog(x=dx, y=dx, k=k, x_units='arcmin', y_units='arcmin')
@@ -461,12 +461,12 @@ def test_kg():
     L = 50. * r0
 
     gamma0 = 0.05
-    np.random.seed(8675309)
-    xl = (np.random.random_sample(nlens)-0.5) * L
-    yl = (np.random.random_sample(nlens)-0.5) * L
-    kl = np.random.normal(0.23, 0.05, (nlens,) )
-    xs = (np.random.random_sample(nsource)-0.5) * L
-    ys = (np.random.random_sample(nsource)-0.5) * L
+    rng = np.random.RandomState(8675309)
+    xl = (rng.random_sample(nlens)-0.5) * L
+    yl = (rng.random_sample(nlens)-0.5) * L
+    kl = rng.normal(0.23, 0.05, (nlens,) )
+    xs = (rng.random_sample(nsource)-0.5) * L
+    ys = (rng.random_sample(nsource)-0.5) * L
     g1 = np.zeros( (nsource,) )
     g2 = np.zeros( (nsource,) )
     for x,y,k in zip(xl,yl,kl):
@@ -556,7 +556,7 @@ def test_varxi():
     kappa0 = 0.03
     r0 = 10.
     L = 50.*r0
-    np.random.seed(8675309)
+    rng = np.random.RandomState(8675309)
 
     # Note: to get a good estimate of var(xi), you need a lot of runs.  The number of
     # runs matters much more than the number of galaxies for getting this to pass.
@@ -572,8 +572,8 @@ def test_varxi():
     all_kgs = []
     for run in range(nruns):
         # In addition to the shape noise below, there is shot noise from the random x,y positions.
-        x = (np.random.random_sample(ngal)-0.5) * L
-        y = (np.random.random_sample(ngal)-0.5) * L
+        x = (rng.random_sample(ngal)-0.5) * L
+        y = (rng.random_sample(ngal)-0.5) * L
         # Varied weights are hard, but at least check that non-unit weights work correctly.
         w = np.ones_like(x) * 5
         r2 = (x**2 + y**2)/r0**2
@@ -581,9 +581,9 @@ def test_varxi():
         g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
         k = kappa0 * np.exp(-r2/2.)
         # This time, add some shape noise (different each run).
-        g1 += np.random.normal(0, 0.3, size=ngal)
-        g2 += np.random.normal(0, 0.3, size=ngal)
-        k += np.random.normal(0, 0.1, size=ngal)
+        g1 += rng.normal(0, 0.3, size=ngal)
+        g2 += rng.normal(0, 0.3, size=ngal)
+        k += rng.normal(0, 0.1, size=ngal)
 
         cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, k=k)
         kg = treecorr.KGCorrelation(bin_size=0.1, min_sep=10., max_sep=100.)

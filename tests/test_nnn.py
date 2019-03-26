@@ -483,9 +483,9 @@ def test_direct_count_auto():
 
     ngal = 50
     s = 10.
-    np.random.seed(8675309)
-    x = np.random.normal(0,s, (ngal,) )
-    y = np.random.normal(0,s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) )
     cat = treecorr.Catalog(x=x, y=y)
 
     min_sep = 1.
@@ -569,8 +569,8 @@ def test_direct_count_auto():
             fid.write(('%.20f %.20f\n')%(x[i],y[i]))
     L = 10*s
     nrand = ngal
-    rx = (np.random.random_sample(nrand)-0.5) * L
-    ry = (np.random.random_sample(nrand)-0.5) * L
+    rx = (rng.random_sample(nrand)-0.5) * L
+    ry = (rng.random_sample(nrand)-0.5) * L
     rcat = treecorr.Catalog(x=rx, y=ry)
     rand_file_name = os.path.join('data','nnn_direct_rand.dat')
     with open(rand_file_name, 'w') as fid:
@@ -745,15 +745,15 @@ def test_direct_count_cross():
 
     ngal = 50
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
     cat1 = treecorr.Catalog(x=x1, y=y1)
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) )
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
     cat2 = treecorr.Catalog(x=x2, y=y2)
-    x3 = np.random.normal(0,s, (ngal,) )
-    y3 = np.random.normal(0,s, (ngal,) )
+    x3 = rng.normal(0,s, (ngal,) )
+    y3 = rng.normal(0,s, (ngal,) )
     cat3 = treecorr.Catalog(x=x3, y=y3)
 
     min_sep = 1.
@@ -839,8 +839,8 @@ def test_direct_count_cross():
     L = 10*s
     nrand = ngal
     for rname in ['rand_file_name', 'rand_file_name2', 'rand_file_name3']:
-        rx = (np.random.random_sample(nrand)-0.5) * L
-        ry = (np.random.random_sample(nrand)-0.5) * L
+        rx = (rng.random_sample(nrand)-0.5) * L
+        ry = (rng.random_sample(nrand)-0.5) * L
         rcat = treecorr.Catalog(x=rx, y=ry)
         rcat.write(config[rname])
 
@@ -871,11 +871,11 @@ def test_direct_spherical():
 
     ngal = 50
     s = 10.
-    np.random.seed(8675309)
-    x = np.random.normal(0,s, (ngal,) )
-    y = np.random.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
-    z = np.random.normal(0,s, (ngal,) )
-    w = np.random.random(ngal)
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
+    z = rng.normal(0,s, (ngal,) )
+    w = rng.random_sample(ngal)
 
     ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
 
@@ -972,11 +972,11 @@ def test_direct_arc():
 
     ngal = 5
     s = 10.
-    np.random.seed(8675309)
-    x = np.random.normal(0,s, (ngal,) )
-    y = np.random.normal(0,s, (ngal,) ) + 200  # Large angles this time.
-    z = np.random.normal(0,s, (ngal,) )
-    w = np.random.random(ngal)
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) ) + 200  # Large angles this time.
+    z = rng.normal(0,s, (ngal,) )
+    w = rng.random_sample(ngal)
 
     ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
 
@@ -1077,15 +1077,15 @@ def test_direct_partial():
 
     ngal = 100
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
     cat1a = treecorr.Catalog(x=x1, y=y1, first_row=28, last_row=84)
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) )
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
     cat2a = treecorr.Catalog(x=x2, y=y2, first_row=48, last_row=99)
-    x3 = np.random.normal(0,s, (ngal,) )
-    y3 = np.random.normal(0,s, (ngal,) )
+    x3 = rng.normal(0,s, (ngal,) )
+    y3 = rng.normal(0,s, (ngal,) )
     cat3a = treecorr.Catalog(x=x3, y=y3, first_row=22, last_row=67)
 
     min_sep = 1.
@@ -1185,10 +1185,10 @@ def test_direct_3d_auto():
 
     ngal = 50
     s = 10.
-    np.random.seed(8675309)
-    x = np.random.normal(312, s, (ngal,) )
-    y = np.random.normal(728, s, (ngal,) )
-    z = np.random.normal(-932, s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(312, s, (ngal,) )
+    y = rng.normal(728, s, (ngal,) )
+    z = rng.normal(-932, s, (ngal,) )
     r = np.sqrt( x*x + y*y + z*z )
     dec = np.arcsin(z/r)
     ra = np.arctan2(y,x)
@@ -1308,26 +1308,26 @@ def test_direct_3d_cross():
 
     ngal = 50
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(312, s, (ngal,) )
-    y1 = np.random.normal(728, s, (ngal,) )
-    z1 = np.random.normal(-932, s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(312, s, (ngal,) )
+    y1 = rng.normal(728, s, (ngal,) )
+    z1 = rng.normal(-932, s, (ngal,) )
     r1 = np.sqrt( x1*x1 + y1*y1 + z1*z1 )
     dec1 = np.arcsin(z1/r1)
     ra1 = np.arctan2(y1,x1)
     cat1 = treecorr.Catalog(ra=ra1, dec=dec1, r=r1, ra_units='rad', dec_units='rad')
 
-    x2 = np.random.normal(312, s, (ngal,) )
-    y2 = np.random.normal(728, s, (ngal,) )
-    z2 = np.random.normal(-932, s, (ngal,) )
+    x2 = rng.normal(312, s, (ngal,) )
+    y2 = rng.normal(728, s, (ngal,) )
+    z2 = rng.normal(-932, s, (ngal,) )
     r2 = np.sqrt( x2*x2 + y2*y2 + z2*z2 )
     dec2 = np.arcsin(z2/r2)
     ra2 = np.arctan2(y2,x2)
     cat2 = treecorr.Catalog(ra=ra2, dec=dec2, r=r2, ra_units='rad', dec_units='rad')
 
-    x3 = np.random.normal(312, s, (ngal,) )
-    y3 = np.random.normal(728, s, (ngal,) )
-    z3 = np.random.normal(-932, s, (ngal,) )
+    x3 = rng.normal(312, s, (ngal,) )
+    y3 = rng.normal(728, s, (ngal,) )
+    z3 = rng.normal(-932, s, (ngal,) )
     r3 = np.sqrt( x3*x3 + y3*y3 + z3*z3 )
     dec3 = np.arcsin(z3/r3)
     ra3 = np.arctan2(y3,x3)
@@ -1454,9 +1454,9 @@ def test_nnn():
         nrand = ngal
         L = 20. * s
         tol_factor = 5
-    np.random.seed(8675309)
-    x = np.random.normal(0,s, (ngal,) )
-    y = np.random.normal(0,s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) )
     min_sep = 11.
     max_sep = 13.
     nbins = 2
@@ -1498,8 +1498,8 @@ def test_nnn():
     np.testing.assert_allclose(np.log(ddd.meand1-ddd.meand2)-ddd.meanlogd3,
                                   np.log(np.abs(ddd.meanv)), atol=2.e-3 * tol_factor)
 
-    rx = (np.random.random_sample(nrand)-0.5) * L
-    ry = (np.random.random_sample(nrand)-0.5) * L
+    rx = (rng.random_sample(nrand)-0.5) * L
+    ry = (rng.random_sample(nrand)-0.5) * L
     rand = treecorr.Catalog(x=rx,y=ry, x_units='arcmin', y_units='arcmin')
     rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
@@ -1798,10 +1798,10 @@ def test_3d():
         nrand = 5 * ngal
         L = 20. * s
         tol_factor = 5
-    np.random.seed(8675309)
-    x = np.random.normal(xcen, s, (ngal,) )
-    y = np.random.normal(ycen, s, (ngal,) )
-    z = np.random.normal(zcen, s, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(xcen, s, (ngal,) )
+    y = rng.normal(ycen, s, (ngal,) )
+    z = rng.normal(zcen, s, (ngal,) )
 
     r = np.sqrt(x*x+y*y+z*z)
     dec = np.arcsin(z/r) * (coord.radians / coord.degrees)
@@ -1824,9 +1824,9 @@ def test_3d():
     ddd.process(cat)
     print('ddd.ntri = ',ddd.ntri.flatten())
 
-    rx = (np.random.random_sample(nrand)-0.5) * L + xcen
-    ry = (np.random.random_sample(nrand)-0.5) * L + ycen
-    rz = (np.random.random_sample(nrand)-0.5) * L + zcen
+    rx = (rng.random_sample(nrand)-0.5) * L + xcen
+    ry = (rng.random_sample(nrand)-0.5) * L + ycen
+    rz = (rng.random_sample(nrand)-0.5) * L + zcen
     rr = np.sqrt(rx*rx+ry*ry+rz*rz)
     rdec = np.arcsin(rz/rr) * (coord.radians / coord.degrees)
     rra = np.arctan2(ry,rx) * (coord.radians / coord.degrees)
@@ -1894,7 +1894,7 @@ def test_list():
     nrand = 2 * ngal
     s = 10.
     L = 50. * s
-    np.random.seed(8675309)
+    rng = np.random.RandomState(8675309)
 
     min_sep = 30.
     max_sep = 50.
@@ -1906,11 +1906,11 @@ def test_list():
     max_v = 0.9
     nvbins = 2
 
-    x = np.random.normal(0,s, (ngal,ncats) )
-    y = np.random.normal(0,s, (ngal,ncats) )
+    x = rng.normal(0,s, (ngal,ncats) )
+    y = rng.normal(0,s, (ngal,ncats) )
     data_cats = [ treecorr.Catalog(x=x[:,k], y=y[:,k]) for k in range(ncats) ]
-    rx = (np.random.random_sample((nrand,ncats))-0.5) * L
-    ry = (np.random.random_sample((nrand,ncats))-0.5) * L
+    rx = (rng.random_sample((nrand,ncats))-0.5) * L
+    ry = (rng.random_sample((nrand,ncats))-0.5) * L
     rand_cats = [ treecorr.Catalog(x=rx[:,k], y=ry[:,k]) for k in range(ncats) ]
 
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,

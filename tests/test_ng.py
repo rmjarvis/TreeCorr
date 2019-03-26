@@ -27,16 +27,16 @@ def test_direct():
 
     ngal = 200
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) )
-    w1 = np.random.random(ngal)
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
 
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) )
-    w2 = np.random.random(ngal)
-    g12 = np.random.normal(0,0.2, (ngal,) )
-    g22 = np.random.normal(0,0.2, (ngal,) )
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
+    g12 = rng.normal(0,0.2, (ngal,) )
+    g22 = rng.normal(0,0.2, (ngal,) )
 
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1)
     cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g12, g2=g22)
@@ -161,18 +161,18 @@ def test_direct_spherical():
 
     ngal = 100
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
-    z1 = np.random.normal(0,s, (ngal,) )
-    w1 = np.random.random(ngal)
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
+    z1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
 
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) ) + 200
-    z2 = np.random.normal(0,s, (ngal,) )
-    w2 = np.random.random(ngal)
-    g12 = np.random.normal(0,0.2, (ngal,) )
-    g22 = np.random.normal(0,0.2, (ngal,) )
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) ) + 200
+    z2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
+    g12 = rng.normal(0,0.2, (ngal,) )
+    g22 = rng.normal(0,0.2, (ngal,) )
 
     ra1, dec1 = coord.CelestialCoord.xyz_to_radec(x1,y1,z1)
     ra2, dec2 = coord.CelestialCoord.xyz_to_radec(x2,y2,z2)
@@ -279,16 +279,16 @@ def test_pairwise():
 
     ngal = 1000
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) )
-    w1 = np.random.random(ngal)
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
 
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) )
-    w2 = np.random.random(ngal)
-    g12 = np.random.normal(0,0.2, (ngal,) )
-    g22 = np.random.normal(0,0.2, (ngal,) )
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
+    g12 = rng.normal(0,0.2, (ngal,) )
+    g22 = rng.normal(0,0.2, (ngal,) )
 
     w1 = np.ones_like(w1)
     w2 = np.ones_like(w2)
@@ -347,9 +347,9 @@ def test_single():
     gamma0 = 0.05
     r0 = 10.
     L = 5. * r0
-    np.random.seed(8675309)
-    x = (np.random.random_sample(nsource)-0.5) * L
-    y = (np.random.random_sample(nsource)-0.5) * L
+    rng = np.random.RandomState(8675309)
+    x = (rng.random_sample(nsource)-0.5) * L
+    y = (rng.random_sample(nsource)-0.5) * L
     r2 = (x**2 + y**2)
     gammat = gamma0 * np.exp(-0.5*r2/r0**2)
     g1 = -gammat * (x**2-y**2)/r2
@@ -428,16 +428,16 @@ def test_pairwise():
     gamma0 = 0.05
     r0 = 10.
     L = 5. * r0
-    np.random.seed(8675309)
-    x = (np.random.random_sample(nsource)-0.5) * L
-    y = (np.random.random_sample(nsource)-0.5) * L
+    rng = np.random.RandomState(8675309)
+    x = (rng.random_sample(nsource)-0.5) * L
+    y = (rng.random_sample(nsource)-0.5) * L
     r2 = (x**2 + y**2)
     gammat = gamma0 * np.exp(-0.5*r2/r0**2)
     g1 = -gammat * (x**2-y**2)/r2
     g2 = -gammat * (2.*x*y)/r2
 
-    dx = (np.random.random_sample(nsource)-0.5) * L
-    dx = (np.random.random_sample(nsource)-0.5) * L
+    dx = (rng.random_sample(nsource)-0.5) * L
+    dx = (rng.random_sample(nsource)-0.5) * L
 
     lens_cat = treecorr.Catalog(x=dx, y=dx, x_units='arcmin', y_units='arcmin')
     source_cat = treecorr.Catalog(x=x+dx, y=y+dx, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
@@ -488,9 +488,9 @@ def test_spherical():
     gamma0 = 0.05
     r0 = 10. * coord.degrees / coord.radians
     L = 5. * r0
-    np.random.seed(8675309)
-    x = (np.random.random_sample(nsource)-0.5) * L
-    y = (np.random.random_sample(nsource)-0.5) * L
+    rng = np.random.RandomState(8675309)
+    x = (rng.random_sample(nsource)-0.5) * L
+    y = (rng.random_sample(nsource)-0.5) * L
     r2 = (x**2 + y**2)
     gammat = gamma0 * np.exp(-0.5*r2/r0**2)
     g1 = -gammat * (x**2-y**2)/r2
@@ -617,11 +617,11 @@ def test_ng():
     gamma0 = 0.05
     r0 = 10.
     L = 50. * r0
-    np.random.seed(8675309)
-    xl = (np.random.random_sample(nlens)-0.5) * L
-    yl = (np.random.random_sample(nlens)-0.5) * L
-    xs = (np.random.random_sample(nsource)-0.5) * L
-    ys = (np.random.random_sample(nsource)-0.5) * L
+    rng = np.random.RandomState(8675309)
+    xl = (rng.random_sample(nlens)-0.5) * L
+    yl = (rng.random_sample(nlens)-0.5) * L
+    xs = (rng.random_sample(nsource)-0.5) * L
+    ys = (rng.random_sample(nsource)-0.5) * L
     g1 = np.zeros( (nsource,) )
     g2 = np.zeros( (nsource,) )
     for x,y in zip(xl,yl):
@@ -651,8 +651,8 @@ def test_ng():
     np.testing.assert_allclose(ng.xi_im, 0, atol=5.e-3)
 
     nrand = nlens * 3
-    xr = (np.random.random_sample(nrand)-0.5) * L
-    yr = (np.random.random_sample(nrand)-0.5) * L
+    xr = (rng.random_sample(nrand)-0.5) * L
+    yr = (rng.random_sample(nrand)-0.5) * L
     rand_cat = treecorr.Catalog(x=xr, y=yr, x_units='arcmin', y_units='arcmin')
     rg = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1)
@@ -757,11 +757,11 @@ def test_nmap():
     gamma0 = 0.05
     r0 = 10.
     L = 50. * r0
-    np.random.seed(8675309)
-    xl = (np.random.random_sample(nlens)-0.5) * L
-    yl = (np.random.random_sample(nlens)-0.5) * L
-    xs = (np.random.random_sample(nsource)-0.5) * L
-    ys = (np.random.random_sample(nsource)-0.5) * L
+    rng = np.random.RandomState(8675309)
+    xl = (rng.random_sample(nlens)-0.5) * L
+    yl = (rng.random_sample(nlens)-0.5) * L
+    xs = (rng.random_sample(nsource)-0.5) * L
+    ys = (rng.random_sample(nsource)-0.5) * L
     g1 = np.zeros( (nsource,) )
     g2 = np.zeros( (nsource,) )
     for x,y in zip(xl,yl):
@@ -793,8 +793,8 @@ def test_nmap():
     np.testing.assert_allclose(nmx[mask], 0, atol=5.e-3)
 
     nrand = nlens * 3
-    xr = (np.random.random_sample(nrand)-0.5) * L
-    yr = (np.random.random_sample(nrand)-0.5) * L
+    xr = (rng.random_sample(nrand)-0.5) * L
+    yr = (rng.random_sample(nrand)-0.5) * L
     rand_cat = treecorr.Catalog(x=xr, y=yr, x_units='arcmin', y_units='arcmin')
     rg = treecorr.NGCorrelation(bin_size=0.1, min_sep=0.5, max_sep=40., sep_units='arcmin',
                                 verbose=1)
@@ -950,14 +950,14 @@ def test_pieces():
     gamma0 = 0.05
     r0 = 10.
     L = 50. * r0
-    np.random.seed(8675309)
-    xl = (np.random.random_sample(nlens)-0.5) * L
-    yl = (np.random.random_sample(nlens)-0.5) * L
-    xs = (np.random.random_sample( (nsource,ncats) )-0.5) * L
-    ys = (np.random.random_sample( (nsource,ncats) )-0.5) * L
+    rng = np.random.RandomState(8675309)
+    xl = (rng.random_sample(nlens)-0.5) * L
+    yl = (rng.random_sample(nlens)-0.5) * L
+    xs = (rng.random_sample( (nsource,ncats) )-0.5) * L
+    ys = (rng.random_sample( (nsource,ncats) )-0.5) * L
     g1 = np.zeros( (nsource,ncats) )
     g2 = np.zeros( (nsource,ncats) )
-    w = np.random.random_sample( (nsource,ncats) ) + 0.5
+    w = rng.random_sample( (nsource,ncats) ) + 0.5
     for x,y in zip(xl,yl):
         dx = xs-x
         dy = ys-y
@@ -1105,14 +1105,14 @@ def test_rlens():
     gamma0 = 0.05
     R0 = 10.
     L = 50. * R0
-    np.random.seed(8675309)
-    xl = (np.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
-    zl = (np.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
-    yl = np.random.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
+    rng = np.random.RandomState(8675309)
+    xl = (rng.random_sample(nlens)-0.5) * L  # -250 < x < 250
+    zl = (rng.random_sample(nlens)-0.5) * L  # -250 < y < 250
+    yl = rng.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
     rl = np.sqrt(xl**2 + yl**2 + zl**2)
-    xs = (np.random.random_sample(nsource)-0.5) * L
-    zs = (np.random.random_sample(nsource)-0.5) * L
-    ys = np.random.random_sample(nsource) * 8*L + 160*L  # 80000 < z < 84000
+    xs = (rng.random_sample(nsource)-0.5) * L
+    zs = (rng.random_sample(nsource)-0.5) * L
+    ys = rng.random_sample(nsource) * 8*L + 160*L  # 80000 < z < 84000
     rs = np.sqrt(xs**2 + ys**2 + zs**2)
     g1 = np.zeros( (nsource,) )
     g2 = np.zeros( (nsource,) )
@@ -1279,14 +1279,14 @@ def test_rlens_bkg():
     gamma0 = 0.05
     R0 = 10.
     L = 50. * R0
-    np.random.seed(8675309)
-    xl = (np.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
-    zl = (np.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
-    yl = np.random.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
+    rng = np.random.RandomState(8675309)
+    xl = (rng.random_sample(nlens)-0.5) * L  # -250 < x < 250
+    zl = (rng.random_sample(nlens)-0.5) * L  # -250 < y < 250
+    yl = rng.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
     rl = np.sqrt(xl**2 + yl**2 + zl**2)
-    xs = (np.random.random_sample(nsource)-0.5) * L
-    zs = (np.random.random_sample(nsource)-0.5) * L
-    ys = np.random.random_sample(nsource) * 12*L + 8*L  # 4000 < z < 10000
+    xs = (rng.random_sample(nsource)-0.5) * L
+    zs = (rng.random_sample(nsource)-0.5) * L
+    ys = rng.random_sample(nsource) * 12*L + 8*L  # 4000 < z < 10000
     rs = np.sqrt(xs**2 + ys**2 + zs**2)
     print('xl = ',np.min(xl),np.max(xl))
     print('yl = ',np.min(yl),np.max(yl))
@@ -1522,15 +1522,15 @@ def test_haloellip():
                  # with the one halo we used for assigning its shear value.
 
     # Lenses are randomly located with random shapes.
-    np.random.seed(86753099)
-    halo_g1 = np.random.normal(0., 0.3, (nhalo,))
-    halo_g2 = np.random.normal(0., 0.3, (nhalo,))
+    rng = np.random.RandomState(8675309)
+    halo_g1 = rng.normal(0., 0.3, (nhalo,))
+    halo_g2 = rng.normal(0., 0.3, (nhalo,))
     halo_g = halo_g1 + 1j * halo_g2
     # The interpretation is simpler if they all have the same |g|, so just make them all 0.3.
     halo_g *= 0.3 / np.abs(halo_g)
     halo_absg = np.abs(halo_g)
-    halo_x = (np.random.random_sample(nhalo)-0.5) * L
-    halo_y = (np.random.random_sample(nhalo)-0.5) * L
+    halo_x = (rng.random_sample(nhalo)-0.5) * L
+    halo_y = (rng.random_sample(nhalo)-0.5) * L
     print('Made halos',len(halo_x))
 
     # For the sources, place nsource galaxies around each halo with the expected azimuthal pattern
@@ -1539,8 +1539,8 @@ def test_haloellip():
     for i in range(nhalo):
         absg = halo_absg[i]
         # First position the sources in a Gaussian cloud around the halo center.
-        dx = np.random.normal(0., 10., (nsource,))
-        dy = np.random.normal(0., 10., (nsource,))
+        dx = rng.normal(0., 10., (nsource,))
+        dy = rng.normal(0., 10., (nsource,))
         r = np.sqrt(dx*dx + dy*dy)
         t = np.arctan2(dy,dx)
         # z = dx + idy = r exp(it)
@@ -1619,7 +1619,7 @@ def test_varxi():
     gamma0 = 0.05
     r0 = 10.
     L = 10 * r0
-    np.random.seed(8675309)
+    rng = np.random.RandomState(8675309)
 
     # Note: to get a good estimate of var(xi), you need a lot of runs.  The number of
     # runs matters much more than the number of galaxies for getting this to pass.
@@ -1645,17 +1645,17 @@ def test_varxi():
     all_ngs = []
     all_rgs = []
     for run in range(nruns):
-        x2 = (np.random.random_sample(nsource)-0.5) * L
-        y2 = (np.random.random_sample(nsource)-0.5) * L
-        x3 = (np.random.random_sample(nrand)-0.5) * L
-        y3 = (np.random.random_sample(nrand)-0.5) * L
+        x2 = (rng.random_sample(nsource)-0.5) * L
+        y2 = (rng.random_sample(nsource)-0.5) * L
+        x3 = (rng.random_sample(nrand)-0.5) * L
+        y3 = (rng.random_sample(nrand)-0.5) * L
 
         r2 = (x2**2 + y2**2)/r0**2
         g1 = -gamma0 * np.exp(-r2/2.) * (x2**2-y2**2)/r0**2
         g2 = -gamma0 * np.exp(-r2/2.) * (2.*x2*y2)/r0**2
         # This time, add some shape noise (different each run).
-        g1 += np.random.normal(0, 0.1, size=nsource)
-        g2 += np.random.normal(0, 0.1, size=nsource)
+        g1 += rng.normal(0, 0.1, size=nsource)
+        g2 += rng.normal(0, 0.1, size=nsource)
         # Varied weights are hard, but at least check that non-unit weights work correctly.
         w = np.ones_like(x2) * 5
 

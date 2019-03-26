@@ -26,31 +26,31 @@ from test_helper import get_from_wiki, CaptureLog, assert_raises
 def test_ascii():
 
     nobj = 5000
-    np.random.seed(8675309)
-    x = np.random.random_sample(nobj)
-    y = np.random.random_sample(nobj)
-    z = np.random.random_sample(nobj)
-    ra = np.random.random_sample(nobj)
-    dec = np.random.random_sample(nobj)
-    r = np.random.random_sample(nobj)
-    wpos = np.random.random_sample(nobj)
-    g1 = np.random.random_sample(nobj)
-    g2 = np.random.random_sample(nobj)
-    k = np.random.random_sample(nobj)
+    rng = np.random.RandomState(8675309)
+    x = rng.random_sample(nobj)
+    y = rng.random_sample(nobj)
+    z = rng.random_sample(nobj)
+    ra = rng.random_sample(nobj)
+    dec = rng.random_sample(nobj)
+    r = rng.random_sample(nobj)
+    wpos = rng.random_sample(nobj)
+    g1 = rng.random_sample(nobj)
+    g2 = rng.random_sample(nobj)
+    k = rng.random_sample(nobj)
 
     # Some elements have both w and wpos = 0.
     w = wpos.copy()
-    use = np.random.randint(30, size=nobj).astype(float)
+    use = rng.randint(30, size=nobj).astype(float)
     w[use == 0] = 0
     wpos[use == 0] = 0
 
     # Others just have w = 0
-    use = np.random.randint(30, size=nobj).astype(float)
+    use = rng.randint(30, size=nobj).astype(float)
     w[use == 0] = 0
 
     flags = np.zeros(nobj).astype(int)
     for flag in [ 1, 2, 4, 8, 16 ]:
-        sub = np.random.random_sample(nobj) < 0.1
+        sub = rng.random_sample(nobj) < 0.1
         flags[sub] = np.bitwise_or(flags[sub], flag)
 
     file_name = os.path.join('data','test.dat')
@@ -300,15 +300,15 @@ def test_fits():
 def test_direct():
 
     nobj = 5000
-    np.random.seed(8675309)
-    x = np.random.random_sample(nobj)
-    y = np.random.random_sample(nobj)
-    ra = np.random.random_sample(nobj)
-    dec = np.random.random_sample(nobj)
-    w = np.random.random_sample(nobj)
-    g1 = np.random.random_sample(nobj)
-    g2 = np.random.random_sample(nobj)
-    k = np.random.random_sample(nobj)
+    rng = np.random.RandomState(8675309)
+    x = rng.random_sample(nobj)
+    y = rng.random_sample(nobj)
+    ra = rng.random_sample(nobj)
+    dec = rng.random_sample(nobj)
+    w = rng.random_sample(nobj)
+    g1 = rng.random_sample(nobj)
+    g2 = rng.random_sample(nobj)
+    k = rng.random_sample(nobj)
 
     cat1 = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, k=k)
     np.testing.assert_almost_equal(cat1.x, x)
@@ -330,7 +330,7 @@ def test_direct():
 
 def test_var():
     nobj = 5000
-    np.random.seed(8675309)
+    rng = np.random.RandomState(8675309)
 
     # First without weights
     cats = []
@@ -338,11 +338,11 @@ def test_var():
     allg2 = []
     allk = []
     for i in range(10):
-        x = np.random.random_sample(nobj)
-        y = np.random.random_sample(nobj)
-        g1 = np.random.random_sample(nobj) - 0.5
-        g2 = np.random.random_sample(nobj) - 0.5
-        k = np.random.random_sample(nobj) - 0.5
+        x = rng.random_sample(nobj)
+        y = rng.random_sample(nobj)
+        g1 = rng.random_sample(nobj) - 0.5
+        g2 = rng.random_sample(nobj) - 0.5
+        k = rng.random_sample(nobj) - 0.5
         cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k)
         varg = (np.sum(g1**2) + np.sum(g2**2)) / (2.*len(g1))
         vark = np.sum(k**2) / len(k)
@@ -372,12 +372,12 @@ def test_var():
     allk = []
     allw = []
     for i in range(10):
-        x = np.random.random_sample(nobj)
-        y = np.random.random_sample(nobj)
-        w = np.random.random_sample(nobj)
-        g1 = np.random.random_sample(nobj)
-        g2 = np.random.random_sample(nobj)
-        k = np.random.random_sample(nobj)
+        x = rng.random_sample(nobj)
+        y = rng.random_sample(nobj)
+        w = rng.random_sample(nobj)
+        g1 = rng.random_sample(nobj)
+        g2 = rng.random_sample(nobj)
+        k = rng.random_sample(nobj)
         cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, k=k)
         varg = np.sum(w**2 * (g1**2 + g2**2)) / np.sum(w) / 2.
         vark = np.sum(w**2 * k**2) / np.sum(w)
@@ -407,31 +407,31 @@ def test_nan():
     # Test handling of Nan values (w -> 0)
 
     nobj = 5000
-    np.random.seed(8675309)
-    x = np.random.random_sample(nobj)
-    y = np.random.random_sample(nobj)
-    z = np.random.random_sample(nobj)
-    ra = np.random.random_sample(nobj)
-    dec = np.random.random_sample(nobj)
-    r = np.random.random_sample(nobj)
-    w = np.random.random_sample(nobj)
-    wpos = np.random.random_sample(nobj)
-    g1 = np.random.random_sample(nobj)
-    g2 = np.random.random_sample(nobj)
-    k = np.random.random_sample(nobj)
+    rng = np.random.RandomState(8675309)
+    x = rng.random_sample(nobj)
+    y = rng.random_sample(nobj)
+    z = rng.random_sample(nobj)
+    ra = rng.random_sample(nobj)
+    dec = rng.random_sample(nobj)
+    r = rng.random_sample(nobj)
+    w = rng.random_sample(nobj)
+    wpos = rng.random_sample(nobj)
+    g1 = rng.random_sample(nobj)
+    g2 = rng.random_sample(nobj)
+    k = rng.random_sample(nobj)
 
     # Turn 1% of these values into NaN
-    x[np.random.choice(nobj, nobj//100)] = np.nan
-    y[np.random.choice(nobj, nobj//100)] = np.nan
-    z[np.random.choice(nobj, nobj//100)] = np.nan
-    ra[np.random.choice(nobj, nobj//100)] = np.nan
-    dec[np.random.choice(nobj, nobj//100)] = np.nan
-    r[np.random.choice(nobj, nobj//100)] = np.nan
-    w[np.random.choice(nobj, nobj//100)] = np.nan
-    wpos[np.random.choice(nobj, nobj//100)] = np.nan
-    g1[np.random.choice(nobj, nobj//100)] = np.nan
-    g2[np.random.choice(nobj, nobj//100)] = np.nan
-    k[np.random.choice(nobj, nobj//100)] = np.nan
+    x[rng.choice(nobj, nobj//100)] = np.nan
+    y[rng.choice(nobj, nobj//100)] = np.nan
+    z[rng.choice(nobj, nobj//100)] = np.nan
+    ra[rng.choice(nobj, nobj//100)] = np.nan
+    dec[rng.choice(nobj, nobj//100)] = np.nan
+    r[rng.choice(nobj, nobj//100)] = np.nan
+    w[rng.choice(nobj, nobj//100)] = np.nan
+    wpos[rng.choice(nobj, nobj//100)] = np.nan
+    g1[rng.choice(nobj, nobj//100)] = np.nan
+    g2[rng.choice(nobj, nobj//100)] = np.nan
+    k[rng.choice(nobj, nobj//100)] = np.nan
     print('x is nan at ',np.where(np.isnan(x)))
     print('y is nan at ',np.where(np.isnan(y)))
     print('z is nan at ',np.where(np.isnan(z)))
@@ -560,7 +560,7 @@ def test_list():
     # This is based on the bug report for Issue #10.
 
     nobj = 5000
-    np.random.seed(8675309)
+    rng = np.random.RandomState(8675309)
 
     x_list = []
     y_list = []
@@ -568,8 +568,8 @@ def test_list():
     ncats = 3
 
     for k in range(ncats):
-        x = np.random.random_sample(nobj)
-        y = np.random.random_sample(nobj)
+        x = rng.random_sample(nobj)
+        y = rng.random_sample(nobj)
         file_name = os.path.join('data','test_list%d.dat'%k)
 
         with open(file_name, 'w') as fid:
@@ -629,19 +629,19 @@ def test_write():
     # Test that writing a Catalog to a file and then reading it back in works correctly
     ngal = 20000
     s = 10.
-    np.random.seed(8675309)
-    x = np.random.normal(222,50, (ngal,) )
-    y = np.random.normal(138,20, (ngal,) )
-    z = np.random.normal(912,130, (ngal,) )
-    w = np.random.normal(1.3, 0.1, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(222,50, (ngal,) )
+    y = rng.normal(138,20, (ngal,) )
+    z = rng.normal(912,130, (ngal,) )
+    w = rng.normal(1.3, 0.1, (ngal,) )
 
-    ra = np.random.normal(11.34, 0.9, (ngal,) )
-    dec = np.random.normal(-48.12, 4.3, (ngal,) )
-    r = np.random.normal(1024, 230, (ngal,) )
+    ra = rng.normal(11.34, 0.9, (ngal,) )
+    dec = rng.normal(-48.12, 4.3, (ngal,) )
+    r = rng.normal(1024, 230, (ngal,) )
 
-    k = np.random.normal(0,s, (ngal,) )
-    g1 = np.random.normal(0,s, (ngal,) )
-    g2 = np.random.normal(0,s, (ngal,) )
+    k = rng.normal(0,s, (ngal,) )
+    g1 = rng.normal(0,s, (ngal,) )
+    g2 = rng.normal(0,s, (ngal,) )
 
     cat1 = treecorr.Catalog(x=x, y=y, z=z)
     cat2 = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='hour', dec_units='deg',
@@ -723,19 +723,19 @@ def test_field():
 
     ngal = 2000
     s = 10.
-    np.random.seed(8675309)
-    x = np.random.normal(222,50, (ngal,) )
-    y = np.random.normal(138,20, (ngal,) )
-    z = np.random.normal(912,130, (ngal,) )
-    w = np.random.normal(1.3, 0.1, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(222,50, (ngal,) )
+    y = rng.normal(138,20, (ngal,) )
+    z = rng.normal(912,130, (ngal,) )
+    w = rng.normal(1.3, 0.1, (ngal,) )
 
-    ra = np.random.normal(11.34, 0.9, (ngal,) )
-    dec = np.random.normal(-48.12, 4.3, (ngal,) )
-    r = np.random.normal(1024, 230, (ngal,) )
+    ra = rng.normal(11.34, 0.9, (ngal,) )
+    dec = rng.normal(-48.12, 4.3, (ngal,) )
+    r = rng.normal(1024, 230, (ngal,) )
 
-    k = np.random.normal(0,s, (ngal,) )
-    g1 = np.random.normal(0,s, (ngal,) )
-    g2 = np.random.normal(0,s, (ngal,) )
+    k = rng.normal(0,s, (ngal,) )
+    g1 = rng.normal(0,s, (ngal,) )
+    g2 = rng.normal(0,s, (ngal,) )
 
     cat1 = treecorr.Catalog(x=x, y=y, z=z, g1=g1, g2=g2, k=k)
     cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='hour', dec_units='deg',

@@ -173,8 +173,8 @@ def test_periodic_ps():
     # This is heavily based on the GalSim PowerSpectrumRealizer class.
 
     ngrid = 256
-    L = 100   # grid size
-    r0 = 10  # scale size of Gaussian in real space
+    L = 100.   # grid size
+    r0 = 10.  # scale size of Gaussian in real space
     k0 = 1./ (2.*np.pi * r0)  # scale in Fourier space
 
     # Set up grid in k space

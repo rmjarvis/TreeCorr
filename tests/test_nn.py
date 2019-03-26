@@ -1543,6 +1543,7 @@ def test_list():
     rx = (rng.random_sample((nobj,ncats))-0.5) * L
     ry = (rng.random_sample((nobj,ncats))-0.5) * L
     rand_cats = [ treecorr.Catalog(x=rx[:,k],y=ry[:,k]) for k in range(ncats) ]
+    print('made catalogs')
 
     dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=1)
     dd.process(data_cats)
@@ -1560,8 +1561,11 @@ def test_list():
     rrx = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=1)
     data_catx = treecorr.Catalog(x=x.reshape( (nobj*ncats,) ), y=y.reshape( (nobj*ncats,) ))
     rand_catx = treecorr.Catalog(x=rx.reshape( (nobj*ncats,) ), y=ry.reshape( (nobj*ncats,) ))
+    print('made catalogs')
     ddx.process(data_catx)
+    print('ddx.npairs = ',ddx.npairs)
     rrx.process(rand_catx)
+    print('rrx.npairs = ',rrx.npairs)
     xix, varxix = ddx.calculateXi(rrx)
 
     print('ddx.npairs = ',ddx.npairs)
@@ -1586,6 +1590,7 @@ def test_list():
             for i in range(nobj):
                 fid.write(('%.8f %.8f\n')%(rx[i,k],ry[i,k]))
         rand_file_list.append(rand_file_name)
+    print('wrote dat files')
 
     list_name = os.path.join('data','nn_list_data_files.txt')
     with open(list_name, 'w') as fid:
@@ -1595,6 +1600,7 @@ def test_list():
     with open(rand_list_name, 'w') as fid:
         for file_name in rand_file_list:
             fid.write('%s\n'%file_name)
+    print('wrote list files')
 
     file_namex = os.path.join('data','nn_list_datax.dat')
     with open(file_namex, 'w') as fid:
@@ -1607,11 +1613,14 @@ def test_list():
         for k in range(ncats):
             for i in range(nobj):
                 fid.write(('%.8f %.8f\n')%(rx[i,k],ry[i,k]))
+    print('wrote xdat files')
 
     # First do this via the corr2 function.
     config = treecorr.config.read_config('configs/nn_list1.yaml')
+    print('config = ',config)
     logger = treecorr.config.setup_logger(0)
     treecorr.corr2(config, logger)
+    print('finished corr2')
     corr2_output = np.genfromtxt(os.path.join('output','nn_list1.out'),names=True,skip_header=1)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
@@ -1622,8 +1631,10 @@ def test_list():
     # Now calling out to the external corr2 executable to test it with extra command-line params
     import subprocess
     corr2_exe = get_script_name('corr2')
+    print('exe = ',corr2_exe)
     p = subprocess.Popen( [corr2_exe,"configs/nn_list1.yaml","verbose=0"] )
     p.communicate()
+    print('finished corr2')
     corr2_output = np.genfromtxt(os.path.join('output','nn_list1.out'),names=True,skip_header=1)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
@@ -1633,7 +1644,9 @@ def test_list():
 
     config = treecorr.config.read_config('configs/nn_list2.json')
     treecorr.config.parse_variable(config, 'verbose=0')
+    print('config = ',config)
     treecorr.corr2(config)
+    print('finished corr2')
     corr2_output = np.genfromtxt(os.path.join('output','nn_list2.out'),names=True,skip_header=1)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
@@ -1643,7 +1656,9 @@ def test_list():
 
     config = treecorr.config.read_config('configs/nn_list3.params')
     treecorr.config.parse_variable(config, 'verbose=0')
+    print('config = ',config)
     treecorr.corr2(config)
+    print('finished corr2')
     corr2_output = np.genfromtxt(os.path.join('output','nn_list3.out'),names=True,skip_header=1)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
@@ -1653,7 +1668,9 @@ def test_list():
 
     config = treecorr.config.read_config('configs/nn_list4.config', file_type='yaml')
     treecorr.config.parse_variable(config, 'verbose=0')
+    print('config = ',config)
     treecorr.corr2(config)
+    print('finished corr2')
     corr2_output = np.genfromtxt(os.path.join('output','nn_list4.out'),names=True,skip_header=1)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
@@ -1673,7 +1690,9 @@ def test_list():
 
     config = treecorr.config.read_config('configs/nn_list5.config', file_type='json')
     treecorr.config.parse_variable(config, 'verbose=0')
+    print('config = ',config)
     treecorr.corr2(config)
+    print('finished corr2')
     corr2_output = np.genfromtxt(os.path.join('output','nn_list5.out'),names=True,skip_header=1)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])
@@ -1686,6 +1705,7 @@ def test_list():
     treecorr.config.parse_variable(config, 'verbose=0')
     print('config = ',config)
     treecorr.corr2(config)
+    print('finished corr2')
     output_file = 'nn_list6.out'
     corr2_output = np.genfromtxt(output_file,names=True,skip_header=1)
     print('xi = ',xi)
@@ -1695,9 +1715,11 @@ def test_list():
     np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-2)
     # Move it to the output directory now to keep the current directory clean.
     mv_output_file = os.path.join('output',output_file)
+    print('move to ',mv_output_file)
     if os.path.exists(mv_output_file):
         os.remove(mv_output_file)
     os.rename(output_file, mv_output_file)
+    print('done')
 
 def test_perp_minmax():
     """This test is based on a bug report from Erika Wagoner where the lowest bins were

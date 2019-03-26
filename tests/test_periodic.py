@@ -104,6 +104,23 @@ def test_direct_count():
     np.testing.assert_allclose(corr2_output['RR'], rr.npairs, rtol=1.e-3)
     np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
 
+    # If don't give a period, then an error.
+    rr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    with assert_raises(ValueError):
+        rr.process(rcat1,rcat2, metric='Periodic')
+
+    # Or if only give one kind of period
+    rr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, xperiod=3)
+    with assert_raises(ValueError):
+        rr.process(rcat1,rcat2, metric='Periodic')
+    rr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, yperiod=3)
+    with assert_raises(ValueError):
+        rr.process(rcat1,rcat2, metric='Periodic')
+
+    # If give period, but then don't use Periodic metric, that's also an error.
+    rr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, period=3)
+    with assert_raises(ValueError):
+        rr.process(rcat1,rcat2)
 
 def test_direct_3d():
     # This is the same as the above test, but using the 3d correlations

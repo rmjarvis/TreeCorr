@@ -65,6 +65,7 @@ class BinnedCorr2(object):
         - 'Rlens' = the distance from the first object (taken to be a lens) to the line
           connecting Earth and the second object (taken to be a lensed source).
         - 'Arc' = the true great circle distance for spherical coordinates.
+        - 'Periodic' = Like Euclidean, but with periodic boundaries.
 
     There are also a few different possibile binning prescriptions to define the range of
     distances, which should be placed into each bin.
@@ -219,7 +220,7 @@ class BinnedCorr2(object):
         'm2_uform' : (str, False, 'Crittenden', ['Crittenden', 'Schneider'],
                 'The function form of the mass aperture.'),
         'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp', 'FisherRperp', 'OldRperp',
-                                             'Rlens', 'Arc'],
+                                             'Rlens', 'Arc', 'Periodic'],
                 'Which metric to use for the distance measurements'),
         'bin_type': (str, False, 'Log', ['Log', 'Linear', 'TwoD'],
                 'Which type of binning should be used'),
@@ -414,8 +415,8 @@ class BinnedCorr2(object):
         self.brute = treecorr.config.get(self.config,'brute',bool,False)
         if self.brute:
             self.logger.info("Doing brute force calculation%s.",
-                             self.brute==1 and " for first field" or
-                             (self.brute==2 and " for second field" or ""))
+                             self.brute is 1 and " for first field" or
+                             (self.brute is 2 and " for second field" or ""))
         self.coords = None
         self.metric = None
         self.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)
@@ -583,12 +584,12 @@ class BinnedCorr2(object):
             self.logger.debug("In sample_pairs, making default field for cat1")
             min_size, max_size = self._get_minmax_size()
             f1 = cat1.getNField(min_size, max_size, self.split_method,
-                                bool(self.brute), self.max_top, self.coords)
+                                self.brute is True or self.brute is 1, self.max_top, self.coords)
         if f2 is None or f2._coords != self._coords:
             self.logger.debug("In sample_pairs, making default field for cat2")
             min_size, max_size = self._get_minmax_size()
             f2 = cat2.getNField(min_size, max_size, self.split_method,
-                                bool(self.brute), self.max_top, self.coords)
+                                self.brute is True or self.brute is 2, self.max_top, self.coords)
 
         i1 = np.zeros(n, dtype=int)
         i2 = np.zeros(n, dtype=int)

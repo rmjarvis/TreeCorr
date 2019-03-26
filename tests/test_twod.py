@@ -81,10 +81,10 @@ def test_twod():
         return
 
     # N random points in 2 dimensions
-    np.random.seed(42)
+    rng = np.random.RandomState(8675309)
     N = 200
-    x = np.random.uniform(-20, 20, N)
-    y = np.random.uniform(-20, 20, N)
+    x = rng.uniform(-20, 20, N)
+    y = rng.uniform(-20, 20, N)
     
     # Give the points a multivariate Gaussian random field for kappa and gamma
     L1 = [[0.33, 0.09], [-0.01, 0.26]]  # Some arbitrary correlation matrix
@@ -95,18 +95,18 @@ def test_twod():
     np.fill_diagonal(K, 1.)
 
     A = 2.3
-    kappa = np.random.multivariate_normal(np.zeros(N), K*(A**2))
+    kappa = rng.multivariate_normal(np.zeros(N), K*(A**2))
 
     # Add some noise
     sigma = A/10.
-    kappa += np.random.normal(scale=sigma, size=N)
+    kappa += rng.normal(scale=sigma, size=N)
     kappa_err = np.ones_like(kappa) * sigma
 
     # Make gamma too
-    gamma1 = np.random.multivariate_normal(np.zeros(N), K*(A**2))
-    gamma1 += np.random.normal(scale=sigma, size=N)
-    gamma2 = np.random.multivariate_normal(np.zeros(N), K*(A**2))
-    gamma2 += np.random.normal(scale=sigma, size=N)
+    gamma1 = rng.multivariate_normal(np.zeros(N), K*(A**2))
+    gamma1 += rng.normal(scale=sigma, size=N)
+    gamma2 = rng.multivariate_normal(np.zeros(N), K*(A**2))
+    gamma2 += rng.normal(scale=sigma, size=N)
     gamma = gamma1 + 1j * gamma2
     gamma_err = kappa_err
 
@@ -218,12 +218,12 @@ def test_twod_singlebin():
     # Test the singleBin function for TwoD bintype.
 
     # N random points in 2 dimensions
-    np.random.seed(42)
+    rng = np.random.RandomState(8675309)
     N = 5000
-    x = np.random.uniform(-20, 20, N)
-    y = np.random.uniform(-20, 20, N)
-    g1 = np.random.uniform(-0.2, 0.2, N)
-    g2 = np.random.uniform(-0.2, 0.2, N)
+    x = rng.uniform(-20, 20, N)
+    y = rng.uniform(-20, 20, N)
+    g1 = rng.uniform(-0.2, 0.2, N)
+    g2 = rng.uniform(-0.2, 0.2, N)
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=10.*np.ones_like(x))
 
     max_sep = 21.

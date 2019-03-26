@@ -25,11 +25,11 @@ def test_direct():
 
     ngal = 100
     s = 10.
-    np.random.seed(8675309)
-    x = np.random.normal(0,s, (ngal,) )
-    y = np.random.normal(0,s, (ngal,) )
-    w = np.random.random(ngal)
-    kap = np.random.normal(0,3, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) )
+    w = rng.random_sample(ngal)
+    kap = rng.normal(0,3, (ngal,) )
 
     cat = treecorr.Catalog(x=x, y=y, w=w, k=kap)
 
@@ -203,12 +203,12 @@ def test_direct_spherical():
 
     ngal = 50
     s = 10.
-    np.random.seed(8675309)
-    x = np.random.normal(0,s, (ngal,) )
-    y = np.random.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
-    z = np.random.normal(0,s, (ngal,) )
-    w = np.random.random(ngal)
-    kap = np.random.normal(0,3, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
+    z = rng.normal(0,s, (ngal,) )
+    w = rng.random_sample(ngal)
+    kap = rng.normal(0,3, (ngal,) )
     w = np.ones_like(w)
 
     ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
@@ -316,9 +316,9 @@ def test_constant():
     ngal = 500
     A = 0.05
     L = 100.
-    np.random.seed(8675309)
-    x = (np.random.random_sample(ngal)-0.5) * L
-    y = (np.random.random_sample(ngal)-0.5) * L
+    rng = np.random.RandomState(8675309)
+    x = (rng.random_sample(ngal)-0.5) * L
+    y = (rng.random_sample(ngal)-0.5) * L
     kappa = A * np.ones(ngal)
 
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
@@ -346,7 +346,7 @@ def test_constant():
     np.testing.assert_allclose(kkk.zeta, A**3, rtol=1.e-5)
 
     # Now add some noise to the values. It should still work, but at slightly lower accuracy.
-    kappa += 0.001 * (np.random.random_sample(ngal)-0.5)
+    kappa += 0.001 * (rng.random_sample(ngal)-0.5)
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     kkk.process(cat)
     print('with noise: kkk.zeta = ',kkk.zeta.flatten())
@@ -377,9 +377,9 @@ def test_kkk():
         ngal = 10000
         L = 20. * s
         tol_factor = 5
-    np.random.seed(8675309)
-    x = (np.random.random_sample(ngal)-0.5) * L
-    y = (np.random.random_sample(ngal)-0.5) * L
+    rng = np.random.RandomState(8675309)
+    x = (rng.random_sample(ngal)-0.5) * L
+    y = (rng.random_sample(ngal)-0.5) * L
     r2 = (x**2 + y**2)/s**2
     kappa = A * np.exp(-r2/2.)
 

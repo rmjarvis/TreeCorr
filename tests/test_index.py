@@ -23,14 +23,14 @@ from test_helper import CaptureLog, assert_raises
 def test_count_near():
 
     nobj = 100000
-    np.random.seed(8675309)
-    x = np.random.random_sample(nobj)   # All from 0..1
-    y = np.random.random_sample(nobj)
-    z = np.random.random_sample(nobj)
-    w = np.random.random_sample(nobj)
+    rng = np.random.RandomState(8675309)
+    x = rng.random_sample(nobj)   # All from 0..1
+    y = rng.random_sample(nobj)
+    z = rng.random_sample(nobj)
+    w = rng.random_sample(nobj)
 
     # Some elements have w = 0.
-    use = np.random.randint(30, size=nobj).astype(float)
+    use = rng.randint(30, size=nobj).astype(float)
     w[use == 0] = 0
 
     x0 = 0.5
@@ -168,12 +168,12 @@ def test_count_near():
 def test_get_near():
 
     nobj = 100000
-    np.random.seed(8675309)
-    x = np.random.random_sample(nobj)   # All from 0..1
-    y = np.random.random_sample(nobj)
-    z = np.random.random_sample(nobj)
-    w = np.random.random_sample(nobj)
-    use = np.random.randint(30, size=nobj).astype(float)
+    rng = np.random.RandomState(8675309)
+    x = rng.random_sample(nobj)   # All from 0..1
+    y = rng.random_sample(nobj)
+    z = rng.random_sample(nobj)
+    w = rng.random_sample(nobj)
+    use = rng.randint(30, size=nobj).astype(float)
     w[use == 0] = 0
 
     x0 = 0.5
@@ -182,14 +182,14 @@ def test_get_near():
     sep = 0.03
 
     # Put a small cluster inside our search radius
-    x[100:130] = np.random.normal(x0+0.03, 0.001, 30)
-    y[100:130] = np.random.normal(y0-0.02, 0.001, 30)
-    z[100:130] = np.random.normal(z0+0.01, 0.001, 30)
+    x[100:130] = rng.normal(x0+0.03, 0.001, 30)
+    y[100:130] = rng.normal(y0-0.02, 0.001, 30)
+    z[100:130] = rng.normal(z0+0.01, 0.001, 30)
 
     # Put another small cluster right on the edge of our search radius
-    x[500:550] = np.random.normal(x0+sep, 0.001, 50)
-    y[500:550] = np.random.normal(y0, 0.001, 50)
-    z[500:550] = np.random.normal(z0, 0.001, 50)
+    x[500:550] = rng.normal(x0+sep, 0.001, 50)
+    y[500:550] = rng.normal(y0, 0.001, 50)
+    z[500:550] = rng.normal(z0, 0.001, 50)
 
     # Start with flat coords
 
@@ -293,26 +293,26 @@ def test_get_near():
 def test_sample_pairs():
 
     nobj = 10000
-    np.random.seed(8675309)
-    x1 = np.random.random_sample(nobj)   # All from 0..1
-    y1 = np.random.random_sample(nobj)
-    z1 = np.random.random_sample(nobj)
-    w1 = np.random.random_sample(nobj)
-    use = np.random.randint(30, size=nobj).astype(float)
+    rng = np.random.RandomState(8675309)
+    x1 = rng.random_sample(nobj)   # All from 0..1
+    y1 = rng.random_sample(nobj)
+    z1 = rng.random_sample(nobj)
+    w1 = rng.random_sample(nobj)
+    use = rng.randint(30, size=nobj).astype(float)
     w1[use == 0] = 0
-    g11 = np.random.random_sample(nobj)
-    g21 = np.random.random_sample(nobj)
-    k1 = np.random.random_sample(nobj)
+    g11 = rng.random_sample(nobj)
+    g21 = rng.random_sample(nobj)
+    k1 = rng.random_sample(nobj)
 
-    x2 = np.random.random_sample(nobj)   # All from 0..1
-    y2 = np.random.random_sample(nobj)
-    z2 = np.random.random_sample(nobj)
-    w2 = np.random.random_sample(nobj)
-    use = np.random.randint(30, size=nobj).astype(float)
+    x2 = rng.random_sample(nobj)   # All from 0..1
+    y2 = rng.random_sample(nobj)
+    z2 = rng.random_sample(nobj)
+    w2 = rng.random_sample(nobj)
+    use = rng.randint(30, size=nobj).astype(float)
     w2[use == 0] = 0
-    g12 = np.random.random_sample(nobj)
-    g22 = np.random.random_sample(nobj)
-    k2 = np.random.random_sample(nobj)
+    g12 = rng.random_sample(nobj)
+    g22 = rng.random_sample(nobj)
+    k2 = rng.random_sample(nobj)
 
     # Start with flat coords
 

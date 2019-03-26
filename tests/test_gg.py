@@ -27,18 +27,18 @@ def test_direct():
 
     ngal = 200
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) )
-    w1 = np.random.random(ngal)
-    g11 = np.random.normal(0,0.2, (ngal,) )
-    g21 = np.random.normal(0,0.2, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
+    g11 = rng.normal(0,0.2, (ngal,) )
+    g21 = rng.normal(0,0.2, (ngal,) )
 
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) )
-    w2 = np.random.random(ngal)
-    g12 = np.random.normal(0,0.2, (ngal,) )
-    g22 = np.random.normal(0,0.2, (ngal,) )
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
+    g12 = rng.normal(0,0.2, (ngal,) )
+    g22 = rng.normal(0,0.2, (ngal,) )
 
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g11, g2=g21)
     cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g12, g2=g22)
@@ -192,20 +192,20 @@ def test_direct_spherical():
 
     ngal = 100
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
-    z1 = np.random.normal(0,s, (ngal,) )
-    w1 = np.random.random(ngal)
-    g11 = np.random.normal(0,0.2, (ngal,) )
-    g21 = np.random.normal(0,0.2, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
+    z1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
+    g11 = rng.normal(0,0.2, (ngal,) )
+    g21 = rng.normal(0,0.2, (ngal,) )
 
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) ) + 200
-    z2 = np.random.normal(0,s, (ngal,) )
-    w2 = np.random.random(ngal)
-    g12 = np.random.normal(0,0.2, (ngal,) )
-    g22 = np.random.normal(0,0.2, (ngal,) )
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) ) + 200
+    z2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
+    g12 = rng.normal(0,0.2, (ngal,) )
+    g22 = rng.normal(0,0.2, (ngal,) )
 
     ra1, dec1 = coord.CelestialCoord.xyz_to_radec(x1,y1,z1)
     ra2, dec2 = coord.CelestialCoord.xyz_to_radec(x2,y2,z2)
@@ -329,18 +329,18 @@ def test_pairwise():
 
     ngal = 1000
     s = 10.
-    np.random.seed(8675309)
-    x1 = np.random.normal(0,s, (ngal,) )
-    y1 = np.random.normal(0,s, (ngal,) )
-    w1 = np.random.random(ngal)
-    g11 = np.random.normal(0,0.2, (ngal,) )
-    g21 = np.random.normal(0,0.2, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
+    g11 = rng.normal(0,0.2, (ngal,) )
+    g21 = rng.normal(0,0.2, (ngal,) )
 
-    x2 = np.random.normal(0,s, (ngal,) )
-    y2 = np.random.normal(0,s, (ngal,) )
-    w2 = np.random.random(ngal)
-    g12 = np.random.normal(0,0.2, (ngal,) )
-    g22 = np.random.normal(0,0.2, (ngal,) )
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
+    g12 = rng.normal(0,0.2, (ngal,) )
+    g22 = rng.normal(0,0.2, (ngal,) )
 
     w1 = np.ones_like(w1)
     w2 = np.ones_like(w2)
@@ -424,9 +424,9 @@ def test_gg():
         # Rather than have a single set tolerance, we tune the tolerances for the above
         # __main__ setup, but scale up by a factor of 5 for the quicker run.
         tol_factor = 5
-    np.random.seed(8675309)
-    x = (np.random.random_sample(ngal)-0.5) * L
-    y = (np.random.random_sample(ngal)-0.5) * L
+    rng = np.random.RandomState(8675309)
+    x = (rng.random_sample(ngal)-0.5) * L
+    y = (rng.random_sample(ngal)-0.5) * L
     r2 = (x**2 + y**2)/r0**2
     g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
     g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
@@ -674,9 +674,9 @@ def test_spherical():
         nsource = 100000
         L = 50.*r0
         tol_factor = 5
-    np.random.seed(8675309)
-    x = (np.random.random_sample(nsource)-0.5) * L
-    y = (np.random.random_sample(nsource)-0.5) * L
+    rng = np.random.RandomState(8675309)
+    x = (rng.random_sample(nsource)-0.5) * L
+    y = (rng.random_sample(nsource)-0.5) * L
     r2 = x**2 + y**2
     g1 = -gamma0 * np.exp(-r2/2./r0**2) * (x**2-y**2)/r0**2
     g2 = -gamma0 * np.exp(-r2/2./r0**2) * (2.*x*y)/r0**2
@@ -941,9 +941,9 @@ def test_shuffle():
     gamma0 = 0.05
     r0 = 10.
     L = 5. * r0
-    np.random.seed(8675309)
-    x = (np.random.random_sample(ngal)-0.5) * L
-    y = (np.random.random_sample(ngal)-0.5) * L
+    rng = np.random.RandomState(8675309)
+    x = (rng.random_sample(ngal)-0.5) * L
+    y = (rng.random_sample(ngal)-0.5) * L
     r2 = (x**2 + y**2)/r0**2
     g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
     g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
@@ -955,7 +955,7 @@ def test_shuffle():
     # Put these in a single 2d array so we can easily use np.random.shuffle
     data = np.array( [x, y, g1, g2] ).T
     print('data = ',data)
-    np.random.shuffle(data)
+    rng.shuffle(data)
 
     cat_s = treecorr.Catalog(x=data[:,0], y=data[:,1], g1=data[:,2], g2=data[:,3])
     gg_s = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=30., verbose=1)
@@ -1026,13 +1026,13 @@ def test_haloellip():
                  # with the one lens we used for assigning its shear value.
 
     # Lenses are randomly located with random shapes.
-    np.random.seed(8675309)
-    lens_g1 = np.random.normal(0., 0.1, (nlens,))
-    lens_g2 = np.random.normal(0., 0.1, (nlens,))
+    rng = np.random.RandomState(8675309)
+    lens_g1 = rng.normal(0., 0.1, (nlens,))
+    lens_g2 = rng.normal(0., 0.1, (nlens,))
     lens_g = lens_g1 + 1j * lens_g2
     lens_absg = np.abs(lens_g)
-    lens_x = (np.random.random_sample(nlens)-0.5) * L
-    lens_y = (np.random.random_sample(nlens)-0.5) * L
+    lens_x = (rng.random_sample(nlens)-0.5) * L
+    lens_y = (rng.random_sample(nlens)-0.5) * L
     print('Made lenses')
 
     e_a = 0.17  # The amplitude of the constant part of the signal
@@ -1046,8 +1046,8 @@ def test_haloellip():
     for i in range(nlens):
         # First build the signal as it appears in the coordinate system where the halo
         # is oriented along the x-axis
-        dx = np.random.normal(0., 10., (nsource,))
-        dy = np.random.normal(0., 10., (nsource,))
+        dx = rng.normal(0., 10., (nsource,))
+        dy = rng.normal(0., 10., (nsource,))
         z = dx + 1j * dy
         exp2iphi = z**2 / np.abs(z)**2
         source_g = e_a + e_b * exp2iphi**2
@@ -1139,23 +1139,23 @@ def test_rlens():
     gamma0 = 0.05
     R0 = 10.
     L = 50. * R0
-    np.random.seed(8675309)
+    rng = np.random.RandomState(8675309)
 
     # Lenses are randomly located with random shapes.
-    xl = (np.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
-    zl = (np.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
-    yl = np.random.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
+    xl = (rng.random_sample(nlens)-0.5) * L  # -250 < x < 250
+    zl = (rng.random_sample(nlens)-0.5) * L  # -250 < y < 250
+    yl = rng.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
     rl = np.sqrt(xl**2 + yl**2 + zl**2)
-    g1l = np.random.normal(0., 0.1, (nlens,))
-    g2l = np.random.normal(0., 0.1, (nlens,))
+    g1l = rng.normal(0., 0.1, (nlens,))
+    g2l = rng.normal(0., 0.1, (nlens,))
     gl = g1l + 1j * g2l
     gl /= np.abs(gl)
     print('Made lenses')
 
     # For the signal, we'll do a pure quadrupole halo lens signal.  cf. test_haloellip()
-    xs = (np.random.random_sample(nsource)-0.5) * L
-    zs = (np.random.random_sample(nsource)-0.5) * L
-    ys = np.random.random_sample(nsource) * 8*L + 160*L  # 80000 < z < 84000
+    xs = (rng.random_sample(nsource)-0.5) * L
+    zs = (rng.random_sample(nsource)-0.5) * L
+    ys = rng.random_sample(nsource) * 8*L + 160*L  # 80000 < z < 84000
     rs = np.sqrt(xs**2 + ys**2 + zs**2)
     g1 = np.zeros( (nsource,) )
     g2 = np.zeros( (nsource,) )
@@ -1442,23 +1442,23 @@ def test_rperp():
     gamma0 = 0.05
     R0 = 5.
     L = 100. * R0
-    np.random.seed(8675309)
+    rng = np.random.RandomState(8675309)
 
     # Lenses are randomly located with random shapes.
-    xl = (np.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
-    zl = (np.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
-    yl = np.random.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
+    xl = (rng.random_sample(nlens)-0.5) * L  # -250 < x < 250
+    zl = (rng.random_sample(nlens)-0.5) * L  # -250 < y < 250
+    yl = rng.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
     rl = np.sqrt(xl**2 + yl**2 + zl**2)
-    g1l = np.random.normal(0., 0.1, (nlens,))
-    g2l = np.random.normal(0., 0.1, (nlens,))
+    g1l = rng.normal(0., 0.1, (nlens,))
+    g2l = rng.normal(0., 0.1, (nlens,))
     gl = g1l + 1j * g2l
     gl /= np.abs(gl)
     print('Made lenses')
 
     # For the signal, we'll do a pure quadrupole halo lens signal.  cf. test_haloellip()
-    xs = (np.random.random_sample(nsource)-0.5) * L
-    zs = (np.random.random_sample(nsource)-0.5) * L
-    ys = np.random.random_sample(nsource) * 8*L + 160*L  # 80000 < z < 84000
+    xs = (rng.random_sample(nsource)-0.5) * L
+    zs = (rng.random_sample(nsource)-0.5) * L
+    ys = rng.random_sample(nsource) * 8*L + 160*L  # 80000 < z < 84000
     rs = np.sqrt(xs**2 + ys**2 + zs**2)
     g1 = np.zeros( (nsource,) )
     g2 = np.zeros( (nsource,) )
@@ -1636,24 +1636,24 @@ def test_rperp_local():
     gamma0 = 0.05
     R0 = 5.
     L = 100. * R0
-    np.random.seed(8675309)
+    rng = np.random.RandomState(8675309)
 
     # Lenses are randomly located with random shapes.
-    xl = (np.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
-    zl = (np.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
-    yl = np.random.random_sample(nlens) * 8*L + 10*L  # 5000 < z < 9000
+    xl = (rng.random_sample(nlens)-0.5) * L  # -250 < x < 250
+    zl = (rng.random_sample(nlens)-0.5) * L  # -250 < y < 250
+    yl = rng.random_sample(nlens) * 8*L + 10*L  # 5000 < z < 9000
     rl = np.sqrt(xl**2 + yl**2 + zl**2)
-    g1l = np.random.normal(0., 0.1, (nlens,))
-    g2l = np.random.normal(0., 0.1, (nlens,))
+    g1l = rng.normal(0., 0.1, (nlens,))
+    g2l = rng.normal(0., 0.1, (nlens,))
     gl = g1l + 1j * g2l
     gl /= np.abs(gl)
     print('Made lenses')
 
     # For the signal, we'll do a pure quadrupole halo lens signal.  cf. test_haloellip()
     # We also only apply it to sources within L of the lens.
-    xs = (np.random.random_sample(nsource)-0.5) * L
-    zs = (np.random.random_sample(nsource)-0.5) * L
-    ys = np.random.random_sample(nsource) * 8*L + 10*L  # 5000 < z < 9000
+    xs = (rng.random_sample(nsource)-0.5) * L
+    zs = (rng.random_sample(nsource)-0.5) * L
+    ys = rng.random_sample(nsource) * 8*L + 10*L  # 5000 < z < 9000
     rs = np.sqrt(xs**2 + ys**2 + zs**2)
     g1 = np.zeros( (nsource,) )
     g2 = np.zeros( (nsource,) )
@@ -1852,23 +1852,23 @@ def test_oldrperp():
     gamma0 = 0.05
     R0 = 10.
     L = 50. * R0
-    np.random.seed(8675309)
+    rng = np.random.RandomState(8675309)
 
     # Lenses are randomly located with random shapes.
-    xl = (np.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
-    zl = (np.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
-    yl = np.random.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
+    xl = (rng.random_sample(nlens)-0.5) * L  # -250 < x < 250
+    zl = (rng.random_sample(nlens)-0.5) * L  # -250 < y < 250
+    yl = rng.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
     rl = np.sqrt(xl**2 + yl**2 + zl**2)
-    g1l = np.random.normal(0., 0.1, (nlens,))
-    g2l = np.random.normal(0., 0.1, (nlens,))
+    g1l = rng.normal(0., 0.1, (nlens,))
+    g2l = rng.normal(0., 0.1, (nlens,))
     gl = g1l + 1j * g2l
     gl /= np.abs(gl)
     print('Made lenses')
 
     # For the signal, we'll do a pure quadrupole halo lens signal.  cf. test_haloellip()
-    xs = (np.random.random_sample(nsource)-0.5) * L
-    zs = (np.random.random_sample(nsource)-0.5) * L
-    ys = np.random.random_sample(nsource) * 8*L + 160*L  # 80000 < z < 84000
+    xs = (rng.random_sample(nsource)-0.5) * L
+    zs = (rng.random_sample(nsource)-0.5) * L
+    ys = rng.random_sample(nsource) * 8*L + 160*L  # 80000 < z < 84000
     rs = np.sqrt(xs**2 + ys**2 + zs**2)
     g1 = np.zeros( (nsource,) )
     g2 = np.zeros( (nsource,) )
@@ -2044,24 +2044,24 @@ def test_oldrperp_local():
     gamma0 = 0.05
     R0 = 10.
     L = 50. * R0
-    np.random.seed(8675309)
+    rng = np.random.RandomState(8675309)
 
     # Lenses are randomly located with random shapes.
-    xl = (np.random.random_sample(nlens)-0.5) * L  # -250 < x < 250
-    zl = (np.random.random_sample(nlens)-0.5) * L  # -250 < y < 250
-    yl = np.random.random_sample(nlens) * 8*L + 10*L  # 5000 < z < 9000
+    xl = (rng.random_sample(nlens)-0.5) * L  # -250 < x < 250
+    zl = (rng.random_sample(nlens)-0.5) * L  # -250 < y < 250
+    yl = rng.random_sample(nlens) * 8*L + 10*L  # 5000 < z < 9000
     rl = np.sqrt(xl**2 + yl**2 + zl**2)
-    g1l = np.random.normal(0., 0.1, (nlens,))
-    g2l = np.random.normal(0., 0.1, (nlens,))
+    g1l = rng.normal(0., 0.1, (nlens,))
+    g2l = rng.normal(0., 0.1, (nlens,))
     gl = g1l + 1j * g2l
     gl /= np.abs(gl)
     print('Made lenses')
 
     # For the signal, we'll do a pure quadrupole halo lens signal.  cf. test_haloellip()
     # We also only apply it to sources within L of the lens.
-    xs = (np.random.random_sample(nsource)-0.5) * L
-    zs = (np.random.random_sample(nsource)-0.5) * L
-    ys = np.random.random_sample(nsource) * 8*L + 10*L  # 5000 < z < 9000
+    xs = (rng.random_sample(nsource)-0.5) * L
+    zs = (rng.random_sample(nsource)-0.5) * L
+    ys = rng.random_sample(nsource) * 8*L + 10*L  # 5000 < z < 9000
     rs = np.sqrt(xs**2 + ys**2 + zs**2)
     g1 = np.zeros( (nsource,) )
     g2 = np.zeros( (nsource,) )
@@ -2258,7 +2258,7 @@ def test_varxi():
     gamma0 = 0.05
     r0 = 10.
     L = 50.*r0
-    np.random.seed(8675309)
+    rng = np.random.RandomState(8675309)
 
     # Note: to get a good estimate of var(xi), you need a lot of runs.  The number of
     # runs matters much more than the number of galaxies for getting this to pass.
@@ -2275,16 +2275,16 @@ def test_varxi():
     all_ggs = []
     for run in range(nruns):
         # In addition to the shape noise below, there is shot noise from the random x,y positions.
-        x = (np.random.random_sample(ngal)-0.5) * L
-        y = (np.random.random_sample(ngal)-0.5) * L
+        x = (rng.random_sample(ngal)-0.5) * L
+        y = (rng.random_sample(ngal)-0.5) * L
         # Varied weights are hard, but at least check that non-unit weights work correctly.
         w = np.ones_like(x) * 5
         r2 = (x**2 + y**2)/r0**2
         g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
         g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
         # This time, add some shape noise (different each run).
-        g1 += np.random.normal(0, 0.3, size=ngal)
-        g2 += np.random.normal(0, 0.3, size=ngal)
+        g1 += rng.normal(0, 0.3, size=ngal)
+        g2 += rng.normal(0, 0.3, size=ngal)
 
         cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
         gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=10., max_sep=100., sep_units='arcmin',

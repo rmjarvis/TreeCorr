@@ -25,12 +25,12 @@ def test_direct():
 
     ngal = 100
     s = 10.
-    np.random.seed(8675309)
-    x = np.random.normal(0,s, (ngal,) )
-    y = np.random.normal(0,s, (ngal,) )
-    w = np.random.random(ngal)
-    g1 = np.random.normal(0,0.2, (ngal,) )
-    g2 = np.random.normal(0,0.2, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) )
+    w = rng.random_sample(ngal)
+    g1 = rng.normal(0,0.2, (ngal,) )
+    g2 = rng.normal(0,0.2, (ngal,) )
 
     cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2)
 
@@ -297,13 +297,13 @@ def test_direct_spherical():
 
     ngal = 50
     s = 10.
-    np.random.seed(8675309)
-    x = np.random.normal(0,s, (ngal,) )
-    y = np.random.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
-    z = np.random.normal(0,s, (ngal,) )
-    w = np.random.random(ngal)
-    g1 = np.random.normal(0,0.2, (ngal,) )
-    g2 = np.random.normal(0,0.2, (ngal,) )
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
+    z = rng.normal(0,s, (ngal,) )
+    w = rng.random_sample(ngal)
+    g1 = rng.normal(0,0.2, (ngal,) )
+    g2 = rng.normal(0,0.2, (ngal,) )
     w = np.ones_like(w)
 
     ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
@@ -497,9 +497,9 @@ def test_ggg():
         ngal = 10000
         L = 20.*r0
         tol_factor = 5
-    np.random.seed(8675309)
-    x = (np.random.random_sample(ngal)-0.5) * L
-    y = (np.random.random_sample(ngal)-0.5) * L
+    rng = np.random.RandomState(8675309)
+    x = (rng.random_sample(ngal)-0.5) * L
+    y = (rng.random_sample(ngal)-0.5) * L
     r2 = (x**2 + y**2)/r0**2
     g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
     g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2

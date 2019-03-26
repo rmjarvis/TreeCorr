@@ -28,7 +28,7 @@ cache:
 script: 
     - python setup.py install --prefix=$HOME
     - cd tests
-    - nosetests -vs --with-coverage --cover-package=treecorr
+    - nosetests -v --with-coverage --cover-package=treecorr
     - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then py.test --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env; fi
 
 after_success:

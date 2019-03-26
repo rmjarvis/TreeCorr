@@ -234,13 +234,15 @@ class NField(Field):
     :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                         (default: 'mean')
     :param brute        Whether to force traversal to the leaves for this field. (default: False)
+    :param min_top:     The minimum number of top layers to use when setting up the field.
+                        (default: 3)
     :param max_top:     The maximum number of top layers to use when setting up the field.
                         (default: 10)
     :param coords       The kind of coordinate system to use. (default: cat.coords)
     :param logger:      A logger file if desired (default: None)
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
-                 max_top=10, coords=None, logger=None):
+                 min_top=3, max_top=10, coords=None, logger=None):
         from treecorr.util import double_ptr as dp
         if logger:
             if cat.name != '':
@@ -255,6 +257,7 @@ class NField(Field):
         self._sm = _parse_split_method(split_method)
         self._d = 1  # NData
         self.brute = bool(brute)
+        self.min_top = int(min_top)
         self.max_top = int(max_top)
         self.coords = coords if coords is not None else cat.coords
         self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
@@ -262,7 +265,7 @@ class NField(Field):
         self.data = treecorr._lib.BuildNField(dp(cat.x), dp(cat.y), dp(cat.z),
                                               dp(cat.w), dp(cat.wpos), cat.ntot,
                                               self.min_size, self.max_size, self._sm,
-                                              self.brute, self.max_top, self._coords)
+                                              self.brute, self.min_top, self.max_top, self._coords)
         if logger:
             logger.debug('Finished building NField (%s)',self.coords)
 
@@ -293,13 +296,15 @@ class KField(Field):
     :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                         (default: 'mean')
     :param brute        Whether to force traversal to the leaves for this field. (default: False)
+    :param min_top:     The minimum number of top layers to use when setting up the field.
+                        (default: 3)
     :param max_top:     The maximum number of top layers to use when setting up the field.
                         (default: 10)
     :param coords       The kind of coordinate system to use. (default: cat.coords)
     :param logger:      A logger file if desired (default: None)
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
-                 max_top=10, coords=None, logger=None):
+                 min_top=3, max_top=10, coords=None, logger=None):
         from treecorr.util import double_ptr as dp
         if logger:
             if cat.name != '':
@@ -314,6 +319,7 @@ class KField(Field):
         self._sm = _parse_split_method(split_method)
         self._d = 2  # KData
         self.brute = bool(brute)
+        self.min_top = int(min_top)
         self.max_top = int(max_top)
         self.coords = coords if coords is not None else cat.coords
         self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
@@ -322,7 +328,7 @@ class KField(Field):
                                               dp(cat.k),
                                               dp(cat.w), dp(cat.wpos), cat.ntot,
                                               self.min_size, self.max_size, self._sm,
-                                              self.brute, self.max_top, self._coords)
+                                              self.brute, self.min_top, self.max_top, self._coords)
         if logger:
             logger.debug('Finished building KField (%s)',self.coords)
 
@@ -350,13 +356,15 @@ class GField(Field):
     :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                         (default: 'mean')
     :param brute        Whether to force traversal to the leaves for this field. (default: False)
+    :param min_top:     The minimum number of top layers to use when setting up the field.
+                        (default: 3)
     :param max_top:     The maximum number of top layers to use when setting up the field.
                         (default: 10)
     :param coords       The kind of coordinate system to use. (default: cat.coords)
     :param logger:      A logger file if desired (default: None)
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
-                 max_top=10, coords=None, logger=None):
+                 min_top=3, max_top=10, coords=None, logger=None):
         from treecorr.util import double_ptr as dp
         if logger:
             if cat.name != '':
@@ -371,6 +379,7 @@ class GField(Field):
         self._sm = _parse_split_method(split_method)
         self._d = 3  # GData
         self.brute = bool(brute)
+        self.min_top = int(min_top)
         self.max_top = int(max_top)
         self.coords = coords if coords is not None else cat.coords
         self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
@@ -379,7 +388,7 @@ class GField(Field):
                                               dp(cat.g1), dp(cat.g2),
                                               dp(cat.w), dp(cat.wpos), cat.ntot,
                                               self.min_size, self.max_size, self._sm,
-                                              self.brute, self.max_top, self._coords)
+                                              self.brute, self.min_top, self.max_top, self._coords)
         if logger:
             logger.debug('Finished building GField (%s)',self.coords)
 

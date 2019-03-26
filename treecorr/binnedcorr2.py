@@ -148,6 +148,8 @@ class BinnedCorr2(object):
                         - random: Use a random point somewhere in the middle two quartiles of the
                           range.
 
+    :param min_top:     The minimum number of top layers to use when setting up the field.
+                        (default: 3)
     :param max_top:     The maximum number of top layers to use when setting up the field.
                         The top-level cells are the cells where each calculation job starts.
                         There will typically be of order 2^max_top top-level cells. (default: 10)
@@ -209,6 +211,8 @@ class BinnedCorr2(object):
                 'The default is True if verbose >= 2 and there is no log_file.  Else False.'),
         'split_method' : (str, False, 'mean', ['mean', 'median', 'middle', 'random'],
                 'Which method to use for splitting cells.'),
+        'min_top' : (int, False, 3, None,
+                'The minimum number of top layers to use when setting up the field.'),
         'max_top' : (int, False, 10, None,
                 'The maximum number of top layers to use when setting up the field.'),
         'precision' : (int, False, 4, None,
@@ -398,6 +402,7 @@ class BinnedCorr2(object):
             raise ValueError("Invalid split_method %s"%self.split_method)
         self.logger.debug("Using split_method = %s",self.split_method)
 
+        self.min_top = treecorr.config.get(self.config,'min_top',int,3)
         self.max_top = treecorr.config.get(self.config,'max_top',int,10)
 
         self.bin_slop = treecorr.config.get(self.config,'bin_slop',float,-1.0)
@@ -584,12 +589,14 @@ class BinnedCorr2(object):
             self.logger.debug("In sample_pairs, making default field for cat1")
             min_size, max_size = self._get_minmax_size()
             f1 = cat1.getNField(min_size, max_size, self.split_method,
-                                self.brute is True or self.brute is 1, self.max_top, self.coords)
+                                self.brute is True or self.brute is 1,
+                                self.min_top, self.max_top, self.coords)
         if f2 is None or f2._coords != self._coords:
             self.logger.debug("In sample_pairs, making default field for cat2")
             min_size, max_size = self._get_minmax_size()
             f2 = cat2.getNField(min_size, max_size, self.split_method,
-                                self.brute is True or self.brute is 2, self.max_top, self.coords)
+                                self.brute is True or self.brute is 2,
+                                self.min_top, self.max_top, self.coords)
 
         i1 = np.zeros(n, dtype=int)
         i2 = np.zeros(n, dtype=int)

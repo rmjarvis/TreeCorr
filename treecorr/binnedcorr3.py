@@ -150,6 +150,8 @@ class BinnedCorr3(object):
                         - random: Use a random point somewhere in the middle two quartiles of the
                           range.
 
+    :param min_top:     The minimum number of top layers to use when setting up the field.
+                        (default: 3)
     :param max_top:     The maximum number of top layers to use when setting up the field.
                         The top-level cells are the cells where each calculation job starts.
                         There will typically be of order 2^max_top top-level cells. (default: 10)
@@ -221,6 +223,8 @@ class BinnedCorr3(object):
                 'The default is True if verbose >= 2 and there is no log_file.  Else False.'),
         'split_method' : (str, False, 'mean', ['mean', 'median', 'middle', 'random'],
                 'Which method to use for splitting cells.'),
+        'min_top' : (int, False, 3, None,
+                'The minimum number of top layers to use when setting up the field.'),
         'max_top' : (int, False, 10, None,
                 'The maximum number of top layers to use when setting up the field.'),
         'precision' : (int, False, 4, None,
@@ -375,6 +379,7 @@ class BinnedCorr3(object):
             raise ValueError("Invalid split_method %s"%self.split_method)
         self.logger.debug("Using split_method = %s",self.split_method)
 
+        self.min_top = treecorr.config.get(self.config,'min_top',int,3)
         self.max_top = treecorr.config.get(self.config,'max_top',int,10)
 
         self.bin_slop = treecorr.config.get(self.config,'bin_slop',float,-1.0)

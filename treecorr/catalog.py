@@ -1098,7 +1098,7 @@ class Catalog(object):
         return self._field()
 
     def getNField(self, min_size=0, max_size=None, split_method=None, brute=False,
-                  max_top=10, coords=None, logger=None):
+                  min_top=3, max_top=10, coords=None, logger=None):
         """Return an NField based on the positions in this catalog.
 
         The NField object is cached, so this is efficient to call multiple times.
@@ -1110,6 +1110,8 @@ class Catalog(object):
                             (default: 'mean'; this value can also be given in the Catalog
                             constructor in the config dict.)
         :param brute        Whether to force traversal to the leaves. (default: False)
+        :param min_top:     The minimum number of top layers to use when setting up the
+                            field. (default: 3)
         :param max_top:     The maximum number of top layers to use when setting up the
                             field. (default: 10)
         :param coords       The kind of coordinate system to use. (default: self.coords)
@@ -1121,14 +1123,14 @@ class Catalog(object):
             split_method = treecorr.config.get(self.config,'split_method',str,'mean')
         if logger is None:
             logger = self.logger
-        field = self.nfields(min_size, max_size, split_method, brute, max_top, coords,
+        field = self.nfields(min_size, max_size, split_method, brute, min_top, max_top, coords,
                              logger=logger)
         self._field = weakref.ref(field)
         return field
 
 
     def getKField(self, min_size=0, max_size=None, split_method=None, brute=False,
-                  max_top=10, coords=None, logger=None):
+                  min_top=3, max_top=10, coords=None, logger=None):
         """Return a KField based on the k values in this catalog.
 
         The KField object is cached, so this is efficient to call multiple times.
@@ -1140,6 +1142,8 @@ class Catalog(object):
                             (default: 'mean'; this value can also be given in the Catalog
                             constructor in the config dict.)
         :param brute        Whether to force traversal to the leaves. (default: False)
+        :param min_top:     The minimum number of top layers to use when setting up the
+                            field. (default: 3)
         :param max_top:     The maximum number of top layers to use when setting up the
                             field. (default: 10)
         :param coords       The kind of coordinate system to use. (default self.coords)
@@ -1153,14 +1157,14 @@ class Catalog(object):
             raise AttributeError("k is not defined.")
         if logger is None:
             logger = self.logger
-        field = self.kfields(min_size, max_size, split_method, brute, max_top, coords,
+        field = self.kfields(min_size, max_size, split_method, brute, min_top, max_top, coords,
                              logger=logger)
         self._field = weakref.ref(field)
         return field
 
 
     def getGField(self, min_size=0, max_size=None, split_method=None, brute=False,
-                  max_top=10, coords=None, logger=None):
+                  min_top=3, max_top=10, coords=None, logger=None):
         """Return a GField based on the g1,g2 values in this catalog.
 
         The GField object is cached, so this is efficient to call multiple times.
@@ -1172,6 +1176,8 @@ class Catalog(object):
                             (default: 'mean'; this value can also be given in the Catalog
                             constructor in the config dict.)
         :param brute        Whether to force traversal to the leaves. (default: False)
+        :param min_top:     The minimum number of top layers to use when setting up the
+                            field. (default: 3)
         :param max_top:     The maximum number of top layers to use when setting up the
                             field. (default: 10)
         :param coords       The kind of coordinate system to use. (default self.coords)
@@ -1185,7 +1191,7 @@ class Catalog(object):
             raise AttributeError("g1,g2 are not defined.")
         if logger is None:
             logger = self.logger
-        field = self.gfields(min_size, max_size, split_method, brute, max_top, coords,
+        field = self.gfields(min_size, max_size, split_method, brute, min_top, max_top, coords,
                              logger=logger)
         self._field = weakref.ref(field)
         return field

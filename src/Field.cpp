@@ -25,7 +25,7 @@
 template <int D, int C>
 void SetupTopLevelCells(
     std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& celldata,
-    double maxsizesq, SplitMethod sm, size_t start, size_t end, int maxtop,
+    double maxsizesq, SplitMethod sm, size_t start, size_t end, int mintop, int maxtop,
     std::vector<CellData<D,C>*>& top_data,
     std::vector<double>& top_sizesq,
     std::vector<size_t>& top_start, std::vector<size_t>& top_end)
@@ -53,7 +53,7 @@ void SetupTopLevelCells(
         xdbg<<"size = "<<sqrt(sizesq)<<std::endl;
     }
 
-    if (sizesq <= maxsizesq) {
+    if (sizesq == 0 || (sizesq <= maxsizesq && mintop<=0)) {
         xdbg<<"Small enough.  Make a cell.\n";
         if (end-start > 1) ave->finishAverages(celldata,start,end);
         top_data.push_back(ave);
@@ -70,9 +70,9 @@ void SetupTopLevelCells(
     } else {
         size_t mid = SplitData(celldata,sm,start,end,ave->getPos());
         xdbg<<"Too big.  Recurse with mid = "<<mid<<std::endl;
-        SetupTopLevelCells(celldata, maxsizesq, sm, start, mid, maxtop-1,
+        SetupTopLevelCells(celldata, maxsizesq, sm, start, mid, mintop-1, maxtop-1,
                            top_data, top_sizesq, top_start, top_end);
-        SetupTopLevelCells(celldata, maxsizesq, sm, mid, end, maxtop-1,
+        SetupTopLevelCells(celldata, maxsizesq, sm, mid, end, mintop-1, maxtop-1,
                            top_data, top_sizesq, top_start, top_end);
     }
 }
@@ -164,7 +164,7 @@ Field<D,C>::Field(
     double* x, double* y, double* z, double* g1, double* g2, double* k,
     double* w, double* wpos, long nobj,
     double minsize, double maxsize,
-    int sm_int, bool brute, int maxtop)
+    int sm_int, bool brute, int mintop, int maxtop)
 {
     //set_verbose(2);
     dbg<<"Starting to Build Field with "<<nobj<<" objects\n";
@@ -217,7 +217,7 @@ Field<D,C>::Field(
     std::vector<size_t> top_end;
 
     // Setup the top level cells:
-    SetupTopLevelCells(celldata,maxsizesq,sm,0,celldata.size(),maxtop,
+    SetupTopLevelCells(celldata,maxsizesq,sm,0,celldata.size(),mintop,maxtop,
                        top_data,top_sizesq,top_start,top_end);
     const ptrdiff_t n = top_data.size();
     dbg<<"Field has "<<n<<" top-level nodes.  Building lower nodes...\n";
@@ -424,7 +424,7 @@ template <int D>
 void* BuildField(double* x, double* y, double* z, double* g1, double* g2, double* k,
                  double* w, double* wpos, long nobj,
                  double minsize, double maxsize,
-                 int sm_int, int brute, int maxtop, int coords)
+                 int sm_int, int brute, int mintop, int maxtop, int coords)
 {
     dbg<<"Start BuildField "<<D<<"  "<<coords<<std::endl;
     void* field=0;
@@ -434,19 +434,19 @@ void* BuildField(double* x, double* y, double* z, double* g1, double* g2, double
            field = static_cast<void*>(new Field<D,Flat>(x, y, 0, g1, g2, k,
                                                         w, wpos, nobj,
                                                         minsize, maxsize,
-                                                        sm_int, bool(brute), maxtop));
+                                                        sm_int, bool(brute), mintop, maxtop));
            break;
       case Sphere:
            field = static_cast<void*>(new Field<D,Sphere>(x, y, z, g1, g2, k,
                                                           w, wpos, nobj,
                                                           minsize, maxsize,
-                                                          sm_int, bool(brute), maxtop));
+                                                          sm_int, bool(brute), mintop, maxtop));
            break;
       case ThreeD:
            field = static_cast<void*>(new Field<D,ThreeD>(x, y, z, g1, g2, k,
                                                           w, wpos, nobj,
                                                           minsize, maxsize,
-                                                          sm_int, bool(brute), maxtop));
+                                                          sm_int, bool(brute), mintop, maxtop));
            break;
     }
     xdbg<<"field = "<<field<<std::endl;
@@ -456,29 +456,32 @@ void* BuildField(double* x, double* y, double* z, double* g1, double* g2, double
 void* BuildGField(double* x, double* y, double* z, double* g1, double* g2,
                   double* w, double* wpos, long nobj,
                   double minsize, double maxsize,
-                  int sm_int, int brute, int maxtop, int coords)
+                  int sm_int, int brute, int mintop, int maxtop, int coords)
 {
     // Note: Use w for k, since we access k[i], even though value will be ignored.
-    return BuildField<GData>(x,y,z, g1,g2,w, w,wpos,nobj, minsize,maxsize, sm_int,brute,maxtop,coords);
+    return BuildField<GData>(x,y,z, g1,g2,w, w,wpos,nobj, minsize,maxsize, sm_int,
+                             brute,mintop,maxtop,coords);
 }
 
 
 void* BuildKField(double* x, double* y, double* z, double* k,
                   double* w, double* wpos, long nobj,
                   double minsize, double maxsize,
-                  int sm_int, int brute, int maxtop, int coords)
+                  int sm_int, int brute, int mintop, int maxtop, int coords)
 {
     // Note: Use w for g1,g2, since we access g1[i],g2[i] even though values are ignored.
-    return BuildField<KData>(x,y,z, w,w,k, w,wpos,nobj, minsize,maxsize, sm_int,brute,maxtop,coords);
+    return BuildField<KData>(x,y,z, w,w,k, w,wpos,nobj, minsize,maxsize, sm_int,
+                             brute,mintop,maxtop,coords);
 }
 
 void* BuildNField(double* x, double* y, double* z,
                   double* w, double* wpos, long nobj,
                   double minsize, double maxsize,
-                  int sm_int, int brute, int maxtop, int coords)
+                  int sm_int, int brute, int mintop, int maxtop, int coords)
 {
     // Note: Use w for g1,g2,k for same reasons as above.
-    return BuildField<NData>(x,y,z, w,w,w, w,wpos,nobj, minsize,maxsize, sm_int,brute,maxtop,coords);
+    return BuildField<NData>(x,y,z, w,w,w, w,wpos,nobj, minsize,maxsize, sm_int,
+                             brute,mintop,maxtop,coords);
 }
 
 template <int D>

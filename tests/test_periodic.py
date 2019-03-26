@@ -49,8 +49,8 @@ def test_direct_count():
     bin_size = (log_max_sep - log_min_sep) / nbins
     for i in range(ngal):
         for j in range(ngal):
-            dx = (x1[i]-x2[j]+Lx/2) % Lx - Lx/2
-            dy = (y1[i]-y2[j]+Ly/2) % Ly - Ly/2
+            dx = min(abs(x1[i]-x2[j]), Lx - abs(x1[i]-x2[j]))
+            dy = min(abs(y1[i]-y2[j]), Ly - abs(y1[i]-y2[j]))
             rsq = dx**2 + dy**2
             logr = 0.5 * np.log(rsq)
             k = int(np.floor( (logr-log_min_sep) / bin_size ))
@@ -136,9 +136,9 @@ def test_direct_3d():
     bin_size = (log_max_sep - log_min_sep) / nbins
     for i in range(ngal):
         for j in range(ngal):
-            dx = (x1[i]-x2[j]+Lx/2) % Lx - Lx/2
-            dy = (y1[i]-y2[j]+Ly/2) % Ly - Ly/2
-            dz = (z1[i]-z2[j]+Lz/2) % Lz - Lz/2
+            dx = min(abs(x1[i]-x2[j]), Lx - abs(x1[i]-x2[j]))
+            dy = min(abs(y1[i]-y2[j]), Ly - abs(y1[i]-y2[j]))
+            dz = min(abs(z1[i]-z2[j]), Lz - abs(z1[i]-z2[j]))
             rsq = dx**2 + dy**2 + dz**2
             logr = 0.5 * np.log(rsq)
             k = int(np.floor( (logr-log_min_sep) / bin_size ))

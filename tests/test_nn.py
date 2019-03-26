@@ -1305,6 +1305,23 @@ def test_nn():
     # that it is everywhere < 0.1 is still appropriate.
     np.testing.assert_allclose(simple_xi, true_xi, rtol=0.1*tol_factor)
 
+    # This is one of the few tests we have where it doesn't by default max out the top layers.
+    # So check that min_top actually does something.
+    print('d top = ',cat.field.nTopLevelNodes)
+    print('r top = ',rand.field.nTopLevelNodes)
+    assert cat.field.nTopLevelNodes == 321
+    assert rand.field.nTopLevelNodes == 1024
+    dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+                                min_top=9)
+    dd2.process(cat)
+    print('d top = ',cat.field.nTopLevelNodes)
+    assert cat.field.nTopLevelNodes == 572
+    dd3 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+                                min_top=10)
+    dd3.process(cat)
+    print('d top = ',cat.field.nTopLevelNodes)
+    assert cat.field.nTopLevelNodes == 1024
+
     # Check that we get the same result using the corr2 function:
     cat.write(os.path.join('data','nn_data.dat'))
     rand.write(os.path.join('data','nn_rand.dat'))

@@ -59,7 +59,7 @@ def test_count_near():
     assert t3-t2 < t1-t0
 
     # Check G and K with other allowed argument patterns.
-    kfield = cat.getKField(min_size=0.01, max_size=sep)
+    kfield = cat.getKField(min_size=0.01, max_size=sep, min_top=5)
     gfield = cat.getGField(min_size=0.05, max_size=sep, max_top=2)
     n4 = kfield.count_near(x0, y0, sep=sep)
     n5 = gfield.count_near(x0, y0, sep)
@@ -94,7 +94,7 @@ def test_count_near():
     assert t3-t2 < t1-t0
 
     # Check G and K with other allowed argument patterns.
-    kfield = cat.getKField(min_size=0.01, max_size=sep)
+    kfield = cat.getKField(min_size=0.01, max_size=sep, min_top=5)
     gfield = cat.getGField(min_size=0.05, max_size=sep, max_top=2)
     n4 = kfield.count_near(x0, y0, z0, sep=sep)
     n5 = gfield.count_near(x0, y0, z0, sep)
@@ -146,7 +146,7 @@ def test_count_near():
     assert t3-t2 < t1-t0
 
     # Check G and K with other allowed argument patterns.
-    kfield = cat.getKField(min_size=0.01, max_size=0.1)
+    kfield = cat.getKField(min_size=0.01, max_size=0.1, min_top=5)
     gfield = cat.getGField(max_size=0.05, max_top=2)
     n4 = kfield.count_near(ra=c.ra/coord.degrees, dec=c.dec/coord.degrees,
                            ra_units='deg', dec_units='deg', sep=sep, sep_units='rad')
@@ -212,7 +212,7 @@ def test_get_near():
     #assert t3-t2 < t1-t0  # but not by much and not always.  So don't require it in unit test.
 
     # Check G and K
-    kfield = cat.getKField(min_size=0.01, max_size=sep)
+    kfield = cat.getKField(min_size=0.01, max_size=sep, min_top=5)
     gfield = cat.getGField(min_size=0.05, max_size=sep, max_top=2)
     i4 = kfield.get_near(x0, y0, sep=sep)
     i5 = gfield.get_near(x0, y0, sep=sep)
@@ -247,7 +247,7 @@ def test_get_near():
     #assert t3-t2 < t1-t0
 
     # Check G and K
-    kfield = cat.getKField(min_size=0.01, max_size=sep)
+    kfield = cat.getKField(min_size=0.01, max_size=sep, min_top=5)
     gfield = cat.getGField(min_size=0.05, max_size=sep, max_top=2)
     i4 = kfield.get_near(c, r0, sep)
     i5 = gfield.get_near(c.ra, c.dec, r0, sep=sep)
@@ -282,7 +282,7 @@ def test_get_near():
     #assert t3-t2 < t1-t0
 
     # Check G and K with other allowed argument patterns.
-    kfield = cat.getKField(min_size=0.01, max_size=sep)
+    kfield = cat.getKField(min_size=0.01, max_size=sep, min_top=5)
     gfield = cat.getGField(min_size=0.05, max_size=sep, max_top=2)
     i4 = gfield.get_near(c, sep*coord.radians/coord.degrees, sep_units='deg')
     i5 = kfield.get_near(c.ra, c.dec, sep*coord.radians)

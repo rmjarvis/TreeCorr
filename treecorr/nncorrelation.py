@@ -97,7 +97,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
         # rather than being able to rely on the Python memory manager.
         # In case __init__ failed to get that far
         if hasattr(self,'corr'):  # pragma: no branch
-            treecorr._lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
+            if not treecorr._ffi._lock.locked(): # pragma: no branch
+                treecorr._lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
 
     def __eq__(self, other):
         return (isinstance(other, NNCorrelation) and

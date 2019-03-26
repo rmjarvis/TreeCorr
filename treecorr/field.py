@@ -272,7 +272,11 @@ class NField(Field):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            treecorr._lib.DestroyNField(self.data, self._coords)
+            # I don't get this, but sometimes it gets here when the fft.lock is already locked.
+            # When that happens, this will freeze in a `with ffi._lock` line in the ffi api.py.
+            # So, don't do that, and just accept the memory leak instead.
+            if not treecorr._ffi._lock.locked(): # pragma: no branch
+                treecorr._lib.DestroyNField(self.data, self._coords)
 
 
 class KField(Field):
@@ -328,7 +332,8 @@ class KField(Field):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            treecorr._lib.DestroyKField(self.data, self._coords)
+            if not treecorr._ffi._lock.locked(): # pragma: no branch
+                treecorr._lib.DestroyKField(self.data, self._coords)
 
 
 class GField(Field):
@@ -384,7 +389,8 @@ class GField(Field):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            treecorr._lib.DestroyGField(self.data, self._coords)
+            if not treecorr._ffi._lock.locked(): # pragma: no branch
+                treecorr._lib.DestroyGField(self.data, self._coords)
 
 
 class SimpleField(object):
@@ -436,7 +442,8 @@ class NSimpleField(SimpleField):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            treecorr._lib.DestroyNSimpleField(self.data, self._coords)
+            if not treecorr._ffi._lock.locked(): # pragma: no branch
+                treecorr._lib.DestroyNSimpleField(self.data, self._coords)
 
 
 class KSimpleField(SimpleField):
@@ -473,7 +480,8 @@ class KSimpleField(SimpleField):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            treecorr._lib.DestroyKSimpleField(self.data, self._coords)
+            if not treecorr._ffi._lock.locked(): # pragma: no branch
+                treecorr._lib.DestroyKSimpleField(self.data, self._coords)
 
 
 class GSimpleField(SimpleField):
@@ -510,5 +518,6 @@ class GSimpleField(SimpleField):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            treecorr._lib.DestroyGSimpleField(self.data, self._coords)
+            if not treecorr._ffi._lock.locked(): # pragma: no branch
+                treecorr._lib.DestroyGSimpleField(self.data, self._coords)
 

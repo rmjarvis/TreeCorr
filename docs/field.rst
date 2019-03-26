@@ -1,6 +1,12 @@
 Fields
 ======
 
+Field
+-----
+
+.. autoclass:: treecorr.Field
+    :members:
+
 NField
 ------
 

@@ -56,8 +56,8 @@ class Field(object):
 
     Finally, the `split_method` parameter sets how the points in a cell should be divided
     when forming the two daughter cells.  The split is always done according to whichever
-    dimension has the largest extent.  E.g. if max(|x - meanx|) is larger than max(|y - meany|)
-    and (for 3d) max(|z - meanz|), then it will split according to the x values.  But then
+    dimension has the largest extent.  E.g. if max(\|x - meanx\|) is larger than max(\|y - meany\|)
+    and (for 3d) max(\|z - meanz\|), then it will split according to the x values.  But then
     it may split in different ways according to `split_method`.  The allowed values are::
 
         - 'mean' means to divide the points at the average (mean) value of x, y or z.

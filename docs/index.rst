@@ -13,7 +13,6 @@ TreeCorr Documentation
    bintype
    correlation2
    correlation3
-   celestial
    corr2
    changes
    history

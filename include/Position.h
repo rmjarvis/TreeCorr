@@ -97,6 +97,14 @@ public:
     void write(std::ostream& fout) const
     { fout << _x << " " << _y << " "; }
 
+    void wrap(const double xp, const double yp)
+    {
+        while (_x > xp/2.) _x -= xp;
+        while (_x < -xp/2.) _x += xp;
+        while (_y > yp/2.) _y -= yp;
+        while (_y < -yp/2.) _y += yp;
+    }
+
 protected:
     void resetNorm() { _normsq = _norm = 0.; }
 
@@ -180,6 +188,16 @@ public:
     { Position<ThreeD> p1 = *this; p1 *= a; return p1; }
     Position<ThreeD> operator/(double a) const
     { Position<ThreeD> p1 = *this; p1 /= a; return p1; }
+
+    void wrap(const double xp, const double yp, const double zp)
+    {
+        while (_x > xp/2.) _x -= xp;
+        while (_x < -xp/2.) _x += xp;
+        while (_y > yp/2.) _y -= yp;
+        while (_y < -yp/2.) _y += yp;
+        while (_z > zp/2.) _z -= zp;
+        while (_z < -zp/2.) _z += zp;
+    }
 
     void read(std::istream& fin)
     { fin >> _x >> _y >> _z; resetNorm(); }

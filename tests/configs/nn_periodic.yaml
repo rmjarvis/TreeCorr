@@ -1,0 +1,22 @@
+
+file_name: data/nn_periodic_data1.dat
+file_name2: data/nn_periodic_data2.dat
+rand_file_name: data/nn_periodic_rand1.dat
+rand_file_name2: data/nn_periodic_rand2.dat
+
+x_col: 1
+y_col: 2
+
+verbose: 0
+
+min_sep: 1.
+max_sep: 50.
+nbins: 50
+xperiod: 50
+yperiod: 80
+
+bin_slop: 0
+metric: Periodic
+
+nn_statistic: simple
+nn_file_name: output/nn_periodic.out

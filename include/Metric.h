@@ -665,7 +665,9 @@ struct MetricHelper<Periodic>
     double DistSq(const Position<Flat>& p1, const Position<Flat>& p2,
                   double& s1, double& s2) const
     {
+        // Mostly the changes here are just to wrap each difference given the periods.
         Position<Flat> r = p1-p2;
+        r.wrap(xp, yp);
         return r.normSq();
     }
     double Dist(const Position<Flat>& p1, const Position<Flat>& p2) const
@@ -679,6 +681,8 @@ struct MetricHelper<Periodic>
         // If cross product r21 x r31 > 0, then the points are counter-clockwise.
         Position<Flat> r21 = p2 - p1;
         Position<Flat> r31 = p3 - p1;
+        r21.wrap(xp, yp);
+        r31.wrap(xp, yp);
         return r21.cross(r31) > 0.;
     }
 
@@ -720,6 +724,7 @@ struct MetricHelper<Periodic>
                   double& s1, double& s2) const
     {
         Position<ThreeD> r = p1-p2;
+        r.wrap(xp, yp, zp);
         return r.normSq();
     }
     double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
@@ -737,6 +742,8 @@ struct MetricHelper<Periodic>
         // We check this last point by the dot product with p1.
         Position<ThreeD> r21 = p2-p1;
         Position<ThreeD> r31 = p3-p1;
+        r21.wrap(xp, yp, zp);
+        r31.wrap(xp, yp, zp);
         return r21.cross(r31).dot(p1) < 0.;
     }
 

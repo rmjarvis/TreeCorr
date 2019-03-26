@@ -1679,8 +1679,9 @@ def test_list():
     np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-2)
 
     # Repeat with exe to test -f flag
-    p = subprocess.Popen( [corr2_exe, "-f", "yaml", "configs/nn_list4.config", "verbose=0"] )
+    p = subprocess.Popen( [corr2_exe, "-f", "yaml", "configs/nn_list4.config", "verbose=3"] )
     p.communicate()
+    print('finished corr2_exe')
     corr2_output = np.genfromtxt(os.path.join('output','nn_list4.out'),names=True,skip_header=1)
     print('xi = ',xi)
     print('from corr2 output = ',corr2_output['xi'])

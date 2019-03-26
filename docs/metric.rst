@@ -168,3 +168,32 @@ they are not required.  You may just provide (ra,dec) coordinates for the source
 However, if you want to use the ``min_rpar`` or ``max_rpar`` options, then
 the source coordinates need to include r.
 
+"Periodic"
+----------
+
+This metric is equivalent to the Euclidean metric for either 2-d or 3-d coordinate systems,
+except that the space is given periodic boundaries, and the distance between two
+points is taken to be the *smallest* distance in the periodically repeating space.
+It is invalid for Spherical coordinates.
+
+When constructing the correlation object, you need to set ``period`` if the period is the
+same in each direction.  Or if you want different periods in each direction, you can
+set ``xperiod``, ``yperiod``, and (if 3-d) ``zperiod`` individually.
+We call these periods :math:`L_x`, :math:`L_y`, and :math:`L_z` below.
+
+The distance is defined as
+
+.. math::
+
+    dx &= \min \left(|x_2 - x_1|, L_x - |x_2-x_1| \right) \\
+    dy &= \min \left(|y_2 - y_1|, L_y - |y_2-y_1| \right) \\
+    dz &= \min \left(|z_2 - z_1|, L_z - |z_2-z_1| \right)
+
+.. math::
+    d_{\rm Periodic} = \sqrt{dx^2 + dy^2 + dz^2}
+
+Of course, for 2-dimensional coordinate systems, :math:`dz = 0`.
+
+This metric is particularly relevant for data generated from N-body simuluations, which
+often use periodic boundary conditions.
+

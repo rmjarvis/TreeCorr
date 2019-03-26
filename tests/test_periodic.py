@@ -308,8 +308,176 @@ def test_halotools():
     np.testing.assert_allclose(np.cumsum(corr.npairs).astype(int), result[1:], rtol=0.01)
 
 
+def wrap(x1, x2, xp, x3):
+    if x2 > x1:
+        if (x1+xp - x2 < x2 - x1):
+            if abs(x2-xp-x3) > abs(x1+xp-x3):
+                return x1+xp, x2
+            else:
+                return x1, x2-xp
+        else: return x1, x2
+    else:
+        if (x2+xp - x1 < x1 - x2):
+            if abs(x2+xp-x3) > abs(x1-xp-x3):
+                return x1-xp, x2
+            else:
+                return x1, x2+xp
+        else: return x1, x2
+
+def test_3pt():
+    # Test a direct calculation of the 3pt function with the Periodic metric.
+
+    from test_nnn import is_ccw
+
+    ngal = 50
+    Lx = 250.
+    Ly = 180.
+    rng = np.random.RandomState(8675309)
+    x = (rng.random_sample(ngal)-0.5) * Lx
+    y = (rng.random_sample(ngal)-0.5) * Ly
+    cat = treecorr.Catalog(x=x, y=y)
+
+    min_sep = 1.
+    max_sep = 40.  # This only really makes sense if max_sep < L/4 for all L.
+    nbins = 50
+    min_u = 0.13
+    max_u = 0.89
+    nubins = 10
+    min_v = -0.83
+    max_v = 0.59
+    nvbins = 20
+
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, xperiod=Lx, yperiod=Ly, brute=True)
+    ddd.process(cat, metric='Periodic', num_threads=1)
+    #print('ddd.ntri = ',ddd.ntri)
+
+    log_min_sep = np.log(min_sep)
+    log_max_sep = np.log(max_sep)
+    true_ntri = np.zeros( (nbins, nubins, nvbins) )
+    bin_size = (log_max_sep - log_min_sep) / nbins
+    ubin_size = (max_u-min_u) / nubins
+    vbin_size = (max_v-min_v) / nvbins
+    for i in range(ngal):
+        for j in range(i+1,ngal):
+            for k in range(j+1,ngal):
+                xi = x[i]
+                xj = x[j]
+                xk = x[k]
+                yi = y[i]
+                yj = y[j]
+                yk = y[k]
+                #print(i,j,k,xi,yi,xj,yj,xk,yk)
+                xi,xj = wrap(xi, xj, Lx, xk)
+                #print('  ',xi,xj,xk)
+                xi,xk = wrap(xi, xk, Lx, xj)
+                #print('  ',xi,xj,xk)
+                xj,xk = wrap(xj, xk, Lx, xi)
+                #print('  ',xi,xj,xk)
+                yi,yj = wrap(yi, yj, Ly, yk)
+                #print('  ',yi,yj,yk)
+                yi,yk = wrap(yi, yk, Ly, yj)
+                #print('  ',yi,yj,yk)
+                yj,yk = wrap(yj, yk, Ly, yi)
+                #print('  ',yi,yj,yk)
+                #print('->',xi,yi,xj,yj,xk,yk)
+                dij = np.sqrt((xi-xj)**2 + (yi-yj)**2)
+                dik = np.sqrt((xi-xk)**2 + (yi-yk)**2)
+                djk = np.sqrt((xj-xk)**2 + (yj-yk)**2)
+                if dij == 0.: continue
+                if dik == 0.: continue
+                if djk == 0.: continue
+                ccw = True
+                if dij < dik:
+                    if dik < djk:
+                        d3 = dij; d2 = dik; d1 = djk;
+                        ccw = is_ccw(xi,yi,xj,yj,xk,yk)
+                    elif dij < djk:
+                        d3 = dij; d2 = djk; d1 = dik;
+                        ccw = is_ccw(xj,yj,xi,yi,xk,yk)
+                    else:
+                        d3 = djk; d2 = dij; d1 = dik;
+                        ccw = is_ccw(xj,yj,xk,yk,xi,yi)
+                else:
+                    if dij < djk:
+                        d3 = dik; d2 = dij; d1 = djk;
+                        ccw = is_ccw(xi,yi,xk,yk,xj,yj)
+                    elif dik < djk:
+                        d3 = dik; d2 = djk; d1 = dij;
+                        ccw = is_ccw(xk,yk,xi,yi,xj,yj)
+                    else:
+                        d3 = djk; d2 = dik; d1 = dij;
+                        ccw = is_ccw(xk,yk,xj,yj,xi,yi)
+
+                #print('d1,d2,d3 = ',d1,d2,d3)
+                r = d2
+                u = d3/d2
+                v = (d1-d2)/d3
+                if not ccw:
+                    v = -v
+                #print('r,u,v = ',r,u,v)
+                kr = int(np.floor( (np.log(r)-log_min_sep) / bin_size ))
+                ku = int(np.floor( (u-min_u) / ubin_size ))
+                kv = int(np.floor( (v-min_v) / vbin_size ))
+                #print('kr,ku,kv = ',kr,ku,kv)
+                if kr < 0: continue
+                if kr >= nbins: continue
+                if ku < 0: continue
+                if ku >= nubins: continue
+                if kv < 0: continue
+                if kv >= nvbins: continue
+                true_ntri[kr,ku,kv] += 1
+                #print('good.', true_ntri[kr,ku,kv])
+
+
+    #print('true_ntri => ',true_ntri)
+    #print('diff = ',ddd.ntri - true_ntri)
+    mask = np.where(true_ntri > 0)
+    #print('ddd.ntri[mask] = ',ddd.ntri[mask])
+    #print('true_ntri[mask] = ',true_ntri[mask])
+    #print('diff[mask] = ',(ddd.ntri - true_ntri)[mask])
+    mask2 = np.where(ddd.ntri > 0)
+    #print('ddd.ntri[mask2] = ',ddd.ntri[mask2])
+    #print('true_ntri[mask2] = ',true_ntri[mask2])
+    #print('diff[mask2] = ',(ddd.ntri - true_ntri)[mask2])
+    np.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # If don't give a period, then an error.
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins)
+    with assert_raises(ValueError):
+        ddd.process(cat, metric='Periodic')
+
+    # Or if only give one kind of period
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  xperiod=3)
+    with assert_raises(ValueError):
+        ddd.process(cat, metric='Periodic')
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  yperiod=3)
+    with assert_raises(ValueError):
+        ddd.process(cat, metric='Periodic')
+
+    # If give period, but then don't use Periodic metric, that's also an error.
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  period=3)
+    with assert_raises(ValueError):
+        ddd.process(cat)
+
+
+
 if __name__ == '__main__':
     test_direct_count()
     test_direct_3d()
     test_periodic_ps()
     test_halotools()
+    test_3pt()

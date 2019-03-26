@@ -993,6 +993,9 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
                 Assert(kv >= 0);
                 Assert(kv < _nvbins);
 
+                xdbg<<"d1,d2,d3 = "<<d1<<", "<<d2<<", "<<d3<<std::endl;
+                xdbg<<"r,u,v = "<<d2<<", "<<u<<", "<<v<<std::endl;
+                xdbg<<"kr,ku,kv = "<<kr<<", "<<ku<<", "<<kv<<std::endl;
                 int index = kr * _nuv + ku * _nvbins + kv;
                 Assert(index >= 0);
                 Assert(index < _ntot);
@@ -1000,6 +1003,7 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
                 // asserts aren't active in normal operations), do a real check that
                 // index is in the allowed range.
                 if (index < 0 || index >= _ntot) return;
+                xdbg<<"good index\n";
                 directProcess111<C,M>(*c1,*c2,*c3,d1,d2,d3,logr,u,v,index);
             }
         }
@@ -1081,6 +1085,7 @@ void BinnedCorr3<D1,D2,D3,B>::directProcess111(
     _ntri[index] += nnn;
     xdbg<<"            index = "<<index<<std::endl;
     xdbg<<"            nnn = "<<nnn<<std::endl;
+    xdbg<<"            ntri = "<<_ntri[index]<<std::endl;
 
     double www = double(c1.getData().getW()) * double(c2.getData().getW()) *
         double(c3.getData().getW());

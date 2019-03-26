@@ -1109,12 +1109,12 @@ class Catalog(object):
         :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                             (default: 'mean'; this value can also be given in the Catalog
                             constructor in the config dict.)
-        :param brute        Whether to force traversal to the leaves. (default: False)
+        :param brute:       Whether to force traversal to the leaves. (default: False)
         :param min_top:     The minimum number of top layers to use when setting up the
                             field. (default: 3)
         :param max_top:     The maximum number of top layers to use when setting up the
                             field. (default: 10)
-        :param coords       The kind of coordinate system to use. (default: self.coords)
+        :param coords:      The kind of coordinate system to use. (default: self.coords)
         :param logger:      A logger file if desired (default: self.logger)
 
         :returns:           A :class:`~treecorr.NField` object
@@ -1141,12 +1141,12 @@ class Catalog(object):
         :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                             (default: 'mean'; this value can also be given in the Catalog
                             constructor in the config dict.)
-        :param brute        Whether to force traversal to the leaves. (default: False)
+        :param brute:       Whether to force traversal to the leaves. (default: False)
         :param min_top:     The minimum number of top layers to use when setting up the
                             field. (default: 3)
         :param max_top:     The maximum number of top layers to use when setting up the
                             field. (default: 10)
-        :param coords       The kind of coordinate system to use. (default self.coords)
+        :param coords:      The kind of coordinate system to use. (default self.coords)
         :param logger:      A logger file if desired (default: self.logger)
 
         :returns:           A :class:`~treecorr.KField` object
@@ -1175,12 +1175,12 @@ class Catalog(object):
         :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
                             (default: 'mean'; this value can also be given in the Catalog
                             constructor in the config dict.)
-        :param brute        Whether to force traversal to the leaves. (default: False)
+        :param brute:       Whether to force traversal to the leaves. (default: False)
         :param min_top:     The minimum number of top layers to use when setting up the
                             field. (default: 3)
         :param max_top:     The maximum number of top layers to use when setting up the
                             field. (default: 10)
-        :param coords       The kind of coordinate system to use. (default self.coords)
+        :param coords:      The kind of coordinate system to use. (default self.coords)
         :param logger:      A logger file if desired (default: self.logger)
 
         :returns:           A :class:`~treecorr.GField` object

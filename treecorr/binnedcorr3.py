@@ -124,6 +124,7 @@ class BinnedCorr3(object):
                         - False (the default): Stop at non-leaf cells whenever the error in the
                           separation is compatible with the given bin_slop.
                         - True: Go to the leaves for all catalogs.
+
                         (The number options allowed for 2pt correlations are not enabled here.)
 
     :param verbose:     If no logger is provided, this will optionally specify a logging level to

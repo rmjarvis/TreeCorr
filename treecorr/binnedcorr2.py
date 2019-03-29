@@ -127,8 +127,8 @@ class BinnedCorr2(object):
     :param verbose:     If no logger is provided, this will optionally specify a logging level to
                         use:
 
-                        - 0 means no logging output (default)
-                        - 1 means to output warnings only
+                        - 0 means no logging output
+                        - 1 means to output warnings only (default)
                         - 2 means to output various progress information
                         - 3 means to output extensive debugging information
 
@@ -246,7 +246,7 @@ class BinnedCorr2(object):
         self.config = treecorr.config.merge_config(config,kwargs,BinnedCorr2._valid_params)
         if logger is None:
             self.logger = treecorr.config.setup_logger(
-                    treecorr.config.get(self.config,'verbose',int,0),
+                    treecorr.config.get(self.config,'verbose',int,1),
                     self.config.get('log_file',None))
         else:
             self.logger = logger
@@ -254,7 +254,7 @@ class BinnedCorr2(object):
         if 'output_dots' in self.config:
             self.output_dots = treecorr.config.get(self.config,'output_dots',bool)
         else:
-            self.output_dots = treecorr.config.get(self.config,'verbose',int,0) >= 2
+            self.output_dots = treecorr.config.get(self.config,'verbose',int,1) >= 2
 
         self.bin_type = self.config.get('bin_type', None)
 

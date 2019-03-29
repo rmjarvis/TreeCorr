@@ -472,33 +472,13 @@ def test_gg():
     assert max(abs(gg.xim - true_xim)) < 3.e-7 * tol_factor
     assert max(abs(gg.xim_im)) < 1.e-7 * tol_factor
 
-    # Check MapSq calculation:
-    # cf. http://adsabs.harvard.edu/abs/2004MNRAS.352..338J
-    # Use Crittenden formulation, since the analytic result is simpler:
-    # Map^2(R) = int 1/2 r/R^2 (T+(r/R) xi+(r) + T-(r/R) xi-(r)) dr
-    #          = 6 pi gamma0^2 r0^8 R^4 / (L^2 (r0^2+R^2)^5)
-    # Mx^2(R)  = int 1/2 r/R^2 (T+(r/R) xi+(r) - T-(r/R) xi-(r)) dr
-    #          = 0
-    # where T+(s) = (s^4-16s^2+32)/128 exp(-s^2/4)
-    #       T-(s) = s^4/128 exp(-s^2/4)
-    true_mapsq = 6.*np.pi * gamma0**2 * r0**8 * r**4 / (L**2 * (r**2+r0**2)**5)
+    # We check the accuracy of the MapSq calculation below in test_mapsq.
+    # Here we just check that it runs, round trips correctly through an output file,
+    # and gives the same answer when run through corr2.
 
     mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq()
     print('mapsq = ',mapsq)
-    print('true_mapsq = ',true_mapsq)
-    print('ratio = ',mapsq/true_mapsq)
-    print('diff = ',mapsq-true_mapsq)
-    print('max diff = ',max(abs(mapsq - true_mapsq)))
-    print('max diff[16:] = ',max(abs(mapsq[16:] - true_mapsq[16:])))
-    # It's pretty ratty near the start where the integral is poorly evaluated, but the
-    # agreement is pretty good if we skip the first 16 elements.
-    # Well, it gets bad again at the end, but those values are small enough that they still
-    # pass this test.
-    np.testing.assert_allclose(mapsq[16:], true_mapsq[16:], rtol=0.1 * tol_factor, atol=1.e-9 * tol_factor)
     print('mxsq = ',mxsq)
-    print('max = ',max(abs(mxsq)))
-    print('max[16:] = ',max(abs(mxsq[16:])))
-    np.testing.assert_allclose(mxsq[16:], 0., atol=3.e-8 * tol_factor)
 
     mapsq_file = 'output/gg_m2.txt'
     gg.writeMapSq(mapsq_file, precision=16)
@@ -592,6 +572,100 @@ def test_gg():
     assert gg2.sep_units == gg.sep_units
     assert gg2.bin_type == gg.bin_type
 
+    # Also check the Schneider version.
+    mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq('Schneider')
+    print('Schneider mapsq = ',mapsq)
+    print('mxsq = ',mxsq)
+    print('max = ',max(abs(mxsq)))
+
+    # And GamSq.
+    gamsq, vargamsq = gg.calculateGamSq()
+    print('gamsq = ',gamsq)
+
+    gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_eb = gg.calculateGamSq(eb=True)
+    print('gamsq_e = ',gamsq_e)
+    print('gamsq_b = ',gamsq_b)
+
+    # The Gamsq columns were already output in the above m2_output run of corr2.
+    np.testing.assert_allclose(corr2_output2['Gamsq'], gamsq, rtol=1.e-4)
+
+
+def test_mapsq():
+    # Use the same gamma(r) as in test_gg.
+    # This time, rather than use a smaller catalog in the nosetests run, we skip the run
+    # in that case and just read in the output file.  This way we can test the Map^2 formulae
+    # on the more precise output.
+    # When running from the command line, the output file is made from scratch.
+
+    gamma0 = 0.05
+    r0 = 10.
+    L = 50.*r0
+    cat_name = os.path.join('data','gg_map.dat')
+    out_name = os.path.join('data','gg_map.out')
+    gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1, max_sep=100., sep_units='arcmin',
+                                verbose=1)
+    if __name__ == "__main__":
+        ngal = 1000000
+
+        rng = np.random.RandomState(8675309)
+        x = (rng.random_sample(ngal)-0.5) * L
+        y = (rng.random_sample(ngal)-0.5) * L
+        r2 = (x**2 + y**2)/r0**2
+        g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
+        g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
+
+        cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
+        cat.write(cat_name)
+        gg.process(cat)
+        gg.write(out_name, precision=16)
+    else:
+        gg.read(out_name)
+
+    # Check MapSq calculation:
+    # cf. http://adsabs.harvard.edu/abs/2004MNRAS.352..338J
+    # Use Crittenden formulation, since the analytic result is simpler:
+    # Map^2(R) = int 1/2 r/R^2 (T+(r/R) xi+(r) + T-(r/R) xi-(r)) dr
+    #          = 6 pi gamma0^2 r0^8 R^4 / (L^2 (r0^2+R^2)^5)
+    # Mx^2(R)  = int 1/2 r/R^2 (T+(r/R) xi+(r) - T-(r/R) xi-(r)) dr
+    #          = 0
+    # where T+(s) = (s^4-16s^2+32)/128 exp(-s^2/4)
+    #       T-(s) = s^4/128 exp(-s^2/4)
+    #
+    # Note: Another way to calculate this, which will turn out to be helpful when we do the
+    #       Map^3 calculation in test_ggg.py is as follows:
+    # Map(u,v) = int( g(x,y) * ((u-x) -I(v-y))^2 / ((u-x)^2 + (v-y)^2) * Q(u-x, v-y) )
+    #          = 1/2 gamma0 r0^4 R^2 / (R^2+r0^2)^5 x
+    #                 ((u^2+v^2)^2 - 8 (u^2+v^2) (R^2+r0^2) + 8 (R^2+r0^2)^2) x
+    #                 exp(-1/2 (u^2+v^2) / (R^2+r0^2))
+    # Then, you can directly compute <Map^2>:
+    # <Map^2> = int(Map(u,v)^2, u=-inf..inf, v=-inf..inf) / L^2
+    #         = 6 pi gamma0^2 r0^8 R^4 / (r0^2+R^2)^5 / L^2   (i.e. the same answer as above.)
+    r = gg.meanr
+    true_mapsq = 6.*np.pi * gamma0**2 * r0**8 * r**4 / (L**2 * (r**2+r0**2)**5)
+
+    mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq()
+    print('mapsq = ',mapsq)
+    print('true_mapsq = ',true_mapsq)
+    print('ratio = ',mapsq/true_mapsq)
+    print('diff = ',mapsq-true_mapsq)
+    print('max diff = ',max(abs(mapsq - true_mapsq)))
+    print('max diff[16:] = ',max(abs(mapsq[16:] - true_mapsq[16:])))
+    # It's pretty ratty near the start where the integral is poorly evaluated, but the
+    # agreement is pretty good if we skip the first 16 elements.
+    # Well, it gets bad again at the end, but those values are small enough that they still
+    # pass this test.
+    np.testing.assert_allclose(mapsq[16:], true_mapsq[16:], rtol=0.1, atol=1.e-9)
+    print('mxsq = ',mxsq)
+    print('max = ',max(abs(mxsq)))
+    print('max[16:] = ',max(abs(mxsq[16:])))
+    np.testing.assert_allclose(mxsq[16:], 0., atol=3.e-8)
+
+    mapsq_file = 'output/gg_m2.txt'
+    gg.writeMapSq(mapsq_file, precision=16)
+    data = np.genfromtxt(os.path.join('output','gg_m2.txt'), names=True)
+    np.testing.assert_allclose(data['Mapsq'], mapsq)
+    np.testing.assert_allclose(data['Mxsq'], mxsq)
+
     # Also check the Schneider version.  The math isn't quite as nice here, but it is tractable
     # using a different formula than I used above:
     # Map^2(R) = int k P(k) W(kR) dk
@@ -614,11 +688,11 @@ def test_gg():
     print('max diff = ',max(abs(mapsq - true_mapsq)))
     print('max diff[26:] = ',max(abs(mapsq[26:] - true_mapsq[26:])))
     # This one stays ratty longer, so we need to skip the first 26.
-    np.testing.assert_allclose(mapsq[26:], true_mapsq[26:], rtol=0.1 * tol_factor, atol=1.e-9 * tol_factor)
+    np.testing.assert_allclose(mapsq[26:], true_mapsq[26:], rtol=0.1, atol=1.e-9)
     print('mxsq = ',mxsq)
     print('max = ',max(abs(mxsq)))
     print('max[26:] = ',max(abs(mxsq[26:])))
-    np.testing.assert_allclose(mxsq[26:], 0, atol=3.e-8 * tol_factor)
+    np.testing.assert_allclose(mxsq[26:], 0, atol=3.e-8)
 
     # Finally, check the <gamma^2>(R) calculation.
     # Gam^2(R) = int k P(k) Wth(kR) dk
@@ -635,7 +709,7 @@ def test_gg():
     print('max diff = ',max(abs(gamsq - true_gamsq)))
     print('max rel diff[12:33] = ',max(abs((gamsq[12:33] - true_gamsq[12:33])/true_gamsq[12:33])))
     # This is only close in a narrow range of scales
-    np.testing.assert_allclose(gamsq[12:33], true_gamsq[12:33], rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(gamsq[12:33], true_gamsq[12:33], rtol=0.1)
     # Everywhere else it is less (since integral misses unmeasured power at both ends).
     np.testing.assert_array_less(gamsq, true_gamsq)
 
@@ -649,12 +723,9 @@ def test_gg():
     print('rel diff[6:41] = ',(gamsq_e[6:41] - true_gamsq[6:41])/true_gamsq[6:41])
     print('max rel diff[6:41] = ',max(abs((gamsq_e[6:41] - true_gamsq[6:41])/true_gamsq[6:41])))
     # This is only close in a narrow range of scales
-    np.testing.assert_allclose(gamsq_e[6:41], true_gamsq[6:41], rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(gamsq_e[6:41], true_gamsq[6:41], rtol=0.1)
     print('gamsq_b = ',gamsq_b)
-    np.testing.assert_allclose(gamsq_b[6:41], 0, atol=1.e-6 * tol_factor)
-
-    # The Gamsq columns were already output in the above m2_output run of corr2.
-    np.testing.assert_allclose(corr2_output2['Gamsq'], gamsq, rtol=1.e-4)
+    np.testing.assert_allclose(gamsq_b[6:41], 0, atol=1.e-6)
 
 
 
@@ -925,12 +996,12 @@ def test_aardvark():
         xip_err = gg.xip - bs0_xip
         print('xip_err = ',xip_err)
         print('max = ',max(abs(xip_err)))
-        assert max(abs(xip_err)) < 1.e-8
+        assert max(abs(xip_err)) < 2.e-8
 
         xim_err = gg.xim - bs0_xim
         print('xim_err = ',xim_err)
         print('max = ',max(abs(xim_err)))
-        assert max(abs(xim_err)) < 1.e-8
+        assert max(abs(xim_err)) < 3.e-8
 
 
 def test_shuffle():
@@ -2312,7 +2383,11 @@ def test_varxi():
 
 
 if __name__ == '__main__':
+    test_direct()
+    test_direct_spherical()
+    test_pairwise()
     test_gg()
+    test_mapsq()
     test_spherical()
     test_aardvark()
     test_shuffle()

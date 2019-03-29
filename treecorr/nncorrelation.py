@@ -135,7 +135,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.__dict__ = d
         self._build_corr()
         self.logger = treecorr.config.setup_logger(
-                treecorr.config.get(self.config,'verbose',int,0),
+                treecorr.config.get(self.config,'verbose',int,1),
                 self.config.get('log_file',None))
 
     def __repr__(self):

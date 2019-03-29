@@ -245,8 +245,8 @@ class Catalog(object):
     :param verbose:     If no logger is provided, this will optionally specify a logging level to
                         use.
 
-                        - 0 means no logging output (default)
-                        - 1 means to output warnings only
+                        - 0 means no logging output
+                        - 1 means to output warnings only (default)
                         - 2 means to output various progress information
                         - 3 means to output extensive debugging information
 
@@ -375,7 +375,7 @@ class Catalog(object):
             self.logger = logger
         else:
             self.logger = treecorr.config.setup_logger(
-                    treecorr.config.get(self.config,'verbose',int,0),
+                    treecorr.config.get(self.config,'verbose',int,1),
                     self.config.get('log_file',None))
 
         # Start with everything set to None.  Overwrite as appropriate.
@@ -1375,7 +1375,7 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
     """
     if logger is None:
         logger = treecorr.config.setup_logger(
-                treecorr.config.get(config,'verbose',int,0), config.get('log_file',None))
+                treecorr.config.get(config,'verbose',int,1), config.get('log_file',None))
 
     if key is None and list_key is None:
         raise AttributeError("Must provide either key or list_key")

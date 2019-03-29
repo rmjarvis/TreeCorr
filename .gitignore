@@ -9,17 +9,6 @@
 *.dylib
 *.dll
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
 TreeCorr.egg-info
 dist
 build

@@ -503,7 +503,6 @@ def test_direct_count_auto():
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, verbose=1)
     ddd.process(cat)
-    #print('ddd.ntri = ',ddd.ntri)
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
@@ -558,8 +557,18 @@ def test_direct_count_auto():
                 if kv >= nvbins: continue
                 true_ntri[kr,ku,kv] += 1
 
-    #print('true_ntri => ',true_ntri)
-    #print('diff = ',ddd.ntri - true_ntri)
+    nz = np.where((ddd.ntri > 0) | (true_ntri > 0))
+    print('non-zero at:')
+    print(nz)
+    print('d1 = ',ddd.meand1[nz])
+    print('d2 = ',ddd.meand2[nz])
+    print('d3 = ',ddd.meand3[nz])
+    print('rnom = ',ddd.rnom[nz])
+    print('u = ',ddd.u[nz])
+    print('v = ',ddd.v[nz])
+    print('ddd.ntri = ',ddd.ntri[nz])
+    print('true_ntri = ',true_ntri[nz])
+    print('diff = ',ddd.ntri[nz] - true_ntri[nz])
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # Check that running via the corr3 script works correctly.

@@ -176,7 +176,7 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field, bool dots)
     _coords = C;
     const long n1 = field.getNTopLevel();
     xdbg<<"field has "<<n1<<" top level nodes\n";
-    dbg<<"zeta[0] = "<<_zeta<<std::endl;
+    xdbg<<"zeta[0] = "<<_zeta<<std::endl;
     Assert(n1 > 0);
 
     MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
@@ -204,7 +204,7 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field, bool dots)
                 dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
 #endif
                 xdbg<<"field = \n";
-#ifndef NDEBUG
+#ifdef DEBUGLOGGING
                 if (verbose_level >= 2) c1->WriteTree(get_dbgout());
 #endif
             }
@@ -228,7 +228,7 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field, bool dots)
     }
 #endif
     if (dots) std::cout<<std::endl;
-    dbg<<"zeta[0] -> "<<_zeta<<std::endl;
+    xdbg<<"zeta[0] -> "<<_zeta<<std::endl;
 }
 
 template <int D1, int D2, int D3, int B> template <int C, int M>
@@ -424,7 +424,7 @@ struct SortHelper
             d3sq = metric.DistSq(c1->getData().getPos(), c2->getData().getPos(), s,s);
     }
     static bool stop111(
-        double d1sq, double d2sq, double d3sq, double d2,
+        double d1sq, double d2sq, double d3sq, double& d2,
         double s1, double s2, double s3,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
         double minu, double minusq, double maxu, double maxusq,
@@ -449,6 +449,7 @@ struct SortHelper
         }
 
         // Likewise for d2.
+        d2 = sqrt(d2sq);
         if (d3sq > d2sq && d3sq > SQR(d2 + sums + s1)) {
             xdbg<<"d2 cannot be as large as d3\n";
             return true;
@@ -538,6 +539,7 @@ struct SortHelper
         }
 
         // Stop if any side is exactly 0 and elements are leaves
+        // (This is unusual, but we want to make sure to stop if it happens.)
         if (s2==0 && s3==0 && d1sq == 0) return true;
         if (s1==0 && s3==0 && d2sq == 0) return true;
         if (s1==0 && s2==0 && d3sq == 0) return true;
@@ -597,7 +599,7 @@ struct SortHelper<D,D,D,true,C,M>
         }
     }
     static bool stop111(
-        double d1sq, double d2sq, double d3sq, double d2,
+        double d1sq, double d2sq, double d3sq, double& d2,
         double s1, double s2, double s3,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
         double minu, double minusq, double maxu, double maxusq,
@@ -633,6 +635,7 @@ struct SortHelper<D,D,D,true,C,M>
         // Abort if (d3+s1+s2) / (d2-s1-s3) < minu
         // (d3+s1+s2) < minu * (d2-s1-s3)
         // d3 < minu * (d2-s1-s3) - (s1+s2)
+        d2 = sqrt(d2sq);
         if (minu > 0. && d3sq < minusq*d2sq && d2 > s1+s3) {
             double temp = minu * (d2-s1-s3);
             if (temp > s1+s2 && d3sq < SQR(temp - s1-s2)) {
@@ -694,6 +697,7 @@ struct SortHelper<D,D,D,true,C,M>
         }
 
         // Stop if any side is exactly 0 and elements are leaves
+        // (This is unusual, but we want to make sure to stop if it happens.)
         if (s2==0 && s3==0 && d1sq == 0) return true;
         if (s1==0 && s3==0 && d2sq == 0) return true;
         if (s1==0 && s2==0 && d3sq == 0) return true;
@@ -725,6 +729,10 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
     // Calculate the distances if they aren't known yet, and sort so that d3 < d2 < d1
     SortHelper<D1,D2,D3,sort,C,M>::sort3(c1,c2,c3,metric,d1sq,d2sq,d3sq);
 
+    const double s1 = c1->getSize();
+    const double s2 = c2->getSize();
+    const double s3 = c3->getSize();
+
     xdbg<<"Process111: c1 = "<<c1->getData().getPos()<<"  "<<"  "<<c1->getSize()<<"  "<<c1->getData().getN()<<std::endl;
     xdbg<<"            c2 = "<<c2->getData().getPos()<<"  "<<"  "<<c2->getSize()<<"  "<<c2->getData().getN()<<std::endl;
     xdbg<<"            c3 = "<<c3->getData().getPos()<<"  "<<"  "<<c3->getSize()<<"  "<<c3->getData().getN()<<std::endl;
@@ -732,182 +740,225 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
     Assert(!sort || d1sq >= d2sq);
     Assert(!sort || d2sq >= d3sq);
 
-    const double s1 = c1->getAllSize();
-    const double s2 = c2->getAllSize();
-    const double s3 = c3->getAllSize();
-    const double d2 = sqrt(d2sq);
-
+    // The stopping criteria are different depending on whether we can swap the cells around
+    // when we sort into d1,d2,d3.  So call out to a templated helper function.
+    double d2 = 0.;  // If not stop111, then d2 will be set.
     if (SortHelper<D1,D2,D3,sort,C,M>::stop111(d1sq,d2sq,d3sq,d2,s1,s2,s3,
                                                _minsep,_minsepsq,_maxsep,_maxsepsq,
                                                _minu,_minusq,_maxu,_maxusq,
-                                               _minabsv,_minabsvsq,_maxabsv,_maxabsvsq))
+                                               _minabsv,_minabsvsq,_maxabsv,_maxabsvsq)) {
         return;
+    }
 
-    // For 1,3 decide whether to split on the noraml criteria with s1+s3/d2 < b
-    bool split1 = false, split3 = false;
-    CalcSplitSq(split1,split3,s1,s3,s1+s3,d2sq*_bsq);
+    // Figure out whether we need to split any of the cells.
 
-    // For 2, split if it's possible for d3 to become larger than the largest possible d2 or
-    // if d1 could become smaller than the current smallest possible d2.
-    // i.e. if d3 + s1 + s2 > d2 + s1 + s3 => d3 > d2 - s2 + s3
-    //      or d1 - s2 - s3 < d2 - s1 - s3 => d1 < d2 + s2 - s1
-    const double s2ms1 = s2 - s1;
-    const double s2ms3 = s2 - s3;
-    bool split2 = ( (s2ms3 > 0. && d3sq > SQR(d2 - s2ms3)) ||
-                    (s2ms1 > 0. && d1sq < SQR(d2 + s2ms1)) );
+    // Various quanities that we'll set along the way if we need them.
+    // At the end, if split is false, then all these will be set correctly.
+    double d1=-1., d3=-1., u=-1., v=-1.;
 
-    xdbg<<"r: split = "<<split1<<" "<<split2<<" "<<split3<<std::endl;
+    bool split=false, split1=false, split2=false, split3=false;
 
-    // Now check for splits related to the u value.
-    if (!sort && (d3sq > d2sq || d2sq > d1sq)) {
+    // First decide whether to split c3
+
+    // There are a few places we do a calculation akin to the splitfactor thing for 2pt.
+    // That one was determined empirically to optimize the running time for a particular
+    // (albeit intended to be fairly typical) use case.  Similarly, these are all found
+    // empirically on a particular (GGG) use case with a reasonable choice of separations
+    // and binning.
+    // Note: Since f1=f3=1 seem to be the best choices, I edited the code to not multply by them.
+    //const double factor1 = 0.99;
+    const double factor2 = 0.7;
+    //const double factor3 = 0.99;
+
+    // These are set correctly before they are used.
+    double s1ps2=0., s1ps3=0.;
+    bool d2split=false;
+    bool sortsplit=false;
+
+    split3 = s3 > 0 && (
+        // Check if d2 solution needs a split
+        // This is the same as the normal 2pt splitting check.
+        (s3 > d2 * _b) ||
+        //((s1ps3=s1+s3) > 0. && (s1ps3 > d2 * _b) && (d2split=true, s3 > factor1*s1)) ||
+        ((s1ps3=s1+s3) > 0. && (s1ps3 > d2 * _b) && (d2split=true, s3 >= s1)) ||
+
         // If we aren't sorting the sides, then d3 is not necessarily less than d2
         // (nor d2 less than d1).  If this is the case, we always want to split something,
-        // since we don't actually have a valid u here.
-        // Split the largest one at least.
-        if (s1 > s2) {
-            if (s1 > s3)
-                split1 = true;
-            else if (s3 > 0)
-                split3 = true;
-        } else {
-            if (s2 > s3)
-                split2 = true;
-            else if (s3 > 0)
-                split3 = true;
+        // since we don't actually have a valid u here.  Split c3 is s3 is largest s.
+        (!sort && (d1sq < d2sq || d2sq < d3sq) && (sortsplit=true, s3 >= std::max(s1,s2))) ||
+
+        // Check if u solution needs a split
+        // u = d3/d2
+        // max u = d3 / (d2-s3) ~= d3/d2 * (1+s3/d2)
+        // delta u = d3 s3 / d2^2
+        // Split if delta u > b
+        //          d3 s3 > b d2^2
+        // Note: if bu >= b, then this is degenerate with above d2 check (since d3 < d2).
+        (_bu < _b && (SQR(s3) * d3sq > SQR(_bu*d2sq))) ||
+
+        // For the v check, it turns out that the triangle where s3 has the maximum effect
+        // on v is when the triangle is nearly equilateral.  Both larger d1 and smaller d3
+        // reduce the potential impact of s3 on v.
+        // Furthermore, for an equilateral triangle, the maximum change in v is very close
+        // to s3/d.  So this is the same check as we already did for d2 above, but using
+        // _bv rather than _b.
+        // Since bv is usually not much smaller than b, don't bother being more careful
+        // than this.
+        (_bv < _b && s3 > d2 * _bv));
+
+    if (split3) {
+        split = true;
+        // If splitting c3, then usually also split c1 and c2.
+        // The s3 checks are less calculation-intensive than the later s1,s2 checks.  So it
+        // turns out (empirically) that unless s1 or s2 is a lot smaller than s3, we pretty much
+        // always want to split them.  This is especially true if d3 << d2.
+        // Thus, the decision is split if s > f (d3/d2) s3, where f is an empirical factor.
+        const double temp = factor2 * SQR(s3) * d3sq;
+        split1 = SQR(s1) * d2sq > temp;
+        split2 = SQR(s2) * d2sq > temp;
+
+    } else if (s1 > 0 || s2 > 0) {
+        // Now figure out if c1 or c2 needs to be split.
+
+        split1 = (s1 > 0.) && (
+            // Apply the d2split that we saved from above.  If we didn't split c3, split c1.
+            // Note: if s3 was 0, then still need to check here.
+            d2split ||
+            (s3==0. && s3 > d2 * _b) ||
+
+            // Also, definitely split if s1 > d3
+            (SQR(s1) > d3sq));
+
+        split2 = (s2 > 0.) && (
+            // Likewise split c2 if s2 > d3
+            (SQR(s2) > d3sq) ||
+
+            // Split c2 if it's possible for d3 to become larger than the largest possible d2
+            // or if d1 could become smaller than the current smallest possible d2.
+            // i.e. if d3 + s1 + s2 > d2 + s1 + s3 => d3 > d2 - s2 + s3
+            //      or d1 - s2 - s3 < d2 - s1 - s3 => d1 < d2 + s2 - s1
+            (s2>s3 && (d3sq > SQR(d2 - s2 + s3))) ||
+            (s2>s1 && (d1sq < SQR(d2 + s2 - s1))));
+
+        // All other checks mean split at least one of c1 or c2.
+        // Done with ||, so it will stop checking if anything is true.
+        split =
+            // Don't bother doing further calculations if already splitting something.
+            split1 || split2 ||
+
+            // If we aren't sorting the sides, then d3 is not necessarily less than d2
+            // (nor d2 less than d1).  If this is the case, we always want to split something,
+            // since we don't actually have a valid u here.
+            // (Already checked this above, so if we didn't split c3 for it, split c1 or c2.)
+            sortsplit ||
+            (s3==0 && (d1sq < d2sq || d2sq < d3sq)) ||
+
+            // Check splitting c1,c2 for u calculation.
+            // u = d3 / d2
+            // u_max = (d3 + s1ps2) / (d2 - s1+s3) ~= u + s1ps2/d2 + s1ps3 u/d2
+            // du < bu
+            // (s1ps2 + u s1ps3) < bu * d2
+            (d3=sqrt(d3sq), u=d3/d2, SQR((s1ps2=s1+s2) + s1ps3*u) > d2sq * _busq) ||
+
+            // Check how v changes for different pairs of points within c1,c2?
+            //
+            // d1-d2 can change by s1+s2, and also d3 can change by s1+s2 the other way.
+            // minv = (d1-d2-s1-s2) / (d3+s1+s2) ~= v - (s1+s2)/d3 - (s1+s2)v/d3
+            // maxv = (d1-d2+s1+s2) / (d3-s1-s2) ~= v + (s1+s2)/d3 + (s1+s2)v/d3
+            // So require (s1+s2)(1+v) < bv d3
+            (d1=sqrt(d1sq), v=(d1-d2)/d3, SQR(s1ps2 * (1.+v)) > d3sq * _bvsq);
+
+        if (split) {
+            // If splitting either one, also do the other if it's close.
+            // Because we were so aggressive in splitting c1,c2 above during the c3 splits,
+            // it turns out that here we usually only want to split one, not both.
+            // So f3 ~= 1 seems to be the best choice.
+            //split1 = split1 || s1 > factor3 * s2;
+            //split2 = split2 || s2 > factor3 * s1;
+            split1 = split1 || s1 >= s2;
+            split2 = split2 || s2 >= s1;
         }
-        // Also split any that can directly lead to a swap of two that are out of order
-        // d2 + s1 < d3 - s1
-        if (d3sq > d2sq && s1 > 0 && d3sq > SQR(d2 + 2.*s1)) split1 = true;
-        // d1 + s3 < d2 - s3
-        if (d1sq < d2sq && s3 > 0 && (d2 < 2.*s3 ||  d1sq < SQR(d2 - 2.*s3))) split3 = true;
-    }
-
-    // We don't need to split c1,c3 for d2 but we might need to split c1,c2 for d3.
-    // u = d3 / d2
-    // du = d(d3) / d2 = (s1+s2)/d2
-    // du < bu -> same split calculation as before, but with d2, not d3, and _bu instead of _b.
-    double s1ps2 = s1+s2;
-    CalcSplitSq(split1,split2,s1,s2,s1ps2,d2sq*_busq);
-
-    xdbg<<"u: split = "<<split1<<" "<<split2<<" "<<split3<<std::endl;
-
-
-    // Finally the splits related to v.
-    // I don't currently do any checks related to _minv, _maxv.
-    // Not sure how important they are.
-    // But there could be some gain to checking that here.
-
-    // v is a bit complicated.
-    // Consider the angle bisector of d1,d2.  Call this line z.
-    // Then let phi = the angle between d1 (or d2) and z
-    // And let theta = the (acute) angle between d3 and z
-    // Then projecting d1,d2,d3 onto z, one finds:
-    // d1 cos phi - d2 cos phi = d3 cos theta
-    // v = (d1-d2)/d3 = cos theta / cos phi
-    //
-    // 1. How does v change for different points within cell c3?
-    //
-    // Note that phi < 30 degrees, so cos phi won't make much
-    // of a difference here.
-    // The biggest change in v from moving c3 is in theta:
-    // dv = |dv/dtheta| dtheta = |sin(theta)|/cos(phi) (s3/z)
-    // dv < b -> s3/z |sin(theta)|/cos(phi) < b
-    //
-    // v >= cos(theta), so sqrt(1-v^2) <= sin(theta)
-    // Also, z cos(phi) >= 3/4 d2  (where the 3/4 is the case where theta=90, phi=30 deg.)
-    //
-    // So s3 * sqrt(1-v^2) / (0.75 d2) < b
-    // s3/d2 < 0.75 b / sqrt(1-v^2)
-    //
-    // In the limit as v -> 1, the triangle collapses, and the differential doesn't
-    // really work (theta == 0).  So here we calculate what triangle could happen from
-    // c3 moving by up to a distance of s3:
-    // dv = 1-cos(dtheta) = 1-cos(s3/z) ~= 1/2(s3/z)^2 < 1/2(s3/d2)^2
-    // So in this case, s3/d2 < sqrt(2b)
-    // In general we require both to be true.
-
-    // These may be set here and then used below, but only if we aren't splitting already.
-    // Initialize them to zero to avoid compiler warnings.
-    double d1=0.,d3=0.,v=0.,onemvsq=0.;
-
-    if (!(split1 && split2 && split3)) {
+    } else {
+        // s1==s2==0 and not splitting s3.
+        // Just need to calculate the terms we need below.
         d1 = sqrt(d1sq);
         d3 = sqrt(d3sq);
-        if (d3 == 0.) {
-            // Very unusual!  But possible, so make sure we don't get nans
-            v = 0.;
-        } else {
-            v = (d1-d2)/d3;
-        }
-        onemvsq = 1.-SQR(v);
+        u = d3/d2;
+        v = (d1-d2)/d3;
     }
 
-    if (!split3) {
-        split3 = s3 > _sqrttwobv * d2 || SQR(s3) * onemvsq > 0.5625 * _bvsq * d2sq;
-    }
+    if (split) {
+        Assert(split1 == false || s1 > 0);
+        Assert(split2 == false || s2 > 0);
+        Assert(split3 == false || s3 > 0);
 
-    // 2. How does v change for different pairs of points within c1,c2?
-    //
-    // These two cells mostly serve to twist the line d3.
-    // We make the approximation that the angle bisector hits d3 near the middle.
-    // Then dtheta = (s1+s2)/(d3/2).
-    // Then from the same kind of derivation as above, we get
-    // |sin(theta)|/cos(phi) 2(s1+s2)/d3 < b
-    // (s1+s2)/d3 < sqrt(3)/4 b / sqrt(1-v^2)
-    //
-    // And again, in the limit where v -> 1, the approximations fail, so we need to look
-    // directly at how the collapsed triangle opens up.
-    // For each one, sin(dtheta) ~= s/(d3/2)
-    // Need to split if 2sin^2(dtheta) > b
-    if (!split1) split1 = s1 > 0.5*_sqrttwobv * d3;
-    if (!split2) split2 = s2 > 0.5*_sqrttwobv * d3;
-
-    if (!(split1 && split2) && onemvsq > 1.e-2) {
-        CalcSplitSq(split1,split2,s1,s2,s1ps2,d3sq*_bvsq * 3./16. / onemvsq);
-    }
-
-    xdbg<<"v: split = "<<split1<<" "<<split2<<" "<<split3<<std::endl;
-
-    if (split1) {
-        if (split2) {
-            if (split3) {
-                // split 1,2,3
-                Assert(c1->getLeft());
-                Assert(c1->getRight());
-                Assert(c2->getLeft());
-                Assert(c2->getRight());
-                Assert(c3->getLeft());
-                Assert(c3->getRight());
-                process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3->getLeft(),metric);
-                process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3->getRight(),metric);
-                process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3->getLeft(),metric);
-                process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3->getRight(),metric);
-                process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3->getLeft(),metric);
-                process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3->getRight(),metric);
-                process111<sort,C,M>(c1->getRight(),c2->getRight(),c3->getLeft(),metric);
-                process111<sort,C,M>(c1->getRight(),c2->getRight(),c3->getRight(),metric);
+        if (split3) {
+            if (split2) {
+                if (split1) {
+                    // split 1,2,3
+                    Assert(c1->getLeft());
+                    Assert(c1->getRight());
+                    Assert(c2->getLeft());
+                    Assert(c2->getRight());
+                    Assert(c3->getLeft());
+                    Assert(c3->getRight());
+                    process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3->getLeft(),metric);
+                    process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3->getRight(),metric);
+                    process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3->getLeft(),metric);
+                    process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3->getRight(),metric);
+                    process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3->getLeft(),metric);
+                    process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3->getRight(),metric);
+                    process111<sort,C,M>(c1->getRight(),c2->getRight(),c3->getLeft(),metric);
+                    process111<sort,C,M>(c1->getRight(),c2->getRight(),c3->getRight(),metric);
+                } else {
+                    // split 2,3
+                    Assert(c2->getLeft());
+                    Assert(c2->getRight());
+                    Assert(c3->getLeft());
+                    Assert(c3->getRight());
+                    process111<sort,C,M>(c1,c2->getLeft(),c3->getLeft(),metric);
+                    process111<sort,C,M>(c1,c2->getLeft(),c3->getRight(),metric);
+                    process111<sort,C,M>(c1,c2->getRight(),c3->getLeft(),metric);
+                    process111<sort,C,M>(c1,c2->getRight(),c3->getRight(),metric);
+                }
             } else {
-                // split 1,2
-                Assert(c1->getLeft());
-                Assert(c1->getRight());
-                Assert(c2->getLeft());
-                Assert(c2->getRight());
-                process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3,metric);
-                process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3,metric);
-                process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3,metric);
-                process111<sort,C,M>(c1->getRight(),c2->getRight(),c3,metric);
+                if (split1) {
+                    // split 1,3
+                    Assert(c1->getLeft());
+                    Assert(c1->getRight());
+                    Assert(c3->getLeft());
+                    Assert(c3->getRight());
+                    process111<sort,C,M>(c1->getLeft(),c2,c3->getLeft(),metric);
+                    process111<sort,C,M>(c1->getLeft(),c2,c3->getRight(),metric);
+                    process111<sort,C,M>(c1->getRight(),c2,c3->getLeft(),metric);
+                    process111<sort,C,M>(c1->getRight(),c2,c3->getRight(),metric);
+                } else {
+                    // split 3 only
+                    Assert(c3->getLeft());
+                    Assert(c3->getRight());
+                    process111<sort,C,M>(c1,c2,c3->getLeft(),metric,0.,0.,d3sq);
+                    process111<sort,C,M>(c1,c2,c3->getRight(),metric,0.,0.,d3sq);
+                }
             }
         } else {
-            if (split3) {
-                // split 1,3
-                Assert(c1->getLeft());
-                Assert(c1->getRight());
-                Assert(c3->getLeft());
-                Assert(c3->getRight());
-                process111<sort,C,M>(c1->getLeft(),c2,c3->getLeft(),metric);
-                process111<sort,C,M>(c1->getLeft(),c2,c3->getRight(),metric);
-                process111<sort,C,M>(c1->getRight(),c2,c3->getLeft(),metric);
-                process111<sort,C,M>(c1->getRight(),c2,c3->getRight(),metric);
+            if (split2) {
+                if (split1) {
+                    // split 1,2
+                    Assert(c1->getLeft());
+                    Assert(c1->getRight());
+                    Assert(c2->getLeft());
+                    Assert(c2->getRight());
+                    process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3,metric);
+                    process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3,metric);
+                    process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3,metric);
+                    process111<sort,C,M>(c1->getRight(),c2->getRight(),c3,metric);
+                } else {
+                    // split 2 only
+                    Assert(c2->getLeft());
+                    Assert(c2->getRight());
+                    process111<sort,C,M>(c1,c2->getLeft(),c3,metric,0.,d2sq);
+                    process111<sort,C,M>(c1,c2->getRight(),c3,metric,0.,d2sq);
+                }
             } else {
                 // split 1 only
                 Assert(c1->getLeft());
@@ -917,96 +968,74 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
             }
         }
     } else {
-        if (split2) {
-            if (split3) {
-                // split 2,3
-                Assert(c2->getLeft());
-                Assert(c2->getRight());
-                Assert(c3->getLeft());
-                Assert(c3->getRight());
-                process111<sort,C,M>(c1,c2->getLeft(),c3->getLeft(),metric);
-                process111<sort,C,M>(c1,c2->getLeft(),c3->getRight(),metric);
-                process111<sort,C,M>(c1,c2->getRight(),c3->getLeft(),metric);
-                process111<sort,C,M>(c1,c2->getRight(),c3->getRight(),metric);
-            } else {
-                // split 2 only
-                Assert(c2->getLeft());
-                Assert(c2->getRight());
-                process111<sort,C,M>(c1,c2->getLeft(),c3,metric,0.,d2sq);
-                process111<sort,C,M>(c1,c2->getRight(),c3,metric,0.,d2sq);
-            }
-        } else {
-            if (split3) {
-                // split 3 only
-                Assert(c3->getLeft());
-                Assert(c3->getRight());
-                process111<sort,C,M>(c1,c2,c3->getLeft(),metric,0.,0.,d3sq);
-                process111<sort,C,M>(c1,c2,c3->getRight(),metric,0.,0.,d3sq);
-            } else {
-                // No splits required.
-                // Now we can check to make sure the final d2, u, v are in the right ranges.
-                if (d2 < _minsep || d2 >= _maxsep) {
-                    xdbg<<"d2 not in minsep .. maxsep\n";
-                    return;
-                }
-
-                double u = d3/d2;
-                if (u < _minu || u >= _maxu) {
-                    xdbg<<"u not in minu .. maxu\n";
-                    return;
-                }
-
-                if (!metric.CCW(c1->getData().getPos(), c2->getData().getPos(),
-                                c3->getData().getPos()))
-                    v = -v;
-                if (v < _minv || v >= _maxv) {
-                    xdbg<<"v not in minv .. maxv\n";
-                    return;
-                }
-
-                double logr = log(d2);
-                xdbg<<"            logr = "<<logr<<std::endl;
-                xdbg<<"            u = "<<u<<std::endl;
-                xdbg<<"            v = "<<v<<std::endl;
-
-                const int kr = int(floor((logr-_logminsep)/_binsize));
-                Assert(kr >= 0);
-                Assert(kr < _nbins);
-
-                int ku = int(floor((u-_minu)/_ubinsize));
-                if (ku >= _nubins) {
-                    // Rounding error can allow this.
-                    XAssert((u-_minu)/_ubinsize - ku < 1.e-10);
-                    Assert(ku==_nubins);
-                    --ku;
-                }
-                Assert(ku >= 0);
-                Assert(ku < _nubins);
-
-                int kv = int(floor((v-_minv)/_vbinsize));
-                if (kv >= _nvbins) {
-                    // Rounding error can allow this.
-                    XAssert((v-_minv)/_vbinsize - kv < 1.e-10);
-                    Assert(kv==_nvbins);
-                    --kv;
-                }
-                Assert(kv >= 0);
-                Assert(kv < _nvbins);
-
-                xdbg<<"d1,d2,d3 = "<<d1<<", "<<d2<<", "<<d3<<std::endl;
-                xdbg<<"r,u,v = "<<d2<<", "<<u<<", "<<v<<std::endl;
-                xdbg<<"kr,ku,kv = "<<kr<<", "<<ku<<", "<<kv<<std::endl;
-                int index = kr * _nuv + ku * _nvbins + kv;
-                Assert(index >= 0);
-                Assert(index < _ntot);
-                // Just to make extra sure we don't get seg faults (since the above
-                // asserts aren't active in normal operations), do a real check that
-                // index is in the allowed range.
-                if (index < 0 || index >= _ntot) return;
-                xdbg<<"good index\n";
-                directProcess111<C,M>(*c1,*c2,*c3,d1,d2,d3,logr,u,v,index);
-            }
+        // Make sure all the quantities we thought should be set have been.
+        Assert(d1 > 0.);
+        Assert(d3 > 0.);
+        Assert(u > 0.);
+        Assert(v >= 0.);  // v can potentially == 0.
+        // No splits required.
+        // Now we can check to make sure the final d2, u, v are in the right ranges.
+        if (d2 < _minsep || d2 >= _maxsep) {
+            xdbg<<"d2 not in minsep .. maxsep\n";
+            return;
         }
+
+        if (u < _minu || u >= _maxu) {
+            xdbg<<"u not in minu .. maxu\n";
+            return;
+        }
+
+        if (!metric.CCW(c1->getData().getPos(), c2->getData().getPos(),
+                        c3->getData().getPos()))
+            v = -v;
+
+        if (v < _minv || v >= _maxv) {
+            xdbg<<"v not in minv .. maxv\n";
+            return;
+        }
+
+        double logr = log(d2);
+        xdbg<<"            logr = "<<logr<<std::endl;
+        xdbg<<"            u = "<<u<<std::endl;
+        xdbg<<"            v = "<<v<<std::endl;
+
+        const int kr = int(floor((logr-_logminsep)/_binsize));
+        Assert(kr >= 0);
+        Assert(kr < _nbins);
+
+        int ku = int(floor((u-_minu)/_ubinsize));
+        if (ku >= _nubins) {
+            // Rounding error can allow this.
+            XAssert((u-_minu)/_ubinsize - ku < 1.e-10);
+            Assert(ku==_nubins);
+            --ku;
+        }
+        Assert(ku >= 0);
+        Assert(ku < _nubins);
+
+        int kv = int(floor((v-_minv)/_vbinsize));
+        if (kv >= _nvbins) {
+            // Rounding error can allow this.
+            XAssert((v-_minv)/_vbinsize - kv < 1.e-10);
+            Assert(kv==_nvbins);
+            --kv;
+        }
+        Assert(kv >= 0);
+        Assert(kv < _nvbins);
+
+        xdbg<<"d1,d2,d3 = "<<d1<<", "<<d2<<", "<<d3<<std::endl;
+        xdbg<<"r,u,v = "<<d2<<", "<<u<<", "<<v<<std::endl;
+        xdbg<<"kr,ku,kv = "<<kr<<", "<<ku<<", "<<kv<<std::endl;
+        int index = kr * _nuv + ku * _nvbins + kv;
+        Assert(index >= 0);
+        Assert(index < _ntot);
+        // Just to make extra sure we don't get seg faults (since the above
+        // asserts aren't active in normal operations), do a real check that
+        // index is in the allowed range.
+        if (index < 0 || index >= _ntot) {
+            return;
+        }
+        directProcess111<C,M>(*c1,*c2,*c3,d1,d2,d3,logr,u,v,index);
     }
 }
 
@@ -1035,7 +1064,6 @@ struct DirectHelper<KData,KData,KData>
         ZetaData<KData,KData,KData>& zeta, int index)
     {
         zeta.zeta[index] += c1.getData().getWK() * c2.getData().getWK() * c3.getData().getWK();
-        xdbg<<"            zeta -> "<<zeta.zeta[index]<<std::endl;
     }
 };
 

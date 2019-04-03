@@ -393,7 +393,7 @@ void Cell<D,C>::finishInit(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >&
             xdbg<<"_info.index = "<<_info.index<<"  "<<vdata[start].second.index<<std::endl;
         } else {
             _listinfo.indices = new std::vector<long>(end-start);
-            for (int i=start; i<end; ++i) {
+            for (size_t i=start; i<end; ++i) {
                 xdbg<<"Set indices["<<i-start<<"] = "<<vdata[i].second.index<<std::endl;
                 (*_listinfo.indices)[i-start] = vdata[i].second.index;
             }

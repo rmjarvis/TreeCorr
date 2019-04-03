@@ -1051,25 +1051,42 @@ struct DirectHelper<GData,GData,GData>
         std::complex<double> g1, g2, g3;
         ProjectHelper<C>::ProjectShears(c1,c2,c3,g1,g2,g3);
 
+        //std::complex<double> gam0 = g1 * g2 * g3;
+        //std::complex<double> gam1 = std::conj(g1) * g2 * g3;
+        //std::complex<double> gam2 = g1 * std::conj(g2) * g3;
+        //std::complex<double> gam3 = g1 * g2 * std::conj(g3);
+
         // The complex products g1 g2 and g1 g2* share most of the calculations,
         // so faster to do this manually.
-        //double g1rg2r = g1.real() * g2.real();
-        //double g1rg2i = g1.real() * g2.imag();
-        //double g1ig2r = g1.imag() * g2.real();
-        //double g1ig2i = g1.imag() * g2.imag();
-        std::complex<double> gam0 = g1 * g2 * g3;
-        std::complex<double> gam1 = std::conj(g1) * g2 * g3;
-        std::complex<double> gam2 = g1 * std::conj(g2) * g3;
-        std::complex<double> gam3 = g1 * g2 * std::conj(g3);
+        // The above uses 32 multiplies and 16 adds.
+        // We can do this with just 12 multiplies and 12 adds.
+        double g1rg2r = g1.real() * g2.real();
+        double g1rg2i = g1.real() * g2.imag();
+        double g1ig2r = g1.imag() * g2.real();
+        double g1ig2i = g1.imag() * g2.imag();
 
-        zeta.gam0r[index] += gam0.real();
-        zeta.gam0i[index] += gam0.imag();
-        zeta.gam1r[index] += gam1.real();
-        zeta.gam1i[index] += gam1.imag();
-        zeta.gam2r[index] += gam2.real();
-        zeta.gam2i[index] += gam2.imag();
-        zeta.gam3r[index] += gam3.real();
-        zeta.gam3i[index] += gam3.imag();
+        double g1g2r = g1rg2r - g1ig2i;
+        double g1g2i = g1rg2i + g1ig2r;
+        double g1cg2r = g1rg2r + g1ig2i;
+        double g1cg2i = g1rg2i - g1ig2r;
+
+        double g1g2rg3r = g1g2r * g3.real();
+        double g1g2rg3i = g1g2r * g3.imag();
+        double g1g2ig3r = g1g2i * g3.real();
+        double g1g2ig3i = g1g2i * g3.imag();
+        double g1cg2rg3r = g1cg2r * g3.real();
+        double g1cg2rg3i = g1cg2r * g3.imag();
+        double g1cg2ig3r = g1cg2i * g3.real();
+        double g1cg2ig3i = g1cg2i * g3.imag();
+
+        zeta.gam0r[index] += g1g2rg3r - g1g2ig3i;
+        zeta.gam0i[index] += g1g2rg3i + g1g2ig3r;
+        zeta.gam1r[index] += g1cg2rg3r - g1cg2ig3i;
+        zeta.gam1i[index] += g1cg2rg3i + g1cg2ig3r;
+        zeta.gam2r[index] += g1cg2rg3r + g1cg2ig3i;
+        zeta.gam2i[index] += g1cg2rg3i - g1cg2ig3r;
+        zeta.gam3r[index] += g1g2rg3r + g1g2ig3i;
+        zeta.gam3i[index] += -g1g2rg3i + g1g2ig3r;
     }
 };
 

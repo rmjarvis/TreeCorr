@@ -325,7 +325,7 @@ void GetNear(const Cell<D,C>* cell, const Position<C>& pos, double sep, double s
             } else {
                 dbg<<"N > 1 case: "<<n1<<std::endl;
                 std::vector<long>* leaf_indices = cell->getListInfo().indices;
-                Assert(leaf_indices->size() == n1);
+                Assert(int(leaf_indices->size()) == n1);
                 for (int m=0; m<n1; ++m)
                     indices[k++] = (*leaf_indices)[m];
             }

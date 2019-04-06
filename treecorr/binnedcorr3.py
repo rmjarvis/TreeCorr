@@ -437,6 +437,7 @@ class BinnedCorr3(object):
         self.v = np.tile(self.v1d[np.newaxis, np.newaxis, :],
                             (self.nbins, self.nubins, 1))
         self.rnom = np.exp(self.logr)
+        self.rnom1d = np.exp(self.logr1d)
         self.brute = treecorr.config.get(self.config,'brute',bool,False)
         if self.brute:
             self.logger.info("Doing brute force calculation.",)

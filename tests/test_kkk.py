@@ -511,5 +511,7 @@ def test_kkk():
     assert kkk2.bin_type == kkk.bin_type
 
 if __name__ == '__main__':
+    test_direct()
+    test_direct_spherical()
     test_constant()
     test_kkk()

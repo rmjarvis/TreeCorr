@@ -314,7 +314,7 @@ def test_pairwise():
     expmialpha = ((x1-x2) - 1j*(y1-y2)) / r
 
     ww = w1 * w2
-    xi = -ww * (g12 - 1j*g22) * expmialpha**2
+    xi = -ww * (g12 + 1j*g22) * expmialpha**2
 
     index = np.floor(np.log(r/min_sep) / bin_size).astype(int)
     mask = (index >= 0) & (index < nbins)
@@ -422,7 +422,7 @@ def test_single():
 
 
 
-def test_pairwise():
+def test_pairwise2():
     # Test the same profile, but with the pairwise calcualtion:
     nsource = 300000
     gamma0 = 0.05
@@ -1705,10 +1705,14 @@ def test_varxi():
 
 
 if __name__ == '__main__':
-    test_single()
+    test_direct()
+    test_direct_spherical()
     test_pairwise()
+    test_single()
+    test_pairwise2()
     test_spherical()
     test_ng()
+    test_nmap()
     test_pieces()
     test_rlens()
     test_rlens_bkg()

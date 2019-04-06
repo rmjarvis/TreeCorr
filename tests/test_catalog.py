@@ -1030,6 +1030,7 @@ if __name__ == '__main__':
     test_fits()
     test_direct()
     test_var()
+    test_nan()
     test_contiguous()
     test_list()
     test_write()

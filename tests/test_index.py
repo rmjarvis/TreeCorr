@@ -427,10 +427,6 @@ def test_sample_pairs():
     np.testing.assert_array_less(nk.left_edges[b], sep)
 
 
-
-
-
-
 if __name__ == '__main__':
     test_count_near()
     test_get_near()

@@ -1717,6 +1717,7 @@ def test_list():
         os.remove(mv_output_file)
     os.rename(output_file, mv_output_file)
 
+
 def test_perp_minmax():
     """This test is based on a bug report from Erika Wagoner where the lowest bins were
     getting spuriously high w(rp) values.  It stemmed from a subtlety about how large
@@ -1812,6 +1813,7 @@ def test_perp_minmax():
     # but the differences should be very small.  (When Erika reported the problem, the differences
     # were a few percent, which ended up making a bit difference in the correlation function.)
     np.testing.assert_allclose(dd1.npairs, dd2.npairs[2:-2], rtol=1.e-6)
+
 
 def test_split():
     # Time the various split_method options.
@@ -2025,8 +2027,11 @@ if __name__ == '__main__':
     test_log_binning()
     test_linear_binning()
     test_direct_count()
+    test_direct_spherical()
+    test_pairwise()
     test_direct_3d()
     test_direct_perp()
+    test_direct_old_perp()
     test_direct_lens()
     test_direct_arc()
     test_direct_partial()
@@ -2036,4 +2041,5 @@ if __name__ == '__main__':
     test_list()
     test_perp_minmax()
     test_split()
+    test_varxi()
     test_sph_linear()

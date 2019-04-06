@@ -629,4 +629,187 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.sep_units = params['sep_units'].strip()
         self.bin_type = params['bin_type'].strip()
 
+    @classmethod
+    def _calculateT(cls, s, t, k1, k2, k3):
+        # First calculate q values:
+        q1 = (s+t)/3.
+        q2 = q1-t
+        q3 = q1-s
 
+        if k2==1 and k3==1:
+            # Normally this implies k1 == 1 as well.
+            # But technically, k1 might still be non-unity, so keep the Theta terms from SKL.
+            Theta2 = ((2*k1**2 + 1)/3.)**0.5
+            Theta4 = Theta2*Theta2
+            Theta6 = Theta4*Theta2
+
+            # Some factors we use multiple times
+            expfactor = -np.exp(-(np.abs(q1)**2 + np.abs(q2)**2 + np.abs(q3)**2)/(2*Theta4))
+            absq1q2q3sq = np.abs(q1*q2*q3)**2
+            q1csqq2q3 = np.conjugate(q1)**2*q2*q3
+            q1q2csqq3 = np.conjugate(q2)**2*q1*q3
+            q1q2q3csq = np.conjugate(q3)**2*q1*q2
+
+            # JBJ Equation 51
+            # Note that we actually accumulate the Gammas with a different choice for
+            # alpha_i.  We accumulate the shears relative to the q vectors, not relative to s.
+            # cf. JBJ Equation 41 and footnote 3.  The upshot is that we multiply JBJ's formulae
+            # be (q1q2q3)^2 / |q1q2q3|^2 for T0 and (q1*q2q3)^2/|q1q2q3|^2 for T1.
+            # Then T0 becomes
+            # T0 = -(|q1 q2 q3|^2)/(24 Theta^6) exp(-(|q1|^2+|q2|^2+|q3|^2)
+            T0 = expfactor * absq1q2q3sq / (24*Theta6)
+
+            # JBJ Equation 52
+            # After the phase adjustment, T1 becomes:
+            # T1 = -[(|q1 q2 q3|^2)/(24 Theta^6)
+            #        - (q1*^2 q2 q3)/(9 Theta^4)
+            #        + (q1*^4 q2^2 q3^2 + 2 |q2 q3|^2 q1*^2 q2 q3)/(|q1 q2 q3|^2)/(27 Theta^2)
+            #       ] exp(-(|q1|^2+|q2|^2+|q3|^2))
+            T1 = expfactor * (absq1q2q3sq / (24*Theta6) -
+                              q1csqq2q3 / (9*Theta4) +
+                              (q1csqq2q3**2 + 2*np.abs(q2*q3)**2*q1csqq2q3) /
+                                    (absq1q2q3sq * 27*Theta2))
+            T2 = expfactor * (absq1q2q3sq / (24*Theta6) -
+                              q1q2csqq3 / (9*Theta4) +
+                              (q1q2csqq3**2 + 2*np.abs(q1*q3)**2*q1q2csqq3) /
+                                    (absq1q2q3sq * 27*Theta2))
+            T3 = expfactor * (absq1q2q3sq / (24*Theta6) -
+                              q1q2q3csq / (9*Theta4) +
+                              (q1q2q3csq**2 + 2*np.abs(q1*q2)**2*q1q2q3csq) /
+                                    (absq1q2q3sq * 27*Theta2))
+        else:
+            raise NotImplemetedError('Only k2=k3=1 so far')
+
+        return T0, T1, T2, T3
+
+
+    def calculateMap3(self, k2=1, k3=1):
+        """Calculate the skewness of the aperture mass from the correlation function.
+
+        The equations for this come from Jarvis, Bernstein & Jain (2004, MNRAS, 352).
+        See their section 3, especially equations 51 and 52 for the T_i functions,
+        equations 60 and 61 for the calculation of :math:`\\langle \\cal M^3 \\rangle` and
+        :math:`\\langle \\cal M^2 M^* \\rangle`, and equations 55-58 for how to convert
+        these to the return values.
+
+        If k2 or k3 != 1, then this routine calculates the generalization of the skewness
+        proposed by Schneider, Kilbinger & Lombardi (2005, A&A, 431):
+        :math:`\\langle M_{\\rm ap}^3(R, k2 R, k3 R)\\rangle` and related values.
+
+        If k2 == k3 == 1 (the default), then there are only 4 combinations of Map and Mx
+        that are relevant:
+
+            map3 = :math:`\\langle M_{\\rm ap}^3(R)\\rangle
+            map2mx = :math:`\\langle M_{\\rm ap}^2(R) M_{\\times}(R)\\rangle`,
+            mapmx2 = :math:`\\langle M_{\\rm ap}(R) M_{\\times}(R)\\rangle
+            mx3 = :math:`\\langle M_{\\rm \times}^3(R)\\rangle
+
+        However, if k2 or k3 != 1, then there are 8 combinations:
+
+            map3 = :math:`\\langle M_{\\rm ap}(R) M_{\\rm ap}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
+            mapmapmx = :math:`\\langle M_{\\rm ap}(R) M_{\\rm ap}(k_2 R) M_{\\times}(k_3 R)\\rangle`
+            mapmxmap = :math:`\\langle M_{\\rm ap}(R) M_{\\times}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
+            mxmapmap = :math:`\\langle M_{\\times}(R) M_{\\rm ap}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
+            mxmxmap = :math:`\\langle M_{\\times}(R) M_{\\times}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
+            mxmapmx = :math:`\\langle M_{\\times}(R) M_{\\rm ap}(k_2 R) M_{\\times}(k_3 R)\\rangle`
+            mapmxmx = :math:`\\langle M_{\\rm ap}(R) M_{\\times}(k_2 R) M_{\\times}(k_3 R)\\rangle`
+            mx3 = :math:`\\langle M_{\\times}(R) M_{\\times}(k_2 R) M_{\\times}(k_3 R)\\rangle`
+
+        To accommodate this full generality, we always return all 8 values, along with the
+        estimated variance (which is equal for each), even when k2 = k3 = 1.
+
+        .. note::
+
+            The formulae for the ``m2_uform='Schneider'`` definition of the aperture mass described
+            in the documentation of `GGCorrelation.calculateMapSq` are not known, so that is
+            not an option here.  The calculations here use the definition that corresponds to
+            ``m2_uform='Crittenden'``.
+
+        :param k2       If given, the ratio R2/R1 in the SKL formulae. (default: 1)
+        :param k3       If given, the ratio R3/R1 in the SKL formulae. (default: 1)
+
+        :returns: (map3, mapmapmx, mapmxmap, mxmapmap, mxmxmap mxmapmx, mapmxmx, mx3, varmap3)
+        """
+        # As in the calculateMapSq function, we Make s and t matrices, so we can eventually do the
+        # integral by doing a matrix product.
+        R = self.rnom1d
+
+        # Pick s = d2, so dlogs is bin_size
+        s = d2 = np.outer(1./R, self.meand2.ravel())
+        eq = (self.meanu >= 0.9) & (self.meanv > 0) & (self.meanv <= 0.1)
+        eq = eq.ravel()
+
+        # We take t = d3, but we need the x and y components. (relative to s along x axis)
+        # cf. Figure 1 in JBJ.
+        # d1^2 = d2^2 + d3^2 - 2 d2 d3 cos(theta1)
+        # tx = d3 cos(theta1) = (d2^2 + d3^2 - d1^2)/2d2
+        d3 = np.outer(1./R, self.meand3.ravel())
+        d1 = np.outer(1./R, self.meand1.ravel())
+        tx = (d2*d2 + d3*d3 - d1*d1) / (2*d2)
+        ty = np.sqrt(d3*d3 - tx*tx)
+        ty[:,self.meanv.ravel() > 0] *= -1.
+        t = tx + 1j * ty
+
+        # Next we need to construct the T values.
+        T0, T1, T2, T3 = self._calculateT(s,t,1.,k2,k3)
+
+        # Finally, account for the Jacobian in d^2t: jac = |J(tx, ty; u, v)|,
+        # since our Gammas are accumulated in s, u, v, not s, tx, ty.
+        # u = d3/d2, v = (d1-d2)/d3
+        # tx = (s^2 + (s u)^2 - (s u v + s)^2)/2s
+        #    = s/2 (1 + u^2 - (1 + 2uv + u^2v^2))
+        #    = s/2 (u^2 - 2uv - u^2 v^2)
+        # dtx/du = s (u - v - uv^2)
+        # dtx/dv = -us (1 + uv)
+        # ty = sqrt(d3^2 - tx^2) = sqrt(u^2 s^2 - tx^2)
+        # dty/du = s^2 u/2ty (1-v^2) (2 + 3uv - u^2 + u^2v^2)
+        # dty/dv = s^2 u^2/2ty (1 + uv) (u - uv^2 - 2uv)
+        #
+        # After some algebra...
+        #
+        # J = s^3 u^2 (1+uv) / ty
+        #   = d3^2 d1 / ty
+        jac = np.abs(d3*d3*d1/ty)
+        d2t = jac * self.ubin_size * self.vbin_size / (2.*np.pi)
+        sds = s * s * self.bin_size  # Remember bin_size is dln(s)
+        # Note: these are really d2t/2piR^2 and sds/R^2, which are what actually show up
+        # in JBJ equations 45 and 50.
+
+        T0 *= sds * d2t
+        T1 *= sds * d2t
+        T2 *= sds * d2t
+        T3 *= sds * d2t
+
+        # Now do the integral by taking the matrix products.
+        gam0 = self.gam0.ravel()
+        gam1 = self.gam1.ravel()
+        gam2 = self.gam2.ravel()
+        gam3 = self.gam3.ravel()
+        vargam = self.vargam.ravel()
+        mmm = T0.dot(gam0)
+        mcmm = T1.dot(gam1) + T2.dot(gam2) + T3.dot(gam3)
+        varmmm = (np.abs(T0)**2).dot(vargam)
+        varmcmm = (np.abs(T1)**2 + np.abs(T2)**2 + np.abs(T3)**2).dot(vargam)
+
+        if k2 == 1 and k3 == 1:
+            mmm *= 6
+            varmmm *= 6
+            mcmm *= 2
+            mmcm = mmmc = mcmm
+            varmcmm *= 2
+            varmmcm = varmmmc = varmcmm
+        else:
+            raise NotImplementedError("Only k2=k3=1 so far")
+
+        map3 = 0.25 * np.real(mcmm + mmcm + mmmc + mmm)
+        mapmapmx = 0.25 * np.imag(mcmm + mmcm - mmmc + mmm)
+        mapmxmap = 0.25 * np.imag(mcmm - mmcm + mmmc + mmm)
+        mxmapmap = 0.25 * np.imag(-mcmm + mmcm + mmmc + mmm)
+        mxmxmap = 0.25 * np.real(mcmm + mmcm - mmmc - mmm)
+        mxmapmx = 0.25 * np.real(mcmm - mmcm + mmmc - mmm)
+        mapmxmx = 0.25 * np.real(-mcmm + mmcm + mmmc - mmm)
+        mx3 = 0.25 * np.imag(mcmm + mmcm + mmmc - mmm)
+
+        var = (varmcmm + varmmcm + varmcmm + varmmm) / 16.
+
+        return map3, mapmapmx, mapmxmap, mxmapmap, mxmxmap, mxmapmx, mapmxmx, mx3, var

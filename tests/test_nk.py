@@ -597,6 +597,9 @@ def test_varxi():
 
 
 if __name__ == '__main__':
+    test_direct()
+    test_direct_spherical()
+    test_pairwise()
     test_single()
     test_nk()
     test_varxi()

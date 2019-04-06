@@ -394,7 +394,7 @@ def test_single():
     np.testing.assert_allclose(corr2_output['kgamX'], 0., atol=1.e-4)
 
 
-def test_pairwise():
+def test_pairwise2():
     # Test the same profile, but with the pairwise calcualtion:
     nsource = 100000
     gamma0 = 0.05
@@ -603,7 +603,10 @@ def test_varxi():
 
 
 if __name__ == '__main__':
-    test_single()
+    test_direct()
+    test_direct_spherical()
     test_pairwise()
+    test_single()
+    test_pairwise2()
     test_kg()
     test_varxi()

@@ -244,6 +244,7 @@ def test_halotools():
         from halotools.mock_observables import npairs_3d
     except ImportError:
         print('Skipping test_halotools, since halotools not installed.')
+        return
 
     # Compare the Periodic metric with the same calculation in halotools
     # This first bit is directly from the documentation for halotools.npairs_3d

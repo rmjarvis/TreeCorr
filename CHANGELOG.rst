@@ -40,6 +40,13 @@ API changes
   numerical difference for shear correlations, as the shear projection is not
   exactly equivalent.  To obtain the brute force calculation, use the new
   `brute=True` option.
+- Changed how the 3pt correlation v binning is specified.  Now, you should
+  only specify the range and number of bins for |v|. The negative v's will
+  also be accumulated over the same range of absolute values as the positive
+  v's. This should normally not be a hardship, since if you want to accumulate
+  negative v's, you probably want the same range as the positive v's. But it
+  enables you to accumulate all flattened triangles with 0.8 < |v| < 1.0,
+  for instance, in one pass rather than two.
 
 
 Performance Improvements
@@ -55,6 +62,7 @@ Performance Improvements
 - Added a catalog.clear_cache() function, which lets you manually clear the
   cache to release the memory of the cached field(s). (#53)
 - Improved both the speed and accuracy of the Rlens metric calculation.
+- Improved both the speed and accuracy of 3pt correlation functions.
 
 
 New features
@@ -63,8 +71,8 @@ New features
 - Added a new concept, called bin_type for all the Correlation objects.  There
   are currently three possible options for bin_type:
   - 'Log' is equivalent to the previous behavior of binning in log space.
-  - 'Linear' bins linearly in r.  (#5)
-  - 'TwoD' bins linearly in x and y.  (#70)
+  - 'Linear' bins linearly in r. (#5)
+  - 'TwoD' bins linearly in x and y. (#70)
 - Added a distinction between bin_slop=0 and bin_slop>0, but very close
   (say 1.e-16).  The former will traverse the tree all the way to the
   leaves, never grouping objects into cells.  The latter will group objects
@@ -80,7 +88,7 @@ New features
   clang compiler. (#75)
 - Added new methods Field.count_near and Field.get_near, which return the
   number of or the indices of points in the field that are near a given
-  other coordinate.  (#44)
+  other coordinate. (#44)
 - Added new method BinnedCorr2.sample_pairs, which returns a random sampling
   of pairs within a given range of separations.  E.g. a sample of pairs that
   fell into a given bin of the correlation function. (#67)
@@ -88,6 +96,7 @@ New features
   old behavior of `bin_slop=0`.
 - Added 'Periodic' metric. (#56)
 - Added `min_top` option for Fields.
+- Added calculation of <Map^3> and related quantities.
 
 
 Bug fixes
@@ -98,4 +107,4 @@ Bug fixes
   a FITS output file.  Now the tot attribute is set properly when reading.
 - Fixed the Catalog.copy() method, which wasn't working properly.
 - Fixed an error in the Schneider NMap calculation.
-- Fixed a factor of 2 missing in the estimate of varxi.  (#72)
+- Fixed a factor of 2 missing in the estimate of varxi. (#72)

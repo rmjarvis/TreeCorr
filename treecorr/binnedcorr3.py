@@ -289,10 +289,13 @@ class BinnedCorr3(object):
             self.max_sep = float(self.config['max_sep'])
             if self.min_sep >= self.max_sep:
                 raise ValueError("max_sep must be larger than min_sep")
-            self.bin_size = float(self.config['bin_size'])
-            self.nbins = int(math.ceil(math.log(self.max_sep/self.min_sep)/self.bin_size))
-            # Update max_sep given this value of nbins
-            self.max_sep = math.exp(self.nbins*self.bin_size)*self.min_sep
+            bin_size = float(self.config['bin_size'])
+            self.nbins = int(math.ceil(math.log(self.max_sep/self.min_sep)/bin_size))
+            # Update self.bin_size given this value of nbins
+            self.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
+            # Note in this case, bin_size is saved as the nominal bin_size from the config
+            # file, and self.bin_size is the one for the radial bins.  We'll use the nominal
+            # bin_size as the default bin_size for u and v below.
         elif 'bin_size' not in self.config:
             if 'max_sep' not in self.config:
                 raise AttributeError("Missing required parameter max_sep")
@@ -303,21 +306,21 @@ class BinnedCorr3(object):
             if self.min_sep >= self.max_sep:
                 raise ValueError("max_sep must be larger than min_sep")
             self.nbins = int(self.config['nbins'])
-            self.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
+            bin_size = self.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
         elif 'max_sep' not in self.config:
             if 'min_sep' not in self.config:
                 raise AttributeError("Missing required parameter min_sep")
             self.min_sep = float(self.config['min_sep'])
             self.nbins = int(self.config['nbins'])
-            self.bin_size = float(self.config['bin_size'])
-            self.max_sep = math.exp(self.nbins*self.bin_size)*self.min_sep
+            bin_size = self.bin_size = float(self.config['bin_size'])
+            self.max_sep = math.exp(self.nbins*bin_size)*self.min_sep
         else:
             if 'min_sep' in self.config:
                 raise AttributeError("Only 3 of min_sep, max_sep, bin_size, nbins are allowed.")
             self.max_sep = float(self.config['max_sep'])
             self.nbins = int(self.config['nbins'])
-            self.bin_size = float(self.config['bin_size'])
-            self.min_sep = self.max_sep*math.exp(-self.nbins*self.bin_size)
+            bin_size = self.bin_size = float(self.config['bin_size'])
+            self.min_sep = self.max_sep*math.exp(-self.nbins*bin_size)
         if self.sep_units == '':
             self.logger.info("r: nbins = %d, min,max sep = %g..%g, bin_size = %g",
                              self.nbins,self.min_sep,self.max_sep,self.bin_size)
@@ -337,7 +340,7 @@ class BinnedCorr3(object):
             raise ValueError("max_u must be larger than min_u")
         if self.min_u < 0. or self.max_u > 1.:
             raise ValueError("Invalid range for u: %f - %f"%(self.min_u, self.max_u))
-        self.ubin_size = float(self.config.get('ubin_size', self.bin_size))
+        self.ubin_size = float(self.config.get('ubin_size', bin_size))
         if 'nubins' not in self.config:
             self.nubins = int(math.ceil((self.max_u-self.min_u-1.e-10)/self.ubin_size))
         elif 'max_u' in self.config and 'min_u' in self.config and 'ubin_size' in self.config:
@@ -361,7 +364,7 @@ class BinnedCorr3(object):
             raise ValueError("max_v must be larger than min_v")
         if self.min_v < 0 or self.max_v > 1.:
             raise ValueError("Invalid range for |v|: %f - %f"%(self.min_v, self.max_v))
-        self.vbin_size = float(self.config.get('vbin_size', self.bin_size))
+        self.vbin_size = float(self.config.get('vbin_size', bin_size))
         if 'nvbins' not in self.config:
             self.nvbins = int(math.ceil((self.max_v-self.min_v-1.e-10)/self.vbin_size))
         elif 'max_v' in self.config and 'min_v' in self.config and 'vbin_size' in self.config:

@@ -575,7 +575,7 @@ def test_varxi():
         k += rng.normal(0, 0.1, size=ngal)
 
         cat = treecorr.Catalog(x=x, y=y, w=w, k=k)
-        kk = treecorr.KKCorrelation(bin_size=0.1, min_sep=10., max_sep=100.)
+        kk = treecorr.KKCorrelation(bin_size=0.1, min_sep=10., nbins=24)
         kk.process(cat)
         all_kks.append(kk)
 

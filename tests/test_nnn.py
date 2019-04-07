@@ -55,10 +55,10 @@ def test_binnedcorr3():
     def check_defaultuv(nnn):
         assert nnn.min_u == 0.
         assert nnn.max_u == 1.
-        assert nnn.nubins == np.ceil(1./nnn.bin_size)
+        assert nnn.nubins == np.ceil(1./nnn.ubin_size)
         assert nnn.min_v == 0.
         assert nnn.max_v == 1.
-        assert nnn.nvbins == np.ceil(1./nnn.bin_size)
+        assert nnn.nvbins == np.ceil(1./nnn.vbin_size)
 
     # Check the different ways to set up the binning:
     # Omit bin_size
@@ -155,10 +155,9 @@ def test_binnedcorr3():
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
-    assert nnn.bin_size == 0.1
+    assert nnn.bin_size <= 0.1
     assert nnn.min_sep == 5.
-    assert nnn.max_sep >= 20.  # Expanded a bit.
-    assert nnn.max_sep < 20. * np.exp(nnn.bin_size)
+    assert nnn.max_sep == 20.
     check_defaultuv(nnn)
     check_arrays(nnn)
     # Specify min, max, bs for u,v too.
@@ -169,9 +168,8 @@ def test_binnedcorr3():
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     assert nnn.min_sep == 5.
-    assert nnn.max_sep >= 20.
-    assert nnn.max_sep < 20. * np.exp(nnn.bin_size)
-    assert nnn.bin_size == 0.1
+    assert nnn.max_sep == 20.
+    assert nnn.bin_size <= 0.1
     assert nnn.min_u == 0.2
     assert nnn.max_u == 0.9
     assert nnn.nubins == 24
@@ -221,8 +219,9 @@ def test_binnedcorr3():
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
-    assert nnn.bin_size == 0.1
+    assert nnn.bin_size <= 0.1
     assert nnn.min_sep == 5.
+    assert nnn.max_sep == 20.
     assert nnn.min_u == 0.
     assert nnn.max_u == 1.
     assert nnn.nubins == 4
@@ -239,8 +238,9 @@ def test_binnedcorr3():
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
-    assert nnn.bin_size == 0.1
+    assert nnn.bin_size <= 0.1
     assert nnn.min_sep == 5.
+    assert nnn.max_sep == 20.
     assert nnn.min_u == 0.
     assert nnn.max_u == 1.
     assert nnn.nubins == 5
@@ -258,8 +258,9 @@ def test_binnedcorr3():
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
-    assert nnn.bin_size == 0.1
+    assert nnn.bin_size <= 0.1
     assert nnn.min_sep == 5.
+    assert nnn.max_sep == 20.
     assert nnn.ubin_size == 0.1
     assert nnn.nubins == 5
     assert nnn.max_u == 1.
@@ -353,7 +354,7 @@ def test_binnedcorr3():
 
     # Check bin_slop
     # Start with default behavior
-    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
                                   min_v=0., max_v=0.21, vbin_size=0.07)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
@@ -368,7 +369,7 @@ def test_binnedcorr3():
     np.testing.assert_almost_equal(nnn.bv, 0.07)
 
     # Explicitly set bin_slop=1.0 does the same thing.
-    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=1.0,
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=1.0,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
                                   min_v=0., max_v=0.21, vbin_size=0.07)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
@@ -383,7 +384,7 @@ def test_binnedcorr3():
     np.testing.assert_almost_equal(nnn.bv, 0.07)
 
     # Use a smaller bin_slop
-    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=0.2,
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=0.2,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
                                   min_v=0., max_v=0.21, vbin_size=0.07)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
@@ -398,7 +399,7 @@ def test_binnedcorr3():
     np.testing.assert_almost_equal(nnn.bv, 0.014)
 
     # Use bin_slop == 0
-    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=0.0,
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=0.0,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
                                   min_v=0., max_v=0.21, vbin_size=0.07)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
@@ -413,7 +414,7 @@ def test_binnedcorr3():
     np.testing.assert_almost_equal(nnn.bv, 0.0)
 
     # Bigger bin_slop
-    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=2.0,
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=2.0,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
                                   min_v=0., max_v=0.21, vbin_size=0.07, verbose=0)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
@@ -428,7 +429,7 @@ def test_binnedcorr3():
     np.testing.assert_almost_equal(nnn.bv, 0.14)
 
     # With bin_size > 0.1, explicit bin_slop=1.0 is accepted.
-    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.4, bin_slop=1.0,
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.4, bin_slop=1.0,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
                                   min_v=0., max_v=0.21, vbin_size=0.07, verbose=0)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
@@ -443,7 +444,7 @@ def test_binnedcorr3():
     np.testing.assert_almost_equal(nnn.bv, 0.07)
 
     # But implicit bin_slop is reduced so that b = 0.1
-    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.4,
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.4,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
                                   min_v=0., max_v=0.21, vbin_size=0.07)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
@@ -458,7 +459,7 @@ def test_binnedcorr3():
     np.testing.assert_almost_equal(nnn.bin_slop, 0.25)
 
     # Separately for each of the three parameters
-    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.05,
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.05,
                                   min_u=0., max_u=0.9, ubin_size=0.3,
                                   min_v=0., max_v=0.17, vbin_size=0.17)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)

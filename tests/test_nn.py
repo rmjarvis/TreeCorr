@@ -63,10 +63,9 @@ def test_log_binning():
     # Omit nbins
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1)
     print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
-    assert nn.bin_size == 0.1
+    assert nn.bin_size <= 0.1
     assert nn.min_sep == 5.
-    assert nn.max_sep >= 20.
-    assert nn.max_sep <= 20.*math.exp(nn.bin_size)
+    assert nn.max_sep == 20.
     np.testing.assert_almost_equal(nn.bin_size * nn.nbins, math.log(nn.max_sep/nn.min_sep))
     np.testing.assert_almost_equal(nn.logr[0], math.log(nn.min_sep) + 0.5*nn.bin_size)
     np.testing.assert_almost_equal(nn.logr[-1], math.log(nn.max_sep) - 0.5*nn.bin_size)
@@ -142,67 +141,67 @@ def test_log_binning():
     assert len(nn.logr) == nn.nbins
 
     # Check bin_slop
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1)
+    nn = treecorr.NNCorrelation(min_sep=5, nbins=14, bin_size=0.1)
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.1
     assert nn.bin_slop == 1.0
     np.testing.assert_almost_equal(nn.b, 0.1)
 
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=1.0)
+    nn = treecorr.NNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=1.0)
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.1
     assert nn.bin_slop == 1.0
     np.testing.assert_almost_equal(nn.b, 0.1)
 
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=0.2)
+    nn = treecorr.NNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=0.2)
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.1
     assert nn.bin_slop == 0.2
     np.testing.assert_almost_equal(nn.b, 0.02)
 
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=0.0)
+    nn = treecorr.NNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=0.0)
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.1
     assert nn.bin_slop == 0.0
     assert nn.b == 0.0
 
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=2.0, verbose=0)
+    nn = treecorr.NNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=2.0, verbose=0)
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.1
     assert nn.bin_slop == 2.0
     np.testing.assert_almost_equal(nn.b, 0.2)
 
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.4, bin_slop=1.0, verbose=0)
+    nn = treecorr.NNCorrelation(min_sep=5, nbins=14, bin_size=0.4, bin_slop=1.0, verbose=0)
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.4
     assert nn.bin_slop == 1.0
     np.testing.assert_almost_equal(nn.b, 0.4)
 
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.4)
+    nn = treecorr.NNCorrelation(min_sep=5, nbins=14, bin_size=0.4)
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.4
     np.testing.assert_almost_equal(nn.b, 0.1)
     np.testing.assert_almost_equal(nn.bin_slop, 0.25)
 
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.4, bin_slop=0.1)
+    nn = treecorr.NNCorrelation(min_sep=5, nbins=14, bin_size=0.4, bin_slop=0.1)
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.4
     assert nn.bin_slop == 0.1
     np.testing.assert_almost_equal(nn.b, 0.04)
 
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.05, bin_slop=1.0)
+    nn = treecorr.NNCorrelation(min_sep=5, nbins=14, bin_size=0.05, bin_slop=1.0)
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.05
     assert nn.bin_slop == 1.0
     np.testing.assert_almost_equal(nn.b, 0.05)
 
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.05)
+    nn = treecorr.NNCorrelation(min_sep=5, nbins=14, bin_size=0.05)
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.05
     assert nn.bin_slop == 1.0
     np.testing.assert_almost_equal(nn.b, 0.05)
 
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.05, bin_slop=3, verbose=0)
+    nn = treecorr.NNCorrelation(min_sep=5, nbins=14, bin_size=0.05, bin_slop=3, verbose=0)
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.05
     assert nn.bin_slop == 3.0
@@ -251,12 +250,11 @@ def test_linear_binning():
     assert len(nn.logr) == nn.nbins
 
     # Omit nbins
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_type='Linear')
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.13, bin_type='Linear')
     print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
-    assert nn.bin_size == 0.1
+    assert nn.bin_size <= 0.13
     assert nn.min_sep == 5.
-    assert nn.max_sep >= 20.
-    assert nn.max_sep <= 20.*math.exp(nn.bin_size)
+    assert nn.max_sep == 20.
     np.testing.assert_almost_equal(nn.bin_size * nn.nbins, nn.max_sep-nn.min_sep)
     np.testing.assert_almost_equal(nn.rnom[0], nn.min_sep + 0.5*nn.bin_size)
     np.testing.assert_almost_equal(nn.rnom[-1], nn.max_sep - 0.5*nn.bin_size)
@@ -1309,13 +1307,13 @@ def test_nn():
     # So check that min_top actually does something.
     print('d top = ',cat.field.nTopLevelNodes)
     print('r top = ',rand.field.nTopLevelNodes)
-    assert cat.field.nTopLevelNodes == 321
+    assert cat.field.nTopLevelNodes == 390
     assert rand.field.nTopLevelNodes == 1024
     dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 min_top=9)
     dd2.process(cat)
     print('d top = ',cat.field.nTopLevelNodes)
-    assert cat.field.nTopLevelNodes == 572
+    assert cat.field.nTopLevelNodes == 603
     dd3 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 min_top=10)
     dd3.process(cat)

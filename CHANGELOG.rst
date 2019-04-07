@@ -45,8 +45,12 @@ API changes
   also be accumulated over the same range of absolute values as the positive
   v's. This should normally not be a hardship, since if you want to accumulate
   negative v's, you probably want the same range as the positive v's. But it
-  enables you to accumulate all flattened triangles with 0.8 < |v| < 1.0,
-  for instance, in one pass rather than two.
+  enables you, for instance, to accumulate all flattened triangles with
+  0.8 < |v| < 1.0 in one pass rather than two.
+- Changed the behavior of specifying min_sep, max_sep, and bin_size (omitting
+  nbins) to respect max_sep and reduce bin_size slightly, rather than
+  respect bin_size and increase max_sep.  This seems like the behavior that
+  most people would expect for this combination.
 
 
 Performance Improvements

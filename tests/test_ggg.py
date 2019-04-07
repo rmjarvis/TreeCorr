@@ -744,7 +744,7 @@ def test_map3():
     L = 20.*r0
     cat_name = os.path.join('data','ggg_map.dat')
     out_name = os.path.join('data','ggg_map.out')
-    ggg = treecorr.GGGCorrelation(bin_size=0.1, min_sep=1, max_sep=100., verbose=2)
+    ggg = treecorr.GGGCorrelation(bin_size=0.1, min_sep=1, nbins=47, verbose=2)
 
     # This takes a few hours to run, so be careful about enabling this.
     if False:
@@ -850,7 +850,7 @@ def test_map3():
     print('ratio = ',map3b/map3)
     print('diff = ',map3b-map3)
     print('max diff = ',max(abs(map3b - map3)))
-    np.testing.assert_allclose(ggg_map3b, ggg_map3)
+    np.testing.assert_allclose(ggg_map3b, ggg_map3, rtol=1.e-15, atol=1.e-20)
 
     # Other combinations are possible to compute analytically as well, so try out a couple
     ggg_map3c = ggg.calculateMap3(k2=1, k3=2)

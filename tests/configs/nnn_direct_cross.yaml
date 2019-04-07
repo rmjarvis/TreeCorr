@@ -17,9 +17,9 @@ nbins: 50
 min_u: 0.13
 max_u: 0.89
 nubins: 10
-min_v: -0.83
+min_v: 0.13
 max_v: 0.59
-nvbins: 20
+nvbins: 10
 
 bin_slop: 0
 

@@ -100,17 +100,16 @@ protected:
     double _maxsepsq;
     double _minusq;
     double _maxusq;
-    double _minabsv;
-    double _maxabsv;
-    double _minabsvsq;
-    double _maxabsvsq;
+    double _minvsq;
+    double _maxvsq;
     double _bsq;
     double _busq;
     double _bvsq;
     double _sqrttwobv;
     int _coords; // Stores the kind of coordinates being used for the analysis.
-    int _nuv; // = nubins * nvbins
-    int _ntot; // = nbins * nubins * nvbins
+    int _nvbins2; // = nvbins * 2
+    int _nuv; // = nubins * nvbins2
+    int _ntot; // = nbins * nubins2 * nvbins
 
     // These are usually allocated in the python layer and just built up here.
     // So all we have here is a bare pointer for each of them.

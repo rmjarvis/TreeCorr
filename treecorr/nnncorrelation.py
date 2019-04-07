@@ -100,7 +100,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self._d1 = 1  # NData
         self._d2 = 1  # NData
         self._d3 = 1  # NData
-        shape = (self.nbins, self.nubins, self.nvbins)
+        shape = self.logr.shape
         self.meand1 = np.zeros(shape, dtype=float)
         self.meanlogd1 = np.zeros(shape, dtype=float)
         self.meand2 = np.zeros(shape, dtype=float)

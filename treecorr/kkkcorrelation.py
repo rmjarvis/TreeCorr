@@ -99,7 +99,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         self._d1 = 2  # KData
         self._d2 = 2  # KData
         self._d3 = 2  # KData
-        shape = (self.nbins, self.nubins, self.nvbins)
+        shape = self.logr.shape
         self.zeta = np.zeros(shape, dtype=float)
         self.varzeta = np.zeros(shape, dtype=float)
         self.meand1 = np.zeros(shape, dtype=float)

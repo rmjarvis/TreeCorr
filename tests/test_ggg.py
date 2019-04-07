@@ -39,17 +39,17 @@ def test_direct():
     bin_size = 0.2
     nrbins = 10
     nubins = 5
-    nvbins = 10
+    nvbins = 5
     max_sep = min_sep * np.exp(nrbins * bin_size)
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True)
     ggg.process(cat, num_threads=2)
 
-    true_ntri = np.zeros((nrbins, nubins, nvbins), dtype=int)
-    true_weight = np.zeros((nrbins, nubins, nvbins), dtype=float)
-    true_gam0 = np.zeros((nrbins, nubins, nvbins), dtype=complex)
-    true_gam1 = np.zeros((nrbins, nubins, nvbins), dtype=complex)
-    true_gam2 = np.zeros((nrbins, nubins, nvbins), dtype=complex)
-    true_gam3 = np.zeros((nrbins, nubins, nvbins), dtype=complex)
+    true_ntri = np.zeros((nrbins, nubins, 2*nvbins), dtype=int)
+    true_weight = np.zeros((nrbins, nubins, 2*nvbins), dtype=float)
+    true_gam0 = np.zeros((nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam1 = np.zeros((nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam2 = np.zeros((nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam3 = np.zeros((nrbins, nubins, 2*nvbins), dtype=complex)
     for i in range(ngal):
         for j in range(i+1,ngal):
             for k in range(j+1,ngal):
@@ -79,7 +79,7 @@ def test_direct():
                 uindex = np.floor(u / bin_size).astype(int)
                 assert 0 <= uindex < nubins
                 vindex = np.floor((v+1) / bin_size).astype(int)
-                assert 0 <= vindex < nvbins
+                assert 0 <= vindex < 2*nvbins
 
                 # Rotate shears to coordinates where line connecting to center is horizontal.
                 cenx = (x[i] + x[j] + x[k])/3.
@@ -315,7 +315,7 @@ def test_direct_spherical():
     bin_size = 0.2
     nrbins = 10
     nubins = 5
-    nvbins = 10
+    nvbins = 5
     max_sep = min_sep * np.exp(nrbins * bin_size)
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   sep_units='deg', brute=True)
@@ -325,12 +325,12 @@ def test_direct_spherical():
     x /= r;  y /= r;  z /= r
     north_pole = coord.CelestialCoord(0*coord.radians, 90*coord.degrees)
 
-    true_ntri = np.zeros((nrbins, nubins, nvbins), dtype=int)
-    true_weight = np.zeros((nrbins, nubins, nvbins), dtype=float)
-    true_gam0 = np.zeros((nrbins, nubins, nvbins), dtype=complex)
-    true_gam1 = np.zeros((nrbins, nubins, nvbins), dtype=complex)
-    true_gam2 = np.zeros((nrbins, nubins, nvbins), dtype=complex)
-    true_gam3 = np.zeros((nrbins, nubins, nvbins), dtype=complex)
+    true_ntri = np.zeros((nrbins, nubins, 2*nvbins), dtype=int)
+    true_weight = np.zeros((nrbins, nubins, 2*nvbins), dtype=float)
+    true_gam0 = np.zeros((nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam1 = np.zeros((nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam2 = np.zeros((nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam3 = np.zeros((nrbins, nubins, 2*nvbins), dtype=complex)
 
     rad_min_sep = min_sep * coord.degrees / coord.radians
     rad_max_sep = max_sep * coord.degrees / coord.radians
@@ -366,7 +366,7 @@ def test_direct_spherical():
                 uindex = np.floor(u / bin_size).astype(int)
                 assert 0 <= uindex < nubins
                 vindex = np.floor((v+1) / bin_size).astype(int)
-                assert 0 <= vindex < nvbins
+                assert 0 <= vindex < 2*nvbins
 
                 # Rotate shears to coordinates where line connecting to center is horizontal.
                 # Original orientation is where north is up.
@@ -511,9 +511,9 @@ def test_ggg():
     min_u = 0.7
     max_u = 1.0
     nubins = 3
-    min_v = -0.1
+    min_v = 0.1
     max_v = 0.3
-    nvbins = 4
+    nvbins = 2
 
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,

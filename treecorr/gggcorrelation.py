@@ -122,7 +122,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self._d1 = 3  # GData
         self._d2 = 3  # GData
         self._d3 = 3  # GData
-        shape = (self.nbins, self.nubins, self.nvbins)
+        shape = self.logr.shape
         self.gam0r = np.zeros(shape, dtype=float)
         self.gam1r = np.zeros(shape, dtype=float)
         self.gam2r = np.zeros(shape, dtype=float)

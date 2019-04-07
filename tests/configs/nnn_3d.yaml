@@ -16,7 +16,7 @@ nbins: 8
 min_u: 0.9
 max_u: 1.0
 nubins: 1
-min_v: -0.05
+min_v: 0.
 max_v: 0.05
 nvbins: 1
 

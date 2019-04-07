@@ -15,7 +15,7 @@ bin_size: 0.2
 nbins: 10
 sep_units: degrees
 nubins: 5
-nvbins: 10
+nvbins: 5
 bin_slop: 0
 
 kkk_file_name: output/kkk_direct_sph.fits

@@ -344,9 +344,9 @@ def test_3pt():
     min_u = 0.13
     max_u = 0.89
     nubins = 10
-    min_v = -0.83
+    min_v = 0.13
     max_v = 0.59
-    nvbins = 20
+    nvbins = 10
 
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
@@ -357,7 +357,7 @@ def test_3pt():
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
-    true_ntri = np.zeros( (nbins, nubins, nvbins) )
+    true_ntri = np.zeros( (nbins, nubins, 2*nvbins) )
     bin_size = (log_max_sep - log_min_sep) / nbins
     ubin_size = (max_u-min_u) / nubins
     vbin_size = (max_v-min_v) / nvbins
@@ -416,19 +416,22 @@ def test_3pt():
                 r = d2
                 u = d3/d2
                 v = (d1-d2)/d3
+                if r < min_sep or r >= max_sep: continue
+                if u < min_u or u >= max_u: continue
+                if v < min_v or v >= max_v: continue
                 if not ccw:
                     v = -v
                 #print('r,u,v = ',r,u,v)
                 kr = int(np.floor( (np.log(r)-log_min_sep) / bin_size ))
                 ku = int(np.floor( (u-min_u) / ubin_size ))
-                kv = int(np.floor( (v-min_v) / vbin_size ))
+                if v > 0:
+                    kv = int(np.floor( (v-min_v) / vbin_size )) + nvbins
+                else:
+                    kv = int(np.floor( (v-(-max_v)) / vbin_size ))
                 #print('kr,ku,kv = ',kr,ku,kv)
-                if kr < 0: continue
-                if kr >= nbins: continue
-                if ku < 0: continue
-                if ku >= nubins: continue
-                if kv < 0: continue
-                if kv >= nvbins: continue
+                assert 0 <= kr < nbins
+                assert 0 <= ku < nubins
+                assert 0 <= kv < 2*nvbins
                 true_ntri[kr,ku,kv] += 1
                 #print('good.', true_ntri[kr,ku,kv])
 

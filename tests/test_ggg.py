@@ -841,6 +841,47 @@ def test_map3():
         print('max = ',max(abs(mx)))
         np.testing.assert_allclose(mx, 0., atol=5.e-10)
 
+    # Next check the same calculation, but not with k2=k3=1.
+    # Setting these to 1 + 1.e-15 should give basically the same answer,
+    # but use different formulae (SKL, rather than JBJ).
+    ggg_map3b = ggg.calculateMap3(k2=1+1.e-15, k3=1+1.e-15)
+    map3b = ggg_map3b[0]
+    print('map3b = ',map3b)
+    print('ratio = ',map3b/map3)
+    print('diff = ',map3b-map3)
+    print('max diff = ',max(abs(map3b - map3)))
+    np.testing.assert_allclose(ggg_map3b, ggg_map3)
+
+    # Other combinations are possible to compute analytically as well, so try out a couple
+    ggg_map3c = ggg.calculateMap3(k2=1, k3=2)
+    map3c = ggg_map3c[0]
+    true_map3c = 1024./243.*np.pi * gamma0**3 * r0**12 * r**6
+    true_map3c *= (575*r**8 + 806*r**6*r0**2 + 438*r**4*r0**4 + 110*r0**6*r**2 + 11*r0**8)
+    true_map3c /= L**2 * (3*r**2+r0**2)**7 * (r**2+r0**2)**5
+    print('map3c = ',map3c)
+    print('true_map3 = ',true_map3c)
+    print('ratio = ',map3c/true_map3c)
+    print('diff = ',map3c-true_map3c)
+    print('max diff = ',max(abs(map3c - true_map3c)))
+    np.testing.assert_allclose(map3c, true_map3c, rtol=0.1, atol=1.e-9)
+
+    # (This is the same but in a different order)
+    ggg_map3d = np.array(ggg.calculateMap3(k2=2, k3=1))
+    np.testing.assert_allclose(ggg_map3d[[0,2,1,3,5,4,6,7,8]], ggg_map3c)
+
+    ggg_map3e = ggg.calculateMap3(k2=1.5, k3=2)
+    map3e = ggg_map3e[0]
+    true_map3e = 442368.*np.pi * gamma0**3 * r0**12 * r**6
+    true_map3e *= (1800965*r**12 + 4392108*r**10*r0**2 + 4467940*r**8*r0**4 + 2429536*r**6*r0**6 +
+                   745312*r**4*r0**8 + 122496*r0**10*r**2 + 8448*r0**12)
+    true_map3e /= L**2 * (61*r**4 + 58*r0**2*r**2 + 12*r0**4)**7
+    print('map3e = ',map3e)
+    print('true_map3 = ',true_map3e)
+    print('ratio = ',map3e/true_map3e)
+    print('diff = ',map3e-true_map3e)
+    print('max diff = ',max(abs(map3e - true_map3e)))
+    np.testing.assert_allclose(map3e, true_map3e, rtol=0.1, atol=1.e-9)
+
     # Repeat now with the real ggg results.  The tolerance needs to be a bit larger now.
     # We also increase the "true" value a bit because the effective L^2 is a bit lower.
     # I could make a hand wavy justification for this factor, but it's actually just an

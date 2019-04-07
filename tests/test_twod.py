@@ -164,8 +164,8 @@ def test_twod():
 
     # Check NK
     xi_brut = corr2d(x, y, np.ones_like(kappa), kappa, rmax=max_sep, bins=nbins)
-    # Check slightly smaller max_sep gets rounded up.
-    nk = treecorr.NKCorrelation(max_sep=max_sep-0.5, bin_size=2, bin_type='TwoD', brute=True)
+    # Check slightly larger bin_size gets rounded down
+    nk = treecorr.NKCorrelation(max_sep=max_sep, bin_size=2.05, bin_type='TwoD', brute=True)
     nk.process(cat1, cat1)
     print('max abs diff = ',np.max(np.abs(nk.xi - xi_brut)))
     print('max rel diff = ',np.max(np.abs(nk.xi - xi_brut)/np.abs(nk.xi)))

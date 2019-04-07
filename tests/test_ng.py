@@ -1124,6 +1124,7 @@ def test_rlens():
     # lenses is effectively a shape noise, and that comes to dominate the measurement above ~4R0.
     max_sep = 3.5*R0
     nbins = int(np.ceil(np.log(max_sep/min_sep)/bin_size))
+    bs = np.log(max_sep/min_sep)/nbins
     true_gt = np.zeros( (nbins,) )
     true_npairs = np.zeros((nbins,), dtype=int)
     print('Making shear vectors')
@@ -1143,7 +1144,7 @@ def test_rlens():
         drsq = dx**2 + dz**2
         g1 += -gammat * (dx**2-dz**2)/drsq
         g2 += -gammat * (2.*dx*dz)/drsq
-        index = np.floor( np.log(Rlens/min_sep) / bin_size).astype(int)
+        index = np.floor( np.log(Rlens/min_sep) / bs).astype(int)
         mask = (index >= 0) & (index < nbins)
         np.add.at(true_gt, index[mask], gammat[mask])
         np.add.at(true_npairs, index[mask], 1)
@@ -1304,6 +1305,7 @@ def test_rlens_bkg():
     # lenses is effectively a shape noise, and that comes to dominate the measurement above ~4R0.
     max_sep = 2.5*R0
     nbins = int(np.ceil(np.log(max_sep/min_sep)/bin_size))
+    bs = np.log(max_sep/min_sep)/nbins
     print('Making shear vectors')
     for x,y,z,r in zip(xl,yl,zl,rl):
         # This time, only give the true shear to the background galaxies.
@@ -1336,6 +1338,7 @@ def test_rlens_bkg():
     max_sep_arc = 200
     min_sep_arc_rad = min_sep_arc * coord.arcmin / coord.radians
     nbins_arc = int(np.ceil(np.log(max_sep_arc/min_sep_arc)/bin_size))
+    bs_arc = np.log(max_sep_arc/min_sep_arc)/nbins_arc
     true_gt_arc = np.zeros( (nbins_arc,) )
     true_npairs_arc = np.zeros((nbins_arc,), dtype=int)
     for x,y,z,r in zip(xl,yl,zl,rl):
@@ -1349,14 +1352,14 @@ def test_rlens_bkg():
         drsq = dx**2 + dz**2
         gt = -g1 * (dx**2-dz**2)/drsq - g2 * (2.*dx*dz)/drsq
         bkg = (rs > r)
-        index = np.floor( np.log(Rlens/min_sep) / bin_size).astype(int)
+        index = np.floor( np.log(Rlens/min_sep) / bs).astype(int)
         mask = (index >= 0) & (index < nbins) & bkg
         np.add.at(true_gt, index[mask], gt[mask])
         np.add.at(true_npairs, index[mask], 1)
 
         # Arc bins by theta, which is arcsin(Rlens / r)
         theta = np.arcsin(Rlens / r)
-        index = np.floor( np.log(theta / min_sep_arc_rad) / bin_size).astype(int)
+        index = np.floor( np.log(theta / min_sep_arc_rad) / bs_arc).astype(int)
         mask = (index >= 0) & (index < nbins_arc) & bkg
         np.add.at(true_gt_arc, index[mask], gt[mask])
         np.add.at(true_npairs_arc, index[mask], 1)

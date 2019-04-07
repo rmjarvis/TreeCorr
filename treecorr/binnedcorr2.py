@@ -306,8 +306,8 @@ class BinnedCorr2(object):
         if self.bin_type == 'Log':
             if self.nbins is None:
                 self.nbins = int(math.ceil(math.log(self.max_sep/self.min_sep)/self.bin_size))
-                # Update max_sep given this value of nbins
-                self.max_sep = math.exp(self.nbins*self.bin_size)*self.min_sep
+                # Update bin_size given this value of nbins
+                self.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
             elif self.bin_size is None:
                 self.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
             elif self.max_sep is None:
@@ -332,8 +332,8 @@ class BinnedCorr2(object):
         elif self.bin_type == 'Linear':
             if self.nbins is None:
                 self.nbins = int(math.ceil((self.max_sep-self.min_sep)/self.bin_size))
-                # Update max_sep given this value of nbins
-                self.max_sep = self.min_sep + self.nbins*self.bin_size
+                # Update bin_size given this value of nbins
+                self.bin_size = (self.max_sep-self.min_sep)/self.nbins
             elif self.bin_size is None:
                 self.bin_size = (self.max_sep-self.min_sep)/self.nbins
             elif self.max_sep is None:
@@ -356,7 +356,7 @@ class BinnedCorr2(object):
         elif self.bin_type == 'TwoD':
             if self.nbins is None:
                 self.nbins = int(math.ceil(2.*self.max_sep / self.bin_size))
-                self.max_sep = self.nbins * self.bin_size / 2.
+                self.bin_size = 2.*self.max_sep/self.nbins
             elif self.bin_size is None:
                 self.bin_size = 2.*self.max_sep/self.nbins
             else:

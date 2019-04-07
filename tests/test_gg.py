@@ -602,7 +602,7 @@ def test_mapsq():
     L = 50.*r0
     cat_name = os.path.join('data','gg_map.dat')
     out_name = os.path.join('data','gg_map.out')
-    gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1, max_sep=100., sep_units='arcmin',
+    gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1, nbins=47, sep_units='arcmin',
                                 verbose=1)
     if __name__ == "__main__":
         ngal = 1000000
@@ -1238,6 +1238,7 @@ def test_rlens():
     # lenses is effectively a shape noise, and that comes to dominate the measurement above ~4R0.
     max_sep = 4.*R0
     nbins = int(np.ceil(np.log(max_sep/min_sep)/bin_size))
+    bs = np.log(max_sep/min_sep)/nbins  # Real bin size to use.
     true_gQ = np.zeros( (nbins,) )
     true_gCr = np.zeros( (nbins,) )
     true_gCi = np.zeros( (nbins,) )
@@ -1268,7 +1269,7 @@ def test_rlens():
         g1 += gQ.real
         g2 += gQ.imag
 
-        index = np.floor( np.log(Rlens/min_sep) / bin_size).astype(int)
+        index = np.floor( np.log(Rlens/min_sep) / bs).astype(int)
         mask = (index >= 0) & (index < nbins)
         np.add.at(true_gQ, index[mask], gammaQ[mask])
         np.add.at(true_npairs, index[mask], 1)
@@ -1311,7 +1312,7 @@ def test_rlens():
     print('max diff = ',max(abs(gg0.xim - true_gQ)))
     assert max(abs(gg0.xim - true_gQ)) < 2.e-6
     print('gg.xim_im = ',gg0.xim_im)
-    assert max(abs(gg0.xim_im)) < 2.e-6
+    assert max(abs(gg0.xim_im)) < 3.e-6
     print('gg.xip = ',gg0.xip)
     print('true_gCr = ',true_gCr)
     print('diff = ',gg0.xip - true_gCr)
@@ -1457,7 +1458,7 @@ def test_rlens():
     print('max diff = ',max(abs(gg0s.xim - true_gQ)))
     assert max(abs(gg0s.xim - true_gQ)) < 2.e-6
     print('gg.xim_im = ',gg0s.xim_im)
-    assert max(abs(gg0s.xim_im)) < 2.e-6
+    assert max(abs(gg0s.xim_im)) < 3.e-6
     print('gg.xip = ',gg0s.xip)
     print('true_gCr = ',true_gCr)
     print('diff = ',gg0s.xip - true_gCr)
@@ -1500,7 +1501,7 @@ def test_rlens():
     print('max diff = ',max(abs(ggs2.xim - theory_gQ)))
     # Not quite as accurate as above, since the cells that get used tend to be larger, so more
     # slop happens in the binning.
-    assert max(abs(ggs2.xim - theory_gQ)) < 4.e-5
+    assert max(abs(ggs2.xim - theory_gQ)) < 5.e-5
     print('gg.xim_im = ',ggs2.xim_im)
     assert max(abs(ggs2.xim_im)) < 7.e-6
 
@@ -1545,6 +1546,7 @@ def test_rperp():
     # in the gaussian signal.
     R1 = 4. * R0
     nbins = int(np.ceil(np.log(max_sep/min_sep)/bin_size))
+    bs = np.log(max_sep/min_sep)/nbins  # Real bin size to use.
     true_gQ = np.zeros( (nbins,) )
     true_gCr = np.zeros( (nbins,) )
     true_gCi = np.zeros( (nbins,) )
@@ -1567,7 +1569,7 @@ def test_rperp():
         g1 += gQ.real
         g2 += gQ.imag
 
-        index = np.floor( np.log(Rperp/min_sep) / bin_size).astype(int)
+        index = np.floor( np.log(Rperp/min_sep) / bs).astype(int)
         mask = (index >= 0) & (index < nbins)
         np.add.at(true_gQ, index[mask], gammaQ[mask])
         np.add.at(true_npairs, index[mask], 1)
@@ -1737,6 +1739,7 @@ def test_rperp_local():
     # in the gaussian signal.
     R1 = 4. * R0
     nbins = int(np.ceil(np.log(max_sep/min_sep)/bin_size))
+    bs = np.log(max_sep/min_sep)/nbins  # Real bin size to use.
 
     print('Making shear vectors')
     for x,y,z,r,g in zip(xl,yl,zl,rl,gl):
@@ -1781,7 +1784,7 @@ def test_rperp_local():
         gs = (g1 + 1j * g2)[near]
         gQ = gs * expmialpha**4 * g
 
-        index = np.floor( np.log(Rperp/min_sep) / bin_size).astype(int)
+        index = np.floor( np.log(Rperp/min_sep) / bs).astype(int)
         mask = (index >= 0) & (index < nbins)
         np.add.at(true_gQ, index[mask], gQ[mask].real)
         np.add.at(true_npairs, index[mask], 1)
@@ -1955,6 +1958,7 @@ def test_oldrperp():
     # in the gaussian signal.
     R1 = 4. * R0
     nbins = int(np.ceil(np.log(max_sep/min_sep)/bin_size))
+    bs = np.log(max_sep/min_sep)/nbins  # Real bin size to use.
     true_gQ = np.zeros( (nbins,) )
     true_gCr = np.zeros( (nbins,) )
     true_gCi = np.zeros( (nbins,) )
@@ -1975,7 +1979,7 @@ def test_oldrperp():
         g1 += gQ.real
         g2 += gQ.imag
 
-        index = np.floor( np.log(Rperp/min_sep) / bin_size).astype(int)
+        index = np.floor( np.log(Rperp/min_sep) / bs).astype(int)
         mask = (index >= 0) & (index < nbins)
         np.add.at(true_gQ, index[mask], gammaQ[mask])
         np.add.at(true_npairs, index[mask], 1)
@@ -2145,6 +2149,7 @@ def test_oldrperp_local():
     # in the gaussian signal.
     R1 = 4. * R0
     nbins = int(np.ceil(np.log(max_sep/min_sep)/bin_size))
+    bs = np.log(max_sep/min_sep)/nbins  # Real bin size to use.
 
     print('Making shear vectors')
     for x,y,z,r,g in zip(xl,yl,zl,rl,gl):
@@ -2187,7 +2192,7 @@ def test_oldrperp_local():
         gs = (g1 + 1j * g2)[near]
         gQ = gs * expmialpha**4 * g
 
-        index = np.floor( np.log(Rperp/min_sep) / bin_size).astype(int)
+        index = np.floor( np.log(Rperp/min_sep) / bs).astype(int)
         mask = (index >= 0) & (index < nbins)
         np.add.at(true_gQ, index[mask], gQ[mask].real)
         np.add.at(true_npairs, index[mask], 1)

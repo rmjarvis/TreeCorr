@@ -368,7 +368,7 @@ def test_sample_pairs():
     cat1 = treecorr.Catalog(x=x1, y=y1, z=z1, w=w1, g1=g11, g2=g21, k=k1)
     cat2 = treecorr.Catalog(x=x2, y=y2, z=z2, w=w2, g1=g12, g2=g22, k=k2)
 
-    gg = treecorr.GGCorrelation(min_sep=0.4, max_sep=1.0, bin_size=0.1, max_top=0)
+    gg = treecorr.GGCorrelation(min_sep=0.4, nbins=10, bin_size=0.1, max_top=0)
     gg.process(cat1, cat2)
     print('rnom = ',gg.rnom)
     print('npairs = ',gg.npairs.astype(int))

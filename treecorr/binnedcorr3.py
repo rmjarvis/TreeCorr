@@ -47,6 +47,12 @@ class BinnedCorr3(object):
     Positive v triangles have the three sides d1,d2,d3 in counter-clockwise orientation.
     Negative v triangles have the three sides d1,d2,d3 in clockwise orientation.
 
+    .. note::
+        We always bin the same way for positive and negative v values, and the binning
+        specification for v should just be for the positive values.  E.g. if you specify
+        min_v=0.2, max_v=0.6, then TreeCorr will also accumulate triangles with
+        -0.6 < v < -0.2 in addition to those with 0.2 < v < 0.6.
+
     The constructor for all derived classes take a config dict as the first argument,
     since this is often how we keep track of parameters, but if you don't want to
     use one or if you want to change some parameters from what are in a config dict,
@@ -105,19 +111,19 @@ class BinnedCorr3(object):
                         This mean the error will be at most 0.1 in log(sep), which has been found
                         to yield good results for most application.
 
-    :param nubins:      Analogous to nbins for the u direction.  (The default is to calculate from
+    :param nubins:      Analogous to nbins for the u values.  (The default is to calculate from
                         ubin_size = binsize, min_u = 0, max_u = 1, but this can be overridden by
                         specifying up to 3 of these four parametes.)
-    :param ubin_size:   Analogous to bin_size for the u direction. (default: bin_size)
-    :param min_u:       Analogous to min_sep for the u direction. (default: 0)
-    :param max_u:       Analogous to max_sep for the u direction. (default: 1)
+    :param ubin_size:   Analogous to bin_size for the u values. (default: bin_size)
+    :param min_u:       Analogous to min_sep for the u values. (default: 0)
+    :param max_u:       Analogous to max_sep for the u values. (default: 1)
 
-    :param nvbins:      Analogous to nbins for the v direction.  (The default is to calculate from
-                        vbin_size = binsize, min_v = -1, max_v = 1, but this can be overridden by
-                        specifying up to 3 of these four parametes.)
-    :param vbin_size:   Analogous to bin_size for the v direction. (default: bin_size)
-    :param min_v:       Analogous to min_sep for the v direction. (default: -1)
-    :param max_v:       Analogous to max_sep for the v direction. (default: 1)
+    :param nvbins:      Analogous to nbins for the positive v values.  (The default is to
+                        calculate from vbin_size = binsize, min_v = 0, max_v = 1, but this can be
+                        overridden by specifying up to 3 of these four parametes.)
+    :param vbin_size:   Analogous to bin_size for the v values. (default: bin_size)
+    :param min_v:       Analogous to min_sep for the positive v values. (default: 0)
+    :param max_v:       Analogous to max_sep for the positive v values. (default: 1)
 
     :param brute:       Whether to use the "brute force" algorithm.  (default: False) Options are:
 
@@ -204,13 +210,13 @@ class BinnedCorr3(object):
         'max_u' : (float, False, None, None,
                 'The maximum u to include in the output.'),
         'nvbins' : (int, False, None, None,
-                'The number of output bins to use for v dimension.'),
+                'The number of output bins to use for positive v values.'),
         'vbin_size' : (float, False, None, None,
                 'The size of the output bins in v.'),
         'min_v' : (float, False, None, None,
-                'The minimum v to include in the output.'),
+                'The minimum |v| to include in the output.'),
         'max_v' : (float, False, None, None,
-                'The maximum v to include in the output.'),
+                'The maximum |v| to include in the output.'),
         'brute' : (bool, False, False, [False, True],
                 'Whether to use brute-force algorithm'),
         'verbose' : (int, False, 1, [0, 1, 2, 3],
@@ -329,6 +335,8 @@ class BinnedCorr3(object):
         self.max_u = float(self.config.get('max_u', 1.))
         if self.min_u >= self.max_u:
             raise ValueError("max_u must be larger than min_u")
+        if self.min_u < 0. or self.max_u > 1.:
+            raise ValueError("Invalid range for u: %f - %f"%(self.min_u, self.max_u))
         self.ubin_size = float(self.config.get('ubin_size', self.bin_size))
         if 'nubins' not in self.config:
             self.nubins = int(math.ceil((self.max_u-self.min_u-1.e-10)/self.ubin_size))
@@ -347,29 +355,25 @@ class BinnedCorr3(object):
         self.logger.info("u: nbins = %d, min,max = %g..%g, bin_size = %g",
                          self.nubins,self.min_u,self.max_u,self.ubin_size)
 
-        self.min_v = float(self.config.get('min_v', -1.))
+        self.min_v = float(self.config.get('min_v', 0.))
         self.max_v = float(self.config.get('max_v', 1.))
         if self.min_v >= self.max_v:
             raise ValueError("max_v must be larger than min_v")
+        if self.min_v < 0 or self.max_v > 1.:
+            raise ValueError("Invalid range for |v|: %f - %f"%(self.min_v, self.max_v))
         self.vbin_size = float(self.config.get('vbin_size', self.bin_size))
         if 'nvbins' not in self.config:
             self.nvbins = int(math.ceil((self.max_v-self.min_v-1.e-10)/self.vbin_size))
-            if 'min_v' not in self.config and 'max_v' not in self.config:
-                # Make sure nvbins is even when range is implicitly [-1,1]
-                self.nvbins += self.nvbins%2
         elif 'max_v' in self.config and 'min_v' in self.config and 'vbin_size' in self.config:
                 raise AttributeError("Only 3 of min_v, max_v, vbin_size, nvbins are allowed.")
         else:
             self.nvbins = self.config['nvbins']
             # Allow min or max v to be implicit from nvbins and vbin_size
             if 'vbin_size' in self.config:
-                if 'min_v' not in self.config and 'max_v' not in self.config:
-                    self.max_v = min(self.nvbins * self.vbin_size / 2., 1.)
-                    self.min_v = -self.max_v
-                if 'min_v' not in self.config:
-                    self.min_v = max(self.max_v - self.nvbins * self.vbin_size, -1.)
                 if 'max_v' not in self.config:
                     self.max_v = min(self.min_v + self.nvbins * self.vbin_size, 1.)
+                else:  # min_v not in config
+                    self.min_v = max(self.max_v - self.nvbins * self.vbin_size, -1.)
         # Adjust vbin_size given the other values
         self.vbin_size = (self.max_v-self.min_v)/self.nvbins
         self.logger.info("v: nbins = %d, min,max = %g..%g, bin_size = %g",
@@ -428,12 +432,13 @@ class BinnedCorr3(object):
         self.v1d = np.linspace(start=0, stop=self.nvbins*self.vbin_size,
                                   num=self.nvbins, endpoint=False)
         self.v1d += self.min_v + 0.5*self.vbin_size
+        self.v1d = np.concatenate([-self.v1d[::-1],self.v1d])
 
-        shape = (self.nbins, self.nubins, self.nvbins)
+        shape = (self.nbins, self.nubins, 2*self.nvbins)
         self.logr = np.tile(self.logr1d[:, np.newaxis, np.newaxis],
-                               (1, self.nubins, self.nvbins))
+                               (1, self.nubins, 2*self.nvbins))
         self.u = np.tile(self.u1d[np.newaxis, :, np.newaxis],
-                            (self.nbins, 1, self.nvbins))
+                            (self.nbins, 1, 2*self.nvbins))
         self.v = np.tile(self.v1d[np.newaxis, np.newaxis, :],
                             (self.nbins, self.nubins, 1))
         self.rnom = np.exp(self.logr)

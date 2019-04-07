@@ -31,7 +31,7 @@ def test_binnedcorr3():
         np.testing.assert_equal(nnn.logr1d.shape, (nnn.nbins,) )
         np.testing.assert_almost_equal(nnn.logr1d[0], math.log(nnn.min_sep) + 0.5*nnn.bin_size)
         np.testing.assert_almost_equal(nnn.logr1d[-1], math.log(nnn.max_sep) - 0.5*nnn.bin_size)
-        np.testing.assert_equal(nnn.logr.shape, (nnn.nbins, nnn.nubins, nnn.nvbins) )
+        np.testing.assert_equal(nnn.logr.shape, (nnn.nbins, nnn.nubins, 2*nnn.nvbins) )
         np.testing.assert_almost_equal(nnn.logr[:,0,0], nnn.logr1d)
         np.testing.assert_almost_equal(nnn.logr[:,-1,-1], nnn.logr1d)
         assert len(nnn.logr) == nnn.nbins
@@ -39,14 +39,16 @@ def test_binnedcorr3():
         np.testing.assert_equal(nnn.u1d.shape, (nnn.nubins,) )
         np.testing.assert_almost_equal(nnn.u1d[0], nnn.min_u + 0.5*nnn.ubin_size)
         np.testing.assert_almost_equal(nnn.u1d[-1], nnn.max_u - 0.5*nnn.ubin_size)
-        np.testing.assert_equal(nnn.u.shape, (nnn.nbins, nnn.nubins, nnn.nvbins) )
+        np.testing.assert_equal(nnn.u.shape, (nnn.nbins, nnn.nubins, 2*nnn.nvbins) )
         np.testing.assert_almost_equal(nnn.u[0,:,0], nnn.u1d)
         np.testing.assert_almost_equal(nnn.u[-1,:,-1], nnn.u1d)
         #print('v = ',nnn.v1d)
-        np.testing.assert_equal(nnn.v1d.shape, (nnn.nvbins,) )
-        np.testing.assert_almost_equal(nnn.v1d[0], nnn.min_v + 0.5*nnn.vbin_size)
+        np.testing.assert_equal(nnn.v1d.shape, (2*nnn.nvbins,) )
+        np.testing.assert_almost_equal(nnn.v1d[0], -nnn.max_v + 0.5*nnn.vbin_size)
         np.testing.assert_almost_equal(nnn.v1d[-1], nnn.max_v - 0.5*nnn.vbin_size)
-        np.testing.assert_equal(nnn.v.shape, (nnn.nbins, nnn.nubins, nnn.nvbins) )
+        np.testing.assert_almost_equal(nnn.v1d[nnn.nvbins], nnn.min_v + 0.5*nnn.vbin_size)
+        np.testing.assert_almost_equal(nnn.v1d[nnn.nvbins-1], -nnn.min_v - 0.5*nnn.vbin_size)
+        np.testing.assert_equal(nnn.v.shape, (nnn.nbins, nnn.nubins, 2*nnn.nvbins) )
         np.testing.assert_almost_equal(nnn.v[0,0,:], nnn.v1d)
         np.testing.assert_almost_equal(nnn.v[-1,-1,:], nnn.v1d)
 
@@ -54,9 +56,9 @@ def test_binnedcorr3():
         assert nnn.min_u == 0.
         assert nnn.max_u == 1.
         assert nnn.nubins == np.ceil(1./nnn.bin_size)
-        assert nnn.min_v == -1.
+        assert nnn.min_v == 0.
         assert nnn.max_v == 1.
-        assert nnn.nvbins == 2.*np.ceil(1./nnn.bin_size)
+        assert nnn.nvbins == np.ceil(1./nnn.bin_size)
 
     # Check the different ways to set up the binning:
     # Omit bin_size
@@ -73,7 +75,7 @@ def test_binnedcorr3():
     # Specify min, max, n for u,v too.
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20,
                                   min_u=0.2, max_u=0.9, nubins=12,
-                                  min_v=-0.2, max_v=0.2, nvbins=4)
+                                  min_v=0., max_v=0.2, nvbins=2)
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
@@ -83,9 +85,9 @@ def test_binnedcorr3():
     assert nnn.min_u == 0.2
     assert nnn.max_u == 0.9
     assert nnn.nubins == 12
-    assert nnn.min_v == -0.2
+    assert nnn.min_v == 0.
     assert nnn.max_v == 0.2
-    assert nnn.nvbins == 4
+    assert nnn.nvbins == 2
     check_arrays(nnn)
 
     # Omit min_sep
@@ -102,7 +104,7 @@ def test_binnedcorr3():
     # Specify max, n, bs for u,v too.
     nnn = treecorr.NNNCorrelation(max_sep=20, nbins=20, bin_size=0.1,
                                   max_u=0.9, nubins=3, ubin_size=0.05,
-                                  max_v=0.2, nvbins=4, vbin_size=0.05)
+                                  max_v=0.4, nvbins=4, vbin_size=0.05)
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
@@ -110,10 +112,12 @@ def test_binnedcorr3():
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
     assert np.isclose(nnn.ubin_size, 0.05)
+    assert np.isclose(nnn.min_u, 0.75)
     assert nnn.max_u == 0.9
     assert nnn.nubins == 3
     assert np.isclose(nnn.vbin_size, 0.05)
-    assert nnn.max_v == 0.2
+    assert np.isclose(nnn.min_v, 0.2)
+    assert nnn.max_v == 0.4
     assert nnn.nvbins == 4
     check_arrays(nnn)
 
@@ -130,7 +134,7 @@ def test_binnedcorr3():
     # Specify min, n, bs for u,v too.
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=20, bin_size=0.1,
                                   min_u=0.7, nubins=4, ubin_size=0.05,
-                                  min_v=-0.2, nvbins=4, vbin_size=0.05)
+                                  min_v=0.2, nvbins=4, vbin_size=0.05)
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
@@ -140,7 +144,8 @@ def test_binnedcorr3():
     assert nnn.min_u == 0.7
     assert np.isclose(nnn.ubin_size, 0.05)
     assert nnn.nubins == 4
-    assert nnn.min_v == -0.2
+    assert nnn.min_v == 0.2
+    assert nnn.max_v == 0.4
     assert np.isclose(nnn.vbin_size, 0.05)
     assert nnn.nvbins == 4
     check_arrays(nnn)
@@ -159,7 +164,7 @@ def test_binnedcorr3():
     # Specify min, max, bs for u,v too.
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   min_u=0.2, max_u=0.9, ubin_size=0.03,
-                                  min_v=-0.2, max_v=0.2, vbin_size=0.07)
+                                  min_v=0.1, max_v=0.3, vbin_size=0.07)
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
@@ -171,16 +176,16 @@ def test_binnedcorr3():
     assert nnn.max_u == 0.9
     assert nnn.nubins == 24
     assert np.isclose(nnn.ubin_size, 0.7/24)
-    assert nnn.min_v == -0.2
-    assert nnn.max_v == 0.2
-    assert nnn.nvbins == 6
-    assert np.isclose(nnn.vbin_size, 0.4/6)
+    assert nnn.min_v == 0.1
+    assert nnn.max_v == 0.3
+    assert nnn.nvbins == 3
+    assert np.isclose(nnn.vbin_size, 0.2/3)
     check_arrays(nnn)
 
     # If only one of min/max v are set, respect that
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   min_u=0.2, ubin_size=0.03,
-                                  min_v=-0.2, vbin_size=0.07)
+                                  min_v=0.2, vbin_size=0.07)
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
@@ -188,14 +193,14 @@ def test_binnedcorr3():
     assert nnn.max_u == 1.
     assert nnn.nubins == 27
     assert np.isclose(nnn.ubin_size, 0.8/27)
-    assert nnn.min_v == -0.2
+    assert nnn.min_v == 0.2
     assert nnn.max_v == 1.
-    assert nnn.nvbins == 18
-    assert np.isclose(nnn.vbin_size, 1.2/18)
+    assert nnn.nvbins == 12
+    assert np.isclose(nnn.vbin_size, 0.8/12)
     check_arrays(nnn)
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   max_u=0.2, ubin_size=0.03,
-                                  max_v=-0.2, vbin_size=0.07)
+                                  max_v=0.2, vbin_size=0.07)
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
@@ -203,10 +208,10 @@ def test_binnedcorr3():
     assert nnn.max_u == 0.2
     assert nnn.nubins == 7
     assert np.isclose(nnn.ubin_size, 0.2/7)
-    assert nnn.min_v == -1.
-    assert nnn.max_v == -0.2
-    assert nnn.nvbins == 12
-    assert np.isclose(nnn.vbin_size, 0.8/12)
+    assert nnn.min_v == 0.
+    assert nnn.max_v == 0.2
+    assert nnn.nvbins == 3
+    assert np.isclose(nnn.vbin_size, 0.2/3)
     check_arrays(nnn)
 
     # If only vbin_size is set for v, automatically figure out others.
@@ -222,9 +227,9 @@ def test_binnedcorr3():
     assert nnn.max_u == 1.
     assert nnn.nubins == 4
     assert np.isclose(nnn.ubin_size, 0.25)
-    assert nnn.min_v == -1.
+    assert nnn.min_v == 0.
     assert nnn.max_v == 1.
-    assert nnn.nvbins == 8
+    assert nnn.nvbins == 4
     assert np.isclose(nnn.vbin_size, 0.25)
     check_arrays(nnn)
 
@@ -240,10 +245,10 @@ def test_binnedcorr3():
     assert nnn.max_u == 1.
     assert nnn.nubins == 5
     assert np.isclose(nnn.ubin_size,0.2)
-    assert nnn.min_v == -1.
+    assert nnn.min_v == 0.
     assert nnn.max_v == 1.
     assert nnn.nvbins == 5
-    assert np.isclose(nnn.vbin_size,0.4)
+    assert np.isclose(nnn.vbin_size,0.2)
     check_arrays(nnn)
 
     # If both nvbins and vbin_size are set, set min/max automatically
@@ -261,8 +266,8 @@ def test_binnedcorr3():
     assert np.isclose(nnn.min_u,0.5)
     assert nnn.vbin_size == 0.1
     assert nnn.nvbins == 5
-    assert np.isclose(nnn.min_v,-0.25)
-    assert np.isclose(nnn.max_v,0.25)
+    assert nnn.min_v == 0.
+    assert np.isclose(nnn.max_v,0.5)
     check_arrays(nnn)
 
     # Check the use of sep_units
@@ -349,8 +354,8 @@ def test_binnedcorr3():
     # Check bin_slop
     # Start with default behavior
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
-                                  min_u=0.0, max_u=0.9, ubin_size=0.03,
-                                  min_v=-0.21, max_v=0.21, vbin_size=0.07)
+                                  min_u=0., max_u=0.9, ubin_size=0.03,
+                                  min_v=0., max_v=0.21, vbin_size=0.07)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)
@@ -364,8 +369,8 @@ def test_binnedcorr3():
 
     # Explicitly set bin_slop=1.0 does the same thing.
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=1.0,
-                                  min_u=0.0, max_u=0.9, ubin_size=0.03,
-                                  min_v=-0.21, max_v=0.21, vbin_size=0.07)
+                                  min_u=0., max_u=0.9, ubin_size=0.03,
+                                  min_v=0., max_v=0.21, vbin_size=0.07)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)
@@ -379,8 +384,8 @@ def test_binnedcorr3():
 
     # Use a smaller bin_slop
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=0.2,
-                                  min_u=0.0, max_u=0.9, ubin_size=0.03,
-                                  min_v=-0.21, max_v=0.21, vbin_size=0.07)
+                                  min_u=0., max_u=0.9, ubin_size=0.03,
+                                  min_v=0., max_v=0.21, vbin_size=0.07)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)
@@ -394,8 +399,8 @@ def test_binnedcorr3():
 
     # Use bin_slop == 0
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=0.0,
-                                  min_u=0.0, max_u=0.9, ubin_size=0.03,
-                                  min_v=-0.21, max_v=0.21, vbin_size=0.07)
+                                  min_u=0., max_u=0.9, ubin_size=0.03,
+                                  min_v=0., max_v=0.21, vbin_size=0.07)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)
@@ -409,8 +414,8 @@ def test_binnedcorr3():
 
     # Bigger bin_slop
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=2.0,
-                                  min_u=0.0, max_u=0.9, ubin_size=0.03,
-                                  min_v=-0.21, max_v=0.21, vbin_size=0.07, verbose=0)
+                                  min_u=0., max_u=0.9, ubin_size=0.03,
+                                  min_v=0., max_v=0.21, vbin_size=0.07, verbose=0)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)
@@ -424,8 +429,8 @@ def test_binnedcorr3():
 
     # With bin_size > 0.1, explicit bin_slop=1.0 is accepted.
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.4, bin_slop=1.0,
-                                  min_u=0.0, max_u=0.9, ubin_size=0.03,
-                                  min_v=-0.21, max_v=0.21, vbin_size=0.07, verbose=0)
+                                  min_u=0., max_u=0.9, ubin_size=0.03,
+                                  min_v=0., max_v=0.21, vbin_size=0.07, verbose=0)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)
@@ -439,8 +444,8 @@ def test_binnedcorr3():
 
     # But implicit bin_slop is reduced so that b = 0.1
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.4,
-                                  min_u=0.0, max_u=0.9, ubin_size=0.03,
-                                  min_v=-0.21, max_v=0.21, vbin_size=0.07)
+                                  min_u=0., max_u=0.9, ubin_size=0.03,
+                                  min_v=0., max_v=0.21, vbin_size=0.07)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)
@@ -454,8 +459,8 @@ def test_binnedcorr3():
 
     # Separately for each of the three parameters
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.05,
-                                  min_u=0.0, max_u=0.9, ubin_size=0.3,
-                                  min_v=-0.17, max_v=0.17, vbin_size=0.17)
+                                  min_u=0., max_u=0.9, ubin_size=0.3,
+                                  min_v=0., max_v=0.17, vbin_size=0.17)
     #print(nnn.bin_size,nnn.bin_slop,nnn.b)
     #print(nnn.ubin_size,nnn.bu)
     #print(nnn.vbin_size,nnn.bv)
@@ -494,9 +499,9 @@ def test_direct_count_auto():
     min_u = 0.13
     max_u = 0.89
     nubins = 10
-    min_v = -0.83
+    min_v = 0.13
     max_v = 0.59
-    nvbins = 20
+    nvbins = 10
 
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
@@ -506,7 +511,7 @@ def test_direct_count_auto():
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
-    true_ntri = np.zeros( (nbins, nubins, nvbins) )
+    true_ntri = np.zeros( (nbins, nubins, 2*nvbins) )
     bin_size = (log_max_sep - log_min_sep) / nbins
     ubin_size = (max_u-min_u) / nubins
     vbin_size = (max_v-min_v) / nvbins
@@ -544,17 +549,20 @@ def test_direct_count_auto():
                 r = d2
                 u = d3/d2
                 v = (d1-d2)/d3
+                if r < min_sep or r >= max_sep: continue
+                if u < min_u or u >= max_u: continue
+                if v < min_v or v >= max_v: continue
                 if not ccw:
                     v = -v
                 kr = int(np.floor( (np.log(r)-log_min_sep) / bin_size ))
                 ku = int(np.floor( (u-min_u) / ubin_size ))
-                kv = int(np.floor( (v-min_v) / vbin_size ))
-                if kr < 0: continue
-                if kr >= nbins: continue
-                if ku < 0: continue
-                if ku >= nubins: continue
-                if kv < 0: continue
-                if kv >= nvbins: continue
+                if v > 0:
+                    kv = int(np.floor( (v-min_v) / vbin_size )) + nvbins
+                else:
+                    kv = int(np.floor( (v-(-max_v)) / vbin_size ))
+                assert 0 <= kr < nbins
+                assert 0 <= ku < nubins
+                assert 0 <= kv < 2*nvbins
                 true_ntri[kr,ku,kv] += 1
 
     nz = np.where((ddd.ntri > 0) | (true_ntri > 0))
@@ -771,9 +779,9 @@ def test_direct_count_cross():
     min_u = 0.13
     max_u = 0.89
     nubins = 10
-    min_v = -0.83
+    min_v = 0.13
     max_v = 0.59
-    nvbins = 20
+    nvbins = 10
 
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
@@ -784,7 +792,7 @@ def test_direct_count_cross():
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
-    true_ntri = np.zeros( (nbins, nubins, nvbins) )
+    true_ntri = np.zeros( (nbins, nubins, 2*nvbins) )
     bin_size = (log_max_sep - log_min_sep) / nbins
     ubin_size = (max_u-min_u) / nubins
     vbin_size = (max_v-min_v) / nvbins
@@ -802,17 +810,20 @@ def test_direct_count_cross():
                 r = d2
                 u = d3/d2
                 v = (d1-d2)/d3
+                if r < min_sep or r >= max_sep: continue
+                if u < min_u or u >= max_u: continue
+                if v < min_v or v >= max_v: continue
                 if not ccw:
                     v = -v
                 kr = int(np.floor( (np.log(r)-log_min_sep) / bin_size ))
                 ku = int(np.floor( (u-min_u) / ubin_size ))
-                kv = int(np.floor( (v-min_v) / vbin_size ))
-                if kr < 0: continue
-                if kr >= nbins: continue
-                if ku < 0: continue
-                if ku >= nubins: continue
-                if kv < 0: continue
-                if kv >= nvbins: continue
+                if v > 0:
+                    kv = int(np.floor( (v-min_v) / vbin_size )) + nvbins
+                else:
+                    kv = int(np.floor( (v-(-max_v)) / vbin_size ))
+                assert 0 <= kr < nbins
+                assert 0 <= ku < nubins
+                assert 0 <= kv < 2*nvbins
                 true_ntri[kr,ku,kv] += 1
 
     #print('true_ntri = ',true_ntri)
@@ -894,7 +905,7 @@ def test_direct_spherical():
     bin_size = 0.2
     nrbins = 10
     nubins = 5
-    nvbins = 10
+    nvbins = 5
     max_sep = min_sep * np.exp(nrbins * bin_size)
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   sep_units='deg', brute=True)
@@ -904,8 +915,8 @@ def test_direct_spherical():
     x /= r;  y /= r;  z /= r
     north_pole = coord.CelestialCoord(0*coord.radians, 90*coord.degrees)
 
-    true_ntri = np.zeros((nrbins, nubins, nvbins), dtype=int)
-    true_weight = np.zeros((nrbins, nubins, nvbins), dtype=float)
+    true_ntri = np.zeros((nrbins, nubins, 2*nvbins), dtype=int)
+    true_weight = np.zeros((nrbins, nubins, 2*nvbins), dtype=float)
 
     rad_min_sep = min_sep * coord.degrees / coord.radians
     rad_max_sep = max_sep * coord.degrees / coord.radians
@@ -941,7 +952,7 @@ def test_direct_spherical():
                 uindex = np.floor(u / bin_size).astype(int)
                 assert 0 <= uindex < nubins
                 vindex = np.floor((v+1) / bin_size).astype(int)
-                assert 0 <= vindex < nvbins
+                assert 0 <= vindex < 2*nvbins
 
                 www = w[i] * w[j] * w[k]
                 true_ntri[rindex,uindex,vindex] += 1
@@ -995,7 +1006,7 @@ def test_direct_arc():
     max_sep = 180.
     nrbins = 50
     nubins = 5
-    nvbins = 10
+    nvbins = 5
     bin_size = np.log((max_sep / min_sep)) / nrbins
     ubin_size = 0.2
     vbin_size = 0.2
@@ -1009,8 +1020,8 @@ def test_direct_arc():
     x /= r;  y /= r;  z /= r
     north_pole = coord.CelestialCoord(0*coord.radians, 90*coord.degrees)
 
-    true_ntri = np.zeros((nrbins, nubins, nvbins), dtype=int)
-    true_weight = np.zeros((nrbins, nubins, nvbins), dtype=float)
+    true_ntri = np.zeros((nrbins, nubins, 2*nvbins), dtype=int)
+    true_weight = np.zeros((nrbins, nubins, 2*nvbins), dtype=float)
 
     c = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra, dec)]
     for i in range(ngal):
@@ -1044,7 +1055,7 @@ def test_direct_arc():
                 uindex = np.floor(u / ubin_size).astype(int)
                 assert 0 <= uindex < nubins
                 vindex = np.floor((v+1) / vbin_size).astype(int)
-                assert 0 <= vindex < nvbins
+                assert 0 <= vindex < 2*nvbins
 
                 www = w[i] * w[j] * w[k]
                 true_ntri[rindex,uindex,vindex] += 1
@@ -1103,9 +1114,9 @@ def test_direct_partial():
     min_u = 0.13
     max_u = 0.89
     nubins = 10
-    min_v = -0.83
+    min_v = 0.13
     max_v = 0.59
-    nvbins = 20
+    nvbins = 10
 
     ddda = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, nubins=nubins,
@@ -1116,7 +1127,7 @@ def test_direct_partial():
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
-    true_ntri = np.zeros( (nbins, nubins, nvbins) )
+    true_ntri = np.zeros( (nbins, nubins, 2*nvbins) )
     bin_size = (log_max_sep - log_min_sep) / nbins
     ubin_size = (max_u-min_u) / nubins
     vbin_size = (max_v-min_v) / nvbins
@@ -1134,17 +1145,20 @@ def test_direct_partial():
                 r = d2
                 u = d3/d2
                 v = (d1-d2)/d3
+                if r < min_sep or r >= max_sep: continue
+                if u < min_u or u >= max_u: continue
+                if v < min_v or v >= max_v: continue
                 if not ccw:
                     v = -v
                 kr = int(np.floor( (np.log(r)-log_min_sep) / bin_size ))
                 ku = int(np.floor( (u-min_u) / ubin_size ))
-                kv = int(np.floor( (v-min_v) / vbin_size ))
-                if kr < 0: continue
-                if kr >= nbins: continue
-                if ku < 0: continue
-                if ku >= nubins: continue
-                if kv < 0: continue
-                if kv >= nvbins: continue
+                if v > 0:
+                    kv = int(np.floor( (v-min_v) / vbin_size )) + nvbins
+                else:
+                    kv = int(np.floor( (v-(-max_v)) / vbin_size ))
+                assert 0 <= kr < nbins
+                assert 0 <= ku < nubins
+                assert 0 <= kv < 2*nvbins
                 true_ntri[kr,ku,kv] += 1
 
     print('true_ntri = ',true_ntri)
@@ -1209,9 +1223,9 @@ def test_direct_3d_auto():
     min_u = 0.13
     max_u = 0.89
     nubins = 10
-    min_v = -0.83
+    min_v = 0.13
     max_v = 0.59
-    nvbins = 20
+    nvbins = 10
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
@@ -1221,7 +1235,7 @@ def test_direct_3d_auto():
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
-    true_ntri = np.zeros( (nbins, nubins, nvbins) )
+    true_ntri = np.zeros( (nbins, nubins, 2*nvbins) )
     bin_size = (log_max_sep - log_min_sep) / nbins
     ubin_size = (max_u-min_u) / nubins
     vbin_size = (max_v-min_v) / nvbins
@@ -1260,17 +1274,20 @@ def test_direct_3d_auto():
                 r = d2
                 u = d3/d2
                 v = (d1-d2)/d3
+                if r < min_sep or r >= max_sep: continue
+                if u < min_u or u >= max_u: continue
+                if v < min_v or v >= max_v: continue
                 if not ccw:
                     v = -v
                 kr = int(np.floor( (np.log(r)-log_min_sep) / bin_size ))
                 ku = int(np.floor( (u-min_u) / ubin_size ))
-                kv = int(np.floor( (v-min_v) / vbin_size ))
-                if kr < 0: continue
-                if kr >= nbins: continue
-                if ku < 0: continue
-                if ku >= nubins: continue
-                if kv < 0: continue
-                if kv >= nvbins: continue
+                if v > 0:
+                    kv = int(np.floor( (v-min_v) / vbin_size )) + nvbins
+                else:
+                    kv = int(np.floor( (v-(-max_v)) / vbin_size ))
+                assert 0 <= kr < nbins
+                assert 0 <= ku < nubins
+                assert 0 <= kv < 2*nvbins
                 true_ntri[kr,ku,kv] += 1
 
     #print('true_ntri => ',true_ntri)
@@ -1348,9 +1365,9 @@ def test_direct_3d_cross():
     min_u = 0.13
     max_u = 0.89
     nubins = 10
-    min_v = -0.83
+    min_v = 0.13
     max_v = 0.59
-    nvbins = 20
+    nvbins = 10
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
@@ -1360,7 +1377,7 @@ def test_direct_3d_cross():
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
-    true_ntri = np.zeros( (nbins, nubins, nvbins) )
+    true_ntri = np.zeros( (nbins, nubins, 2*nvbins) )
     bin_size = (log_max_sep - log_min_sep) / nbins
     ubin_size = (max_u-min_u) / nubins
     vbin_size = (max_v-min_v) / nvbins
@@ -1381,17 +1398,20 @@ def test_direct_3d_cross():
                 r = d2
                 u = d3/d2
                 v = (d1-d2)/d3
+                if r < min_sep or r >= max_sep: continue
+                if u < min_u or u >= max_u: continue
+                if v < min_v or v >= max_v: continue
                 if not ccw:
                     v = -v
                 kr = int(np.floor( (np.log(r)-log_min_sep) / bin_size ))
                 ku = int(np.floor( (u-min_u) / ubin_size ))
-                kv = int(np.floor( (v-min_v) / vbin_size ))
-                if kr < 0: continue
-                if kr >= nbins: continue
-                if ku < 0: continue
-                if ku >= nubins: continue
-                if kv < 0: continue
-                if kv >= nvbins: continue
+                if v > 0:
+                    kv = int(np.floor( (v-min_v) / vbin_size )) + nvbins
+                else:
+                    kv = int(np.floor( (v-(-max_v)) / vbin_size ))
+                assert 0 <= kr < nbins
+                assert 0 <= ku < nubins
+                assert 0 <= kv < 2*nvbins
                 true_ntri[kr,ku,kv] += 1
 
     #print('true_ntri = ',true_ntri)
@@ -1822,7 +1842,7 @@ def test_3d():
     min_u = 0.9
     max_u = 1.0
     nubins = 1
-    min_v = -0.05
+    min_v = 0.
     max_v = 0.05
     nvbins = 1
 

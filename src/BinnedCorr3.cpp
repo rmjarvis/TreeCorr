@@ -52,15 +52,14 @@ BinnedCorr3<D1,D2,D3,B>::BinnedCorr3(
     _maxsepsq = _maxsep*_maxsep;
     _minusq = _minu*_minu;
     _maxusq = _maxu*_maxu;
-    _minabsv = _maxv * _minv < 0. ? 0. : std::min(std::abs(_maxv),std::abs(_minv));
-    _maxabsv = std::max(std::abs(_maxv),std::abs(_minv));
-    _minabsvsq = _minabsv*_minabsv;
-    _maxabsvsq = _maxabsv*_maxabsv;
+    _minvsq = _minv*_minv;
+    _maxvsq = _maxv*_maxv;
     _bsq = _b * _b;
     _busq = _bu * _bu;
     _bvsq = _bv * _bv;
     _sqrttwobv = sqrt(2. * _bv);
-    _nuv = _nubins * _nvbins;
+    _nvbins2 = _nvbins * 2;
+    _nuv = _nubins * _nvbins2;
     _ntot = _nbins * _nuv;
 }
 
@@ -75,10 +74,9 @@ BinnedCorr3<D1,D2,D3,B>::BinnedCorr3(const BinnedCorr3<D1,D2,D3,B>& rhs, bool co
     _logminsep(rhs._logminsep), _halfminsep(rhs._halfminsep), _halfmind3(rhs._halfmind3),
     _minsepsq(rhs._minsepsq), _maxsepsq(rhs._maxsepsq),
     _minusq(rhs._minusq), _maxusq(rhs._maxusq),
-    _minabsv(rhs._minabsv), _maxabsv(rhs._maxabsv),
-    _minabsvsq(rhs._minabsvsq), _maxabsvsq(rhs._maxabsvsq),
+    _minvsq(rhs._minvsq), _maxvsq(rhs._maxvsq),
     _bsq(rhs._bsq), _busq(rhs._busq), _bvsq(rhs._bvsq), _sqrttwobv(rhs._sqrttwobv),
-    _coords(rhs._coords), _nuv(rhs._nuv), _ntot(rhs._ntot),
+    _coords(rhs._coords), _nvbins2(rhs._nvbins2), _nuv(rhs._nuv), _ntot(rhs._ntot),
     _owns_data(true), _zeta(0,0,0,0,0,0,0,0), _weight(0)
 {
     _zeta.new_data(_ntot);
@@ -428,7 +426,7 @@ struct SortHelper
         double s1, double s2, double s3,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
         double minu, double minusq, double maxu, double maxusq,
-        double minabsv, double minabsvsq, double maxabsv, double maxabsvsq)
+        double minv, double minvsq, double maxv, double maxvsq)
     {
         double sums = s1+s2+s3;
 
@@ -510,31 +508,31 @@ struct SortHelper
         // The edge of c3 can shrink |d1-d2| by at most another s3, assuming d3 < d2, so the
         // angle at c3 is acute.  i.e. it's not 2s3 as one might naively assume.
         // Thus, the minimum possible |v| from our triangle is (d1-d2-(s1+s2+s3)) / (d3+s1+s2).
-        // Abort if (d1-d2-s1-s2-s3) / (d3+s1+s2) > maxabsv
-        // (d1-d2-s1-s2-s3) > maxabsv * (d3+s1+s2)
-        // d1 > maxabsv d3 + d2+s1+s2+s3 + maxabsv*(s1+s2)
+        // Abort if (d1-d2-s1-s2-s3) / (d3+s1+s2) > maxv
+        // (d1-d2-s1-s2-s3) > maxv * (d3+s1+s2)
+        // d1 > maxv d3 + d2+s1+s2+s3 + maxv*(s1+s2)
         // Here, rather than using the lemma that (x+y)^2 < 2x^2 + 2y^2,
         // we can instead realize that d3 < d2, so just check if
-        // d1 > maxabsv d2 + d2+s1+s2+s3 + maxabsv*(s1+s2)
+        // d1 > maxv d2 + d2+s1+s2+s3 + maxv*(s1+s2)
         // The main advantage of this check is when d3 ~= d2 anyway, so this is effective.
-        if (maxabsv < 1. && d1sq > SQR((1.+maxabsv)*d2 + sums + maxabsv * (s1+s2))) {
-            xdbg<<"|v| cannot be as small as maxabsv\n";
+        if (maxv < 1. && d1sq > SQR((1.+maxv)*d2 + sums + maxv * (s1+s2))) {
+            xdbg<<"|v| cannot be as small as maxv\n";
             return true;
         }
 
-        // It will unusual, but if minabsv > 0, then we can also potentially stop if no triangle
-        // can have |v| as large as minabsv.
+        // It will unusual, but if minv > 0, then we can also potentially stop if no triangle
+        // can have |v| as large as minv.
         // The maximum possible |v| from our triangle is (d1-d2+(s1+s2+s3)) / (d3-s1-s2).
-        // Abort if (d1-d2+s1+s2+s3) / (d3-s1-s2) < minabsv
-        // (d1-d2+s1+s2+s3) < minabsv * (d3-s1-s2)
-        // d1-d2 < minabsv d3 - (s1+s2+s3) - minabsv*(s1+s2)
-        // d1^2-d2^2 < (minabsv d3 - (s1+s2+s3) - minabsv*(s1+s2)) (d1+d2)
+        // Abort if (d1-d2+s1+s2+s3) / (d3-s1-s2) < minv
+        // (d1-d2+s1+s2+s3) < minv * (d3-s1-s2)
+        // d1-d2 < minv d3 - (s1+s2+s3) - minv*(s1+s2)
+        // d1^2-d2^2 < (minv d3 - (s1+s2+s3) - minv*(s1+s2)) (d1+d2)
         // This is most relevant when d1 ~= d2, so make this more restrictive with d1->d2 on rhs.
-        // d1^2-d2^2 < (minabsv d3 - (s1+s2+s3) - minabsv*(s1+s2)) 2d2
-        // minabsv d3 > (d1^2-d2^2)/(2d2) + (s1+s2+s3) + minabsv*(s1+s2)
-        if (minabsv > 0. && d3sq > SQR(s1+s2) &&
-            minabsvsq*d3sq > SQR((d1sq-d2sq)/(2.*d2) + sums + minabsv*(s1+s2))) {
-            xdbg<<"|v| cannot be as large as minabsv\n";
+        // d1^2-d2^2 < (minv d3 - (s1+s2+s3) - minv*(s1+s2)) 2d2
+        // minv d3 > (d1^2-d2^2)/(2d2) + (s1+s2+s3) + minv*(s1+s2)
+        if (minv > 0. && d3sq > SQR(s1+s2) &&
+            minvsq*d3sq > SQR((d1sq-d2sq)/(2.*d2) + sums + minv*(s1+s2))) {
+            xdbg<<"|v| cannot be as large as minv\n";
             return true;
         }
 
@@ -603,7 +601,7 @@ struct SortHelper<D,D,D,true,C,M>
         double s1, double s2, double s3,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
         double minu, double minusq, double maxu, double maxusq,
-        double minabsv, double minabsvsq, double maxabsv, double maxabsvsq)
+        double minv, double minvsq, double maxv, double maxvsq)
     {
         // If all possible triangles will have d2 < minsep, then abort the recursion here.
         // This means at least two sides must have d + (s+s) < minsep.
@@ -669,30 +667,30 @@ struct SortHelper<D,D,D,true,C,M>
 
         // If the user sets minv, maxv to be near 0, then we can abort if no possible triangle
         // can have v = (d1-d2)/d3 as small in absolute value as either of these.
-        // d1 > maxabsv d3 + d2+s1+s2+s3 + maxabsv*(s1+s2)
+        // d1 > maxv d3 + d2+s1+s2+s3 + maxv*(s1+s2)
         // As before, use the fact that d3 < d2, so check
-        // d1 > maxabsv d2 + d2+s1+s2+s3 + maxabsv*(s1+s2)
+        // d1 > maxv d2 + d2+s1+s2+s3 + maxv*(s1+s2)
         double sums = s1+s2+s3;
-        if (maxabsv < 1. && d1sq > SQR((1.+maxabsv)*d2 + sums + maxabsv * (s1+s2))) {
+        if (maxv < 1. && d1sq > SQR((1.+maxv)*d2 + sums + maxv * (s1+s2))) {
             // We don't need any extra checks here related to the possibility of the sides
             // switching roles, since if this condition is true, than d1 has to be the largest
             // side no matter what.  d1-s2 > d2+s1
-            xdbg<<"v cannot be as small as maxabsv\n";
+            xdbg<<"v cannot be as small as maxv\n";
             return true;
         }
 
-        // It will unusual, but if minabsv > 0, then we can also potentially stop if no triangle
-        // can have |v| as large as minabsv.
-        // d1-d2 < minabsv d3 - (s1+s2+s3) - minabsv*(s1+s2)
-        // d1^2-d2^2 < (minabsv d3 - (s1+s2+s3) - minabsv*(s1+s2)) (d1+d2)
+        // It will unusual, but if minv > 0, then we can also potentially stop if no triangle
+        // can have |v| as large as minv.
+        // d1-d2 < minv d3 - (s1+s2+s3) - minv*(s1+s2)
+        // d1^2-d2^2 < (minv d3 - (s1+s2+s3) - minv*(s1+s2)) (d1+d2)
         // This is most relevant when d1 ~= d2, so make this more restrictive with d1->d2 on rhs.
-        // d1^2-d2^2 < (minabsv d3 - (s1+s2+s3) - minabsv*(s1+s2)) 2d2
-        // minabsv d3 > (d1^2-d2^2)/(2d2) + (s1+s2+s3) + minabsv*(s1+s2)
-        if (minabsv > 0. && d3sq > SQR(s1+s2) &&
-            minabsvsq*d3sq > SQR((d1sq-d2sq)/(2.*d2) + sums + minabsv*(s1+s2))) {
+        // d1^2-d2^2 < (minv d3 - (s1+s2+s3) - minv*(s1+s2)) 2d2
+        // minv d3 > (d1^2-d2^2)/(2d2) + (s1+s2+s3) + minv*(s1+s2)
+        if (minv > 0. && d3sq > SQR(s1+s2) &&
+            minvsq*d3sq > SQR((d1sq-d2sq)/(2.*d2) + sums + minv*(s1+s2))) {
             // And again, we don't need anything else here, since it's fine if d1,d2 swap or
             // even if d2,d3 swap.
-            xdbg<<"|v| cannot be as large as minabsv\n";
+            xdbg<<"|v| cannot be as large as minv\n";
             return true;
         }
 
@@ -746,7 +744,7 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
     if (SortHelper<D1,D2,D3,sort,C,M>::stop111(d1sq,d2sq,d3sq,d2,s1,s2,s3,
                                                _minsep,_minsepsq,_maxsep,_maxsepsq,
                                                _minu,_minusq,_maxu,_maxusq,
-                                               _minabsv,_minabsvsq,_maxabsv,_maxabsvsq)) {
+                                               _minv,_minvsq,_maxv,_maxvsq)) {
         return;
     }
 
@@ -985,10 +983,6 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
             return;
         }
 
-        if (!metric.CCW(c1->getData().getPos(), c2->getData().getPos(),
-                        c3->getData().getPos()))
-            v = -v;
-
         if (v < _minv || v >= _maxv) {
             xdbg<<"v not in minv .. maxv\n";
             return;
@@ -1014,6 +1008,7 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
         Assert(ku < _nubins);
 
         int kv = int(floor((v-_minv)/_vbinsize));
+
         if (kv >= _nvbins) {
             // Rounding error can allow this.
             XAssert((v-_minv)/_vbinsize - kv < 1.e-10);
@@ -1023,10 +1018,22 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
         Assert(kv >= 0);
         Assert(kv < _nvbins);
 
+        // Now account for negative v
+        if (!metric.CCW(c1->getData().getPos(), c2->getData().getPos(),
+                        c3->getData().getPos())) {
+            v = -v;
+            kv = _nvbins - kv - 1;
+        } else {
+            kv += _nvbins;
+        }
+
+        Assert(kv >= 0);
+        Assert(kv < _nvbins2);
+
         xdbg<<"d1,d2,d3 = "<<d1<<", "<<d2<<", "<<d3<<std::endl;
         xdbg<<"r,u,v = "<<d2<<", "<<u<<", "<<v<<std::endl;
         xdbg<<"kr,ku,kv = "<<kr<<", "<<ku<<", "<<kv<<std::endl;
-        int index = kr * _nuv + ku * _nvbins + kv;
+        int index = kr * _nuv + ku * _nvbins2 + kv;
         Assert(index >= 0);
         Assert(index < _ntot);
         // Just to make extra sure we don't get seg faults (since the above

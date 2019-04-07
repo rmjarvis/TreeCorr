@@ -16,7 +16,7 @@ bin_size: 0.2
 nbins: 10
 sep_units: arcmin
 nubins: 5
-nvbins: 10
+nvbins: 5
 bin_slop: 0
 
 ggg_file_name: output/ggg_direct.fits

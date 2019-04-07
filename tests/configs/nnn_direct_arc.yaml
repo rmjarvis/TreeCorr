@@ -15,7 +15,7 @@ nbins: 50
 sep_units: degrees
 nubins: 5
 ubin_size: 0.2
-nvbins: 10
+nvbins: 5
 vbin_size: 0.2
 bin_slop: 0
 

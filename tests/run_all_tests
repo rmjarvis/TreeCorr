@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# Note: This is not the recommended way to run the test suite.
+# Most of the time, you should run either pytest or nosetests to run the tests.
+# However, some of the tests are very slow to do at a full level of precision that we
+# would like to target, so the slow version is disabled when running via nosetests or pytest.
+# This script exists to run all of these slow tests at the full precision level.
+# It is normally only done once before a release.  Not for every commit or even PR.
+
 python='python'
 # In case you want to use something else. Like python3.4. Or e.g. on folio I need the following:
 #python=/data3/DECAM/global/Python-2.7.3/bin/python
@@ -8,7 +15,7 @@ python='python'
 /bin/rm -rf output/*
 
 time $python test_catalog.py || exit
-time $python test_celestial.py || exit
+time $python test_config.py || exit
 time $python test_nn.py || exit
 time $python test_ng.py || exit
 time $python test_nk.py || exit
@@ -18,3 +25,6 @@ time $python test_kg.py || exit
 time $python test_ggg.py || exit
 time $python test_kkk.py || exit
 time $python test_nnn.py || exit
+time $python test_index.py || exit
+time $python test_twod.py || exit
+time $python test_periodic.py || exit

@@ -18,6 +18,6 @@ max_u: 0.9
 nubins: 3
 min_v: 0.5
 max_v: 0.9
-nvbins: 2
+nvbins: 5
 
 nnn_file_name: output/nnn_compensated.fits

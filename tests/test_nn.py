@@ -1307,13 +1307,14 @@ def test_nn():
     # So check that min_top actually does something.
     print('d top = ',cat.field.nTopLevelNodes)
     print('r top = ',rand.field.nTopLevelNodes)
-    assert cat.field.nTopLevelNodes == 390
+    # For nosetests, this is 390, for main it is 402.  So just check a range.
+    assert 380 < cat.field.nTopLevelNodes < 410
     assert rand.field.nTopLevelNodes == 1024
     dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 min_top=9)
     dd2.process(cat)
     print('d top = ',cat.field.nTopLevelNodes)
-    assert cat.field.nTopLevelNodes == 603
+    assert 600 < cat.field.nTopLevelNodes < 610
     dd3 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
                                 min_top=10)
     dd3.process(cat)

@@ -636,19 +636,23 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         q2 = q1-t
         q3 = q1-s
 
-        if k2==1 and k3==1:
-            # Normally this implies k1 == 1 as well.
-            # But technically, k1 might still be non-unity, so keep the Theta terms from SKL.
-            Theta2 = ((2*k1**2 + 1)/3.)**0.5
-            Theta4 = Theta2*Theta2
-            Theta6 = Theta4*Theta2
+        # |qi|^2 shows up a lot, so save these.
+        # The a stands for "absolute", and the ^2 part is implicit.
+        a1 = np.abs(q1)**2
+        a2 = np.abs(q2)**2
+        a3 = np.abs(q3)**2
+        a123 = a1*a2*a3
+
+        # These combinations also appear multiple times.
+        # The b doesn't stand for anything.  It's just the next letter after a.
+        b1 = np.conjugate(q1)**2*q2*q3
+        b2 = np.conjugate(q2)**2*q1*q3
+        b3 = np.conjugate(q3)**2*q1*q2
+
+        if k1==1 and k2==1 and k3==1:
 
             # Some factors we use multiple times
-            expfactor = -np.exp(-(np.abs(q1)**2 + np.abs(q2)**2 + np.abs(q3)**2)/(2*Theta4))
-            absq1q2q3sq = np.abs(q1*q2*q3)**2
-            q1csqq2q3 = np.conjugate(q1)**2*q2*q3
-            q1q2csqq3 = np.conjugate(q2)**2*q1*q3
-            q1q2q3csq = np.conjugate(q3)**2*q1*q2
+            expfactor = -np.exp(-(a1 + a2 + a3)/2)
 
             # JBJ Equation 51
             # Note that we actually accumulate the Gammas with a different choice for
@@ -656,29 +660,70 @@ class GGGCorrelation(treecorr.BinnedCorr3):
             # cf. JBJ Equation 41 and footnote 3.  The upshot is that we multiply JBJ's formulae
             # be (q1q2q3)^2 / |q1q2q3|^2 for T0 and (q1*q2q3)^2/|q1q2q3|^2 for T1.
             # Then T0 becomes
-            # T0 = -(|q1 q2 q3|^2)/(24 Theta^6) exp(-(|q1|^2+|q2|^2+|q3|^2)
-            T0 = expfactor * absq1q2q3sq / (24*Theta6)
+            # T0 = -(|q1 q2 q3|^2)/24 exp(-(|q1|^2+|q2|^2+|q3|^2)/2)
+            T0 = expfactor * a123 / 24
 
             # JBJ Equation 52
             # After the phase adjustment, T1 becomes:
-            # T1 = -[(|q1 q2 q3|^2)/(24 Theta^6)
-            #        - (q1*^2 q2 q3)/(9 Theta^4)
-            #        + (q1*^4 q2^2 q3^2 + 2 |q2 q3|^2 q1*^2 q2 q3)/(|q1 q2 q3|^2)/(27 Theta^2)
-            #       ] exp(-(|q1|^2+|q2|^2+|q3|^2))
-            T1 = expfactor * (absq1q2q3sq / (24*Theta6) -
-                              q1csqq2q3 / (9*Theta4) +
-                              (q1csqq2q3**2 + 2*np.abs(q2*q3)**2*q1csqq2q3) /
-                                    (absq1q2q3sq * 27*Theta2))
-            T2 = expfactor * (absq1q2q3sq / (24*Theta6) -
-                              q1q2csqq3 / (9*Theta4) +
-                              (q1q2csqq3**2 + 2*np.abs(q1*q3)**2*q1q2csqq3) /
-                                    (absq1q2q3sq * 27*Theta2))
-            T3 = expfactor * (absq1q2q3sq / (24*Theta6) -
-                              q1q2q3csq / (9*Theta4) +
-                              (q1q2q3csq**2 + 2*np.abs(q1*q2)**2*q1q2q3csq) /
-                                    (absq1q2q3sq * 27*Theta2))
+            # T1 = -[(|q1 q2 q3|^2)/24
+            #        - (q1*^2 q2 q3)/9
+            #        + (q1*^4 q2^2 q3^2 + 2 |q2 q3|^2 q1*^2 q2 q3)/(|q1 q2 q3|^2)/27
+            #       ] exp(-(|q1|^2+|q2|^2+|q3|^2)/2)
+            T1 = expfactor * (a123 / 24 - b1 / 9 + (b1**2 + 2*a2*a3*b1) / (a123 * 27))
+            T2 = expfactor * (a123 / 24 - b2 / 9 + (b2**2 + 2*a1*a3*b2) / (a123 * 27))
+            T3 = expfactor * (a123 / 24 - b3 / 9 + (b3**2 + 2*a1*a2*b3) / (a123 * 27))
+
         else:
-            raise NotImplemetedError('Only k2=k3=1 so far')
+            # SKL Equation 63:
+            k1sq = k1*k1
+            k2sq = k2*k2
+            k3sq = k3*k3
+            Theta2 = ((k1sq*k2sq + k1sq*k3sq + k2sq*k3sq)/3.)**0.5
+            k1sq /= Theta2   # These are now what SKL calls theta_i^2 / Theta^2
+            k2sq /= Theta2
+            k3sq /= Theta2
+            Theta4 = Theta2*Theta2
+            Theta6 = Theta4*Theta2
+            S = k1sq * k2sq * k3sq
+
+            # SKL Equation 64:
+            Z = ((2*k2sq + 2*k3sq - k1sq) * a1 +
+                 (2*k3sq + 2*k1sq - k2sq) * a2 +
+                 (2*k1sq + 2*k2sq - k3sq) * a3) / (6*Theta2)
+            expfactor = -S * np.exp(-Z) / Theta4
+
+            # SKL Equation 65:
+            f1 = (k2sq+k3sq)/2 + (k2sq-k3sq)*(q2-q3)/(6*q1)
+            f2 = (k3sq+k1sq)/2 + (k3sq-k1sq)*(q3-q1)/(6*q2)
+            f3 = (k1sq+k2sq)/2 + (k1sq-k2sq)*(q1-q2)/(6*q3)
+            f1c = np.conjugate(f1)
+            f2c = np.conjugate(f2)
+            f3c = np.conjugate(f3)
+
+            # SKL Equation 69:
+            g1 = k2sq*k3sq + (k3sq-k2sq)*k1sq*(q2-q3)/(3*q1)
+            g2 = k3sq*k1sq + (k1sq-k3sq)*k2sq*(q3-q1)/(3*q2)
+            g3 = k1sq*k2sq + (k2sq-k1sq)*k3sq*(q1-q2)/(3*q3)
+            g1c = np.conjugate(g1)
+            g2c = np.conjugate(g2)
+            g3c = np.conjugate(g3)
+
+            # SKL Equation 62:
+            T0 = expfactor * a123 * f1c**2 * f2c**2 * f3c**2 / (24.*Theta6)
+
+            # SKL Equation 68:
+            T1 = expfactor * (
+                a123 * f1**2 * f2c**2 * f3c**2 / (24*Theta6) -
+                b1 * f1*f2c*f3c*g1c / (9*Theta4) +
+                (b1**2 * g1c**2 + 2*k2sq*k3sq*a2*a3*b1 * f2c * f3c) / (a123 * 27*Theta2))
+            T2 = expfactor * (
+                a123 * f1c**2 * f2**2 * f3c**2 / (24*Theta6) -
+                b2 * f1c*f2*f3c*g2c / (9*Theta4) +
+                (b2**2 * g2c**2 + 2*k1sq*k3sq*a1*a3*b2 * f1c * f3c) / (a123 * 27*Theta2))
+            T3 = expfactor * (
+                a123 * f1c**2 * f2c**2 * f3**2 / (24*Theta6) -
+                b3 * f1c*f2c*f3*g3c / (9*Theta4) +
+                (b3**2 * g3c**2 + 2*k1sq*k2sq*a1*a2*b3 * f1c * f2c) / (a123 * 27*Theta2))
 
         return T0, T1, T2, T3
 
@@ -799,7 +844,26 @@ class GGGCorrelation(treecorr.BinnedCorr3):
             varmcmm *= 2
             varmmcm = varmmmc = varmcmm
         else:
-            raise NotImplementedError("Only k2=k3=1 so far")
+            # Repeat the above for the other permutations
+            mmcm = np.zeros_like(mcmm)
+            mmmc = np.zeros_like(mcmm)
+            varmmcm = np.zeros_like(varmcmm)
+            varmmmc = np.zeros_like(varmcmm)
+            for (_k1, _k2, _k3, _mcmm, _varmcmm) in [ (1,k3,k2,mcmm,varmcmm),
+                                                      (k2,1,k3,mmcm,varmmcm),
+                                                      (k2,k3,1,mmcm,varmmcm),
+                                                      (k3,1,k2,mmmc,varmmmc),
+                                                      (k3,k2,1,mmmc,varmmmc) ]:
+                T0, T1, T2, T3 = self._calculateT(s,t,_k1,_k2,_k3)
+                T0 *= sds * d2t
+                T1 *= sds * d2t
+                T2 *= sds * d2t
+                T3 *= sds * d2t
+                # Relies on numpy array overloading += to actually update in place.
+                mmm += T0.dot(gam0)
+                _mcmm += T1.dot(gam1) + T2.dot(gam2) + T3.dot(gam3)
+                varmmm += (np.abs(T0)**2).dot(vargam)
+                _varmcmm += (np.abs(T1)**2 + np.abs(T2)**2 + np.abs(T3)**2).dot(vargam)
 
         map3 = 0.25 * np.real(mcmm + mmcm + mmmc + mmm)
         mapmapmx = 0.25 * np.imag(mcmm + mmcm - mmmc + mmm)
@@ -810,6 +874,6 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         mapmxmx = 0.25 * np.real(-mcmm + mmcm + mmmc - mmm)
         mx3 = 0.25 * np.imag(mcmm + mmcm + mmmc - mmm)
 
-        var = (varmcmm + varmmcm + varmcmm + varmmm) / 16.
+        var = (varmcmm + varmmcm + varmmmc + varmmm) / 16.
 
         return map3, mapmapmx, mapmxmap, mxmapmap, mxmxmap, mxmapmx, mapmxmx, mx3, var

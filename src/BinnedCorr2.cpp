@@ -128,8 +128,6 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
     dbg<<"field has "<<n1<<" top level nodes\n";
     Assert(n1 > 0);
 
-    MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
-
 #ifdef _OPENMP
 #pragma omp parallel
     {
@@ -138,6 +136,9 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
 #else
         BinnedCorr2<D1,D2,B>& bc2 = *this;
 #endif
+
+        // Inside the omp parallel, so each thread has its own MetricHelper.
+        MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
@@ -184,8 +185,6 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>&
     Assert(n1 > 0);
     Assert(n2 > 0);
 
-    MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
-
 #ifdef _OPENMP
 #pragma omp parallel
     {
@@ -194,6 +193,8 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>&
 #else
         BinnedCorr2<D1,D2,B>& bc2 = *this;
 #endif
+
+        MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
@@ -237,7 +238,6 @@ void BinnedCorr2<D1,D2,B>::processPairwise(
     xdbg<<"field2 has "<<nobj2<<" objects\n";
     Assert(nobj > 0);
     Assert(nobj == nobj2);
-    MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
     const long sqrtn = long(sqrt(double(nobj)));
 
@@ -249,6 +249,8 @@ void BinnedCorr2<D1,D2,B>::processPairwise(
 #else
         BinnedCorr2<D1,D2,B>& bc2 = *this;
 #endif
+
+        MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
 #ifdef _OPENMP
 #pragma omp for schedule(static)
@@ -268,9 +270,11 @@ void BinnedCorr2<D1,D2,B>::processPairwise(
             }
             const Cell<D1,C>& c1 = *field1.getCells()[i];
             const Cell<D2,C>& c2 = *field2.getCells()[i];
+            const Position<C>& p1 = c1.getPos();
+            const Position<C>& p2 = c2.getPos();
             double s=0.;
-            const double rsq = metric.DistSq(c1.getPos(),c2.getPos(),s,s);
-            if (BinTypeHelper<B>::isRSqInRange(rsq, c1.getPos(), c2.getPos(),
+            const double rsq = metric.DistSq(p1, p2, s, s);
+            if (BinTypeHelper<B>::isRSqInRange(rsq, p1, p2,
                                                _minsep, _minsepsq, _maxsep, _maxsepsq)) {
                 bc2.template directProcess11(c1,c2,rsq,false);
             }
@@ -308,42 +312,44 @@ void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
     xdbg<<"w = "<<c1.getW()<<", "<<c2.getW()<<std::endl;
     if (c1.getW() == 0. || c2.getW() == 0.) return;
 
+    const Position<C>& p1 = c1.getPos();
+    const Position<C>& p2 = c2.getPos();
     double s1 = c1.getSize(); // May be modified by DistSq function.
     double s2 = c2.getSize(); // "
     xdbg<<"s1,s2 = "<<s1<<','<<s2<<std::endl;
     xdbg<<"M,C = "<<M<<"  "<<C<<std::endl;
-    const double rsq = metric.DistSq(c1.getPos(),c2.getPos(),s1,s2);
+    const double rsq = metric.DistSq(p1,p2,s1,s2);
     xdbg<<"rsq = "<<rsq<<std::endl;
     xdbg<<"s1,s2 => "<<s1<<','<<s2<<std::endl;
     const double s1ps2 = s1+s2;
 
     double rpar = 0; // Gets set to correct value by this function if appropriate
-    if (metric.isRParOutsideRange(c1.getPos(), c2.getPos(), s1ps2, rpar))
+    if (metric.isRParOutsideRange(p1, p2, s1ps2, rpar)) {
         return;
+    }
     xdbg<<"RPar in range\n";
 
     if (BinTypeHelper<B>::tooSmallDist(rsq, s1ps2, _minsep, _minsepsq) &&
-        metric.tooSmallDist(c1.getPos(), c2.getPos(), rsq, rpar, s1ps2, _minsepsq))
+        metric.tooSmallDist(p1, p2, rsq, rpar, s1ps2, _minsep, _minsepsq)) {
         return;
+    }
     xdbg<<"Not too small separation\n";
 
     if (BinTypeHelper<B>::tooLargeDist(rsq, s1ps2, _maxsep, _maxsepsq) &&
-        metric.tooLargeDist(c1.getPos(), c2.getPos(), rsq, rpar, s1ps2, _fullmaxsepsq))
+        metric.tooLargeDist(p1, p2, rsq, rpar, s1ps2, _fullmaxsep, _fullmaxsepsq)) {
         return;
+    }
     xdbg<<"Not too large separation\n";
 
     // Now check if these cells are small enough that it is ok to drop into a single bin.
     int k=-1;
     double r=0,logr=0;  // If singleBin is true, these values are set for use by directProcess11
-    if (metric.isRParInsideRange(c1.getPos(), c2.getPos(), s1ps2, rpar) &&
-        BinTypeHelper<B>::singleBin(rsq, s1ps2, c1.getPos(), c2.getPos(),
-                                    _binsize, _b, _bsq,
-                                    _minsep, _maxsep, _logminsep,
-                                    k, r, logr))
+    if (metric.isRParInsideRange(p1, p2, s1ps2, rpar) &&
+        BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq,
+                                    _minsep, _maxsep, _logminsep, k, r, logr))
     {
         xdbg<<"Drop into single bin.\n";
-        if (BinTypeHelper<B>::isRSqInRange(rsq, c1.getPos(), c2.getPos(),
-                                           _minsep, _minsepsq, _maxsep, _maxsepsq)) {
+        if (BinTypeHelper<B>::isRSqInRange(rsq, p1, p2, _minsep, _minsepsq, _maxsep, _maxsepsq)) {
             directProcess11(c1,c2,rsq,do_reverse,k,r,logr);
         }
     } else {
@@ -499,18 +505,18 @@ void BinnedCorr2<D1,D2,B>::directProcess11(
     XAssert(c1.getSize()+c2.getSize() < sqrt(rsq)*_b + 0.0001);
 
     XAssert(_binsize != 0.);
+    const Position<C>& p1 = c1.getPos();
+    const Position<C>& p2 = c2.getPos();
     if (k < 0) {
         r = sqrt(rsq);
         logr = log(r);
         Assert(logr >= _logminsep);
-        k = BinTypeHelper<B>::calculateBinK(c1.getPos(), c2.getPos(),
-                                            r, logr, _binsize,
+        k = BinTypeHelper<B>::calculateBinK(p1, p2, r, logr, _binsize,
                                             _minsep, _maxsep, _logminsep);
     } else {
         XAssert(std::abs(r - sqrt(rsq)) < 1.e-10*r);
         XAssert(std::abs(logr - 0.5*log(rsq)) < 1.e-10);
-        XAssert(k == BinTypeHelper<B>::calculateBinK(c1.getPos(), c2.getPos(),
-                                                     r, logr, _binsize,
+        XAssert(k == BinTypeHelper<B>::calculateBinK(p1, p2, r, logr, _binsize,
                                                      _minsep, _maxsep, _logminsep));
     }
     Assert(k >= 0);
@@ -528,8 +534,7 @@ void BinnedCorr2<D1,D2,B>::directProcess11(
 
     int k2 = -1;
     if (do_reverse) {
-        k2 = BinTypeHelper<B>::calculateBinK(c2.getPos(), c1.getPos(),
-                                             r, logr, _binsize,
+        k2 = BinTypeHelper<B>::calculateBinK(p2, p1, r, logr, _binsize,
                                              _minsep, _maxsep, _logminsep);
         Assert(k2 >= 0);
         Assert(k2 < _nbins);
@@ -605,45 +610,47 @@ void BinnedCorr2<D1,D2,B>::samplePairs(
     xdbg<<"w = "<<c1.getW()<<", "<<c2.getW()<<std::endl;
     if (c1.getW() == 0. || c2.getW() == 0.) return;
 
+    const Position<C>& p1 = c1.getPos();
+    const Position<C>& p2 = c2.getPos();
     double s1 = c1.getSize(); // May be modified by DistSq function.
     double s2 = c2.getSize(); // "
     xdbg<<"s1,s2 = "<<s1<<','<<s2<<std::endl;
     xdbg<<"M,C = "<<M<<"  "<<C<<std::endl;
-    const double rsq = metric.DistSq(c1.getPos(),c2.getPos(),s1,s2);
+    const double rsq = metric.DistSq(p1, p2, s1, s2);
     xdbg<<"rsq = "<<rsq<<std::endl;
     xdbg<<"s1,s2 => "<<s1<<','<<s2<<std::endl;
     const double s1ps2 = s1+s2;
 
     double rpar = 0; // Gets set to correct value by this function if appropriate
-    if (metric.isRParOutsideRange(c1.getPos(), c2.getPos(), s1ps2, rpar))
+    if (metric.isRParOutsideRange(p1, p2, s1ps2, rpar)) {
         return;
+    }
     xdbg<<"RPar in range\n";
 
     if (BinTypeHelper<B>::tooSmallDist(rsq, s1ps2, minsep, minsepsq) &&
-        metric.tooSmallDist(c1.getPos(), c2.getPos(), rsq, rpar, s1ps2, minsepsq))
+        metric.tooSmallDist(p1, p2, rsq, rpar, s1ps2, minsep, minsepsq)) {
         return;
+    }
     xdbg<<"Not too small separation\n";
 
     if (BinTypeHelper<B>::tooLargeDist(rsq, s1ps2, maxsep, maxsepsq) &&
-        metric.tooLargeDist(c1.getPos(), c2.getPos(), rsq, rpar, s1ps2, maxsepsq))
+        metric.tooLargeDist(p1, p2, rsq, rpar, s1ps2, maxsep, maxsepsq)) {
         return;
+    }
     xdbg<<"Not too large separation\n";
 
     // Now check if these cells are small enough that it is ok to drop into a single bin.
     int kk=-1;
     double r=0,logr=0;  // If singleBin is true, these values are set for use by directProcess11
-    if (metric.isRParInsideRange(c1.getPos(), c2.getPos(), s1ps2, rpar) &&
-        BinTypeHelper<B>::singleBin(rsq, s1ps2, c1.getPos(), c2.getPos(),
-                                    _binsize, _b, _bsq,
-                                    _minsep, _maxsep, _logminsep,
-                                    kk, r, logr))
+    if (metric.isRParInsideRange(p1, p2, s1ps2, rpar) &&
+        BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq,
+                                    _minsep, _maxsep, _logminsep, kk, r, logr))
     {
         xdbg<<"Drop into single bin.\n";
         xdbg<<"rsq = "<<rsq<<std::endl;
         xdbg<<"minsepsq = "<<minsepsq<<std::endl;
         xdbg<<"maxsepsq = "<<maxsepsq<<std::endl;
-        if (BinTypeHelper<B>::isRSqInRange(rsq, c1.getPos(), c2.getPos(),
-                                           minsep, minsepsq, maxsep, maxsepsq)) {
+        if (BinTypeHelper<B>::isRSqInRange(rsq, p1, p2, minsep, minsepsq, maxsep, maxsepsq)) {
             sampleFrom(c1,c2,rsq,r,i1,i2,sep,n,k);
         }
     } else {

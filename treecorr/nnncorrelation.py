@@ -494,8 +494,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             zeta = (self.weight + rrd.weight * rrdw + rdr.weight * rdrw + drr.weight * drrw
                     - ddr.weight * ddrw - drd.weight * drdw - rdd.weight * rddw - rrr.weight * rrrw)
         if np.any(rrr.weight == 0):
-            self.logger.warning("Warning: Some bins for the randoms had no triangles.\n"+
-                                "         Probably max_sep is larger than your field.")
+            self.logger.warning("Warning: Some bins for the randoms had no triangles.")
         mask1 = rrr.weight != 0
         mask2 = rrr.weight == 0
         zeta[mask1] /= (rrr.weight[mask1] * rrrw)

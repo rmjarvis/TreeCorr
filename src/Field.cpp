@@ -355,7 +355,7 @@ void Field<D,C>::getNear(double x, double y, double z, double sep, long* indices
 {
     Position<C> pos(x,y,z);
     double sepsq = sep*sep;
-    dbg<<"Start countNear: "<<_cells.size()<<" top level cells\n";
+    dbg<<"Start getNear: "<<_cells.size()<<" top level cells\n";
     int k = 0;
     for(size_t i=0; i<_cells.size(); ++i) {
         dbg<<"Top level "<<i<<" with N="<<_cells[i]->getN()<<std::endl;

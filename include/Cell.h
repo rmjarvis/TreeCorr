@@ -241,6 +241,7 @@ public:
     long countLeaves() const;
     std::vector<const Cell<D,C>*> getAllLeaves() const;
     bool includesIndex(long index) const;
+    std::vector<long> getAllIndices() const;
 
     void Write(std::ostream& os) const;
     void WriteTree(std::ostream& os, int indent=0) const;

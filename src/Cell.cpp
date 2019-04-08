@@ -440,6 +440,25 @@ std::vector<const Cell<D,C>*> Cell<D,C>::getAllLeaves() const
 }
 
 template <int D, int C>
+std::vector<long> Cell<D,C>::getAllIndices() const
+{
+    std::vector<long> ret;
+    if (_left) {
+        std::vector<long> temp = _left->getAllIndices();
+        ret.insert(ret.end(),temp.begin(),temp.end());
+        Assert(_right);
+        temp = _right->getAllIndices();
+        ret.insert(ret.end(),temp.begin(),temp.end());
+    } else if (getN() == 1) {
+        ret.push_back(_info.index);
+    } else {
+        const std::vector<long>& indices = *_listinfo.indices;
+        ret.insert(ret.end(),indices.begin(),indices.end());
+    }
+    return ret;
+}
+
+template <int D, int C>
 void Cell<D,C>::Write(std::ostream& os) const
 {
     os<<getData().getPos()<<"  "<<getSize()<<"  "<<getData().getN();

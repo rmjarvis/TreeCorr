@@ -1774,17 +1774,17 @@ def test_perp_minmax():
         rcat = treecorr.Catalog('data/nn_perp_rand.dat', config, last_row=200000)
 
         rr1 = treecorr.NNCorrelation(config)
-        rr1.process(rcat, metric='Rperp')
+        rr1.process(rcat, metric='OldRperp')
         rr2 = treecorr.NNCorrelation(config, min_sep=lower_min_sep, nbins=more_nbins)
-        rr2.process(rcat, metric='Rperp')
+        rr2.process(rcat, metric='OldRperp')
         print('rr1 npairs = ',rr1.npairs)
         print('rr2 npairs = ',rr2.npairs[2:-2])
         np.testing.assert_allclose(rr1.npairs, rr2.npairs[2:-2], rtol=1.e-6)
 
         dr1 = treecorr.NNCorrelation(config)
-        dr1.process(dcat, rcat, metric='Rperp')
+        dr1.process(dcat, rcat, metric='OldRperp')
         dr2 = treecorr.NNCorrelation(config, min_sep=lower_min_sep, nbins=more_nbins)
-        dr2.process(dcat, rcat, metric='Rperp')
+        dr2.process(dcat, rcat, metric='OldRperp')
         print('dr1 npairs = ',dr1.npairs)
         print('dr2 npairs = ',dr2.npairs[2:-2])
         np.testing.assert_allclose(dr1.npairs, dr2.npairs[2:-2], rtol=1.e-6)
@@ -1795,7 +1795,7 @@ def test_perp_minmax():
         print('xi2 = ',xi2[2:-2])
         np.testing.assert_allclose(xi1, xi2[2:-2], rtol=1.e-6)
 
-    # Also check the new Rper metric
+    # Also check the new Rperp metric
     dd1 = treecorr.NNCorrelation(config)
     dd1.process(dcat, metric='FisherRperp')
 

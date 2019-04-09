@@ -18,7 +18,7 @@ import coord
 import time
 import treecorr
 
-from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog
+from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog, assert_raises
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
 
 def test_direct():
@@ -186,6 +186,17 @@ def test_direct():
     np.testing.assert_allclose(gg4.xim, gg.xim)
     np.testing.assert_allclose(gg4.xim_im, gg.xim_im)
 
+    with assert_raises(TypeError):
+        gg2 += config
+    gg4 = treecorr.GGCorrelation(min_sep=min_sep/2, max_sep=max_sep, nbins=nbins)
+    with assert_raises(ValueError):
+        gg2 += gg4
+    gg5 = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep*2, nbins=nbins)
+    with assert_raises(ValueError):
+        gg2 += gg5
+    gg6 = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins*2)
+    with assert_raises(ValueError):
+        gg2 += gg6
 
 def test_direct_spherical():
     # Repeat in spherical coords
@@ -726,6 +737,20 @@ def test_mapsq():
     np.testing.assert_allclose(gamsq_e[6:41], true_gamsq[6:41], rtol=0.1)
     print('gamsq_b = ',gamsq_b)
     np.testing.assert_allclose(gamsq_b[6:41], 0, atol=1.e-6)
+
+    # Not valid with TwoD or Linear binning
+    gg2 = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
+                                 bin_type='Linear')
+    with assert_raises(ValueError):
+        gg2.calculateMapSq()
+    with assert_raises(ValueError):
+        gg2.calculateGamSq()
+    gg3 = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
+                                 bin_type='TwoD')
+    with assert_raises(ValueError):
+        gg3.calculateMapSq()
+    with assert_raises(ValueError):
+        gg3.calculateGamSq()
 
 
 
@@ -1917,6 +1942,18 @@ def test_rperp_local():
     np.testing.assert_allclose(corr2_output['xim_im'], gg.xim_im, rtol=1.e-3)
     np.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
     np.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
+
+    with assert_raises(ValueError):
+        treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                               metric='FisherRperp', bin_slop=0.1, min_rpar=50, max_rpar=-50)
+    gg2 = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                 metric='Euclidean', bin_slop=0.1, min_rpar=-50)
+    with assert_raises(ValueError):
+        gg2.process(lens_cat, source_cat)
+    gg3 = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                 metric='Euclidean', bin_slop=0.1, max_rpar=50)
+    with assert_raises(ValueError):
+        gg3.process(lens_cat, source_cat)
 
 def test_oldrperp():
     # Same as above, but using OldRperp.

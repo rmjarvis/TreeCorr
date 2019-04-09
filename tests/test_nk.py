@@ -96,6 +96,16 @@ def test_direct():
     np.testing.assert_allclose(data['weight'], nk.weight)
     np.testing.assert_allclose(data['kappa'], nk.xi, rtol=1.e-3)
 
+    # Invalid with only one file_name
+    del config['file_name2']
+    with assert_raises(TypeError):
+        treecorr.corr2(config)
+    config['file_name2'] = 'data/nk_direct_cat2.fits'
+    # Invalid to request compoensated if no rand_file
+    config['nk_statistic'] = 'compensated'
+    with assert_raises(TypeError):
+        treecorr.corr2(config)
+
     # Repeat with binslop = 0, since the code flow is different from brute=True
     # And don't do any top-level recursion so we actually test not going to the leaves.
     nk = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0,
@@ -134,11 +144,17 @@ def test_direct():
     np.testing.assert_allclose(nk3.meanlogr, nk.meanlogr)
     np.testing.assert_allclose(nk3.xi, nk.xi)
 
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
+    with assert_raises(TypeError):
+        nk2 += config
+    nk4 = treecorr.NKCorrelation(min_sep=min_sep/2, max_sep=max_sep, nbins=nbins)
+    with assert_raises(ValueError):
+        nk2 += nk4
+    nk5 = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep*2, nbins=nbins)
+    with assert_raises(ValueError):
+        nk2 += nk5
+    nk6 = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins*2)
+    with assert_raises(ValueError):
+        nk2 += nk6
 
     fits_name = 'output/nk_fits.fits'
     nk.write(fits_name)

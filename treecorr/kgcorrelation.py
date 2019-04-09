@@ -268,7 +268,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         Then, after adding them together, you should call finalize on the sum.
         """
         if not isinstance(other, KGCorrelation):
-            raise AttributeError("Can only add another KGCorrelation object")
+            raise TypeError("Can only add another KGCorrelation object")
         if not (self._nbins == other._nbins and
                 self.min_sep == other.min_sep and
                 self.max_sep == other.max_sep):

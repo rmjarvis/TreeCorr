@@ -263,11 +263,11 @@ class BinnedCorr2(object):
         self._log_sep_units = math.log(self._sep_units)
         if 'nbins' not in self.config:
             if 'max_sep' not in self.config:
-                raise AttributeError("Missing required parameter max_sep")
+                raise TypeError("Missing required parameter max_sep")
             if 'min_sep' not in self.config and self.bin_type != 'TwoD':
-                raise AttributeError("Missing required parameter min_sep")
+                raise TypeError("Missing required parameter min_sep")
             if 'bin_size' not in self.config:
-                raise AttributeError("Missing required parameter bin_size")
+                raise TypeError("Missing required parameter bin_size")
             self.min_sep = float(self.config.get('min_sep',0))
             self.max_sep = float(self.config['max_sep'])
             if self.min_sep >= self.max_sep:
@@ -276,9 +276,9 @@ class BinnedCorr2(object):
             self.nbins = None
         elif 'bin_size' not in self.config:
             if 'max_sep' not in self.config:
-                raise AttributeError("Missing required parameter max_sep")
+                raise TypeError("Missing required parameter max_sep")
             if 'min_sep' not in self.config and self.bin_type != 'TwoD':
-                raise AttributeError("Missing required parameter min_sep")
+                raise TypeError("Missing required parameter min_sep")
             self.min_sep = float(self.config.get('min_sep',0))
             self.max_sep = float(self.config['max_sep'])
             if self.min_sep >= self.max_sep:
@@ -287,17 +287,17 @@ class BinnedCorr2(object):
             self.bin_size = None
         elif 'max_sep' not in self.config:
             if 'min_sep' not in self.config and self.bin_type != 'TwoD':
-                raise AttributeError("Missing required parameter min_sep")
+                raise TypeError("Missing required parameter min_sep")
             self.min_sep = float(self.config.get('min_sep',0))
             self.nbins = int(self.config['nbins'])
             self.bin_size = float(self.config['bin_size'])
             self.max_sep = None
         else:
             if self.bin_type == 'TwoD':
-                raise AttributeError("Only 2 of max_sep, bin_size, nbins are allowed "
+                raise TypeError("Only 2 of max_sep, bin_size, nbins are allowed "
                                      "for bin_type='TwoD'.")
             if 'min_sep' in self.config:
-                raise AttributeError("Only 3 of min_sep, max_sep, bin_size, nbins are allowed.")
+                raise TypeError("Only 3 of min_sep, max_sep, bin_size, nbins are allowed.")
             self.max_sep = float(self.config['max_sep'])
             self.nbins = int(self.config['nbins'])
             self.bin_size = float(self.config['bin_size'])
@@ -379,7 +379,7 @@ class BinnedCorr2(object):
             min_log_bin_size = self.bin_size / self.max_sep
             max_log_bin_size = self.bin_size / (self.min_sep + self.bin_size/2)
             max_good_slop = 0.1 / max_log_bin_size
-        else:
+        else:  # pragma: no cover  (Already checked by config layer)
             raise ValueError("Invalid bin_type %s"%self.bin_type)
 
         if self.sep_units == '':
@@ -398,8 +398,6 @@ class BinnedCorr2(object):
             self._bin_size = self.bin_size
 
         self.split_method = self.config.get('split_method','mean')
-        if self.split_method not in ['middle', 'median', 'mean', 'random']:
-            raise ValueError("Invalid split_method %s"%self.split_method)
         self.logger.debug("Using split_method = %s",self.split_method)
 
         self.min_top = treecorr.config.get(self.config,'min_top',int,3)
@@ -426,6 +424,8 @@ class BinnedCorr2(object):
         self.metric = None
         self.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)
         self.max_rpar = treecorr.config.get(self.config,'max_rpar',float,sys.float_info.max)
+        if self.min_rpar > self.max_rpar:
+            raise ValueError("min_rpar must be <= max_rpar")
         period = treecorr.config.get(self.config,'period',float,0)
         self.xperiod = treecorr.config.get(self.config,'xperiod',float,period)
         self.yperiod = treecorr.config.get(self.config,'yperiod',float,period)
@@ -440,10 +440,10 @@ class BinnedCorr2(object):
     def _process_all_cross(self, cat1, cat2, metric, num_threads):
         if treecorr.config.get(self.config,'pairwise',bool,False):
             if len(cat1) != len(cat2):
-                raise RuntimeError("Number of files for 1 and 2 must be equal for pairwise.")
+                raise ValueError("Number of files for 1 and 2 must be equal for pairwise.")
             for c1,c2 in zip(cat1,cat2):
                 if c1.ntot != c2.ntot:
-                    raise RuntimeError("Number of objects must be equal for pairwise.")
+                    raise ValueError("Number of objects must be equal for pairwise.")
                 self.process_pairwise(c1,c2,metric,num_threads)
         else:
             for c1 in cat1:

@@ -15,6 +15,8 @@ import numpy as np
 import treecorr
 import time
 
+from test_helper import assert_raises
+
 def get_correlation_length_matrix(size, e1, e2):
 
     if abs(e1)>1:
@@ -206,12 +208,19 @@ def test_twod():
     print('max rel diff = ',np.max(np.abs(nn.weight - counts)/np.abs(nn.weight)))
     np.testing.assert_allclose(nn.weight, counts, atol=1.e-7)
 
-
     # The other two, NG and KG can't really be checked with the brute force
     # calculator we have here, so we're counting on the above being a sufficient
     # test of all aspects of the twod binning.  I think that it is sufficient, but I
     # admit I would prefer if we had a real test of these other two pairs, along with
     # xi- for GG.
+
+    # Check invalid constructors
+    assert_raises(TypeError, treecorr.NNCorrelation, max_sep=max_sep, nbins=nbins, bin_size=2,
+                  bin_type='TwoD')
+    assert_raises(TypeError, treecorr.NNCorrelation, nbins=nbins, bin_type='TwoD')
+    assert_raises(TypeError, treecorr.NNCorrelation, bin_size=2, bin_type='TwoD')
+    assert_raises(TypeError, treecorr.NNCorrelation, max_sep=max_sep, bin_type='TwoD')
+
 
 def test_twod_singlebin():
 
@@ -250,7 +259,7 @@ def test_twod_singlebin():
 
     # Now do bin_slop = 0.1
     gg2 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0.1,
-                                 max_top=4, verbose=3)
+                                 max_top=4)
     t0 = time.time()
     gg2.process(cat)
     t1 = time.time()

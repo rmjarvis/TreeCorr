@@ -17,7 +17,7 @@ import treecorr
 import os
 import coord
 
-from test_helper import get_script_name, do_pickle, CaptureLog
+from test_helper import get_script_name, do_pickle, CaptureLog, assert_raises
 
 def test_direct():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
@@ -101,6 +101,11 @@ def test_direct():
     np.testing.assert_allclose(data['kgamT'], kg.xi, rtol=1.e-3)
     np.testing.assert_allclose(data['kgamX'], kg.xi_im, rtol=1.e-3)
 
+    # Invalid with only one file_name
+    del config['file_name2']
+    with assert_raises(TypeError):
+        treecorr.corr2(config)
+
     # Repeat with binslop = 0, since code is different for bin_slop=0 and brute=True.
     # And don't do any top-level recursion so we actually test not going to the leaves.
     kg = treecorr.KGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0,
@@ -154,6 +159,17 @@ def test_direct():
     np.testing.assert_allclose(kg4.xi, kg.xi)
     np.testing.assert_allclose(kg4.xi_im, kg.xi_im)
 
+    with assert_raises(TypeError):
+        kg2 += config
+    kg4 = treecorr.KGCorrelation(min_sep=min_sep/2, max_sep=max_sep, nbins=nbins)
+    with assert_raises(ValueError):
+        kg2 += kg4
+    kg5 = treecorr.KGCorrelation(min_sep=min_sep, max_sep=max_sep*2, nbins=nbins)
+    with assert_raises(ValueError):
+        kg2 += kg5
+    kg6 = treecorr.KGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins*2)
+    with assert_raises(ValueError):
+        kg2 += kg6
 
 def test_direct_spherical():
     # Repeat in spherical coords

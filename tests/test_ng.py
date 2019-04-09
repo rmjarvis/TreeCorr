@@ -102,6 +102,16 @@ def test_direct():
     np.testing.assert_allclose(data['gamT'], ng.xi, rtol=1.e-3)
     np.testing.assert_allclose(data['gamX'], ng.xi_im, rtol=1.e-3)
 
+    # Invalid with only one file_name
+    del config['file_name2']
+    with assert_raises(TypeError):
+        treecorr.corr2(config)
+    config['file_name2'] = 'data/ng_direct_cat2.fits'
+    # Invalid to request compoensated if no rand_file
+    config['ng_statistic'] = 'compensated'
+    with assert_raises(TypeError):
+        treecorr.corr2(config)
+
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
     ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0,
@@ -154,6 +164,19 @@ def test_direct():
     np.testing.assert_allclose(ng4.meanlogr, ng.meanlogr)
     np.testing.assert_allclose(ng4.xi, ng.xi)
     np.testing.assert_allclose(ng4.xi_im, ng.xi_im)
+
+    with assert_raises(TypeError):
+        ng2 += config
+    ng4 = treecorr.NGCorrelation(min_sep=min_sep/2, max_sep=max_sep, nbins=nbins)
+    with assert_raises(ValueError):
+        ng2 += ng4
+    ng5 = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep*2, nbins=nbins)
+    with assert_raises(ValueError):
+        ng2 += ng5
+    ng6 = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins*2)
+    with assert_raises(ValueError):
+        ng2 += ng6
+
 
 
 def test_direct_spherical():

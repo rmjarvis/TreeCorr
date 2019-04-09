@@ -293,7 +293,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         Then, after adding them together, you should call finalize on the sum.
         """
         if not isinstance(other, NNCorrelation):
-            raise AttributeError("Can only add another NNCorrelation object")
+            raise TypeError("Can only add another NNCorrelation object")
         if not (self._nbins == other._nbins and
                 self.min_sep == other.min_sep and
                 self.max_sep == other.max_sep):
@@ -367,7 +367,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         """
         # Each random weight value needs to be rescaled by the ratio of total possible pairs.
         if rr.tot == 0:
-            raise RuntimeError("rr has tot=0.")
+            raise ValueError("rr has tot=0.")
 
         # rrf is the factor to scale rr weights to get something commensurate to the dd density.
         rrf = self.tot / rr.tot
@@ -384,14 +384,14 @@ class NNCorrelation(treecorr.BinnedCorr2):
                 varxi_factor = 1 + rrf*rrw/ddw
             else:
                 if rd.tot == 0:
-                    raise RuntimeError("rd has tot=0.")
+                    raise ValueError("rd has tot=0.")
                 rdf = self.tot / rd.tot
                 rdw = rd._mean_weight()
                 xi = (self.weight - 2.*rd.weight * rdf + rr.weight * rrf)
                 varxi_factor = 1 + 2*rdf*rdw/ddw + rrf*rrw/ddw
         else:
             if dr.tot == 0:
-                raise RuntimeError("dr has tot=0.")
+                raise ValueError("dr has tot=0.")
             drf = self.tot / dr.tot
             drw = dr._mean_weight()
             if rd is None:
@@ -399,7 +399,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
                 varxi_factor = 1 + 2*drf*drw/ddw + rrf*rrw/ddw
             else:
                 if rd.tot == 0:
-                    raise RuntimeError("rd has tot=0.")
+                    raise ValueError("rd has tot=0.")
                 rdf = self.tot / rd.tot
                 rdw = rd._mean_weight()
                 xi = (self.weight - rd.weight * rdf - dr.weight * drf + rr.weight * rrf)
@@ -502,9 +502,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
             col_names += [ 'DD', 'npairs' ]
             columns += [ self.weight, self.npairs ]
             if dr is not None:
-                raise AttributeError("rr must be provided if dr is not None")
+                raise TypeError("rr must be provided if dr is not None")
             if rd is not None:
-                raise AttributeError("rr must be provided if rd is not None")
+                raise TypeError("rr must be provided if rd is not None")
         else:
             xi, varxi = self.calculateXi(rr,dr,rd)
 

@@ -212,8 +212,9 @@ def check_config(config, params, aliases=None, logger=None):
                     (default: None)
     :param logger:  If desired, a logger object for logging any warnings here. (default: None)
 
-    :returns:       The updated config dict.  The input config may be modified by this function.
+    :returns:       The updated config dict.
     """
+    config = config.copy()
     for key in list(config.keys()):
         # Check if this is a deprecated alias
         if aliases and key in aliases:
@@ -387,8 +388,7 @@ def merge_config(config, kwargs, valid_params):
         for key, value in config.items():
             if key in valid_params and key not in kwargs:
                 kwargs[key] = value
-    check_config(kwargs, valid_params)
-    return kwargs
+    return check_config(kwargs, valid_params)
 
 
 def set_omp_threads(num_threads, logger=None):

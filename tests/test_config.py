@@ -415,7 +415,7 @@ def test_merge():
         if key in kwargs:
             assert config2[key] == kwargs[key] or config2[key] in kwargs[key]
         else:
-            assert config2[key] == valid_params[key]
+            assert config2[key] == valid_params[key][2]
 
     # If conflicts, kwargs takes precedence
     kwargs['ra_col'] = 'alpha2000'

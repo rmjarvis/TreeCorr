@@ -17,7 +17,7 @@ import treecorr
 import os
 import coord
 
-from test_helper import get_script_name, do_pickle, CaptureLog
+from test_helper import get_script_name, do_pickle, CaptureLog, assert_raises
 
 def test_direct():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
@@ -144,6 +144,18 @@ def test_direct():
     np.testing.assert_allclose(kk4.meanr, kk.meanr)
     np.testing.assert_allclose(kk4.meanlogr, kk.meanlogr)
     np.testing.assert_allclose(kk4.xi, kk.xi)
+
+    with assert_raises(TypeError):
+        kk2 += config
+    kk4 = treecorr.KKCorrelation(min_sep=min_sep/2, max_sep=max_sep, nbins=nbins)
+    with assert_raises(ValueError):
+        kk2 += kk4
+    kk5 = treecorr.KKCorrelation(min_sep=min_sep, max_sep=max_sep*2, nbins=nbins)
+    with assert_raises(ValueError):
+        kk2 += kk5
+    kk6 = treecorr.KKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins*2)
+    with assert_raises(ValueError):
+        kk2 += kk6
 
 
 def test_direct_spherical():

@@ -71,6 +71,23 @@ def test_log_binning():
     np.testing.assert_almost_equal(nn.logr[-1], math.log(nn.max_sep) - 0.5*nn.bin_size)
     assert len(nn.logr) == nn.nbins
 
+    assert_raises(TypeError, treecorr.NNCorrelation)
+    assert_raises(TypeError, treecorr.NNCorrelation, min_sep=5)
+    assert_raises(TypeError, treecorr.NNCorrelation, max_sep=20)
+    assert_raises(TypeError, treecorr.NNCorrelation, bin_size=0.1)
+    assert_raises(TypeError, treecorr.NNCorrelation, nbins=20)
+    assert_raises(TypeError, treecorr.NNCorrelation, min_sep=5, max_sep=20)
+    assert_raises(TypeError, treecorr.NNCorrelation, min_sep=5, bin_size=0.1)
+    assert_raises(TypeError, treecorr.NNCorrelation, min_sep=5, nbins=20)
+    assert_raises(TypeError, treecorr.NNCorrelation, max_sep=5, bin_size=0.1)
+    assert_raises(TypeError, treecorr.NNCorrelation, max_sep=5, nbins=20)
+    assert_raises(TypeError, treecorr.NNCorrelation, bin_size=0.1, nbins=20)
+    assert_raises(TypeError, treecorr.NNCorrelation, min_sep=5, max_sep=20, bin_size=0.1, nbins=20)
+    assert_raises(ValueError, treecorr.NNCorrelation, min_sep=20, max_sep=5, bin_size=0.1)
+    assert_raises(ValueError, treecorr.NNCorrelation, min_sep=20, max_sep=5, nbins=20)
+    assert_raises(ValueError, treecorr.NNCorrelation, min_sep=5, max_sep=20, nbins=20,
+                  bin_type='Invalid')
+
     # Check the use of sep_units
     # radians
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='radians')
@@ -506,12 +523,30 @@ def test_direct_count():
     dd.process(cat1, cat2)
     np.testing.assert_array_equal(dd.npairs, true_npairs)
 
-    # Do this one with corr2 to test the automatic output_dots=True functionality.
-    # It's not particularly annoying with max_top = 0.
-    config = treecorr.config.read_config('configs/nn_direct.yaml')
+    # Invalid to omit file_name
+    config['verbose'] = 0
+    del config['file_name']
+    with assert_raises(TypeError):
+        treecorr.corr2(config)
+
+    # Invalid to have rand_file_name2 but not file_name2
+    config['file_name'] = 'data/nn_direct_data1.dat'
+    del config['file_name2']
+    with assert_raises(TypeError):
+        treecorr.corr2(config)
+
+    # Invalid when doing rands, to have file_name2, but not rand_file_name2
+    config['file_name2'] = 'data/nn_direct_data2.dat'
+    del config['rand_file_name2']
+    with assert_raises(TypeError):
+        treecorr.corr2(config)
+
+    # OK to have neither rand_file_name nor rand_file_name2
+    # Also, check the automatic setting of output_dots=True when verbose=2.
+    # It's not too annoying if we also set max_top = 0.
+    del config['rand_file_name']
     config['verbose'] = 2
     config['max_top'] = 0
-    config['bin_slop'] = 0
     treecorr.corr2(config)
     data = np.genfromtxt(config['nn_file_name'], names=True, skip_header=1)
     np.testing.assert_array_equal(data['npairs'], true_npairs)
@@ -542,6 +577,31 @@ def test_direct_count():
     np.testing.assert_allclose(dd3.meanr, dd.meanr)
     np.testing.assert_allclose(dd3.meanlogr, dd.meanlogr)
 
+    with assert_raises(TypeError):
+        dd2 += config
+    dd4 = treecorr.NNCorrelation(min_sep=min_sep/2, max_sep=max_sep, nbins=nbins)
+    with assert_raises(ValueError):
+        dd2 += dd4
+    dd5 = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep*2, nbins=nbins)
+    with assert_raises(ValueError):
+        dd2 += dd5
+    dd6 = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins*2)
+    with assert_raises(ValueError):
+        dd2 += dd6
+
+    # Cannot use some metrics with Flat coordinates
+    dd7 = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    with assert_raises(ValueError):
+        dd7.process(cat1, cat2, metric='Rperp')
+    with assert_raises(ValueError):
+        dd7.process(cat1, cat2, metric='OldRperp')
+    with assert_raises(ValueError):
+        dd7.process(cat1, cat2, metric='FisherRperp')
+    with assert_raises(ValueError):
+        dd7.process(cat1, cat2, metric='Arc')
+    with assert_raises(ValueError):
+        dd7.process(cat1, cat2, metric='Rlens')
+
     try:
         import fitsio
     except ImportError:
@@ -552,12 +612,12 @@ def test_direct_count():
     shutil.rmtree('output/tmp', ignore_errors=True)
     fits_name = 'output/tmp/dd_fits.fits'
     dd.write(fits_name)
-    dd4 = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
-    dd4.read(fits_name)
-    np.testing.assert_allclose(dd4.npairs, dd.npairs)
-    np.testing.assert_allclose(dd4.weight, dd.weight)
-    np.testing.assert_allclose(dd4.meanr, dd.meanr)
-    np.testing.assert_allclose(dd4.meanlogr, dd.meanlogr)
+    dd8 = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    dd8.read(fits_name)
+    np.testing.assert_allclose(dd8.npairs, dd.npairs)
+    np.testing.assert_allclose(dd8.weight, dd.weight)
+    np.testing.assert_allclose(dd8.meanr, dd.meanr)
+    np.testing.assert_allclose(dd8.meanlogr, dd.meanlogr)
 
 
 def test_direct_spherical():
@@ -661,6 +721,29 @@ def test_direct_spherical():
     np.testing.assert_array_equal(dd.npairs, true_npairs)
     np.testing.assert_allclose(dd.weight, true_weight, rtol=1.e-5, atol=1.e-8)
 
+    # Can't cross correlate different coordinate systems
+    cat3 = treecorr.Catalog(x=ra1, y=dec1, x_units='rad', y_units='rad', w=w1)
+    cat4 = treecorr.Catalog(ra=ra1, dec=dec1, r=ra1, ra_units='rad', dec_units='rad', w=w1)
+    with assert_raises(ValueError):
+        dd.process(cat3, cat2)
+    with assert_raises(ValueError):
+        dd.process(cat1, cat3)
+    with assert_raises(ValueError):
+        dd.process(cat4, cat2)
+    with assert_raises(ValueError):
+        dd.process(cat1, cat4)
+
+    # Cannot use some metrics with spherical coordinates
+    dd2 = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    with assert_raises(ValueError):
+        dd2.process(cat1, cat2, metric='Rperp')
+    with assert_raises(ValueError):
+        dd2.process(cat1, cat2, metric='OldRperp')
+    with assert_raises(ValueError):
+        dd2.process(cat1, cat2, metric='FisherRperp')
+    with assert_raises(ValueError):
+        dd2.process(cat1, cat2, metric='Rlens')
+
 
 def test_pairwise():
     # Test the pairwise option.
@@ -717,6 +800,22 @@ def test_pairwise():
         dd.process_pairwise(cat1, cat2, metric='Euclidean', num_threads=2)
     assert "for cats first, second" in cl.output
 
+    # Can also run this via process if pairwise is set in constructor.
+    dd2 = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, pairwise=True)
+    dd2.process(cat1, cat2)
+    np.testing.assert_array_equal(dd2.npairs, true_npairs)
+    np.testing.assert_allclose(dd2.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+
+    with assert_raises(ValueError):
+        dd2.process(cat1, [cat2, cat2])
+    with assert_raises(ValueError):
+        dd2.process([cat1, cat1], cat2)
+    cat3 = treecorr.Catalog(x=x2[:500], y=y2[:500], w=w2[:500])
+    with assert_raises(ValueError):
+        dd2.process(cat1, cat3)
+    with assert_raises(ValueError):
+        dd2.process(cat2, cat3)
+
 
 
 def test_direct_3d():
@@ -770,6 +869,16 @@ def test_direct_3d():
     cat2 = treecorr.Catalog(x=x2, y=y2, z=z2)
     dd.process(cat1, cat2)
     np.testing.assert_array_equal(dd.npairs, true_npairs)
+
+    # Can't set sep_units with 3d
+    dd2 = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, sep_units='arcmin')
+    with assert_raises(ValueError):
+        dd2.process(cat1, cat2)
+
+    # Cannot use Rlens metric with auto-correlation
+    dd3 = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    with assert_raises(ValueError):
+        dd3.process(cat1, metric='Rlens')
 
 
 def test_direct_perp():
@@ -1187,6 +1296,24 @@ def test_direct_linear():
     rd.process(rcat1,cat2)
     xi, varxi = dd.calculateXi(rr, dr, rd)
 
+    with assert_raises(TypeError):
+        dd.calculateXi(dr=dr)
+    with assert_raises(TypeError):
+        dd.calculateXi(rd=rd)
+    with assert_raises(TypeError):
+        dd.calculateXi(dr=dr, rd=rd)
+    rr2 = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_type='Linear')
+    with assert_raises(ValueError):
+        dd.calculateXi(rr=rr2, dr=dr, rd=rd)
+    with assert_raises(ValueError):
+        dd.calculateXi(rr=rr, dr=rr2, rd=rd)
+    with assert_raises(ValueError):
+        dd.calculateXi(rr=rr, dr=dr, rd=rr2)
+    with assert_raises(ValueError):
+        dd.calculateXi(rr=rr, rd=rr2)
+    with assert_raises(ValueError):
+        dd.calculateXi(rr=rr, dr=rr2)
+
     config = treecorr.config.read_config('configs/nn_linear.yaml')
     logger = treecorr.config.setup_logger(0)
     treecorr.corr2(config, logger)
@@ -1392,6 +1519,11 @@ def test_nn():
     np.testing.assert_almost_equal(data['DR'], dr.npairs * (dd.tot / dr.tot))
     header = fitsio.read_header(out_file_name3, 1)
     np.testing.assert_almost_equal(header['tot'], dd.tot)
+
+    with assert_raises(TypeError):
+        dd.write(out_file_name3, dr=dr)
+    with assert_raises(TypeError):
+        dd.write(out_file_name3, rd=dr)
 
     # Check the read function
     dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
@@ -1871,6 +2003,9 @@ def test_split():
             assert not np.all(dd1.npairs == dd2.npairs)
             np.testing.assert_allclose(dd1.npairs, dd2.npairs,rtol=1.e-2)
 
+    assert_raises(ValueError, treecorr.NNCorrelation, bin_size=0.1, min_sep=5., max_sep=25.,
+                  split_method='invalid')
+
 
 def test_varxi():
     # Test that varxi is correct (or close) based on actual variance of many runs.
@@ -1898,7 +2033,7 @@ def test_varxi():
         x2 = (rng.random_sample(nrand)-0.5) * L
         y2 = (rng.random_sample(nrand)-0.5) * L
         # Varied weights are hard, but at least check that non-unit weights work correctly.
-        w = np.ones_like(x2) * 5
+        w = np.ones_like(x1) * 5
         wr = np.ones_like(x2) * 0.3
 
         data = treecorr.Catalog(x=x1, y=y1, w=w)

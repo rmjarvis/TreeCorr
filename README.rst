@@ -84,7 +84,6 @@ that is also relatively straightforward:
    interested, the dependencies are:
 
    - numpy
-   - future
    - pyyaml
    - LSSTDESC.Coord
    - cffi

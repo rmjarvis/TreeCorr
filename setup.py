@@ -456,7 +456,7 @@ ext=Extension("treecorr._treecorr",
               depends=headers,
               undef_macros = undef_macros)
 
-dependencies = ['numpy', 'future', 'cffi', 'pyyaml', 'LSSTDESC.Coord>=1.1']
+dependencies = ['numpy', 'cffi', 'pyyaml', 'LSSTDESC.Coord>=1.1']
 if py_version <= '2.6':
     dependencies += ['argparse']
 

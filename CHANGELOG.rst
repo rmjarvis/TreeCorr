@@ -16,6 +16,7 @@ Dependency changes
   files, you will need to install fitsio yourself.  Pandas is never required,
   but if you plan to use TreeCorr with ASCII input catalogs, installing pandas
   will provide a performance improvement. (#57)
+- Removed dependency on future. (#85)
 
 
 API changes

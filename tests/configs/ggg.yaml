@@ -22,3 +22,4 @@ max_v: 0.3
 nvbins: 2
 
 ggg_file_name: output/ggg.out
+m3_file_name: output/ggg_m3.out

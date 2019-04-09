@@ -880,3 +880,41 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         var = (varmcmm + varmmcm + varmmmc + varmmm) / 16.
 
         return map3, mapmapmx, mapmxmap, mxmapmap, mxmxmap, mxmapmx, mapmxmx, mx3, var
+
+    def writeMap3(self, file_name, R=None, file_type=None, precision=None):
+        """Write the aperture mass skewness based on the correlation function to the
+        file, file_name.
+
+        The output file will include the following columns:
+
+            :R:         The aperture radius
+            :Map3:      An estimate of :math:`\\langle M_{ap}^3\\rangle(R)`.
+                        cf. :meth:`~treecorr.GGCorrelation.calculateMap3`.
+            :Map2Mx:    An estimate of :math:`\\langle M_{ap}^2M_x\\rangle(R)`.
+            :MapMx2:    An estimate of :math:`\\langle M_{ap}M_x^2\\rangle(R)`.
+            :Mx3:       An estimate of :math:`\\langle M_x^3\\rangle(R)`.
+            :sig_map:   The sqrt of the variance estimate of :math:`\\langle M_{ap}^3\\rangle`
+                        (which is equal to the variance of the other three as well).
+
+        :param file_name:   The name of the file to write to.
+        :param R:           The R values at which to calculate the statistics.
+                            (default: None, which means use self.rnom)
+        :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
+                            the type automatically from the extension of file_name.)
+        :param precision:   For ASCII output catalogs, the desired precision. (default: 4;
+                            this value can also be given in the constructor in the config dict.)
+        """
+        self.logger.info('Writing Map^3 from GGG correlations to %s',file_name)
+
+        if R is None:
+            R = self.rnom1d
+        stats = self.calculateMap3(R)
+        if precision is None:
+            precision = treecorr.config.get(self.config,'precision',int,4)
+
+        treecorr.util.gen_write(
+            file_name,
+            ['R','Map3','Map2Mx', 'MapMx2', 'Mx3','sig_map'],
+            [ R, stats[0], stats[1], stats[4], stats[7], np.sqrt(stats[8]) ],
+            precision=precision, file_type=file_type, logger=self.logger)
+

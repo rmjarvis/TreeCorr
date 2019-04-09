@@ -63,21 +63,11 @@ corr3_valid_params = {
             'The output filename for kappa-kappa-kappa correlation function.'),
     'ggg_file_name' : (str, False, None, None,
             'The output filename for gamma-gamma-gamma correlation function.'),
-    #'ng_file_name' : (str, False, None, None,
-            #'The output filename for point-shear correlation function.'),
-    #'ng_statistic' : (str, False, None, ['compensated', 'simple'],
-            #'Which statistic to use for the mean shear estimator of the NG correlation function. ',
-            #'The default is compensated if rand_files is given, otherwise simple'),
-    #'gg_file_name' : (str, False, None, None,
-            #'The output filename for shear-shear correlation function.'),
-    #'nk_file_name' : (str, False, None, None,
-            #'The output filename for point-kappa correlation function.'),
-    #'nk_statistic' : (str, False, None, ['compensated', 'simple'],
-            #'Which statistic to use for the mean kappa estimator of the NK correlation function. ',
-            #'The default is compensated if rand_files is given, otherwise simple'),
-    #'kg_file_name' : (str, False, None, None,
-            #'The output filename for kappa-shear correlation function.'),
 
+    # Derived output quantities
+
+    'm3_file_name' : (str, False, None, None,
+            'The output filename for the aperture mass skewness.'),
 }
 
 # Add in the valid parameters for the relevant classes
@@ -155,12 +145,17 @@ def corr3(config, logger=None):
     logger.info("Done reading input catalogs")
 
     # Do GGG correlation function if necessary
-    if 'ggg_file_name' in config:
+    if 'ggg_file_name' in config or 'm3_file_name' in config:
         logger.warning("Performing GGG calculations...")
         ggg = treecorr.GGGCorrelation(config,logger)
         ggg.process(cat1,cat2,cat3)
         logger.info("Done GGG calculations.")
-        ggg.write(config['ggg_file_name'])
+        if 'ggg_file_name' in config:
+            ggg.write(config['ggg_file_name'])
+            logger.warning("Wrote GGG correlation to %s",config['ggg_file_name'])
+        if 'm3_file_name' in config:
+            ggg.writeMap3(config['m3_file_name'])
+            logger.warning("Wrote Map3 values to %s",config['m3_file_name'])
 
     # Do NNN correlation function if necessary
     if 'nnn_file_name' in config:
@@ -225,6 +220,7 @@ def corr3(config, logger=None):
             rdd.process(rand1,cat2,cat3)
             logger.info("Done RDD calculations.")
         ddd.write(config['nnn_file_name'],rrr,drr,rdr,rrd,ddr,drd,rdd)
+        logger.warning("Wrote NNN correlation to %s",config['nnn_file_name'])
 
     # Do KKK correlation function if necessary
     if 'kkk_file_name' in config:
@@ -233,64 +229,7 @@ def corr3(config, logger=None):
         kkk.process(cat1,cat2,cat3)
         logger.info("Done KKK calculations.")
         kkk.write(config['kkk_file_name'])
-
-    # Do NNG correlation function if necessary
-    if False:
-    #if 'nng_file_name' in config or 'nnm_file_name' in config:
-        if cat3 is None:
-            raise TypeError("file_name3 is required for nng correlation")
-        logger.warning("Performing NNG calculations...")
-        nng = treecorr.NNGCorrelation(config,logger)
-        nng.process(cat1,cat2,cat3)
-        logger.info("Done NNG calculation.")
-
-        # The default ng_statistic is compensated _iff_ rand files are given.
-        rrg = None
-        if rand1 is None:
-            if config.get('nng_statistic',None) == 'compensated':
-                raise TypeError("rand_files is required for nng_statistic = compensated")
-        elif config.get('nng_statistic','compensated') == 'compensated':
-            rrg = treecorr.NNGCorrelation(config,logger)
-            rrg.process(rand1,rand1,cat2)
-            logger.info("Done RRG calculation.")
-
-        if 'nng_file_name' in config:
-            nng.write(config['nng_file_name'], rrg)
-        if 'nnm_file_name' in config:
-            nng.writeNNMap(config['nnm_file_name'], rrg)
-
-
-    # Do NNK correlation function if necessary
-    if False:
-    #if 'nnk_file_name' in config:
-        if cat3 is None:
-            raise TypeError("file_name3 is required for nnk correlation")
-        logger.warning("Performing NNK calculations...")
-        nnk = treecorr.NNKCorrelation(config,logger)
-        nnk.process(cat1,cat2,cat3)
-        logger.info("Done NNK calculation.")
-
-        rrk = None
-        if rand1 is None:
-            if config.get('nnk_statistic',None) == 'compensated':
-                raise TypeError("rand_files is required for nnk_statistic = compensated")
-        elif config.get('nnk_statistic','compensated') == 'compensated':
-            rrk = treecorr.NNKCorrelation(config,logger)
-            rrk.process(rand1,rand1,cat2)
-            logger.info("Done RRK calculation.")
-
-        nnk.write(config['nnk_file_name'], rrk)
-
-    # Do KKG correlation function if necessary
-    if False:
-    #if 'kkg_file_name' in config:
-        if cat3 is None:
-            raise TypeError("file_name3 is required for kkg correlation")
-        logger.warning("Performing KKG calculations...")
-        kkg = treecorr.KKGCorrelation(config,logger)
-        kkg.process(cat1,cat2,cat3)
-        logger.info("Done KKG calculation.")
-        kkg.write(config['kkg_file_name'])
+        logger.warning("Wrote KKK correlation to %s",config['kkk_file_name'])
 
 
 def print_corr3_params():

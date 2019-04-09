@@ -550,6 +550,7 @@ def test_direct_count():
     treecorr.corr2(config)
     data = np.genfromtxt(config['nn_file_name'], names=True, skip_header=1)
     np.testing.assert_array_equal(data['npairs'], true_npairs)
+    assert 'xi' not in data.dtype.names
 
     # Check a few basic operations with a NNCorrelation object.
     do_pickle(dd)

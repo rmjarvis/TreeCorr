@@ -17,7 +17,7 @@ import treecorr
 import os
 import coord
 
-from test_helper import get_script_name, do_pickle
+from test_helper import get_script_name, do_pickle, assert_raises
 
 def test_direct():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
@@ -197,6 +197,51 @@ def test_direct():
     np.testing.assert_allclose(kkk4.meanu, kkk.meanu)
     np.testing.assert_allclose(kkk4.meanv, kkk.meanv)
     np.testing.assert_allclose(kkk4.zeta, kkk.zeta)
+
+    with assert_raises(TypeError):
+        kkk2 += config
+    kkk5 = treecorr.KKKCorrelation(min_sep=min_sep/2, bin_size=bin_size, nbins=nrbins)
+    with assert_raises(ValueError):
+        kkk2 += kkk5
+    kkk6 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size/2, nbins=nrbins)
+    with assert_raises(ValueError):
+        kkk2 += kkk6
+    kkk7 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins*2)
+    with assert_raises(ValueError):
+        kkk2 += kkk7
+    kkk8 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                   min_u=0.1)
+    with assert_raises(ValueError):
+        kkk2 += kkk8
+    kkk0 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                   max_u=0.1)
+    with assert_raises(ValueError):
+        kkk2 += kkk0
+    kkk10 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                   nubins=nrbins*2)
+    with assert_raises(ValueError):
+        kkk2 += kkk10
+    kkk11 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                   min_v=0.1)
+    with assert_raises(ValueError):
+        kkk2 += kkk11
+    kkk12 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                   max_v=0.1)
+    with assert_raises(ValueError):
+        kkk2 += kkk12
+    kkk13 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                   nvbins=nrbins*2)
+    with assert_raises(ValueError):
+        kkk2 += kkk13
+
+    # Currently not implemented to only have cat2 or cat3
+    with assert_raises(NotImplementedError):
+        kkk.process(cat, cat2=cat)
+    with assert_raises(NotImplementedError):
+        kkk.process(cat, cat3=cat)
+    with assert_raises(NotImplementedError):
+        kkk.process_cross21(cat, cat)
+
 
 def test_direct_spherical():
     # Repeat in spherical coords

@@ -347,7 +347,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         Then, after adding them together, you should call finalize on the sum.
         """
         if not isinstance(other, NNNCorrelation):
-            raise AttributeError("Can only add another NNNCorrelation object")
+            raise TypeError("Can only add another NNNCorrelation object")
         if not (self.nbins == other.nbins and
                 self.min_sep == other.min_sep and
                 self.max_sep == other.max_sep and
@@ -414,7 +414,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         if cat2 is None and cat3 is None:
             self._process_all_auto(cat1, metric, num_threads)
         elif (cat2 is None) != (cat3 is None):
-            raise NotImplementedError("No partial cross GGG yet.")
+            raise NotImplementedError("No partial cross NNN yet.")
         else:
             assert cat2 is not None and cat3 is not None
             self._process_all_cross(cat1,cat2,cat3, metric, num_threads)
@@ -461,30 +461,30 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         """
         # Each random ntri value needs to be rescaled by the ratio of total possible tri.
         if rrr.tot == 0:
-            raise RuntimeError("rrr has tot=0.")
+            raise ValueError("rrr has tot=0.")
 
         if (drr is not None or rdr is not None or rrd is not None or
             ddr is not None or drd is not None or rdd is not None):
             if (drr is None or rdr is None or rrd is None or
-                ddr is None or drd is None or rrd is None):
-                raise AttributeError("Must provide all 6 combinations rdr, drr, etc.")
+                ddr is None or drd is None or rdd is None):
+                raise TypeError("Must provide all 6 combinations rdr, drr, etc.")
 
         rrrw = self.tot / rrr.tot
         if drr is None:
             zeta = (self.weight - rrr.weight * rrrw)
         else:
             if rrd.tot == 0:
-                raise RuntimeError("rrd has tot=0.")
+                raise ValueError("rrd has tot=0.")
             if ddr.tot == 0:
-                raise RuntimeError("ddr has tot=0.")
+                raise ValueError("ddr has tot=0.")
             if rdr.tot == 0:
-                raise RuntimeError("rdr has tot=0.")
+                raise ValueError("rdr has tot=0.")
             if drr.tot == 0:
-                raise RuntimeError("drr has tot=0.")
+                raise ValueError("drr has tot=0.")
             if drd.tot == 0:
-                raise RuntimeError("drd has tot=0.")
+                raise ValueError("drd has tot=0.")
             if rdd.tot == 0:
-                raise RuntimeError("rdd has tot=0.")
+                raise ValueError("rdd has tot=0.")
             rrdw = self.tot / rrd.tot
             ddrw = self.tot / ddr.tot
             rdrw = self.tot / rdr.tot
@@ -616,7 +616,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         if rrr is None:
             if (drr is not None or rdr is not None or rrd is not None or
                 ddr is not None or drd is not None or rdd is not None):
-                raise AttributeError("rrr must be provided if other combinations are not None")
+                raise TypeError("rrr must be provided if other combinations are not None")
             col_names += [ 'DDD', 'ntri' ]
             columns += [ self.weight, self.ntri ]
         else:

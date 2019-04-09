@@ -17,9 +17,9 @@ import treecorr
 import os
 import coord
 
-from test_helper import get_script_name, do_pickle
+from test_helper import get_script_name, do_pickle, assert_raises, CaptureLog
 
-def test_binnedcorr3():
+def test_log_binning():
     import math
     # Test some basic properties of the base class
 
@@ -270,6 +270,45 @@ def test_binnedcorr3():
     assert nnn.min_v == 0.
     assert np.isclose(nnn.max_v,0.5)
     check_arrays(nnn)
+
+    assert_raises(TypeError, treecorr.NNNCorrelation)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5)
+    assert_raises(TypeError, treecorr.NNNCorrelation, max_sep=20)
+    assert_raises(TypeError, treecorr.NNNCorrelation, bin_size=0.1)
+    assert_raises(TypeError, treecorr.NNNCorrelation, nbins=20)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, bin_size=0.1)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, nbins=20)
+    assert_raises(TypeError, treecorr.NNNCorrelation, max_sep=20, bin_size=0.1)
+    assert_raises(TypeError, treecorr.NNNCorrelation, max_sep=20, nbins=20)
+    assert_raises(TypeError, treecorr.NNNCorrelation, bin_size=0.1, nbins=20)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1, nbins=20)
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, bin_size=0.1)
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20)
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20,
+                  bin_type='Linear')
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20,
+                  bin_type='TwoD')
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20,
+                  bin_type='Invalid')
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  min_u=0.3, max_u = 0.9, ubin_size=0.1, nubins=6)
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  min_u=0.9, max_u = 0.3)
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  min_u=-0.1, max_u = 0.3)
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  min_u=0.1, max_u = 1.3)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  min_v=0.1, max_v = 0.9, vbin_size=0.1, nvbins=9)
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  min_v=0.9, max_v = 0.3)
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  min_v=-0.1, max_v = 0.3)
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  min_v=0.1, max_v = 1.3)
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20,
+                  split_method='invalid')
 
     # Check the use of sep_units
     # radians
@@ -676,16 +715,23 @@ def test_direct_count_auto():
     #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
-    # Do this one with corr3 to test the automatic output_dots=True functionality.
-    # It's not particularly annoying with max_top = 0.
-    config = treecorr.config.read_config('configs/nnn_direct.yaml')
+    # Invalid to omit file_name
+    config['verbose'] = 0
+    del config['file_name']
+    with assert_raises(TypeError):
+        treecorr.corr3(config)
+    config['file_name'] = 'data/nnn_direct_data.dat'
+
+    # OK to not have rand_file_name
+    # Also, check the automatic setting of output_dots=True when verbose=2.
+    # It's not too annoying if we also set max_top = 0.
+    del config['rand_file_name']
     config['verbose'] = 2
     config['max_top'] = 0
-    config['bin_slop'] = 0
     treecorr.corr3(config)
     data = np.genfromtxt(config['nnn_file_name'], names=True, skip_header=1)
     np.testing.assert_array_equal(data['ntri'], true_ntri.flatten())
-    np.testing.assert_allclose(data['zeta'], zeta.flatten(), rtol=1.e-3)
+    assert 'zeta' not in data.dtype.names
 
     # Check a few basic operations with a GGCorrelation object.
     do_pickle(ddd)
@@ -733,6 +779,76 @@ def test_direct_count_auto():
     np.testing.assert_allclose(ddd3.meanu, ddd.meanu)
     np.testing.assert_allclose(ddd3.meanv, ddd.meanv)
 
+    with assert_raises(TypeError):
+        ddd2 += config
+    ddd4 = treecorr.NNNCorrelation(min_sep=min_sep/2, max_sep=max_sep, nbins=nbins,
+                                   min_u=min_u, max_u=max_u, nubins=nubins,
+                                   min_v=min_v, max_v=max_v, nvbins=nvbins)
+    with assert_raises(ValueError):
+        ddd2 += ddd4
+    ddd5 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep*2, nbins=nbins,
+                                   min_u=min_u, max_u=max_u, nubins=nubins,
+                                   min_v=min_v, max_v=max_v, nvbins=nvbins)
+    with assert_raises(ValueError):
+        ddd2 += ddd5
+    ddd6 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins*2,
+                                   min_u=min_u, max_u=max_u, nubins=nubins,
+                                   min_v=min_v, max_v=max_v, nvbins=nvbins)
+    with assert_raises(ValueError):
+        ddd2 += ddd6
+    ddd7 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                   min_u=min_u-0.1, max_u=max_u, nubins=nubins,
+                                   min_v=min_v, max_v=max_v, nvbins=nvbins)
+    with assert_raises(ValueError):
+        ddd2 += ddd7
+    ddd8 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                   min_u=min_u, max_u=max_u+0.1, nubins=nubins,
+                                   min_v=min_v, max_v=max_v, nvbins=nvbins)
+    with assert_raises(ValueError):
+        ddd2 += ddd8
+    ddd9 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                   min_u=min_u, max_u=max_u, nubins=nubins*2,
+                                   min_v=min_v, max_v=max_v, nvbins=nvbins)
+    with assert_raises(ValueError):
+        ddd2 += ddd9
+    ddd10 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                    min_u=min_u, max_u=max_u, nubins=nubins,
+                                    min_v=min_v-0.1, max_v=max_v, nvbins=nvbins)
+    with assert_raises(ValueError):
+        ddd2 += ddd10
+    ddd11 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                    min_u=min_u, max_u=max_u, nubins=nubins,
+                                    min_v=min_v, max_v=max_v+0.1, nvbins=nvbins)
+    with assert_raises(ValueError):
+        ddd2 += ddd11
+    ddd12 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                    min_u=min_u, max_u=max_u, nubins=nubins,
+                                    min_v=min_v, max_v=max_v, nvbins=nvbins*2)
+    with assert_raises(ValueError):
+        ddd2 += ddd12
+
+    # Check that adding results with different coords or metric emits a warning.
+    cat2 = treecorr.Catalog(x=x, y=y, z=x)
+    with CaptureLog() as cl:
+        ddd13 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                        min_u=min_u, max_u=max_u, nubins=nubins,
+                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                        logger=cl.logger)
+        ddd13.process_auto(cat2)
+        ddd13 += ddd2
+    print(cl.output)
+    assert "Detected a change in catalog coordinate systems" in cl.output
+
+    with CaptureLog() as cl:
+        ddd14 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                        min_u=min_u, max_u=max_u, nubins=nubins,
+                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                        logger=cl.logger)
+        ddd14.process_auto(cat, metric='Arc')
+        ddd14 += ddd2
+    assert "Detected a change in metric" in cl.output
+
+    # Check fits I/O
     try:
         import fitsio
     except ImportError:
@@ -741,20 +857,20 @@ def test_direct_count_auto():
 
     fits_name = 'output/nnn_fits.fits'
     ddd.write(fits_name)
-    ddd4 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+    ddd15 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, nubins=nubins,
                                    min_v=min_v, max_v=max_v, nvbins=nvbins)
-    ddd4.read(fits_name)
-    np.testing.assert_allclose(ddd4.ntri, ddd.ntri)
-    np.testing.assert_allclose(ddd4.weight, ddd.weight)
-    np.testing.assert_allclose(ddd4.meand1, ddd.meand1)
-    np.testing.assert_allclose(ddd4.meand2, ddd.meand2)
-    np.testing.assert_allclose(ddd4.meand3, ddd.meand3)
-    np.testing.assert_allclose(ddd4.meanlogd1, ddd.meanlogd1)
-    np.testing.assert_allclose(ddd4.meanlogd2, ddd.meanlogd2)
-    np.testing.assert_allclose(ddd4.meanlogd3, ddd.meanlogd3)
-    np.testing.assert_allclose(ddd4.meanu, ddd.meanu)
-    np.testing.assert_allclose(ddd4.meanv, ddd.meanv)
+    ddd15.read(fits_name)
+    np.testing.assert_allclose(ddd15.ntri, ddd.ntri)
+    np.testing.assert_allclose(ddd15.weight, ddd.weight)
+    np.testing.assert_allclose(ddd15.meand1, ddd.meand1)
+    np.testing.assert_allclose(ddd15.meand2, ddd.meand2)
+    np.testing.assert_allclose(ddd15.meand3, ddd.meand3)
+    np.testing.assert_allclose(ddd15.meanlogd1, ddd.meanlogd1)
+    np.testing.assert_allclose(ddd15.meanlogd2, ddd.meanlogd2)
+    np.testing.assert_allclose(ddd15.meanlogd3, ddd.meanlogd3)
+    np.testing.assert_allclose(ddd15.meanu, ddd.meanu)
+    np.testing.assert_allclose(ddd15.meanv, ddd.meanv)
 
 
 def test_direct_count_cross():
@@ -886,6 +1002,52 @@ def test_direct_count_cross():
     np.testing.assert_allclose(corr3_output['DDD'], ddd.ntri.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['ntri'], ddd.ntri.flatten(), rtol=1.e-3)
 
+    # Invalid to have rand_file_name2 but not file_name2
+    del config['file_name2']
+    with assert_raises(TypeError):
+        treecorr.corr3(config)
+    config['file_name2'] = 'data/nnn_direct_cross_data2.dat'
+    # Invalid to have rand_file_name3 but not file_name3
+    del config['file_name3']
+    with assert_raises(TypeError):
+        treecorr.corr3(config)
+    config['file_name3'] = 'data/nnn_direct_cross_data3.dat'
+
+    # Invalid when doing rands, to be missing one rand_file_name2
+    del config['rand_file_name']
+    with assert_raises(TypeError):
+        treecorr.corr3(config)
+    config['rand_file_name'] = 'data/nnn_direct_cross_rand1.dat'
+    del config['rand_file_name2']
+    with assert_raises(TypeError):
+        treecorr.corr3(config)
+    config['rand_file_name2'] = 'data/nnn_direct_cross_rand2.dat'
+    del config['rand_file_name3']
+    with assert_raises(TypeError):
+        treecorr.corr3(config)
+    config['rand_file_name3'] = 'data/nnn_direct_cross_rand3.dat'
+
+    # Currently not implemented to only have cat2 or cat3
+    with assert_raises(NotImplementedError):
+        ddd.process(cat1, cat2=cat2)
+    with assert_raises(NotImplementedError):
+        ddd.process(cat1, cat3=cat3)
+    with assert_raises(NotImplementedError):
+        ddd.process_cross21(cat1, cat2)
+    del config['rand_file_name3']
+    del config['file_name3']
+    print('config = ',config)
+    with assert_raises(NotImplementedError):
+        treecorr.corr3(config)
+    config['file_name3'] = 'data/nnn_direct_cross_data3.dat'
+    config['rand_file_name3'] = 'data/nnn_direct_cross_rand3.dat'
+    del config['rand_file_name2']
+    del config['file_name2']
+    print('config = ',config)
+    with assert_raises(NotImplementedError):
+        treecorr.corr3(config)
+    config['file_name2'] = 'data/nnn_direct_cross_data2.dat'
+    config['rand_file_name2'] = 'data/nnn_direct_cross_rand2.dat'
 
 def test_direct_spherical():
     # Repeat in spherical coords
@@ -1662,10 +1824,66 @@ def test_nnn():
     assert ddd2.sep_units == ddd.sep_units
     assert ddd2.bin_type == ddd.bin_type
 
-    # Stop here for nosetests runs.
+    # Test compensated zeta
+    # First just check the mechanics.
+    # If we don't actually do all the cross terms, then compensated is the same as simple.
+    zeta2, varzeta2 = ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+    print('fake compensated zeta = ',zeta2)
+    np.testing.assert_allclose(zeta2, zeta)
+    np.testing.assert_allclose(varzeta2, varzeta)
+
+    with assert_raises(TypeError):
+        ddd.calculateZeta(drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+    with assert_raises(TypeError):
+        ddd.calculateZeta(rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+    with assert_raises(TypeError):
+        ddd.calculateZeta(rrr,drr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+    with assert_raises(TypeError):
+        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+    with assert_raises(TypeError):
+        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,rrd=rrr,drd=rrr,rdd=rrr)
+    with assert_raises(TypeError):
+        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,rdd=rrr)
+    with assert_raises(TypeError):
+        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr)
+    rrr2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                   nubins=nubins, nvbins=nvbins, sep_units='arcmin')
+    with assert_raises(ValueError):
+        ddd.calculateZeta(rrr2,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+    with assert_raises(ValueError):
+        ddd.calculateZeta(rrr,drr=rrr2,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+    with assert_raises(ValueError):
+        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr2,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+    with assert_raises(ValueError):
+        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,rrd=rrr2,ddr=rrr,drd=rrr,rdd=rrr)
+    with assert_raises(ValueError):
+        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr2,drd=rrr,rdd=rrr)
+    with assert_raises(ValueError):
+        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr2,rdd=rrr)
+    with assert_raises(ValueError):
+        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr2)
+
+    out_file_name3 = os.path.join('output','nnn_out3.fits')
+    with assert_raises(TypeError):
+        ddd.write(out_file_name3,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+    with assert_raises(TypeError):
+        ddd.write(out_file_name3,rrr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+    with assert_raises(TypeError):
+        ddd.write(out_file_name3,rrr=rrr,drr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+    with assert_raises(TypeError):
+        ddd.write(out_file_name3,rrr=rrr,drr=rrr,rdr=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+    with assert_raises(TypeError):
+        ddd.write(out_file_name3,rrr=rrr,drr=rrr,rdr=rrr,rrd=rrr,drd=rrr,rdd=rrr)
+    with assert_raises(TypeError):
+        ddd.write(out_file_name3,rrr=rrr,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,rdd=rrr)
+    with assert_raises(TypeError):
+        ddd.write(out_file_name3,rrr=rrr,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr)
+
+    # It's too slow to test the real calculation in nosetests runs, so we stop here if not main.
     if __name__ != '__main__':
         return
-    # Test compensated zeta
+
     # This version computes the three-point function after subtracting off the appropriate
     # two-point functions xi(d1) + xi(d2) + xi(d3), where [cf. test_nn() in test_nn.py]
     # xi(r) = 1/4pi (L/s)^2 exp(-r^2/4s^2) - 1
@@ -2055,7 +2273,7 @@ def test_list():
 
 
 if __name__ == '__main__':
-    test_binnedcorr3()
+    test_log_binning()
     test_direct_count_auto()
     test_direct_count_cross()
     test_direct_spherical()

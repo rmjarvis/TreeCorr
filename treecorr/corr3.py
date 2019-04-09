@@ -138,18 +138,20 @@ def corr3(config, logger=None):
     rand2 = treecorr.read_catalogs(config, 'rand_file_name2', 'rand_file_list2', 1, logger)
     rand3 = treecorr.read_catalogs(config, 'rand_file_name3', 'rand_file_list3', 1, logger)
     if len(cat1) == 0:
-        raise AttributeError("Either file_name or file_list is required")
+        raise TypeError("Either file_name or file_list is required")
     if len(cat2) == 0: cat2 = None
     if len(cat3) == 0: cat3 = None
     if len(rand1) == 0: rand1 = None
     if len(rand2) == 0: rand2 = None
     if len(rand3) == 0: rand3 = None
     if cat2 is None and rand2 is not None:
-        raise AttributeError("rand_file_name2 is invalid without file_name2")
-    if cat2 is None and rand2 is not None:
-        raise AttributeError("rand_file_name2 is invalid without file_name2")
+        raise TypeError("rand_file_name2 is invalid without file_name2")
     if cat3 is None and rand3 is not None:
-        raise AttributeError("rand_file_name3 is invalid without file_name3")
+        raise TypeError("rand_file_name3 is invalid without file_name3")
+    if (cat2 is None) != (cat3 is None):
+        raise NotImplementedError(
+            "Cannot yet handle 3-point corrleations with only two catalogs. "+
+            "Need both cat2 and cat3.")
     logger.info("Done reading input catalogs")
 
     # Do GGG correlation function if necessary
@@ -174,6 +176,8 @@ def corr3(config, logger=None):
         drd = None
         rdd = None
         if rand1 is None:
+            if rand2 is not None or rand3 is not None:
+                raise TypeError("rand_file_name is required if rand2 or rand3 is given")
             logger.warning("No random catalogs given.  Only doing ntri calculation.")
             rrr = None
         elif cat2 is None:
@@ -187,13 +191,9 @@ def corr3(config, logger=None):
             rand2 = rand3 = rand1
         else:
             if rand2 is None:
-                raise AttributeError("rand_file_name2 is required when file_name2 is given")
+                raise TypeError("rand_file_name2 is required when file_name2 is given")
             if cat3 is not None and rand3 is None:
-                raise AttributeError("rand_file_name3 is required when file_name3 is given")
-            if (cat2 is None) != (cat2 is None):
-                raise NotImplementedError(
-                    "Cannot yet handle 3-point corrleations with only two catalogs. "+
-                    "Need both cat2 and cat3.")
+                raise TypeError("rand_file_name3 is required when file_name3 is given")
             logger.warning("Performing RRR calculations...")
             rrr = treecorr.NNNCorrelation(config,logger)
             rrr.process(rand1,rand2,rand3)
@@ -238,7 +238,7 @@ def corr3(config, logger=None):
     if False:
     #if 'nng_file_name' in config or 'nnm_file_name' in config:
         if cat3 is None:
-            raise AttributeError("file_name3 is required for nng correlation")
+            raise TypeError("file_name3 is required for nng correlation")
         logger.warning("Performing NNG calculations...")
         nng = treecorr.NNGCorrelation(config,logger)
         nng.process(cat1,cat2,cat3)
@@ -248,7 +248,7 @@ def corr3(config, logger=None):
         rrg = None
         if rand1 is None:
             if config.get('nng_statistic',None) == 'compensated':
-                raise AttributeError("rand_files is required for nng_statistic = compensated")
+                raise TypeError("rand_files is required for nng_statistic = compensated")
         elif config.get('nng_statistic','compensated') == 'compensated':
             rrg = treecorr.NNGCorrelation(config,logger)
             rrg.process(rand1,rand1,cat2)
@@ -264,7 +264,7 @@ def corr3(config, logger=None):
     if False:
     #if 'nnk_file_name' in config:
         if cat3 is None:
-            raise AttributeError("file_name3 is required for nnk correlation")
+            raise TypeError("file_name3 is required for nnk correlation")
         logger.warning("Performing NNK calculations...")
         nnk = treecorr.NNKCorrelation(config,logger)
         nnk.process(cat1,cat2,cat3)
@@ -273,7 +273,7 @@ def corr3(config, logger=None):
         rrk = None
         if rand1 is None:
             if config.get('nnk_statistic',None) == 'compensated':
-                raise AttributeError("rand_files is required for nnk_statistic = compensated")
+                raise TypeError("rand_files is required for nnk_statistic = compensated")
         elif config.get('nnk_statistic','compensated') == 'compensated':
             rrk = treecorr.NNKCorrelation(config,logger)
             rrk.process(rand1,rand1,cat2)
@@ -285,7 +285,7 @@ def corr3(config, logger=None):
     if False:
     #if 'kkg_file_name' in config:
         if cat3 is None:
-            raise AttributeError("file_name3 is required for kkg correlation")
+            raise TypeError("file_name3 is required for kkg correlation")
         logger.warning("Performing KKG calculations...")
         kkg = treecorr.KKGCorrelation(config,logger)
         kkg.process(cat1,cat2,cat3)

@@ -54,7 +54,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'TreeCorr'
-copyright = u'2015, Mike Jarvis'
+copyright = u'2019, Mike Jarvis'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -274,7 +274,7 @@ texinfo_documents = [
 epub_title = u'TreeCorr'
 epub_author = u'Mike Jarvis'
 epub_publisher = u'Mike Jarvis'
-epub_copyright = u'2015, Mike Jarvis'
+epub_copyright = u'2019, Mike Jarvis'
 
 # The basename for the epub file. It defaults to the project name.
 #epub_basename = u'TreeCorr'

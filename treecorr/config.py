@@ -18,7 +18,6 @@
 from __future__ import print_function
 import sys
 from . import _lib
-import future.utils
 import coord
 
 
@@ -228,7 +227,7 @@ def check_config(config, params, aliases=None, logger=None):
 
         # Check that this is a valid key
         if key not in params:
-            raise ValueError("Invalid parameter %s."%key)
+            raise TypeError("Invalid parameter %s."%key)
 
         value_type, may_be_list, default_value, valid_values = params[key][:4]
 
@@ -385,7 +384,7 @@ def merge_config(config, kwargs, valid_params):
     if kwargs is None:
         kwargs = {}
     if config:
-        for key, value in future.utils.iteritems(config):
+        for key, value in config.items():
             if key in valid_params and key not in kwargs:
                 kwargs[key] = value
     check_config(kwargs, valid_params)

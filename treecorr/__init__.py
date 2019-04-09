@@ -51,7 +51,8 @@ from .kkcorrelation import KKCorrelation
 from .ngcorrelation import NGCorrelation
 from .nkcorrelation import NKCorrelation
 from .kgcorrelation import KGCorrelation
-from .field import Field, NField, KField, GField, NSimpleField, KSimpleField, GSimpleField
+from .field import Field, NField, KField, GField
+from .field import SimpleField, NSimpleField, KSimpleField, GSimpleField
 from .binnedcorr3 import BinnedCorr3
 from .nnncorrelation import NNNCorrelation
 from .kkkcorrelation import KKKCorrelation

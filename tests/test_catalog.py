@@ -73,6 +73,8 @@ def test_ascii():
         'k_col' : 5,
         'g1_col' : 6,
         'g2_col' : 7,
+        'kk_file_name' : 'kk.out',  # These make sure k and g are required.
+        'gg_file_name' : 'gg.out',
     }
     cat1 = treecorr.Catalog(file_name, config)
     np.testing.assert_almost_equal(cat1.x, x)
@@ -84,9 +86,49 @@ def test_ascii():
     np.testing.assert_almost_equal(cat1.k, k)
     np.testing.assert_almost_equal(cat1.wpos, wpos)
 
+    assert_raises(TypeError, treecorr.Catalog, file_name)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, x=x)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, y=y)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, z=z)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, ra=ra)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, dec=dec)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, r=r)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, g2=g2)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, k=k)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, w=w)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, wpos=wpos)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, flag=flag)
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, file_type='Invalid')
+
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, x_col=-1)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, x_col=100)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, y_col=-1)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, y_col=100)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, z_col=-1)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, z_col=100)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, w_col=-1)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, w_col=100)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, wpos_col=-1)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, wpos_col=100)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, k_col=-1)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, k_col=100)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, g1_col=-1)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, g1_col=100)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, g2_col=-1)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, g2_col=100)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, flag_col=-1)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, flag_col=100)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, ra_col=4)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, dec_col=4)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, r_col=4)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, x_col=0)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, y_col=0)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, x_col=0, y_col=0, z_col=0)
+
     # Check flags
     config['flag_col'] = 12
-    cat2 = treecorr.Catalog(file_name, config)
+    print('config = ',config)
+    cat2 = treecorr.Catalog(file_name, config, file_type='ASCII')
     np.testing.assert_almost_equal(cat2.w[flags==0], w[flags==0])
     np.testing.assert_almost_equal(cat2.w[flags!=0], 0.)
 
@@ -162,6 +204,16 @@ def test_ascii():
     cat6 = treecorr.Catalog(file_name, config)
     np.testing.assert_almost_equal(cat6.ra, ra * (pi/12.))
     np.testing.assert_almost_equal(cat6.dec, dec * (pi/180.))
+
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, ra_col=-1)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, ra_col=100)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, dec_col=-1)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, dec_col=100)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, r_col=-1)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, r_col=100)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, x_col=4)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, y_col=4)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, z_col=4)
 
     # Check using a different delimiter, comment marker
     csv_file_name = os.path.join('data','test.csv')
@@ -247,6 +299,8 @@ def test_fits():
     file_name = os.path.join('data','Aardvark.fit')
     config = treecorr.read_config('Aardvark.yaml')
     config['verbose'] = 1
+    config['kk_file_name'] = 'kk.fits'
+    config['gg_file_name'] = 'gg.fits'
 
     # Just test a few random particular values
     cat1 = treecorr.Catalog(file_name, config)
@@ -258,6 +312,31 @@ def test_fits():
     np.testing.assert_almost_equal(cat1.g1[46392], 0.0005066675)
     np.testing.assert_almost_equal(cat1.g2[46392], -0.0001006742)
     np.testing.assert_almost_equal(cat1.k[46392], -0.0008628797)
+
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, ra_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, dec_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, r_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, w_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, wpos_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, flag_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, g1_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, g2_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, k_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, ra_col='0')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, dec_col='0')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, x_col='x')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, y_col='y')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, z_col='z')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, ra_col='0', dec_col='0')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, g1_col='0')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, g2_col='0')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, k_col='0')
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, x_units='arcmin')
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, y_units='arcmin')
+    del config['ra_units']
+    assert_raises(TypeError, treecorr.Catalog, file_name, config)
+    del config['dec_units']
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, ra_units='deg')
 
     # The catalog doesn't have x, y, or w, but test that functionality as well.
     del config['ra_col']
@@ -272,6 +351,19 @@ def test_fits():
     np.testing.assert_almost_equal(cat2.y[290333], 83.1579, decimal=4)
     np.testing.assert_almost_equal(cat2.w[46392], 0.)        # index = 1200379
     np.testing.assert_almost_equal(cat2.w[46393], 0.9995946) # index = 1200386
+
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, x_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, y_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, z_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, ra_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, dec_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, r_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, w_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, wpos_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, flag_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, g1_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, g2_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, k_col='invalid')
 
     # Test using a limited set of rows
     config['first_row'] = 101
@@ -296,6 +388,18 @@ def test_fits():
     assert cat4.g2 is None
     assert cat4.k is None
 
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, first_row=-10)
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, first_row=0)
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, first_row=60000)
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, first_row=50001)
+
+    assert_raises(TypeError, treecorr.read_catalogs, config)
+    assert_raises(TypeError, treecorr.read_catalogs, config, key='file_name', list_key='file_name')
+
+    # If gg output not given, it is still invalid to only have one or the other of g1,g2.
+    del config['gg_file_name']
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, g1_col='0')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, g2_col='0')
 
 def test_direct():
 
@@ -326,6 +430,45 @@ def test_direct():
     np.testing.assert_almost_equal(cat2.g1, g1)
     np.testing.assert_almost_equal(cat2.g2, g2)
     np.testing.assert_almost_equal(cat2.k, k)
+
+    assert_raises(TypeError, treecorr.Catalog, x=x)
+    assert_raises(TypeError, treecorr.Catalog, y=y)
+    assert_raises(TypeError, treecorr.Catalog, z=x)
+    assert_raises(TypeError, treecorr.Catalog, r=x)
+    assert_raises(TypeError, treecorr.Catalog, x=x, y=y, r=x)
+    assert_raises(TypeError, treecorr.Catalog, x=x, y=y, ra=ra, dec=dec)
+    assert_raises(TypeError, treecorr.Catalog, x=x, y=y, ra=ra, dec=dec,
+                  ra_units='hours', dec_units='degrees')
+    assert_raises(TypeError, treecorr.Catalog, x=x, y=y, ra_units='hours')
+    assert_raises(TypeError, treecorr.Catalog, x=x, y=y, dec_units='degrees')
+    assert_raises(TypeError, treecorr.Catalog, ra=ra, ra_units='hours')
+    assert_raises(TypeError, treecorr.Catalog, dec=dec, dec_units='degrees')
+    assert_raises(TypeError, treecorr.Catalog, x=x, y=y, g1=g1)
+    assert_raises(TypeError, treecorr.Catalog, x=x, y=y, g2=g2)
+    assert_raises(TypeError, treecorr.Catalog, ra=ra, dec=dec,
+                  ra_units='hours', dec_units='degrees', x_units='arcmin')
+    assert_raises(TypeError, treecorr.Catalog, ra=ra, dec=dec,
+                  ra_units='hours', dec_units='degrees', y_units='arcmin')
+    assert_raises(TypeError, treecorr.Catalog, x=x, y=y, x_units='arcmin')
+    assert_raises(TypeError, treecorr.Catalog, x=x, y=y, y_units='arcmin')
+    assert_raises(TypeError, treecorr.Catalog, x=x, y=y, z=x, z_units='arcmin')
+
+    assert_raises(ValueError, treecorr.Catalog, x=x, y=y[4:])
+    assert_raises(ValueError, treecorr.Catalog, x=x, y=y, z=x[4:])
+    assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=w[4:])
+    assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=w, wpos=w[4:])
+    assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=w, g1=g1[4:], g2=g2[4:])
+    assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=w, g1=g1[4:], g2=g2)
+    assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=w, g1=g1, g2=g2[4:])
+    assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=w, k=k[4:])
+    assert_raises(ValueError, treecorr.Catalog, ra=ra, dec=dec[4:], w=w, g1=g1, g2=g2, k=k,
+                  ra_units='hours', dec_units='degrees')
+    assert_raises(ValueError, treecorr.Catalog, ra=ra[4:], dec=dec, w=w, g1=g1, g2=g2, k=k,
+                  ra_units='hours', dec_units='degrees')
+    assert_raises(ValueError, treecorr.Catalog, ra=ra, dec=dec, r=x[4:], w=w, g1=g1, g2=g2, k=k,
+                  ra_units='hours', dec_units='degrees')
+    assert_raises(ValueError, treecorr.Catalog, x=[], y=[])
+    assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=np.zeros_like(x))
  
 
 def test_var():
@@ -742,6 +885,7 @@ def test_field():
                             w=w, g1=g1, g2=g2, k=k)
     cat2.logger = None
     cat3 = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k, w=w)
+    cat4 = treecorr.Catalog(x=x, y=y, w=w)
     logger = treecorr.config.setup_logger(1)
 
     assert cat1.field is None  # Before calling get*Field, this is None.
@@ -749,11 +893,11 @@ def test_field():
     assert cat3.field is None
 
     t0 = time.time()
-    nfield1 = cat1.getNField(1,1000)
+    nfield1 = cat1.getNField()
     nfield2 = cat2.getNField(0.01, 1)
     nfield3 = cat3.getNField(1,300, logger=logger)
     t1 = time.time()
-    nfield1b = cat1.getNField(1,1000)
+    nfield1b = cat1.getNField()
     nfield2b = cat2.getNField(0.01, 1)
     nfield3b = cat3.getNField(1,300, logger=logger)
     t2 = time.time()
@@ -771,14 +915,15 @@ def test_field():
     assert t2-t1 < t1-t0
 
     t0 = time.time()
-    gfield1 = cat1.getGField(1,1000)
+    gfield1 = cat1.getGField()
     gfield2 = cat2.getGField(0.01, 1)
     gfield3 = cat3.getGField(1,300, logger=logger)
     t1 = time.time()
-    gfield1b = cat1.getGField(1,1000)
+    gfield1b = cat1.getGField()
     gfield2b = cat2.getGField(0.01, 1)
     gfield3b = cat3.getGField(1,300, logger=logger)
     t2 = time.time()
+    assert_raises(TypeError, cat4.getGField)
     assert cat1.gfields.count == 1
     assert cat2.gfields.count == 1
     assert cat3.gfields.count == 1
@@ -789,14 +934,15 @@ def test_field():
     assert t2-t1 < t1-t0
 
     t0 = time.time()
-    kfield1 = cat1.getKField(1,1000)
+    kfield1 = cat1.getKField()
     kfield2 = cat2.getKField(0.01, 1)
     kfield3 = cat3.getKField(1,300, logger=logger)
     t1 = time.time()
-    kfield1b = cat1.getKField(1,1000)
+    kfield1b = cat1.getKField()
     kfield2b = cat2.getKField(0.01, 1)
     kfield3b = cat3.getKField(1,300, logger=logger)
     t2 = time.time()
+    assert_raises(TypeError, cat4.getKField)
     assert cat1.kfields.count == 1
     assert cat2.kfields.count == 1
     assert cat3.kfields.count == 1
@@ -833,6 +979,7 @@ def test_field():
     gsimplefield2b = cat2.getGSimpleField()
     gsimplefield3b = cat3.getGSimpleField(logger=logger)
     t2 = time.time()
+    assert_raises(TypeError, cat4.getGSimpleField)
     assert cat1.gsimplefields.count == 1
     assert cat2.gsimplefields.count == 1
     assert cat3.gsimplefields.count == 1
@@ -851,6 +998,7 @@ def test_field():
     ksimplefield2b = cat2.getKSimpleField()
     ksimplefield3b = cat3.getKSimpleField(logger=logger)
     t2 = time.time()
+    assert_raises(TypeError, cat4.getKSimpleField)
     assert cat1.ksimplefields.count == 1
     assert cat2.ksimplefields.count == 1
     assert cat3.ksimplefields.count == 1
@@ -877,11 +1025,11 @@ def test_field():
     assert cat1.field is kfield1
 
     t0 = time.time()
-    nfield1 = cat1.getNField(1,1000)
+    nfield1 = cat1.getNField()
     nfield2 = cat1.getNField(0.01, 1)
     nfield3 = cat1.getNField(1,300, logger=logger)
     t1 = time.time()
-    nfield1b = cat1.getNField(1,1000)
+    nfield1b = cat1.getNField()
     nfield2b = cat1.getNField(0.01, 1)
     nfield3b = cat1.getNField(1,300, logger=logger)
     t2 = time.time()
@@ -915,11 +1063,11 @@ def test_field():
     assert cat1.nfields.count == 0
     assert cat1.nfields.size == 0
     t0 = time.time()
-    nfield1 = cat1.getNField(1,1000)
+    nfield1 = cat1.getNField()
     nfield2 = cat1.getNField(0.01, 1)
     nfield3 = cat1.getNField(1,300, logger=logger)
     t1 = time.time()
-    nfield1b = cat1.getNField(1,1000)
+    nfield1b = cat1.getNField()
     nfield2b = cat1.getNField(0.01, 1)
     nfield3b = cat1.getNField(1,300, logger=logger)
     t2 = time.time()
@@ -939,6 +1087,10 @@ def test_field():
     gc.collect()
     print('after garbage collection: cat1.field = ',cat1.field)
     assert cat1.field is None
+
+    # Check NotImplementedError for base classes.
+    assert_raises(NotImplementedError, treecorr.Field)
+    assert_raises(NotImplementedError, treecorr.SimpleField)
 
 
 def test_lru():

@@ -367,7 +367,7 @@ class Catalog(object):
                  g1=None, g2=None, k=None, **kwargs):
 
         self.config = treecorr.config.merge_config(config,kwargs,Catalog._valid_params)
-        self.orig_config = config
+        self.orig_config = config.copy() if config is not None else {}
         if config and kwargs:
             self.orig_config.update(kwargs)
 
@@ -412,10 +412,8 @@ class Catalog(object):
 
         # First style -- read from a file
         if file_name is not None:
-            if self.config is None:
-                raise AttributeError("config must be provided when file_name is provided.")
-            if any([v is not None for v in [x,y,ra,dec,r,g1,g2,k,w]]):
-                raise AttributeError("Vectors may not be provided when file_name is provided.")
+            if any([v is not None for v in [x,y,z,ra,dec,r,g1,g2,k,w,wpos,flag]]):
+                raise TypeError("Vectors may not be provided when file_name is provided.")
             self.name = file_name
             self.logger.info("Reading input file %s",self.name)
 
@@ -435,21 +433,24 @@ class Catalog(object):
                 self.read_fits(file_name,num,is_rand)
             elif file_type == 'ASCII':
                 self.read_ascii(file_name,num,is_rand)
-            else:
+            else:  # pragma: no cover (This is already ensured by the config processing)
                 raise ValueError("Invalid file_type %s"%file_type)
 
         # Second style -- pass in the vectors directly
         else:
             if x is not None or y is not None:
                 if x is None or y is None:
-                    raise AttributeError("x and y must both be provided")
+                    raise TypeError("x and y must both be provided")
                 if ra is not None or dec is not None:
-                    raise AttributeError("ra and dec may not be provided with x,y")
+                    raise TypeError("ra and dec may not be provided with x,y")
                 if r is not None:
-                    raise AttributeError("r may not be provided with x,y")
+                    raise TypeError("r may not be provided with x,y")
             if ra is not None or dec is not None:
                 if ra is None or dec is None:
-                    raise AttributeError("ra and dec must both be provided")
+                    raise TypeError("ra and dec must both be provided")
+            if g1 is not None or g2 is not None:
+                if g1 is None or g2 is None:
+                    raise TypeError("g1 and g2 must both be provided")
             self.name = ''
             self.x = self.makeArray(x,'x')
             self.y = self.makeArray(y,'y')
@@ -467,18 +468,26 @@ class Catalog(object):
         # Apply units to x,y,ra,dec
         if self.x is not None:
             if 'x_units' in self.config and not 'y_units' in self.config:
-                raise AttributeError("x_units specified without specifying y_units")
+                raise TypeError("x_units specified without specifying y_units")
             if 'y_units' in self.config and not 'x_units' in self.config:
-                raise AttributeError("y_units specified without specifying x_units")
+                raise TypeError("y_units specified without specifying x_units")
+            if 'ra_units' in self.config:
+                raise TypeError("ra_units is invalid without ra")
+            if 'dec_units' in self.config:
+                raise TypeError("dec_units is invalid without dec")
             self.x_units = treecorr.config.get_from_list(self.config,'x_units',num,str,'radians')
             self.y_units = treecorr.config.get_from_list(self.config,'y_units',num,str,'radians')
             self.x *= self.x_units
             self.y *= self.y_units
         else:
             if not self.config.get('ra_units',None):
-                raise ValueError("ra_units is required when using ra, dec")
+                raise TypeError("ra_units is required when using ra, dec")
             if not self.config.get('dec_units',None):
-                raise ValueError("dec_units is required when using ra, dec")
+                raise TypeError("dec_units is required when using ra, dec")
+            if 'x_units' in self.config:
+                raise TypeError("x_units is invalid without x")
+            if 'y_units' in self.config:
+                raise TypeError("y_units is invalid without y")
             self.ra_units = treecorr.config.get_from_list(self.config,'ra_units',num)
             self.dec_units = treecorr.config.get_from_list(self.config,'dec_units',num)
             self.ra *= self.ra_units
@@ -507,6 +516,32 @@ class Catalog(object):
             self.w[(self.flag & ignore_flag)!=0] = 0
             self.logger.debug('Applied flag: w => %s',str(self.w))
 
+        # Check that all columns have the same length:
+        if self.x is not None:
+            self.ntot = len(self.x)
+            if len(self.y) != self.ntot:
+                raise ValueError("x and y have different numbers of elements")
+        else:
+            self.ntot = len(self.ra)
+            if len(self.dec) != self.ntot:
+                raise ValueError("ra and dec have different numbers of elements")
+        if self.ntot == 0:
+            raise ValueError("Catalog has no objects!")
+        if self.z is not None and len(self.z) != self.ntot:
+            raise ValueError("z has the wrong numbers of elements")
+        if self.r is not None and len(self.r) != self.ntot:
+            raise ValueError("r has the wrong numbers of elements")
+        if self.w is not None and len(self.w) != self.ntot:
+            raise ValueError("w has the wrong numbers of elements")
+        if self.wpos is not None and len(self.wpos) != self.ntot:
+            raise ValueError("wpos has the wrong numbers of elements")
+        if self.g1 is not None and len(self.g1) != self.ntot:
+            raise ValueError("g1 has the wrong numbers of elements")
+        if self.g2 is not None and len(self.g2) != self.ntot:
+            raise ValueError("g1 has the wrong numbers of elements")
+        if self.k is not None and len(self.k) != self.ntot:
+            raise ValueError("k has the wrong numbers of elements")
+
         # Update the data according to the specified first and last row
         first_row = treecorr.config.get_from_list(self.config,'first_row',num,int,1)
         if first_row < 1:
@@ -517,14 +552,12 @@ class Catalog(object):
         if last_row > 0:
             end = last_row
         else:
-            if self.x is not None:
-                end = len(self.x)
-            else:
-                end = len(self.ra)
+            end = self.ntot
         if first_row > 1:
             start = first_row-1
         else:
             start = 0
+        self.ntot = end-start
         self.logger.debug('start..end = %d..%d',start,end)
         if self.x is not None: self.x = self.x[start:end]
         if self.y is not None: self.y = self.y[start:end]
@@ -537,32 +570,6 @@ class Catalog(object):
         if self.g1 is not None: self.g1 = self.g1[start:end]
         if self.g2 is not None: self.g2 = self.g2[start:end]
         if self.k is not None: self.k = self.k[start:end]
-
-        # Check that all columns have the same length:
-        if self.x is not None:
-            self.ntot = len(self.x)
-            if len(self.y) != self.ntot:
-                raise ValueError("x and y have different numbers of elements")
-        else:
-            self.ntot = len(self.ra)
-            if len(self.dec) != self.ntot:
-                raise ValueError("ra and dec have different numbers of elements")
-        if self.ntot == 0:
-            raise RuntimeError("Catalog has no objects!")
-        if self.z is not None and len(self.z) != self.ntot:
-            raise ValueError("z has the wrong numbers of elements")
-        if self.r is not None and len(self.r) != self.ntot:
-            raise ValueError("r has the wrong numbers of elements")
-        if self.w is not None and len(self.w) != self.ntot:
-            raise ValueError("w has the wrong numbers of elements")
-        if self.wpos is not None and len(self.wpos) != self.ntot:
-            raise ValueError("wpos has the wrong numbers of elements")
-        if self.g1 is not None and len(self.g1) != self.ntot:
-            raise ValueError("g1 has the wrong numbers of elements")
-        if self.g2 is not None and len(self.g1) != self.ntot:
-            raise ValueError("g1 has the wrong numbers of elements")
-        if self.k is not None and len(self.k) != self.ntot:
-            raise ValueError("k has the wrong numbers of elements")
 
         # Check for NaN's:
         self.checkForNaN(self.x,'x')
@@ -599,7 +606,7 @@ class Catalog(object):
             self.nobj = np.sum(self.w != 0)
             self.sumw = np.sum(self.w)
             if self.sumw == 0.:
-                raise RuntimeError("Catalog has invalid sumw == 0")
+                raise ValueError("Catalog has invalid sumw == 0")
             if self.g1 is not None:
                 self.varg = np.sum(self.w**2 * (self.g1**2 + self.g2**2))
                 # The 2 is because we need the variance _per componenet_.
@@ -748,15 +755,17 @@ class Catalog(object):
         # Read x,y or ra,dec
         if x_col != 0 or y_col != 0:
             if x_col <= 0 or x_col > ncols:
-                raise ValueError("x_col missing or invalid for file %s"%file_name)
+                raise TypeError("x_col missing or invalid for file %s"%file_name)
             if y_col <= 0 or y_col > ncols:
-                raise ValueError("y_col missing or invalid for file %s"%file_name)
+                raise TypeError("y_col missing or invalid for file %s"%file_name)
+            if z_col < 0 or z_col > ncols:
+                raise TypeError("z_col is invalid for file %s"%file_name)
             if ra_col != 0:
-                raise ValueError("ra_col not allowed in conjunction with x/y cols")
+                raise TypeError("ra_col not allowed in conjunction with x/y cols")
             if dec_col != 0:
-                raise ValueError("dec_col not allowed in conjunction with x/y cols")
+                raise TypeError("dec_col not allowed in conjunction with x/y cols")
             if r_col != 0:
-                raise ValueError("r_col not allowed in conjunction with x/y cols")
+                raise TypeError("r_col not allowed in conjunction with x/y cols")
             # NB. astype always copies, even if the type is already correct.
             # We actually want this, since it makes the result contiguous in memory,
             # which we will need.
@@ -769,11 +778,13 @@ class Catalog(object):
                 self.logger.debug('read r = %s',str(self.r))
         elif ra_col != 0 or dec_col != 0:
             if ra_col <= 0 or ra_col > ncols:
-                raise ValueError("ra_col missing or invalid for file %s"%file_name)
+                raise TypeError("ra_col missing or invalid for file %s"%file_name)
             if dec_col <= 0 or dec_col > ncols:
-                raise ValueError("dec_col missing or invalid for file %s"%file_name)
+                raise TypeError("dec_col missing or invalid for file %s"%file_name)
+            if r_col < 0 or r_col > ncols:
+                raise TypeError("r_col is invalid for file %s"%file_name)
             if z_col != 0:
-                raise ValueError("z_col not allowed in conjunction with ra/dec cols")
+                raise TypeError("z_col not allowed in conjunction with ra/dec cols")
             self.ra = data[:,ra_col-1].astype(float)
             self.logger.debug('read ra = %s',str(self.ra))
             self.dec = data[:,dec_col-1].astype(float)
@@ -782,26 +793,26 @@ class Catalog(object):
                 self.r = data[:,r_col-1].astype(float)
                 self.logger.debug('read r = %s',str(self.r))
         else:
-            raise ValueError("No valid position columns specified for file %s"%file_name)
+            raise TypeError("No valid position columns specified for file %s"%file_name)
 
         # Read w
         if w_col != 0:
             if w_col <= 0 or w_col > ncols:
-                raise ValueError("w_col is invalid for file %s"%file_name)
+                raise TypeError("w_col is invalid for file %s"%file_name)
             self.w = data[:,w_col-1].astype(float)
             self.logger.debug('read w = %s',str(self.w))
 
         # Read wpos
         if wpos_col != 0:
             if wpos_col <= 0 or wpos_col > ncols:
-                raise ValueError("wpos_col is invalid for file %s"%file_name)
+                raise TypeError("wpos_col is invalid for file %s"%file_name)
             self.wpos = data[:,wpos_col-1].astype(float)
             self.logger.debug('read wpos = %s',str(self.wpos))
 
         # Read flag
         if flag_col != 0:
             if flag_col <= 0 or flag_col > ncols:
-                raise ValueError("flag_col is invalid for file %s"%file_name)
+                raise TypeError("flag_col is invalid for file %s"%file_name)
             self.flag = data[:,flag_col-1].astype(int)
             self.logger.debug('read flag = %s',str(self.flag))
 
@@ -812,7 +823,7 @@ class Catalog(object):
         if (g1_col != 0 or g2_col != 0):
             if g1_col <= 0 or g1_col > ncols or g2_col <= 0 or g2_col > ncols:
                 if isGColRequired(self.orig_config,num):
-                    raise ValueError("g1_col, g2_col are invalid for file %s"%file_name)
+                    raise TypeError("g1_col, g2_col are invalid for file %s"%file_name)
                 else:
                     self.logger.warning("Warning: skipping g1_col, g2_col for %s, num=%d "%(
                                         file_name,num) +
@@ -827,7 +838,7 @@ class Catalog(object):
         if k_col != 0:
             if k_col <= 0 or k_col > ncols:
                 if isKColRequired(self.orig_config,num):
-                    raise ValueError("k_col is invalid for file %s"%file_name)
+                    raise TypeError("k_col is invalid for file %s"%file_name)
                 else:
                     self.logger.warning("Warning: skipping k_col for %s, num=%d "%(file_name,num)+
                                         "because it is invalid, but unneeded.")
@@ -1154,7 +1165,7 @@ class Catalog(object):
         if split_method is None:
             split_method = treecorr.config.get(self.config,'split_method',str,'mean')
         if self.k is None:
-            raise AttributeError("k is not defined.")
+            raise TypeError("k is not defined.")
         if logger is None:
             logger = self.logger
         field = self.kfields(min_size, max_size, split_method, brute, min_top, max_top, coords,
@@ -1188,7 +1199,7 @@ class Catalog(object):
         if split_method is None:
             split_method = treecorr.config.get(self.config,'split_method',str,'mean')
         if self.g1 is None or self.g2 is None:
-            raise AttributeError("g1,g2 are not defined.")
+            raise TypeError("g1,g2 are not defined.")
         if logger is None:
             logger = self.logger
         field = self.gfields(min_size, max_size, split_method, brute, min_top, max_top, coords,
@@ -1223,7 +1234,7 @@ class Catalog(object):
         :returns:           A :class:`~treecorr.KSimpleField` object
         """
         if self.k is None:
-            raise AttributeError("k is not defined.")
+            raise TypeError("k is not defined.")
         if logger is None:
             logger = self.logger
         return self.ksimplefields(logger=logger)
@@ -1240,7 +1251,7 @@ class Catalog(object):
         :returns:           A :class:`~treecorr.GSimpleField` object
         """
         if self.g1 is None or self.g2 is None:
-            raise AttributeError("g1,g2 are not defined.")
+            raise TypeError("g1,g2 are not defined.")
         if logger is None:
             logger = self.logger
         return self.gsimplefields(logger=logger)
@@ -1378,10 +1389,10 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
                 treecorr.config.get(config,'verbose',int,1), config.get('log_file',None))
 
     if key is None and list_key is None:
-        raise AttributeError("Must provide either key or list_key")
+        raise TypeError("Must provide either key or list_key")
     if key is not None and key in config:
-        if list_key in config:
-            raise AttributeError("Cannot provide both key and list_key")
+        if list_key is not None and list_key in config:
+            raise TypeError("Cannot provide both key and list_key")
         file_names = config[key]
     elif list_key is not None and list_key in config:
         list_file = config[list_key]

@@ -507,6 +507,40 @@ def test_omp():
         assert "OpenMP reports that it will use 1 threads" in cl.output
         assert "Unable to use multiple threads" in cl.output
 
+def test_util():
+    # Test some error handling in utility functions that shouldn't be possible to get to
+    # in normal running, so we need to call things explicitly to get the coverage.
+
+    # First some I/O sanity checks
+    a = np.array([1,2,3])
+    b = np.array([4,5,6])
+    file_name = 'junk.out'
+    with assert_raises(ValueError):
+        treecorr.util.gen_write(file_name, ['a', 'b'], [a])
+    with assert_raises(ValueError):
+        treecorr.util.gen_write(file_name, ['a', 'b'], [a, b, a])
+    with assert_raises(ValueError):
+        treecorr.util.gen_write(file_name, ['a'], [a, b])
+    with assert_raises(ValueError):
+        treecorr.util.gen_write(file_name, [], [])
+    with assert_raises(ValueError):
+        treecorr.util.gen_write(file_name, ['a', 'b'], [a, b[:1]])
+    with assert_raises(ValueError):
+        treecorr.util.gen_write(file_name, ['a', 'b'], [a, b], file_type='Invalid')
+
+    with assert_raises(ValueError):
+        treecorr.util.gen_read(file_name, file_type='Invalid')
+
+    # Now some places that do sanity checks for invalid coords or metrics which would already
+    # be checked in normal operation.
+    with assert_raises(ValueError):
+        treecorr.util.parse_metric('Euclidean', 'invalid')
+    with assert_raises(ValueError):
+        treecorr.util.parse_metric('Invalid', 'flat')
+    with assert_raises(ValueError):
+        treecorr.util.coord_enum('invalid')
+    with assert_raises(ValueError):
+        treecorr.util.metric_enum('Invalid')
 
 
 if __name__ == '__main__':
@@ -520,3 +554,4 @@ if __name__ == '__main__':
     test_get()
     test_merge()
     test_omp()
+    test_util()

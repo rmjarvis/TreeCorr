@@ -415,7 +415,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         Then, after adding them together, you should call finalize on the sum.
         """
         if not isinstance(other, GGGCorrelation):
-            raise AttributeError("Can only add another GGGCorrelation object")
+            raise TypeError("Can only add another GGGCorrelation object")
         if not (self.nbins == other.nbins and
                 self.min_sep == other.min_sep and
                 self.max_sep == other.max_sep and

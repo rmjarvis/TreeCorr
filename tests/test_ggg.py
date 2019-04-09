@@ -18,7 +18,7 @@ import os
 import coord
 import time
 
-from test_helper import get_script_name, do_pickle
+from test_helper import get_script_name, do_pickle, assert_raises
 
 def test_direct():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
@@ -292,6 +292,51 @@ def test_direct():
     np.testing.assert_allclose(ggg4.gam2i, ggg.gam2i)
     np.testing.assert_allclose(ggg4.gam3r, ggg.gam3r)
     np.testing.assert_allclose(ggg4.gam3i, ggg.gam3i)
+
+    with assert_raises(TypeError):
+        ggg2 += config
+    ggg5 = treecorr.GGGCorrelation(min_sep=min_sep/2, bin_size=bin_size, nbins=nrbins)
+    with assert_raises(ValueError):
+        ggg2 += ggg5
+    ggg6 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size/2, nbins=nrbins)
+    with assert_raises(ValueError):
+        ggg2 += ggg6
+    ggg7 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins*2)
+    with assert_raises(ValueError):
+        ggg2 += ggg7
+    ggg8 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                   min_u=0.1)
+    with assert_raises(ValueError):
+        ggg2 += ggg8
+    ggg0 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                   max_u=0.1)
+    with assert_raises(ValueError):
+        ggg2 += ggg0
+    ggg10 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                   nubins=nrbins*2)
+    with assert_raises(ValueError):
+        ggg2 += ggg10
+    ggg11 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                   min_v=0.1)
+    with assert_raises(ValueError):
+        ggg2 += ggg11
+    ggg12 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                   max_v=0.1)
+    with assert_raises(ValueError):
+        ggg2 += ggg12
+    ggg13 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                   nvbins=nrbins*2)
+    with assert_raises(ValueError):
+        ggg2 += ggg13
+
+    # Currently not implemented to only have cat2 or cat3
+    with assert_raises(NotImplementedError):
+        ggg.process(cat, cat2=cat)
+    with assert_raises(NotImplementedError):
+        ggg.process(cat, cat3=cat)
+    with assert_raises(NotImplementedError):
+        ggg.process_cross21(cat, cat)
+
 
 def test_direct_spherical():
     # Repeat in spherical coords

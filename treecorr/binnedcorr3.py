@@ -271,8 +271,6 @@ class BinnedCorr3(object):
             self.output_dots = treecorr.config.get(self.config,'verbose',int,1) >= 2
 
         self.bin_type = self.config.get('bin_type', None)
-        if self.bin_type != 'Log':
-            raise ValueError("Invalid bin_type %s"%self.bin_type)
         self._bintype = treecorr._lib.Log
 
         self.sep_units = self.config.get('sep_units','')
@@ -280,11 +278,11 @@ class BinnedCorr3(object):
         self._log_sep_units = math.log(self._sep_units)
         if 'nbins' not in self.config:
             if 'max_sep' not in self.config:
-                raise AttributeError("Missing required parameter max_sep")
+                raise TypeError("Missing required parameter max_sep")
             if 'min_sep' not in self.config:
-                raise AttributeError("Missing required parameter min_sep")
+                raise TypeError("Missing required parameter min_sep")
             if 'bin_size' not in self.config:
-                raise AttributeError("Missing required parameter bin_size")
+                raise TypeError("Missing required parameter bin_size")
             self.min_sep = float(self.config['min_sep'])
             self.max_sep = float(self.config['max_sep'])
             if self.min_sep >= self.max_sep:
@@ -298,9 +296,9 @@ class BinnedCorr3(object):
             # bin_size as the default bin_size for u and v below.
         elif 'bin_size' not in self.config:
             if 'max_sep' not in self.config:
-                raise AttributeError("Missing required parameter max_sep")
+                raise TypeError("Missing required parameter max_sep")
             if 'min_sep' not in self.config:
-                raise AttributeError("Missing required parameter min_sep")
+                raise TypeError("Missing required parameter min_sep")
             self.min_sep = float(self.config['min_sep'])
             self.max_sep = float(self.config['max_sep'])
             if self.min_sep >= self.max_sep:
@@ -309,14 +307,14 @@ class BinnedCorr3(object):
             bin_size = self.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
         elif 'max_sep' not in self.config:
             if 'min_sep' not in self.config:
-                raise AttributeError("Missing required parameter min_sep")
+                raise TypeError("Missing required parameter min_sep")
             self.min_sep = float(self.config['min_sep'])
             self.nbins = int(self.config['nbins'])
             bin_size = self.bin_size = float(self.config['bin_size'])
             self.max_sep = math.exp(self.nbins*bin_size)*self.min_sep
         else:
             if 'min_sep' in self.config:
-                raise AttributeError("Only 3 of min_sep, max_sep, bin_size, nbins are allowed.")
+                raise TypeError("Only 3 of min_sep, max_sep, bin_size, nbins are allowed.")
             self.max_sep = float(self.config['max_sep'])
             self.nbins = int(self.config['nbins'])
             bin_size = self.bin_size = float(self.config['bin_size'])
@@ -344,7 +342,7 @@ class BinnedCorr3(object):
         if 'nubins' not in self.config:
             self.nubins = int(math.ceil((self.max_u-self.min_u-1.e-10)/self.ubin_size))
         elif 'max_u' in self.config and 'min_u' in self.config and 'ubin_size' in self.config:
-                raise AttributeError("Only 3 of min_u, max_u, ubin_size, nubins are allowed.")
+            raise TypeError("Only 3 of min_u, max_u, ubin_size, nubins are allowed.")
         else:
             self.nubins = self.config['nubins']
             # Allow min or max u to be implicit from nubins and ubin_size
@@ -368,7 +366,7 @@ class BinnedCorr3(object):
         if 'nvbins' not in self.config:
             self.nvbins = int(math.ceil((self.max_v-self.min_v-1.e-10)/self.vbin_size))
         elif 'max_v' in self.config and 'min_v' in self.config and 'vbin_size' in self.config:
-                raise AttributeError("Only 3 of min_v, max_v, vbin_size, nvbins are allowed.")
+            raise TypeError("Only 3 of min_v, max_v, vbin_size, nvbins are allowed.")
         else:
             self.nvbins = self.config['nvbins']
             # Allow min or max v to be implicit from nvbins and vbin_size
@@ -383,8 +381,6 @@ class BinnedCorr3(object):
                          self.nvbins,self.min_v,self.max_v,self.vbin_size)
 
         self.split_method = self.config.get('split_method','mean')
-        if self.split_method not in ['middle', 'median', 'mean', 'random']:
-            raise ValueError("Invalid split_method %s"%self.split_method)
         self.logger.debug("Using split_method = %s",self.split_method)
 
         self.min_top = treecorr.config.get(self.config,'min_top',int,3)

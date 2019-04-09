@@ -90,7 +90,7 @@ class BinnedCorr2(object):
     :param nbins:       How many bins to use. (Exactly three of nbins, bin_size, min_sep, max_sep
                         are required. If nbins is not given, it will be calculated from the values
                         of the other three, rounding up to the next highest integer. In this case,
-                        max_sep will be readjusted to account for this rounding up.)
+                        bin_size will be readjusted to account for this rounding up.)
     :param bin_size:    The width of the bins in log(separation). (Exactly three of nbins,
                         bin_size, min_sep, max_sep are required.  If bin_size is not given, it will
                         be calculated from the values of the other three.)
@@ -99,9 +99,7 @@ class BinnedCorr2(object):
                         given, it will be calculated from the values of the other three.)
     :param max_sep:     The maximum separation in units of sep_units, if relevant. (Exactly three
                         of nbins, bin_size, min_sep, max_sep are required.  If max_sep is not
-                        given, it will be calculated from the values of the other three.  If nbins
-                        is not given, then max_sep will be adjusted as needed to allow nbins to be
-                        an integer value.)
+                        given, it will be calculated from the values of the other three.
 
     :param sep_units:   The units to use for the separation values, given as a string.  This
                         includes both min_sep and max_sep above, as well as the units of the

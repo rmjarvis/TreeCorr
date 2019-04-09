@@ -491,7 +491,7 @@ def parse_xyzsep(args, kwargs, _coords):
                 radec = True
                 if 'r' not in kwargs:
                     raise TypeError("Missing required argument r")
-                r = kwargs['r']
+                r = kwargs.pop('r')
             if 'sep' not in kwargs:
                 raise TypeError("Missing required argument sep")
             sep = kwargs.pop('sep')
@@ -599,7 +599,7 @@ def parse_xyzsep(args, kwargs, _coords):
         if not isinstance(sep, coord.Angle):
             if 'sep_units' not in kwargs:
                 raise TypeError("Missing required argument sep_units")
-            sep = sep * coord.AngleUnit.from_name(kwargs['sep_units'])
+            sep = sep * coord.AngleUnit.from_name(kwargs.pop('sep_units'))
         # We actually want the chord distance for this angle.
         sep = 2. * np.sin(sep/2.)
 
@@ -607,15 +607,17 @@ def parse_xyzsep(args, kwargs, _coords):
         if not isinstance(ra, coord.Angle):
             if 'ra_units' not in kwargs:
                 raise TypeError("Missing required argument ra_units")
-            ra = ra * coord.AngleUnit.from_name(kwargs['ra_units'])
+            ra = ra * coord.AngleUnit.from_name(kwargs.pop('ra_units'))
         if not isinstance(dec, coord.Angle):
             if 'dec_units' not in kwargs:
                 raise TypeError("Missing required argument dec_units")
-            dec = dec * coord.AngleUnit.from_name(kwargs['dec_units'])
+            dec = dec * coord.AngleUnit.from_name(kwargs.pop('dec_units'))
         x,y,z = coord.CelestialCoord(ra, dec).get_xyz()
         if _coords == treecorr._lib.ThreeD:
             x *= r
             y *= r
             z *= r
+    if len(kwargs) > 0:
+        raise TypeError("Invalid kwargs: %s"%(kwargs))
 
     return float(x), float(y), float(z), float(sep)

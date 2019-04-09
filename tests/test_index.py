@@ -211,6 +211,18 @@ def test_get_near():
     #assert t2-t1 < t1-t0  # These don't always pass.  The tree version is usually a bit faster,
     #assert t3-t2 < t1-t0  # but not by much and not always.  So don't require it in unit test.
 
+    # Invalid ways to specify x,y,sep
+    assert_raises(TypeError, field.get_near)
+    assert_raises(TypeError, field.get_near, x0)
+    assert_raises(TypeError, field.get_near, x0, y0)
+    assert_raises(TypeError, field.get_near, x0, y0, sep, sep)
+    assert_raises(TypeError, field.get_near, x=x0, y=y0)
+    assert_raises(TypeError, field.get_near, x=x0, sep=sep)
+    assert_raises(TypeError, field.get_near, y=y0, sep=sep)
+    assert_raises(TypeError, field.get_near, x=x0, y=y0, z=x0, sep=sep)
+    assert_raises(TypeError, field.get_near, ra=x0, dec=y0, sep=sep)
+    assert_raises(TypeError, field.get_near, coord.CelestialCoord.from_xyz(x0,y0,x0), sep=sep)
+
     # Check G and K
     kfield = cat.getKField(min_size=0.01, max_size=sep, min_top=5)
     gfield = cat.getGField(min_size=0.05, max_size=sep, max_top=2)
@@ -246,6 +258,57 @@ def test_get_near():
     #assert t2-t1 < t1-t0
     #assert t3-t2 < t1-t0
 
+    # Invalid ways to specify x,y,z,sep
+    ra0 = c.ra / coord.degrees
+    dec0 = c.dec / coord.degrees
+    assert_raises(TypeError, field.get_near)
+    assert_raises(TypeError, field.get_near, x0)
+    assert_raises(TypeError, field.get_near, x0, y0)
+    assert_raises(TypeError, field.get_near, x0, y0, z0)
+    assert_raises(TypeError, field.get_near, x=x0)
+    assert_raises(TypeError, field.get_near, x=x0, y=y0)
+    assert_raises(TypeError, field.get_near, x=x0, y=y0, z=z0)
+    assert_raises(TypeError, field.get_near, ra=ra0)
+    assert_raises(TypeError, field.get_near, ra=ra0, dec=dec0)
+    assert_raises(TypeError, field.get_near, ra=ra0, dec=dec0, r=r0)
+    assert_raises(TypeError, field.get_near, ra0, dec0, sep, ra_units='deg')
+    assert_raises(TypeError, field.get_near, ra0, dec0, sep, dec_units='deg')
+    assert_raises(TypeError, field.get_near, ra0, dec0, sep, sep_units='rad')
+    assert_raises(TypeError, field.get_near, ra0, dec0, sep, ra_units='deg', dec_units='deg')
+    assert_raises(TypeError, field.get_near, ra0, dec0, sep, ra_units='deg', sep_units='rad')
+    assert_raises(TypeError, field.get_near, ra0, dec0, sep, dec_units='deg', sep_units='rad')
+    assert_raises(TypeError, field.get_near, ra0, dec0, sep, sep,
+                  ra_units='deg', dec_units='deg', sep_units='rad')
+    assert_raises(TypeError, field.get_near, ra=ra0)
+    assert_raises(TypeError, field.get_near, dec=dec0)
+    assert_raises(TypeError, field.get_near, ra=ra0, dec=dec0)
+    assert_raises(TypeError, field.get_near, ra=ra0, dec=dec0, sep=sep)
+    assert_raises(TypeError, field.get_near, ra=ra0, dec=dec0, sep=sep, ra_units='deg')
+    assert_raises(TypeError, field.get_near, ra=ra0, dec=dec0, sep=sep, dec_units='deg')
+    assert_raises(TypeError, field.get_near, ra=ra0, dec=dec0, sep=sep,
+                  ra_units='deg', dec_units='deg')
+    assert_raises(TypeError, field.get_near, ra, dec=dec, sep=sep,
+                  ra_units='deg', dec_units='deg', sep_units='rad')
+    assert_raises(TypeError, field.get_near, ra, dec=dec, sep=sep,
+                  ra_units='deg', dec_units='deg', sep_units='rad')
+    assert_raises(TypeError, field.get_near, c)
+    assert_raises(TypeError, field.get_near, c, r=r0)
+    assert_raises(TypeError, field.get_near, c, r=r0, sep=sep, sep_units='rad')
+    assert_raises(TypeError, field.get_near, c, r0)
+    assert_raises(TypeError, field.get_near, c, r0, sep=sep, sep_units='rad')
+    assert_raises(TypeError, field.get_near, c, r0, sep, sep_units='rad')
+    assert_raises(TypeError, field.get_near, c, r0, sep, 'deg')
+    assert_raises(TypeError, field.get_near, c, r0, sep, sep_unit='deg')
+    assert_raises(TypeError, field.get_near, c, r0, sep, sep_units='deg',
+                  ra_units='deg', dec_units='deg')
+    assert_raises(TypeError, field.get_near, c.ra)
+    assert_raises(TypeError, field.get_near, c.ra, c.dec)
+    assert_raises(TypeError, field.get_near, c.ra, c.dec, r=r0)
+    assert_raises(TypeError, field.get_near, c.ra, c.dec, r0)
+    assert_raises(TypeError, field.get_near, c.ra, c.dec, r0, sep=sep, extra=4)
+    assert_raises(TypeError, field.get_near, c.ra, c.dec, r0, sep, extra=4)
+    assert_raises(TypeError, field.get_near, c.ra, c.dec, r0, sep, sep)
+
     # Check G and K
     kfield = cat.getKField(min_size=0.01, max_size=sep, min_top=5)
     gfield = cat.getGField(min_size=0.05, max_size=sep, max_top=2)
@@ -280,6 +343,38 @@ def test_get_near():
     np.testing.assert_array_equal(i3, i1)
     #assert t2-t1 < t1-t0
     #assert t3-t2 < t1-t0
+
+    # Invalid ways to specify ra,dec,sep
+    assert_raises(TypeError, field.get_near)
+    assert_raises(TypeError, field.get_near, ra0)
+    assert_raises(TypeError, field.get_near, ra0, dec0)
+    assert_raises(TypeError, field.get_near, ra0, dec0, sep)
+    assert_raises(TypeError, field.get_near, ra0, dec0, sep, ra_units='deg')
+    assert_raises(TypeError, field.get_near, ra0, dec0, sep, dec_units='deg')
+    assert_raises(TypeError, field.get_near, ra0, dec0, sep, sep_units='rad')
+    assert_raises(TypeError, field.get_near, ra0, dec0, sep, ra_units='deg', dec_units='deg')
+    assert_raises(TypeError, field.get_near, ra0, dec0, sep, ra_units='deg', sep_units='rad')
+    assert_raises(TypeError, field.get_near, ra0, dec0, sep, dec_units='deg', sep_units='rad')
+    assert_raises(TypeError, field.get_near, ra0, dec0, sep, sep,
+                  ra_units='deg', dec_units='deg', sep_units='rad')
+    assert_raises(TypeError, field.get_near, ra=ra0)
+    assert_raises(TypeError, field.get_near, dec=dec0)
+    assert_raises(TypeError, field.get_near, ra=ra0, dec=dec0)
+    assert_raises(TypeError, field.get_near, ra=ra0, dec=dec0, sep=sep)
+    assert_raises(TypeError, field.get_near, ra=ra0, dec=dec0, sep=sep, ra_units='deg')
+    assert_raises(TypeError, field.get_near, ra=ra0, dec=dec0, sep=sep, dec_units='deg')
+    assert_raises(TypeError, field.get_near, ra=ra0, dec=dec0, sep=sep,
+                  ra_units='deg', dec_units='deg')
+    assert_raises(TypeError, field.get_near, ra0, dec=dec0, sep=sep,
+                  ra_units='deg', dec_units='deg', sep_units='rad')
+    assert_raises(TypeError, field.get_near, ra0, dec=dec0, sep=sep,
+                  ra_units='deg', dec_units='deg', sep_units='rad')
+    assert_raises(TypeError, field.get_near, c)
+    assert_raises(TypeError, field.get_near, c, sep)
+    assert_raises(TypeError, field.get_near, c, sep, 'deg')
+    assert_raises(TypeError, field.get_near, c, sep, sep_unit='deg')
+    assert_raises(TypeError, field.get_near, c, sep, sep_units='deg',
+                  ra_units='deg', dec_units='deg')
 
     # Check G and K with other allowed argument patterns.
     kfield = cat.getKField(min_size=0.01, max_size=sep, min_top=5)

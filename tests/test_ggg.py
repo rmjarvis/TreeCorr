@@ -698,6 +698,22 @@ def test_ggg():
     np.testing.assert_allclose(np.log(np.abs(ggg.gam3)),
                                   np.log(np.abs(true_gam3)), atol=0.1 * tol_factor)
 
+    # We check the accuracy of the Map3 calculation below in test_map3.
+    # Here we just check that it runs, round trips correctly through an output file,
+    # and gives the same answer when run through corr3.
+
+    map3_stats = ggg.calculateMap3()
+    map3 = map3_stats[0]
+    mx3 = map3_stats[7]
+    print('mapsq = ',map3)
+    print('mxsq = ',mx3)
+
+    map3_file = 'output/ggg_m3.txt'
+    ggg.writeMap3(map3_file, precision=16)
+    data = np.genfromtxt(os.path.join('output','ggg_m3.txt'), names=True)
+    np.testing.assert_allclose(data['Map3'], map3)
+    np.testing.assert_allclose(data['Mx3'], mx3)
+
     # Check that we get the same result using the corr3 function:
     cat.write(os.path.join('data','ggg_data.dat'))
     config = treecorr.config.read_config('configs/ggg.yaml')
@@ -712,6 +728,27 @@ def test_ggg():
     np.testing.assert_allclose(corr3_output['gam2i'], ggg.gam2i.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['gam3r'], ggg.gam3r.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['gam3i'], ggg.gam3i.flatten(), rtol=1.e-3)
+
+    # Check m3 output
+    corr3_output2 = np.genfromtxt(os.path.join('output','ggg_m3.out'), names=True)
+    print('map3 = ',map3)
+    print('from corr3 output = ',corr3_output2['Map3'])
+    print('ratio = ',corr3_output2['Map3']/map3)
+    print('diff = ',corr3_output2['Map3']-map3)
+    np.testing.assert_allclose(corr3_output2['Map3'], map3, rtol=1.e-4)
+
+    print('mx3 = ',mx3)
+    print('from corr3 output = ',corr3_output2['Mx3'])
+    print('ratio = ',corr3_output2['Mx3']/mx3)
+    print('diff = ',corr3_output2['Mx3']-mx3)
+    np.testing.assert_allclose(corr3_output2['Mx3'], mx3, rtol=1.e-4)
+
+    # OK to have m3 output, but not ggg
+    del config['ggg_file_name']
+    treecorr.corr3(config)
+    corr3_output2 = np.genfromtxt(os.path.join('output','ggg_m3.out'), names=True)
+    np.testing.assert_allclose(corr3_output2['Map3'], map3, rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output2['Mx3'], mx3, rtol=1.e-4)
 
     try:
         import fitsio
@@ -948,16 +985,28 @@ def test_map3():
         print('max = ',max(abs(mx)))
         np.testing.assert_allclose(mx, 0., atol=2.e-9)
 
+    map3_file = 'output/ggg_m3.txt'
+    ggg.writeMap3(map3_file, precision=16)
+    data = np.genfromtxt(os.path.join('output','ggg_m3.txt'), names=True)
+    np.testing.assert_allclose(data['Map3'], map3)
+    np.testing.assert_allclose(data['Mx3'], mx3)
+
     # We can also just target the range where we expect good results.
     mask = (ggg.rnom1d > 5) & (ggg.rnom1d < 30)
-    map3 = ggg.calculateMap3(R=ggg.rnom1d[mask])[0]
-    print('R = ',ggg.rnom1d[mask])
+    R = ggg.rnom1d[mask]
+    map3 = ggg.calculateMap3(R=R)[0]
+    print('R = ',R)
     print('map3 = ',map3)
     print('true_map3 = ',true_map3[mask])
     print('ratio = ',map3/true_map3[mask])
     print('diff = ',map3-true_map3[mask])
     print('max diff = ',max(abs(map3 - true_map3[mask])))
     np.testing.assert_allclose(map3, true_map3[mask], rtol=0.1)
+
+    map3_file = 'output/ggg_m3b.txt'
+    ggg.writeMap3(map3_file, R=R, precision=16)
+    data = np.genfromtxt(os.path.join('output','ggg_m3b.txt'), names=True)
+    np.testing.assert_allclose(data['Map3'], map3)
 
 
 if __name__ == '__main__':

@@ -10,13 +10,13 @@ coverage:
     project:
       default:
         enabled: yes
-        target: 95%
-        threshold: 1%
+        target: 100%
+        threshold: 0%
         branches: null
 
     patch:
       default:
-        target: auto
+        target: 100%
         threshold: 0%
         branches: null
 

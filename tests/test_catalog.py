@@ -21,7 +21,7 @@ import gc
 from numpy import pi
 import treecorr
 
-from test_helper import get_from_wiki, CaptureLog, assert_raises
+from test_helper import get_from_wiki, CaptureLog, assert_raises, do_pickle
 
 def test_ascii():
 
@@ -287,6 +287,16 @@ def test_ascii():
     np.testing.assert_almost_equal(cat10.w[wpos!=0], 1)
     assert 'Some wpos values are zero, setting w=0 for these points' in cl.output
 
+    do_pickle(cat1)
+    do_pickle(cat2)
+    do_pickle(cat3)
+    do_pickle(cat4)
+    do_pickle(cat5)
+    do_pickle(cat6)
+    do_pickle(cat7)
+    do_pickle(cat8)
+    do_pickle(cat9)
+    do_pickle(cat10)
 
 def test_fits():
     try:
@@ -388,6 +398,11 @@ def test_fits():
     assert cat4.g2 is None
     assert cat4.k is None
 
+    do_pickle(cat1)
+    do_pickle(cat2)
+    do_pickle(cat3)
+    do_pickle(cat4)
+
     assert_raises(ValueError, treecorr.Catalog, file_name, config, first_row=-10)
     assert_raises(ValueError, treecorr.Catalog, file_name, config, first_row=0)
     assert_raises(ValueError, treecorr.Catalog, file_name, config, first_row=60000)
@@ -431,6 +446,9 @@ def test_direct():
     np.testing.assert_almost_equal(cat2.g2, g2)
     np.testing.assert_almost_equal(cat2.k, k)
 
+    do_pickle(cat1)
+    do_pickle(cat2)
+
     assert_raises(TypeError, treecorr.Catalog, x=x)
     assert_raises(TypeError, treecorr.Catalog, y=y)
     assert_raises(TypeError, treecorr.Catalog, z=x)
@@ -470,7 +488,6 @@ def test_direct():
     assert_raises(ValueError, treecorr.Catalog, x=[], y=[])
     assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=np.zeros_like(x))
  
-
 def test_var():
     nobj = 5000
     rng = np.random.RandomState(8675309)

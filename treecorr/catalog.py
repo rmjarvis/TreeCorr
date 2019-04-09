@@ -391,24 +391,7 @@ class Catalog(object):
         self.g1 = None
         self.g2 = None
         self.k = None
-        self._field = lambda : None  # Acts like a dead weakref
-
-        # Make simple functions that call NField, etc. with self as the first argument.
-
-        def get_nfield(*args, **kwargs): return treecorr.NField(self, *args, **kwargs)
-        def get_kfield(*args, **kwargs): return treecorr.KField(self, *args, **kwargs)
-        def get_gfield(*args, **kwargs): return treecorr.GField(self, *args, **kwargs)
-        def get_nsimplefield(*args, **kwargs): return treecorr.NSimpleField(self, *args, **kwargs)
-        def get_ksimplefield(*args, **kwargs): return treecorr.KSimpleField(self, *args, **kwargs)
-        def get_gsimplefield(*args, **kwargs): return treecorr.GSimpleField(self, *args, **kwargs)
-
-        # Now wrap these in LRU_Caches with (initially) just 1 element being cached.
-        self.nfields = treecorr.util.LRU_Cache(get_nfield, 1)
-        self.kfields = treecorr.util.LRU_Cache(get_kfield, 1)
-        self.gfields = treecorr.util.LRU_Cache(get_gfield, 1)
-        self.nsimplefields = treecorr.util.LRU_Cache(get_nsimplefield, 1)
-        self.ksimplefields = treecorr.util.LRU_Cache(get_ksimplefield, 1)
-        self.gsimplefields = treecorr.util.LRU_Cache(get_gsimplefield, 1)
+        self._setup_fields()
 
         # First style -- read from a file
         if file_name is not None:
@@ -1009,6 +992,25 @@ class Catalog(object):
                     self.k = fits[k_hdu].read_column(k_col).astype(float)
                     self.logger.debug('read k = %s',str(self.k))
 
+    def _setup_fields(self):
+        self._field = lambda : None  # Acts like a dead weakref
+
+        # Make simple functions that call NField, etc. with self as the first argument.
+
+        def get_nfield(*args, **kwargs): return treecorr.NField(self, *args, **kwargs)
+        def get_kfield(*args, **kwargs): return treecorr.KField(self, *args, **kwargs)
+        def get_gfield(*args, **kwargs): return treecorr.GField(self, *args, **kwargs)
+        def get_nsimplefield(*args, **kwargs): return treecorr.NSimpleField(self, *args, **kwargs)
+        def get_ksimplefield(*args, **kwargs): return treecorr.KSimpleField(self, *args, **kwargs)
+        def get_gsimplefield(*args, **kwargs): return treecorr.GSimpleField(self, *args, **kwargs)
+
+        # Now wrap these in LRU_Caches with (initially) just 1 element being cached.
+        self.nfields = treecorr.util.LRU_Cache(get_nfield, 1)
+        self.kfields = treecorr.util.LRU_Cache(get_kfield, 1)
+        self.gfields = treecorr.util.LRU_Cache(get_gfield, 1)
+        self.nsimplefields = treecorr.util.LRU_Cache(get_nsimplefield, 1)
+        self.ksimplefields = treecorr.util.LRU_Cache(get_ksimplefield, 1)
+        self.gsimplefields = treecorr.util.LRU_Cache(get_gsimplefield, 1)
 
     def resize_cache(self, maxsize):
         """Resize all field caches.
@@ -1334,13 +1336,29 @@ class Catalog(object):
                                 file_type=file_type, logger=self.logger)
 
     def copy(self):
+        """Make a copy"""
         import copy
-        logger = self.logger  # Don't deepcopy the logger.
-        del self.logger
-        ret = copy.deepcopy(self)
-        ret.logger = logger
-        self.logger = logger
-        return ret
+        return copy.deepcopy(self)
+
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        print('d = ',d)
+        del d['logger']  # Oh well.  This is just lost in the copy.  Can't be pickled.
+        del d['_field']
+        del d['nfields']
+        del d['kfields']
+        del d['gfields']
+        del d['nsimplefields']
+        del d['ksimplefields']
+        del d['gsimplefields']
+        return d
+
+    def __setstate__(self, d):
+        self.__dict__ = d
+        self.logger = treecorr.config.setup_logger(
+                treecorr.config.get(self.config,'verbose',int,1),
+                self.config.get('log_file',None))
+        self._setup_fields()
 
     def __repr__(self):
         s = 'Catalog('
@@ -1358,6 +1376,27 @@ class Catalog(object):
         # remove the last ','
         s = s[:-1] + ')'
         return s
+
+    def __eq__(self, other):
+        return (isinstance(other, Catalog) and
+                self.nobj == other.nobj and
+                self.ntot == other.ntot and
+                self.sumw == other.sumw and
+                self.varg == other.varg and
+                self.vark == other.vark and
+                self.coords == other.coords and
+                np.array_equal(self.x, other.x) and
+                np.array_equal(self.y, other.y) and
+                np.array_equal(self.z, other.z) and
+                np.array_equal(self.ra, other.ra) and
+                np.array_equal(self.dec, other.dec) and
+                np.array_equal(self.r, other.r) and
+                np.array_equal(self.w, other.w) and
+                np.array_equal(self.wpos, other.wpos) and
+                np.array_equal(self.g1, other.g1) and
+                np.array_equal(self.g2, other.g2) and
+                np.array_equal(self.k, other.k))
+
 
 def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=None):
     """Read in a list of catalogs for the given key.

@@ -177,7 +177,7 @@ def corr2(config, logger=None):
             ng.write(config['ng_file_name'], rg)
             logger.warning("Wrote NG correlation to %s",config['ng_file_name'])
         if 'nm_file_name' in config:
-            ng.writeNMap(config['nm_file_name'], rg, m2_uform=config['m2_uform'],
+            ng.writeNMap(config['nm_file_name'], rg=rg, m2_uform=config['m2_uform'],
                          precision=config.get('precision',None))
             logger.warning("Wrote NMap values to %s",config['nm_file_name'])
 
@@ -197,8 +197,8 @@ def corr2(config, logger=None):
                 logger.info("Done DR calculation for norm")
             else:
                 dr = None
-            ng.writeNorm(config['norm_file_name'],gg,dd,rr,dr,rg,m2_uform=config['m2_uform'],
-                         precision=config.get('precision',None))
+            ng.writeNorm(config['norm_file_name'],gg=gg,dd=dd,rr=rr,dr=dr,rg=rg,
+                         m2_uform=config['m2_uform'], precision=config.get('precision',None))
             logger.warning("Wrote Norm values to %s",config['norm_file_name'])
 
     # Do NN correlation function if necessary

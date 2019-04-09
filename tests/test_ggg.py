@@ -936,6 +936,7 @@ def test_map3():
     ggg.read(out_name)
     ggg_map3 = ggg.calculateMap3()
     map3, mapmapmx, mapmxmap, mxmapmap, mxmxmap, mxmapmx, mapmxmx, mx3, var = ggg_map3
+    print('R = ',ggg.rnom1d)
     print('map3 = ',map3)
     print('true_map3 = ',true_map3)
     print('ratio = ',map3/true_map3)
@@ -946,6 +947,17 @@ def test_map3():
         print('mx = ',mx)
         print('max = ',max(abs(mx)))
         np.testing.assert_allclose(mx, 0., atol=2.e-9)
+
+    # We can also just target the range where we expect good results.
+    mask = (ggg.rnom1d > 5) & (ggg.rnom1d < 30)
+    map3 = ggg.calculateMap3(R=ggg.rnom1d[mask])[0]
+    print('R = ',ggg.rnom1d[mask])
+    print('map3 = ',map3)
+    print('true_map3 = ',true_map3[mask])
+    print('ratio = ',map3/true_map3[mask])
+    print('diff = ',map3-true_map3[mask])
+    print('max diff = ',max(abs(map3 - true_map3[mask])))
+    np.testing.assert_allclose(map3, true_map3[mask], rtol=0.1)
 
 
 if __name__ == '__main__':

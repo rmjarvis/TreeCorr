@@ -418,7 +418,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self._build_corr()
 
 
-    def calculateNMap(self, rg=None, m2_uform=None):
+    def calculateNMap(self, R=None, rg=None, m2_uform=None):
         """Calculate the aperture mass statistics from the correlation function.
 
         .. math::
@@ -453,6 +453,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         In neither case is this formula in the above papers, but the derivation is similar
         to the derivations of T+ and T- in Schneider et al.
 
+        :param R:           The R values at which to calculate the aperture mass statistics.
+                            (default: None, which means use self.rnom)
         :param rg:          An NGCorrelation using random locations as the lenses, if desired.
                             (default: None)
         :param m2_uform:    Which form to use for the aperture mass, as described above.
@@ -465,10 +467,11 @@ class NGCorrelation(treecorr.BinnedCorr2):
             m2_uform = treecorr.config.get(self.config,'m2_uform',str,'Crittenden')
         if m2_uform not in ['Crittenden', 'Schneider']:
             raise ValueError("Invalid m2_uform")
+        if R is None:
+            R = self.rnom
 
         # Make s a matrix, so we can eventually do the integral by doing a matrix product.
-        r = self.rnom
-        s = np.outer(1./r, self.meanr)
+        s = np.outer(1./R, self.meanr)
         ssq = s*s
         if m2_uform == 'Crittenden':
             exp_factor = np.exp(-ssq/4.)
@@ -498,7 +501,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         return nmap, nmx, varnmap
 
 
-    def writeNMap(self, file_name, rg=None, m2_uform=None, file_type=None, precision=None):
+    def writeNMap(self, file_name, R=None, rg=None, m2_uform=None, file_type=None, precision=None):
         """Write the cross correlation of the foreground galaxy counts with the aperture mass
         based on the correlation function to the file, file_name.
 
@@ -517,6 +520,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
 
         :param file_name:   The name of the file to write to.
+        :param R:           The R values at which to calculate the aperture mass statistics.
+                            (default: None, which means use self.rnom)
         :param rg:          An NGCorrelation using random locations as the lenses, if desired.
                             (default: None)
         :param m2_uform:    Which form to use for the aperture mass.  (default: 'Crittenden';
@@ -527,20 +532,22 @@ class NGCorrelation(treecorr.BinnedCorr2):
                             this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing NMap from NG correlations to %s',file_name)
+        if R is None:
+            R = self.rnom
 
-        nmap, nmx, varnmap = self.calculateNMap(rg=rg, m2_uform=m2_uform)
+        nmap, nmx, varnmap = self.calculateNMap(R=R, rg=rg, m2_uform=m2_uform)
         if precision is None:
             precision = self.config.get('precision', 4)
 
         treecorr.util.gen_write(
             file_name,
             ['R','NMap','NMx','sig_nmap'],
-            [ self.rnom, nmap, nmx, np.sqrt(varnmap) ],
+            [ R, nmap, nmx, np.sqrt(varnmap) ],
             precision=precision, file_type=file_type, logger=self.logger)
 
 
-    def writeNorm(self, file_name, gg, dd, rr, dr=None, rg=None, m2_uform=None, file_type=None,
-                  precision=None):
+    def writeNorm(self, file_name, gg, dd, rr, R=None, dr=None, rg=None,
+                  m2_uform=None, file_type=None, precision=None):
         """Write the normalized aperture mass cross-correlation to the file, file_name.
 
         The combination :math:`\\langle N M_{ap}\\rangle^2 / \\langle M_{ap}^2\\rangle
@@ -587,6 +594,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         :param dd:          An NNCorrelation object for the count-count correlation function
                             of the N field.
         :param rr:          An NNCorrelation object for the random-random pairs.
+        :param R:           The R values at which to calculate the aperture mass statistics.
+                            (default: None, which means use self.rnom)
         :param dr:          An NNCorrelation object for the data-random pairs, if desired, in which
                             case the Landy-Szalay estimator will be calculated.  (default: None)
         :param rg:          An NGCorrelation using random locations as the lenses, if desired.
@@ -599,10 +608,12 @@ class NGCorrelation(treecorr.BinnedCorr2):
                             this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing Norm from NG correlations to %s',file_name)
+        if R is None:
+            R = self.rnom
 
-        nmap, nmx, varnmap = self.calculateNMap(rg=rg, m2_uform=m2_uform)
-        mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq(m2_uform=m2_uform)
-        nsq, varnsq = dd.calculateNapSq(rr, dr=dr, m2_uform=m2_uform)
+        nmap, nmx, varnmap = self.calculateNMap(R=R, rg=rg, m2_uform=m2_uform)
+        mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq(R=R, m2_uform=m2_uform)
+        nsq, varnsq = dd.calculateNapSq(R=R, rr=rr, dr=dr, m2_uform=m2_uform)
 
         nmnorm = nmap**2 / (nsq * mapsq)
         varnmnorm = nmnorm**2 * (4. * varnmap / nmap**2 + varnsq / nsq**2 + varmapsq / mapsq**2)
@@ -617,7 +628,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
               'NMap','NMx','sig_nmap',
               'Napsq','sig_napsq','Mapsq','sig_mapsq',
               'NMap_norm','sig_norm','Nsq_Mapsq','sig_nn_mm' ],
-            [ self.rnom,
+            [ R,
               nmap, nmx, np.sqrt(varnmap),
               nsq, np.sqrt(varnsq), mapsq, np.sqrt(varmapsq),
               nmnorm, np.sqrt(varnmnorm), nnnorm, np.sqrt(varnnnorm) ],

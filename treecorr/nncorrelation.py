@@ -564,7 +564,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self._build_corr()
 
 
-    def calculateNapSq(self, rr, dr=None, rd=None, m2_uform=None):
+    def calculateNapSq(self, rr, R=None, dr=None, rd=None, m2_uform=None):
         """Calculate the correlary to the aperture mass statistics for counts.
 
         .. math::
@@ -600,6 +600,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
         GGCorrelation.calculateMapSq() for more details.
 
         :param rr:          An NNCorrelation object for the random-random pairs.
+        :param R:           The R values at which to calculate the aperture mass statistics.
+                            (default: None, which means use self.rnom)
         :param dr:          An NNCorrelation object for the data-random pairs, if desired, in which
                             case the Landy-Szalay estimator will be calculated.  (default: None)
         :param rd:          An NNCorrelation object for the random-data pairs, if desired and
@@ -613,10 +615,11 @@ class NNCorrelation(treecorr.BinnedCorr2):
             m2_uform = treecorr.config.get(self.config,'m2_uform',str,'Crittenden')
         if m2_uform not in ['Crittenden', 'Schneider']:
             raise ValueError("Invalid m2_uform")
+        if R is None:
+            R = self.rnom
 
         # Make s a matrix, so we can eventually do the integral by doing a matrix product.
-        r = self.rnom
-        s = np.outer(1./r, self.meanr)
+        s = np.outer(1./R, self.meanr)
         ssq = s*s
         if m2_uform == 'Crittenden':
             exp_factor = np.exp(-ssq/4.)

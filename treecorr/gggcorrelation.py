@@ -728,7 +728,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         return T0, T1, T2, T3
 
 
-    def calculateMap3(self, k2=1, k3=1):
+    def calculateMap3(self, R=None, k2=1, k3=1):
         """Calculate the skewness of the aperture mass from the correlation function.
 
         The equations for this come from Jarvis, Bernstein & Jain (2004, MNRAS, 352).
@@ -770,6 +770,8 @@ class GGGCorrelation(treecorr.BinnedCorr3):
             not an option here.  The calculations here use the definition that corresponds to
             ``m2_uform='Crittenden'``.
 
+        :param R:       The R values at which to calculate the aperture mass statistics.
+                        (default: None, which means use self.rnom1d)
         :param k2       If given, the ratio R2/R1 in the SKL formulae. (default: 1)
         :param k3       If given, the ratio R3/R1 in the SKL formulae. (default: 1)
 
@@ -777,7 +779,8 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         """
         # As in the calculateMapSq function, we Make s and t matrices, so we can eventually do the
         # integral by doing a matrix product.
-        R = self.rnom1d
+        if R is None:
+            R = self.rnom1d
 
         # Pick s = d2, so dlogs is bin_size
         s = d2 = np.outer(1./R, self.meand2.ravel())

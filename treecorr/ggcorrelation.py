@@ -455,7 +455,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self._build_corr()
 
 
-    def calculateMapSq(self, m2_uform=None):
+    def calculateMapSq(self, R=None, m2_uform=None):
         """Calculate the aperture mass statistics from the correlation function.
 
         .. math::
@@ -500,6 +500,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
             This function is only implemented for Log binning.
 
 
+        :param R:           The R values at which to calculate the aperture mass statistics.
+                            (default: None, which means use self.rnom)
         :param m2_uform:    Which form to use for the aperture mass, as described above.
                             (default: 'Crittenden'; this value can also be given in the
                             constructor in the config dict.)
@@ -512,10 +514,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
             raise ValueError("Invalid m2_uform")
         if self.bin_type is not 'Log':
             raise ValueError("calculateMapSq requires Log binning.")
+        if R is None:
+            R = self.rnom
 
         # Make s a matrix, so we can eventually do the integral by doing a matrix product.
-        r = self.rnom
-        s = np.outer(1./r, self.meanr)
+        s = np.outer(1./R, self.meanr)
         ssq = s*s
         if m2_uform == 'Crittenden':
             exp_factor = np.exp(-ssq/4.)
@@ -551,7 +554,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         return mapsq, mapsq_im, mxsq, mxsq_im, varmapsq
 
 
-    def calculateGamSq(self, eb=False):
+    def calculateGamSq(self, R=None, eb=False):
         """Calculate the tophat shear variance from the correlation function.
 
         .. math::
@@ -580,17 +583,20 @@ class GGCorrelation(treecorr.BinnedCorr2):
             This function is only implemented for Log binning.
 
 
-        :param eb:  Whether to include the E/B decomposition as well as the total
-                    :math:`\\langle \\gamma^2\\rangle`.  (default: False)
+        :param R:       The R values at which to calculate the shear variance.
+                        (default: None, which means use self.rnom)
+        :param eb:      Whether to include the E/B decomposition as well as the total
+                        :math:`\\langle \\gamma^2\\rangle`.  (default: False)
 
-        :returns:   (gamsq, vargamsq) if `eb == False` or
-                    (gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e)  if `eb == True`
+        :returns:       (gamsq, vargamsq) if `eb == False` or
+                        (gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e)  if `eb == True`
         """
         if self.bin_type is not 'Log':
             raise ValueError("calculateGamSq requires Log binning.")
 
-        r = self.rnom
-        s = np.outer(1./r, self.meanr)
+        if R is None:
+            R = self.rnom
+        s = np.outer(1./R, self.meanr)
         ssq = s*s
         Sp = np.zeros_like(s)
         sa = s[s<2]
@@ -620,7 +626,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         return gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e
 
 
-    def writeMapSq(self, file_name, m2_uform=None, file_type=None, precision=None):
+    def writeMapSq(self, file_name, R=None, m2_uform=None, file_type=None, precision=None):
         """Write the aperture mass statistics based on the correlation function to the
         file, file_name.
 
@@ -645,6 +651,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
 
         :param file_name:   The name of the file to write to.
+        :param R:           The R values at which to calculate the statistics.
+                            (default: None, which means use self.rnom)
         :param m2_uform:    Which form to use for the aperture mass.  (default: 'Crittenden';
                             this value can also be given in the constructor in the config dict.)
         :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
@@ -654,15 +662,17 @@ class GGCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Writing Map^2 from GG correlations to %s',file_name)
 
-        mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = self.calculateMapSq(m2_uform=m2_uform)
-        gamsq, vargamsq = self.calculateGamSq()
+        if R is None:
+            R = self.rnom
+        mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = self.calculateMapSq(R, m2_uform=m2_uform)
+        gamsq, vargamsq = self.calculateGamSq(R)
         if precision is None:
             precision = treecorr.config.get(self.config,'precision',int,4)
 
         treecorr.util.gen_write(
             file_name,
             ['R','Mapsq','Mxsq','MMxa','MMxb','sig_map','Gamsq','sig_gam'],
-            [ self.rnom,
+            [ R,
               mapsq, mxsq, mapsq_im, -mxsq_im, np.sqrt(varmapsq),
               gamsq, np.sqrt(vargamsq) ],
             precision=precision, file_type=file_type, logger=self.logger)

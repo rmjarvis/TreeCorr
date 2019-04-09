@@ -822,7 +822,7 @@ def test_nmap():
     rg = treecorr.NGCorrelation(bin_size=0.1, min_sep=0.5, max_sep=40., sep_units='arcmin',
                                 verbose=1)
     rg.process(rand_cat, source_cat)
-    nmap2, nmx2, varnmap2 = ng.calculateNMap(rg, m2_uform='Crittenden')
+    nmap2, nmx2, varnmap2 = ng.calculateNMap(rg=rg, m2_uform='Crittenden')
     print('compensated nmap = ',nmap2)
     print('ratio = ',nmap2[mask] / true_nmap[mask])
     print('max rel diff = ',max(abs((nmap2[mask] - true_nmap[mask])/true_nmap[mask])))
@@ -840,6 +840,15 @@ def test_nmap():
     np.testing.assert_allclose(corr2_output['NMap'], nmap2, rtol=1.e-3)
     np.testing.assert_allclose(corr2_output['NMx'], nmx2, atol=1.e-3)
     np.testing.assert_allclose(corr2_output['sig_nmap'], np.sqrt(varnmap2), rtol=1.e-3)
+
+    # Check giving specific R values
+    R = ng.meanr[mask]
+    nmap2, nmx2, varnmap2 = ng.calculateNMap(R=R, rg=rg)
+    print('compensated nmap = ',nmap2)
+    print('ratio = ',nmap2 / true_nmap[mask])
+    print('max rel diff = ',max(abs((nmap2 - true_nmap[mask])/true_nmap[mask])))
+    np.testing.assert_allclose(nmap2, true_nmap[mask], rtol=0.1)
+    np.testing.assert_allclose(nmx2, 0, atol=5.e-3)
 
     # Can also skip the randoms (even if listed in the file)
     config['ng_statistic'] = 'simple'
@@ -860,7 +869,7 @@ def test_nmap():
     gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=0.5, max_sep=40., sep_units='arcmin',
                                 verbose=1)
     gg.process(source_cat)
-    napsq, varnap = dd.calculateNapSq(rr)
+    napsq, varnap = dd.calculateNapSq(rr=rr)
     mapsq, mapsq_im, mxsq, mxsq_im, varmap = gg.calculateMapSq(m2_uform='Crittenden')
     nmap_norm = nmap**2 / napsq / mapsq
     napsq_mapsq = napsq / mapsq
@@ -903,6 +912,31 @@ def test_nmap():
     np.testing.assert_allclose(data['NMap_norm'], nmap_norm, rtol=1.e-6)
     np.testing.assert_allclose(data['Nsq_Mapsq'], napsq_mapsq, rtol=1.e-6)
 
+    fits_name = os.path.join('output', 'ng_nmap2.fits')
+    ng.writeNMap(fits_name, R=R, rg=rg)
+    data = fitsio.read(fits_name)
+    np.testing.assert_allclose(data['NMap'], nmap2, rtol=1.e-8)
+    np.testing.assert_allclose(data['NMx'], nmx2, atol=1.e-8)
+    np.testing.assert_allclose(data['sig_nmap'], np.sqrt(varnmap2), rtol=1.e-8)
+
+    fits_name = os.path.join('output', 'ng_norm2.fits')
+    ng.writeNorm(fits_name, R=R, gg=gg, dd=dd, rr=rr, rg=rg)
+    data = fitsio.read(fits_name)
+    napsq2, varnap2 = dd.calculateNapSq(R=R, rr=rr)
+    mapsq2, mapsq2_im, mxsq2, mxsq2_im, varmap2 = gg.calculateMapSq(R=R, m2_uform='Crittenden')
+    nmap_norm2 = nmap2**2 / napsq2 / mapsq2
+    napsq_mapsq2 = napsq2 / mapsq2
+    np.testing.assert_allclose(data['NMap'], nmap2, rtol=1.e-6)
+    np.testing.assert_allclose(data['NMx'], nmx2, atol=1.e-6)
+    np.testing.assert_allclose(data['sig_nmap'], np.sqrt(varnmap2), rtol=1.e-6)
+    np.testing.assert_allclose(data['Napsq'], napsq2, rtol=2.e-3)
+    np.testing.assert_allclose(data['sig_napsq'], np.sqrt(varnap2), rtol=1.e-6)
+    np.testing.assert_allclose(data['Mapsq'], mapsq2, rtol=1.e-6)
+    np.testing.assert_allclose(data['sig_mapsq'], np.sqrt(varmap2), rtol=1.e-6)
+    np.testing.assert_allclose(data['NMap_norm'], nmap_norm2, rtol=1.e-6)
+    np.testing.assert_allclose(data['Nsq_Mapsq'], napsq_mapsq2, rtol=1.e-6)
+
+
     # Finally, let's also check the Schneider definition.
     # It doesn't have a nice closed form solution (as far as I can figure out at least).
     # but it does look qualitatively similar to the Crittenden one.
@@ -914,7 +948,7 @@ def test_nmap():
     print('ratio = ',nmap_sch[10:]*5./6. / nmap[:-10])
     np.testing.assert_allclose(nmap_sch[10:]*5./6., nmap[:-10], rtol=0.1)
 
-    napsq_sch, varnap_sch = dd.calculateNapSq(rr, m2_uform='Schneider')
+    napsq_sch, varnap_sch = dd.calculateNapSq(rr=rr, m2_uform='Schneider')
     mapsq_sch, _, mxsq_sch, _, varmap_sch = gg.calculateMapSq(m2_uform='Schneider')
     print('Schneider napsq = ',napsq_sch[10:] * 5./6.)
     print('Crittenden napsq = ',napsq[:-10])
@@ -950,7 +984,7 @@ def test_nmap():
     with assert_raises(ValueError):
         ng.calculateNMap(m2_uform='Other')
     with assert_raises(ValueError):
-        dd.calculateNapSq(rr, m2_uform='Other')
+        dd.calculateNapSq(rr=rr, m2_uform='Other')
     with assert_raises(ValueError):
         gg.calculateMapSq(m2_uform='Other')
 

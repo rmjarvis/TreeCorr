@@ -101,6 +101,7 @@ New features
 - Added 'Periodic' metric. (#56)
 - Added `min_top` option for Fields.
 - Added calculation of <Map^3> and related quantities.
+- Added option to provide R values for MapSq and related statistics.
 
 
 Bug fixes

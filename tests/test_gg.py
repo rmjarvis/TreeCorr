@@ -584,7 +584,7 @@ def test_gg():
     assert gg2.bin_type == gg.bin_type
 
     # Also check the Schneider version.
-    mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq('Schneider')
+    mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq(m2_uform='Schneider')
     print('Schneider mapsq = ',mapsq)
     print('mxsq = ',mxsq)
     print('max = ',max(abs(mxsq)))
@@ -677,6 +677,28 @@ def test_mapsq():
     np.testing.assert_allclose(data['Mapsq'], mapsq)
     np.testing.assert_allclose(data['Mxsq'], mxsq)
 
+    # Check providing a specific range of R values
+    # (We provide the range where the results worked out well above.)
+    R = gg.rnom[16::2]
+    print('R = ',R)
+    mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq(R)
+    true_mapsq = true_mapsq[16::2]
+    print('mapsq = ',mapsq)
+    print('true_mapsq = ',true_mapsq)
+    print('ratio = ',mapsq/true_mapsq)
+    print('diff = ',mapsq-true_mapsq)
+    print('max diff = ',max(abs(mapsq - true_mapsq)))
+    np.testing.assert_allclose(mapsq, true_mapsq, rtol=0.1, atol=1.e-9)
+    print('mxsq = ',mxsq)
+    print('max = ',max(abs(mxsq)))
+    np.testing.assert_allclose(mxsq, 0., atol=3.e-8)
+
+    mapsq_file = 'output/gg_m2b.txt'
+    gg.writeMapSq(mapsq_file, R=R, precision=16)
+    data = np.genfromtxt(mapsq_file, names=True)
+    np.testing.assert_allclose(data['Mapsq'], mapsq)
+    np.testing.assert_allclose(data['Mxsq'], mxsq)
+
     # Also check the Schneider version.  The math isn't quite as nice here, but it is tractable
     # using a different formula than I used above:
     # Map^2(R) = int k P(k) W(kR) dk
@@ -691,7 +713,7 @@ def test_mapsq():
     x = 0.5*r**2/r0**2
     true_mapsq = 144.*np.pi * gamma0**2 * r0**2 / (L**2 * x**2) * np.exp(-x) * iv(4,x)
 
-    mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq('Schneider')
+    mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq(m2_uform='Schneider')
     print('Schneider mapsq = ',mapsq)
     print('true_mapsq = ',true_mapsq)
     print('ratio = ',mapsq/true_mapsq)
@@ -737,6 +759,21 @@ def test_mapsq():
     np.testing.assert_allclose(gamsq_e[6:41], true_gamsq[6:41], rtol=0.1)
     print('gamsq_b = ',gamsq_b)
     np.testing.assert_allclose(gamsq_b[6:41], 0, atol=1.e-6)
+
+    # Check providing a specific range of R values
+    # (We provide the range where the results worked out well above.)
+    R = gg.rnom[6:40:4]
+    print('R = ',R)
+    gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_eb = gg.calculateGamSq(R, eb=True)
+    true_gamsq = true_gamsq[6:40:4]
+    print('gamsq_e = ',gamsq_e)
+    print('true_gamsq = ',true_gamsq)
+    print('ratio = ',gamsq_e/true_gamsq)
+    print('diff = ',gamsq_e-true_gamsq)
+    print('max diff = ',max(abs(gamsq_e - true_gamsq)))
+    np.testing.assert_allclose(gamsq_e, true_gamsq, rtol=0.1)
+    print('gamsq_b = ',gamsq_b)
+    np.testing.assert_allclose(gamsq_b, 0, atol=1.e-6)
 
     # Not valid with TwoD or Linear binning
     gg2 = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',

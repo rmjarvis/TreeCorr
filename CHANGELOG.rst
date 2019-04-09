@@ -1,8 +1,8 @@
 Changes from version 3.3 to 3.4
 ===============================
 
-The numbers at the ends of some items below indicate which issue is connected
-with the change:
+The numbers at the ends of some items below indicate which issue or PR is
+connected with the change:
 
 https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+3.4%22+is%3Aclosed
 
@@ -10,7 +10,7 @@ Dependency changes
 ------------------
 
 - Added dependency on LSSTDESC.Coord, and removed the TreeCorr implementation
-  of the same functionality.
+  of the same functionality. (#77)
 - Made fitsio and pandas dependencies optional, which means that setup.py won't
   automatically install them for you.  If you plan to use TreeCorr with FITS
   files, you will need to install fitsio yourself.  Pandas is never required,
@@ -39,18 +39,18 @@ API changes
   the new behavior is merely a performance increase.  However, there is a
   numerical difference for shear correlations, as the shear projection is not
   exactly equivalent.  To obtain the brute force calculation, use the new
-  `brute=True` option.
+  `brute=True` option. (#82)
 - Changed how the 3pt correlation v binning is specified.  Now, you should
   only specify the range and number of bins for |v|. The negative v's will
   also be accumulated over the same range of absolute values as the positive
   v's. This should normally not be a hardship, since if you want to accumulate
   negative v's, you probably want the same range as the positive v's. But it
   enables you, for instance, to accumulate all flattened triangles with
-  0.8 < |v| < 1.0 in one pass rather than two.
+  0.8 < |v| < 1.0 in one pass rather than two. (#85)
 - Changed the behavior of specifying min_sep, max_sep, and bin_size (omitting
   nbins) to respect max_sep and reduce bin_size slightly, rather than
   respect bin_size and increase max_sep.  This seems like the behavior that
-  most people would expect for this combination.
+  most people would expect for this combination. (#85)
 
 
 Performance Improvements
@@ -58,15 +58,15 @@ Performance Improvements
 
 - Improved efficiency of runs that use bin_slop < 1. (Especially << 1). (#16)
 - Reduced the memory required for the constructed trees slightly. (By 8 bytes
-  per galaxy.)
+  per galaxy.) (#82)
 - Updated the caching of the fields to allow for more flexibility about how
   many fields are cached for a given catalog.  The default is to cache 1 field,
   which is normally appropriate, but you can use catalog.resize_cache(n) to
   either increase this number or to tell it not to cache at all (n=0). (#53)
 - Added a catalog.clear_cache() function, which lets you manually clear the
   cache to release the memory of the cached field(s). (#53)
-- Improved both the speed and accuracy of the Rlens metric calculation.
-- Improved both the speed and accuracy of 3pt correlation functions.
+- Improved both the speed and accuracy of the Rlens metric calculation. (#77)
+- Improved both the speed and accuracy of 3pt correlation functions. (#85)
 
 
 New features
@@ -77,10 +77,6 @@ New features
   - 'Log' is equivalent to the previous behavior of binning in log space.
   - 'Linear' bins linearly in r. (#5)
   - 'TwoD' bins linearly in x and y. (#70)
-- Added a distinction between bin_slop=0 and bin_slop>0, but very close
-  (say 1.e-16).  The former will traverse the tree all the way to the
-  leaves, never grouping objects into cells.  The latter will group objects
-  when all pairs fall into the same bin.
 - Added the ability to use min_rpar and max_rpar with the Arc metric. (#61)
 - Added a different definition of Rperp, called FisherRperp, which follows
   the definition in Fisher et al, 1994.  This definition is both more standard
@@ -97,11 +93,11 @@ New features
   of pairs within a given range of separations.  E.g. a sample of pairs that
   fell into a given bin of the correlation function. (#67)
 - Added `brute` option for Correlation instances.  This is equivalent to the
-  old behavior of `bin_slop=0`.
+  old behavior of `bin_slop=0`. (#82)
 - Added 'Periodic' metric. (#56)
-- Added `min_top` option for Fields.
-- Added calculation of <Map^3> and related quantities.
-- Added option to provide R values for MapSq and related statistics.
+- Added `min_top` option for Fields. (#84)
+- Added calculation of <Map^3> and related quantities. (#85)
+- Added option to provide R values for MapSq and related statistics. (#85)
 
 
 Bug fixes
@@ -111,5 +107,5 @@ Bug fixes
   where NNCorrelation and NNNCorrelation did not round trip correctly through
   a FITS output file.  Now the tot attribute is set properly when reading.
 - Fixed the Catalog.copy() method, which wasn't working properly.
-- Fixed an error in the Schneider NMap calculation.
+- Fixed an error in the Schneider NMap calculation. (#77)
 - Fixed a factor of 2 missing in the estimate of varxi. (#72)

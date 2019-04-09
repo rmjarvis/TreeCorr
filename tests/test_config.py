@@ -297,7 +297,7 @@ def test_check():
 
     # Also other aliases, but you need to list them explicitly.
     config1['reverse_g1'] = True
-    with assert_raises(ValueError):
+    with assert_raises(TypeError):
         treecorr.config.check_config(config1.copy(), valid_params)
     config2 = treecorr.config.check_config(config1.copy(), valid_params,
                                            aliases={'reverse_g1' : 'flip_g1'})
@@ -424,7 +424,7 @@ def test_merge():
 
     # If kwargs has invalid parameters, exception is raised
     kwargs = { 'cat_prec' : 10 }
-    with assert_raises(ValueError):
+    with assert_raises(TypeError):
         treecorr.config.merge_config(config1, kwargs, treecorr.Catalog._valid_params)
 
 

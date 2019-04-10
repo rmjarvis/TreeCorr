@@ -455,7 +455,7 @@ def test_large_scale():
 
     # Distribute points uniformly in all directions.
     if __name__ == '__main__':
-        ngal = 50000
+        ngal = 100000
         tol = 1
         nbins = 100
         half = 50

@@ -1199,7 +1199,7 @@ def test_haloellip():
     print('Made sources')
 
     source_cat = treecorr.Catalog(x=source_x, y=source_y, g1=source_g1, g2=source_g2)
-    gg = treecorr.GGCorrelation(min_sep=1, max_sep=30, bin_size=0.1)
+    gg = treecorr.GGCorrelation(min_sep=1, bin_size=0.1, nbins=35)
     lens_mean_absg = np.mean(lens_absg)
     print('mean_absg = ',lens_mean_absg)
 

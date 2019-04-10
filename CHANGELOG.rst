@@ -11,17 +11,24 @@ Dependency changes
 
 - Added dependency on LSSTDESC.Coord, and removed the TreeCorr implementation
   of the same functionality. (#77)
-- Made fitsio and pandas dependencies optional, which means that setup.py won't
-  automatically install them for you.  If you plan to use TreeCorr with FITS
-  files, you will need to install fitsio yourself.  Pandas is never required,
-  but if you plan to use TreeCorr with ASCII input catalogs, installing pandas
-  will provide a performance improvement. (#57)
+- Made fitsio dependency optional, which means that setup.py won't automatically
+  install it for you.  If you plan to use TreeCorr with FITS files, you will
+  need to install fitsio yourself. (#57)
+- Made pandas dependency optional, which means that setup.py won't automatically
+  install it for you.  Pandas is never required, but if you plan to use TreeCorr
+  with ASCII input catalogs, installing pandas will provide a performance
+  improvement. (#57)
 - Removed dependency on future. (#85)
 
 
 API changes
 -----------
 
+- Removed the treecorr Angle, AngleUnit, and CelestialCoord classes, along
+  with other related functions.  These have never been highly used in TreeCorr,
+  and all such usage are now relegated to the LSSTDESC.Coord package.
+  If you have been using any of these features, you should switch you code
+  to using Coord instead. (#77)
 - Added some attributes of the various Correlation objects to the output files
   to improve serialization -- the ability to write to a file and then read back
   in that file and get back something equivalent.  For FITS output files, this
@@ -29,6 +36,14 @@ API changes
   top with the relevant information.  Therefore, if you are reading from ASCII
   output files, you might need to slightly change your code to skip the first
   line.  (e.g. with np.genfromtxt(..., skip_header=1).)
+- Changed the meaning of the Rperp metric to match the definition in Fisher
+  et al, 1994.  This definition is probably closer to what people have expected
+  the Rperp metric to mean, so this is likely an improvement for most use
+  cases.  However, the difference between the two is not completely negligible
+  for typical use cases, so we have preserved the previous functionality as
+  metric=OldRperp.  If you care about preserving this, you should either
+  change your code to use this metric name instead of Rperp, or set
+  `treecorr.Rperp_alias = 'OldRperp'` before using it. (#73)
 - Updated the caching of the fields built for a given catalog to only cache
   one (the most recently built) field, rather than all fields built.  If you
   had been relying on multiple fields being cached, this could lead to a
@@ -52,6 +67,7 @@ API changes
   nbins) to respect max_sep and reduce bin_size slightly, rather than
   respect bin_size and increase max_sep.  This seems like the behavior that
   most people would expect for this combination. (#85)
+- Removed support for python 2.6.  (Probably no one cares...)
 
 
 Performance Improvements
@@ -81,10 +97,10 @@ New features
 - Added the ability to use min_rpar and max_rpar with the Arc metric. (#61)
 - Added a different definition of Rperp, called FisherRperp, which follows
   the definition in Fisher et al, 1994.  This definition is both more standard
-  and slightly faster to calculate, so we will switch Rperp to match this
-  metric in the next major version release (4.0).  For now, it is only
-  available as FisherRperp.  The name OldRperp is added as an alias of the
-  current Rperp metric, and it will remain available as such after 4.0. (#73)
+  and slightly faster to calculate.  We think this is the definition that most
+  people expect when using Rperp, so we have changed Rperp to be an alias of
+  FisherRperp.  The name OldRperp has been added to perserve the old meaning
+  of Rperp in case that is important for any science use cases. (#73)
 - Added better messaging when OpenMP is not found to work with the available
   clang compiler. (#75)
 - Added new methods Field.count_near and Field.get_near, which return the

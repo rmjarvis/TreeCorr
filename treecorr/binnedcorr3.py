@@ -167,10 +167,8 @@ class BinnedCorr3(object):
                         (default: 'Euclidean')
     :param bin_type:    What type of binning should be used. The only valid option is 'Log'.
                         (default: 'Log')
-    :param min_rpar:    For the 'Rperp' metric, the minimum difference in Rparallel to allow
-                        for pairs being included in the correlation function. (default: None)
-    :param max_rpar:    For the 'Rperp' metric, the maximum difference in Rparallel to allow
-                        for pairs being included in the correlation function. (default: None)
+    :param min_rpar:    Not currently supported for 3 point correlation. (default: None)
+    :param max_rpar:    Not currently supported for 3 point correlation. (default: None)
     :param period:      For the 'Periodic' metric, the period to use in the all directions.
                         (default: None)
     :param xperiod:     For the 'Periodic' metric, the period to use in the x direction.

@@ -18,6 +18,7 @@ import os
 import coord
 import time
 import shutil
+import sys
 
 from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog, assert_raises
 
@@ -937,6 +938,10 @@ def test_direct_perp():
     dd.process(cat1, cat2, metric='FisherRperp')
     np.testing.assert_array_equal(dd.npairs, true_npairs)
 
+    # Rperp is (by default) an alias for FisherRperp
+    dd.process(cat1, cat2, metric='Rperp')
+    np.testing.assert_array_equal(dd.npairs, true_npairs)
+
 
 def test_direct_old_perp():
     # This is the same as the above test, but using the old perpendicular distance metric
@@ -991,8 +996,12 @@ def test_direct_old_perp():
     dd.process(cat1, cat2, metric='OldRperp')
     np.testing.assert_array_equal(dd.npairs, true_npairs)
 
-    # And for now, Rperp is the same as OldRperp
-    dd.process(cat1, cat2, metric='Rperp')
+    # If we set Rperp_alias = 'OldRperp', we can use Rperp.
+    # Use mock for this
+    if sys.version_info < (3,): return  # mock only available on python 3
+    from unittest import mock
+    with mock.patch('treecorr.Rperp_alias', 'OldRperp'):
+        dd.process(cat1, cat2, metric='Rperp')
     np.testing.assert_array_equal(dd.npairs, true_npairs)
 
 
@@ -1880,12 +1889,12 @@ def test_perp_minmax():
     dcat = treecorr.Catalog('data/nn_perp_data.dat', config)
 
     dd1 = treecorr.NNCorrelation(config)
-    dd1.process(dcat, metric='Rperp')
+    dd1.process(dcat, metric='OldRperp')
 
     lower_min_sep = config['min_sep'] * np.exp(-2.*config['bin_size'])
     more_nbins = config['nbins'] + 4
     dd2 = treecorr.NNCorrelation(config, min_sep=lower_min_sep, nbins=more_nbins)
-    dd2.process(dcat, metric='Rperp')
+    dd2.process(dcat, metric='OldRperp')
 
     print('dd1 npairs = ',dd1.npairs)
     print('dd2 npairs = ',dd2.npairs[2:-2])

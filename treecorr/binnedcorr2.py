@@ -60,8 +60,9 @@ class BinnedCorr2(object):
         - 'OldRperp' = the perpendicular component of the distance. For two points with
           distance from Earth `r1, r2`, if `d` is the normal Euclidean distance, then we
           take :math:`Rpar = r2-r1` and :math:`Rperp^2 = d^2 - Rpar^2`.
-        - 'Rperp' is currently an alias for OldRperp.  In version 4.0, it will switch to
-          being equivalent to FisherRperp.
+        - 'Rperp' is an alias for FisherRperp.  You can change it to be an alias for
+          OldRperp if you want by setting `treecorr.Rperp_alias = 'OldRperp'` before
+          using it.
         - 'Rlens' = the distance from the first object (taken to be a lens) to the line
           connecting Earth and the second object (taken to be a lensed source).
         - 'Arc' = the true great circle distance for spherical coordinates.
@@ -164,10 +165,10 @@ class BinnedCorr2(object):
                         (default: 'Euclidean')
     :param bin_type:    What type of binning should be used.  Options are listed above.
                         (default: 'Log')
-    :param min_rpar:    For the 'Rperp' metric, the minimum difference in Rparallel to allow
-                        for pairs being included in the correlation function. (default: None)
-    :param max_rpar:    For the 'Rperp' metric, the maximum difference in Rparallel to allow
-                        for pairs being included in the correlation function. (default: None)
+    :param min_rpar:    For any metric that supports it, the minimum difference in Rparallel to
+                        allow for pairs being included in the correlation function. (default: None)
+    :param max_rpar:    For any metric that supports it,, the maximum difference in Rparallel to
+                        allow for pairs being included in the correlation function. (default: None)
     :param period:      For the 'Periodic' metric, the period to use in the all directions.
                         (default: None)
     :param xperiod:     For the 'Periodic' metric, the period to use in the x direction.
@@ -466,12 +467,6 @@ class BinnedCorr2(object):
                 raise ValueError("min_rpar is not valid for %s metric."%metric)
             if self.max_rpar != sys.float_info.max:
                 raise ValueError("max_rpar is not valid for %s metric."%metric)
-        if metric == 'Rperp':
-            self.logger.warning(
-                "WARNING: The definition of Rperp will change in version 4.0\n"
-                "to match the definition in Fisher et al, 1994.\n"
-                "The new definition can be used now with metric='FisherRperp'.\n"
-                "After 4.0, the current Rperp will be available as metric='OldRperp'.\n")
         coords, metric = treecorr.util.parse_metric(metric, coords1, coords2)
         if self.sep_units != '' and coords == '3d' and metric != 'Arc':
             raise ValueError("sep_units is invalid with 3d coordinates. "

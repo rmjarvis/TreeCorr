@@ -2074,7 +2074,7 @@ def test_oldrperp():
     lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl, g1=gl.real, g2=gl.imag)
     source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
     gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                metric='Rperp', brute=True)
+                                metric='OldRperp', brute=True)
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
@@ -2113,7 +2113,7 @@ def test_oldrperp():
     # With bin_slop = 0, it should get the same npairs, but the shapes will be slightly off,
     # since the directions won't be exactly right.
     gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                metric='Rperp', bin_slop=0)
+                                metric='OldRperp', bin_slop=0)
     gg.process(lens_cat, source_cat)
 
     Rperp = gg.meanr
@@ -2151,7 +2151,7 @@ def test_oldrperp():
 
     # Now use a more normal value for bin_slop.
     gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                metric='Rperp', bin_slop=0.3)
+                                metric='OldRperp', bin_slop=0.3)
     gg.process(lens_cat, source_cat)
     Rperp = gg.meanr
     theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)

@@ -41,6 +41,8 @@ for file_name in glob.glob(os.path.join(include_dir,'*_C.h')):
         _ffi.cdef(fin.read())
 _lib = _ffi.dlopen(lib_file)
 
+Rperp_alias = 'FisherRperp'
+
 from . import util
 from .config import read_config, set_omp_threads
 from .catalog import Catalog, read_catalogs, calculateVarG, calculateVarK

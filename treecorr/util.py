@@ -394,10 +394,12 @@ def metric_enum(metric):
     """
     if metric == 'Euclidean':
         return treecorr._lib.Euclidean
-    elif metric in ['Rperp', 'OldRperp']:
-        return treecorr._lib.OldRperp
+    elif metric == 'Rperp':
+        return metric_enum(treecorr.Rperp_alias)
     elif metric == 'FisherRperp':
         return treecorr._lib.Rperp
+    elif metric in ['OldRperp']:
+        return treecorr._lib.OldRperp
     elif metric == 'Rlens':
         return treecorr._lib.Rlens
     elif metric == 'Arc':

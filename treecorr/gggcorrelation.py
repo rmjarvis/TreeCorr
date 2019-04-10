@@ -85,9 +85,13 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         :gam1:      The 1st "natural" correlation function, :math:`\\Gamma_1(r,u,v)`.
         :gam2:      The 2nd "natural" correlation function, :math:`\\Gamma_2(r,u,v)`.
         :gam3:      The 3rd "natural" correlation function, :math:`\\Gamma_3(r,u,v)`.
-        :vargam:    The variance of :math:`\\Gamma` values, only including the shot noise
-                    propagated into the final correlation.  This does not include sample variance,
-                    so it is always an underestimate of the actual variance.
+        :vargam0:   The variance of :math:`\\Gamma_0`, only including the shot noise
+                    propagated into the final correlation.  This (and the related values for
+                    1,2,3) does not include sample variance, so it is always an underestimate
+                    of the actual variance.
+        :vargam1:   The variance of :math:`\\Gamma_1`.
+        :vargam2:   The variance of :math:`\\Gamma_2`.
+        :vargam3:   The variance of :math:`\\Gamma_3`.
         :weight:    The total weight in each bin.
         :ntri:      The number of triangles going into each bin.
 
@@ -131,7 +135,10 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.gam1i = np.zeros(shape, dtype=float)
         self.gam2i = np.zeros(shape, dtype=float)
         self.gam3i = np.zeros(shape, dtype=float)
-        self.vargam = np.zeros(shape, dtype=float)
+        self.vargam0 = np.zeros(shape, dtype=float)
+        self.vargam1 = np.zeros(shape, dtype=float)
+        self.vargam2 = np.zeros(shape, dtype=float)
+        self.vargam3 = np.zeros(shape, dtype=float)
         self.meand1 = np.zeros(shape, dtype=float)
         self.meanlogd1 = np.zeros(shape, dtype=float)
         self.meand2 = np.zeros(shape, dtype=float)
@@ -215,7 +222,10 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                 np.array_equal(self.gam2i, other.gam2i) and
                 np.array_equal(self.gam3r, other.gam3r) and
                 np.array_equal(self.gam3i, other.gam3i) and
-                np.array_equal(self.vargam, other.vargam) and
+                np.array_equal(self.vargam0, other.vargam0) and
+                np.array_equal(self.vargam1, other.vargam1) and
+                np.array_equal(self.vargam2, other.vargam2) and
+                np.array_equal(self.vargam3, other.vargam3) and
                 np.array_equal(self.weight, other.weight) and
                 np.array_equal(self.ntri, other.ntri))
 
@@ -359,7 +369,10 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.gam2i[mask1] /= self.weight[mask1]
         self.gam3r[mask1] /= self.weight[mask1]
         self.gam3i[mask1] /= self.weight[mask1]
-        self.vargam[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
+        self.vargam0[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
+        self.vargam1[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
+        self.vargam2[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
+        self.vargam3[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
         self.meand1[mask1] /= self.weight[mask1]
         self.meanlogd1[mask1] /= self.weight[mask1]
         self.meand2[mask1] /= self.weight[mask1]
@@ -373,7 +386,10 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self._apply_units(mask1)
 
         # Use meanlogr when available, but set to nominal when no triangles in bin.
-        self.vargam[mask2] = 0.
+        self.vargam0[mask2] = 0.
+        self.vargam1[mask2] = 0.
+        self.vargam2[mask2] = 0.
+        self.vargam3[mask2] = 0.
         self.meand2[mask2] = self.rnom[mask2]
         self.meanlogd2[mask2] = self.logr[mask2]
         self.meanu[mask2] = self.u[mask2]
@@ -395,7 +411,10 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.gam2i[:,:,:] = 0.
         self.gam3r[:,:,:] = 0.
         self.gam3i[:,:,:] = 0.
-        self.vargam[:,:,:] = 0.
+        self.vargam0[:,:,:] = 0.
+        self.vargam1[:,:,:] = 0.
+        self.vargam2[:,:,:] = 0.
+        self.vargam3[:,:,:] = 0.
         self.meand1[:,:,:] = 0.
         self.meanlogd1[:,:,:] = 0.
         self.meand2[:,:,:] = 0.
@@ -436,7 +455,10 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.gam2i[:] += other.gam2i[:]
         self.gam3r[:] += other.gam3r[:]
         self.gam3i[:] += other.gam3i[:]
-        self.vargam[:] += other.vargam[:]
+        self.vargam0[:] += other.vargam0[:]
+        self.vargam1[:] += other.vargam1[:]
+        self.vargam2[:] += other.vargam2[:]
+        self.vargam3[:] += other.vargam3[:]
         self.meand1[:] += other.meand1[:]
         self.meanlogd1[:] += other.meanlogd1[:]
         self.meand2[:] += other.meand2[:]
@@ -545,7 +567,10 @@ class GGGCorrelation(treecorr.BinnedCorr3):
             :gam2i:         The imag part of the estimator of :math:`\\Gamma_2(r,u,v)`.
             :gam3r:         The real part of the estimator of :math:`\\Gamma_3(r,u,v)`.
             :gam3i:         The imag part of the estimator of :math:`\\Gamma_3(r,u,v)`.
-            :sigma_gam:     The sqrt of the variance estimate of :math:`\\Gamma` values.
+            :sigma_gam0:    The sqrt of the variance estimate of :math:`\\Gamma_0`.
+            :sigma_gam1:    The sqrt of the variance estimate of :math:`\\Gamma_1`.
+            :sigma_gam2:    The sqrt of the variance estimate of :math:`\\Gamma_2`.
+            :sigma_gam3:    The sqrt of the variance estimate of :math:`\\Gamma_3`.
             :weight:        The total weight of triangles contributing to each bin.
             :ntri:          The number of triangles contributing to each bin.
 
@@ -564,13 +589,14 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         col_names = [ 'R_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
                       'meand3', 'meanlogd3', 'meanu', 'meanv',
                       'gam0r', 'gam0i', 'gam1r', 'gam1i', 'gam2r', 'gam2i', 'gam3r', 'gam3i',
-                      'sigma_gam', 'weight', 'ntri' ]
+                      'sigma_gam0', 'sigma_gam1', 'sigma_gam2', 'sigma_gam3', 'weight', 'ntri' ]
         columns = [ self.rnom, self.u, self.v,
                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                     self.meand3, self.meanlogd3, self.meanu, self.meanv,
                     self.gam0r, self.gam0i, self.gam1r, self.gam1i,
                     self.gam2r, self.gam2i, self.gam3r, self.gam3i,
-                    np.sqrt(self.vargam), self.weight, self.ntri ]
+                    np.sqrt(self.vargam0), np.sqrt(self.vargam1), np.sqrt(self.vargam2),
+                    np.sqrt(self.vargam3), self.weight, self.ntri ]
 
         params = { 'coords' : self.coords, 'metric' : self.metric,
                    'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
@@ -621,7 +647,17 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.gam2i = data['gam2i'].reshape(s)
         self.gam3r = data['gam3r'].reshape(s)
         self.gam3i = data['gam3i'].reshape(s)
-        self.vargam = data['sigma_gam'].reshape(s)**2
+        # Read old output files without error.
+        if 'sigma_gam' in data.dtype.names:  # pragma: no cover
+            self.vargam0 = data['sigma_gam'].reshape(s)**2
+            self.vargam1 = data['sigma_gam'].reshape(s)**2
+            self.vargam2 = data['sigma_gam'].reshape(s)**2
+            self.vargam3 = data['sigma_gam'].reshape(s)**2
+        else:
+            self.vargam0 = data['sigma_gam0'].reshape(s)**2
+            self.vargam1 = data['sigma_gam1'].reshape(s)**2
+            self.vargam2 = data['sigma_gam2'].reshape(s)**2
+            self.vargam3 = data['sigma_gam3'].reshape(s)**2
         self.weight = data['weight'].reshape(s)
         self.ntri = data['ntri'].reshape(s)
         self.coords = params['coords'].strip()
@@ -833,11 +869,16 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         gam1 = self.gam1.ravel()
         gam2 = self.gam2.ravel()
         gam3 = self.gam3.ravel()
-        vargam = self.vargam.ravel()
+        vargam0 = self.vargam0.ravel()
+        vargam1 = self.vargam1.ravel()
+        vargam2 = self.vargam2.ravel()
+        vargam3 = self.vargam3.ravel()
         mmm = T0.dot(gam0)
         mcmm = T1.dot(gam1) + T2.dot(gam2) + T3.dot(gam3)
-        varmmm = (np.abs(T0)**2).dot(vargam)
-        varmcmm = (np.abs(T1)**2 + np.abs(T2)**2 + np.abs(T3)**2).dot(vargam)
+        varmmm = (np.abs(T0)**2).dot(vargam0)
+        varmcmm = (np.abs(T1)**2).dot(vargam1)
+        varmcmm += (np.abs(T2)**2).dot(vargam2)
+        varmcmm += (np.abs(T3)**2).dot(vargam3)
 
         if k2 == 1 and k3 == 1:
             mmm *= 6
@@ -865,8 +906,10 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                 # Relies on numpy array overloading += to actually update in place.
                 mmm += T0.dot(gam0)
                 _mcmm += T1.dot(gam1) + T2.dot(gam2) + T3.dot(gam3)
-                varmmm += (np.abs(T0)**2).dot(vargam)
-                _varmcmm += (np.abs(T1)**2 + np.abs(T2)**2 + np.abs(T3)**2).dot(vargam)
+                varmmm += (np.abs(T0)**2).dot(vargam0)
+                _varmcmm += (np.abs(T1)**2).dot(vargam1)
+                _varmcmm += (np.abs(T2)**2).dot(vargam2)
+                _varmcmm += (np.abs(T3)**2).dot(vargam3)
 
         map3 = 0.25 * np.real(mcmm + mmcm + mmmc + mmm)
         mapmapmx = 0.25 * np.imag(mcmm + mmcm - mmmc + mmm)

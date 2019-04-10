@@ -43,9 +43,12 @@ class GGCorrelation(treecorr.BinnedCorr2):
         :xim:       The correlation funciton, :math:`\\xi_-(r)`.
         :xip_im:    The imaginary part of :math:`\\xi_+(r)`.
         :xim_im:    The imaginary part of :math:`\\xi_-(r)`.
-        :varxi:     The variance of xip and xim, only including the shape noise propagated
-                    into the final correlation.  This does not include sample variance, so
-                    it is always an underestimate of the actual variance.
+        :varxip:    The variance of xip, only including the shape noise propagated into
+                    the final correlation.  This does not include sample variance, so it
+                    is always an underestimate of the actual variance.
+        :varxim:    The variance of xim, only including the shape noise propagated into
+                    the final correlation.  This does not include sample variance, so it
+                    is always an underestimate of the actual variance.
         :weight:    The total weight in each bin.
         :npairs:    The number of pairs going into each bin.
 
@@ -81,7 +84,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.xim = np.zeros_like(self.rnom, dtype=float)
         self.xip_im = np.zeros_like(self.rnom, dtype=float)
         self.xim_im = np.zeros_like(self.rnom, dtype=float)
-        self.varxi = np.zeros_like(self.rnom, dtype=float)
+        self.varxip = np.zeros_like(self.rnom, dtype=float)
+        self.varxim = np.zeros_like(self.rnom, dtype=float)
         self.meanr = np.zeros_like(self.rnom, dtype=float)
         self.meanlogr = np.zeros_like(self.rnom, dtype=float)
         self.weight = np.zeros_like(self.rnom, dtype=float)
@@ -127,7 +131,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
                 np.array_equal(self.xim, other.xim) and
                 np.array_equal(self.xip_im, other.xip_im) and
                 np.array_equal(self.xim_im, other.xim_im) and
-                np.array_equal(self.varxi, other.varxi) and
+                np.array_equal(self.varxip, other.varxip) and
+                np.array_equal(self.varxim, other.varxim) and
                 np.array_equal(self.weight, other.weight) and
                 np.array_equal(self.npairs, other.npairs))
 
@@ -285,7 +290,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.xim_im[mask1] /= self.weight[mask1]
         self.meanr[mask1] /= self.weight[mask1]
         self.meanlogr[mask1] /= self.weight[mask1]
-        self.varxi[mask1] = 2 * varg1 * varg2 / self.weight[mask1]
+        self.varxip[mask1] = 2 * varg1 * varg2 / self.weight[mask1]
+        self.varxim[mask1] = 2 * varg1 * varg2 / self.weight[mask1]
 
         # Update the units of meanr, meanlogr
         self._apply_units(mask1)
@@ -293,7 +299,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
         # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
         self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
-        self.varxi[mask2] = 0.
+        self.varxip[mask2] = 0.
+        self.varxim[mask2] = 0.
 
 
     def clear(self):
@@ -389,7 +396,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
             :xim:       The real part of the :math:`\\xi_-` correlation function.
             :xip_im:    The imag part of the :math:`\\xi_+` correlation function.
             :xim_im:    The imag part of the :math:`\\xi_-` correlation function.
-            :sigma_xi:  The sqrt of the variance estimate of :math:`\\xi_+`, :math:`\\xi_-`.
+            :sigma_xip: The sqrt of the variance estimate of :math:`\\xi_+`.
+            :sigma_xim: The sqrt of the variance estimate of :math:`\\xi_-`.
             :weight:    The total weight contributing to each bin.
             :npairs:    The number of pairs contributing ot each bin.
 
@@ -413,9 +421,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         treecorr.util.gen_write(
             file_name,
-            ['R_nom','meanR','meanlogR','xip','xim','xip_im','xim_im','sigma_xi','weight','npairs'],
+            ['R_nom','meanR','meanlogR','xip','xim','xip_im','xim_im','sigma_xip','sigma_xim',
+             'weight','npairs'],
             [ self.rnom, self.meanr, self.meanlogr,
-              self.xip, self.xim, self.xip_im, self.xim_im, np.sqrt(self.varxi),
+              self.xip, self.xim, self.xip_im, self.xim_im,
+              np.sqrt(self.varxip), np.sqrt(self.varxim),
               self.weight, self.npairs ],
             params=params, precision=precision, file_type=file_type, logger=self.logger)
 
@@ -445,7 +455,13 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.xim = data['xim']
         self.xip_im = data['xip_im']
         self.xim_im = data['xim_im']
-        self.varxi = data['sigma_xi']**2
+        # Read old output files without error.
+        if 'sigma_xi' in data.dtype.names:  # pragma: no cover
+            self.varxip = data['sigma_xi']**2
+            self.varxim = data['sigma_xi']**2
+        else:
+            self.varxip = data['sigma_xip']**2
+            self.varxim = data['sigma_xim']**2
         self.weight = data['weight']
         self.npairs = data['npairs']
         self.coords = params['coords'].strip()
@@ -549,7 +565,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         # The variance of each of these is
         # Var(<Map^2>(R)) = int_r=0..2R [1/4 s^4 dlogr^2 (T+(s)^2 + T-(s)^2) Var(xi)]
-        varmapsq = (Tp**2 + Tm**2).dot(self.varxi) * 0.25 * self.bin_size**2
+        varmapsq = (Tp**2).dot(self.varxip) + (Tm**2).dot(self.varxim)
+        varmapsq *= 0.25 * self.bin_size**2
 
         return mapsq, mapsq_im, mxsq, mxsq_im, varmapsq
 
@@ -607,7 +624,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         # Note that dlogr = bin_size
         Spxip = Sp.dot(self.xip)
         gamsq = Spxip * self.bin_size
-        vargamsq = (Sp**2).dot(self.varxi) * self.bin_size**2
+        vargamsq = (Sp**2).dot(self.varxip) * self.bin_size**2
 
         # Stop here if eb == False
         if not eb: return gamsq, vargamsq
@@ -621,7 +638,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
         Smxim = Sm.dot(self.xim)
         gamsq_e = (Spxip + Smxim) * 0.5 * self.bin_size
         gamsq_b = (Spxip - Smxim) * 0.5 * self.bin_size
-        vargamsq_e = (Sp**2 + Sm**2).dot(self.varxi) * 0.25 * self.bin_size**2
+        vargamsq_e = (Sp**2).dot(self.varxip) + (Sm**2).dot(self.varxim)
+        vargamsq_e *= 0.25 * self.bin_size**2
 
         return gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e
 

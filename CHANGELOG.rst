@@ -67,6 +67,16 @@ API changes
   nbins) to respect max_sep and reduce bin_size slightly, rather than
   respect bin_size and increase max_sep.  This seems like the behavior that
   most people would expect for this combination. (#85)
+- Changed the name of the variance attributes for shear-shear correlations
+  to varxip and varxim, rather than just a single varxi.  For the current
+  naive shot-noise-only estimate of the variance, they are equal, but we plan
+  to have other variance estimates where they could differ.  So this change
+  is preparing for future work that will need the difference.
+- Change the name of the variance attributes for shear-shear-shear correlations
+  to vargam0, vargam1, vargam2, and vargam3, rather than just a single vargam.
+- Change the column names in GG and GGG output files for the sigma estimates
+  to sigma_xip and sigma_xim for GG and sigma_gam0, sigma_gam1, sigma_gam2,
+  and sigma_gam3 for GGG.
 - Removed support for python 2.6.  (Probably no one cares...)
 - Removed deprecated aliases in the config processing.
 

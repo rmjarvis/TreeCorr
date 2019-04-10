@@ -561,7 +561,8 @@ def test_gg():
     np.testing.assert_allclose(data['xim'], gg.xim)
     np.testing.assert_allclose(data['xip_im'], gg.xip_im)
     np.testing.assert_allclose(data['xim_im'], gg.xim_im)
-    np.testing.assert_allclose(data['sigma_xi'], np.sqrt(gg.varxi))
+    np.testing.assert_allclose(data['sigma_xip'], np.sqrt(gg.varxip))
+    np.testing.assert_allclose(data['sigma_xim'], np.sqrt(gg.varxim))
     np.testing.assert_allclose(data['weight'], gg.weight)
     np.testing.assert_allclose(data['npairs'], gg.npairs)
 
@@ -575,7 +576,8 @@ def test_gg():
     np.testing.assert_allclose(gg2.xim, gg.xim)
     np.testing.assert_allclose(gg2.xip_im, gg.xip_im)
     np.testing.assert_allclose(gg2.xim_im, gg.xim_im)
-    np.testing.assert_allclose(gg2.varxi, gg.varxi)
+    np.testing.assert_allclose(gg2.varxip, gg.varxip)
+    np.testing.assert_allclose(gg2.varxim, gg.varxim)
     np.testing.assert_allclose(gg2.weight, gg.weight)
     np.testing.assert_allclose(gg2.npairs, gg.npairs)
     assert gg2.coords == gg.coords
@@ -2402,7 +2404,7 @@ def test_oldrperp_local():
 
 
 def test_varxi():
-    # Test that varxi is correct (or close) based on actual variance of many runs.
+    # Test that varxip, varxim are correct (or close) based on actual variance of many runs.
 
     # Same gamma pattern as in test_gg().  Although the signal doesn't actually matter at all here.
     gamma0 = 0.05
@@ -2446,19 +2448,21 @@ def test_varxi():
     var_xip = np.var([gg.xip for gg in all_ggs], axis=0)
     mean_xim = np.mean([gg.xim for gg in all_ggs], axis=0)
     var_xim = np.var([gg.xim for gg in all_ggs], axis=0)
-    mean_varxi = np.mean([gg.varxi for gg in all_ggs], axis=0)
+    mean_varxip = np.mean([gg.varxip for gg in all_ggs], axis=0)
+    mean_varxim = np.mean([gg.varxim for gg in all_ggs], axis=0)
 
     print('mean_xip = ',mean_xip)
     print('mean_xim = ',mean_xim)
-    print('mean_varxi = ',mean_varxi)
+    print('mean_varxip = ',mean_varxip)
+    print('mean_varxim = ',mean_varxim)
     print('var_xip = ',var_xip)
-    print('ratio = ',var_xip / mean_varxi)
+    print('ratio = ',var_xip / mean_varxip)
     print('var_xim = ',var_xim)
-    print('ratio = ',var_xim / mean_varxi)
-    print('max relerr for xip = ',np.max(np.abs((var_xip - mean_varxi)/var_xip)))
-    print('max relerr for xim = ',np.max(np.abs((var_xim - mean_varxi)/var_xim)))
-    np.testing.assert_allclose(mean_varxi, var_xip, rtol=0.02 * tol_factor)
-    np.testing.assert_allclose(mean_varxi, var_xim, rtol=0.02 * tol_factor)
+    print('ratio = ',var_xim / mean_varxim)
+    print('max relerr for xip = ',np.max(np.abs((var_xip - mean_varxip)/var_xip)))
+    print('max relerr for xim = ',np.max(np.abs((var_xim - mean_varxim)/var_xim)))
+    np.testing.assert_allclose(mean_varxip, var_xip, rtol=0.02 * tol_factor)
+    np.testing.assert_allclose(mean_varxim, var_xim, rtol=0.02 * tol_factor)
 
 
 if __name__ == '__main__':

@@ -779,7 +779,10 @@ def test_ggg():
     np.testing.assert_almost_equal(data['gam1i'], ggg.gam1.imag.flatten())
     np.testing.assert_almost_equal(data['gam2i'], ggg.gam2.imag.flatten())
     np.testing.assert_almost_equal(data['gam3i'], ggg.gam3.imag.flatten())
-    np.testing.assert_almost_equal(data['sigma_gam'], np.sqrt(ggg.vargam.flatten()))
+    np.testing.assert_almost_equal(data['sigma_gam0'], np.sqrt(ggg.vargam0.flatten()))
+    np.testing.assert_almost_equal(data['sigma_gam1'], np.sqrt(ggg.vargam1.flatten()))
+    np.testing.assert_almost_equal(data['sigma_gam2'], np.sqrt(ggg.vargam2.flatten()))
+    np.testing.assert_almost_equal(data['sigma_gam3'], np.sqrt(ggg.vargam3.flatten()))
     np.testing.assert_almost_equal(data['weight'], ggg.weight.flatten())
     np.testing.assert_almost_equal(data['ntri'], ggg.ntri.flatten())
 
@@ -805,7 +808,10 @@ def test_ggg():
     np.testing.assert_almost_equal(ggg2.gam1, ggg.gam1)
     np.testing.assert_almost_equal(ggg2.gam2, ggg.gam2)
     np.testing.assert_almost_equal(ggg2.gam3, ggg.gam3)
-    np.testing.assert_almost_equal(ggg2.vargam, ggg.vargam)
+    np.testing.assert_almost_equal(ggg2.vargam0, ggg.vargam0)
+    np.testing.assert_almost_equal(ggg2.vargam1, ggg.vargam1)
+    np.testing.assert_almost_equal(ggg2.vargam2, ggg.vargam2)
+    np.testing.assert_almost_equal(ggg2.vargam3, ggg.vargam3)
     np.testing.assert_almost_equal(ggg2.weight, ggg.weight)
     np.testing.assert_almost_equal(ggg2.ntri, ggg.ntri)
     assert ggg2.coords == ggg.coords

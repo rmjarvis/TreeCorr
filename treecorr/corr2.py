@@ -83,10 +83,6 @@ for c in [ treecorr.Catalog, treecorr.BinnedCorr2 ]:
     corr2_valid_params.update(c._valid_params)
 
 corr2_aliases = {
-    'n2_file_name' : 'nn_file_name',
-    'n2_statistic' : 'nn_statistic',
-    'g2_file_name' : 'gg_file_name',
-    'k2_file_name' : 'kk_file_name',
 }
 
 def corr2(config, logger=None):

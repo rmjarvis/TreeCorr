@@ -76,10 +76,6 @@ for c in [ treecorr.Catalog, treecorr.BinnedCorr3 ]:
 
 
 corr3_aliases = {
-    'n3_file_name' : 'nnn_file_name',
-    'n3_statistic' : 'nnn_statistic',
-    'k3_file_name' : 'kkk_file_name',
-    'g3_file_name' : 'ggg_file_name',
 }
 
 def corr3(config, logger=None):

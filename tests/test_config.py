@@ -305,21 +305,6 @@ def test_check():
     assert 'reverse_g1' not in config2
     del config1['reverse_g1']
 
-    # corr2 has a list of standard aliases
-    config1['n2_file_name'] = 'output/n2.out'
-    config2 = treecorr.config.check_config(config1.copy(), valid_params,
-                                           aliases=treecorr.corr2_aliases)
-    assert 'n2_file_name' not in config2
-    assert config2['nn_file_name'] == 'output/n2.out'
-
-    # With a logger, aliases emit a warning.
-    with CaptureLog() as cl:
-        config2 = treecorr.config.check_config(config1.copy(), valid_params, logger=cl.logger,
-                                               aliases=treecorr.corr2_aliases)
-    assert "The parameter n2_file_name is deprecated." in cl.output
-    assert "You should use nn_file_name instead." in cl.output
-    del config1['n2_file_name']
-
     # Invalid values raise errors
     config1['verbose'] = -1
     with assert_raises(ValueError):
@@ -329,6 +314,25 @@ def test_check():
     with assert_raises(ValueError):
         treecorr.config.check_config(config1.copy(), valid_params)
     del config1['metric']
+
+    # With a logger, aliases emit a warning.
+    config1['n2_file_name'] = 'output/n2.out'
+    with CaptureLog() as cl:
+        config2 = treecorr.config.check_config(config1.copy(), valid_params, logger=cl.logger,
+                                               aliases={'n2_file_name' : 'nn_file_name'})
+    assert "The parameter n2_file_name is deprecated." in cl.output
+    assert "You should use nn_file_name instead." in cl.output
+
+    # corr2 has a list of standard aliases
+    # It is currently empty, but let's mock it up to test the functionality.
+    if sys.version_info < (3,): return  # mock only available on python 3
+    from unittest import mock
+    with mock.patch('treecorr.corr2_aliases', {'n2_file_name' : 'nn_file_name'}):
+        config2 = treecorr.config.check_config(config1.copy(), valid_params,
+                                               aliases=treecorr.corr2_aliases)
+    assert 'n2_file_name' not in config2
+    assert config2['nn_file_name'] == 'output/n2.out'
+    del config1['n2_file_name']
 
 
 def test_print():

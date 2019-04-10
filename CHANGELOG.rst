@@ -68,6 +68,7 @@ API changes
   respect bin_size and increase max_sep.  This seems like the behavior that
   most people would expect for this combination. (#85)
 - Removed support for python 2.6.  (Probably no one cares...)
+- Removed deprecated aliases in the config processing.
 
 
 Performance Improvements

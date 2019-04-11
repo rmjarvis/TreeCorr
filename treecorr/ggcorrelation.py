@@ -421,7 +421,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         treecorr.util.gen_write(
             file_name,
-            ['R_nom','meanR','meanlogR','xip','xim','xip_im','xim_im','sigma_xip','sigma_xim',
+            ['r_nom','meanr','meanlogr','xip','xim','xip_im','xim_im','sigma_xip','sigma_xim',
              'weight','npairs'],
             [ self.rnom, self.meanr, self.meanlogr,
               self.xip, self.xim, self.xip_im, self.xim_im,
@@ -447,10 +447,15 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.logger.info('Reading GG correlations from %s',file_name)
 
         data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
-        self.rnom = data['R_nom']
-        self.logr = np.log(data['R_nom'])
-        self.meanr = data['meanR']
-        self.meanlogr = data['meanlogR']
+        if 'R_nom' in data.dtype.names:  # pragma: no cover
+            self.rnom = data['R_nom']
+            self.meanr = data['meanR']
+            self.meanlogr = data['meanlogR']
+        else:
+            self.rnom = data['r_nom']
+            self.meanr = data['meanr']
+            self.meanlogr = data['meanlogr']
+        self.logr = np.log(self.rnom)
         self.xip = data['xip']
         self.xim = data['xim']
         self.xip_im = data['xip_im']

@@ -98,7 +98,7 @@ def test_direct_count():
     treecorr.corr2(config, logger)
     corr2_output = np.genfromtxt(os.path.join('output','nn_periodic.out'), names=True,
                                     skip_header=1)
-    np.testing.assert_allclose(corr2_output['R_nom'], dd.rnom, rtol=1.e-3)
+    np.testing.assert_allclose(corr2_output['r_nom'], dd.rnom, rtol=1.e-3)
     np.testing.assert_allclose(corr2_output['DD'], dd.npairs, rtol=1.e-3)
     np.testing.assert_allclose(corr2_output['npairs'], dd.npairs, rtol=1.e-3)
     np.testing.assert_allclose(corr2_output['RR'], rr.npairs, rtol=1.e-3)

@@ -496,7 +496,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Writing NN correlations to %s',file_name)
 
-        col_names = [ 'R_nom','meanR','meanlogR' ]
+        col_names = [ 'r_nom','meanr','meanlogr' ]
         columns = [ self.rnom, self.meanr, self.meanlogr ]
         if rr is None:
             col_names += [ 'DD', 'npairs' ]
@@ -550,10 +550,15 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.logger.info('Reading NN correlations from %s',file_name)
 
         data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
-        self.rnom = data['R_nom']
+        if 'R_nom' in data.dtype.names:  # pragma: no cover
+            self.rnom = data['R_nom']
+            self.meanr = data['meanR']
+            self.meanlogr = data['meanlogR']
+        else:
+            self.rnom = data['r_nom']
+            self.meanr = data['meanr']
+            self.meanlogr = data['meanlogr']
         self.logr = np.log(self.rnom)
-        self.meanr = data['meanR']
-        self.meanlogr = data['meanlogR']
         self.weight = data['DD']
         self.npairs = data['npairs']
         self.tot = params['tot']

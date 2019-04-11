@@ -72,11 +72,14 @@ API changes
   naive shot-noise-only estimate of the variance, they are equal, but we plan
   to have other variance estimates where they could differ.  So this change
   is preparing for future work that will need the difference.
-- Change the name of the variance attributes for shear-shear-shear correlations
+- Changed the name of the variance attributes for shear-shear-shear correlations
   to vargam0, vargam1, vargam2, and vargam3, rather than just a single vargam.
-- Change the column names in GG and GGG output files for the sigma estimates
+- Changed the column names in GG and GGG output files for the sigma estimates
   to sigma_xip and sigma_xim for GG and sigma_gam0, sigma_gam1, sigma_gam2,
   and sigma_gam3 for GGG.
+- Changed the column names in output files that used an upper case R (R_nom,
+  meanR, and meanlogR) to use a lower case r (r_nom, meanr, meanlogr) to match
+  the rest of the documentation.
 - Removed support for python 2.6.  (Probably no one cares...)
 - Removed deprecated aliases in the config processing.
 

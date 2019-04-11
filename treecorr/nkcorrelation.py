@@ -368,7 +368,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         treecorr.util.gen_write(
             file_name,
-            ['R_nom','meanR','meanlogR','kappa','sigma','weight','npairs'],
+            ['r_nom','meanr','meanlogr','kappa','sigma','weight','npairs'],
             [ self.rnom, self.meanr, self.meanlogr,
               xi, np.sqrt(varxi), self.weight, self.npairs ],
             params=params, precision=precision, file_type=file_type, logger=self.logger)
@@ -391,10 +391,15 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.logger.info('Reading NK correlations from %s',file_name)
 
         data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
-        self.rnom = data['R_nom']
+        if 'R_nom' in data.dtype.names:  # pragma: no cover
+            self.rnom = data['R_nom']
+            self.meanr = data['meanR']
+            self.meanlogr = data['meanlogR']
+        else:
+            self.rnom = data['r_nom']
+            self.meanr = data['meanr']
+            self.meanlogr = data['meanlogr']
         self.logr = np.log(self.rnom)
-        self.meanr = data['meanR']
-        self.meanlogr = data['meanlogR']
         self.xi = data['kappa']
         self.varxi = data['sigma']**2
         self.weight = data['weight']

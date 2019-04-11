@@ -608,7 +608,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         """
         self.logger.info('Writing NNN correlations to %s',file_name)
 
-        col_names = [ 'R_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+        col_names = [ 'r_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
                       'meand3', 'meanlogd3', 'meanu', 'meanv' ]
         columns = [ self.rnom, self.u, self.v,
                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
@@ -664,7 +664,10 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
         s = self.logr.shape
-        self.rnom = data['R_nom'].reshape(s)
+        if 'R_nom' in data.dtype.names:  # pragma: no cover
+            self.rnom = data['R_nom'].reshape(s)
+        else:
+            self.rnom = data['r_nom'].reshape(s)
         self.logr = np.log(self.rnom)
         self.u = data['u_nom'].reshape(s)
         self.v = data['v_nom'].reshape(s)

@@ -586,7 +586,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         """
         self.logger.info('Writing GGG correlations to %s',file_name)
 
-        col_names = [ 'R_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+        col_names = [ 'r_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
                       'meand3', 'meanlogd3', 'meanu', 'meanv',
                       'gam0r', 'gam0i', 'gam1r', 'gam1i', 'gam2r', 'gam2i', 'gam3r', 'gam3i',
                       'sigma_gam0', 'sigma_gam1', 'sigma_gam2', 'sigma_gam3', 'weight', 'ntri' ]
@@ -627,7 +627,10 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
         data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
         s = self.logr.shape
-        self.rnom = data['R_nom'].reshape(s)
+        if 'R_nom' in data.dtype.names:  # pragma: no cover
+            self.rnom = data['R_nom'].reshape(s)
+        else:
+            self.rnom = data['r_nom'].reshape(s)
         self.logr = np.log(self.rnom)
         self.u = data['u_nom'].reshape(s)
         self.v = data['v_nom'].reshape(s)

@@ -379,7 +379,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         treecorr.util.gen_write(
             file_name,
-            ['R_nom','meanR','meanlogR','gamT','gamX','sigma','weight','npairs'],
+            ['r_nom','meanr','meanlogr','gamT','gamX','sigma','weight','npairs'],
             [ self.rnom, self.meanr, self.meanlogr,
               xi, xi_im, np.sqrt(varxi), self.weight, self.npairs ],
             params=params, precision=precision, file_type=file_type, logger=self.logger)
@@ -402,10 +402,15 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.logger.info('Reading NG correlations from %s',file_name)
 
         data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
-        self.rnom = data['R_nom']
+        if 'R_nom' in data.dtype.names:  # pragma: no cover
+            self.rnom = data['R_nom']
+            self.meanr = data['meanR']
+            self.meanlogr = data['meanlogR']
+        else:
+            self.rnom = data['r_nom']
+            self.meanr = data['meanr']
+            self.meanlogr = data['meanlogr']
         self.logr = np.log(self.rnom)
-        self.meanr = data['meanR']
-        self.meanlogr = data['meanlogR']
         self.xi = data['gamT']
         self.xi_im = data['gamX']
         self.varxi = data['sigma']**2

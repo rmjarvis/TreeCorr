@@ -88,63 +88,19 @@ that is also relatively straightforward:
    - LSSTDESC.Coord
    - cffi
 
+   They can all be installed by running::
+
+        pip install -r requirements.txt
+
    The last dependency is the only one that typically could cause any problems, since it in
    turn depends on a library called libffi.  This is a common thing to have installed already
    on linux machines, so it is likely that you won't have any trouble with it, but if you get
    errors about "ffi.h" not being found, then you may need to either install it yourself or
    update your paths to include the directory where ffi.h is found.
 
-   a) Installing libffi on linux systems:
+   See https://cffi.readthedocs.io/en/latest/installation.html for more information about
+   installing cffi, including its libffi dependency.
 
-      If you have root access on your system, then one of the following should work to install
-      libffi::
-
-            apt-get install libffi-dev
-            yum install libffi-devel
-
-   b) Installing libffi on Mac systems:
-
-      It should be installed as part of the XCode libraries after running::
-
-            xcode-select --install
-
-   c) Installing libffi manually:
-
-      If neither of the above methods works for you, you can install it yourself with the
-      following commands::
-
-            wget ftp://sourceware.org:/pub/libffi/libffi-3.2.1.tar.gz
-            tar xfz libffi-3.2.1.tar.gz
-            cd libffi-3.2.1
-            ./configure --prefix={prefix}
-            make
-            make install
-            cp */include/ffi*.h {prefix}/include
-            cd ..
-
-      where {prefix} is wherever you want the code to be installed.  e.g. /home/username.
-
-   d) Updating your system paths:
-
-      If you used option (c) above and ``{prefix}`` is not ``/usr/local`` or similar, then you
-      might need to update some system paths to let the compiler know where to look for the header
-      file and library.  Similarly, if libffi was already installed, but it is in a non-standard
-      location where gcc doesn't look by default, then this also applies.  (Try ``locate ffi.h``
-      to see if it shows up somewhere.)
-
-      Assuming ``ffi.h`` is in ``{prefix}/include/ffi/`` and ``libffi.so`` (or ``libffi.dylib`` on
-      Macs) is in ``{prefix}/lib/``, then the following commands should be put in your ``.bashrc``
-      or ``.bash_profile`` file::
-
-            export C_INCLUDE_PATH=$C_INCLUDE_PATH:{prefix}/include
-            export LIBRARY_PATH=$LIBRARY_PATH:{prefix}/lib
-            export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{prefix}/lib
-
-      Or if you use C shell, put the following in ``.cshrc`` or equivalent file::
-
-            setenv C_INCLUDE_PATH "$C_INCLUDE_PATH":{prefix}/include
-            setenv LIBRARY_PATH "$LIBRARY_PATH":{prefix}/lib
-            setenv LD_LIBRARY_PATH "$LD_LIBRARY_PATH":{prefix}/lib
 
 2. (optional) Install optional dependencies.
 
@@ -155,7 +111,7 @@ that is also relatively straightforward:
 
    b) pandas will signficantly speed up reading from ASCII catalogs.
 
-   These are both pip installable:
+   These are both pip installable::
 
         pip install fitsio
         pip install pandas
@@ -163,58 +119,47 @@ that is also relatively straightforward:
    But they are not installed with TreeCorr automatically.
 
 
-3. Download the zip file or tarball for the latest release from:
+3. Get the current released version from GitHub.
 
-   https://github.com/rmjarvis/TreeCorr/releases/
+   You can download the latest tarball from::
 
-4. Unzip the archive with either of the following (depending on which kind
-   of archive you downloaded)::
+        https://github.com/rmjarvis/TreeCorr/releases/
 
-        unzip TreeCorr-3.4.0.zip
-        tar xvzf TreeCorr-3.4.0.tar.gz
+   Or you can clone the repository using either of the following::
 
-   It will unzip into the directory TreeCorr-3.4.0. Change to that directory::
+        git clone git@github.com:GalSim-developers/GalSim.git
+        git clone https://github.com/GalSim-developers/GalSim.git
 
-        cd TreeCorr-3.4.0
+   which will start out in the current stable release branch.
 
-5. Install with the normal setup.py options.  Typically this would be the
+   Either way, cd into the TreeCorr directory.
+
+
+4. Install with the normal setup.py options.  Typically this would be the
    command::
 
-        python setup.py install --prefix=~
+        python setup.py install
 
-   This will install the executable ``corr2`` at::
+   If you don't have write permission in your python distribution, you might need
+   to use::
 
-        /your/home/directory/bin/corr2
+        python setup.py install --user
 
-   It will also install the Python module called ``treecorr`` which you can use
-   from within Python.
+   In addition to installing the Python module ``treecorr``, this will install
+   the executables ``corr2`` and ``corr3`` in a ``bin`` folder somewhere on your
+   system.  Look for a line like::
 
-   .. note::
+        Installing corr2 script to /anaconda3/bin
 
-        There is a bug with numpy that it sometimes doesn't install correctly
-        when included as a setup.py dependency:
-
-            https://github.com/numpy/numpy/issues/1458
-
-        The bug was marked closed in 2012, but I've gotten it with numpy
-        versions since then. Installation failed with a traceback that ended
-        with::
-
-            File "/private/tmp/easy_install-xl4gri/numpy-1.8.2/numpy/core/setup.py", line 631, in configuration
-
-            AttributeError: 'Configuration' object has no attribute 'add_define_macros'
-
-        The workaround if this happens for you seems to be to install numpy
-        separately with::
-
-            easy_install numpy
-
-        Then the normal TreeCorr installation should work correctly.
+   or similar in the output to see where the scripts are installed.  If the
+   directory is not in your path, you will also get a warning message at the
+   end letting you know which directory you should add to your path if you want
+   to run these scripts.
 
 
+5. (optional) If you want to run the unit tests, you can do the following::
 
-6. (optional) If you want to run the unit tests, you can do the following::
-
+        pip install -r test_requirements.txt
         cd tests
         nosetests
 

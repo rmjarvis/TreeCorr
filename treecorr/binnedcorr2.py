@@ -591,6 +591,10 @@ class BinnedCorr2(object):
                                 self.brute is True or self.brute is 2,
                                 self.min_top, self.max_top, self.coords)
 
+        # Apply units to min_sep, max_sep:
+        min_sep *= self._sep_units
+        max_sep *= self._sep_units
+
         i1 = np.zeros(n, dtype=int)
         i2 = np.zeros(n, dtype=int)
         sep = np.zeros(n, dtype=float)
@@ -603,6 +607,8 @@ class BinnedCorr2(object):
             i1 = i1[:n]
             i2 = i2[:n]
             sep = sep[:n]
+        # Convert back to nominal units
+        sep /= self._sep_units
         self.logger.info("Sampled %d pairs out of a total of %d.", n, ntot)
 
         return i1, i2, sep

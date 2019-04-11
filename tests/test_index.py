@@ -521,6 +521,39 @@ def test_sample_pairs():
     np.testing.assert_array_less(sep, nk.right_edges[b])
     np.testing.assert_array_less(nk.left_edges[b], sep)
 
+    # Finally, check spherical coords with non-default units.
+    ra1, dec1 = coord.CelestialCoord.xyz_to_radec(x1,y1,z1)
+    ra2, dec2 = coord.CelestialCoord.xyz_to_radec(x2,y2,z2)
+    cat1 = treecorr.Catalog(ra=ra1, dec=dec1, ra_units='rad', dec_units='rad')
+    cat2 = treecorr.Catalog(ra=ra2, dec=dec2, ra_units='rad', dec_units='rad')
+
+    nn = treecorr.NNCorrelation(min_sep=1., max_sep=60., nbins=50, sep_units='deg', metric='Arc')
+    nn.process(cat1, cat2)
+    print('rnom = ',nn.rnom)
+    print('npairs = ',nn.npairs.astype(int))
+
+    b = 5
+    n = 50
+    i1, i2, sep = nn.sample_pairs(n, cat1, cat2,
+                                  min_sep=nn.left_edges[b], max_sep=nn.right_edges[b])
+
+    print('i1 = ',i1)
+    print('i2 = ',i2)
+    print('sep = ',sep)
+    assert nn.npairs[b] > n
+    assert len(i1) == n
+    assert len(i2) == n
+    assert len(sep) == n
+
+    c1 = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra1,dec1)]
+    c2 = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra2,dec2)]
+    actual_sep = np.array([c1[i1[k]].distanceTo(c2[i2[k]]) / coord.degrees for k in range(n)])
+    print('actual_sep = ',actual_sep)
+    np.testing.assert_allclose(sep, actual_sep, rtol=0.1)
+    np.testing.assert_array_less(sep, nn.right_edges[b])
+    np.testing.assert_array_less(nn.left_edges[b], sep)
+
+
 
 if __name__ == '__main__':
     test_count_near()

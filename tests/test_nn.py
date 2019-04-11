@@ -28,7 +28,7 @@ def test_log_binning():
 
     # Check the different ways to set up the binning:
     # Omit bin_size
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20)
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, bin_type='Log')
     print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
     assert nn.min_sep == 5.
     assert nn.max_sep == 20.

@@ -62,7 +62,7 @@ def test_log_binning():
 
     # Check the different ways to set up the binning:
     # Omit bin_size
-    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20)
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, bin_type='LogRUV')
     #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
     #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
     #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
@@ -285,6 +285,8 @@ def test_log_binning():
     assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1, nbins=20)
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, bin_size=0.1)
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20)
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20,
+                  bin_type='Log')
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20,
                   bin_type='Linear')
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20,

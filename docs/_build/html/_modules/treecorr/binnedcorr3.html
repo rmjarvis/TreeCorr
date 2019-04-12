@@ -1,0 +1,769 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>treecorr.binnedcorr3 &mdash; TreeCorr 4.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> TreeCorr
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                4.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bintype.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../scripts.html">The corr2 and corr3 driver scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 3.3 to 3.4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TreeCorr</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>treecorr.binnedcorr3</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for treecorr.binnedcorr3</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2003-2019 by Mike Jarvis</span>
+<span class="c1">#</span>
+<span class="c1"># TreeCorr is free software: redistribution and use in source and binary forms,</span>
+<span class="c1"># with or without modification, are permitted provided that the following</span>
+<span class="c1"># conditions are met:</span>
+<span class="c1">#</span>
+<span class="c1"># 1. Redistributions of source code must retain the above copyright notice, this</span>
+<span class="c1">#    list of conditions, and the disclaimer given in the accompanying LICENSE</span>
+<span class="c1">#    file.</span>
+<span class="c1"># 2. Redistributions in binary form must reproduce the above copyright notice,</span>
+<span class="c1">#    this list of conditions, and the disclaimer given in the documentation</span>
+<span class="c1">#    and/or other materials provided with the distribution.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: binnedcorr3</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">coord</span>
+<span class="kn">import</span> <span class="nn">treecorr</span>
+
+<div class="viewcode-block" id="BinnedCorr3"><a class="viewcode-back" href="../../correlation3.html#treecorr.BinnedCorr3">[docs]</a><span class="k">class</span> <span class="nc">BinnedCorr3</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class stores the results of a 3-point correlation calculation, along with some</span>
+<span class="sd">    ancillary data.</span>
+
+<span class="sd">    This is a base class that is not intended to be constructed directly.  But it has a few</span>
+<span class="sd">    helper functions that derived classes can use to help perform their calculations.  See</span>
+<span class="sd">    the derived classes for more details:</span>
+
+<span class="sd">    - `NNNCorrelation` handles count-count-count correlation functions</span>
+<span class="sd">    - `KKKCorrelation` handles kappa-kappa-kappa correlation functions</span>
+<span class="sd">    - `GGGCorrelation` handles gamma-gamma-gamma correlation functions</span>
+
+<span class="sd">    Three-point correlations are a bit more complicated than two-point, since the data need</span>
+<span class="sd">    to be binned in triangles, not just the separation between two points.  We characterize the</span>
+<span class="sd">    triangles according to the following three parameters based on the three side lenghts</span>
+<span class="sd">    of the triangle with d1 &gt;= d2 &gt;= d3.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        r &amp;= d2 \\\\</span>
+<span class="sd">        u &amp;= \\frac{d3}{d2} \\\\</span>
+<span class="sd">        v &amp;= \\pm \\frac{(d1 - d2)}{d3} \\\\</span>
+
+<span class="sd">    The orientation of the triangle is specified by the sign of v.</span>
+<span class="sd">    Positive v triangles have the three sides d1,d2,d3 in counter-clockwise orientation.</span>
+<span class="sd">    Negative v triangles have the three sides d1,d2,d3 in clockwise orientation.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        We always bin the same way for positive and negative v values, and the binning</span>
+<span class="sd">        specification for v should just be for the positive values.  E.g. if you specify</span>
+<span class="sd">        min_v=0.2, max_v=0.6, then TreeCorr will also accumulate triangles with</span>
+<span class="sd">        -0.6 &lt; v &lt; -0.2 in addition to those with 0.2 &lt; v &lt; 0.6.</span>
+
+<span class="sd">    The constructor for all derived classes take a config dict as the first argument,</span>
+<span class="sd">    since this is often how we keep track of parameters, but if you don&#39;t want to</span>
+<span class="sd">    use one or if you want to change some parameters from what are in a config dict,</span>
+<span class="sd">    then you can use normal kwargs, which take precedence over anything in the config dict.</span>
+
+<span class="sd">    There are only two implemented definitions for the distance between two points for</span>
+<span class="sd">    three-point corretions:</span>
+
+<span class="sd">        - &#39;Euclidean&#39; = straight line Euclidean distance between two points.  For spherical</span>
+<span class="sd">          coordinates (ra,dec without r), this is the chord distance between points on the</span>
+<span class="sd">          unit sphere.</span>
+<span class="sd">        - &#39;Arc&#39; = the true great circle distance for spherical coordinates.</span>
+<span class="sd">        - &#39;Periodic&#39; = Like Euclidean, but with periodic boundaries.  Note that the triangles</span>
+<span class="sd">          for three-point correlations can become ambiguous if d1 &gt; period/2, which means</span>
+<span class="sd">          the maximum d2 (max_sep) should be less than period/4.  This is not enforced.</span>
+
+<span class="sd">    Similarly, we have so far only implemented one binning type for three-point correlations.</span>
+
+<span class="sd">        - &#39;LogRUV&#39; - The bin steps will be uniform in log(r) from log(min_sep) .. log(max_sep).</span>
+<span class="sd">          The u and v values are binned linearly from min_u .. max_u and min_v .. max_v.</span>
+
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        config (dict):      A configuration dict that can be used to pass in the below kwargs if</span>
+<span class="sd">                            desired.  This dict is allowed to have addition entries in addition</span>
+<span class="sd">                            to those listed below, which are ignored here. (default: None)</span>
+<span class="sd">        logger:             If desired, a logger object for logging. (default: None, in which case</span>
+<span class="sd">                            one will be built according to the config dict&#39;s verbose level.)</span>
+
+<span class="sd">    Keyword Arguments:</span>
+
+<span class="sd">        nbins (int):        How many bins to use. (Exactly three of nbins, bin_size, min_sep,</span>
+<span class="sd">                            max_sep are required. If nbins is not given, it will be calculated from</span>
+<span class="sd">                            the values of the other three, rounding up to the next highest integer.</span>
+<span class="sd">                            In this case, bin_size will be readjusted to account for this rounding</span>
+<span class="sd">                            up.)</span>
+<span class="sd">        bin_size (float):   The width of the bins in log(separation). (Exactly three of nbins,</span>
+<span class="sd">                            bin_size, min_sep, max_sep are required.  If bin_size is not given, it</span>
+<span class="sd">                            will be calculated from the values of the other three.)</span>
+<span class="sd">        min_sep (float):    The minimum separation in units of sep_units, if relevant. (Exactly</span>
+<span class="sd">                            three of nbins, bin_size, min_sep, max_sep are required.  If min_sep is</span>
+<span class="sd">                            not given, it will be calculated from the values of the other three.)</span>
+<span class="sd">        max_sep (float):    The maximum separation in units of sep_units, if relevant. (Exactly</span>
+<span class="sd">                            three of nbins, bin_size, min_sep, max_sep are required.  If max_sep is</span>
+<span class="sd">                            not given, it will be calculated from the values of the other three.</span>
+
+<span class="sd">        sep_units (str):    The units to use for the separation values, given as a string.  This</span>
+<span class="sd">                            includes both min_sep and max_sep above, as well as the units of the</span>
+<span class="sd">                            output distance values.  Valid options are arcsec, arcmin, degrees,</span>
+<span class="sd">                            hours, radians.  (default: radians if angular units make sense, but for</span>
+<span class="sd">                            3-d or flat 2-d positions, the default will just match the units of</span>
+<span class="sd">                            x,y[,z] coordinates)</span>
+<span class="sd">        bin_slop (float):   How much slop to allow in the placement of pairs in the bins.</span>
+<span class="sd">                            If bin_slop = 1, then the bin into which a particular pair is placed</span>
+<span class="sd">                            may be incorrect by at most 1.0 bin widths.  (default: None, which</span>
+<span class="sd">                            means to use a bin_slop that gives a maximum error of 10% on any bin,</span>
+<span class="sd">                            which has been found to yield good results for most application.</span>
+
+<span class="sd">        nubins (int):       Analogous to nbins for the u values.  (The default is to calculate from</span>
+<span class="sd">                            ubin_size = binsize, min_u = 0, max_u = 1, but this can be overridden</span>
+<span class="sd">                            by specifying up to 3 of these four parametes.)</span>
+<span class="sd">        ubin_size (float):  Analogous to bin_size for the u values. (default: bin_size)</span>
+<span class="sd">        min_u (float):      Analogous to min_sep for the u values. (default: 0)</span>
+<span class="sd">        max_u (float):      Analogous to max_sep for the u values. (default: 1)</span>
+
+<span class="sd">        nvbins (int):       Analogous to nbins for the positive v values.  (The default is to</span>
+<span class="sd">                            calculate from vbin_size = binsize, min_v = 0, max_v = 1, but this can</span>
+<span class="sd">                            be overridden by specifying up to 3 of these four parametes.)</span>
+<span class="sd">        vbin_size (float):  Analogous to bin_size for the v values. (default: bin_size)</span>
+<span class="sd">        min_v (float):      Analogous to min_sep for the positive v values. (default: 0)</span>
+<span class="sd">        max_v (float):      Analogous to max_sep for the positive v values. (default: 1)</span>
+
+<span class="sd">        brute (bool):       Whether to use the &quot;brute force&quot; algorithm.  (default: False) Options</span>
+<span class="sd">                            are:</span>
+
+<span class="sd">                             - False (the default): Stop at non-leaf cells whenever the error in</span>
+<span class="sd">                               the separation is compatible with the given bin_slop.</span>
+<span class="sd">                             - True: Go to the leaves for both catalogs.</span>
+<span class="sd">                             - 1: Always go to the leaves for cat1, but stop at non-leaf cells of</span>
+<span class="sd">                               cat2 when the error is compatible with the given bin_slop.</span>
+<span class="sd">                             - 2: Always go to the leaves for cat2, but stop at non-leaf cells of</span>
+<span class="sd">                               cat1 when the error is compatible with the given bin_slop.</span>
+
+<span class="sd">        verbose (int):      If no logger is provided, this will optionally specify a logging level</span>
+<span class="sd">                            to use:</span>
+
+<span class="sd">                             - 0 means no logging output</span>
+<span class="sd">                             - 1 means to output warnings only (default)</span>
+<span class="sd">                             - 2 means to output various progress information</span>
+<span class="sd">                             - 3 means to output extensive debugging information</span>
+
+<span class="sd">        log_file (str):     If no logger is provided, this will specify a file to write the logging</span>
+<span class="sd">                            output.  (default: None; i.e. output to standard output)</span>
+<span class="sd">        output_dots (boo):  Whether to output progress dots during the calcualtion of the</span>
+<span class="sd">                            correlation function. (default: False unless verbose is given and &gt;= 2,</span>
+<span class="sd">                            in which case True)</span>
+
+<span class="sd">        split_method (str): How to split the cells in the tree when building the tree structure.</span>
+<span class="sd">                            Options are:</span>
+
+<span class="sd">                            - mean = Use the arithmetic mean of the coordinate being split.</span>
+<span class="sd">                              (default)</span>
+<span class="sd">                            - median = Use the median of the coordinate being split.</span>
+<span class="sd">                            - middle = Use the middle of the range; i.e. the average of the minimum</span>
+<span class="sd">                              and maximum value.</span>
+<span class="sd">                            - random: Use a random point somewhere in the middle two quartiles of</span>
+<span class="sd">                              the range.</span>
+
+<span class="sd">        min_top (int):      The minimum number of top layers to use when setting up the field.</span>
+<span class="sd">                            (default: 3)</span>
+<span class="sd">        max_top (int):      The maximum number of top layers to use when setting up the field.</span>
+<span class="sd">                            The top-level cells are where each calculation job starts. There will</span>
+<span class="sd">                            typically be of order 2^max_top top-level cells. (default: 10)</span>
+<span class="sd">        precision (int):    The precision to use for the output values. This specifies how many</span>
+<span class="sd">                            digits to write. (default: 4)</span>
+
+<span class="sd">        metric (str):       Which metric to use for distance measurements.  Options are listed</span>
+<span class="sd">                            above.  (default: &#39;Euclidean&#39;)</span>
+<span class="sd">        bin_type (str):     What type of binning should be used.  Options are listed above.</span>
+<span class="sd">                            (default: &#39;LogRUV&#39;)</span>
+<span class="sd">        min_rpar (float):   Not currently supported for 3 point correlation. (default: None)</span>
+<span class="sd">        max_rpar (float):   Not currently supported for 3 point correlation. (default: None)</span>
+<span class="sd">        period (float):     For the &#39;Periodic&#39; metric, the period to use in all directions.</span>
+<span class="sd">                            (default: None)</span>
+<span class="sd">        xperiod (float):    For the &#39;Periodic&#39; metric, the period to use in the x direction.</span>
+<span class="sd">                            (default: period)</span>
+<span class="sd">        yperiod (float):    For the &#39;Periodic&#39; metric, the period to use in the y direction.</span>
+<span class="sd">                            (default: period)</span>
+<span class="sd">        zperiod (float):    For the &#39;Periodic&#39; metric, the period to use in the z direction.</span>
+<span class="sd">                            (default: period)</span>
+
+<span class="sd">        num_threads (int):  How many OpenMP threads to use during the calculation.</span>
+<span class="sd">                            (default: use the number of cpu cores; this value can also be given in</span>
+<span class="sd">                            the constructor in the config dict.) Note that this won&#39;t work if the</span>
+<span class="sd">                            system&#39;s C compiler cannot use OptnMP (e.g. clang prior to version 3.7.)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_valid_params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;nbins&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The number of output bins to use for sep dimension.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;bin_size&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The size of the output bins in log(sep).&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;min_sep&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The minimum separation to include in the output.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;max_sep&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The maximum separation to include in the output.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;sep_units&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">coord</span><span class="o">.</span><span class="n">AngleUnit</span><span class="o">.</span><span class="n">valid_names</span><span class="p">,</span>
+                <span class="s1">&#39;The units to use for min_sep and max_sep.  Also the units of the output distances&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;bin_slop&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The fraction of a bin width by which it is ok to let the pairs miss the correct bin.&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;The default is to use 1 if bin_size &lt;= 0.1, or 0.1/bin_size if bin_size &gt; 0.1.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;nubins&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The number of output bins to use for u dimension.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;ubin_size&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The size of the output bins in u.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;min_u&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The minimum u to include in the output.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;max_u&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The maximum u to include in the output.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;nvbins&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The number of output bins to use for positive v values.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;vbin_size&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The size of the output bins in v.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;min_v&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The minimum |v| to include in the output.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;max_v&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The maximum |v| to include in the output.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;brute&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+                <span class="s1">&#39;Whether to use brute-force algorithm&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;verbose&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+                <span class="s1">&#39;How verbose the code should be during processing. &#39;</span><span class="p">,</span>
+                <span class="s1">&#39;0 = Errors Only, 1 = Warnings, 2 = Progress, 3 = Debugging&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;log_file&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;If desired, an output file for the logging output.&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;The default is to write the output to stdout.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;output_dots&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;Whether to output dots to the stdout during the C++-level computation.&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;The default is True if verbose &gt;= 2 and there is no log_file.  Else False.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;split_method&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="s1">&#39;middle&#39;</span><span class="p">,</span> <span class="s1">&#39;random&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Which method to use for splitting cells.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;min_top&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The minimum number of top layers to use when setting up the field.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;max_top&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The maximum number of top layers to use when setting up the field.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;precision&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The number of digits after the decimal in the output.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;num_threads&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;How many threads should be used. num_threads &lt;= 0 means auto based on num cores.&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;metric&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;Euclidean&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Euclidean&#39;</span><span class="p">,</span> <span class="s1">&#39;Arc&#39;</span><span class="p">,</span> <span class="s1">&#39;Periodic&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Which metric to use for the distance measurements&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;bin_type&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;LogRUV&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;LogRUV&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;Which type of binning should be used&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;min_rpar&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The minimum difference in Rparallel for pairs to include&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;max_rpar&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The maximum difference in Rparallel for pairs to include&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;period&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The period to use for all directions for the Periodic metric&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;xperiod&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The period to use for the x direction for the Periodic metric&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;yperiod&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The period to use for the y direction for the Periodic metric&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;zperiod&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;The period to use for the z direction for the Periodic metric&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">merge_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">kwargs</span><span class="p">,</span><span class="n">BinnedCorr3</span><span class="o">.</span><span class="n">_valid_params</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">setup_logger</span><span class="p">(</span>
+                    <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;log_file&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logger</span>
+
+        <span class="k">if</span> <span class="s1">&#39;output_dots&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;output_dots&#39;</span><span class="p">,</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bin_type&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">Log</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sep_units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sep_units&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sep_units</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;sep_units&#39;</span><span class="p">,</span><span class="nb">str</span><span class="p">,</span><span class="s1">&#39;radians&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log_sep_units</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sep_units</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;nbins&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;max_sep&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required parameter max_sep&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;min_sep&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required parameter min_sep&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;bin_size&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required parameter bin_size&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;min_sep&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;max_sep&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;max_sep must be larger than min_sep&quot;</span><span class="p">)</span>
+            <span class="n">bin_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;bin_size&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nbins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span><span class="p">)</span><span class="o">/</span><span class="n">bin_size</span><span class="p">))</span>
+            <span class="c1"># Update self.bin_size given this value of nbins</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">nbins</span>
+            <span class="c1"># Note in this case, bin_size is saved as the nominal bin_size from the config</span>
+            <span class="c1"># file, and self.bin_size is the one for the radial bins.  We&#39;ll use the nominal</span>
+            <span class="c1"># bin_size as the default bin_size for u and v below.</span>
+        <span class="k">elif</span> <span class="s1">&#39;bin_size&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;max_sep&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required parameter max_sep&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;min_sep&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required parameter min_sep&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;min_sep&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;max_sep&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;max_sep must be larger than min_sep&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nbins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;nbins&#39;</span><span class="p">])</span>
+            <span class="n">bin_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">nbins</span>
+        <span class="k">elif</span> <span class="s1">&#39;max_sep&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;min_sep&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required parameter min_sep&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;min_sep&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nbins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;nbins&#39;</span><span class="p">])</span>
+            <span class="n">bin_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;bin_size&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="o">*</span><span class="n">bin_size</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;min_sep&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Only 3 of min_sep, max_sep, bin_size, nbins are allowed.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;max_sep&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nbins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;nbins&#39;</span><span class="p">])</span>
+            <span class="n">bin_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;bin_size&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="o">*</span><span class="n">bin_size</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sep_units</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;r: nbins = </span><span class="si">%d</span><span class="s2">, min,max sep = </span><span class="si">%g</span><span class="s2">..</span><span class="si">%g</span><span class="s2">, bin_size = </span><span class="si">%g</span><span class="s2">&quot;</span><span class="p">,</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;r: nbins = </span><span class="si">%d</span><span class="s2">, min,max sep = </span><span class="si">%g</span><span class="s2">..</span><span class="si">%g</span><span class="s2"> </span><span class="si">%s</span><span class="s2">, bin_size = </span><span class="si">%g</span><span class="s2">&quot;</span><span class="p">,</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_sep_units</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_sep_units</span><span class="p">,</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">sep_units</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span><span class="p">)</span>
+        <span class="c1"># The underscore-prefixed names are in natural units (radians for angles)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_min_sep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sep_units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_sep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sep_units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bin_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span>  <span class="c1"># There is not Linear, but if I add it, need to apply</span>
+                                        <span class="c1"># units to _bin_size in that case as well.</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_u</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;min_u&#39;</span><span class="p">,</span> <span class="mf">0.</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_u</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_u&#39;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_u</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_u</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;max_u must be larger than min_u&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_u</span> <span class="o">&lt;</span> <span class="mf">0.</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_u</span> <span class="o">&gt;</span> <span class="mf">1.</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid range for u: </span><span class="si">%f</span><span class="s2"> - </span><span class="si">%f</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_u</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_u</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ubin_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ubin_size&#39;</span><span class="p">,</span> <span class="n">bin_size</span><span class="p">))</span>
+        <span class="k">if</span> <span class="s1">&#39;nubins&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nubins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">max_u</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">min_u</span><span class="o">-</span><span class="mf">1.e-10</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">ubin_size</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="s1">&#39;max_u&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="ow">and</span> <span class="s1">&#39;min_u&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="ow">and</span> <span class="s1">&#39;ubin_size&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Only 3 of min_u, max_u, ubin_size, nubins are allowed.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nubins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;nubins&#39;</span><span class="p">]</span>
+            <span class="c1"># Allow min or max u to be implicit from nubins and ubin_size</span>
+            <span class="k">if</span> <span class="s1">&#39;ubin_size&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;min_u&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">min_u</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_u</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">nubins</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ubin_size</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s1">&#39;max_u&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">max_u</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_u</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">nubins</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ubin_size</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+        <span class="c1"># Adjust ubin_size given the other values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ubin_size</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_u</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">min_u</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">nubins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;u: nbins = </span><span class="si">%d</span><span class="s2">, min,max = </span><span class="si">%g</span><span class="s2">..</span><span class="si">%g</span><span class="s2">, bin_size = </span><span class="si">%g</span><span class="s2">&quot;</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">nubins</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">min_u</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">max_u</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">ubin_size</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_v</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;min_v&#39;</span><span class="p">,</span> <span class="mf">0.</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_v</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_v&#39;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_v</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_v</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;max_v must be larger than min_v&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_v</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_v</span> <span class="o">&gt;</span> <span class="mf">1.</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid range for |v|: </span><span class="si">%f</span><span class="s2"> - </span><span class="si">%f</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_v</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_v</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vbin_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;vbin_size&#39;</span><span class="p">,</span> <span class="n">bin_size</span><span class="p">))</span>
+        <span class="k">if</span> <span class="s1">&#39;nvbins&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nvbins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">max_v</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">min_v</span><span class="o">-</span><span class="mf">1.e-10</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">vbin_size</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="s1">&#39;max_v&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="ow">and</span> <span class="s1">&#39;min_v&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="ow">and</span> <span class="s1">&#39;vbin_size&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Only 3 of min_v, max_v, vbin_size, nvbins are allowed.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nvbins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;nvbins&#39;</span><span class="p">]</span>
+            <span class="c1"># Allow min or max v to be implicit from nvbins and vbin_size</span>
+            <span class="k">if</span> <span class="s1">&#39;vbin_size&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;max_v&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">max_v</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_v</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvbins</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">vbin_size</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># min_v not in config</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">min_v</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_v</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvbins</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">vbin_size</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">)</span>
+        <span class="c1"># Adjust vbin_size given the other values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vbin_size</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_v</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">min_v</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">nvbins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;v: nbins = </span><span class="si">%d</span><span class="s2">, min,max = </span><span class="si">%g</span><span class="s2">..</span><span class="si">%g</span><span class="s2">, bin_size = </span><span class="si">%g</span><span class="s2">&quot;</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">nvbins</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">min_v</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">max_v</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">vbin_size</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;split_method&#39;</span><span class="p">,</span><span class="s1">&#39;mean&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Using split_method = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">split_method</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;min_top&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;max_top&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;bin_slop&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">,</span><span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span> <span class="o">&lt;=</span> <span class="mf">0.1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span> <span class="o">=</span> <span class="mf">0.1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span>  <span class="c1"># The stored bin_slop corresponds to lnr bins.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="mf">0.1</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ubin_size</span> <span class="o">&lt;=</span> <span class="mf">0.1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ubin_size</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bu</span> <span class="o">=</span> <span class="mf">0.1</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vbin_size</span> <span class="o">&lt;=</span> <span class="mf">0.1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vbin_size</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bv</span> <span class="o">=</span> <span class="mf">0.1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ubin_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vbin_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">&gt;</span> <span class="mf">0.100001</span><span class="p">:</span>  <span class="c1"># Add some numerical slop</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;Using bin_slop = </span><span class="si">%g</span><span class="s2">, bin_size = </span><span class="si">%g</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span><span class="p">)</span><span class="o">+</span>
+                    <span class="s2">&quot;The b parameter is bin_slop * bin_size = </span><span class="si">%g</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">)</span><span class="o">+</span>
+                    <span class="s2">&quot;  bu = </span><span class="si">%g</span><span class="s2">, bv = </span><span class="si">%g</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bu</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">bv</span><span class="p">)</span><span class="o">+</span>
+                    <span class="s2">&quot;It is generally recommended to use b &lt;= 0.1 for most applications.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span>
+                    <span class="s2">&quot;Larger values of this b parameter may result in significant inaccuracies.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Using bin_slop = </span><span class="si">%g</span><span class="s2">, b = </span><span class="si">%g</span><span class="s2">, bu = </span><span class="si">%g</span><span class="s2">, bv = </span><span class="si">%g</span><span class="s2">&quot;</span><span class="p">,</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">bu</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">bv</span><span class="p">)</span>
+
+        <span class="c1"># This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logr1d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span><span class="p">,</span>
+                                   <span class="n">num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># Offset by the position of the center of the first bin.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logr1d</span> <span class="o">+=</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">u1d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nubins</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ubin_size</span><span class="p">,</span>
+                                  <span class="n">num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nubins</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u1d</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_u</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ubin_size</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">v1d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nvbins</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">vbin_size</span><span class="p">,</span>
+                                  <span class="n">num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nvbins</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v1d</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_v</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">vbin_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v1d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">v1d</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">v1d</span><span class="p">])</span>
+
+        <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nubins</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">nvbins</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logr1d</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+                               <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nubins</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">nvbins</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u1d</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+                            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">nvbins</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">v1d</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:],</span>
+                            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nubins</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logr</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rnom1d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logr1d</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;brute&#39;</span><span class="p">,</span><span class="nb">bool</span><span class="p">,</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">brute</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Doing brute force calculation.&quot;</span><span class="p">,)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metric</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_rpar</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;min_rpar&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">,</span><span class="o">-</span><span class="n">sys</span><span class="o">.</span><span class="n">float_info</span><span class="o">.</span><span class="n">max</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_rpar</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;max_rpar&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">,</span><span class="n">sys</span><span class="o">.</span><span class="n">float_info</span><span class="o">.</span><span class="n">max</span><span class="p">)</span>
+        <span class="n">period</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;period&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xperiod</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;xperiod&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">,</span><span class="n">period</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yperiod</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;yperiod&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">,</span><span class="n">period</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zperiod</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;zperiod&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">,</span><span class="n">period</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_process_all_auto</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">):</span>
+        <span class="c1"># I&#39;m not sure which of these is more intuitive, but both are correct...</span>
+        <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c1</span> <span class="ow">in</span> <span class="n">cat1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">process_auto</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">c2</span> <span class="ow">in</span> <span class="n">cat1</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">c2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">c1</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span><span class="n">c1</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span><span class="n">c1</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c2</span><span class="p">,</span><span class="n">c1</span><span class="p">,</span><span class="n">c1</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">c3</span> <span class="ow">in</span> <span class="n">cat1</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">c3</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">c1</span> <span class="ow">and</span> <span class="n">c3</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">c2</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span><span class="n">c3</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1"># pragma: no cover</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">c1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cat1</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">process_auto</span><span class="p">(</span><span class="n">c1</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">c2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cat1</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">:]):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span><span class="n">c1</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span><span class="n">c1</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c2</span><span class="p">,</span><span class="n">c1</span><span class="p">,</span><span class="n">c1</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c2</span><span class="p">,</span><span class="n">c1</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c2</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span><span class="n">c1</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">c3</span> <span class="ow">in</span> <span class="n">cat1</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">:]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span><span class="n">c3</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span><span class="n">c3</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c2</span><span class="p">,</span><span class="n">c1</span><span class="p">,</span><span class="n">c3</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c2</span><span class="p">,</span><span class="n">c3</span><span class="p">,</span><span class="n">c1</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c3</span><span class="p">,</span><span class="n">c1</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c3</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span><span class="n">c1</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+
+    <span class="c1"># These are not actually implemented yet.</span>
+    <span class="k">def</span> <span class="nf">_process_all_cross21</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">):</span> <span class="c1"># pragma: no cover</span>
+        <span class="k">for</span> <span class="n">c1</span> <span class="ow">in</span> <span class="n">cat1</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c2</span> <span class="ow">in</span> <span class="n">cat2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span><span class="n">c1</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">c3</span> <span class="ow">in</span> <span class="n">cat1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">c3</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">c1</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span><span class="n">c3</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c3</span><span class="p">,</span><span class="n">c1</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_process_all_cross</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">cat3</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">c1</span> <span class="ow">in</span> <span class="n">cat1</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c2</span> <span class="ow">in</span> <span class="n">cat2</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">c3</span> <span class="ow">in</span> <span class="n">cat3</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span><span class="n">c3</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_num_threads</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">num_threads</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">num_threads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;num_threads&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num_threads</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Set num_threads automatically from ncpu&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Set num_threads = </span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">num_threads</span><span class="p">)</span>
+        <span class="n">treecorr</span><span class="o">.</span><span class="n">set_omp_threads</span><span class="p">(</span><span class="n">num_threads</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">coords1</span><span class="p">,</span> <span class="n">coords2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coords3</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">metric</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">metric</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;metric&#39;</span><span class="p">,</span><span class="nb">str</span><span class="p">,</span><span class="s1">&#39;Euclidean&#39;</span><span class="p">)</span>
+        <span class="n">coords</span><span class="p">,</span> <span class="n">metric</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">parse_metric</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">coords1</span><span class="p">,</span> <span class="n">coords2</span><span class="p">,</span> <span class="n">coords3</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">coords</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Detected a change in catalog coordinate systems. &quot;</span><span class="o">+</span>
+                                    <span class="s2">&quot;This probably doesn&#39;t make sense!&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">metric</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Detected a change in metric. &quot;</span><span class="o">+</span>
+                                    <span class="s2">&quot;This probably doesn&#39;t make sense!&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;Periodic&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xperiod</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">yperiod</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">coords</span><span class="o">==</span><span class="s1">&#39;3d&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">zperiod</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Periodic metric requires setting the period to use.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xperiod</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">yperiod</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">zperiod</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;period options are not valid for </span><span class="si">%s</span><span class="s2"> metric.&quot;</span><span class="o">%</span><span class="n">metric</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metric</span> <span class="o">=</span> <span class="n">metric</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">coord_enum</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">metric_enum</span><span class="p">(</span><span class="n">metric</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_apply_units</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">==</span> <span class="s1">&#39;spherical&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;Euclidean&#39;</span><span class="p">:</span>
+            <span class="c1"># Then our distances are all angles.  Convert from the chord distance to a real angle.</span>
+            <span class="c1"># L = 2 sin(theta/2)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">meand1</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meand1</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd1</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogd1</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span><span class="o">/</span><span class="mf">2.</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd2</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogd2</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span><span class="o">/</span><span class="mf">2.</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd3</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogd3</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span><span class="o">/</span><span class="mf">2.</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand1</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sep_units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd1</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_sep_units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sep_units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd2</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_sep_units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sep_units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd3</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_sep_units</span>
+
+    <span class="k">def</span> <span class="nf">_get_minmax_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;Euclidean&#39;</span><span class="p">:</span>
+            <span class="c1"># The minimum separation we care about is that of the smallest size, which is</span>
+            <span class="c1"># min_sep * min_u.  Do the same calculation as for 2pt to get to min_size.</span>
+            <span class="n">b1</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bv</span><span class="p">)</span>
+            <span class="n">min_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_min_sep</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_u</span> <span class="o">*</span> <span class="n">b1</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.</span><span class="o">+</span><span class="mf">3.</span><span class="o">*</span><span class="n">b1</span><span class="p">)</span>
+
+            <span class="c1"># This time, the maximum size is d1 * b.  d1 can be as high as 2*max_sep.</span>
+            <span class="n">b2</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bv</span><span class="p">)</span>
+            <span class="n">max_size</span> <span class="o">=</span> <span class="mf">2.</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_sep</span> <span class="o">*</span> <span class="n">b2</span>
+            <span class="k">return</span> <span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span></div>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Mike Jarvis
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

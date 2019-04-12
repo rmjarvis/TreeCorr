@@ -1,0 +1,670 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Fields &mdash; TreeCorr 4.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The corr2 and corr3 driver scripts" href="scripts.html" />
+    <link rel="prev" title="Binning" href="bintype.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> TreeCorr
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                4.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bintype.html">Binning</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">The corr2 and corr3 driver scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 3.4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Fields</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/field.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fields">
+<h1>Fields<a class="headerlink" href="#fields" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="#treecorr.Field" title="treecorr.Field"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Field</span></code></a> class and its subclasses repackage the information from a <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a>
+into a ball tree data structure, allowing for fast calcaulation of the correlation
+functions.</p>
+<p>There are several kinds of <a class="reference internal" href="#treecorr.Field" title="treecorr.Field"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Field</span></code></a> classes.</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="#treecorr.Field" title="treecorr.Field"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Field</span></code></a> itself is an abstract base class of the other kinds of fields, and has a
+few methods that are available for all <a class="reference internal" href="#treecorr.Field" title="treecorr.Field"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Field</span></code></a> types.</li>
+<li><a class="reference internal" href="#treecorr.NField" title="treecorr.NField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NField</span></code></a> holds counts of objects and is used for correlations with an N in the name,
+including <a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNCorrelation</span></code></a>, <a class="reference internal" href="ng.html#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGCorrelation</span></code></a>, <a class="reference internal" href="nk.html#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a>, and <a class="reference internal" href="nnn.html#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a>.</li>
+<li><a class="reference internal" href="#treecorr.GField" title="treecorr.GField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GField</span></code></a> holds both counts of objects and the mean shear of those objects.
+It is used for correlations with a G in the name, including
+<a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a>, <a class="reference internal" href="ng.html#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGCorrelation</span></code></a>, <a class="reference internal" href="kg.html#treecorr.KGCorrelation" title="treecorr.KGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGCorrelation</span></code></a>, and <a class="reference internal" href="ggg.html#treecorr.GGGCorrelation" title="treecorr.GGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a>.</li>
+<li><a class="reference internal" href="#treecorr.KField" title="treecorr.KField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KField</span></code></a> holds both counts of objects and the mean “kappa” of those objects.
+It is used for correlations with a K in the name, including
+<a class="reference internal" href="kk.html#treecorr.KKCorrelation" title="treecorr.KKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKCorrelation</span></code></a>, <a class="reference internal" href="nk.html#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a>, <a class="reference internal" href="kg.html#treecorr.KGCorrelation" title="treecorr.KGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGCorrelation</span></code></a>, and <a class="reference internal" href="kkk.html#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a>.</li>
+<li><a class="reference internal" href="#treecorr.SimpleField" title="treecorr.SimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">SimpleField</span></code></a> is a different base class, which packages the information in a list
+rather than a tree.  Its subclasses, <a class="reference internal" href="#treecorr.NSimpleField" title="treecorr.NSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NSimpleField</span></code></a>, <a class="reference internal" href="#treecorr.GSimpleField" title="treecorr.GSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GSimpleField</span></code></a>, and
+<a class="reference internal" href="#treecorr.KSimpleField" title="treecorr.KSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KSimpleField</span></code></a>, are used instead of the regular <a class="reference internal" href="#treecorr.Field" title="treecorr.Field"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Field</span></code></a> types when doing
+<code class="docutils literal notranslate"><span class="pre">pairwise</span></code> correlations.</li>
+</ul>
+</div></blockquote>
+<p>Typically, one would not create any of these objects directly, but would instead
+use Catalog methods <a class="reference internal" href="catalog.html#treecorr.Catalog.getNField" title="treecorr.Catalog.getNField"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getNField</span></code></a>, <a class="reference internal" href="catalog.html#treecorr.Catalog.getGField" title="treecorr.Catalog.getGField"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getGField</span></code></a>, <a class="reference internal" href="catalog.html#treecorr.Catalog.getKField" title="treecorr.Catalog.getKField"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getKField</span></code></a>.  Or indeed, usually, one
+does not even do that, and just lets the relevant <code class="docutils literal notranslate"><span class="pre">process</span></code> command do so for you.</p>
+<dl class="class">
+<dt id="treecorr.Field">
+<em class="property">class </em><code class="descclassname">treecorr.</code><code class="descname">Field</code><a class="reference internal" href="_modules/treecorr/field.html#Field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Field in TreeCorr is the object that stores the tree structure we use for efficient
+calculation of the correlation functions.</p>
+<p>The root “cell” in the tree has information about the whole field, including the total
+number of points, the total weight, the mean position, the size (by which we mean the
+maximum distance of any point from the mean position), and possibly more information depending
+on which kind of field we have.</p>
+<p>It also points to two sub-cells which each describe about half the points.  These are commonly
+referred to as “daughter cells”.  They in turn point to two more cells each, and so on until
+we get to cells that are considered “small enough” according to the <strong>min_size</strong> parameter given
+in the constructor.  These lowest level cells are referred to as “leaves”.</p>
+<p>Technically, a Field doesn’t have just one of these trees.  To make parallel computation
+more efficient, we actually skip the first few layers of the tree as described above and
+store a list of root cells.  The three parameters that determine how many of these there
+will be are <strong>max_size</strong>, <strong>min_top</strong>, and <strong>max_top</strong>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><strong>max_size</strong> sets the maximum size cell that we want to make sure we have in the trees,
+so the root cells will be at least this large.  The default is None, which means
+we care about all sizes, so there may be only one root cell (but typically more
+because of <strong>min_top</strong>).</li>
+<li><strong>min_top</strong> sets the minimum number of initial levels to skip.  The default is 3,
+which means there will be at least 8 root cells (assuming ntot &gt;= 8).</li>
+<li><strong>max_top</strong> sets the maximum number of initial levels to skip.  The default is 10,
+which means there could be up to 1024 root cells.</li>
+</ul>
+</div></blockquote>
+<p>Finally, the <strong>split_method</strong> parameter sets how the points in a cell should be divided
+when forming the two daughter cells.  The split is always done according to whichever
+dimension has the largest extent.  E.g. if max(|x - meanx|) is larger than max(|y - meany|)
+and (for 3d) max(|z - meanz|), then it will split according to the x values.  But then
+it may split in different ways according to <strong>split_method</strong>.  The allowed values are:</p>
+<blockquote>
+<div><ul class="simple">
+<li>‘mean’ means to divide the points at the average (mean) value of x, y or z.</li>
+<li>‘median’ means to divide the points at the median value of x, y, or z.</li>
+<li>‘middle’ means to divide the points at midpoint between the minimum and maximum values.</li>
+<li>‘random’ means to divide the points randomly somewhere between the 40th and 60th
+percentile locations in the sorted list.</li>
+</ul>
+</div></blockquote>
+<p>Field itself is an abstract base class for the specific types of field classes.
+As such, it cannot be constructed directly.  You should make one of the concrete subclasses:</p>
+<blockquote>
+<div><ul class="simple">
+<li>NField describes a field of objects to be counted only.</li>
+<li>KField describes a field of points sampling a scalar field (e.g. kappa in the
+weak lensing context).  In addition to the above values, cells keep track of
+the mean kappa value in the given region.</li>
+<li>GField describes a field of points sampling a spinor field (e.g. gamma in the
+weak lensing context).  In addition to the above values, cells keep track of
+the mean (complex) gamma value in the given region.</li>
+</ul>
+</div></blockquote>
+<dl class="attribute">
+<dt id="treecorr.Field.cat">
+<code class="descname">cat</code><a class="headerlink" href="#treecorr.Field.cat" title="Permalink to this definition">¶</a></dt>
+<dd><p>The catalog from which this field was constructed.</p>
+<p>It is stored as a weakref, so if the Catalog has already been garbage collected, this
+might be None.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="treecorr.Field.count_near">
+<code class="descname">count_near</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.count_near"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.count_near" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count how many points are near a given coordinate.</p>
+<p>Use the existing tree structure to count how many points are within some given separation
+of a target coordinate.</p>
+<p>There are several options for how to specify the reference coordinate, which depends
+on the type of coordinate system this field implements.</p>
+<ol class="arabic simple">
+<li>For flat 2-dimensional coordinates:</li>
+</ol>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>x</strong> (<em>float</em>) – The x coordinate of the target location</li>
+<li><strong>y</strong> (<em>float</em>) – The y coordinate of the target location</li>
+<li><strong>sep</strong> (<em>float</em>) – The separation distance</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<ol class="arabic simple" start="2">
+<li>For 3-dimensional Cartesian coordinates:</li>
+</ol>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>x</strong> (<em>float</em>) – The x coordinate of the target location</li>
+<li><strong>y</strong> (<em>float</em>) – The y coordinate of the target location</li>
+<li><strong>z</strong> (<em>float</em>) – The z coordinate of the target location</li>
+<li><strong>sep</strong> (<em>float</em>) – The separation distance</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<ol class="arabic simple" start="3">
+<li>For spherical coordinates:</li>
+</ol>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ra</strong> (<em>float</em><em> or </em><em>Angle</em>) – The right ascension of the target location</li>
+<li><strong>dec</strong> (<em>float</em><em> or </em><em>Angle</em>) – The declination of the target location</li>
+<li><strong>c</strong> (<em>CelestialCorod</em>) – A coord.CelestialCoord object in lieu of (ra, dec)</li>
+<li><strong>sep</strong> (<em>float</em><em> or </em><em>Angle</em>) – The separation distance</li>
+<li><strong>ra_units</strong> (<em>str</em>) – The units of ra if given as a float</li>
+<li><strong>dec_units</strong> (<em>str</em>) – The units of dec if given as a float</li>
+<li><strong>sep_units</strong> (<em>str</em>) – The units of sep if given as a float</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<ol class="arabic simple" start="4">
+<li>For spherical coordinates with distances:</li>
+</ol>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ra</strong> (<em>float</em><em> or </em><em>Angle</em>) – The right ascension of the target location</li>
+<li><strong>dec</strong> (<em>float</em><em> or </em><em>Angle</em>) – The declination of the target location</li>
+<li><strong>c</strong> (<em>CelestialCorod</em>) – A coord.CelestialCoord object in lieu of (ra, dec)</li>
+<li><strong>r</strong> (<em>float</em>) – The distance to the target location</li>
+<li><strong>sep</strong> (<em>float</em>) – The separation distance</li>
+<li><strong>ra_units</strong> (<em>str</em>) – The units of ra if given as a float</li>
+<li><strong>dec_units</strong> (<em>str</em>) – The units of dec if given as a float</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>In all cases, for parameters that angles (ra, dec, sep for ‘spherical’), you may either
+provide this quantity as a coord.Angle instance, or you may provide ra_units, dec_units
+or sep_units respectively to specify which angular units are providing.</p>
+<p>Finally, in cases where ra, dec are allowed, you may instead provide a
+coord.CelestialCoord instance as the first argument to specify both RA and Dec.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="treecorr.Field.get_near">
+<code class="descname">get_near</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.get_near"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.get_near" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the indices of points near a given coordinate.</p>
+<p>Use the existing tree structure to find the points that are within some given separation
+of a target coordinate.</p>
+<p>There are several options for how to specify the reference coordinate, which depends
+on the type of coordinate system this field implements.</p>
+<ol class="arabic simple">
+<li>For flat 2-dimensional coordinates:</li>
+</ol>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>x</strong> (<em>float</em>) – The x coordinate of the target location</li>
+<li><strong>y</strong> (<em>float</em>) – The y coordinate of the target location</li>
+<li><strong>sep</strong> (<em>float</em>) – The separation distance</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<ol class="arabic simple" start="2">
+<li>For 3-dimensional Cartesian coordinates:</li>
+</ol>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>x</strong> (<em>float</em>) – The x coordinate of the target location</li>
+<li><strong>y</strong> (<em>float</em>) – The y coordinate of the target location</li>
+<li><strong>z</strong> (<em>float</em>) – The z coordinate of the target location</li>
+<li><strong>sep</strong> (<em>float</em>) – The separation distance</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<ol class="arabic simple" start="3">
+<li>For spherical coordinates:</li>
+</ol>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ra</strong> (<em>float</em><em> or </em><em>Angle</em>) – The right ascension of the target location</li>
+<li><strong>dec</strong> (<em>float</em><em> or </em><em>Angle</em>) – The declination of the target location</li>
+<li><strong>c</strong> (<em>CelestialCorod</em>) – A coord.CelestialCoord object in lieu of (ra, dec)</li>
+<li><strong>sep</strong> (<em>float</em><em> or </em><em>Angle</em>) – The separation distance</li>
+<li><strong>ra_units</strong> (<em>str</em>) – The units of ra if given as a float</li>
+<li><strong>dec_units</strong> (<em>str</em>) – The units of dec if given as a float</li>
+<li><strong>sep_units</strong> (<em>str</em>) – The units of sep if given as a float</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<ol class="arabic simple" start="4">
+<li>For spherical coordinates with distances:</li>
+</ol>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ra</strong> (<em>float</em><em> or </em><em>Angle</em>) – The right ascension of the target location</li>
+<li><strong>dec</strong> (<em>float</em><em> or </em><em>Angle</em>) – The declination of the target location</li>
+<li><strong>c</strong> (<em>CelestialCorod</em>) – A coord.CelestialCoord object in lieu of (ra, dec)</li>
+<li><strong>r</strong> (<em>float</em>) – The distance to the target location</li>
+<li><strong>sep</strong> (<em>float</em>) – The separation distance</li>
+<li><strong>ra_units</strong> (<em>str</em>) – The units of ra if given as a float</li>
+<li><strong>dec_units</strong> (<em>str</em>) – The units of dec if given as a float</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>In all cases, for parameters that angles (ra, dec, sep for ‘spherical’), you may either
+provide this quantity as a coord.Angle instance, or you may provide ra_units, dec_units
+or sep_units respectively to specify which angular units are providing.</p>
+<p>Finally, in cases where ra, dec are allowed, you may instead provide a
+coord.CelestialCoord instance as the first argument to specify both RA and Dec.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="treecorr.Field.nTopLevelNodes">
+<code class="descname">nTopLevelNodes</code><a class="headerlink" href="#treecorr.Field.nTopLevelNodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of top-level nodes.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="treecorr.NField">
+<em class="property">class </em><code class="descclassname">treecorr.</code><code class="descname">NField</code><span class="sig-paren">(</span><em>cat</em>, <em>min_size=0</em>, <em>max_size=None</em>, <em>split_method='mean'</em>, <em>brute=False</em>, <em>min_top=3</em>, <em>max_top=10</em>, <em>coords=None</em>, <em>logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#NField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NField" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class stores the positions and number of objects in a tree structure from which it is
+efficient to compute correlation functions.</p>
+<p>An NField is typically created from a Catalog object using</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nfield</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getNField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cat</strong> – The catalog from which to make the field.</li>
+<li><strong>min_size</strong> – The minimum radius cell required (usually min_sep). (default: 0)</li>
+<li><strong>max_size</strong> – The maximum radius cell required (usually max_sep). (default: None)</li>
+<li><strong>split_method</strong> – Which split method to use (‘mean’, ‘median’, ‘middle’, or ‘random’)
+(default: ‘mean’)</li>
+<li><strong>Whether to force traversal to the leaves for this field.</strong><strong> (</strong><strong>default</strong> (<em>brute</em>) – False)</li>
+<li><strong>min_top</strong> – The minimum number of top layers to use when setting up the field.
+(default: 3)</li>
+<li><strong>max_top</strong> – The maximum number of top layers to use when setting up the field.
+(default: 10)</li>
+<li><strong>The kind of coordinate system to use.</strong><strong> (</strong><strong>default</strong> (<em>coords</em>) – cat.coords)</li>
+<li><strong>logger</strong> – A logger file if desired (default: None)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="treecorr.GField">
+<em class="property">class </em><code class="descclassname">treecorr.</code><code class="descname">GField</code><span class="sig-paren">(</span><em>cat</em>, <em>min_size=0</em>, <em>max_size=None</em>, <em>split_method='mean'</em>, <em>brute=False</em>, <em>min_top=3</em>, <em>max_top=10</em>, <em>coords=None</em>, <em>logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#GField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GField" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class stores the values of a spinor field (gamma in the weak lensing context) in a
+tree structure from which it is efficient to compute correlation functions.</p>
+<p>A GField is typically created from a Catalog object using</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gfield</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getGField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cat</strong> – The catalog from which to make the field.</li>
+<li><strong>min_size</strong> – The minimum radius cell required (usually min_sep). (default: 0)</li>
+<li><strong>max_size</strong> – The maximum radius cell required (usually max_sep). (default: None)</li>
+<li><strong>split_method</strong> – Which split method to use (‘mean’, ‘median’, ‘middle’, or ‘random’)
+(default: ‘mean’)</li>
+<li><strong>Whether to force traversal to the leaves for this field.</strong><strong> (</strong><strong>default</strong> (<em>brute</em>) – False)</li>
+<li><strong>min_top</strong> – The minimum number of top layers to use when setting up the field.
+(default: 3)</li>
+<li><strong>max_top</strong> – The maximum number of top layers to use when setting up the field.
+(default: 10)</li>
+<li><strong>The kind of coordinate system to use.</strong><strong> (</strong><strong>default</strong> (<em>coords</em>) – cat.coords)</li>
+<li><strong>logger</strong> – A logger file if desired (default: None)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="treecorr.KField">
+<em class="property">class </em><code class="descclassname">treecorr.</code><code class="descname">KField</code><span class="sig-paren">(</span><em>cat</em>, <em>min_size=0</em>, <em>max_size=None</em>, <em>split_method='mean'</em>, <em>brute=False</em>, <em>min_top=3</em>, <em>max_top=10</em>, <em>coords=None</em>, <em>logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#KField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KField" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class stores the values of a scalar field (kappa in the weak lensing context) in a
+tree structure from which it is efficient to compute correlation functions.</p>
+<p>A KField is typically created from a Catalog object using</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kfield</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getKField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cat</strong> – The catalog from which to make the field.</li>
+<li><strong>min_size</strong> – The minimum radius cell required (usually min_sep). (default: 0)</li>
+<li><strong>max_size</strong> – The maximum radius cell required (usually max_sep). (default: None)</li>
+<li><strong>split_method</strong> – Which split method to use (‘mean’, ‘median’, ‘middle’, or ‘random’)
+(default: ‘mean’)</li>
+<li><strong>Whether to force traversal to the leaves for this field.</strong><strong> (</strong><strong>default</strong> (<em>brute</em>) – False)</li>
+<li><strong>min_top</strong> – The minimum number of top layers to use when setting up the field.
+(default: 3)</li>
+<li><strong>max_top</strong> – The maximum number of top layers to use when setting up the field.
+(default: 10)</li>
+<li><strong>The kind of coordinate system to use.</strong><strong> (</strong><strong>default</strong> (<em>coords</em>) – cat.coords)</li>
+<li><strong>logger</strong> – A logger file if desired (default: None)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="treecorr.SimpleField">
+<em class="property">class </em><code class="descclassname">treecorr.</code><code class="descname">SimpleField</code><a class="reference internal" href="_modules/treecorr/field.html#SimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.SimpleField" title="Permalink to this definition">¶</a></dt>
+<dd><p>A SimpleField is like a Field, but only stores the leaves as a list, skipping all the
+tree stuff.</p>
+<p>Again, this is an abstract base class, which cannot be instantiated.  You should
+make one of the concrete subclasses:</p>
+<blockquote>
+<div><ul class="simple">
+<li>NSimpleField describes a field of objects to be counted only.</li>
+<li>KSimpleField describes a field of points sampling a scalar field.</li>
+<li>GSimpleField describes a field of points sampling a spinor field.</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="class">
+<dt id="treecorr.NSimpleField">
+<em class="property">class </em><code class="descclassname">treecorr.</code><code class="descname">NSimpleField</code><span class="sig-paren">(</span><em>cat</em>, <em>logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#NSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NSimpleField" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class stores the positions as a list, skipping all the tree stuff.</p>
+<p>An NSimpleField is typically created from a Catalog object using</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nfield</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getNSimpleField</span><span class="p">()</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cat</strong> – The catalog from which to make the field.</li>
+<li><strong>logger</strong> – A logger file if desired (default: None)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="treecorr.GSimpleField">
+<em class="property">class </em><code class="descclassname">treecorr.</code><code class="descname">GSimpleField</code><span class="sig-paren">(</span><em>cat</em>, <em>logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#GSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GSimpleField" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class stores the shear field as a list, skipping all the tree stuff.</p>
+<p>A GSimpleField is typically created from a Catalog object using</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gfield</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getGSimpleField</span><span class="p">()</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cat</strong> – The catalog from which to make the field.</li>
+<li><strong>logger</strong> – A logger file if desired (default: None)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="treecorr.KSimpleField">
+<em class="property">class </em><code class="descclassname">treecorr.</code><code class="descname">KSimpleField</code><span class="sig-paren">(</span><em>cat</em>, <em>logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#KSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KSimpleField" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class stores the kappa field as a list, skipping all the tree stuff.</p>
+<p>A KSimpleField is typically created from a Catalog object using</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kfield</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getKSimpleField</span><span class="p">()</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cat</strong> – The catalog from which to make the field.</li>
+<li><strong>logger</strong> – A logger file if desired (default: None)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="scripts.html" class="btn btn-neutral float-right" title="The corr2 and corr3 driver scripts" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="bintype.html" class="btn btn-neutral float-left" title="Binning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Mike Jarvis
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

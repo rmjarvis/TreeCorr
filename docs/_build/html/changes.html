@@ -1,0 +1,362 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Changes from version 3.3 to 3.4 &mdash; TreeCorr 4.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Previous History" href="history.html" />
+    <link rel="prev" title="The corr2 and corr3 driver scripts" href="scripts.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> TreeCorr
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                4.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bintype.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">The corr2 and corr3 driver scripts</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Changes from version 3.3 to 3.4</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dependency-changes">Dependency changes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api-changes">API changes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-improvements">Performance Improvements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#new-features">New features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bug-fixes">Bug fixes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Changes from version 3.3 to 3.4</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/changes.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="changes-from-version-3-3-to-3-4">
+<h1>Changes from version 3.3 to 3.4<a class="headerlink" href="#changes-from-version-3-3-to-3-4" title="Permalink to this headline">¶</a></h1>
+<p>The numbers at the ends of some items below indicate which issue or PR is
+connected with the change:</p>
+<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+3.4%22+is%3Aclosed">https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+3.4%22+is%3Aclosed</a></p>
+<div class="section" id="dependency-changes">
+<h2>Dependency changes<a class="headerlink" href="#dependency-changes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Added dependency on LSSTDESC.Coord, and removed the TreeCorr implementation
+of the same functionality. (#77)</li>
+<li>Made fitsio dependency optional, which means that setup.py won’t automatically
+install it for you.  If you plan to use TreeCorr with FITS files, you will
+need to install fitsio yourself. (#57)</li>
+<li>Made pandas dependency optional, which means that setup.py won’t automatically
+install it for you.  Pandas is never required, but if you plan to use TreeCorr
+with ASCII input catalogs, installing pandas will provide a performance
+improvement. (#57)</li>
+<li>Removed dependency on future. (#85)</li>
+</ul>
+</div>
+<div class="section" id="api-changes">
+<h2>API changes<a class="headerlink" href="#api-changes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Removed the treecorr Angle, AngleUnit, and CelestialCoord classes, along
+with other related functions.  These have never been highly used in TreeCorr,
+and all such usage are now relegated to the LSSTDESC.Coord package.
+If you have been using any of these features, you should switch you code
+to using Coord instead. (#77)</li>
+<li>Added some attributes of the various Correlation objects to the output files
+to improve serialization – the ability to write to a file and then read back
+in that file and get back something equivalent.  For FITS output files, this
+change is non-intrusive.  But for ASCII files, it adds a comment line at the
+top with the relevant information.  Therefore, if you are reading from ASCII
+output files, you might need to slightly change your code to skip the first
+line.  (e.g. with np.genfromtxt(…, skip_header=1).)</li>
+<li>Changed the meaning of the Rperp metric to match the definition in Fisher
+et al, 1994.  This definition is probably closer to what people have expected
+the Rperp metric to mean, so this is likely an improvement for most use
+cases.  However, the difference between the two is not completely negligible
+for typical use cases, so we have preserved the previous functionality as
+metric=OldRperp.  If you care about preserving this, you should either
+change your code to use this metric name instead of Rperp, or set
+<code class="docutils literal notranslate"><span class="pre">treecorr.Rperp_alias</span> <span class="pre">=</span> <span class="pre">'OldRperp'</span></code> before using it. (#73)</li>
+<li>Updated the caching of the fields built for a given catalog to only cache
+one (the most recently built) field, rather than all fields built.  If you
+had been relying on multiple fields being cached, this could lead to a
+performance regression for you.  However, you can update the number of
+fields cached with catalog.resize_cache(n). (#53)</li>
+<li>Using bin_slop=0 no longer does the brute force calculation.  Rather, it
+stops traversing the tree when all pairs for a given pair of cells would
+fall into the same bin.  This distinction is normally not important, and
+the new behavior is merely a performance increase.  However, there is a
+numerical difference for shear correlations, as the shear projection is not
+exactly equivalent.  To obtain the brute force calculation, use the new
+<code class="docutils literal notranslate"><span class="pre">brute=True</span></code> option. (#82)</li>
+<li>Changed how the 3pt correlation v binning is specified.  Now, you should
+only specify the range and number of bins for positive v values. The negative
+v’s will also be accumulated over the same range of absolute values as the
+positive v’s. This should normally not be a hardship, since if you want to
+accumulate negative v’s, you probably want the same range as the positive
+v’s. But it enables you, for instance, to accumulate all flattened triangles
+with 0.8 &lt; abs(v) &lt; 1.0 in one pass rather than two. (#85)</li>
+<li>Changed the behavior of specifying min_sep, max_sep, and bin_size (omitting
+nbins) to respect max_sep and reduce bin_size slightly, rather than
+respect bin_size and increase max_sep.  This seems like the behavior that
+most people would expect for this combination. (#85)</li>
+<li>Changed the name of the variance attributes for shear-shear correlations
+to varxip and varxim, rather than just a single varxi.  For the current
+naive shot-noise-only estimate of the variance, they are equal, but we plan
+to have other variance estimates where they could differ.  So this change
+is preparing for future work that will need the difference.</li>
+<li>Changed the name of the variance attributes for shear-shear-shear correlations
+to vargam0, vargam1, vargam2, and vargam3, rather than just a single vargam.</li>
+<li>Changed the column names in GG and GGG output files for the sigma estimates
+to sigma_xip and sigma_xim for GG and sigma_gam0, sigma_gam1, sigma_gam2,
+and sigma_gam3 for GGG.</li>
+<li>Changed the column names in output files that used an upper case R (R_nom,
+meanR, and meanlogR) to use a lower case r (r_nom, meanr, meanlogr) to match
+the rest of the documentation.</li>
+<li>Removed support for python 2.6.  (Probably no one cares…)</li>
+<li>Removed deprecated aliases in the config processing.</li>
+</ul>
+</div>
+<div class="section" id="performance-improvements">
+<h2>Performance Improvements<a class="headerlink" href="#performance-improvements" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Improved efficiency of runs that use bin_slop &lt; 1. (Especially &lt;&lt; 1). (#16)</li>
+<li>Reduced the memory required for the constructed trees slightly. (By 8 bytes
+per galaxy.) (#82)</li>
+<li>Updated the caching of the fields to allow for more flexibility about how
+many fields are cached for a given catalog.  The default is to cache 1 field,
+which is normally appropriate, but you can use catalog.resize_cache(n) to
+either increase this number or to tell it not to cache at all (n=0). (#53)</li>
+<li>Added a catalog.clear_cache() function, which lets you manually clear the
+cache to release the memory of the cached field(s). (#53)</li>
+<li>Improved both the speed and accuracy of the Rlens metric calculation. (#77)</li>
+<li>Improved both the speed and accuracy of 3pt correlation functions. (#85)</li>
+</ul>
+</div>
+<div class="section" id="new-features">
+<h2>New features<a class="headerlink" href="#new-features" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Added a new concept, called bin_type for all the Correlation objects.  There
+are currently three possible options for bin_type:
+- ‘Log’ is equivalent to the previous behavior of binning in log space.
+- ‘Linear’ bins linearly in r. (#5)
+- ‘TwoD’ bins linearly in x and y. (#70)</li>
+<li>Added the ability to use min_rpar and max_rpar with the Arc metric. (#61)</li>
+<li>Added a different definition of Rperp, called FisherRperp, which follows
+the definition in Fisher et al, 1994.  This definition is both more standard
+and slightly faster to calculate.  We think this is the definition that most
+people expect when using Rperp, so we have changed Rperp to be an alias of
+FisherRperp.  The name OldRperp has been added to perserve the old meaning
+of Rperp in case that is important for any science use cases. (#73)</li>
+<li>Added better messaging when OpenMP is not found to work with the available
+clang compiler. (#75)</li>
+<li>Added new methods Field.count_near and Field.get_near, which return the
+number of or the indices of points in the field that are near a given
+other coordinate. (#44)</li>
+<li>Added new method BinnedCorr2.sample_pairs, which returns a random sampling
+of pairs within a given range of separations.  E.g. a sample of pairs that
+fell into a given bin of the correlation function. (#67)</li>
+<li>Added <code class="docutils literal notranslate"><span class="pre">brute</span></code> option for Correlation instances.  This is equivalent to the
+old behavior of <code class="docutils literal notranslate"><span class="pre">bin_slop=0</span></code>. (#82)</li>
+<li>Added ‘Periodic’ metric. (#56)</li>
+<li>Added <code class="docutils literal notranslate"><span class="pre">min_top</span></code> option for Fields. (#84)</li>
+<li>Added calculation of &lt;Map^3&gt; and related quantities. (#85)</li>
+<li>Added option to provide R values for MapSq and related statistics. (#85)</li>
+</ul>
+</div>
+<div class="section" id="bug-fixes">
+<h2>Bug fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Added tot attribute to the NN and NNN output files, which fixes an error
+where NNCorrelation and NNNCorrelation did not round trip correctly through
+a FITS output file.  Now the tot attribute is set properly when reading.</li>
+<li>Fixed the Catalog.copy() method, which wasn’t working properly.</li>
+<li>Fixed an error in the Schneider NMap calculation. (#77)</li>
+<li>Fixed a factor of 2 missing in the estimate of varxi. (#72)</li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="history.html" class="btn btn-neutral float-right" title="Previous History" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="scripts.html" class="btn btn-neutral float-left" title="The corr2 and corr3 driver scripts" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Mike Jarvis
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

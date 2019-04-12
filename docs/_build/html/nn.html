@@ -1,0 +1,663 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>NNCorrelation: Count-count correlations &mdash; TreeCorr 4.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="GGCorrelation: Shear-shear correlations" href="gg.html" />
+    <link rel="prev" title="Two-point Correlation Functions" href="correlation2.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> TreeCorr
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                4.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">NNCorrelation: Count-count correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gg.html">GGCorrelation: Shear-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ng.html">NGCorrelation: Count-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kk.html">KKCorrelation: Kappa-kappa correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nk.html">NKCorrelation: Count-kappa correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kg.html">KGCorrelation: Kappa-shear correlations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bintype.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">The corr2 and corr3 driver scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 3.4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="correlation2.html">Two-point Correlation Functions</a> &raquo;</li>
+        
+      <li>NNCorrelation: Count-count correlations</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/nn.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="nncorrelation-count-count-correlations">
+<h1>NNCorrelation: Count-count correlations<a class="headerlink" href="#nncorrelation-count-count-correlations" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="treecorr.NNCorrelation">
+<em class="property">class </em><code class="descclassname">treecorr.</code><code class="descname">NNCorrelation</code><span class="sig-paren">(</span><em>config=None</em>, <em>logger=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nncorrelation.html#NNCorrelation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NNCorrelation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">treecorr.binnedcorr2.BinnedCorr2</span></code></p>
+<p>This class handles the calculation and storage of a 2-point count-count correlation
+function.  i.e. the regular density correlation function.</p>
+<p>Ojects of this class holds the following attributes:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nbins</strong> – The number of bins in logr</li>
+<li><strong>bin_size</strong> – The size of the bins in logr</li>
+<li><strong>min_sep</strong> – The minimum separation being considered</li>
+<li><strong>max_sep</strong> – The maximum separation being considered</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>In addition, the following attributes are numpy arrays of length (nbins):</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><ul class="first last simple">
+<li><strong>logr</strong> – The nominal center of the bin in log(r) (the natural logarithm of r).</li>
+<li><strong>rnom</strong> – The nominal center of the bin converted to regular distance.
+i.e. r = exp(logr).</li>
+<li><strong>meanr</strong> – The (weighted) mean value of r for the pairs in each bin.
+If there are no pairs in a bin, then exp(logr) will be used instead.</li>
+<li><strong>meanlogr</strong> – The mean value of log(r) for the pairs in each bin.
+If there are no pairs in a bin, then logr will be used instead.</li>
+<li><strong>weight</strong> – The total weight in each bin.</li>
+<li><strong>npairs</strong> – The number of pairs in each bin.</li>
+<li><strong>tot</strong> – The total number of pairs processed, which is used to normalize
+the randoms if they have a different number of pairs.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>If <strong>sep_units</strong> are given (either in the config dict or as a named kwarg) then the distances
+will all be in these units.  Note however, that if you separate out the steps of the
+<a class="reference internal" href="#treecorr.NNCorrelation.process" title="treecorr.NNCorrelation.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process</span></code></a> command and use <a class="reference internal" href="#treecorr.NNCorrelation.process_auto" title="treecorr.NNCorrelation.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a> and/or <a class="reference internal" href="#treecorr.NNCorrelation.process_cross" title="treecorr.NNCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>, then the units will not be
+applied to <strong>meanr</strong> or <strong>meanlogr</strong> until the <a class="reference internal" href="#treecorr.NNCorrelation.finalize" title="treecorr.NNCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> function is called.</p>
+<p>The typical usage pattern is as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nn</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nn</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>         <span class="c1"># For auto-correlation.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nn</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">cat2</span><span class="p">)</span>   <span class="c1"># For cross-correlation.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rr</span><span class="o">.</span><span class="n">process</span><span class="o">...</span>           <span class="c1"># Likewise for random-random correlations</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dr</span><span class="o">.</span><span class="n">process</span><span class="o">...</span>           <span class="c1"># If desired, also do data-random correlations</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rd</span><span class="o">.</span><span class="n">process</span><span class="o">...</span>           <span class="c1"># For cross-correlations, also do the reverse.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nn</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span><span class="n">rr</span><span class="p">,</span><span class="n">dr</span><span class="p">,</span><span class="n">rd</span><span class="p">)</span>         <span class="c1"># Write out to a file.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xi</span><span class="p">,</span><span class="n">varxi</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">calculateXi</span><span class="p">(</span><span class="n">rr</span><span class="p">,</span><span class="n">dr</span><span class="p">,</span><span class="n">rd</span><span class="p">)</span>  <span class="c1"># Or get the correlation function directly.</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in kwargs if desired.
+This dict is allowed to have addition entries in addition to those listed
+in <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a>, which are ignored here. (default: None)</li>
+<li><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
+one will be built according to the config dict’s verbose level.)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>See the documentation for <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a> for the list of other allowed kwargs, which may be
+passed either directly or in the config dict.</p>
+<dl class="method">
+<dt id="treecorr.NNCorrelation.__eq__">
+<code class="descname">__eq__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nncorrelation.html#NNCorrelation.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NNCorrelation.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether two NNCorrelations are equal</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="treecorr.NNCorrelation.__iadd__">
+<code class="descname">__iadd__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nncorrelation.html#NNCorrelation.__iadd__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NNCorrelation.__iadd__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a second NNCorrelation’s data to this one.</p>
+<p>Note: For this to make sense, both Correlation objects should have been using
+<a class="reference internal" href="#treecorr.NNCorrelation.process_auto" title="treecorr.NNCorrelation.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a> and/or <a class="reference internal" href="#treecorr.NNCorrelation.process_cross" title="treecorr.NNCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>, and they should not have had <a class="reference internal" href="#treecorr.NNCorrelation.finalize" title="treecorr.NNCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> called yet.
+Then, after adding them together, you should call <a class="reference internal" href="#treecorr.NNCorrelation.finalize" title="treecorr.NNCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> on the sum.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="treecorr.NNCorrelation.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>config=None</em>, <em>logger=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nncorrelation.html#NNCorrelation.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NNCorrelation.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="treecorr.NNCorrelation.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nncorrelation.html#NNCorrelation.__repr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NNCorrelation.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return repr(self).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="treecorr.NNCorrelation.calculateNapSq">
+<code class="descname">calculateNapSq</code><span class="sig-paren">(</span><em>rr</em>, <em>R=None</em>, <em>dr=None</em>, <em>rd=None</em>, <em>m2_uform=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nncorrelation.html#NNCorrelation.calculateNapSq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NNCorrelation.calculateNapSq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the correlary to the aperture mass statistics for counts.</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\langle N_{ap}^2 \rangle(R) &amp;= \int_{0}^{rmax} \frac{r dr}{2R^2}
+\left [ T_+\left(\frac{r}{R}\right) \xi(r) \right] \\\end{split}\]</div>
+<p>The <strong>m2_uform</strong> parameter sets which definition of the aperture mass to use.
+The default is to use ‘Crittenden’.</p>
+<p>If <strong>m2_uform</strong> is ‘Crittenden’:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}U(r) &amp;= \frac{1}{2\pi} (1-r^2) \exp(-r^2/2) \\
+T_+(s) &amp;= \frac{s^4 - 16s^2 + 32}{128} \exp(-s^2/4) \\
+rmax &amp;= \infty\end{split}\]</div>
+<p>cf. Crittenden, et al (2002): ApJ, 568, 20</p>
+<p>If <strong>m2_uform</strong> is ‘Schneider’:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}U(r) &amp;= \frac{9}{\pi} (1-r^2) (1/3-r^2) \\
+T_+(s) &amp;= \frac{12}{5\pi} (2-15s^2) \arccos(s/2) \\
+&amp;\qquad + \frac{1}{100\pi} s \sqrt{4-s^2} (120 + 2320s^2 - 754s^4 + 132s^6 - 9s^8) \\
+rmax &amp;= 2R\end{split}\]</div>
+<p>cf. Schneider, et al (2002): A&amp;A, 389, 729</p>
+<p>This is used by <a class="reference internal" href="ng.html#treecorr.NGCorrelation.writeNorm" title="treecorr.NGCorrelation.writeNorm"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NGCorrelation.writeNorm</span></code></a>.  See that function and also
+<a class="reference internal" href="gg.html#treecorr.GGCorrelation.calculateMapSq" title="treecorr.GGCorrelation.calculateMapSq"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">GGCorrelation.calculateMapSq</span></code></a> for more details.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>rr</strong> (<a class="reference internal" href="#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The auto-correlation of the random field (RR)</li>
+<li><strong>R</strong> (<em>array</em>) – The R values at which to calculate the aperture mass statistics.
+(default: None, which means use self.rnom)</li>
+<li><strong>dr</strong> (<a class="reference internal" href="#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The cross-correlation of the data with randoms (DR), if
+desired. (default: None)</li>
+<li><strong>rd</strong> (<a class="reference internal" href="#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The cross-correlation of the randoms with data (RD), if
+desired. (default: None, which means use rd=dr)</li>
+<li><strong>m2_uform</strong> (<em>str</em>) – Which form to use for the aperture mass.  (default: ‘Crittenden’;
+this value can also be given in the constructor in the config dict.)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p>Tuple containing</p>
+<blockquote>
+<div><ul class="simple">
+<li>nsq = array of <span class="math notranslate nohighlight">\(\langle N_{ap}^2 \rangle(R)\)</span></li>
+<li>varnsq = array of variance estimates of this value</li>
+</ul>
+</div></blockquote>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="treecorr.NNCorrelation.calculateXi">
+<code class="descname">calculateXi</code><span class="sig-paren">(</span><em>rr</em>, <em>dr=None</em>, <em>rd=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nncorrelation.html#NNCorrelation.calculateXi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NNCorrelation.calculateXi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the correlation function given another correlation function of random
+points using the same mask, and possibly cross correlations of the data and random.</p>
+<p>The rr value is the NNCorrelation function for random points.
+For a signal that involves a cross correlations, there should be two random
+cross-correlations: data-random and random-data, given as dr and rd.</p>
+<ul class="simple">
+<li>If dr is None, the simple correlation function <span class="math notranslate nohighlight">\(\xi = (DD/RR - 1)\)</span> is used.</li>
+<li>if dr is given and rd is None, then <span class="math notranslate nohighlight">\(\xi = (DD - 2DR + RR)/RR\)</span> is used.</li>
+<li>If dr and rd are both given, then <span class="math notranslate nohighlight">\(\xi = (DD - DR - RD + RR)/RR\)</span> is used.</li>
+</ul>
+<p>where DD is the data NN correlation function, which is the current object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>rr</strong> (<a class="reference internal" href="#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The auto-correlation of the random field (RR)</li>
+<li><strong>dr</strong> (<a class="reference internal" href="#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The cross-correlation of the data with randoms (DR), if
+desired, in which case the Landy-Szalay estimator will be
+calculated.  (default: None)</li>
+<li><strong>rd</strong> (<a class="reference internal" href="#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The cross-correlation of the randoms with data (RD), if
+desired. (default: None, which means use rd=dr)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p>Tuple containing</p>
+<blockquote>
+<div><ul class="simple">
+<li>xi = array of <span class="math notranslate nohighlight">\(\xi(r)\)</span></li>
+<li>varxi = array of variance estimates of <span class="math notranslate nohighlight">\(\xi(r)\)</span></li>
+</ul>
+</div></blockquote>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="treecorr.NNCorrelation.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nncorrelation.html#NNCorrelation.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NNCorrelation.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the data vectors</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="treecorr.NNCorrelation.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nncorrelation.html#NNCorrelation.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NNCorrelation.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a copy</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="treecorr.NNCorrelation.finalize">
+<code class="descname">finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nncorrelation.html#NNCorrelation.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NNCorrelation.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalize the calculation of the correlation function.</p>
+<p>The <a class="reference internal" href="#treecorr.NNCorrelation.process_auto" title="treecorr.NNCorrelation.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a> and <a class="reference internal" href="#treecorr.NNCorrelation.process_cross" title="treecorr.NNCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a> commands accumulate values in each bin,
+so they can be called multiple times if appropriate.  Afterwards, this command
+finishes the calculation of meanr, meanlogr by dividing by the total weight.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="treecorr.NNCorrelation.process">
+<code class="descname">process</code><span class="sig-paren">(</span><em>cat1</em>, <em>cat2=None</em>, <em>metric=None</em>, <em>num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nncorrelation.html#NNCorrelation.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NNCorrelation.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the correlation function.</p>
+<p>If only 1 argument is given, then compute an auto-correlation function.
+If 2 arguments are given, then compute a cross-correlation function.</p>
+<p>Both arguments may be lists, in which case all items in the list are used
+for that element of the correlation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the first N field.</li>
+<li><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the second N field, if any.
+(default: None)</li>
+<li><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</li>
+<li><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="treecorr.NNCorrelation.process_auto">
+<code class="descname">process_auto</code><span class="sig-paren">(</span><em>cat</em>, <em>metric=None</em>, <em>num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nncorrelation.html#NNCorrelation.process_auto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NNCorrelation.process_auto" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a single catalog, accumulating the auto-correlation.</p>
+<p>This accumulates the auto-correlation for the given catalog.  After
+calling this function as often as desired, the <a class="reference internal" href="#treecorr.NNCorrelation.finalize" title="treecorr.NNCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
+finish the calculation of meanr, meanlogr.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cat</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The catalog to process</li>
+<li><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</li>
+<li><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="treecorr.NNCorrelation.process_cross">
+<code class="descname">process_cross</code><span class="sig-paren">(</span><em>cat1</em>, <em>cat2</em>, <em>metric=None</em>, <em>num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nncorrelation.html#NNCorrelation.process_cross"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NNCorrelation.process_cross" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a single pair of catalogs, accumulating the cross-correlation.</p>
+<p>This accumulates the cross-correlation for the given catalogs.  After
+calling this function as often as desired, the <a class="reference internal" href="#treecorr.NNCorrelation.finalize" title="treecorr.NNCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
+finish the calculation of meanr, meanlogr.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process</li>
+<li><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process</li>
+<li><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</li>
+<li><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="treecorr.NNCorrelation.process_pairwise">
+<code class="descname">process_pairwise</code><span class="sig-paren">(</span><em>cat1</em>, <em>cat2</em>, <em>metric=None</em>, <em>num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nncorrelation.html#NNCorrelation.process_pairwise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NNCorrelation.process_pairwise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a single pair of catalogs, accumulating the cross-correlation, only using
+the corresponding pairs of objects in each catalog.</p>
+<p>This accumulates the sums into the bins, but does not finalize the calculation.
+After calling this function as often as desired, the <a class="reference internal" href="#treecorr.NNCorrelation.finalize" title="treecorr.NNCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
+finish the calculation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process</li>
+<li><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process</li>
+<li><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</li>
+<li><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="treecorr.NNCorrelation.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>file_name</em>, <em>file_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nncorrelation.html#NNCorrelation.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NNCorrelation.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read in values from a file.</p>
+<p>This should be a file that was written by TreeCorr, preferably a FITS file, so there
+is no loss of information.</p>
+<p>Warning: The NNCorrelation object should be constructed with the same configuration
+parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+checked by the read function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>file_name</strong> (<em>str</em>) – The name of the file to read in.</li>
+<li><strong>file_type</strong> (<em>str</em>) – The type of file (‘ASCII’ or ‘FITS’).  (default: determine the type
+automatically from the extension of file_name.)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="treecorr.NNCorrelation.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>file_name</em>, <em>rr=None</em>, <em>dr=None</em>, <em>rd=None</em>, <em>file_type=None</em>, <em>precision=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nncorrelation.html#NNCorrelation.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NNCorrelation.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the correlation function to the file, file_name.</p>
+<p>rr is the NNCorrelation function for random points.
+If dr is None, the simple correlation function <span class="math notranslate nohighlight">\(\xi = (DD - RR)/RR\)</span> is used.
+if dr is given and rd is None, then <span class="math notranslate nohighlight">\(\xi = (DD - 2DR + RR)/RR\)</span> is used.
+If dr and rd are both given, then <span class="math notranslate nohighlight">\(\xi = (DD - DR - RD + RR)/RR\)</span> is used.</p>
+<p>Normally, at least rr should be provided, but if this is also None, then only the
+basic accumulated number of pairs are output (along with the separation columns).</p>
+<p>The output file will include the following columns:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="85%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Column</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>r_nom</td>
+<td>The nominal center of the bin in r</td>
+</tr>
+<tr class="row-odd"><td>meanr</td>
+<td>The mean value &lt;r&gt; of pairs that fell into each bin</td>
+</tr>
+<tr class="row-even"><td>meanlogr</td>
+<td>The mean value &lt;log(r)&gt; of pairs that fell into each bin</td>
+</tr>
+<tr class="row-odd"><td>xi</td>
+<td>The estimator xi (if rr is given)</td>
+</tr>
+<tr class="row-even"><td>sigma_xi</td>
+<td>The sqrt of the variance estimate of xi (if rr is given)</td>
+</tr>
+<tr class="row-odd"><td>DD</td>
+<td>The total weight of pairs in each bin.</td>
+</tr>
+<tr class="row-even"><td>RR</td>
+<td>The total weight of RR pairs in each bin (if rr is given)</td>
+</tr>
+<tr class="row-odd"><td>DR</td>
+<td>The total weight of DR pairs in each bin (if dr is given)</td>
+</tr>
+<tr class="row-even"><td>RD</td>
+<td>The total weight of RD pairs in each bin (if rd is given)</td>
+</tr>
+<tr class="row-odd"><td>npairs</td>
+<td>The total number of pairs in each bin</td>
+</tr>
+</tbody>
+</table>
+<p>If <strong>sep_units</strong> was given at construction, then the distances will all be in these units.
+Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
+radians (for spherical coordinates).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</li>
+<li><strong>rr</strong> (<a class="reference internal" href="#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The auto-correlation of the random field (RR)</li>
+<li><strong>dr</strong> (<a class="reference internal" href="#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The cross-correlation of the data with randoms (DR), if
+desired. (default: None)</li>
+<li><strong>rd</strong> (<a class="reference internal" href="#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The cross-correlation of the randoms with data (RD), if
+desired. (default: None, which means use rd=dr)</li>
+<li><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).
+(default: determine the type automatically from the extension
+of file_name.)</li>
+<li><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
+this value can also be given in the constructor in the config
+dict.)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="gg.html" class="btn btn-neutral float-right" title="GGCorrelation: Shear-shear correlations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="correlation2.html" class="btn btn-neutral float-left" title="Two-point Correlation Functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Mike Jarvis
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,761 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>treecorr.field &mdash; TreeCorr 4.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> TreeCorr
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                4.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bintype.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../scripts.html">The corr2 and corr3 driver scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 3.3 to 3.4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TreeCorr</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>treecorr.field</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for treecorr.field</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2003-2019 by Mike Jarvis</span>
+<span class="c1">#</span>
+<span class="c1"># TreeCorr is free software: redistribution and use in source and binary forms,</span>
+<span class="c1"># with or without modification, are permitted provided that the following</span>
+<span class="c1"># conditions are met:</span>
+<span class="c1">#</span>
+<span class="c1"># 1. Redistributions of source code must retain the above copyright notice, this</span>
+<span class="c1">#    list of conditions, and the disclaimer given in the accompanying LICENSE</span>
+<span class="c1">#    file.</span>
+<span class="c1"># 2. Redistributions in binary form must reproduce the above copyright notice,</span>
+<span class="c1">#    this list of conditions, and the disclaimer given in the documentation</span>
+<span class="c1">#    and/or other materials provided with the distribution.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: field</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">weakref</span>
+<span class="kn">import</span> <span class="nn">treecorr</span>
+
+<span class="k">def</span> <span class="nf">_parse_split_method</span><span class="p">(</span><span class="n">split_method</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">split_method</span> <span class="o">==</span> <span class="s1">&#39;middle&#39;</span><span class="p">:</span> <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">elif</span> <span class="n">split_method</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span> <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">elif</span> <span class="n">split_method</span> <span class="o">==</span> <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="k">return</span> <span class="mi">2</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="mi">3</span>  <span class="c1"># random</span>
+
+
+<div class="viewcode-block" id="Field"><a class="viewcode-back" href="../../field.html#treecorr.Field">[docs]</a><span class="k">class</span> <span class="nc">Field</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A Field in TreeCorr is the object that stores the tree structure we use for efficient</span>
+<span class="sd">    calculation of the correlation functions.</span>
+
+<span class="sd">    The root &quot;cell&quot; in the tree has information about the whole field, including the total</span>
+<span class="sd">    number of points, the total weight, the mean position, the size (by which we mean the</span>
+<span class="sd">    maximum distance of any point from the mean position), and possibly more information depending</span>
+<span class="sd">    on which kind of field we have.</span>
+
+<span class="sd">    It also points to two sub-cells which each describe about half the points.  These are commonly</span>
+<span class="sd">    referred to as &quot;daughter cells&quot;.  They in turn point to two more cells each, and so on until</span>
+<span class="sd">    we get to cells that are considered &quot;small enough&quot; according to the **min_size** parameter given</span>
+<span class="sd">    in the constructor.  These lowest level cells are referred to as &quot;leaves&quot;.</span>
+
+<span class="sd">    Technically, a Field doesn&#39;t have just one of these trees.  To make parallel computation</span>
+<span class="sd">    more efficient, we actually skip the first few layers of the tree as described above and</span>
+<span class="sd">    store a list of root cells.  The three parameters that determine how many of these there</span>
+<span class="sd">    will be are **max_size**, **min_top**, and **max_top**:</span>
+
+<span class="sd">        - **max_size** sets the maximum size cell that we want to make sure we have in the trees,</span>
+<span class="sd">          so the root cells will be at least this large.  The default is None, which means</span>
+<span class="sd">          we care about all sizes, so there may be only one root cell (but typically more</span>
+<span class="sd">          because of **min_top**).</span>
+<span class="sd">        - **min_top** sets the minimum number of initial levels to skip.  The default is 3,</span>
+<span class="sd">          which means there will be at least 8 root cells (assuming ntot &gt;= 8).</span>
+<span class="sd">        - **max_top** sets the maximum number of initial levels to skip.  The default is 10,</span>
+<span class="sd">          which means there could be up to 1024 root cells.</span>
+
+<span class="sd">    Finally, the **split_method** parameter sets how the points in a cell should be divided</span>
+<span class="sd">    when forming the two daughter cells.  The split is always done according to whichever</span>
+<span class="sd">    dimension has the largest extent.  E.g. if max(\|x - meanx\|) is larger than max(\|y - meany\|)</span>
+<span class="sd">    and (for 3d) max(\|z - meanz\|), then it will split according to the x values.  But then</span>
+<span class="sd">    it may split in different ways according to **split_method**.  The allowed values are:</span>
+
+<span class="sd">        - &#39;mean&#39; means to divide the points at the average (mean) value of x, y or z.</span>
+<span class="sd">        - &#39;median&#39; means to divide the points at the median value of x, y, or z.</span>
+<span class="sd">        - &#39;middle&#39; means to divide the points at midpoint between the minimum and maximum values.</span>
+<span class="sd">        - &#39;random&#39; means to divide the points randomly somewhere between the 40th and 60th</span>
+<span class="sd">          percentile locations in the sorted list.</span>
+
+<span class="sd">    Field itself is an abstract base class for the specific types of field classes.</span>
+<span class="sd">    As such, it cannot be constructed directly.  You should make one of the concrete subclasses:</span>
+
+<span class="sd">        - NField describes a field of objects to be counted only.</span>
+<span class="sd">        - KField describes a field of points sampling a scalar field (e.g. kappa in the</span>
+<span class="sd">          weak lensing context).  In addition to the above values, cells keep track of</span>
+<span class="sd">          the mean kappa value in the given region.</span>
+<span class="sd">        - GField describes a field of points sampling a spinor field (e.g. gamma in the</span>
+<span class="sd">          weak lensing context).  In addition to the above values, cells keep track of</span>
+<span class="sd">          the mean (complex) gamma value in the given region.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Field is an abstract base class.  It cannot be instantiated.&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nTopLevelNodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The number of top-level nodes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">FieldGetNTopLevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The catalog from which this field was constructed.</span>
+
+<span class="sd">        It is stored as a weakref, so if the Catalog has already been garbage collected, this</span>
+<span class="sd">        might be None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># _cat is a weakref.  This gets back to a Catalog object.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cat</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Field.count_near"><a class="viewcode-back" href="../../field.html#treecorr.Field.count_near">[docs]</a>    <span class="k">def</span> <span class="nf">count_near</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Count how many points are near a given coordinate.</span>
+
+<span class="sd">        Use the existing tree structure to count how many points are within some given separation</span>
+<span class="sd">        of a target coordinate.</span>
+
+<span class="sd">        There are several options for how to specify the reference coordinate, which depends</span>
+<span class="sd">        on the type of coordinate system this field implements.</span>
+
+<span class="sd">        1. For flat 2-dimensional coordinates:</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            x (float):       The x coordinate of the target location</span>
+<span class="sd">            y (float):       The y coordinate of the target location</span>
+<span class="sd">            sep (float):     The separation distance</span>
+
+<span class="sd">        2. For 3-dimensional Cartesian coordinates:</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            x (float):       The x coordinate of the target location</span>
+<span class="sd">            y (float):       The y coordinate of the target location</span>
+<span class="sd">            z (float):       The z coordinate of the target location</span>
+<span class="sd">            sep (float):     The separation distance</span>
+
+<span class="sd">        3. For spherical coordinates:</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            ra (float or Angle):    The right ascension of the target location</span>
+<span class="sd">            dec (float or Angle):   The declination of the target location</span>
+<span class="sd">            c (CelestialCorod):     A coord.CelestialCoord object in lieu of (ra, dec)</span>
+<span class="sd">            sep (float or Angle):   The separation distance</span>
+<span class="sd">            ra_units (str):         The units of ra if given as a float</span>
+<span class="sd">            dec_units (str):        The units of dec if given as a float</span>
+<span class="sd">            sep_units (str):        The units of sep if given as a float</span>
+
+<span class="sd">        4. For spherical coordinates with distances:</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            ra (float or Angle):    The right ascension of the target location</span>
+<span class="sd">            dec (float or Angle):   The declination of the target location</span>
+<span class="sd">            c (CelestialCorod):     A coord.CelestialCoord object in lieu of (ra, dec)</span>
+<span class="sd">            r (float):              The distance to the target location</span>
+<span class="sd">            sep (float):            The separation distance</span>
+<span class="sd">            ra_units (str):         The units of ra if given as a float</span>
+<span class="sd">            dec_units (str):        The units of dec if given as a float</span>
+
+<span class="sd">        In all cases, for parameters that angles (ra, dec, sep for &#39;spherical&#39;), you may either</span>
+<span class="sd">        provide this quantity as a coord.Angle instance, or you may provide ra_units, dec_units</span>
+<span class="sd">        or sep_units respectively to specify which angular units are providing.</span>
+
+<span class="sd">        Finally, in cases where ra, dec are allowed, you may instead provide a</span>
+<span class="sd">        coord.CelestialCoord instance as the first argument to specify both RA and Dec.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># If min_size = 0, then regular method is already exact.</span>
+            <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="n">sep</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">parse_xyzsep</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count_near</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">sep</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Otherwise, we need to expand the radius a bit and then check the actual radii</span>
+            <span class="c1"># using the catalog values.  This is already done in get_near, so just do that</span>
+            <span class="c1"># and take the len of the result.</span>
+            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_near</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div>
+
+    <span class="k">def</span> <span class="nf">_count_near</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">sep</span><span class="p">):</span>
+        <span class="c1"># If self.min_size &gt; 0, these results may be approximate, since the tree will have</span>
+        <span class="c1"># grouped points within this separation together.</span>
+        <span class="k">return</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">FieldCountNear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Field.get_near"><a class="viewcode-back" href="../../field.html#treecorr.Field.get_near">[docs]</a>    <span class="k">def</span> <span class="nf">get_near</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the indices of points near a given coordinate.</span>
+
+<span class="sd">        Use the existing tree structure to find the points that are within some given separation</span>
+<span class="sd">        of a target coordinate.</span>
+
+<span class="sd">        There are several options for how to specify the reference coordinate, which depends</span>
+<span class="sd">        on the type of coordinate system this field implements.</span>
+
+<span class="sd">        1. For flat 2-dimensional coordinates:</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            x (float):       The x coordinate of the target location</span>
+<span class="sd">            y (float):       The y coordinate of the target location</span>
+<span class="sd">            sep (float):     The separation distance</span>
+
+<span class="sd">        2. For 3-dimensional Cartesian coordinates:</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            x (float):       The x coordinate of the target location</span>
+<span class="sd">            y (float):       The y coordinate of the target location</span>
+<span class="sd">            z (float):       The z coordinate of the target location</span>
+<span class="sd">            sep (float):     The separation distance</span>
+
+<span class="sd">        3. For spherical coordinates:</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            ra (float or Angle):    The right ascension of the target location</span>
+<span class="sd">            dec (float or Angle):   The declination of the target location</span>
+<span class="sd">            c (CelestialCorod):     A coord.CelestialCoord object in lieu of (ra, dec)</span>
+<span class="sd">            sep (float or Angle):   The separation distance</span>
+<span class="sd">            ra_units (str):         The units of ra if given as a float</span>
+<span class="sd">            dec_units (str):        The units of dec if given as a float</span>
+<span class="sd">            sep_units (str):        The units of sep if given as a float</span>
+
+<span class="sd">        4. For spherical coordinates with distances:</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            ra (float or Angle):    The right ascension of the target location</span>
+<span class="sd">            dec (float or Angle):   The declination of the target location</span>
+<span class="sd">            c (CelestialCorod):     A coord.CelestialCoord object in lieu of (ra, dec)</span>
+<span class="sd">            r (float):              The distance to the target location</span>
+<span class="sd">            sep (float):            The separation distance</span>
+<span class="sd">            ra_units (str):         The units of ra if given as a float</span>
+<span class="sd">            dec_units (str):        The units of dec if given as a float</span>
+
+<span class="sd">        In all cases, for parameters that angles (ra, dec, sep for &#39;spherical&#39;), you may either</span>
+<span class="sd">        provide this quantity as a coord.Angle instance, or you may provide ra_units, dec_units</span>
+<span class="sd">        or sep_units respectively to specify which angular units are providing.</span>
+
+<span class="sd">        Finally, in cases where ra, dec are allowed, you may instead provide a</span>
+<span class="sd">        coord.CelestialCoord instance as the first argument to specify both RA and Dec.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="n">sep</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">parse_xyzsep</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># If min_size == 0, then regular method is already exact.</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_near</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">sep</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Expand the radius by the minimum size of the cells.</span>
+            <span class="n">sep1</span> <span class="o">=</span> <span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span>
+            <span class="c1"># Get those indices</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_near</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">sep1</span><span class="p">)</span>
+            <span class="c1"># Now check the actual radii of these points using the catalog x,y,z values.</span>
+            <span class="n">rsq</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">-</span><span class="n">x</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">-</span><span class="n">y</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">!=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">Flat</span><span class="p">:</span>
+                <span class="n">rsq</span> <span class="o">+=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">-</span><span class="n">z</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+            <span class="c1"># Select the ones with r &lt; sep</span>
+            <span class="n">near</span> <span class="o">=</span> <span class="n">rsq</span> <span class="o">&lt;</span> <span class="n">sep</span><span class="o">**</span><span class="mi">2</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="n">ind</span><span class="p">[</span><span class="n">near</span><span class="p">]</span>
+        <span class="c1"># It comes back unsorted, so sort it.  (Not really required, but nicer output.)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_near</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">sep</span><span class="p">):</span>
+        <span class="c1"># If self.min_size &gt; 0, these results may be approximate, since the tree will have</span>
+        <span class="c1"># grouped points within this separation together.</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="k">import</span> <span class="n">long_ptr</span> <span class="k">as</span> <span class="n">lp</span>
+        <span class="c1"># First count how many there are, so we can allocate the array for the indices.</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count_near</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">sep</span><span class="p">)</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="c1"># Now fill the array with the indices of the nearby points.</span>
+        <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">FieldGetNear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span> <span class="n">lp</span><span class="p">(</span><span class="n">ind</span><span class="p">),</span> <span class="n">n</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ind</span></div>
+
+
+<div class="viewcode-block" id="NField"><a class="viewcode-back" href="../../field.html#treecorr.NField">[docs]</a><span class="k">class</span> <span class="nc">NField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class stores the positions and number of objects in a tree structure from which it is</span>
+<span class="sd">    efficient to compute correlation functions.</span>
+
+<span class="sd">    An NField is typically created from a Catalog object using</span>
+
+<span class="sd">        &gt;&gt;&gt; nfield = cat.getNField(min_size, max_size, b)</span>
+
+<span class="sd">    :param cat:         The catalog from which to make the field.</span>
+<span class="sd">    :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)</span>
+<span class="sd">    :param max_size:    The maximum radius cell required (usually max_sep). (default: None)</span>
+<span class="sd">    :param split_method: Which split method to use (&#39;mean&#39;, &#39;median&#39;, &#39;middle&#39;, or &#39;random&#39;)</span>
+<span class="sd">                        (default: &#39;mean&#39;)</span>
+<span class="sd">    :param brute        Whether to force traversal to the leaves for this field. (default: False)</span>
+<span class="sd">    :param min_top:     The minimum number of top layers to use when setting up the field.</span>
+<span class="sd">                        (default: 3)</span>
+<span class="sd">    :param max_top:     The maximum number of top layers to use when setting up the field.</span>
+<span class="sd">                        (default: 10)</span>
+<span class="sd">    :param coords       The kind of coordinate system to use. (default: cat.coords)</span>
+<span class="sd">    :param logger:      A logger file if desired (default: None)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">min_top</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="k">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building NField from cat </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">cat</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building NField&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cat</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">min_size</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">brute</span> <span class="k">else</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">max_size</span><span class="p">)</span> <span class="k">if</span> <span class="n">max_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span> <span class="o">=</span> <span class="n">split_method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sm</span> <span class="o">=</span> <span class="n">_parse_split_method</span><span class="p">(</span><span class="n">split_method</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_d</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># NData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">brute</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_top</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_top</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span> <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">cat</span><span class="o">.</span><span class="n">coords</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">coord_enum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>  <span class="c1"># These are the C++-layer enums</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">BuildNField</span><span class="p">(</span><span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">x</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">z</span><span class="p">),</span>
+                                              <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">w</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">wpos</span><span class="p">),</span> <span class="n">cat</span><span class="o">.</span><span class="n">ntot</span><span class="p">,</span>
+                                              <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sm</span><span class="p">,</span>
+                                              <span class="bp">self</span><span class="o">.</span><span class="n">brute</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building NField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Using memory allocated from the C layer means we have to explicitly deallocate it</span>
+        <span class="c1"># rather than being able to rely on the Python memory manager.</span>
+
+        <span class="c1"># In case __init__ failed to get that far</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">):</span>  <span class="c1"># pragma: no branch</span>
+            <span class="c1"># I don&#39;t get this, but sometimes it gets here when the fft.lock is already locked.</span>
+            <span class="c1"># When that happens, this will freeze in a `with ffi._lock` line in the ffi api.py.</span>
+            <span class="c1"># So, don&#39;t do that, and just accept the memory leak instead.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_ffi</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">locked</span><span class="p">():</span> <span class="c1"># pragma: no branch</span>
+                <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">DestroyNField</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="KField"><a class="viewcode-back" href="../../field.html#treecorr.KField">[docs]</a><span class="k">class</span> <span class="nc">KField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class stores the values of a scalar field (kappa in the weak lensing context) in a</span>
+<span class="sd">    tree structure from which it is efficient to compute correlation functions.</span>
+
+<span class="sd">    A KField is typically created from a Catalog object using</span>
+
+<span class="sd">        &gt;&gt;&gt; kfield = cat.getKField(min_size, max_size, b)</span>
+
+<span class="sd">    :param cat:         The catalog from which to make the field.</span>
+<span class="sd">    :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)</span>
+<span class="sd">    :param max_size:    The maximum radius cell required (usually max_sep). (default: None)</span>
+<span class="sd">    :param split_method: Which split method to use (&#39;mean&#39;, &#39;median&#39;, &#39;middle&#39;, or &#39;random&#39;)</span>
+<span class="sd">                        (default: &#39;mean&#39;)</span>
+<span class="sd">    :param brute        Whether to force traversal to the leaves for this field. (default: False)</span>
+<span class="sd">    :param min_top:     The minimum number of top layers to use when setting up the field.</span>
+<span class="sd">                        (default: 3)</span>
+<span class="sd">    :param max_top:     The maximum number of top layers to use when setting up the field.</span>
+<span class="sd">                        (default: 10)</span>
+<span class="sd">    :param coords       The kind of coordinate system to use. (default: cat.coords)</span>
+<span class="sd">    :param logger:      A logger file if desired (default: None)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">min_top</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="k">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building KField from cat </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">cat</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building KField&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cat</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">min_size</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">brute</span> <span class="k">else</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">max_size</span><span class="p">)</span> <span class="k">if</span> <span class="n">max_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span> <span class="o">=</span> <span class="n">split_method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sm</span> <span class="o">=</span> <span class="n">_parse_split_method</span><span class="p">(</span><span class="n">split_method</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_d</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># KData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">brute</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_top</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_top</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span> <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">cat</span><span class="o">.</span><span class="n">coords</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">coord_enum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>  <span class="c1"># These are the C++-layer enums</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">BuildKField</span><span class="p">(</span><span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">x</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">z</span><span class="p">),</span>
+                                              <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">k</span><span class="p">),</span>
+                                              <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">w</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">wpos</span><span class="p">),</span> <span class="n">cat</span><span class="o">.</span><span class="n">ntot</span><span class="p">,</span>
+                                              <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sm</span><span class="p">,</span>
+                                              <span class="bp">self</span><span class="o">.</span><span class="n">brute</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building KField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Using memory allocated from the C layer means we have to explicitly deallocate it</span>
+        <span class="c1"># rather than being able to rely on the Python memory manager.</span>
+
+        <span class="c1"># In case __init__ failed to get that far</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">):</span>  <span class="c1"># pragma: no branch</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_ffi</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">locked</span><span class="p">():</span> <span class="c1"># pragma: no branch</span>
+                <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">DestroyKField</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="GField"><a class="viewcode-back" href="../../field.html#treecorr.GField">[docs]</a><span class="k">class</span> <span class="nc">GField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class stores the values of a spinor field (gamma in the weak lensing context) in a</span>
+<span class="sd">    tree structure from which it is efficient to compute correlation functions.</span>
+
+<span class="sd">    A GField is typically created from a Catalog object using</span>
+
+<span class="sd">        &gt;&gt;&gt; gfield = cat.getGField(min_size, max_size, b)</span>
+
+<span class="sd">    :param cat:         The catalog from which to make the field.</span>
+<span class="sd">    :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)</span>
+<span class="sd">    :param max_size:    The maximum radius cell required (usually max_sep). (default: None)</span>
+<span class="sd">    :param split_method: Which split method to use (&#39;mean&#39;, &#39;median&#39;, &#39;middle&#39;, or &#39;random&#39;)</span>
+<span class="sd">                        (default: &#39;mean&#39;)</span>
+<span class="sd">    :param brute        Whether to force traversal to the leaves for this field. (default: False)</span>
+<span class="sd">    :param min_top:     The minimum number of top layers to use when setting up the field.</span>
+<span class="sd">                        (default: 3)</span>
+<span class="sd">    :param max_top:     The maximum number of top layers to use when setting up the field.</span>
+<span class="sd">                        (default: 10)</span>
+<span class="sd">    :param coords       The kind of coordinate system to use. (default: cat.coords)</span>
+<span class="sd">    :param logger:      A logger file if desired (default: None)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">min_top</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="k">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building GField from cat </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">cat</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building GField&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cat</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">min_size</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">brute</span> <span class="k">else</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">max_size</span><span class="p">)</span> <span class="k">if</span> <span class="n">max_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span> <span class="o">=</span> <span class="n">split_method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sm</span> <span class="o">=</span> <span class="n">_parse_split_method</span><span class="p">(</span><span class="n">split_method</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_d</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># GData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">brute</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_top</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_top</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span> <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">cat</span><span class="o">.</span><span class="n">coords</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">coord_enum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>  <span class="c1"># These are the C++-layer enums</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">BuildGField</span><span class="p">(</span><span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">x</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">z</span><span class="p">),</span>
+                                              <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">g1</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">g2</span><span class="p">),</span>
+                                              <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">w</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">wpos</span><span class="p">),</span> <span class="n">cat</span><span class="o">.</span><span class="n">ntot</span><span class="p">,</span>
+                                              <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sm</span><span class="p">,</span>
+                                              <span class="bp">self</span><span class="o">.</span><span class="n">brute</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building GField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Using memory allocated from the C layer means we have to explicitly deallocate it</span>
+        <span class="c1"># rather than being able to rely on the Python memory manager.</span>
+
+        <span class="c1"># In case __init__ failed to get that far</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">):</span>  <span class="c1"># pragma: no branch</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_ffi</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">locked</span><span class="p">():</span> <span class="c1"># pragma: no branch</span>
+                <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">DestroyGField</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SimpleField"><a class="viewcode-back" href="../../field.html#treecorr.SimpleField">[docs]</a><span class="k">class</span> <span class="nc">SimpleField</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A SimpleField is like a Field, but only stores the leaves as a list, skipping all the</span>
+<span class="sd">    tree stuff.</span>
+
+<span class="sd">    Again, this is an abstract base class, which cannot be instantiated.  You should</span>
+<span class="sd">    make one of the concrete subclasses:</span>
+
+<span class="sd">        - NSimpleField describes a field of objects to be counted only.</span>
+<span class="sd">        - KSimpleField describes a field of points sampling a scalar field.</span>
+<span class="sd">        - GSimpleField describes a field of points sampling a spinor field.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;SimpleField is an abstract base class.  It cannot be instantiated.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NSimpleField"><a class="viewcode-back" href="../../field.html#treecorr.NSimpleField">[docs]</a><span class="k">class</span> <span class="nc">NSimpleField</span><span class="p">(</span><span class="n">SimpleField</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class stores the positions as a list, skipping all the tree stuff.</span>
+
+<span class="sd">    An NSimpleField is typically created from a Catalog object using</span>
+
+<span class="sd">        &gt;&gt;&gt; nfield = cat.getNSimpleField()</span>
+
+<span class="sd">    :param cat:         The catalog from which to make the field.</span>
+<span class="sd">    :param logger:      A logger file if desired (default: None)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="k">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building NSimpleField from cat </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">cat</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building NSimpleField&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_d</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># NData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">coords</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">coord_enum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>  <span class="c1"># These are the C++-layer enums</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">BuildNSimpleField</span><span class="p">(</span><span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">x</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">z</span><span class="p">),</span>
+                                                    <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">w</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">wpos</span><span class="p">),</span> <span class="n">cat</span><span class="o">.</span><span class="n">ntot</span><span class="p">,</span>
+                                                    <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building NSimpleField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Using memory allocated from the C layer means we have to explicitly deallocate it</span>
+        <span class="c1"># rather than being able to rely on the Python memory manager.</span>
+
+        <span class="c1"># In case __init__ failed to get that far</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">):</span>  <span class="c1"># pragma: no branch</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_ffi</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">locked</span><span class="p">():</span> <span class="c1"># pragma: no branch</span>
+                <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">DestroyNSimpleField</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="KSimpleField"><a class="viewcode-back" href="../../field.html#treecorr.KSimpleField">[docs]</a><span class="k">class</span> <span class="nc">KSimpleField</span><span class="p">(</span><span class="n">SimpleField</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class stores the kappa field as a list, skipping all the tree stuff.</span>
+
+<span class="sd">    A KSimpleField is typically created from a Catalog object using</span>
+
+<span class="sd">        &gt;&gt;&gt; kfield = cat.getKSimpleField()</span>
+
+<span class="sd">    :param cat:         The catalog from which to make the field.</span>
+<span class="sd">    :param logger:      A logger file if desired (default: None)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="k">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building KSimpleField from cat </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">cat</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building KSimpleField&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_d</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># KData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">coords</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">coord_enum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>  <span class="c1"># These are the C++-layer enums</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">BuildKSimpleField</span><span class="p">(</span><span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">x</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">z</span><span class="p">),</span>
+                                                    <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">k</span><span class="p">),</span>
+                                                    <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">w</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">wpos</span><span class="p">),</span> <span class="n">cat</span><span class="o">.</span><span class="n">ntot</span><span class="p">,</span>
+                                                    <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building KSimpleField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Using memory allocated from the C layer means we have to explicitly deallocate it</span>
+        <span class="c1"># rather than being able to rely on the Python memory manager.</span>
+
+        <span class="c1"># In case __init__ failed to get that far</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">):</span>  <span class="c1"># pragma: no branch</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_ffi</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">locked</span><span class="p">():</span> <span class="c1"># pragma: no branch</span>
+                <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">DestroyKSimpleField</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="GSimpleField"><a class="viewcode-back" href="../../field.html#treecorr.GSimpleField">[docs]</a><span class="k">class</span> <span class="nc">GSimpleField</span><span class="p">(</span><span class="n">SimpleField</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class stores the shear field as a list, skipping all the tree stuff.</span>
+
+<span class="sd">    A GSimpleField is typically created from a Catalog object using</span>
+
+<span class="sd">        &gt;&gt;&gt; gfield = cat.getGSimpleField()</span>
+
+<span class="sd">    :param cat:         The catalog from which to make the field.</span>
+<span class="sd">    :param logger:      A logger file if desired (default: None)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="k">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building GSimpleField from cat </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">cat</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building GSimpleField&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_d</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># GData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">coords</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">coord_enum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>  <span class="c1"># These are the C++-layer enums</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">BuildGSimpleField</span><span class="p">(</span><span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">x</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">z</span><span class="p">),</span>
+                                                    <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">g1</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">g2</span><span class="p">),</span>
+                                                    <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">w</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">wpos</span><span class="p">),</span> <span class="n">cat</span><span class="o">.</span><span class="n">ntot</span><span class="p">,</span>
+                                                    <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building KSimpleField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Using memory allocated from the C layer means we have to explicitly deallocate it</span>
+        <span class="c1"># rather than being able to rely on the Python memory manager.</span>
+
+        <span class="c1"># In case __init__ failed to get that far</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">):</span>  <span class="c1"># pragma: no branch</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_ffi</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">locked</span><span class="p">():</span> <span class="c1"># pragma: no branch</span>
+                <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">DestroyGSimpleField</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Mike Jarvis
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,886 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>treecorr.nnncorrelation &mdash; TreeCorr 4.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> TreeCorr
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                4.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bintype.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../scripts.html">The corr2 and corr3 driver scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 3.3 to 3.4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TreeCorr</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>treecorr.nnncorrelation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for treecorr.nnncorrelation</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2003-2019 by Mike Jarvis</span>
+<span class="c1">#</span>
+<span class="c1"># TreeCorr is free software: redistribution and use in source and binary forms,</span>
+<span class="c1"># with or without modification, are permitted provided that the following</span>
+<span class="c1"># conditions are met:</span>
+<span class="c1">#</span>
+<span class="c1"># 1. Redistributions of source code must retain the above copyright notice, this</span>
+<span class="c1">#    list of conditions, and the disclaimer given in the accompanying LICENSE</span>
+<span class="c1">#    file.</span>
+<span class="c1"># 2. Redistributions in binary form must reproduce the above copyright notice,</span>
+<span class="c1">#    this list of conditions, and the disclaimer given in the documentation</span>
+<span class="c1">#    and/or other materials provided with the distribution.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: nnncorrelation</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">treecorr</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="NNNCorrelation"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation">[docs]</a><span class="k">class</span> <span class="nc">NNNCorrelation</span><span class="p">(</span><span class="n">treecorr</span><span class="o">.</span><span class="n">BinnedCorr3</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 2-point count-count correlation</span>
+<span class="sd">    function.  i.e. the regular density correlation function.</span>
+
+<span class="sd">    See the doc string of `BinnedCorr3` for a description of how the triangles are binned.</span>
+
+<span class="sd">    Ojects of this class holds the following attributes:</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        logr:      The nominal center of the bin in log(r) (the natural logarithm of r).</span>
+<span class="sd">        nbins:     The number of bins in logr where r = d2</span>
+<span class="sd">        bin_size:  The size of the bins in logr</span>
+<span class="sd">        min_sep:   The minimum separation being considered</span>
+<span class="sd">        max_sep:   The maximum separation being considered</span>
+<span class="sd">        nubins:    The number of bins in u where u = d3/d2</span>
+<span class="sd">        ubin_size: The size of the bins in u</span>
+<span class="sd">        min_u:     The minimum u being considered</span>
+<span class="sd">        max_u:     The maximum u being considered</span>
+<span class="sd">        nvbins:    The number of bins in v where v = +-(d1-d2)/d3</span>
+<span class="sd">        vbin_size: The size of the bins in v</span>
+<span class="sd">        min_v:     The minimum v being considered</span>
+<span class="sd">        max_v:     The maximum v being considered</span>
+<span class="sd">        logr1d:    The nominal centers of the nbins bins in log(r).</span>
+<span class="sd">        u1d:       The nominal centers of the nubins bins in u.</span>
+<span class="sd">        v1d:       The nominal centers of the nvbins bins in v.</span>
+
+<span class="sd">    In addition, the following attributes are numpy arrays whose shape is (nbins, nubins, nvbins):</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        logr:      The nominal center of the bin in log(r).</span>
+<span class="sd">        rnom:      The nominal center of the bin converted to regular distance.</span>
+<span class="sd">                   i.e. r = exp(logr).</span>
+<span class="sd">        u:         The nominal center of the bin in u.</span>
+<span class="sd">        v:         The nominal center of the bin in v.</span>
+<span class="sd">        meand1:    The (weighted) mean value of d1 for the triangles in each bin.</span>
+<span class="sd">        meanlogd1: The mean value of log(d1) for the triangles in each bin.</span>
+<span class="sd">        meand2:    The (weighted) mean value of d2 (aka r) for the triangles in each bin.</span>
+<span class="sd">        meanlogd2: The mean value of log(d2) for the triangles in each bin.</span>
+<span class="sd">        meand2:    The (weighted) mean value of d3 for the triangles in each bin.</span>
+<span class="sd">        meanlogd2: The mean value of log(d3) for the triangles in each bin.</span>
+<span class="sd">        meanu:     The mean value of u for the triangles in each bin.</span>
+<span class="sd">        meanv:     The mean value of v for the triangles in each bin.</span>
+<span class="sd">        weight:    The total weight in each bin.</span>
+<span class="sd">        ntri:      The number of triangles in each bin.</span>
+<span class="sd">        tot:       The total number of triangles processed, which is used to normalize</span>
+<span class="sd">                   the randoms if they have a different number of triangles.</span>
+
+<span class="sd">    If **sep_units** are given (either in the config dict or as a named kwarg) then the distances</span>
+<span class="sd">    will all be in these units.  Note however, that if you separate out the steps of the</span>
+<span class="sd">    `process` command and use `process_auto` and/or `process_cross`, then the units will not be</span>
+<span class="sd">    applied to **meanr** or **meanlogr** until the `finalize` function is called.</span>
+
+<span class="sd">    The typical usage pattern is as follows:</span>
+
+<span class="sd">        &gt;&gt;&gt; nnn = treecorr.NNNCorrelation(config)</span>
+<span class="sd">        &gt;&gt;&gt; nnn.process(cat)         # For auto-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; nnn.process(cat1,cat2,cat3)   # For cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; rrr.process...           # Likewise for random-random correlations</span>
+<span class="sd">        &gt;&gt;&gt; drr.process...           # If desired, also do data-random correlations</span>
+<span class="sd">        &gt;&gt;&gt; rdr.process...           # ... in all three</span>
+<span class="sd">        &gt;&gt;&gt; rrd.process...           # ... permutations</span>
+<span class="sd">        &gt;&gt;&gt; rdd.process...           # Also with two data and one random</span>
+<span class="sd">        &gt;&gt;&gt; drd.process...           # ... in all three</span>
+<span class="sd">        &gt;&gt;&gt; ddr.process...           # ... permutations</span>
+<span class="sd">        &gt;&gt;&gt; nn.write(file_name,rrr,drr,...)  # Write out to a file.</span>
+<span class="sd">        &gt;&gt;&gt; zeta,varzeta = nn.calculateZeta(rrr,drr,...)  # Or get the 3pt function directly.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        config (dict):  A configuration dict that can be used to pass in kwargs if desired.</span>
+<span class="sd">                        This dict is allowed to have addition entries in addition to those listed</span>
+<span class="sd">                        in `BinnedCorr3`, which are ignored here. (default: None)</span>
+<span class="sd">        logger:         If desired, a logger object for logging. (default: None, in which case</span>
+<span class="sd">                        one will be built according to the config dict&#39;s verbose level.)</span>
+
+<span class="sd">    See the documentation for `BinnedCorr3` for the list of other allowed kwargs, which may be</span>
+<span class="sd">    passed either directly or in the config dict.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="NNNCorrelation.__init__"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">treecorr</span><span class="o">.</span><span class="n">BinnedCorr3</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_d1</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># NData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_d2</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># NData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_d3</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># NData</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logr</span><span class="o">.</span><span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ntri</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build_corr</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building NNNCorr&#39;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_build_corr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="k">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">corr</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">BuildCorr3</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_d1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_min_sep</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_sep</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_bin_size</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">min_u</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">max_u</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nubins</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">ubin_size</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">bu</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">min_v</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">max_v</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nvbins</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">vbin_size</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">bv</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">min_rpar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_rpar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xperiod</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yperiod</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zperiod</span><span class="p">,</span>
+                <span class="n">dp</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
+                <span class="n">dp</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
+                <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meand1</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogd1</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogd2</span><span class="p">),</span>
+                <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogd3</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanu</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanv</span><span class="p">),</span>
+                <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ntri</span><span class="p">));</span>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Using memory allocated from the C layer means we have to explicitly deallocate it</span>
+        <span class="c1"># rather than being able to rely on the Python memory manager.</span>
+        <span class="c1"># In case __init__ failed to get that far</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;corr&#39;</span><span class="p">):</span>  <span class="c1"># pragma: no branch</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_ffi</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">locked</span><span class="p">():</span> <span class="c1"># pragma: no branch</span>
+                <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">DestroyCorr3</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NNNCorrelation.__eq__"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.__eq__">[docs]</a>    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether two NNNCorrelations are equal&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">NNNCorrelation</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">nbins</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">nbins</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">bin_size</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">min_sep</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">max_sep</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sep_units</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">sep_units</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">min_u</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">min_u</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">max_u</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">max_u</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">nubins</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">nubins</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ubin_size</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">ubin_size</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">min_v</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">min_v</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">max_v</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">max_v</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">nvbins</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">nvbins</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">vbin_size</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">vbin_size</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">bin_type</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">bin_slop</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">min_rpar</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">min_rpar</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">xperiod</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">xperiod</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">yperiod</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">yperiod</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">zperiod</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">zperiod</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">max_rpar</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">max_rpar</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">tot</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meand1</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">meand1</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogd1</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">meanlogd1</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">meand2</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogd2</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">meanlogd2</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">meand3</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogd3</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">meanlogd3</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanu</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">meanu</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanv</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">meanv</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ntri</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">ntri</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="NNNCorrelation.copy"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Make a copy&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">copy</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;corr&#39;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;logger&#39;</span><span class="p">]</span>  <span class="c1"># Oh well.  This is just lost in the copy.  Can&#39;t be pickled.</span>
+        <span class="k">return</span> <span class="n">d</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">=</span> <span class="n">d</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build_corr</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">setup_logger</span><span class="p">(</span>
+                <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;log_file&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">))</span>
+
+<div class="viewcode-block" id="NNNCorrelation.__repr__"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.__repr__">[docs]</a>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;NNNCorrelation(config=</span><span class="si">%r</span><span class="s1">)&#39;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span></div>
+
+<div class="viewcode-block" id="NNNCorrelation.process_auto"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.process_auto">[docs]</a>    <span class="k">def</span> <span class="nf">process_auto</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Process a single catalog, accumulating the auto-correlation.</span>
+
+<span class="sd">        This accumulates the auto-correlation for the given catalog.  After</span>
+<span class="sd">        calling this function as often as desired, the `finalize` command will</span>
+<span class="sd">        finish the calculation of meand1, meanlogd1, etc.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            cat (Catalog):      The catalog to process</span>
+<span class="sd">            metric (str):       Which metric to use.  See `Metrics` for details.</span>
+<span class="sd">                                (default: &#39;Euclidean&#39;; this value can also be given in the</span>
+<span class="sd">                                constructor in the config dict.)</span>
+<span class="sd">            num_threads (int):  How many OpenMP threads to use during the calculation.</span>
+<span class="sd">                                (default: use the number of cpu cores; this value can also be given</span>
+<span class="sd">                                in the constructor in the config dict.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting process NNN auto-correlations&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting process NNN auto-correlations for cat </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_metric</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">cat</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_num_threads</span><span class="p">(</span><span class="n">num_threads</span><span class="p">)</span>
+
+        <span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_minmax_size</span><span class="p">()</span>
+
+        <span class="n">field</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getNField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span><span class="p">,</span>
+                              <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">brute</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting </span><span class="si">%d</span><span class="s1"> jobs.&#39;</span><span class="p">,</span><span class="n">field</span><span class="o">.</span><span class="n">nTopLevelNodes</span><span class="p">)</span>
+        <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">ProcessAuto3</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span><span class="p">,</span>
+                                   <span class="n">field</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">+=</span> <span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="mf">6.</span><span class="p">)</span> <span class="o">*</span> <span class="n">cat</span><span class="o">.</span><span class="n">sumw</span><span class="o">**</span><span class="mi">3</span></div>
+
+<div class="viewcode-block" id="NNNCorrelation.process_cross21"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.process_cross21">[docs]</a>    <span class="k">def</span> <span class="nf">process_cross21</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Process two catalogs, accumulating the 3pt cross-correlation, where two of the</span>
+<span class="sd">        points in each triangle come from the first catalog, and one from the second.</span>
+
+<span class="sd">        This accumulates the cross-correlation for the given catalogs.  After</span>
+<span class="sd">        calling this function as often as desired, the `finalize` command will</span>
+<span class="sd">        finish the calculation of meand1, meanlogd1, etc.</span>
+
+<span class="sd">        .. warning::</span>
+
+<span class="sd">            This is not implemented yet.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            cat1 (Catalog):     The first catalog to process</span>
+<span class="sd">            cat2 (Catalog):     The second catalog to process</span>
+<span class="sd">            metric (str):       Which metric to use.  See `Metrics` for details.</span>
+<span class="sd">                                (default: &#39;Euclidean&#39;; this value can also be given in the</span>
+<span class="sd">                                constructor in the config dict.)</span>
+<span class="sd">            num_threads (int):  How many OpenMP threads to use during the calculation.</span>
+<span class="sd">                                (default: use the number of cpu cores; this value can also be given</span>
+<span class="sd">                                in the constructor in the config dict.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;No partial cross NNN yet.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NNNCorrelation.process_cross"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.process_cross">[docs]</a>    <span class="k">def</span> <span class="nf">process_cross</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">cat3</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Process a set of three catalogs, accumulating the 3pt cross-correlation.</span>
+
+<span class="sd">        This accumulates the cross-correlation for the given catalogs.  After</span>
+<span class="sd">        calling this function as often as desired, the `finalize` command will</span>
+<span class="sd">        finish the calculation of meand1, meanlogd1, etc.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            cat1 (Catalog):     The first catalog to process</span>
+<span class="sd">            cat2 (Catalog):     The second catalog to process</span>
+<span class="sd">            cat3 (Catalog):     The third catalog to process</span>
+<span class="sd">            metric (str):       Which metric to use.  See `Metrics` for details.</span>
+<span class="sd">                                (default: &#39;Euclidean&#39;; this value can also be given in the</span>
+<span class="sd">                                constructor in the config dict.)</span>
+<span class="sd">            num_threads (int):  How many OpenMP threads to use during the calculation.</span>
+<span class="sd">                                (default: use the number of cpu cores; this value can also be given</span>
+<span class="sd">                                in the constructor in the config dict.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">cat1</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="n">cat2</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="n">cat3</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting process NNN cross-correlations&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting process NNN cross-correlations for cats </span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span>
+                             <span class="n">cat1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">cat2</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">cat3</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_metric</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">cat1</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">cat2</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">cat3</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_num_threads</span><span class="p">(</span><span class="n">num_threads</span><span class="p">)</span>
+
+        <span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_minmax_size</span><span class="p">()</span>
+
+        <span class="n">f1</span> <span class="o">=</span> <span class="n">cat1</span><span class="o">.</span><span class="n">getNField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span><span class="p">,</span>
+                            <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">brute</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+        <span class="n">f2</span> <span class="o">=</span> <span class="n">cat2</span><span class="o">.</span><span class="n">getNField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span><span class="p">,</span>
+                            <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">brute</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+        <span class="n">f3</span> <span class="o">=</span> <span class="n">cat3</span><span class="o">.</span><span class="n">getNField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span><span class="p">,</span>
+                            <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">brute</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting </span><span class="si">%d</span><span class="s1"> jobs.&#39;</span><span class="p">,</span><span class="n">f1</span><span class="o">.</span><span class="n">nTopLevelNodes</span><span class="p">)</span>
+        <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">ProcessCross3</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">,</span> <span class="n">f1</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">f3</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span><span class="p">,</span>
+                                    <span class="n">f1</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="n">f3</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">+=</span> <span class="n">cat1</span><span class="o">.</span><span class="n">sumw</span> <span class="o">*</span> <span class="n">cat2</span><span class="o">.</span><span class="n">sumw</span> <span class="o">*</span> <span class="n">cat3</span><span class="o">.</span><span class="n">sumw</span> <span class="o">/</span> <span class="mf">6.0</span></div>
+
+
+<div class="viewcode-block" id="NNNCorrelation.finalize"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Finalize the calculation of meand1, meanlogd1, etc.</span>
+
+<span class="sd">        The `process_auto` and `process_cross` commands accumulate values in each bin,</span>
+<span class="sd">        so they can be called multiple times if appropriate.  Afterwards, this command</span>
+<span class="sd">        finishes the calculation of meanlogr, meanu, meanv by dividing by the total weight.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mask1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">!=</span> <span class="mi">0</span>
+        <span class="n">mask2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand1</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd1</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd2</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd3</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanu</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanv</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span>
+
+        <span class="c1"># Update the units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_apply_units</span><span class="p">(</span><span class="n">mask1</span><span class="p">)</span>
+
+        <span class="c1"># Use meanlogr when available, but set to nominal when no triangles in bin.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd2</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logr</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanu</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanv</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd3</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="p">[</span><span class="n">mask2</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand1</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd1</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meand1</span><span class="p">[</span><span class="n">mask2</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="NNNCorrelation.clear"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clear the data vectors</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand1</span><span class="p">[:,:,:]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd1</span><span class="p">[:,:,:]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="p">[:,:,:]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd2</span><span class="p">[:,:,:]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="p">[:,:,:]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd3</span><span class="p">[:,:,:]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanu</span><span class="p">[:,:,:]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanv</span><span class="p">[:,:,:]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[:,:,:]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ntri</span><span class="p">[:,:,:]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">=</span> <span class="mf">0.</span></div>
+
+<div class="viewcode-block" id="NNNCorrelation.__iadd__"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.__iadd__">[docs]</a>    <span class="k">def</span> <span class="nf">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a second NNNCorrelation&#39;s data to this one.</span>
+
+<span class="sd">        Note: For this to make sense, both Correlation objects should have been using</span>
+<span class="sd">        `process_auto` and/or `process_cross`, and they should not have had `finalize` called yet.</span>
+<span class="sd">        Then, after adding them together, you should call `finalize` on the sum.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">NNNCorrelation</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Can only add another NNNCorrelation object&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nbins</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">nbins</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">min_sep</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">max_sep</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">nubins</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">nubins</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">min_u</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">min_u</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">max_u</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">max_u</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">nvbins</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">nvbins</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">min_v</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">min_v</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">max_v</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">max_v</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;NNNCorrelation to be added is not compatible with this one.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_metric</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">metric</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand1</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">meand1</span><span class="p">[:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd1</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">meanlogd1</span><span class="p">[:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">meand2</span><span class="p">[:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd2</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">meanlogd2</span><span class="p">[:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">meand3</span><span class="p">[:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd3</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">meanlogd3</span><span class="p">[:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanu</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">meanu</span><span class="p">[:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanv</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">meanv</span><span class="p">[:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">weight</span><span class="p">[:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ntri</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">ntri</span><span class="p">[:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">tot</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="NNNCorrelation.process"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.process">[docs]</a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cat3</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Accumulate the number of triangles of points between cat1, cat2, and cat3.</span>
+
+<span class="sd">        - If only 1 argument is given, then compute an auto-correlation function.</span>
+<span class="sd">        - If 2 arguments are given, then compute a cross-correlation function with the</span>
+<span class="sd">          first catalog taking two corners of the triangles. (Not implemented yet.)</span>
+<span class="sd">        - If 3 arguments are given, then compute a cross-correlation function.</span>
+
+<span class="sd">        All arguments may be lists, in which case all items in the list are used</span>
+<span class="sd">        for that element of the correlation.</span>
+
+<span class="sd">        Note: For a correlation of multiple catalogs, it matters which corner of the</span>
+<span class="sd">        triangle comes from which catalog.  The final accumulation will have</span>
+<span class="sd">        d1 &gt; d2 &gt; d3 where d1 is between two points in cat2,cat3; d2 is between</span>
+<span class="sd">        points in cat1,cat3; and d3 is between points in cat1,cat2.  To accumulate</span>
+<span class="sd">        all the possible triangles between three catalogs, you should call this</span>
+<span class="sd">        multiple times with the different catalogs in different positions.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            cat1 (Catalog):     A catalog or list of catalogs for the first N field.</span>
+<span class="sd">            cat2 (Catalog):     A catalog or list of catalogs for the second N field, if any.</span>
+<span class="sd">                                (default: None)</span>
+<span class="sd">            cat3 (Catalog):     A catalog or list of catalogs for the third N field, if any.</span>
+<span class="sd">                                (default: None)</span>
+<span class="sd">            metric (str):       Which metric to use.  See `Metrics` for details.</span>
+<span class="sd">                                (default: &#39;Euclidean&#39;; this value can also be given in the</span>
+<span class="sd">                                constructor in the config dict.)</span>
+<span class="sd">            num_threads (int):  How many OpenMP threads to use during the calculation.</span>
+<span class="sd">                                (default: use the number of cpu cores; this value can also be given</span>
+<span class="sd">                                in the constructor in the config dict.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span> <span class="n">cat1</span> <span class="o">=</span> <span class="p">[</span><span class="n">cat1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">cat2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cat2</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span> <span class="n">cat2</span> <span class="o">=</span> <span class="p">[</span><span class="n">cat2</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">cat3</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cat3</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span> <span class="n">cat3</span> <span class="o">=</span> <span class="p">[</span><span class="n">cat3</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">cat2</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cat3</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_process_all_auto</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">cat2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">cat3</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;No partial cross NNN yet.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">cat2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cat3</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_process_all_cross</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">cat2</span><span class="p">,</span><span class="n">cat3</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finalize</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="NNNCorrelation.calculateZeta"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.calculateZeta">[docs]</a>    <span class="k">def</span> <span class="nf">calculateZeta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">drr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rdr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rrd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">ddr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">drd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rdd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the 3pt function given another 3pt function of random</span>
+<span class="sd">        points using the same mask, and possibly cross correlations of the data and random.</span>
+
+<span class="sd">        There are two possible formulae that are currently supported.</span>
+
+<span class="sd">        1. The simplest formula to use is :math:`\\zeta^\\prime = (DDD-RRR)/RRR`.</span>
+<span class="sd">           In this case, only rrr needs to be given, the NNNCorrelation of a random field.</span>
+<span class="sd">           However, note that in this case, the return value is not normally called :math:`\\zeta`.</span>
+<span class="sd">           Rather, this is an estimator of</span>
+
+<span class="sd">           .. math::</span>
+<span class="sd">               \\zeta^\\prime(d_1,d_2,d_3) = \\zeta(d_1,d_2,d_3) + \\xi(d_1) + \\xi(d_2) + \\xi(d_3)</span>
+
+<span class="sd">           where :math:`\\xi` is the two-point correlation function for each leg of the triangle.</span>
+<span class="sd">           You would typically want to calculate that separately and subtract off the</span>
+<span class="sd">           two-point contributions.</span>
+
+<span class="sd">        2. For auto-correlations, a better formula is</span>
+<span class="sd">           :math:`\\zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR`.</span>
+<span class="sd">           In this case, DDR, etc. calculate the triangles where two points come from either</span>
+<span class="sd">           the data or the randoms.  In the case of DDR for instance, points x1 and x2 on the</span>
+<span class="sd">           triangle have data and x3 uses randoms, where points x1, x2, x3 are opposite sides</span>
+<span class="sd">           d1, d2, d3 with d1 &gt; d2 &gt; d3 as usual; RDR has randoms at 1,3 and data at 2, etc.</span>
+
+<span class="sd">        - If only rrr is provided, the first formula will be used.</span>
+<span class="sd">        - If all of rrr, drr, rdr, rrd, ddr, drd, rdd are provided then the second will be used.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            rrr (NNNCorrelation):   The auto-correlation of the random field (RRR)</span>
+<span class="sd">            drr (NNNCorrelation):   DRR if desired. (default: None)</span>
+<span class="sd">            rdr (NNNCorrelation):   RDR if desired. (default: None)</span>
+<span class="sd">            rrd (NNNCorrelation):   RRD if desired. (default: None)</span>
+<span class="sd">            ddr (NNNCorrelation):   DDR if desired. (default: None)</span>
+<span class="sd">            drd (NNNCorrelation):   DRD if desired. (default: None)</span>
+<span class="sd">            rdd (NNNCorrelation):   RDD if desired. (default: None)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple containing</span>
+
+<span class="sd">                - zeta = array of :math:`\\zeta(d_1,d_2,d_3)`</span>
+<span class="sd">                - varzeta = array of variance estimates of :math:`\\zeta(d_1,d_2,d_3)`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Each random ntri value needs to be rescaled by the ratio of total possible tri.</span>
+        <span class="k">if</span> <span class="n">rrr</span><span class="o">.</span><span class="n">tot</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;rrr has tot=0.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">drr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">rdr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">rrd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span>
+            <span class="n">ddr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">drd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">rdd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">drr</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">rdr</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">rrd</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span>
+                <span class="n">ddr</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">drd</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">rdd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Must provide all 6 combinations rdr, drr, etc.&quot;</span><span class="p">)</span>
+
+        <span class="n">rrrw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">/</span> <span class="n">rrr</span><span class="o">.</span><span class="n">tot</span>
+        <span class="k">if</span> <span class="n">drr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">zeta</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">-</span> <span class="n">rrr</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="n">rrrw</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rrd</span><span class="o">.</span><span class="n">tot</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;rrd has tot=0.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ddr</span><span class="o">.</span><span class="n">tot</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ddr has tot=0.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rdr</span><span class="o">.</span><span class="n">tot</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;rdr has tot=0.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">drr</span><span class="o">.</span><span class="n">tot</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;drr has tot=0.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">drd</span><span class="o">.</span><span class="n">tot</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;drd has tot=0.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rdd</span><span class="o">.</span><span class="n">tot</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;rdd has tot=0.&quot;</span><span class="p">)</span>
+            <span class="n">rrdw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">/</span> <span class="n">rrd</span><span class="o">.</span><span class="n">tot</span>
+            <span class="n">ddrw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">/</span> <span class="n">ddr</span><span class="o">.</span><span class="n">tot</span>
+            <span class="n">rdrw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">/</span> <span class="n">rdr</span><span class="o">.</span><span class="n">tot</span>
+            <span class="n">drrw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">/</span> <span class="n">drr</span><span class="o">.</span><span class="n">tot</span>
+            <span class="n">drdw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">/</span> <span class="n">drd</span><span class="o">.</span><span class="n">tot</span>
+            <span class="n">rddw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">/</span> <span class="n">rdd</span><span class="o">.</span><span class="n">tot</span>
+            <span class="n">zeta</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">+</span> <span class="n">rrd</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="n">rrdw</span> <span class="o">+</span> <span class="n">rdr</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="n">rdrw</span> <span class="o">+</span> <span class="n">drr</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="n">drrw</span>
+                    <span class="o">-</span> <span class="n">ddr</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="n">ddrw</span> <span class="o">-</span> <span class="n">drd</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="n">drdw</span> <span class="o">-</span> <span class="n">rdd</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="n">rddw</span> <span class="o">-</span> <span class="n">rrr</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="n">rrrw</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">rrr</span><span class="o">.</span><span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Warning: Some bins for the randoms had no triangles.&quot;</span><span class="p">)</span>
+        <span class="n">mask1</span> <span class="o">=</span> <span class="n">rrr</span><span class="o">.</span><span class="n">weight</span> <span class="o">!=</span> <span class="mi">0</span>
+        <span class="n">mask2</span> <span class="o">=</span> <span class="n">rrr</span><span class="o">.</span><span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="n">zeta</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">/=</span> <span class="p">(</span><span class="n">rrr</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">*</span> <span class="n">rrrw</span><span class="p">)</span>
+        <span class="n">zeta</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">varzeta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">rrr</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+        <span class="n">varzeta</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span> <span class="p">(</span><span class="n">rrr</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">*</span> <span class="n">rrrw</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">zeta</span><span class="p">,</span> <span class="n">varzeta</span></div>
+
+
+<div class="viewcode-block" id="NNNCorrelation.write"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">rrr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">drr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rdr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rrd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">ddr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">drd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rdd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the correlation function to the file, file_name.</span>
+
+<span class="sd">        Normally, at least rrr should be provided, but if this is None, then only the</span>
+<span class="sd">        basic accumulated number of triangles are output (along with the columns parametrizing</span>
+<span class="sd">        the size and shape of the triangles).</span>
+
+<span class="sd">        If at least rrr is given, then it will output an estimate of the final 3pt correlation</span>
+<span class="sd">        function, :math:`\\zeta`. There are two possible formulae that are currently supported.</span>
+
+<span class="sd">        1. The simplest formula to use is :math:`\\zeta^\\prime = (DDD-RRR)/RRR`.</span>
+<span class="sd">           In this case, only rrr needs to be given, the NNNCorrelation of a random field.</span>
+<span class="sd">           However, note that in this case, the return value is not what is normally called</span>
+<span class="sd">           :math:`\\zeta`.  Rather, this is an estimator of</span>
+
+<span class="sd">           .. math::</span>
+<span class="sd">               \\zeta^\\prime(d_1,d_2,d_3) = \\zeta(d_1,d_2,d_3) + \\xi(d_1) + \\xi(d_2) + \\xi(d_3)</span>
+
+<span class="sd">           where :math:`\\xi` is the two-point correlation function for each leg of the triangle.</span>
+<span class="sd">           You would typically want to calculate that separately and subtract off the</span>
+<span class="sd">           two-point contributions.</span>
+
+<span class="sd">        2. For auto-correlations, a better formula is</span>
+<span class="sd">           :math:`\\zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR`.</span>
+<span class="sd">           In this case, DDR, etc. calculate the triangles where two points come from either</span>
+<span class="sd">           the data or the randoms.  In the case of DDR for instance, points x1 and x2 on the</span>
+<span class="sd">           triangle have data and x3 uses randoms, where points x1, x2, x3 are opposite sides</span>
+<span class="sd">           d1, d2, d3 with d1 &gt; d2 &gt; d3 as usual; RDR has randoms at 1,3 and data at 2, etc.</span>
+<span class="sd">           For this case, all the combinations rrr, drr, rdr, rrd, ddr, drd, rdd must be</span>
+<span class="sd">           provided.</span>
+
+<span class="sd">        The output file will include the following columns:</span>
+
+<span class="sd">        ==========      ===============================================================</span>
+<span class="sd">        Column          Description</span>
+<span class="sd">        ==========      ===============================================================</span>
+<span class="sd">        r_nom           The nominal center of the bin in r = d2 where d1 &gt; d2 &gt; d3</span>
+<span class="sd">        u_nom           The nominal center of the bin in u = d3/d2</span>
+<span class="sd">        v_nom           The nominal center of the bin in v = +-(d1-d2)/d3</span>
+<span class="sd">        meand1          The mean value &lt;d1&gt; of triangles that fell into each bin</span>
+<span class="sd">        meanlogd1       The mean value &lt;logd1&gt; of triangles that fell into each bin</span>
+<span class="sd">        meand2          The mean value &lt;d2&gt; of triangles that fell into each bin</span>
+<span class="sd">        meanlogd2       The mean value &lt;logd2&gt; of triangles that fell into each bin</span>
+<span class="sd">        meand3          The mean value &lt;d3&gt; of triangles that fell into each bin</span>
+<span class="sd">        meanlogd3       The mean value &lt;logd3&gt; of triangles that fell into each bin</span>
+<span class="sd">        meanu           The mean value &lt;u&gt; of triangles that fell into each bin</span>
+<span class="sd">        meanv           The mean value &lt;v&gt; of triangles that fell into each bin</span>
+<span class="sd">        zeta            The estimator zeta (if rrr is given)</span>
+<span class="sd">        sigma_zeta      The sqrt of the variance estimate of zeta (if rrr is given)</span>
+<span class="sd">        DDD             The total weight of DDD triangles in each bin</span>
+<span class="sd">        RRR             The total weight of RRR triangles in each bin (if rrr is given)</span>
+<span class="sd">        DRR             The total weight of DRR triangles in each bin (if drr is given)</span>
+<span class="sd">        RDR             The total weight of RDR triangles in each bin (if rdr is given)</span>
+<span class="sd">        RRD             The total weight of RRD triangles in each bin (if rrd is given)</span>
+<span class="sd">        DDR             The total weight of DDR triangles in each bin (if ddr is given)</span>
+<span class="sd">        DRD             The total weight of DRD triangles in each bin (if drd is given)</span>
+<span class="sd">        RDD             The total weight of RDD triangles in each bin (if rdd is given)</span>
+<span class="sd">        ntri            The number of triangles contributing to each bin</span>
+<span class="sd">        ==========      ===============================================================</span>
+
+<span class="sd">        If **sep_units** was given at construction, then the distances will all be in these units.</span>
+<span class="sd">        Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or</span>
+<span class="sd">        radians (for spherical coordinates).</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            file_name (str):        The name of the file to write to.</span>
+<span class="sd">            rrr (NNNCorrelation):   The auto-correlation of the random field (RRR)</span>
+<span class="sd">            drr (NNNCorrelation):   DRR if desired. (default: None)</span>
+<span class="sd">            rdr (NNNCorrelation):   RDR if desired. (default: None)</span>
+<span class="sd">            rrd (NNNCorrelation):   RRD if desired. (default: None)</span>
+<span class="sd">            ddr (NNNCorrelation):   DDR if desired. (default: None)</span>
+<span class="sd">            drd (NNNCorrelation):   DRD if desired. (default: None)</span>
+<span class="sd">            rdd (NNNCorrelation):   RDD if desired. (default: None)</span>
+<span class="sd">            file_type (str):        The type of file to write (&#39;ASCII&#39; or &#39;FITS&#39;).</span>
+<span class="sd">                                    (default: determine the type automatically from the extension</span>
+<span class="sd">                                    of file_name.)</span>
+<span class="sd">            precision (int):        For ASCII output catalogs, the desired precision. (default: 4;</span>
+<span class="sd">                                    this value can also be given in the constructor in the config</span>
+<span class="sd">                                    dict.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Writing NNN correlations to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">file_name</span><span class="p">)</span>
+
+        <span class="n">col_names</span> <span class="o">=</span> <span class="p">[</span> <span class="s1">&#39;r_nom&#39;</span><span class="p">,</span> <span class="s1">&#39;u_nom&#39;</span><span class="p">,</span> <span class="s1">&#39;v_nom&#39;</span><span class="p">,</span> <span class="s1">&#39;meand1&#39;</span><span class="p">,</span> <span class="s1">&#39;meanlogd1&#39;</span><span class="p">,</span> <span class="s1">&#39;meand2&#39;</span><span class="p">,</span> <span class="s1">&#39;meanlogd2&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;meand3&#39;</span><span class="p">,</span> <span class="s1">&#39;meanlogd3&#39;</span><span class="p">,</span> <span class="s1">&#39;meanu&#39;</span><span class="p">,</span> <span class="s1">&#39;meanv&#39;</span> <span class="p">]</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">meand1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd2</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanv</span> <span class="p">]</span>
+        <span class="k">if</span> <span class="n">rrr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">drr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">rdr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">rrd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span>
+                <span class="n">ddr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">drd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">rdd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;rrr must be provided if other combinations are not None&quot;</span><span class="p">)</span>
+            <span class="n">col_names</span> <span class="o">+=</span> <span class="p">[</span> <span class="s1">&#39;DDD&#39;</span><span class="p">,</span> <span class="s1">&#39;ntri&#39;</span> <span class="p">]</span>
+            <span class="n">columns</span> <span class="o">+=</span> <span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntri</span> <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># This will check for other invalid combinations of rrr, drr, etc.</span>
+            <span class="n">zeta</span><span class="p">,</span> <span class="n">varzeta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculateZeta</span><span class="p">(</span><span class="n">rrr</span><span class="p">,</span><span class="n">drr</span><span class="p">,</span><span class="n">rdr</span><span class="p">,</span><span class="n">rrd</span><span class="p">,</span><span class="n">ddr</span><span class="p">,</span><span class="n">drd</span><span class="p">,</span><span class="n">rdd</span><span class="p">)</span>
+
+            <span class="n">col_names</span> <span class="o">+=</span> <span class="p">[</span> <span class="s1">&#39;zeta&#39;</span><span class="p">,</span><span class="s1">&#39;sigma_zeta&#39;</span><span class="p">,</span><span class="s1">&#39;DDD&#39;</span><span class="p">,</span><span class="s1">&#39;RRR&#39;</span> <span class="p">]</span>
+            <span class="n">columns</span> <span class="o">+=</span> <span class="p">[</span> <span class="n">zeta</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">varzeta</span><span class="p">),</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">rrr</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tot</span><span class="o">/</span><span class="n">rrr</span><span class="o">.</span><span class="n">tot</span><span class="p">)</span> <span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">drr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">col_names</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;DRR&#39;</span><span class="p">,</span><span class="s1">&#39;RDR&#39;</span><span class="p">,</span><span class="s1">&#39;RRD&#39;</span><span class="p">,</span><span class="s1">&#39;DDR&#39;</span><span class="p">,</span><span class="s1">&#39;DRD&#39;</span><span class="p">,</span><span class="s1">&#39;RDD&#39;</span><span class="p">]</span>
+                <span class="n">columns</span> <span class="o">+=</span> <span class="p">[</span> <span class="n">drr</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tot</span><span class="o">/</span><span class="n">drr</span><span class="o">.</span><span class="n">tot</span><span class="p">),</span> <span class="n">rdr</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tot</span><span class="o">/</span><span class="n">rdr</span><span class="o">.</span><span class="n">tot</span><span class="p">),</span>
+                             <span class="n">rrd</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tot</span><span class="o">/</span><span class="n">rrd</span><span class="o">.</span><span class="n">tot</span><span class="p">),</span> <span class="n">ddr</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tot</span><span class="o">/</span><span class="n">ddr</span><span class="o">.</span><span class="n">tot</span><span class="p">),</span>
+                             <span class="n">drd</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tot</span><span class="o">/</span><span class="n">drd</span><span class="o">.</span><span class="n">tot</span><span class="p">),</span> <span class="n">rdd</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tot</span><span class="o">/</span><span class="n">rdd</span><span class="o">.</span><span class="n">tot</span><span class="p">)</span> <span class="p">]</span>
+            <span class="n">col_names</span> <span class="o">+=</span> <span class="p">[</span> <span class="s1">&#39;ntri&#39;</span> <span class="p">]</span>
+            <span class="n">columns</span> <span class="o">+=</span> <span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntri</span> <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">precision</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;precision&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;tot&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot</span><span class="p">,</span> <span class="s1">&#39;coords&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="s1">&#39;metric&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric</span><span class="p">,</span>
+                   <span class="s1">&#39;sep_units&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sep_units</span><span class="p">,</span> <span class="s1">&#39;bin_type&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="p">}</span>
+
+        <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">gen_write</span><span class="p">(</span>
+            <span class="n">file_name</span><span class="p">,</span> <span class="n">col_names</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span>
+            <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="n">file_type</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NNNCorrelation.read"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read in values from a file.</span>
+
+<span class="sd">        This should be a file that was written by TreeCorr, preferably a FITS file, so there</span>
+<span class="sd">        is no loss of information.</span>
+
+<span class="sd">        Warning: The NNNCorrelation object should be constructed with the same configuration</span>
+<span class="sd">        parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not</span>
+<span class="sd">        checked by the read function.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            file_name (str):    The name of the file to read in.</span>
+<span class="sd">            file_type (str):    The type of file (&#39;ASCII&#39; or &#39;FITS&#39;).  (default: determine the type</span>
+<span class="sd">                                automatically from the extension of file_name.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Reading NNN correlations from </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">file_name</span><span class="p">)</span>
+
+        <span class="n">data</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">gen_read</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="n">file_type</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logr</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">if</span> <span class="s1">&#39;R_nom&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;R_nom&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;r_nom&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;u_nom&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;v_nom&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand1</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;meand1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd1</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;meanlogd1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand2</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;meand2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd2</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;meanlogd2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meand3</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;meand3&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd3</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;meanlogd3&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanu</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;meanu&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanv</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;meanv&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;DDD&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ntri</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;ntri&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;tot&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;coords&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metric</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;metric&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sep_units</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;sep_units&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;bin_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build_corr</span><span class="p">()</span></div></div>
+
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Mike Jarvis
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

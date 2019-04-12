@@ -1,0 +1,479 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Two-point Correlation Functions &mdash; TreeCorr 4.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="NNCorrelation: Count-count correlations" href="nn.html" />
+    <link rel="prev" title="Input Data" href="catalog.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> TreeCorr
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                4.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Two-point Correlation Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nn.html">NNCorrelation: Count-count correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gg.html">GGCorrelation: Shear-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ng.html">NGCorrelation: Count-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kk.html">KKCorrelation: Kappa-kappa correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nk.html">NKCorrelation: Count-kappa correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kg.html">KGCorrelation: Kappa-shear correlations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bintype.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">The corr2 and corr3 driver scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 3.4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Two-point Correlation Functions</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/correlation2.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="two-point-correlation-functions">
+<h1>Two-point Correlation Functions<a class="headerlink" href="#two-point-correlation-functions" title="Permalink to this headline">¶</a></h1>
+<p>There are 6 differenct classes for calculating the different possible two-point correlation
+functions:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="nn.html">NNCorrelation: Count-count correlations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gg.html">GGCorrelation: Shear-shear correlations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ng.html">NGCorrelation: Count-shear correlations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kk.html">KKCorrelation: Kappa-kappa correlations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nk.html">NKCorrelation: Count-kappa correlations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kg.html">KGCorrelation: Kappa-shear correlations</a></li>
+</ul>
+</div>
+<p>Each of the above classes is a sub-class of the base class BinnedCorr2, so they have a number of
+features in common about how they are constructed.  The common features are documented here.</p>
+<dl class="class">
+<dt id="treecorr.BinnedCorr2">
+<em class="property">class </em><code class="descclassname">treecorr.</code><code class="descname">BinnedCorr2</code><span class="sig-paren">(</span><em>config=None</em>, <em>logger=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr2" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class stores the results of a 2-point correlation calculation, along with some
+ancillary data.</p>
+<p>This is a base class that is not intended to be constructed directly.  But it has a few
+helper functions that derived classes can use to help perform their calculations.  See
+the derived classes for more details:</p>
+<ul class="simple">
+<li><a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a> handles shear-shear correlation functions</li>
+<li><a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNCorrelation</span></code></a> handles count-count correlation functions</li>
+<li><a class="reference internal" href="kk.html#treecorr.KKCorrelation" title="treecorr.KKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKCorrelation</span></code></a> handles kappa-kappa correlation functions</li>
+<li><a class="reference internal" href="ng.html#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGCorrelation</span></code></a> handles count-shear correlation functions</li>
+<li><a class="reference internal" href="nk.html#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a> handles count-kappa correlation functions</li>
+<li><a class="reference internal" href="kg.html#treecorr.KGCorrelation" title="treecorr.KGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGCorrelation</span></code></a> handles kappa-shear correlation functions</li>
+</ul>
+<p>Note that when we refer to kappa in the correlation function, that is because I
+come from a weak lensing perspective.  But really any scalar quantity may be used
+here.  CMB temperature fluctuations for example.</p>
+<p>The constructor for all derived classes take a config dict as the first argument,
+since this is often how we keep track of parameters, but if you don’t want to
+use one or if you want to change some parameters from what are in a config dict,
+then you can use normal kwargs, which take precedence over anything in the config dict.</p>
+<p>There are a number of possible definitions for the distance between two points, which
+are appropriate for different use cases.  These are specified by the <strong>metric</strong> parameter.
+The possible options are:</p>
+<blockquote>
+<div><ul class="simple">
+<li>‘Euclidean’ = straight line Euclidean distance between two points.</li>
+<li>‘FisherRperp’ = the perpendicular component of the distance, following the
+definitions in Fisher et al, 1994 (MNRAS, 267, 927).</li>
+<li>‘OldRperp’ = the perpendicular component of the distance using the definition
+of Rperp from TreeCorr v3.x.</li>
+<li>‘Rperp’ = an alias for FisherRperp.  You can change it to be an alias for
+OldRperp if you want by setting <code class="docutils literal notranslate"><span class="pre">treecorr.Rperp_alias</span> <span class="pre">=</span> <span class="pre">'OldRperp'</span></code> before
+using it.</li>
+<li>‘Rlens’ = the distance from the first object (taken to be a lens) to the line
+connecting Earth and the second object (taken to be a lensed source).</li>
+<li>‘Arc’ = the true great circle distance for spherical coordinates.</li>
+<li>‘Periodic’ = Like Euclidean, but with periodic boundaries.</li>
+</ul>
+</div></blockquote>
+<p>See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for more information about these various metric options.</p>
+<p>There are also a few different possibile binning prescriptions to define the range of
+distances, which should be placed into each bin.</p>
+<blockquote>
+<div><ul class="simple">
+<li>‘Log’ - logarithmic binning in the distance.  The bin steps will be uniform in
+log(r) from log(min_sep) .. log(max_sep).</li>
+<li>‘Linear’ - linear binning in the distance.  The bin steps will be uniform in r
+from min_sep .. max_sep.</li>
+<li>‘TwoD’ = 2-dimensional binning from x = (-max_sep .. max_sep) and
+y = (-max_sep .. max_sep).  The bin steps will be uniform in both x and y.
+(i.e. linear in x,y)</li>
+</ul>
+</div></blockquote>
+<p>See <a class="reference internal" href="bintype.html#binning"><span class="std std-ref">Binning</span></a> for more information about the different binning options.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in the below kwargs if
+desired.  This dict is allowed to have addition entries in addition
+to those listed below, which are ignored here. (default: None)</li>
+<li><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
+one will be built according to the config dict’s verbose level.)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><ul class="first last simple">
+<li><strong>nbins</strong> (<em>int</em>) – How many bins to use. (Exactly three of nbins, bin_size, min_sep,
+max_sep are required. If nbins is not given, it will be calculated from
+the values of the other three, rounding up to the next highest integer.
+In this case, bin_size will be readjusted to account for this rounding
+up.)</li>
+<li><strong>bin_size</strong> (<em>float</em>) – The width of the bins in log(separation). (Exactly three of nbins,
+bin_size, min_sep, max_sep are required.  If bin_size is not given, it
+will be calculated from the values of the other three.)</li>
+<li><strong>min_sep</strong> (<em>float</em>) – The minimum separation in units of sep_units, if relevant. (Exactly
+three of nbins, bin_size, min_sep, max_sep are required.  If min_sep is
+not given, it will be calculated from the values of the other three.)</li>
+<li><strong>max_sep</strong> (<em>float</em>) – The maximum separation in units of sep_units, if relevant. (Exactly
+three of nbins, bin_size, min_sep, max_sep are required.  If max_sep is
+not given, it will be calculated from the values of the other three.</li>
+<li><strong>sep_units</strong> (<em>str</em>) – The units to use for the separation values, given as a string.  This
+includes both min_sep and max_sep above, as well as the units of the
+output distance values.  Valid options are arcsec, arcmin, degrees,
+hours, radians.  (default: radians if angular units make sense, but for
+3-d or flat 2-d positions, the default will just match the units of
+x,y[,z] coordinates)</li>
+<li><strong>bin_slop</strong> (<em>float</em>) – How much slop to allow in the placement of pairs in the bins.
+If bin_slop = 1, then the bin into which a particular pair is placed
+may be incorrect by at most 1.0 bin widths.  (default: None, which
+means to use a bin_slop that gives a maximum error of 10% on any bin,
+which has been found to yield good results for most application.</li>
+<li><strong>brute</strong> (<em>bool</em>) – <p>Whether to use the “brute force” algorithm.  (default: False) Options
+are:</p>
+<blockquote>
+<div><ul>
+<li>False (the default): Stop at non-leaf cells whenever the error in
+the separation is compatible with the given bin_slop.</li>
+<li>True: Go to the leaves for both catalogs.</li>
+<li>1: Always go to the leaves for cat1, but stop at non-leaf cells of
+cat2 when the error is compatible with the given bin_slop.</li>
+<li>2: Always go to the leaves for cat2, but stop at non-leaf cells of
+cat1 when the error is compatible with the given bin_slop.</li>
+</ul>
+</div></blockquote>
+</li>
+<li><strong>verbose</strong> (<em>int</em>) – <p>If no logger is provided, this will optionally specify a logging level
+to use:</p>
+<blockquote>
+<div><ul>
+<li>0 means no logging output</li>
+<li>1 means to output warnings only (default)</li>
+<li>2 means to output various progress information</li>
+<li>3 means to output extensive debugging information</li>
+</ul>
+</div></blockquote>
+</li>
+<li><strong>log_file</strong> (<em>str</em>) – If no logger is provided, this will specify a file to write the logging
+output.  (default: None; i.e. output to standard output)</li>
+<li><strong>output_dots</strong> (<em>boo</em>) – Whether to output progress dots during the calcualtion of the
+correlation function. (default: False unless verbose is given and &gt;= 2,
+in which case True)</li>
+<li><strong>split_method</strong> (<em>str</em>) – <p>How to split the cells in the tree when building the tree structure.
+Options are:</p>
+<ul>
+<li>mean = Use the arithmetic mean of the coordinate being split.
+(default)</li>
+<li>median = Use the median of the coordinate being split.</li>
+<li>middle = Use the middle of the range; i.e. the average of the minimum
+and maximum value.</li>
+<li>random: Use a random point somewhere in the middle two quartiles of
+the range.</li>
+</ul>
+</li>
+<li><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the field.
+(default: 3)</li>
+<li><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the field.
+The top-level cells are where each calculation job starts. There will
+typically be of order 2^max_top top-level cells. (default: 10)</li>
+<li><strong>precision</strong> (<em>int</em>) – The precision to use for the output values. This specifies how many
+digits to write. (default: 4)</li>
+<li><strong>pairwise</strong> (<em>bool</em>) – Whether to use a different kind of calculation for cross correlations
+whereby corresponding items in the two catalogs are correlated pairwise
+rather than the usual case of every item in one catalog being correlated
+with every item in the other catalog. (default: False)</li>
+<li><strong>m2_uform</strong> (<em>str</em>) – The default functional form to use for aperture mass calculations.
+see <a class="reference internal" href="gg.html#treecorr.GGCorrelation.calculateMapSq" title="treecorr.GGCorrelation.calculateMapSq"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateMapSq</span></code></a> for more details.  (default: ‘Crittenden’)</li>
+<li><strong>metric</strong> (<em>str</em>) – Which metric to use for distance measurements.  Options are listed
+above.  (default: ‘Euclidean’)</li>
+<li><strong>bin_type</strong> (<em>str</em>) – What type of binning should be used.  Options are listed above.
+(default: ‘Log’)</li>
+<li><strong>min_rpar</strong> (<em>float</em>) – For any metric that supports it, the minimum difference in Rparallel
+to allow for pairs being included in the correlation function.
+(default: None)</li>
+<li><strong>max_rpar</strong> (<em>float</em>) – For any metric that supports it,, the maximum difference in Rparallel
+to allow for pairs being included in the correlation function.
+(default: None)</li>
+<li><strong>period</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in all directions.
+(default: None)</li>
+<li><strong>xperiod</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in the x direction.
+(default: period)</li>
+<li><strong>yperiod</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in the y direction.
+(default: period)</li>
+<li><strong>zperiod</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in the z direction.
+(default: period)</li>
+<li><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given in
+the constructor in the config dict.) Note that this won’t work if the
+system’s C compiler cannot use OptnMP (e.g. clang prior to version 3.7.)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="treecorr.BinnedCorr2.sample_pairs">
+<code class="descname">sample_pairs</code><span class="sig-paren">(</span><em>n</em>, <em>cat1</em>, <em>cat2</em>, <em>min_sep</em>, <em>max_sep</em>, <em>metric=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.sample_pairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr2.sample_pairs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a random sample of n pairs whose separations fall between min_sep and max_sep.</p>
+<p>This would typically be used to get some random subset of the indices of pairs that
+fell into a particular bin of the correlation.  E.g. to get 100 pairs from the third
+bin of a BinnedCorr2 instance, corr, you could write:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">min_sep</span> <span class="o">=</span> <span class="n">corr</span><span class="o">.</span><span class="n">left_edges</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>   <span class="c1"># third bin has i=2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">max_sep</span> <span class="o">=</span> <span class="n">corr</span><span class="o">.</span><span class="n">right_edges</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">,</span> <span class="n">sep</span> <span class="o">=</span> <span class="n">corr</span><span class="o">.</span><span class="n">sample_pairs</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">min_sep</span><span class="p">,</span> <span class="n">max_sep</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The min_sep and max_sep should use the same units as were defined which constructing
+the corr instance.</p>
+<p>The selection process will also use the same bin_slop as specified (either explicitly or
+implicitly) when constructing the corr instance.  This means that some of the pairs may
+have actual separations slightly outside of the specified range.  If you want a selection
+using an exact range without any slop, you should construct a new Correlation instance
+with brute=True or bin_slop=0, and call sample_pairs with that.</p>
+<p>The returned separations will likewise correspond to the separation of the cells in the
+tree where the correlation function would have decided that the pair falls into the
+given bin.  Therefore, if these cells were not leaf cells, then they will not typically
+be equal to the real separation for the given metric.</p>
+<p>Also, note that min_sep and max_sep may be arbitrary.  There is no requirement that they
+be edges of one of the standard bins for this correlation function.  There is also no
+requirement that this correlation instance has already accumulated pairs via a call
+to process with these catalogs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>n</strong> (<em>int</em>) – How many samples to return.</li>
+<li><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The catalog from which to sample the first object of each pair.</li>
+<li><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The catalog from which to sample the second object of each pair.
+(This may be the same as cat1.)</li>
+<li><strong>min_sep</strong> (<em>float</em>) – The minimum separation for the returned pairs (modulo some slop
+allowed by the bin_slop parameter).</li>
+<li><strong>max_sep</strong> (<em>float</em>) – The maximum separation for the returned pairs (modulo some slop
+allowed by the bin_slop parameter).</li>
+<li><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.  (default:
+self.metric, or ‘Euclidean’ if not set yet)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p>Tuple containing</p>
+<blockquote>
+<div><ul class="simple">
+<li>i1 (array): indices of objects from cat1</li>
+<li>i2 (array): indices of objects from cat2</li>
+<li>sep (array): separations of the pairs of objects (i1,i2)</li>
+</ul>
+</div></blockquote>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="nn.html" class="btn btn-neutral float-right" title="NNCorrelation: Count-count correlations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="catalog.html" class="btn btn-neutral float-left" title="Input Data" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Mike Jarvis
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

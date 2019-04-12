@@ -1,0 +1,862 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>treecorr.ngcorrelation &mdash; TreeCorr 4.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> TreeCorr
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                4.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bintype.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../scripts.html">The corr2 and corr3 driver scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 3.3 to 3.4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TreeCorr</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>treecorr.ngcorrelation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for treecorr.ngcorrelation</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2003-2019 by Mike Jarvis</span>
+<span class="c1">#</span>
+<span class="c1"># TreeCorr is free software: redistribution and use in source and binary forms,</span>
+<span class="c1"># with or without modification, are permitted provided that the following</span>
+<span class="c1"># conditions are met:</span>
+<span class="c1">#</span>
+<span class="c1"># 1. Redistributions of source code must retain the above copyright notice, this</span>
+<span class="c1">#    list of conditions, and the disclaimer given in the accompanying LICENSE</span>
+<span class="c1">#    file.</span>
+<span class="c1"># 2. Redistributions in binary form must reproduce the above copyright notice,</span>
+<span class="c1">#    this list of conditions, and the disclaimer given in the documentation</span>
+<span class="c1">#    and/or other materials provided with the distribution.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: ngcorrelation</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">treecorr</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="NGCorrelation"><a class="viewcode-back" href="../../ng.html#treecorr.NGCorrelation">[docs]</a><span class="k">class</span> <span class="nc">NGCorrelation</span><span class="p">(</span><span class="n">treecorr</span><span class="o">.</span><span class="n">BinnedCorr2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 2-point count-shear correlation</span>
+<span class="sd">    function.  This is the tangential shear profile around lenses, commonly referred to as</span>
+<span class="sd">    galaxy-galaxy lensing.</span>
+
+<span class="sd">    Ojects of this class holds the following attributes:</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        nbins:     The number of bins in logr</span>
+<span class="sd">        bin_size:  The size of the bins in logr</span>
+<span class="sd">        min_sep:   The minimum separation being considered</span>
+<span class="sd">        max_sep:   The maximum separation being considered</span>
+
+<span class="sd">    In addition, the following attributes are numpy arrays of length (nbins):</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        logr:      The nominal center of the bin in log(r) (the natural logarithm of r).</span>
+<span class="sd">        rnom:      The nominal center of the bin converted to regular distance.</span>
+<span class="sd">                   i.e. r = exp(logr).</span>
+<span class="sd">        meanr:     The (weighted) mean value of r for the pairs in each bin.</span>
+<span class="sd">                   If there are no pairs in a bin, then exp(logr) will be used instead.</span>
+<span class="sd">        meanlogr:  The (weighted) mean value of log(r) for the pairs in each bin.</span>
+<span class="sd">                   If there are no pairs in a bin, then logr will be used instead.</span>
+<span class="sd">        xi:        The correlation function, :math:`\\xi(r) = \\langle \\gamma_T\\rangle`.</span>
+<span class="sd">        xi_im:     The imaginary part of :math:`\\xi(r)`.</span>
+<span class="sd">        varxi:     The variance of :math:`\\xi`, only including the shape noise propagated into</span>
+<span class="sd">                   the final correlation.  This does not include sample variance, so it is</span>
+<span class="sd">                   always an underestimate of the actual variance.</span>
+<span class="sd">        weight:    The total weight in each bin.</span>
+<span class="sd">        npairs:    The number of pairs going into each bin.</span>
+
+<span class="sd">    If **sep_units** are given (either in the config dict or as a named kwarg) then the distances</span>
+<span class="sd">    will all be in these units.  Note however, that if you separate out the steps of the</span>
+<span class="sd">    `process` command and use `process_cross`, then the units will not be applied to **meanr** or</span>
+<span class="sd">    **meanlogr** until the `finalize` function is called.</span>
+
+<span class="sd">    The typical usage pattern is as follows:</span>
+
+<span class="sd">        &gt;&gt;&gt; ng = treecorr.NGCorrelation(config)</span>
+<span class="sd">        &gt;&gt;&gt; ng.process(cat1,cat2)   # Compute the cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; ng.write(file_name)     # Write out to a file.</span>
+<span class="sd">        &gt;&gt;&gt; xi = gg.xi              # Or access the correlation function directly.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        config (dict):  A configuration dict that can be used to pass in kwargs if desired.</span>
+<span class="sd">                        This dict is allowed to have addition entries in addition to those listed</span>
+<span class="sd">                        in `BinnedCorr2`, which are ignored here. (default: None)</span>
+<span class="sd">        logger:         If desired, a logger object for logging. (default: None, in which case</span>
+<span class="sd">                        one will be built according to the config dict&#39;s verbose level.)</span>
+
+<span class="sd">    See the documentation for `BinnedCorr2` for the list of other allowed kwargs, which may be</span>
+<span class="sd">    passed either directly or in the config dict.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="NGCorrelation.__init__"><a class="viewcode-back" href="../../ng.html#treecorr.NGCorrelation.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">treecorr</span><span class="o">.</span><span class="n">BinnedCorr2</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_d1</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># NData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_d2</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># GData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xi_im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">varxi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">npairs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build_corr</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building NGCorr&#39;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_build_corr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="k">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">corr</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">BuildCorr2</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_d1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_min_sep</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_sep</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_nbins</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_bin_size</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">min_rpar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_rpar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xperiod</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yperiod</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zperiod</span><span class="p">,</span>
+                <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xi_im</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
+                <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npairs</span><span class="p">));</span>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Using memory allocated from the C layer means we have to explicitly deallocate it</span>
+        <span class="c1"># rather than being able to rely on the Python memory manager.</span>
+        <span class="c1"># In case __init__ failed to get that far</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;corr&#39;</span><span class="p">):</span>  <span class="c1"># pragma: no branch</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_ffi</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">locked</span><span class="p">():</span> <span class="c1"># pragma: no branch</span>
+                <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">DestroyCorr2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NGCorrelation.__eq__"><a class="viewcode-back" href="../../ng.html#treecorr.NGCorrelation.__eq__">[docs]</a>    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether two NGCorrelations are equal&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">NGCorrelation</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">nbins</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">nbins</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">bin_size</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">min_sep</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">max_sep</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sep_units</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">sep_units</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">bin_type</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">bin_slop</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">min_rpar</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">min_rpar</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">max_rpar</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">max_rpar</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">xperiod</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">xperiod</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">yperiod</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">yperiod</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">zperiod</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">zperiod</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">meanr</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">xi</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xi_im</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">xi_im</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">varxi</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">varxi</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npairs</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">npairs</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="NGCorrelation.copy"><a class="viewcode-back" href="../../ng.html#treecorr.NGCorrelation.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Make a copy&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">copy</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;corr&#39;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;logger&#39;</span><span class="p">]</span>  <span class="c1"># Oh well.  This is just lost in the copy.  Can&#39;t be pickled.</span>
+        <span class="k">return</span> <span class="n">d</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">=</span> <span class="n">d</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build_corr</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">setup_logger</span><span class="p">(</span>
+                <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;log_file&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">))</span>
+
+<div class="viewcode-block" id="NGCorrelation.__repr__"><a class="viewcode-back" href="../../ng.html#treecorr.NGCorrelation.__repr__">[docs]</a>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;NGCorrelation(config=</span><span class="si">%r</span><span class="s1">)&#39;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span></div>
+
+<div class="viewcode-block" id="NGCorrelation.process_cross"><a class="viewcode-back" href="../../ng.html#treecorr.NGCorrelation.process_cross">[docs]</a>    <span class="k">def</span> <span class="nf">process_cross</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Process a single pair of catalogs, accumulating the cross-correlation.</span>
+
+<span class="sd">        This accumulates the weighted sums into the bins, but does not finalize</span>
+<span class="sd">        the calculation by dividing by the total weight at the end.  After</span>
+<span class="sd">        calling this function as often as desired, the `finalize` command will</span>
+<span class="sd">        finish the calculation.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            cat1 (Catalog):     The first catalog to process</span>
+<span class="sd">            cat2 (Catalog):     The second catalog to process</span>
+<span class="sd">            metric (str):       Which metric to use.  See `Metrics` for details.</span>
+<span class="sd">                                (default: &#39;Euclidean&#39;; this value can also be given in the</span>
+<span class="sd">                                constructor in the config dict.)</span>
+<span class="sd">            num_threads (int):  How many OpenMP threads to use during the calculation.</span>
+<span class="sd">                                (default: use the number of cpu cores; this value can also be given</span>
+<span class="sd">                                in the constructor in the config dict.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">cat1</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="n">cat2</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting process NG cross-correlations&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting process NG cross-correlations for cats </span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span>
+                             <span class="n">cat1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">cat2</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_metric</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">cat1</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">cat2</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_num_threads</span><span class="p">(</span><span class="n">num_threads</span><span class="p">)</span>
+
+        <span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_minmax_size</span><span class="p">()</span>
+
+        <span class="n">f1</span> <span class="o">=</span> <span class="n">cat1</span><span class="o">.</span><span class="n">getNField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="ow">is</span> <span class="kc">True</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="ow">is</span> <span class="mi">1</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+        <span class="n">f2</span> <span class="o">=</span> <span class="n">cat2</span><span class="o">.</span><span class="n">getGField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="ow">is</span> <span class="kc">True</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="ow">is</span> <span class="mi">2</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting </span><span class="si">%d</span><span class="s1"> jobs.&#39;</span><span class="p">,</span><span class="n">f1</span><span class="o">.</span><span class="n">nTopLevelNodes</span><span class="p">)</span>
+        <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">ProcessCross2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">,</span> <span class="n">f1</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span><span class="p">,</span>
+                                    <span class="n">f1</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NGCorrelation.process_pairwise"><a class="viewcode-back" href="../../ng.html#treecorr.NGCorrelation.process_pairwise">[docs]</a>    <span class="k">def</span> <span class="nf">process_pairwise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Process a single pair of catalogs, accumulating the cross-correlation, only using</span>
+<span class="sd">        the corresponding pairs of objects in each catalog.</span>
+
+<span class="sd">        This accumulates the weighted sums into the bins, but does not finalize</span>
+<span class="sd">        the calculation by dividing by the total weight at the end.  After</span>
+<span class="sd">        calling this function as often as desired, the `finalize` command will</span>
+<span class="sd">        finish the calculation.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            cat1 (Catalog):     The first catalog to process</span>
+<span class="sd">            cat2 (Catalog):     The second catalog to process</span>
+<span class="sd">            metric (str):       Which metric to use.  See `Metrics` for details.</span>
+<span class="sd">                                (default: &#39;Euclidean&#39;; this value can also be given in the</span>
+<span class="sd">                                constructor in the config dict.)</span>
+<span class="sd">            num_threads (int):  How many OpenMP threads to use during the calculation.</span>
+<span class="sd">                                (default: use the number of cpu cores; this value can also be given</span>
+<span class="sd">                                in the constructor in the config dict.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">cat1</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="n">cat2</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting process NG pairwise-correlations&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting process NG pairwise-correlations for cats </span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span>
+                             <span class="n">cat1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">cat2</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_metric</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">cat1</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">cat2</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_num_threads</span><span class="p">(</span><span class="n">num_threads</span><span class="p">)</span>
+
+        <span class="n">f1</span> <span class="o">=</span> <span class="n">cat1</span><span class="o">.</span><span class="n">getNSimpleField</span><span class="p">()</span>
+        <span class="n">f2</span> <span class="o">=</span> <span class="n">cat2</span><span class="o">.</span><span class="n">getGSimpleField</span><span class="p">()</span>
+
+        <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">ProcessPair</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">,</span> <span class="n">f1</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span><span class="p">,</span>
+                                  <span class="n">f1</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NGCorrelation.finalize"><a class="viewcode-back" href="../../ng.html#treecorr.NGCorrelation.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Finalize the calculation of the correlation function.</span>
+
+<span class="sd">        The `process_cross` command accumulates values in each bin, so it can be called</span>
+<span class="sd">        multiple times if appropriate.  Afterwards, this command finishes the calculation</span>
+<span class="sd">        by dividing each column by the total weight.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            varg (float):   The shear variance per component for the second field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mask1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">!=</span> <span class="mi">0</span>
+        <span class="n">mask2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xi_im</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">varxi</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">=</span> <span class="n">varg</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span>
+
+        <span class="c1"># Update the units of meanr, meanlogr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_apply_units</span><span class="p">(</span><span class="n">mask1</span><span class="p">)</span>
+
+        <span class="c1"># Use meanr, meanlogr when available, but set to nominal when no pairs in bin.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logr</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">varxi</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span></div>
+
+
+<div class="viewcode-block" id="NGCorrelation.clear"><a class="viewcode-back" href="../../ng.html#treecorr.NGCorrelation.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clear the data vectors</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xi_im</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">varxi</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">npairs</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="NGCorrelation.__iadd__"><a class="viewcode-back" href="../../ng.html#treecorr.NGCorrelation.__iadd__">[docs]</a>    <span class="k">def</span> <span class="nf">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a second NGCorrelation&#39;s data to this one.</span>
+
+<span class="sd">        Note: For this to make sense, both Correlation objects should have been using</span>
+<span class="sd">        `process_cross`, and they should not have had `finalize` called yet.</span>
+<span class="sd">        Then, after adding them together, you should call `finalize` on the sum.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">NGCorrelation</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Can only add another NGCorrelation object&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nbins</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_nbins</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">min_sep</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">max_sep</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;NGCorrelation to be added is not compatible with this one.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_metric</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">metric</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">xi</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xi_im</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">xi_im</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">varxi</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">varxi</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">meanr</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">meanlogr</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">npairs</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">npairs</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="NGCorrelation.process"><a class="viewcode-back" href="../../ng.html#treecorr.NGCorrelation.process">[docs]</a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the correlation function.</span>
+
+<span class="sd">        Both arguments may be lists, in which case all items in the list are used</span>
+<span class="sd">        for that element of the correlation.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            cat1 (Catalog):     A catalog or list of catalogs for the N field.</span>
+<span class="sd">            cat2 (Catalog):     A catalog or list of catalogs for the G field.</span>
+<span class="sd">            metric (str):       Which metric to use.  See `Metrics` for details.</span>
+<span class="sd">                                (default: &#39;Euclidean&#39;; this value can also be given in the</span>
+<span class="sd">                                constructor in the config dict.)</span>
+<span class="sd">            num_threads (int):  How many OpenMP threads to use during the calculation.</span>
+<span class="sd">                                (default: use the number of cpu cores; this value can also be given</span>
+<span class="sd">                                in the constructor in the config dict.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">math</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span> <span class="n">cat1</span> <span class="o">=</span> <span class="p">[</span><span class="n">cat1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cat2</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span> <span class="n">cat2</span> <span class="o">=</span> <span class="p">[</span><span class="n">cat2</span><span class="p">]</span>
+
+        <span class="n">varg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">calculateVarG</span><span class="p">(</span><span class="n">cat2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;varg = </span><span class="si">%f</span><span class="s2">: sig_sn (per component) = </span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">varg</span><span class="p">,</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">varg</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_process_all_cross</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">cat2</span><span class="p">,</span><span class="n">metric</span><span class="p">,</span><span class="n">num_threads</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finalize</span><span class="p">(</span><span class="n">varg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NGCorrelation.calculateXi"><a class="viewcode-back" href="../../ng.html#treecorr.NGCorrelation.calculateXi">[docs]</a>    <span class="k">def</span> <span class="nf">calculateXi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the correlation function possibly given another correlation function</span>
+<span class="sd">        that uses random points for the foreground objects.</span>
+
+<span class="sd">        - If rg is None, the simple correlation function :math:`\\langle \\gamma_T\\rangle` is</span>
+<span class="sd">          returned.</span>
+<span class="sd">        - If rg is not None, then a compensated calculation is done:</span>
+<span class="sd">          :math:`\\langle \\gamma_T\\rangle = (DG - RG)`</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            rg (NGCorrelation): The cross-correlation using random locations as the lenses</span>
+<span class="sd">                                (RG), if desired.  (default: None)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple containing</span>
+
+<span class="sd">                - xi = array of the real part of :math:`\\xi(R)`</span>
+<span class="sd">                - xi_im = array of the imaginary part of :math:`\\xi(R)`</span>
+<span class="sd">                - varxi = array of the variance estimates of the above values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">rg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xi_im</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varxi</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xi</span> <span class="o">-</span> <span class="n">rg</span><span class="o">.</span><span class="n">xi</span><span class="p">),</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xi_im</span> <span class="o">-</span> <span class="n">rg</span><span class="o">.</span><span class="n">xi_im</span><span class="p">),</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">varxi</span> <span class="o">+</span> <span class="n">rg</span><span class="o">.</span><span class="n">varxi</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NGCorrelation.write"><a class="viewcode-back" href="../../ng.html#treecorr.NGCorrelation.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">rg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the correlation function to the file, file_name.</span>
+
+<span class="sd">        - If rg is None, the simple correlation function :math:`\\langle \\gamma_T\\rangle` is used.</span>
+<span class="sd">        - If rg is not None, then a compensated calculation is done:</span>
+<span class="sd">          :math:`\\langle \\gamma_T\\rangle = (DG - RG)`</span>
+
+<span class="sd">        The output file will include the following columns:</span>
+
+<span class="sd">        ==========      =============================================================</span>
+<span class="sd">        Column          Description</span>
+<span class="sd">        ==========      =============================================================</span>
+<span class="sd">        r_nom           The nominal center of the bin in r</span>
+<span class="sd">        meanr           The mean value &lt;r&gt; of pairs that fell into each bin</span>
+<span class="sd">        meanlogr        The mean value &lt;log(r)&gt; of pairs that fell into each bin</span>
+<span class="sd">        gamT            The real part of the mean tangential shear &lt;gamma_T&gt;(r)</span>
+<span class="sd">        gamX            The imag part of the mean tangential shear &lt;gamma_X&gt;(r)</span>
+<span class="sd">        sigma           The sqrt of the variance estimate of either of these</span>
+<span class="sd">        weight          The total weight contributing to each bin</span>
+<span class="sd">        npairs          The number of pairs contributing ot each bin</span>
+<span class="sd">        ==========      =============================================================</span>
+
+<span class="sd">        If **sep_units** was given at construction, then the distances will all be in these units.</span>
+<span class="sd">        Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or</span>
+<span class="sd">        radians (for spherical coordinates).</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            file_name (str):    The name of the file to write to.</span>
+<span class="sd">            rg (NGCorrelation): The cross-correlation using random locations as the lenses</span>
+<span class="sd">                                (RG), if desired.  (default: None)</span>
+<span class="sd">            file_type (str):    The type of file to write (&#39;ASCII&#39; or &#39;FITS&#39;).  (default: determine</span>
+<span class="sd">                                the type automatically from the extension of file_name.)</span>
+<span class="sd">            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;</span>
+<span class="sd">                                this value can also be given in the constructor in the config dict.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Writing NG correlations to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">file_name</span><span class="p">)</span>
+
+        <span class="n">xi</span><span class="p">,</span> <span class="n">xi_im</span><span class="p">,</span> <span class="n">varxi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculateXi</span><span class="p">(</span><span class="n">rg</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">precision</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;precision&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;coords&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="s1">&#39;metric&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric</span><span class="p">,</span>
+                   <span class="s1">&#39;sep_units&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sep_units</span><span class="p">,</span> <span class="s1">&#39;bin_type&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="p">}</span>
+
+        <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">gen_write</span><span class="p">(</span>
+            <span class="n">file_name</span><span class="p">,</span>
+            <span class="p">[</span><span class="s1">&#39;r_nom&#39;</span><span class="p">,</span><span class="s1">&#39;meanr&#39;</span><span class="p">,</span><span class="s1">&#39;meanlogr&#39;</span><span class="p">,</span><span class="s1">&#39;gamT&#39;</span><span class="p">,</span><span class="s1">&#39;gamX&#39;</span><span class="p">,</span><span class="s1">&#39;sigma&#39;</span><span class="p">,</span><span class="s1">&#39;weight&#39;</span><span class="p">,</span><span class="s1">&#39;npairs&#39;</span><span class="p">],</span>
+            <span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">,</span>
+              <span class="n">xi</span><span class="p">,</span> <span class="n">xi_im</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">varxi</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">npairs</span> <span class="p">],</span>
+            <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="n">file_type</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NGCorrelation.read"><a class="viewcode-back" href="../../ng.html#treecorr.NGCorrelation.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read in values from a file.</span>
+
+<span class="sd">        This should be a file that was written by TreeCorr, preferably a FITS file, so there</span>
+<span class="sd">        is no loss of information.</span>
+
+<span class="sd">        Warning: The NGCorrelation object should be constructed with the same configuration</span>
+<span class="sd">        parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not</span>
+<span class="sd">        checked by the read function.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            file_name (str):    The name of the file to read in.</span>
+<span class="sd">            file_type (str):    The type of file (&#39;ASCII&#39; or &#39;FITS&#39;).  (default: determine the type</span>
+<span class="sd">                                automatically from the extension of file_name.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Reading NG correlations from </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">file_name</span><span class="p">)</span>
+
+        <span class="n">data</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">gen_read</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="n">file_type</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;R_nom&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;R_nom&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;meanR&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;meanlogR&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;r_nom&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;meanr&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;meanlogr&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xi</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;gamT&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xi_im</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;gamX&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">varxi</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">npairs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;npairs&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;coords&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metric</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;metric&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sep_units</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;sep_units&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;bin_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build_corr</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="NGCorrelation.calculateNMap"><a class="viewcode-back" href="../../ng.html#treecorr.NGCorrelation.calculateNMap">[docs]</a>    <span class="k">def</span> <span class="nf">calculateNMap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">m2_uform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the aperture mass statistics from the correlation function.</span>
+
+<span class="sd">        .. math::</span>
+
+<span class="sd">            \\langle N M_{ap} \\rangle(R) &amp;= \\int_{0}^{rmax} \\frac{r dr}{R^2}</span>
+<span class="sd">            T_\\times\\left(\\frac{r}{R}\\right) \\Re\\xi(r) \\\\</span>
+<span class="sd">            \\langle N M_{\\times} \\rangle(R) &amp;= \\int_{0}^{rmax} \\frac{r dr}{R^2}</span>
+<span class="sd">            T_\\times\\left(\\frac{r}{R}\\right) \\Im\\xi(r)</span>
+
+<span class="sd">        The **m2_uform** parameter sets which definition of the aperture mass to use.</span>
+<span class="sd">        The default is to use &#39;Crittenden&#39;.</span>
+
+<span class="sd">        If **m2_uform** is &#39;Crittenden&#39;:</span>
+
+<span class="sd">        .. math::</span>
+
+<span class="sd">            U(r) &amp;= \\frac{1}{2\\pi} (1-r^2) \\exp(-r^2/2) \\\\</span>
+<span class="sd">            T_\\times(s) &amp;= \\frac{s^2}{128} (12-s^2) \\exp(-s^2/4)</span>
+
+<span class="sd">        cf. Crittenden, et al (2002): ApJ, 568, 20</span>
+
+<span class="sd">        If **m2_uform** is &#39;Schneider&#39;:</span>
+
+<span class="sd">        .. math::</span>
+
+<span class="sd">            U(r) &amp;= \\frac{9}{\\pi} (1-r^2) (1/3-r^2) \\\\</span>
+<span class="sd">            T_\\times(s) &amp;= \\frac{18}{\\pi} s^2 \\arccos(s/2) \\\\</span>
+<span class="sd">            &amp;\qquad - \\frac{3}{40\\pi} s^3 \\sqrt{4-s^2} (196 - 74s^2 + 14s^4 - s^6)</span>
+
+<span class="sd">        cf. Schneider, et al (2002): A&amp;A, 389, 729</span>
+
+<span class="sd">        In neither case is this formula in the above papers, but the derivation is similar</span>
+<span class="sd">        to the derivations of :math:`T_+` and :math:`T_-` in Schneider et al. (2002).</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            R (array):          The R values at which to calculate the aperture mass statistics.</span>
+<span class="sd">                                (default: None, which means use self.rnom)</span>
+<span class="sd">            rg (NGCorrelation): The cross-correlation using random locations as the lenses</span>
+<span class="sd">                                (RG), if desired.  (default: None)</span>
+<span class="sd">            m2_uform (str):     Which form to use for the aperture mass, as described above.</span>
+<span class="sd">                                (default: &#39;Crittenden&#39;; this value can also be given in the</span>
+<span class="sd">                                constructor in the config dict.)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple containing</span>
+
+<span class="sd">                - nmap = array of :math:`\\langle N M_{ap} \\rangle(R)`</span>
+<span class="sd">                - nmx = array of :math:`\\langle N M_{\\times} \\rangle(R)`</span>
+<span class="sd">                - varnmap = array of variance estimates of the above values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">m2_uform</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">m2_uform</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;m2_uform&#39;</span><span class="p">,</span><span class="nb">str</span><span class="p">,</span><span class="s1">&#39;Crittenden&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">m2_uform</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Crittenden&#39;</span><span class="p">,</span> <span class="s1">&#39;Schneider&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid m2_uform&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">R</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">R</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span>
+
+        <span class="c1"># Make s a matrix, so we can eventually do the integral by doing a matrix product.</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="n">R</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="p">)</span>
+        <span class="n">ssq</span> <span class="o">=</span> <span class="n">s</span><span class="o">*</span><span class="n">s</span>
+        <span class="k">if</span> <span class="n">m2_uform</span> <span class="o">==</span> <span class="s1">&#39;Crittenden&#39;</span><span class="p">:</span>
+            <span class="n">exp_factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">ssq</span><span class="o">/</span><span class="mf">4.</span><span class="p">)</span>
+            <span class="n">Tx</span> <span class="o">=</span> <span class="n">ssq</span> <span class="o">*</span> <span class="p">(</span><span class="mf">12.</span> <span class="o">-</span> <span class="n">ssq</span><span class="p">)</span> <span class="o">/</span> <span class="mf">128.</span> <span class="o">*</span> <span class="n">exp_factor</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Tx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="n">sa</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="n">s</span><span class="o">&lt;</span><span class="mf">2.</span><span class="p">]</span>
+            <span class="n">ssqa</span> <span class="o">=</span> <span class="n">ssq</span><span class="p">[</span><span class="n">s</span><span class="o">&lt;</span><span class="mf">2.</span><span class="p">]</span>
+            <span class="n">Tx</span><span class="p">[</span><span class="n">s</span><span class="o">&lt;</span><span class="mf">2.</span><span class="p">]</span> <span class="o">=</span> <span class="mf">196.</span> <span class="o">+</span> <span class="n">ssqa</span><span class="o">*</span><span class="p">(</span><span class="o">-</span><span class="mf">74.</span> <span class="o">+</span> <span class="n">ssqa</span><span class="o">*</span><span class="p">(</span><span class="mf">14.</span> <span class="o">-</span> <span class="n">ssqa</span><span class="p">))</span>
+            <span class="n">Tx</span><span class="p">[</span><span class="n">s</span><span class="o">&lt;</span><span class="mf">2.</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mf">3.</span><span class="o">/</span><span class="p">(</span><span class="mf">40.</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="n">sa</span> <span class="o">*</span> <span class="n">ssqa</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">4.</span><span class="o">-</span><span class="n">sa</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">Tx</span><span class="p">[</span><span class="n">s</span><span class="o">&lt;</span><span class="mf">2.</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">18.</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">ssqa</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">sa</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span>
+        <span class="n">Tx</span> <span class="o">*=</span> <span class="n">ssq</span>
+
+        <span class="n">xi</span><span class="p">,</span> <span class="n">xi_im</span><span class="p">,</span> <span class="n">varxi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculateXi</span><span class="p">(</span><span class="n">rg</span><span class="p">)</span>
+
+        <span class="c1"># Now do the integral by taking the matrix products.</span>
+        <span class="c1"># Note that dlogr = bin_size</span>
+        <span class="n">Txxi</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">xi</span><span class="p">)</span>
+        <span class="n">Txxi_im</span> <span class="o">=</span> <span class="n">Tx</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">xi_im</span><span class="p">)</span>
+        <span class="n">nmap</span> <span class="o">=</span> <span class="n">Txxi</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span>
+        <span class="n">nmx</span> <span class="o">=</span> <span class="n">Txxi_im</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span>
+
+        <span class="c1"># The variance of each of these is</span>
+        <span class="c1"># Var(&lt;NMap&gt;(R)) = int_r=0..2R [s^4 dlogr^2 Tx(s)^2 Var(xi)]</span>
+        <span class="n">varnmap</span> <span class="o">=</span> <span class="p">(</span><span class="n">Tx</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">varxi</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span><span class="o">**</span><span class="mi">2</span>
+
+        <span class="k">return</span> <span class="n">nmap</span><span class="p">,</span> <span class="n">nmx</span><span class="p">,</span> <span class="n">varnmap</span></div>
+
+
+<div class="viewcode-block" id="NGCorrelation.writeNMap"><a class="viewcode-back" href="../../ng.html#treecorr.NGCorrelation.writeNMap">[docs]</a>    <span class="k">def</span> <span class="nf">writeNMap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">R</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">m2_uform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the cross correlation of the foreground galaxy counts with the aperture mass</span>
+<span class="sd">        based on the correlation function to the file, file_name.</span>
+
+<span class="sd">        If rg is provided, the compensated calculation will be used for :math:`\\xi`.</span>
+
+<span class="sd">        See `calculateNMap` for an explanation of the **m2_uform** parameter.</span>
+
+<span class="sd">        The output file will include the following columns:</span>
+
+<span class="sd">        ==========      ====================================================</span>
+<span class="sd">        Column          Description</span>
+<span class="sd">        ==========      ====================================================</span>
+<span class="sd">        R               The radius of the aperture.</span>
+<span class="sd">        NMap            The mean value &lt;N_ap M_ap&gt;(R)</span>
+<span class="sd">        NMx             The mean value &lt;N_ap M_x&gt;(R)</span>
+<span class="sd">        sig_nmap        The sqrt of the variance estimate of either of these</span>
+<span class="sd">        ==========      ====================================================</span>
+
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            file_name (str):    The name of the file to write to.</span>
+<span class="sd">            R (array):          The R values at which to calculate the aperture mass statistics.</span>
+<span class="sd">                                (default: None, which means use self.rnom)</span>
+<span class="sd">            rg (NGCorrelation): The cross-correlation using random locations as the lenses</span>
+<span class="sd">                                (RG), if desired.  (default: None)</span>
+<span class="sd">            m2_uform (str):     Which form to use for the aperture mass.  (default: &#39;Crittenden&#39;;</span>
+<span class="sd">                                this value can also be given in the constructor in the config dict.)</span>
+<span class="sd">            file_type (str):    The type of file to write (&#39;ASCII&#39; or &#39;FITS&#39;).  (default: determine</span>
+<span class="sd">                                the type automatically from the extension of file_name.)</span>
+<span class="sd">            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;</span>
+<span class="sd">                                this value can also be given in the constructor in the config dict.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Writing NMap from NG correlations to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">file_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">R</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">R</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span>
+
+        <span class="n">nmap</span><span class="p">,</span> <span class="n">nmx</span><span class="p">,</span> <span class="n">varnmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculateNMap</span><span class="p">(</span><span class="n">R</span><span class="o">=</span><span class="n">R</span><span class="p">,</span> <span class="n">rg</span><span class="o">=</span><span class="n">rg</span><span class="p">,</span> <span class="n">m2_uform</span><span class="o">=</span><span class="n">m2_uform</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">precision</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;precision&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+        <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">gen_write</span><span class="p">(</span>
+            <span class="n">file_name</span><span class="p">,</span>
+            <span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">,</span><span class="s1">&#39;NMap&#39;</span><span class="p">,</span><span class="s1">&#39;NMx&#39;</span><span class="p">,</span><span class="s1">&#39;sig_nmap&#39;</span><span class="p">],</span>
+            <span class="p">[</span> <span class="n">R</span><span class="p">,</span> <span class="n">nmap</span><span class="p">,</span> <span class="n">nmx</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">varnmap</span><span class="p">)</span> <span class="p">],</span>
+            <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="n">file_type</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NGCorrelation.writeNorm"><a class="viewcode-back" href="../../ng.html#treecorr.NGCorrelation.writeNorm">[docs]</a>    <span class="k">def</span> <span class="nf">writeNorm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">gg</span><span class="p">,</span> <span class="n">dd</span><span class="p">,</span> <span class="n">rr</span><span class="p">,</span> <span class="n">R</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">m2_uform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the normalized aperture mass cross-correlation to the file, file_name.</span>
+
+<span class="sd">        The combination :math:`\\langle N M_{ap}\\rangle^2 / \\langle M_{ap}^2\\rangle</span>
+<span class="sd">        \\langle N_{ap}^2\\rangle` is related to :math:`r`, the galaxy-mass correlation</span>
+<span class="sd">        coefficient.  Similarly, :math:`\\langle N_{ap}^2\\rangle / \\langle M_{ap}^2\\rangle`</span>
+<span class="sd">        is related to :math:`b`, the galaxy bias parameter.  cf. Hoekstra et al, 2002:</span>
+<span class="sd">        http://adsabs.harvard.edu/abs/2002ApJ...577..604H</span>
+
+<span class="sd">        This function computes these combinations and outputs them to a file.</span>
+
+<span class="sd">        - if rg is provided, the compensated calculation will be used for</span>
+<span class="sd">          :math:`\\langle N_{ap} M_{ap} \\rangle`.</span>
+<span class="sd">        - if dr is provided, the compensated calculation will be used for</span>
+<span class="sd">          :math:`\\langle N_{ap}^2 \\rangle`.</span>
+
+<span class="sd">        See `calculateNMap` for an explanation of the **m2_uform** parameter.</span>
+
+<span class="sd">        The output file will include the following columns:</span>
+
+<span class="sd">        ==========      ====================================================</span>
+<span class="sd">        Column          Description</span>
+<span class="sd">        ==========      ====================================================</span>
+<span class="sd">        R               The radius of the aperture</span>
+<span class="sd">        NMap            An estimate of &lt;N_ap M_ap&gt;(R)</span>
+<span class="sd">        NMx             An estimate of &lt;N_ap M_x&gt;(R)</span>
+<span class="sd">        sig_nmap        The sqrt of the variance estimate of either of these</span>
+<span class="sd">        Napsq           An estimate of &lt;N_ap^2&gt;(R)</span>
+<span class="sd">        sig_napsq       The sqrt of the variance estimate of &lt;N_ap^2&gt;</span>
+<span class="sd">        Mapsq           An estimate of &lt;M_ap^2&gt;(R)</span>
+<span class="sd">        sig_mapsq       The sqrt of the variance estimate of &lt;M_ap^2&gt;</span>
+<span class="sd">        NMap_norm       The ratio &lt;N_ap M_ap&gt;^2 / &lt;N_ap^2&gt; &lt;M_{ap}^2&gt;</span>
+<span class="sd">        sig_norm        The sqrt of the variance estimate of this ratio</span>
+<span class="sd">        Nsq_Mapsq       The ratio &lt;N_ap^2&gt;/&lt;M_ap^2&gt;</span>
+<span class="sd">        sig_nn_mm       The sqrt of the variance estimate of this ratio</span>
+<span class="sd">        ==========      ====================================================</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            file_name (str):    The name of the file to write to.</span>
+<span class="sd">            gg (GGCorrelation): The auto-correlation of the shear field</span>
+<span class="sd">            dd (NNCorrelation): The auto-correlation of the lens counts (DD)</span>
+<span class="sd">            rr (NNCorrelation): The auto-correlation of the random field (RR)</span>
+<span class="sd">            R (array):          The R values at which to calculate the aperture mass statistics.</span>
+<span class="sd">                                (default: None, which means use self.rnom)</span>
+<span class="sd">            dr (NNCorrelation): The cross-correlation of the data with randoms (DR), if</span>
+<span class="sd">                                desired, in which case the Landy-Szalay estimator will be</span>
+<span class="sd">                                calculated.  (default: None)</span>
+<span class="sd">            rd (NNCorrelation): The cross-correlation of the randoms with data (RD), if</span>
+<span class="sd">                                desired. (default: None, which means use rd=dr)</span>
+<span class="sd">            rg (NGCorrelation): The cross-correlation using random locations as the lenses</span>
+<span class="sd">                                (RG), if desired.  (default: None)</span>
+<span class="sd">            m2_uform (str):     Which form to use for the aperture mass.  (default: &#39;Crittenden&#39;;</span>
+<span class="sd">                                this value can also be given in the constructor in the config dict.)</span>
+<span class="sd">            file_type (str):    The type of file to write (&#39;ASCII&#39; or &#39;FITS&#39;).  (default: determine</span>
+<span class="sd">                                the type automatically from the extension of file_name.)</span>
+<span class="sd">            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;</span>
+<span class="sd">                                this value can also be given in the constructor in the config dict.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Writing Norm from NG correlations to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">file_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">R</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">R</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span>
+
+        <span class="n">nmap</span><span class="p">,</span> <span class="n">nmx</span><span class="p">,</span> <span class="n">varnmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculateNMap</span><span class="p">(</span><span class="n">R</span><span class="o">=</span><span class="n">R</span><span class="p">,</span> <span class="n">rg</span><span class="o">=</span><span class="n">rg</span><span class="p">,</span> <span class="n">m2_uform</span><span class="o">=</span><span class="n">m2_uform</span><span class="p">)</span>
+        <span class="n">mapsq</span><span class="p">,</span> <span class="n">mapsq_im</span><span class="p">,</span> <span class="n">mxsq</span><span class="p">,</span> <span class="n">mxsq_im</span><span class="p">,</span> <span class="n">varmapsq</span> <span class="o">=</span> <span class="n">gg</span><span class="o">.</span><span class="n">calculateMapSq</span><span class="p">(</span><span class="n">R</span><span class="o">=</span><span class="n">R</span><span class="p">,</span> <span class="n">m2_uform</span><span class="o">=</span><span class="n">m2_uform</span><span class="p">)</span>
+        <span class="n">nsq</span><span class="p">,</span> <span class="n">varnsq</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">calculateNapSq</span><span class="p">(</span><span class="n">R</span><span class="o">=</span><span class="n">R</span><span class="p">,</span> <span class="n">rr</span><span class="o">=</span><span class="n">rr</span><span class="p">,</span> <span class="n">dr</span><span class="o">=</span><span class="n">dr</span><span class="p">,</span> <span class="n">m2_uform</span><span class="o">=</span><span class="n">m2_uform</span><span class="p">)</span>
+
+        <span class="n">nmnorm</span> <span class="o">=</span> <span class="n">nmap</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="n">nsq</span> <span class="o">*</span> <span class="n">mapsq</span><span class="p">)</span>
+        <span class="n">varnmnorm</span> <span class="o">=</span> <span class="n">nmnorm</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mf">4.</span> <span class="o">*</span> <span class="n">varnmap</span> <span class="o">/</span> <span class="n">nmap</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">varnsq</span> <span class="o">/</span> <span class="n">nsq</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">varmapsq</span> <span class="o">/</span> <span class="n">mapsq</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">nnnorm</span> <span class="o">=</span> <span class="n">nsq</span> <span class="o">/</span> <span class="n">mapsq</span>
+        <span class="n">varnnnorm</span> <span class="o">=</span> <span class="n">nnnorm</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">varnsq</span> <span class="o">/</span> <span class="n">nsq</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">varmapsq</span> <span class="o">/</span> <span class="n">mapsq</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">precision</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;precision&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+        <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">gen_write</span><span class="p">(</span>
+            <span class="n">file_name</span><span class="p">,</span>
+            <span class="p">[</span> <span class="s1">&#39;R&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;NMap&#39;</span><span class="p">,</span><span class="s1">&#39;NMx&#39;</span><span class="p">,</span><span class="s1">&#39;sig_nmap&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Napsq&#39;</span><span class="p">,</span><span class="s1">&#39;sig_napsq&#39;</span><span class="p">,</span><span class="s1">&#39;Mapsq&#39;</span><span class="p">,</span><span class="s1">&#39;sig_mapsq&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;NMap_norm&#39;</span><span class="p">,</span><span class="s1">&#39;sig_norm&#39;</span><span class="p">,</span><span class="s1">&#39;Nsq_Mapsq&#39;</span><span class="p">,</span><span class="s1">&#39;sig_nn_mm&#39;</span> <span class="p">],</span>
+            <span class="p">[</span> <span class="n">R</span><span class="p">,</span>
+              <span class="n">nmap</span><span class="p">,</span> <span class="n">nmx</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">varnmap</span><span class="p">),</span>
+              <span class="n">nsq</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">varnsq</span><span class="p">),</span> <span class="n">mapsq</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">varmapsq</span><span class="p">),</span>
+              <span class="n">nmnorm</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">varnmnorm</span><span class="p">),</span> <span class="n">nnnorm</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">varnnnorm</span><span class="p">)</span> <span class="p">],</span>
+            <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="n">file_type</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span></div></div>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Mike Jarvis
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

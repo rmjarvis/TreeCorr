@@ -79,12 +79,12 @@ two points, and
 
 :math:`L \equiv \frac{p1 + p2}{2}`
 
-then 
+then
 
 :math:`r_\parallel = \frac{(p_2 - p_1) \cdot L}{|L|}`
 
 That is, it breaks up the full 3-d distance into perpendicular and parallel components:
-:math:`d_{\rm 3d}^2 = r_\bot^2 + r_\parallel^2`, 
+:math:`d_{\rm 3d}^2 = r_\bot^2 + r_\parallel^2`,
 and it identifies the metric separation as just the perpendicular component, :math:`r_\bot`.
 
 Note that this decomposition is really only valid for objects with a relatively small angular
@@ -132,7 +132,7 @@ The distance is then defined as
 :math:`d_{\rm OldRperp} = \sqrt{d_{\rm Euclidean}^2 - r_\parallel^2}`
 
 That is, it breaks up the full 3-d distance into perpendicular and parallel components:
-:math:`d_{\rm 3d}^2 = r_\bot^2 + r_\parallel^2`, 
+:math:`d_{\rm 3d}^2 = r_\bot^2 + r_\parallel^2`,
 and it identifies the metric separation as just the perpendicular component, :math:`r_\bot`.
 
 Note that this decomposition is really only valid for objects with a relatively small angular

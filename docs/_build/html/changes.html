@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Changes from version 3.3 to 3.4 &mdash; TreeCorr 4.0 documentation</title>
+  <title>Changes from version 3.3 to 4.0 &mdash; TreeCorr 4.0 documentation</title>
   
 
   
@@ -94,7 +94,7 @@
 <li class="toctree-l1"><a class="reference internal" href="bintype.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">The corr2 and corr3 driver scripts</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Changes from version 3.3 to 3.4</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Changes from version 3.3 to 4.0</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#dependency-changes">Dependency changes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#api-changes">API changes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#performance-improvements">Performance Improvements</a></li>
@@ -148,7 +148,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Changes from version 3.3 to 3.4</li>
+      <li>Changes from version 3.3 to 4.0</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -167,11 +167,28 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="changes-from-version-3-3-to-3-4">
-<h1>Changes from version 3.3 to 3.4<a class="headerlink" href="#changes-from-version-3-3-to-3-4" title="Permalink to this headline">¶</a></h1>
-<p>The numbers at the ends of some items below indicate which issue or PR is
-connected with the change:</p>
-<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+3.4%22+is%3Aclosed">https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+3.4%22+is%3Aclosed</a></p>
+  <div class="section" id="changes-from-version-3-3-to-4-0">
+<h1>Changes from version 3.3 to 4.0<a class="headerlink" href="#changes-from-version-3-3-to-4-0" title="Permalink to this headline">¶</a></h1>
+<p>This version includes a number of backwards-incompatible API changes, so
+we are making it a major version update.  In most cases, these should not be
+very onerous to deal with, but many of them would have been annoying to make
+work in a backwards-compatible way.  Therefore, you are advised to read through
+the list of changes carefully to see what aspects of your code might need to
+be adjusted slightly to work with version 4.x.</p>
+<p>The main feature updates here include:</p>
+<ul class="simple">
+<li>Linear binning</li>
+<li>Two-dimensional 2-point correlations</li>
+<li>Large speed improvements when bin_slop &lt;&lt; 1</li>
+<li>Update to the Rperp metric to better match other usage in literature</li>
+<li>New “Periodic” metric</li>
+<li>New Field.get_near funtion</li>
+<li>New BinnedCorr2.sample_pairs function</li>
+</ul>
+<p>Lots of other more minor updates as detailed in the list below.  The numbers at
+the ends of some items below indicate which issue or PR is connected with the
+change:</p>
+<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+4.0%22+is%3Aclosed">https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+4.0%22+is%3Aclosed</a></p>
 <div class="section" id="dependency-changes">
 <h2>Dependency changes<a class="headerlink" href="#dependency-changes" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">

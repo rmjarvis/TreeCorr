@@ -1,10 +1,28 @@
-Changes from version 3.3 to 3.4
+Changes from version 3.3 to 4.0
 ===============================
 
-The numbers at the ends of some items below indicate which issue or PR is
-connected with the change:
+This version includes a number of backwards-incompatible API changes, so
+we are making it a major version update.  In most cases, these should not be
+very onerous to deal with, but many of them would have been annoying to make
+work in a backwards-compatible way.  Therefore, you are advised to read through
+the list of changes carefully to see what aspects of your code might need to
+be adjusted slightly to work with version 4.x.
 
-https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+3.4%22+is%3Aclosed
+The main feature updates here include:
+
+- Linear binning
+- Two-dimensional 2-point correlations
+- Large speed improvements when bin_slop << 1
+- Update to the Rperp metric to better match other usage in literature
+- New "Periodic" metric
+- New Field.get_near funtion
+- New BinnedCorr2.sample_pairs function
+
+Lots of other more minor updates as detailed in the list below.  The numbers at
+the ends of some items below indicate which issue or PR is connected with the
+change:
+
+https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+4.0%22+is%3Aclosed
 
 Dependency changes
 ------------------

@@ -14,6 +14,7 @@ TreeCorr Documentation
    bintype
    field
    scripts
+   params
    changes
    history
 

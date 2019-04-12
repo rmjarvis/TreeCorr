@@ -116,27 +116,27 @@ def read_config(file_name, file_type='auto'):
         else:
             raise ValueError("Unable to determine the type of config file from the extension")
     if file_type == 'yaml':
-        return read_yaml_file(file_name)
+        return _read_yaml_file(file_name)
     elif file_type == 'json':
-        return read_json_file(file_name)
+        return _read_json_file(file_name)
     elif file_type == 'params':
-        return read_params_file(file_name)
+        return _read_params_file(file_name)
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 
-def read_yaml_file(file_name):
+def _read_yaml_file(file_name):
     import yaml
     with open(file_name) as fin:
         config = yaml.safe_load(fin.read())
     return config
 
-def read_json_file(file_name):
+def _read_json_file(file_name):
     import json
     with open(file_name) as fin:
         config = json.load(fin)
     return config
 
-def read_params_file(file_name):
+def _read_params_file(file_name):
     config = dict()
     with open(file_name) as fin:
         for v in fin:
@@ -303,9 +303,9 @@ def print_params(params):
 def convert(value, value_type, key):
     """Convert the given value to the given type.
 
-    The key helps determine what kind of conversion should be performed.
-    Specifically if 'unit' is in the key value, then a unit conversion is done.
-    Otherwise, it just parses
+    The **key** helps determine what kind of conversion should be performed.
+    Specifically if 'unit' is in the **key** value, then a unit conversion is done.
+    Otherwise, it just parses the **value** according to the **value_type**.
 
     :param value:       The input value to be converted.  Usually a string.
     :param value_type:  The type to convert to.
@@ -324,8 +324,8 @@ def get_from_list(config, key, num, value_type=str, default=None):
     """A helper function to get a key from config that is allowed to be a list
 
     Some of the config values are allowed to be lists of values, in which case we take the
-    `num` item from the list.  If they are not a list, then the given value is used for
-    all values of `num`.
+    **num** item from the list.  If they are not a list, then the given value is used for
+    all values of **num**.
 
     :param config:      The configuration dict from which to get the key value.
     :param key:         What key to get from config.

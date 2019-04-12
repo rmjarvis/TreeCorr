@@ -25,30 +25,31 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
     Ojects of this class holds the following attributes:
 
-        :nbins:     The number of bins in logr
-        :bin_size:  The size of the bins in logr
-        :min_sep:   The minimum separation being considered
-        :max_sep:   The maximum separation being considered
+    Attributes:
+        nbins:     The number of bins in logr
+        bin_size:  The size of the bins in logr
+        min_sep:   The minimum separation being considered
+        max_sep:   The maximum separation being considered
 
     In addition, the following attributes are numpy arrays of length (nbins):
 
-        :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
-        :rnom:      The nominal center of the bin converted to regular distance.
-                    i.e. r = exp(logr).
-        :meanr:     The (weighted) mean value of r for the pairs in each bin.
-                    If there are no pairs in a bin, then exp(logr) will be used instead.
-        :meanlogr:  The mean value of log(r) for the pairs in each bin.
-                    If there are no pairs in a bin, then logr will be used instead.
-        :weight:    The total weight in each bin.
-        :npairs:    The number of pairs in each bin.
-        :tot:       The total number of pairs processed, which is used to normalize
-                    the randoms if they have a different number of pairs.
+    Attributes:
+        logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
+        rnom:      The nominal center of the bin converted to regular distance.
+                   i.e. r = exp(logr).
+        meanr:     The (weighted) mean value of r for the pairs in each bin.
+                   If there are no pairs in a bin, then exp(logr) will be used instead.
+        meanlogr:  The mean value of log(r) for the pairs in each bin.
+                   If there are no pairs in a bin, then logr will be used instead.
+        weight:    The total weight in each bin.
+        npairs:    The number of pairs in each bin.
+        tot:       The total number of pairs processed, which is used to normalize
+                   the randoms if they have a different number of pairs.
 
-    If `sep_units` are given (either in the config dict or as a named kwarg) then the distances
+    If **sep_units** are given (either in the config dict or as a named kwarg) then the distances
     will all be in these units.  Note however, that if you separate out the steps of the
-    :func:`process` command and use :func:`process_auto` and/or :func:`process_cross`, then the
-    units will not be applied to :meanr: or :meanlogr: until the :func:`finalize` function is
-    called.
+    `process` command and use `process_auto` and/or `process_cross`, then the units will not be
+    applied to **meanr** or **meanlogr** until the `finalize` function is called.
 
     The typical usage pattern is as follows:
 
@@ -61,14 +62,15 @@ class NNCorrelation(treecorr.BinnedCorr2):
         >>> nn.write(file_name,rr,dr,rd)         # Write out to a file.
         >>> xi,varxi = nn.calculateXi(rr,dr,rd)  # Or get the correlation function directly.
 
-    :param config:      A configuration dict that can be used to pass in kwargs if desired.
+    Parameters:
+        config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have addition entries in addition to those listed
-                        in :class:`~treecorr.BinnedCorr2`, which are ignored here. (default: None)
-    :param logger:      If desired, a logger object for logging. (default: None, in which case
+                        in `BinnedCorr2`, which are ignored here. (default: None)
+        logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    See the documentation for :class:`~treecorr.BinnedCorr2` for the list of other allowed kwargs,
-    which may be passed either directly or in the config dict.
+    See the documentation for `BinnedCorr2` for the list of other allowed kwargs, which may be
+    passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
@@ -101,6 +103,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
                 treecorr._lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
 
     def __eq__(self, other):
+        """Return whether two NNCorrelations are equal"""
         return (isinstance(other, NNCorrelation) and
                 self.nbins == other.nbins and
                 self.bin_size == other.bin_size and
@@ -122,6 +125,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
                 np.array_equal(self.npairs, other.npairs))
 
     def copy(self):
+        """Make a copy"""
         import copy
         return copy.deepcopy(self)
 
@@ -145,17 +149,17 @@ class NNCorrelation(treecorr.BinnedCorr2):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the auto-correlation for the given catalog.  After
-        calling this function as often as desired, the finalize() command will
+        calling this function as often as desired, the `finalize` command will
         finish the calculation of meanr, meanlogr.
 
-        :param cat:         The catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.NNCorrelation.process` for
-                            details.  (default: 'Euclidean'; this value can also be given in the
-                            constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.
-                            (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the
-                            system's C compiler is clang prior to version 3.7.
+        Parameters:
+            cat (Catalog):      The catalog to process
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
         """
         if cat.name == '':
             self.logger.info('Starting process NN auto-correlations')
@@ -181,18 +185,18 @@ class NNCorrelation(treecorr.BinnedCorr2):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs.  After
-        calling this function as often as desired, the finalize() command will
+        calling this function as often as desired, the `finalize` command will
         finish the calculation of meanr, meanlogr.
 
-        :param cat1:        The first catalog to process
-        :param cat2:        The second catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.NNCorrelation.process` for
-                            details.  (default: 'Euclidean'; this value can also be given in the
-                            constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.
-                            (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the
-                            system's C compiler is clang prior to version 3.7.
+        Parameters:
+            cat1 (Catalog):     The first catalog to process
+            cat2 (Catalog):     The second catalog to process
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process NN cross-correlations')
@@ -224,18 +228,18 @@ class NNCorrelation(treecorr.BinnedCorr2):
         the corresponding pairs of objects in each catalog.
 
         This accumulates the sums into the bins, but does not finalize the calculation.
-        After calling this function as often as desired, the finalize() command will
+        After calling this function as often as desired, the `finalize` command will
         finish the calculation.
 
-        :param cat1:        The first catalog to process
-        :param cat2:        The second catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.NNCorrelation.process` for
-                            details.  (default: 'Euclidean'; this value can also be given in the
-                            constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.
-                            (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the
-                            system's C compiler is clang prior to version 3.7.
+        Parameters:
+            cat1 (Catalog):     The first catalog to process
+            cat2 (Catalog):     The second catalog to process
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process NN pairwise-correlations')
@@ -258,7 +262,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
     def finalize(self):
         """Finalize the calculation of the correlation function.
 
-        The process_auto and process_cross commands accumulate values in each bin,
+        The `process_auto` and `process_cross` commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
         finishes the calculation of meanr, meanlogr by dividing by the total weight.
         """
@@ -289,8 +293,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
         """Add a second NNCorrelation's data to this one.
 
         Note: For this to make sense, both Correlation objects should have been using
-        process_auto and/or process_cross, and they should not have had finalize called yet.
-        Then, after adding them together, you should call finalize on the sum.
+        `process_auto` and/or `process_cross`, and they should not have had `finalize` called yet.
+        Then, after adding them together, you should call `finalize` on the sum.
         """
         if not isinstance(other, NNCorrelation):
             raise TypeError("Can only add another NNCorrelation object")
@@ -317,17 +321,16 @@ class NNCorrelation(treecorr.BinnedCorr2):
         Both arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
 
-        :param cat1:    A catalog or list of catalogs for the first N field.
-        :param cat2:    A catalog or list of catalogs for the second N field, if any.
-                        (default: None)
-        :param metric:  Which metric to use for distance measurements.  Options are given
-                        in the doc string of :class:`~treecorr.BinnedCorr2`.
-                        (default: 'Euclidean'; this value can also be given in the constructor
-                        in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.
-                            (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the
-                            system's C compiler is clang prior to version 3.7.
+        Parameters:
+            cat1 (Catalog):     A catalog or list of catalogs for the first N field.
+            cat2 (Catalog):     A catalog or list of catalogs for the second N field, if any.
+                                (default: None)
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
         """
         self.clear()
         if not isinstance(cat1,list): cat1 = [cat1]
@@ -357,13 +360,19 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         where DD is the data NN correlation function, which is the current object.
 
-        :param rr:          An NNCorrelation object for the random-random pairs.
-        :param dr:          An NNCorrelation object for the data-random pairs, if desired, in which
-                            case the Landy-Szalay estimator will be calculated.  (default: None)
-        :param rd:          An NNCorrelation object for the random-data pairs, if desired and
-                            different from dr.  (default: None, which mean use rd=dr)
+        Parameters:
+            rr (NNCorrelation):     The auto-correlation of the random field (RR)
+            dr (NNCorrelation):     The cross-correlation of the data with randoms (DR), if
+                                    desired, in which case the Landy-Szalay estimator will be
+                                    calculated.  (default: None)
+            rd (NNCorrelation):     The cross-correlation of the randoms with data (RD), if
+                                    desired. (default: None, which means use rd=dr)
 
-        :returns:           (xi, varxi) as a tuple
+        Returns:
+            Tuple containing
+
+                - xi = array of :math:`\\xi(r)`
+                - varxi = array of variance estimates of :math:`\\xi(r)`
         """
         # Each random weight value needs to be rescaled by the ratio of total possible pairs.
         if rr.tot == 0:
@@ -441,58 +450,38 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         The output file will include the following columns:
 
-            :R_nom:     The nominal center of the bin in R.
-            :meanR:     The mean value :math:`\\langle R\\rangle` of pairs that fell into each bin.
-            :meanlogR:  The mean value :math:`\\langle logR\\rangle` of pairs that fell into each
-                        bin.
+        ==========      =========================================================
+        Column          Description
+        ==========      =========================================================
+        r_nom           The nominal center of the bin in r
+        meanr           The mean value <r> of pairs that fell into each bin
+        meanlogr        The mean value <log(r)> of pairs that fell into each bin
+        xi              The estimator xi (if rr is given)
+        sigma_xi        The sqrt of the variance estimate of xi (if rr is given)
+        DD              The total weight of pairs in each bin.
+        RR              The total weight of RR pairs in each bin (if rr is given)
+        DR              The total weight of DR pairs in each bin (if dr is given)
+        RD              The total weight of RD pairs in each bin (if rd is given)
+        npairs          The total number of pairs in each bin
+        ==========      =========================================================
 
-        Then if rr is None:
-
-            :DD:        The total weight of pairs in each bin.
-            :npairs:    The total number of pairs in each bin.
-
-        If rr is given, but not the cross-correlations:
-
-            :xi:        The estimator :math:`\\xi = (DD-RR)/RR`.
-            :sigma_xi:  The sqrt of the variance estimate of :math:`\\xi`.
-            :DD:        The total weight of data pairs (aka DD) in each bin.
-            :RR:        The total weight of random pairs (aka RR) in each bin.
-            :npairs:    The number of pairs contributing ot each bin.
-
-        If one of dr or rd is given:
-
-            :xi:        The estimator :math:`\\xi = (DD-2DR+RR)/RR`.
-            :sigma_xi:  The sqrt of the variance estimate of :math:`\\xi`.
-            :DD:        The total weight of DD pairs in each bin.
-            :RR:        The total weight of RR pairs in each bin.
-            :DR:        The total weight of DR pairs in each bin.
-            :npairs:    The number of pairs contributing ot each bin.
-
-        If both dr and rd are given:
-
-            :xi:        The estimator :math:`\\xi = (DD-DR-RD+RR)/RR`.
-            :sigma_xi:  The sqrt of the variance estimate of :math:`\\xi`.
-            :DD:        The total weight of DD pairs in each bin.
-            :RR:        The total weight of RR pairs in each bin.
-            :DR:        The total weight of DR pairs in each bin.
-            :RD:        The total weight of RD pairs in each bin.
-            :npairs:    The number of pairs contributing ot each bin.
-
-        If `sep_units` was given at construction, then the distances will all be in these units.
+        If **sep_units** was given at construction, then the distances will all be in these units.
         Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
         radians (for spherical coordinates).
 
-        :param file_name:   The name of the file to write to.
-        :param rr:          An NNCorrelation object for the random-random pairs. (default: None,
-                            in which case, no xi or varxi columns will be output)
-        :param dr:          An NNCorrelation object for the data-random pairs, if desired, in which
-                            case the Landy-Szalay estimator will be calculated.  (default: None)
-        :param rd:          An NNCorrelation object for the random-data pairs, if desired and
-                            different from dr.  (default: None, which mean use rd=dr)
-        :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
-                            the type automatically from the extension of file_name.)
-        :param precision:   For ASCII output catalogs, the desired precision. (default: 4;
-                            this value can also be given in the constructor in the config dict.)
+        Parameters:
+            file_name (str):        The name of the file to write to.
+            rr (NNCorrelation):     The auto-correlation of the random field (RR)
+            dr (NNCorrelation):     The cross-correlation of the data with randoms (DR), if
+                                    desired. (default: None)
+            rd (NNCorrelation):     The cross-correlation of the randoms with data (RD), if
+                                    desired. (default: None, which means use rd=dr)
+            file_type (str):        The type of file to write ('ASCII' or 'FITS').
+                                    (default: determine the type automatically from the extension
+                                    of file_name.)
+            precision (int):        For ASCII output catalogs, the desired precision. (default: 4;
+                                    this value can also be given in the constructor in the config
+                                    dict.)
         """
         self.logger.info('Writing NN correlations to %s',file_name)
 
@@ -543,9 +532,10 @@ class NNCorrelation(treecorr.BinnedCorr2):
         parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
         checked by the read function.
 
-        :param file_name:   The name of the file to read in.
-        :param file_type:   The type of file ('ASCII' or 'FITS').  (default: determine the type
-                            automatically from the extension of file_name.)
+        Parameters:
+            file_name (str):   The name of the file to read in.
+            file_type (str):   The type of file ('ASCII' or 'FITS').  (default: determine the type
+                                automatically from the extension of file_name.)
         """
         self.logger.info('Reading NN correlations from %s',file_name)
 
@@ -577,10 +567,10 @@ class NNCorrelation(treecorr.BinnedCorr2):
             \\langle N_{ap}^2 \\rangle(R) &= \\int_{0}^{rmax} \\frac{r dr}{2R^2}
             \\left [ T_+\\left(\\frac{r}{R}\\right) \\xi(r) \\right] \\\\
 
-        The m2_uform parameter sets which definition of the aperture mass to use.
+        The **m2_uform** parameter sets which definition of the aperture mass to use.
         The default is to use 'Crittenden'.
 
-        If m2_uform == 'Crittenden':
+        If **m2_uform** is 'Crittenden':
 
         .. math::
 
@@ -590,31 +580,36 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         cf. Crittenden, et al (2002): ApJ, 568, 20
 
-        If m2_uform == 'Schneider':
+        If **m2_uform** is 'Schneider':
 
         .. math::
 
             U(r) &= \\frac{9}{\\pi} (1-r^2) (1/3-r^2) \\\\
-            T_+(s) &= \\frac{12}{5\\pi} (2-15s^2) \\arccos(s/2)
-            + \\frac{1}{100\\pi} s \\sqrt{4-s^2} (120 + 2320s^2 - 754s^4 + 132s^6 - 9s^8) \\\\
+            T_+(s) &= \\frac{12}{5\\pi} (2-15s^2) \\arccos(s/2) \\\\
+            &\\qquad + \\frac{1}{100\\pi} s \\sqrt{4-s^2} (120 + 2320s^2 - 754s^4 + 132s^6 - 9s^8) \\\\
             rmax &= 2R
 
         cf. Schneider, et al (2002): A&A, 389, 729
 
-        This is used by NGCorrelation.writeNorm.  See that function and also
-        GGCorrelation.calculateMapSq() for more details.
+        This is used by `NGCorrelation.writeNorm`.  See that function and also
+        `GGCorrelation.calculateMapSq` for more details.
 
-        :param rr:          An NNCorrelation object for the random-random pairs.
-        :param R:           The R values at which to calculate the aperture mass statistics.
-                            (default: None, which means use self.rnom)
-        :param dr:          An NNCorrelation object for the data-random pairs, if desired, in which
-                            case the Landy-Szalay estimator will be calculated.  (default: None)
-        :param rd:          An NNCorrelation object for the random-data pairs, if desired and
-                            different from dr.  (default: None, which mean use rd=dr)
-        :param m2_uform:    Which form to use for the aperture mass.  (default: 'Crittenden';
-                            this value can also be given in the constructor in the config dict.)
+        Parameters:
+            rr (NNCorrelation): The auto-correlation of the random field (RR)
+            R (array):          The R values at which to calculate the aperture mass statistics.
+                                (default: None, which means use self.rnom)
+            dr (NNCorrelation): The cross-correlation of the data with randoms (DR), if
+                                desired. (default: None)
+            rd (NNCorrelation): The cross-correlation of the randoms with data (RD), if
+                                desired. (default: None, which means use rd=dr)
+            m2_uform (str):     Which form to use for the aperture mass.  (default: 'Crittenden';
+                                this value can also be given in the constructor in the config dict.)
 
-        :returns: (nsq, varnsq)
+        Returns:
+            Tuple containing
+
+                - nsq = array of :math:`\\langle N_{ap}^2 \\rangle(R)`
+                - varnsq = array of variance estimates of this value
         """
         if m2_uform is None:
             m2_uform = treecorr.config.get(self.config,'m2_uform',str,'Crittenden')

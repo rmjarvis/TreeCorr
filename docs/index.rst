@@ -8,12 +8,12 @@ TreeCorr Documentation
 
    overview
    catalog
-   field
-   metric
-   bintype
    correlation2
    correlation3
-   corr2
+   metric
+   bintype
+   field
+   scripts
    changes
    history
 

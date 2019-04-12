@@ -1,16 +1,6 @@
 The corr2 and corr3 driver scripts
 ==================================
 
-The corr2 function from python
-------------------------------
-
-.. autofunction:: treecorr.corr2
-
-The corr3 function from python
-------------------------------
-
-.. autofunction:: treecorr.corr3
-
 The corr2 and corr3 executables
 -------------------------------
 
@@ -40,15 +30,28 @@ you can also give the file type explicitly with the -f option. E.g.::
 would specify that the configuration file ``my_config_file.txt`` uses
 the legacy "params" format.
 
-You can also specify parameters on the command line after the name of 
+You can also specify parameters on the command line after the name of
 the configuration file. e.g.::
 
     corr2 config.yaml file_name=file1.dat gg_file_name=file1.out
     corr2 config.yaml file_name=file2.dat gg_file_name=file2.out
     ...
 
-This can be useful when running the program from a script for lots of input 
+This can be useful when running the program from a script for lots of input
 files.
+
+It is also possible to access the same functionality from within Python:
+
+The corr2 function from python
+------------------------------
+
+.. autofunction:: treecorr.corr2
+
+The corr3 function from python
+------------------------------
+
+.. autofunction:: treecorr.corr3
+
 
 Other utilities related to corr2 and corr3
 ------------------------------------------

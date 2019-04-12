@@ -89,7 +89,7 @@ def corr2(config, logger=None):
     """Run the full two-point correlation function code based on the parameters in the
     given config dict.
 
-    The function print_corr2_params() will output information about the valid parameters
+    The function `print_corr2_params` will output information about the valid parameters
     that are expected to be in the config dict.
 
     Optionally a logger parameter maybe given, in which case it is used for logging.
@@ -282,6 +282,6 @@ def corr2(config, logger=None):
 
 
 def print_corr2_params():
-    """Print information about the valid parameters that may be given to the corr2 function.
+    """Print information about the valid parameters that may be given to the `corr2` function.
     """
     treecorr.config.print_params(corr2_valid_params)

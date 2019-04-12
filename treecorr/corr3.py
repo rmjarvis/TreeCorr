@@ -82,7 +82,7 @@ def corr3(config, logger=None):
     """Run the full three-point correlation function code based on the parameters in the
     given config dict.
 
-    The function print_corr3_params() will output information about the valid parameters
+    The function `print_corr3_params` will output information about the valid parameters
     that are expected to be in the config dict.
 
     Optionally a logger parameter maybe given, in which case it is used for logging.
@@ -229,6 +229,6 @@ def corr3(config, logger=None):
 
 
 def print_corr3_params():
-    """Print information about the valid parameters that may be given to the corr3 function.
+    """Print information about the valid parameters that may be given to the `corr3` function.
     """
     treecorr.config.print_params(corr3_valid_params)

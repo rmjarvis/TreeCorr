@@ -43,7 +43,7 @@ API changes
   for typical use cases, so we have preserved the previous functionality as
   metric=OldRperp.  If you care about preserving this, you should either
   change your code to use this metric name instead of Rperp, or set
-  `treecorr.Rperp_alias = 'OldRperp'` before using it. (#73)
+  ``treecorr.Rperp_alias = 'OldRperp'`` before using it. (#73)
 - Updated the caching of the fields built for a given catalog to only cache
   one (the most recently built) field, rather than all fields built.  If you
   had been relying on multiple fields being cached, this could lead to a
@@ -55,14 +55,14 @@ API changes
   the new behavior is merely a performance increase.  However, there is a
   numerical difference for shear correlations, as the shear projection is not
   exactly equivalent.  To obtain the brute force calculation, use the new
-  `brute=True` option. (#82)
+  ``brute=True`` option. (#82)
 - Changed how the 3pt correlation v binning is specified.  Now, you should
-  only specify the range and number of bins for |v|. The negative v's will
-  also be accumulated over the same range of absolute values as the positive
-  v's. This should normally not be a hardship, since if you want to accumulate
-  negative v's, you probably want the same range as the positive v's. But it
-  enables you, for instance, to accumulate all flattened triangles with
-  0.8 < |v| < 1.0 in one pass rather than two. (#85)
+  only specify the range and number of bins for positive v values. The negative
+  v's will also be accumulated over the same range of absolute values as the
+  positive v's. This should normally not be a hardship, since if you want to
+  accumulate negative v's, you probably want the same range as the positive
+  v's. But it enables you, for instance, to accumulate all flattened triangles
+  with 0.8 < abs(v) < 1.0 in one pass rather than two. (#85)
 - Changed the behavior of specifying min_sep, max_sep, and bin_size (omitting
   nbins) to respect max_sep and reduce bin_size slightly, rather than
   respect bin_size and increase max_sep.  This seems like the behavior that
@@ -123,10 +123,10 @@ New features
 - Added new method BinnedCorr2.sample_pairs, which returns a random sampling
   of pairs within a given range of separations.  E.g. a sample of pairs that
   fell into a given bin of the correlation function. (#67)
-- Added `brute` option for Correlation instances.  This is equivalent to the
-  old behavior of `bin_slop=0`. (#82)
+- Added ``brute`` option for Correlation instances.  This is equivalent to the
+  old behavior of ``bin_slop=0``. (#82)
 - Added 'Periodic' metric. (#56)
-- Added `min_top` option for Fields. (#84)
+- Added ``min_top`` option for Fields. (#84)
 - Added calculation of <Map^3> and related quantities. (#85)
 - Added option to provide R values for MapSq and related statistics. (#85)
 

@@ -63,24 +63,35 @@ chord calculations are in any way problematic for your particular use case.
 Also, unlike the "Euclidean" version, the bin spacing will be uniform in log(r) using the
 actual great circle distances, rather than being based on the chord distances.
 
-"Rperp"
--------
+
+"Rperp" or "FisherRperp"
+------------------------
 
 This metric is only valid for 3-dimensional coordinates (ra,dec,r) or (x,y,z).
 
-The distance is defined as
+The distance in this metric is defined as
 
-:math:`d_{\rm Rperp} = \sqrt{d_{\rm Euclidean}^2 - (r_2-r_1)^2}`
+:math:`d_{\rm Rperp} = \sqrt{d_{\rm Euclidean}^2 - r_\parallel^2}`
+
+where :math:`r_\parallel` follows the defintion in Fisher et al, 1994 (MNRAS, 267, 927).
+Namely, if :math:`p_1` and :math:`p_2` are the vector positions from Earth for the
+two points, and
+
+:math:`L \equiv \frac{p1 + p2}{2}`
+
+then
+
+:math:`r_\parallel = \frac{(p_2 - p_1) \cdot L}{|L|}`
 
 That is, it breaks up the full 3-d distance into perpendicular and parallel components:
-:math:`d_{\rm 3d}^2 = r_\bot^2 + r_\parallel^2`, where :math:`r_\parallel \equiv r_2-r_1`,
+:math:`d_{\rm 3d}^2 = r_\bot^2 + r_\parallel^2`,
 and it identifies the metric separation as just the perpendicular component, :math:`r_\bot`.
 
 Note that this decomposition is really only valid for objects with a relatively small angular
 separation, :math:`\theta`, on the sky, so the two radial vectors are nearly parallel.
 In this limit, the formula for :math:`d` reduces to
 
-:math:`d_{\rm Rperp} \approx \left(\sqrt{r_1 r_2}\right) \theta`
+:math:`d_{\rm Rperp} \approx \left(\frac{2 r_1 r_2}{r_1+r_2}\right) \theta`
 
 This metric also permits the use of two other parameters, ``min_rpar`` and ``max_rpar``,
 which set the minimum and maximum values of :math:`r_\parallel` for pairs to be included in the
@@ -95,28 +106,40 @@ within 50 Mpc (say, assuming the catalog distances are given in Mpc) of the lens
 
 .. warning::
 
-    Starting in version 4.0, the "Rperp" name will switch over to being equivalent
-    to "FisherRperp".  At that point, to access this metric, you will need to
-    use "OldRperp" instead.  If you want your code to work equivalently in
-    both 3.x and 4.x, then you can already start using the name "OldRperp",
-    and your code should work the same before and after the switch.
-    Or you may want to switch to using "FisherRperp" now and investigate whether
-    the change has any impact on your science.
+    Prior to version 4.0, the "Rperp" name meant what is now called "OldRperp".
+    The difference can be significant for some use cases, so if consistency across
+    versions is importatnt to you, you should either switch to using "OldRperp"
+    or investigate whether the change to "FisherRperp" is important for your
+    particular science case.
 
 
-"FisherRperp"
--------------
+"OldRperp"
+----------
 
-This is almost the same as the "Rperp" metric, except that the definition of
-:math:`r_\parallel` is changed to match the definition in Fisher et al, 1994
-(MNRAS, 267, 927).  Namely, if :math:`p_1` and :math:`p_2` are the vector
-positions from Earth for the two points, then
+This metric is only valid for 3-dimensional coordinates (ra,dec,r) or (x,y,z).
 
-:math:`r_\parallel = \frac{(p_1 + p_2) \cdot (p_2-p_1)}{2|L|}`
+This is the version of the Rperp metric that TreeCorr used in versions 3.x.
+In version 4.0, we switched the definition of :math:`r_\parallel` to the one
+used by Fisher et al, 1994 (MNRAS, 267, 927).  The difference turns out to be
+non-trivial in some realistic use cases, so we preserve the ability to use the
+old version with this metric.
 
-The FisherRperp distance is then defined as
+Specifically, if :math:`r_1` and :math:`r_2` are the two distance from Earth,
+then this metric uses :math:`r_\parallel \equiv r_2-r_1`.
 
-:math:`d_{\rm FisherRperp} = \sqrt{d_{\rm Euclidean}^2 - r_\parallel^2}`
+The distance is then defined as
+
+:math:`d_{\rm OldRperp} = \sqrt{d_{\rm Euclidean}^2 - r_\parallel^2}`
+
+That is, it breaks up the full 3-d distance into perpendicular and parallel components:
+:math:`d_{\rm 3d}^2 = r_\bot^2 + r_\parallel^2`,
+and it identifies the metric separation as just the perpendicular component, :math:`r_\bot`.
+
+Note that this decomposition is really only valid for objects with a relatively small angular
+separation, :math:`\theta`, on the sky, so the two radial vectors are nearly parallel.
+In this limit, the formula for :math:`d` reduces to
+
+:math:`d_{\rm OldRperp} \approx \left(\sqrt{r_1 r_2}\right) \theta`
 
 As with the regular "Rperp", this metric permits the use of two other parameters,
 ``min_rpar`` and ``max_rpar``,
@@ -129,11 +152,6 @@ lenses and the second catalog represents lensed source galaxies, then setting
 ``min_rpar = 0`` will restrict the sources to being in the background of each lens.
 Similarly, setting ``min_rpar = -50``, ``max_rpar = 50`` will restrict the sources to be
 within 50 Mpc (say, assuming the catalog distances are given in Mpc) of the lenses.
-
-.. warning::
-
-    Starting in version 4.0, the "Rperp" name will switch over to being equivalent
-    to "FisherRperp", and the current "Rperp" will become "OldRperp".
 
 
 "Rlens"

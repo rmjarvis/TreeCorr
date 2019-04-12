@@ -52,7 +52,7 @@ For a pair with a directed separation (dx,dy), the indices of the corresponding 
 
 The binning is symmetric around (0,0), so the minimum separation in either direction is
 ``-max_sep``, and the maximum is ``+max_sep``.
-If is also permissible to specify ``min_sep`` to exclude small separations from being 
+If is also permissible to specify ``min_sep`` to exclude small separations from being
 accumulated, but the binning will still include a bin that crosses over (dx,dy) = (0,0)
 if ``nbins`` is odd, or four bins that touch (0,0) if ``nbins`` is even.
 
@@ -112,7 +112,7 @@ original ``bin_slop`` was too large.
 
 To understand the impact of the ``bin_slop`` parameter, it helps to start by thinking
 about when it is set to 0.
-If ``bin_slop=0``, then TreeCorr does essentially a brute-force calculation, 
+If ``bin_slop=0``, then TreeCorr does essentially a brute-force calculation,
 where each pair of points is always placed into the correct bin.
 But if ``bin_slop > 0``, then any given pair is allowed to be placed in the wrong bin
 so long as the true separation is within this fraction of a bin from the edge.

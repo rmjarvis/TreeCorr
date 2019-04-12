@@ -27,7 +27,6 @@ def ensure_dir(target):
         if not os.path.exists(d):
             os.makedirs(d)
 
-
 def gen_write(file_name, col_names, columns, params=None, precision=4, file_type=None, logger=None):
     """Write some columns to an output file with the given column names.
 

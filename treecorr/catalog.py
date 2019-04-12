@@ -21,250 +21,272 @@ import weakref
 import treecorr
 
 class Catalog(object):
-    """A classs storing the catalog information for a particular set of objects
-    to be correlated in some way.
+    """A set of input data (positions and other quantities) to be correlated.
 
-    The usual way to build this is using a config dict:
+    A Catalog object keeps track of the relevant information for a number of objects to
+    be correlated.  The objects each have some kind of position (for instance (x,y), (ra,dec),
+    (x,y,z), etc.), and possibly some extra information such as weights (w), shear values (g1,g2),
+    or kappa values (k).
 
-        >>> cat = treecorr.Catalog(file_name, config, num=0)
+    The simplest way to build a Catalog is to simply pass in numpy arrays for each
+    piece of information you want included.  For instance::
 
-    This uses the information in the config dict to read the input file, which may be either
-    a FITS catalog or an ASCII catalog.  Normally the distinction is made according to the
-    file_name's extension, but it can also be set explicitly with config['file_type'].
+        >>> cat = treecorr.Catalog(x=x, y=y, k=k, w=w)
+
+    Each of these input paramters should be a numpy array, where each corresponding element
+    is the value for that object.  Of course, all the arrays should be the same size.
+
+    In some cases, there are additional required parameters.  For instance, with RA and Dec
+    positions, you need to declare what units the input values are given::
+
+        >>> cat = treecorr.Catalog(ra=ra, dec=dec, g1=g1, g2=g2,
+        ...                        ra_units='hour', dec_units='deg')
+
+    For (ra,dec) positions, these units fields are required to specify the units of the angular
+    values.  For (x,y) positions, the units are optional (and usually unnecessary).
+
+    You can also initialize a Catalog by reading in columns from a file.  For instance::
+
+        >>> cat = treecorr.Catalog('data.fits', ra_col='ALPHA2000', dec_col='DELTA2000',
+        ...                        g1_col='E1', g2_col='E2', ra_units='deg', dec_units='deg')
+
+    This reads the given columns from the input file.  The input file may be either
+    a FITS catalog or an ASCII catalog.  Normally the file type is determined according to the
+    file's extension (e.g. '.fits' here), but it can also be set explicitly with **file_type**.
+
+    Finally, you may store all the various parameters in a configuration dict
+    and just pass the dict as an argument after the file name::
+
+        >>> config = { 'ra_col' : 'ALPHA2000',
+        ...            'dec_col' : 'DELTA2000',
+        ...            'g1_col' : 'E1',
+        ...            'g2_col' : 'E2',
+        ...            'ra_units' : 'deg',
+        ...            'dec_units' : 'deg' }
+        >>> cat = treecorr.Catalog(file_name, config)
+
+    This can be useful for encapsulating all the TreeCorr options in a single place in your
+    code, which might be used multiple times.  Notably, this syntax ignores any dict keys
+    that are not relevant to the Catalog construction, so you can use the same config dict
+    for the Catalog and your correlation objects, which can be convenient.
 
     See also https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters
     for complete descriptions of all of the relevant configuration parameters.  In particular,
     the first section "Parameters about the input file".
 
-    The num parameter is either 0 or 1 (default 0), which specifies whether this corresponds
-    to the first or second file in the configuration file.  e.g. if you are doing an NG
-    correlation function, then the first file is not required to have g1_col, g2_col set.
-    Thus, you could define these as something like `g1_col = 0 3` and `g2_col = 0 4`.
-    Then when reading the first file, you would use num=0 to indicate that you want to use the
-    first elements of these vectors (i.e. no g1 or g2 columns), and for the second file, you
-    would use num=1 to use columsn 3 and 4.
-
-    You may also specify any configuration parameters as kwargs to the Catalog constructor if you
-    prefer to either add parameters that are not present in the config dict or to supersede values
-    in the config dict.  You can even provide all parameters as kwargs and omit the config dict
-    entirely:
+    You may also override any configuration parameters or add additional parameters as kwargs
+    after the config dict.  For instance, to flip the sign of the g1 values after reading
+    from the input file, you could write::
 
         >>> cat1 = treecorr.Catalog(file_name, config, flip_g1=True)
-        >>> cat2 = treecorr.Catalog(file_name, ra_col=1, dec_col=2, ra_units='deg', dec_units='deg')
 
-    An alternate way to build a Catalog is to provide the data vectors by hand.  This may
-    be more convenient when using this as part of a longer script where you are building the
-    data vectors in python and then want to compute the correlation function.  The syntax for this
-    is:
+    After construction, a Catalog object will have the following attributes:
 
-        >>> cat = treecorr.Catalog(g1=g1, g2=g2, ra=ra, dec=dec, ra_units='hour', dec_units='deg')
+    Attributes:
 
-    Each of these data vectors should be a numpy array.  For x,y, the units fields are optional,
-    in which case the units are assumed to be arcsec.  But for ra,dec they are required.
-    These units parameters may alternatively be provided in the config dict as above.
-    Valid columns to include are: x,y,ra,dec,g1,g2,k,w.  As usual, exactly one of (x,y) or
-    (ra,dec) must be given.  The others are optional, although if g1 or g2 is given, the other
-    must also be given.  Flags may be included by setting w=0 for those objects.
+        x:      The x positions, if defined, as a numpy array (converted to radians if x_units
+                was given). (None otherwise)
+        y:      The y positions, if defined, as a numpy array (converted to radians if y_units
+                was given). (None otherwise)
+        z:      The z positions, if defined, as a numpy array. (None otherwise)
+        ra:     The right ascension, if defined, as a numpy array (in radians). (None otherwise)
+        dec:    The declination, if defined, as a numpy array (in radians). (None otherwise)
+        r:      The distance, if defined, as a numpy array. (None otherwise)
+        w:      The weights, as a numpy array. (All 1's if no weight column provided.)
+        wpos:   The weights for position centroiding, as a numpy array.  (All 1's if neither
+                weight column provided.)
+        g1:     The g1 component of the shear, if defined, as a numpy array. (None otherwise)
+        g2:     The g2 component of the shear, if defined, as a numpy array. (None otherwise)
+        k:      The convergence, kappa, if defined, as a numpy array. (None otherwise)
 
-    A Catalog object will have available the following attributes:
+        ntot:   The total number of objects (including those with zero weight)
+        nobj:   The number of objects with non-zero weight
+        sumw:   The sum of the weights
+        varg:   The shear variance (aka shape noise) (0 if g1,g2 are not defined)
+                Note: If there are weights, this is really :math:`\\sum(w^2 |g|^2)/\\sum(w)`,
+                which is more like :math:`\\langle w \\rangle \\mathrm{Var}(g)`.  In finalize, we
+                divide this by the weight in each bin, so this is the right quantity to use there.
+        vark:   The kappa variance (0 if k is not defined)
+                Note: If there are weights, this is really :math:`\\sum(w^2 \\kappa^2)/\\sum(w)`.
 
-        :x:      The x positions, if defined, as a numpy array (converted to radians if x_units
-                 was given). (None otherwise)
-        :y:      The y positions, if defined, as a numpy array (converted to radians if y_units
-                 was given). (None otherwise)
-        :z:      The z positions, if defined, as a numpy array. (None otherwise)
-        :ra:     The right ascension, if defined, as a numpy array (in radians). (None otherwise)
-        :dec:    The declination, if defined, as a numpy array (in radians). (None otherwise)
-        :r:      The distance, if defined, as a numpy array. (None otherwise)
-        :w:      The weights, as a numpy array. (All 1's if no weight column provided.)
-        :wpos:   The weights for position centroiding, as a numpy array.  (All 1's if neither
-                 weight column provided.)
-        :g1:     The g1 component of the shear, if defined, as a numpy array. (None otherwise)
-        :g2:     The g2 component of the shear, if defined, as a numpy array. (None otherwise)
-        :k:      The convergence, kappa, if defined, as a numpy array. (None otherwise)
+        name:   When constructed from a file, this will be the file_name.  It is only used as
+                a reference name in logging output  after construction, so if you construct it
+                from data vectors directly, it will be ''.  You may assign to it if you want to
+                give this catalog a specific name.
 
-        :ntot:   The number of objects total
-        :nobj:   The number of objects with non-zero weight
-        :sumw:   The sum of the weights
-        :varg:   The shear variance (aka shape noise) (0 if g1,g2 are not defined)
-                 Note: If there are weights, this is really ``sum(w^2 |g|^2)/sum(w)``, which is
-                 more like ``<w> * varg``.  In finalize, we divide this by the weight in each bin,
-                 so this is the right quantity to use there.
-        :vark:   The kappa variance (0 if k is not defined)
-                 Note: If there are weights, this is really `sum(w^2 kappa^2)/sum(w)`
+        coords: What kind of coordinate system is defined for this catalog?
+                The possibilities for this attribute are:
 
-        :name:   When constructed from a file, this will be the file_name.  It is only used as
-                 a reference name in logging output  after construction, so if you construct it
-                 from data vectors directly, it will be ''.  You may assign to it if you want to
-                 give this catalog a specific name.
+                    - 'flat' = 2-dimensional flat coordinates.  Set when x,y are given.
+                    - 'spherical' = spherical coordinates.  Set when ra,dec are given.
+                    - '3d' = 3-dimensional coordinates.  Set when x,y,z or ra,dec,r are given.
 
-        :coords: What kind of coordinate system is defined for this catalog?
-                 The possibilities for this attribute are:
-                 'flat' = 2-dimensional flat coordinates.  Set when x,y are given.
-                 'spherical' = spherical coordinates.  Set when ra,dec are given.
-                 '3d' = 3-dimensional coordinates.  Set when x,y,z or ra,dec,r are given.
+        field:  If any of the **get?Field** methods have been called to construct a field from
+                this catalog (either explicitly or implicitly via a **corr.process()** command),
+                then this attribute will hold the most recent field to have been constructed.
+                Note: it holds this field as a weakref, so if caching is turned off with
+                ``resize_cache(0)``, and the field has been garbage collected, then this attribute
+                will be None.
 
-        :field:  If any of the get?Field methods have been called to construct a field from
-                 this catalog (either explicitly or implicitly via a corr.process() command),
-                 then this attribute will hold the most recent field to have been constructed.
-                 Note: it holds this field as a weakref, so if caching is turned off with
-                 resize_cache(0), and the field has been garbage collected, then this attribute
-                 will be None.
+    Parameters:
+        file_name (str):    The name of the catalog file to be read in. (default: None, in which
+                            case the columns need to be entered directly with **x**, **y**, etc.)
 
+        config (dict):      A configuration dict which defines attributes about how to read the
+                            file.  Any optional kwargs may be given here in the config dict if
+                            desired.  Invalid keys in the config dict are ignored. (default: None)
 
-    :param file_name:   The name of the catalog file to be read in. (default: None, in which case
-                        the columns need to be entered directly with `x`, `y`, etc.)
+        num (int):          Which number catalog are we reading.  e.g. for NG correlations the
+                            catalog for the N has num=0, the one for G has num=1.  This is only
+                            necessary if you are using a config dict where things like **x_col**
+                            have multiple values.  (default: 0)
+        logger:             If desired, a Logger object for logging. (default: None, in which case
+                            one will be built according to the config dict's verbose level.)
+        is_rand (bool):     If this is a random file, then setting is_rand to True will let them
+                            skip k_col, g1_col, and g2_col if they were set for the main catalog.
+                            (default: False)
 
-    :param config:      The configuration dict which defines attributes about how to read the file.
-                        Any kwargs that are not those listed here will be added to the config,
-                        so you can even omit the config dict and just enter all parameters you
-                        want as kwargs.  (default: None)
+        x (array):          The x values. (default: None; When providing values directly, either
+                            x,y are required or ra,dec are required.)
+        y (array):          The y values. (default: None; When providing values directly, either
+                            x,y are required or ra,dec are required.)
+        z (array):          The z values, if doing 3d positions. (default: None)
+        ra (array):         The RA values. (default: None; When providing values directly, either
+                            x,y are required or ra,dec are required.)
+        dec (array):        The Dec values. (default: None; When providing values directly, either
+                            x,y are required or ra,dec are required.)
+        r (array):          The r values (the distances of each source from Earth). Note that r is
+                            invalid in conjunction with x,y. (default: None)
+        w (array):          The weights to apply when computing the correlations. (default: None)
+        wpos (array):       The weights to use for position centroiding. (default: None, which
+                            means to use the value weights, w, to weight the positions as well)
+        flag (array):       An optional array of flags, indicating objects to skip.  Rows with
+                            flag != 0 (or technically flag & ~ok_flag != 0) will be given a weight
+                            of 0.  (default: None)
+        g1 (array):         The g1 values to use for shear correlations. (g1,g2 may represent any
+                            spinor field.) (default: None)
+        g2 (array):         The g2 values to use for shear correlations. (g1,g2 may represent any
+                            spinor field.) (default: None)
+        k (array):          The kappa values to use for scalar correlations. (This may represent
+                            any scalar field.) (default: None)
 
-    :param num:         Which number catalog are we reading.  e.g. for NG correlations the catalog
-                        for the N has num=0, the one for G has num=1.  This is only necessary if
-                        you are using a config dict where things like :x_col: have multiple values.
-                        (default: 0)
-    :param logger:      If desired, a logger object for logging. (default: None, in which case
-                        one will be built according to the config dict's verbose level.)
-    :param is_rand:     If this is a random file, then setting is_rand to True will let them
-                        skip k_col, g1_col, and g2_col if they were set for the main catalog.
-                        (default: False)
+    Keyword Arguments:
 
-    :param x:           The x values. (default: None; When providing values directly, either x,y
-                        are required or ra,dec are required.)
-    :param y:           The y values. (default: None; When providing values directly, either x,y
-                        are required or ra,dec are required.)
-    :param z:           The z values, if doing 3d positions. (default: None)
-    :param ra:          The RA values. (default: None; When providing values directly, either x,y
-                        are required or ra,dec are required.)
-    :param dec:         The Dec values. (default: None; When providing values directly, either x,y
-                        are required or ra,dec are required.)
-    :param r:           The r values (the distances of each source from Earth). Note that r is
-                        invalid in conjunction with x,y. (default: None)
-    :param w:           The weight values. (default: None)
-    :param wpos:        The weight values for position centroiding. (default: None, which means
-                        to use the value weights, w, to weight the positions as well)
-    :param flag:        The flag values.  Rows with flag != 0 (or flag & ~okflag != 0) will be
-                        given a weight of 0. (default: None)
-    :param g1:          The g1 values. (g1,g2 may represent any spinor field.) (default: None)
-    :param g2:          The g2 values. (g1,g2 may represent any spinor field.) (default: None)
-    :param k:           The kappa values. (This may represent any scalar field.) (default: None)
+        file_type (str):    What kind of file is the input file. Valid options are 'ASCII' or
+                            'FITS' (default: if the file_name extension starts with .fit, then use
+                            'FITS', else 'ASCII')
+        delimiter (str):    For ASCII files, what delimiter to use between values. (default: None,
+                            which means any whitespace)
+        comment_marker (str): For ASCII files, what token indicates a comment line. (default: '#')
+        first_row (int):    Which row to take as the first row to be used. (default: 1)
+        last_row (int):     Which row to take as the last row to be used. (default: -1, which means
+                            the last row in the file)
 
-    The following parameters may be given either in the config dict or as named kwargs:
+        x_col (str or int): The column to use for the x values. This should be an integer for ASCII
+                            files or a string for FITS files. (default: 0 or '0', which means not
+                            to read in this column. When reading from a file, either x_col and
+                            y_col are required or ra_col and dec_col are required.)
+        y_col (str or int): The column to use for the y values. This should be an integer for ASCII
+                            files or a string for FITS files. (default: 0 or '0', which means not
+                            to read in this column. When reading from a file, either x_col and
+                            y_col are required or ra_col and dec_col are required.)
+        z_col (str or int): The column to use for the z values. This should be an integer for ASCII
+                            files or a string for FITS files. (default: 0 or '0', which means not
+                            to read in this column.)
+        ra_col (str or int): The column to use for the ra values. This should be an integer for
+                            ASCII files or a string for FITS files. (default: 0 or '0', which
+                            means not to read in this column. When reading from a file, either
+                            x_col and y_col are required or ra_col and dec_col are required.)
+        dec_col (str or int): The column to use for the dec values. This should be an integer for
+                            ASCII files or a string for FITS files. (default: 0 or '0', which
+                            means not to read in this column. When reading from a file, either
+                            x_col and y_col are required or ra_col and dec_col are required.)
+        r_col (str or int): The column to use for the r values. This should be an integer for ASCII
+                            files or a string for FITS files.  Note that r_col is invalid in
+                            conjunction with x_col/y_col. (default: 0 or '0', which means not to
+                            read in this column.)
 
-    :param file_type:   What kind of file is the input file. Valid options are 'ASCII' or 'FITS'
-                        (default: if the file_name extension starts with .fit, then use 'FITS',
-                        else 'ASCII')
-    :param delimiter:   For ASCII files, what delimiter to use between values. (default: None,
-                        which means any whitespace)
-    :param comment_marker: For ASCII files, what token indicates a comment line. (default: '#')
-    :param first_row:   Which row to take as the first row to be used. (default: 1)
-    :param last_row:    Which row to take as the last row to be used. (default: -1, which means
-                        the last row in the file)
+        x_units (str):      The units to use for the x values, given as a string.  Valid options are
+                            arcsec, arcmin, degrees, hours, radians.  (default: radians, although
+                            with (x,y) positions, you can often just ignore the units, and the
+                            output separations will be in whatever units x and y are in.)
+        y_units (str):      The units to use for the y values, given as a string.  Valid options are
+                            arcsec, arcmin, degrees, hours, radians.  (default: radians, although
+                            with (x,y) positions, you can often just ignore the units, and the
+                            output separations will be in whatever units x and y are in.)
+        ra_units (str):     The units to use for the ra values, given as a string.  Valid options
+                            are arcsec, arcmin, degrees, hours, radians. (required when using
+                            ra_col or providing ra directly)
+        dec_units (str):    The units to use for the dec values, given as a string.  Valid options
+                            are arcsec, arcmin, degrees, hours, radians. (required when using
+                            dec_col or providing dec directly)
 
-    :param x_col:       The column to use for the x values. This should be an integer for ASCII
-                        files or a string for FITS files. (default: 0 or '0', which means not to
-                        read in this column. When reading from a file, either x_col and y_col are
-                        required or ra_col and dec_col are required.)
-    :param y_col:       The column to use for the y values. This should be an integer for ASCII
-                        files or a string for FITS files. (default: 0 or '0', which means not to
-                        read in this column. When reading from a file, either x_col and y_col are
-                        required or ra_col and dec_col are required.)
-    :param z_col:       The column to use for the z values. This should be an integer for ASCII
-                        files or a string for FITS files. (default: 0 or '0', which means not to
-                        read in this column.)
-    :param ra_col:      The column to use for the ra values. This should be an integer for ASCII
-                        files or a string for FITS files. (default: 0 or '0', which means not to
-                        read in this column. When reading from a file, either x_col and y_col are
-                        required or ra_col and dec_col are required.)
-    :param dec_col:     The column to use for the dec values. This should be an integer for ASCII
-                        files or a string for FITS files. (default: 0 or '0', which means not to
-                        read in this column. When reading from a file, either x_col and y_col are
-                        required or ra_col and dec_col are required.)
-    :param r_col:       The column to use for the r values. This should be an integer for ASCII
-                        files or a string for FITS files.  Note that r_col is invalid in
-                        conjunction with x_col/y_col. (default: 0 or '0', which means not to
-                        read in this column.)
+        g1_col (str or int): The column to use for the g1 values. This should be an integer for
+                            ASCII files or a string for FITS files. (default: 0 or '0', which means
+                            not to read in this column.)
+        g2_col (str or int): The column to use for the g2 values. This should be an integer for
+                            ASCII files or a string for FITS files. (default: 0 or '0', which means
+                            not to read in this column.)
+        k_col (str or int): The column to use for the kappa values. This should be an integer for
+                            ASCII files or a string for FITS files. (default: 0 or '0', which means
+                            not to read in this column.)
+        w_col (str or int): The column to use for the weight values. This should be an integer for
+                            ASCII files or a string for FITS files. (default: 0 or '0', which means
+                            not to read in this column.)
+        wpos_col (str or int): The column to use for the position weight values. This should be an
+                            integer for ASCII files or a string for FITS files. (default: 0 or '0',
+                            which means not to read in this column.)
+        flag_col (str or int): The column to use for the flag values. This should be an integer for
+                            ASCII files or a string for FITS files. Any row with flag != 0 (or
+                            technically flag & ~ok_flag != 0) will be given a weight of 0.
+                            (default: 0 or '0', which means not to read in this column.)
+        ignore_flag (int):  Which flags should be ignored. (default: all non-zero flags are ignored.
+                            Equivalent to ignore_flag = ~0.)
+        ok_flag (int):      Which flags should be considered ok. (default: 0.  i.e. all non-zero
+                            flags are ignored.)
 
-    :param x_units:     The units to use for the x values, given as a string.  Valid options are
-                        arcsec, arcmin, degrees, hours, radians.  (default: radians, although
-                        with (x,y) positions, you can often just ignore the units, and the output
-                        separations will be in whatever units x and y are in.)
-    :param y_units:     The units to use for the y values, given as a string.  Valid options are
-                        arcsec, arcmin, degrees, hours, radians.  (default: radians, although
-                        with (x,y) positions, you can often just ignore the units, and the output
-                        separations will be in whatever units x and y are in.)
-    :param ra_units:    The units to use for the ra values, given as a string.  Valid options are
-                        arcsec, arcmin, degrees, hours, radians. (required when using ra_col or
-                        providing ra directly)
-    :param dec_units:   The units to use for the dec values, given as a string.  Valid options are
-                        arcsec, arcmin, degrees, hours, radians. (required when using dec_col or
-                        providing dec directly)
+        flip_g1 (bool):     Whtether to flip the sign of the input g1 values. (default: False)
+        flip_g2 (bool):     Whtether to flip the sign of the input g2 values. (default: False)
 
-    :param g1_col:       The column to use for the g1 values. This should be an integer for ASCII
-                        files or a string for FITS files. (default: 0 or '0', which means not to
-                        read in this column.)
-    :param g2_col:       The column to use for the g2 values. This should be an integer for ASCII
-                        files or a string for FITS files. (default: 0 or '0', which means not to
-                        read in this column.)
-    :param k_col:       The column to use for the kappa values. This should be an integer for ASCII
-                        files or a string for FITS files. (default: 0 or '0', which means not to
-                        read in this column.)
-    :param w_col:       The column to use for the weight values. This should be an integer for
-                        ASCII files or a string for FITS files. (default: 0 or '0', which means not
-                        to read in this column.)
-    :param wpos_col:    The column to use for the position weight values. This should be an integer
-                        for ASCII files or a string for FITS files. (default: 0 or '0', which
-                        means not to read in this column.)
-    :param flag_col:    The column to use for the flag values. This should be an integer for ASCII
-                        files or a string for FITS files. Any row with flag != 0 (or technically
-                        flag & ~ok_flag != 0) will be given a weight of 0. (default: 0 or '0',
-                        which means not to read in this column.)
-    :param ignore_flag: Which flags should be ignored. (default: all non-zero flags are ignored.
-                        Equivalent to ignore_flag = ~0.)
-    :param ok_flag:     Which flags should be considered ok. (default: 0.  i.e. all non-zero flags
-                        are ignored.)
+        hdu (int):          For FITS files, which hdu to read. (default: 1)
+        x_hdu (int):        Which hdu to use for the x values. (default: hdu)
+        y_hdu (int):        Which hdu to use for the y values. (default: hdu)
+        z_hdu (int):        Which hdu to use for the z values. (default: hdu)
+        ra_hdu (int):       Which hdu to use for the ra values. (default: hdu)
+        dec_hdu (int):      Which hdu to use for the dec values. (default: hdu)
+        r_hdu (int):        Which hdu to use for the r values. (default: hdu)
+        g1_hdu (int):       Which hdu to use for the g1 values. (default: hdu)
+        g2_hdu (int):       Which hdu to use for the g2 values. (default: hdu)
+        k_hdu (int):        Which hdu to use for the k values. (default: hdu)
+        w_hdu (int):        Which hdu to use for the w values. (default: hdu)
+        wpos_hdu (int):     Which hdu to use for the wpos values. (default: hdu)
+        flag_hdu (int):     Which hdu to use for the flag values. (default: hdu)
 
-    :param flip_g1:     Whtether to flip the sign of the input g1 values. (default: False)
-    :param flip_g2:     Whtether to flip the sign of the input g2 values. (default: False)
+        verbose (int):      If no logger is provided, this will optionally specify a logging level
+                            to use.
 
-    :param hdu:         For FITS files, which hdu to read. (default: 1)
-    :param x_hdu:       Which hdu to use for the x values. (default: hdu)
-    :param y_hdu:       Which hdu to use for the y values. (default: hdu)
-    :param z_hdu:       Which hdu to use for the z values. (default: hdu)
-    :param ra_hdu:      Which hdu to use for the ra values. (default: hdu)
-    :param dec_hdu:     Which hdu to use for the dec values. (default: hdu)
-    :param r_hdu:       Which hdu to use for the r values. (default: hdu)
-    :param g1_hdu:      Which hdu to use for the g1 values. (default: hdu)
-    :param g2_hdu:      Which hdu to use for the g2 values. (default: hdu)
-    :param k_hdu:       Which hdu to use for the k values. (default: hdu)
-    :param w_hdu:       Which hdu to use for the w values. (default: hdu)
-    :param wpos_hdu:    Which hdu to use for the wpos values. (default: hdu)
-    :param flag_hdu:    Which hdu to use for the flag values. (default: hdu)
+                                - 0 means no logging output
+                                - 1 means to output warnings only (default)
+                                - 2 means to output various progress information
+                                - 3 means to output extensive debugging information
 
-    :param verbose:     If no logger is provided, this will optionally specify a logging level to
-                        use.
+        log_file (str):     If no logger is provided, this will specify a file to write the logging
+                            output.  (default: None; i.e. output to standard output)
 
-                        - 0 means no logging output
-                        - 1 means to output warnings only (default)
-                        - 2 means to output various progress information
-                        - 3 means to output extensive debugging information
+        split_method (str): How to split the cells in the tree when building the tree structure.
+                            Options are:
 
-    :param log_file:    If no logger is provided, this will specify a file to write the logging
-                        output.  (default: None; i.e. output to standard output)
+                                - mean: Use the arithmetic mean of the coordinate being split.
+                                  (default)
+                                - median: Use the median of the coordinate being split.
+                                - middle: Use the middle of the range; i.e. the average of the
+                                  minimum and maximum value.
+                                - random: Use a random point somewhere in the middle two quartiles
+                                  of the range.
 
-    :param split_method: How to split the cells in the tree when building the tree structure.
-                        Options are:
-
-                        - mean: Use the arithmetic mean of the coordinate being split. (default)
-                        - median: Use the median of the coordinate being split.
-                        - middle: Use the middle of the range; i.e. the average of the minimum and
-                          maximum value.
-                        - random: Use a random point somewhere in the middle two quartiles of the
-                          range.
-
-    :param cat_precision: The precision to use when writing a Catalog to an ASCII file. This should
-                        be an integer, which specifies how many digits to write. (default: 16)
+        cat_precision (int): The precision to use when writing a Catalog to an ASCII file. This
+                            should be an integer, which specifies how many digits to write.
+                            (default: 16)
     """
     # Dict describing the valid kwarg parameters, what types they are, and a description:
     # Each value is a tuple with the following elements:
@@ -642,13 +664,13 @@ class Catalog(object):
         """Turn the input column into a numpy array if it wasn't already.
         Also make sure the input in 1-d.
 
-        :param col:     The input column to be converted into a numpy array.
+        Parameters:
+            col (array-like):   The input column to be converted into a numpy array.
+            col_str (str):      The name of the column.  Used only as information in logging output.
+            dtype (type):       The dtype for the returned array.  (default: float)
 
-        :param col_str: The name of the column.  Used only as information in logging output.
-
-        :param dtype:   The dtype for the returned array.  (default: float)
-
-        :returns:       The column converted to a 1-d numpy array.
+        Returns:
+            The column converted to a 1-d numpy array.
         """
         if col is not None:
             col = np.array(col,dtype=dtype)
@@ -663,9 +685,9 @@ class Catalog(object):
     def checkForNaN(self, col, col_str):
         """Check if the column has any NaNs.  If so, set those rows to have w[k]=0.
 
-        :param col:     The input column to check.
-
-        :param col_str: The name of the column.  Used only as information in logging output.
+        Parameters:
+            col (array):    The input column to check.
+            col_str (str):  The name of the column.  Used only as information in logging output.
         """
         if col is not None and any(np.isnan(col)):
             index = np.where(np.isnan(col))[0]
@@ -678,11 +700,10 @@ class Catalog(object):
     def read_ascii(self, file_name, num=0, is_rand=False):
         """Read the catalog from an ASCII file
 
-        :param file_name:   The name of the file to read in.
-
-        :param num:         Which number catalog are we reading. (default: 0)
-
-        :param is_rand:     Is this a random catalog? (default: False)
+        Parameters:
+            file_name (str):    The name of the file to read in.
+            num (int):          Which number catalog are we reading. (default: 0)
+            is_rand (bool):     Is this a random catalog? (default: False)
         """
         comment_marker = self.config.get('comment_marker','#')
         delimiter = self.config.get('delimiter',None)
@@ -833,11 +854,10 @@ class Catalog(object):
     def read_fits(self, file_name, num=0, is_rand=False):
         """Read the catalog from a FITS file
 
-        :param file_name:   The name of the file to read in.
-
-        :param num:         Which number catalog are we reading. (default: 0)
-
-        :param is_rand:     Is this a random catalog? (default: False)
+        Parameters:
+            file_name (str):    The name of the file to read in.
+            num (int):          Which number catalog are we reading. (default: 0)
+            is_rand (bool):     Is this a random catalog? (default: False)
         """
         try:
             import fitsio
@@ -1056,7 +1076,8 @@ class Catalog(object):
             >>> cat.ksimplefields.resize(maxsize)
             >>> cat.gsimplefields.resize(maxsize)
 
-        :param maxsize: The new maximum number of fields of each type to cache.
+        Parameters:
+            maxsize (float):    The new maximum number of fields of each type to cache.
         """
         self.nfields.resize(maxsize)
         self.kfields.resize(maxsize)
@@ -1112,25 +1133,27 @@ class Catalog(object):
 
     def getNField(self, min_size=0, max_size=None, split_method=None, brute=False,
                   min_top=3, max_top=10, coords=None, logger=None):
-        """Return an NField based on the positions in this catalog.
+        """Return an `NField` based on the positions in this catalog.
 
-        The NField object is cached, so this is efficient to call multiple times.
-        cf. resize_cache() and clear_cache()
+        The `NField` object is cached, so this is efficient to call multiple times.
+        cf. `resize_cache` and `clear_cache`
 
-        :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)
-        :param max_size:    The maximum radius cell required (usually max_sep). (default: None)
-        :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
-                            (default: 'mean'; this value can also be given in the Catalog
-                            constructor in the config dict.)
-        :param brute:       Whether to force traversal to the leaves. (default: False)
-        :param min_top:     The minimum number of top layers to use when setting up the
-                            field. (default: 3)
-        :param max_top:     The maximum number of top layers to use when setting up the
-                            field. (default: 10)
-        :param coords:      The kind of coordinate system to use. (default: self.coords)
-        :param logger:      A logger file if desired (default: self.logger)
+        Parameters:
+            min_size (float):   The minimum radius cell required (usually min_sep). (default: 0)
+            max_size (float):   The maximum radius cell required (usually max_sep). (default: None)
+            split_method (str): Which split method to use ('mean', 'median', 'middle', or 'random')
+                                (default: 'mean'; this value can also be given in the Catalog
+                                constructor in the config dict.)
+            brute (bool):       Whether to force traversal to the leaves. (default: False)
+            min_top (int):      The minimum number of top layers to use when setting up the
+                                field. (default: 3)
+            max_top (int):      The maximum number of top layers to use when setting up the
+                                field. (default: 10)
+            coords (str):       The kind of coordinate system to use. (default: self.coords)
+            logger:             A Logger object if desired (default: self.logger)
 
-        :returns:           A :class:`~treecorr.NField` object
+        Returns:
+            An `NField` object
         """
         if split_method is None:
             split_method = treecorr.config.get(self.config,'split_method',str,'mean')
@@ -1144,25 +1167,27 @@ class Catalog(object):
 
     def getKField(self, min_size=0, max_size=None, split_method=None, brute=False,
                   min_top=3, max_top=10, coords=None, logger=None):
-        """Return a KField based on the k values in this catalog.
+        """Return a `KField` based on the k values in this catalog.
 
-        The KField object is cached, so this is efficient to call multiple times.
-        cf. resize_cache() and clear_cache()
+        The `KField` object is cached, so this is efficient to call multiple times.
+        cf. `resize_cache` and `clear_cache`
 
-        :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)
-        :param max_size:    The maximum radius cell required (usually max_sep). (default: None)
-        :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
-                            (default: 'mean'; this value can also be given in the Catalog
-                            constructor in the config dict.)
-        :param brute:       Whether to force traversal to the leaves. (default: False)
-        :param min_top:     The minimum number of top layers to use when setting up the
-                            field. (default: 3)
-        :param max_top:     The maximum number of top layers to use when setting up the
-                            field. (default: 10)
-        :param coords:      The kind of coordinate system to use. (default self.coords)
-        :param logger:      A logger file if desired (default: self.logger)
+        Parameters:
+            min_size (float):   The minimum radius cell required (usually min_sep). (default: 0)
+            max_size (float):   The maximum radius cell required (usually max_sep). (default: None)
+            split_method (str): Which split method to use ('mean', 'median', 'middle', or 'random')
+                                (default: 'mean'; this value can also be given in the Catalog
+                                constructor in the config dict.)
+            brute (bool):       Whether to force traversal to the leaves. (default: False)
+            min_top (int):      The minimum number of top layers to use when setting up the
+                                field. (default: 3)
+            max_top (int):      The maximum number of top layers to use when setting up the
+                                field. (default: 10)
+            coords (str):       The kind of coordinate system to use. (default self.coords)
+            logger:             A Logger object if desired (default: self.logger)
 
-        :returns:           A :class:`~treecorr.KField` object
+        Returns:
+            A `KField` object
         """
         if split_method is None:
             split_method = treecorr.config.get(self.config,'split_method',str,'mean')
@@ -1178,25 +1203,27 @@ class Catalog(object):
 
     def getGField(self, min_size=0, max_size=None, split_method=None, brute=False,
                   min_top=3, max_top=10, coords=None, logger=None):
-        """Return a GField based on the g1,g2 values in this catalog.
+        """Return a `GField` based on the g1,g2 values in this catalog.
 
-        The GField object is cached, so this is efficient to call multiple times.
-        cf. resize_cache() and clear_cache()
+        The `GField` object is cached, so this is efficient to call multiple times.
+        cf. `resize_cache` and `clear_cache`.
 
-        :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)
-        :param max_size:    The maximum radius cell required (usually max_sep). (default: None)
-        :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
-                            (default: 'mean'; this value can also be given in the Catalog
-                            constructor in the config dict.)
-        :param brute:       Whether to force traversal to the leaves. (default: False)
-        :param min_top:     The minimum number of top layers to use when setting up the
-                            field. (default: 3)
-        :param max_top:     The maximum number of top layers to use when setting up the
-                            field. (default: 10)
-        :param coords:      The kind of coordinate system to use. (default self.coords)
-        :param logger:      A logger file if desired (default: self.logger)
+        Parameters:
+            min_size (float):   The minimum radius cell required (usually min_sep). (default: 0)
+            max_size (float):   The maximum radius cell required (usually max_sep). (default: None)
+            split_method (str): Which split method to use ('mean', 'median', 'middle', or 'random')
+                                (default: 'mean'; this value can also be given in the Catalog
+                                constructor in the config dict.)
+            brute (bool):       Whether to force traversal to the leaves. (default: False)
+            min_top (int):      The minimum number of top layers to use when setting up the
+                                field. (default: 3)
+            max_top (int):      The maximum number of top layers to use when setting up the
+                                field. (default: 10)
+            coords (str):       The kind of coordinate system to use. (default self.coords)
+            logger:             A Logger object if desired (default: self.logger)
 
-        :returns:           A :class:`~treecorr.GField` object
+        Returns:
+            A `GField` object
         """
         if split_method is None:
             split_method = treecorr.config.get(self.config,'split_method',str,'mean')
@@ -1211,14 +1238,16 @@ class Catalog(object):
 
 
     def getNSimpleField(self, logger=None):
-        """Return an NSimpleField based on the positions in this catalog.
+        """Return an `NSimpleField` based on the positions in this catalog.
 
-        The NSimpleField object is cached, so this is efficient to call multiple times.
-        cf. resize_cache() and clear_cache()
+        The `NSimpleField` object is cached, so this is efficient to call multiple times.
+        cf. `resize_cache` and `clear_cache`
 
-        :param logger:      A logger file if desired (default: self.logger)
+        Parameters:
+            logger:     A Logger object if desired (default: self.logger)
 
-        :returns:           A :class:`~treecorr.NSimpleField` object
+        Returns:
+            An `NSimpleField` object
         """
         if logger is None:
             logger = self.logger
@@ -1226,14 +1255,16 @@ class Catalog(object):
 
 
     def getKSimpleField(self, logger=None):
-        """Return a KSimpleField based on the k values in this catalog.
+        """Return a `KSimpleField` based on the k values in this catalog.
 
-        The KSimpleField object is cached, so this is efficient to call multiple times.
-        cf. resize_cache() and clear_cache()
+        The `KSimpleField` object is cached, so this is efficient to call multiple times.
+        cf. `resize_cache` and `clear_cache`
 
-        :param logger:      A logger file if desired (default: self.logger)
+        Parameters:
+            logger:     A Logger object if desired (default: self.logger)
 
-        :returns:           A :class:`~treecorr.KSimpleField` object
+        Returns:
+            A `KSimpleField` object
         """
         if self.k is None:
             raise TypeError("k is not defined.")
@@ -1243,14 +1274,16 @@ class Catalog(object):
 
 
     def getGSimpleField(self, logger=None):
-        """Return a GSimpleField based on the g1,g2 values in this catalog.
+        """Return a `GSimpleField` based on the g1,g2 values in this catalog.
 
-        The GSimpleField object is cached, so this is efficient to call multiple times.
-        cf. resize_cache() and clear_cache()
+        The `GSimpleField` object is cached, so this is efficient to call multiple times.
+        cf. `resize_cache` and `clear_cache`
 
-        :param logger:      A logger file if desired (default: self.logger)
+        Parameters:
+            logger:             A Logger object if desired (default: self.logger)
 
-        :returns:           A :class:`~treecorr.GSimpleField` object
+        Returns:
+            A `GSimpleField` object
         """
         if self.g1 is None or self.g2 is None:
             raise TypeError("g1,g2 are not defined.")
@@ -1261,35 +1294,41 @@ class Catalog(object):
     def write(self, file_name, file_type=None, cat_precision=None):
         """Write the catalog to a file.
 
-        Note that the x,y,ra,dec columns are output using the same units as were used when
+        Note that the position columns are output using the same units as were used when
         building the Catalog.  If you want to use a different unit, you can set the catalog's
         units directly before writing.  e.g.:
 
             >>> cat = treecorr.Catalog('cat.dat', ra=ra, dec=dec,
                                        ra_units='hours', dec_units='degrees')
-            >>> cat.ra_units = treecorr.degrees
+            >>> cat.ra_units = coord.degrees
             >>> cat.write('new_cat.dat')
 
-        The output file will include some of the following columns:
+        The output file will include some of the following columns (those for which the
+        corresponding attribute is not None):
 
-            :ra:        if self.ra is not None
-            :dec:       if self.dec is not None
-            :r:         if self.r is not None
-            :x:         if self.x is not None
-            :y:         if self.y is not None
-            :z:         if self.z is not None
-            :w:         if self.w is not None and self.nontrivial_w
-            :wpos:      if self.wpos is not None
-            :g1:        if self.g1 is not None
-            :g2:        if self.g2 is not None
-            :k:         if self.k is not None
-            :meanR:     The mean value <R> of pairs that fell into each bin.
-            :meanlogR:  The mean value <logR> of pairs that fell into each bin.
+        ========      =======================================================
+        Column        Description
+        ========      =======================================================
+        ra            self.ra if not None
+        dec           self.dec if not None
+        r             self.r if not None
+        x             self.x if not None
+        y             self.y if not None
+        z             self.z if not None
+        w             self.w if not None and self.nontrivial_w
+        wpos          self.wpos if not None
+        g1            self.g1 if not None
+        g2            self.g2 if not None
+        k             self.k if not None
+        meanR         The mean value <R> of pairs that fell into each bin.
+        meanlogR      The mean value <logR> of pairs that fell into each bin.
+        ========      =======================================================
 
-        :param file_name:       The name of the file to write to.
-        :param file_type:       The type of file to write ('ASCII' or 'FITS').  (default: determine
-                                the type automatically from the extension of file_name.)
-        :param cat_precision:   For ASCII output catalogs, the desired precision. (default: 16;
+        Parameters:
+            file_name (str):    The name of the file to write to.
+            file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default:
+                                determine the type automatically from the extension of file_name.)
+            cat_precision (int): For ASCII output catalogs, the desired precision. (default: 16;
                                 this value can also be given in the Catalog constructor in the
                                 config dict.)
         """
@@ -1409,19 +1448,21 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
     num indicates which key to use if any of the fields like x_col, flip_g1, etc. are lists.
     The default is 0, which means to use the first item in the list if they are lists.
 
-    :param config:      The configuration dict to use for the appropriate parameters
-    :param key:         Which key name to use for the file names. e.g. 'file_name' (default: None)
-    :param list_key:    Which key name to use for the name of a list file. e.g. 'file_list'.
+    Parameters:
+        config (dict):  The configuration dict to use for the appropriate parameters
+        key (str):      Which key name to use for the file names. e.g. 'file_name' (default: None)
+        list_key (str): Which key name to use for the name of a list file. e.g. 'file_list'.
                         Either key or list_key is required.  (default: None)
-    :param num:         Which number catalog does this correspond to. e.g. file_name should use
+        num (int):      Which number catalog does this correspond to. e.g. file_name should use
                         num=0, file_name2 should use num=1.  (default: 0)
-    :param logger:      If desired, a logger object for logging. (default: None, in which case
+        logger:         If desired, a Logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
-    :param is_rand:     If this is a random file, then setting is_rand to True will let them
+        is_rand (bool): If this is a random file, then setting is_rand to True will let them
                         skip k_col, g1_col, and g2_col if they were set for the main catalog.
                         (default: False)
 
-    :returns:           A list of Catalogs or None if no catalogs are specified.
+    Returns:
+        A list of Catalogs or None if no catalogs are specified.
     """
     if logger is None:
         logger = treecorr.config.setup_logger(
@@ -1456,9 +1497,11 @@ def calculateVarG(cat_list):
     The catalogs are assumed to be equivalent, so this is just the average shear
     variance (per component) weighted by the number of objects in each catalog.
 
-    :param cat_list:    A Catalog or a list of Catalogs for which to calculate the shear variance.
+    Parameters:
+        cat_list:    A Catalog or a list of Catalogs for which to calculate the shear variance.
 
-    :returns:           The shear variance per component, aka shape noise.
+    Returns:
+        The shear variance per component, aka shape noise.
     """
     if isinstance(cat_list,Catalog):
         return cat_list.varg
@@ -1478,9 +1521,11 @@ def calculateVarK(cat_list):
     The catalogs are assumed to be equivalent, so this is just the average kappa
     variance weighted by the number of objects in each catalog.
 
-    :param cat_list:    A Catalog or a list of Catalogs for which to calculate the kappa variance.
+    Parameters:
+        cat_list:    A Catalog or a list of Catalogs for which to calculate the kappa variance.
 
-    :returns:           The kappa variance
+    Returns:
+        The kappa variance
     """
     if isinstance(cat_list,Catalog):
         return cat_list.vark
@@ -1503,18 +1548,20 @@ def isGColRequired(config, num):
     we don't need to raise an error if the g1_col or g2_col is invalid.
 
     This makes it easier to specify columns. e.g. for an NG correlation function, the
-    first catalog does not need to have the gamma columns, and typically wouldn't.  So
+    first catalog does not need to have the g1,g2 columns, and typically wouldn't.  So
     if you specify g1_col=5, g2_col=6, say, and the first catalog does not have these columns,
     you would normally get an error.
 
     But instead, we check that the calculation is going to be NG from the presence of an
     ng_file_name parameter, and we let the would-be error pass.
 
-    :param config:  The configuration file to check.
-    :param num:     Which number catalog are we working on.
+    Parameters:
+        config (dict):  The configuration file to check.
+        num (int):      Which number catalog are we working on.
 
-    :returns:       True if some output file requires this catalog to have valid g1/g2 columns,
-                    False if not.
+    Returns:
+        True if some output file requires this catalog to have valid g1/g2 columns,
+        False if not.
 
     """
     return config and ( 'gg_file_name' in config
@@ -1529,18 +1576,18 @@ def isGColRequired(config, num):
 def isKColRequired(config, num):
     """A quick helper function that checks whether we need to bother reading the k column.
 
-    The logic here is the same as for :func:`~treecorr.catalog.isGColRequired`, but we check
-    for output files that require the kappa column rather than gamma.
+    The logic here is the same as for `isGColRequired`, but we check for output files that require
+    the k column rather than g1,g2.
 
-    :param config:  The configuration file to check.
-    :param num:     Which number catalog are we working on.
+    Parameters:
+        config (dict):  The configuration file to check.
+        num (int):      Which number catalog are we working on.
 
-    :returns:       True if some output file requires this catalog to have valid g1/g2 columns,
-                    False if not.
+    Returns:
+        True if some output file requires this catalog to have valid g1/g2 columns,
+        False if not.
 
     """
     return config and ( 'kk_file_name' in config
                         or (num==0 and 'kg_file_name' in config)
                         or (num==1 and 'nk_file_name' in config) )
-
-

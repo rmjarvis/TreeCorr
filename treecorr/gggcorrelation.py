@@ -43,62 +43,65 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         \\Gamma_3 &= \\langle \\gamma(\\mathbf{x1}) \\gamma(\\mathbf{x2}) \\gamma(\\mathbf{x3})^* \\rangle \\\\
 
     where :math:`\\mathbf{x1}, \\mathbf{x2}, \\mathbf{x3}` are the corners of the triange opposite
-    sides `d1, d2, d3` respectively, where `d1 > d2 > d3`, and `*` indicates complex conjugation.
+    sides d1, d2, d3 respectively, where d1 > d2 > d3, and :math:`{}^*` indicates complex
+    conjugation.
 
-    See the doc string of :class:`~treecorr.BinnedCorr3` for a description of how the triangles
+    See the doc string of `BinnedCorr3` for a description of how the triangles
     are binned.
 
     Ojects of this class holds the following attributes:
 
-        :nbins:     The number of bins in logr where r = d2
-        :bin_size:  The size of the bins in logr
-        :min_sep:   The minimum separation being considered
-        :max_sep:   The maximum separation being considered
-        :nubins:    The number of bins in u where u = d3/d2
-        :ubin_size: The size of the bins in u
-        :min_u:     The minimum u being considered
-        :max_u:     The maximum u being considered
-        :nvbins:    The number of bins in v where v = +-(d1-d2)/d3
-        :vbin_size: The size of the bins in v
-        :min_v:     The minimum v being considered
-        :max_v:     The maximum v being considered
-        :logr1d:    The nominal centers of the nbins bins in log(r).
-        :u1d:       The nominal centers of the nubins bins in u.
-        :v1d:       The nominal centers of the nvbins bins in v.
+    Attributes:
+        nbins:     The number of bins in logr where r = d2
+        bin_size:  The size of the bins in logr
+        min_sep:   The minimum separation being considered
+        max_sep:   The maximum separation being considered
+        nubins:    The number of bins in u where u = d3/d2
+        ubin_size: The size of the bins in u
+        min_u:     The minimum u being considered
+        max_u:     The maximum u being considered
+        nvbins:    The number of bins in v where v = +-(d1-d2)/d3
+        vbin_size: The size of the bins in v
+        min_v:     The minimum v being considered
+        max_v:     The maximum v being considered
+        logr1d:    The nominal centers of the nbins bins in log(r).
+        u1d:       The nominal centers of the nubins bins in u.
+        v1d:       The nominal centers of the nvbins bins in v.
 
     In addition, the following attributes are numpy arrays whose shape is (nbins, nubins, nvbins):
 
-        :logr:      The nominal center of each bin in log(r).
-        :rnom:      The nominal center of the bin converted to regular distance.
-                    i.e. r = exp(logr).
-        :u:         The nominal center of each bin in u.
-        :v:         The nominal center of each bin in v.
-        :meand1:    The (weighted) mean value of d1 for the triangles in each bin.
-        :meanlogd1: The mean value of log(d1) for the triangles in each bin.
-        :meand2:    The (weighted) mean value of d2 (aka r) for the triangles in each bin.
-        :meanlogd2: The mean value of log(d2) for the triangles in each bin.
-        :meand2:    The (weighted) mean value of d3 for the triangles in each bin.
-        :meanlogd2: The mean value of log(d3) for the triangles in each bin.
-        :meanu:     The mean value of u for the triangles in each bin.
-        :meanv:     The mean value of v for the triangles in each bin.
-        :gam0:      The 0th "natural" correlation function, :math:`\\Gamma_0(r,u,v)`.
-        :gam1:      The 1st "natural" correlation function, :math:`\\Gamma_1(r,u,v)`.
-        :gam2:      The 2nd "natural" correlation function, :math:`\\Gamma_2(r,u,v)`.
-        :gam3:      The 3rd "natural" correlation function, :math:`\\Gamma_3(r,u,v)`.
-        :vargam0:   The variance of :math:`\\Gamma_0`, only including the shot noise
-                    propagated into the final correlation.  This (and the related values for
-                    1,2,3) does not include sample variance, so it is always an underestimate
-                    of the actual variance.
-        :vargam1:   The variance of :math:`\\Gamma_1`.
-        :vargam2:   The variance of :math:`\\Gamma_2`.
-        :vargam3:   The variance of :math:`\\Gamma_3`.
-        :weight:    The total weight in each bin.
-        :ntri:      The number of triangles going into each bin.
+    Attributes:
+        logr:      The nominal center of each bin in log(r).
+        rnom:      The nominal center of the bin converted to regular distance.
+                   i.e. r = exp(logr).
+        u:         The nominal center of each bin in u.
+        v:         The nominal center of each bin in v.
+        meand1:    The (weighted) mean value of d1 for the triangles in each bin.
+        meanlogd1: The mean value of log(d1) for the triangles in each bin.
+        meand2:    The (weighted) mean value of d2 (aka r) for the triangles in each bin.
+        meanlogd2: The mean value of log(d2) for the triangles in each bin.
+        meand2:    The (weighted) mean value of d3 for the triangles in each bin.
+        meanlogd2: The mean value of log(d3) for the triangles in each bin.
+        meanu:     The mean value of u for the triangles in each bin.
+        meanv:     The mean value of v for the triangles in each bin.
+        gam0:      The 0th "natural" correlation function, :math:`\\Gamma_0(r,u,v)`.
+        gam1:      The 1st "natural" correlation function, :math:`\\Gamma_1(r,u,v)`.
+        gam2:      The 2nd "natural" correlation function, :math:`\\Gamma_2(r,u,v)`.
+        gam3:      The 3rd "natural" correlation function, :math:`\\Gamma_3(r,u,v)`.
+        vargam0:   The variance of :math:`\\Gamma_0`, only including the shot noise
+                   propagated into the final correlation.  This (and the related values for
+                   1,2,3) does not include sample variance, so it is always an underestimate
+                   of the actual variance.
+        vargam1:   The variance of :math:`\\Gamma_1`.
+        vargam2:   The variance of :math:`\\Gamma_2`.
+        vargam3:   The variance of :math:`\\Gamma_3`.
+        weight:    The total weight in each bin.
+        ntri:      The number of triangles going into each bin.
 
-    If `sep_units` are given (either in the config dict or as a named kwarg) then the distances
+    If **sep_units** are given (either in the config dict or as a named kwarg) then the distances
     will all be in these units.  Note however, that if you separate out the steps of the
-    :func:`process` command and use :func:`process_auto` and/or :func:`process_cross`, then the
-    units will not be applied to :meanr: or :meanlogr: until the :func:`finalize` function is
+    `process` command and use `process_auto` and/or `process_cross`, then the
+    units will not be applied to **meanr** or **meanlogr** until the `finalize` function is
     called.
 
     The typical usage pattern is as follows::
@@ -111,13 +114,14 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         >>> gam0r = ggg.gam0r             # You can also access real and imag parts separately.
         >>> gam0i = ggg.gam0i
 
-    :param config:      A configuration dict that can be used to pass in kwargs if desired.
+    Parameters:
+        config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have addition entries in addition to those listed
-                        in :class:`~treecorr.BinnedCorr3`, which are ignored here. (default: None)
-    :param logger:      If desired, a logger object for logging. (default: None, in which case
+                        in `BinnedCorr3`, which are ignored here. (default: None)
+        logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    See the documentation for :class:`~treecorr.BinnedCorr3` for the list of other allowed kwargs,
+    See the documentation for `BinnedCorr3` for the list of other allowed kwargs,
     which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
@@ -184,6 +188,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                 treecorr._lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3, self._bintype)
 
     def __eq__(self, other):
+        """Return whether two GGGCorrelations are equal"""
         return (isinstance(other, GGGCorrelation) and
                 self.nbins == other.nbins and
                 self.bin_size == other.bin_size and
@@ -231,6 +236,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
 
     def copy(self):
+        """Make a copy"""
         import copy
         return copy.deepcopy(self)
 
@@ -254,17 +260,17 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the auto-correlation for the given catalog.  After
-        calling this function as often as desired, the finalize() command will
+        calling this function as often as desired, the `finalize` command will
         finish the calculation of meand1, meanlogd1, etc.
 
-        :param cat:         The catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.GGGCorrelation.process` for
-                            details.  (default: 'Euclidean'; this value can also be given in the
-                            constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.
-                            (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the
-                            system's C compiler is clang prior to version 3.7.
+        Parameters:
+            cat (Catalog):      The catalog to process
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
         """
         if cat.name == '':
             self.logger.info('Starting process GGG auto-correlations')
@@ -289,18 +295,22 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         points in each triangle come from the first catalog, and one from the second.
 
         This accumulates the cross-correlation for the given catalogs.  After
-        calling this function as often as desired, the finalize() command will
+        calling this function as often as desired, the `finalize` command will
         finish the calculation of meand1, meanlogd1, etc.
 
-        :param cat1:        The first catalog to process
-        :param cat2:        The second catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.GGGCorrelation.process` for
-                            details.  (default: 'Euclidean'; this value can also be given in the
-                            constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.
-                            (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the
-                            system's C compiler is clang prior to version 3.7.
+        .. warning::
+
+            This is not implemented yet.
+
+        Parameters:
+            cat1 (Catalog):     The first catalog to process
+            cat2 (Catalog):     The second catalog to process
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
         """
         raise NotImplementedError("No partial cross GGG yet.")
 
@@ -309,19 +319,19 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs.  After
-        calling this function as often as desired, the finalize() command will
+        calling this function as often as desired, the `finalize` command will
         finish the calculation of meand1, meanlogd1, etc.
 
-        :param cat1:        The first catalog to process
-        :param cat2:        The second catalog to process
-        :param cat3:        The third catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.GGGCorrelation.process` for
-                            details.  (default: 'Euclidean'; this value can also be given in the
-                            constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.
-                            (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the
-                            system's C compiler is clang prior to version 3.7.
+        Parameters:
+            cat1 (Catalog):     The first catalog to process
+            cat2 (Catalog):     The second catalog to process
+            cat3 (Catalog):     The third catalog to process
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
         """
         if cat1.name == '' and cat2.name == '' and cat3.name == '':
             self.logger.info('Starting process GGG cross-correlations')
@@ -350,13 +360,14 @@ class GGGCorrelation(treecorr.BinnedCorr3):
     def finalize(self, varg1, varg2, varg3):
         """Finalize the calculation of the correlation function.
 
-        The process_auto and process_cross commands accumulate values in each bin,
+        The `process_auto` and `process_cross` commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
         finishes the calculation by dividing by the total weight.
 
-        :param varg1:   The shear variance for the first field.
-        :param varg2:   The shear variance for the second field.
-        :param varg3:   The shear variance for the third field.
+        Parameters:
+            varg1 (float):  The shear variance for the first field.
+            varg2 (float):  The shear variance for the second field.
+            varg3 (float):  The shear variance for the third field.
         """
         mask1 = self.weight != 0
         mask2 = self.weight == 0
@@ -430,8 +441,8 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         """Add a second GGGCorrelation's data to this one.
 
         Note: For this to make sense, both Correlation objects should have been using
-        process_auto and/or process_cross, and they should not have had finalize called yet.
-        Then, after adding them together, you should call finalize on the sum.
+        `process_auto` and/or `process_cross`, and they should not have had `finalize` called yet.
+        Then, after adding them together, you should call `finalize` on the sum.
         """
         if not isinstance(other, GGGCorrelation):
             raise TypeError("Can only add another GGGCorrelation object")
@@ -490,19 +501,18 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         all the possible triangles between three catalogs, you should call this
         multiple times with the different catalogs in different positions.
 
-        :param cat1:    A catalog or list of catalogs for the first N field.
-        :param cat2:    A catalog or list of catalogs for the second N field, if any.
-                        (default: None)
-        :param cat3:    A catalog or list of catalogs for the third N field, if any.
-                        (default: None)
-        :param metric:  Which metric to use for distance measurements.  Options are given
-                        in the doc string of :class:`~treecorr.BinnedCorr3`.
-                        (default: 'Euclidean'; this value can also be given in the constructor
-                        in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.
-                            (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the
-                            system's C compiler is clang prior to version 3.7.
+        Parameters:
+            cat1 (Catalog):     A catalog or list of catalogs for the first N field.
+            cat2 (Catalog):     A catalog or list of catalogs for the second N field, if any.
+                                (default: None)
+            cat3 (Catalog):     A catalog or list of catalogs for the third N field, if any.
+                                (default: None)
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
         """
         import math
         self.clear()
@@ -533,56 +543,53 @@ class GGGCorrelation(treecorr.BinnedCorr3):
     def write(self, file_name, file_type=None, precision=None):
         """Write the correlation function to the file, file_name.
 
-        As described in the doc string for :class:`~treecorr.GGGCorrelation`, we use the
-        "natural components" of the shear 3-point function described by Schneider & Lombardi (2003)
-        using the triangle centroid as the projection point.  There are 4 complex-valued natural
-        components, so there are 8 columns in the output file.
+        As described in the doc string for `GGGCorrelation`, we use the "natural components" of
+        the shear 3-point function described by Schneider & Lombardi (2003) using the triangle
+        centroid as the projection point.  There are 4 complex-valued natural components, so there
+        are 8 columns in the output file.
 
         The output file will include the following columns:
 
-            :R_nom:         The nominal center of the bin in R = d2 where d1 > d2 > d3.
-            :u_nom:         The nominal center of the bin in u = d3/d2.
-            :v_nom:         The nominal center of the bin in v = +-(d1-d2)/d3.
-            :meand1:        The mean value :math:`\\langle d1\\rangle` of triangles that fell
-                            into each bin.
-            :meanlogd1:     The mean value :math:`\\langle logd1\\rangle` of triangles that fell
-                            into each bin.
-            :meand2:        The mean value :math:`\\langle d2\\rangle` of triangles that fell
-                            into each bin.
-            :meanlogd2:     The mean value :math:`\\langle logd2\\rangle` of triangles that fell
-                            into each bin.
-            :meand3:        The mean value :math:`\\langle d3\\rangle` of triangles that fell
-                            into each bin.
-            :meanlogd3:     The mean value :math:`\\langle logd3\\rangle` of triangles that fell
-                            into each bin.
-            :meanu:         The mean value :math:`\\langle u\\rangle` of triangles that fell
-                            into each bin.
-            :meanv:         The mean value :math:`\\langle v\\rangle` of triangles that fell
-                            into each bin.
-            :gam0r:         The real part of the estimator of :math:`\\Gamma_0(r,u,v)`.
-            :gam0i:         The imag part of the estimator of :math:`\\Gamma_0(r,u,v)`.
-            :gam1r:         The real part of the estimator of :math:`\\Gamma_1(r,u,v)`.
-            :gam1i:         The imag part of the estimator of :math:`\\Gamma_1(r,u,v)`.
-            :gam2r:         The real part of the estimator of :math:`\\Gamma_2(r,u,v)`.
-            :gam2i:         The imag part of the estimator of :math:`\\Gamma_2(r,u,v)`.
-            :gam3r:         The real part of the estimator of :math:`\\Gamma_3(r,u,v)`.
-            :gam3i:         The imag part of the estimator of :math:`\\Gamma_3(r,u,v)`.
-            :sigma_gam0:    The sqrt of the variance estimate of :math:`\\Gamma_0`.
-            :sigma_gam1:    The sqrt of the variance estimate of :math:`\\Gamma_1`.
-            :sigma_gam2:    The sqrt of the variance estimate of :math:`\\Gamma_2`.
-            :sigma_gam3:    The sqrt of the variance estimate of :math:`\\Gamma_3`.
-            :weight:        The total weight of triangles contributing to each bin.
-            :ntri:          The number of triangles contributing to each bin.
+        ==========      =============================================================
+        Column          Description
+        ==========      =============================================================
+        r_nom           The nominal center of the bin in r = d2 where d1 > d2 > d3
+        u_nom           The nominal center of the bin in u = d3/d2
+        v_nom           The nominal center of the bin in v = +-(d1-d2)/d3
+        meand1          The mean value <d1> of triangles that fell into each bin
+        meanlogd1       The mean value <log(d1)> of triangles that fell into each bin
+        meand2          The mean value <d2> of triangles that fell into each bin
+        meanlogd2       The mean value <log(d2)> of triangles that fell into each bin
+        meand3          The mean value <d3> of triangles that fell into each bin
+        meanlogd3       The mean value <log(d3)> of triangles that fell into each bin
+        meanu           The mean value <u> of triangles that fell into each bin
+        meanv           The mean value <v> of triangles that fell into each bi.
+        gam0r           The real part of the estimator of Gamma_0(r,u,v)
+        gam0i           The imag part of the estimator of Gamma_0(r,u,v)
+        gam1r           The real part of the estimator of Gamma_1(r,u,v)
+        gam1i           The imag part of the estimator of Gamma_1(r,u,v)
+        gam2r           The real part of the estimator of Gamma_2(r,u,v)
+        gam2i           The imag part of the estimator of Gamma_2(r,u,v)
+        gam3r           The real part of the estimator of Gamma_3(r,u,v)
+        gam3i           The imag part of the estimator of Gamma_3(r,u,v)
+        sigma_gam0      The sqrt of the variance estimate of Gamma_0
+        sigma_gam1      The sqrt of the variance estimate of Gamma_1
+        sigma_gam2      The sqrt of the variance estimate of Gamma_2
+        sigma_gam3      The sqrt of the variance estimate of Gamma_3
+        weight          The total weight of triangles contributing to each bin.
+        ntri            The number of triangles contributing to each bin.
+        ==========      =============================================================
 
-        If `sep_units` was given at construction, then the distances will all be in these units.
+        If **sep_units** was given at construction, then the distances will all be in these units.
         Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
         radians (for spherical coordinates).
 
-        :param file_name:   The name of the file to write to.
-        :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
-                            the type automatically from the extension of file_name.)
-        :param precision:   For ASCII output catalogs, the desired precision. (default: 4;
-                            this value can also be given in the constructor in the config dict.)
+        Parameters:
+            file_name (str):    The name of the file to write to.
+            file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
+                                the type automatically from the extension of file_name.)
+            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+                                this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing GGG correlations to %s',file_name)
 
@@ -619,9 +626,10 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
         checked by the read function.
 
-        :param file_name:   The name of the file to read in.
-        :param file_type:   The type of file ('ASCII' or 'FITS').  (default: determine the type
-                            automatically from the extension of file_name.)
+        Parameters:
+            file_name (str):    The name of the file to read in.
+            file_type (str):    The type of file ('ASCII' or 'FITS').  (default: determine the type
+                                automatically from the extension of file_name.)
         """
         self.logger.info('Reading GGG correlations from %s',file_name)
 
@@ -771,50 +779,62 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         """Calculate the skewness of the aperture mass from the correlation function.
 
         The equations for this come from Jarvis, Bernstein & Jain (2004, MNRAS, 352).
-        See their section 3, especially equations 51 and 52 for the T_i functions,
+        See their section 3, especially equations 51 and 52 for the :math:`T_i` functions,
         equations 60 and 61 for the calculation of :math:`\\langle \\cal M^3 \\rangle` and
         :math:`\\langle \\cal M^2 M^* \\rangle`, and equations 55-58 for how to convert
         these to the return values.
 
         If k2 or k3 != 1, then this routine calculates the generalization of the skewness
         proposed by Schneider, Kilbinger & Lombardi (2005, A&A, 431):
-        :math:`\\langle M_{\\rm ap}^3(R, k2 R, k3 R)\\rangle` and related values.
+        :math:`\\langle M_{\\rm ap}^3(R, k_2 R, k_3 R)\\rangle` and related values.
 
-        If k2 == k3 == 1 (the default), then there are only 4 combinations of Map and Mx
+        If k2 = k3 = 1 (the default), then there are only 4 combinations of Map and Mx
         that are relevant:
 
-            map3 = :math:`\\langle M_{\\rm ap}^3(R)\\rangle
-            map2mx = :math:`\\langle M_{\\rm ap}^2(R) M_{\\times}(R)\\rangle`,
-            mapmx2 = :math:`\\langle M_{\\rm ap}(R) M_{\\times}(R)\\rangle
-            mx3 = :math:`\\langle M_{\\rm \times}^3(R)\\rangle
+        - map3 = :math:`\\langle M_{\\rm ap}^3(R)\\rangle`
+        - map2mx = :math:`\\langle M_{\\rm ap}^2(R) M_{\\times}(R)\\rangle`,
+        - mapmx2 = :math:`\\langle M_{\\rm ap}(R) M_{\\times}(R)\\rangle`
+        - mx3 = :math:`\\langle M_{\\rm \\times}^3(R)\\rangle`
 
         However, if k2 or k3 != 1, then there are 8 combinations:
 
-            map3 = :math:`\\langle M_{\\rm ap}(R) M_{\\rm ap}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
-            mapmapmx = :math:`\\langle M_{\\rm ap}(R) M_{\\rm ap}(k_2 R) M_{\\times}(k_3 R)\\rangle`
-            mapmxmap = :math:`\\langle M_{\\rm ap}(R) M_{\\times}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
-            mxmapmap = :math:`\\langle M_{\\times}(R) M_{\\rm ap}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
-            mxmxmap = :math:`\\langle M_{\\times}(R) M_{\\times}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
-            mxmapmx = :math:`\\langle M_{\\times}(R) M_{\\rm ap}(k_2 R) M_{\\times}(k_3 R)\\rangle`
-            mapmxmx = :math:`\\langle M_{\\rm ap}(R) M_{\\times}(k_2 R) M_{\\times}(k_3 R)\\rangle`
-            mx3 = :math:`\\langle M_{\\times}(R) M_{\\times}(k_2 R) M_{\\times}(k_3 R)\\rangle`
+        - map3 = :math:`\\langle M_{\\rm ap}(R) M_{\\rm ap}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
+        - mapmapmx = :math:`\\langle M_{\\rm ap}(R) M_{\\rm ap}(k_2 R) M_{\\times}(k_3 R)\\rangle`
+        - mapmxmap = :math:`\\langle M_{\\rm ap}(R) M_{\\times}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
+        - mxmapmap = :math:`\\langle M_{\\times}(R) M_{\\rm ap}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
+        - mxmxmap = :math:`\\langle M_{\\times}(R) M_{\\times}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
+        - mxmapmx = :math:`\\langle M_{\\times}(R) M_{\\rm ap}(k_2 R) M_{\\times}(k_3 R)\\rangle`
+        - mapmxmx = :math:`\\langle M_{\\rm ap}(R) M_{\\times}(k_2 R) M_{\\times}(k_3 R)\\rangle`
+        - mx3 = :math:`\\langle M_{\\times}(R) M_{\\times}(k_2 R) M_{\\times}(k_3 R)\\rangle`
 
         To accommodate this full generality, we always return all 8 values, along with the
         estimated variance (which is equal for each), even when k2 = k3 = 1.
 
         .. note::
 
-            The formulae for the ``m2_uform='Schneider'`` definition of the aperture mass described
-            in the documentation of `GGCorrelation.calculateMapSq` are not known, so that is
-            not an option here.  The calculations here use the definition that corresponds to
-            ``m2_uform='Crittenden'``.
+            The formulae for the **m2_uform** = 'Schneider' definition of the aperture mass,
+            described in the documentation of `calculateMapSq`, are not known, so that is not an
+            option here.  The calculations here use the definition that corresponds to
+            **m2_uform** = 'Crittenden'.
 
-        :param R:       The R values at which to calculate the aperture mass statistics.
-                        (default: None, which means use self.rnom1d)
-        :param k2       If given, the ratio R2/R1 in the SKL formulae. (default: 1)
-        :param k3       If given, the ratio R3/R1 in the SKL formulae. (default: 1)
+        Parameters:
+            R (array):      The R values at which to calculate the aperture mass statistics.
+                            (default: None, which means use self.rnom1d)
+            k2 (float):     If given, the ratio R2/R1 in the SKL formulae. (default: 1)
+            k3 (float):     If given, the ratio R3/R1 in the SKL formulae. (default: 1)
 
-        :returns: (map3, mapmapmx, mapmxmap, mxmapmap, mxmxmap mxmapmx, mapmxmx, mx3, varmap3)
+        Returns:
+            Tuple containing
+
+                - map3 = array of :math:`\\langle M_{\\rm ap}(R) M_{\\rm ap}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
+                - mapmapmx = array of :math:`\\langle M_{\\rm ap}(R) M_{\\rm ap}(k_2 R) M_{\\times}(k_3 R)\\rangle`
+                - mapmxmap = array of :math:`\\langle M_{\\rm ap}(R) M_{\\times}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
+                - mxmapmap = array of :math:`\\langle M_{\\times}(R) M_{\\rm ap}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
+                - mxmxmap = array of :math:`\\langle M_{\\times}(R) M_{\\times}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
+                - mxmapmx = array of :math:`\\langle M_{\\times}(R) M_{\\rm ap}(k_2 R) M_{\\times}(k_3 R)\\rangle`
+                - mapmxmx = array of :math:`\\langle M_{\\rm ap}(R) M_{\\times}(k_2 R) M_{\\times}(k_3 R)\\rangle`
+                - mx3 = array of :math:`\\langle M_{\\times}(R) M_{\\times}(k_2 R) M_{\\times}(k_3 R)\\rangle`
+                - varmap3 = array of variance estimates of the above values
         """
         # As in the calculateMapSq function, we Make s and t matrices, so we can eventually do the
         # integral by doing a matrix product.
@@ -933,22 +953,25 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
         The output file will include the following columns:
 
-            :R:         The aperture radius
-            :Map3:      An estimate of :math:`\\langle M_{ap}^3\\rangle(R)`.
-                        cf. :meth:`~treecorr.GGCorrelation.calculateMap3`.
-            :Map2Mx:    An estimate of :math:`\\langle M_{ap}^2M_x\\rangle(R)`.
-            :MapMx2:    An estimate of :math:`\\langle M_{ap}M_x^2\\rangle(R)`.
-            :Mx3:       An estimate of :math:`\\langle M_x^3\\rangle(R)`.
-            :sig_map:   The sqrt of the variance estimate of :math:`\\langle M_{ap}^3\\rangle`
-                        (which is equal to the variance of the other three as well).
+        ==========      ===================================================
+        Column          Description
+        ==========      ===================================================
+        R               The aperture radius
+        Map3            An estimate of <M_ap^3>(R)  (cf. `calculateMap3`)
+        Map2Mx          An estimate of <M_ap^2 M_x>(R)
+        MapMx2          An estimate of <M_ap M_x^2>(R)
+        Mx3             An estimate of <M_x^3>(R)
+        sig_map         The sqrt of the variance estimate of each of these
+        ==========      ===================================================
 
-        :param file_name:   The name of the file to write to.
-        :param R:           The R values at which to calculate the statistics.
-                            (default: None, which means use self.rnom)
-        :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
-                            the type automatically from the extension of file_name.)
-        :param precision:   For ASCII output catalogs, the desired precision. (default: 4;
-                            this value can also be given in the constructor in the config dict.)
+        Parameters:
+            file_name (str):    The name of the file to write to.
+            R (array):          The R values at which to calculate the statistics.
+                                (default: None, which means use self.rnom)
+            file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
+                                the type automatically from the extension of file_name.)
+            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+                                this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing Map^3 from GGG correlations to %s',file_name)
 

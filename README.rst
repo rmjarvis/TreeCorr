@@ -52,25 +52,26 @@ Installation
 
 The easiest way to install TreeCorr is with pip::
 
-    sudo pip install TreeCorr
+    pip install treecorr
 
 If you have previously installed TreeCorr, and want to upgrade to a new
 released version, you should do::
 
-    sudo pip install TreeCorr --upgrade
+    pip install treecorr --upgrade
 
-To install TreeCorr on a system where you do not have sudo privileges,
-you can do::
+Depending on the write permissions of the python distribution for your specific
+system, you might need to use one of the following variants::
 
-    pip install TreeCorr --user
+    sudo pip install treecorr
+    pip install treecorr --user
 
-This installs the Python module into ``~/.local/lib/python3.7/site-packages``,
+The latter installs the Python module into ``~/.local/lib/python3.7/site-packages``,
 which is normally already in your PYTHONPATH, but it puts the executables
 ``corr2`` and ``corr3`` into ``~/.local/bin`` which is probably not in your PATH.
 To use these scripts, you should add this directory to your PATH.  If you would
 rather install into a different prefix rather than ~/.local, you can use::
 
-    pip install TreeCorr --install-option="--prefix=PREFIX"
+    pip install treecorr --install-option="--prefix=PREFIX"
 
 This would install the executables into ``PREFIX/bin`` and the Python module
 into ``PREFIX/lib/python3.7/site-packages``.
@@ -79,16 +80,19 @@ into ``PREFIX/lib/python3.7/site-packages``.
 If you would rather download the tarball and install TreeCorr yourself,
 that is also relatively straightforward:
 
-1. Dependencies: All dependencies should be installed automatically for you by
+1. Install dependencies
+^^^^^^^^^^^^^^^^^^^^^^^
+
+   All required dependencies should be installed automatically for you by
    setup.py, so you should not need to worry about these.  But if you are
    interested, the dependencies are:
 
-   - numpy
-   - pyyaml
-   - LSSTDESC.Coord
-   - cffi
+    - numpy
+    - pyyaml
+    - LSSTDESC.Coord
+    - cffi
 
-   They can all be installed by running::
+   They can all be installed at once by running::
 
         pip install -r requirements.txt
 
@@ -102,7 +106,7 @@ that is also relatively straightforward:
    installing cffi, including its libffi dependency.
 
 
-2. (optional) Install optional dependencies.
+.. note::
 
    Two additional modules are not required for basic TreeCorr operations, but are
    potentially useful.
@@ -119,7 +123,8 @@ that is also relatively straightforward:
    But they are not installed with TreeCorr automatically.
 
 
-3. Get the current released version from GitHub.
+2. Download TreeCorr
+^^^^^^^^^^^^^^^^^^^^
 
    You can download the latest tarball from::
 
@@ -135,7 +140,10 @@ that is also relatively straightforward:
    Either way, cd into the TreeCorr directory.
 
 
-4. Install with the normal setup.py options.  Typically this would be the
+3. Install
+^^^^^^^^^^
+
+   You can then install TreeCorr in the normal way with setup.py.  Typically this would be the
    command::
 
         python setup.py install
@@ -157,7 +165,10 @@ that is also relatively straightforward:
    to run these scripts.
 
 
-5. (optional) If you want to run the unit tests, you can do the following::
+4. Run Tests (optional)
+^^^^^^^^^^^^^^^^^^^^^^^
+
+   If you want to run the unit tests, you can do the following::
 
         pip install -r test_requirements.txt
         cd tests
@@ -168,7 +179,7 @@ that is also relatively straightforward:
 Two-point Correlations
 ----------------------
 
-This software is able to compute several varieties of two-point correlations:
+This software is able to compute a variety of two-point correlations:
 
 :NN:  The normal two-point correlation function of number counts (typically
       galaxy counts).
@@ -182,7 +193,7 @@ This software is able to compute several varieties of two-point correlations:
 :NG:  Cross-correlation of counts with shear.  This is what is often called
       galaxy-galaxy lensing.
 
-:NK:  Cross-correlation of counts with kappa.  Again, "kappa here can be any scalar
+:NK:  Cross-correlation of counts with kappa.  Again, "kappa" here can be any scalar
       quantity.
 
 :KG:  Cross-correlation of convergence with shear.  Like the NG calculation, but
@@ -192,13 +203,14 @@ This software is able to compute several varieties of two-point correlations:
 Three-point Correlations
 ------------------------
 
-This software is currently only able to compute three-point auto-correlations:
+This software is not yet able to compute three-point cross-correlations, so the
+only avaiable three-point correlations are:
 
 :NNN: Three-point correlation function of number counts.
 
 :GGG: Three-point shear correlation function.  We use the "natural components"
-      called Gamma, described by Schneider & Lombardi [Astron.Astrophys. 397
-      (2003) 809-818] using the triangle centroid as the reference point.
+      called Gamma, described by Schneider & Lombardi (2003) (Astron.Astrophys.
+      397, 809) using the triangle centroid as the reference point.
 
 :KKK: Three-point kappa correlation function.  Again, "kappa" here can be any
       scalar quantity.
@@ -214,10 +226,7 @@ which is the name of a configuration file::
     corr3 config_file
 
 A sample configuration file for corr2 is provided, called sample.params.
-See the TreeCorr wiki page
-
-https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters
-
+See the `TreeCorr wiki <https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters>`_
 for the complete documentation about the allowed parameters.
 
 You can also specify parameters on the command line after the name of
@@ -234,14 +243,15 @@ files.
 Using the Python module
 -----------------------
 
-Here we only give a quick overview.  There is also a `Jupyter notebook tutorial
-<https://github.com/rmjarvis/TreeCorr/blob/master/tests/Tutorial.ipynb>`_,
-with more details.  And for the complete details, see the `Sphinx-generated
-documentation <http://rmjarvis.github.io/TreeCorr/html/index.html>`_.
+The typical usage in python is in three stages:
 
-The TreeCorr module is called ``treecorr`` in Python.  Typical usage for
-computing the shear-shear correlation function looks something like the
-following::
+1. Define one or more Catalogs with the input data to be correlated.
+2. Define the correlation function that you want to perform on those data.
+3. Run the correlation by calling ``process``.
+4. Maybe write the results to a file or use them in some way.
+
+For instance, computing a shear-shear correlation from an input file stored
+in a fits file would look something like the following::
 
     >>> import treecorr
     >>> cat = treecorr.Catalog('cat.fits', ra_col='RA', dec_col='DEC',
@@ -253,38 +263,16 @@ following::
     >>> xip = gg.xip  # The xi_plus correlation function
     >>> xim = gg.xim  # The xi_minus correlation function
 
-The different correlation functions each have their own class.  You can
-access the Python documentation by calling help on the appropriate class
-to get more details about the different kwarg options, attributes, and
-methods for each::
+For more involved worked examples, see our `Jupyter notebook tutorial
+<https://github.com/rmjarvis/TreeCorr/blob/master/tests/Tutorial.ipynb>`_.
 
-    >>> help(NNCorrelation)
-    >>> help(GGCorrelation)
-    >>> help(KKCorrelation)
-    >>> help(NGCorrelation)
-    >>> help(NKCorrelation)
-    >>> help(KGCorrelation)
-    >>> help(NNNCorrelation)
-    >>> help(GGGCorrelation)
-    >>> help(KKKCorrelation)
+And for the complete details about all aspects of the code, see the `Sphinx-generated
+documentation <http://rmjarvis.github.io/TreeCorr/html/index.html>`_.
 
-You can also leverage the configuration file apparatus from within Python
-using a Python dict for the configuration parameters::
-
-    >>> import treecorr
-    >>> config = treecorr.read_config(config_file)
-    >>> config['file_name'] = 'file1.dat'
-    >>> config['gg_file_name'] = 'file1.out'
-    >>> treecorr.corr2(config)
-    >>> config['file_name'] = 'file2.dat'
-    >>> config['gg_file_name'] = 'file2.out'
-    >>> treecorr.corr2(config)
-
-However, the Python module gives you much more flexibility in how to specify
-the input and output, including going directly from and to numpy arrays within
-Python.  For a slightly longer "Getting Started" guide see the wiki page:
-
-https://github.com/rmjarvis/TreeCorr/wiki/Guide-to-using-TreeCorr-in-Python
+If you are used to using ``corr2`` with a configuration file,
+and want to learn how to do the same thing in pythonn, there is also a
+`guide <https://github.com/rmjarvis/TreeCorr/wiki/Guide-to-using-TreeCorr-in-Python>`_
+to migrating over.
 
 
 Reporting bugs
@@ -306,5 +294,3 @@ issue and fill in the details of the feature you would like added to TreeCorr.
 Or if there is already an issue for your desired feature, please add to the
 discussion, describing your use case.  The more people who say they want a
 feature, the more likely I am to get around to it sooner than later.
-
-

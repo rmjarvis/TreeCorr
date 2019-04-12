@@ -25,37 +25,40 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
     Ojects of this class holds the following attributes:
 
-        :nbins:     The number of bins in logr
-        :bin_size:  The size of the bins in logr
-        :min_sep:   The minimum separation being considered
-        :max_sep:   The maximum separation being considered
+    Attributes:
+        nbins:      The number of bins in logr
+        bin_size:   The size of the bins in logr
+        min_sep:    The minimum separation being considered
+        max_sep:    The maximum separation being considered
 
     In addition, the following attributes are numpy arrays of length (nbins):
 
-        :logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
-        :rnom:      The nominal center of the bin converted to regular distance.
-                    i.e. r = exp(logr).
-        :meanr:     The (weighted) mean value of r for the pairs in each bin.
-                    If there are no pairs in a bin, then exp(logr) will be used instead.
-        :meanlogr:  The (weighted) mean value of log(r) for the pairs in each bin.
-                    If there are no pairs in a bin, then logr will be used instead.
-        :xip:       The correlation function, :math:`\\xi_+(r)`.
-        :xim:       The correlation funciton, :math:`\\xi_-(r)`.
-        :xip_im:    The imaginary part of :math:`\\xi_+(r)`.
-        :xim_im:    The imaginary part of :math:`\\xi_-(r)`.
-        :varxip:    The variance of xip, only including the shape noise propagated into
-                    the final correlation.  This does not include sample variance, so it
-                    is always an underestimate of the actual variance.
-        :varxim:    The variance of xim, only including the shape noise propagated into
-                    the final correlation.  This does not include sample variance, so it
-                    is always an underestimate of the actual variance.
-        :weight:    The total weight in each bin.
-        :npairs:    The number of pairs going into each bin.
+    Attributes:
 
-    If `sep_units` are given (either in the config dict or as a named kwarg) then the distances
+        logr:       The nominal center of the bin in log(r) (the natural logarithm of r).
+        rnom:       The nominal center of the bin converted to regular distance.
+                    i.e. r = exp(logr).
+        meanr:      The (weighted) mean value of r for the pairs in each bin.
+                    If there are no pairs in a bin, then exp(logr) will be used instead.
+        meanlogr:   The (weighted) mean value of log(r) for the pairs in each bin.
+                    If there are no pairs in a bin, then logr will be used instead.
+        xip:        The correlation function, :math:`\\xi_+(r)`.
+        xim:        The correlation funciton, :math:`\\xi_-(r)`.
+        xip_im:     The imaginary part of :math:`\\xi_+(r)`.
+        xim_im:     The imaginary part of :math:`\\xi_-(r)`.
+        varxip:     The variance of xip, only including the shape noise propagated into
+                    the final correlation.  This does not include sample variance, so it
+                    is always an underestimate of the actual variance.
+        varxim:     The variance of xim, only including the shape noise propagated into
+                    the final correlation.  This does not include sample variance, so it
+                    is always an underestimate of the actual variance.
+        weight:     The total weight in each bin.
+        npairs:     The number of pairs going into each bin.
+
+    If **sep_units** are given (either in the config dict or as a named kwarg) then the distances
     will all be in these units.  Note however, that if you separate out the steps of the
-    :func:`process` command and use :func:`process_auto` and/or :func:`process_cross`, then the
-    units will not be applied to :meanr: or :meanlogr: until the :func:`finalize` function is
+    `process` command and use `process_auto` and/or `process_cross`, then the
+    units will not be applied to **meanr** or **meanlogr** until the `finalize` function is
     called.
 
     The typical usage pattern is as follows:
@@ -66,13 +69,14 @@ class GGCorrelation(treecorr.BinnedCorr2):
         >>> gg.write(file_name)     # Write out to a file.
         >>> xip = gg.xip            # Or access the correlation function directly.
 
-    :param config:      A configuration dict that can be used to pass in kwargs if desired.
+    Parameters:
+        config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have addition entries in addition to those listed
-                        in :class:`~treecorr.BinnedCorr2`, which are ignored here. (default: None)
-    :param logger:      If desired, a logger object for logging. (default: None, in which case
+                        in `BinnedCorr2`, which are ignored here. (default: None)
+        logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    See the documentation for :class:`~treecorr.BinnedCorr2` for the list of other allowed kwargs,
+    See the documentation for `BinnedCorr2` for the list of other allowed kwargs,
     which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
@@ -111,6 +115,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
                 treecorr._lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
 
     def __eq__(self, other):
+        """Return whether two GGCorrelations are equal"""
         return (isinstance(other, GGCorrelation) and
                 self.nbins == other.nbins and
                 self.bin_size == other.bin_size and
@@ -162,17 +167,17 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         This accumulates the weighted sums into the bins, but does not finalize
         the calculation by dividing by the total weight at the end.  After
-        calling this function as often as desired, the finalize() command will
+        calling this function as often as desired, the `finalize` command will
         finish the calculation.
 
-        :param cat:         The catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.GGCorrelation.process` for
-                            details.  (default: 'Euclidean'; this value can also be given in the
-                            constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.
-                            (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the
-                            system's C compiler is clang prior to version 3.7.
+        Parameters:
+            cat (Catalog):      The catalog to process
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
         """
         if cat.name == '':
             self.logger.info('Starting process GG auto-correlations')
@@ -198,18 +203,18 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         This accumulates the weighted sums into the bins, but does not finalize
         the calculation by dividing by the total weight at the end.  After
-        calling this function as often as desired, the finalize() command will
+        calling this function as often as desired, the `finalize` command will
         finish the calculation.
 
-        :param cat1:        The first catalog to process
-        :param cat2:        The second catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.GGCorrelation.process` for
-                            details.  (default: 'Euclidean'; this value can also be given in the
-                            constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.
-                            (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the
-                            system's C compiler is clang prior to version 3.7.
+        Parameters:
+            cat1 (Catalog):     The first catalog to process
+            cat2 (Catalog):     The second catalog to process
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process GG cross-correlations')
@@ -241,18 +246,18 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         This accumulates the weighted sums into the bins, but does not finalize
         the calculation by dividing by the total weight at the end.  After
-        calling this function as often as desired, the finalize() command will
+        calling this function as often as desired, the `finalize` command will
         finish the calculation.
 
-        :param cat1:        The first catalog to process
-        :param cat2:        The second catalog to process
-        :param metric:      Which metric to use.  See :meth:`~treecorr.GGCorrelation.process` for
-                            details.  (default: 'Euclidean'; this value can also be given in the
-                            constructor in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.
-                            (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the
-                            system's C compiler is clang prior to version 3.7.
+        Parameters:
+            cat1 (Catalog):     The first catalog to process
+            cat2 (Catalog):     The second catalog to process
+            metric (str):       Which metric to use.  See `process` for
+                                details.  (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process GG pairwise-correlations')
@@ -274,12 +279,13 @@ class GGCorrelation(treecorr.BinnedCorr2):
     def finalize(self, varg1, varg2):
         """Finalize the calculation of the correlation function.
 
-        The process_auto and process_cross commands accumulate values in each bin,
+        The `process_auto` and `process_cross` commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
         finishes the calculation by dividing each column by the total weight.
 
-        :param varg1:   The shear variance per component for the first field.
-        :param varg2:   The shear variance per component for the second field.
+        Parameters:
+            varg1 (float):  The shear variance per component for the first field.
+            varg2 (float):  The shear variance per component for the second field.
         """
         mask1 = self.weight != 0
         mask2 = self.weight == 0
@@ -319,9 +325,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
     def __iadd__(self, other):
         """Add a second GGCorrelation's data to this one.
 
-        Note: For this to make sense, both Correlation objects should have been using
-        process_auto and/or process_cross, and they should not have had finalize called yet.
-        Then, after adding them together, you should call finalize on the sum.
+        .. note::
+
+            For this to make sense, both Correlation objects should have been using
+            `process_auto` and/or `process_cross`, and they should not have had `finalize`
+            called yet.  Then, after adding them together, you should call `finalize` on the sum.
         """
         if not isinstance(other, GGCorrelation):
             raise TypeError("Can only add another GGCorrelation object")
@@ -351,17 +359,16 @@ class GGCorrelation(treecorr.BinnedCorr2):
         Both arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
 
-        :param cat1:    A catalog or list of catalogs for the first G field.
-        :param cat2:    A catalog or list of catalogs for the second G field, if any.
-                        (default: None)
-        :param metric:  Which metric to use for distance measurements.  Options are given
-                        in the doc string of :class:`~treecorr.BinnedCorr2`.
-                        (default: 'Euclidean'; this value can also be given in the constructor
-                        in the config dict.)
-        :param num_threads: How many OpenMP threads to use during the calculation.
-                            (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the
-                            system's C compiler is clang prior to version 3.7.
+        Parameters:
+            cat1 (Catalog):     A catalog or list of catalogs for the first G field.
+            cat2 (Catalog):     A catalog or list of catalogs for the second G field, if any.
+                                (default: None)
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
         """
         import math
         self.clear()
@@ -388,28 +395,32 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         The output file will include the following columns:
 
-            :R_nom:     The nominal center of the bin in R.
-            :meanR:     The mean value :math:`\\langle R\\rangle` of pairs that fell into each bin.
-            :meanlogR:  The mean value :math:`\\langle logR\\rangle` of pairs that fell into each
-                        bin.
-            :xip:       The real part of the :math:`\\xi_+` correlation function.
-            :xim:       The real part of the :math:`\\xi_-` correlation function.
-            :xip_im:    The imag part of the :math:`\\xi_+` correlation function.
-            :xim_im:    The imag part of the :math:`\\xi_-` correlation function.
-            :sigma_xip: The sqrt of the variance estimate of :math:`\\xi_+`.
-            :sigma_xim: The sqrt of the variance estimate of :math:`\\xi_-`.
-            :weight:    The total weight contributing to each bin.
-            :npairs:    The number of pairs contributing ot each bin.
+        =========       =========================================================
+        Column          Description
+        =========       =========================================================
+        r_nom           The nominal center of the bin in r
+        meanr           The mean value <r> of pairs that fell into each bin
+        meanlogr        The mean value <log(r)> of pairs that fell into each bin
+        xip             The real part of the :math:`\\xi_+` correlation function
+        xim             The real part of the :math:`\\xi_-` correlation function
+        xip_im          The imag part of the :math:`\\xi_+` correlation function
+        xim_im          The imag part of the :math:`\\xi_-` correlation function
+        sigma_xip       The sqrt of the variance estimate of :math:`\\xi_+`
+        sigma_xim       The sqrt of the variance estimate of :math:`\\xi_-`
+        weight          The total weight contributing to each bin
+        npairs          The number of pairs contributing ot each bin
+        =========       =========================================================
 
-        If `sep_units` was given at construction, then the distances will all be in these units.
+        If **sep_units** was given at construction, then the distances will all be in these units.
         Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
         radians (for spherical coordinates).
 
-        :param file_name:   The name of the file to write to.
-        :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
-                            the type automatically from the extension of file_name.)
-        :param precision:   For ASCII output catalogs, the desired precision. (default: 4;
-                            this value can also be given in the constructor in the config dict.)
+        Parameters:
+            file_name (str):    The name of the file to write to.
+            file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
+                                the type automatically from the extension of file_name.)
+            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+                                this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing GG correlations to %s',file_name)
 
@@ -440,9 +451,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
         parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
         checked by the read function.
 
-        :param file_name:   The name of the file to read in.
-        :param file_type:   The type of file ('ASCII' or 'FITS').  (default: determine the type
-                            automatically from the extension of file_name.)
+        Parameters:
+            file_name (str):    The name of the file to read in.
+            file_type (str):    The type of file ('ASCII' or 'FITS').  (default: determine the type
+                                automatically from the extension of file_name.)
         """
         self.logger.info('Reading GG correlations from %s',file_name)
 
@@ -488,10 +500,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
             \\left [ T_+\\left(\\frac{r}{R}\\right) \\xi_+(r) -
             T_-\\left(\\frac{r}{R}\\right) \\xi_-(r) \\right]
 
-        The m2_uform parameter sets which definition of the aperture mass to use.
+        The **m2_uform** parameter sets which definition of the aperture mass to use.
         The default is to use 'Crittenden'.
 
-        If m2_uform == 'Crittenden':
+        If **m2_uform** is 'Crittenden':
 
         .. math::
 
@@ -503,14 +515,14 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         cf. Crittenden, et al (2002): ApJ, 568, 20
 
-        If m2_uform == 'Schneider':
+        If **m2_uform** is 'Schneider':
 
         .. math::
 
             U(r) &= \\frac{9}{\\pi} (1-r^2) (1/3-r^2) \\\\
             Q(r) &= \\frac{6}{\\pi} r^2 (1-r^2) \\\\
-            T_+(s) &= \\frac{12}{5\\pi} (2-15s^2) \\arccos(s/2)
-            + \\frac{1}{100\\pi} s \\sqrt{4-s^2} (120 + 2320s^2 - 754s^4 + 132s^6 - 9s^8) \\\\
+            T_+(s) &= \\frac{12}{5\\pi} (2-15s^2) \\arccos(s/2) \\\\
+            &\qquad + \\frac{1}{100\\pi} s \\sqrt{4-s^2} (120 + 2320s^2 - 754s^4 + 132s^6 - 9s^8) \\\\
             T_-(s) &= \\frac{3}{70\\pi} s^3 (4-s^2)^{7/2} \\\\
             rmax &= 2R
 
@@ -521,13 +533,23 @@ class GGCorrelation(treecorr.BinnedCorr2):
             This function is only implemented for Log binning.
 
 
-        :param R:           The R values at which to calculate the aperture mass statistics.
+        Parameters:
+            R (array):      The R values at which to calculate the aperture mass statistics.
                             (default: None, which means use self.rnom)
-        :param m2_uform:    Which form to use for the aperture mass, as described above.
+            m2_uform (str): Which form to use for the aperture mass, as described above.
                             (default: 'Crittenden'; this value can also be given in the
                             constructor in the config dict.)
 
-        :returns:           (mapsq, mapsq_im, mxsq, mxsq_im, varmapsq) as a tuple
+        Returns:
+            Tuple containing
+
+                - mapsq = array of :math:`\\langle M_{ap}^2 \\rangle(R)`
+                - mapsq_im = the imaginary part of mapsq, which is an estimate of
+                  :math:`\\langle M_{ap} M_\\times \\rangle(R)`
+                - mxsq = array of :math:`\\langle M_\\times^2 \\rangle(R)`
+                - mxsq_im = the imaginary part of mxsq, which is an estimate of
+                  :math:`\\langle M_{ap} M_\\times \\rangle(R)`
+                - varmapsq = array of the variance estimate of either mapsq or mxsq
         """
         if m2_uform is None:
             m2_uform = treecorr.config.get(self.config,'m2_uform',str,'Crittenden')
@@ -605,13 +627,21 @@ class GGCorrelation(treecorr.BinnedCorr2):
             This function is only implemented for Log binning.
 
 
-        :param R:       The R values at which to calculate the shear variance.
+        Parameters:
+            R (array):  The R values at which to calculate the shear variance.
                         (default: None, which means use self.rnom)
-        :param eb:      Whether to include the E/B decomposition as well as the total
+            eb (bool):  Whether to include the E/B decomposition as well as the total
                         :math:`\\langle \\gamma^2\\rangle`.  (default: False)
 
-        :returns:       (gamsq, vargamsq) if `eb == False` or
-                        (gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e)  if `eb == True`
+        Returns:
+            Tuple containing
+
+                - gamsq = array of :math:`\\langle \\gamma^2 \\rangle(R)`
+                - vargamsq = array of the variance estimate of gamsq
+                - gamsq_e  (Only if eb is True) = array of :math:`\\langle \\gamma^2 \\rangle_E(R)`
+                - gamsq_b  (Only if eb is True) = array of :math:`\\langle \\gamma^2 \\rangle_B(R)`
+                - vargamsq_e  (Only if eb is True) = array of the variance estimate of
+                  gamsq_e or gamsq_b
         """
         if self.bin_type is not 'Log':
             raise ValueError("calculateGamSq requires Log binning.")
@@ -631,7 +661,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         gamsq = Spxip * self.bin_size
         vargamsq = (Sp**2).dot(self.varxip) * self.bin_size**2
 
-        # Stop here if eb == False
+        # Stop here if eb is False
         if not eb: return gamsq, vargamsq
 
         Sm = np.empty_like(s)
@@ -653,35 +683,33 @@ class GGCorrelation(treecorr.BinnedCorr2):
         """Write the aperture mass statistics based on the correlation function to the
         file, file_name.
 
-        See :meth:`~treecorr.GGCorrelation.calculateMapSq` for an explanation of the m2_uform
-        parameter.
+        See `calculateMapSq` for an explanation of the **m2_uform** parameter.
 
         The output file will include the following columns:
 
-            :R:         The aperture radius
-            :Mapsq:     The real part of :math:`\\langle M_{ap}^2\\rangle`.
-                        cf. :meth:`~treecorr.GGCorrelation.calculateMapSq`.
-            :Mxsq:      The real part of :math:`\\langle M_x^2\\rangle`.
-            :MMxa:      The imag part of :math:`\\langle M_{ap}^2\\rangle`.
-                        This is one of two estimators of :math:`\\langle M_{ap} M_x\\rangle`.
-            :MMxb:      The imag part of :math:`-\\langle M_x^2\\rangle`.
-                        This is the second estimator of :math:`\\langle M_{ap} M_x\\rangle`.
-            :sig_map:   The sqrt of the variance estimate of :math:`\\langle M_{ap}^2\\rangle`
-                        (which is equal to the variance of :math:`\\langle M_x^2\\rangle` as well).
-            :Gamsq:     The tophat shear variance :math:`\\langle \\gamma^2\\rangle`.
-                        cf. :meth:`~treecorr.GGCorrelation.calculateGamSq`.
-            :sig_gam:   The sqrt of the variance estimate of :math:`\\langle \\gamma^2\\rangle`
+        =========       ==========================================================
+        Column          Description
+        =========       ==========================================================
+        R               The aperture radius
+        Mapsq           The real part of <M_ap^2> (cf. `calculateMapSq`)
+        Mxsq            The real part of <M_x^2>
+        MMxa            The imag part of <M_ap^2>: an estimator of <M_ap Mx>
+        MMxa            The imag part of <M_x^2>: an estimator of <M_ap Mx>
+        sig_map         The sqrt of the variance estimate of <M_ap^2>
+        Gamsq           The tophat shear variance <gamma^2> (cf. `calculateGamSq`)
+        sig_gam         The sqrt of the variance estimate of <gamma^2>
+        =========       ==========================================================
 
-
-        :param file_name:   The name of the file to write to.
-        :param R:           The R values at which to calculate the statistics.
-                            (default: None, which means use self.rnom)
-        :param m2_uform:    Which form to use for the aperture mass.  (default: 'Crittenden';
-                            this value can also be given in the constructor in the config dict.)
-        :param file_type:   The type of file to write ('ASCII' or 'FITS').  (default: determine
-                            the type automatically from the extension of file_name.)
-        :param precision:   For ASCII output catalogs, the desired precision. (default: 4;
-                            this value can also be given in the constructor in the config dict.)
+        Parameters:
+            file_name (str):    The name of the file to write to.
+            R (array):          The R values at which to calculate the statistics.
+                                (default: None, which means use self.rnom)
+            m2_uform (str):     Which form to use for the aperture mass.  (default: 'Crittenden';
+                                this value can also be given in the constructor in the config dict.)
+            file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
+                                the type automatically from the extension of file_name.)
+            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+                                this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing Map^2 from GG correlations to %s',file_name)
 

@@ -31,34 +31,34 @@ class Field(object):
     calculation of the correlation functions.
 
     The root "cell" in the tree has information about the whole field, including the total
-    number of points, the total weight, the mean position, the size (by whcih we mean the
+    number of points, the total weight, the mean position, the size (by which we mean the
     maximum distance of any point from the mean position), and possibly more information depending
     on which kind of field we have.
 
     It also points to two sub-cells which each describe about half the points.  These are commonly
     referred to as "daughter cells".  They in turn point to two more cells each, and so on until
-    we get to cells that are considered "small enough" according to the `min_size` parameter given
+    we get to cells that are considered "small enough" according to the **min_size** parameter given
     in the constructor.  These lowest level cells are referred to as "leaves".
 
     Technically, a Field doesn't have just one of these trees.  To make parallel computation
     more efficient, we actually skip the first few layers of the tree as described above and
     store a list of root cells.  The three parameters that determine how many of these there
-    will be are `max_size`, `min_top`, and `max_top`::
+    will be are **max_size**, **min_top**, and **max_top**:
 
-        - `max_size` sets the maximum size cell that we want to make sure we have in the trees,
+        - **max_size** sets the maximum size cell that we want to make sure we have in the trees,
           so the root cells will be at least this large.  The default is None, which means
           we care about all sizes, so there may be only one root cell (but typically more
-          because of `min_top`).
-        - `min_top` sets the minimum number of initial levels to skip.  The default is 3,
+          because of **min_top**).
+        - **min_top** sets the minimum number of initial levels to skip.  The default is 3,
           which means there will be at least 8 root cells (assuming ntot >= 8).
-        - `max_top` sets the maximum number of initial levels to skip.  The default is 10,
+        - **max_top** sets the maximum number of initial levels to skip.  The default is 10,
           which means there could be up to 1024 root cells.
 
-    Finally, the `split_method` parameter sets how the points in a cell should be divided
+    Finally, the **split_method** parameter sets how the points in a cell should be divided
     when forming the two daughter cells.  The split is always done according to whichever
     dimension has the largest extent.  E.g. if max(\|x - meanx\|) is larger than max(\|y - meany\|)
     and (for 3d) max(\|z - meanz\|), then it will split according to the x values.  But then
-    it may split in different ways according to `split_method`.  The allowed values are::
+    it may split in different ways according to **split_method**.  The allowed values are:
 
         - 'mean' means to divide the points at the average (mean) value of x, y or z.
         - 'median' means to divide the points at the median value of x, y, or z.
@@ -82,11 +82,17 @@ class Field(object):
 
     @property
     def nTopLevelNodes(self):
-        """The number of top-level nodes."""
+        """The number of top-level nodes.
+        """
         return treecorr._lib.FieldGetNTopLevel(self.data, self._d, self._coords)
 
     @property
     def cat(self):
+        """The catalog from which this field was constructed.
+
+        It is stored as a weakref, so if the Catalog has already been garbage collected, this
+        might be None.
+        """
         # _cat is a weakref.  This gets back to a Catalog object.
         return self._cat()
 
@@ -99,31 +105,42 @@ class Field(object):
         There are several options for how to specify the reference coordinate, which depends
         on the type of coordinate system this field implements.
 
-        1. If self.coords == 'flat', you should provide:
+        1. For flat 2-dimensional coordinates:
 
-            :param x:       The x coordinate of the location for which to count nearby points.
-            :param y:       The y coordinate of the location for which to count nearby points.
-            :param sep:     The separation distance
+        Parameters:
+            x (float):       The x coordinate of the target location
+            y (float):       The y coordinate of the target location
+            sep (float):     The separation distance
 
-        2. If self.coords == '3d', you should provide:
+        2. For 3-dimensional Cartesian coordinates:
 
-        Either
-            :param x:       The x coordinate of the location for which to count nearby points.
-            :param y:       The y coordinate of the location for which to count nearby points.
-            :param z:       The z coordinate of the location for which to count nearby points.
-            :param sep:     The separation distance
+        Parameters:
+            x (float):       The x coordinate of the target location
+            y (float):       The y coordinate of the target location
+            z (float):       The z coordinate of the target location
+            sep (float):     The separation distance
 
-        Or
-            :param ra:      The right ascension of the location for which to count nearby points.
-            :param dec:     The declination of the location for which to count nearby points.
-            :param r:       The distance to the location for which to count nearby points.
-            :param sep:     The separation distance
+        3. For spherical coordinates:
 
-        3. If self.coords == 'spherical', you should provide:
+        Parameters:
+            ra (float or Angle):    The right ascension of the target location
+            dec (float or Angle):   The declination of the target location
+            c (CelestialCorod):     A coord.CelestialCoord object in lieu of (ra, dec)
+            sep (float or Angle):   The separation distance
+            ra_units (str):         The units of ra if given as a float
+            dec_units (str):        The units of dec if given as a float
+            sep_units (str):        The units of sep if given as a float
 
-            :param ra:      The right ascension of the location for which to count nearby points.
-            :param dec:     The declination of the location for which to count nearby points.
-            :param sep:     The separation distance as an angle
+        4. For spherical coordinates with distances:
+
+        Parameters:
+            ra (float or Angle):    The right ascension of the target location
+            dec (float or Angle):   The declination of the target location
+            c (CelestialCorod):     A coord.CelestialCoord object in lieu of (ra, dec)
+            r (float):              The distance to the target location
+            sep (float):            The separation distance
+            ra_units (str):         The units of ra if given as a float
+            dec_units (str):        The units of dec if given as a float
 
         In all cases, for parameters that angles (ra, dec, sep for 'spherical'), you may either
         provide this quantity as a coord.Angle instance, or you may provide ra_units, dec_units
@@ -156,31 +173,42 @@ class Field(object):
         There are several options for how to specify the reference coordinate, which depends
         on the type of coordinate system this field implements.
 
-        1. If self.coords == 'flat', you should provide:
+        1. For flat 2-dimensional coordinates:
 
-            :param x:       The x coordinate of the location for which to count nearby points.
-            :param y:       The y coordinate of the location for which to count nearby points.
-            :param sep:     The separation distance
+        Parameters:
+            x (float):       The x coordinate of the target location
+            y (float):       The y coordinate of the target location
+            sep (float):     The separation distance
 
-        2. If self.coords == '3d', you should provide:
+        2. For 3-dimensional Cartesian coordinates:
 
-        Either
-            :param x:       The x coordinate of the location for which to count nearby points.
-            :param y:       The y coordinate of the location for which to count nearby points.
-            :param z:       The z coordinate of the location for which to count nearby points.
-            :param sep:     The separation distance
+        Parameters:
+            x (float):       The x coordinate of the target location
+            y (float):       The y coordinate of the target location
+            z (float):       The z coordinate of the target location
+            sep (float):     The separation distance
 
-        Or
-            :param ra:      The right ascension of the location for which to count nearby points.
-            :param dec:     The declination of the location for which to count nearby points.
-            :param r:       The distance to the location for which to count nearby points.
-            :param sep:     The separation distance
+        3. For spherical coordinates:
 
-        3. If self.coords == 'spherical', you should provide:
+        Parameters:
+            ra (float or Angle):    The right ascension of the target location
+            dec (float or Angle):   The declination of the target location
+            c (CelestialCorod):     A coord.CelestialCoord object in lieu of (ra, dec)
+            sep (float or Angle):   The separation distance
+            ra_units (str):         The units of ra if given as a float
+            dec_units (str):        The units of dec if given as a float
+            sep_units (str):        The units of sep if given as a float
 
-            :param ra:      The right ascension of the location for which to count nearby points.
-            :param dec:     The declination of the location for which to count nearby points.
-            :param sep:     The separation distance as an angle
+        4. For spherical coordinates with distances:
+
+        Parameters:
+            ra (float or Angle):    The right ascension of the target location
+            dec (float or Angle):   The declination of the target location
+            c (CelestialCorod):     A coord.CelestialCoord object in lieu of (ra, dec)
+            r (float):              The distance to the target location
+            sep (float):            The separation distance
+            ra_units (str):         The units of ra if given as a float
+            dec_units (str):        The units of dec if given as a float
 
         In all cases, for parameters that angles (ra, dec, sep for 'spherical'), you may either
         provide this quantity as a coord.Angle instance, or you may provide ra_units, dec_units

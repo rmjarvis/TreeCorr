@@ -29,12 +29,12 @@ class BinnedCorr2(object):
     helper functions that derived classes can use to help perform their calculations.  See
     the derived classes for more details:
 
-    - :class:`~treecorr.GGCorrelation` handles shear-shear correlation functions
-    - :class:`~treecorr.NNCorrelation` handles count-count correlation functions
-    - :class:`~treecorr.KKCorrelation` handles kappa-kappa correlation functions
-    - :class:`~treecorr.NGCorrelation` handles count-shear correlation functions
-    - :class:`~treecorr.NKCorrelation` handles count-kappa correlation functions
-    - :class:`~treecorr.KGCorrelation` handles kappa-shear correlation functions
+    - `GGCorrelation` handles shear-shear correlation functions
+    - `NNCorrelation` handles count-count correlation functions
+    - `KKCorrelation` handles kappa-kappa correlation functions
+    - `NGCorrelation` handles count-shear correlation functions
+    - `NKCorrelation` handles count-kappa correlation functions
+    - `KGCorrelation` handles kappa-shear correlation functions
 
     Note that when we refer to kappa in the correlation function, that is because I
     come from a weak lensing perspective.  But really any scalar quantity may be used
@@ -46,27 +46,23 @@ class BinnedCorr2(object):
     then you can use normal kwargs, which take precedence over anything in the config dict.
 
     There are a number of possible definitions for the distance between two points, which
-    are appropriate for different use cases.  These are specified by the :metric: parameter.
+    are appropriate for different use cases.  These are specified by the **metric** parameter.
     The possible options are:
 
-        - 'Euclidean' = straight line Euclidean distance between two points.  For spherical
-          coordinates (ra,dec without r), this is the chord distance between points on the
-          unit sphere.
+        - 'Euclidean' = straight line Euclidean distance between two points.
         - 'FisherRperp' = the perpendicular component of the distance, following the
-          definitions in Fisher et al, 1994 (MNRAS, 267, 927). For two points with vector
-          positions from Earth `r1, r2`, if :math:`r` is the vector :math:`r2-r1` and
-          :math:`L = (r1+r2)/2`, then we take :math:`Rpar = L \cdot r / |L|` and
-          :math:`Rperp^2 = d^2 - Rpar^2`.
-        - 'OldRperp' = the perpendicular component of the distance. For two points with
-          distance from Earth `r1, r2`, if `d` is the normal Euclidean distance, then we
-          take :math:`Rpar = r2-r1` and :math:`Rperp^2 = d^2 - Rpar^2`.
-        - 'Rperp' is an alias for FisherRperp.  You can change it to be an alias for
-          OldRperp if you want by setting `treecorr.Rperp_alias = 'OldRperp'` before
+          definitions in Fisher et al, 1994 (MNRAS, 267, 927).
+        - 'OldRperp' = the perpendicular component of the distance using the definition
+          of Rperp from TreeCorr v3.x.
+        - 'Rperp' = an alias for FisherRperp.  You can change it to be an alias for
+          OldRperp if you want by setting ``treecorr.Rperp_alias = 'OldRperp'`` before
           using it.
         - 'Rlens' = the distance from the first object (taken to be a lens) to the line
           connecting Earth and the second object (taken to be a lensed source).
         - 'Arc' = the true great circle distance for spherical coordinates.
         - 'Periodic' = Like Euclidean, but with periodic boundaries.
+
+    See `Metrics` for more information about these various metric options.
 
     There are also a few different possibile binning prescriptions to define the range of
     distances, which should be placed into each bin.
@@ -79,109 +75,116 @@ class BinnedCorr2(object):
           y = (-max_sep .. max_sep).  The bin steps will be uniform in both x and y.
           (i.e. linear in x,y)
 
+    See `Binning` for more information about the different binning options.
 
-    :param config:      A configuration dict that can be used to pass in the below kwargs if
-                        desired.  This dict is allowed to have addition entries in addition
-                        to those listed below, which are ignored here. (default: NoneP
-    :param logger:      If desired, a logger object for logging. (default: None, in which case
-                        one will be built according to the config dict's verbose level.)
+    Parameters:
+        config (dict):      A configuration dict that can be used to pass in the below kwargs if
+                            desired.  This dict is allowed to have addition entries in addition
+                            to those listed below, which are ignored here. (default: None)
+        logger:             If desired, a logger object for logging. (default: None, in which case
+                            one will be built according to the config dict's verbose level.)
 
-    The following parameters may be given either in the config dict or as a named kwarg:
+    Keyword Arguments:
 
-    :param nbins:       How many bins to use. (Exactly three of nbins, bin_size, min_sep, max_sep
-                        are required. If nbins is not given, it will be calculated from the values
-                        of the other three, rounding up to the next highest integer. In this case,
-                        bin_size will be readjusted to account for this rounding up.)
-    :param bin_size:    The width of the bins in log(separation). (Exactly three of nbins,
-                        bin_size, min_sep, max_sep are required.  If bin_size is not given, it will
-                        be calculated from the values of the other three.)
-    :param min_sep:     The minimum separation in units of sep_units, if relevant. (Exactly three
-                        of nbins, bin_size, min_sep, max_sep are required.  If min_sep is not
-                        given, it will be calculated from the values of the other three.)
-    :param max_sep:     The maximum separation in units of sep_units, if relevant. (Exactly three
-                        of nbins, bin_size, min_sep, max_sep are required.  If max_sep is not
-                        given, it will be calculated from the values of the other three.
+        nbins (int):        How many bins to use. (Exactly three of nbins, bin_size, min_sep,
+                            max_sep are required. If nbins is not given, it will be calculated from
+                            the values of the other three, rounding up to the next highest integer.
+                            In this case, bin_size will be readjusted to account for this rounding
+                            up.)
+        bin_size (float):   The width of the bins in log(separation). (Exactly three of nbins,
+                            bin_size, min_sep, max_sep are required.  If bin_size is not given, it
+                            will be calculated from the values of the other three.)
+        min_sep (float):    The minimum separation in units of sep_units, if relevant. (Exactly
+                            three of nbins, bin_size, min_sep, max_sep are required.  If min_sep is
+                            not given, it will be calculated from the values of the other three.)
+        max_sep (float):    The maximum separation in units of sep_units, if relevant. (Exactly
+                            three of nbins, bin_size, min_sep, max_sep are required.  If max_sep is
+                            not given, it will be calculated from the values of the other three.
 
-    :param sep_units:   The units to use for the separation values, given as a string.  This
-                        includes both min_sep and max_sep above, as well as the units of the
-                        output distance values.  Valid options are arcsec, arcmin, degrees, hours,
-                        radians.  (default: radians if angular units make sense, but for 3-d
-                        or flat 2-d positions, the default will just match the units of x,y[,z]
-                        coordinates)
-    :param bin_slop:    How much slop to allow in the placement of pairs in the bins.
-                        If bin_slop = 1, then the bin into which a particular pair is placed may
-                        be incorrect by at most 1.0 bin widths.  (default: None, which means to
-                        use a bin_slop that gives a maximum error of 10% on any bin, which has
-                        been found to yield good results for most application.
-    :param brute:       Whether to use the "brute force" algorithm.  (default: False) Options are:
+        sep_units (str):    The units to use for the separation values, given as a string.  This
+                            includes both min_sep and max_sep above, as well as the units of the
+                            output distance values.  Valid options are arcsec, arcmin, degrees,
+                            hours, radians.  (default: radians if angular units make sense, but for
+                            3-d or flat 2-d positions, the default will just match the units of
+                            x,y[,z] coordinates)
+        bin_slop (float):   How much slop to allow in the placement of pairs in the bins.
+                            If bin_slop = 1, then the bin into which a particular pair is placed
+                            may be incorrect by at most 1.0 bin widths.  (default: None, which
+                            means to use a bin_slop that gives a maximum error of 10% on any bin,
+                            which has been found to yield good results for most application.
+        brute (bool):       Whether to use the "brute force" algorithm.  (default: False) Options
+                            are:
 
-                        - False (the default): Stop at non-leaf cells whenever the error in the
-                          separation is compatible with the given bin_slop.
-                        - True: Go to the leaves for both catalogs.
-                        - 1: Always go to the leaves for cat1, but stop at non-leaf cells of cat2
-                          when the error is compatible with the given bin_slop.
-                        - 2: Always go to the leaves for cat2, but stop at non-leaf cells of cat1
-                          when the error is compatible with the given bin_slop.
+                             - False (the default): Stop at non-leaf cells whenever the error in
+                               the separation is compatible with the given bin_slop.
+                             - True: Go to the leaves for both catalogs.
+                             - 1: Always go to the leaves for cat1, but stop at non-leaf cells of
+                               cat2 when the error is compatible with the given bin_slop.
+                             - 2: Always go to the leaves for cat2, but stop at non-leaf cells of
+                               cat1 when the error is compatible with the given bin_slop.
 
-    :param verbose:     If no logger is provided, this will optionally specify a logging level to
-                        use:
+        verbose (int):      If no logger is provided, this will optionally specify a logging level
+                            to use:
 
-                        - 0 means no logging output
-                        - 1 means to output warnings only (default)
-                        - 2 means to output various progress information
-                        - 3 means to output extensive debugging information
+                             - 0 means no logging output
+                             - 1 means to output warnings only (default)
+                             - 2 means to output various progress information
+                             - 3 means to output extensive debugging information
 
-    :param log_file:    If no logger is provided, this will specify a file to write the logging
-                        output.  (default: None; i.e. output to standard output)
-    :param output_dots: Whether to output progress dots during the calcualtion of the correlation
-                        function. (default: False unless verbose is given and >= 2, in which case
-                        True)
+        log_file (str):     If no logger is provided, this will specify a file to write the logging
+                            output.  (default: None; i.e. output to standard output)
+        output_dots (boo):  Whether to output progress dots during the calcualtion of the
+                            correlation function. (default: False unless verbose is given and >= 2,
+                            in which case True)
 
-    :param split_method: How to split the cells in the tree when building the tree structure.
-                        Options are:
+        split_method (str): How to split the cells in the tree when building the tree structure.
+                            Options are:
 
-                        - mean = Use the arithmetic mean of the coordinate being split. (default)
-                        - median = Use the median of the coordinate being split.
-                        - middle = Use the middle of the range; i.e. the average of the minimum and
-                          maximum value.
-                        - random: Use a random point somewhere in the middle two quartiles of the
-                          range.
+                            - mean = Use the arithmetic mean of the coordinate being split.
+                              (default)
+                            - median = Use the median of the coordinate being split.
+                            - middle = Use the middle of the range; i.e. the average of the minimum
+                              and maximum value.
+                            - random: Use a random point somewhere in the middle two quartiles of
+                              the range.
 
-    :param min_top:     The minimum number of top layers to use when setting up the field.
-                        (default: 3)
-    :param max_top:     The maximum number of top layers to use when setting up the field.
-                        The top-level cells are the cells where each calculation job starts.
-                        There will typically be of order 2^max_top top-level cells. (default: 10)
-    :param precision:   The precision to use for the output values. This should be an integer,
-                        which specifies how many digits to write. (default: 4)
-    :param pairwise:    Whether to use a different kind of calculation for cross correlations
-                        whereby corresponding items in the two catalogs are correlated pairwise
-                        rather than the usual case of every item in one catalog being correlated
-                        with every item in the other catalog. (default: False)
-    :param m2_uform:    The default functional form to use for aperture mass calculations.  See
-                        :GGCorrelation.calculateMapSq: for more details. (default: 'Crittenden')
+        min_top (int):      The minimum number of top layers to use when setting up the field.
+                            (default: 3)
+        max_top (int):      The maximum number of top layers to use when setting up the field.
+                            The top-level cells are where each calculation job starts. There will
+                            typically be of order 2^max_top top-level cells. (default: 10)
+        precision (int):    The precision to use for the output values. This specifies how many
+                            digits to write. (default: 4)
+        pairwise (bool):    Whether to use a different kind of calculation for cross correlations
+                            whereby corresponding items in the two catalogs are correlated pairwise
+                            rather than the usual case of every item in one catalog being correlated
+                            with every item in the other catalog. (default: False)
+        m2_uform (str):     The default functional form to use for aperture mass calculations.
+                            see `calculateMapSq` for more details.  (default: 'Crittenden')
 
-    :param metric:      Which metric to use for distance measurements.  Options are listed above.
-                        (default: 'Euclidean')
-    :param bin_type:    What type of binning should be used.  Options are listed above.
-                        (default: 'Log')
-    :param min_rpar:    For any metric that supports it, the minimum difference in Rparallel to
-                        allow for pairs being included in the correlation function. (default: None)
-    :param max_rpar:    For any metric that supports it,, the maximum difference in Rparallel to
-                        allow for pairs being included in the correlation function. (default: None)
-    :param period:      For the 'Periodic' metric, the period to use in the all directions.
-                        (default: None)
-    :param xperiod:     For the 'Periodic' metric, the period to use in the x direction.
-                        (default: period)
-    :param yperiod:     For the 'Periodic' metric, the period to use in the y direction.
-                        (default: period)
-    :param zperiod:     For the 'Periodic' metric, the period to use in the z direction.
-                        (default: period)
+        metric (str):       Which metric to use for distance measurements.  Options are listed
+                            above.  (default: 'Euclidean')
+        bin_type (str):     What type of binning should be used.  Options are listed above.
+                            (default: 'Log')
+        min_rpar (float):   For any metric that supports it, the minimum difference in Rparallel
+                            to allow for pairs being included in the correlation function.
+                            (default: None)
+        max_rpar (float):   For any metric that supports it,, the maximum difference in Rparallel
+                            to allow for pairs being included in the correlation function.
+                            (default: None)
+        period (float):     For the 'Periodic' metric, the period to use in all directions.
+                            (default: None)
+        xperiod (float):    For the 'Periodic' metric, the period to use in the x direction.
+                            (default: period)
+        yperiod (float):    For the 'Periodic' metric, the period to use in the y direction.
+                            (default: period)
+        zperiod (float):    For the 'Periodic' metric, the period to use in the z direction.
+                            (default: period)
 
-    :param num_threads: How many OpenMP threads to use during the calculation.
-                        (default: use the number of cpu cores; this value can also be given in
-                        the constructor in the config dict.) Note that this won't work if the
-                        system's C compiler is clang prior to version 3.7.
+        num_threads (int):  How many OpenMP threads to use during the calculation.
+                            (default: use the number of cpu cores; this value can also be given in
+                            the constructor in the config dict.) Note that this won't work if the
+                            system's C compiler cannot use OptnMP (e.g. clang prior to version 3.7.)
     """
     _valid_params = {
         'nbins' : (int, False, None, None,
@@ -551,18 +554,24 @@ class BinnedCorr2(object):
         requirement that this correlation instance has already accumulated pairs via a call
         to process with these catalogs.
 
-        :param n:           How many samples to return.
-        :param cat1:        The catalog from which to sample the first object of each pair.
-        :param cat2:        The catalog from which to sample the second object of each pair.
-                            (This may be the same as cat1.)
-        :param min_sep:     The minimum separation for the returned pairs (modulo some slop
-                            allowed by the bin_slop parameter).
-        :param max_sep:     The maximum separation for the returned pairs (modulo some slop
-                            allowed by the bin_slop parameter).
-        :param metric:      Which metric to use.  See :meth:`~treecorr.NNCorrelation.process` for
-                            details.  (default: self.metric, or 'Euclidean' if not set yet)
+        Parameters:
+            n (int):            How many samples to return.
+            cat1 (Catalog):     The catalog from which to sample the first object of each pair.
+            cat2 (Catalog):     The catalog from which to sample the second object of each pair.
+                                (This may be the same as cat1.)
+            min_sep (float):    The minimum separation for the returned pairs (modulo some slop
+                                allowed by the bin_slop parameter).
+            max_sep (float):    The maximum separation for the returned pairs (modulo some slop
+                                allowed by the bin_slop parameter).
+            metric (str):       Which metric to use.  See `Metrics` for details.  (default:
+                                self.metric, or 'Euclidean' if not set yet)
 
-        :returns: (i1, i2, sep) as a tuple of numpy arrays
+        Returns:
+            Tuple containing
+
+                - i1 (array): indices of objects from cat1
+                - i2 (array): indices of objects from cat2
+                - sep (array): separations of the pairs of objects (i1,i2)
         """
         from .util import long_ptr as lp
         from .util import double_ptr as dp

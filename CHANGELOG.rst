@@ -158,3 +158,10 @@ Bug fixes
 - Fixed the Catalog.copy() method, which wasn't working properly.
 - Fixed an error in the Schneider NMap calculation. (#77)
 - Fixed a factor of 2 missing in the estimate of varxi. (#72)
+
+
+Changes from version 4.0.0 to 4.0.1
+===================================
+
+- Fixed an error in the installation when the compiler is not recognized that
+  would cause it to go into an infinite loop.

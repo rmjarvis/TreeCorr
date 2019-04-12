@@ -73,7 +73,7 @@ if "--debug" in sys.argv:
 
 local_tmp = 'tmp'
 
-def get_compiler(cc):
+def get_compiler(cc, check_unknown=True):
     """Try to figure out which kind of compiler this really is.
     In particular, try to distinguish between clang and gcc, either of which may
     be called cc or gcc.
@@ -114,7 +114,7 @@ def get_compiler(cc):
         return 'gcc'
     elif 'icc' in cc or 'icpc' in cc:
         return 'icc'
-    else:
+    elif check_unknown:
         # OK, the main thing we need to know is what openmp flag we need for this compiler,
         # so let's just try the various options and see what works.  Don't try icc, since
         # the -openmp flag there gets treated as '-o penmp' by gcc and clang, which is bad.
@@ -126,6 +126,8 @@ def get_compiler(cc):
                 return cc_type
         # I guess none of them worked.  Now we really do have to bail.
         print("None of these compile options worked.  Not adding any optimization flags.")
+        return 'unknown'
+    else:
         return 'unknown'
 
 
@@ -180,8 +182,16 @@ def try_compile(cpp_code, cc, cflags=[], lflags=[]):
         lines = p.stdout.readlines()
         p.communicate()
         #print('output = ',b''.join(lines).decode())
+        if p.returncode != 0:
+            print('Trying link command:')
+            print(' '.join(cmd))
+            print('Output was:')
+            print('   ',b'   '.join(lines).decode())
         returncode = p.returncode
     except (IOError,OSError) as e:
+        print('Trying link command:')
+        print(' '.join(cmd))
+        print('Caught error: ',repr(e))
         returncode = 1
 
     if returncode:
@@ -203,7 +213,8 @@ def try_compile(cpp_code, cc, cflags=[], lflags=[]):
         elif cc == 'cc':
             cpp = 'c++'
         else:
-            comp_type = get_compiler(cc)
+            # Use check_unknown=False to prevent infinite loop.c
+            comp_type = get_compiler(cc, check_unknown=False)
             if comp_type == 'gcc':
                 cpp = 'g++'
             elif comp_type == 'clang':

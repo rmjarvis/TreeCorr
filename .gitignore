@@ -16,8 +16,3 @@ build
 
 .*.swp
 *.pyc
-
-# This is set up on my Mac using the instructions from
-# http://raxcloud.blogspot.com/2013/02/documenting-python-code-using-sphinx.html
-# It's really a separate repo, so ignore it in the main repo.
-gh-pages

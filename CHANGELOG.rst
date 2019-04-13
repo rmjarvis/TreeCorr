@@ -123,9 +123,11 @@ New features
 
 - Added a new concept, called bin_type for all the Correlation objects.  There
   are currently three possible options for bin_type:
+
   - 'Log' is equivalent to the previous behavior of binning in log space.
   - 'Linear' bins linearly in r. (#5)
   - 'TwoD' bins linearly in x and y. (#70)
+
 - Added the ability to use min_rpar and max_rpar with the Arc metric. (#61)
 - Added a different definition of Rperp, called FisherRperp, which follows
   the definition in Fisher et al, 1994.  This definition is both more standard

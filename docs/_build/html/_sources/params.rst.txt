@@ -8,7 +8,8 @@ what the `corr2` and `corr3` scripts (or functions) do:
 Parameters about the input file(s)
 ----------------------------------
 
-:file_name: (str or list): The file(s) with the data to be correlated.
+:file_name: (str or list)
+    The file(s) with the data to be correlated.
 
     For an auto-correlation, like cosmic shear, this will be the only file
     name you need to specify.  This parameter is always required, and 
@@ -18,27 +19,32 @@ Parameters about the input file(s)
     Normally, there would only be a single file name here, but sometimes
     the galaxy data comes in multiple files.  To treat them all as though
     they were a single large catalog, you may specify a list of file names
-    here:
+    here::
 
         file_name : [ file1.dat, file2.dat, file3.dat ]
 
     If you are specifying this on the command line, you'll need to put 
-    quotes around the names, or it won't be parsed correctly:
+    quotes around the names, or it won't be parsed correctly::
 
         file_name="[file1.dat,file2.dat,file3.dat]"
 
-:file_name2: (str or list): The file(s) to use for the second field for a cross-correlation.
+:file_name2: (str or list)
+    The file(s) to use for the second field for a cross-correlation.
 
     If you want to cross-correlate one file (or set of files) with another, then
     **file_name2** is used to specify the second thing being correlated.  e.g.
     for galaxy-galaxy lensing, **file_name** should be the catalog of lenses, and 
     **file_name2** should be the catalog of source shear values.
 
-:file_name3: (str or list): The file(s) to use for the third field for a three-point cross-correlation.
+:file_name3: (str or list)
+    The file(s) to use for the third field for a three-point cross-correlation.
 
-:rand_file_name: (str or list): If necessary, a list of random files with the same masking as the **file_name** catalog.  
-:rand_file_name2: (str or list): If necessary, a list of random files with the same masking as the **file_name2** catalog.
-:rand_file_name3: (str or list): If necessary, a list of random files with the same masking as the **file_name3** catalog.
+:rand_file_name: (str or list)
+    If necessary, a list of random files with the same masking as the **file_name** catalog.  
+:rand_file_name2: (str or list)
+    If necessary, a list of random files with the same masking as the **file_name2** catalog.
+:rand_file_name3: (str or list)
+    If necessary, a list of random files with the same masking as the **file_name3** catalog.
 
     When doing NN and NNN correlations, you need to account for masks and variable
     depth by providing a file or list of files that correspond to a uniform-
@@ -49,12 +55,12 @@ Parameters about the input file(s)
     **rand_file_name** may also be used for NG and NK correlations, but it is not
     required in those cases.
  
-:file_list: (str): A text file with file names in lieu of **file_name**.  
-:file_list2: (str): A text file with file names in lieu of **file_name2**.  
-:file_list3: (str): A text file with file names in lieu of **file_name3**.  
-:rand_file_list: (str): A text file with file names in lieu of **rand_file_name**.  
-:rand_file_list2: (str): A text file with file names in lieu of **rand_file_name2**.
-:rand_file_list3: (str): A text file with file names in lieu of **rand_file_name3**.
+:file_list: (str) A text file with file names in lieu of **file_name**.  
+:file_list2: (str) A text file with file names in lieu of **file_name2**.  
+:file_list3: (str) A text file with file names in lieu of **file_name3**.  
+:rand_file_list: (str) A text file with file names in lieu of **rand_file_name**.  
+:rand_file_list2: (str) A text file with file names in lieu of **rand_file_name2**.
+:rand_file_list3: (str) A text file with file names in lieu of **rand_file_name3**.
 
     If you have a list of file names, it may be cumbersome to list them all
     in the **file_name** (etc) parameter.  It may be easier to do something like
@@ -62,9 +68,9 @@ Parameters about the input file(s)
     file names to use.  Of course, it is an error to specify both **file_list**
     and **file_name** (or any of the other corresponding pairs).
 
-:file_type: (ASCII or FITS): The file type of the input files.  
-:delimiter: (str, default = '\0'): The delimeter between input values in an ASCII catalog.  
-:comment_marker: (str, default = '#'): The first (non-whitespace) character of comment lines in an input ASCII catalog.
+:file_type: (ASCII or FITS) The file type of the input files.  
+:delimiter: (str, default = '\0') The delimeter between input values in an ASCII catalog.  
+:comment_marker: (str, default = '#') The first (non-whitespace) character of comment lines in an input ASCII catalog.
 
     The default file type is normally ASCII.  However, if the file name 
     includes ".fit" in it, then a fits binary table is assumed.
@@ -75,7 +81,7 @@ Parameters about the input file(s)
     comment lines usually begin with '#', but you may specify something 
     different if necessary.
 
-:hdu: (int, default=1): The HDU to use for a binary fits table.
+:hdu: (int, default=1) The HDU to use for a binary fits table.
 
     Normally if you are using a fits file, the binary fits table is
     taken from the first extension, HDU 1.  If you want to read from a
@@ -89,10 +95,10 @@ Parameters about the input file(s)
     The rows are numbered starting with 1.  If **last_row** is not positive, it 
     means to use all the rows (starting with **first_row**).
 
-:x_col: (int/str): Which column to use for x.  
-:y_col: (int/str): Which column to use for y.  
-:ra_col: (int/str): Which column to use for ra.  
-:dec_col: (int/str): Which column to use for dec.
+:x_col: (int/str) Which column to use for x.  
+:y_col: (int/str) Which column to use for y.  
+:ra_col: (int/str) Which column to use for ra.  
+:dec_col: (int/str) Which column to use for dec.
  
     For the positions of the objects, you can specify either x,y values, which 
     imply a flat-sky approximation has already been performed (or ignored),
@@ -102,10 +108,10 @@ Parameters about the input file(s)
     the first column (not 0!).  
     For FITS files, the columns are specified by name, not number.
 
-:x_units: (str, default=None): The units of x values.  
-:y_units: (str, default=None): The units of y values.  
-:ra_units: (str): The units of ra values.  
-:dec_units: (str): The units of dec values.
+:x_units: (str, default=None) The units of x values.  
+:y_units: (str, default=None) The units of y values.  
+:ra_units: (str) The units of ra values.  
+:dec_units: (str) The units of dec values.
 
     All distances on the sky include a "units" parameter to specify what in 
     units the values are specified.  Options for units are radians, hours, 
@@ -113,7 +119,7 @@ Parameters about the input file(s)
     But for x,y, you can ignore all the unit issues, in which case the 
     output distances will be in the same units as the input positions.
 
-:r_col: (int/str): Which column to use for r.
+:r_col: (int/str) Which column to use for r.
 
     When using spherical coordinates, ra,dec, you can optionally provide a 
     distance to the object.  In this case, the calculation will be done in 
@@ -123,15 +129,15 @@ Parameters about the input file(s)
 
     **r_col** is invalid in conjunction with **x_col**, **y_col**.
 
-:z_col: (int/str): Which column to use for z.
+:z_col: (int/str) Which column to use for z.
 
     Rather than specifying 3-D coordinates as (ra, dec, r), you may instead
     specify them as (x, y, z).
 
     **z_col** is invalid in conjunction with **ra_col**, **dec_col**.
 
-:g1_col: (int/str): Which column to use for g1. 
-:g2_col: (int/str): Which column to use for g2.
+:g1_col: (int/str) Which column to use for g1. 
+:g2_col: (int/str) Which column to use for g2.
 
     If you are doing one of the shear correlation functions (i.e. NG, KG, GG),
     then you need to specify the shear estimates of the corresponding galaxies.
@@ -139,20 +145,20 @@ Parameters about the input file(s)
     unbiases estimators of g1,g2, so they are allowed to exceed :math:`|g| = 1`.
     (This is required for some methods to produce unbiased estimates.
 
-:k_col: (int/str): Which column to use for kappa.
+:k_col: (int/str) Which column to use for kappa.
 
     If you are doing one of the kappa correlation functions (i.e. NK, KG, KK),
     then you need to specify the column to use for kappa.  While kappa is 
     nominally the lensing convergence, it could really be any scalar quantity,
     like temperature, size, etc.
     
-:w_col: (int/str): Which column to use for the weight (if any).
+:w_col: (int/str) Which column to use for the weight (if any).
 
     The weight column is optional. If omitted, all weights are taken to be 1.
 
-:flag_col: (int/str): Which column to use for the weight (if any).  
-:ignore_flag: (int): What flag(s) should be ignored.  
-:ok_flag: (int): What flag(s) are ok to use.
+:flag_col: (int/str) Which column to use for the weight (if any).  
+:ignore_flag: (int) What flag(s) should be ignored.  
+:ok_flag: (int) What flag(s) are ok to use.
 
     The code can be set to ignore objects with a particular flag value if desired.
     Some codes output a flag along with the shear value.  Typically any flag != 0
@@ -162,24 +168,24 @@ Parameters about the input file(s)
     If **ok_flag** is set, then objects with ``(flag & ~ok_flag != 0)`` will be ignored.
     The default is equivalent to ``ok_flag = 0``, which ignores any flag != 0.
 
-:flip_g1: (bool, default=False): Whether to flip the sign of g1.  
-:flip_g2: (bool, default=False): Whether to flip the sign of g2.
+:flip_g1: (bool, default=False) Whether to flip the sign of g1.  
+:flip_g2: (bool, default=False) Whether to flip the sign of g2.
 
     Sometimes there are issues with the sign conventions of gamma.  If you 
     need to flip the sign of g1 or g2, you may do that with **flip_g1** or **flip_g2** 
     (or both).
 
-:x_hdu: (int): Which HDU to use for the **x_col**.  
-:y_hdu: (int): Which HDU to use for the **y_col**.  
-:z_hdu: (int): Which HDU to use for the **z_col**.  
-:ra_hdu: (int): Which HDU to use for the **ra_col**.  
-:dec_hdu: (int): Which HDU to use for the **dec_col**.  
-:r_hdu: (int): Which HDU to use for the **r_col**.  
-:g1_hdu: (int): Which HDU to use for the **g1_col**.  
-:g2_hdu: (int): Which HDU to use for the **g2_col**.  
-:k_hdu: (int): Which HDU to use for the **k_col**.  
-:w_hdu: (int): Which HDU to use for the **w_col**.  
-:flag_hdu: (int): Which HDU to use for the **flag_col**.
+:x_hdu: (int) Which HDU to use for the **x_col**.  
+:y_hdu: (int) Which HDU to use for the **y_col**.  
+:z_hdu: (int) Which HDU to use for the **z_col**.  
+:ra_hdu: (int) Which HDU to use for the **ra_col**.  
+:dec_hdu: (int) Which HDU to use for the **dec_col**.  
+:r_hdu: (int) Which HDU to use for the **r_col**.  
+:g1_hdu: (int) Which HDU to use for the **g1_col**.  
+:g2_hdu: (int) Which HDU to use for the **g2_col**.  
+:k_hdu: (int) Which HDU to use for the **k_col**.  
+:w_hdu: (int) Which HDU to use for the **w_col**.  
+:flag_hdu: (int) Which HDU to use for the **flag_col**.
 
     If you want to use an HDU other than the first one, normally you would 
     specify which fits extension to use with the **hdu** parameter.  However, if 
@@ -213,27 +219,23 @@ Parameters about the binned correlation function to be calculated
 -----------------------------------------------------------------
  
 
-:min_sep: (float): The minimum separation to include in the output.  
-:max_sep: (float): The maximum separation to include in the output.  
-:nbins: (int): The number of output bins to use.  
-:bin_size: (float): The size of the output bins in log(sep).
+:bin_type: (str, default='Log') Which type of binning should be used.
+
+    See `Metrics` for details.
+
+:min_sep: (float) The minimum separation to include in the output.  
+:max_sep: (float) The maximum separation to include in the output.  
+:nbins: (int) The number of output bins to use.  
+:bin_size: (float) The size of the output bins in log(sep).
 
     The bins for the histogram may be defined by setting any 3 of the above 4 
     parameters.  The fourth one is automatically calculated from the values
     of the other three.
 
-    There is one exception.  If you set **min_sep**, **max_sep**, and **bin_size**, 
-    then it won't generally be the case that the corresponding number of 
-    bins is an integer.  So the code will increase **max_sep** slightly to make
-    sure the total range is an integer number of bins.
+    See `Binning` for details about how these parameters are used for the 
+    different choice of **bin_type**.
 
-    Note: the algorithm assumes that it is ok for data to be placed in a bin
-    up to 1 bin over from the correct one.  (cf. **bin_slop** below)  Thus it
-    is generally recommended to use a ``bin_size <= 0.1`` or so.  Much larger
-    than that and there will be a significant "algorithmic noise" due to this
-    approximation.
-
-:sep_units: (str, default=None): The units to use for **min_sep** and **max_sep**.
+:sep_units: (str, default=None) The units to use for **min_sep** and **max_sep**.
 
     **sep_units** is also the units of R in the output file.  For ra, dec values, 
     you should always specify **sep_units** explicitly to indicate what angular
@@ -241,7 +243,9 @@ Parameters about the binned correlation function to be calculated
     or if you specify 3-d correlations with r, then the output separations are
     in the same units as the input positions.
 
-:bin_slop: (float, default=1): The fraction of a bin width by which it is ok to let the pairs miss the correct bin.
+    See `sep_units` for more discussion about this parameter.
+
+:bin_slop: (float, default=1) The fraction of a bin width by which it is ok to let the pairs miss the correct bin.
 
     The code normally determines when to stop traversing the tree when all of the 
     distance pairs for the two nodes have a spread in distance that is less than the 
@@ -253,20 +257,29 @@ Parameters about the binned correlation function to be calculated
     (In practice, if you are going to do this, you are probably better off just 
     decreasing the **bin_size** instead and leaving ``bin_slop=1``.)
 
-    Note, if you set ``bin_slop=0``, then the code will effectively do a brute-force
-    calculation, since it will branch all the way to each leaf of the tree.
+    See `bin_slop` for more discussion about this parameter.
 
-:min_u: (float): The minimum u=d3/d2 to include for three-point functions.
-:max_u: (float): The maximum u=d3/d2 to include for three-point functions.
-:nubins: (int): The number of output bins to use for u.
-:ubin_size: (float): The size of the output bins for u.
+:brute: (bool/int, default=False) Whether to do the "brute force" algorithm, where the
+    tree traversal always goes to the leaf cells.
 
-:min_v: (float): The minimum v=+-(d1-d2)/d3 to include for three-point functions.
-:max_v: (float): The maximum v=+-(d1-d2)/d3 to include for three-point functions.
-:nvbins: (int): The number of output bins to use for v.
-:vbin_size: (float): The size of the output bins for v.
+    In addition to True or False, whose meanings are obvious, you may also set
+    **brute** to 1 or 2, which means to go to the leaves for cat1 or cat2, respectively,
+    but stop traversing the other catalog according to the normal **bin_slop** criterion.
 
-:pairwise: (bool, default=False): Whether to do a pair-wise cross-correlation.
+    See `brute` for more discussion about this parameter.
+
+:min_u: (float) The minimum u=d3/d2 to include for three-point functions.
+:max_u: (float) The maximum u=d3/d2 to include for three-point functions.
+:nubins: (int) The number of output bins to use for u.
+:ubin_size: (float) The size of the output bins for u.
+
+:min_v: (float) The minimum positive v=(d1-d2)/d3 to include for three-point functions.
+:max_v: (float) The maximum positive v=(d1-d2)/d3 to include for three-point functions.
+:nvbins: (int) The number of output bins to use for positive v.
+    The total number of bins in the v direction will be twice this number.
+:vbin_size: (float) The size of the output bins for v.
+
+:pairwise: (bool, default=False) Whether to do a pair-wise cross-correlation.
 
     A pair-wise correlation correlates objects on corresponding lines in the two catalogs,
     rather than correlating all lines in one with all the lines in the other.
@@ -282,9 +295,19 @@ Parameters about the binned correlation function to be calculated
 
     This is currently invalid for 3-point correlations.
 
-:metric: (str, default='Euclidean'): Which metric to use for distance measurements.
+:metric: (str, default='Euclidean') Which metric to use for distance measurements.
 
     See `Metrics` for details.
+
+:min_rpar: (float) If the metric supports it, the minimum Rparallel to allow for pairs
+    to be included in the correlation function.
+:max_rpar: (float) If the metric supports it, the maximum Rparallel to allow for pairs
+    to be included in the correlation function.
+
+:period: (float) For the 'Periodic' metric, the period to use in all directions.
+:xperiod: (float) For the 'Periodic' metric, the period to use in the x directions.
+:yperiod: (float) For the 'Periodic' metric, the period to use in the y directions.
+:zperiod: (float) For the 'Periodic' metric, the period to use in the z directions.
 
 
 Parameters about the output file(s)
@@ -303,7 +326,7 @@ about the output columns.
      So the error values should always be treated as an underestimate
      of the true error bars.
 
-:nn_file_name: (str): The output filename for count-count correlation function.
+:nn_file_name: (str) The output filename for count-count correlation function.
 
     This is the normal density two-point correlation function.
         
@@ -318,14 +341,14 @@ about the output columns.
     - **DR** (if ``nn_statistic=compensated``) = The cross terms between data and random. 
     - **RD** (if ``nn_statistic=compensated`` cross-correlation) = The cross term between random and data, which for a cross-correlation is not equivalent to **DR**.
 
-:nn_statistic: (str, default='compensated'): Which statistic to use for xi as the estimator of the NN correlation function.  
+:nn_statistic: (str, default='compensated') Which statistic to use for xi as the estimator of the NN correlation function.  
 
-    Options are (D = data catalog, R = random catalog):
+    Options are (D = data catalog, R = random catalog)
 
     - 'compensated' is the now-normal Landy-Szalay statistic:  xi = (DD-2DR+RR)/RR, or for cross-correlations, xi = (DD-DR-RD+RR)/RR
     - 'simple' is the older version: xi = (DD/RR - 1)
 
-:ng_file_name: (str): The output filename for count-shear correlation function.
+:ng_file_name: (str) The output filename for count-shear correlation function.
 
     This is the count-shear correlation function, often called galaxy-galaxy
     lensing.
@@ -341,7 +364,7 @@ about the output columns.
     - **weight** = The total weight of the pairs in each bin.
     - **npairs** = The total number of pairs in each bin.
 
-:ng_statistic: (str, default='compensated' if **rand_files** is given, otherwise 'simple'): Which statistic to use for the mean shear as the estimator of the NG correlation function. 
+:ng_statistic: (str, default='compensated' if **rand_files** is given, otherwise 'simple') Which statistic to use for the mean shear as the estimator of the NG correlation function. 
 
     Options are:
 
@@ -355,7 +378,7 @@ about the output columns.
       Then this statistic is gamT = (NG-RG)/npairs
     - 'simple' is the normal version: gamT = NG/npairs
 
-:gg_file_name: (str): The output filename for shear-shear correlation function.
+:gg_file_name: (str) The output filename for shear-shear correlation function.
 
     This is the shear-shear correlation function, used for cosmic shear.
         
@@ -385,7 +408,7 @@ about the output columns.
     - **weight** = The total weight of the pairs in each bin.
     - **npairs** = The total number of pairs in each bin.
 
-:nk_file_name: (str): The output filename for count-kappa correlation function.
+:nk_file_name: (str) The output filename for count-kappa correlation function.
 
     This is nominally the kappa version of the ne calculation.  However, k is
     really any scalar quantity, so it can be used for temperature, size, etc.
@@ -400,7 +423,7 @@ about the output columns.
     - **weight** = The total weight of the pairs in each bin.
     - **npairs** = The total number of pairs in each bin.
 
-:nk_statistic: (str, default='compensated' if **rand_files** is given, otherwise 'simple'): Which statistic to use for the mean shear as the estimator of the NK correlation function. 
+:nk_statistic: (str, default='compensated' if **rand_files** is given, otherwise 'simple') Which statistic to use for the mean shear as the estimator of the NK correlation function. 
 
     Options are:
 
@@ -414,7 +437,7 @@ about the output columns.
       Then this statistic is **<kappa>** = (NK-RK)/npairs
     - 'simple' is the normal version: **<kappa>** = NK/npairs
 
-:kk_file_name: (str): The output filename for kappa-kappa correlation function.
+:kk_file_name: (str) The output filename for kappa-kappa correlation function.
 
     This is the kappa-kappa correlation function.  However, k is really any 
     scalar quantity, so it can be used for temperature, size, etc.
@@ -429,7 +452,7 @@ about the output columns.
     - **weight** = The total weight of the pairs in each bin.
     - **npairs** = The total number of pairs in each bin.
 
-:kg_file_name: (str): The output filename for kappa-shear correlation function.
+:kg_file_name: (str) The output filename for kappa-shear correlation function.
 
     This is the kappa-shear correlation function.  Essentially, this is just
     galaxy-galaxy lensing, weighting the tangential shears by the foreground
@@ -446,7 +469,7 @@ about the output columns.
     - **weight** = The total weight of the pairs in each bin.
     - **npairs** = The total number of pairs in each bin.
 
-:nnn_file_name: (str): The output filename for count-count-count correlation function.
+:nnn_file_name: (str) The output filename for count-count-count correlation function.
 
     This is three-point correlation function of number counts.
         
@@ -466,7 +489,7 @@ about the output columns.
     - **DDD**, **RRR** = The raw numbers of triangles for the data and randoms
     - **DDR**, **DRD**, **RDD**, **DRR**, **RDR**, **RRD** (if ``nn_statistic=compensated``) = The cross terms between data and random. 
 
-:nnn_statistic: (str, default='compensated'): Which statistic to use for xi as the estimator of the NNN correlation function.  
+:nnn_statistic: (str, default='compensated') Which statistic to use for xi as the estimator of the NNN correlation function.  
 
     Options are:
 
@@ -475,7 +498,7 @@ about the output columns.
     - 'simple' is the older version: zeta = (DDD/RRR - 1), although this is not actually
       an estimator of zeta.  Rather, it estimates zeta(d1,d2,d3) + xi(d1) + xi(d2) + xi(d3).
 
-:ggg_file_name: (str): The output filename for shear-shear-shear correlation function.
+:ggg_file_name: (str) The output filename for shear-shear-shear correlation function.
 
     This is the shear three-point correlation function.  We use the "natural components"
     as suggested by Schenider & Lombardi (2003): Gamma_0, Gamma_1, Gamma_2, Gamma_3.
@@ -505,7 +528,7 @@ about the output columns.
     - **weight** = The total weight of the triangles in each bin.
     - **ntri** = The total number of triangles in each bin.
 
-:kkk_file_name: (str): The output filename for kappa-kappa-kappa correlation function.
+:kkk_file_name: (str) The output filename for kappa-kappa-kappa correlation function.
 
     This is the three-point correlation function of a scalar field.
         
@@ -525,7 +548,7 @@ about the output columns.
     - **weight** = The total weight of the triangles in each bin.
     - **ntri** = The total number of triangles in each bin.
 
-:precision: (int): The number of digits after the decimal in the output.
+:precision: (int) The number of digits after the decimal in the output.
 
     All output quantities are printed using scientific notation, so this sets 
     the number of digits output for all values.  The default precision is 4. 
@@ -539,7 +562,7 @@ Derived output quantities
 The rest of these output files are calculated based on one or more correlation 
 functions.
 
-:m2_file_name: (str): The output filename for the aperture mass statistics.
+:m2_file_name: (str) The output filename for the aperture mass statistics.
 
     This file outputs the aperture mass variance and related quantities, 
     derived from the shear-shear correlation function.
@@ -554,7 +577,7 @@ functions.
     - **Gamsq** = The variance of the top-hat weighted mean shear in apertures of the given radius R.
     - **sig_gam** = The 1-sigma error bar for **Gamsq**.
 
-:m2_uform: (str, default='Crittenden'): The function form of the aperture
+:m2_uform: (str, default='Crittenden') The function form of the aperture
 
     The form of the aperture mass statistic popularized by Schneider is
 
@@ -574,7 +597,7 @@ functions.
     at least for 2-point applications.  (You will get an error if you
     try to use 'Schneider' with the m3 output.)
 
-:nm_file_name: (str): The output filename for <N Map> and related values.
+:nm_file_name: (str) The output filename for <N Map> and related values.
 
     This file outputs the correlation of the aperture mass with the 
     aperture-smoothed density field, derived from the count-shear correlation 
@@ -587,7 +610,7 @@ functions.
     - **NMx** = The corresponding B-mode statistic.
     - **sig_nmap** = The 1-sigma error bar for these values.
 
-:norm_file_name: (str): The output filename for <Nap Map>^2/<Nap^2><Map^2> and related values.
+:norm_file_name: (str) The output filename for <Nap Map>^2/<Nap^2><Map^2> and related values.
 
     This file outputs the <Nap Map> values normalized by <Nap^2><Map^2>.  This 
     provides an estimate of the correlation coefficient, r.
@@ -611,7 +634,7 @@ functions.
 Miscellaneous parameters
 ------------------------
 
-:verbose: (int, default=1): How verbose the code should be during processing.
+:verbose: (int, default=1) How verbose the code should be during processing.
 
     - 0 = no output unless there is an error
     - 1 = output warnings
@@ -620,29 +643,41 @@ Miscellaneous parameters
 
     This is overridden by the ``-v`` command line argument for the `corr2` executable.
 
-:log_file: (str, default=None): Where to write the logging information.
+:log_file: (str, default=None) Where to write the logging information.
 
     The default is to write lines to the screen, but this option allows you to
     write them to a file instead.  With the `corr2` executable, this can also be
     specified with the ``-l`` command line argument.
 
-:output_dots: (bool, default=``verbose>=2``): Whether to output progress dots during the calculation of the correlation function.
+:output_dots: (bool, default=(**verbose**>=2)) Whether to output progress dots during the
+    calculation of the correlation function.
 
-:split_method: (str, default='mean'): Which method to use for splitting cells.
+:split_method: (str, default='mean') Which method to use for splitting cells.
 
-    When building the tree, there are three choices for how to split a set
+    When building the tree, there are three obvious choices for how to split a set
     of points into two chld cells.  The direction is always taken to be the 
     coordinate direction with the largest extent.  Then, in that direction,
     you can split at the mean value, the median value, or the "middle" =
     (xmin+xmax)/2.  To select among these, **split_method** may be given as
     "mean", "median", or "middle" respectively.
 
-:max_top: (int, default=10): The maximum number of top layers to use when setting up the field. 
+    In addition, sometimes it may be useful to inject some randomness into the
+    tree construction to study how much the results depend on the specific splitting
+    used.  For that purpose, there is also the option to set **split_method** = 'random',
+    which will choose a random point in the middle two quartiles of the range.
+
+:min_top: (int, default=3) The minimum number of top layers to use when setting up the field. 
+    
+    The OpenMP parallelization happens over the top level cells, so setting this > 0
+    ensures that there will be multiple jobs to be run in parallel.  For systems with
+    very many cores, it may be helpful to set this larger than the default value of 3.
+
+:max_top: (int, default=10) The maximum number of top layers to use when setting up the field. 
     
     The top-level cells are the cells where each calculation job starts.  There will
     typically be of order 2^max_top top-level cells.
 
-:num_threads: (int, default=0): How many (OpenMP) threads should be used.
+:num_threads: (int, default=0) How many (OpenMP) threads should be used.
 
     The default is to try to determine the number of cpu cores your system has
     and use that many threads.

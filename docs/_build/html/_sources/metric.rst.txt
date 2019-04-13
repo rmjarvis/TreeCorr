@@ -9,8 +9,8 @@ In most cases, you will probably want to use the default Metric, called "Euclide
 which just uses the normal Euclidean distance between two points.  However, there are a few
 other options, which are useful for various applications.
 
-Both :class:`~treecorr.BinnedCorr2` and :class:`~treecorr.BinnedCorr3` take an optional
-``metric`` parameter, which should be one of the following string values:
+Both `BinnedCorr2` and `BinnedCorr3` take an optional
+**metric** parameter, which should be one of the following string values:
 
 
 "Euclidean"
@@ -39,7 +39,7 @@ the chord distance becomes significant.  The conversion formula is
 :math:`d_{\rm GC} = 2 \arcsin(d_{\rm Euclidean} / 2)`
 
 TreeCorr applies this formula at the end as part of the ``finalize`` function
-(e.g. :meth:`~treecorr.GGCorrelation.finalize`), so the ``meanr`` and ``meanlogr`` attributes
+(e.g. :meth:`~treecorr.GGCorrelation.finalize`), so the **meanr** and **meanlogr** attributes
 will be in terms of great circle distances.  However, they will not necessarily be spaced
 precisely uniformly in log(r), since the original bin spacing will have been set up in terms
 of the chord distances.
@@ -93,15 +93,15 @@ In this limit, the formula for :math:`d` reduces to
 
 :math:`d_{\rm Rperp} \approx \left(\frac{2 r_1 r_2}{r_1+r_2}\right) \theta`
 
-This metric also permits the use of two other parameters, ``min_rpar`` and ``max_rpar``,
+This metric also permits the use of two other parameters, **min_rpar** and **max_rpar**,
 which set the minimum and maximum values of :math:`r_\parallel` for pairs to be included in the
 correlations.
 
 The sign of :math:`r_\parallel` is defined such that positive values mean
 the object from the second catalog is farther away.  Thus, if the first catalog represents
 lenses and the second catalog represents lensed source galaxies, then setting
-``min_rpar = 0`` will restrict the sources to being in the background of each lens.
-Similarly, setting ``min_rpar = -50``, ``max_rpar = 50`` will restrict the sources to be
+**min_rpar** = 0 will restrict the sources to being in the background of each lens.
+Similarly, setting **min_rpar** = -50, **max_rpar** = 50 will restrict the sources to be
 within 50 Mpc (say, assuming the catalog distances are given in Mpc) of the lenses.
 
 .. warning::
@@ -142,15 +142,15 @@ In this limit, the formula for :math:`d` reduces to
 :math:`d_{\rm OldRperp} \approx \left(\sqrt{r_1 r_2}\right) \theta`
 
 As with the regular "Rperp", this metric permits the use of two other parameters,
-``min_rpar`` and ``max_rpar``,
+**min_rpar** and **max_rpar**,
 which set the minimum and maximum values of :math:`r_\parallel` for pairs to be included in the
 correlations.
 
 The sign of :math:`r_\parallel` is defined such that positive values mean
 the object from the second catalog is farther away.  Thus, if the first catalog represents
 lenses and the second catalog represents lensed source galaxies, then setting
-``min_rpar = 0`` will restrict the sources to being in the background of each lens.
-Similarly, setting ``min_rpar = -50``, ``max_rpar = 50`` will restrict the sources to be
+**min_rpar** = 0 will restrict the sources to being in the background of each lens.
+Similarly, setting **min_rpar** = -50, **max_rpar** = 50 will restrict the sources to be
 within 50 Mpc (say, assuming the catalog distances are given in Mpc) of the lenses.
 
 
@@ -171,19 +171,19 @@ In other words, this is the distance from the first object (nominally the "lens"
 line of sight to the second object (nominally the "source").  This is commonly referred to
 as the impact parameter of the light path from the source as it passes the lens.
 
-This metric also permits the use of two other parameters, ``min_rpar`` and ``max_rpar``,
+This metric also permits the use of two other parameters, **min_rpar** and **max_rpar**,
 which set the minimum and maximum values of :math:`r_\parallel = r_2 - r_1` for pairs to be
 included in the correlations.
 
 The sign of :math:`r_\parallel` is defined such that positive values mean
 the object from the second catalog is farther away. Thus, setting
-``min_rpar = 0`` will restrict the sources to being in the background of each lens.
-Similarly, setting ``min_rpar = -50``, ``max_rpar = 50`` will restrict the sources to be
+**min_rpar** = 0 will restrict the sources to being in the background of each lens.
+Similarly, setting **min_rpar** = -50, **max_rpar** = 50 will restrict the sources to be
 within 50 Mpc (say, assuming the catalog distances are given in Mpc) of the lenses.
 
 Since the basic metric does not use the radial distance to the source galaxies (:math:`r_2`),
 they are not required.  You may just provide (ra,dec) coordinates for the sources.
-However, if you want to use the ``min_rpar`` or ``max_rpar`` options, then
+However, if you want to use the **min_rpar** or **max_rpar** options, then
 the source coordinates need to include r.
 
 "Periodic"
@@ -194,9 +194,9 @@ except that the space is given periodic boundaries, and the distance between two
 points is taken to be the *smallest* distance in the periodically repeating space.
 It is invalid for Spherical coordinates.
 
-When constructing the correlation object, you need to set ``period`` if the period is the
+When constructing the correlation object, you need to set **period** if the period is the
 same in each direction.  Or if you want different periods in each direction, you can
-set ``xperiod``, ``yperiod``, and (if 3-d) ``zperiod`` individually.
+set **xperiod**, **yperiod**, and (if 3-d) **zperiod** individually.
 We call these periods :math:`L_x`, :math:`L_y`, and :math:`L_z` below.
 
 The distance is defined as

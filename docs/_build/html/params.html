@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Configuration Parameters &mdash; TreeCorr 4.0 documentation</title>
+  <title>Configuration Parameters &mdash; TreeCorr 4.0.1 documentation</title>
   
 
   
@@ -37,7 +37,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Changes from version 3.3 to 4.0" href="changes.html" />
-    <link rel="prev" title="The corr2 and corr3 driver scripts" href="scripts.html" /> 
+    <link rel="prev" title="Using configuration files" href="scripts.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -91,9 +91,9 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bintype.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scripts.html">The corr2 and corr3 driver scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration Parameters</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#parameters-about-the-input-file-s">Parameters about the input file(s)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#notes-about-the-above-parameters">Notes about the above parameters</a></li>
@@ -181,7 +181,8 @@ what the <a class="reference internal" href="scripts.html#module-corr2" title="c
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">file_name:</th><td class="field-body"><p class="first">(str or list): The file(s) with the data to be correlated.</p>
+<tr class="field-odd field"><th class="field-name">file_name:</th><td class="field-body"><p class="first">(str or list)
+The file(s) with the data to be correlated.</p>
 <p>For an auto-correlation, like cosmic shear, this will be the only file
 name you need to specify.  This parameter is always required, and
 depending on what kind of correlation you are doing, you may need to
@@ -190,35 +191,40 @@ specify others below.</p>
 the galaxy data comes in multiple files.  To treat them all as though
 they were a single large catalog, you may specify a list of file names
 here:</p>
-<blockquote>
-<div><p>file_name : [ file1.dat, file2.dat, file3.dat ]</p>
-</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">file_name</span> <span class="p">:</span> <span class="p">[</span> <span class="n">file1</span><span class="o">.</span><span class="n">dat</span><span class="p">,</span> <span class="n">file2</span><span class="o">.</span><span class="n">dat</span><span class="p">,</span> <span class="n">file3</span><span class="o">.</span><span class="n">dat</span> <span class="p">]</span>
+</pre></div>
+</div>
 <p>If you are specifying this on the command line, you’ll need to put
 quotes around the names, or it won’t be parsed correctly:</p>
-<blockquote>
-<div><p>file_name=”[file1.dat,file2.dat,file3.dat]”</p>
-</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">file_name</span><span class="o">=</span><span class="s2">&quot;[file1.dat,file2.dat,file3.dat]&quot;</span>
+</pre></div>
+</div>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">file_name2:</th><td class="field-body"><p class="first">(str or list): The file(s) to use for the second field for a cross-correlation.</p>
+<tr class="field-even field"><th class="field-name">file_name2:</th><td class="field-body"><p class="first">(str or list)
+The file(s) to use for the second field for a cross-correlation.</p>
 <p>If you want to cross-correlate one file (or set of files) with another, then
 <strong>file_name2</strong> is used to specify the second thing being correlated.  e.g.
 for galaxy-galaxy lensing, <strong>file_name</strong> should be the catalog of lenses, and
 <strong>file_name2</strong> should be the catalog of source shear values.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">file_name3:</th><td class="field-body"><p class="first">(str or list): The file(s) to use for the third field for a three-point cross-correlation.</p>
+<tr class="field-odd field"><th class="field-name">file_name3:</th><td class="field-body"><p class="first">(str or list)
+The file(s) to use for the third field for a three-point cross-correlation.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">rand_file_name:</th><td class="field-body"><p class="first">(str or list): If necessary, a list of random files with the same masking as the <strong>file_name</strong> catalog.</p>
+<tr class="field-even field"><th class="field-name">rand_file_name:</th><td class="field-body"><p class="first">(str or list)
+If necessary, a list of random files with the same masking as the <strong>file_name</strong> catalog.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name" colspan="2">rand_file_name2:</th></tr>
-<tr class="field-odd field"><td>&#160;</td><td class="field-body"><p class="first">(str or list): If necessary, a list of random files with the same masking as the <strong>file_name2</strong> catalog.</p>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><p class="first">(str or list)
+If necessary, a list of random files with the same masking as the <strong>file_name2</strong> catalog.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name" colspan="2">rand_file_name3:</th></tr>
-<tr class="field-even field"><td>&#160;</td><td class="field-body"><p class="first">(str or list): If necessary, a list of random files with the same masking as the <strong>file_name3</strong> catalog.</p>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><p class="first">(str or list)
+If necessary, a list of random files with the same masking as the <strong>file_name3</strong> catalog.</p>
 <p>When doing NN and NNN correlations, you need to account for masks and variable
 depth by providing a file or list of files that correspond to a uniform-
 density field as observed with the same masking and other observational
@@ -228,24 +234,24 @@ values to separately calibrate the first and second fields.</p>
 required in those cases.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">file_list:</th><td class="field-body"><p class="first">(str): A text file with file names in lieu of <strong>file_name</strong>.</p>
+<tr class="field-odd field"><th class="field-name">file_list:</th><td class="field-body"><p class="first">(str) A text file with file names in lieu of <strong>file_name</strong>.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">file_list2:</th><td class="field-body"><p class="first">(str): A text file with file names in lieu of <strong>file_name2</strong>.</p>
+<tr class="field-even field"><th class="field-name">file_list2:</th><td class="field-body"><p class="first">(str) A text file with file names in lieu of <strong>file_name2</strong>.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">file_list3:</th><td class="field-body"><p class="first">(str): A text file with file names in lieu of <strong>file_name3</strong>.</p>
+<tr class="field-odd field"><th class="field-name">file_list3:</th><td class="field-body"><p class="first">(str) A text file with file names in lieu of <strong>file_name3</strong>.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">rand_file_list:</th><td class="field-body"><p class="first">(str): A text file with file names in lieu of <strong>rand_file_name</strong>.</p>
+<tr class="field-even field"><th class="field-name">rand_file_list:</th><td class="field-body"><p class="first">(str) A text file with file names in lieu of <strong>rand_file_name</strong>.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name" colspan="2">rand_file_list2:</th></tr>
-<tr class="field-odd field"><td>&#160;</td><td class="field-body"><p class="first">(str): A text file with file names in lieu of <strong>rand_file_name2</strong>.</p>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><p class="first">(str) A text file with file names in lieu of <strong>rand_file_name2</strong>.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name" colspan="2">rand_file_list3:</th></tr>
-<tr class="field-even field"><td>&#160;</td><td class="field-body"><p class="first">(str): A text file with file names in lieu of <strong>rand_file_name3</strong>.</p>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><p class="first">(str) A text file with file names in lieu of <strong>rand_file_name3</strong>.</p>
 <p>If you have a list of file names, it may be cumbersome to list them all
 in the <strong>file_name</strong> (etc) parameter.  It may be easier to do something like
 <code class="docutils literal notranslate"><span class="pre">ls</span> <span class="pre">*.cat</span> <span class="pre">&gt;</span> <span class="pre">catlist</span></code> and then use <strong>file_list=catlist</strong> as the list of
@@ -253,13 +259,13 @@ file names to use.  Of course, it is an error to specify both <strong>file_list<
 and <strong>file_name</strong> (or any of the other corresponding pairs).</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">file_type:</th><td class="field-body"><p class="first">(ASCII or FITS): The file type of the input files.</p>
+<tr class="field-odd field"><th class="field-name">file_type:</th><td class="field-body"><p class="first">(ASCII or FITS) The file type of the input files.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">delimiter:</th><td class="field-body"><p class="first">(str, default = ‘0’): The delimeter between input values in an ASCII catalog.</p>
+<tr class="field-even field"><th class="field-name">delimiter:</th><td class="field-body"><p class="first">(str, default = ‘0’) The delimeter between input values in an ASCII catalog.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">comment_marker:</th><td class="field-body"><p class="first">(str, default = ‘#’): The first (non-whitespace) character of comment lines in an input ASCII catalog.</p>
+<tr class="field-odd field"><th class="field-name">comment_marker:</th><td class="field-body"><p class="first">(str, default = ‘#’) The first (non-whitespace) character of comment lines in an input ASCII catalog.</p>
 <p>The default file type is normally ASCII.  However, if the file name
 includes “.fit” in it, then a fits binary table is assumed.
 You can override this behavior using <strong>file_type</strong>.</p>
@@ -269,7 +275,7 @@ comment lines usually begin with ‘#’, but you may specify something
 different if necessary.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">hdu:</th><td class="field-body"><p class="first">(int, default=1): The HDU to use for a binary fits table.</p>
+<tr class="field-even field"><th class="field-name">hdu:</th><td class="field-body"><p class="first">(int, default=1) The HDU to use for a binary fits table.</p>
 <p>Normally if you are using a fits file, the binary fits table is
 taken from the first extension, HDU 1.  If you want to read from a
 different HDU, you can specify which one to use here.</p>
@@ -285,16 +291,16 @@ The rows are numbered starting with 1.  If <strong>last_row</strong> is not posi
 means to use all the rows (starting with <strong>first_row</strong>).</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">x_col:</th><td class="field-body"><p class="first">(int/str): Which column to use for x.</p>
+<tr class="field-odd field"><th class="field-name">x_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for x.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">y_col:</th><td class="field-body"><p class="first">(int/str): Which column to use for y.</p>
+<tr class="field-even field"><th class="field-name">y_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for y.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">ra_col:</th><td class="field-body"><p class="first">(int/str): Which column to use for ra.</p>
+<tr class="field-odd field"><th class="field-name">ra_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for ra.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">dec_col:</th><td class="field-body"><p class="first">(int/str): Which column to use for dec.</p>
+<tr class="field-even field"><th class="field-name">dec_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for dec.</p>
 <p>For the positions of the objects, you can specify either x,y values, which
 imply a flat-sky approximation has already been performed (or ignored),
 or ra,dec values, which are of course positions on the curved sky.</p>
@@ -303,16 +309,16 @@ the first column (not 0!).
 For FITS files, the columns are specified by name, not number.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">x_units:</th><td class="field-body"><p class="first">(str, default=None): The units of x values.</p>
+<tr class="field-odd field"><th class="field-name">x_units:</th><td class="field-body"><p class="first">(str, default=None) The units of x values.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">y_units:</th><td class="field-body"><p class="first">(str, default=None): The units of y values.</p>
+<tr class="field-even field"><th class="field-name">y_units:</th><td class="field-body"><p class="first">(str, default=None) The units of y values.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">ra_units:</th><td class="field-body"><p class="first">(str): The units of ra values.</p>
+<tr class="field-odd field"><th class="field-name">ra_units:</th><td class="field-body"><p class="first">(str) The units of ra values.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">dec_units:</th><td class="field-body"><p class="first">(str): The units of dec values.</p>
+<tr class="field-even field"><th class="field-name">dec_units:</th><td class="field-body"><p class="first">(str) The units of dec values.</p>
 <p>All distances on the sky include a “units” parameter to specify what in
 units the values are specified.  Options for units are radians, hours,
 degrees, arcmin, arcsec.  For ra, dec the units field is required.
@@ -320,7 +326,7 @@ But for x,y, you can ignore all the unit issues, in which case the
 output distances will be in the same units as the input positions.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">r_col:</th><td class="field-body"><p class="first">(int/str): Which column to use for r.</p>
+<tr class="field-odd field"><th class="field-name">r_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for r.</p>
 <p>When using spherical coordinates, ra,dec, you can optionally provide a
 distance to the object.  In this case, the calculation will be done in
 three dimensional distances rather than angular distances.  The distances
@@ -329,16 +335,16 @@ your r values appropriately, given whatever cosmology you are assuming.</p>
 <p><strong>r_col</strong> is invalid in conjunction with <strong>x_col</strong>, <strong>y_col</strong>.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">z_col:</th><td class="field-body"><p class="first">(int/str): Which column to use for z.</p>
+<tr class="field-even field"><th class="field-name">z_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for z.</p>
 <p>Rather than specifying 3-D coordinates as (ra, dec, r), you may instead
 specify them as (x, y, z).</p>
 <p><strong>z_col</strong> is invalid in conjunction with <strong>ra_col</strong>, <strong>dec_col</strong>.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">g1_col:</th><td class="field-body"><p class="first">(int/str): Which column to use for g1.</p>
+<tr class="field-odd field"><th class="field-name">g1_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for g1.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">g2_col:</th><td class="field-body"><p class="first">(int/str): Which column to use for g2.</p>
+<tr class="field-even field"><th class="field-name">g2_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for g2.</p>
 <p>If you are doing one of the shear correlation functions (i.e. NG, KG, GG),
 then you need to specify the shear estimates of the corresponding galaxies.
 The g1,g2 values are taken to be reduced shear values.  They should be
@@ -346,24 +352,24 @@ unbiases estimators of g1,g2, so they are allowed to exceed <span class="math no
 (This is required for some methods to produce unbiased estimates.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">k_col:</th><td class="field-body"><p class="first">(int/str): Which column to use for kappa.</p>
+<tr class="field-odd field"><th class="field-name">k_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for kappa.</p>
 <p>If you are doing one of the kappa correlation functions (i.e. NK, KG, KK),
 then you need to specify the column to use for kappa.  While kappa is
 nominally the lensing convergence, it could really be any scalar quantity,
 like temperature, size, etc.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">w_col:</th><td class="field-body"><p class="first">(int/str): Which column to use for the weight (if any).</p>
+<tr class="field-even field"><th class="field-name">w_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for the weight (if any).</p>
 <p>The weight column is optional. If omitted, all weights are taken to be 1.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">flag_col:</th><td class="field-body"><p class="first">(int/str): Which column to use for the weight (if any).</p>
+<tr class="field-odd field"><th class="field-name">flag_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for the weight (if any).</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">ignore_flag:</th><td class="field-body"><p class="first">(int): What flag(s) should be ignored.</p>
+<tr class="field-even field"><th class="field-name">ignore_flag:</th><td class="field-body"><p class="first">(int) What flag(s) should be ignored.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">ok_flag:</th><td class="field-body"><p class="first">(int): What flag(s) are ok to use.</p>
+<tr class="field-odd field"><th class="field-name">ok_flag:</th><td class="field-body"><p class="first">(int) What flag(s) are ok to use.</p>
 <p>The code can be set to ignore objects with a particular flag value if desired.
 Some codes output a flag along with the shear value.  Typically any flag != 0
 should be ignored, but you can optionally have the code ignore only particular
@@ -373,46 +379,46 @@ If <strong>ok_flag</strong> is set, then objects with <code class="docutils lite
 The default is equivalent to <code class="docutils literal notranslate"><span class="pre">ok_flag</span> <span class="pre">=</span> <span class="pre">0</span></code>, which ignores any flag != 0.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">flip_g1:</th><td class="field-body"><p class="first">(bool, default=False): Whether to flip the sign of g1.</p>
+<tr class="field-even field"><th class="field-name">flip_g1:</th><td class="field-body"><p class="first">(bool, default=False) Whether to flip the sign of g1.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">flip_g2:</th><td class="field-body"><p class="first">(bool, default=False): Whether to flip the sign of g2.</p>
+<tr class="field-odd field"><th class="field-name">flip_g2:</th><td class="field-body"><p class="first">(bool, default=False) Whether to flip the sign of g2.</p>
 <p>Sometimes there are issues with the sign conventions of gamma.  If you
 need to flip the sign of g1 or g2, you may do that with <strong>flip_g1</strong> or <strong>flip_g2</strong>
 (or both).</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">x_hdu:</th><td class="field-body"><p class="first">(int): Which HDU to use for the <strong>x_col</strong>.</p>
+<tr class="field-even field"><th class="field-name">x_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>x_col</strong>.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">y_hdu:</th><td class="field-body"><p class="first">(int): Which HDU to use for the <strong>y_col</strong>.</p>
+<tr class="field-odd field"><th class="field-name">y_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>y_col</strong>.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">z_hdu:</th><td class="field-body"><p class="first">(int): Which HDU to use for the <strong>z_col</strong>.</p>
+<tr class="field-even field"><th class="field-name">z_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>z_col</strong>.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">ra_hdu:</th><td class="field-body"><p class="first">(int): Which HDU to use for the <strong>ra_col</strong>.</p>
+<tr class="field-odd field"><th class="field-name">ra_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>ra_col</strong>.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">dec_hdu:</th><td class="field-body"><p class="first">(int): Which HDU to use for the <strong>dec_col</strong>.</p>
+<tr class="field-even field"><th class="field-name">dec_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>dec_col</strong>.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">r_hdu:</th><td class="field-body"><p class="first">(int): Which HDU to use for the <strong>r_col</strong>.</p>
+<tr class="field-odd field"><th class="field-name">r_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>r_col</strong>.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">g1_hdu:</th><td class="field-body"><p class="first">(int): Which HDU to use for the <strong>g1_col</strong>.</p>
+<tr class="field-even field"><th class="field-name">g1_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>g1_col</strong>.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">g2_hdu:</th><td class="field-body"><p class="first">(int): Which HDU to use for the <strong>g2_col</strong>.</p>
+<tr class="field-odd field"><th class="field-name">g2_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>g2_col</strong>.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">k_hdu:</th><td class="field-body"><p class="first">(int): Which HDU to use for the <strong>k_col</strong>.</p>
+<tr class="field-even field"><th class="field-name">k_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>k_col</strong>.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">w_hdu:</th><td class="field-body"><p class="first">(int): Which HDU to use for the <strong>w_col</strong>.</p>
+<tr class="field-odd field"><th class="field-name">w_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>w_col</strong>.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">flag_hdu:</th><td class="field-body"><p class="first">(int): Which HDU to use for the <strong>flag_col</strong>.</p>
+<tr class="field-even field"><th class="field-name">flag_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>flag_col</strong>.</p>
 <p class="last">If you want to use an HDU other than the first one, normally you would
 specify which fits extension to use with the <strong>hdu</strong> parameter.  However, if
 different columns need to come from different HDUs, then you can override
@@ -447,39 +453,37 @@ the column name or number for the file to which it does apply.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">min_sep:</th><td class="field-body"><p class="first">(float): The minimum separation to include in the output.</p>
+<tr class="field-odd field"><th class="field-name">bin_type:</th><td class="field-body"><p class="first">(str, default=’Log’) Which type of binning should be used.</p>
+<p>See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">max_sep:</th><td class="field-body"><p class="first">(float): The maximum separation to include in the output.</p>
+<tr class="field-even field"><th class="field-name">min_sep:</th><td class="field-body"><p class="first">(float) The minimum separation to include in the output.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">nbins:</th><td class="field-body"><p class="first">(int): The number of output bins to use.</p>
+<tr class="field-odd field"><th class="field-name">max_sep:</th><td class="field-body"><p class="first">(float) The maximum separation to include in the output.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">bin_size:</th><td class="field-body"><p class="first">(float): The size of the output bins in log(sep).</p>
+<tr class="field-even field"><th class="field-name">nbins:</th><td class="field-body"><p class="first">(int) The number of output bins to use.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">bin_size:</th><td class="field-body"><p class="first">(float) The size of the output bins in log(sep).</p>
 <p>The bins for the histogram may be defined by setting any 3 of the above 4
 parameters.  The fourth one is automatically calculated from the values
 of the other three.</p>
-<p>There is one exception.  If you set <strong>min_sep</strong>, <strong>max_sep</strong>, and <strong>bin_size</strong>,
-then it won’t generally be the case that the corresponding number of
-bins is an integer.  So the code will increase <strong>max_sep</strong> slightly to make
-sure the total range is an integer number of bins.</p>
-<p>Note: the algorithm assumes that it is ok for data to be placed in a bin
-up to 1 bin over from the correct one.  (cf. <strong>bin_slop</strong> below)  Thus it
-is generally recommended to use a <code class="docutils literal notranslate"><span class="pre">bin_size</span> <span class="pre">&lt;=</span> <span class="pre">0.1</span></code> or so.  Much larger
-than that and there will be a significant “algorithmic noise” due to this
-approximation.</p>
+<p>See <a class="reference internal" href="binning.html#binning"><span class="std std-ref">Binning</span></a> for details about how these parameters are used for the
+different choice of <strong>bin_type</strong>.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">sep_units:</th><td class="field-body"><p class="first">(str, default=None): The units to use for <strong>min_sep</strong> and <strong>max_sep</strong>.</p>
+<tr class="field-even field"><th class="field-name">sep_units:</th><td class="field-body"><p class="first">(str, default=None) The units to use for <strong>min_sep</strong> and <strong>max_sep</strong>.</p>
 <p><strong>sep_units</strong> is also the units of R in the output file.  For ra, dec values,
 you should always specify <strong>sep_units</strong> explicitly to indicate what angular
 units you want to use for the separations.  But if your catalogs use x,y,
 or if you specify 3-d correlations with r, then the output separations are
 in the same units as the input positions.</p>
+<p>See <a class="reference internal" href="binning.html#sep-units"><span class="std std-ref">sep_units</span></a> for more discussion about this parameter.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">bin_slop:</th><td class="field-body"><p class="first">(float, default=1): The fraction of a bin width by which it is ok to let the pairs miss the correct bin.</p>
+<tr class="field-odd field"><th class="field-name">bin_slop:</th><td class="field-body"><p class="first">(float, default=1) The fraction of a bin width by which it is ok to let the pairs miss the correct bin.</p>
 <p>The code normally determines when to stop traversing the tree when all of the
 distance pairs for the two nodes have a spread in distance that is less than the
 bin size.  i.e. the error in the tree traversal is less than the uncertainty
@@ -489,35 +493,43 @@ make the code more conservative, you can decrease it, in which case the error
 from using the tree nodes will be less than the error in the histogram binning.
 (In practice, if you are going to do this, you are probably better off just
 decreasing the <strong>bin_size</strong> instead and leaving <code class="docutils literal notranslate"><span class="pre">bin_slop=1</span></code>.)</p>
-<p>Note, if you set <code class="docutils literal notranslate"><span class="pre">bin_slop=0</span></code>, then the code will effectively do a brute-force
-calculation, since it will branch all the way to each leaf of the tree.</p>
+<p>See <a class="reference internal" href="binning.html#bin-slop"><span class="std std-ref">bin_slop</span></a> for more discussion about this parameter.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">min_u:</th><td class="field-body"><p class="first">(float): The minimum u=d3/d2 to include for three-point functions.</p>
+<tr class="field-even field"><th class="field-name">brute:</th><td class="field-body"><p class="first">(bool/int, default=False) Whether to do the “brute force” algorithm, where the
+tree traversal always goes to the leaf cells.</p>
+<p>In addition to True or False, whose meanings are obvious, you may also set
+<strong>brute</strong> to 1 or 2, which means to go to the leaves for cat1 or cat2, respectively,
+but stop traversing the other catalog according to the normal <strong>bin_slop</strong> criterion.</p>
+<p>See <a class="reference internal" href="binning.html#brute"><span class="std std-ref">brute</span></a> for more discussion about this parameter.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">max_u:</th><td class="field-body"><p class="first">(float): The maximum u=d3/d2 to include for three-point functions.</p>
+<tr class="field-odd field"><th class="field-name">min_u:</th><td class="field-body"><p class="first">(float) The minimum u=d3/d2 to include for three-point functions.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">nubins:</th><td class="field-body"><p class="first">(int): The number of output bins to use for u.</p>
+<tr class="field-even field"><th class="field-name">max_u:</th><td class="field-body"><p class="first">(float) The maximum u=d3/d2 to include for three-point functions.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">ubin_size:</th><td class="field-body"><p class="first">(float): The size of the output bins for u.</p>
+<tr class="field-odd field"><th class="field-name">nubins:</th><td class="field-body"><p class="first">(int) The number of output bins to use for u.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">min_v:</th><td class="field-body"><p class="first">(float): The minimum v=+-(d1-d2)/d3 to include for three-point functions.</p>
+<tr class="field-even field"><th class="field-name">ubin_size:</th><td class="field-body"><p class="first">(float) The size of the output bins for u.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">max_v:</th><td class="field-body"><p class="first">(float): The maximum v=+-(d1-d2)/d3 to include for three-point functions.</p>
+<tr class="field-odd field"><th class="field-name">min_v:</th><td class="field-body"><p class="first">(float) The minimum positive v=(d1-d2)/d3 to include for three-point functions.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">nvbins:</th><td class="field-body"><p class="first">(int): The number of output bins to use for v.</p>
+<tr class="field-even field"><th class="field-name">max_v:</th><td class="field-body"><p class="first">(float) The maximum positive v=(d1-d2)/d3 to include for three-point functions.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">vbin_size:</th><td class="field-body"><p class="first">(float): The size of the output bins for v.</p>
+<tr class="field-odd field"><th class="field-name">nvbins:</th><td class="field-body"><p class="first">(int) The number of output bins to use for positive v.
+The total number of bins in the v direction will be twice this number.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">pairwise:</th><td class="field-body"><p class="first">(bool, default=False): Whether to do a pair-wise cross-correlation.</p>
+<tr class="field-even field"><th class="field-name">vbin_size:</th><td class="field-body"><p class="first">(float) The size of the output bins for v.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">pairwise:</th><td class="field-body"><p class="first">(bool, default=False) Whether to do a pair-wise cross-correlation.</p>
 <p>A pair-wise correlation correlates objects on corresponding lines in the two catalogs,
 rather than correlating all lines in one with all the lines in the other.
 That is, the data from each row in the first catalog is correlated with the
@@ -531,8 +543,28 @@ using all the field centers in the whole survey.</p>
 <p>This is currently invalid for 3-point correlations.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">metric:</th><td class="field-body"><p class="first">(str, default=’Euclidean’): Which metric to use for distance measurements.</p>
-<p class="last">See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.</p>
+<tr class="field-even field"><th class="field-name">metric:</th><td class="field-body"><p class="first">(str, default=’Euclidean’) Which metric to use for distance measurements.</p>
+<p>See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">min_rpar:</th><td class="field-body"><p class="first">(float) If the metric supports it, the minimum Rparallel to allow for pairs
+to be included in the correlation function.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">max_rpar:</th><td class="field-body"><p class="first">(float) If the metric supports it, the maximum Rparallel to allow for pairs
+to be included in the correlation function.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">period:</th><td class="field-body"><p class="first">(float) For the ‘Periodic’ metric, the period to use in all directions.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">xperiod:</th><td class="field-body"><p class="first">(float) For the ‘Periodic’ metric, the period to use in the x directions.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">yperiod:</th><td class="field-body"><p class="first">(float) For the ‘Periodic’ metric, the period to use in the y directions.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">zperiod:</th><td class="field-body"><p class="first last">(float) For the ‘Periodic’ metric, the period to use in the z directions.</p>
 </td>
 </tr>
 </tbody>
@@ -557,7 +589,7 @@ of the true error bars.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">nn_file_name:</th><td class="field-body"><p class="first">(str): The output filename for count-count correlation function.</p>
+<tr class="field-odd field"><th class="field-name">nn_file_name:</th><td class="field-body"><p class="first">(str) The output filename for count-count correlation function.</p>
 <p>This is the normal density two-point correlation function.</p>
 <p>The output columns are:</p>
 <ul class="simple">
@@ -572,15 +604,15 @@ of the true error bars.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">nn_statistic:</th><td class="field-body"><p class="first">(str, default=’compensated’): Which statistic to use for xi as the estimator of the NN correlation function.</p>
-<p>Options are (D = data catalog, R = random catalog):</p>
+<tr class="field-even field"><th class="field-name">nn_statistic:</th><td class="field-body"><p class="first">(str, default=’compensated’) Which statistic to use for xi as the estimator of the NN correlation function.</p>
+<p>Options are (D = data catalog, R = random catalog)</p>
 <ul class="simple">
 <li>‘compensated’ is the now-normal Landy-Szalay statistic:  xi = (DD-2DR+RR)/RR, or for cross-correlations, xi = (DD-DR-RD+RR)/RR</li>
 <li>‘simple’ is the older version: xi = (DD/RR - 1)</li>
 </ul>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">ng_file_name:</th><td class="field-body"><p class="first">(str): The output filename for count-shear correlation function.</p>
+<tr class="field-odd field"><th class="field-name">ng_file_name:</th><td class="field-body"><p class="first">(str) The output filename for count-shear correlation function.</p>
 <p>This is the count-shear correlation function, often called galaxy-galaxy
 lensing.</p>
 <p>The output columns are:</p>
@@ -596,7 +628,7 @@ lensing.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">ng_statistic:</th><td class="field-body"><p class="first">(str, default=’compensated’ if <strong>rand_files</strong> is given, otherwise ‘simple’): Which statistic to use for the mean shear as the estimator of the NG correlation function.</p>
+<tr class="field-even field"><th class="field-name">ng_statistic:</th><td class="field-body"><p class="first">(str, default=’compensated’ if <strong>rand_files</strong> is given, otherwise ‘simple’) Which statistic to use for the mean shear as the estimator of the NG correlation function.</p>
 <p>Options are:</p>
 <ul>
 <li><p class="first">‘compensated’ is simiar to the Landy-Szalay statistic:
@@ -613,7 +645,7 @@ Define:</p>
 </ul>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">gg_file_name:</th><td class="field-body"><p class="first">(str): The output filename for shear-shear correlation function.</p>
+<tr class="field-odd field"><th class="field-name">gg_file_name:</th><td class="field-body"><p class="first">(str) The output filename for shear-shear correlation function.</p>
 <p>This is the shear-shear correlation function, used for cosmic shear.</p>
 <p>The output columns are:</p>
 <ul>
@@ -653,7 +685,7 @@ fields.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">nk_file_name:</th><td class="field-body"><p class="first">(str): The output filename for count-kappa correlation function.</p>
+<tr class="field-even field"><th class="field-name">nk_file_name:</th><td class="field-body"><p class="first">(str) The output filename for count-kappa correlation function.</p>
 <p>This is nominally the kappa version of the ne calculation.  However, k is
 really any scalar quantity, so it can be used for temperature, size, etc.</p>
 <p>The output columns are:</p>
@@ -668,7 +700,7 @@ really any scalar quantity, so it can be used for temperature, size, etc.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">nk_statistic:</th><td class="field-body"><p class="first">(str, default=’compensated’ if <strong>rand_files</strong> is given, otherwise ‘simple’): Which statistic to use for the mean shear as the estimator of the NK correlation function.</p>
+<tr class="field-odd field"><th class="field-name">nk_statistic:</th><td class="field-body"><p class="first">(str, default=’compensated’ if <strong>rand_files</strong> is given, otherwise ‘simple’) Which statistic to use for the mean shear as the estimator of the NK correlation function.</p>
 <p>Options are:</p>
 <ul>
 <li><p class="first">‘compensated’ is simiar to the Landy-Szalay statistic:
@@ -685,7 +717,7 @@ Define:</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">kk_file_name:</th><td class="field-body"><p class="first">(str): The output filename for kappa-kappa correlation function.</p>
+<tr class="field-even field"><th class="field-name">kk_file_name:</th><td class="field-body"><p class="first">(str) The output filename for kappa-kappa correlation function.</p>
 <p>This is the kappa-kappa correlation function.  However, k is really any
 scalar quantity, so it can be used for temperature, size, etc.</p>
 <p>The output columns are:</p>
@@ -700,7 +732,7 @@ scalar quantity, so it can be used for temperature, size, etc.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">kg_file_name:</th><td class="field-body"><p class="first">(str): The output filename for kappa-shear correlation function.</p>
+<tr class="field-odd field"><th class="field-name">kg_file_name:</th><td class="field-body"><p class="first">(str) The output filename for kappa-shear correlation function.</p>
 <p>This is the kappa-shear correlation function.  Essentially, this is just
 galaxy-galaxy lensing, weighting the tangential shears by the foreground
 kappa values.</p>
@@ -717,7 +749,7 @@ kappa values.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">nnn_file_name:</th><td class="field-body"><p class="first">(str): The output filename for count-count-count correlation function.</p>
+<tr class="field-even field"><th class="field-name">nnn_file_name:</th><td class="field-body"><p class="first">(str) The output filename for count-count-count correlation function.</p>
 <p>This is three-point correlation function of number counts.</p>
 <p>The output columns are:</p>
 <ul class="simple">
@@ -737,7 +769,7 @@ kappa values.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">nnn_statistic:</th><td class="field-body"><p class="first">(str, default=’compensated’): Which statistic to use for xi as the estimator of the NNN correlation function.</p>
+<tr class="field-odd field"><th class="field-name">nnn_statistic:</th><td class="field-body"><p class="first">(str, default=’compensated’) Which statistic to use for xi as the estimator of the NNN correlation function.</p>
 <p>Options are:</p>
 <ul class="simple">
 <li>‘compensated’ is the Szapudi &amp; Szalay (1998) estimator:
@@ -747,7 +779,7 @@ an estimator of zeta.  Rather, it estimates zeta(d1,d2,d3) + xi(d1) + xi(d2) + x
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">ggg_file_name:</th><td class="field-body"><p class="first">(str): The output filename for shear-shear-shear correlation function.</p>
+<tr class="field-even field"><th class="field-name">ggg_file_name:</th><td class="field-body"><p class="first">(str) The output filename for shear-shear-shear correlation function.</p>
 <p>This is the shear three-point correlation function.  We use the “natural components”
 as suggested by Schenider &amp; Lombardi (2003): Gamma_0, Gamma_1, Gamma_2, Gamma_3.
 All are complex-valued functions of (d1,d2,d3).  The offer several options for the projection
@@ -777,7 +809,7 @@ direction.  We choose to use the triangle centroid as the reference point.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">kkk_file_name:</th><td class="field-body"><p class="first">(str): The output filename for kappa-kappa-kappa correlation function.</p>
+<tr class="field-odd field"><th class="field-name">kkk_file_name:</th><td class="field-body"><p class="first">(str) The output filename for kappa-kappa-kappa correlation function.</p>
 <p>This is the three-point correlation function of a scalar field.</p>
 <p>The output columns are:</p>
 <ul class="simple">
@@ -797,7 +829,7 @@ direction.  We choose to use the triangle centroid as the reference point.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">precision:</th><td class="field-body"><p class="first">(int): The number of digits after the decimal in the output.</p>
+<tr class="field-even field"><th class="field-name">precision:</th><td class="field-body"><p class="first">(int) The number of digits after the decimal in the output.</p>
 <p class="last">All output quantities are printed using scientific notation, so this sets
 the number of digits output for all values.  The default precision is 4.
 So if you want more (or less) precise values, you can set this to something
@@ -815,7 +847,7 @@ functions.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">m2_file_name:</th><td class="field-body"><p class="first">(str): The output filename for the aperture mass statistics.</p>
+<tr class="field-odd field"><th class="field-name">m2_file_name:</th><td class="field-body"><p class="first">(str) The output filename for the aperture mass statistics.</p>
 <p>This file outputs the aperture mass variance and related quantities,
 derived from the shear-shear correlation function.</p>
 <p>The output columns are:</p>
@@ -830,7 +862,7 @@ derived from the shear-shear correlation function.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">m2_uform:</th><td class="field-body"><p class="first">(str, default=’Crittenden’): The function form of the aperture</p>
+<tr class="field-even field"><th class="field-name">m2_uform:</th><td class="field-body"><p class="first">(str, default=’Crittenden’) The function form of the aperture</p>
 <p>The form of the aperture mass statistic popularized by Schneider is</p>
 <blockquote>
 <div><p>U = 9/Pi (1-r^2) (1/3-r^2)
@@ -849,7 +881,7 @@ at least for 2-point applications.  (You will get an error if you
 try to use ‘Schneider’ with the m3 output.)</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">nm_file_name:</th><td class="field-body"><p class="first">(str): The output filename for &lt;N Map&gt; and related values.</p>
+<tr class="field-odd field"><th class="field-name">nm_file_name:</th><td class="field-body"><p class="first">(str) The output filename for &lt;N Map&gt; and related values.</p>
 <p>This file outputs the correlation of the aperture mass with the
 aperture-smoothed density field, derived from the count-shear correlation
 function.</p>
@@ -862,7 +894,7 @@ function.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">norm_file_name:</th><td class="field-body"><p class="first">(str): The output filename for &lt;Nap Map&gt;^2/&lt;Nap^2&gt;&lt;Map^2&gt; and related values.</p>
+<tr class="field-even field"><th class="field-name">norm_file_name:</th><td class="field-body"><p class="first">(str) The output filename for &lt;Nap Map&gt;^2/&lt;Nap^2&gt;&lt;Map^2&gt; and related values.</p>
 <p>This file outputs the &lt;Nap Map&gt; values normalized by &lt;Nap^2&gt;&lt;Map^2&gt;.  This
 provides an estimate of the correlation coefficient, r.</p>
 <p>The output columns are:</p>
@@ -891,7 +923,7 @@ provides an estimate of the correlation coefficient, r.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">verbose:</th><td class="field-body"><p class="first">(int, default=1): How verbose the code should be during processing.</p>
+<tr class="field-odd field"><th class="field-name">verbose:</th><td class="field-body"><p class="first">(int, default=1) How verbose the code should be during processing.</p>
 <ul class="simple">
 <li>0 = no output unless there is an error</li>
 <li>1 = output warnings</li>
@@ -901,30 +933,41 @@ provides an estimate of the correlation coefficient, r.</p>
 <p>This is overridden by the <code class="docutils literal notranslate"><span class="pre">-v</span></code> command line argument for the <a class="reference internal" href="scripts.html#module-corr2" title="corr2"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">corr2</span></code></a> executable.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">log_file:</th><td class="field-body"><p class="first">(str, default=None): Where to write the logging information.</p>
+<tr class="field-even field"><th class="field-name">log_file:</th><td class="field-body"><p class="first">(str, default=None) Where to write the logging information.</p>
 <p>The default is to write lines to the screen, but this option allows you to
 write them to a file instead.  With the <a class="reference internal" href="scripts.html#module-corr2" title="corr2"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">corr2</span></code></a> executable, this can also be
 specified with the <code class="docutils literal notranslate"><span class="pre">-l</span></code> command line argument.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">output_dots:</th><td class="field-body"><p class="first">(bool, default=``verbose&gt;=2``): Whether to output progress dots during the calculation of the correlation function.</p>
+<tr class="field-odd field"><th class="field-name">output_dots:</th><td class="field-body"><p class="first">(bool, default=(<strong>verbose</strong>&gt;=2)) Whether to output progress dots during the
+calculation of the correlation function.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">split_method:</th><td class="field-body"><p class="first">(str, default=’mean’): Which method to use for splitting cells.</p>
-<p>When building the tree, there are three choices for how to split a set
+<tr class="field-even field"><th class="field-name">split_method:</th><td class="field-body"><p class="first">(str, default=’mean’) Which method to use for splitting cells.</p>
+<p>When building the tree, there are three obvious choices for how to split a set
 of points into two chld cells.  The direction is always taken to be the
 coordinate direction with the largest extent.  Then, in that direction,
 you can split at the mean value, the median value, or the “middle” =
 (xmin+xmax)/2.  To select among these, <strong>split_method</strong> may be given as
 “mean”, “median”, or “middle” respectively.</p>
+<p>In addition, sometimes it may be useful to inject some randomness into the
+tree construction to study how much the results depend on the specific splitting
+used.  For that purpose, there is also the option to set <strong>split_method</strong> = ‘random’,
+which will choose a random point in the middle two quartiles of the range.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">max_top:</th><td class="field-body"><p class="first">(int, default=10): The maximum number of top layers to use when setting up the field.</p>
+<tr class="field-odd field"><th class="field-name">min_top:</th><td class="field-body"><p class="first">(int, default=3) The minimum number of top layers to use when setting up the field.</p>
+<p>The OpenMP parallelization happens over the top level cells, so setting this &gt; 0
+ensures that there will be multiple jobs to be run in parallel.  For systems with
+very many cores, it may be helpful to set this larger than the default value of 3.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">max_top:</th><td class="field-body"><p class="first">(int, default=10) The maximum number of top layers to use when setting up the field.</p>
 <p>The top-level cells are the cells where each calculation job starts.  There will
 typically be of order 2^max_top top-level cells.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">num_threads:</th><td class="field-body"><p class="first">(int, default=0): How many (OpenMP) threads should be used.</p>
+<tr class="field-odd field"><th class="field-name">num_threads:</th><td class="field-body"><p class="first">(int, default=0) How many (OpenMP) threads should be used.</p>
 <p class="last">The default is to try to determine the number of cpu cores your system has
 and use that many threads.</p>
 </td>
@@ -945,7 +988,7 @@ and use that many threads.</p>
         <a href="changes.html" class="btn btn-neutral float-right" title="Changes from version 3.3 to 4.0" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="scripts.html" class="btn btn-neutral float-left" title="The corr2 and corr3 driver scripts" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="scripts.html" class="btn btn-neutral float-left" title="Using configuration files" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

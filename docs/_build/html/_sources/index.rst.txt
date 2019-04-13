@@ -11,7 +11,7 @@ TreeCorr Documentation
    correlation2
    correlation3
    metric
-   bintype
+   binning
    field
    scripts
    params

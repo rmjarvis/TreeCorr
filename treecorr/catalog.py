@@ -70,9 +70,8 @@ class Catalog(object):
     that are not relevant to the Catalog construction, so you can use the same config dict
     for the Catalog and your correlation objects, which can be convenient.
 
-    See also https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters
-    for complete descriptions of all of the relevant configuration parameters.  In particular,
-    the first section "Parameters about the input file".
+    See also `Configuration Parameters` for complete descriptions of all of the relevant
+    configuration parameters, particularly the first section `Parameters about the input file(s)`.
 
     You may also override any configuration parameters or add additional parameters as kwargs
     after the config dict.  For instance, to flip the sign of the g1 values after reading

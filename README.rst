@@ -106,21 +106,21 @@ that is also relatively straightforward:
    installing cffi, including its libffi dependency.
 
 
-.. note::
+   .. note::
 
-   Two additional modules are not required for basic TreeCorr operations, but are
-   potentially useful.
+        Two additional modules are not required for basic TreeCorr operations, but are
+        potentially useful.
 
-   a) fitsio is required for reading FITS catalogs or writing to FITS output files.
+        a) fitsio is required for reading FITS catalogs or writing to FITS output files.
 
-   b) pandas will signficantly speed up reading from ASCII catalogs.
+        b) pandas will signficantly speed up reading from ASCII catalogs.
 
-   These are both pip installable::
+        These are both pip installable::
 
-        pip install fitsio
-        pip install pandas
+            pip install fitsio
+            pip install pandas
 
-   But they are not installed with TreeCorr automatically.
+        But they are not installed with TreeCorr automatically.
 
 
 2. Download TreeCorr

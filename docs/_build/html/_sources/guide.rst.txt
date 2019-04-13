@@ -1,7 +1,7 @@
 Getting Started Guide
 ---------------------
 
-The below guide has largely been superseded by a 
+The below guide has largely been superseded by a
 `Jupyter notebook tutorial <https://github.com/rmjarvis/TreeCorr/blob/master/tests/Tutorial.ipynb>`_.
 That probably provides a better starting point for most users.  The below guide was mostly
 written for people migrating from using the executable `corr2` to more advanced usage
@@ -23,7 +23,7 @@ The same functionality that you have from the ``corr2`` executable is available 
 However, this isn't exactly a huge improvement over using the executable itself.
 Basically, it allows for an alternative way to set the configuration parameters, but not much
 beyond that.  The utility of the python module becomes more apparent if we drill down one
-level and see what the `corr2` function is doing.  
+level and see what the `corr2` function is doing.
 
 
 Shear-shear auto-correlation
@@ -57,11 +57,11 @@ See the doc string for `GGCorrelation` for other available attributes.
 
 Also, anywhere that you can pass it a config dict, you can also pass the relevant parameters as
 regular python kwargs.  For example::
-    
-    cat = treecorr.Catalog(file_name, ra_col='RA', dec_col='DEC', 
+
+    cat = treecorr.Catalog(file_name, ra_col='RA', dec_col='DEC',
                            ra_units='hours', dec_units='deg',
                            g1_col='E1', g2_col='E2')
-    gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1, max_sep=100, 
+    gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1, max_sep=100,
                                 sep_units='arcmin', bin_slop=0.5)
 
 
@@ -80,11 +80,11 @@ You can also bypass the I/O on the input side as well::
 You always need to include either **x** and **y** or **ra** and **dec**.
 Which other columns you need depends on what kind of correlation function you want to calculate
 from the data.  For GG, you need **g1** and **g2**, but for kappa correlations, you would use
-**k** instead.  
+**k** instead.
 
 You can optionally provide a weight column as well with **w** if desired.  To have the calculation
 skip some objects (e.g. objects with some kind of flag set), simply provide **w** where those
-objects have ``w[i] = 0``.  
+objects have ``w[i] = 0``.
 
 See the doc string for `Catalog` for more information.
 
@@ -105,7 +105,7 @@ You should see their doc strings for details, but they all work similarly.
 For the last three, there is no auto-correlation option, of course, just the cross-correlation.
 
 The other main difference between these other correlation classes from GG is that there is only a
-single correlation function, so it is called **xi** rather than **xip** and **xim**.  
+single correlation function, so it is called **xi** rather than **xip** and **xim**.
 
 Also, NN does not have any kind of **xi** attribute.  You need to perform an additional
 calculation involving random catalogs for that.  See `Using random catalogs` below for more details.
@@ -122,7 +122,7 @@ So far, we have only implemented the auto-correlation three-point functions:
     - `GGGCorrelation`  # shear-shear-shear
     - `KKKCorrelation`  # kappa-kappa-kappa
 
-These classes are significantly more complicated than the two-point ones, 
+These classes are significantly more complicated than the two-point ones,
 since they have to deal with the geometry of the triangles being binned.
 See their doc strings for more details.
 

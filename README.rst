@@ -199,6 +199,8 @@ This software is able to compute a variety of two-point correlations:
 :KG:  Cross-correlation of convergence with shear.  Like the NG calculation, but
       weighting the pairs by the kappa values the foreground points.
 
+See `Two-point Correlation Functions
+<https://rmjarvis.github.io/TreeCorr/_build/html/correlation2.html>`_ for more details.
 
 Three-point Correlations
 ------------------------
@@ -215,6 +217,8 @@ only avaiable three-point correlations are:
 :KKK: Three-point kappa correlation function.  Again, "kappa" here can be any
       scalar quantity.
 
+See `Three-point Correlation Functions
+<https://rmjarvis.github.io/TreeCorr/_build/html/correlation3.html>`_ for more details.
 
 Running corr2 and corr3
 -----------------------
@@ -226,7 +230,7 @@ which is the name of a configuration file::
     corr3 config_file
 
 A sample configuration file for corr2 is provided, called sample.params.
-See the `TreeCorr wiki <https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters>`_
+See `Configuration Parameters <https://rmjarvis.github.io/TreeCorr/_build/html/params.html>`_
 for the complete documentation about the allowed parameters.
 
 You can also specify parameters on the command line after the name of
@@ -239,6 +243,8 @@ the configuration file. e.g.::
 This can be useful when running the program from a script for lots of input
 files.
 
+See `Using configuration files <https://rmjarvis.github.io/TreeCorr/_build/html/scripts.html>`_
+for more details.
 
 Using the Python module
 -----------------------
@@ -267,11 +273,11 @@ For more involved worked examples, see our `Jupyter notebook tutorial
 <https://github.com/rmjarvis/TreeCorr/blob/master/tests/Tutorial.ipynb>`_.
 
 And for the complete details about all aspects of the code, see the `Sphinx-generated
-documentation <http://rmjarvis.github.io/TreeCorr/html/index.html>`_.
+documentation <http://rmjarvis.github.io/TreeCorr>`_.
 
 If you are used to using ``corr2`` with a configuration file,
 and want to learn how to do the same thing in pythonn, there is also a
-`guide <https://github.com/rmjarvis/TreeCorr/wiki/Guide-to-using-TreeCorr-in-Python>`_
+`guide <https://rmjarvis.github.io/TreeCorr/_build/html/guide.html>`_
 to migrating over.
 
 

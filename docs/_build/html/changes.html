@@ -289,10 +289,12 @@ cache to release the memory of the cached field(s). (#53)</li>
 <h2>New features<a class="headerlink" href="#new-features" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>Added a new concept, called bin_type for all the Correlation objects.  There
-are currently three possible options for bin_type:
-- ‘Log’ is equivalent to the previous behavior of binning in log space.
-- ‘Linear’ bins linearly in r. (#5)
-- ‘TwoD’ bins linearly in x and y. (#70)</li>
+are currently three possible options for bin_type:<ul>
+<li>‘Log’ is equivalent to the previous behavior of binning in log space.</li>
+<li>‘Linear’ bins linearly in r. (#5)</li>
+<li>‘TwoD’ bins linearly in x and y. (#70)</li>
+</ul>
+</li>
 <li>Added the ability to use min_rpar and max_rpar with the Arc metric. (#61)</li>
 <li>Added a different definition of Rperp, called FisherRperp, which follows
 the definition in Fisher et al, 1994.  This definition is both more standard

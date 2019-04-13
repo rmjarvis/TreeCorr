@@ -119,7 +119,7 @@ values.
 
 The approximation TreeCorr makes is to allow some *additional* imprecision that is a
 fraction of this level.  Namely **bin_slop**.  Specifically, **bin_slop** specifies by
-what fraction of the bin size can a given pair of points be placed into the wrong bin. 
+what fraction of the bin size can a given pair of points be placed into the wrong bin.
 
 You can think of it as turning all of your rectangular bins into overlapping trapezoids,
 where **bin_slop** defines the ratio of the angled portion to the flat mean width.
@@ -179,7 +179,7 @@ And especially for NN correlations, there is no disadvantage to doing so.
 
 For shear correlations, there can be a slight difference between using **bin_slop** = 0 and
 **brute** = True because the shear projections won't be precisely equal in the two cases.
-Shear correlations require parallel transporting the shear values to the centers of 
+Shear correlations require parallel transporting the shear values to the centers of
 the cells, and then when accumulating pairs, the shears are projected onto the line joining
 the two points.  Both of these lead to slight differences in the results of a **bin_slop** = 0
 calculation compared to the true brute force calculation.

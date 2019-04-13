@@ -15,6 +15,7 @@ TreeCorr Documentation
    field
    scripts
    params
+   guide
    changes
    history
 

@@ -90,119 +90,115 @@ void InitializeCenters(std::vector<Position<C> >& centers, const std::vector<Cel
     dbg<<"Done initializing centers\n";
 }
 
+#define cell_storage_type std::vector<const Cell<D,C>*>
+// Comment: I tried a number of stdlib containers for the cells_by_patch internal container,
+// and vector was the fastest.  I kind of expected deque to be faster, and it was close, but
+// apparently the amortized reallocations required for push_back were negligible compared to
+// the speed advantage from having things contiguous is memory.
+// For the record, set and list were both much slower.
+
 template <int D, int C>
-void UpdateCenters(const std::vector<Position<C> >& centers,
-                   std::vector<Position<C> >& new_centers,
-                   std::vector<double>& new_weights,
-                   const Cell<D,C>* cell, std::set<long> candidate_patches,
-                   std::vector<std::set<const Cell<D,C>*> >& cells_by_patch)
+void FindCellsInPatches(const std::vector<Position<C> >& centers,
+                   const Cell<D,C>* cell, std::vector<long>& patches, long ncand,
+                   std::vector<cell_storage_type>& cells_by_patch,
+                   std::vector<double>& saved_dsq)
 {
     //set_verbose(2);
-    xdbg<<"Start recursive UpdateCenters\n";
+    xdbg<<"Start recursive FindCellsInPatches\n";
     // First find the center that is closest to the current cell's center
     const Position<C> cell_center = cell->getPos();
     double s = cell->getSize();
     xdbg<<"cell = "<<cell_center<<"  "<<s<<"  "<<cell->getN()<<std::endl;
-    double min_dsq = 1.e300;
-    double closest_i = -1;
-    std::vector<double> saved_dsq;
-    saved_dsq.reserve(candidate_patches.size());
-    typedef std::set<long>::iterator set_it;
-    for (set_it i=candidate_patches.begin(); i!=candidate_patches.end(); ++i) {
-        double dsq = (cell_center - centers[*i]).normSq();
-        saved_dsq.push_back(dsq);
-        if (closest_i == -1) {
-            min_dsq = dsq;
-            closest_i = *i;
-        } else if (dsq < min_dsq) {
-            min_dsq = dsq;
-            closest_i = *i;
+
+    // Start with a guess that the closest one is in the first position.
+    double closest_i = patches[0];
+    double min_dsq = (cell_center - centers[closest_i]).normSq();
+    saved_dsq[0] = min_dsq;
+
+    // Look for closer center
+    for (int j=1; j<ncand; ++j) {
+        long i=patches[j];
+        saved_dsq[j] = (cell_center - centers[i]).normSq();
+        if (saved_dsq[j] < min_dsq) {
+            std::swap(saved_dsq[0], saved_dsq[j]);
+            std::swap(patches[0], patches[j]);
+            closest_i = i;
+            min_dsq = saved_dsq[0];
         }
     }
-    xdbg<<"closest center = "<<closest_i<<"  "<<centers[closest_i]<<" d = "<<sqrt(min_dsq)<<std::endl;
+    double min_d = sqrt(min_dsq);
     // Can remove any candidate with d - size >  min_d + size
-    double thresh_dsq = SQR(sqrt(min_dsq) + 2*s);
+    double thresh_dsq = SQR(min_d + 2*s);
+    xdbg<<"closest center = "<<closest_i<<"  "<<centers[closest_i]<<" d = "<<min_d<<std::endl;
     xdbg<<"thresh_dsq = "<<thresh_dsq<<std::endl;
 
-    // Update candidate_patches to remove any that cannot be the right center
-    // for anything in the current cell.
-    std::vector<double>::const_iterator dsq_it=saved_dsq.begin();
-    typedef std::set<long>::iterator set_it;
-    for (set_it i=candidate_patches.begin(); i!=candidate_patches.end(); ) {
-        double dsq = *dsq_it++;
+    // Update patches to remove any that cannot be the right center from candidate section.
+    for (int j=ncand-1; j>0; --j) {
+        double dsq = saved_dsq[j];
         xdbg<<"Check: "<<dsq<<" >? "<<thresh_dsq<<std::endl;
-        // Note: normally if *i==closest_i, then dsq <= thresh_dsq, but with rounding errors
-        // if s==0, sometimes this isn't true, so just make sure we don't remove closest_i.
-        if ((dsq > thresh_dsq) && (*i != closest_i)) {
-            if (closest_i == 21) {
-                dbg<<"distance to 21 center = "<<sqrt(min_dsq)<<std::endl;
-                dbg<<"distance to "<<*i<<" center = "<<sqrt(dsq)<<std::endl;
-                dbg<<"check "<<sqrt(dsq) - s<<" >? "<<sqrt(min_dsq) + s<<std::endl;
-                Assert(std::abs(sqrt(dsq) - (cell_center - centers[*i]).norm()) < 1.e-10);
-                Assert(sqrt(dsq) - s >= sqrt(min_dsq) + s + 1.e-10);
+        if (dsq > thresh_dsq) {
+            xdbg<<"Remove cell with center "<<centers[patches[j]]<<std::endl;
+            --ncand;
+            if (j != ncand) {
+                std::swap(patches[j], patches[ncand]);
+                // Don't bother with saved_dsq, since don't need that anymore.
             }
-            xdbg<<"Remove cell with center "<<centers[*i]<<std::endl;
-            candidate_patches.erase(i++);
         }
-        else ++i;
     }
-    xdbg<<"There are "<<candidate_patches.size()<<" patches remaining\n";
+    xdbg<<"There are "<<ncand<<" patches remaining\n";
 
     //set_verbose(1);
-    if (candidate_patches.size() == 1) {
+    if (ncand == 1) {
         // If we only have one candidate left, we're done.  Use this cell to update this patch.
-        cells_by_patch[closest_i].insert(cell);
-        dbg<<"cell = "<<cell_center<<"  "<<s<<"  "<<cell->getN()<<"  "<<cell->getW()<<std::endl;
-        dbg<<"cell_center * w = "<<cell_center * cell->getW()<<std::endl;
-        dbg<<"new_centers["<<closest_i<<"] = "<<new_centers[closest_i]<<std::endl;
-        new_centers[closest_i] += cell_center * cell->getW();
-        dbg<<"new_centers["<<closest_i<<"] => "<<new_centers[closest_i]<<std::endl;
-        new_weights[closest_i] += cell->getW();
-        xdbg<<"new center so far = "<<new_centers[closest_i] / new_weights[closest_i]<<std::endl;
-        if (closest_i == 21) {
-            dbg<<"cell = "<<cell_center<<"  "<<s<<"  "<<cell->getN()<<"  "<<cell->getW()<<std::endl;
-            dbg<<"new center so far = "<<new_centers[closest_i]<<" / "<<new_weights[closest_i]<<std::endl;
-            dbg<<"                  = "<<new_centers[closest_i] / new_weights[closest_i]<<std::endl;
-        }
+        cells_by_patch[closest_i].push_back(cell);
     } else {
         // Otherwise, need to recurse to sub-cells.
-        UpdateCenters(centers, new_centers, new_weights, cell->getLeft(), candidate_patches,
-                      cells_by_patch);
-        UpdateCenters(centers, new_centers, new_weights, cell->getRight(), candidate_patches,
-                      cells_by_patch);
+        FindCellsInPatches(centers, cell->getLeft(), patches, ncand, cells_by_patch, saved_dsq);
+        // Note: the above call might have swapped some patches around, but only within the
+        // first ncand values, so they are still valid for the next call.
+        FindCellsInPatches(centers, cell->getRight(), patches, ncand, cells_by_patch, saved_dsq);
     }
 }
 
 template <int D, int C>
-void UpdateCenters(const std::vector<Position<C> >& centers,
-                   std::vector<Position<C> >& new_centers,
+void FindCellsInPatches(const std::vector<Position<C> >& centers,
                    const std::vector<Cell<D,C>*>& cells,
-                   std::vector<std::set<const Cell<D,C>*> >& cells_by_patch)
+                   std::vector<cell_storage_type>& cells_by_patch)
 {
     // We start with all patches as candidates.
-    std::set<long> candidate_patches;
-    for (size_t i=0; i<centers.size(); ++i) candidate_patches.insert(i);
+    long ncand = centers.size();
+    std::vector<long> patches(ncand);
+    for (long i=0; i<ncand; ++i) patches[i] = i;
 
-    // During the recursion, we just add up Sum (pos * w)
-    // At the end, we'll divide by Sum (w)
-    std::vector<double> new_weights(new_centers.size(), 0.);
+    // Set up a work space where we save dsq calculations.
+    std::vector<double> saved_dsq(ncand);
 
     // Start a recursion for each top-level cell.
     for (size_t k=0; k<cells.size(); ++k) {
         // Note candidate_patches is intentionally passed by value, not reference.
         // It will be modified by the recursive version of this function, so passing by
         // value means each call gets the original version.
-        UpdateCenters(centers, new_centers, new_weights, cells[k], candidate_patches,
-                      cells_by_patch);
+        FindCellsInPatches(centers, cells[k], patches, ncand, cells_by_patch, saved_dsq);
     }
+}
 
-    // Now divide by Sum(w)
+template <int D, int C>
+void UpdateCenters(std::vector<Position<C> >& new_centers,
+                   std::vector<cell_storage_type>& cells_by_patch)
+{
+    typedef typename cell_storage_type::iterator iter_type;
     for (size_t i=0; i<new_centers.size(); ++i) {
-        dbg<<"Center "<<i<<" = "<<centers[i]<<std::endl;
-        dbg<<"New center = "<<new_centers[i]<<" / "<<new_weights[i]<<std::endl;
-        new_centers[i] /= new_weights[i];
-        new_centers[i].normalize();
-        dbg<<"New center = "<<new_centers[i]<<std::endl;
+        dbg<<"Patch "<<i<<" includes "<<cells_by_patch[i].size()<<" cells\n";
+        Position<C> cen;
+        double w = 0.;
+        for (iter_type it=cells_by_patch[i].begin(); it!=cells_by_patch[i].end(); ++it) {
+            cen += (*it)->getPos() * (*it)->getW();
+            w += (*it)->getW();
+        }
+        cen /= w;
+        cen.normalize();
+        dbg<<"New center = "<<cen<<std::endl;
+        new_centers[i] = cen;
     }
 }
 
@@ -252,6 +248,7 @@ void RunKMeans2(Field<D,C>*field, int npatch, int max_iter, double tol, long* pa
     dbg<<"Start runKMeans for "<<npatch<<" patches\n";
     const std::vector<Cell<D,C>*> cells = field->getCells();
 
+    // Initialize the centers of the patches smartly according to the tree structure.
     std::vector<Position<C> > centers(npatch);
     InitializeCenters(centers, cells);
     dbg<<"After InitializeCenters\n";
@@ -263,14 +260,23 @@ void RunKMeans2(Field<D,C>*field, int npatch, int max_iter, double tol, long* pa
     double tolsq = tol*tol * field->getSizeSq() * npatch*npatch;
     dbg<<"tolsq = "<<tolsq<<std::endl;
 
-    std::vector<std::set<const Cell<D,C>*> > cells_by_patch(npatch);
+    // Keep track of which cells belong to which patch.
+    std::vector<cell_storage_type> cells_by_patch(npatch);
 
     for(int iter=0; iter<max_iter; ++iter) {
-        std::vector<Position<C> > new_centers(npatch, Position<C>());
+        // Figure out which cells belong to which patch according to the current centers.
+        // Note: clear leaves the previous capacity available, so usually won't need much
+        // in the way of allocation here.
         for (int i=0;i<npatch;++i) cells_by_patch[i].clear();
-        UpdateCenters(centers, new_centers, cells, cells_by_patch);
+        FindCellsInPatches(centers, cells, cells_by_patch);
+        dbg<<"Found cells in patches\n";
+
+        // Calculate the new center positions
+        std::vector<Position<C> > new_centers(npatch, Position<C>());
+        UpdateCenters(new_centers, cells_by_patch);
         dbg<<"After UpdateCenters\n";
 
+        // Check for convergence
         double shiftsq = CalculateShiftSq(centers, new_centers);
         dbg<<"Iter "<<iter<<": shiftsq = "<<shiftsq<<std::endl;
         // Stop if (rms shift / size) < tol
@@ -285,11 +291,12 @@ void RunKMeans2(Field<D,C>*field, int npatch, int max_iter, double tol, long* pa
         centers = new_centers;
     }
 
-    typedef typename std::set<const Cell<D,C>*>::iterator set_it;
+    // Write the patch numbers to the output array.
     for (int i=0; i<npatch; ++i) {
         dbg<<"Fill patches for i = "<<i<<std::endl;
         dbg<<"Patch includes "<<cells_by_patch[i].size()<<" cells\n";
-        for (set_it it=cells_by_patch[i].begin(); it!=cells_by_patch[i].end(); ++it) {
+        typedef typename cell_storage_type::iterator iter_type;
+        for (iter_type it=cells_by_patch[i].begin(); it!=cells_by_patch[i].end(); ++it) {
             FillPatches(*it, i, patches, n);
         }
     }

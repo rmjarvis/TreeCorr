@@ -229,7 +229,7 @@ class Position<Sphere> : public Position<ThreeD>
 public:
     Position() : Position<ThreeD>() {}
     Position(const Position<Sphere>& rhs) : Position<ThreeD>(rhs) {}
-    Position(const Position<ThreeD>& rhs) : Position<ThreeD>(rhs) { normalize(); }
+    explicit Position(const Position<ThreeD>& rhs) : Position<ThreeD>(rhs) { normalize(); }
     ~Position() {}
     Position(double x, double y, double z) : Position<ThreeD>(x,y,z) { normalize(); }
     Position<Sphere>& operator=(const Position<Sphere>& rhs)
@@ -244,6 +244,10 @@ public:
     Position<Sphere>& operator+=(const Position<Sphere>& p2)
     { Position<ThreeD>::operator+=(p2); return *this; }
     Position<Sphere>& operator-=(const Position<Sphere>& p2)
+    { Position<ThreeD>::operator-=(p2); return *this; }
+    Position<Sphere>& operator+=(const Position<ThreeD>& p2)
+    { Position<ThreeD>::operator+=(p2); return *this; }
+    Position<Sphere>& operator-=(const Position<ThreeD>& p2)
     { Position<ThreeD>::operator-=(p2); return *this; }
     Position<Sphere>& operator*=(double a)
     { Position<ThreeD>::operator*=(a); return *this; }

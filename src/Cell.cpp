@@ -46,7 +46,8 @@ void BuildCellData(
 {
     Assert(start < end);
     double wp = vdata[start].second.wpos;
-    pos = vdata[start].first->getPos() * wp;
+    pos = vdata[start].first->getPos();
+    pos *= wp;
     w = vdata[start].first->getW();
     n = (w != 0);
     double sumwp = wp;

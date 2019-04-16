@@ -251,7 +251,7 @@ struct BinTypeHelper<TwoD>
         // include "pair"s that are really the same object.
         if (rsq == 0. || rsq < minsepsq) return false;
         else {
-            Position<C> diff = p1-p2;
+            Position<C> diff(p1-p2);
             double r = std::max(std::abs(diff.getX()), std::abs(diff.getY()));
             return r < maxsep;
         }

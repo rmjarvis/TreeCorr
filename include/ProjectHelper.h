@@ -173,7 +173,7 @@ struct ProjectHelper<Sphere>
         const Position<Sphere>& p1 = c1.getData().getPos();
         const Position<Sphere>& p2 = c2.getData().getPos();
         const Position<Sphere>& p3 = c3.getData().getPos();
-        Position<Sphere> cen = (p1 + p2 + p3)/3.;
+        Position<Sphere> cen((p1 + p2 + p3)/3.);
         g1 = c1.getData().getWG();
         g2 = c2.getData().getWG();
         g3 = c3.getData().getWG();
@@ -226,7 +226,7 @@ struct ProjectHelper<ThreeD>
         Position<Sphere> sp1(p1);
         Position<Sphere> sp2(p2);
         Position<Sphere> sp3(p3);
-        Position<Sphere> cen = (sp1 + sp2 + sp3)/3.;
+        Position<Sphere> cen((sp1 + sp2 + sp3)/3.);
         cen.normalize();
         g1 = c1.getData().getWG();
         g2 = c2.getData().getWG();

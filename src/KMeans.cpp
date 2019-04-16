@@ -165,21 +165,41 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
                    const std::vector<Cell<D,C>*>& cells,
                    std::vector<cell_storage_type>& cells_by_patch)
 {
-    // We start with all patches as candidates.
-    long ncand = centers.size();
-    std::vector<long> patches(ncand);
-    for (long i=0; i<ncand; ++i) patches[i] = i;
+#ifdef _OPENMP
+#pragma omp parallel
+    {
+        // Give each thread their own copy of cells_by_patch to fill in.
+        std::vector<cell_storage_type> cbp2 = cells_by_patch;
+#else
+        std::vector<cell_storage_type>& cbp2 = cells_by_patch;
+#endif
 
-    // Set up a work space where we save dsq calculations.
-    std::vector<double> saved_dsq(ncand);
+        // We start with all patches as candidates.
+        long npatch = centers.size();
+        std::vector<long> patches(npatch);
+        for (long i=0; i<npatch; ++i) patches[i] = i;
 
-    // Start a recursion for each top-level cell.
-    for (size_t k=0; k<cells.size(); ++k) {
-        // Note candidate_patches is intentionally passed by value, not reference.
-        // It will be modified by the recursive version of this function, so passing by
-        // value means each call gets the original version.
-        FindCellsInPatches(centers, cells[k], patches, ncand, cells_by_patch, saved_dsq);
+        // Set up a work space where we save dsq calculations.
+        std::vector<double> saved_dsq(npatch);
+
+        // Start a recursion for each top-level cell.
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+        for (size_t k=0; k<cells.size(); ++k) {
+            FindCellsInPatches(centers, cells[k], patches, npatch, cbp2, saved_dsq);
+        }
+
+#ifdef _OPENMP
+        // Combine the results
+#pragma omp critical
+        {
+            for (int i=0; i<npatch; ++i)
+                cells_by_patch[i].insert(cells_by_patch[i].end(), cbp2[i].begin(), cbp2[i].end());
+        }
     }
+#endif
+
 }
 
 template <int D, int C>
@@ -187,7 +207,11 @@ void UpdateCenters(std::vector<Position<C> >& new_centers,
                    std::vector<cell_storage_type>& cells_by_patch)
 {
     typedef typename cell_storage_type::iterator iter_type;
-    for (size_t i=0; i<new_centers.size(); ++i) {
+    const int npatch = new_centers.size();
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+    for (int i=0; i<npatch; ++i) {
         dbg<<"Patch "<<i<<" includes "<<cells_by_patch[i].size()<<" cells\n";
         Position<C> cen;
         double w = 0.;
@@ -292,7 +316,10 @@ void RunKMeans2(Field<D,C>*field, int npatch, int max_iter, double tol, long* pa
     }
 
     // Write the patch numbers to the output array.
-    for (int i=0; i<npatch; ++i) {
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+     for (int i=0; i<npatch; ++i) {
         dbg<<"Fill patches for i = "<<i<<std::endl;
         dbg<<"Patch includes "<<cells_by_patch[i].size()<<" cells\n";
         typedef typename cell_storage_type::iterator iter_type;

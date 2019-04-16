@@ -23,7 +23,7 @@
 // each top-level Cell.  It is building up the top_* vectors, which can then be used
 // to build the actual Cells.
 template <int D, int C>
-void SetupTopLevelCells(
+double SetupTopLevelCells(
     std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& celldata,
     double maxsizesq, SplitMethod sm, size_t start, size_t end, int mintop, int maxtop,
     std::vector<CellData<D,C>*>& top_data,
@@ -75,6 +75,7 @@ void SetupTopLevelCells(
         SetupTopLevelCells(celldata, maxsizesq, sm, mid, end, mintop-1, maxtop-1,
                            top_data, top_sizesq, top_start, top_end);
     }
+    return sizesq;
 }
 
 // A helper struct to build the right kind of CellData object
@@ -217,8 +218,8 @@ Field<D,C>::Field(
     std::vector<size_t> top_end;
 
     // Setup the top level cells:
-    SetupTopLevelCells(celldata,maxsizesq,sm,0,celldata.size(),mintop,maxtop,
-                       top_data,top_sizesq,top_start,top_end);
+    _sizesq = SetupTopLevelCells(celldata,maxsizesq,sm,0,celldata.size(),mintop,maxtop,
+                                 top_data,top_sizesq,top_start,top_end);
     const ptrdiff_t n = top_data.size();
     dbg<<"Field has "<<n<<" top-level nodes.  Building lower nodes...\n";
     _cells.resize(n);
@@ -672,5 +673,4 @@ void DestroyKSimpleField(void* field, int coords)
 
 void DestroyNSimpleField(void* field, int coords)
 { DestroySimpleField<NData>(field, coords); }
-
 

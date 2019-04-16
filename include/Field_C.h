@@ -35,7 +35,7 @@ extern long FieldGetNTopLevel(void* field, int d, int coords);
 extern long FieldCountNear(void* field, double x, double y, double z, double sep,
                            int d, int coords);
 extern void FieldGetNear(void* field, double x, double y, double z, double sep,
-                         int d, int coords, long* indices, int n);
+                         int d, int coords, long* indices, long n);
 
 extern void* BuildGSimpleField(double* x, double* y, double* z, double* g1, double* g2,
                                double* w, double* wpos, long nobj, int coords);

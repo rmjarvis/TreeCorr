@@ -304,7 +304,7 @@ long Field<D,C>::countNear(double x, double y, double z, double sep) const
 
 template <int D, int C>
 void GetNear(const Cell<D,C>* cell, const Position<C>& pos, double sep, double sepsq,
-             long* indices, int& k, int n)
+             long* indices, long& k, long n)
 {
     double s = cell->getSize();
     const double dsq = (cell->getPos() - pos).normSq();
@@ -352,12 +352,12 @@ void GetNear(const Cell<D,C>* cell, const Position<C>& pos, double sep, double s
 }
 
 template <int D, int C>
-void Field<D,C>::getNear(double x, double y, double z, double sep, long* indices, int n) const
+void Field<D,C>::getNear(double x, double y, double z, double sep, long* indices, long n) const
 {
     Position<C> pos(x,y,z);
     double sepsq = sep*sep;
     dbg<<"Start getNear: "<<_cells.size()<<" top level cells\n";
-    int k = 0;
+    long k = 0;
     for(size_t i=0; i<_cells.size(); ++i) {
         dbg<<"Top level "<<i<<" with N="<<_cells[i]->getN()<<std::endl;
         GetNear(_cells[i], pos, sep, sepsq, indices, k, n);
@@ -580,7 +580,7 @@ long FieldCountNear(void* field, double x, double y, double z, double sep, int d
 
 template <int D>
 void FieldGetNear1(void* field, double x, double y, double z, double sep, int coords,
-                   long* indices, int n)
+                   long* indices, long n)
 {
     switch(coords) {
       case Flat:
@@ -596,7 +596,7 @@ void FieldGetNear1(void* field, double x, double y, double z, double sep, int co
 }
 
 void FieldGetNear(void* field, double x, double y, double z, double sep, int d, int coords,
-                  long* indices, int n)
+                  long* indices, long n)
 {
     switch(d) {
       case NData:

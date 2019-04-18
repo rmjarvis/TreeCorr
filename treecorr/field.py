@@ -247,6 +247,24 @@ class Field(object):
         treecorr._lib.FieldGetNear(self.data, x, y, z, sep, self._d, self._coords, lp(ind), n)
         return ind
 
+    def run_kmeans(self, npatch, max_iter=100, tol=1.e-5):
+        """Use K Means algorithm to set patch labels for a field.
+
+        Parameters:
+            npatch (int):       How many patches to generate
+            max_iter (int):     How many iterations at most to run (default: 100)
+            tol (float):        Tolerance in the rms centroid shift to consider as converged
+                                as a fraction of the total field size.  (default: 1.e-5)
+
+        Returns:
+            patches (array): An array of patch labels, all integers from 0..npatch-1.
+        """
+        from treecorr.util import long_ptr as lp
+        patches = np.empty(self.cat.ntot, dtype=int)
+        treecorr._lib.RunKMeans(self.data, int(npatch), int(max_iter), float(tol),
+                                self._d, self._coords, lp(patches), self.cat.ntot)
+        return patches
+
 
 class NField(Field):
     """This class stores the positions and number of objects in a tree structure from which it is

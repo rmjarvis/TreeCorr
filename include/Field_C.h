@@ -49,3 +49,6 @@ extern void* BuildNSimpleField(double* x, double* y, double* z,
 extern void DestroyGSimpleField(void* field, int coords);
 extern void DestroyKSimpleField(void* field, int coords);
 extern void DestroyNSimpleField(void* field, int coords);
+
+extern void RunKMeans(void* field, int npatch, int max_iter, double tol,
+                      int d, int coords, long* patches, long n);

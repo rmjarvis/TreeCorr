@@ -1,0 +1,5 @@
+.nbgrader.log
+.ipynb_checkpoints
+junk*
+sva1_gold*.fits
+des_sv.fits

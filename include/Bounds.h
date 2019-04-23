@@ -62,9 +62,9 @@ public:
     void read(std::istream& fin)
     { fin >> _xmin >> _xmax >> _ymin >> _ymax; _defined = true; }
 
-    int getSplit()
+    int getSplit() const
     { return (_ymax-_ymin) > (_xmax-_xmin) ? 1 : 0; }
-    double getMiddle(int split)
+    double getMiddle(int split) const
     { return split==1 ? (_ymax+_ymin)/2. : (_xmax+_xmin)/2.; }
 
 private:
@@ -130,7 +130,7 @@ public:
     void read(std::istream& fin)
     { fin >> _xmin >> _xmax >> _ymin >> _ymax >> _zmin >> _zmax; _defined = true; }
 
-    int getSplit()
+    int getSplit() const
     {
         double xrange = _xmax-_xmin;
         double yrange = _ymax-_ymin;
@@ -140,7 +140,7 @@ public:
             ( zrange > xrange ? 2 : 0 );
     }
 
-    double getMiddle(int split)
+    double getMiddle(int split) const
     { return split==2 ? (_zmax+_zmin)/2. : split==1 ? (_ymax+_ymin)/2. : (_xmax+_xmin)/2.; }
 
 private:

@@ -53,6 +53,7 @@ void BuildCellData(
     double sumwp = wp;
     for(size_t i=start+1; i!=end; ++i) {
         const CellData<D,C>& data = *vdata[i].first;
+        wp = vdata[i].second.wpos;
         pos += data.getPos() * wp;
         sumwp += wp;
         w += data.getW();

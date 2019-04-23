@@ -132,7 +132,7 @@ def test_direct():
     print('rel diff = ',(gg.xim - true_xim.real)/true_xim.real)
     # This is the one that is highly affected by the approximation from averaging the shears
     # before projecting, rather than averaging each shear projected to its own connecting line.
-    np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-3, atol=2.e-4)
+    np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-3, atol=3.e-4)
     np.testing.assert_allclose(gg.xim_im, true_xim.imag, atol=1.e-3)
 
     # Check a few basic operations with a GGCorrelation object.

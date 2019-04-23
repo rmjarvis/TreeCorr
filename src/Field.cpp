@@ -22,10 +22,10 @@
 // This function just works on the top level data to figure out which data goes into
 // each top-level Cell.  It is building up the top_* vectors, which can then be used
 // to build the actual Cells.
-template <int D, int C>
+template <int D, int C, int SM>
 double SetupTopLevelCells(
     std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& celldata,
-    double maxsizesq, SplitMethod sm, size_t start, size_t end, int mintop, int maxtop,
+    double maxsizesq, size_t start, size_t end, int mintop, int maxtop,
     std::vector<CellData<D,C>*>& top_data,
     std::vector<double>& top_sizesq,
     std::vector<size_t>& top_start, std::vector<size_t>& top_end)
@@ -68,12 +68,12 @@ double SetupTopLevelCells(
         top_start.push_back(start);
         top_end.push_back(end);
     } else {
-        size_t mid = SplitData(celldata,sm,start,end,ave->getPos());
+        size_t mid = SplitData<D,C,SM>(celldata,start,end,ave->getPos());
         xdbg<<"Too big.  Recurse with mid = "<<mid<<std::endl;
-        SetupTopLevelCells(celldata, maxsizesq, sm, start, mid, mintop-1, maxtop-1,
-                           top_data, top_sizesq, top_start, top_end);
-        SetupTopLevelCells(celldata, maxsizesq, sm, mid, end, mintop-1, maxtop-1,
-                           top_data, top_sizesq, top_start, top_end);
+        SetupTopLevelCells<D,C,SM>(celldata, maxsizesq, start, mid, mintop-1, maxtop-1,
+                                   top_data, top_sizesq, top_start, top_end);
+        SetupTopLevelCells<D,C,SM>(celldata, maxsizesq, mid, end, mintop-1, maxtop-1,
+                                   top_data, top_sizesq, top_start, top_end);
     }
     return sizesq;
 }
@@ -161,11 +161,11 @@ inline WPosLeafInfo get_wpos(double* wpos, double* w, int i)
 }
 
 template <int D, int C>
-Field<D,C>::Field(
-    double* x, double* y, double* z, double* g1, double* g2, double* k,
-    double* w, double* wpos, long nobj,
-    double minsize, double maxsize,
-    int sm_int, bool brute, int mintop, int maxtop)
+Field<D,C>::Field(double* x, double* y, double* z, double* g1, double* g2, double* k,
+                  double* w, double* wpos, long nobj,
+                  double minsize, double maxsize,
+                  SplitMethod sm, bool brute, int mintop, int maxtop) :
+    _nobj(nobj), _minsize(minsize), _maxsize(maxsize), _sm(sm)
 {
     //set_verbose(2);
     dbg<<"Starting to Build Field with "<<nobj<<" objects\n";
@@ -196,6 +196,29 @@ Field<D,C>::Field(
     }
     dbg<<"Built celldata with "<<celldata.size()<<" entries\n";
 
+    switch (sm) {
+      case MIDDLE:
+           BuildCells<MIDDLE>(celldata, minsize, maxsize, brute, mintop, maxtop);
+           break;
+      case MEDIAN:
+           BuildCells<MEDIAN>(celldata, minsize, maxsize, brute, mintop, maxtop);
+           break;
+      case MEAN:
+           BuildCells<MEAN>(celldata, minsize, maxsize, brute, mintop, maxtop);
+           break;
+      case RANDOM:
+           BuildCells<RANDOM>(celldata, minsize, maxsize, brute, mintop, maxtop);
+           break;
+      default:
+           throw std::runtime_error("Invalid SplitMethod");
+    };
+}
+
+template <int D, int C> template <int SM>
+void Field<D,C>::BuildCells(
+    std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& celldata,
+    double minsize, double maxsize, bool brute, int mintop, int maxtop)
+{
     // We don't build Cells that are too big or too small based on the min/max separation:
 
     double minsizesq = minsize * minsize;
@@ -203,9 +226,6 @@ Field<D,C>::Field(
 
     double maxsizesq = maxsize * maxsize;
     xdbg<<"maxsizesq = "<<maxsizesq<<std::endl;
-
-    // Convert from the int to our enum.
-    SplitMethod sm = static_cast<SplitMethod>(sm_int);
 
     // This is done in two parts so that we can do the (time-consuming) second part in
     // parallel.
@@ -218,8 +238,8 @@ Field<D,C>::Field(
     std::vector<size_t> top_end;
 
     // Setup the top level cells:
-    _sizesq = SetupTopLevelCells(celldata,maxsizesq,sm,0,celldata.size(),mintop,maxtop,
-                                 top_data,top_sizesq,top_start,top_end);
+    _sizesq = SetupTopLevelCells<D,C,SM>(celldata, maxsizesq, 0, celldata.size(), mintop, maxtop,
+                                         top_data, top_sizesq, top_start, top_end);
     const ptrdiff_t n = top_data.size();
     dbg<<"Field has "<<n<<" top-level nodes.  Building lower nodes...\n";
     _cells.resize(n);
@@ -227,8 +247,9 @@ Field<D,C>::Field(
 #pragma omp parallel for
 #endif
     for(ptrdiff_t i=0;i<n;++i) {
-        _cells[i] = new Cell<D,C>(top_data[i],top_sizesq[i],celldata,minsizesq,sm,brute,
-                                  top_start[i],top_end[i]);
+        _cells[i] = BuildCell<D,C,SM>(celldata, minsizesq, brute,
+                                      top_start[i], top_end[i],
+                                      top_data[i], top_sizesq[i]);
         xdbg<<i<<": "<<_cells[i]->getN()<<"  "<<_cells[i]->getW()<<"  "<<
             _cells[i]->getPos()<<"  "<<_cells[i]->getSize()<<"  "<<_cells[i]->getSizeSq()<<std::endl;
     }
@@ -429,25 +450,26 @@ void* BuildField(double* x, double* y, double* z, double* g1, double* g2, double
 {
     dbg<<"Start BuildField "<<D<<"  "<<coords<<std::endl;
     void* field=0;
+    SplitMethod sm = static_cast<SplitMethod>(sm_int);
     switch(coords) {
       case Flat:
            // Note: Use w for k, since we access k[i], even though value will be ignored.
            field = static_cast<void*>(new Field<D,Flat>(x, y, 0, g1, g2, k,
                                                         w, wpos, nobj,
                                                         minsize, maxsize,
-                                                        sm_int, bool(brute), mintop, maxtop));
+                                                        sm, bool(brute), mintop, maxtop));
            break;
       case Sphere:
            field = static_cast<void*>(new Field<D,Sphere>(x, y, z, g1, g2, k,
                                                           w, wpos, nobj,
                                                           minsize, maxsize,
-                                                          sm_int, bool(brute), mintop, maxtop));
+                                                          sm, bool(brute), mintop, maxtop));
            break;
       case ThreeD:
            field = static_cast<void*>(new Field<D,ThreeD>(x, y, z, g1, g2, k,
                                                           w, wpos, nobj,
                                                           minsize, maxsize,
-                                                          sm_int, bool(brute), mintop, maxtop));
+                                                          sm, bool(brute), mintop, maxtop));
            break;
     }
     xdbg<<"field = "<<field<<std::endl;

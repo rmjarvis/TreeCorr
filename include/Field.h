@@ -42,7 +42,7 @@ public:
     Field(double* x, double* y, double* z, double* g1, double* g2, double* k,
           double* w, double* wpos, long nobj,
           double minsize, double maxsize,
-          int sm_int, bool brute, int mintop, int maxtop);
+          SplitMethod sm, bool brute, int mintop, int maxtop);
     ~Field();
 
     long getNObj() const { return _nobj; }
@@ -54,11 +54,17 @@ public:
 
 private:
 
+    // This finishes the work of the Field constructor.
+    template <int SM>
+    void BuildCells(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& celldata,
+                    double minsize, double maxsize,
+                    bool brute, int mintop, int maxtop);
+
     long _nobj;
     double _minsize;
     double _maxsize;
-    double _sizesq;
     SplitMethod _sm;
+    double _sizesq;
     std::vector<Cell<D,C>*> _cells;
 };
 

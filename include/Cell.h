@@ -197,29 +197,26 @@ public:
     // the galaxies which are used in the correlation function calculations.
 
     Cell(CellData<D,C>* data, const LeafInfo& info) :
-        _size(0.), _sizesq(0.), _data(data), _left(0), _info(info) {}
+        _data(data), _size(0.), _sizesq(0.), _left(0), _info(info) {}
 
-    Cell(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
-         double minsizesq, SplitMethod sm, bool brute, size_t start, size_t end);
+    Cell(CellData<D,C>* data, const ListLeafInfo& listinfo) :
+        _data(data), _size(0.), _sizesq(0.), _left(0), _listinfo(listinfo) {}
 
-    Cell(CellData<D,C>* ave, double sizesq,
-         std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
-         double minsizesq, SplitMethod sm, bool brute, size_t start, size_t end);
-
-    void finishInit(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
-                    double minsizesq, SplitMethod sm, bool brute, size_t start, size_t end);
+    Cell(CellData<D,C>* data, double size, double sizesq, Cell<D,C>* l, Cell<D,C>* r) :
+        _data(data), _size(size), _sizesq(sizesq), _left(l), _right(r) {}
 
     ~Cell()
     {
-        Assert(_data);
         if (_left) {
             Assert(_right);
             delete _left;
             delete _right;
-        } else if (_data->getN() > 1) {
+        } else if (_data && _data->getN() > 1) {
             delete _listinfo.indices;
         } // if !left and N==1, then _info, which doesn't need anything to be deleted.
-        delete (_data);
+        if (_data) {
+            delete (_data);
+        }
     }
 
     const CellData<D,C>& getData() const { return *_data; }
@@ -248,10 +245,10 @@ public:
 
 protected:
 
+    CellData<D,C>* _data;
     float _size;
     float _sizesq;
 
-    CellData<D,C>* _data;
     Cell<D,C>* _left;
     union {
         Cell<D,C>* _right;      // Use this when _left != 0
@@ -265,10 +262,15 @@ double CalculateSizeSq(
     const Position<C>& cen, const std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end);
 
-template <int D, int C>
+template <int D, int C, int SM>
 size_t SplitData(
-    std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, SplitMethod sm,
+    std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end, const Position<C>& meanpos);
+
+template <int D, int C, int SM>
+Cell<D,C>* BuildCell(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
+                     double minsizesq, bool brute, size_t start, size_t end,
+                     CellData<D,C>* ave=0, double sizesq=0.);
 
 template <int D, int C>
 inline std::ostream& operator<<(std::ostream& os, const Cell<D,C>& c)

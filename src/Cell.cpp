@@ -247,68 +247,101 @@ size_t select_random(size_t lo, size_t hi)
     }
 }
 
+// This is the core calculation of the below SplitData function.
+// Specialize it for each SM value
+template <int D, int C, int SM>
+struct SplitDataCore;
+
 template <int D, int C>
+struct SplitDataCore<D, C, MIDDLE>
+{
+    // Middle is the average of the min and max value of x or y
+    static size_t run(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
+                      size_t start, size_t end, const Position<C>& meanpos,
+                      const Bounds<C>& b, int split)
+    {
+        double splitvalue = b.getMiddle(split);
+        DataCompareToValue<D,C> comp(split,splitvalue);
+        typename std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >::iterator middle =
+            std::partition(vdata.begin()+start,vdata.begin()+end,comp);
+        return middle - vdata.begin();
+    }
+};
+
+template <int D, int C>
+struct SplitDataCore<D, C, MEDIAN>
+{
+    // Median is the point which divides the group into equal numbers
+    static size_t run(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
+                      size_t start, size_t end, const Position<C>& meanpos,
+                      const Bounds<C>& b, int split)
+    {
+        DataCompare<D,C> comp(split);
+        size_t mid = (start+end)/2;
+        typename std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >::iterator middle =
+            vdata.begin()+mid;
+        std::nth_element(vdata.begin()+start,middle,vdata.begin()+end,comp);
+        return mid;
+    }
+};
+
+template <int D, int C>
+struct SplitDataCore<D, C, MEAN>
+{
+    // Mean is the weighted average value of x or y
+    static size_t run(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
+                      size_t start, size_t end, const Position<C>& meanpos,
+                      const Bounds<C>& b, int split)
+    {
+        double splitvalue = meanpos.get(split);
+        DataCompareToValue<D,C> comp(split,splitvalue);
+        typename std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >::iterator middle =
+            std::partition(vdata.begin()+start,vdata.begin()+end,comp);
+        return middle - vdata.begin();
+    }
+};
+
+template <int D, int C>
+struct SplitDataCore<D, C, RANDOM>
+{
+    // Random is a random point from the first quartile to the third quartile
+    static size_t run(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
+                      size_t start, size_t end, const Position<C>& meanpos,
+                      const Bounds<C>& b, int split)
+    {
+        DataCompare<D,C> comp(split);
+
+        // The code for RANDOM is same as MEDIAN except for the next line.
+        // Note: The lo and hi values are slightly subtle.  We want to make sure if there
+        // are only two values, we actually split.  So if start=1, end=3, the only possible
+        // result should be mid=2.  Otherwise, we want roughly 2/5 and 3/5 of the span.
+        size_t mid = select_random(end-3*(end-start)/5,start+3*(end-start)/5);
+
+        typename std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >::iterator middle =
+            vdata.begin()+mid;
+        std::nth_element(vdata.begin()+start,middle,vdata.begin()+end,comp);
+        return mid;
+    }
+};
+
+template <int D, int C, int SM>
 size_t SplitData(
-    std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, SplitMethod sm,
+    std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end, const Position<C>& meanpos)
 {
     Assert(end-start > 1);
-    size_t mid=0;
 
     Bounds<C> b;
     for(size_t i=start;i<end;++i) b += vdata[i].first->getPos();
-
     int split = b.getSplit();
 
-    switch (sm) { // three different split methods
-      case MIDDLE :
-           { // Middle is the average of the min and max value of x or y
-               double splitvalue = b.getMiddle(split);
-               DataCompareToValue<D,C> comp(split,splitvalue);
-               typename std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >::iterator middle =
-                   std::partition(vdata.begin()+start,vdata.begin()+end,comp);
-               mid = middle - vdata.begin();
-           } break;
-      case MEDIAN :
-           { // Median is the point which divides the group into equal numbers
-               DataCompare<D,C> comp(split);
-               mid = (start+end)/2;
-               typename std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >::iterator middle =
-                   vdata.begin()+mid;
-               std::nth_element(vdata.begin()+start,middle,vdata.begin()+end,comp);
-           } break;
-      case MEAN :
-           { // Mean is the weighted average value of x or y
-               double splitvalue = meanpos.get(split);
-               DataCompareToValue<D,C> comp(split,splitvalue);
-               typename std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >::iterator middle =
-                   std::partition(vdata.begin()+start,vdata.begin()+end,comp);
-               mid = middle - vdata.begin();
-           } break;
-      case RANDOM :
-           { // Random is a random point from the first quartile to the third quartile
-               DataCompare<D,C> comp(split);
-
-               // The code for RANDOM is same as MEDIAN except for the next line.
-               // Note: The lo and hi values are slightly subtle.  We want to make sure if there
-               // are only two values, we actually split.  So if start=1, end=3, the only possible
-               // result should be mid=2.  Otherwise, we want roughly 2/5 and 3/5 of the span.
-               mid = select_random(end-3*(end-start)/5,start+3*(end-start)/5);
-
-               typename std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >::iterator middle =
-                   vdata.begin()+mid;
-               std::nth_element(vdata.begin()+start,middle,vdata.begin()+end,comp);
-           } break;
-      default :
-           throw std::runtime_error("Invalid SplitMethod");
-    }
+    size_t mid = SplitDataCore<D,C,SM>::run(vdata, start, end, meanpos, b, split);
 
     if (mid == start || mid == end) {
         xdbg<<"Found mid not in middle.  Probably duplicate entries.\n";
         xdbg<<"start = "<<start<<std::endl;
         xdbg<<"end = "<<end<<std::endl;
         xdbg<<"mid = "<<mid<<std::endl;
-        xdbg<<"sm = "<<sm<<std::endl;
         xdbg<<"b = "<<b<<std::endl;
         xdbg<<"split = "<<split<<std::endl;
         for(size_t i=start; i!=end; ++i) {
@@ -319,86 +352,72 @@ size_t SplitData(
         // So it should be safe to just take the mid = (start + end)/2.
         // But just to be safe, re-call this function with sm = MEDIAN to
         // make sure.
-        Assert(sm != MEDIAN);
-        return SplitData(vdata,MEDIAN,start,end,meanpos);
+        Assert(SM != MEDIAN);
+        return SplitData<D,C,MEDIAN>(vdata,start,end,meanpos);
     }
     Assert(mid > start);
     Assert(mid < end);
     return mid;
 }
 
-template <int D, int C>
-Cell<D,C>::Cell(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
-                 double minsizesq, SplitMethod sm, bool brute, size_t start, size_t end) :
-    _size(0.), _sizesq(0.), _left(0), _right(0)
+template <int D, int C, int SM>
+Cell<D,C>* BuildCell(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
+                     double minsizesq, bool brute, size_t start, size_t end,
+                     CellData<D,C>* data, double sizesq)
 {
-    Assert(vdata.size()>0);
-    Assert(end <= vdata.size());
-    Assert(end > start);
-
-    if (end - start == 1) {
-        xdbg<<"Make leaf cell from "<<*vdata[start].first<<std::endl;
-        xdbg<<"size = "<<_size<<std::endl;
-        _data = vdata[start].first;
-        vdata[start].first = 0; // Make sure calling routine doesn't delete this one!
-        _info = vdata[start].second;  // This only copies as a LeafInfo, so throws away wpos.
-        xdbg<<"_info.index = "<<_info.index<<"  "<<vdata[start].second.index<<std::endl;
-    } else {
-        _data = new CellData<D,C>(vdata,start,end);
-        _data->finishAverages(vdata,start,end);
-        xdbg<<"Make cell from "<<start<<".."<<end<<" = "<<*_data<<std::endl;
-
-        _sizesq = CalculateSizeSq(_data->getPos(),vdata,start,end);
-        Assert(_sizesq >= 0.);
-
-        finishInit(vdata, minsizesq, sm, brute, start, end);
-    }
-}
-
-template <int D, int C>
-Cell<D,C>::Cell(CellData<D,C>* ave, double sizesq,
-                 std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
-                 double minsizesq, SplitMethod sm, bool brute, size_t start, size_t end) :
-    _sizesq(sizesq), _data(ave), _left(0), _right(0)
-{
-    xdbg<<"Make cell starting with ave = "<<*ave<<std::endl;
-    xdbg<<"size = "<<_size<<", brute = "<<brute<<std::endl;
+    xdbg<<"Build "<<minsizesq<<" "<<brute<<" "<<start<<" "<<end<<" "<<data<<" "<<sizesq<<std::endl;
     Assert(sizesq >= 0.);
     Assert(vdata.size()>0);
     Assert(end <= vdata.size());
     Assert(end > start);
 
-    finishInit(vdata, minsizesq, sm, brute, start, end);
-}
+    if (end - start == 1) {
+        if (!data) {
+            data = vdata[start].first;
+            vdata[start].first = 0; // Make sure calling routine doesn't delete this one!
+        }
+        xdbg<<"Make leaf cell from "<<*data<<std::endl;
+        LeafInfo info = vdata[start].second; // Only copies as a LeafInfo, so throws away wpos.
+        xdbg<<"info.index = "<<info.index<<"  "<<vdata[start].second.index<<std::endl;
+        return new Cell<D,C>(data, info);
+    }
 
-template <int D, int C>
-void Cell<D,C>::finishInit(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
-                           double minsizesq, SplitMethod sm, bool brute, size_t start, size_t end)
-{
-    xdbg<<"finishInit: sizesq = "<<_sizesq<<" cf. "<<minsizesq<<", brute="<<brute<<std::endl;
-    if (_sizesq > minsizesq) {
-        _size = brute ? std::numeric_limits<double>::infinity() : sqrt(_sizesq);
-        if (brute) _sizesq = std::numeric_limits<double>::infinity();
-        xdbg<<"size,sizesq = "<<_size<<","<<_sizesq<<std::endl;
-        size_t mid = SplitData(vdata,sm,start,end,_data->getPos());
-        try {
-            _left = new Cell<D,C>(vdata,minsizesq,sm,brute,start,mid);
-            _right = new Cell<D,C>(vdata,minsizesq,sm,brute,mid,end);
-        } catch (std::bad_alloc) {
-            throw std::runtime_error("out of memory - cannot create new Cell");
-        }
+    // Not a leaf.  Calculate size and data for this Cell.
+    if (data) {
+        xdbg<<"Make cell starting with ave = "<<*data<<std::endl;
+        xdbg<<"sizesq = "<<sizesq<<", brute = "<<brute<<std::endl;
     } else {
-        _size = _sizesq = 0.;
-        if (_data->getN() == 1) {
-            _info = vdata[start].second;
-            xdbg<<"_info.index = "<<_info.index<<"  "<<vdata[start].second.index<<std::endl;
-        } else {
-            _listinfo.indices = new std::vector<long>(end-start);
-            for (size_t i=start; i<end; ++i) {
-                xdbg<<"Set indices["<<i-start<<"] = "<<vdata[i].second.index<<std::endl;
-                (*_listinfo.indices)[i-start] = vdata[i].second.index;
-            }
+        data = new CellData<D,C>(vdata,start,end);
+        data->finishAverages(vdata,start,end);
+        xdbg<<"Make cell from "<<start<<".."<<end<<" = "<<*data<<std::endl;
+        sizesq = CalculateSizeSq(data->getPos(),vdata,start,end);
+        Assert(sizesq >= 0.);
+    }
+
+    xdbg<<"sizesq = "<<sizesq<<" cf. "<<minsizesq<<", brute="<<brute<<std::endl;
+    if (sizesq > minsizesq) {
+        // If size is large enough, recurse to leaves.
+        double size = brute ? std::numeric_limits<double>::infinity() : sqrt(sizesq);
+        if (brute) sizesq = std::numeric_limits<double>::infinity();
+        xdbg<<"size,sizesq = "<<size<<","<<sizesq<<std::endl;
+        size_t mid = SplitData<D,C,SM>(vdata,start,end,data->getPos());
+        Cell<D,C>* l = BuildCell<D,C,SM>(vdata,minsizesq,brute,start,mid);
+        xdbg<<"Made left"<<std::endl;
+        Cell<D,C>* r = BuildCell<D,C,SM>(vdata,minsizesq,brute,mid,end);
+        xdbg<<"Made right"<<std::endl;
+        xdbg<<data<<"  "<<size<<"  "<<sizesq<<"  "<<l<<"  "<<r<<std::endl;
+        return new Cell<D,C>(data, size, sizesq, l, r);
+    } else {
+        // Too small, so stop here anyway.
+        Assert(data->getN() > 1);
+        ListLeafInfo info;
+        info.indices = new std::vector<long>(end-start);
+        for (size_t i=start; i<end; ++i) {
+            xdbg<<"Set indices["<<i-start<<"] = "<<vdata[i].second.index<<std::endl;
+            (*info.indices)[i-start] = vdata[i].second.index;
         }
+        xdbg<<"Made indices"<<std::endl;
+        return new Cell<D,C>(data, info);
     }
 }
 
@@ -475,59 +494,36 @@ void Cell<D,C>::WriteTree(std::ostream& os, int indent) const
     }
 }
 
-template class CellData<NData,Flat>;
-template class CellData<NData,ThreeD>;
-template class CellData<NData,Sphere>;
-template class CellData<KData,Flat>;
-template class CellData<KData,ThreeD>;
-template class CellData<KData,Sphere>;
-template class CellData<GData,Flat>;
-template class CellData<GData,ThreeD>;
-template class CellData<GData,Sphere>;
+#define Inst(D,C)\
+    template class CellData<D,C>; \
+    template class Cell<D,C>; \
+    template double CalculateSizeSq( \
+        const Position<C>& cen, \
+        const std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
+        size_t start, size_t end); \
+    template Cell<D,C>* BuildCell<D,C,MIDDLE>( \
+        std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
+        double minsizesq, bool brute, size_t start, size_t end, \
+        CellData<D,C>* data, double sizesq); \
+    template Cell<D,C>* BuildCell<D,C,MEDIAN>( \
+        std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
+        double minsizesq, bool brute, size_t start, size_t end, \
+        CellData<D,C>* data, double sizesq); \
+    template Cell<D,C>* BuildCell<D,C,MEAN>( \
+        std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
+        double minsizesq, bool brute, size_t start, size_t end, \
+        CellData<D,C>* data, double sizesq); \
+    template Cell<D,C>* BuildCell<D,C,RANDOM>( \
+        std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
+        double minsizesq, bool brute, size_t start, size_t end, \
+        CellData<D,C>* data, double sizesq); \
 
-template class Cell<NData,Flat>;
-template class Cell<NData,ThreeD>;
-template class Cell<NData,Sphere>;
-template class Cell<KData,Flat>;
-template class Cell<KData,ThreeD>;
-template class Cell<KData,Sphere>;
-template class Cell<GData,Flat>;
-template class Cell<GData,ThreeD>;
-template class Cell<GData,Sphere>;
-
-template double CalculateSizeSq(
-    const Position<Flat>& cen,
-    const std::vector<std::pair<CellData<NData,Flat>*,WPosLeafInfo> >& vdata,
-    size_t start, size_t end);
-template double CalculateSizeSq(
-    const Position<ThreeD>& cen,
-    const std::vector<std::pair<CellData<NData,ThreeD>*,WPosLeafInfo> >& vdata,
-    size_t start, size_t end);
-template double CalculateSizeSq(
-    const Position<Sphere>& cen,
-    const std::vector<std::pair<CellData<NData,Sphere>*,WPosLeafInfo> >& vdata,
-    size_t start, size_t end);
-template double CalculateSizeSq(
-    const Position<Flat>& cen,
-    const std::vector<std::pair<CellData<KData,Flat>*,WPosLeafInfo> >& vdata,
-    size_t start, size_t end);
-template double CalculateSizeSq(
-    const Position<ThreeD>& cen,
-    const std::vector<std::pair<CellData<KData,ThreeD>*,WPosLeafInfo> >& vdata,
-    size_t start, size_t end);
-template double CalculateSizeSq(
-    const Position<Sphere>& cen,
-    const std::vector<std::pair<CellData<KData,Sphere>*,WPosLeafInfo> >& vdata,
-    size_t start, size_t end);
-template double CalculateSizeSq(
-    const Position<Flat>& cen,
-    const std::vector<std::pair<CellData<GData,Flat>*,WPosLeafInfo> >& vdata,
-    size_t start, size_t end);
-template double CalculateSizeSq(
-    const Position<ThreeD>& cen,
-    const std::vector<std::pair<CellData<GData,ThreeD>*,WPosLeafInfo> >& vdata,
-    size_t start, size_t end);
-template double CalculateSizeSq(
-    const Position<Sphere>& cen,
-    const std::vector<std::pair<CellData<GData,Sphere>*,WPosLeafInfo> >& vdata,
-    size_t start, size_t end);
+Inst(NData,Flat);
+Inst(NData,ThreeD);
+Inst(NData,Sphere);
+Inst(KData,Flat);
+Inst(KData,ThreeD);
+Inst(KData,Sphere);
+Inst(GData,Flat);
+Inst(GData,ThreeD);
+Inst(GData,Sphere);

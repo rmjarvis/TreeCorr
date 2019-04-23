@@ -183,6 +183,10 @@ del Dummy
 del _t
 
 # Context to make it easier to profile bits of the code
+# Usage:
+#   with profile():
+#       do_something
+
 class profile(object):
     def __init__(self, sortby='tottime', nlines=30):
         self.sortby = sortby

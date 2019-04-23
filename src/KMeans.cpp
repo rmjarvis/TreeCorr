@@ -206,7 +206,7 @@ void UpdateCenters(std::vector<Position<C> >& new_centers,
                    std::vector<cell_storage_type>& cells_by_patch)
 {
     typedef typename cell_storage_type::iterator iter_type;
-    const int npatch = new_centers.size();
+    const long npatch = new_centers.size();
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
@@ -265,16 +265,62 @@ void FillPatches(const Cell<D,C>* cell, long patch_num, long* patches, long n)
     }
 }
 
-template <int D, int C>
-void RunKMeans2(Field<D,C>*field, int npatch, int max_iter, double tol, long* patches, long n)
+// C = Threed or Sphere
+template <int C>
+void WriteCenters(const std::vector<Position<C> >& centers, double* pycenters, long npatch)
 {
-    dbg<<"Start runKMeans for "<<npatch<<" patches\n";
+    for(int i=0; i<npatch; ++i, pycenters+=3) {
+        pycenters[0] = centers[i].getX();
+        pycenters[1] = centers[i].getY();
+        pycenters[2] = centers[i].getZ();
+    }
+}
+template <int C>
+void ReadCenters(std::vector<Position<C> >& centers, const double* pycenters, long npatch)
+{
+    for(int i=0; i<npatch; ++i, pycenters+=3) {
+        centers[i] = Position<C>(pycenters[0], pycenters[1], pycenters[2]);
+    }
+}
+
+// C = Flat
+template <>
+void WriteCenters(const std::vector<Position<Flat> >& centers, double* pycenters, long npatch)
+{
+    for(int i=0; i<npatch; ++i, pycenters+=2) {
+        pycenters[0] = centers[i].getX();
+        pycenters[1] = centers[i].getY();
+    }
+}
+
+template <>
+void ReadCenters(std::vector<Position<Flat> >& centers, const double* pycenters, long npatch)
+{
+    for(int i=0; i<npatch; ++i, pycenters+=2) {
+        centers[i] = Position<Flat>(pycenters[0], pycenters[1]);
+    }
+}
+
+template <int D, int C>
+void KMeansInit2(Field<D,C>*field, double* pycenters, long npatch)
+{
+    dbg<<"Start KMeansInit for "<<npatch<<" patches\n";
+    const std::vector<Cell<D,C>*> cells = field->getCells();
+    std::vector<Position<C> > centers(npatch);
+    InitializeCenters(centers, cells);
+    WriteCenters(centers, pycenters, npatch);
+}
+
+
+template <int D, int C>
+void KMeansRun2(Field<D,C>*field, double* pycenters, long npatch, int max_iter, double tol)
+{
+    dbg<<"Start KMeansRun for "<<npatch<<" patches\n";
     const std::vector<Cell<D,C>*> cells = field->getCells();
 
     // Initialize the centers of the patches smartly according to the tree structure.
     std::vector<Position<C> > centers(npatch);
-    InitializeCenters(centers, cells);
-    dbg<<"After InitializeCenters\n";
+    ReadCenters(centers, pycenters, npatch);
 
     // We compare the total shift^2 to this number
     // Want rms shift / field.size < tol
@@ -313,8 +359,21 @@ void RunKMeans2(Field<D,C>*field, int npatch, int max_iter, double tol, long* pa
         }
         centers = new_centers;
     }
+    WriteCenters(centers, pycenters, npatch);
+}
 
-    // Write the patch numbers to the output array.
+template <int D, int C>
+void KMeansAssign2(Field<D,C>*field, double* pycenters, long npatch, long* patches, long n)
+{
+    dbg<<"Start KMeansAssign for "<<npatch<<" patches\n";
+    const std::vector<Cell<D,C>*> cells = field->getCells();
+
+    std::vector<Position<C> > centers(npatch);
+    ReadCenters(centers, pycenters, npatch);
+
+    std::vector<cell_storage_type> cells_by_patch(npatch);
+    FindCellsInPatches(centers, cells, cells_by_patch);
+
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
@@ -329,36 +388,97 @@ void RunKMeans2(Field<D,C>*field, int npatch, int max_iter, double tol, long* pa
     dbg<<"After FillPatches\n";
 }
 
-
 template <int D>
-void RunKMeans1(void* field, int npatch, int max_iter, double tol,
-                int coords, long* patches, long n)
+void KMeansInit1(void* field, double* centers, long npatch, int coords)
 {
     switch(coords) {
       case Flat:
-           RunKMeans2(static_cast<Field<D,Flat>*>(field), npatch, max_iter, tol, patches, n);
+           KMeansInit2(static_cast<Field<D,Flat>*>(field), centers, npatch);
            break;
       case Sphere:
-           RunKMeans2(static_cast<Field<D,Sphere>*>(field), npatch, max_iter, tol, patches, n);
+           KMeansInit2(static_cast<Field<D,Sphere>*>(field), centers, npatch);
            break;
       case ThreeD:
-           RunKMeans2(static_cast<Field<D,ThreeD>*>(field), npatch, max_iter, tol, patches, n);
+           KMeansInit2(static_cast<Field<D,ThreeD>*>(field), centers, npatch);
            break;
     }
 }
 
-void RunKMeans(void* field, int npatch, int max_iter, double tol,
-               int d, int coords, long* patches, long n)
+void KMeansInit(void* field, double* centers, long npatch, int d, int coords)
 {
     switch(d) {
       case NData:
-           RunKMeans1<NData>(field, npatch, max_iter, tol, coords, patches, n);
+           KMeansInit1<NData>(field, centers, npatch, coords);
            break;
       case KData:
-           RunKMeans1<KData>(field, npatch, max_iter, tol, coords, patches, n);
+           KMeansInit1<KData>(field, centers, npatch, coords);
            break;
       case GData:
-           RunKMeans1<GData>(field, npatch, max_iter, tol, coords, patches, n);
+           KMeansInit1<GData>(field, centers, npatch, coords);
+           break;
+    }
+}
+
+template <int D>
+void KMeansRun1(void* field, double* centers, long npatch, int max_iter, double tol, int coords)
+{
+    switch(coords) {
+      case Flat:
+           KMeansRun2(static_cast<Field<D,Flat>*>(field), centers, npatch, max_iter, tol);
+           break;
+      case Sphere:
+           KMeansRun2(static_cast<Field<D,Sphere>*>(field), centers, npatch, max_iter, tol);
+           break;
+      case ThreeD:
+           KMeansRun2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, max_iter, tol);
+           break;
+    }
+}
+
+void KMeansRun(void* field, double* centers, long npatch, int max_iter, double tol,
+               int d, int coords)
+{
+    switch(d) {
+      case NData:
+           KMeansRun1<NData>(field, centers, npatch, max_iter, tol, coords);
+           break;
+      case KData:
+           KMeansRun1<KData>(field, centers, npatch, max_iter, tol, coords);
+           break;
+      case GData:
+           KMeansRun1<GData>(field, centers, npatch, max_iter, tol, coords);
+           break;
+    }
+}
+
+template <int D>
+void KMeansAssign1(void* field, double* centers, long npatch, long* patches, long n, int coords)
+{
+    switch(coords) {
+      case Flat:
+           KMeansAssign2(static_cast<Field<D,Flat>*>(field), centers, npatch, patches, n);
+           break;
+      case Sphere:
+           KMeansAssign2(static_cast<Field<D,Sphere>*>(field), centers, npatch, patches, n);
+           break;
+      case ThreeD:
+           KMeansAssign2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, patches, n);
+           break;
+    }
+}
+
+void KMeansAssign(void* field, double* centers, long npatch, long* patches, long n,
+                  int d, int coords)
+{
+    switch(d) {
+      case NData:
+           KMeansAssign1<NData>(field, centers, npatch, patches, n, coords);
+           break;
+      case KData:
+           KMeansAssign1<KData>(field, centers, npatch, patches, n, coords);
+           break;
+      case GData:
+           KMeansAssign1<GData>(field, centers, npatch, patches, n, coords);
            break;
     }
 }

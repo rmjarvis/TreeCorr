@@ -247,22 +247,118 @@ class Field(object):
         treecorr._lib.FieldGetNear(self.data, x, y, z, sep, self._d, self._coords, lp(ind), n)
         return ind
 
-    def run_kmeans(self, npatch, max_iter=100, tol=1.e-6):
+    def run_kmeans(self, npatch, max_iter=1000, tol=1.e-4):
         """Use K-Means algorithm to set patch labels for a field.
 
         Parameters:
             npatch (int):       How many patches to generate
-            max_iter (int):     How many iterations at most to run (default: 100)
+            max_iter (int):     How many iterations at most to run. (default: 100)
             tol (float):        Tolerance in the rms centroid shift to consider as converged
-                                as a fraction of the total field size.  (default: 1.e-6)
+                                as a fraction of the total field size. (default: 1.e-4)
 
         Returns:
-            patches (array): An array of patch labels, all integers from 0..npatch-1.
+            patches (array):    An array of patch labels, all integers from 0..npatch-1.
+                                Size is self.ntot.
         """
+        centers = self.kmeans_initialize_centers(npatch)
+        self.kmeans_refine_centers(centers, max_iter, tol)
+        return self.kmeans_assign_patches(centers)
+
+    def kmeans_initialize_centers(self, npatch):
+        """Use the field's tree structure to assign good initial centers for a K-Means run.
+
+        The classic K-Means algorithm involves starting with random points as the initial
+        centers of the patches.  This has a tendency to result in rather poor results in
+        terms of having similar sized patches at the end.  Specifically, the rms inertia
+        of the local minimum that the K-Means algorithm settles into tends to be fairly high
+        for typical geometries.
+
+        A better approach is to use the existing tree structure to star out with centers that
+        are fairly evenly spread out through the field.  This algorithm traverses the tree
+        until we get to a level that has enough cells for the requested number of patches.
+        Then it uses the centroids of these cells as the initial patch centers.
+
+        Parameters:
+            npatch (int):       How many patches to generate initial centers for
+
+        Returns:
+            centers (array):    An array of center coordinates.
+                                Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
+                                spherical geometries.  In the latter case, the centers represent
+                                (x,y,z) coordinates on the unit sphere.
+        """
+        from treecorr.util import double_ptr as dp
+        if self._coords == treecorr._lib.Flat:
+            centers = np.empty((npatch, 2))
+        else:
+            centers = np.empty((npatch, 3))
+        treecorr._lib.KMeansInit(self.data, dp(centers), int(npatch), self._d, self._coords)
+        return centers
+
+    def kmeans_refine_centers(self, centers, max_iter=100, tol=1.e-4):
+        """Fast implementation of the K-Means algorithm
+
+        The standard K-Means algorithm is as follows:
+        (cf. https://en.wikipedia.org/wiki/K-means_clustering)
+        1. Choose centers somehow.  Traditionally, this is done by just selecting npatch random
+           points from the full set, but we do this more smartly in `kmeans_initialize_centers`.
+        2. For each point, measure the distance to each current patch center, and assign it to the
+           patch that has the closest center.
+        3. Update all the centers to be the centroid of the points assigned to each patch.
+        4. Repeat 2, 3 until the rms shift in the centers is less than some tolerance or the
+           maximum number of iterations is reached.
+        5. Assign the corresponding patch label to each point (`kmeans_assign_patches`).
+
+        In TreeCorr, we use the tree structure to massively increase the speed of steps 2 and 3.
+        For a given cell, we know both its center and its size, so we can quickly check whether
+        all the points in the cell are closer to one center than another.  This lets us quickly
+        cull centers from consideration as we traverse the tree.  Once we get to a cell where only
+        one center can be closest for any of the points in it, we stop traversing and assign the
+        whole cell to that patch.
+
+        Further, it is also fast to update the new centroid, since the sum of all the positions
+        for a cell is just N times the cell's centroid.
+
+        As a result, this algorithm typically takes a fraction of a second for ~a million points.
+        Indeed most of the time spent in the full kmeans calculation is in building the tree
+        in the first place, rather than actually running the kmeans code.
+
+        Parameters:
+            centers (array):    An array of center coordinates. (modified by this function)
+                                Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
+                                spherical geometries.  In the latter case, the centers represent
+                                (x,y,z) coordinates on the unit sphere.
+            max_iter (int):     How many iterations at most to run. (default: 100)
+            tol (float):        Tolerance in the rms centroid shift to consider as converged
+                                as a fraction of the total field size. (default: 1.e-4)
+        """
+        from treecorr.util import double_ptr as dp
+        npatch = centers.shape[0]
+        treecorr._lib.KMeansRun(self.data, dp(centers), npatch, int(max_iter), float(tol),
+                                self._d, self._coords)
+
+    def kmeans_assign_patches(self, centers):
+        """Assign patch numbers to each point according to the given centers.
+
+        This is final step in the full K-Means algorithm.  It assignes patch numbers to each
+        point in the field according to which center is closest.
+
+        Parameters:
+            centers (array):    An array of center coordinates.
+                                Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
+                                spherical geometries.  In the latter case, the centers represent
+                                (x,y,z) coordinates on the unit sphere.
+
+        Returns:
+            patches (array):    An array of patch labels, all integers from 0..npatch-1.
+                                Size is self.ntot.
+        """
+        from treecorr.util import double_ptr as dp
         from treecorr.util import long_ptr as lp
-        patches = np.empty(self.cat.ntot, dtype=int)
-        treecorr._lib.RunKMeans(self.data, int(npatch), int(max_iter), float(tol),
-                                self._d, self._coords, lp(patches), self.cat.ntot)
+        patches = np.empty(self.ntot, dtype=int)
+        npatch = centers.shape[0]
+        treecorr._lib.KMeansAssign(self.data, dp(centers), npatch, lp(patches), self.ntot,
+                                   self._d, self._coords)
         return patches
 
 
@@ -277,7 +373,7 @@ class NField(Field):
     :param cat:         The catalog from which to make the field.
     :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)
     :param max_size:    The maximum radius cell required (usually max_sep). (default: None)
-    :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
+    :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random').
                         (default: 'mean')
     :param brute        Whether to force traversal to the leaves for this field. (default: False)
     :param min_top:     The minimum number of top layers to use when setting up the field.
@@ -285,7 +381,7 @@ class NField(Field):
     :param max_top:     The maximum number of top layers to use when setting up the field.
                         (default: 10)
     :param coords       The kind of coordinate system to use. (default: cat.coords)
-    :param logger:      A logger file if desired (default: None)
+    :param logger:      A logger file if desired. (default: None)
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=3, max_top=10, coords=None, logger=None):
@@ -297,6 +393,7 @@ class NField(Field):
                 logger.info('Building NField')
 
         self._cat = weakref.ref(cat)
+        self.ntot = cat.ntot
         self.min_size = float(min_size) if not brute else 0.
         self.max_size = float(max_size) if max_size is not None else np.inf
         self.split_method = split_method
@@ -339,7 +436,7 @@ class KField(Field):
     :param cat:         The catalog from which to make the field.
     :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)
     :param max_size:    The maximum radius cell required (usually max_sep). (default: None)
-    :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
+    :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random').
                         (default: 'mean')
     :param brute        Whether to force traversal to the leaves for this field. (default: False)
     :param min_top:     The minimum number of top layers to use when setting up the field.
@@ -347,7 +444,7 @@ class KField(Field):
     :param max_top:     The maximum number of top layers to use when setting up the field.
                         (default: 10)
     :param coords       The kind of coordinate system to use. (default: cat.coords)
-    :param logger:      A logger file if desired (default: None)
+    :param logger:      A logger file if desired. (default: None)
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=3, max_top=10, coords=None, logger=None):
@@ -359,6 +456,7 @@ class KField(Field):
                 logger.info('Building KField')
 
         self._cat = weakref.ref(cat)
+        self.ntot = cat.ntot
         self.min_size = float(min_size) if not brute else 0.
         self.max_size = float(max_size) if max_size is not None else np.inf
         self.split_method = split_method
@@ -399,7 +497,7 @@ class GField(Field):
     :param cat:         The catalog from which to make the field.
     :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)
     :param max_size:    The maximum radius cell required (usually max_sep). (default: None)
-    :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random')
+    :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random').
                         (default: 'mean')
     :param brute        Whether to force traversal to the leaves for this field. (default: False)
     :param min_top:     The minimum number of top layers to use when setting up the field.
@@ -407,7 +505,7 @@ class GField(Field):
     :param max_top:     The maximum number of top layers to use when setting up the field.
                         (default: 10)
     :param coords       The kind of coordinate system to use. (default: cat.coords)
-    :param logger:      A logger file if desired (default: None)
+    :param logger:      A logger file if desired. (default: None)
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=3, max_top=10, coords=None, logger=None):
@@ -419,6 +517,7 @@ class GField(Field):
                 logger.info('Building GField')
 
         self._cat = weakref.ref(cat)
+        self.ntot = cat.ntot
         self.min_size = float(min_size) if not brute else 0.
         self.max_size = float(max_size) if max_size is not None else np.inf
         self.split_method = split_method
@@ -472,7 +571,7 @@ class NSimpleField(SimpleField):
         >>> nfield = cat.getNSimpleField()
 
     :param cat:         The catalog from which to make the field.
-    :param logger:      A logger file if desired (default: None)
+    :param logger:      A logger file if desired. (default: None)
     """
     def __init__(self, cat, logger=None):
         from treecorr.util import double_ptr as dp
@@ -509,7 +608,7 @@ class KSimpleField(SimpleField):
         >>> kfield = cat.getKSimpleField()
 
     :param cat:         The catalog from which to make the field.
-    :param logger:      A logger file if desired (default: None)
+    :param logger:      A logger file if desired. (default: None)
     """
     def __init__(self, cat, logger=None):
         from treecorr.util import double_ptr as dp
@@ -547,7 +646,7 @@ class GSimpleField(SimpleField):
         >>> gfield = cat.getGSimpleField()
 
     :param cat:         The catalog from which to make the field.
-    :param logger:      A logger file if desired (default: None)
+    :param logger:      A logger file if desired. (default: None)
     """
     def __init__(self, cat, logger=None):
         from treecorr.util import double_ptr as dp

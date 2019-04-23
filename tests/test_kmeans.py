@@ -19,7 +19,7 @@ import coord
 import warnings
 import treecorr
 
-from test_helper import get_from_wiki, CaptureLog, assert_raises, do_pickle
+from test_helper import get_from_wiki, CaptureLog, assert_raises, do_pickle, profile
 
 def test_dessv():
     try:
@@ -30,11 +30,12 @@ def test_dessv():
 
     get_from_wiki('des_sv.fits')
     file_name = os.path.join('data','des_sv.fits')
-    cat = treecorr.Catalog(file_name, ra_col='ra', dec_col='dec', ra_units='deg', dec_units='deg')
+    with profile():
+        cat = treecorr.Catalog(file_name, ra_col='ra', dec_col='dec', ra_units='deg', dec_units='deg')
 
-    npatch = 40
-    field = cat.getNField()
-    patches = field.run_kmeans(npatch)
+        npatch = 40
+        field = cat.getNField()
+        patches = field.run_kmeans(npatch)
     assert len(patches) == cat.ntot
     assert min(patches) == 0
     assert max(patches) == npatch-1

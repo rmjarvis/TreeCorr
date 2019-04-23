@@ -199,7 +199,6 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
         }
     }
 #endif
-
 }
 
 template <int D, int C>
@@ -279,9 +278,9 @@ void RunKMeans2(Field<D,C>*field, int npatch, int max_iter, double tol, long* pa
 
     // We compare the total shift^2 to this number
     // Want rms shift / field.size < tol
-    // So (total_shift / npatch) / field.size < tol
-    // total_shift^2 < tol^2 * size^2 * npatch^2
-    double tolsq = tol*tol * field->getSizeSq() * npatch*npatch;
+    // So sqrt(total_shift^2 / npatch) / field.size < tol
+    // total_shift^2 < tol^2 * size^2 * npatch
+    double tolsq = tol*tol * field->getSizeSq() * npatch;
     dbg<<"tolsq = "<<tolsq<<std::endl;
 
     // Keep track of which cells belong to which patch.
@@ -304,8 +303,8 @@ void RunKMeans2(Field<D,C>*field, int npatch, int max_iter, double tol, long* pa
         double shiftsq = CalculateShiftSq(centers, new_centers);
         dbg<<"Iter "<<iter<<": shiftsq = "<<shiftsq<<std::endl;
         // Stop if (rms shift / size) < tol
-        if (shiftsq < tol) {
-            dbg<<"Stopping RunKMeans because rms shift = "<<sqrt(shiftsq)<<std::endl;
+        if (shiftsq < tolsq) {
+            dbg<<"Stopping RunKMeans because rms shift = "<<sqrt(shiftsq/npatch)<<std::endl;
             dbg<<"tol * size = "<<tol * sqrt(field->getSizeSq())<<std::endl;
             break;
         }

@@ -222,3 +222,7 @@ Changes from version 4.0.8 to 4.0.9
 
 - Fixed error in code to build tree when some weights are < 0. (#95)
 
+Changes from version 4.0.9 to 4.0.10
+------------------------------------
+
+- Fixed another error when some weights are < 0 for spherical coordinates.

@@ -40,12 +40,28 @@ def test_dessv():
     assert min(patches) == 0
     assert max(patches) == npatch-1
 
-    # Should all have similar number of points.  Say within factor of 2 of the average
+    # KMeans minimizes the total inertia.
+    # Check this value and the rms inertia, which should also be quite small.
+    xyz = np.array([cat.x, cat.y, cat.z]).T
+    cen = np.array([xyz[patches==i].mean(axis=0) for i in range(npatch)])
+    inertia = np.sum((xyz - cen[patches])**2)
+    patch_inertia = np.array([np.sum((xyz[patches==i] - cen[i])**2) for i in range(npatch)])
+    counts = np.array([np.sum(patches==i) for i in range(npatch)])
+
+    print('mean inertia = ',np.mean(patch_inertia))
+    print('rms inertia = ',np.std(patch_inertia))
+    assert np.sum(inertia) < 215.  # This is specific to this particular field.
+    assert np.std(inertia) < 0.2 * np.mean(inertia)  # rms is usually small relative to mean.
+
+    # Should all have similar number of points.  Say within 30% of the average
+    print('mean counts = ',np.mean(counts))
+    print('min counts = ',np.min(counts))
+    print('max counts = ',np.max(counts))
     ave_num = cat.ntot / npatch
-    print('ave_num = ',ave_num)
-    for i in range(npatch):
-        print('count for i=%d = %d'%(i,np.sum(patches==i)))
-        assert ave_num * 0.5 < np.sum(patches == i) < ave_num * 2.
+    assert np.isclose(np.mean(counts), ave_num)
+    assert np.min(counts) > ave_num * 0.7
+    assert np.max(counts) < ave_num * 1.3
+
 
 if __name__ == '__main__':
     test_dessv()

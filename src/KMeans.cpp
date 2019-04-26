@@ -15,7 +15,6 @@
 //#define DEBUGLOGGING
 
 #include <cstddef>  // for ptrdiff_t
-#include <set>
 #include <vector>
 #include "Field.h"
 #include "Cell.h"
@@ -90,18 +89,115 @@ void InitializeCenters(std::vector<Position<C> >& centers, const std::vector<Cel
     dbg<<"Done initializing centers\n";
 }
 
-#define cell_storage_type std::vector<const Cell<D,C>*>
-// Comment: I tried a number of stdlib containers for the cells_by_patch internal container,
-// and vector was the fastest.  I kind of expected deque to be faster, and it was close, but
-// apparently the amortized reallocations required for push_back were negligible compared to
-// the speed advantage from having things contiguous is memory.
-// For the record, set and list were both much slower.
+template <int D, int C>
+struct StoreCells
+{
+    int npatch;
+    std::vector<std::vector<const Cell<D,C>*> > cells_by_patch;
+
+    StoreCells(int _npatch) : npatch(_npatch), cells_by_patch(npatch) {}
+
+    void run(int closest_i, const Cell<D,C>* cell)
+    {
+        cells_by_patch[closest_i].push_back(cell);
+    }
+
+    void combineWith(const StoreCells<D,C>& rhs)
+    {
+        for (int i=0; i<npatch; ++i)
+            cells_by_patch[i].insert(cells_by_patch[i].end(),
+                                     rhs.cells_by_patch[i].begin(),
+                                     rhs.cells_by_patch[i].end());
+    }
+
+    void finalize() {}
+
+    void reset()
+    {
+        for (int i=0;i<npatch;++i) cells_by_patch[i].clear();
+    }
+};
 
 template <int D, int C>
+struct UpdateCenters
+{
+    int npatch;
+    std::vector<Position<C> > new_centers;
+    std::vector<double> w;
+
+    UpdateCenters(int _npatch) : npatch(_npatch), new_centers(npatch), w(npatch) {}
+
+    void run(int closest_i, const Cell<D,C>* cell)
+    {
+        new_centers[closest_i] += cell->getPos() * cell->getW();
+        w[closest_i] += cell->getW();
+    }
+
+    void combineWith(const UpdateCenters<D,C>& rhs)
+    {
+        for (int i=0; i<npatch; ++i) {
+            new_centers[i] += rhs.new_centers[i];
+            w[i] += rhs.w[i];
+        }
+    }
+
+    void finalize()
+    {
+        for (int i=0; i<npatch; ++i) {
+            new_centers[i] /= w[i];
+            new_centers[i].normalize();
+            dbg<<"New center = "<<new_centers[i]<<std::endl;
+        }
+    }
+
+    void reset()
+    {
+        for (int i=0;i<npatch;++i) new_centers[i] = Position<C>();
+        for (int i=0;i<npatch;++i) w[i] = 0.;
+    }
+};
+
+template <int D, int C>
+struct AssignPatches
+{
+    long* patches;
+    long n;
+
+    AssignPatches(long* _patches, long _n) : patches(_patches), n(_n) {}
+
+    void run(int patch_num, const Cell<D,C>* cell)
+    {
+        xdbg<<"Start AssignPatches "<<cell<<" "<<patch_num<<std::endl;
+        if (cell->getLeft()) {
+            xdbg<<"Not a leaf.  Recurse\n";
+            run(patch_num, cell->getLeft());
+            run(patch_num, cell->getRight());
+        } else if (cell->getN() == 1) {
+            long index = cell->getInfo().index;
+            xdbg<<"N=1.  index = "<<index<<std::endl;
+            Assert(index < n);
+            patches[index] = patch_num;
+        } else {
+            std::vector<long>* indices = cell->getListInfo().indices;
+            xdbg<<"Leaf with N>1.  "<<indices->size()<<" indices\n";
+            for (size_t j=0; j<indices->size(); ++j) {
+                long index = (*indices)[j];
+                xdbg<<"    index = "<<index<<std::endl;
+                Assert(index < n);
+                patches[index] = patch_num;
+            }
+        }
+    }
+
+    void combineWith(const AssignPatches<D,C>& rhs) {}
+    void finalize() {}
+    void reset() {}
+};
+
+template <int D, int C, typename F>
 void FindCellsInPatches(const std::vector<Position<C> >& centers,
-                   const Cell<D,C>* cell, std::vector<long>& patches, long ncand,
-                   std::vector<cell_storage_type>& cells_by_patch,
-                   std::vector<double>& saved_dsq)
+                        const Cell<D,C>* cell, std::vector<long>& patches, long ncand,
+                        std::vector<double>& saved_dsq, F& f)
 {
     //set_verbose(2);
     xdbg<<"Start recursive FindCellsInPatches\n";
@@ -150,28 +246,29 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
     //set_verbose(1);
     if (ncand == 1) {
         // If we only have one candidate left, we're done.  Use this cell to update this patch.
-        cells_by_patch[closest_i].push_back(cell);
+        f.run(closest_i, cell);
     } else {
         // Otherwise, need to recurse to sub-cells.
-        FindCellsInPatches(centers, cell->getLeft(), patches, ncand, cells_by_patch, saved_dsq);
+        FindCellsInPatches(centers, cell->getLeft(), patches, ncand, saved_dsq, f);
         // Note: the above call might have swapped some patches around, but only within the
         // first ncand values, so they are still valid for the next call.
-        FindCellsInPatches(centers, cell->getRight(), patches, ncand, cells_by_patch, saved_dsq);
+        FindCellsInPatches(centers, cell->getRight(), patches, ncand, saved_dsq, f);
     }
 }
 
-template <int D, int C>
+// This recurses the tree until if finds a cell that completely belongs in only a single
+// patch and then runs f, which can be any of the above function classes.
+template <int D, int C, typename F>
 void FindCellsInPatches(const std::vector<Position<C> >& centers,
-                   const std::vector<Cell<D,C>*>& cells,
-                   std::vector<cell_storage_type>& cells_by_patch)
+                        const std::vector<Cell<D,C>*>& cells, F& f)
 {
 #ifdef _OPENMP
 #pragma omp parallel
     {
-        // Give each thread their own copy of cells_by_patch to fill in.
-        std::vector<cell_storage_type> cbp2 = cells_by_patch;
+        // Give each thread their own copy of f to use.
+        F f2 = f;
 #else
-        std::vector<cell_storage_type>& cbp2 = cells_by_patch;
+        F& f2 = f;
 #endif
 
         // We start with all patches as candidates.
@@ -187,43 +284,20 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
 #pragma omp for schedule(static)
 #endif
         for (size_t k=0; k<cells.size(); ++k) {
-            FindCellsInPatches(centers, cells[k], patches, npatch, cbp2, saved_dsq);
+            FindCellsInPatches(centers, cells[k], patches, npatch, saved_dsq, f2);
         }
 
 #ifdef _OPENMP
         // Combine the results
 #pragma omp critical
         {
-            for (int i=0; i<npatch; ++i)
-                cells_by_patch[i].insert(cells_by_patch[i].end(), cbp2[i].begin(), cbp2[i].end());
+            f.combineWith(f2);
         }
     }
 #endif
 }
 
-template <int D, int C>
-void UpdateCenters(std::vector<Position<C> >& new_centers,
-                   std::vector<cell_storage_type>& cells_by_patch)
-{
-    typedef typename cell_storage_type::iterator iter_type;
-    const long npatch = new_centers.size();
-#ifdef _OPENMP
-#pragma omp for schedule(static)
-#endif
-    for (int i=0; i<npatch; ++i) {
-        dbg<<"Patch "<<i<<" includes "<<cells_by_patch[i].size()<<" cells\n";
-        Position<C> cen;
-        double w = 0.;
-        for (iter_type it=cells_by_patch[i].begin(); it!=cells_by_patch[i].end(); ++it) {
-            cen += (*it)->getPos() * (*it)->getW();
-            w += (*it)->getW();
-        }
-        cen /= w;
-        cen.normalize();
-        dbg<<"New center = "<<cen<<std::endl;
-        new_centers[i] = cen;
-    }
-}
+
 
 template <int C>
 double CalculateShiftSq(const std::vector<Position<C> >& centers,
@@ -240,30 +314,7 @@ double CalculateShiftSq(const std::vector<Position<C> >& centers,
     return shiftsq;
 }
 
-template <int D, int C>
-void FillPatches(const Cell<D,C>* cell, long patch_num, long* patches, long n)
-{
-    xdbg<<"Start FillPatches "<<cell<<" "<<patch_num<<std::endl;
-    if (cell->getLeft()) {
-        xdbg<<"Not a leaf.  Recurse\n";
-        FillPatches(cell->getLeft(), patch_num, patches, n);
-        FillPatches(cell->getRight(), patch_num, patches, n);
-    } else if (cell->getN() == 1) {
-        long index = cell->getInfo().index;
-        xdbg<<"N=1.  index = "<<index<<std::endl;
-        Assert(index < n);
-        patches[index] = patch_num;
-    } else {
-        std::vector<long>* indices = cell->getListInfo().indices;
-        xdbg<<"Leaf with N>1.  "<<indices->size()<<" indices\n";
-        for (size_t j=0; j<indices->size(); ++j) {
-            long index = (*indices)[j];
-            xdbg<<"    index = "<<index<<std::endl;
-            Assert(index < n);
-            patches[index] = patch_num;
-        }
-    }
-}
+
 
 // C = Threed or Sphere
 template <int C>
@@ -330,23 +381,19 @@ void KMeansRun2(Field<D,C>*field, double* pycenters, long npatch, int max_iter, 
     dbg<<"tolsq = "<<tolsq<<std::endl;
 
     // Keep track of which cells belong to which patch.
-    std::vector<cell_storage_type> cells_by_patch(npatch);
+    UpdateCenters<D,C> update_centers(npatch);
 
     for(int iter=0; iter<max_iter; ++iter) {
         // Figure out which cells belong to which patch according to the current centers.
         // Note: clear leaves the previous capacity available, so usually won't need much
         // in the way of allocation here.
-        for (int i=0;i<npatch;++i) cells_by_patch[i].clear();
-        FindCellsInPatches(centers, cells, cells_by_patch);
-        dbg<<"Found cells in patches\n";
-
-        // Calculate the new center positions
-        std::vector<Position<C> > new_centers(npatch, Position<C>());
-        UpdateCenters(new_centers, cells_by_patch);
+        update_centers.reset();
+        FindCellsInPatches(centers, cells, update_centers);
+        update_centers.finalize();
         dbg<<"After UpdateCenters\n";
 
         // Check for convergence
-        double shiftsq = CalculateShiftSq(centers, new_centers);
+        double shiftsq = CalculateShiftSq(centers, update_centers.new_centers);
         dbg<<"Iter "<<iter<<": shiftsq = "<<shiftsq<<std::endl;
         // Stop if (rms shift / size) < tol
         if (shiftsq < tolsq) {
@@ -357,7 +404,7 @@ void KMeansRun2(Field<D,C>*field, double* pycenters, long npatch, int max_iter, 
         if (iter == max_iter-1) {
             dbg<<"Stopping RunKMeans because hit maximum iterations = "<<max_iter<<std::endl;
         }
-        centers = new_centers;
+        centers = update_centers.new_centers;
     }
     WriteCenters(centers, pycenters, npatch);
 }
@@ -371,21 +418,9 @@ void KMeansAssign2(Field<D,C>*field, double* pycenters, long npatch, long* patch
     std::vector<Position<C> > centers(npatch);
     ReadCenters(centers, pycenters, npatch);
 
-    std::vector<cell_storage_type> cells_by_patch(npatch);
-    FindCellsInPatches(centers, cells, cells_by_patch);
-
-#ifdef _OPENMP
-#pragma omp for schedule(static)
-#endif
-     for (int i=0; i<npatch; ++i) {
-        dbg<<"Fill patches for i = "<<i<<std::endl;
-        dbg<<"Patch includes "<<cells_by_patch[i].size()<<" cells\n";
-        typedef typename cell_storage_type::iterator iter_type;
-        for (iter_type it=cells_by_patch[i].begin(); it!=cells_by_patch[i].end(); ++it) {
-            FillPatches(*it, i, patches, n);
-        }
-    }
-    dbg<<"After FillPatches\n";
+    AssignPatches<D,C> assign_patches(patches, n);
+    FindCellsInPatches(centers, cells, assign_patches);
+    dbg<<"After AssignPatches\n";
 }
 
 template <int D>

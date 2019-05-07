@@ -40,6 +40,24 @@ double CalculateSizeSq(
 }
 
 template <int D, int C>
+double Cell<D,C>::calculateInertia() const
+{
+    if (getSize() == 0.) return 0.;
+    else if (getN() == 1) return 0.;
+    else {
+        const Position<C> p1 = getLeft()->getPos();
+        double i1 = getLeft()->calculateInertia();
+        double w1 = getLeft()->getW();
+        const Position<C> p2 = getRight()->getPos();
+        double i2 = getRight()->calculateInertia();
+        double w2 = getRight()->getW();
+        const Position<C> cen = getPos();
+        return i1 + i2 + (p1-cen).normSq() * w1 + (p2-cen).normSq() * w2;
+    }
+}
+
+
+template <int D, int C>
 void BuildCellData(
     const std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, size_t start, size_t end,
     Position<C>& pos, float& w, long& n)

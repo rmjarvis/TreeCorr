@@ -52,6 +52,6 @@ extern void DestroyNSimpleField(void* field, int coords);
 
 extern void KMeansInit(void* field, double* centers, long npatch, int d, int coords);
 extern void KMeansRun(void* field, double* centers, long npatch, int max_iter, double tol,
-                      int d, int coords);
-extern void KMeansAssign(void* field, double* centers, long npatch, long* patches, long n,
-                         int d, int coords);
+                      int alt, int d, int coords);
+extern void KMeansAssign(void* field, double* centers, long npatch, int alt,
+                         long* patches, long n, int d, int coords);

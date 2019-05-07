@@ -228,6 +228,7 @@ public:
     double getSizeSq() const { return _sizesq; }
     // For PairCells, getAllSize is different from getSize.
     double getAllSize() const { return _size; }
+    double calculateInertia() const;
 
     const Cell<D,C>* getLeft() const { return _left; }
     const Cell<D,C>* getRight() const { return _left ? _right : 0; }

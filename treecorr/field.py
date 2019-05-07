@@ -247,22 +247,56 @@ class Field(object):
         treecorr._lib.FieldGetNear(self.data, x, y, z, sep, self._d, self._coords, lp(ind), n)
         return ind
 
-    def run_kmeans(self, npatch, max_iter=1000, tol=1.e-4):
-        """Use K-Means algorithm to set patch labels for a field.
+    def run_kmeans(self, npatch, max_iter=100, tol=1.e-4, alt=False):
+        """Use k-means algorithm to set patch labels for a field.
+
+        The k-means algorithm (cf. https://en.wikipedia.org/wiki/K-means_clustering) identifies
+        a center position for each patch.  Each point is then assigned to the patch whose center
+        is closest.  The centers are then updated to be the mean position of all the points
+        assigned to the patch.  This process is repeated until the center locations have converged.
+
+        The process tends to converge relatively quickly.  The convergence criterion we use
+        is a tolerance on the rms shift in the centroid positions as a fraction of the overall
+        size of the whole field.  This is settable as **tol** (default 1.e-4).  You can also
+        set the maximum number of iterations to allow as **max_iter** (default 100).
+
+        The upshot of the k-means process is to minimize the total within-cluster sum of squares
+        (WCSS), also known as the "inertia" of each patch.  This tends to produce patches with
+        more or less similar inertia, which make them useful for jackknife or other sampling
+        estimates of the errors in the correlation functions.
+
+        In addition to the normal k-means algorith, we also offer an alternate algorithm, which
+        can produce slightly better patches for the purpose of error estimation.  The ideal patch
+        definition for such use would be to minimize the rms size of each patch, not the total
+        inertia.  It turns out that it is difficult to devise an algorithm that literally does
+        this, since it has a tendancy to become unstable and not converge.  However, adding a
+        slight penalty to the patch assignment step of the normal k-means algorithm turns out to
+        work reasonably well.
+
+        Specifically, you can assign each point, k, to the patch with the minimum d_ik^2 + 2S_i^2,
+        where d_ik is the distance to the center of patch i, and S_i is the rms distance from the
+        center of all points in the previous iteration (equal to the WCSS divided by the number of
+        points in the patch).  This penalizes patches with a larger size S_i and gives them fewer
+        points in the next iteration.  Patches with small sizes get a few more points.  The result
+        is typically a set of patch definitions that have significantly lower rms size, but only
+        slightly higher total inertia.  This alternate algorithm is available here by specifying
+        **alt=True**.
 
         Parameters:
             npatch (int):       How many patches to generate
             max_iter (int):     How many iterations at most to run. (default: 100)
             tol (float):        Tolerance in the rms centroid shift to consider as converged
                                 as a fraction of the total field size. (default: 1.e-4)
+            alt (bool):         Use the alternate assignment algorithm to minimize the rms size
+                                rather than the total inertia (aka WCSS). (default: False)
 
         Returns:
             patches (array):    An array of patch labels, all integers from 0..npatch-1.
                                 Size is self.ntot.
         """
         centers = self.kmeans_initialize_centers(npatch)
-        self.kmeans_refine_centers(centers, max_iter, tol)
-        return self.kmeans_assign_patches(centers)
+        self.kmeans_refine_centers(centers, max_iter, tol, alt)
+        return self.kmeans_assign_patches(centers, alt)
 
     def kmeans_initialize_centers(self, npatch):
         """Use the field's tree structure to assign good initial centers for a K-Means run.
@@ -295,7 +329,7 @@ class Field(object):
         treecorr._lib.KMeansInit(self.data, dp(centers), int(npatch), self._d, self._coords)
         return centers
 
-    def kmeans_refine_centers(self, centers, max_iter=100, tol=1.e-4):
+    def kmeans_refine_centers(self, centers, max_iter=100, tol=1.e-4, alt=False):
         """Fast implementation of the K-Means algorithm
 
         The standard K-Means algorithm is as follows:
@@ -321,7 +355,9 @@ class Field(object):
 
         As a result, this algorithm typically takes a fraction of a second for ~a million points.
         Indeed most of the time spent in the full kmeans calculation is in building the tree
-        in the first place, rather than actually running the kmeans code.
+        in the first place, rather than actually running the kmeans code.  With the alternate
+        algorithm (**alt=True**), the time is only slightly slower from having to calculate
+        the sizes at each step.
 
         Parameters:
             centers (array):    An array of center coordinates. (modified by this function)
@@ -331,13 +367,15 @@ class Field(object):
             max_iter (int):     How many iterations at most to run. (default: 100)
             tol (float):        Tolerance in the rms centroid shift to consider as converged
                                 as a fraction of the total field size. (default: 1.e-4)
+            alt (bool):         Use the alternate assignment algorithm to minimize the rms size
+                                rather than the total inertia (aka WCSS). (default: False)
         """
         from treecorr.util import double_ptr as dp
         npatch = centers.shape[0]
         treecorr._lib.KMeansRun(self.data, dp(centers), npatch, int(max_iter), float(tol),
-                                self._d, self._coords)
+                                bool(alt), self._d, self._coords)
 
-    def kmeans_assign_patches(self, centers):
+    def kmeans_assign_patches(self, centers, alt=False):
         """Assign patch numbers to each point according to the given centers.
 
         This is final step in the full K-Means algorithm.  It assignes patch numbers to each
@@ -348,6 +386,8 @@ class Field(object):
                                 Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
                                 spherical geometries.  In the latter case, the centers represent
                                 (x,y,z) coordinates on the unit sphere.
+            alt (bool):         Use the alternate assignment algorithm to minimize the rms size
+                                rather than the total inertia (aka WCSS). (default: False)
 
         Returns:
             patches (array):    An array of patch labels, all integers from 0..npatch-1.
@@ -357,8 +397,8 @@ class Field(object):
         from treecorr.util import long_ptr as lp
         patches = np.empty(self.ntot, dtype=int)
         npatch = centers.shape[0]
-        treecorr._lib.KMeansAssign(self.data, dp(centers), npatch, lp(patches), self.ntot,
-                                   self._d, self._coords)
+        treecorr._lib.KMeansAssign(self.data, dp(centers), npatch, bool(alt),
+                                   lp(patches), self.ntot, self._d, self._coords)
         return patches
 
 

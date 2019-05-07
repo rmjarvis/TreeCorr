@@ -97,9 +97,9 @@ struct StoreCells
 
     StoreCells(int _npatch) : npatch(_npatch), cells_by_patch(npatch) {}
 
-    void run(int closest_i, const Cell<D,C>* cell)
+    void run(int patch_num, const Cell<D,C>* cell)
     {
-        cells_by_patch[closest_i].push_back(cell);
+        cells_by_patch[patch_num].push_back(cell);
     }
 
     void combineWith(const StoreCells<D,C>& rhs)
@@ -127,10 +127,10 @@ struct UpdateCenters
 
     UpdateCenters(int _npatch) : npatch(_npatch), new_centers(npatch), w(npatch) {}
 
-    void run(int closest_i, const Cell<D,C>* cell)
+    void run(int patch_num, const Cell<D,C>* cell)
     {
-        new_centers[closest_i] += cell->getPos() * cell->getW();
-        w[closest_i] += cell->getW();
+        new_centers[patch_num] += cell->getPos() * cell->getW();
+        w[patch_num] += cell->getW();
     }
 
     void combineWith(const UpdateCenters<D,C>& rhs)
@@ -154,6 +154,74 @@ struct UpdateCenters
     {
         for (int i=0;i<npatch;++i) new_centers[i] = Position<C>();
         for (int i=0;i<npatch;++i) w[i] = 0.;
+    }
+};
+
+template <int D, int C>
+struct CalculateInertia
+{
+    int npatch;
+    std::vector<double> inertia;
+    std::vector<double> sumw;
+    const std::vector<Position<C> >& centers;
+
+    CalculateInertia(int _npatch, const std::vector<Position<C> >& _centers) :
+        npatch(_npatch), inertia(npatch,1.), sumw(npatch), centers(_centers) {}
+
+    void run(int patch_num, const Cell<D,C>* cell)
+    {
+        double ssq = cell->getSizeSq();
+        double w = cell->getW();
+        inertia[patch_num] += (cell->getPos() - centers[patch_num]).normSq() * w;
+        // Parallel axis theorem says we should add the inertia of this cell about its own
+        // centroid.  We can calculate that with cell->calculateInertia(), but in the limit of
+        // large numbers of points the approximation I = 1/2 w s^2 is generally good enough.
+        if (ssq > 0.) {
+            double I1 = 0.5 * ssq * w;
+#ifdef DEBUGLOGGING
+            double I2 = cell->getInertia();
+            xdbg<<"I1, I2 = "<<I1<<"  "<<I2<<std::endl;
+#endif
+            inertia[patch_num] += I1;
+        }
+        sumw[patch_num] += w;
+    }
+
+    void combineWith(const CalculateInertia<D,C>& rhs)
+    {
+        for (int i=0; i<npatch; ++i) {
+            inertia[i] += rhs.inertia[i];
+            sumw[i] += rhs.sumw[i];
+        }
+    }
+
+    void finalize()
+    {
+#ifdef DEBUGLOGGING
+        double mean=0.;
+        double rms=0.;
+#endif
+        for (int i=0; i<npatch; ++i) {
+            inertia[i] /= sumw[i];
+#ifdef DEBUGLOGGING
+            dbg<<"Inertia["<<i<<"] = "<<inertia[i]<<"  "<<sumw[i]<<std::endl;
+            mean += inertia[i];
+            rms += SQR(inertia[i]);
+#endif
+        }
+#ifdef DEBUGLOGGING
+        mean /= npatch;
+        rms -= npatch * SQR(mean);
+        rms = sqrt(rms / npatch);
+        dbg<<"mean inertia = "<<mean<<std::endl;
+        dbg<<"rms inertia = "<<rms<<std::endl;
+#endif
+    }
+
+    void reset()
+    {
+        for (int i=0;i<npatch;++i) inertia[i] = 0.;
+        for (int i=0;i<npatch;++i) sumw[i] = 0.;
     }
 };
 
@@ -197,7 +265,8 @@ struct AssignPatches
 template <int D, int C, typename F>
 void FindCellsInPatches(const std::vector<Position<C> >& centers,
                         const Cell<D,C>* cell, std::vector<long>& patches, long ncand,
-                        std::vector<double>& saved_dsq, F& f)
+                        std::vector<double>& saved_dsq, F& f,
+                        const std::vector<double>* inertia)
 {
     //set_verbose(2);
     xdbg<<"Start recursive FindCellsInPatches\n";
@@ -210,30 +279,70 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
     double closest_i = patches[0];
     double min_dsq = (cell_center - centers[closest_i]).normSq();
     saved_dsq[0] = min_dsq;
+    double Ifactor = 2.0;  // Empirically, 2.0 seems to be nearly optimal.
+    if (inertia) {
+        xdbg<<"Initial min_dsq = "<<min_dsq<<", I = "<<(*inertia)[closest_i]<<std::endl;
+        min_dsq += Ifactor * (*inertia)[closest_i];
+        xdbg<<"    min_dsq => "<<min_dsq<<std::endl;
+    }
+    // Note: saved_dsq is really the d^2 values.
+    //       min_dsq is the minimum value of the possibly modified distance:
+    //          dsq for alt = False.
+    //          dsq + 2I) for alt = True.
 
     // Look for closer center
     for (int j=1; j<ncand; ++j) {
         long i=patches[j];
-        saved_dsq[j] = (cell_center - centers[i]).normSq();
-        if (saved_dsq[j] < min_dsq) {
+        double dsq = (cell_center - centers[i]).normSq();
+        saved_dsq[j] = dsq;
+        if (inertia) {
+            xdbg<<"dsq = "<<dsq<<", I = "<<(*inertia)[i]<<std::endl;
+            dsq += Ifactor * (*inertia)[i];
+            xdbg<<"   dsq => "<<dsq<<std::endl;
+        }
+        xdbg<<"dsq["<<i<<"] = "<<dsq<<", min = "<<min_dsq<<std::endl;
+        if (dsq < min_dsq) {
             std::swap(saved_dsq[0], saved_dsq[j]);
             std::swap(patches[0], patches[j]);
             closest_i = i;
-            min_dsq = saved_dsq[0];
+            min_dsq = dsq;
         }
     }
-    double min_d = sqrt(min_dsq);
-    // Can remove any candidate with d - size >  min_d + size
-    double thresh_dsq = SQR(min_d + 2*s);
-    xdbg<<"closest center = "<<closest_i<<"  "<<centers[closest_i]<<" d = "<<min_d<<std::endl;
+    double min_d = sqrt(saved_dsq[0]);
+    xdbg<<"closest center = "<<closest_i<<"  "<<centers[closest_i]<<std::endl;
+    xdbg<<"min_d = "<<min_d<<"  min_dsq = "<<min_dsq<<std::endl;
+    double thresh_dsq;
+    if (!inertia) {
+        // Can remove any candidate with d - size >  min_d + size
+        thresh_dsq = SQR(min_d + 2*s);
+    } else {
+        // When using inertia, it is slightly more complicated.
+        // (d_i-s)^2 + 2I_i > (min_d+s)^2 + 2I_0
+        // Since this involved the specific I_i in each step, it's simpler to just
+        // calculate the left side specifically for each patch.
+        thresh_dsq = SQR(min_d + s) + Ifactor*(*inertia)[closest_i];
+    }
     xdbg<<"thresh_dsq = "<<thresh_dsq<<std::endl;
 
     // Update patches to remove any that cannot be the right center from candidate section.
     for (int j=ncand-1; j>0; --j) {
         double dsq = saved_dsq[j];
+        if (inertia) {
+            double d = sqrt(dsq);
+            // If s > d, then the normal calculation doesn't apply.  Use dsq = 0.
+            if (s > d)
+                dsq = 0.;
+            else
+                dsq = SQR(d-s) + Ifactor*(*inertia)[patches[j]];
+        }
         xdbg<<"Check: "<<dsq<<" >? "<<thresh_dsq<<std::endl;
         if (dsq > thresh_dsq) {
-            xdbg<<"Remove cell with center "<<centers[patches[j]]<<std::endl;
+            if (patches[j] < 2) {
+                dbg<<"Remove cell with center "<<centers[patches[j]]<<std::endl;
+                dbg<<"cell = "<<cell_center<<"  "<<s<<"  "<<cell->getN()<<std::endl;
+                dbg<<dsq<<" > "<<thresh_dsq<<std::endl;
+                dbg<<"min_d = "<<min_d<<std::endl;
+            }
             --ncand;
             if (j != ncand) {
                 std::swap(patches[j], patches[ncand]);
@@ -244,15 +353,15 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
     xdbg<<"There are "<<ncand<<" patches remaining\n";
 
     //set_verbose(1);
-    if (ncand == 1) {
+    if (ncand == 1 || s == 0.) {
         // If we only have one candidate left, we're done.  Use this cell to update this patch.
         f.run(closest_i, cell);
     } else {
         // Otherwise, need to recurse to sub-cells.
-        FindCellsInPatches(centers, cell->getLeft(), patches, ncand, saved_dsq, f);
+        FindCellsInPatches(centers, cell->getLeft(), patches, ncand, saved_dsq, f, inertia);
         // Note: the above call might have swapped some patches around, but only within the
         // first ncand values, so they are still valid for the next call.
-        FindCellsInPatches(centers, cell->getRight(), patches, ncand, saved_dsq, f);
+        FindCellsInPatches(centers, cell->getRight(), patches, ncand, saved_dsq, f, inertia);
     }
 }
 
@@ -260,7 +369,8 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
 // patch and then runs f, which can be any of the above function classes.
 template <int D, int C, typename F>
 void FindCellsInPatches(const std::vector<Position<C> >& centers,
-                        const std::vector<Cell<D,C>*>& cells, F& f)
+                        const std::vector<Cell<D,C>*>& cells, F& f,
+                        const std::vector<double>* inertia=0)
 {
 #ifdef _OPENMP
 #pragma omp parallel
@@ -284,7 +394,7 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
 #pragma omp for schedule(static)
 #endif
         for (size_t k=0; k<cells.size(); ++k) {
-            FindCellsInPatches(centers, cells[k], patches, npatch, saved_dsq, f2);
+            FindCellsInPatches(centers, cells[k], patches, npatch, saved_dsq, f2, inertia);
         }
 
 #ifdef _OPENMP
@@ -364,7 +474,8 @@ void KMeansInit2(Field<D,C>*field, double* pycenters, long npatch)
 
 
 template <int D, int C>
-void KMeansRun2(Field<D,C>*field, double* pycenters, long npatch, int max_iter, double tol)
+void KMeansRun2(Field<D,C>*field, double* pycenters, long npatch, int max_iter, double tol,
+                bool alt)
 {
     dbg<<"Start KMeansRun for "<<npatch<<" patches\n";
     const std::vector<Cell<D,C>*> cells = field->getCells();
@@ -380,21 +491,38 @@ void KMeansRun2(Field<D,C>*field, double* pycenters, long npatch, int max_iter, 
     double tolsq = tol*tol * field->getSizeSq() * npatch;
     dbg<<"tolsq = "<<tolsq<<std::endl;
 
+    // The alt version needs to keep track of the inertia of each patch.
+    CalculateInertia<D,C> calculate_inertia(alt ? npatch : 0, centers);
+    std::vector<double>* pinertia = 0;
+    dbg<<"Made calculate_inertia\n";
+
     // Keep track of which cells belong to which patch.
     UpdateCenters<D,C> update_centers(npatch);
+    dbg<<"Made update_centers\n";
 
     for(int iter=0; iter<max_iter; ++iter) {
+        dbg<<"Start iter "<<iter<<std::endl;
+        // Update the inertia if we are doing the alternate version
+        if (alt) {
+            std::vector<double> inertia = calculate_inertia.inertia;
+            calculate_inertia.reset();
+            FindCellsInPatches(centers, cells, calculate_inertia, &inertia);
+            calculate_inertia.finalize();
+            pinertia = &calculate_inertia.inertia;
+        }
+
         // Figure out which cells belong to which patch according to the current centers.
         // Note: clear leaves the previous capacity available, so usually won't need much
         // in the way of allocation here.
         update_centers.reset();
-        FindCellsInPatches(centers, cells, update_centers);
+        FindCellsInPatches(centers, cells, update_centers, pinertia);
         update_centers.finalize();
         dbg<<"After UpdateCenters\n";
 
         // Check for convergence
         double shiftsq = CalculateShiftSq(centers, update_centers.new_centers);
-        dbg<<"Iter "<<iter<<": shiftsq = "<<shiftsq<<std::endl;
+        centers = update_centers.new_centers;
+        dbg<<"Iter "<<iter<<": shiftsq = "<<shiftsq<<"  tolsq = "<<tolsq<<std::endl;
         // Stop if (rms shift / size) < tol
         if (shiftsq < tolsq) {
             dbg<<"Stopping RunKMeans because rms shift = "<<sqrt(shiftsq/npatch)<<std::endl;
@@ -404,13 +532,13 @@ void KMeansRun2(Field<D,C>*field, double* pycenters, long npatch, int max_iter, 
         if (iter == max_iter-1) {
             dbg<<"Stopping RunKMeans because hit maximum iterations = "<<max_iter<<std::endl;
         }
-        centers = update_centers.new_centers;
     }
     WriteCenters(centers, pycenters, npatch);
 }
 
 template <int D, int C>
-void KMeansAssign2(Field<D,C>*field, double* pycenters, long npatch, long* patches, long n)
+void KMeansAssign2(Field<D,C>*field, double* pycenters, long npatch, bool alt,
+                   long* patches, long n)
 {
     dbg<<"Start KMeansAssign for "<<npatch<<" patches\n";
     const std::vector<Cell<D,C>*> cells = field->getCells();
@@ -418,8 +546,23 @@ void KMeansAssign2(Field<D,C>*field, double* pycenters, long npatch, long* patch
     std::vector<Position<C> > centers(npatch);
     ReadCenters(centers, pycenters, npatch);
 
+    CalculateInertia<D,C> calculate_inertia(alt ? npatch : 0, centers);
+    std::vector<double>* pinertia = 0;
+    if (alt) {
+        // The alt version needs to keep track of the inertia of each patch.
+        dbg<<"Made calculate_inertia\n";
+        const int niter = 1;  // There doesn't seem to be any benefit to more than one pass here.
+        for (int i=0;i<niter;++i) {
+            std::vector<double> inertia = calculate_inertia.inertia;
+            calculate_inertia.reset();
+            FindCellsInPatches(centers, cells, calculate_inertia, &inertia);
+            calculate_inertia.finalize();
+        }
+        pinertia = &calculate_inertia.inertia;
+    }
+
     AssignPatches<D,C> assign_patches(patches, n);
-    FindCellsInPatches(centers, cells, assign_patches);
+    FindCellsInPatches(centers, cells, assign_patches, pinertia);
     dbg<<"After AssignPatches\n";
 }
 
@@ -455,65 +598,67 @@ void KMeansInit(void* field, double* centers, long npatch, int d, int coords)
 }
 
 template <int D>
-void KMeansRun1(void* field, double* centers, long npatch, int max_iter, double tol, int coords)
+void KMeansRun1(void* field, double* centers, long npatch, int max_iter, double tol, bool alt,
+                int coords)
 {
     switch(coords) {
       case Flat:
-           KMeansRun2(static_cast<Field<D,Flat>*>(field), centers, npatch, max_iter, tol);
+           KMeansRun2(static_cast<Field<D,Flat>*>(field), centers, npatch, max_iter, tol, alt);
            break;
       case Sphere:
-           KMeansRun2(static_cast<Field<D,Sphere>*>(field), centers, npatch, max_iter, tol);
+           KMeansRun2(static_cast<Field<D,Sphere>*>(field), centers, npatch, max_iter, tol, alt);
            break;
       case ThreeD:
-           KMeansRun2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, max_iter, tol);
+           KMeansRun2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, max_iter, tol, alt);
            break;
     }
 }
 
-void KMeansRun(void* field, double* centers, long npatch, int max_iter, double tol,
+void KMeansRun(void* field, double* centers, long npatch, int max_iter, double tol, int alt,
                int d, int coords)
 {
     switch(d) {
       case NData:
-           KMeansRun1<NData>(field, centers, npatch, max_iter, tol, coords);
+           KMeansRun1<NData>(field, centers, npatch, max_iter, tol, bool(alt), coords);
            break;
       case KData:
-           KMeansRun1<KData>(field, centers, npatch, max_iter, tol, coords);
+           KMeansRun1<KData>(field, centers, npatch, max_iter, tol, bool(alt), coords);
            break;
       case GData:
-           KMeansRun1<GData>(field, centers, npatch, max_iter, tol, coords);
+           KMeansRun1<GData>(field, centers, npatch, max_iter, tol, bool(alt), coords);
            break;
     }
 }
 
 template <int D>
-void KMeansAssign1(void* field, double* centers, long npatch, long* patches, long n, int coords)
+void KMeansAssign1(void* field, double* centers, long npatch, bool alt, long* patches, long n,
+                   int coords)
 {
     switch(coords) {
       case Flat:
-           KMeansAssign2(static_cast<Field<D,Flat>*>(field), centers, npatch, patches, n);
+           KMeansAssign2(static_cast<Field<D,Flat>*>(field), centers, npatch, alt, patches, n);
            break;
       case Sphere:
-           KMeansAssign2(static_cast<Field<D,Sphere>*>(field), centers, npatch, patches, n);
+           KMeansAssign2(static_cast<Field<D,Sphere>*>(field), centers, npatch, alt, patches, n);
            break;
       case ThreeD:
-           KMeansAssign2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, patches, n);
+           KMeansAssign2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, alt, patches, n);
            break;
     }
 }
 
-void KMeansAssign(void* field, double* centers, long npatch, long* patches, long n,
+void KMeansAssign(void* field, double* centers, long npatch, int alt, long* patches, long n,
                   int d, int coords)
 {
     switch(d) {
       case NData:
-           KMeansAssign1<NData>(field, centers, npatch, patches, n, coords);
+           KMeansAssign1<NData>(field, centers, npatch, bool(alt), patches, n, coords);
            break;
       case KData:
-           KMeansAssign1<KData>(field, centers, npatch, patches, n, coords);
+           KMeansAssign1<KData>(field, centers, npatch, bool(alt), patches, n, coords);
            break;
       case GData:
-           KMeansAssign1<GData>(field, centers, npatch, patches, n, coords);
+           KMeansAssign1<GData>(field, centers, npatch, bool(alt), patches, n, coords);
            break;
     }
 }

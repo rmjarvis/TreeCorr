@@ -273,14 +273,26 @@ class Field(object):
         penalty term to the patch assignment step of the normal k-means algorithm turns out to
         work reasonably well.
 
-        Specifically, we assign each point, k, to the patch with the minimum d_ik^2 + f I_i,
-        where d_ik is the distance to the center of patch i, I_i is the inertia of that patch from
-        the previous iteration, and f is a scaling constant.  The scaling constant we choose is
-        1/<N_i>, the inverse of the mean number of points in each patch.  This makes the two
-        terms of comparable magnitude.  The penalty term means that patches with less inertia
-        get more points on the next iteration, and vice versa.  The result is typically a set of
-        patch definitions that have significantly lower rms size, but only slightly higher total
-        inertia.  This alternate algorithm is available here by specifying **alt=True**.
+        Specifically, we assign each point k to the patch with the minimum d_ik^2 + f I_i, where
+        d_ik is the distance to the center of patch i, I_i is the inertia of that patch from the
+        previous iteration, and f is a scaling constant (see below). The penalty term means that
+        patches with less inertia get more points on the next iteration, and vice versa, which
+        results in centers that have significantly lower rms inertia, but only slightly higher
+        total inertia.
+
+        For the scaling constant, f, we chose 3/<N_i>, three times the inverse of the mean number
+        of points in each patch.  The 1/<N_i> factor makes the two terms of comparable magnitude,
+        so patches still get most of the points near them, even if they already have larger than
+        average inertia, but some of the points in the outskirts of the patch might switch to
+        a nearby patch with smaller inertia.  The factor of 3 is purely empirical, and was found
+        to give good results in terms of rms inertia on some test data (the DES SV field).
+
+        The alternate algorithm is available by specifying **alt=True**.  Despite it typically
+        giving better patch centers than the standard algorithm, we don't make it the default,
+        because it is possible for the iteration to become unstable, leading to some patches
+        with no points in them.  If this happens for you, your best bet is probably to switch
+        to the standard algorithm, which should never suffer from this problem (at least with
+        reasonable initialization of the centers).
 
         Parameters:
             npatch (int):       How many patches to generate
@@ -296,7 +308,7 @@ class Field(object):
         """
         centers = self.kmeans_initialize_centers(npatch)
         self.kmeans_refine_centers(centers, max_iter, tol, alt)
-        return self.kmeans_assign_patches(centers, alt)
+        return self.kmeans_assign_patches(centers)
 
     def kmeans_initialize_centers(self, npatch):
         """Use the field's tree structure to assign good initial centers for a K-Means run.
@@ -375,7 +387,7 @@ class Field(object):
         treecorr._lib.KMeansRun(self.data, dp(centers), npatch, int(max_iter), float(tol),
                                 bool(alt), self._d, self._coords)
 
-    def kmeans_assign_patches(self, centers, alt=False):
+    def kmeans_assign_patches(self, centers):
         """Assign patch numbers to each point according to the given centers.
 
         This is final step in the full K-Means algorithm.  It assignes patch numbers to each
@@ -386,8 +398,6 @@ class Field(object):
                                 Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
                                 spherical geometries.  In the latter case, the centers represent
                                 (x,y,z) coordinates on the unit sphere.
-            alt (bool):         Use the alternate assignment algorithm to minimize the rms size
-                                rather than the total inertia (aka WCSS). (default: False)
 
         Returns:
             patches (array):    An array of patch labels, all integers from 0..npatch-1.
@@ -397,7 +407,7 @@ class Field(object):
         from treecorr.util import long_ptr as lp
         patches = np.empty(self.ntot, dtype=int)
         npatch = centers.shape[0]
-        treecorr._lib.KMeansAssign(self.data, dp(centers), npatch, bool(alt),
+        treecorr._lib.KMeansAssign(self.data, dp(centers), npatch,
                                    lp(patches), self.ntot, self._d, self._coords)
         return patches
 

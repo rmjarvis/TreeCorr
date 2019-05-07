@@ -267,20 +267,20 @@ class Field(object):
 
         In addition to the normal k-means algorith, we also offer an alternate algorithm, which
         can produce slightly better patches for the purpose of error estimation.  The ideal patch
-        definition for such use would be to minimize the rms size of each patch, not the total
+        definition for such use would be to minimize the rms inertia of each patch, not the total
         inertia.  It turns out that it is difficult to devise an algorithm that literally does
         this, since it has a tendancy to become unstable and not converge.  However, adding a
-        slight penalty to the patch assignment step of the normal k-means algorithm turns out to
+        penalty term to the patch assignment step of the normal k-means algorithm turns out to
         work reasonably well.
 
-        Specifically, you can assign each point, k, to the patch with the minimum d_ik^2 + 2S_i^2,
-        where d_ik is the distance to the center of patch i, and S_i is the rms distance from the
-        center of all points in the previous iteration (equal to the WCSS divided by the number of
-        points in the patch).  This penalizes patches with a larger size S_i and gives them fewer
-        points in the next iteration.  Patches with small sizes get a few more points.  The result
-        is typically a set of patch definitions that have significantly lower rms size, but only
-        slightly higher total inertia.  This alternate algorithm is available here by specifying
-        **alt=True**.
+        Specifically, we assign each point, k, to the patch with the minimum d_ik^2 + f I_i,
+        where d_ik is the distance to the center of patch i, I_i is the inertia of that patch from
+        the previous iteration, and f is a scaling constant.  The scaling constant we choose is
+        1/<N_i>, the inverse of the mean number of points in each patch.  This makes the two
+        terms of comparable magnitude.  The penalty term means that patches with less inertia
+        get more points on the next iteration, and vice versa.  The result is typically a set of
+        patch definitions that have significantly lower rms size, but only slightly higher total
+        inertia.  This alternate algorithm is available here by specifying **alt=True**.
 
         Parameters:
             npatch (int):       How many patches to generate

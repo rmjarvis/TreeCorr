@@ -39,6 +39,7 @@
 //
 
 #ifdef DEBUGLOGGING
+
 class Debugger // Use a Singleton model so it can be included multiple times.
 {
 public:
@@ -58,7 +59,10 @@ private:
     std::ostream* dbgout;
     int verbose_level;
 
-    Debugger() : dbgout(&std::cout), verbose_level(1) {}
+    Debugger() : dbgout(&std::cout), verbose_level(1)
+    {
+        dbgout->setf(std::ios_base::unitbuf);
+    }
     Debugger(const Debugger&);
     void operator=(const Debugger&);
 };

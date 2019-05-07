@@ -14,7 +14,6 @@
 
 //#define DEBUGLOGGING
 
-#include <cstddef>  // for ptrdiff_t
 #include <vector>
 #include "Field.h"
 #include "Cell.h"
@@ -144,8 +143,10 @@ struct UpdateCenters
     void finalize()
     {
         for (int i=0; i<npatch; ++i) {
-            new_centers[i] /= w[i];
-            new_centers[i].normalize();
+            if (w[i] > 0.) {
+                new_centers[i] /= w[i];
+                new_centers[i].normalize();
+            }
             dbg<<"New center = "<<new_centers[i]<<std::endl;
         }
     }
@@ -175,12 +176,14 @@ struct CalculateInertia
         inertia[patch_num] += (cell->getPos() - centers[patch_num]).normSq() * w;
         // Parallel axis theorem says we should add the inertia of this cell about its own
         // centroid.  We can calculate that with cell->calculateInertia(), but for small cells,
-        // it is very close to I = w s^2, and it turns out that this is generally good enough.
+        // it is close to I = w s^2, and for large cells (assuming uniform density of points)
+        // it is close to I = 0.5 w s^2.  Splitting the difference works fairly well and is much
+        // faster than the full calculateInertia() method.
         if (ssq > 0.) {
-            double I1 = ssq * w;
+            double I1 = 0.75 * ssq * w;
 #ifdef DEBUGLOGGING
             double I2 = cell->calculateInertia();
-            dbg<<"ssq, I1, I2 = "<<ssq<<"  "<<I1<<"  "<<I2<<std::endl;
+            xdbg<<"ssq, I1, I2 = "<<ssq<<"  "<<I1<<"  "<<I2<<std::endl;
 #endif
             inertia[patch_num] += I1;
         }
@@ -201,15 +204,21 @@ struct CalculateInertia
         double mean=0.;
         double rms=0.;
 #endif
-        double meanw = sumw / npatch;
+        // The 3 here is empirical, but fairly good results were obtained with this factor
+        // being anywhere from 2 to 4.  4 was actually slgihtly better, but above 4, the
+        // iterations could turn unstable and neighboring patches could alternate grabbing
+        // more and more area back and forth until one patch had no points.
+        // So to avoid getting near this instability, we use 3 rather than 4, which we believe
+        // is usually safe.
+        double meanw = sumw / npatch / 3.;
 
         for (int i=0; i<npatch; ++i) {
-            inertia[i] /= meanw;
 #ifdef DEBUGLOGGING
             dbg<<"Inertia["<<i<<"] = "<<inertia[i]<<std::endl;
             mean += inertia[i];
             rms += SQR(inertia[i]);
 #endif
+            inertia[i] /= meanw;
         }
 #ifdef DEBUGLOGGING
         mean /= npatch;
@@ -232,8 +241,17 @@ struct AssignPatches
 {
     long* patches;
     long n;
+#ifdef DEBUGLOGGING
+    const std::vector<Position<C> >& centers;
+    std::vector<double> inertia;
+#endif
 
-    AssignPatches(long* _patches, long _n) : patches(_patches), n(_n) {}
+    AssignPatches(long* _patches, long _n, const std::vector<Position<C> >& _c) :
+        patches(_patches), n(_n)
+#ifdef DEBUGLOGGING
+        , centers(_c), inertia(_c.size())
+#endif
+    {}
 
     void run(int patch_num, const Cell<D,C>* cell)
     {
@@ -247,6 +265,9 @@ struct AssignPatches
             xdbg<<"N=1.  index = "<<index<<std::endl;
             Assert(index < n);
             patches[index] = patch_num;
+#ifdef DEBUGLOGGING
+            inertia[patch_num] += (cell->getPos() - centers[patch_num]).normSq() * cell->getW();
+#endif
         } else {
             std::vector<long>* indices = cell->getListInfo().indices;
             xdbg<<"Leaf with N>1.  "<<indices->size()<<" indices\n";
@@ -256,11 +277,40 @@ struct AssignPatches
                 Assert(index < n);
                 patches[index] = patch_num;
             }
+#ifdef DEBUGLOGGING
+            inertia[patch_num] += (cell->getPos() - centers[patch_num]).normSq() * cell->getW();
+#endif
         }
     }
 
-    void combineWith(const AssignPatches<D,C>& rhs) {}
-    void finalize() {}
+    void combineWith(const AssignPatches<D,C>& rhs)
+    {
+#ifdef DEBUGLOGGING
+        int npatch = centers.size();
+        for (int i=0; i<npatch; ++i) {
+            inertia[i] += rhs.inertia[i];
+        }
+#endif
+    }
+    void finalize()
+    {
+#ifdef DEBUGLOGGING
+        double mean=0.;
+        double rms=0.;
+        int npatch = centers.size();
+        dbg<<"Finalize AssignPatches\n";
+        for (int i=0; i<npatch; ++i) {
+            dbg<<"Inertia["<<i<<"] = "<<inertia[i]<<std::endl;
+            mean += inertia[i];
+            rms += SQR(inertia[i]);
+        }
+        mean /= npatch;
+        rms -= npatch * SQR(mean);
+        rms = sqrt(rms / npatch);
+        dbg<<"mean inertia = "<<mean<<std::endl;
+        dbg<<"rms inertia = "<<rms<<std::endl;
+#endif
+    }
     void reset() {}
 };
 
@@ -505,9 +555,8 @@ void KMeansRun2(Field<D,C>*field, double* pycenters, long npatch, int max_iter, 
         dbg<<"Start iter "<<iter<<std::endl;
         // Update the inertia if we are doing the alternate version
         if (alt) {
-            std::vector<double> inertia = calculate_inertia.inertia;
             calculate_inertia.reset();
-            FindCellsInPatches(centers, cells, calculate_inertia, &inertia);
+            FindCellsInPatches(centers, cells, calculate_inertia);
             calculate_inertia.finalize();
             pinertia = &calculate_inertia.inertia;
         }
@@ -538,8 +587,7 @@ void KMeansRun2(Field<D,C>*field, double* pycenters, long npatch, int max_iter, 
 }
 
 template <int D, int C>
-void KMeansAssign2(Field<D,C>*field, double* pycenters, long npatch, bool alt,
-                   long* patches, long n)
+void KMeansAssign2(Field<D,C>*field, double* pycenters, long npatch, long* patches, long n)
 {
     dbg<<"Start KMeansAssign for "<<npatch<<" patches\n";
     const std::vector<Cell<D,C>*> cells = field->getCells();
@@ -547,23 +595,10 @@ void KMeansAssign2(Field<D,C>*field, double* pycenters, long npatch, bool alt,
     std::vector<Position<C> > centers(npatch);
     ReadCenters(centers, pycenters, npatch);
 
-    CalculateInertia<D,C> calculate_inertia(alt ? npatch : 0, centers);
-    std::vector<double>* pinertia = 0;
-    if (alt) {
-        // The alt version needs to keep track of the inertia of each patch.
-        dbg<<"Calculate inertia.\n";
-        const int niter = 1;  // There doesn't seem to be any benefit to more than one pass here.
-        for (int i=0;i<niter;++i) {
-            std::vector<double> inertia = calculate_inertia.inertia;
-            calculate_inertia.reset();
-            FindCellsInPatches(centers, cells, calculate_inertia, &inertia);
-            calculate_inertia.finalize();
-        }
-        pinertia = &calculate_inertia.inertia;
-    }
-
-    AssignPatches<D,C> assign_patches(patches, n);
-    FindCellsInPatches(centers, cells, assign_patches, pinertia);
+    dbg<<"Start AssignPatches\n";
+    AssignPatches<D,C> assign_patches(patches, n, centers);
+    FindCellsInPatches(centers, cells, assign_patches);
+    assign_patches.finalize();
     dbg<<"After AssignPatches\n";
 }
 
@@ -632,34 +667,33 @@ void KMeansRun(void* field, double* centers, long npatch, int max_iter, double t
 }
 
 template <int D>
-void KMeansAssign1(void* field, double* centers, long npatch, bool alt, long* patches, long n,
-                   int coords)
+void KMeansAssign1(void* field, double* centers, long npatch, long* patches, long n, int coords)
 {
     switch(coords) {
       case Flat:
-           KMeansAssign2(static_cast<Field<D,Flat>*>(field), centers, npatch, alt, patches, n);
+           KMeansAssign2(static_cast<Field<D,Flat>*>(field), centers, npatch, patches, n);
            break;
       case Sphere:
-           KMeansAssign2(static_cast<Field<D,Sphere>*>(field), centers, npatch, alt, patches, n);
+           KMeansAssign2(static_cast<Field<D,Sphere>*>(field), centers, npatch, patches, n);
            break;
       case ThreeD:
-           KMeansAssign2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, alt, patches, n);
+           KMeansAssign2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, patches, n);
            break;
     }
 }
 
-void KMeansAssign(void* field, double* centers, long npatch, int alt, long* patches, long n,
+void KMeansAssign(void* field, double* centers, long npatch, long* patches, long n,
                   int d, int coords)
 {
     switch(d) {
       case NData:
-           KMeansAssign1<NData>(field, centers, npatch, bool(alt), patches, n, coords);
+           KMeansAssign1<NData>(field, centers, npatch, patches, n, coords);
            break;
       case KData:
-           KMeansAssign1<KData>(field, centers, npatch, bool(alt), patches, n, coords);
+           KMeansAssign1<KData>(field, centers, npatch, patches, n, coords);
            break;
       case GData:
-           KMeansAssign1<GData>(field, centers, npatch, bool(alt), patches, n, coords);
+           KMeansAssign1<GData>(field, centers, npatch, patches, n, coords);
            break;
     }
 }

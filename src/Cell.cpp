@@ -52,7 +52,26 @@ double Cell<D,C>::calculateInertia() const
         double i2 = getRight()->calculateInertia();
         double w2 = getRight()->getW();
         const Position<C> cen = getPos();
-        return i1 + i2 + (p1-cen).normSq() * w1 + (p2-cen).normSq() * w2;
+        double inertia = i1 + i2 + (p1-cen).normSq() * w1 + (p2-cen).normSq() * w2;
+#ifdef DEBUGLOGGING
+        std::vector<const Cell<D,C>*> leaves = getAllLeaves();
+        double inertia2 = 0.;
+        for (size_t k=0; k<leaves.size(); ++k) {
+            const Position<C>& p = leaves[k]->getPos();
+            double w = leaves[k]->getW();
+            inertia2 += w * (p-cen).normSq();
+        }
+        if (abs(inertia2 - inertia) > 1.e-8 * inertia) {
+            dbg<<"Cell = "<<*this<<std::endl;
+            dbg<<"cen = "<<cen<<std::endl;
+            dbg<<"w = "<<getW()<<std::endl;
+            dbg<<"nleaves = "<<leaves.size()<<std::endl;
+            dbg<<"direct inertia from leaves = "<<inertia2<<std::endl;
+            dbg<<"recursive inertia = "<<inertia<<std::endl;
+            Assert(false);
+        }
+#endif
+        return inertia;
     }
 }
 

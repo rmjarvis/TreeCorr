@@ -47,18 +47,22 @@ def test_dessv():
     # Check this value and the rms size, which should also be quite small.
     xyz = np.array([cat.x, cat.y, cat.z]).T
     cen = np.array([xyz[patches==i].mean(axis=0) for i in range(npatch)])
-    inertia = np.sum((xyz - cen[patches])**2)
-    sizes = np.array([np.mean((xyz[patches==i] - cen[i])**2) for i in range(npatch)])
+    inertia = np.array([np.sum((xyz[patches==i] - cen[i])**2) for i in range(npatch)])
+    sizes = np.array([np.mean((xyz[patches==i] - cen[i])**2) for i in range(npatch)])**0.5
+    sizes *= 180. / np.pi * 60.  # convert to arcmin
     counts = np.array([np.sum(patches==i) for i in range(npatch)])
 
     print('With standard algorithm:')
     print('time = ',t1-t0)
-    print('inertia = ',inertia)
+    print('inertia = ',np.sum(inertia))
     print('sizes = ',sizes)
+    print('mean inertia = ',np.mean(inertia))
+    print('rms inertia = ',np.std(inertia))
     print('mean size= ',np.mean(sizes))
     print('rms size = ',np.std(sizes))
-    assert inertia < 215.  # This is specific to this particular field.
-    assert np.std(sizes) < 0.2 * np.mean(sizes)  # rms is usually small relative to mean.
+    assert np.sum(inertia) < 215.  # This is specific to this particular field.
+    assert np.std(inertia) < 0.2 * np.mean(inertia)  # rms is usually small relative to mean.
+    assert np.std(sizes) < 0.1 * np.mean(sizes)  # rms is usually small relative to mean.
 
     # Should all have similar number of points.  Say within 30% of the average
     print('mean counts = ',np.mean(counts))
@@ -69,7 +73,7 @@ def test_dessv():
     assert np.min(counts) > ave_num * 0.7
     assert np.max(counts) < ave_num * 1.3
 
-    # Check the alternate algorithm.  rms size should be lower.
+    # Check the alternate algorithm.  rms inertia should be lower.
     t0 = time.time()
     patches = field.run_kmeans(npatch, alt=True)
     t1 = time.time()
@@ -78,18 +82,22 @@ def test_dessv():
     assert max(patches) == npatch-1
 
     cen = np.array([xyz[patches==i].mean(axis=0) for i in range(npatch)])
-    inertia = np.sum((xyz - cen[patches])**2)
-    sizes = np.array([np.mean((xyz[patches==i] - cen[i])**2) for i in range(npatch)])
+    inertia = np.array([np.sum((xyz[patches==i] - cen[i])**2) for i in range(npatch)])
+    sizes = np.array([np.mean((xyz[patches==i] - cen[i])**2) for i in range(npatch)])**0.5
+    sizes *= 180. / np.pi * 60.  # convert to arcmin
     counts = np.array([np.sum(patches==i) for i in range(npatch)])
 
     print('With alternate algorithm:')
     print('time = ',t1-t0)
-    print('inertia = ',inertia)
+    print('inertia = ',np.sum(inertia))
     print('sizes = ',sizes)
+    print('mean inertia = ',np.mean(inertia))
+    print('rms inertia = ',np.std(inertia))
     print('mean size= ',np.mean(sizes))
     print('rms size = ',np.std(sizes))
-    assert inertia < 215.  # Total shouldn't increase much.
-    assert np.std(sizes) < 0.1 * np.mean(sizes)  # rms should be even smaller here.
+    assert np.sum(inertia) < 215.  # Total shouldn't increase much.
+    assert np.std(inertia) < 0.1 * np.mean(inertia)  # rms should be even smaller here.
+    assert np.std(sizes) < 0.1 * np.mean(sizes)  # This is only a little bit smaller.
 
     # This doesn't keep the counts as equal as the standard algorithm.
     print('mean counts = ',np.mean(counts))

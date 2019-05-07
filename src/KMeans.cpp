@@ -162,11 +162,11 @@ struct CalculateInertia
 {
     int npatch;
     std::vector<double> inertia;
-    std::vector<double> sumw;
+    double sumw;
     const std::vector<Position<C> >& centers;
 
     CalculateInertia(int _npatch, const std::vector<Position<C> >& _centers) :
-        npatch(_npatch), inertia(npatch,1.), sumw(npatch), centers(_centers) {}
+        npatch(_npatch), inertia(npatch,0.), sumw(0.), centers(_centers) {}
 
     void run(int patch_num, const Cell<D,C>* cell)
     {
@@ -174,25 +174,25 @@ struct CalculateInertia
         double w = cell->getW();
         inertia[patch_num] += (cell->getPos() - centers[patch_num]).normSq() * w;
         // Parallel axis theorem says we should add the inertia of this cell about its own
-        // centroid.  We can calculate that with cell->calculateInertia(), but in the limit of
-        // large numbers of points the approximation I = 1/2 w s^2 is generally good enough.
+        // centroid.  We can calculate that with cell->calculateInertia(), but for small cells,
+        // it is very close to I = w s^2, and it turns out that this is generally good enough.
         if (ssq > 0.) {
-            double I1 = 0.5 * ssq * w;
+            double I1 = ssq * w;
 #ifdef DEBUGLOGGING
-            double I2 = cell->getInertia();
-            xdbg<<"I1, I2 = "<<I1<<"  "<<I2<<std::endl;
+            double I2 = cell->calculateInertia();
+            dbg<<"ssq, I1, I2 = "<<ssq<<"  "<<I1<<"  "<<I2<<std::endl;
 #endif
             inertia[patch_num] += I1;
         }
-        sumw[patch_num] += w;
+        sumw += w;
     }
 
     void combineWith(const CalculateInertia<D,C>& rhs)
     {
         for (int i=0; i<npatch; ++i) {
             inertia[i] += rhs.inertia[i];
-            sumw[i] += rhs.sumw[i];
         }
+        sumw += rhs.sumw;
     }
 
     void finalize()
@@ -201,10 +201,12 @@ struct CalculateInertia
         double mean=0.;
         double rms=0.;
 #endif
+        double meanw = sumw / npatch;
+
         for (int i=0; i<npatch; ++i) {
-            inertia[i] /= sumw[i];
+            inertia[i] /= meanw;
 #ifdef DEBUGLOGGING
-            dbg<<"Inertia["<<i<<"] = "<<inertia[i]<<"  "<<sumw[i]<<std::endl;
+            dbg<<"Inertia["<<i<<"] = "<<inertia[i]<<std::endl;
             mean += inertia[i];
             rms += SQR(inertia[i]);
 #endif
@@ -221,7 +223,7 @@ struct CalculateInertia
     void reset()
     {
         for (int i=0;i<npatch;++i) inertia[i] = 0.;
-        for (int i=0;i<npatch;++i) sumw[i] = 0.;
+        sumw = 0.;
     }
 };
 
@@ -279,16 +281,15 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
     double closest_i = patches[0];
     double min_dsq = (cell_center - centers[closest_i]).normSq();
     saved_dsq[0] = min_dsq;
-    double Ifactor = 2.0;  // Empirically, 2.0 seems to be nearly optimal.
     if (inertia) {
         xdbg<<"Initial min_dsq = "<<min_dsq<<", I = "<<(*inertia)[closest_i]<<std::endl;
-        min_dsq += Ifactor * (*inertia)[closest_i];
+        min_dsq += (*inertia)[closest_i];
         xdbg<<"    min_dsq => "<<min_dsq<<std::endl;
     }
     // Note: saved_dsq is really the d^2 values.
     //       min_dsq is the minimum value of the possibly modified distance:
-    //          dsq for alt = False.
-    //          dsq + 2I) for alt = True.
+    //          dsq         for alt = False.
+    //          dsq + I_i   for alt = True.
 
     // Look for closer center
     for (int j=1; j<ncand; ++j) {
@@ -297,7 +298,7 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
         saved_dsq[j] = dsq;
         if (inertia) {
             xdbg<<"dsq = "<<dsq<<", I = "<<(*inertia)[i]<<std::endl;
-            dsq += Ifactor * (*inertia)[i];
+            dsq += (*inertia)[i];
             xdbg<<"   dsq => "<<dsq<<std::endl;
         }
         xdbg<<"dsq["<<i<<"] = "<<dsq<<", min = "<<min_dsq<<std::endl;
@@ -317,10 +318,10 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
         thresh_dsq = SQR(min_d + 2*s);
     } else {
         // When using inertia, it is slightly more complicated.
-        // (d_i-s)^2 + 2I_i > (min_d+s)^2 + 2I_0
+        // (d_i-s)^2 + I_i > (min_d+s)^2 + I_0
         // Since this involved the specific I_i in each step, it's simpler to just
         // calculate the left side specifically for each patch.
-        thresh_dsq = SQR(min_d + s) + Ifactor*(*inertia)[closest_i];
+        thresh_dsq = SQR(min_d + s) + (*inertia)[closest_i];
     }
     xdbg<<"thresh_dsq = "<<thresh_dsq<<std::endl;
 
@@ -333,15 +334,15 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
             if (s > d)
                 dsq = 0.;
             else
-                dsq = SQR(d-s) + Ifactor*(*inertia)[patches[j]];
+                dsq = SQR(d-s) + (*inertia)[patches[j]];
         }
         xdbg<<"Check: "<<dsq<<" >? "<<thresh_dsq<<std::endl;
         if (dsq > thresh_dsq) {
             if (patches[j] < 2) {
-                dbg<<"Remove cell with center "<<centers[patches[j]]<<std::endl;
-                dbg<<"cell = "<<cell_center<<"  "<<s<<"  "<<cell->getN()<<std::endl;
-                dbg<<dsq<<" > "<<thresh_dsq<<std::endl;
-                dbg<<"min_d = "<<min_d<<std::endl;
+                xdbg<<"Remove cell with center "<<centers[patches[j]]<<std::endl;
+                xdbg<<"cell = "<<cell_center<<"  "<<s<<"  "<<cell->getN()<<std::endl;
+                xdbg<<dsq<<" > "<<thresh_dsq<<std::endl;
+                xdbg<<"min_d = "<<min_d<<std::endl;
             }
             --ncand;
             if (j != ncand) {
@@ -550,7 +551,7 @@ void KMeansAssign2(Field<D,C>*field, double* pycenters, long npatch, bool alt,
     std::vector<double>* pinertia = 0;
     if (alt) {
         // The alt version needs to keep track of the inertia of each patch.
-        dbg<<"Made calculate_inertia\n";
+        dbg<<"Calculate inertia.\n";
         const int niter = 1;  // There doesn't seem to be any benefit to more than one pass here.
         for (int i=0;i<niter;++i) {
             std::vector<double> inertia = calculate_inertia.inertia;

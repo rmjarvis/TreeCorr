@@ -16,14 +16,15 @@
 // Also to turn on dbg<< messages.
 //#define DEBUGLOGGING
 
+#include <vector>
+#include <set>
+#include <map>
+
 #include "dbg.h"
 #include "BinnedCorr2.h"
 #include "Split.h"
 #include "ProjectHelper.h"
 #include "Metric.h"
-#include <vector>
-#include <set>
-#include <map>
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -709,8 +710,7 @@ void SelectRandomFrom(long m, std::vector<long>& selection)
         // O(n) in memory, but slightly more than O(n) in time, especially as m ~ n.
         std::set<long> selected;
         while (long(selected.size()) < n) {
-            double urd = rand();
-            urd /= RAND_MAX;        // 0 < urd < 1
+            double urd = urand();
             long j = long(urd * m); // 0 <= j < m
             if (j == m) j = m-1;    // Just in case.
             std::pair<std::set<long>::iterator,bool> ret = selected.insert(j);
@@ -727,8 +727,7 @@ void SelectRandomFrom(long m, std::vector<long>& selection)
         std::vector<long> full(m);
         for (long i=0; i<m; ++i) full[i] = i;
         for (long i=0; i<n; ++i) {
-            double urd = rand();
-            urd /= RAND_MAX;            // 0 < urd < 1
+            double urd = urand();
             long j = long(urd * (m-i)); // 0 <= j < m-i
             j += i;                     // i <= j < m
             if (j == m) j = m-1;        // Just in case.
@@ -830,8 +829,7 @@ void BinnedCorr2<D1,D2,B>::sampleFrom(
                         else index2 = (*leaf2[p2]->getListInfo().indices)[q2];
                         int j = k;  // j is where in the lists we will place this
                         if (k >= n) {
-                            double urd = rand();
-                            urd /= RAND_MAX;  // 0 < urd < 1
+                            double urd = urand(); // 0 < urd < 1
                             j = int(urd * (k+1)); // 0 <= j < k+1
                         }
                         if (j < n)  {

@@ -22,6 +22,50 @@
 #include "Cell.h"
 #include "Bounds.h"
 
+
+// Helper functions to setup random numbers properly
+inline void seed_urandom()
+{
+    // This implementation shamelessly taken from:
+    // http://stackoverflow.com/questions/2572366/how-to-use-dev-random-or-urandom-in-c
+    std::ifstream rand("/dev/urandom");
+    int myRandomInteger;
+    rand.read((char*)&myRandomInteger, sizeof myRandomInteger);
+    rand.close();
+    srand(myRandomInteger);
+}
+
+inline void seed_time()
+{
+    struct timeval tp;
+    gettimeofday(&tp,NULL);
+    srand(tp.tv_usec);
+}
+
+// Return a random number between 0 and 1.
+double urand()
+{
+    static bool first = true;
+
+    if (first) {
+        // This is a copy of the way GalSim seeds its random number generator using urandom first,
+        // and then if that fails, using the time.
+        // Except we just use this to seed the std rand function, not a boost rng.
+        // Should be fine for this purpose.
+        try {
+            seed_urandom();
+        } catch(...) {
+            seed_time();
+        }
+        first = false;
+    }
+    // Get a random number between 0 and 1
+    double r = rand();
+    r /= RAND_MAX;
+    return r;
+}
+
+
 //
 // CellData
 //
@@ -239,46 +283,13 @@ struct DataCompareToValue
     { return cd.first->getPos().get(split) < splitvalue; }
 };
 
-void seed_urandom()
-{
-    // This implementation shamelessly taken from:
-    // http://stackoverflow.com/questions/2572366/how-to-use-dev-random-or-urandom-in-c
-    std::ifstream rand("/dev/urandom");
-    int myRandomInteger;
-    rand.read((char*)&myRandomInteger, sizeof myRandomInteger);
-    rand.close();
-    srand(myRandomInteger);
-}
-
-void seed_time()
-{
-    struct timeval tp;
-    gettimeofday(&tp,NULL);
-    srand(tp.tv_usec);
-}
-
 size_t select_random(size_t lo, size_t hi)
 {
-    static bool first = true;
-
-    if (first) {
-        // This is a copy of the way GalSim seeds its random number generator using urandom first,
-        // and then if that fails, using the time.
-        // Except we just use this to seed the std rand function, not a boost rng.
-        // Should be fine for this purpose.
-        try {
-            seed_urandom();
-        } catch(...) {
-            seed_time();
-        }
-        first = false;
-    }
     if (lo == hi) {
         return lo;
     } else {
         // Get a random number between 0 and 1
-        double r = rand();
-        r /= RAND_MAX;
+        double r = urand();
         size_t mid = size_t(r * (hi-lo+1)) + lo;
         if (mid > hi) mid = hi;  // Just in case
         return mid;

@@ -247,7 +247,7 @@ class Field(object):
         treecorr._lib.FieldGetNear(self.data, x, y, z, sep, self._d, self._coords, lp(ind), n)
         return ind
 
-    def run_kmeans(self, npatch, max_iter=100, tol=1.e-4, alt=False):
+    def run_kmeans(self, npatch, max_iter=200, tol=1.e-5, alt=False):
         """Use k-means algorithm to set patch labels for a field.
 
         The k-means algorithm (cf. https://en.wikipedia.org/wiki/K-means_clustering) identifies
@@ -257,8 +257,8 @@ class Field(object):
 
         The process tends to converge relatively quickly.  The convergence criterion we use
         is a tolerance on the rms shift in the centroid positions as a fraction of the overall
-        size of the whole field.  This is settable as **tol** (default 1.e-4).  You can also
-        set the maximum number of iterations to allow as **max_iter** (default 100).
+        size of the whole field.  This is settable as **tol** (default 1.e-5).  You can also
+        set the maximum number of iterations to allow as **max_iter** (default 200).
 
         The upshot of the k-means process is to minimize the total within-cluster sum of squares
         (WCSS), also known as the "inertia" of each patch.  This tends to produce patches with
@@ -296,9 +296,9 @@ class Field(object):
 
         Parameters:
             npatch (int):       How many patches to generate
-            max_iter (int):     How many iterations at most to run. (default: 100)
+            max_iter (int):     How many iterations at most to run. (default: 200)
             tol (float):        Tolerance in the rms centroid shift to consider as converged
-                                as a fraction of the total field size. (default: 1.e-4)
+                                as a fraction of the total field size. (default: 1.e-5)
             alt (bool):         Use the alternate assignment algorithm to minimize the rms size
                                 rather than the total inertia (aka WCSS). (default: False)
 
@@ -341,7 +341,7 @@ class Field(object):
         treecorr._lib.KMeansInit(self.data, dp(centers), int(npatch), self._d, self._coords)
         return centers
 
-    def kmeans_refine_centers(self, centers, max_iter=100, tol=1.e-4, alt=False):
+    def kmeans_refine_centers(self, centers, max_iter=200, tol=1.e-5, alt=False):
         """Fast implementation of the K-Means algorithm
 
         The standard K-Means algorithm is as follows:
@@ -376,9 +376,9 @@ class Field(object):
                                 Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
                                 spherical geometries.  In the latter case, the centers represent
                                 (x,y,z) coordinates on the unit sphere.
-            max_iter (int):     How many iterations at most to run. (default: 100)
+            max_iter (int):     How many iterations at most to run. (default: 200)
             tol (float):        Tolerance in the rms centroid shift to consider as converged
-                                as a fraction of the total field size. (default: 1.e-4)
+                                as a fraction of the total field size. (default: 1.e-5)
             alt (bool):         Use the alternate assignment algorithm to minimize the rms size
                                 rather than the total inertia (aka WCSS). (default: False)
         """

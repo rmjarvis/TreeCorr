@@ -38,10 +38,15 @@ void InitializeCenters(std::vector<Position<C> >& centers, const Cell<D,C>* cell
         dbg<<"initial center["<<first<<"] = "<<cell->getPos()<<std::endl;
         centers[first] = cell->getPos();
     } else if (cell->getLeft()) {
-        int m = ncenters / 2;
-        xdbg<<"Recurse with m = "<<m<<std::endl;
-        InitializeCenters(centers, cell->getLeft(), first, m);
-        InitializeCenters(centers, cell->getRight(), first + m, ncenters - m);
+        int m1 = ncenters / 2;
+        int m2 = ncenters - m1;
+        double urd = urand();
+        if (urd < 0.5) std::swap(m1,m2);
+        // Note: If ncenters is even, this doesn't do anything, but if odd, then 50% chance
+        // that left side will get the extra one and 50% chance that right side will get it.
+        xdbg<<"Recurse with m1,m2 = "<<m1<<','<<m2<<std::endl;
+        InitializeCenters(centers, cell->getLeft(), first, m1);
+        InitializeCenters(centers, cell->getRight(), first + m1, m2);
     } else {
         dbg<<"BAD!  Shouldn't happen.  Probably shouldn't be running kmeans on this field.\n";
         // Shouldn't ever happen -- this means a leaf is very close to the top.
@@ -58,32 +63,43 @@ template <int D, int C>
 void InitializeCenters(std::vector<Position<C> >& centers, const std::vector<Cell<D,C>*>& cells)
 {
     dbg<<"Initialize centers: "<<centers.size()<<"  "<<cells.size()<<std::endl;
-    if (cells.size() > centers.size()) {
+    long ncenters = centers.size();
+    long ncells = cells.size();
+    if (ncells > ncenters) {
         dbg<<"More cells than centers.  Pick from them randomly.\n";
-        std::vector<long> selection(centers.size());
-        SelectRandomFrom(long(cells.size()), selection);
-        for (size_t i=0; i<centers.size(); ++i) {
+        std::vector<long> selection(ncenters);
+        SelectRandomFrom(ncells, selection);
+        for (int i=0; i<ncenters; ++i) {
             Assert(selection[i] < cells.size());
             centers[i] = cells[selection[i]]->getPos();
         }
     } else {
         dbg<<"Fewer cells than centers.  Recurse to get more than one from each.\n";
-        int n1 = int(centers.size() / cells.size());
-        int k2 = centers.size() % cells.size();
-        int n2 = n1 + 1;
-        int k1 = cells.size() - k2;
+        long n1 = ncenters / ncells;
+        long k2 = ncenters % ncells;
+        long n2 = n1 + 1;
+        long k1 = ncells - k2;
         dbg<<"n1 = "<<n1<<" n2 = "<<n2<<std::endl;
         dbg<<"k1 = "<<k1<<" k2 = "<<k2<<std::endl;
         Assert(n1 >= 1);
-        Assert(n1 * k1 + n2 * k2 == centers.size());
-        for (int k=0; k<k1; ++k) {
-            Assert(k < int(cells.size()));
-            InitializeCenters(centers, cells[k], n1*k, n1);
+        Assert(n1 * k1 + n2 * k2 == ncenters);
+
+        // Distribute n1 and n2 in list k1 and k2 times respectively.
+        std::vector<long> nvalues(ncells);
+        for (long k=0; k<k1; ++k) nvalues[k] = n1;
+        for (long k=k1; k<ncells; ++k) nvalues[k] = n2;
+        // Shuffle the locations of n1, n2
+        urand();  // Make sure rand is seeded properly.
+        std::random_shuffle(nvalues.begin(), nvalues.end());
+
+        // Do the recursive initialization for each value of n1 in the list.
+        int first=0;
+        for (long k=0; k<ncells; ++k) {
+            Assert(first < ncenters);
+            InitializeCenters(centers, cells[k], first, nvalues[k]);
+            first += nvalues[k];
         }
-        for (size_t k=k1; k<cells.size(); ++k) {
-            Assert(k < int(cells.size()));
-            InitializeCenters(centers, cells[k], n1*k1 + n2*(k-k1), n2);
-        }
+        Assert(first == ncenters);
     }
     dbg<<"Done initializing centers\n";
 }

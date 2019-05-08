@@ -33,7 +33,9 @@ def test_dessv():
     file_name = os.path.join('data','des_sv.fits')
     cat = treecorr.Catalog(file_name, ra_col='ra', dec_col='dec', ra_units='deg', dec_units='deg')
 
-    npatch = 40
+    # Use an odd number to make sure we force some of the shuffle bits in InitializeCenters
+    # to happen.
+    npatch = 43
     field = cat.getNField()
     t0 = time.time()
     patches = field.run_kmeans(npatch)
@@ -54,24 +56,19 @@ def test_dessv():
 
     print('With standard algorithm:')
     print('time = ',t1-t0)
-    print('inertia = ',np.sum(inertia))
-    print('sizes = ',sizes)
+    print('total inertia = ',np.sum(inertia))
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
-    print('mean size= ',np.mean(sizes))
+    print('mean size = ',np.mean(sizes))
     print('rms size = ',np.std(sizes))
-    assert np.sum(inertia) < 215.  # This is specific to this particular field.
-    assert np.std(inertia) < 0.2 * np.mean(inertia)  # rms is usually small relative to mean.
-    assert np.std(sizes) < 0.1 * np.mean(sizes)  # rms is usually small relative to mean.
+    assert np.sum(inertia) < 200.  # This is specific to this particular field and npatch.
+    assert np.std(inertia) < 0.2 * np.mean(inertia)  # rms is usually small  mean
+    assert np.std(sizes) < 0.1 * np.mean(sizes)  # sizes have even less spread usually.
 
-    # Should all have similar number of points.  Say within 30% of the average
+    # Should all have similar number of points.  Nothing is required here though.
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))
-    ave_num = cat.ntot / npatch
-    assert np.isclose(np.mean(counts), ave_num)
-    assert np.min(counts) > ave_num * 0.7
-    assert np.max(counts) < ave_num * 1.3
 
     # Check the alternate algorithm.  rms inertia should be lower.
     t0 = time.time()
@@ -89,13 +86,12 @@ def test_dessv():
 
     print('With alternate algorithm:')
     print('time = ',t1-t0)
-    print('inertia = ',np.sum(inertia))
-    print('sizes = ',sizes)
+    print('total inertia = ',np.sum(inertia))
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
-    print('mean size= ',np.mean(sizes))
+    print('mean size = ',np.mean(sizes))
     print('rms size = ',np.std(sizes))
-    assert np.sum(inertia) < 215.  # Total shouldn't increase much.
+    assert np.sum(inertia) < 200.  # Total shouldn't increase much. (And often decreases.)
     assert np.std(inertia) < 0.1 * np.mean(inertia)  # rms should be even smaller here.
     assert np.std(sizes) < 0.1 * np.mean(sizes)  # This is only a little bit smaller.
 
@@ -103,11 +99,34 @@ def test_dessv():
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))
-    ave_num = cat.ntot / npatch
-    assert np.isclose(np.mean(counts), ave_num)
-    assert np.min(counts) > ave_num * 0.5
-    assert np.max(counts) < ave_num * 1.5
 
+    # Finally, use a field with lots of top level cells to check the other branch in
+    # InitializeCenters.
+    field = cat.getNField(min_top=10)
+    t0 = time.time()
+    patches = field.run_kmeans(npatch)
+    t1 = time.time()
+    assert len(patches) == cat.ntot
+    assert min(patches) == 0
+    assert max(patches) == npatch-1
+
+    cen = np.array([xyz[patches==i].mean(axis=0) for i in range(npatch)])
+    inertia = np.array([np.sum((xyz[patches==i] - cen[i])**2) for i in range(npatch)])
+    sizes = np.array([np.mean((xyz[patches==i] - cen[i])**2) for i in range(npatch)])**0.5
+    sizes *= 180. / np.pi * 60.  # convert to arcmin
+    counts = np.array([np.sum(patches==i) for i in range(npatch)])
+
+    # This doesn't give as good an initialization, so these are a bit worse usually.
+    print('With min_top=10:')
+    print('time = ',t1-t0)
+    print('total inertia = ',np.sum(inertia))
+    print('mean inertia = ',np.mean(inertia))
+    print('rms inertia = ',np.std(inertia))
+    print('mean size = ',np.mean(sizes))
+    print('rms size = ',np.std(sizes))
+    assert np.sum(inertia) < 210.
+    assert np.std(inertia) < 0.4 * np.mean(inertia)  # I've seen over 0.3 x mean here.
+    assert np.std(sizes) < 0.1 * np.mean(sizes)
 
 
 

@@ -15,8 +15,6 @@
 #ifndef TreeCorr_Cell_H
 #define TreeCorr_Cell_H
 
-enum SplitMethod { MIDDLE, MEDIAN, MEAN, RANDOM };
-
 #include <iostream>
 #include <algorithm>
 #include <complex>
@@ -24,6 +22,8 @@ enum SplitMethod { MIDDLE, MEDIAN, MEAN, RANDOM };
 
 #include "Position.h"
 #include "dbg.h"
+
+enum SplitMethod { MIDDLE, MEDIAN, MEAN, RANDOM };
 
 const double PI = 3.141592653589793;
 const double TWOPI = 2.*PI;
@@ -36,6 +36,8 @@ const double IOTA = 1.e-10;
 // GData means use a shear.
 enum DataType { NData=1 , KData=2 , GData=3 };
 
+// Return a random number between 0 and 1.
+double urand();
 
 // This is usually what we store in the leaf cells. It has size 4, which is always <= the
 // size of a pointer on modern machines, so it never adds any space to the memory needed.

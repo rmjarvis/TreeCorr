@@ -50,7 +50,9 @@ extern void DestroyGSimpleField(void* field, int coords);
 extern void DestroyKSimpleField(void* field, int coords);
 extern void DestroyNSimpleField(void* field, int coords);
 
-extern void KMeansInit(void* field, double* centers, long npatch, int d, int coords);
+extern void KMeansInitTree(void* field, double* centers, long npatch, int d, int coords);
+extern void KMeansInitRand(void* field, double* centers, long npatch, int d, int coords);
+extern void KMeansInitKMPP(void* field, double* centers, long npatch, int d, int coords);
 extern void KMeansRun(void* field, double* centers, long npatch, int max_iter, double tol,
                       int alt, int d, int coords);
 extern void KMeansAssign(void* field, double* centers, long npatch,

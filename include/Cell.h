@@ -242,6 +242,7 @@ public:
     std::vector<const Cell<D,C>*> getAllLeaves() const;
     bool includesIndex(long index) const;
     std::vector<long> getAllIndices() const;
+    const Cell<D,C>* getLeafNumber(long i) const;
 
     void Write(std::ostream& os) const;
     void WriteTree(std::ostream& os, int indent=0) const;

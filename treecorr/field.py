@@ -247,7 +247,7 @@ class Field(object):
         treecorr._lib.FieldGetNear(self.data, x, y, z, sep, self._d, self._coords, lp(ind), n)
         return ind
 
-    def run_kmeans(self, npatch, max_iter=200, tol=1.e-5, alt=False):
+    def run_kmeans(self, npatch, max_iter=200, tol=1.e-5, init='tree', alt=False):
         """Use k-means algorithm to set patch labels for a field.
 
         The k-means algorithm (cf. https://en.wikipedia.org/wiki/K-means_clustering) identifies
@@ -299,6 +299,16 @@ class Field(object):
             max_iter (int):     How many iterations at most to run. (default: 200)
             tol (float):        Tolerance in the rms centroid shift to consider as converged
                                 as a fraction of the total field size. (default: 1.e-5)
+            init (str):         Initialization method. Options are::
+
+                                    - 'tree' (default) Use the normal tree structure of the field,
+                                      traversing down to a level where there are npatch cells,
+                                      and use the centroids of these cells as the initial centers.
+                                      This is almost always the best choice.
+                                    - 'random' Use npatch random points as the intial centers.
+                                    - 'kmeans++' Use the k-means++ algorithm.
+                                      cf. https://en.wikipedia.org/wiki/K-means%2B%2B
+
             alt (bool):         Use the alternate assignment algorithm to minimize the rms size
                                 rather than the total inertia (aka WCSS). (default: False)
 
@@ -306,11 +316,11 @@ class Field(object):
             patches (array):    An array of patch labels, all integers from 0..npatch-1.
                                 Size is self.ntot.
         """
-        centers = self.kmeans_initialize_centers(npatch)
+        centers = self.kmeans_initialize_centers(npatch, init)
         self.kmeans_refine_centers(centers, max_iter, tol, alt)
         return self.kmeans_assign_patches(centers)
 
-    def kmeans_initialize_centers(self, npatch):
+    def kmeans_initialize_centers(self, npatch, init='tree'):
         """Use the field's tree structure to assign good initial centers for a K-Means run.
 
         The classic K-Means algorithm involves starting with random points as the initial
@@ -326,6 +336,15 @@ class Field(object):
 
         Parameters:
             npatch (int):       How many patches to generate initial centers for
+            init (str):         Initialization method. Options are::
+
+                                    - 'tree' (default) Use the normal tree structure of the field,
+                                      traversing down to a level where there are npatch cells,
+                                      and use the centroids of these cells as the initial centers.
+                                      This is almost always the best choice.
+                                    - 'random' Use npatch random points as the intial centers.
+                                    - 'kmeans++' Use the k-means++ algorithm.
+                                      cf. https://en.wikipedia.org/wiki/K-means%2B%2B
 
         Returns:
             centers (array):    An array of center coordinates.
@@ -334,11 +353,24 @@ class Field(object):
                                 (x,y,z) coordinates on the unit sphere.
         """
         from treecorr.util import double_ptr as dp
+        if npatch > self.ntot:
+            raise ValueError("Invalid npatch.  Cannot be greater than self.ntot.")
+        if npatch < 1:
+            raise ValueError("Invalid npatch.  Cannot be less than 1.")
         if self._coords == treecorr._lib.Flat:
             centers = np.empty((npatch, 2))
         else:
             centers = np.empty((npatch, 3))
-        treecorr._lib.KMeansInit(self.data, dp(centers), int(npatch), self._d, self._coords)
+        if init == 'tree':
+            treecorr._lib.KMeansInitTree(self.data, dp(centers), int(npatch), self._d, self._coords)
+        elif init == 'random':
+            treecorr._lib.KMeansInitRand(self.data, dp(centers), int(npatch), self._d, self._coords)
+        elif init == 'kmeans++':
+            treecorr._lib.KMeansInitKMPP(self.data, dp(centers), int(npatch), self._d, self._coords)
+        else:
+            raise ValueError("Invalid init: %s. "%init +
+                             "Must be one of 'tree', 'random', or 'kmeans++.'")
+
         return centers
 
     def kmeans_refine_centers(self, centers, max_iter=200, tol=1.e-5, alt=False):

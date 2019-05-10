@@ -93,6 +93,9 @@ public:
     Position<Flat> operator/(double a) const
     { Position<Flat> p1 = *this; p1 /= a; return p1; }
 
+    bool operator==(const Position<Flat>& p2)
+    { return _x == p2.getX() && _y == p2.getY(); }
+
     void read(std::istream& fin) { fin >> _x >> _y; resetNorm(); }
     void write(std::ostream& fout) const
     { fout << _x << " " << _y << " "; }
@@ -188,6 +191,9 @@ public:
     { Position<ThreeD> p1 = *this; p1 *= a; return p1; }
     Position<ThreeD> operator/(double a) const
     { Position<ThreeD> p1 = *this; p1 /= a; return p1; }
+
+    bool operator==(const Position<ThreeD>& p2)
+    { return _x == p2.getX() && _y == p2.getY() && _z == p2.getZ(); }
 
     void wrap(const double xp, const double yp, const double zp)
     {

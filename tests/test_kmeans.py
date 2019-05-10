@@ -441,9 +441,169 @@ def test_2d():
     print('max counts = ',np.max(counts))
 
 
+def test_init_random():
+    # Test the init=random option
+
+    ngal = 100000
+    s = 1.
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) )
+    z = rng.normal(0,s, (ngal,) )
+    cat = treecorr.Catalog(x=x, y=y, z=z)
+    xyz = np.array([x, y, z]).T
+
+    # Skip the refine_centers step.
+    print('3d with init=random')
+    npatch = 10
+    field = cat.getNField()
+    cen1 = field.kmeans_initialize_centers(npatch, 'random')
+    #print('cen = ',cen1)
+    assert cen1.shape == (npatch, 3)
+    p1 = field.kmeans_assign_patches(cen1)
+    print('patches = ',np.unique(p1))
+    assert len(p1) == cat.ntot
+    assert min(p1) == 0
+    assert max(p1) == npatch-1
+
+    inertia1 = np.array([np.sum((xyz[p1==i] - cen1[i])**2) for i in range(npatch)])
+    counts1 = np.array([np.sum(p1==i) for i in range(npatch)])
+    print('counts = ',counts1)
+    print('rms counts = ',np.std(counts1))
+    print('total inertia = ',np.sum(inertia1))
+
+    # Now run the normal way
+    # Use higher max_iter, since random isn't a great initialization.
+    p2 = field.run_kmeans(npatch, init='random', max_iter=1000)
+    cen2 = np.array([xyz[p2==i].mean(axis=0) for i in range(npatch)])
+    inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
+    counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
+    print('rms counts => ',np.std(counts2))
+    print('total inertia => ',np.sum(inertia2))
+    assert np.std(counts2) < np.std(counts1)
+    assert np.sum(inertia2) < np.sum(inertia1)
+
+    # Use a field with lots of top level cells
+    print('3d with init=random, min_top=10')
+    field = cat.getNField(min_top=10)
+    cen1 = field.kmeans_initialize_centers(npatch, 'random')
+    #print('cen = ',cen1)
+    assert cen1.shape == (npatch, 3)
+    p1 = field.kmeans_assign_patches(cen1)
+    print('patches = ',np.unique(p1))
+    assert len(p1) == cat.ntot
+    assert min(p1) == 0
+    assert max(p1) == npatch-1
+
+    inertia1 = np.array([np.sum((xyz[p1==i] - cen1[i])**2) for i in range(npatch)])
+    counts1 = np.array([np.sum(p1==i) for i in range(npatch)])
+    print('counts = ',counts1)
+    print('rms counts = ',np.std(counts1))
+    print('total inertia = ',np.sum(inertia1))
+
+    # Now run the normal way
+    p2 = field.run_kmeans(npatch, init='random', max_iter=1000)
+    cen2 = np.array([xyz[p2==i].mean(axis=0) for i in range(npatch)])
+    inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
+    counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
+    print('rms counts => ',np.std(counts2))
+    print('total inertia => ',np.sum(inertia2))
+    assert np.std(counts2) < np.std(counts1)
+    assert np.sum(inertia2) < np.sum(inertia1)
+
+    # Repeat in 2d
+    print('2d with init=random')
+    cat = treecorr.Catalog(x=x, y=y)
+    xy = np.array([x, y]).T
+    field = cat.getNField()
+    cen1 = field.kmeans_initialize_centers(npatch, 'random')
+    #print('cen = ',cen1)
+    assert cen1.shape == (npatch, 2)
+    p1 = field.kmeans_assign_patches(cen1)
+    print('patches = ',np.unique(p1))
+    assert len(p1) == cat.ntot
+    assert min(p1) == 0
+    assert max(p1) == npatch-1
+
+    inertia1 = np.array([np.sum((xy[p1==i] - cen1[i])**2) for i in range(npatch)])
+    counts1 = np.array([np.sum(p1==i) for i in range(npatch)])
+    print('counts = ',counts1)
+    print('rms counts = ',np.std(counts1))
+    print('total inertia = ',np.sum(inertia1))
+
+    # Now run the normal way
+    p2 = field.run_kmeans(npatch, init='random', max_iter=1000)
+    cen2 = np.array([xy[p2==i].mean(axis=0) for i in range(npatch)])
+    inertia2 = np.array([np.sum((xy[p2==i] - cen2[i])**2) for i in range(npatch)])
+    counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
+    print('rms counts => ',np.std(counts2))
+    print('total inertia => ',np.sum(inertia2))
+    assert np.std(counts2) < np.std(counts1)
+    assert np.sum(inertia2) < np.sum(inertia1)
+
+    # Repeat in spherical
+    print('spher with init=random')
+    ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
+    cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad')
+    xyz = np.array([cat.x, cat.y, cat.z]).T
+    field = cat.getNField()
+    cen1 = field.kmeans_initialize_centers(npatch, 'random')
+    #print('cen = ',cen1)
+    assert cen1.shape == (npatch, 3)
+    p1 = field.kmeans_assign_patches(cen1)
+    print('patches = ',np.unique(p1))
+    assert len(p1) == cat.ntot
+    assert min(p1) == 0
+    assert max(p1) == npatch-1
+
+    inertia1 = np.array([np.sum((xyz[p1==i] - cen1[i])**2) for i in range(npatch)])
+    counts1 = np.array([np.sum(p1==i) for i in range(npatch)])
+    print('counts = ',counts1)
+    print('rms counts = ',np.std(counts1))
+    print('total inertia = ',np.sum(inertia1))
+
+    # Now run the normal way
+    p2 = field.run_kmeans(npatch, init='random', max_iter=1000)
+    cen2 = np.array([xyz[p2==i].mean(axis=0) for i in range(npatch)])
+    inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
+    counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
+    print('rms counts => ',np.std(counts2))
+    print('total inertia => ',np.sum(inertia2))
+    assert np.std(counts2) < np.std(counts1)
+    assert np.sum(inertia2) < np.sum(inertia1)
+
+    with assert_raises(ValueError):
+        field.run_kmeans(npatch, init='invalid')
+    with assert_raises(ValueError):
+        field.kmeans_initialize_centers(npatch, init='invalid')
+    with assert_raises(ValueError):
+        field.kmeans_initialize_centers(npatch=ngal*2, init='random')
+    with assert_raises(ValueError):
+        field.kmeans_initialize_centers(npatch=ngal+1, init='random')
+    with assert_raises(ValueError):
+        field.kmeans_initialize_centers(npatch=0, init='random')
+    with assert_raises(ValueError):
+        field.kmeans_initialize_centers(npatch=-100, init='random')
+
+    # Should be valid to give npatch = 1, although not particularly useful.
+    cen_1 = field.kmeans_initialize_centers(npatch=1, init='random')
+    p_1 = field.kmeans_assign_patches(cen_1)
+    np.testing.assert_equal(p_1, np.zeros(ngal))
+
+    # If same number of patches as galaxies, each galaxy gets a patch.
+    # (This is stupid of course, but check that it doesn't fail.)
+    # Do this with fewer points though, since it's not particularly fast with N=10^5.
+    n = 100
+    cat = treecorr.Catalog(ra=ra[:n], dec=dec[:n], ra_units='rad', dec_units='rad')
+    field = cat.getNField()
+    cen_n = field.kmeans_initialize_centers(npatch=n, init='random')
+    p_n = field.kmeans_assign_patches(cen_n)
+    np.testing.assert_equal(sorted(p_n), list(range(n)))
+
 
 if __name__ == '__main__':
     test_dessv()
     test_radec()
     test_3d()
     test_2d()
+    test_init_random()

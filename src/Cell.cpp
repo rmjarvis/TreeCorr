@@ -528,6 +528,19 @@ std::vector<long> Cell<D,C>::getAllIndices() const
 }
 
 template <int D, int C>
+const Cell<D,C>* Cell<D,C>::getLeafNumber(long i) const
+{
+    if (_left) {
+        if (i < _left->getN())
+            return _left->getLeafNumber(i);
+        else
+            return _right->getLeafNumber(i-_left->getN());
+    } else {
+        return this;
+    }
+}
+
+template <int D, int C>
 void Cell<D,C>::Write(std::ostream& os) const
 {
     os<<getData().getPos()<<"  "<<getSize()<<"  "<<getData().getN();

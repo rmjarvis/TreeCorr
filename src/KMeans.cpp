@@ -79,8 +79,8 @@ void InitializeCentersTree(std::vector<Position<C> >& centers, const std::vector
         long k2 = ncenters % ncells;
         long n2 = n1 + 1;
         long k1 = ncells - k2;
-        dbg<<"n1 = "<<n1<<" n2 = "<<n2<<std::endl;
-        dbg<<"k1 = "<<k1<<" k2 = "<<k2<<std::endl;
+        xdbg<<"n1 = "<<n1<<" n2 = "<<n2<<std::endl;
+        xdbg<<"k1 = "<<k1<<" k2 = "<<k2<<std::endl;
         Assert(n1 >= 1);
         Assert(n1 * k1 + n2 * k2 == ncenters);
 
@@ -101,7 +101,7 @@ void InitializeCentersTree(std::vector<Position<C> >& centers, const std::vector
         }
         Assert(first == ncenters);
     }
-    dbg<<"Done initializing centers\n";
+    xdbg<<"Done initializing centers\n";
 }
 
 template <int D, int C>
@@ -113,7 +113,7 @@ void InitializeCentersRand(std::vector<Position<C> >& centers, const std::vector
     long ncells = cells.size();
     long ntot = 0;
     for (int k=0; k<ncells; ++k) ntot += cells[k]->getN();
-    dbg<<"ntot = "<<ntot<<std::endl;
+    xdbg<<"ntot = "<<ntot<<std::endl;
 
     // Find ncenters different indices from 0..ntot-1.
     std::vector<long> index(ncenters);
@@ -124,16 +124,16 @@ void InitializeCentersRand(std::vector<Position<C> >& centers, const std::vector
     // These are the index in a kind of arbitrary ordering of the final tree structure.
     for (int i=0; i<ncenters; ++i) {
         dbg<<"Pick random center "<<i<<" index = "<<index[i]<<std::endl;
-        int m = index[i];
+        long m = index[i];
         for (int k=0; k<ncells; ++k) {
             if (m < cells[k]->getN()) {
                 const Cell<D,C>* c = cells[k]->getLeafNumber(m);
                 centers[i] = c->getPos();
-                dbg<<"  k = "<<k<<", m = "<<m<<" cen = "<<centers[i]<<std::endl;
+                xdbg<<"  k = "<<k<<", m = "<<m<<" cen = "<<centers[i]<<std::endl;
                 break;
             } else {
                 m -= cells[k]->getN();
-                dbg<<"  N["<<k<<"] = "<<cells[k]->getN()<<"  m -> "<<m<<std::endl;
+                xdbg<<"  N["<<k<<"] = "<<cells[k]->getN()<<"  m -> "<<m<<std::endl;
             }
         }
 
@@ -151,8 +151,158 @@ void InitializeCentersRand(std::vector<Position<C> >& centers, const std::vector
 }
 
 template <int D, int C>
+Position<C> InitializeCentersKMPP(const Cell<D,C>* cell,
+                                  const std::vector<Position<C> >& centers, long ncen)
+{
+    struct LeafAlreadyUsed {};
+
+    xdbg<<"Start recursive InitializeCentersKMPP\n";
+
+    // If we are in a leaf, then return this position as the next center to use.
+    if (cell->getSize() == 0) {
+        // Check that we haven't already used this leaf as a center
+        for (int j=0; j<ncen; ++j) {
+            if (cell->getPos() == centers[j]) {
+                dbg<<"Already used this leaf as a center\n";
+                throw LeafAlreadyUsed();
+            }
+        }
+        return cell->getPos();
+    }
+
+    // If not, then we choose which subcell to recurse to based on the relative dsq values
+    // to each daughter's closest center.
+
+    const Cell<D,C>* left = cell->getLeft();
+    const Cell<D,C>* right = cell->getRight();
+    double dsq1 = (left->getPos() - centers[0]).normSq();
+    double dsq2 = (right->getPos() - centers[0]).normSq();
+
+    for (int j=1; j<ncen; ++j) {
+        double dsq1j = (left->getPos() - centers[j]).normSq();
+        double dsq2j = (right->getPos() - centers[j]).normSq();
+        if (dsq1j < dsq1) dsq1 = dsq1j;
+        if (dsq2j < dsq2) dsq2 = dsq2j;
+    }
+    xdbg<<"dsq1 = "<<dsq1<<", dsq2 = "<<dsq2<<std::endl;
+    if (dsq1 + dsq2 == 0.) {
+        dbg<<"All used.  Throw exception and try other branch.\n";
+        xdbg<<"N1 = "<<left->getN()<<"  N2 = "<<right->getN()<<std::endl;
+        throw LeafAlreadyUsed();
+    }
+
+    double u = urand() * (dsq1 + dsq2);
+    if (u < dsq1) {
+        xdbg<<"u = "<<u<<", recurse left\n";
+        try {
+            return InitializeCentersKMPP(left, centers, ncen);
+        } catch (LeafAlreadyUsed) {
+            dbg<<"Caught LeafAlreadyUsed.\n";
+            return InitializeCentersKMPP(right, centers, ncen);
+        }
+    } else {
+        xdbg<<"u = "<<u<<", recurse right\n";
+        try {
+            return InitializeCentersKMPP(right, centers, ncen);
+        } catch (LeafAlreadyUsed) {
+            dbg<<"Caught LeafAlreadyUsed.\n";
+            return InitializeCentersKMPP(left, centers, ncen);
+        }
+    }
+}
+
+template <int D, int C>
 void InitializeCentersKMPP(std::vector<Position<C> >& centers, const std::vector<Cell<D,C>*>& cells)
 {
+    // cf. https://en.wikipedia.org/wiki/K-means%2B%2B
+    // The basic KMeans++ algorithm is as follows:
+    // 1. Pick the first center at random.
+    // 2. For subsequent centers, calculate all d_i = the distance to the nearest center
+    //    picked so far.
+    // 3. Select the next center randomly with probability proportional to d_i^2.
+    // 4. Repeat 2,3 until all centers are selected.
+    //
+    // We modify this algorithm slightly to make it reasonably efficient.  Rather than actually
+    // calculating all the distances each time, we traverse the tree and pick the direction to
+    // go according to the distances to the centers of the cell at each point.  It's not quite the
+    // same thing, but it's pretty close.
+
+    dbg<<"Initialize centers (kmeans++): "<<centers.size()<<"  "<<cells.size()<<std::endl;
+    long ncenters = centers.size();
+    long ncells = cells.size();
+
+    long ntot = 0;
+    for (int k=0; k<ncells; ++k) ntot += cells[k]->getN();
+    xdbg<<"ntot = "<<ntot<<std::endl;
+
+    // Keep track of how many centers are assigned from each cell.
+    std::vector<int> centers_per_cell(ncells, 0);
+
+    // Pick the first point
+    long m = int(urand() * ntot);
+    xdbg<<"m = "<<m<<std::endl;
+    for (int k=0; k<ncells; ++k) {
+        if (m < cells[k]->getN()) {
+            dbg<<"Pick first center from cell "<<k<<std::endl;
+            centers[0] = cells[k]->getLeafNumber(m)->getPos();
+            xdbg<<"center[0] = "<<centers[0]<<std::endl;
+            centers_per_cell[k] += 1;
+            break;
+        } else {
+            m -= cells[k]->getN();
+        }
+    }
+
+    // Pick the rest of the points
+    for (int i=1; i<ncenters; ++i) {
+        xdbg<<"Start work on center "<<i<<std::endl;
+        // Calculate the dsq for each top level cell, to calculate the probability of choosing it.
+        std::vector<double> p(ncells);
+        double sump=0.;  // to normalize probabilities
+        for (int k=0; k<ncells; ++k) {
+            double dsq1 = (centers[0] - cells[k]->getPos()).normSq();
+            xdbg<<"   dsq[0] = "<<dsq1<<std::endl;
+            for (int i1=1; i1<i; ++i1) {
+                double dsq2 = (centers[i1] - cells[k]->getPos()).normSq();
+                xdbg<<"   dsq["<<i1<<"] = "<<dsq2<<std::endl;
+                if (dsq2 < dsq1) dsq1 = dsq2;
+            }
+            xdbg<<"Cell "<<k<<" has dsq = "<<dsq1<<std::endl;
+            // The probability of picking each point is proportional to its dsq.
+            // Approximate that all points in a cell are closest to the same center, and that
+            // the points are uniformly distibuted in either a circle or a sphere (according to C)
+            // Then the sum of all the dsq of a cell is
+            // dsq = N (d^2 + 1/2 s^2)   for a circle
+            //     = N (d^2 + 3/5 s^2)   for a sphere
+            // If N is smallish, then we want to make sure we subtract off the number of centers
+            // that are already in the cell.
+            // TODO: This could be improved for the case where there is more than 1 center already
+            //       in the cell.  The current formula is a significant over-estimate in that case.
+            //       Not sure how important it is though, since I think the Tree initialization is
+            //       normally better, so this is not a very important use case.
+            const double coef = C == ThreeD ? 0.6 : 0.5;
+            p[k] = (cells[k]->getN() - centers_per_cell[k]) * (dsq1 + coef * cells[k]->getSizeSq());
+            sump += p[k];
+        }
+        double u = urand();
+        xdbg<<"u = "<<u<<std::endl;
+        for (int k=0; k<ncells; ++k) {
+            p[k] /= sump;
+            xdbg<<"Prob("<<k<<") = "<<p[k]<<std::endl;
+            if (u < p[k]) {
+                dbg<<"Choose next center from cell "<<k<<std::endl;
+                xdbg<<"N = "<<cells[k]->getN()<<" ncen so far = "<<centers_per_cell[k]<<std::endl;
+                centers[i] = InitializeCentersKMPP(cells[k], centers, ncenters);
+                xdbg<<"center["<<i<<"] = "<<centers[i]<<std::endl;
+                centers_per_cell[k] += 1;
+                break;
+            } else {
+                u -= p[k];
+                xdbg<<"u -> "<<u<<std::endl;
+                Assert(k != ncells-1);
+            }
+        }
+    }
 }
 
 template <int D, int C>
@@ -593,7 +743,7 @@ void KMeansInitTree2(Field<D,C>*field, double* pycenters, long npatch)
 template <int D, int C>
 void KMeansInitRand2(Field<D,C>*field, double* pycenters, long npatch)
 {
-    dbg<<"Start KMeansInitTree for "<<npatch<<" patches\n";
+    dbg<<"Start KMeansInitRand for "<<npatch<<" patches\n";
     const std::vector<Cell<D,C>*> cells = field->getCells();
     std::vector<Position<C> > centers(npatch);
     InitializeCentersRand(centers, cells);
@@ -603,7 +753,7 @@ void KMeansInitRand2(Field<D,C>*field, double* pycenters, long npatch)
 template <int D, int C>
 void KMeansInitKMPP2(Field<D,C>*field, double* pycenters, long npatch)
 {
-    dbg<<"Start KMeansInitTree for "<<npatch<<" patches\n";
+    dbg<<"Start KMeansInitKMPP for "<<npatch<<" patches\n";
     const std::vector<Cell<D,C>*> cells = field->getCells();
     std::vector<Position<C> > centers(npatch);
     InitializeCentersKMPP(centers, cells);

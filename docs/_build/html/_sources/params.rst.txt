@@ -5,8 +5,8 @@ Configuration Parameters
 This section describes the various configuration parameters for controlling
 what the `corr2` and `corr3` scripts (or functions) do:
 
-Parameters about the input file
--------------------------------
+Parameters about the input file(s)
+----------------------------------
 
 :file_name: (str or list): The file(s) with the data to be correlated.
 

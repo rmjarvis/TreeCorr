@@ -4,21 +4,19 @@ Checklist for making a new release:
 
 - Run test suite on as many machines as possible.
 - Make sure debugging output is turned off.
-- Update the version number to the new M.m.r value.
-  - README.rst
-  - _version.py
+- Update the version number to the new M.m.r value in _version.py
 - Read over the CHANGELOG.rst file and edit as needed.
 - Update the wiki pages to incorporate any changes as needed.
 - Update any docs that might need updating.
 - In docs directory, run update_docs
-- In gh-pages directory, commit and push new docs.
+- Commit new docs in master branch (not releases/*.* branch)
 - git tag -a vM.m.r -m MESSAGE
 - git push --tags
 - python setup.py install  (make sure this is current)
 - Delete the TreeCorr.egg-info directory (in case has extra files)
 - python setup.py sdist
 - Inspect the dist/*.tar.gz tarball to make sure it is accurate.
-- python setup.py sdist upload
+- twine upload dist/*.tar.gz
 - From another directory try out pip install TreeCorr --upgrade
 - git checkout -b releases/M.m
 - git push -u origin releases/M.m

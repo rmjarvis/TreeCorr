@@ -1,22 +1,18 @@
-The corr2 and corr3 driver scripts
-==================================
+Using configuration files
+=========================
 
 The corr2 and corr3 executables
 -------------------------------
 
-Also installed with TreeCorr are two executable scripts, called corr2
-and corr3.  The scripts takes one required command-line argument, which
+Also installed with TreeCorr are two executable scripts, called ``corr2``
+and ``corr3``.  The scripts takes one required command-line argument, which
 is the name of a configuration file::
 
     corr2 config.yaml
     corr3 config.yaml
 
 A sample configuration file is provided, called sample_config.yaml.
-See the TreeCorr wiki page
-
-https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters
-
-for the complete documentation about the allowed parameters.
+See `Configuration Parameters` for the complete documentation about the allowed parameters.
 
 YAML is the recommended format for the configuration file, but we
 also allow JSON files if you prefer, or a legacy format, which is

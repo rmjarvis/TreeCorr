@@ -1,0 +1,404 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Getting Started Guide &mdash; TreeCorr 4.0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Changes from version 3.3 to 4.0" href="changes.html" />
+    <link rel="prev" title="Configuration Parameters" href="params.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> TreeCorr
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                4.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#mimicking-the-corr2-executable">Mimicking the corr2 executable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#shear-shear-auto-correlation">Shear-shear auto-correlation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-a-catalog-from-numpy-arrays">Building a Catalog from numpy arrays</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#other-two-point-correlation-classes">Other Two-point Correlation Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#three-point-correlation-classes">Three-point Correlation Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-random-catalogs">Using random catalogs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#manually-accumulating-the-correlation-function">Manually accumulating the correlation function</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 4.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-0-0-to-4-0-1">Changes from version 4.0.0 to 4.0.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-0-1-to-4-0-2">Changes from version 4.0.1 to 4.0.2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Getting Started Guide</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/guide.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="getting-started-guide">
+<h1>Getting Started Guide<a class="headerlink" href="#getting-started-guide" title="Permalink to this headline">¶</a></h1>
+<p>The below guide has largely been superseded by a
+<a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/master/tests/Tutorial.ipynb">Jupyter notebook tutorial</a>.
+That probably provides a better starting point for most users.  The below guide was mostly
+written for people migrating from using the executable <a class="reference internal" href="scripts.html#module-corr2" title="corr2"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">corr2</span></code></a> to more advanced usage
+within Python.</p>
+<div class="section" id="mimicking-the-corr2-executable">
+<h2>Mimicking the corr2 executable<a class="headerlink" href="#mimicking-the-corr2-executable" title="Permalink to this headline">¶</a></h2>
+<p>The same functionality that you have from the <code class="docutils literal notranslate"><span class="pre">corr2</span></code> executable is available in python via the
+<a class="reference internal" href="scripts.html#module-corr2" title="corr2"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">corr2</span></code></a> function:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">treecorr</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">read_config</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+<span class="n">config</span><span class="p">[</span><span class="s1">&#39;file_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;catalog.dat&#39;</span>
+<span class="n">config</span><span class="p">[</span><span class="s1">&#39;gg_file_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;gg.out&#39;</span>
+<span class="n">treecorr</span><span class="o">.</span><span class="n">corr2</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>However, this isn’t exactly a huge improvement over using the executable itself.
+Basically, it allows for an alternative way to set the configuration parameters, but not much
+beyond that.  The utility of the python module becomes more apparent if we drill down one
+level and see what the <a class="reference internal" href="scripts.html#module-corr2" title="corr2"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">corr2</span></code></a> function is doing.</p>
+</div>
+<div class="section" id="shear-shear-auto-correlation">
+<h2>Shear-shear auto-correlation<a class="headerlink" href="#shear-shear-auto-correlation" title="Permalink to this headline">¶</a></h2>
+<p>The full general version of the function is pretty involved, since it checks for all the
+different possible inputs and outputs and does the appropriate thing.  But lets distill out
+just a simple shear-shear auto-correlation of a single file and see how that would work:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+<span class="n">gg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">GGCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="n">gg</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>
+<span class="n">gg</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">out_file_name</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can do a cross-correlation between two sets of galaxies very similarly:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cat1</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">file_name1</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+<span class="n">cat2</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">file_name2</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+<span class="n">gg</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you would rather not write the results to an output file, but maybe plot them up or do some further calculation with them, you can access the resulting fields directly as numpy arrays:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">xip</span> <span class="o">=</span> <span class="n">gg</span><span class="o">.</span><span class="n">xip</span>            <span class="c1"># The real part of xi+</span>
+<span class="n">xim</span> <span class="o">=</span> <span class="n">gg</span><span class="o">.</span><span class="n">xim</span>            <span class="c1"># The real part of xi-</span>
+<span class="n">logr</span> <span class="o">=</span> <span class="n">gg</span><span class="o">.</span><span class="n">logr</span>          <span class="c1"># The nominal center of each bin</span>
+<span class="n">meanlogr</span> <span class="o">=</span> <span class="n">gg</span><span class="o">.</span><span class="n">meanlogr</span>  <span class="c1"># The mean &lt;log(r)&gt; within the bins</span>
+<span class="n">varxi</span> <span class="o">=</span> <span class="n">gg</span><span class="o">.</span><span class="n">varxi</span>        <span class="c1"># The variance of each xi+ or xi- value</span>
+                        <span class="c1"># taking into account shape noise only</span>
+</pre></div>
+</div>
+<p>See the doc string for <a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a> for other available attributes.</p>
+<p>Also, anywhere that you can pass it a config dict, you can also pass the relevant parameters as
+regular python kwargs.  For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">ra_col</span><span class="o">=</span><span class="s1">&#39;RA&#39;</span><span class="p">,</span> <span class="n">dec_col</span><span class="o">=</span><span class="s1">&#39;DEC&#39;</span><span class="p">,</span>
+                       <span class="n">ra_units</span><span class="o">=</span><span class="s1">&#39;hours&#39;</span><span class="p">,</span> <span class="n">dec_units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">,</span>
+                       <span class="n">g1_col</span><span class="o">=</span><span class="s1">&#39;E1&#39;</span><span class="p">,</span> <span class="n">g2_col</span><span class="o">=</span><span class="s1">&#39;E2&#39;</span><span class="p">)</span>
+<span class="n">gg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">GGCorrelation</span><span class="p">(</span><span class="n">bin_size</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">min_sep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_sep</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                            <span class="n">sep_units</span><span class="o">=</span><span class="s1">&#39;arcmin&#39;</span><span class="p">,</span> <span class="n">bin_slop</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="building-a-catalog-from-numpy-arrays">
+<h2>Building a Catalog from numpy arrays<a class="headerlink" href="#building-a-catalog-from-numpy-arrays" title="Permalink to this headline">¶</a></h2>
+<p>You can also bypass the I/O on the input side as well:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x_values</span><span class="p">)</span>    <span class="c1"># These might be the output of</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y_values</span><span class="p">)</span>    <span class="c1"># some calculation...</span>
+<span class="n">g1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">g1_values</span><span class="p">)</span>
+<span class="n">g2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">g2_values</span><span class="p">)</span>
+
+<span class="n">cat</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">g1</span><span class="o">=</span><span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="o">=</span><span class="n">g2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You always need to include either <strong>x</strong> and <strong>y</strong> or <strong>ra</strong> and <strong>dec</strong>.
+Which other columns you need depends on what kind of correlation function you want to calculate
+from the data.  For GG, you need <strong>g1</strong> and <strong>g2</strong>, but for kappa correlations, you would use
+<strong>k</strong> instead.</p>
+<p>You can optionally provide a weight column as well with <strong>w</strong> if desired.  To have the calculation
+skip some objects (e.g. objects with some kind of flag set), simply provide <strong>w</strong> where those
+objects have <code class="docutils literal notranslate"><span class="pre">w[i]</span> <span class="pre">=</span> <span class="pre">0</span></code>.</p>
+<p>See the doc string for <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a> for more information.</p>
+</div>
+<div class="section" id="other-two-point-correlation-classes">
+<h2>Other Two-point Correlation Classes<a class="headerlink" href="#other-two-point-correlation-classes" title="Permalink to this headline">¶</a></h2>
+<p>The other kinds of correlations each have their own class:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNCorrelation</span></code></a> = count-count  (normal LSS correlation)</li>
+<li><a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a> = shear-shear  (e.g. cosmic shear)</li>
+<li><a class="reference internal" href="kk.html#treecorr.KKCorrelation" title="treecorr.KKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKCorrelation</span></code></a> = kappa-kappa  (or any other scalar field)</li>
+<li><a class="reference internal" href="ng.html#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGCorrelation</span></code></a> = count-shear  (i.e. &lt;gamma_t&gt;(R))</li>
+<li><a class="reference internal" href="nk.html#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a> = count-kappa  (i.e. &lt;kappa&gt;(R))</li>
+<li><a class="reference internal" href="kg.html#treecorr.KGCorrelation" title="treecorr.KGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGCorrelation</span></code></a> = kappa-shear</li>
+</ul>
+</div></blockquote>
+<p>You should see their doc strings for details, but they all work similarly.
+For the last three, there is no auto-correlation option, of course, just the cross-correlation.</p>
+<p>The other main difference between these other correlation classes from GG is that there is only a
+single correlation function, so it is called <strong>xi</strong> rather than <strong>xip</strong> and <strong>xim</strong>.</p>
+<p>Also, NN does not have any kind of <strong>xi</strong> attribute.  You need to perform an additional
+calculation involving random catalogs for that.  See <a class="reference internal" href="#using-random-catalogs"><span class="std std-ref">Using random catalogs</span></a> below for more details.</p>
+</div>
+<div class="section" id="three-point-correlation-classes">
+<span id="dummy-3pt"></span><h2>Three-point Correlation Classes<a class="headerlink" href="#three-point-correlation-classes" title="Permalink to this headline">¶</a></h2>
+<p>So far, we have only implemented the auto-correlation three-point functions:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a>  # count-count-count</li>
+<li><a class="reference internal" href="ggg.html#treecorr.GGGCorrelation" title="treecorr.GGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a>  # shear-shear-shear</li>
+<li><a class="reference internal" href="kkk.html#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a>  # kappa-kappa-kappa</li>
+</ul>
+</div></blockquote>
+<p>These classes are significantly more complicated than the two-point ones,
+since they have to deal with the geometry of the triangles being binned.
+See their doc strings for more details.</p>
+</div>
+<div class="section" id="using-random-catalogs">
+<h2>Using random catalogs<a class="headerlink" href="#using-random-catalogs" title="Permalink to this headline">¶</a></h2>
+<p>For the NN and NNN correlations, the raw calculation is not sufficient to produce the real
+correlation function.  You also need to account for the survey geometry (edges, mask, etc.)
+by running the same calculation with a random catalog (or several) that have a uniform density,
+but the same geometry:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">data_file</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+<span class="n">rand</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">rand_file</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+<span class="n">dd</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="n">dr</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="n">rr</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="n">dd</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">dr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">rand</span><span class="p">)</span>
+<span class="n">rr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand</span><span class="p">)</span>
+<span class="n">xi</span><span class="p">,</span> <span class="n">varxi</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">calculateXi</span><span class="p">(</span><span class="n">rr</span><span class="p">,</span><span class="n">dr</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This calculates xi = (DD-2DR+RR)/RR for each bin.  This is the Landy-Szalay estimator,
+which is the most widely used estimator for count-count correlation functions.  However,
+if you want to use a simpler estimator xi = (DD-RR)/RR, then you can omit the dr parameter.
+The simpler estimator is slightly biased though, so this is not recommended.</p>
+<p>The NG and NK classes also have a <a class="reference internal" href="ng.html#treecorr.NGCorrelation.calculateXi" title="treecorr.NGCorrelation.calculateXi"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calculateXi()</span></code></a> method to allow for the use of compensated
+estimators in those cases as well.  They already have a <strong>xi</strong> attribute though, which is the
+uncompensated estimator.  These correlations do not suffer as much from masking effects,
+so the compensation is not as required.  However, it does produce a slightly better estimate
+of the correlation function if you are able to use a random catalog.</p>
+<p>Furthermore, the <a class="reference internal" href="gg.html#treecorr.GGCorrelation.process" title="treecorr.GGCorrelation.process"><code class="xref py py-meth docutils literal notranslate"><span class="pre">process()</span></code></a> functions can take lists of Catalogs if desired, in which case it will
+do all the possible combinations.  This is especially relevant for doing randoms,
+since the statistics get better if you generate several randoms and do all the correlations to beat down the noise:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rand_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">config</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">rand_files</span> <span class="p">]</span>
+<span class="n">dr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">rand_list</span><span class="p">)</span>
+<span class="n">rr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand_list</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The corresponding three-point NNN calculation is even more complicated, since there are 8 total
+combinations that need to be computed: zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR.
+Because of the triangle geometry, we don’t have DRR = DRD = RDD, so all 8 need to be computed.
+See the docstring for <a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.calculateZeta" title="treecorr.NNNCorrelation.calculateZeta"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateZeta</span></code></a> for more details.</p>
+</div>
+<div class="section" id="manually-accumulating-the-correlation-function">
+<h2>Manually accumulating the correlation function<a class="headerlink" href="#manually-accumulating-the-correlation-function" title="Permalink to this headline">¶</a></h2>
+<p>For even more control over the calculation, you can drill down one more level into what the
+<a class="reference internal" href="gg.html#treecorr.GGCorrelation.process" title="treecorr.GGCorrelation.process"><code class="xref py py-meth docutils literal notranslate"><span class="pre">process()</span></code></a> functions are doing.  There are typically three steps:</p>
+<ol class="arabic simple">
+<li>Calculate the shear variance or kappa variance as needed (i.e. for anything but NN correlations).</li>
+<li>Accumulate the correlations into the bins for each auto-correlation and cross-correlation desired.</li>
+<li>Finalize the calculation.</li>
+</ol>
+<p>If you have several pairs of catalogs that you want to accumulate into a single correlation
+function, you could write the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lens_cats</span> <span class="o">=</span> <span class="p">[</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">config</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">lens_files</span> <span class="p">]</span>
+<span class="n">source_cats</span> <span class="o">=</span> <span class="p">[</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">config</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">source_files</span> <span class="p">]</span>
+<span class="n">ng</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NGCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="n">varg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">calculateVarG</span><span class="p">(</span><span class="n">source_cats</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">c1</span><span class="p">,</span> <span class="n">c2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lens_cats</span><span class="p">,</span> <span class="n">source_cats</span><span class="p">):</span>
+    <span class="n">ng</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span><span class="n">c2</span><span class="p">)</span>
+<span class="n">ng</span><span class="o">.</span><span class="n">finalize</span><span class="p">(</span><span class="n">varg</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In addition to <a class="reference internal" href="ng.html#treecorr.NGCorrelation.process_cross" title="treecorr.NGCorrelation.process_cross"><code class="xref py py-meth docutils literal notranslate"><span class="pre">process_cross()</span></code></a>, classes that allow auto-correlations
+have a <a class="reference internal" href="gg.html#treecorr.GGCorrelation.process_auto" title="treecorr.GGCorrelation.process_auto"><code class="xref py py-meth docutils literal notranslate"><span class="pre">process_auto()</span></code></a> method for manually processing
+auto-correlations.  See the doc strings for these methods for more information.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="changes.html" class="btn btn-neutral float-right" title="Changes from version 3.3 to 4.0" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="params.html" class="btn btn-neutral float-left" title="Configuration Parameters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Mike Jarvis
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

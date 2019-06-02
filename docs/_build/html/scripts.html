@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>The corr2 and corr3 driver scripts &mdash; TreeCorr 4.0.2 documentation</title>
+  <title>Using configuration files &mdash; TreeCorr 4.0.2 documentation</title>
   
 
   
@@ -91,9 +91,9 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bintype.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">The corr2 and corr3 driver scripts</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Using configuration files</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#the-corr2-and-corr3-executables">The corr2 and corr3 executables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#the-corr2-function-from-python">The corr2 function from python</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#the-corr3-function-from-python">The corr3 function from python</a></li>
@@ -102,6 +102,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 4.0</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-0-0-to-4-0-1">Changes from version 4.0.0 to 4.0.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-0-1-to-4-0-2">Changes from version 4.0.1 to 4.0.2</a></li>
@@ -151,7 +152,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>The corr2 and corr3 driver scripts</li>
+      <li>Using configuration files</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -170,21 +171,19 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="the-corr2-and-corr3-driver-scripts">
-<h1>The corr2 and corr3 driver scripts<a class="headerlink" href="#the-corr2-and-corr3-driver-scripts" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="using-configuration-files">
+<h1>Using configuration files<a class="headerlink" href="#using-configuration-files" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="the-corr2-and-corr3-executables">
 <h2>The corr2 and corr3 executables<a class="headerlink" href="#the-corr2-and-corr3-executables" title="Permalink to this headline">¶</a></h2>
-<p>Also installed with TreeCorr are two executable scripts, called corr2
-and corr3.  The scripts takes one required command-line argument, which
+<p>Also installed with TreeCorr are two executable scripts, called <code class="docutils literal notranslate"><span class="pre">corr2</span></code>
+and <code class="docutils literal notranslate"><span class="pre">corr3</span></code>.  The scripts takes one required command-line argument, which
 is the name of a configuration file:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">corr2</span> <span class="n">config</span><span class="o">.</span><span class="n">yaml</span>
 <span class="n">corr3</span> <span class="n">config</span><span class="o">.</span><span class="n">yaml</span>
 </pre></div>
 </div>
 <p>A sample configuration file is provided, called sample_config.yaml.
-See the TreeCorr wiki page</p>
-<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters">https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters</a></p>
-<p>for the complete documentation about the allowed parameters.</p>
+See <a class="reference internal" href="params.html#configuration-parameters"><span class="std std-ref">Configuration Parameters</span></a> for the complete documentation about the allowed parameters.</p>
 <p>YAML is the recommended format for the configuration file, but we
 also allow JSON files if you prefer, or a legacy format, which is
 like an .ini file, but without the section headings, consisting of

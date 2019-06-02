@@ -200,21 +200,24 @@ struct BinTypeHelper<Linear>
         ik = int(kk);
         double frackk = kk - ik;
         xdbg<<"kk, ik, frackk = "<<kk<<", "<<ik<<", "<<frackk<<std::endl;
-        xdbg<<"ik1 = "<<int( (r - s1ps2 - minsep) / binsize )<<std::endl;
-        xdbg<<"ik2 = "<<int( (r + s1ps2 - minsep) / binsize )<<std::endl;
+        xdbg<<"ik1 = "<<(r - s1ps2 - minsep) / binsize<<std::endl;
+        xdbg<<"ik2 = "<<(r + s1ps2 - minsep) / binsize<<std::endl;
 
         // Check how much kk can change for r +- s1ps2
-        // If it can change by more than frackk+binslop/2 down or (1-frackk)+binslop/2 up,
+        // If it can change by more than frackk+binslop down or (1-frackk)+binslop up,
         // then too big.
         // delta(kk) = s / binsize
         // s / binsize > f + binslop
         // s > f*binsize + binsize*binslop
         // s > f*binsize + b
         double f = std::min(frackk, 1.-frackk);
+        xdbg<<"f = "<<f<<std::endl;
+        xdbg<<"s1ps2 > "<<f*binsize + b<<std::endl;
+
         if (s1ps2 > f*binsize + b) return false;
 
-        XAssert(int( (r - s1ps2 - minsep) / binsize ) == ik);
-        XAssert(int( (r + s1ps2 - minsep) / binsize ) == ik);
+        XAssert(int( (r - s1ps2 - minsep + b) / binsize ) == ik);
+        XAssert(int( (r + s1ps2 - minsep - b) / binsize ) == ik);
         logr = std::log(r);
         return true;
     }

@@ -54,6 +54,12 @@ BinnedCorr2<D1,D2,B>::BinnedCorr2(
     _bsq = _b * _b;
     _fullmaxsep = BinTypeHelper<B>::calculateFullMaxSep(minsep, maxsep, nbins, binsize);
     _fullmaxsepsq = _fullmaxsep*_fullmaxsep;
+    dbg<<"minsep, maxsep = "<<_minsep<<"  "<<_maxsep<<std::endl;
+    dbg<<"nbins = "<<_nbins<<std::endl;
+    dbg<<"binsize = "<<_binsize<<std::endl;
+    dbg<<"b = "<<_b<<std::endl;
+    dbg<<"minrpar, maxrpar = "<<_minrpar<<"  "<<_maxrpar<<std::endl;
+    dbg<<"period = "<<_xp<<"  "<<_yp<<"  "<<_zp<<std::endl;
 }
 
 template <int D1, int D2, int B>

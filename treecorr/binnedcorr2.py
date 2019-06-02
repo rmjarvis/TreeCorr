@@ -396,6 +396,7 @@ class BinnedCorr2(object):
         self._max_sep = self.max_sep * self._sep_units
         if self.bin_type in ['Linear', 'TwoD']:
             self._bin_size = self.bin_size * self._sep_units
+            min_log_bin_size *= self._sep_units
         else:
             self._bin_size = self.bin_size
 

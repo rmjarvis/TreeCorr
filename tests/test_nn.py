@@ -2167,6 +2167,46 @@ def test_sph_linear():
     np.testing.assert_allclose(dd.meanr, range(1,10), rtol=0.1)
 
 
+def test_linear_binslop():
+
+    # Jack Elvin-Poole reported a problem with version 4.0.1 using linear binning
+    # where the lowest bin was getting too many pairs by more than what should be allowed
+    # by the non-zero binslop.  His test used DES redmagic data, but this reproduces the
+    # error that he was seeing.
+
+    rng = np.random.RandomState(8675309)
+    ngal = 10000
+    x = rng.normal(10, 0.1, (ngal,) )
+    y = rng.normal(30, 0.1, (ngal,) )
+    z = rng.normal(20, 0.1, (ngal,) )
+    r = np.sqrt(x*x+y*y+z*z)
+    dec = np.arcsin(z/r) * coord.radians / coord.degrees
+    ra = np.arctan2(y,x) * coord.radians / coord.degrees
+
+    cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='deg', dec_units='deg')
+
+    for bin_type in ['Log', 'Linear']:
+        dd0 = treecorr.NNCorrelation(min_sep=0.5, max_sep=1, nbins=3, bin_slop=0.,
+                                    bin_type=bin_type, sep_units='deg')
+        dd0.process(cat, num_threads=1)
+        print('dd0.rnom = ',dd0.rnom)
+        print('dd0.meanr = ',dd0.meanr)
+        print('dd0.npairs = ',dd0.npairs)
+
+        for bin_slop in [1.e-3, 1.e-2, 1.e-1]:
+            dd1 = treecorr.NNCorrelation(min_sep=0.5, max_sep=1, nbins=3, bin_slop=bin_slop,
+                                        bin_type=bin_type, sep_units='deg')
+            dd1.process(cat, num_threads=1)
+
+            print(bin_type, 'bs = ',bin_slop)
+            print('dd1.rnom = ',dd1.rnom)
+            print('dd1.meanr = ',dd1.meanr)
+            print('dd1.npairs = ',dd1.npairs)
+            # The difference between the two should be less than bin_slop for all bins.
+            print('rel diff = ',(dd1.npairs - dd0.npairs)/dd0.npairs)
+            np.testing.assert_allclose(dd1.npairs, dd0.npairs, rtol=bin_slop)
+
+
 if __name__ == '__main__':
     test_log_binning()
     test_linear_binning()
@@ -2187,3 +2227,4 @@ if __name__ == '__main__':
     test_split()
     test_varxi()
     test_sph_linear()
+    test_linear_binslop()

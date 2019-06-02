@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Changes from version 3.3 to 4.0 &mdash; TreeCorr 4.0.1 documentation</title>
+  <title>Changes from version 3.3 to 4.0 &mdash; TreeCorr 4.0.2 documentation</title>
   
 
   
@@ -104,6 +104,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#bug-fixes">Bug fixes</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="#changes-from-version-4-0-0-to-4-0-1">Changes from version 4.0.0 to 4.0.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#changes-from-version-4-0-1-to-4-0-2">Changes from version 4.0.1 to 4.0.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -329,6 +331,20 @@ a FITS output file.  Now the tot attribute is set properly when reading.</li>
 <li>Fixed a factor of 2 missing in the estimate of varxi. (#72)</li>
 </ul>
 </div>
+</div>
+<div class="section" id="changes-from-version-4-0-0-to-4-0-1">
+<h1>Changes from version 4.0.0 to 4.0.1<a class="headerlink" href="#changes-from-version-4-0-0-to-4-0-1" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li>Fixed an error in the installation when the compiler is not recognized that
+would cause it to go into an infinite loop.</li>
+</ul>
+</div>
+<div class="section" id="changes-from-version-4-0-1-to-4-0-2">
+<h1>Changes from version 4.0.1 to 4.0.2<a class="headerlink" href="#changes-from-version-4-0-1-to-4-0-2" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li>Fixed an error in the bin_slop treatment for Linear binning when sep_units
+is not 1 (i.e. radians for angular separations).</li>
+</ul>
 </div>
 
 

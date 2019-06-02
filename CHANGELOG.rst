@@ -165,3 +165,11 @@ Changes from version 4.0.0 to 4.0.1
 
 - Fixed an error in the installation when the compiler is not recognized that
   would cause it to go into an infinite loop.
+
+
+Changes from version 4.0.1 to 4.0.2
+===================================
+
+- Fixed an error in the bin_slop treatment for Linear binning when sep_units
+  is not 1 (i.e. radians for angular separations).
+

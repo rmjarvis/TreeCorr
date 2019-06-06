@@ -480,7 +480,7 @@ def test_sample_pairs():
         assert len(i2) == 100
         assert len(sep) == 100
         actual_sep = ((x1[i1]-x2[i2])**2 + (y1[i1]-y2[i2])**2 + (z1[i1]-z2[i2])**2)**0.5
-        np.testing.assert_allclose(sep, actual_sep, rtol=0.1)
+        np.testing.assert_allclose(sep, actual_sep, rtol=0.2)
         np.testing.assert_array_less(sep, gg.right_edges[b])
         np.testing.assert_array_less(gg.left_edges[b], sep)
 

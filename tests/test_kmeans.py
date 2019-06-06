@@ -480,7 +480,6 @@ def test_init_random():
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
     print('total inertia => ',np.sum(inertia2))
-    assert np.std(counts2) < np.std(counts1)
     assert np.sum(inertia2) < np.sum(inertia1)
 
     # Use a field with lots of top level cells
@@ -508,7 +507,6 @@ def test_init_random():
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
     print('total inertia => ',np.sum(inertia2))
-    assert np.std(counts2) < np.std(counts1)
     assert np.sum(inertia2) < np.sum(inertia1)
 
     # Repeat in 2d
@@ -538,7 +536,6 @@ def test_init_random():
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
     print('total inertia => ',np.sum(inertia2))
-    assert np.std(counts2) < np.std(counts1)
     assert np.sum(inertia2) < np.sum(inertia1)
 
     # Repeat in spherical
@@ -569,7 +566,6 @@ def test_init_random():
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
     print('total inertia => ',np.sum(inertia2))
-    assert np.std(counts2) < np.std(counts1)
     assert np.sum(inertia2) < np.sum(inertia1)
 
     with assert_raises(ValueError):
@@ -640,7 +636,6 @@ def test_init_kmpp():
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
     print('total inertia => ',np.sum(inertia2))
-    assert np.std(counts2) < np.std(counts1)
     assert np.sum(inertia2) < np.sum(inertia1)
 
     # Use a field with lots of top level cells
@@ -668,7 +663,6 @@ def test_init_kmpp():
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
     print('total inertia => ',np.sum(inertia2))
-    assert np.std(counts2) < np.std(counts1)
     assert np.sum(inertia2) < np.sum(inertia1)
 
     # Repeat in 2d
@@ -698,7 +692,6 @@ def test_init_kmpp():
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
     print('total inertia => ',np.sum(inertia2))
-    assert np.std(counts2) < np.std(counts1)
     assert np.sum(inertia2) < np.sum(inertia1)
 
     # Repeat in spherical
@@ -729,7 +722,6 @@ def test_init_kmpp():
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
     print('total inertia => ',np.sum(inertia2))
-    assert np.std(counts2) < np.std(counts1)
     assert np.sum(inertia2) < np.sum(inertia1)
 
     with assert_raises(ValueError):

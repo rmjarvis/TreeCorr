@@ -1772,19 +1772,39 @@ def test_oldrperp():
                            ra_units='deg',dec_units='deg')
 
     dmax = np.max(cat.r)-np.min(cat.r)
+    # Note: many of the redshifts are equal to other redshifts, so setting max_rpar=0 would
+    # be unstable to numerical differences on different machines, as 0 isn't exact, so it would
+    # come out to +- 1.e-13 or so.  Use max_rpar=1.e-8 as meaning <= 0.
     ng = treecorr.NGCorrelation(nbins=10, min_sep=0.5, max_sep=60,
-                                min_rpar=-dmax, max_rpar=0, bin_slop=0.01)
+                                min_rpar=-dmax, max_rpar=1.e-8, bin_slop=0.01)
     ng.process(cat,cat,metric = 'OldRperp')
 
-    print('ng.npairs = ',ng.npairs)
+    print('OldRperp:')
+    print('ng.npairs = ',repr(ng.npairs))
     print('ng.xi = ',repr(ng.xi))
 
-    true_npairs = [100, 270, 571, 1162, 1997, 2976, 4168, 5422, 6655, 4624]
-    true_xi = [0.00133283, -0.00210248,  0.01532078,  0.01235398, -0.00942841,
-               -0.01839941, -0.00339515,  0.00615345, -0.00210459, -0.02335152]
+    true_npairs = [  2193.,   4939.,  10788.,  21843.,  39859.,  53866.,  80550.,
+                   105475., 126586.,  80363.]
+    true_xi = [-0.00632522, -0.0006389 ,  0.00218298, -0.00136964, -0.00100577,
+                0.00242409,  0.00811821,  0.00506488,  0.00722495, -0.00494053]
 
-    np.testing.assert_allclose(ng.npairs, true_npairs)
-    np.testing.assert_allclose(ng.xi, true_xi, rtol=1.e-5)
+    np.testing.assert_allclose(ng.npairs, true_npairs, rtol=1.e-3)
+    np.testing.assert_allclose(ng.xi, true_xi, rtol=1.e-3)
+
+    # Rperp doesn't get exactly the same values, but it's similar.
+    ng.process(cat,cat,metric = 'FisherRperp')
+
+    print('FisherRperp:')
+    print('ng.npairs = ',repr(ng.npairs))
+    print('ng.xi = ',repr(ng.xi))
+
+    true_npairs = [  2191.,   4941.,  10820.,  21857.,  39881.,  53873.,  80599.,
+                   105355., 126529.,  79872.]
+    true_xi =  [-0.0066858, -0.0000599,  0.00175524, -0.00135803, -0.00126972,
+                 0.0024636,  0.00787932,  0.00486865, 0.00722583, -0.00532089]
+
+    np.testing.assert_allclose(ng.npairs, true_npairs, rtol=1.e-3)
+    np.testing.assert_allclose(ng.xi, true_xi, rtol=1.e-3)
 
 
 if __name__ == '__main__':

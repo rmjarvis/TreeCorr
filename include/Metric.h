@@ -231,7 +231,7 @@ struct MetricHelper<OldRperp>
     {
         double r1 = p1.norm();
         double r2 = p2.norm();
-        return std::abs(r2-r1);  // Positive if p2 is in background of p1.
+        return r2-r1;  // Positive if p2 is in background of p1.
     }
 
     bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
@@ -273,7 +273,7 @@ struct MetricHelper<OldRperp>
     {
         if (rpar == 0.) rpar = calculateRPar(p1,p2); // This might not have been calculated.
         double d3 = sqrt(SQR(rpar) + rsq);  // The 3d distance.  Remember rsq is really rp^2.
-        return rsq + 2.*(d3 + rpar) * s1ps2 < minsepsq;
+        return rsq + 2.*(d3 + std::abs(rpar)) * s1ps2 < minsepsq;
     }
 
     // This one is similar.  The minimum possible rp can be smaller than just (rp - s1ps2).
@@ -287,7 +287,7 @@ struct MetricHelper<OldRperp>
     {
         if (rpar == 0.) rpar = calculateRPar(p1,p2); // This might not have been calculated.
         double d3 = sqrt(SQR(rpar) + rsq);  // The 3d distance.  Remember rsq is really rp^2.
-        return rsq - 2.*(d3 + rpar) * s1ps2 > maxsepsq;
+        return rsq - 2.*(d3 + std::abs(rpar)) * s1ps2 > maxsepsq;
     }
 
 };
@@ -371,7 +371,7 @@ struct MetricHelper<Rperp>
     {
         Position<ThreeD> r = p2-p1;
         Position<ThreeD> L = (p1+p2)*0.5;
-        return std::abs(r.dot(L)) / L.norm();
+        return r.dot(L) / L.norm();
     }
 
     bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,

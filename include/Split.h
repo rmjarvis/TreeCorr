@@ -71,11 +71,12 @@ inline void CalcSplit(
         CalcSplit(split2,split1,s2,s1,s1ps2,b);
     } else if (s1 > 2.*s2) {
         // If one cell is more than 2x the size of the other, only split that one.
-        split1 |= s1ps2 > b;
-    } else if (s1+s2 > b) {
-        split1 = true;  // Always split the larger one.
+        split1 = true;
+    } else {
+        // If both are comparable, still always split the larger one.
+        split1 = true;
         split2 |= s2 > splitfactor*b;  // And maybe the smaller one.
-    } // else don't split.
+    }
 }
 
 inline void CalcSplitSq(
@@ -90,23 +91,12 @@ inline void CalcSplitSq(
     if (s2 > s1) {
         CalcSplitSq(split2,split1,s2,s1,s1ps2,bsq);
     } else if (s1 > 2.*s2) {
-        split1 |= s1ps2*s1ps2 > bsq;
+        // If one cell is more than 2x the size of the other, only split that one.
+        split1 = true;
     } else {
-        if (!split1) {
-            const double s1sq = s1*s1;
-            const double s2sq = s2*s2;
-            split1 = s1sq > bsq;
-            split2 |= s2sq > bsq;
-            if (!split1 && !split2) {
-                // If both are small, need to check the sum.
-                if (s1ps2*s1ps2 > bsq) {
-                    split1 = true;
-                    split2 = s2sq > splitfactorsq*bsq;
-                }
-            }
-        } else {
-            split2 = s2*s2 > splitfactorsq*bsq;
-        }
+        // If both are comparable, still always split the larger one.
+        split1 = true;
+        split2 = s2*s2 > splitfactorsq*bsq;  // And maybe the smaller one.
     }
 }
 

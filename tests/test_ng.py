@@ -1763,6 +1763,29 @@ def test_varxi():
     np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.02 * tol_factor)
 
 
+def test_oldrperp():
+    # This test stems from a bug report by Eske Pedersen, which had been giving seg faults
+    # with version 4.0.2.  So the main test here is that it doesn't give a seg fault.
+
+    file_name = os.path.join('data','oldrperptest.dat')
+    cat = treecorr.Catalog(file_name, ra_col=1, dec_col=2, r_col=3, w_col=4, g1_col=5, g2_col=6,
+                           ra_units='deg',dec_units='deg')
+
+    dmax = np.max(cat.r)-np.min(cat.r)
+    ng = treecorr.NGCorrelation(nbins=10, min_sep=0.5, max_sep=60,
+                                min_rpar=-dmax, max_rpar=0, bin_slop=0.01)
+    ng.process(cat,cat,metric = 'OldRperp')
+
+    print('ng.npairs = ',ng.npairs)
+    print('ng.xi = ',repr(ng.xi))
+
+    true_npairs = [100, 270, 571, 1162, 1997, 2976, 4168, 5422, 6655, 4624]
+    true_xi = [0.00133283, -0.00210248,  0.01532078,  0.01235398, -0.00942841,
+               -0.01839941, -0.00339515,  0.00615345, -0.00210459, -0.02335152]
+
+    np.testing.assert_allclose(ng.npairs, true_npairs)
+    np.testing.assert_allclose(ng.xi, true_xi, rtol=1.e-5)
+
 
 if __name__ == '__main__':
     test_direct()
@@ -1778,3 +1801,4 @@ if __name__ == '__main__':
     test_rlens_bkg()
     test_haloellip()
     test_varxi()
+    test_oldrperp()

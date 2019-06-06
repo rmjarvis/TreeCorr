@@ -362,6 +362,7 @@ void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
         xdbg<<"Need to split.\n";
         bool split1=false, split2=false;
         double bsq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq,_bsq);
+        xdbg<<"bsq_eff = "<<bsq_eff<<std::endl;
         CalcSplitSq(split1,split2,s1,s2,s1ps2,bsq_eff);
         xdbg<<"rsq = "<<rsq<<", s1ps2 = "<<s1ps2<<"  ";
         xdbg<<"s1ps2 / r = "<<s1ps2 / sqrt(rsq)<<", b = "<<_b<<"  ";

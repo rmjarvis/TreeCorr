@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Input Data &mdash; TreeCorr 4.0.2 documentation</title>
+  <title>Input Data &mdash; TreeCorr 4.0.4 documentation</title>
   
 
   
@@ -101,8 +101,6 @@
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 4.0</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-0-0-to-4-0-1">Changes from version 4.0.0 to 4.0.1</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-0-1-to-4-0-2">Changes from version 4.0.1 to 4.0.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -218,9 +216,8 @@ and just pass the dict as an argument after the file name:</p>
 code, which might be used multiple times.  Notably, this syntax ignores any dict keys
 that are not relevant to the Catalog construction, so you can use the same config dict
 for the Catalog and your correlation objects, which can be convenient.</p>
-<p>See also <a class="reference external" href="https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters">https://github.com/rmjarvis/TreeCorr/wiki/Configuration-Parameters</a>
-for complete descriptions of all of the relevant configuration parameters.  In particular,
-the first section “Parameters about the input file”.</p>
+<p>See also <a class="reference internal" href="params.html#configuration-parameters"><span class="std std-ref">Configuration Parameters</span></a> for complete descriptions of all of the relevant
+configuration parameters, particularly the first section <a class="reference internal" href="params.html#parameters-about-the-input-file-s"><span class="std std-ref">Parameters about the input file(s)</span></a>.</p>
 <p>You may also override any configuration parameters or add additional parameters as kwargs
 after the config dict.  For instance, to flip the sign of the g1 values after reading
 from the input file, you could write:</p>

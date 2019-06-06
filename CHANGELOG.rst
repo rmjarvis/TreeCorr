@@ -182,3 +182,10 @@ Changes from version 4.0.2 to 4.0.3
 - Fixed an error that could sometimes cause a seg fault for certain input data
   sets.
 
+Changes from version 4.0.3 to 4.0.4
+-----------------------------------
+
+- Fixed an error in the treatment of rpar for Rperp and OldRperp metrics, where
+  it was not letting rpar be negative when the object in cat1 is farther away
+  than the object in cat2.  (I.e. when r1 > r2, rpar should be < 0.)
+

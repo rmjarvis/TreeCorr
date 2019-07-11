@@ -607,18 +607,19 @@ class Catalog(object):
         # Calculate some summary parameters here that will typically be needed
         if self.w is not None:
             self.nontrivial_w = True
-            self.nobj = np.sum(self.w != 0)
+            use = self.w != 0
+            self.nobj = np.sum(use)
             self.sumw = np.sum(self.w)
             if self.sumw == 0.:
                 raise ValueError("Catalog has invalid sumw == 0")
             if self.g1 is not None:
-                self.varg = np.sum(self.w**2 * (self.g1**2 + self.g2**2))
+                self.varg = np.sum(self.w[use]**2 * (self.g1[use]**2 + self.g2[use]**2))
                 # The 2 is because we need the variance _per componenet_.
                 self.varg /= 2.*self.sumw
             else:
                 self.varg = 0.
             if self.k is not None:
-                self.vark = np.sum(self.w**2 * self.k**2)
+                self.vark = np.sum(self.w[use]**2 * self.k[use]**2)
                 self.vark /= self.sumw
             else:
                 self.vark = 0.

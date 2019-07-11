@@ -658,6 +658,52 @@ def test_nan():
     np.testing.assert_almost_equal(cat3.g2[good], g2[good])
     np.testing.assert_almost_equal(cat3.w[mask], 0)
 
+def test_nan2():
+    # This test is in response to issue #90.  Indeed it is largely the script that Joe helpfully
+    # posted as a proof of the problem.
+
+    ra = np.random.uniform(0, 20, 10000)
+    dec = np.random.uniform(0, 20, 10000)
+
+    g1 = np.random.uniform(-0.05, 0.05, 10000)
+    g2 = np.random.uniform(-0.05, 0.05, 10000)
+    k = np.random.uniform(-0.05, 0.05, 10000)
+
+    config = {
+        'min_sep': 0.5,
+        'max_sep': 60.0,
+        'nbins': 10,
+        'bin_slop':0.01,
+        'sep_units':'arcmin',
+    }
+
+    gg1 = treecorr.GGCorrelation(config)
+    cat1 = treecorr.Catalog(ra=ra, dec=dec, g1=g1, g2=g2, k=k, ra_units='deg', dec_units='deg')
+    gg1.process(cat1)
+
+    # Now add some Nan's to the end of the data
+    # TreeCorr's message warns about this but says it's ignoring the rows
+    ra = np.concatenate((ra, [0.0]))
+    dec = np.concatenate((dec, [0.0]))
+    g1 = np.concatenate((g1, [np.nan]))
+    g2 = np.concatenate((g2, [np.nan]))
+    k = np.concatenate((k, [np.nan]))
+
+    gg2 = treecorr.GGCorrelation(config)
+    cat2 = treecorr.Catalog(ra=ra, dec=dec, g1=g1, g2=g2, k=k, ra_units='deg', dec_units='deg')
+    gg2.process(cat2)
+
+    # Passes - NaNs ignored in mean calculation
+    np.testing.assert_allclose(gg1.xip, gg2.xip)
+    np.testing.assert_allclose(gg1.xim, gg2.xim)
+
+    # Used to fail from cat2.varg being NaN
+    np.testing.assert_allclose(gg1.varxip, gg2.varxip)
+    np.testing.assert_allclose(gg1.varxim, gg2.varxim)
+
+    # Check the underlying varg, vark
+    np.testing.assert_allclose(cat1.varg, cat2.varg)
+    np.testing.assert_allclose(cat1.vark, cat2.vark)
 
 
 def test_contiguous():
@@ -1200,6 +1246,7 @@ if __name__ == '__main__':
     test_direct()
     test_var()
     test_nan()
+    test_nan2()
     test_contiguous()
     test_list()
     test_write()

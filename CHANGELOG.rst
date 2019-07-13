@@ -189,3 +189,9 @@ Changes from version 4.0.3 to 4.0.4
   it was not letting rpar be negative when the object in cat1 is farther away
   than the object in cat2.  (I.e. when r1 > r2, rpar should be < 0.)
 
+Changes from version 4.0.4 to 4.0.5
+-----------------------------------
+
+- Fixed an error in the variance calculation, which had been NaN if any of the
+  input g1,g2 or k (as appropriate) were NaN. (#90)
+

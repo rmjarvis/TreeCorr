@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Configuration Parameters &mdash; TreeCorr 4.0.5 documentation</title>
+  <title>Configuration Parameters &mdash; TreeCorr 4.0.6 documentation</title>
   
 
   
@@ -175,14 +175,12 @@
   <div class="section" id="configuration-parameters">
 <h1>Configuration Parameters<a class="headerlink" href="#configuration-parameters" title="Permalink to this headline">¶</a></h1>
 <p>This section describes the various configuration parameters for controlling
-what the <a class="reference internal" href="scripts.html#module-corr2" title="corr2"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">corr2</span></code></a> and <a class="reference internal" href="scripts.html#module-corr3" title="corr3"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">corr3</span></code></a> scripts (or functions) do:</p>
+what the <a class="reference internal" href="scripts.html#treecorr.corr2" title="treecorr.corr2"><code class="xref any py py-func docutils literal notranslate"><span class="pre">corr2</span></code></a> and <a class="reference internal" href="scripts.html#treecorr.corr3" title="treecorr.corr3"><code class="xref any py py-func docutils literal notranslate"><span class="pre">corr3</span></code></a> scripts (or functions) do:</p>
 <div class="section" id="parameters-about-the-input-file-s">
 <h2>Parameters about the input file(s)<a class="headerlink" href="#parameters-about-the-input-file-s" title="Permalink to this headline">¶</a></h2>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">file_name:</th><td class="field-body"><p class="first">(str or list)
+<dl class="field-list">
+<dt class="field-odd">file_name</dt>
+<dd class="field-odd"><p>(str or list)
 The file(s) with the data to be correlated.</p>
 <p>For an auto-correlation, like cosmic shear, this will be the only file
 name you need to specify.  This parameter is always required, and
@@ -200,31 +198,29 @@ quotes around the names, or it won’t be parsed correctly:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">file_name</span><span class="o">=</span><span class="s2">&quot;[file1.dat,file2.dat,file3.dat]&quot;</span>
 </pre></div>
 </div>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">file_name2:</th><td class="field-body"><p class="first">(str or list)
+</dd>
+<dt class="field-even">file_name2</dt>
+<dd class="field-even"><p>(str or list)
 The file(s) to use for the second field for a cross-correlation.</p>
 <p>If you want to cross-correlate one file (or set of files) with another, then
 <strong>file_name2</strong> is used to specify the second thing being correlated.  e.g.
 for galaxy-galaxy lensing, <strong>file_name</strong> should be the catalog of lenses, and
 <strong>file_name2</strong> should be the catalog of source shear values.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">file_name3:</th><td class="field-body"><p class="first">(str or list)
+</dd>
+<dt class="field-odd">file_name3</dt>
+<dd class="field-odd"><p>(str or list)
 The file(s) to use for the third field for a three-point cross-correlation.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">rand_file_name:</th><td class="field-body"><p class="first">(str or list)
+</dd>
+<dt class="field-even">rand_file_name</dt>
+<dd class="field-even"><p>(str or list)
 If necessary, a list of random files with the same masking as the <strong>file_name</strong> catalog.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name" colspan="2">rand_file_name2:</th></tr>
-<tr class="field-odd field"><td>&#160;</td><td class="field-body"><p class="first">(str or list)
+</dd>
+<dt class="field-odd">rand_file_name2</dt>
+<dd class="field-odd"><p>(str or list)
 If necessary, a list of random files with the same masking as the <strong>file_name2</strong> catalog.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name" colspan="2">rand_file_name3:</th></tr>
-<tr class="field-even field"><td>&#160;</td><td class="field-body"><p class="first">(str or list)
+</dd>
+<dt class="field-even">rand_file_name3</dt>
+<dd class="field-even"><p>(str or list)
 If necessary, a list of random files with the same masking as the <strong>file_name3</strong> catalog.</p>
 <p>When doing NN and NNN correlations, you need to account for masks and variable
 depth by providing a file or list of files that correspond to a uniform-
@@ -233,40 +229,38 @@ details.  For cross-correlations, you need to provide both of the above
 values to separately calibrate the first and second fields.</p>
 <p><strong>rand_file_name</strong> may also be used for NG and NK correlations, but it is not
 required in those cases.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">file_list:</th><td class="field-body"><p class="first">(str) A text file with file names in lieu of <strong>file_name</strong>.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">file_list2:</th><td class="field-body"><p class="first">(str) A text file with file names in lieu of <strong>file_name2</strong>.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">file_list3:</th><td class="field-body"><p class="first">(str) A text file with file names in lieu of <strong>file_name3</strong>.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">rand_file_list:</th><td class="field-body"><p class="first">(str) A text file with file names in lieu of <strong>rand_file_name</strong>.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name" colspan="2">rand_file_list2:</th></tr>
-<tr class="field-odd field"><td>&#160;</td><td class="field-body"><p class="first">(str) A text file with file names in lieu of <strong>rand_file_name2</strong>.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name" colspan="2">rand_file_list3:</th></tr>
-<tr class="field-even field"><td>&#160;</td><td class="field-body"><p class="first">(str) A text file with file names in lieu of <strong>rand_file_name3</strong>.</p>
+</dd>
+<dt class="field-odd">file_list</dt>
+<dd class="field-odd"><p>(str) A text file with file names in lieu of <strong>file_name</strong>.</p>
+</dd>
+<dt class="field-even">file_list2</dt>
+<dd class="field-even"><p>(str) A text file with file names in lieu of <strong>file_name2</strong>.</p>
+</dd>
+<dt class="field-odd">file_list3</dt>
+<dd class="field-odd"><p>(str) A text file with file names in lieu of <strong>file_name3</strong>.</p>
+</dd>
+<dt class="field-even">rand_file_list</dt>
+<dd class="field-even"><p>(str) A text file with file names in lieu of <strong>rand_file_name</strong>.</p>
+</dd>
+<dt class="field-odd">rand_file_list2</dt>
+<dd class="field-odd"><p>(str) A text file with file names in lieu of <strong>rand_file_name2</strong>.</p>
+</dd>
+<dt class="field-even">rand_file_list3</dt>
+<dd class="field-even"><p>(str) A text file with file names in lieu of <strong>rand_file_name3</strong>.</p>
 <p>If you have a list of file names, it may be cumbersome to list them all
 in the <strong>file_name</strong> (etc) parameter.  It may be easier to do something like
 <code class="docutils literal notranslate"><span class="pre">ls</span> <span class="pre">*.cat</span> <span class="pre">&gt;</span> <span class="pre">catlist</span></code> and then use <strong>file_list=catlist</strong> as the list of
 file names to use.  Of course, it is an error to specify both <strong>file_list</strong>
 and <strong>file_name</strong> (or any of the other corresponding pairs).</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">file_type:</th><td class="field-body"><p class="first">(ASCII or FITS) The file type of the input files.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">delimiter:</th><td class="field-body"><p class="first">(str, default = ‘0’) The delimeter between input values in an ASCII catalog.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">comment_marker:</th><td class="field-body"><p class="first">(str, default = ‘#’) The first (non-whitespace) character of comment lines in an input ASCII catalog.</p>
+</dd>
+<dt class="field-odd">file_type</dt>
+<dd class="field-odd"><p>(ASCII or FITS) The file type of the input files.</p>
+</dd>
+<dt class="field-even">delimiter</dt>
+<dd class="field-even"><p>(str, default = ‘0’) The delimeter between input values in an ASCII catalog.</p>
+</dd>
+<dt class="field-odd">comment_marker</dt>
+<dd class="field-odd"><p>(str, default = ‘#’) The first (non-whitespace) character of comment lines in an input ASCII catalog.</p>
 <p>The default file type is normally ASCII.  However, if the file name
 includes “.fit” in it, then a fits binary table is assumed.
 You can override this behavior using <strong>file_type</strong>.</p>
@@ -274,103 +268,103 @@ You can override this behavior using <strong>file_type</strong>.</p>
 e.g. delimiter=’,’ for a comma-separated value file.  Similarly,
 comment lines usually begin with ‘#’, but you may specify something
 different if necessary.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">hdu:</th><td class="field-body"><p class="first">(int, default=1) The HDU to use for a binary fits table.</p>
+</dd>
+<dt class="field-even">hdu</dt>
+<dd class="field-even"><p>(int, default=1) The HDU to use for a binary fits table.</p>
 <p>Normally if you are using a fits file, the binary fits table is
 taken from the first extension, HDU 1.  If you want to read from a
 different HDU, you can specify which one to use here.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">first_row:</th><td class="field-body"><p class="first">(int, default=1)</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">last_row:</th><td class="field-body"><p class="first">(int, default=-1)</p>
+</dd>
+<dt class="field-odd">first_row</dt>
+<dd class="field-odd"><p>(int, default=1)</p>
+</dd>
+<dt class="field-even">last_row</dt>
+<dd class="field-even"><p>(int, default=-1)</p>
 <p>You can optionally not use all the rows in the input file.
 You may specify <strong>first_row</strong>, <strong>last_row</strong>, or both to limit the rows being used.
 The rows are numbered starting with 1.  If <strong>last_row</strong> is not positive, it
 means to use all the rows (starting with <strong>first_row</strong>).</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">x_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for x.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">y_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for y.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">ra_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for ra.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">dec_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for dec.</p>
+</dd>
+<dt class="field-odd">x_col</dt>
+<dd class="field-odd"><p>(int/str) Which column to use for x.</p>
+</dd>
+<dt class="field-even">y_col</dt>
+<dd class="field-even"><p>(int/str) Which column to use for y.</p>
+</dd>
+<dt class="field-odd">ra_col</dt>
+<dd class="field-odd"><p>(int/str) Which column to use for ra.</p>
+</dd>
+<dt class="field-even">dec_col</dt>
+<dd class="field-even"><p>(int/str) Which column to use for dec.</p>
 <p>For the positions of the objects, you can specify either x,y values, which
 imply a flat-sky approximation has already been performed (or ignored),
 or ra,dec values, which are of course positions on the curved sky.</p>
 <p>For ASCII files, the columns are specified by number, starting with 1 being
 the first column (not 0!).
 For FITS files, the columns are specified by name, not number.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">x_units:</th><td class="field-body"><p class="first">(str, default=None) The units of x values.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">y_units:</th><td class="field-body"><p class="first">(str, default=None) The units of y values.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">ra_units:</th><td class="field-body"><p class="first">(str) The units of ra values.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">dec_units:</th><td class="field-body"><p class="first">(str) The units of dec values.</p>
+</dd>
+<dt class="field-odd">x_units</dt>
+<dd class="field-odd"><p>(str, default=None) The units of x values.</p>
+</dd>
+<dt class="field-even">y_units</dt>
+<dd class="field-even"><p>(str, default=None) The units of y values.</p>
+</dd>
+<dt class="field-odd">ra_units</dt>
+<dd class="field-odd"><p>(str) The units of ra values.</p>
+</dd>
+<dt class="field-even">dec_units</dt>
+<dd class="field-even"><p>(str) The units of dec values.</p>
 <p>All distances on the sky include a “units” parameter to specify what in
 units the values are specified.  Options for units are radians, hours,
 degrees, arcmin, arcsec.  For ra, dec the units field is required.
 But for x,y, you can ignore all the unit issues, in which case the
 output distances will be in the same units as the input positions.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">r_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for r.</p>
+</dd>
+<dt class="field-odd">r_col</dt>
+<dd class="field-odd"><p>(int/str) Which column to use for r.</p>
 <p>When using spherical coordinates, ra,dec, you can optionally provide a
 distance to the object.  In this case, the calculation will be done in
 three dimensional distances rather than angular distances.  The distances
 between objects will be the 3-D Euclidean distance, so you should define
 your r values appropriately, given whatever cosmology you are assuming.</p>
 <p><strong>r_col</strong> is invalid in conjunction with <strong>x_col</strong>, <strong>y_col</strong>.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">z_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for z.</p>
+</dd>
+<dt class="field-even">z_col</dt>
+<dd class="field-even"><p>(int/str) Which column to use for z.</p>
 <p>Rather than specifying 3-D coordinates as (ra, dec, r), you may instead
 specify them as (x, y, z).</p>
 <p><strong>z_col</strong> is invalid in conjunction with <strong>ra_col</strong>, <strong>dec_col</strong>.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">g1_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for g1.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">g2_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for g2.</p>
+</dd>
+<dt class="field-odd">g1_col</dt>
+<dd class="field-odd"><p>(int/str) Which column to use for g1.</p>
+</dd>
+<dt class="field-even">g2_col</dt>
+<dd class="field-even"><p>(int/str) Which column to use for g2.</p>
 <p>If you are doing one of the shear correlation functions (i.e. NG, KG, GG),
 then you need to specify the shear estimates of the corresponding galaxies.
 The g1,g2 values are taken to be reduced shear values.  They should be
 unbiases estimators of g1,g2, so they are allowed to exceed <span class="math notranslate nohighlight">\(|g| = 1\)</span>.
 (This is required for some methods to produce unbiased estimates.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">k_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for kappa.</p>
+</dd>
+<dt class="field-odd">k_col</dt>
+<dd class="field-odd"><p>(int/str) Which column to use for kappa.</p>
 <p>If you are doing one of the kappa correlation functions (i.e. NK, KG, KK),
 then you need to specify the column to use for kappa.  While kappa is
 nominally the lensing convergence, it could really be any scalar quantity,
 like temperature, size, etc.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">w_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for the weight (if any).</p>
+</dd>
+<dt class="field-even">w_col</dt>
+<dd class="field-even"><p>(int/str) Which column to use for the weight (if any).</p>
 <p>The weight column is optional. If omitted, all weights are taken to be 1.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">flag_col:</th><td class="field-body"><p class="first">(int/str) Which column to use for the weight (if any).</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">ignore_flag:</th><td class="field-body"><p class="first">(int) What flag(s) should be ignored.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">ok_flag:</th><td class="field-body"><p class="first">(int) What flag(s) are ok to use.</p>
+</dd>
+<dt class="field-odd">flag_col</dt>
+<dd class="field-odd"><p>(int/str) Which column to use for the weight (if any).</p>
+</dd>
+<dt class="field-even">ignore_flag</dt>
+<dd class="field-even"><p>(int) What flag(s) should be ignored.</p>
+</dd>
+<dt class="field-odd">ok_flag</dt>
+<dd class="field-odd"><p>(int) What flag(s) are ok to use.</p>
 <p>The code can be set to ignore objects with a particular flag value if desired.
 Some codes output a flag along with the shear value.  Typically any flag != 0
 should be ignored, but you can optionally have the code ignore only particular
@@ -378,113 +372,109 @@ flags, treating the flag value as a bit mask.  If <strong>ignore_flag</strong> i
 something, then objects with <code class="docutils literal notranslate"><span class="pre">(flag</span> <span class="pre">&amp;</span> <span class="pre">ignore_flag</span> <span class="pre">!=</span> <span class="pre">0)</span></code> will be ignored.
 If <strong>ok_flag</strong> is set, then objects with <code class="docutils literal notranslate"><span class="pre">(flag</span> <span class="pre">&amp;</span> <span class="pre">~ok_flag</span> <span class="pre">!=</span> <span class="pre">0)</span></code> will be ignored.
 The default is equivalent to <code class="docutils literal notranslate"><span class="pre">ok_flag</span> <span class="pre">=</span> <span class="pre">0</span></code>, which ignores any flag != 0.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">flip_g1:</th><td class="field-body"><p class="first">(bool, default=False) Whether to flip the sign of g1.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">flip_g2:</th><td class="field-body"><p class="first">(bool, default=False) Whether to flip the sign of g2.</p>
+</dd>
+<dt class="field-even">flip_g1</dt>
+<dd class="field-even"><p>(bool, default=False) Whether to flip the sign of g1.</p>
+</dd>
+<dt class="field-odd">flip_g2</dt>
+<dd class="field-odd"><p>(bool, default=False) Whether to flip the sign of g2.</p>
 <p>Sometimes there are issues with the sign conventions of gamma.  If you
 need to flip the sign of g1 or g2, you may do that with <strong>flip_g1</strong> or <strong>flip_g2</strong>
 (or both).</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">x_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>x_col</strong>.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">y_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>y_col</strong>.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">z_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>z_col</strong>.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">ra_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>ra_col</strong>.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">dec_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>dec_col</strong>.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">r_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>r_col</strong>.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">g1_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>g1_col</strong>.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">g2_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>g2_col</strong>.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">k_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>k_col</strong>.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">w_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>w_col</strong>.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">flag_hdu:</th><td class="field-body"><p class="first">(int) Which HDU to use for the <strong>flag_col</strong>.</p>
-<p class="last">If you want to use an HDU other than the first one, normally you would
+</dd>
+<dt class="field-even">x_hdu</dt>
+<dd class="field-even"><p>(int) Which HDU to use for the <strong>x_col</strong>.</p>
+</dd>
+<dt class="field-odd">y_hdu</dt>
+<dd class="field-odd"><p>(int) Which HDU to use for the <strong>y_col</strong>.</p>
+</dd>
+<dt class="field-even">z_hdu</dt>
+<dd class="field-even"><p>(int) Which HDU to use for the <strong>z_col</strong>.</p>
+</dd>
+<dt class="field-odd">ra_hdu</dt>
+<dd class="field-odd"><p>(int) Which HDU to use for the <strong>ra_col</strong>.</p>
+</dd>
+<dt class="field-even">dec_hdu</dt>
+<dd class="field-even"><p>(int) Which HDU to use for the <strong>dec_col</strong>.</p>
+</dd>
+<dt class="field-odd">r_hdu</dt>
+<dd class="field-odd"><p>(int) Which HDU to use for the <strong>r_col</strong>.</p>
+</dd>
+<dt class="field-even">g1_hdu</dt>
+<dd class="field-even"><p>(int) Which HDU to use for the <strong>g1_col</strong>.</p>
+</dd>
+<dt class="field-odd">g2_hdu</dt>
+<dd class="field-odd"><p>(int) Which HDU to use for the <strong>g2_col</strong>.</p>
+</dd>
+<dt class="field-even">k_hdu</dt>
+<dd class="field-even"><p>(int) Which HDU to use for the <strong>k_col</strong>.</p>
+</dd>
+<dt class="field-odd">w_hdu</dt>
+<dd class="field-odd"><p>(int) Which HDU to use for the <strong>w_col</strong>.</p>
+</dd>
+<dt class="field-even">flag_hdu</dt>
+<dd class="field-even"><p>(int) Which HDU to use for the <strong>flag_col</strong>.</p>
+<p>If you want to use an HDU other than the first one, normally you would
 specify which fits extension to use with the <strong>hdu</strong> parameter.  However, if
 different columns need to come from different HDUs, then you can override
 the default (given by <strong>hdu</strong> or 1 if there is no <strong>hdu</strong> parameter) for each
 column separately.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <div class="section" id="notes-about-the-above-parameters">
 <h3>Notes about the above parameters<a class="headerlink" href="#notes-about-the-above-parameters" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>If you are cross-correlating two files with different formats, you may
+<li><p>If you are cross-correlating two files with different formats, you may
 set any of the above items from <strong>file_type</strong> to <strong>flip_g2</strong> as a two element
 list (i.e. two values separated by a space).  In this case, the first
 item refers to the file(s) in <strong>file_name</strong>, and the second item refers
-to the file(s) in files_name2.</li>
-<li>You may not mix (x,y) columns with (ra,dec) columns, since its meaning
-would be ambiguous.</li>
-<li>If you don’t need a particular column for one of the files, you may
+to the file(s) in files_name2.</p></li>
+<li><p>You may not mix (x,y) columns with (ra,dec) columns, since its meaning
+would be ambiguous.</p></li>
+<li><p>If you don’t need a particular column for one of the files, you may
 use 0 to indicate not to read that column.  This is true both for
-ASCII and FITS input catalogs.</li>
-<li>Also, if the given column only applies to one of the two input files
+ASCII and FITS input catalogs.</p></li>
+<li><p>Also, if the given column only applies to one of the two input files
 (e.g. k_col for an n-kappa cross-correlation) then you may specify just
-the column name or number for the file to which it does apply.</li>
+the column name or number for the file to which it does apply.</p></li>
 </ul>
 </div>
 </div>
 <div class="section" id="parameters-about-the-binned-correlation-function-to-be-calculated">
 <h2>Parameters about the binned correlation function to be calculated<a class="headerlink" href="#parameters-about-the-binned-correlation-function-to-be-calculated" title="Permalink to this headline">¶</a></h2>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">bin_type:</th><td class="field-body"><p class="first">(str, default=’Log’) Which type of binning should be used.</p>
+<dl class="field-list">
+<dt class="field-odd">bin_type</dt>
+<dd class="field-odd"><p>(str, default=’Log’) Which type of binning should be used.</p>
 <p>See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">min_sep:</th><td class="field-body"><p class="first">(float) The minimum separation to include in the output.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">max_sep:</th><td class="field-body"><p class="first">(float) The maximum separation to include in the output.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">nbins:</th><td class="field-body"><p class="first">(int) The number of output bins to use.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">bin_size:</th><td class="field-body"><p class="first">(float) The size of the output bins in log(sep).</p>
+</dd>
+<dt class="field-even">min_sep</dt>
+<dd class="field-even"><p>(float) The minimum separation to include in the output.</p>
+</dd>
+<dt class="field-odd">max_sep</dt>
+<dd class="field-odd"><p>(float) The maximum separation to include in the output.</p>
+</dd>
+<dt class="field-even">nbins</dt>
+<dd class="field-even"><p>(int) The number of output bins to use.</p>
+</dd>
+<dt class="field-odd">bin_size</dt>
+<dd class="field-odd"><p>(float) The size of the output bins in log(sep).</p>
 <p>The bins for the histogram may be defined by setting any 3 of the above 4
 parameters.  The fourth one is automatically calculated from the values
 of the other three.</p>
 <p>See <a class="reference internal" href="binning.html#binning"><span class="std std-ref">Binning</span></a> for details about how these parameters are used for the
 different choice of <strong>bin_type</strong>.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">sep_units:</th><td class="field-body"><p class="first">(str, default=None) The units to use for <strong>min_sep</strong> and <strong>max_sep</strong>.</p>
+</dd>
+<dt class="field-even">sep_units</dt>
+<dd class="field-even"><p>(str, default=None) The units to use for <strong>min_sep</strong> and <strong>max_sep</strong>.</p>
 <p><strong>sep_units</strong> is also the units of R in the output file.  For ra, dec values,
 you should always specify <strong>sep_units</strong> explicitly to indicate what angular
 units you want to use for the separations.  But if your catalogs use x,y,
 or if you specify 3-d correlations with r, then the output separations are
 in the same units as the input positions.</p>
 <p>See <a class="reference internal" href="binning.html#sep-units"><span class="std std-ref">sep_units</span></a> for more discussion about this parameter.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">bin_slop:</th><td class="field-body"><p class="first">(float, default=1) The fraction of a bin width by which it is ok to let the pairs miss the correct bin.</p>
+</dd>
+<dt class="field-odd">bin_slop</dt>
+<dd class="field-odd"><p>(float, default=1) The fraction of a bin width by which it is ok to let the pairs miss the correct bin.</p>
 <p>The code normally determines when to stop traversing the tree when all of the
 distance pairs for the two nodes have a spread in distance that is less than the
 bin size.  i.e. the error in the tree traversal is less than the uncertainty
@@ -495,42 +485,42 @@ from using the tree nodes will be less than the error in the histogram binning.
 (In practice, if you are going to do this, you are probably better off just
 decreasing the <strong>bin_size</strong> instead and leaving <code class="docutils literal notranslate"><span class="pre">bin_slop=1</span></code>.)</p>
 <p>See <a class="reference internal" href="binning.html#bin-slop"><span class="std std-ref">bin_slop</span></a> for more discussion about this parameter.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">brute:</th><td class="field-body"><p class="first">(bool/int, default=False) Whether to do the “brute force” algorithm, where the
+</dd>
+<dt class="field-even">brute</dt>
+<dd class="field-even"><p>(bool/int, default=False) Whether to do the “brute force” algorithm, where the
 tree traversal always goes to the leaf cells.</p>
 <p>In addition to True or False, whose meanings are obvious, you may also set
 <strong>brute</strong> to 1 or 2, which means to go to the leaves for cat1 or cat2, respectively,
 but stop traversing the other catalog according to the normal <strong>bin_slop</strong> criterion.</p>
 <p>See <a class="reference internal" href="binning.html#brute"><span class="std std-ref">brute</span></a> for more discussion about this parameter.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">min_u:</th><td class="field-body"><p class="first">(float) The minimum u=d3/d2 to include for three-point functions.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">max_u:</th><td class="field-body"><p class="first">(float) The maximum u=d3/d2 to include for three-point functions.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">nubins:</th><td class="field-body"><p class="first">(int) The number of output bins to use for u.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">ubin_size:</th><td class="field-body"><p class="first">(float) The size of the output bins for u.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">min_v:</th><td class="field-body"><p class="first">(float) The minimum positive v=(d1-d2)/d3 to include for three-point functions.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">max_v:</th><td class="field-body"><p class="first">(float) The maximum positive v=(d1-d2)/d3 to include for three-point functions.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">nvbins:</th><td class="field-body"><p class="first">(int) The number of output bins to use for positive v.
+</dd>
+<dt class="field-odd">min_u</dt>
+<dd class="field-odd"><p>(float) The minimum u=d3/d2 to include for three-point functions.</p>
+</dd>
+<dt class="field-even">max_u</dt>
+<dd class="field-even"><p>(float) The maximum u=d3/d2 to include for three-point functions.</p>
+</dd>
+<dt class="field-odd">nubins</dt>
+<dd class="field-odd"><p>(int) The number of output bins to use for u.</p>
+</dd>
+<dt class="field-even">ubin_size</dt>
+<dd class="field-even"><p>(float) The size of the output bins for u.</p>
+</dd>
+<dt class="field-odd">min_v</dt>
+<dd class="field-odd"><p>(float) The minimum positive v=(d1-d2)/d3 to include for three-point functions.</p>
+</dd>
+<dt class="field-even">max_v</dt>
+<dd class="field-even"><p>(float) The maximum positive v=(d1-d2)/d3 to include for three-point functions.</p>
+</dd>
+<dt class="field-odd">nvbins</dt>
+<dd class="field-odd"><p>(int) The number of output bins to use for positive v.
 The total number of bins in the v direction will be twice this number.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">vbin_size:</th><td class="field-body"><p class="first">(float) The size of the output bins for v.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">pairwise:</th><td class="field-body"><p class="first">(bool, default=False) Whether to do a pair-wise cross-correlation.</p>
+</dd>
+<dt class="field-even">vbin_size</dt>
+<dd class="field-even"><p>(float) The size of the output bins for v.</p>
+</dd>
+<dt class="field-odd">pairwise</dt>
+<dd class="field-odd"><p>(bool, default=False) Whether to do a pair-wise cross-correlation.</p>
 <p>A pair-wise correlation correlates objects on corresponding lines in the two catalogs,
 rather than correlating all lines in one with all the lines in the other.
 That is, the data from each row in the first catalog is correlated with the
@@ -542,34 +532,32 @@ each galaxy in the catalog, then a pairwise correlation option will only
 use the corresponding centers where the galaxy was observed, rather than
 using all the field centers in the whole survey.</p>
 <p>This is currently invalid for 3-point correlations.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">metric:</th><td class="field-body"><p class="first">(str, default=’Euclidean’) Which metric to use for distance measurements.</p>
+</dd>
+<dt class="field-even">metric</dt>
+<dd class="field-even"><p>(str, default=’Euclidean’) Which metric to use for distance measurements.</p>
 <p>See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">min_rpar:</th><td class="field-body"><p class="first">(float) If the metric supports it, the minimum Rparallel to allow for pairs
+</dd>
+<dt class="field-odd">min_rpar</dt>
+<dd class="field-odd"><p>(float) If the metric supports it, the minimum Rparallel to allow for pairs
 to be included in the correlation function.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">max_rpar:</th><td class="field-body"><p class="first">(float) If the metric supports it, the maximum Rparallel to allow for pairs
+</dd>
+<dt class="field-even">max_rpar</dt>
+<dd class="field-even"><p>(float) If the metric supports it, the maximum Rparallel to allow for pairs
 to be included in the correlation function.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">period:</th><td class="field-body"><p class="first">(float) For the ‘Periodic’ metric, the period to use in all directions.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">xperiod:</th><td class="field-body"><p class="first">(float) For the ‘Periodic’ metric, the period to use in the x directions.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">yperiod:</th><td class="field-body"><p class="first">(float) For the ‘Periodic’ metric, the period to use in the y directions.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">zperiod:</th><td class="field-body"><p class="first last">(float) For the ‘Periodic’ metric, the period to use in the z directions.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-odd">period</dt>
+<dd class="field-odd"><p>(float) For the ‘Periodic’ metric, the period to use in all directions.</p>
+</dd>
+<dt class="field-even">xperiod</dt>
+<dd class="field-even"><p>(float) For the ‘Periodic’ metric, the period to use in the x directions.</p>
+</dd>
+<dt class="field-odd">yperiod</dt>
+<dd class="field-odd"><p>(float) For the ‘Periodic’ metric, the period to use in the y directions.</p>
+</dd>
+<dt class="field-even">zperiod</dt>
+<dd class="field-even"><p>(float) For the ‘Periodic’ metric, the period to use in the z directions.</p>
+</dd>
+</dl>
 </div>
 <div class="section" id="parameters-about-the-output-file-s">
 <h2>Parameters about the output file(s)<a class="headerlink" href="#parameters-about-the-output-file-s" title="Permalink to this headline">¶</a></h2>
@@ -579,88 +567,80 @@ each output file you set.  For each output file, the first line of the output
 says what the columns are.  See the descriptions below for more information
 about the output columns.</p>
 <div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The error estimates for all quantities only include the propagation
+<p class="admonition-title">Warning</p>
+<p>The error estimates for all quantities only include the propagation
 of the shot noise and shape noise through the calculation.  It
 does not include sample variance, which is almost always important.
 So the error values should always be treated as an underestimate
 of the true error bars.</p>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">nn_file_name:</th><td class="field-body"><p class="first">(str) The output filename for count-count correlation function.</p>
+<dl class="field-list">
+<dt class="field-odd">nn_file_name</dt>
+<dd class="field-odd"><p>(str) The output filename for count-count correlation function.</p>
 <p>This is the normal density two-point correlation function.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><strong>R_nom</strong> = The center of the bin</li>
-<li><strong>meanR</strong> = The mean separation of the points that went into the bin.</li>
-<li><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</li>
-<li><strong>xi</strong> = The correlation function.</li>
-<li><strong>sigma_xi</strong> = The 1-sigma error bar for xi.</li>
-<li><strong>DD</strong>, <strong>RR</strong> = The raw numbers of pairs for the data and randoms</li>
-<li><strong>DR</strong> (if <code class="docutils literal notranslate"><span class="pre">nn_statistic=compensated</span></code>) = The cross terms between data and random.</li>
-<li><strong>RD</strong> (if <code class="docutils literal notranslate"><span class="pre">nn_statistic=compensated</span></code> cross-correlation) = The cross term between random and data, which for a cross-correlation is not equivalent to <strong>DR</strong>.</li>
+<li><p><strong>R_nom</strong> = The center of the bin</p></li>
+<li><p><strong>meanR</strong> = The mean separation of the points that went into the bin.</p></li>
+<li><p><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</p></li>
+<li><p><strong>xi</strong> = The correlation function.</p></li>
+<li><p><strong>sigma_xi</strong> = The 1-sigma error bar for xi.</p></li>
+<li><p><strong>DD</strong>, <strong>RR</strong> = The raw numbers of pairs for the data and randoms</p></li>
+<li><p><strong>DR</strong> (if <code class="docutils literal notranslate"><span class="pre">nn_statistic=compensated</span></code>) = The cross terms between data and random.</p></li>
+<li><p><strong>RD</strong> (if <code class="docutils literal notranslate"><span class="pre">nn_statistic=compensated</span></code> cross-correlation) = The cross term between random and data, which for a cross-correlation is not equivalent to <strong>DR</strong>.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">nn_statistic:</th><td class="field-body"><p class="first">(str, default=’compensated’) Which statistic to use for xi as the estimator of the NN correlation function.</p>
+</dd>
+<dt class="field-even">nn_statistic</dt>
+<dd class="field-even"><p>(str, default=’compensated’) Which statistic to use for xi as the estimator of the NN correlation function.</p>
 <p>Options are (D = data catalog, R = random catalog)</p>
 <ul class="simple">
-<li>‘compensated’ is the now-normal Landy-Szalay statistic:  xi = (DD-2DR+RR)/RR, or for cross-correlations, xi = (DD-DR-RD+RR)/RR</li>
-<li>‘simple’ is the older version: xi = (DD/RR - 1)</li>
+<li><p>‘compensated’ is the now-normal Landy-Szalay statistic:  xi = (DD-2DR+RR)/RR, or for cross-correlations, xi = (DD-DR-RD+RR)/RR</p></li>
+<li><p>‘simple’ is the older version: xi = (DD/RR - 1)</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">ng_file_name:</th><td class="field-body"><p class="first">(str) The output filename for count-shear correlation function.</p>
+</dd>
+<dt class="field-odd">ng_file_name</dt>
+<dd class="field-odd"><p>(str) The output filename for count-shear correlation function.</p>
 <p>This is the count-shear correlation function, often called galaxy-galaxy
 lensing.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><strong>R_nom</strong> = The center of the bin</li>
-<li><strong>meanR</strong> = The mean separation of the points that went into the bin.</li>
-<li><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</li>
-<li><strong>gamT</strong> = The mean tangential shear with respect to the point in question.</li>
-<li><strong>gamX</strong> = The shear component 45 degrees from the tangential direction.</li>
-<li><strong>sigma</strong> = The 1-sigma error bar for <strong>gamT</strong> and <strong>gamX</strong>.</li>
-<li><strong>weight</strong> = The total weight of the pairs in each bin.</li>
-<li><strong>npairs</strong> = The total number of pairs in each bin.</li>
+<li><p><strong>R_nom</strong> = The center of the bin</p></li>
+<li><p><strong>meanR</strong> = The mean separation of the points that went into the bin.</p></li>
+<li><p><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</p></li>
+<li><p><strong>gamT</strong> = The mean tangential shear with respect to the point in question.</p></li>
+<li><p><strong>gamX</strong> = The shear component 45 degrees from the tangential direction.</p></li>
+<li><p><strong>sigma</strong> = The 1-sigma error bar for <strong>gamT</strong> and <strong>gamX</strong>.</p></li>
+<li><p><strong>weight</strong> = The total weight of the pairs in each bin.</p></li>
+<li><p><strong>npairs</strong> = The total number of pairs in each bin.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">ng_statistic:</th><td class="field-body"><p class="first">(str, default=’compensated’ if <strong>rand_files</strong> is given, otherwise ‘simple’) Which statistic to use for the mean shear as the estimator of the NG correlation function.</p>
+</dd>
+<dt class="field-even">ng_statistic</dt>
+<dd class="field-even"><p>(str, default=’compensated’ if <strong>rand_files</strong> is given, otherwise ‘simple’) Which statistic to use for the mean shear as the estimator of the NG correlation function.</p>
 <p>Options are:</p>
 <ul>
-<li><p class="first">‘compensated’ is simiar to the Landy-Szalay statistic:
+<li><p>‘compensated’ is simiar to the Landy-Szalay statistic:
 Define:</p>
 <ul class="simple">
-<li>NG = Sum(gamma around data points)</li>
-<li>RG = Sum(gamma around random points), scaled to be equivalent in effective number as the number of pairs in NG.</li>
-<li>npairs = number of pairs in NG.</li>
+<li><p>NG = Sum(gamma around data points)</p></li>
+<li><p>RG = Sum(gamma around random points), scaled to be equivalent in effective number as the number of pairs in NG.</p></li>
+<li><p>npairs = number of pairs in NG.</p></li>
 </ul>
 <p>Then this statistic is gamT = (NG-RG)/npairs</p>
 </li>
-<li><p class="first">‘simple’ is the normal version: gamT = NG/npairs</p>
-</li>
+<li><p>‘simple’ is the normal version: gamT = NG/npairs</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">gg_file_name:</th><td class="field-body"><p class="first">(str) The output filename for shear-shear correlation function.</p>
+</dd>
+<dt class="field-odd">gg_file_name</dt>
+<dd class="field-odd"><p>(str) The output filename for shear-shear correlation function.</p>
 <p>This is the shear-shear correlation function, used for cosmic shear.</p>
 <p>The output columns are:</p>
 <ul>
-<li><p class="first"><strong>R_nom</strong> = The center of the bin</p>
-</li>
-<li><p class="first"><strong>meanR</strong> = The mean separation of the points that went into the bin.</p>
-</li>
-<li><p class="first"><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</p>
-</li>
-<li><p class="first"><strong>xip</strong> = &lt;g1 g1 + g2 g2&gt; where g1 and g2 are measured with respect to the line joining the two galaxies.</p>
-</li>
-<li><p class="first"><strong>xim</strong> = &lt;g1 g1 - g2 g2&gt; where g1 and g2 are measured with respect to the line joining the two galaxies.</p>
-</li>
-<li><p class="first"><strong>xip_im</strong> = &lt;g2 g1 - g1 g2&gt;.</p>
+<li><p><strong>R_nom</strong> = The center of the bin</p></li>
+<li><p><strong>meanR</strong> = The mean separation of the points that went into the bin.</p></li>
+<li><p><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</p></li>
+<li><p><strong>xip</strong> = &lt;g1 g1 + g2 g2&gt; where g1 and g2 are measured with respect to the line joining the two galaxies.</p></li>
+<li><p><strong>xim</strong> = &lt;g1 g1 - g2 g2&gt; where g1 and g2 are measured with respect to the line joining the two galaxies.</p></li>
+<li><p><strong>xip_im</strong> = &lt;g2 g1 - g1 g2&gt;.</p>
 <blockquote>
 <div><p>In the formulation of xi+ using complex numbers, this is the imaginary component.
 It should normally be consistent with zero, especially for an
@@ -669,7 +649,7 @@ get each galaxy in both positions, then this would come out
 exactly zero.</p>
 </div></blockquote>
 </li>
-<li><p class="first"><strong>xim_im</strong> = &lt;g2 g1 + g1 g2&gt;.</p>
+<li><p><strong>xim_im</strong> = &lt;g2 g1 + g1 g2&gt;.</p>
 <blockquote>
 <div><p>In the formulation of xi- using complex
 numbers, this is the imaginary component.
@@ -677,193 +657,185 @@ It should be consistent with zero for parity invariant shear
 fields.</p>
 </div></blockquote>
 </li>
-<li><p class="first"><strong>sigma_xi</strong> = The 1-sigma error bar for xi+ and xi-.</p>
-</li>
-<li><p class="first"><strong>weight</strong> = The total weight of the pairs in each bin.</p>
-</li>
-<li><p class="first"><strong>npairs</strong> = The total number of pairs in each bin.</p>
-</li>
+<li><p><strong>sigma_xi</strong> = The 1-sigma error bar for xi+ and xi-.</p></li>
+<li><p><strong>weight</strong> = The total weight of the pairs in each bin.</p></li>
+<li><p><strong>npairs</strong> = The total number of pairs in each bin.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">nk_file_name:</th><td class="field-body"><p class="first">(str) The output filename for count-kappa correlation function.</p>
+</dd>
+<dt class="field-even">nk_file_name</dt>
+<dd class="field-even"><p>(str) The output filename for count-kappa correlation function.</p>
 <p>This is nominally the kappa version of the ne calculation.  However, k is
 really any scalar quantity, so it can be used for temperature, size, etc.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><strong>R_nom</strong> = The center of the bin</li>
-<li><strong>meanR</strong> = The mean separation of the points that went into the bin.</li>
-<li><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</li>
-<li><strong>kappa</strong> = The mean kappa this distance from the foreground points.</li>
-<li><strong>sigma</strong> = The 1-sigma error bar for &lt;kappa&gt;.</li>
-<li><strong>weight</strong> = The total weight of the pairs in each bin.</li>
-<li><strong>npairs</strong> = The total number of pairs in each bin.</li>
+<li><p><strong>R_nom</strong> = The center of the bin</p></li>
+<li><p><strong>meanR</strong> = The mean separation of the points that went into the bin.</p></li>
+<li><p><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</p></li>
+<li><p><strong>kappa</strong> = The mean kappa this distance from the foreground points.</p></li>
+<li><p><strong>sigma</strong> = The 1-sigma error bar for &lt;kappa&gt;.</p></li>
+<li><p><strong>weight</strong> = The total weight of the pairs in each bin.</p></li>
+<li><p><strong>npairs</strong> = The total number of pairs in each bin.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">nk_statistic:</th><td class="field-body"><p class="first">(str, default=’compensated’ if <strong>rand_files</strong> is given, otherwise ‘simple’) Which statistic to use for the mean shear as the estimator of the NK correlation function.</p>
+</dd>
+<dt class="field-odd">nk_statistic</dt>
+<dd class="field-odd"><p>(str, default=’compensated’ if <strong>rand_files</strong> is given, otherwise ‘simple’) Which statistic to use for the mean shear as the estimator of the NK correlation function.</p>
 <p>Options are:</p>
 <ul>
-<li><p class="first">‘compensated’ is simiar to the Landy-Szalay statistic:
+<li><p>‘compensated’ is simiar to the Landy-Szalay statistic:
 Define:</p>
 <ul class="simple">
-<li>NK = Sum(kappa around data points)</li>
-<li>RK = Sum(kappa around random points), scaled to be equivalent in effective number as the number of pairs in NK.</li>
-<li>npairs = number of pairs in NK.</li>
+<li><p>NK = Sum(kappa around data points)</p></li>
+<li><p>RK = Sum(kappa around random points), scaled to be equivalent in effective number as the number of pairs in NK.</p></li>
+<li><p>npairs = number of pairs in NK.</p></li>
 </ul>
 <p>Then this statistic is <strong>&lt;kappa&gt;</strong> = (NK-RK)/npairs</p>
 </li>
-<li><p class="first">‘simple’ is the normal version: <strong>&lt;kappa&gt;</strong> = NK/npairs</p>
-</li>
+<li><p>‘simple’ is the normal version: <strong>&lt;kappa&gt;</strong> = NK/npairs</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">kk_file_name:</th><td class="field-body"><p class="first">(str) The output filename for kappa-kappa correlation function.</p>
+</dd>
+<dt class="field-even">kk_file_name</dt>
+<dd class="field-even"><p>(str) The output filename for kappa-kappa correlation function.</p>
 <p>This is the kappa-kappa correlation function.  However, k is really any
 scalar quantity, so it can be used for temperature, size, etc.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><strong>R_nom</strong> = The center of the bin</li>
-<li><strong>meanR</strong> = The mean separation of the points that went into the bin.</li>
-<li><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</li>
-<li><strong>xi</strong> = The correlation function &lt;k k&gt;</li>
-<li><strong>sigma_xi</strong> = The 1-sigma error bar for xi.</li>
-<li><strong>weight</strong> = The total weight of the pairs in each bin.</li>
-<li><strong>npairs</strong> = The total number of pairs in each bin.</li>
+<li><p><strong>R_nom</strong> = The center of the bin</p></li>
+<li><p><strong>meanR</strong> = The mean separation of the points that went into the bin.</p></li>
+<li><p><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</p></li>
+<li><p><strong>xi</strong> = The correlation function &lt;k k&gt;</p></li>
+<li><p><strong>sigma_xi</strong> = The 1-sigma error bar for xi.</p></li>
+<li><p><strong>weight</strong> = The total weight of the pairs in each bin.</p></li>
+<li><p><strong>npairs</strong> = The total number of pairs in each bin.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">kg_file_name:</th><td class="field-body"><p class="first">(str) The output filename for kappa-shear correlation function.</p>
+</dd>
+<dt class="field-odd">kg_file_name</dt>
+<dd class="field-odd"><p>(str) The output filename for kappa-shear correlation function.</p>
 <p>This is the kappa-shear correlation function.  Essentially, this is just
 galaxy-galaxy lensing, weighting the tangential shears by the foreground
 kappa values.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><strong>R_nom</strong> = The center of the bin</li>
-<li><strong>meanR</strong> = The mean separation of the points that went into the bin.</li>
-<li><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</li>
-<li><strong>kgamT</strong> = The kappa-weighted mean tangential shear.</li>
-<li><strong>kgamX</strong> = The kappa-weighted shear component 45 degrees from the tangential direction.</li>
-<li><strong>sigma</strong> = The 1-sigma error bar for <strong>kgamT</strong> and <strong>kgamX</strong>.</li>
-<li><strong>weight</strong> = The total weight of the pairs in each bin.</li>
-<li><strong>npairs</strong> = The total number of pairs in each bin.</li>
+<li><p><strong>R_nom</strong> = The center of the bin</p></li>
+<li><p><strong>meanR</strong> = The mean separation of the points that went into the bin.</p></li>
+<li><p><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</p></li>
+<li><p><strong>kgamT</strong> = The kappa-weighted mean tangential shear.</p></li>
+<li><p><strong>kgamX</strong> = The kappa-weighted shear component 45 degrees from the tangential direction.</p></li>
+<li><p><strong>sigma</strong> = The 1-sigma error bar for <strong>kgamT</strong> and <strong>kgamX</strong>.</p></li>
+<li><p><strong>weight</strong> = The total weight of the pairs in each bin.</p></li>
+<li><p><strong>npairs</strong> = The total number of pairs in each bin.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">nnn_file_name:</th><td class="field-body"><p class="first">(str) The output filename for count-count-count correlation function.</p>
+</dd>
+<dt class="field-even">nnn_file_name</dt>
+<dd class="field-even"><p>(str) The output filename for count-count-count correlation function.</p>
 <p>This is three-point correlation function of number counts.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><strong>R_nom</strong> = The center of the bin in R = d2 where d1 &gt; d2 &gt; d3</li>
-<li><strong>u_nom</strong> = The center of the bin in u = d3/d2</li>
-<li><strong>v_nom</strong> = The center of the bin in v = +-(d1-d2)/d3</li>
-<li><strong>meand1</strong> = The mean value of d1 for the triangles in each bin</li>
-<li><strong>meanlogd1</strong> = The mean value of log(d1) for the triangles in each bin</li>
-<li><strong>meand2</strong> = The mean value of d2 for the triangles in each bin</li>
-<li><strong>meanlogd2</strong> = The mean value of log(d2) for the triangles in each bin</li>
-<li><strong>meand3</strong> = The mean value of d3 for the triangles in each bin</li>
-<li><strong>meanlogd3</strong> = The mean value of log(d3) for the triangles in each bin</li>
-<li><strong>zeta</strong> = The correlation function.</li>
-<li><strong>sigma_zeta</strong> = The 1-sigma error bar for zeta.</li>
-<li><strong>DDD</strong>, <strong>RRR</strong> = The raw numbers of triangles for the data and randoms</li>
-<li><strong>DDR</strong>, <strong>DRD</strong>, <strong>RDD</strong>, <strong>DRR</strong>, <strong>RDR</strong>, <strong>RRD</strong> (if <code class="docutils literal notranslate"><span class="pre">nn_statistic=compensated</span></code>) = The cross terms between data and random.</li>
+<li><p><strong>R_nom</strong> = The center of the bin in R = d2 where d1 &gt; d2 &gt; d3</p></li>
+<li><p><strong>u_nom</strong> = The center of the bin in u = d3/d2</p></li>
+<li><p><strong>v_nom</strong> = The center of the bin in v = +-(d1-d2)/d3</p></li>
+<li><p><strong>meand1</strong> = The mean value of d1 for the triangles in each bin</p></li>
+<li><p><strong>meanlogd1</strong> = The mean value of log(d1) for the triangles in each bin</p></li>
+<li><p><strong>meand2</strong> = The mean value of d2 for the triangles in each bin</p></li>
+<li><p><strong>meanlogd2</strong> = The mean value of log(d2) for the triangles in each bin</p></li>
+<li><p><strong>meand3</strong> = The mean value of d3 for the triangles in each bin</p></li>
+<li><p><strong>meanlogd3</strong> = The mean value of log(d3) for the triangles in each bin</p></li>
+<li><p><strong>zeta</strong> = The correlation function.</p></li>
+<li><p><strong>sigma_zeta</strong> = The 1-sigma error bar for zeta.</p></li>
+<li><p><strong>DDD</strong>, <strong>RRR</strong> = The raw numbers of triangles for the data and randoms</p></li>
+<li><p><strong>DDR</strong>, <strong>DRD</strong>, <strong>RDD</strong>, <strong>DRR</strong>, <strong>RDR</strong>, <strong>RRD</strong> (if <code class="docutils literal notranslate"><span class="pre">nn_statistic=compensated</span></code>) = The cross terms between data and random.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">nnn_statistic:</th><td class="field-body"><p class="first">(str, default=’compensated’) Which statistic to use for xi as the estimator of the NNN correlation function.</p>
+</dd>
+<dt class="field-odd">nnn_statistic</dt>
+<dd class="field-odd"><p>(str, default=’compensated’) Which statistic to use for xi as the estimator of the NNN correlation function.</p>
 <p>Options are:</p>
 <ul class="simple">
-<li>‘compensated’ is the Szapudi &amp; Szalay (1998) estimator:
-zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR</li>
-<li>‘simple’ is the older version: zeta = (DDD/RRR - 1), although this is not actually
-an estimator of zeta.  Rather, it estimates zeta(d1,d2,d3) + xi(d1) + xi(d2) + xi(d3).</li>
+<li><p>‘compensated’ is the Szapudi &amp; Szalay (1998) estimator:
+zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR</p></li>
+<li><p>‘simple’ is the older version: zeta = (DDD/RRR - 1), although this is not actually
+an estimator of zeta.  Rather, it estimates zeta(d1,d2,d3) + xi(d1) + xi(d2) + xi(d3).</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">ggg_file_name:</th><td class="field-body"><p class="first">(str) The output filename for shear-shear-shear correlation function.</p>
+</dd>
+<dt class="field-even">ggg_file_name</dt>
+<dd class="field-even"><p>(str) The output filename for shear-shear-shear correlation function.</p>
 <p>This is the shear three-point correlation function.  We use the “natural components”
 as suggested by Schenider &amp; Lombardi (2003): Gamma_0, Gamma_1, Gamma_2, Gamma_3.
 All are complex-valued functions of (d1,d2,d3).  The offer several options for the projection
 direction.  We choose to use the triangle centroid as the reference point.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><strong>R_nom</strong> = The center of the bin in R = d2 where d1 &gt; d2 &gt; d3</li>
-<li><strong>u_nom</strong> = The center of the bin in u = d3/d2</li>
-<li><strong>v_nom</strong> = The center of the bin in v = +-(d1-d2)/d3</li>
-<li><strong>meand1</strong> = The mean value of d1 for the triangles in each bin</li>
-<li><strong>meanlogd1</strong> = The mean value of log(d1) for the triangles in each bin</li>
-<li><strong>meand2</strong> = The mean value of d2 for the triangles in each bin</li>
-<li><strong>meanlogd2</strong> = The mean value of log(d2) for the triangles in each bin</li>
-<li><strong>meand3</strong> = The mean value of d3 for the triangles in each bin</li>
-<li><strong>meanlogd3</strong> = The mean value of log(d3) for the triangles in each bin</li>
-<li><strong>gam0r</strong> = The real part of Gamma_0.</li>
-<li><strong>gam0i</strong> = The imag part of Gamma_0.</li>
-<li><strong>gam1r</strong> = The real part of Gamma_1.</li>
-<li><strong>gam1i</strong> = The imag part of Gamma_1.</li>
-<li><strong>gam2r</strong> = The real part of Gamma_2.</li>
-<li><strong>gam2i</strong> = The imag part of Gamma_2.</li>
-<li><strong>gam3r</strong> = The real part of Gamma_3.</li>
-<li><strong>gam3i</strong> = The imag part of Gamma_3.</li>
-<li><strong>sigma_gam</strong> = The 1-sigma error bar for the Gamma values.</li>
-<li><strong>weight</strong> = The total weight of the triangles in each bin.</li>
-<li><strong>ntri</strong> = The total number of triangles in each bin.</li>
+<li><p><strong>R_nom</strong> = The center of the bin in R = d2 where d1 &gt; d2 &gt; d3</p></li>
+<li><p><strong>u_nom</strong> = The center of the bin in u = d3/d2</p></li>
+<li><p><strong>v_nom</strong> = The center of the bin in v = +-(d1-d2)/d3</p></li>
+<li><p><strong>meand1</strong> = The mean value of d1 for the triangles in each bin</p></li>
+<li><p><strong>meanlogd1</strong> = The mean value of log(d1) for the triangles in each bin</p></li>
+<li><p><strong>meand2</strong> = The mean value of d2 for the triangles in each bin</p></li>
+<li><p><strong>meanlogd2</strong> = The mean value of log(d2) for the triangles in each bin</p></li>
+<li><p><strong>meand3</strong> = The mean value of d3 for the triangles in each bin</p></li>
+<li><p><strong>meanlogd3</strong> = The mean value of log(d3) for the triangles in each bin</p></li>
+<li><p><strong>gam0r</strong> = The real part of Gamma_0.</p></li>
+<li><p><strong>gam0i</strong> = The imag part of Gamma_0.</p></li>
+<li><p><strong>gam1r</strong> = The real part of Gamma_1.</p></li>
+<li><p><strong>gam1i</strong> = The imag part of Gamma_1.</p></li>
+<li><p><strong>gam2r</strong> = The real part of Gamma_2.</p></li>
+<li><p><strong>gam2i</strong> = The imag part of Gamma_2.</p></li>
+<li><p><strong>gam3r</strong> = The real part of Gamma_3.</p></li>
+<li><p><strong>gam3i</strong> = The imag part of Gamma_3.</p></li>
+<li><p><strong>sigma_gam</strong> = The 1-sigma error bar for the Gamma values.</p></li>
+<li><p><strong>weight</strong> = The total weight of the triangles in each bin.</p></li>
+<li><p><strong>ntri</strong> = The total number of triangles in each bin.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">kkk_file_name:</th><td class="field-body"><p class="first">(str) The output filename for kappa-kappa-kappa correlation function.</p>
+</dd>
+<dt class="field-odd">kkk_file_name</dt>
+<dd class="field-odd"><p>(str) The output filename for kappa-kappa-kappa correlation function.</p>
 <p>This is the three-point correlation function of a scalar field.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><strong>R_nom</strong> = The center of the bin in R = d2 where d1 &gt; d2 &gt; d3</li>
-<li><strong>u_nom</strong> = The center of the bin in u = d3/d2</li>
-<li><strong>v_nom</strong> = The center of the bin in v = +-(d1-d2)/d3</li>
-<li><strong>meand1</strong> = The mean value of d1 for the triangles in each bin</li>
-<li><strong>meanlogd1</strong> = The mean value of log(d1) for the triangles in each bin</li>
-<li><strong>meand2</strong> = The mean value of d2 for the triangles in each bin</li>
-<li><strong>meanlogd2</strong> = The mean value of log(d2) for the triangles in each bin</li>
-<li><strong>meand3</strong> = The mean value of d3 for the triangles in each bin</li>
-<li><strong>meanlogd3</strong> = The mean value of log(d3) for the triangles in each bin</li>
-<li><strong>zeta</strong> = The correlation function.</li>
-<li><strong>sigma_zeta</strong> = The 1-sigma error bar for zeta.</li>
-<li><strong>weight</strong> = The total weight of the triangles in each bin.</li>
-<li><strong>ntri</strong> = The total number of triangles in each bin.</li>
+<li><p><strong>R_nom</strong> = The center of the bin in R = d2 where d1 &gt; d2 &gt; d3</p></li>
+<li><p><strong>u_nom</strong> = The center of the bin in u = d3/d2</p></li>
+<li><p><strong>v_nom</strong> = The center of the bin in v = +-(d1-d2)/d3</p></li>
+<li><p><strong>meand1</strong> = The mean value of d1 for the triangles in each bin</p></li>
+<li><p><strong>meanlogd1</strong> = The mean value of log(d1) for the triangles in each bin</p></li>
+<li><p><strong>meand2</strong> = The mean value of d2 for the triangles in each bin</p></li>
+<li><p><strong>meanlogd2</strong> = The mean value of log(d2) for the triangles in each bin</p></li>
+<li><p><strong>meand3</strong> = The mean value of d3 for the triangles in each bin</p></li>
+<li><p><strong>meanlogd3</strong> = The mean value of log(d3) for the triangles in each bin</p></li>
+<li><p><strong>zeta</strong> = The correlation function.</p></li>
+<li><p><strong>sigma_zeta</strong> = The 1-sigma error bar for zeta.</p></li>
+<li><p><strong>weight</strong> = The total weight of the triangles in each bin.</p></li>
+<li><p><strong>ntri</strong> = The total number of triangles in each bin.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">precision:</th><td class="field-body"><p class="first">(int) The number of digits after the decimal in the output.</p>
-<p class="last">All output quantities are printed using scientific notation, so this sets
+</dd>
+<dt class="field-even">precision</dt>
+<dd class="field-even"><p>(int) The number of digits after the decimal in the output.</p>
+<p>All output quantities are printed using scientific notation, so this sets
 the number of digits output for all values.  The default precision is 4.
 So if you want more (or less) precise values, you can set this to something
 else.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </div>
 <div class="section" id="derived-output-quantities">
 <h2>Derived output quantities<a class="headerlink" href="#derived-output-quantities" title="Permalink to this headline">¶</a></h2>
 <p>The rest of these output files are calculated based on one or more correlation
 functions.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">m2_file_name:</th><td class="field-body"><p class="first">(str) The output filename for the aperture mass statistics.</p>
+<dl class="field-list">
+<dt class="field-odd">m2_file_name</dt>
+<dd class="field-odd"><p>(str) The output filename for the aperture mass statistics.</p>
 <p>This file outputs the aperture mass variance and related quantities,
 derived from the shear-shear correlation function.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><strong>R</strong> = The radius of the aperture.  (Spaced the same way as  <strong>R_nom</strong> is in the correlation function output files.</li>
-<li><strong>Mapsq</strong> = The E-mode aperture mass variance for each radius R.</li>
-<li><strong>Mxsq</strong> = The B-mode aperture mass variance.</li>
-<li><strong>MMxa</strong>, <strong>MMxb</strong> = Two semi-independent estimate for the E-B cross term.  (Both should be consistent with zero for parity invariance shear fields.)</li>
-<li><strong>sig_map</strong> = The 1-sigma error bar for these values.</li>
-<li><strong>Gamsq</strong> = The variance of the top-hat weighted mean shear in apertures of the given radius R.</li>
-<li><strong>sig_gam</strong> = The 1-sigma error bar for <strong>Gamsq</strong>.</li>
+<li><p><strong>R</strong> = The radius of the aperture.  (Spaced the same way as  <strong>R_nom</strong> is in the correlation function output files.</p></li>
+<li><p><strong>Mapsq</strong> = The E-mode aperture mass variance for each radius R.</p></li>
+<li><p><strong>Mxsq</strong> = The B-mode aperture mass variance.</p></li>
+<li><p><strong>MMxa</strong>, <strong>MMxb</strong> = Two semi-independent estimate for the E-B cross term.  (Both should be consistent with zero for parity invariance shear fields.)</p></li>
+<li><p><strong>sig_map</strong> = The 1-sigma error bar for these values.</p></li>
+<li><p><strong>Gamsq</strong> = The variance of the top-hat weighted mean shear in apertures of the given radius R.</p></li>
+<li><p><strong>sig_gam</strong> = The 1-sigma error bar for <strong>Gamsq</strong>.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">m2_uform:</th><td class="field-body"><p class="first">(str, default=’Crittenden’) The function form of the aperture</p>
+</dd>
+<dt class="field-even">m2_uform</dt>
+<dd class="field-even"><p>(str, default=’Crittenden’) The function form of the aperture</p>
 <p>The form of the aperture mass statistic popularized by Schneider is</p>
 <blockquote>
 <div><p>U = 9/Pi (1-r^2) (1/3-r^2)
@@ -880,71 +852,67 @@ Crittenden form, but no such formula is known for the Schneider form.</p>
 <p>The <strong>m2_uform</strong> parameter allows you to switch between the two forms,
 at least for 2-point applications.  (You will get an error if you
 try to use ‘Schneider’ with the m3 output.)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">nm_file_name:</th><td class="field-body"><p class="first">(str) The output filename for &lt;N Map&gt; and related values.</p>
+</dd>
+<dt class="field-odd">nm_file_name</dt>
+<dd class="field-odd"><p>(str) The output filename for &lt;N Map&gt; and related values.</p>
 <p>This file outputs the correlation of the aperture mass with the
 aperture-smoothed density field, derived from the count-shear correlation
 function.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><strong>R</strong> = The radius of the aperture.  (Spaced the same way as  <strong>R_nom</strong> is in the correlation function output files.</li>
-<li><strong>NMap</strong> = The E-mode aperture mass correlated with the density smoothed with the same aperture profile as the aperture mass statistic uses.</li>
-<li><strong>NMx</strong> = The corresponding B-mode statistic.</li>
-<li><strong>sig_nmap</strong> = The 1-sigma error bar for these values.</li>
+<li><p><strong>R</strong> = The radius of the aperture.  (Spaced the same way as  <strong>R_nom</strong> is in the correlation function output files.</p></li>
+<li><p><strong>NMap</strong> = The E-mode aperture mass correlated with the density smoothed with the same aperture profile as the aperture mass statistic uses.</p></li>
+<li><p><strong>NMx</strong> = The corresponding B-mode statistic.</p></li>
+<li><p><strong>sig_nmap</strong> = The 1-sigma error bar for these values.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">norm_file_name:</th><td class="field-body"><p class="first">(str) The output filename for &lt;Nap Map&gt;^2/&lt;Nap^2&gt;&lt;Map^2&gt; and related values.</p>
+</dd>
+<dt class="field-even">norm_file_name</dt>
+<dd class="field-even"><p>(str) The output filename for &lt;Nap Map&gt;^2/&lt;Nap^2&gt;&lt;Map^2&gt; and related values.</p>
 <p>This file outputs the &lt;Nap Map&gt; values normalized by &lt;Nap^2&gt;&lt;Map^2&gt;.  This
 provides an estimate of the correlation coefficient, r.</p>
 <p>The output columns are:</p>
-<ul class="last simple">
-<li><strong>R</strong> = The radius of the aperture.  (Spaced the same way as  <strong>R_nom</strong> is in the correlation function output files.</li>
-<li><strong>NMap</strong> = The E-mode aperture mass correlated with the density smoothed with the same aperture profile as the aperture mass statistic uses.</li>
-<li><strong>NMx</strong> = The corresponding B-mode statistic.</li>
-<li><strong>sig_nmap</strong> = The 1-sigma error bar for these values.</li>
-<li><strong>Napsq</strong> = The variance of the aperture-weighted galaxy density.</li>
-<li><strong>sig_napsq</strong> = The 1-sigma error bar for &lt;Nap^2&gt;.</li>
-<li><strong>Mapsq</strong> = The aperture mass variance.</li>
-<li><strong>sig_mapsq</strong> = The 1-sigma error bar for &lt;Map^2&gt;.</li>
-<li><strong>NMap_norm</strong> = &lt;Nap Map&gt;^2 / (&lt;Nap^2&gt; &lt;Map^2&gt;)</li>
-<li><strong>sig_norm</strong> = The 1-sigma error bar for this value.</li>
-<li><strong>Nsq_Mapsq</strong> = &lt;Nap^2&gt; / &lt;Map^2&gt;</li>
-<li><strong>sig_nn_mm</strong> = The 1-sigma error bar for this value.</li>
+<ul class="simple">
+<li><p><strong>R</strong> = The radius of the aperture.  (Spaced the same way as  <strong>R_nom</strong> is in the correlation function output files.</p></li>
+<li><p><strong>NMap</strong> = The E-mode aperture mass correlated with the density smoothed with the same aperture profile as the aperture mass statistic uses.</p></li>
+<li><p><strong>NMx</strong> = The corresponding B-mode statistic.</p></li>
+<li><p><strong>sig_nmap</strong> = The 1-sigma error bar for these values.</p></li>
+<li><p><strong>Napsq</strong> = The variance of the aperture-weighted galaxy density.</p></li>
+<li><p><strong>sig_napsq</strong> = The 1-sigma error bar for &lt;Nap^2&gt;.</p></li>
+<li><p><strong>Mapsq</strong> = The aperture mass variance.</p></li>
+<li><p><strong>sig_mapsq</strong> = The 1-sigma error bar for &lt;Map^2&gt;.</p></li>
+<li><p><strong>NMap_norm</strong> = &lt;Nap Map&gt;^2 / (&lt;Nap^2&gt; &lt;Map^2&gt;)</p></li>
+<li><p><strong>sig_norm</strong> = The 1-sigma error bar for this value.</p></li>
+<li><p><strong>Nsq_Mapsq</strong> = &lt;Nap^2&gt; / &lt;Map^2&gt;</p></li>
+<li><p><strong>sig_nn_mm</strong> = The 1-sigma error bar for this value.</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </div>
 <div class="section" id="miscellaneous-parameters">
 <h2>Miscellaneous parameters<a class="headerlink" href="#miscellaneous-parameters" title="Permalink to this headline">¶</a></h2>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">verbose:</th><td class="field-body"><p class="first">(int, default=1) How verbose the code should be during processing.</p>
+<dl class="field-list">
+<dt class="field-odd">verbose</dt>
+<dd class="field-odd"><p>(int, default=1) How verbose the code should be during processing.</p>
 <ul class="simple">
-<li>0 = no output unless there is an error</li>
-<li>1 = output warnings</li>
-<li>2 = output progress information</li>
-<li>3 = output extra debugging lines</li>
+<li><p>0 = no output unless there is an error</p></li>
+<li><p>1 = output warnings</p></li>
+<li><p>2 = output progress information</p></li>
+<li><p>3 = output extra debugging lines</p></li>
 </ul>
-<p>This is overridden by the <code class="docutils literal notranslate"><span class="pre">-v</span></code> command line argument for the <a class="reference internal" href="scripts.html#module-corr2" title="corr2"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">corr2</span></code></a> executable.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">log_file:</th><td class="field-body"><p class="first">(str, default=None) Where to write the logging information.</p>
+<p>This is overridden by the <code class="docutils literal notranslate"><span class="pre">-v</span></code> command line argument for the <a class="reference internal" href="scripts.html#treecorr.corr2" title="treecorr.corr2"><code class="xref any py py-func docutils literal notranslate"><span class="pre">corr2</span></code></a> executable.</p>
+</dd>
+<dt class="field-even">log_file</dt>
+<dd class="field-even"><p>(str, default=None) Where to write the logging information.</p>
 <p>The default is to write lines to the screen, but this option allows you to
-write them to a file instead.  With the <a class="reference internal" href="scripts.html#module-corr2" title="corr2"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">corr2</span></code></a> executable, this can also be
+write them to a file instead.  With the <a class="reference internal" href="scripts.html#treecorr.corr2" title="treecorr.corr2"><code class="xref any py py-func docutils literal notranslate"><span class="pre">corr2</span></code></a> executable, this can also be
 specified with the <code class="docutils literal notranslate"><span class="pre">-l</span></code> command line argument.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">output_dots:</th><td class="field-body"><p class="first">(bool, default=(<strong>verbose</strong>&gt;=2)) Whether to output progress dots during the
+</dd>
+<dt class="field-odd">output_dots</dt>
+<dd class="field-odd"><p>(bool, default=(<strong>verbose</strong>&gt;=2)) Whether to output progress dots during the
 calculation of the correlation function.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">split_method:</th><td class="field-body"><p class="first">(str, default=’mean’) Which method to use for splitting cells.</p>
+</dd>
+<dt class="field-even">split_method</dt>
+<dd class="field-even"><p>(str, default=’mean’) Which method to use for splitting cells.</p>
 <p>When building the tree, there are three obvious choices for how to split a set
 of points into two chld cells.  The direction is always taken to be the
 coordinate direction with the largest extent.  Then, in that direction,
@@ -955,26 +923,24 @@ you can split at the mean value, the median value, or the “middle” =
 tree construction to study how much the results depend on the specific splitting
 used.  For that purpose, there is also the option to set <strong>split_method</strong> = ‘random’,
 which will choose a random point in the middle two quartiles of the range.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">min_top:</th><td class="field-body"><p class="first">(int, default=3) The minimum number of top layers to use when setting up the field.</p>
+</dd>
+<dt class="field-odd">min_top</dt>
+<dd class="field-odd"><p>(int, default=3) The minimum number of top layers to use when setting up the field.</p>
 <p>The OpenMP parallelization happens over the top level cells, so setting this &gt; 0
 ensures that there will be multiple jobs to be run in parallel.  For systems with
 very many cores, it may be helpful to set this larger than the default value of 3.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">max_top:</th><td class="field-body"><p class="first">(int, default=10) The maximum number of top layers to use when setting up the field.</p>
+</dd>
+<dt class="field-even">max_top</dt>
+<dd class="field-even"><p>(int, default=10) The maximum number of top layers to use when setting up the field.</p>
 <p>The top-level cells are the cells where each calculation job starts.  There will
 typically be of order 2^max_top top-level cells.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">num_threads:</th><td class="field-body"><p class="first">(int, default=0) How many (OpenMP) threads should be used.</p>
-<p class="last">The default is to try to determine the number of cpu cores your system has
+</dd>
+<dt class="field-odd">num_threads</dt>
+<dd class="field-odd"><p>(int, default=0) How many (OpenMP) threads should be used.</p>
+<p>The default is to try to determine the number of cpu cores your system has
 and use that many threads.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </div>
 </div>
 

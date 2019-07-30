@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Binning &mdash; TreeCorr 4.0.5 documentation</title>
+  <title>Binning &mdash; TreeCorr 4.0.6 documentation</title>
   
 
   
@@ -191,17 +191,17 @@ in the separation.</p>
 <p>The exact binning is specified using any 3 of the following 4 parameters:</p>
 <blockquote>
 <div><ul class="simple">
-<li><strong>nbins</strong>       How many bins to use.</li>
-<li><strong>bin_size</strong>    The width of the bins in log(r).</li>
-<li><strong>min_sep</strong>     The minimum separation r to include.</li>
-<li><strong>max_sep</strong>     The maximum separation r to include.</li>
+<li><p><strong>nbins</strong>       How many bins to use.</p></li>
+<li><p><strong>bin_size</strong>    The width of the bins in log(r).</p></li>
+<li><p><strong>min_sep</strong>     The minimum separation r to include.</p></li>
+<li><p><strong>max_sep</strong>     The maximum separation r to include.</p></li>
 </ul>
 </div></blockquote>
 <p>For a pair with a metric distance r, the index of the corresponding bin in the
 output array is <code class="docutils literal notranslate"><span class="pre">int(log(r)</span> <span class="pre">-</span> <span class="pre">log(min_sep))/bin_size)</span></code>.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">If <strong>nbins</strong> is the omitted value, then <strong>bin_size</strong> might need to be decreased
+<p class="admonition-title">Note</p>
+<p>If <strong>nbins</strong> is the omitted value, then <strong>bin_size</strong> might need to be decreased
 slightly to accommodate an integer number of bins with the given <strong>min_sep</strong> and <strong>max_sep</strong>.</p>
 </div>
 </div>
@@ -214,17 +214,17 @@ In these cases, using <strong>bin_type</strong> = “Linear” may be preferred.
 <p>As with “Log”, the binning may be specified using any 3 of the following 4 parameters:</p>
 <blockquote>
 <div><ul class="simple">
-<li><strong>nbins</strong>       How many bins to use.</li>
-<li><strong>bin_size</strong>    The width of the bins in r.</li>
-<li><strong>min_sep</strong>     The minimum separation r to include.</li>
-<li><strong>max_sep</strong>     The maximum separation r to include.</li>
+<li><p><strong>nbins</strong>       How many bins to use.</p></li>
+<li><p><strong>bin_size</strong>    The width of the bins in r.</p></li>
+<li><p><strong>min_sep</strong>     The minimum separation r to include.</p></li>
+<li><p><strong>max_sep</strong>     The maximum separation r to include.</p></li>
 </ul>
 </div></blockquote>
 <p>For a pair with a metric distance r, the index of the corresponding bin in the
 output array is <code class="docutils literal notranslate"><span class="pre">int((r</span> <span class="pre">-</span> <span class="pre">min_sep)/bin_size)</span></code>.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">If <strong>nbins</strong> is the omitted value, then <strong>bin_size</strong> might need to be decreased
+<p class="admonition-title">Note</p>
+<p>If <strong>nbins</strong> is the omitted value, then <strong>bin_size</strong> might need to be decreased
 slightly to accommodate an integer number of bins with the given <strong>min_sep</strong> and <strong>max_sep</strong>.</p>
 </div>
 </div>
@@ -236,9 +236,9 @@ direction.  The results are then binned linearly in both the delta x and delta y
 <p>The exact binning is specified using any 2 of the following 3 parameters:</p>
 <blockquote>
 <div><ul class="simple">
-<li><strong>nbins</strong>       How many bins to use in each direction.</li>
-<li><strong>bin_size</strong>    The width of the bins in dx and dy.</li>
-<li><strong>max_sep</strong>     The maximum absolute value of dx or dy to include.</li>
+<li><p><strong>nbins</strong>       How many bins to use in each direction.</p></li>
+<li><p><strong>bin_size</strong>    The width of the bins in dx and dy.</p></li>
+<li><p><strong>max_sep</strong>     The maximum absolute value of dx or dy to include.</p></li>
 </ul>
 </div></blockquote>
 <p>For a pair with a directed separation (dx,dy), the indices of the corresponding bin in the

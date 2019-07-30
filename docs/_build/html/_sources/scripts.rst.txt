@@ -52,13 +52,9 @@ The corr3 function from python
 Other utilities related to corr2 and corr3
 ------------------------------------------
 
-.. automodule:: treecorr.corr2
-    :members:
-    :exclude-members: corr2
+.. autofunction:: treecorr.corr2.print_corr2_params
 
-.. automodule:: treecorr.corr3
-    :members:
-    :exclude-members: corr3
+.. autofunction:: treecorr.corr3.print_corr3_params
 
 
 Utilities related to the configuration dict

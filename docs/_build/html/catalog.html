@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Input Data &mdash; TreeCorr 4.0.5 documentation</title>
+  <title>Input Data &mdash; TreeCorr 4.0.6 documentation</title>
   
 
   
@@ -172,7 +172,7 @@
 <h2>The Catalog class<a class="headerlink" href="#the-catalog-class" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="treecorr.Catalog">
-<em class="property">class </em><code class="descclassname">treecorr.</code><code class="descname">Catalog</code><span class="sig-paren">(</span><em>file_name=None</em>, <em>config=None</em>, <em>num=0</em>, <em>logger=None</em>, <em>is_rand=False</em>, <em>x=None</em>, <em>y=None</em>, <em>z=None</em>, <em>ra=None</em>, <em>dec=None</em>, <em>r=None</em>, <em>w=None</em>, <em>wpos=None</em>, <em>flag=None</em>, <em>g1=None</em>, <em>g2=None</em>, <em>k=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">Catalog</code><span class="sig-paren">(</span><em class="sig-param">file_name=None</em>, <em class="sig-param">config=None</em>, <em class="sig-param">num=0</em>, <em class="sig-param">logger=None</em>, <em class="sig-param">is_rand=False</em>, <em class="sig-param">x=None</em>, <em class="sig-param">y=None</em>, <em class="sig-param">z=None</em>, <em class="sig-param">ra=None</em>, <em class="sig-param">dec=None</em>, <em class="sig-param">r=None</em>, <em class="sig-param">w=None</em>, <em class="sig-param">wpos=None</em>, <em class="sig-param">flag=None</em>, <em class="sig-param">g1=None</em>, <em class="sig-param">g2=None</em>, <em class="sig-param">k=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog" title="Permalink to this definition">¶</a></dt>
 <dd><p>A set of input data (positions and other quantities) to be correlated.</p>
 <p>A Catalog object keeps track of the relevant information for a number of objects to
 be correlated.  The objects each have some kind of position (for instance (x,y), (ra,dec),
@@ -225,258 +225,231 @@ from the input file, you could write:</p>
 </pre></div>
 </div>
 <p>After construction, a Catalog object will have the following attributes:</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><ul class="first">
-<li><p class="first"><strong>x</strong> – The x positions, if defined, as a numpy array (converted to radians if x_units
-was given). (None otherwise)</p>
-</li>
-<li><p class="first"><strong>y</strong> – The y positions, if defined, as a numpy array (converted to radians if y_units
-was given). (None otherwise)</p>
-</li>
-<li><p class="first"><strong>z</strong> – The z positions, if defined, as a numpy array. (None otherwise)</p>
-</li>
-<li><p class="first"><strong>ra</strong> – The right ascension, if defined, as a numpy array (in radians). (None otherwise)</p>
-</li>
-<li><p class="first"><strong>dec</strong> – The declination, if defined, as a numpy array (in radians). (None otherwise)</p>
-</li>
-<li><p class="first"><strong>r</strong> – The distance, if defined, as a numpy array. (None otherwise)</p>
-</li>
-<li><p class="first"><strong>w</strong> – The weights, as a numpy array. (All 1’s if no weight column provided.)</p>
-</li>
-<li><p class="first"><strong>wpos</strong> – The weights for position centroiding, as a numpy array.  (All 1’s if neither
-weight column provided.)</p>
-</li>
-<li><p class="first"><strong>g1</strong> – The g1 component of the shear, if defined, as a numpy array. (None otherwise)</p>
-</li>
-<li><p class="first"><strong>g2</strong> – The g2 component of the shear, if defined, as a numpy array. (None otherwise)</p>
-</li>
-<li><p class="first"><strong>k</strong> – The convergence, kappa, if defined, as a numpy array. (None otherwise)</p>
-</li>
-<li><p class="first"><strong>ntot</strong> – The total number of objects (including those with zero weight)</p>
-</li>
-<li><p class="first"><strong>nobj</strong> – The number of objects with non-zero weight</p>
-</li>
-<li><p class="first"><strong>sumw</strong> – The sum of the weights</p>
-</li>
-<li><p class="first"><strong>varg</strong> – The shear variance (aka shape noise) (0 if g1,g2 are not defined)
+<dl class="field-list">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><ul>
+<li><p><strong>x</strong> – The x positions, if defined, as a numpy array (converted to radians if x_units
+was given). (None otherwise)</p></li>
+<li><p><strong>y</strong> – The y positions, if defined, as a numpy array (converted to radians if y_units
+was given). (None otherwise)</p></li>
+<li><p><strong>z</strong> – The z positions, if defined, as a numpy array. (None otherwise)</p></li>
+<li><p><strong>ra</strong> – The right ascension, if defined, as a numpy array (in radians). (None otherwise)</p></li>
+<li><p><strong>dec</strong> – The declination, if defined, as a numpy array (in radians). (None otherwise)</p></li>
+<li><p><strong>r</strong> – The distance, if defined, as a numpy array. (None otherwise)</p></li>
+<li><p><strong>w</strong> – The weights, as a numpy array. (All 1’s if no weight column provided.)</p></li>
+<li><p><strong>wpos</strong> – The weights for position centroiding, as a numpy array.  (All 1’s if neither
+weight column provided.)</p></li>
+<li><p><strong>g1</strong> – The g1 component of the shear, if defined, as a numpy array. (None otherwise)</p></li>
+<li><p><strong>g2</strong> – The g2 component of the shear, if defined, as a numpy array. (None otherwise)</p></li>
+<li><p><strong>k</strong> – The convergence, kappa, if defined, as a numpy array. (None otherwise)</p></li>
+<li><p><strong>ntot</strong> – The total number of objects (including those with zero weight)</p></li>
+<li><p><strong>nobj</strong> – The number of objects with non-zero weight</p></li>
+<li><p><strong>sumw</strong> – The sum of the weights</p></li>
+<li><p><strong>varg</strong> – The shear variance (aka shape noise) (0 if g1,g2 are not defined)
 Note: If there are weights, this is really <span class="math notranslate nohighlight">\(\sum(w^2 |g|^2)/\sum(w)\)</span>,
 which is more like <span class="math notranslate nohighlight">\(\langle w \rangle \mathrm{Var}(g)\)</span>.  In finalize, we
-divide this by the weight in each bin, so this is the right quantity to use there.</p>
-</li>
-<li><p class="first"><strong>vark</strong> – The kappa variance (0 if k is not defined)
-Note: If there are weights, this is really <span class="math notranslate nohighlight">\(\sum(w^2 \kappa^2)/\sum(w)\)</span>.</p>
-</li>
-<li><p class="first"><strong>name</strong> – When constructed from a file, this will be the file_name.  It is only used as
+divide this by the weight in each bin, so this is the right quantity to use there.</p></li>
+<li><p><strong>vark</strong> – The kappa variance (0 if k is not defined)
+Note: If there are weights, this is really <span class="math notranslate nohighlight">\(\sum(w^2 \kappa^2)/\sum(w)\)</span>.</p></li>
+<li><p><strong>name</strong> – When constructed from a file, this will be the file_name.  It is only used as
 a reference name in logging output  after construction, so if you construct it
 from data vectors directly, it will be ‘’.  You may assign to it if you want to
-give this catalog a specific name.</p>
-</li>
-<li><p class="first"><strong>coords</strong> – What kind of coordinate system is defined for this catalog?
+give this catalog a specific name.</p></li>
+<li><p><strong>coords</strong> – What kind of coordinate system is defined for this catalog?
 The possibilities for this attribute are:</p>
 <blockquote>
 <div><ul class="simple">
-<li>‘flat’ = 2-dimensional flat coordinates.  Set when x,y are given.</li>
-<li>‘spherical’ = spherical coordinates.  Set when ra,dec are given.</li>
-<li>‘3d’ = 3-dimensional coordinates.  Set when x,y,z or ra,dec,r are given.</li>
+<li><p>‘flat’ = 2-dimensional flat coordinates.  Set when x,y are given.</p></li>
+<li><p>‘spherical’ = spherical coordinates.  Set when ra,dec are given.</p></li>
+<li><p>‘3d’ = 3-dimensional coordinates.  Set when x,y,z or ra,dec,r are given.</p></li>
 </ul>
 </div></blockquote>
 </li>
-<li><p class="first"><strong>field</strong> – If any of the <strong>get?Field</strong> methods have been called to construct a field from
+<li><p><strong>field</strong> – If any of the <strong>get?Field</strong> methods have been called to construct a field from
 this catalog (either explicitly or implicitly via a <strong>corr.process()</strong> command),
 then this attribute will hold the most recent field to have been constructed.
 Note: it holds this field as a weakref, so if caching is turned off with
 <code class="docutils literal notranslate"><span class="pre">resize_cache(0)</span></code>, and the field has been garbage collected, then this attribute
-will be None.</p>
-</li>
+will be None.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>file_name</strong> (<em>str</em>) – The name of the catalog file to be read in. (default: None, in which
-case the columns need to be entered directly with <strong>x</strong>, <strong>y</strong>, etc.)</li>
-<li><strong>config</strong> (<em>dict</em>) – A configuration dict which defines attributes about how to read the
+</dd>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the catalog file to be read in. (default: None, in which
+case the columns need to be entered directly with <strong>x</strong>, <strong>y</strong>, etc.)</p></li>
+<li><p><strong>config</strong> (<em>dict</em>) – A configuration dict which defines attributes about how to read the
 file.  Any optional kwargs may be given here in the config dict if
-desired.  Invalid keys in the config dict are ignored. (default: None)</li>
-<li><strong>num</strong> (<em>int</em>) – Which number catalog are we reading.  e.g. for NG correlations the
+desired.  Invalid keys in the config dict are ignored. (default: None)</p></li>
+<li><p><strong>num</strong> (<em>int</em>) – Which number catalog are we reading.  e.g. for NG correlations the
 catalog for the N has num=0, the one for G has num=1.  This is only
 necessary if you are using a config dict where things like <strong>x_col</strong>
-have multiple values.  (default: 0)</li>
-<li><strong>logger</strong> – If desired, a Logger object for logging. (default: None, in which case
-one will be built according to the config dict’s verbose level.)</li>
-<li><strong>is_rand</strong> (<em>bool</em>) – If this is a random file, then setting is_rand to True will let them
+have multiple values.  (default: 0)</p></li>
+<li><p><strong>logger</strong> – If desired, a Logger object for logging. (default: None, in which case
+one will be built according to the config dict’s verbose level.)</p></li>
+<li><p><strong>is_rand</strong> (<em>bool</em>) – If this is a random file, then setting is_rand to True will let them
 skip k_col, g1_col, and g2_col if they were set for the main catalog.
-(default: False)</li>
-<li><strong>x</strong> (<em>array</em>) – The x values. (default: None; When providing values directly, either
-x,y are required or ra,dec are required.)</li>
-<li><strong>y</strong> (<em>array</em>) – The y values. (default: None; When providing values directly, either
-x,y are required or ra,dec are required.)</li>
-<li><strong>z</strong> (<em>array</em>) – The z values, if doing 3d positions. (default: None)</li>
-<li><strong>ra</strong> (<em>array</em>) – The RA values. (default: None; When providing values directly, either
-x,y are required or ra,dec are required.)</li>
-<li><strong>dec</strong> (<em>array</em>) – The Dec values. (default: None; When providing values directly, either
-x,y are required or ra,dec are required.)</li>
-<li><strong>r</strong> (<em>array</em>) – The r values (the distances of each source from Earth). Note that r is
-invalid in conjunction with x,y. (default: None)</li>
-<li><strong>w</strong> (<em>array</em>) – The weights to apply when computing the correlations. (default: None)</li>
-<li><strong>wpos</strong> (<em>array</em>) – The weights to use for position centroiding. (default: None, which
-means to use the value weights, w, to weight the positions as well)</li>
-<li><strong>flag</strong> (<em>array</em>) – An optional array of flags, indicating objects to skip.  Rows with
+(default: False)</p></li>
+<li><p><strong>x</strong> (<em>array</em>) – The x values. (default: None; When providing values directly, either
+x,y are required or ra,dec are required.)</p></li>
+<li><p><strong>y</strong> (<em>array</em>) – The y values. (default: None; When providing values directly, either
+x,y are required or ra,dec are required.)</p></li>
+<li><p><strong>z</strong> (<em>array</em>) – The z values, if doing 3d positions. (default: None)</p></li>
+<li><p><strong>ra</strong> (<em>array</em>) – The RA values. (default: None; When providing values directly, either
+x,y are required or ra,dec are required.)</p></li>
+<li><p><strong>dec</strong> (<em>array</em>) – The Dec values. (default: None; When providing values directly, either
+x,y are required or ra,dec are required.)</p></li>
+<li><p><strong>r</strong> (<em>array</em>) – The r values (the distances of each source from Earth). Note that r is
+invalid in conjunction with x,y. (default: None)</p></li>
+<li><p><strong>w</strong> (<em>array</em>) – The weights to apply when computing the correlations. (default: None)</p></li>
+<li><p><strong>wpos</strong> (<em>array</em>) – The weights to use for position centroiding. (default: None, which
+means to use the value weights, w, to weight the positions as well)</p></li>
+<li><p><strong>flag</strong> (<em>array</em>) – An optional array of flags, indicating objects to skip.  Rows with
 flag != 0 (or technically flag &amp; ~ok_flag != 0) will be given a weight
-of 0.  (default: None)</li>
-<li><strong>g1</strong> (<em>array</em>) – The g1 values to use for shear correlations. (g1,g2 may represent any
-spinor field.) (default: None)</li>
-<li><strong>g2</strong> (<em>array</em>) – The g2 values to use for shear correlations. (g1,g2 may represent any
-spinor field.) (default: None)</li>
-<li><strong>k</strong> (<em>array</em>) – The kappa values to use for scalar correlations. (This may represent
-any scalar field.) (default: None)</li>
+of 0.  (default: None)</p></li>
+<li><p><strong>g1</strong> (<em>array</em>) – The g1 values to use for shear correlations. (g1,g2 may represent any
+spinor field.) (default: None)</p></li>
+<li><p><strong>g2</strong> (<em>array</em>) – The g2 values to use for shear correlations. (g1,g2 may represent any
+spinor field.) (default: None)</p></li>
+<li><p><strong>k</strong> (<em>array</em>) – The kappa values to use for scalar correlations. (This may represent
+any scalar field.) (default: None)</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
-<tr class="field-odd field"><td>&#160;</td><td class="field-body"><ul class="first last simple">
-<li><strong>file_type</strong> (<em>str</em>) – What kind of file is the input file. Valid options are ‘ASCII’ or
+</dd>
+<dt class="field-odd">Keyword Arguments</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_type</strong> (<em>str</em>) – What kind of file is the input file. Valid options are ‘ASCII’ or
 ‘FITS’ (default: if the file_name extension starts with .fit, then use
-‘FITS’, else ‘ASCII’)</li>
-<li><strong>delimiter</strong> (<em>str</em>) – For ASCII files, what delimiter to use between values. (default: None,
-which means any whitespace)</li>
-<li><strong>comment_marker</strong> (<em>str</em>) – For ASCII files, what token indicates a comment line. (default: ‘#’)</li>
-<li><strong>first_row</strong> (<em>int</em>) – Which row to take as the first row to be used. (default: 1)</li>
-<li><strong>last_row</strong> (<em>int</em>) – Which row to take as the last row to be used. (default: -1, which means
-the last row in the file)</li>
-<li><strong>x_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the x values. This should be an integer for ASCII
+‘FITS’, else ‘ASCII’)</p></li>
+<li><p><strong>delimiter</strong> (<em>str</em>) – For ASCII files, what delimiter to use between values. (default: None,
+which means any whitespace)</p></li>
+<li><p><strong>comment_marker</strong> (<em>str</em>) – For ASCII files, what token indicates a comment line. (default: ‘#’)</p></li>
+<li><p><strong>first_row</strong> (<em>int</em>) – Which row to take as the first row to be used. (default: 1)</p></li>
+<li><p><strong>last_row</strong> (<em>int</em>) – Which row to take as the last row to be used. (default: -1, which means
+the last row in the file)</p></li>
+<li><p><strong>x_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the x values. This should be an integer for ASCII
 files or a string for FITS files. (default: 0 or ‘0’, which means not
 to read in this column. When reading from a file, either x_col and
-y_col are required or ra_col and dec_col are required.)</li>
-<li><strong>y_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the y values. This should be an integer for ASCII
+y_col are required or ra_col and dec_col are required.)</p></li>
+<li><p><strong>y_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the y values. This should be an integer for ASCII
 files or a string for FITS files. (default: 0 or ‘0’, which means not
 to read in this column. When reading from a file, either x_col and
-y_col are required or ra_col and dec_col are required.)</li>
-<li><strong>z_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the z values. This should be an integer for ASCII
+y_col are required or ra_col and dec_col are required.)</p></li>
+<li><p><strong>z_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the z values. This should be an integer for ASCII
 files or a string for FITS files. (default: 0 or ‘0’, which means not
-to read in this column.)</li>
-<li><strong>ra_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the ra values. This should be an integer for
+to read in this column.)</p></li>
+<li><p><strong>ra_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the ra values. This should be an integer for
 ASCII files or a string for FITS files. (default: 0 or ‘0’, which
 means not to read in this column. When reading from a file, either
-x_col and y_col are required or ra_col and dec_col are required.)</li>
-<li><strong>dec_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the dec values. This should be an integer for
+x_col and y_col are required or ra_col and dec_col are required.)</p></li>
+<li><p><strong>dec_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the dec values. This should be an integer for
 ASCII files or a string for FITS files. (default: 0 or ‘0’, which
 means not to read in this column. When reading from a file, either
-x_col and y_col are required or ra_col and dec_col are required.)</li>
-<li><strong>r_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the r values. This should be an integer for ASCII
+x_col and y_col are required or ra_col and dec_col are required.)</p></li>
+<li><p><strong>r_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the r values. This should be an integer for ASCII
 files or a string for FITS files.  Note that r_col is invalid in
 conjunction with x_col/y_col. (default: 0 or ‘0’, which means not to
-read in this column.)</li>
-<li><strong>x_units</strong> (<em>str</em>) – The units to use for the x values, given as a string.  Valid options are
+read in this column.)</p></li>
+<li><p><strong>x_units</strong> (<em>str</em>) – The units to use for the x values, given as a string.  Valid options are
 arcsec, arcmin, degrees, hours, radians.  (default: radians, although
 with (x,y) positions, you can often just ignore the units, and the
-output separations will be in whatever units x and y are in.)</li>
-<li><strong>y_units</strong> (<em>str</em>) – The units to use for the y values, given as a string.  Valid options are
+output separations will be in whatever units x and y are in.)</p></li>
+<li><p><strong>y_units</strong> (<em>str</em>) – The units to use for the y values, given as a string.  Valid options are
 arcsec, arcmin, degrees, hours, radians.  (default: radians, although
 with (x,y) positions, you can often just ignore the units, and the
-output separations will be in whatever units x and y are in.)</li>
-<li><strong>ra_units</strong> (<em>str</em>) – The units to use for the ra values, given as a string.  Valid options
+output separations will be in whatever units x and y are in.)</p></li>
+<li><p><strong>ra_units</strong> (<em>str</em>) – The units to use for the ra values, given as a string.  Valid options
 are arcsec, arcmin, degrees, hours, radians. (required when using
-ra_col or providing ra directly)</li>
-<li><strong>dec_units</strong> (<em>str</em>) – The units to use for the dec values, given as a string.  Valid options
+ra_col or providing ra directly)</p></li>
+<li><p><strong>dec_units</strong> (<em>str</em>) – The units to use for the dec values, given as a string.  Valid options
 are arcsec, arcmin, degrees, hours, radians. (required when using
-dec_col or providing dec directly)</li>
-<li><strong>g1_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the g1 values. This should be an integer for
+dec_col or providing dec directly)</p></li>
+<li><p><strong>g1_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the g1 values. This should be an integer for
 ASCII files or a string for FITS files. (default: 0 or ‘0’, which means
-not to read in this column.)</li>
-<li><strong>g2_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the g2 values. This should be an integer for
+not to read in this column.)</p></li>
+<li><p><strong>g2_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the g2 values. This should be an integer for
 ASCII files or a string for FITS files. (default: 0 or ‘0’, which means
-not to read in this column.)</li>
-<li><strong>k_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the kappa values. This should be an integer for
+not to read in this column.)</p></li>
+<li><p><strong>k_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the kappa values. This should be an integer for
 ASCII files or a string for FITS files. (default: 0 or ‘0’, which means
-not to read in this column.)</li>
-<li><strong>w_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the weight values. This should be an integer for
+not to read in this column.)</p></li>
+<li><p><strong>w_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the weight values. This should be an integer for
 ASCII files or a string for FITS files. (default: 0 or ‘0’, which means
-not to read in this column.)</li>
-<li><strong>wpos_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the position weight values. This should be an
+not to read in this column.)</p></li>
+<li><p><strong>wpos_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the position weight values. This should be an
 integer for ASCII files or a string for FITS files. (default: 0 or ‘0’,
-which means not to read in this column.)</li>
-<li><strong>flag_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the flag values. This should be an integer for
+which means not to read in this column.)</p></li>
+<li><p><strong>flag_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the flag values. This should be an integer for
 ASCII files or a string for FITS files. Any row with flag != 0 (or
 technically flag &amp; ~ok_flag != 0) will be given a weight of 0.
-(default: 0 or ‘0’, which means not to read in this column.)</li>
-<li><strong>ignore_flag</strong> (<em>int</em>) – Which flags should be ignored. (default: all non-zero flags are ignored.
-Equivalent to ignore_flag = ~0.)</li>
-<li><strong>ok_flag</strong> (<em>int</em>) – Which flags should be considered ok. (default: 0.  i.e. all non-zero
-flags are ignored.)</li>
-<li><strong>flip_g1</strong> (<em>bool</em>) – Whtether to flip the sign of the input g1 values. (default: False)</li>
-<li><strong>flip_g2</strong> (<em>bool</em>) – Whtether to flip the sign of the input g2 values. (default: False)</li>
-<li><strong>hdu</strong> (<em>int</em>) – For FITS files, which hdu to read. (default: 1)</li>
-<li><strong>x_hdu</strong> (<em>int</em>) – Which hdu to use for the x values. (default: hdu)</li>
-<li><strong>y_hdu</strong> (<em>int</em>) – Which hdu to use for the y values. (default: hdu)</li>
-<li><strong>z_hdu</strong> (<em>int</em>) – Which hdu to use for the z values. (default: hdu)</li>
-<li><strong>ra_hdu</strong> (<em>int</em>) – Which hdu to use for the ra values. (default: hdu)</li>
-<li><strong>dec_hdu</strong> (<em>int</em>) – Which hdu to use for the dec values. (default: hdu)</li>
-<li><strong>r_hdu</strong> (<em>int</em>) – Which hdu to use for the r values. (default: hdu)</li>
-<li><strong>g1_hdu</strong> (<em>int</em>) – Which hdu to use for the g1 values. (default: hdu)</li>
-<li><strong>g2_hdu</strong> (<em>int</em>) – Which hdu to use for the g2 values. (default: hdu)</li>
-<li><strong>k_hdu</strong> (<em>int</em>) – Which hdu to use for the k values. (default: hdu)</li>
-<li><strong>w_hdu</strong> (<em>int</em>) – Which hdu to use for the w values. (default: hdu)</li>
-<li><strong>wpos_hdu</strong> (<em>int</em>) – Which hdu to use for the wpos values. (default: hdu)</li>
-<li><strong>flag_hdu</strong> (<em>int</em>) – Which hdu to use for the flag values. (default: hdu)</li>
-<li><strong>verbose</strong> (<em>int</em>) – <p>If no logger is provided, this will optionally specify a logging level
+(default: 0 or ‘0’, which means not to read in this column.)</p></li>
+<li><p><strong>ignore_flag</strong> (<em>int</em>) – Which flags should be ignored. (default: all non-zero flags are ignored.
+Equivalent to ignore_flag = ~0.)</p></li>
+<li><p><strong>ok_flag</strong> (<em>int</em>) – Which flags should be considered ok. (default: 0.  i.e. all non-zero
+flags are ignored.)</p></li>
+<li><p><strong>flip_g1</strong> (<em>bool</em>) – Whtether to flip the sign of the input g1 values. (default: False)</p></li>
+<li><p><strong>flip_g2</strong> (<em>bool</em>) – Whtether to flip the sign of the input g2 values. (default: False)</p></li>
+<li><p><strong>hdu</strong> (<em>int</em>) – For FITS files, which hdu to read. (default: 1)</p></li>
+<li><p><strong>x_hdu</strong> (<em>int</em>) – Which hdu to use for the x values. (default: hdu)</p></li>
+<li><p><strong>y_hdu</strong> (<em>int</em>) – Which hdu to use for the y values. (default: hdu)</p></li>
+<li><p><strong>z_hdu</strong> (<em>int</em>) – Which hdu to use for the z values. (default: hdu)</p></li>
+<li><p><strong>ra_hdu</strong> (<em>int</em>) – Which hdu to use for the ra values. (default: hdu)</p></li>
+<li><p><strong>dec_hdu</strong> (<em>int</em>) – Which hdu to use for the dec values. (default: hdu)</p></li>
+<li><p><strong>r_hdu</strong> (<em>int</em>) – Which hdu to use for the r values. (default: hdu)</p></li>
+<li><p><strong>g1_hdu</strong> (<em>int</em>) – Which hdu to use for the g1 values. (default: hdu)</p></li>
+<li><p><strong>g2_hdu</strong> (<em>int</em>) – Which hdu to use for the g2 values. (default: hdu)</p></li>
+<li><p><strong>k_hdu</strong> (<em>int</em>) – Which hdu to use for the k values. (default: hdu)</p></li>
+<li><p><strong>w_hdu</strong> (<em>int</em>) – Which hdu to use for the w values. (default: hdu)</p></li>
+<li><p><strong>wpos_hdu</strong> (<em>int</em>) – Which hdu to use for the wpos values. (default: hdu)</p></li>
+<li><p><strong>flag_hdu</strong> (<em>int</em>) – Which hdu to use for the flag values. (default: hdu)</p></li>
+<li><p><strong>verbose</strong> (<em>int</em>) – <p>If no logger is provided, this will optionally specify a logging level
 to use.</p>
 <blockquote>
 <div><ul>
-<li>0 means no logging output</li>
-<li>1 means to output warnings only (default)</li>
-<li>2 means to output various progress information</li>
-<li>3 means to output extensive debugging information</li>
+<li><p>0 means no logging output</p></li>
+<li><p>1 means to output warnings only (default)</p></li>
+<li><p>2 means to output various progress information</p></li>
+<li><p>3 means to output extensive debugging information</p></li>
 </ul>
 </div></blockquote>
-</li>
-<li><strong>log_file</strong> (<em>str</em>) – If no logger is provided, this will specify a file to write the logging
-output.  (default: None; i.e. output to standard output)</li>
-<li><strong>split_method</strong> (<em>str</em>) – <p>How to split the cells in the tree when building the tree structure.
+</p></li>
+<li><p><strong>log_file</strong> (<em>str</em>) – If no logger is provided, this will specify a file to write the logging
+output.  (default: None; i.e. output to standard output)</p></li>
+<li><p><strong>split_method</strong> (<em>str</em>) – <p>How to split the cells in the tree when building the tree structure.
 Options are:</p>
 <blockquote>
 <div><ul>
-<li>mean: Use the arithmetic mean of the coordinate being split.
-(default)</li>
-<li>median: Use the median of the coordinate being split.</li>
-<li>middle: Use the middle of the range; i.e. the average of the
-minimum and maximum value.</li>
-<li>random: Use a random point somewhere in the middle two quartiles
-of the range.</li>
+<li><p>mean: Use the arithmetic mean of the coordinate being split.
+(default)</p></li>
+<li><p>median: Use the median of the coordinate being split.</p></li>
+<li><p>middle: Use the middle of the range; i.e. the average of the
+minimum and maximum value.</p></li>
+<li><p>random: Use a random point somewhere in the middle two quartiles
+of the range.</p></li>
 </ul>
 </div></blockquote>
-</li>
-<li><strong>cat_precision</strong> (<em>int</em>) – The precision to use when writing a Catalog to an ASCII file. This
+</p></li>
+<li><p><strong>cat_precision</strong> (<em>int</em>) – The precision to use when writing a Catalog to an ASCII file. This
 should be an integer, which specifies how many digits to write.
-(default: 16)</li>
+(default: 16)</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <dl class="method">
 <dt id="treecorr.Catalog.checkForNaN">
-<code class="descname">checkForNaN</code><span class="sig-paren">(</span><em>col</em>, <em>col_str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.checkForNaN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.checkForNaN" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">checkForNaN</code><span class="sig-paren">(</span><em class="sig-param">col</em>, <em class="sig-param">col_str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.checkForNaN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.checkForNaN" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check if the column has any NaNs.  If so, set those rows to have w[k]=0.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>col</strong> (<em>array</em>) – The input column to check.</li>
-<li><strong>col_str</strong> (<em>str</em>) – The name of the column.  Used only as information in logging output.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>col</strong> (<em>array</em>) – The input column to check.</p></li>
+<li><p><strong>col_str</strong> (<em>str</em>) – The name of the column.  Used only as information in logging output.</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.Catalog.clear_cache">
-<code class="descname">clear_cache</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.clear_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.clear_cache" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">clear_cache</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.clear_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.clear_cache" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clear all field caches.</p>
 <p>The various kinds of fields built from this catalog are cached.  This may or may not
 be an optimization for your use case.  Normally only a single field is built for a
@@ -506,227 +479,197 @@ some of them, you can call clear separately for the different caches:</p>
 
 <dl class="method">
 <dt id="treecorr.Catalog.copy">
-<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.copy" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a copy</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.Catalog.getGField">
-<code class="descname">getGField</code><span class="sig-paren">(</span><em>min_size=0</em>, <em>max_size=None</em>, <em>split_method=None</em>, <em>brute=False</em>, <em>min_top=3</em>, <em>max_top=10</em>, <em>coords=None</em>, <em>logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getGField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getGField" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">getGField</code><span class="sig-paren">(</span><em class="sig-param">min_size=0</em>, <em class="sig-param">max_size=None</em>, <em class="sig-param">split_method=None</em>, <em class="sig-param">brute=False</em>, <em class="sig-param">min_top=3</em>, <em class="sig-param">max_top=10</em>, <em class="sig-param">coords=None</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getGField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getGField" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <a class="reference internal" href="field.html#treecorr.GField" title="treecorr.GField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GField</span></code></a> based on the g1,g2 values in this catalog.</p>
 <p>The <a class="reference internal" href="field.html#treecorr.GField" title="treecorr.GField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GField</span></code></a> object is cached, so this is efficient to call multiple times.
 cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="treecorr.Catalog.resize_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">resize_cache</span></code></a> and <a class="reference internal" href="#treecorr.Catalog.clear_cache" title="treecorr.Catalog.clear_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">clear_cache</span></code></a>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>min_size</strong> (<em>float</em>) – The minimum radius cell required (usually min_sep). (default: 0)</li>
-<li><strong>max_size</strong> (<em>float</em>) – The maximum radius cell required (usually max_sep). (default: None)</li>
-<li><strong>split_method</strong> (<em>str</em>) – Which split method to use (‘mean’, ‘median’, ‘middle’, or ‘random’)
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>min_size</strong> (<em>float</em>) – The minimum radius cell required (usually min_sep). (default: 0)</p></li>
+<li><p><strong>max_size</strong> (<em>float</em>) – The maximum radius cell required (usually max_sep). (default: None)</p></li>
+<li><p><strong>split_method</strong> (<em>str</em>) – Which split method to use (‘mean’, ‘median’, ‘middle’, or ‘random’)
 (default: ‘mean’; this value can also be given in the Catalog
-constructor in the config dict.)</li>
-<li><strong>brute</strong> (<em>bool</em>) – Whether to force traversal to the leaves. (default: False)</li>
-<li><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the
-field. (default: 3)</li>
-<li><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the
-field. (default: 10)</li>
-<li><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default self.coords)</li>
-<li><strong>logger</strong> – A Logger object if desired (default: self.logger)</li>
+constructor in the config dict.)</p></li>
+<li><p><strong>brute</strong> (<em>bool</em>) – Whether to force traversal to the leaves. (default: False)</p></li>
+<li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the
+field. (default: 3)</p></li>
+<li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the
+field. (default: 10)</p></li>
+<li><p><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default self.coords)</p></li>
+<li><p><strong>logger</strong> – A Logger object if desired (default: self.logger)</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <a class="reference internal" href="field.html#treecorr.GField" title="treecorr.GField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GField</span></code></a> object</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A <a class="reference internal" href="field.html#treecorr.GField" title="treecorr.GField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GField</span></code></a> object</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.Catalog.getGSimpleField">
-<code class="descname">getGSimpleField</code><span class="sig-paren">(</span><em>logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getGSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getGSimpleField" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">getGSimpleField</code><span class="sig-paren">(</span><em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getGSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getGSimpleField" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <a class="reference internal" href="field.html#treecorr.GSimpleField" title="treecorr.GSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GSimpleField</span></code></a> based on the g1,g2 values in this catalog.</p>
 <p>The <a class="reference internal" href="field.html#treecorr.GSimpleField" title="treecorr.GSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GSimpleField</span></code></a> object is cached, so this is efficient to call multiple times.
 cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="treecorr.Catalog.resize_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">resize_cache</span></code></a> and <a class="reference internal" href="#treecorr.Catalog.clear_cache" title="treecorr.Catalog.clear_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">clear_cache</span></code></a></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>logger</strong> – A Logger object if desired (default: self.logger)</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <a class="reference internal" href="field.html#treecorr.GSimpleField" title="treecorr.GSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GSimpleField</span></code></a> object</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>logger</strong> – A Logger object if desired (default: self.logger)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A <a class="reference internal" href="field.html#treecorr.GSimpleField" title="treecorr.GSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GSimpleField</span></code></a> object</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.Catalog.getKField">
-<code class="descname">getKField</code><span class="sig-paren">(</span><em>min_size=0</em>, <em>max_size=None</em>, <em>split_method=None</em>, <em>brute=False</em>, <em>min_top=3</em>, <em>max_top=10</em>, <em>coords=None</em>, <em>logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getKField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getKField" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">getKField</code><span class="sig-paren">(</span><em class="sig-param">min_size=0</em>, <em class="sig-param">max_size=None</em>, <em class="sig-param">split_method=None</em>, <em class="sig-param">brute=False</em>, <em class="sig-param">min_top=3</em>, <em class="sig-param">max_top=10</em>, <em class="sig-param">coords=None</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getKField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getKField" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <a class="reference internal" href="field.html#treecorr.KField" title="treecorr.KField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KField</span></code></a> based on the k values in this catalog.</p>
 <p>The <a class="reference internal" href="field.html#treecorr.KField" title="treecorr.KField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KField</span></code></a> object is cached, so this is efficient to call multiple times.
 cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="treecorr.Catalog.resize_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">resize_cache</span></code></a> and <a class="reference internal" href="#treecorr.Catalog.clear_cache" title="treecorr.Catalog.clear_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">clear_cache</span></code></a></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>min_size</strong> (<em>float</em>) – The minimum radius cell required (usually min_sep). (default: 0)</li>
-<li><strong>max_size</strong> (<em>float</em>) – The maximum radius cell required (usually max_sep). (default: None)</li>
-<li><strong>split_method</strong> (<em>str</em>) – Which split method to use (‘mean’, ‘median’, ‘middle’, or ‘random’)
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>min_size</strong> (<em>float</em>) – The minimum radius cell required (usually min_sep). (default: 0)</p></li>
+<li><p><strong>max_size</strong> (<em>float</em>) – The maximum radius cell required (usually max_sep). (default: None)</p></li>
+<li><p><strong>split_method</strong> (<em>str</em>) – Which split method to use (‘mean’, ‘median’, ‘middle’, or ‘random’)
 (default: ‘mean’; this value can also be given in the Catalog
-constructor in the config dict.)</li>
-<li><strong>brute</strong> (<em>bool</em>) – Whether to force traversal to the leaves. (default: False)</li>
-<li><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the
-field. (default: 3)</li>
-<li><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the
-field. (default: 10)</li>
-<li><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default self.coords)</li>
-<li><strong>logger</strong> – A Logger object if desired (default: self.logger)</li>
+constructor in the config dict.)</p></li>
+<li><p><strong>brute</strong> (<em>bool</em>) – Whether to force traversal to the leaves. (default: False)</p></li>
+<li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the
+field. (default: 3)</p></li>
+<li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the
+field. (default: 10)</p></li>
+<li><p><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default self.coords)</p></li>
+<li><p><strong>logger</strong> – A Logger object if desired (default: self.logger)</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <a class="reference internal" href="field.html#treecorr.KField" title="treecorr.KField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KField</span></code></a> object</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A <a class="reference internal" href="field.html#treecorr.KField" title="treecorr.KField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KField</span></code></a> object</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.Catalog.getKSimpleField">
-<code class="descname">getKSimpleField</code><span class="sig-paren">(</span><em>logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getKSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getKSimpleField" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">getKSimpleField</code><span class="sig-paren">(</span><em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getKSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getKSimpleField" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <a class="reference internal" href="field.html#treecorr.KSimpleField" title="treecorr.KSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KSimpleField</span></code></a> based on the k values in this catalog.</p>
 <p>The <a class="reference internal" href="field.html#treecorr.KSimpleField" title="treecorr.KSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KSimpleField</span></code></a> object is cached, so this is efficient to call multiple times.
 cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="treecorr.Catalog.resize_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">resize_cache</span></code></a> and <a class="reference internal" href="#treecorr.Catalog.clear_cache" title="treecorr.Catalog.clear_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">clear_cache</span></code></a></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>logger</strong> – A Logger object if desired (default: self.logger)</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <a class="reference internal" href="field.html#treecorr.KSimpleField" title="treecorr.KSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KSimpleField</span></code></a> object</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>logger</strong> – A Logger object if desired (default: self.logger)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A <a class="reference internal" href="field.html#treecorr.KSimpleField" title="treecorr.KSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KSimpleField</span></code></a> object</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.Catalog.getNField">
-<code class="descname">getNField</code><span class="sig-paren">(</span><em>min_size=0</em>, <em>max_size=None</em>, <em>split_method=None</em>, <em>brute=False</em>, <em>min_top=3</em>, <em>max_top=10</em>, <em>coords=None</em>, <em>logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getNField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getNField" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">getNField</code><span class="sig-paren">(</span><em class="sig-param">min_size=0</em>, <em class="sig-param">max_size=None</em>, <em class="sig-param">split_method=None</em>, <em class="sig-param">brute=False</em>, <em class="sig-param">min_top=3</em>, <em class="sig-param">max_top=10</em>, <em class="sig-param">coords=None</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getNField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getNField" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an <a class="reference internal" href="field.html#treecorr.NField" title="treecorr.NField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NField</span></code></a> based on the positions in this catalog.</p>
 <p>The <a class="reference internal" href="field.html#treecorr.NField" title="treecorr.NField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NField</span></code></a> object is cached, so this is efficient to call multiple times.
 cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="treecorr.Catalog.resize_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">resize_cache</span></code></a> and <a class="reference internal" href="#treecorr.Catalog.clear_cache" title="treecorr.Catalog.clear_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">clear_cache</span></code></a></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>min_size</strong> (<em>float</em>) – The minimum radius cell required (usually min_sep). (default: 0)</li>
-<li><strong>max_size</strong> (<em>float</em>) – The maximum radius cell required (usually max_sep). (default: None)</li>
-<li><strong>split_method</strong> (<em>str</em>) – Which split method to use (‘mean’, ‘median’, ‘middle’, or ‘random’)
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>min_size</strong> (<em>float</em>) – The minimum radius cell required (usually min_sep). (default: 0)</p></li>
+<li><p><strong>max_size</strong> (<em>float</em>) – The maximum radius cell required (usually max_sep). (default: None)</p></li>
+<li><p><strong>split_method</strong> (<em>str</em>) – Which split method to use (‘mean’, ‘median’, ‘middle’, or ‘random’)
 (default: ‘mean’; this value can also be given in the Catalog
-constructor in the config dict.)</li>
-<li><strong>brute</strong> (<em>bool</em>) – Whether to force traversal to the leaves. (default: False)</li>
-<li><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the
-field. (default: 3)</li>
-<li><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the
-field. (default: 10)</li>
-<li><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default: self.coords)</li>
-<li><strong>logger</strong> – A Logger object if desired (default: self.logger)</li>
+constructor in the config dict.)</p></li>
+<li><p><strong>brute</strong> (<em>bool</em>) – Whether to force traversal to the leaves. (default: False)</p></li>
+<li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the
+field. (default: 3)</p></li>
+<li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the
+field. (default: 10)</p></li>
+<li><p><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default: self.coords)</p></li>
+<li><p><strong>logger</strong> – A Logger object if desired (default: self.logger)</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An <a class="reference internal" href="field.html#treecorr.NField" title="treecorr.NField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NField</span></code></a> object</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An <a class="reference internal" href="field.html#treecorr.NField" title="treecorr.NField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NField</span></code></a> object</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.Catalog.getNSimpleField">
-<code class="descname">getNSimpleField</code><span class="sig-paren">(</span><em>logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getNSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getNSimpleField" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">getNSimpleField</code><span class="sig-paren">(</span><em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getNSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getNSimpleField" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an <a class="reference internal" href="field.html#treecorr.NSimpleField" title="treecorr.NSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NSimpleField</span></code></a> based on the positions in this catalog.</p>
 <p>The <a class="reference internal" href="field.html#treecorr.NSimpleField" title="treecorr.NSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NSimpleField</span></code></a> object is cached, so this is efficient to call multiple times.
 cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="treecorr.Catalog.resize_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">resize_cache</span></code></a> and <a class="reference internal" href="#treecorr.Catalog.clear_cache" title="treecorr.Catalog.clear_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">clear_cache</span></code></a></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>logger</strong> – A Logger object if desired (default: self.logger)</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An <a class="reference internal" href="field.html#treecorr.NSimpleField" title="treecorr.NSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NSimpleField</span></code></a> object</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>logger</strong> – A Logger object if desired (default: self.logger)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An <a class="reference internal" href="field.html#treecorr.NSimpleField" title="treecorr.NSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NSimpleField</span></code></a> object</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.Catalog.makeArray">
-<code class="descname">makeArray</code><span class="sig-paren">(</span><em>col</em>, <em>col_str</em>, <em>dtype=&lt;class 'float'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.makeArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.makeArray" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">makeArray</code><span class="sig-paren">(</span><em class="sig-param">col</em>, <em class="sig-param">col_str</em>, <em class="sig-param">dtype=&lt;class 'float'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.makeArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.makeArray" title="Permalink to this definition">¶</a></dt>
 <dd><p>Turn the input column into a numpy array if it wasn’t already.
 Also make sure the input in 1-d.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>col</strong> (<em>array-like</em>) – The input column to be converted into a numpy array.</li>
-<li><strong>col_str</strong> (<em>str</em>) – The name of the column.  Used only as information in logging output.</li>
-<li><strong>dtype</strong> (<em>type</em>) – The dtype for the returned array.  (default: float)</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>col</strong> (<em>array-like</em>) – The input column to be converted into a numpy array.</p></li>
+<li><p><strong>col_str</strong> (<em>str</em>) – The name of the column.  Used only as information in logging output.</p></li>
+<li><p><strong>dtype</strong> (<em>type</em>) – The dtype for the returned array.  (default: float)</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The column converted to a 1-d numpy array.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The column converted to a 1-d numpy array.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.Catalog.read_ascii">
-<code class="descname">read_ascii</code><span class="sig-paren">(</span><em>file_name</em>, <em>num=0</em>, <em>is_rand=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.read_ascii"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.read_ascii" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read_ascii</code><span class="sig-paren">(</span><em class="sig-param">file_name</em>, <em class="sig-param">num=0</em>, <em class="sig-param">is_rand=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.read_ascii"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.read_ascii" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read the catalog from an ASCII file</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>file_name</strong> (<em>str</em>) – The name of the file to read in.</li>
-<li><strong>num</strong> (<em>int</em>) – Which number catalog are we reading. (default: 0)</li>
-<li><strong>is_rand</strong> (<em>bool</em>) – Is this a random catalog? (default: False)</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to read in.</p></li>
+<li><p><strong>num</strong> (<em>int</em>) – Which number catalog are we reading. (default: 0)</p></li>
+<li><p><strong>is_rand</strong> (<em>bool</em>) – Is this a random catalog? (default: False)</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.Catalog.read_fits">
-<code class="descname">read_fits</code><span class="sig-paren">(</span><em>file_name</em>, <em>num=0</em>, <em>is_rand=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.read_fits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.read_fits" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read_fits</code><span class="sig-paren">(</span><em class="sig-param">file_name</em>, <em class="sig-param">num=0</em>, <em class="sig-param">is_rand=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.read_fits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.read_fits" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read the catalog from a FITS file</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>file_name</strong> (<em>str</em>) – The name of the file to read in.</li>
-<li><strong>num</strong> (<em>int</em>) – Which number catalog are we reading. (default: 0)</li>
-<li><strong>is_rand</strong> (<em>bool</em>) – Is this a random catalog? (default: False)</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to read in.</p></li>
+<li><p><strong>num</strong> (<em>int</em>) – Which number catalog are we reading. (default: 0)</p></li>
+<li><p><strong>is_rand</strong> (<em>bool</em>) – Is this a random catalog? (default: False)</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.Catalog.resize_cache">
-<code class="descname">resize_cache</code><span class="sig-paren">(</span><em>maxsize</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.resize_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.resize_cache" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">resize_cache</code><span class="sig-paren">(</span><em class="sig-param">maxsize</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.resize_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.resize_cache" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resize all field caches.</p>
 <p>The various kinds of fields built from this catalog are cached.  This may or may not
 be an optimization for your use case.  Normally only a single field is built for a
@@ -763,19 +706,16 @@ you can call resize separately for the different caches:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">gsimplefields</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">maxsize</span><span class="p">)</span>
 </pre></div>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>maxsize</strong> (<em>float</em>) – The new maximum number of fields of each type to cache.</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>maxsize</strong> (<em>float</em>) – The new maximum number of fields of each type to cache.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.Catalog.write">
-<code class="descname">write</code><span class="sig-paren">(</span><em>file_name</em>, <em>file_type=None</em>, <em>cat_precision=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.write" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param">file_name</em>, <em class="sig-param">file_type=None</em>, <em class="sig-param">cat_precision=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the catalog to a file.</p>
 <p>Note that the position columns are output using the same units as were used when
 building the Catalog.  If you want to use a different unit, you can set the catalog’s
@@ -788,74 +728,70 @@ units directly before writing.  e.g.:</p>
 </div>
 <p>The output file will include some of the following columns (those for which the
 corresponding attribute is not None):</p>
-<table border="1" class="docutils">
+<table class="docutils align-default">
 <colgroup>
-<col width="13%" />
-<col width="87%" />
+<col style="width: 13%" />
+<col style="width: 87%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Column</th>
-<th class="head">Description</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>ra</td>
-<td>self.ra if not None</td>
+<tbody>
+<tr class="row-even"><td><p>ra</p></td>
+<td><p>self.ra if not None</p></td>
 </tr>
-<tr class="row-odd"><td>dec</td>
-<td>self.dec if not None</td>
+<tr class="row-odd"><td><p>dec</p></td>
+<td><p>self.dec if not None</p></td>
 </tr>
-<tr class="row-even"><td>r</td>
-<td>self.r if not None</td>
+<tr class="row-even"><td><p>r</p></td>
+<td><p>self.r if not None</p></td>
 </tr>
-<tr class="row-odd"><td>x</td>
-<td>self.x if not None</td>
+<tr class="row-odd"><td><p>x</p></td>
+<td><p>self.x if not None</p></td>
 </tr>
-<tr class="row-even"><td>y</td>
-<td>self.y if not None</td>
+<tr class="row-even"><td><p>y</p></td>
+<td><p>self.y if not None</p></td>
 </tr>
-<tr class="row-odd"><td>z</td>
-<td>self.z if not None</td>
+<tr class="row-odd"><td><p>z</p></td>
+<td><p>self.z if not None</p></td>
 </tr>
-<tr class="row-even"><td>w</td>
-<td>self.w if not None and self.nontrivial_w</td>
+<tr class="row-even"><td><p>w</p></td>
+<td><p>self.w if not None and self.nontrivial_w</p></td>
 </tr>
-<tr class="row-odd"><td>wpos</td>
-<td>self.wpos if not None</td>
+<tr class="row-odd"><td><p>wpos</p></td>
+<td><p>self.wpos if not None</p></td>
 </tr>
-<tr class="row-even"><td>g1</td>
-<td>self.g1 if not None</td>
+<tr class="row-even"><td><p>g1</p></td>
+<td><p>self.g1 if not None</p></td>
 </tr>
-<tr class="row-odd"><td>g2</td>
-<td>self.g2 if not None</td>
+<tr class="row-odd"><td><p>g2</p></td>
+<td><p>self.g2 if not None</p></td>
 </tr>
-<tr class="row-even"><td>k</td>
-<td>self.k if not None</td>
+<tr class="row-even"><td><p>k</p></td>
+<td><p>self.k if not None</p></td>
 </tr>
-<tr class="row-odd"><td>meanR</td>
-<td>The mean value &lt;R&gt; of pairs that fell into each bin.</td>
+<tr class="row-odd"><td><p>meanR</p></td>
+<td><p>The mean value &lt;R&gt; of pairs that fell into each bin.</p></td>
 </tr>
-<tr class="row-even"><td>meanlogR</td>
-<td>The mean value &lt;logR&gt; of pairs that fell into each bin.</td>
+<tr class="row-even"><td><p>meanlogR</p></td>
+<td><p>The mean value &lt;logR&gt; of pairs that fell into each bin.</p></td>
 </tr>
 </tbody>
 </table>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</li>
-<li><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default:
-determine the type automatically from the extension of file_name.)</li>
-<li><strong>cat_precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 16;
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default:
+determine the type automatically from the extension of file_name.)</p></li>
+<li><p><strong>cat_precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 16;
 this value can also be given in the Catalog constructor in the
-config dict.)</li>
+config dict.)</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -865,7 +801,7 @@ config dict.)</li>
 <h2>Other utilities related to catalogs<a class="headerlink" href="#other-utilities-related-to-catalogs" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="treecorr.read_catalogs">
-<code class="descclassname">treecorr.</code><code class="descname">read_catalogs</code><span class="sig-paren">(</span><em>config</em>, <em>key=None</em>, <em>list_key=None</em>, <em>num=0</em>, <em>logger=None</em>, <em>is_rand=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#read_catalogs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.read_catalogs" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">read_catalogs</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">key=None</em>, <em class="sig-param">list_key=None</em>, <em class="sig-param">num=0</em>, <em class="sig-param">logger=None</em>, <em class="sig-param">is_rand=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#read_catalogs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.read_catalogs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read in a list of catalogs for the given key.</p>
 <p>key should be the file_name parameter or similar key word.
 list_key should be be corresponging file_list parameter, if appropriate.
@@ -873,71 +809,63 @@ At least one of key or list_key must be provided.  If both are provided, then on
 one of these should be in the config dict.</p>
 <p>num indicates which key to use if any of the fields like x_col, flip_g1, etc. are lists.
 The default is 0, which means to use the first item in the list if they are lists.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>config</strong> (<em>dict</em>) – The configuration dict to use for the appropriate parameters</li>
-<li><strong>key</strong> (<em>str</em>) – Which key name to use for the file names. e.g. ‘file_name’ (default: None)</li>
-<li><strong>list_key</strong> (<em>str</em>) – Which key name to use for the name of a list file. e.g. ‘file_list’.
-Either key or list_key is required.  (default: None)</li>
-<li><strong>num</strong> (<em>int</em>) – Which number catalog does this correspond to. e.g. file_name should use
-num=0, file_name2 should use num=1.  (default: 0)</li>
-<li><strong>logger</strong> – If desired, a Logger object for logging. (default: None, in which case
-one will be built according to the config dict’s verbose level.)</li>
-<li><strong>is_rand</strong> (<em>bool</em>) – If this is a random file, then setting is_rand to True will let them
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – The configuration dict to use for the appropriate parameters</p></li>
+<li><p><strong>key</strong> (<em>str</em>) – Which key name to use for the file names. e.g. ‘file_name’ (default: None)</p></li>
+<li><p><strong>list_key</strong> (<em>str</em>) – Which key name to use for the name of a list file. e.g. ‘file_list’.
+Either key or list_key is required.  (default: None)</p></li>
+<li><p><strong>num</strong> (<em>int</em>) – Which number catalog does this correspond to. e.g. file_name should use
+num=0, file_name2 should use num=1.  (default: 0)</p></li>
+<li><p><strong>logger</strong> – If desired, a Logger object for logging. (default: None, in which case
+one will be built according to the config dict’s verbose level.)</p></li>
+<li><p><strong>is_rand</strong> (<em>bool</em>) – If this is a random file, then setting is_rand to True will let them
 skip k_col, g1_col, and g2_col if they were set for the main catalog.
-(default: False)</li>
+(default: False)</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A list of Catalogs or None if no catalogs are specified.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of Catalogs or None if no catalogs are specified.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="treecorr.calculateVarG">
-<code class="descclassname">treecorr.</code><code class="descname">calculateVarG</code><span class="sig-paren">(</span><em>cat_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#calculateVarG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.calculateVarG" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">calculateVarG</code><span class="sig-paren">(</span><em class="sig-param">cat_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#calculateVarG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.calculateVarG" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the overall shear variance from a list of catalogs.</p>
 <p>The catalogs are assumed to be equivalent, so this is just the average shear
 variance (per component) weighted by the number of objects in each catalog.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cat_list</strong> – A Catalog or a list of Catalogs for which to calculate the shear variance.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The shear variance per component, aka shape noise.</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cat_list</strong> – A Catalog or a list of Catalogs for which to calculate the shear variance.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The shear variance per component, aka shape noise.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="treecorr.calculateVarK">
-<code class="descclassname">treecorr.</code><code class="descname">calculateVarK</code><span class="sig-paren">(</span><em>cat_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#calculateVarK"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.calculateVarK" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">calculateVarK</code><span class="sig-paren">(</span><em class="sig-param">cat_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#calculateVarK"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.calculateVarK" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the overall kappa variance from a list of catalogs.</p>
 <p>The catalogs are assumed to be equivalent, so this is just the average kappa
 variance weighted by the number of objects in each catalog.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cat_list</strong> – A Catalog or a list of Catalogs for which to calculate the kappa variance.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The kappa variance</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cat_list</strong> – A Catalog or a list of Catalogs for which to calculate the kappa variance.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The kappa variance</p>
+</dd>
+</dl>
 </dd></dl>
 
 <span class="target" id="module-treecorr.catalog"></span><span class="target" id="module-catalog"></span><dl class="function">
 <dt id="treecorr.catalog.isGColRequired">
-<code class="descclassname">treecorr.catalog.</code><code class="descname">isGColRequired</code><span class="sig-paren">(</span><em>config</em>, <em>num</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#isGColRequired"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.catalog.isGColRequired" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.catalog.</code><code class="sig-name descname">isGColRequired</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">num</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#isGColRequired"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.catalog.isGColRequired" title="Permalink to this definition">¶</a></dt>
 <dd><p>A quick helper function that checks whether we need to bother reading the g1,g2 columns.</p>
 <p>It checks the config dict for the output file names gg_file_name, ng_file_name (only if
 num == 1), etc.  If the output files indicate that we don’t need the g1/g2 columns, then
@@ -948,46 +876,38 @@ if you specify g1_col=5, g2_col=6, say, and the first catalog does not have thes
 you would normally get an error.</p>
 <p>But instead, we check that the calculation is going to be NG from the presence of an
 ng_file_name parameter, and we let the would-be error pass.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>config</strong> (<em>dict</em>) – The configuration file to check.</li>
-<li><strong>num</strong> (<em>int</em>) – Which number catalog are we working on.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – The configuration file to check.</p></li>
+<li><p><strong>num</strong> (<em>int</em>) – Which number catalog are we working on.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True if some output file requires this catalog to have valid g1/g2 columns,
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if some output file requires this catalog to have valid g1/g2 columns,
 False if not.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="treecorr.catalog.isKColRequired">
-<code class="descclassname">treecorr.catalog.</code><code class="descname">isKColRequired</code><span class="sig-paren">(</span><em>config</em>, <em>num</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#isKColRequired"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.catalog.isKColRequired" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.catalog.</code><code class="sig-name descname">isKColRequired</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">num</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#isKColRequired"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.catalog.isKColRequired" title="Permalink to this definition">¶</a></dt>
 <dd><p>A quick helper function that checks whether we need to bother reading the k column.</p>
 <p>The logic here is the same as for <a class="reference internal" href="#treecorr.catalog.isGColRequired" title="treecorr.catalog.isGColRequired"><code class="xref any py py-func docutils literal notranslate"><span class="pre">isGColRequired</span></code></a>, but we check for output files that require
 the k column rather than g1,g2.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>config</strong> (<em>dict</em>) – The configuration file to check.</li>
-<li><strong>num</strong> (<em>int</em>) – Which number catalog are we working on.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – The configuration file to check.</p></li>
+<li><p><strong>num</strong> (<em>int</em>) – Which number catalog are we working on.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True if some output file requires this catalog to have valid g1/g2 columns,
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if some output file requires this catalog to have valid g1/g2 columns,
 False if not.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

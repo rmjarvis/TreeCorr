@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting Started Guide &mdash; TreeCorr 4.0.5 documentation</title>
+  <title>Getting Started Guide &mdash; TreeCorr 4.0.6 documentation</title>
   
 
   
@@ -176,12 +176,12 @@
 <p>The below guide has largely been superseded by a
 <a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/master/tests/Tutorial.ipynb">Jupyter notebook tutorial</a>.
 That probably provides a better starting point for most users.  The below guide was mostly
-written for people migrating from using the executable <a class="reference internal" href="scripts.html#module-corr2" title="corr2"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">corr2</span></code></a> to more advanced usage
+written for people migrating from using the executable <a class="reference internal" href="scripts.html#treecorr.corr2" title="treecorr.corr2"><code class="xref any py py-func docutils literal notranslate"><span class="pre">corr2</span></code></a> to more advanced usage
 within Python.</p>
 <div class="section" id="mimicking-the-corr2-executable">
 <h2>Mimicking the corr2 executable<a class="headerlink" href="#mimicking-the-corr2-executable" title="Permalink to this headline">¶</a></h2>
 <p>The same functionality that you have from the <code class="docutils literal notranslate"><span class="pre">corr2</span></code> executable is available in python via the
-<a class="reference internal" href="scripts.html#module-corr2" title="corr2"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">corr2</span></code></a> function:</p>
+<a class="reference internal" href="scripts.html#treecorr.corr2" title="treecorr.corr2"><code class="xref any py py-func docutils literal notranslate"><span class="pre">corr2</span></code></a> function:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">treecorr</span>
 <span class="n">config</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">read_config</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
 <span class="n">config</span><span class="p">[</span><span class="s1">&#39;file_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;catalog.dat&#39;</span>
@@ -192,7 +192,7 @@ within Python.</p>
 <p>However, this isn’t exactly a huge improvement over using the executable itself.
 Basically, it allows for an alternative way to set the configuration parameters, but not much
 beyond that.  The utility of the python module becomes more apparent if we drill down one
-level and see what the <a class="reference internal" href="scripts.html#module-corr2" title="corr2"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">corr2</span></code></a> function is doing.</p>
+level and see what the <a class="reference internal" href="scripts.html#treecorr.corr2" title="treecorr.corr2"><code class="xref any py py-func docutils literal notranslate"><span class="pre">corr2</span></code></a> function is doing.</p>
 </div>
 <div class="section" id="shear-shear-auto-correlation">
 <h2>Shear-shear auto-correlation<a class="headerlink" href="#shear-shear-auto-correlation" title="Permalink to this headline">¶</a></h2>
@@ -256,12 +256,12 @@ objects have <code class="docutils literal notranslate"><span class="pre">w[i]</
 <p>The other kinds of correlations each have their own class:</p>
 <blockquote>
 <div><ul class="simple">
-<li><a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNCorrelation</span></code></a> = count-count  (normal LSS correlation)</li>
-<li><a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a> = shear-shear  (e.g. cosmic shear)</li>
-<li><a class="reference internal" href="kk.html#treecorr.KKCorrelation" title="treecorr.KKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKCorrelation</span></code></a> = kappa-kappa  (or any other scalar field)</li>
-<li><a class="reference internal" href="ng.html#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGCorrelation</span></code></a> = count-shear  (i.e. &lt;gamma_t&gt;(R))</li>
-<li><a class="reference internal" href="nk.html#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a> = count-kappa  (i.e. &lt;kappa&gt;(R))</li>
-<li><a class="reference internal" href="kg.html#treecorr.KGCorrelation" title="treecorr.KGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGCorrelation</span></code></a> = kappa-shear</li>
+<li><p><a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNCorrelation</span></code></a> = count-count  (normal LSS correlation)</p></li>
+<li><p><a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a> = shear-shear  (e.g. cosmic shear)</p></li>
+<li><p><a class="reference internal" href="kk.html#treecorr.KKCorrelation" title="treecorr.KKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKCorrelation</span></code></a> = kappa-kappa  (or any other scalar field)</p></li>
+<li><p><a class="reference internal" href="ng.html#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGCorrelation</span></code></a> = count-shear  (i.e. &lt;gamma_t&gt;(R))</p></li>
+<li><p><a class="reference internal" href="nk.html#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a> = count-kappa  (i.e. &lt;kappa&gt;(R))</p></li>
+<li><p><a class="reference internal" href="kg.html#treecorr.KGCorrelation" title="treecorr.KGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGCorrelation</span></code></a> = kappa-shear</p></li>
 </ul>
 </div></blockquote>
 <p>You should see their doc strings for details, but they all work similarly.
@@ -276,9 +276,9 @@ calculation involving random catalogs for that.  See <a class="reference interna
 <p>So far, we have only implemented the auto-correlation three-point functions:</p>
 <blockquote>
 <div><ul class="simple">
-<li><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a>  # count-count-count</li>
-<li><a class="reference internal" href="ggg.html#treecorr.GGGCorrelation" title="treecorr.GGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a>  # shear-shear-shear</li>
-<li><a class="reference internal" href="kkk.html#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a>  # kappa-kappa-kappa</li>
+<li><p><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a>  # count-count-count</p></li>
+<li><p><a class="reference internal" href="ggg.html#treecorr.GGGCorrelation" title="treecorr.GGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a>  # shear-shear-shear</p></li>
+<li><p><a class="reference internal" href="kkk.html#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a>  # kappa-kappa-kappa</p></li>
 </ul>
 </div></blockquote>
 <p>These classes are significantly more complicated than the two-point ones,
@@ -329,9 +329,9 @@ See the docstring for <a class="reference internal" href="nnn.html#treecorr.NNNC
 <p>For even more control over the calculation, you can drill down one more level into what the
 <a class="reference internal" href="gg.html#treecorr.GGCorrelation.process" title="treecorr.GGCorrelation.process"><code class="xref py py-meth docutils literal notranslate"><span class="pre">process()</span></code></a> functions are doing.  There are typically three steps:</p>
 <ol class="arabic simple">
-<li>Calculate the shear variance or kappa variance as needed (i.e. for anything but NN correlations).</li>
-<li>Accumulate the correlations into the bins for each auto-correlation and cross-correlation desired.</li>
-<li>Finalize the calculation.</li>
+<li><p>Calculate the shear variance or kappa variance as needed (i.e. for anything but NN correlations).</p></li>
+<li><p>Accumulate the correlations into the bins for each auto-correlation and cross-correlation desired.</p></li>
+<li><p>Finalize the calculation.</p></li>
 </ol>
 <p>If you have several pairs of catalogs that you want to accumulate into a single correlation
 function, you could write the following:</p>

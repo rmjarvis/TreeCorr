@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>NGCorrelation: Count-shear correlations &mdash; TreeCorr 4.0.5 documentation</title>
+  <title>NGCorrelation: Count-shear correlations &mdash; TreeCorr 4.0.6 documentation</title>
   
 
   
@@ -176,51 +176,43 @@
 <h1>NGCorrelation: Count-shear correlations<a class="headerlink" href="#ngcorrelation-count-shear-correlations" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="treecorr.NGCorrelation">
-<em class="property">class </em><code class="descclassname">treecorr.</code><code class="descname">NGCorrelation</code><span class="sig-paren">(</span><em>config=None</em>, <em>logger=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">NGCorrelation</code><span class="sig-paren">(</span><em class="sig-param">config=None</em>, <em class="sig-param">logger=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">treecorr.binnedcorr2.BinnedCorr2</span></code></p>
 <p>This class handles the calculation and storage of a 2-point count-shear correlation
 function.  This is the tangential shear profile around lenses, commonly referred to as
 galaxy-galaxy lensing.</p>
 <p>Ojects of this class holds the following attributes:</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><ul class="first last simple">
-<li><strong>nbins</strong> – The number of bins in logr</li>
-<li><strong>bin_size</strong> – The size of the bins in logr</li>
-<li><strong>min_sep</strong> – The minimum separation being considered</li>
-<li><strong>max_sep</strong> – The maximum separation being considered</li>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nbins</strong> – The number of bins in logr</p></li>
+<li><p><strong>bin_size</strong> – The size of the bins in logr</p></li>
+<li><p><strong>min_sep</strong> – The minimum separation being considered</p></li>
+<li><p><strong>max_sep</strong> – The maximum separation being considered</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p>In addition, the following attributes are numpy arrays of length (nbins):</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><ul class="first last simple">
-<li><strong>logr</strong> – The nominal center of the bin in log(r) (the natural logarithm of r).</li>
-<li><strong>rnom</strong> – The nominal center of the bin converted to regular distance.
-i.e. r = exp(logr).</li>
-<li><strong>meanr</strong> – The (weighted) mean value of r for the pairs in each bin.
-If there are no pairs in a bin, then exp(logr) will be used instead.</li>
-<li><strong>meanlogr</strong> – The (weighted) mean value of log(r) for the pairs in each bin.
-If there are no pairs in a bin, then logr will be used instead.</li>
-<li><strong>xi</strong> – The correlation function, <span class="math notranslate nohighlight">\(\xi(r) = \langle \gamma_T\rangle\)</span>.</li>
-<li><strong>xi_im</strong> – The imaginary part of <span class="math notranslate nohighlight">\(\xi(r)\)</span>.</li>
-<li><strong>varxi</strong> – The variance of <span class="math notranslate nohighlight">\(\xi\)</span>, only including the shape noise propagated into
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logr</strong> – The nominal center of the bin in log(r) (the natural logarithm of r).</p></li>
+<li><p><strong>rnom</strong> – The nominal center of the bin converted to regular distance.
+i.e. r = exp(logr).</p></li>
+<li><p><strong>meanr</strong> – The (weighted) mean value of r for the pairs in each bin.
+If there are no pairs in a bin, then exp(logr) will be used instead.</p></li>
+<li><p><strong>meanlogr</strong> – The (weighted) mean value of log(r) for the pairs in each bin.
+If there are no pairs in a bin, then logr will be used instead.</p></li>
+<li><p><strong>xi</strong> – The correlation function, <span class="math notranslate nohighlight">\(\xi(r) = \langle \gamma_T\rangle\)</span>.</p></li>
+<li><p><strong>xi_im</strong> – The imaginary part of <span class="math notranslate nohighlight">\(\xi(r)\)</span>.</p></li>
+<li><p><strong>varxi</strong> – The variance of <span class="math notranslate nohighlight">\(\xi\)</span>, only including the shape noise propagated into
 the final correlation.  This does not include sample variance, so it is
-always an underestimate of the actual variance.</li>
-<li><strong>weight</strong> – The total weight in each bin.</li>
-<li><strong>npairs</strong> – The number of pairs going into each bin.</li>
+always an underestimate of the actual variance.</p></li>
+<li><p><strong>weight</strong> – The total weight in each bin.</p></li>
+<li><p><strong>npairs</strong> – The number of pairs going into each bin.</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p>If <strong>sep_units</strong> are given (either in the config dict or as a named kwarg) then the distances
 will all be in these units.  Note however, that if you separate out the steps of the
 <a class="reference internal" href="#treecorr.NGCorrelation.process" title="treecorr.NGCorrelation.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process</span></code></a> command and use <a class="reference internal" href="#treecorr.NGCorrelation.process_cross" title="treecorr.NGCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>, then the units will not be applied to <strong>meanr</strong> or
@@ -232,32 +224,28 @@ will all be in these units.  Note however, that if you separate out the steps of
 <span class="gp">&gt;&gt;&gt; </span><span class="n">xi</span> <span class="o">=</span> <span class="n">gg</span><span class="o">.</span><span class="n">xi</span>              <span class="c1"># Or access the correlation function directly.</span>
 </pre></div>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in kwargs if desired.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in kwargs if desired.
 This dict is allowed to have addition entries in addition to those listed
-in <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a>, which are ignored here. (default: None)</li>
-<li><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
-one will be built according to the config dict’s verbose level.)</li>
+in <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a>, which are ignored here. (default: None)</p></li>
+<li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
+one will be built according to the config dict’s verbose level.)</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p>See the documentation for <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a> for the list of other allowed kwargs, which may be
 passed either directly or in the config dict.</p>
 <dl class="method">
 <dt id="treecorr.NGCorrelation.__eq__">
-<code class="descname">__eq__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.__eq__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__eq__</code><span class="sig-paren">(</span><em class="sig-param">other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.__eq__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return whether two NGCorrelations are equal</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.NGCorrelation.__iadd__">
-<code class="descname">__iadd__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.__iadd__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.__iadd__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__iadd__</code><span class="sig-paren">(</span><em class="sig-param">other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.__iadd__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.__iadd__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a second NGCorrelation’s data to this one.</p>
 <p>Note: For this to make sense, both Correlation objects should have been using
 <a class="reference internal" href="#treecorr.NGCorrelation.process_cross" title="treecorr.NGCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>, and they should not have had <a class="reference internal" href="#treecorr.NGCorrelation.finalize" title="treecorr.NGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> called yet.
@@ -266,19 +254,19 @@ Then, after adding them together, you should call <a class="reference internal" 
 
 <dl class="method">
 <dt id="treecorr.NGCorrelation.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>config=None</em>, <em>logger=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">config=None</em>, <em class="sig-param">logger=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.NGCorrelation.__repr__">
-<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.__repr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.__repr__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.__repr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.__repr__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return repr(self).</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.NGCorrelation.calculateNMap">
-<code class="descname">calculateNMap</code><span class="sig-paren">(</span><em>R=None</em>, <em>rg=None</em>, <em>m2_uform=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.calculateNMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.calculateNMap" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">calculateNMap</code><span class="sig-paren">(</span><em class="sig-param">R=None</em>, <em class="sig-param">rg=None</em>, <em class="sig-param">m2_uform=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.calculateNMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.calculateNMap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the aperture mass statistics from the correlation function.</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\langle N M_{ap} \rangle(R) &amp;= \int_{0}^{rmax} \frac{r dr}{R^2}
@@ -300,331 +288,299 @@ T_\times(s) &amp;= \frac{18}{\pi} s^2 \arccos(s/2) \\
 <p>cf. Schneider, et al (2002): A&amp;A, 389, 729</p>
 <p>In neither case is this formula in the above papers, but the derivation is similar
 to the derivations of <span class="math notranslate nohighlight">\(T_+\)</span> and <span class="math notranslate nohighlight">\(T_-\)</span> in Schneider et al. (2002).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>R</strong> (<em>array</em>) – The R values at which to calculate the aperture mass statistics.
-(default: None, which means use self.rnom)</li>
-<li><strong>rg</strong> (<a class="reference internal" href="#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><em>NGCorrelation</em></a>) – The cross-correlation using random locations as the lenses
-(RG), if desired.  (default: None)</li>
-<li><strong>m2_uform</strong> (<em>str</em>) – Which form to use for the aperture mass, as described above.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R</strong> (<em>array</em>) – The R values at which to calculate the aperture mass statistics.
+(default: None, which means use self.rnom)</p></li>
+<li><p><strong>rg</strong> (<a class="reference internal" href="#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><em>NGCorrelation</em></a>) – The cross-correlation using random locations as the lenses
+(RG), if desired.  (default: None)</p></li>
+<li><p><strong>m2_uform</strong> (<em>str</em>) – Which form to use for the aperture mass, as described above.
 (default: ‘Crittenden’; this value can also be given in the
-constructor in the config dict.)</li>
+constructor in the config dict.)</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p>Tuple containing</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Tuple containing</p>
 <blockquote>
 <div><ul class="simple">
-<li>nmap = array of <span class="math notranslate nohighlight">\(\langle N M_{ap} \rangle(R)\)</span></li>
-<li>nmx = array of <span class="math notranslate nohighlight">\(\langle N M_{\times} \rangle(R)\)</span></li>
-<li>varnmap = array of variance estimates of the above values</li>
+<li><p>nmap = array of <span class="math notranslate nohighlight">\(\langle N M_{ap} \rangle(R)\)</span></p></li>
+<li><p>nmx = array of <span class="math notranslate nohighlight">\(\langle N M_{\times} \rangle(R)\)</span></p></li>
+<li><p>varnmap = array of variance estimates of the above values</p></li>
 </ul>
 </div></blockquote>
 </p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.NGCorrelation.calculateXi">
-<code class="descname">calculateXi</code><span class="sig-paren">(</span><em>rg=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.calculateXi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.calculateXi" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">calculateXi</code><span class="sig-paren">(</span><em class="sig-param">rg=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.calculateXi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.calculateXi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the correlation function possibly given another correlation function
 that uses random points for the foreground objects.</p>
 <ul class="simple">
-<li>If rg is None, the simple correlation function <span class="math notranslate nohighlight">\(\langle \gamma_T\rangle\)</span> is
-returned.</li>
-<li>If rg is not None, then a compensated calculation is done:
-<span class="math notranslate nohighlight">\(\langle \gamma_T\rangle = (DG - RG)\)</span></li>
+<li><p>If rg is None, the simple correlation function <span class="math notranslate nohighlight">\(\langle \gamma_T\rangle\)</span> is
+returned.</p></li>
+<li><p>If rg is not None, then a compensated calculation is done:
+<span class="math notranslate nohighlight">\(\langle \gamma_T\rangle = (DG - RG)\)</span></p></li>
 </ul>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rg</strong> (<a class="reference internal" href="#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><em>NGCorrelation</em></a>) – The cross-correlation using random locations as the lenses
-(RG), if desired.  (default: None)</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Tuple containing<blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rg</strong> (<a class="reference internal" href="#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><em>NGCorrelation</em></a>) – The cross-correlation using random locations as the lenses
+(RG), if desired.  (default: None)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Tuple containing</p>
+<blockquote>
 <div><ul class="simple">
-<li>xi = array of the real part of <span class="math notranslate nohighlight">\(\xi(R)\)</span></li>
-<li>xi_im = array of the imaginary part of <span class="math notranslate nohighlight">\(\xi(R)\)</span></li>
-<li>varxi = array of the variance estimates of the above values</li>
+<li><p>xi = array of the real part of <span class="math notranslate nohighlight">\(\xi(R)\)</span></p></li>
+<li><p>xi_im = array of the imaginary part of <span class="math notranslate nohighlight">\(\xi(R)\)</span></p></li>
+<li><p>varxi = array of the variance estimates of the above values</p></li>
 </ul>
 </div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.NGCorrelation.clear">
-<code class="descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.clear" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.clear" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clear the data vectors</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.NGCorrelation.copy">
-<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.copy" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a copy</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.NGCorrelation.finalize">
-<code class="descname">finalize</code><span class="sig-paren">(</span><em>varg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.finalize" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">finalize</code><span class="sig-paren">(</span><em class="sig-param">varg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.finalize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finalize the calculation of the correlation function.</p>
 <p>The <a class="reference internal" href="#treecorr.NGCorrelation.process_cross" title="treecorr.NGCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a> command accumulates values in each bin, so it can be called
 multiple times if appropriate.  Afterwards, this command finishes the calculation
 by dividing each column by the total weight.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>varg</strong> (<em>float</em>) – The shear variance per component for the second field.</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>varg</strong> (<em>float</em>) – The shear variance per component for the second field.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.NGCorrelation.process">
-<code class="descname">process</code><span class="sig-paren">(</span><em>cat1</em>, <em>cat2</em>, <em>metric=None</em>, <em>num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.process" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param">cat1</em>, <em class="sig-param">cat2</em>, <em class="sig-param">metric=None</em>, <em class="sig-param">num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.process" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the correlation function.</p>
 <p>Both arguments may be lists, in which case all items in the list are used
 for that element of the correlation.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the N field.</li>
-<li><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the G field.</li>
-<li><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the N field.</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the G field.</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
 (default: ‘Euclidean’; this value can also be given in the
-constructor in the config dict.)</li>
-<li><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+constructor in the config dict.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
 (default: use the number of cpu cores; this value can also be given
-in the constructor in the config dict.)</li>
+in the constructor in the config dict.)</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.NGCorrelation.process_cross">
-<code class="descname">process_cross</code><span class="sig-paren">(</span><em>cat1</em>, <em>cat2</em>, <em>metric=None</em>, <em>num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.process_cross"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.process_cross" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process_cross</code><span class="sig-paren">(</span><em class="sig-param">cat1</em>, <em class="sig-param">cat2</em>, <em class="sig-param">metric=None</em>, <em class="sig-param">num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.process_cross"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.process_cross" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process a single pair of catalogs, accumulating the cross-correlation.</p>
 <p>This accumulates the weighted sums into the bins, but does not finalize
 the calculation by dividing by the total weight at the end.  After
 calling this function as often as desired, the <a class="reference internal" href="#treecorr.NGCorrelation.finalize" title="treecorr.NGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
 finish the calculation.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process</li>
-<li><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process</li>
-<li><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
 (default: ‘Euclidean’; this value can also be given in the
-constructor in the config dict.)</li>
-<li><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+constructor in the config dict.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
 (default: use the number of cpu cores; this value can also be given
-in the constructor in the config dict.)</li>
+in the constructor in the config dict.)</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.NGCorrelation.process_pairwise">
-<code class="descname">process_pairwise</code><span class="sig-paren">(</span><em>cat1</em>, <em>cat2</em>, <em>metric=None</em>, <em>num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.process_pairwise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.process_pairwise" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process_pairwise</code><span class="sig-paren">(</span><em class="sig-param">cat1</em>, <em class="sig-param">cat2</em>, <em class="sig-param">metric=None</em>, <em class="sig-param">num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.process_pairwise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.process_pairwise" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process a single pair of catalogs, accumulating the cross-correlation, only using
 the corresponding pairs of objects in each catalog.</p>
 <p>This accumulates the weighted sums into the bins, but does not finalize
 the calculation by dividing by the total weight at the end.  After
 calling this function as often as desired, the <a class="reference internal" href="#treecorr.NGCorrelation.finalize" title="treecorr.NGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
 finish the calculation.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process</li>
-<li><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process</li>
-<li><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
 (default: ‘Euclidean’; this value can also be given in the
-constructor in the config dict.)</li>
-<li><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+constructor in the config dict.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
 (default: use the number of cpu cores; this value can also be given
-in the constructor in the config dict.)</li>
+in the constructor in the config dict.)</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.NGCorrelation.read">
-<code class="descname">read</code><span class="sig-paren">(</span><em>file_name</em>, <em>file_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.read" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">file_name</em>, <em class="sig-param">file_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read in values from a file.</p>
 <p>This should be a file that was written by TreeCorr, preferably a FITS file, so there
 is no loss of information.</p>
 <p>Warning: The NGCorrelation object should be constructed with the same configuration
 parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
 checked by the read function.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>file_name</strong> (<em>str</em>) – The name of the file to read in.</li>
-<li><strong>file_type</strong> (<em>str</em>) – The type of file (‘ASCII’ or ‘FITS’).  (default: determine the type
-automatically from the extension of file_name.)</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to read in.</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file (‘ASCII’ or ‘FITS’).  (default: determine the type
+automatically from the extension of file_name.)</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.NGCorrelation.write">
-<code class="descname">write</code><span class="sig-paren">(</span><em>file_name</em>, <em>rg=None</em>, <em>file_type=None</em>, <em>precision=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.write" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param">file_name</em>, <em class="sig-param">rg=None</em>, <em class="sig-param">file_type=None</em>, <em class="sig-param">precision=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the correlation function to the file, file_name.</p>
 <ul class="simple">
-<li>If rg is None, the simple correlation function <span class="math notranslate nohighlight">\(\langle \gamma_T\rangle\)</span> is used.</li>
-<li>If rg is not None, then a compensated calculation is done:
-<span class="math notranslate nohighlight">\(\langle \gamma_T\rangle = (DG - RG)\)</span></li>
+<li><p>If rg is None, the simple correlation function <span class="math notranslate nohighlight">\(\langle \gamma_T\rangle\)</span> is used.</p></li>
+<li><p>If rg is not None, then a compensated calculation is done:
+<span class="math notranslate nohighlight">\(\langle \gamma_T\rangle = (DG - RG)\)</span></p></li>
 </ul>
 <p>The output file will include the following columns:</p>
-<table border="1" class="docutils">
+<table class="docutils align-default">
 <colgroup>
-<col width="14%" />
-<col width="86%" />
+<col style="width: 14%" />
+<col style="width: 86%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Column</th>
-<th class="head">Description</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>r_nom</td>
-<td>The nominal center of the bin in r</td>
+<tbody>
+<tr class="row-even"><td><p>r_nom</p></td>
+<td><p>The nominal center of the bin in r</p></td>
 </tr>
-<tr class="row-odd"><td>meanr</td>
-<td>The mean value &lt;r&gt; of pairs that fell into each bin</td>
+<tr class="row-odd"><td><p>meanr</p></td>
+<td><p>The mean value &lt;r&gt; of pairs that fell into each bin</p></td>
 </tr>
-<tr class="row-even"><td>meanlogr</td>
-<td>The mean value &lt;log(r)&gt; of pairs that fell into each bin</td>
+<tr class="row-even"><td><p>meanlogr</p></td>
+<td><p>The mean value &lt;log(r)&gt; of pairs that fell into each bin</p></td>
 </tr>
-<tr class="row-odd"><td>gamT</td>
-<td>The real part of the mean tangential shear &lt;gamma_T&gt;(r)</td>
+<tr class="row-odd"><td><p>gamT</p></td>
+<td><p>The real part of the mean tangential shear &lt;gamma_T&gt;(r)</p></td>
 </tr>
-<tr class="row-even"><td>gamX</td>
-<td>The imag part of the mean tangential shear &lt;gamma_X&gt;(r)</td>
+<tr class="row-even"><td><p>gamX</p></td>
+<td><p>The imag part of the mean tangential shear &lt;gamma_X&gt;(r)</p></td>
 </tr>
-<tr class="row-odd"><td>sigma</td>
-<td>The sqrt of the variance estimate of either of these</td>
+<tr class="row-odd"><td><p>sigma</p></td>
+<td><p>The sqrt of the variance estimate of either of these</p></td>
 </tr>
-<tr class="row-even"><td>weight</td>
-<td>The total weight contributing to each bin</td>
+<tr class="row-even"><td><p>weight</p></td>
+<td><p>The total weight contributing to each bin</p></td>
 </tr>
-<tr class="row-odd"><td>npairs</td>
-<td>The number of pairs contributing ot each bin</td>
+<tr class="row-odd"><td><p>npairs</p></td>
+<td><p>The number of pairs contributing ot each bin</p></td>
 </tr>
 </tbody>
 </table>
 <p>If <strong>sep_units</strong> was given at construction, then the distances will all be in these units.
 Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
 radians (for spherical coordinates).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</li>
-<li><strong>rg</strong> (<a class="reference internal" href="#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><em>NGCorrelation</em></a>) – The cross-correlation using random locations as the lenses
-(RG), if desired.  (default: None)</li>
-<li><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
-the type automatically from the extension of file_name.)</li>
-<li><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
-this value can also be given in the constructor in the config dict.)</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p></li>
+<li><p><strong>rg</strong> (<a class="reference internal" href="#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><em>NGCorrelation</em></a>) – The cross-correlation using random locations as the lenses
+(RG), if desired.  (default: None)</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
+the type automatically from the extension of file_name.)</p></li>
+<li><p><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
+this value can also be given in the constructor in the config dict.)</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.NGCorrelation.writeNMap">
-<code class="descname">writeNMap</code><span class="sig-paren">(</span><em>file_name</em>, <em>R=None</em>, <em>rg=None</em>, <em>m2_uform=None</em>, <em>file_type=None</em>, <em>precision=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.writeNMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.writeNMap" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">writeNMap</code><span class="sig-paren">(</span><em class="sig-param">file_name</em>, <em class="sig-param">R=None</em>, <em class="sig-param">rg=None</em>, <em class="sig-param">m2_uform=None</em>, <em class="sig-param">file_type=None</em>, <em class="sig-param">precision=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.writeNMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.writeNMap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the cross correlation of the foreground galaxy counts with the aperture mass
 based on the correlation function to the file, file_name.</p>
 <p>If rg is provided, the compensated calculation will be used for <span class="math notranslate nohighlight">\(\xi\)</span>.</p>
 <p>See <a class="reference internal" href="#treecorr.NGCorrelation.calculateNMap" title="treecorr.NGCorrelation.calculateNMap"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateNMap</span></code></a> for an explanation of the <strong>m2_uform</strong> parameter.</p>
 <p>The output file will include the following columns:</p>
-<table border="1" class="docutils">
+<table class="docutils align-default">
 <colgroup>
-<col width="16%" />
-<col width="84%" />
+<col style="width: 16%" />
+<col style="width: 84%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Column</th>
-<th class="head">Description</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>R</td>
-<td>The radius of the aperture.</td>
+<tbody>
+<tr class="row-even"><td><p>R</p></td>
+<td><p>The radius of the aperture.</p></td>
 </tr>
-<tr class="row-odd"><td>NMap</td>
-<td>The mean value &lt;N_ap M_ap&gt;(R)</td>
+<tr class="row-odd"><td><p>NMap</p></td>
+<td><p>The mean value &lt;N_ap M_ap&gt;(R)</p></td>
 </tr>
-<tr class="row-even"><td>NMx</td>
-<td>The mean value &lt;N_ap M_x&gt;(R)</td>
+<tr class="row-even"><td><p>NMx</p></td>
+<td><p>The mean value &lt;N_ap M_x&gt;(R)</p></td>
 </tr>
-<tr class="row-odd"><td>sig_nmap</td>
-<td>The sqrt of the variance estimate of either of these</td>
+<tr class="row-odd"><td><p>sig_nmap</p></td>
+<td><p>The sqrt of the variance estimate of either of these</p></td>
 </tr>
 </tbody>
 </table>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</li>
-<li><strong>R</strong> (<em>array</em>) – The R values at which to calculate the aperture mass statistics.
-(default: None, which means use self.rnom)</li>
-<li><strong>rg</strong> (<a class="reference internal" href="#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><em>NGCorrelation</em></a>) – The cross-correlation using random locations as the lenses
-(RG), if desired.  (default: None)</li>
-<li><strong>m2_uform</strong> (<em>str</em>) – Which form to use for the aperture mass.  (default: ‘Crittenden’;
-this value can also be given in the constructor in the config dict.)</li>
-<li><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
-the type automatically from the extension of file_name.)</li>
-<li><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
-this value can also be given in the constructor in the config dict.)</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p></li>
+<li><p><strong>R</strong> (<em>array</em>) – The R values at which to calculate the aperture mass statistics.
+(default: None, which means use self.rnom)</p></li>
+<li><p><strong>rg</strong> (<a class="reference internal" href="#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><em>NGCorrelation</em></a>) – The cross-correlation using random locations as the lenses
+(RG), if desired.  (default: None)</p></li>
+<li><p><strong>m2_uform</strong> (<em>str</em>) – Which form to use for the aperture mass.  (default: ‘Crittenden’;
+this value can also be given in the constructor in the config dict.)</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
+the type automatically from the extension of file_name.)</p></li>
+<li><p><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
+this value can also be given in the constructor in the config dict.)</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="treecorr.NGCorrelation.writeNorm">
-<code class="descname">writeNorm</code><span class="sig-paren">(</span><em>file_name</em>, <em>gg</em>, <em>dd</em>, <em>rr</em>, <em>R=None</em>, <em>dr=None</em>, <em>rg=None</em>, <em>m2_uform=None</em>, <em>file_type=None</em>, <em>precision=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.writeNorm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.writeNorm" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">writeNorm</code><span class="sig-paren">(</span><em class="sig-param">file_name</em>, <em class="sig-param">gg</em>, <em class="sig-param">dd</em>, <em class="sig-param">rr</em>, <em class="sig-param">R=None</em>, <em class="sig-param">dr=None</em>, <em class="sig-param">rg=None</em>, <em class="sig-param">m2_uform=None</em>, <em class="sig-param">file_type=None</em>, <em class="sig-param">precision=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.writeNorm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.writeNorm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the normalized aperture mass cross-correlation to the file, file_name.</p>
 <p>The combination <span class="math notranslate nohighlight">\(\langle N M_{ap}\rangle^2 / \langle M_{ap}^2\rangle
 \langle N_{ap}^2\rangle\)</span> is related to <span class="math notranslate nohighlight">\(r\)</span>, the galaxy-mass correlation
@@ -633,91 +589,87 @@ is related to <span class="math notranslate nohighlight">\(b\)</span>, the galax
 <a class="reference external" href="http://adsabs.harvard.edu/abs/2002ApJ...577..604H">http://adsabs.harvard.edu/abs/2002ApJ…577..604H</a></p>
 <p>This function computes these combinations and outputs them to a file.</p>
 <ul class="simple">
-<li>if rg is provided, the compensated calculation will be used for
-<span class="math notranslate nohighlight">\(\langle N_{ap} M_{ap} \rangle\)</span>.</li>
-<li>if dr is provided, the compensated calculation will be used for
-<span class="math notranslate nohighlight">\(\langle N_{ap}^2 \rangle\)</span>.</li>
+<li><p>if rg is provided, the compensated calculation will be used for
+<span class="math notranslate nohighlight">\(\langle N_{ap} M_{ap} \rangle\)</span>.</p></li>
+<li><p>if dr is provided, the compensated calculation will be used for
+<span class="math notranslate nohighlight">\(\langle N_{ap}^2 \rangle\)</span>.</p></li>
 </ul>
 <p>See <a class="reference internal" href="#treecorr.NGCorrelation.calculateNMap" title="treecorr.NGCorrelation.calculateNMap"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateNMap</span></code></a> for an explanation of the <strong>m2_uform</strong> parameter.</p>
 <p>The output file will include the following columns:</p>
-<table border="1" class="docutils">
+<table class="docutils align-default">
 <colgroup>
-<col width="16%" />
-<col width="84%" />
+<col style="width: 16%" />
+<col style="width: 84%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Column</th>
-<th class="head">Description</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>R</td>
-<td>The radius of the aperture</td>
+<tbody>
+<tr class="row-even"><td><p>R</p></td>
+<td><p>The radius of the aperture</p></td>
 </tr>
-<tr class="row-odd"><td>NMap</td>
-<td>An estimate of &lt;N_ap M_ap&gt;(R)</td>
+<tr class="row-odd"><td><p>NMap</p></td>
+<td><p>An estimate of &lt;N_ap M_ap&gt;(R)</p></td>
 </tr>
-<tr class="row-even"><td>NMx</td>
-<td>An estimate of &lt;N_ap M_x&gt;(R)</td>
+<tr class="row-even"><td><p>NMx</p></td>
+<td><p>An estimate of &lt;N_ap M_x&gt;(R)</p></td>
 </tr>
-<tr class="row-odd"><td>sig_nmap</td>
-<td>The sqrt of the variance estimate of either of these</td>
+<tr class="row-odd"><td><p>sig_nmap</p></td>
+<td><p>The sqrt of the variance estimate of either of these</p></td>
 </tr>
-<tr class="row-even"><td>Napsq</td>
-<td>An estimate of &lt;N_ap^2&gt;(R)</td>
+<tr class="row-even"><td><p>Napsq</p></td>
+<td><p>An estimate of &lt;N_ap^2&gt;(R)</p></td>
 </tr>
-<tr class="row-odd"><td>sig_napsq</td>
-<td>The sqrt of the variance estimate of &lt;N_ap^2&gt;</td>
+<tr class="row-odd"><td><p>sig_napsq</p></td>
+<td><p>The sqrt of the variance estimate of &lt;N_ap^2&gt;</p></td>
 </tr>
-<tr class="row-even"><td>Mapsq</td>
-<td>An estimate of &lt;M_ap^2&gt;(R)</td>
+<tr class="row-even"><td><p>Mapsq</p></td>
+<td><p>An estimate of &lt;M_ap^2&gt;(R)</p></td>
 </tr>
-<tr class="row-odd"><td>sig_mapsq</td>
-<td>The sqrt of the variance estimate of &lt;M_ap^2&gt;</td>
+<tr class="row-odd"><td><p>sig_mapsq</p></td>
+<td><p>The sqrt of the variance estimate of &lt;M_ap^2&gt;</p></td>
 </tr>
-<tr class="row-even"><td>NMap_norm</td>
-<td>The ratio &lt;N_ap M_ap&gt;^2 / &lt;N_ap^2&gt; &lt;M_{ap}^2&gt;</td>
+<tr class="row-even"><td><p>NMap_norm</p></td>
+<td><p>The ratio &lt;N_ap M_ap&gt;^2 / &lt;N_ap^2&gt; &lt;M_{ap}^2&gt;</p></td>
 </tr>
-<tr class="row-odd"><td>sig_norm</td>
-<td>The sqrt of the variance estimate of this ratio</td>
+<tr class="row-odd"><td><p>sig_norm</p></td>
+<td><p>The sqrt of the variance estimate of this ratio</p></td>
 </tr>
-<tr class="row-even"><td>Nsq_Mapsq</td>
-<td>The ratio &lt;N_ap^2&gt;/&lt;M_ap^2&gt;</td>
+<tr class="row-even"><td><p>Nsq_Mapsq</p></td>
+<td><p>The ratio &lt;N_ap^2&gt;/&lt;M_ap^2&gt;</p></td>
 </tr>
-<tr class="row-odd"><td>sig_nn_mm</td>
-<td>The sqrt of the variance estimate of this ratio</td>
+<tr class="row-odd"><td><p>sig_nn_mm</p></td>
+<td><p>The sqrt of the variance estimate of this ratio</p></td>
 </tr>
 </tbody>
 </table>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</li>
-<li><strong>gg</strong> (<a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><em>GGCorrelation</em></a>) – The auto-correlation of the shear field</li>
-<li><strong>dd</strong> (<a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The auto-correlation of the lens counts (DD)</li>
-<li><strong>rr</strong> (<a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The auto-correlation of the random field (RR)</li>
-<li><strong>R</strong> (<em>array</em>) – The R values at which to calculate the aperture mass statistics.
-(default: None, which means use self.rnom)</li>
-<li><strong>dr</strong> (<a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The cross-correlation of the data with randoms (DR), if
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p></li>
+<li><p><strong>gg</strong> (<a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><em>GGCorrelation</em></a>) – The auto-correlation of the shear field</p></li>
+<li><p><strong>dd</strong> (<a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The auto-correlation of the lens counts (DD)</p></li>
+<li><p><strong>rr</strong> (<a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The auto-correlation of the random field (RR)</p></li>
+<li><p><strong>R</strong> (<em>array</em>) – The R values at which to calculate the aperture mass statistics.
+(default: None, which means use self.rnom)</p></li>
+<li><p><strong>dr</strong> (<a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The cross-correlation of the data with randoms (DR), if
 desired, in which case the Landy-Szalay estimator will be
-calculated.  (default: None)</li>
-<li><strong>rd</strong> (<a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The cross-correlation of the randoms with data (RD), if
-desired. (default: None, which means use rd=dr)</li>
-<li><strong>rg</strong> (<a class="reference internal" href="#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><em>NGCorrelation</em></a>) – The cross-correlation using random locations as the lenses
-(RG), if desired.  (default: None)</li>
-<li><strong>m2_uform</strong> (<em>str</em>) – Which form to use for the aperture mass.  (default: ‘Crittenden’;
-this value can also be given in the constructor in the config dict.)</li>
-<li><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
-the type automatically from the extension of file_name.)</li>
-<li><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
-this value can also be given in the constructor in the config dict.)</li>
+calculated.  (default: None)</p></li>
+<li><p><strong>rd</strong> (<a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The cross-correlation of the randoms with data (RD), if
+desired. (default: None, which means use rd=dr)</p></li>
+<li><p><strong>rg</strong> (<a class="reference internal" href="#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><em>NGCorrelation</em></a>) – The cross-correlation using random locations as the lenses
+(RG), if desired.  (default: None)</p></li>
+<li><p><strong>m2_uform</strong> (<em>str</em>) – Which form to use for the aperture mass.  (default: ‘Crittenden’;
+this value can also be given in the constructor in the config dict.)</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
+the type automatically from the extension of file_name.)</p></li>
+<li><p><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
+this value can also be given in the constructor in the config dict.)</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>

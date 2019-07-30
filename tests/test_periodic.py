@@ -241,10 +241,17 @@ def test_periodic_ps():
 def test_halotools():
     try:
         import halotools
-        from halotools.mock_observables import npairs_3d
+        from astropy.utils.exceptions import AstropyWarning
     except ImportError:
-        print('Skipping test_halotools, since halotools not installed.')
+        print('Skipping test_halotools, since either halotools or astropy is not installed.')
         return
+
+    # Note: halotools as of version 0.6 use astropy.extern.six, which is deprecated.
+    # Ignore the warning that is emitted about this.
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', category=AstropyWarning)
+        from halotools.mock_observables import npairs_3d
 
     # Compare the Periodic metric with the same calculation in halotools
     # This first bit is directly from the documentation for halotools.npairs_3d

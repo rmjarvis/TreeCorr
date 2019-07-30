@@ -1886,6 +1886,60 @@ def test_gg_oldrperp_local():
     np.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
 
 
+def test_symmetric():
+    """Test that RPerp is symmetric in rpar values around 0.
+
+    This test is from Simon Samuroff, who found a bug in verion 4.0.5 where the Rperp
+    results for negative rpar are not correct.  In particular, cat1 - cat2 with positive rpar
+    should match exactly cat2 - cat1 with negative rpar.
+    """
+    nbins = 10
+
+    # generate some data. There doesn't need to be a real signal - random numbers will do.
+    dat = {}
+    ndat = 20000
+    rng = np.random.RandomState(9000)
+    dat['ra'] = rng.rand(ndat) * 5
+    dat['dec'] = rng.rand(ndat) * 5
+    dat['g1'] = rng.normal(scale=0.05,size=ndat)
+    dat['g2'] = rng.normal(scale=0.05,size=ndat)
+    dat['r'] = rng.rand(ndat) * 5000
+    print('r = ',dat['r'])
+
+    # Set up the catalogues
+    cat  = treecorr.Catalog(w=None, ra_units='deg', dec_units='deg', **dat)
+
+    pilo = 20
+    pihi = 30
+
+    # Test NN counts with + and - rpar values
+    nn1 = treecorr.NNCorrelation(nbins=nbins, min_sep=0.1, max_sep=100,
+                                 min_rpar=pilo, max_rpar=pihi)
+    nn1.process(cat, cat, metric='Rperp')
+
+    nn2 = treecorr.NNCorrelation(nbins=nbins, min_sep=0.1, max_sep=100,
+                                 min_rpar=-pihi, max_rpar=-pilo)
+    nn2.process(cat, cat, metric='Rperp')
+
+    print('+rpar weight = ',nn1.weight)
+    print('-rpar weight = ',nn2.weight)
+    np.testing.assert_allclose(nn1.weight, nn2.weight)
+
+    # Check GG xi+, xi-
+    gg1 = treecorr.GGCorrelation(nbins=nbins, min_sep=0.1, max_sep=100,
+                                 min_rpar=pilo, max_rpar=pihi)
+    gg1.process(cat, cat, metric='Rperp')
+
+    gg2 = treecorr.GGCorrelation(nbins=nbins, min_sep=0.1, max_sep=100,
+                                 min_rpar=-pihi, max_rpar=-pilo)
+    gg2.process(cat, cat, metric='Rperp')
+
+    print('+rpar xip = ',gg1.xip)
+    print('-rpar xip = ',gg2.xip)
+    np.testing.assert_allclose(gg1.xip, gg2.xip)
+    np.testing.assert_allclose(gg1.xim, gg2.xim)
+
+
 if __name__ == '__main__':
     test_nn_direct_rperp()
     test_nn_direct_oldrperp()
@@ -1899,3 +1953,4 @@ if __name__ == '__main__':
     test_gg_rperp_local()
     test_gg_oldrperp()
     test_gg_oldrperp_local()
+    test_symmetric()

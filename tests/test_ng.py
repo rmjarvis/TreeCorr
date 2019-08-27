@@ -1789,7 +1789,7 @@ def test_oldrperp():
                 0.00242409,  0.00811821,  0.00506488,  0.00722495, -0.00494053]
 
     np.testing.assert_allclose(ng.npairs, true_npairs, rtol=1.e-3)
-    np.testing.assert_allclose(ng.xi, true_xi, rtol=1.e-3)
+    np.testing.assert_allclose(ng.xi, true_xi, rtol=1.e-3, atol=1.e-4)
 
     # Rperp doesn't get exactly the same values, but it's similar.
     ng.process(cat,cat,metric = 'FisherRperp')

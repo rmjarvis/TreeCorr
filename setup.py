@@ -25,6 +25,8 @@ except ImportError:
         scheme['data'] = scheme['purelib']
     print("Using distutils version",distutils.__version__)
 
+# Turn this on for more verbose debugging output about compile attempts.
+debug = False
 
 #from distutils.command.install_headers import install_headers
 
@@ -43,47 +45,54 @@ sources = glob.glob(os.path.join('src','*.cpp'))
 
 headers = glob.glob(os.path.join('include','*.h'))
 
-undef_macros = []
-
-# If we build with debug, also undefine NDEBUG flag
-if "--debug" in sys.argv:
-    undef_macros+=['NDEBUG']
-
 copt =  {
     'gcc' : ['-fopenmp','-O3','-ffast-math'],
     'icc' : ['-openmp','-O3'],
-    'clang' : ['-O3','-ffast-math'],
-    #'clang w/ OpenMP' : ['-fopenmp=libomp','-O3','-ffast-math'],
-    'clang w/ OpenMP' : ['-fopenmp','-O3','-ffast-math'],
+    'clang' : ['-O3','-ffast-math', '-stdlib=libc++'],
+    'clang w/ OpenMP' : ['-fopenmp','-O3','-ffast-math', '-stdlib=libc++'],
+    'clang w/ Intel OpenMP' : ['-Xpreprocessor','-fopenmp','-O3','-ffast-math', '-stdlib=libc++'],
+    'clang w/ manual OpenMP' : ['-Xpreprocessor','-fopenmp','-O3','-ffast-math', '-stdlib=libc++'],
     'unknown' : [],
 }
 lopt =  {
     'gcc' : ['-fopenmp'],
     'icc' : ['-openmp'],
-    'clang' : [],
-    'clang w/ OpenMP' : ['-fopenmp'],
+    'clang' : ['-stdlib=libc++'],
+    'clang w/ OpenMP' : ['-fopenmp', '-stdlib=libc++'],
+    'clang w/ Intel OpenMP' : ['-liomp5', '-stdlib=libc++'],
+    'clang w/ manual OpenMP' : ['-lomp', '-stdlib=libc++'],
     'unknown' : [],
 }
 
+undef_macros = []
+
+# If we build with debug, also undefine NDEBUG flag
 if "--debug" in sys.argv:
-    copt['gcc'].append('-g')
-    copt['icc'].append('-g')
-    copt['clang'].append('-g')
-    copt['clang w/ OpenMP'].append('-g')
+    undef_macros+=['NDEBUG']
+    # Usually already there, but make sure -g in included if we are debugging.
+    for name in copt.keys():
+        if name != 'unknown':
+            copt[name].append('-g')
+    debug = True
 
 local_tmp = 'tmp'
 
-def get_compiler(cc, check_unknown=True):
+def get_compiler_type(compiler, check_unknown=True, output=False):
     """Try to figure out which kind of compiler this really is.
     In particular, try to distinguish between clang and gcc, either of which may
     be called cc or gcc.
     """
+    if debug: output=True
+    cc = compiler.compiler_so[0]
+    if cc == 'ccache':
+        cc = compiler.compiler_so[1]
     cmd = [cc,'--version']
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines = p.stdout.readlines()
-    print('compiler version information: ')
-    for line in lines:
-        print(line.decode().strip())
+    if output:
+        print('compiler version information: ')
+        for line in lines:
+            print(line.decode().strip())
     # Python3 needs this decode bit.
     # Python2.7 doesn't need it, but it works fine.
     line = lines[0].decode(encoding='UTF-8')
@@ -94,15 +103,27 @@ def get_compiler(cc, check_unknown=True):
         # clang 3.7 is the first with openmp support.  But Apple lies about the version
         # number of clang, so the most reliable thing to do is to just try the compilation
         # with the openmp flag and see if it works.
-        print('Compiler is Clang.  Checking if it is a version that supports OpenMP.')
-        if try_cc(cc, 'clang w/ OpenMP'):
-            print("Yay! This version of clang supports OpenMP!")
+        if output:
+            print('Compiler is Clang.  Checking if it is a version that supports OpenMP.')
+        if try_openmp(compiler, 'clang w/ OpenMP'):
+            if output:
+                print("Yay! This version of clang supports OpenMP!")
             return 'clang w/ OpenMP'
+        elif try_openmp(compiler, 'clang w/ Intel OpenMP'):
+            if output:
+                print("Yay! This version of clang supports OpenMP!")
+            return 'clang w/ Intel OpenMP'
+        elif try_openmp(compiler, 'clang w/ manual OpenMP'):
+            if output:
+                print("Yay! This version of clang supports OpenMP!")
+            return 'clang w/ manual OpenMP'
         else:
-            print("\nSorry.  This version of clang doesn't seem to support OpenMP.\n")
-            print("If you think it should, you can try the above commands on the command line.")
-            print("You might need to add something to your C_INCLUDE_PATH or LIBRARY_PATH")
-            print("(and probabaly LD_LIBRARY_PATH) to get it to work.\n")
+            if output:
+                print("\nSorry.  This version of clang doesn't seem to support OpenMP.\n")
+                print("If you think it should, you can use `python setup.py build --debug`")
+                print("to get more information about the commands that failed.")
+                print("You might need to add something to your C_INCLUDE_PATH or LIBRARY_PATH")
+                print("(and probabaly LD_LIBRARY_PATH) to get it to work.\n")
             return 'clang'
     elif 'gcc' in line:
         return 'gcc'
@@ -119,19 +140,22 @@ def get_compiler(cc, check_unknown=True):
         # so let's just try the various options and see what works.  Don't try icc, since
         # the -openmp flag there gets treated as '-o penmp' by gcc and clang, which is bad.
         # Plus, icc should be detected correctly by the above procedure anyway.
-        print('Unknown compiler.')
-        for cc_type in ['gcc', 'clang']:
-            print('Check if the compiler works like ',cc_type)
-            if try_cc(cc, cc_type):
+        if output:
+            print('Unknown compiler.')
+        for cc_type in ['gcc', 'clang w/ OpenMP', 'clang w/ manual OpenMP', 'clang w/ Intel OpenMP',
+                        'clang']:
+            if output:
+                print('Check if the compiler works like ',cc_type)
+            if try_openmp(compiler, cc_type):
                 return cc_type
         # I guess none of them worked.  Now we really do have to bail.
-        print("None of these compile options worked.  Not adding any optimization flags.")
+        if output:
+            print("None of these compile options worked.  Not adding any optimization flags.")
         return 'unknown'
     else:
         return 'unknown'
 
-
-def try_compile(cpp_code, cc, cflags=[], lflags=[]):
+def try_compile(cpp_code, compiler, cflags=[], lflags=[], prepend=None):
     """Check if compiling some code with the given compiler and flags works properly.
     """
     # Put the temporary files in a local tmp directory, so that they stick around after failures.
@@ -152,46 +176,52 @@ def try_compile(cpp_code, cc, cflags=[], lflags=[]):
         exe_name = exe_file.name
 
     # Try compiling with the given flags
-    cmd = [cc] + cflags + ['-c',cpp_name,'-o',o_name]
-    #print('cmd = ',' '.join(cmd))
+    cc = [compiler.compiler_so[0]]
+    if prepend:
+        cc = [prepend] + cc
+    cmd = cc + compiler.compiler_so[1:] + cflags + ['-c',cpp_name,'-o',o_name]
+    if debug:
+        print('cmd = ',' '.join(cmd))
     try:
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         lines = p.stdout.readlines()
         p.communicate()
-        #print('output = ',b''.join(lines).decode())
-        if p.returncode != 0:
+        if debug and p.returncode != 0:
             print('Trying compile command:')
             print(' '.join(cmd))
             print('Output was:')
             print('   ',b'   '.join(lines).decode())
         returncode = p.returncode
     except (IOError,OSError) as e:
-        print('Trying compile command:')
-        print(' '.join(cmd))
-        print('Caught error: ',repr(e))
+        if debug:
+            print('Trying compile command:')
+            print(cmd)
+            print('Caught error: ',repr(e))
         returncode = 1
     if returncode != 0:
         # Don't delete files in case helpful for troubleshooting.
         return False
 
     # Link
-    cmd = [cc] + lflags + [o_name,'-o',exe_name]
-    #print('cmd = ',' '.join(cmd))
+    cc = compiler.linker_so[0]
+    cmd = [cc] + compiler.linker_so[1:] + lflags + [o_name,'-o',exe_name]
+    if debug:
+        print('cmd = ',' '.join(cmd))
     try:
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         lines = p.stdout.readlines()
         p.communicate()
-        #print('output = ',b''.join(lines).decode())
-        if p.returncode != 0:
+        if debug and p.returncode != 0:
             print('Trying link command:')
             print(' '.join(cmd))
             print('Output was:')
             print('   ',b'   '.join(lines).decode())
         returncode = p.returncode
     except (IOError,OSError) as e:
-        print('Trying link command:')
-        print(' '.join(cmd))
-        print('Caught error: ',repr(e))
+        if debug:
+            print('Trying link command:')
+            print(' '.join(cmd))
+            print('Caught error: ',repr(e))
         returncode = 1
 
     if returncode:
@@ -213,8 +243,7 @@ def try_compile(cpp_code, cc, cflags=[], lflags=[]):
         elif cc == 'cc':
             cpp = 'c++'
         else:
-            # Use check_unknown=False to prevent infinite loop.c
-            comp_type = get_compiler(cc, check_unknown=False)
+            comp_type = get_compiler_type(compiler)
             if comp_type == 'gcc':
                 cpp = 'g++'
             elif comp_type == 'clang':
@@ -223,23 +252,24 @@ def try_compile(cpp_code, cc, cflags=[], lflags=[]):
                 cpp = 'g++'
             else:
                 cpp = 'c++'
-        cmd = [cpp] + lflags + [o_name,'-o',exe_name]
-        #print('cmd = ',' '.join(cmd))
+        cmd = [cpp] + compiler.linker_so[1:] + lflags + [o_name,'-o',exe_name]
+        if debug:
+            print('cmd = ',' '.join(cmd))
         try:
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             lines = p.stdout.readlines()
             p.communicate()
-            #print('output = ',b''.join(lines).decode())
-            if p.returncode != 0:
+            if debug and p.returncode != 0:
                 print('Trying link command:')
                 print(' '.join(cmd))
                 print('Output was:')
                 print('   ',b'   '.join(lines).decode())
             returncode = p.returncode
         except (IOError,OSError) as e:
-            print('Trying to link using command:')
-            print(' '.join(cmd))
-            print('Caught error: ',repr(e))
+            if debug:
+                print('Trying to link using command:')
+                print(' '.join(cmd))
+                print('Caught error: ',repr(e))
             returncode = 1
 
     # Remove the temp files
@@ -253,8 +283,7 @@ def try_compile(cpp_code, cc, cflags=[], lflags=[]):
             os.remove(exe_name)
         return True
 
-
-def try_cc(cc, cc_type):
+def try_openmp(compiler, cc_type):
     """
     If cc --version is not helpful, the last resort is to try each compiler type and see
     if it works.
@@ -291,7 +320,26 @@ int main() {
     return 0;
 }
 """
-    return try_compile(cpp_code, cc, copt[cc_type], lopt[cc_type])
+    return try_compile(cpp_code, compiler, copt[cc_type], lopt[cc_type])
+
+
+def try_cpp(compiler, cflags=[], lflags=[], prepend=None):
+    """Check if compiling a simple bit of c++ code with the given compiler works properly.
+    """
+    from textwrap import dedent
+    cpp_code = dedent("""
+    #include <iostream>
+    #include <vector>
+    int main() {
+        int n = 500;
+        std::vector<double> x(n,0.);
+        for (int i=0; i<n; ++i) x[i] = 2*i+1;
+        double sum=0.;
+        for (int i=0; i<n; ++i) sum += x[i];
+        return sum;
+    }
+    """)
+    return try_compile(cpp_code, compiler, cflags, lflags, prepend=None)
 
 
 def check_ffi_compile(cc, cc_type):
@@ -407,32 +455,60 @@ make it succeed.
         if yn == 'yes':
             sys.exit(1)
 
-# This was supposed to remove the -Wstrict-prototypes flag
-# But it doesn't work....
-# Hopefully they'll fix this bug soon:
-#  http://bugs.python.org/issue9031
-#  http://bugs.python.org/issue1222585
-#(opt,) = get_config_vars('OPT')
-#os.environ['OPT'] = " ".join( flag for flag in opt.split() if flag != '-Wstrict-prototypes')
+def fix_compiler(compiler):
+    # Remove any -Wstrict-prototypes in the compiler flags (since invalid for C++)
+    try:
+        compiler.compiler_so.remove("-Wstrict-prototypes")
+    except (AttributeError, ValueError):
+        pass
+
+    # Figure out what compiler it will use
+    comp_type = get_compiler_type(compiler, output=True)
+    cc = compiler.compiler_so[0]
+    already_have_ccache = False
+    if cc == 'ccache':
+        already_have_ccache = True
+        cc = compiler.compiler_so[1]
+    if cc == comp_type:
+        print('Using compiler %s'%(cc))
+    else:
+        print('Using compiler %s, which is %s'%(cc,comp_type))
+
+    # Make sure the compiler works with a simple c++ code
+    if not try_cpp(compiler):
+        print("There seems to be something wrong with the compiler or cflags")
+        print(str(compiler.compiler_so))
+        raise OSError("Compiler does not work for compiling C++ code")
+
+    check_ffi(cc, comp_type)
+
+    # Check if we can use ccache to speed up repeated compilation.
+    if not already_have_ccache and try_cpp(compiler, prepend='ccache'):
+        print('Using ccache')
+        compiler.set_executable('compiler_so', ['ccache'] + compiler.compiler_so)
+
+    extra_cflags = copt[comp_type]
+    extra_lflags = lopt[comp_type]
+
+    # Return the extra cflags, since those will be added to the build step in a different place.
+    print('Using extra flags ',extra_cflags)
+    return extra_cflags, extra_lflags
+
 
 # Make a subclass of build_ext so we can do different things depending on which compiler we have.
 # In particular, we want to use different compiler options for OpenMP in each case.
 # cf. http://stackoverflow.com/questions/724664/python-distutils-how-to-get-a-compiler-that-is-going-to-be-used
 class my_builder( build_ext ):
     def build_extensions(self):
-        # Figure out what compiler it will use
-        cc = self.compiler.compiler_so[0]
-        comp_type = get_compiler(cc)
-        if cc == comp_type:
-            print('Using compiler %s'%(cc))
-        else:
-            print('Using compiler %s, which is %s'%(cc,comp_type))
+        cflags, lflags = fix_compiler(self.compiler)
+
         # Add the appropriate extra flags for that compiler.
         for e in self.extensions:
-            e.extra_compile_args = copt[ comp_type ]
-            e.extra_link_args = lopt[ comp_type ]
+            e.extra_compile_args = cflags
+            for flag in lflags:
+                e.extra_link_args.append(flag)
             e.include_dirs = ['include']
-        check_ffi(cc,comp_type)
+
         # Now run the normal build function.
         build_ext.build_extensions(self)
 

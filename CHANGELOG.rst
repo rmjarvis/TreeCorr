@@ -204,3 +204,10 @@ Changes from version 4.0.5 to 4.0.6
   than the object in cat2.  (I.e. when r1 > r2, rpar should be < 0.)
   [This was the fix that was supposed to have been active in 4.0.4.]
 - Fixed a subtle bug in the wpos handling during Cell construction.
+
+Changes from version 4.0.6 to 4.0.7
+-----------------------------------
+
+- Added -stdlib=libc++ flag for clang.
+- Added support for some other varieties of OpenMP.
+- Added support for using ccache when compiling.

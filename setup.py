@@ -339,7 +339,7 @@ def try_cpp(compiler, cflags=[], lflags=[], prepend=None):
         return sum;
     }
     """)
-    return try_compile(cpp_code, compiler, cflags, lflags, prepend=None)
+    return try_compile(cpp_code, compiler, cflags, lflags, prepend=prepend)
 
 
 def check_ffi_compile(cc, cc_type):

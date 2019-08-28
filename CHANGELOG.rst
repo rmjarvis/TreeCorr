@@ -211,3 +211,9 @@ Changes from version 4.0.6 to 4.0.7
 - Added -stdlib=libc++ flag for clang.
 - Added support for some other varieties of OpenMP.
 - Added support for using ccache when compiling.
+
+Changes from version 4.0.7 to 4.0.8
+-----------------------------------
+
+- Fixed error in the check for whether ccache is available.
+

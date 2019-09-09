@@ -82,11 +82,6 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == "linux" ]]; then sudo -H apt-get -qq update; sudo -H apt-get install -y libffi-dev; fi
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then brew update; brew install libffi; fi
 
-    #- export PYTHONPATH=$HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages/:$PYTHONPATH
-    #- mkdir $HOME/lib
-    #- mkdir $HOME/lib/python$TRAVIS_PYTHON_VERSION
-    #- mkdir $HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages
-
     # On OSX, need to use pip3, not pip and python3, not python
     - if [[ $TRAVIS_OS_NAME == "osx" && $TRAVIS_PYTHON_VERSION > 3.0 ]]; then export PIP=pip3; export PYTHON=python3; else export PIP=pip; export PYTHON=python; fi
     - $PIP --version
@@ -103,6 +98,12 @@ install:
     # Extra packages only needed for testing:
     - $PIP install -U $__USER -r test_requirements.txt
     - $PIP install -U $__USER matplotlib pytest codecov nbval ipykernel
+
+    # On Travix OSX, nose is already installed, but nosetests isn't in the path.
+    # So we need to force it to reinstall, which puts nosetests in /usr/local/bin/
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then sudo -H $PIP install --force $__USER -v nose; fi
+
+    - $PIP list
 
 script:
     - $PYTHON setup.py install $__USER

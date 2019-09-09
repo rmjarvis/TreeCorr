@@ -229,10 +229,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
         min_size, max_size = self._get_minmax_size()
 
         f1 = cat1.getGField(min_size, max_size, self.split_method,
-                            self.brute is True or self.brute is 1,
+                            self.brute is True or self.brute == 1,
                             self.min_top, self.max_top, self.coords)
         f2 = cat2.getGField(min_size, max_size, self.split_method,
-                            self.brute is True or self.brute is 2,
+                            self.brute is True or self.brute == 2,
                             self.min_top, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
@@ -555,7 +555,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
             m2_uform = treecorr.config.get(self.config,'m2_uform',str,'Crittenden')
         if m2_uform not in ['Crittenden', 'Schneider']:
             raise ValueError("Invalid m2_uform")
-        if self.bin_type is not 'Log':
+        if self.bin_type != 'Log':
             raise ValueError("calculateMapSq requires Log binning.")
         if R is None:
             R = self.rnom
@@ -643,7 +643,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
                 - vargamsq_e  (Only if eb is True) = array of the variance estimate of
                   gamsq_e or gamsq_b
         """
-        if self.bin_type is not 'Log':
+        if self.bin_type != 'Log':
             raise ValueError("calculateGamSq requires Log binning.")
 
         if R is None:

@@ -421,8 +421,9 @@ class BinnedCorr2(object):
         self.brute = treecorr.config.get(self.config,'brute',bool,False)
         if self.brute:
             self.logger.info("Doing brute force calculation%s.",
-                             self.brute is 1 and " for first field" or
-                             (self.brute is 2 and " for second field" or ""))
+                             self.brute is True and "" or
+                             self.brute == 1 and " for first field" or
+                             " for second field")
         self.coords = None
         self.metric = None
         self.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)
@@ -592,13 +593,13 @@ class BinnedCorr2(object):
             self.logger.debug("In sample_pairs, making default field for cat1")
             min_size, max_size = self._get_minmax_size()
             f1 = cat1.getNField(min_size, max_size, self.split_method,
-                                self.brute is True or self.brute is 1,
+                                self.brute is True or self.brute == 1,
                                 self.min_top, self.max_top, self.coords)
         if f2 is None or f2._coords != self._coords:
             self.logger.debug("In sample_pairs, making default field for cat2")
             min_size, max_size = self._get_minmax_size()
             f2 = cat2.getNField(min_size, max_size, self.split_method,
-                                self.brute is True or self.brute is 2,
+                                self.brute is True or self.brute == 2,
                                 self.min_top, self.max_top, self.coords)
 
         # Apply units to min_sep, max_sep:

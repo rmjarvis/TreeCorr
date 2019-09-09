@@ -176,10 +176,10 @@ class NKCorrelation(treecorr.BinnedCorr2):
         min_size, max_size = self._get_minmax_size()
 
         f1 = cat1.getNField(min_size, max_size, self.split_method,
-                            self.brute is True or self.brute is 1,
+                            self.brute is True or self.brute == 1,
                             self.min_top, self.max_top, self.coords)
         f2 = cat2.getKField(min_size, max_size, self.split_method,
-                            self.brute is True or self.brute is 2,
+                            self.brute is True or self.brute == 2,
                             self.min_top, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)

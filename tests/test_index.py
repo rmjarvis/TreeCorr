@@ -17,6 +17,7 @@ import time
 import coord
 import gc
 import treecorr
+import platform
 
 from test_helper import CaptureLog, assert_raises
 
@@ -55,8 +56,10 @@ def test_count_near():
     print('n3 = ',n3,'  time = ',t3-t2)
     assert n2 == n1
     assert n3 == n1
-    assert t2-t1 < t1-t0
-    assert t3-t2 < t1-t0
+    if platform.python_implementation != 'PyPy':
+        # The JIT in PyPy can sometimes beat the tree code.
+        assert t2-t1 < t1-t0
+        assert t3-t2 < t1-t0
 
     # Check G and K with other allowed argument patterns.
     kfield = cat.getKField(min_size=0.01, max_size=sep, min_top=5)
@@ -90,8 +93,9 @@ def test_count_near():
     print('n3 = ',n3,'  time = ',t3-t2)
     assert n2 == n1
     assert n3 == n1
-    assert t2-t1 < t1-t0
-    assert t3-t2 < t1-t0
+    if platform.python_implementation != 'PyPy':
+        assert t2-t1 < t1-t0
+        assert t3-t2 < t1-t0
 
     # Check G and K with other allowed argument patterns.
     kfield = cat.getKField(min_size=0.01, max_size=sep, min_top=5)
@@ -142,8 +146,9 @@ def test_count_near():
     print('n3 = ',n3,'  time = ',t3-t2)
     assert n2 == n1
     assert n3 == n1
-    assert t2-t1 < t1-t0
-    assert t3-t2 < t1-t0
+    if platform.python_implementation != 'PyPy':
+        assert t2-t1 < t1-t0
+        assert t3-t2 < t1-t0
 
     # Check G and K with other allowed argument patterns.
     kfield = cat.getKField(min_size=0.01, max_size=0.1, min_top=5)

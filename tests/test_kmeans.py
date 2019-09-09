@@ -63,7 +63,7 @@ def test_dessv():
     print('mean size = ',np.mean(sizes))
     print('rms size = ',np.std(sizes))
     assert np.sum(inertia) < 200.  # This is specific to this particular field and npatch.
-    assert np.std(inertia) < 0.2 * np.mean(inertia)  # rms is usually small  mean
+    assert np.std(inertia) < 0.3 * np.mean(inertia)  # rms is usually < 0.2 * mean
     assert np.std(sizes) < 0.1 * np.mean(sizes)  # sizes have even less spread usually.
 
     # Should all have similar number of points.  Nothing is required here though.
@@ -127,7 +127,7 @@ def test_dessv():
     print('rms size = ',np.std(sizes))
     assert np.sum(inertia) < 210.
     assert np.std(inertia) < 0.4 * np.mean(inertia)  # I've seen over 0.3 x mean here.
-    assert np.std(sizes) < 0.1 * np.mean(sizes)
+    assert np.std(sizes) < 0.15 * np.mean(sizes)
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))

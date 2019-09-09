@@ -66,10 +66,15 @@ matrix:
         - python: 3.8-dev
           dist: xenial
           name: "Python: 3.8-dev"
+          env:
+            # scipy dependency (for tests) requires LAPACK, BLAS.
+            - NEED_LAPACK=1
 
         # For grins, add pypy.
         - python: pypy3
           name: PyPy
+          env:
+            - NEED_LAPACK=1
 
     allow_failures:
         - name: Linux clang (Python 3.6)
@@ -81,6 +86,7 @@ matrix:
 before_install:
     - if [[ $TRAVIS_OS_NAME == "linux" ]]; then sudo -H apt-get -qq update; sudo -H apt-get install -y libffi-dev; fi
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then brew update; brew install libffi; fi
+    - if [[ $NEED_LAPACK ]]; then sudo -H apt-get libblas-dev liblapack-dev libatlas-base-dev gfortran; fi
 
     # On OSX, need to use pip3, not pip and python3, not python
     - if [[ $TRAVIS_OS_NAME == "osx" && $TRAVIS_PYTHON_VERSION > 3.0 ]]; then export PIP=pip3; export PYTHON=python3; else export PIP=pip; export PYTHON=python; fi

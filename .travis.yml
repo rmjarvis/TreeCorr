@@ -103,11 +103,7 @@ install:
 
     # Extra packages only needed for testing:
     - $PIP install -U $__USER -r test_requirements.txt
-    - $PIP install -U $__USER matplotlib pytest codecov nbval ipykernel
-
-    # On Travix OSX, nose is already installed, but nosetests isn't in the path.
-    # So we need to force it to reinstall, which puts nosetests in /usr/local/bin/
-    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then sudo -H $PIP install --force $__USER -v nose; fi
+    - $PIP install -U $__USER matplotlib pytest codecov nbval ipykernel pytest-cov
 
     - $PIP list
 
@@ -115,8 +111,8 @@ script:
     - $PYTHON setup.py install $__USER
 
     - cd tests
-    - nosetests -v --with-coverage --cover-package=treecorr
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then py.test --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env; fi
+    - pytest --cov=treecorr test*.py
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pytest --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env; fi
 
 after_success:
     - codecov

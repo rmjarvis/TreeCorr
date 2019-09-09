@@ -105,6 +105,10 @@ install:
     - $PIP install -U $__USER -r test_requirements.txt
     - $PIP install -U $__USER matplotlib pytest codecov nbval ipykernel pytest-cov
 
+    # Only add halotools for py3.6
+    # Just because it's a slow install, especially h5py on 3.8, pypy, since installed from scratch.
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then $PIP install -U $__USER h5py halotools; fi
+
     - $PIP list
 
 script:

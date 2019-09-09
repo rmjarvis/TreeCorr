@@ -66,15 +66,10 @@ matrix:
         - python: 3.8-dev
           dist: xenial
           name: "Python: 3.8-dev"
-          env:
-            # scipy dependency (for tests) requires LAPACK, BLAS.
-            - NEED_LAPACK=1
 
         # For grins, add pypy.
         - python: pypy3
           name: PyPy
-          env:
-            - NEED_LAPACK=1
 
     allow_failures:
         - name: Linux clang (Python 3.6)
@@ -86,7 +81,6 @@ matrix:
 before_install:
     - if [[ $TRAVIS_OS_NAME == "linux" ]]; then sudo -H apt-get -qq update; sudo -H apt-get install -y libffi-dev; fi
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then brew update; brew install libffi; fi
-    - if [[ $NEED_LAPACK ]]; then sudo -H apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran; fi
 
     # On OSX, need to use pip3, not pip and python3, not python
     - if [[ $TRAVIS_OS_NAME == "osx" && $TRAVIS_PYTHON_VERSION > 3.0 ]]; then export PIP=pip3; export PYTHON=python3; else export PIP=pip; export PYTHON=python; fi
@@ -102,12 +96,11 @@ install:
     - $PIP install -U $__USER -r requirements.txt
 
     # Extra packages only needed for testing:
-    - $PIP install -U $__USER -r test_requirements.txt
-    - $PIP install -U $__USER matplotlib pytest codecov nbval ipykernel pytest-cov
+    - $PIP install -U $__USER pytest codecov pytest-cov
 
-    # Only add halotools for py3.6
-    # Just because it's a slow install, especially h5py on 3.8, pypy, since installed from scratch.
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then $PIP install -U $__USER h5py halotools; fi
+    # Only add optional ones for py3.6
+    # They are slow to install, especially 3.8 and pypy, where installed from scratch.
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then $PIP install -U $__USER h5py halotools matplotlib nbval ipykernel scipy fitsio pandas; fi
 
     - $PIP list
 

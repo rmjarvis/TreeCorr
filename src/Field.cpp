@@ -177,7 +177,7 @@ Field<D,C>::Field(double* x, double* y, double* z, double* g1, double* g2, doubl
     std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> > celldata;
     celldata.reserve(nobj);
     if (z) {
-        for(int i=0;i<nobj;++i) {
+        for(long i=0;i<nobj;++i) {
             WPosLeafInfo wp = get_wpos(wpos,w,i);
             if (wp.wpos != 0.)
                 celldata.push_back(std::make_pair(
@@ -186,7 +186,7 @@ Field<D,C>::Field(double* x, double* y, double* z, double* g1, double* g2, doubl
         }
     } else {
         Assert(C == Flat);
-        for(int i=0;i<nobj;++i) {
+        for(long i=0;i<nobj;++i) {
             WPosLeafInfo wp = get_wpos(wpos,w,i);
             if (wp.wpos != 0.)
                 celldata.push_back(std::make_pair(
@@ -347,8 +347,8 @@ void GetNear(const Cell<D,C>* cell, const Position<C>& pos, double sep, double s
             } else {
                 dbg<<"N > 1 case: "<<n1<<std::endl;
                 std::vector<long>* leaf_indices = cell->getListInfo().indices;
-                Assert(int(leaf_indices->size()) == n1);
-                for (int m=0; m<n1; ++m)
+                Assert(long(leaf_indices->size()) == n1);
+                for (long m=0; m<n1; ++m)
                     indices[k++] = (*leaf_indices)[m];
             }
             Assert(k <= n);

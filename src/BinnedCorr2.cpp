@@ -150,7 +150,7 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
-        for (int i=0;i<n1;++i) {
+        for (long i=0;i<n1;++i) {
 #ifdef _OPENMP
 #pragma omp critical
 #endif
@@ -162,7 +162,7 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
             }
             const Cell<D1,C>& c1 = *field.getCells()[i];
             ProcessHelper<D1,D2,B,C,M>::process2(bc2, c1, metric);
-            for (int j=i+1;j<n1;++j) {
+            for (long j=i+1;j<n1;++j) {
                 const Cell<D1,C>& c2 = *field.getCells()[j];
                 bc2.process11<C,M>(c1, c2, metric, BinTypeHelper<B>::doReverse());
             }
@@ -206,7 +206,7 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>&
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
-        for (int i=0;i<n1;++i) {
+        for (long i=0;i<n1;++i) {
 #ifdef _OPENMP
 #pragma omp critical
 #endif
@@ -217,7 +217,7 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>&
                 if (dots) std::cout<<'.'<<std::flush;
             }
             const Cell<D1,C>& c1 = *field1.getCells()[i];
-            for (int j=0;j<n2;++j) {
+            for (long j=0;j<n2;++j) {
                 const Cell<D2,C>& c2 = *field2.getCells()[j];
                 bc2.process11<C,M>(c1, c2, metric, false);
             }
@@ -597,9 +597,9 @@ long BinnedCorr2<D1,D2,B>::samplePairs(
     double maxsepsq = maxsep*maxsep;
 
     long k=0;
-    for (int i=0;i<n1;++i) {
+    for (long i=0;i<n1;++i) {
         const Cell<D1,C>& c1 = *field1.getCells()[i];
-        for (int j=0;j<n2;++j) {
+        for (long j=0;j<n2;++j) {
             const Cell<D2,C>& c2 = *field2.getCells()[j];
             samplePairs(c1, c2, metric, minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
         }
@@ -800,15 +800,15 @@ void BinnedCorr2<D1,D2,B>::sampleFrom(
         // Case 1
         xdbg<<"Case 1: take all pairs\n";
         for (size_t p1=0; p1<leaf1.size(); ++p1) {
-            int nn1 = leaf1[p1]->getN();
-            for (int q1=0; q1<nn1; ++q1) {
-                int index1;
+            long nn1 = leaf1[p1]->getN();
+            for (long q1=0; q1<nn1; ++q1) {
+                long index1;
                 if (nn1 == 1) index1 = leaf1[p1]->getInfo().index;
                 else index1 = (*leaf1[p1]->getListInfo().indices)[q1];
                 for (size_t p2=0; p2<leaf2.size(); ++p2) {
-                    int nn2 = leaf2[p2]->getN();
-                    for (int q2=0; q2<nn2; ++q2) {
-                        int index2;
+                    long nn2 = leaf2[p2]->getN();
+                    for (long q2=0; q2<nn2; ++q2) {
+                        long index2;
                         if (nn2 == 1) index2 = leaf2[p2]->getInfo().index;
                         else index2 = (*leaf2[p2]->getListInfo().indices)[q2];
                         i1[k] = index1;
@@ -823,18 +823,18 @@ void BinnedCorr2<D1,D2,B>::sampleFrom(
         // Case 2
         xdbg<<"Case 2: Check one at a time.\n";
         for (size_t p1=0; p1<leaf1.size(); ++p1) {
-            int nn1 = leaf1[p1]->getN();
-            for (int q1=0; q1<nn1; ++q1) {
-                int index1;
+            long nn1 = leaf1[p1]->getN();
+            for (long q1=0; q1<nn1; ++q1) {
+                long index1;
                 if (nn1 == 1) index1 = leaf1[p1]->getInfo().index;
                 else index1 = (*leaf1[p1]->getListInfo().indices)[q1];
                 for (size_t p2=0; p2<leaf2.size(); ++p2) {
-                    int nn2 = leaf2[p2]->getN();
-                    for (int q2=0; q2<nn2; ++q2) {
-                        int index2;
+                    long nn2 = leaf2[p2]->getN();
+                    for (long q2=0; q2<nn2; ++q2) {
+                        long index2;
                         if (nn2 == 1) index2 = leaf2[p2]->getInfo().index;
                         else index2 = (*leaf2[p2]->getListInfo().indices)[q2];
-                        int j = k;  // j is where in the lists we will place this
+                        long j = k;  // j is where in the lists we will place this
                         if (k >= n) {
                             double urd = urand(); // 0 < urd < 1
                             j = int(urd * (k+1)); // 0 <= j < k+1
@@ -855,15 +855,15 @@ void BinnedCorr2<D1,D2,B>::sampleFrom(
         std::vector<long> selection(n);
         SelectRandomFrom(k+m, selection);
         // If any items in k<=i<n are from the original set, put them in their original place.
-        for(int i=k;i<n;++i) {
-            int j = selection[i];
+        for(long i=k;i<n;++i) {
+            long j = selection[i];
             if (j < n) std::swap(selection[i], selection[j]);
         }
 
         // Now any items with j >= k can replace the value at their i in this list.
         std::map<long, long> places;
-        for(int i=0;i<n;++i) {
-            int j = selection[i];
+        for(long i=0;i<n;++i) {
+            long j = selection[i];
             if (j >= k) places[j] = i;
         }
         if (places.size() == 0) {
@@ -874,10 +874,10 @@ void BinnedCorr2<D1,D2,B>::sampleFrom(
 
         std::map<long, long>::iterator next = places.begin();
 
-        int i=k;  // When i is in the map, place it at places[i]
+        long i=k;  // When i is in the map, place it at places[i]
         for (size_t p1=0; p1<leaf1.size(); ++p1) {
-            int nn1 = leaf1[p1]->getN();
-            for (int q1=0; q1<nn1; ++q1) {
+            long nn1 = leaf1[p1]->getN();
+            for (long q1=0; q1<nn1; ++q1) {
                 xdbg<<"i = "<<i<<", next = "<<next->first<<"  "<<next->second<<std::endl;
                 Assert(i <= next->first);
                 if (next->first > i + n2) {
@@ -885,15 +885,15 @@ void BinnedCorr2<D1,D2,B>::sampleFrom(
                     i += n2;
                     continue;
                 }
-                int index1;
+                long index1;
                 if (nn1 == 1) index1 = leaf1[p1]->getInfo().index;
                 else index1 = (*leaf1[p1]->getListInfo().indices)[q1];
                 for (size_t p2=0; p2<leaf2.size(); ++p2) {
-                    int nn2 = leaf2[p2]->getN();
-                    for (int q2=0; q2<nn2; ++q2,++i) {
+                    long nn2 = leaf2[p2]->getN();
+                    for (long q2=0; q2<nn2; ++q2,++i) {
                         if (i == next->first) {
                             xdbg<<"Use i = "<<i<<std::endl;
-                            int index2;
+                            long index2;
                             if (nn2 == 1) index2 = leaf2[p2]->getInfo().index;
                             else index2 = (*leaf2[p2]->getListInfo().indices)[q2];
                             long j = next->second;

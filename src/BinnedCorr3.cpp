@@ -191,7 +191,7 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field, bool dots)
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
-        for (int i=0;i<n1;++i) {
+        for (long i=0;i<n1;++i) {
             const Cell<D1,C>* c1 = field.getCells()[i];
 #ifdef _OPENMP
 #pragma omp critical
@@ -207,11 +207,11 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field, bool dots)
 #endif
             }
             ProcessHelper<D1,D2,D3,B,C,M>::process3(bc3,c1, metric);
-            for (int j=i+1;j<n1;++j) {
+            for (long j=i+1;j<n1;++j) {
                 const Cell<D1,C>* c2 = field.getCells()[j];
                 ProcessHelper<D1,D2,D3,B,C,M>::process21(bc3,c1,c2, metric);
                 ProcessHelper<D1,D2,D3,B,C,M>::process21(bc3,c2,c1, metric);
-                for (int k=j+1;k<n1;++k) {
+                for (long k=j+1;k<n1;++k) {
                     const Cell<D1,C>* c3 = field.getCells()[k];
                     ProcessHelper<D1,D2,D3,B,C,M>::process111(bc3,c1,c2,c3, metric);
                 }
@@ -252,19 +252,19 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field1, const Field<D2,
 #ifdef DEBUGLOGGING
     if (verbose_level >= 2) {
         xdbg<<"field1: \n";
-        for (int i=0;i<n1;++i) {
+        for (long i=0;i<n1;++i) {
             xdbg<<"node "<<i<<std::endl;
             const Cell<D1,C>* c1 = field1.getCells()[i];
             c1->WriteTree(get_dbgout());
         }
         xdbg<<"field2: \n";
-        for (int i=0;i<n2;++i) {
+        for (long i=0;i<n2;++i) {
             xdbg<<"node "<<i<<std::endl;
             const Cell<D2,C>* c2 = field2.getCells()[i];
             c2->WriteTree(get_dbgout());
         }
         xdbg<<"field3: \n";
-        for (int i=0;i<n3;++i) {
+        for (long i=0;i<n3;++i) {
             xdbg<<"node "<<i<<std::endl;
             const Cell<D3,C>* c3 = field3.getCells()[i];
             c3->WriteTree(get_dbgout());
@@ -284,7 +284,7 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field1, const Field<D2,
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
 #endif
-        for (int i=0;i<n1;++i) {
+        for (long i=0;i<n1;++i) {
 #ifdef _OPENMP
 #pragma omp critical
 #endif
@@ -295,9 +295,9 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field1, const Field<D2,
 #endif
             }
             const Cell<D1,C>* c1 = field1.getCells()[i];
-            for (int j=0;j<n2;++j) {
+            for (long j=0;j<n2;++j) {
                 const Cell<D2,C>* c2 = field2.getCells()[j];
-                for (int k=0;k<n3;++k) {
+                for (long k=0;k<n3;++k) {
                     const Cell<D3,C>* c3 = field3.getCells()[k];
                     bc3.template process111<false,C,M>(c1, c2, c3, metric);
                 }

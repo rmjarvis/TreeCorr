@@ -69,7 +69,7 @@ void InitializeCentersTree(std::vector<Position<C> >& centers, const std::vector
         dbg<<"More cells than centers.  Pick from them randomly.\n";
         std::vector<long> selection(ncenters);
         SelectRandomFrom(ncells, selection);
-        for (int i=0; i<ncenters; ++i) {
+        for (long i=0; i<ncenters; ++i) {
             Assert(selection[i] < cells.size());
             centers[i] = cells[selection[i]]->getPos();
         }
@@ -93,7 +93,7 @@ void InitializeCentersTree(std::vector<Position<C> >& centers, const std::vector
         std::random_shuffle(nvalues.begin(), nvalues.end());
 
         // Do the recursive initialization for each value of n1 in the list.
-        int first=0;
+        long first=0;
         for (long k=0; k<ncells; ++k) {
             Assert(first < ncenters);
             InitializeCentersTree(centers, cells[k], first, nvalues[k]);
@@ -112,7 +112,7 @@ void InitializeCentersRand(std::vector<Position<C> >& centers, const std::vector
     long ncenters = centers.size();
     long ncells = cells.size();
     long ntot = 0;
-    for (int k=0; k<ncells; ++k) ntot += cells[k]->getN();
+    for (long k=0; k<ncells; ++k) ntot += cells[k]->getN();
     xdbg<<"ntot = "<<ntot<<std::endl;
 
     // Find ncenters different indices from 0..ntot-1.
@@ -122,10 +122,10 @@ void InitializeCentersRand(std::vector<Position<C> >& centers, const std::vector
     // Select the position of the leaf with this index.
     // Note: these aren't the same as the "index" that is stored from the original catalog.
     // These are the index in a kind of arbitrary ordering of the final tree structure.
-    for (int i=0; i<ncenters; ++i) {
+    for (long i=0; i<ncenters; ++i) {
         dbg<<"Pick random center "<<i<<" index = "<<index[i]<<std::endl;
         long m = index[i];
-        for (int k=0; k<ncells; ++k) {
+        for (long k=0; k<ncells; ++k) {
             if (m < cells[k]->getN()) {
                 const Cell<D,C>* c = cells[k]->getLeafNumber(m);
                 centers[i] = c->getPos();
@@ -141,7 +141,7 @@ void InitializeCentersRand(std::vector<Position<C> >& centers, const std::vector
         // points in it.  Then two different index values could both point to the same leaf.
         // This should be rare, but guard against it by arbitrarily shifting the second value
         // by a random small value.
-        for (int i1=0; i1<i; ++i1) {
+        for (long i1=0; i1<i; ++i1) {
             if (centers[i1] == centers[i]) {
                 dbg<<"Found duplicate center!\n";
                 centers[i] *= (1. + urand() * 1.e-8);
@@ -161,7 +161,7 @@ Position<C> InitializeCentersKMPP(const Cell<D,C>* cell,
     // If we are in a leaf, then return this position as the next center to use.
     if (cell->getSize() == 0) {
         // Check that we haven't already used this leaf as a center
-        for (int j=0; j<ncen; ++j) {
+        for (long j=0; j<ncen; ++j) {
             if (cell->getPos() == centers[j]) {
                 dbg<<"Already used this leaf as a center\n";
                 throw LeafAlreadyUsed();
@@ -178,7 +178,7 @@ Position<C> InitializeCentersKMPP(const Cell<D,C>* cell,
     double dsq1 = (left->getPos() - centers[0]).normSq();
     double dsq2 = (right->getPos() - centers[0]).normSq();
 
-    for (int j=1; j<ncen; ++j) {
+    for (long j=1; j<ncen; ++j) {
         double dsq1j = (left->getPos() - centers[j]).normSq();
         double dsq2j = (right->getPos() - centers[j]).normSq();
         if (dsq1j < dsq1) dsq1 = dsq1j;
@@ -232,16 +232,16 @@ void InitializeCentersKMPP(std::vector<Position<C> >& centers, const std::vector
     long ncells = cells.size();
 
     long ntot = 0;
-    for (int k=0; k<ncells; ++k) ntot += cells[k]->getN();
+    for (long k=0; k<ncells; ++k) ntot += cells[k]->getN();
     xdbg<<"ntot = "<<ntot<<std::endl;
 
     // Keep track of how many centers are assigned from each cell.
-    std::vector<int> centers_per_cell(ncells, 0);
+    std::vector<long> centers_per_cell(ncells, 0);
 
     // Pick the first point
-    long m = int(urand() * ntot);
+    long m = long(urand() * ntot);
     xdbg<<"m = "<<m<<std::endl;
-    for (int k=0; k<ncells; ++k) {
+    for (long k=0; k<ncells; ++k) {
         if (m < cells[k]->getN()) {
             dbg<<"Pick first center from cell "<<k<<std::endl;
             centers[0] = cells[k]->getLeafNumber(m)->getPos();
@@ -254,15 +254,15 @@ void InitializeCentersKMPP(std::vector<Position<C> >& centers, const std::vector
     }
 
     // Pick the rest of the points
-    for (int i=1; i<ncenters; ++i) {
+    for (long i=1; i<ncenters; ++i) {
         xdbg<<"Start work on center "<<i<<std::endl;
         // Calculate the dsq for each top level cell, to calculate the probability of choosing it.
         std::vector<double> p(ncells);
         double sump=0.;  // to normalize probabilities
-        for (int k=0; k<ncells; ++k) {
+        for (long k=0; k<ncells; ++k) {
             double dsq1 = (centers[0] - cells[k]->getPos()).normSq();
             xdbg<<"   dsq[0] = "<<dsq1<<std::endl;
-            for (int i1=1; i1<i; ++i1) {
+            for (long i1=1; i1<i; ++i1) {
                 double dsq2 = (centers[i1] - cells[k]->getPos()).normSq();
                 xdbg<<"   dsq["<<i1<<"] = "<<dsq2<<std::endl;
                 if (dsq2 < dsq1) dsq1 = dsq2;
@@ -286,7 +286,7 @@ void InitializeCentersKMPP(std::vector<Position<C> >& centers, const std::vector
         }
         double u = urand();
         xdbg<<"u = "<<u<<std::endl;
-        for (int k=0; k<ncells; ++k) {
+        for (long k=0; k<ncells; ++k) {
             p[k] /= sump;
             xdbg<<"Prob("<<k<<") = "<<p[k]<<std::endl;
             if (u < p[k]) {
@@ -559,7 +559,7 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
     //          dsq + I_i   for alt = True.
 
     // Look for closer center
-    for (int j=1; j<ncand; ++j) {
+    for (long j=1; j<ncand; ++j) {
         long i=patches[j];
         double dsq = (cell_center - centers[i]).normSq();
         saved_dsq[j] = dsq;
@@ -593,7 +593,7 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
     xdbg<<"thresh_dsq = "<<thresh_dsq<<std::endl;
 
     // Update patches to remove any that cannot be the right center from candidate section.
-    for (int j=ncand-1; j>0; --j) {
+    for (long j=ncand-1; j>0; --j) {
         double dsq = saved_dsq[j];
         if (inertia) {
             double d = sqrt(dsq);
@@ -698,7 +698,7 @@ double CalculateShiftSq(const std::vector<Position<C> >& centers,
 template <int C>
 void WriteCenters(const std::vector<Position<C> >& centers, double* pycenters, long npatch)
 {
-    for(int i=0; i<npatch; ++i, pycenters+=3) {
+    for(long i=0; i<npatch; ++i, pycenters+=3) {
         pycenters[0] = centers[i].getX();
         pycenters[1] = centers[i].getY();
         pycenters[2] = centers[i].getZ();
@@ -707,7 +707,7 @@ void WriteCenters(const std::vector<Position<C> >& centers, double* pycenters, l
 template <int C>
 void ReadCenters(std::vector<Position<C> >& centers, const double* pycenters, long npatch)
 {
-    for(int i=0; i<npatch; ++i, pycenters+=3) {
+    for(long i=0; i<npatch; ++i, pycenters+=3) {
         centers[i] = Position<C>(pycenters[0], pycenters[1], pycenters[2]);
     }
 }
@@ -716,7 +716,7 @@ void ReadCenters(std::vector<Position<C> >& centers, const double* pycenters, lo
 template <>
 void WriteCenters(const std::vector<Position<Flat> >& centers, double* pycenters, long npatch)
 {
-    for(int i=0; i<npatch; ++i, pycenters+=2) {
+    for(long i=0; i<npatch; ++i, pycenters+=2) {
         pycenters[0] = centers[i].getX();
         pycenters[1] = centers[i].getY();
     }
@@ -725,7 +725,7 @@ void WriteCenters(const std::vector<Position<Flat> >& centers, double* pycenters
 template <>
 void ReadCenters(std::vector<Position<Flat> >& centers, const double* pycenters, long npatch)
 {
-    for(int i=0; i<npatch; ++i, pycenters+=2) {
+    for(long i=0; i<npatch; ++i, pycenters+=2) {
         centers[i] = Position<Flat>(pycenters[0], pycenters[1]);
     }
 }

@@ -320,8 +320,19 @@ int main() {
     return 0;
 }
 """
-    return try_compile(cpp_code, compiler, copt[cc_type], lopt[cc_type])
-
+    extra_cflags = copt[cc_type]
+    extra_lflags = lopt[cc_type]
+    success = try_compile(cpp_code, compiler, extra_cflags, extra_lflags)
+    if not success:
+        # In case libc++ doesn't work, try letting the system use the default stdlib
+        try:
+            extra_cflags.remove('-stdlib=libc++')
+            extra_lflags.remove('-stdlib=libc++')
+        except (AttributeError, ValueError):
+            pass
+        else:
+            success = try_compile(cpp_code, compiler, extra_cflags, extra_lflags)
+    return success
 
 def try_cpp(compiler, cflags=[], lflags=[], prepend=None):
     """Check if compiling a simple bit of c++ code with the given compiler works properly.
@@ -330,19 +341,21 @@ def try_cpp(compiler, cflags=[], lflags=[], prepend=None):
     cpp_code = dedent("""
     #include <iostream>
     #include <vector>
+    #include <cmath>
+
     int main() {
         int n = 500;
         std::vector<double> x(n,0.);
         for (int i=0; i<n; ++i) x[i] = 2*i+1;
         double sum=0.;
-        for (int i=0; i<n; ++i) sum += x[i];
+        for (int i=0; i<n; ++i) sum += std::log(x[i]);
         return sum;
     }
     """)
     return try_compile(cpp_code, compiler, cflags, lflags, prepend=prepend)
 
 
-def check_ffi_compile(cc, cc_type):
+def check_ffi_compile(compiler, cflags=[], lflags=[]):
     ffi_code = """
 #include "ffi/ffi.h"
 int main() {
@@ -350,14 +363,14 @@ int main() {
 }
 """
     print("Checking if you have ffi installed on your system...")
-    if try_compile(ffi_code, cc, copt[cc_type], lopt[cc_type]):
+    if try_compile(ffi_code, compiler, cflags, lflags):
         print('Found "ffi/ffi.h"')
         return True
     else:
         print('Unable to compile file with #include "ffi/ffi.h"')
         print('Trying ffi.h instead...')
         ffi_code = ffi_code.replace('ffi/ffi.h', 'ffi.h')
-        if try_compile(ffi_code, cc, copt[cc_type], lopt[cc_type]):
+        if try_compile(ffi_code, compiler, cflags, lflags):
             print('Found "ffi.h"')
             return True
         else:
@@ -405,13 +418,13 @@ def query_yes_no(question, default="yes", timeout=30):
             sys.stdout.write("Please respond with 'yes' or 'no' (or 'y' or 'n').\n")
 
 
-def check_ffi(cc, cc_type):
+def check_ffi(compiler, cflags=[], lflags=[]):
     try:
         import cffi
     except ImportError:
         # Then cffi will need to be installed.
         # It requires libffi, so check if it is available.
-        if check_ffi_compile(cc, cc_type):
+        if check_ffi_compile(compiler, cflags, lflags):
             return
         # libffi needs to be installed.  Give a helpful message about how to do so.
         prefix = '/SOME/APPROPRIATE/PREFIX'
@@ -474,21 +487,30 @@ def fix_compiler(compiler):
     else:
         print('Using compiler %s, which is %s'%(cc,comp_type))
 
-    # Make sure the compiler works with a simple c++ code
-    if not try_cpp(compiler):
+    extra_cflags = copt[comp_type]
+    extra_lflags = lopt[comp_type]
+
+    success = try_cpp(compiler, extra_cflags, extra_lflags)
+    if not success:
+        # In case libc++ doesn't work, try letting the system use the default stdlib
+        try:
+            extra_cflags.remove('-stdlib=libc++')
+            extra_lflags.remove('-stdlib=libc++')
+        except (AttributeError, ValueError):
+            pass
+        else:
+            success = try_cpp(compiler, extra_cflags, extra_lflags)
+    if not success:
         print("There seems to be something wrong with the compiler or cflags")
         print(str(compiler.compiler_so))
         raise OSError("Compiler does not work for compiling C++ code")
 
-    check_ffi(cc, comp_type)
+    check_ffi(compiler, extra_cflags, extra_lflags)
 
     # Check if we can use ccache to speed up repeated compilation.
     if not already_have_ccache and try_cpp(compiler, prepend='ccache'):
         print('Using ccache')
         compiler.set_executable('compiler_so', ['ccache'] + compiler.compiler_so)
-
-    extra_cflags = copt[comp_type]
-    extra_lflags = lopt[comp_type]
 
     # Return the extra cflags, since those will be added to the build step in a different place.
     print('Using extra flags ',extra_cflags)

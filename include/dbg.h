@@ -15,6 +15,8 @@
 #ifndef TreeCorr_dbg_H
 #define TreeCorr_dbg_H
 
+//#define DEBUGLOGGING
+
 #ifdef DEBUGLOGGING
 // Python usually turns this on automatically.  If we are debugging, turn it off so assert works.
 #ifdef NDEBUG
@@ -70,8 +72,8 @@ private:
 #define get_dbgout() Debugger::instance().get_dbgout()
 #define set_verbose(level) Debugger::instance().set_verbose(level)
 #define verbose_level Debugger::instance().get_level()
-#define XAssert(x) do { if (verbose_level >= 3) assert(x); } while (false)
-#define Assert(x) assert(x)
+#define Assert(x) do { if (!(x)) { dbg<<"Failed Assert: "<<#x<<std::endl; throw std::runtime_error("Failed Assert: " #x); } } while (false)
+#define XAssert(x) do { if (verbose_level >= 3) Assert(x); } while (false)
 #else
 #define dbg if(false) (std::cerr)
 #define xdbg if(false) (std::cerr)
@@ -79,8 +81,9 @@ private:
 #define set_dbgout(dbgout)
 #define get_dbgout()
 #define set_verbose(level)
+// When not in debug mode, don't bomb out for assert failures.  Just print to screen.
+#define Assert(x) do { if (!(x)) std::cerr<<"Failed Assert: "<<(#x); } while (false)
 #define XAssert(x)
-#define Assert(x) assert(x)
 #endif
 
 #endif

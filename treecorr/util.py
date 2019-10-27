@@ -342,8 +342,6 @@ def parse_metric(metric, coords, coords2=None, coords3=None):
             if coords3 == 'spherical': coords3 = '3d'
 
         if metric == 'Arc':
-            if coords not in ['spherical', '3d']:
-                raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
             # If all coords are 3d, then leave it 3d, but if any are spherical,
             # then convert to spherical.
             if all([c in [None, '3d'] for c in [coords, coords2, coords3]]):
@@ -373,6 +371,8 @@ def parse_metric(metric, coords, coords2=None, coords3=None):
         raise ValueError("Rlens metric is only valid for cross correlations.")
     if metric == 'Rlens' and coords != '3d':
         raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
+    if metric == 'Arc' and coords not in ['spherical', '3d']:
+        raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
 
     return coords, metric
 

@@ -617,6 +617,71 @@ def test_varxi():
     print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
     np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.02 * tol_factor)
 
+def test_negw():
+    # Test having some weights be < 0.
+    # Daniel Gruen had a use case where some weights were negative, and it used to die
+    # with an assert error in the C++ layer.
+
+    ngal = 200
+    s = 10.
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.uniform(-0.2, 1.0, (ngal,))
+    k1 = rng.normal(5,1, (ngal,) )
+
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.uniform(-3.0, 4.0, (ngal,))
+    g12 = rng.normal(0,0.2, (ngal,) )
+    g22 = rng.normal(0,0.2, (ngal,) )
+
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1)
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g12, g2=g22)
+
+    min_sep = 1.
+    max_sep = 50.
+    nbins = 50
+    bin_size = np.log(max_sep/min_sep) / nbins
+    kg = treecorr.KGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
+    kg.process(cat1, cat2)
+
+    true_npairs = np.zeros(nbins, dtype=int)
+    true_weight = np.zeros(nbins, dtype=float)
+    true_xi = np.zeros(nbins, dtype=complex)
+    for i in range(ngal):
+        # It's hard to do all the pairs at once with numpy operations (although maybe possible).
+        # But we can at least do all the pairs for each entry in cat1 at once with arrays.
+        rsq = (x1[i]-x2)**2 + (y1[i]-y2)**2
+        r = np.sqrt(rsq)
+        logr = np.log(r)
+        expmialpha = ((x1[i]-x2) - 1j*(y1[i]-y2)) / r
+
+        ww = w1[i] * w2
+        xi = -ww * k1[i] * (g12 + 1j*g22) * expmialpha**2
+
+        index = np.floor(np.log(r/min_sep) / bin_size).astype(int)
+        mask = (index >= 0) & (index < nbins)
+        np.add.at(true_npairs, index[mask], 1)
+        np.add.at(true_weight, index[mask], ww[mask])
+        np.add.at(true_xi, index[mask], xi[mask])
+
+    true_xi /= true_weight
+
+    print('true_npairs = ',true_npairs)
+    print('diff = ',kg.npairs - true_npairs)
+    np.testing.assert_array_equal(kg.npairs, true_npairs)
+
+    print('true_weight = ',true_weight)
+    print('diff = ',kg.weight - true_weight)
+    np.testing.assert_allclose(kg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+
+    print('true_xi = ',true_xi)
+    print('kg.xi = ',kg.xi)
+    print('kg.xi_im = ',kg.xi_im)
+    np.testing.assert_allclose(kg.xi, true_xi.real, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(kg.xi_im, true_xi.imag, rtol=1.e-4, atol=1.e-8)
+
 
 if __name__ == '__main__':
     test_direct()
@@ -626,3 +691,4 @@ if __name__ == '__main__':
     test_pairwise2()
     test_kg()
     test_varxi()
+    test_negw()

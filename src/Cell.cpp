@@ -140,7 +140,7 @@ void BuildCellData(
         w += data.getW();
         if (data.getW() != 0.) ++n;
     }
-    if (sumwp > 0.) {
+    if (sumwp != 0.) {
         pos /= sumwp;
         // If C == Sphere, the average position is no longer on the surface of the unit sphere.
         // Divide by the new r.  (This is a noop if C == Flat or ThreeD.)

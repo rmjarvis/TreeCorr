@@ -846,7 +846,7 @@ def test_direct_count_auto():
                                         min_u=min_u, max_u=max_u, nubins=nubins,
                                         min_v=min_v, max_v=max_v, nvbins=nvbins,
                                         logger=cl.logger)
-        ddd14.process_auto(cat, metric='Arc')
+        ddd14.process_auto(cat2, metric='Arc')
         ddd14 += ddd2
     assert "Detected a change in metric" in cl.output
 

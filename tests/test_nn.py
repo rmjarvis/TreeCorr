@@ -602,6 +602,8 @@ def test_direct_count():
     with assert_raises(ValueError):
         dd7.process(cat1, cat2, metric='Arc')
     with assert_raises(ValueError):
+        dd7.process(cat1, metric='Arc')
+    with assert_raises(ValueError):
         dd7.process(cat1, cat2, metric='Rlens')
 
     try:

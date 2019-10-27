@@ -217,3 +217,8 @@ Changes from version 4.0.7 to 4.0.8
 
 - Fixed error in the check for whether ccache is available.
 
+Changes from version 4.0.8 to 4.0.9
+-----------------------------------
+
+- Fixed error in code to build tree when some weights are < 0. (#95)
+

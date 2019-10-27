@@ -458,7 +458,6 @@ Cell<D,C>* BuildCell(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata
         return new Cell<D,C>(data, size, sizesq, l, r);
     } else {
         // Too small, so stop here anyway.
-        Assert(data->getN() > 1);
         ListLeafInfo info;
         info.indices = new std::vector<long>(end-start);
         for (size_t i=start; i<end; ++i) {

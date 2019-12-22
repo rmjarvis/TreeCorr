@@ -993,8 +993,11 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
         xdbg<<"            u = "<<u<<std::endl;
         xdbg<<"            v = "<<v<<std::endl;
 
-        const int kr = int(floor((logr-_logminsep)/_binsize));
+        int kr = int(floor((logr-_logminsep)/_binsize));
         Assert(kr >= 0);
+        Assert(kr <= _nbins);
+        if (kr == _nbins) --kr;  // This is rare, but can happen with numerical differences
+                                 // between the math for log and for non-log checks.
         Assert(kr < _nbins);
 
         int ku = int(floor((u-_minu)/_ubinsize));

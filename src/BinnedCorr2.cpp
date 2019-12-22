@@ -528,6 +528,15 @@ void BinnedCorr2<D1,D2,B>::directProcess11(
                                                      _minsep, _maxsep, _logminsep));
     }
     Assert(k >= 0);
+    Assert(k <= _nbins);
+    // It's possible for k to be == _nbins here if the r is very close to the top of the
+    // last bin, but numerical rounding in the log calculation bumped k into the next
+    // (non-existent) bin.
+    if (k == _nbins) {
+        XAssert(BinTypeHelper<B>::calculateBinK(p2, p1, r, logr-1.e-10, _binsize,
+                                                _minsep, _maxsep, _logminsep) == _nbins-1);
+        --k;
+    }
     Assert(k < _nbins);
     xdbg<<"r,logr,k = "<<r<<','<<logr<<','<<k<<std::endl;
 
@@ -544,6 +553,7 @@ void BinnedCorr2<D1,D2,B>::directProcess11(
     if (do_reverse) {
         k2 = BinTypeHelper<B>::calculateBinK(p2, p1, r, logr, _binsize,
                                              _minsep, _maxsep, _logminsep);
+        if (k == _nbins) --k;  // As before, this can (rarely) happen.
         Assert(k2 >= 0);
         Assert(k2 < _nbins);
         _npairs[k2] += nn;

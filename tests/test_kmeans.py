@@ -784,7 +784,7 @@ def test_cat_patches():
     assert not np.array_equal(cat3.patch, p2)
     assert not np.array_equal(cat3.patch, p3)
     cat3b = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
-                            kmeans_init='random')
+                             kmeans_init='random')
     assert not np.array_equal(cat3b.patch, p2)
     assert not np.array_equal(cat3b.patch, p3)
     assert not np.array_equal(cat3b.patch, cat3.patch)
@@ -793,6 +793,31 @@ def test_cat_patches():
     cat4 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=p2)
     np.testing.assert_array_equal(cat4.patch, p2)
 
+    # 5. Read patch from a column in ASCII file
+    file_name5 = os.path.join('output','test_cat_patches.dat')
+    cat4.write(file_name5)
+    cat5 = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
+                            patch_col=3)
+    np.testing.assert_array_equal(cat5.patch, p2)
+
+    # 6. Read patch from a column in FITS file
+    try:
+        import fitsio
+    except ImportError:
+        print('Skip fitsio tests of patch_col')
+    else:
+        file_name6 = os.path.join('output','test_cat_patches.fits')
+        cat4.write(file_name6)
+        cat6 = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                                ra_units='rad', dec_units='rad', patch_col='patch')
+        np.testing.assert_array_equal(cat6.patch, p2)
+        cat6b = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                                 ra_units='rad', dec_units='rad', patch_col='patch', patch_hdu=1)
+        np.testing.assert_array_equal(cat6b.patch, p2)
+
+
+    # Check serialization with patch
+    do_pickle(cat2)
 
     # Check some invalid parameters
     with assert_raises(ValueError):
@@ -807,6 +832,18 @@ def test_cat_patches():
     with assert_raises(ValueError):
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
                          kmeans_alt='maybe')
+    with assert_raises(ValueError):
+        treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
+                         patch_col='invalid')
+    with assert_raises(ValueError):
+        treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
+                         patch_col=4)
+    with assert_raises(IOError):
+        treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                         patch_col='patch', patch_hdu=2)
+    with assert_raises(ValueError):
+        treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                         patch_col='patches')
 
 
 if __name__ == '__main__':

@@ -239,6 +239,9 @@ class Catalog(object):
         k_col (str or int): The column to use for the kappa values. This should be an integer for
                             ASCII files or a string for FITS files. (default: 0 or '0', which means
                             not to read in this column.)
+        patch_col (str or int): The column to use for the patch numbers. This should be an integer
+                            for ASCII files or a string for FITS files. (default: 0 or '0', which
+                            means not to read in this column.)
         w_col (str or int): The column to use for the weight values. This should be an integer for
                             ASCII files or a string for FITS files. (default: 0 or '0', which means
                             not to read in this column.)
@@ -267,6 +270,7 @@ class Catalog(object):
         g1_hdu (int):       Which hdu to use for the g1 values. (default: hdu)
         g2_hdu (int):       Which hdu to use for the g2 values. (default: hdu)
         k_hdu (int):        Which hdu to use for the k values. (default: hdu)
+        patch_hdu (int):    Which hdu to use for the patch numbers. (default: hdu)
         w_hdu (int):        Which hdu to use for the w values. (default: hdu)
         wpos_hdu (int):     Which hdu to use for the wpos values. (default: hdu)
         flag_hdu (int):     Which hdu to use for the flag values. (default: hdu)
@@ -348,6 +352,8 @@ class Catalog(object):
                 'Which column to use for g2. Should be an integer for ASCII catalogs.'),
         'k_col' : (str, True, '0', None,
                 'Which column to use for kappa. Should be an integer for ASCII catalogs. '),
+        'patch_col' : (str, True, '0', None,
+                'Which column to use for patch numbers. Should be an integer for ASCII catalogs. '),
         'w_col' : (str, True, '0', None,
                 'Which column to use for weight. Should be an integer for ASCII catalogs.'),
         'wpos_col' : (str, True, '0', None,
@@ -378,6 +384,8 @@ class Catalog(object):
                 'Which HDU to use for the g2_col. default is the global hdu value.'),
         'k_hdu': (int, True, None, None,
                 'Which HDU to use for the k_col. default is the global hdu value.'),
+        'patch_hdu': (int, True, None, None,
+                'Which HDU to use for the patch_col. default is the global hdu value.'),
         'w_hdu': (int, True, None, None,
                 'Which HDU to use for the w_col. default is the global hdu value.'),
         'wpos_hdu': (int, True, None, None,
@@ -787,6 +795,7 @@ class Catalog(object):
         g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,int,0)
         g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,int,0)
         k_col = treecorr.config.get_from_list(self.config,'k_col',num,int,0)
+        patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,int,0)
 
         # Read x,y or ra,dec
         if x_col != 0 or y_col != 0:
@@ -882,6 +891,14 @@ class Catalog(object):
                 self.k = data[:,k_col-1].astype(float)
                 self.logger.debug('read k = %s',str(self.k))
 
+        # Read patch
+        if patch_col != 0:
+            if patch_col <= 0 or patch_col > ncols:
+                raise ValueError("patch_col is invalid for file %s"%file_name)
+            else:
+                self.patch = data[:,patch_col-1].astype(float)
+                self.logger.debug('read patch = %s',str(self.patch))
+
 
     def read_fits(self, file_name, num=0, is_rand=False):
         """Read the catalog from a FITS file
@@ -910,6 +927,7 @@ class Catalog(object):
         g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,str,'0')
         g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,str,'0')
         k_col = treecorr.config.get_from_list(self.config,'k_col',num,str,'0')
+        patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,str,'0')
 
         # Check that position cols are valid:
         if x_col != '0' or y_col != '0':
@@ -1043,6 +1061,15 @@ class Catalog(object):
                 else:
                     self.k = fits[k_hdu].read_column(k_col).astype(float)
                     self.logger.debug('read k = %s',str(self.k))
+
+            # Read patch
+            if patch_col != '0':
+                patch_hdu = treecorr.config.get_from_list(self.config,'patch_hdu',num,int,hdu)
+                if patch_col not in fits[patch_hdu].get_colnames():
+                    raise ValueError("patch_col is invalid for file %s"%file_name)
+                else:
+                    self.patch = fits[patch_hdu].read_column(patch_col).astype(float)
+                    self.logger.debug('read patch = %s',str(self.patch))
 
     def _setup_fields(self):
         self._field = lambda : None  # Acts like a dead weakref
@@ -1352,6 +1379,7 @@ class Catalog(object):
         g1            self.g1 if not None
         g2            self.g2 if not None
         k             self.k if not None
+        patch         self.patch if not None
         meanR         The mean value <R> of pairs that fell into each bin.
         meanlogR      The mean value <logR> of pairs that fell into each bin.
         ========      =======================================================
@@ -1399,6 +1427,9 @@ class Catalog(object):
         if self.k is not None:
             col_names.append('k')
             columns.append(self.k)
+        if self.patch is not None:
+            col_names.append('patch')
+            columns.append(self.patch)
 
         if cat_precision is None:
             cat_precision = treecorr.config.get(self.config,'cat_precision',int,16)
@@ -1443,6 +1474,7 @@ class Catalog(object):
         if self.g1 is not None: s += 'g1='+repr(self.g1)+','
         if self.g2 is not None: s += 'g2='+repr(self.g2)+','
         if self.k is not None: s += 'k='+repr(self.k)+','
+        if self.patch is not None: s += 'patch='+repr(self.patch)+','
         # remove the last ','
         s = s[:-1] + ')'
         return s
@@ -1465,7 +1497,8 @@ class Catalog(object):
                 np.array_equal(self.wpos, other.wpos) and
                 np.array_equal(self.g1, other.g1) and
                 np.array_equal(self.g2, other.g2) and
-                np.array_equal(self.k, other.k))
+                np.array_equal(self.k, other.k) and
+                np.array_equal(self.patch, other.patch))
 
 
 def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=None):

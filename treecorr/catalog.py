@@ -169,6 +169,7 @@ class Catalog(object):
                             spinor field.) (default: None)
         k (array):          The kappa values to use for scalar correlations. (This may represent
                             any scalar field.) (default: None)
+        patch (array):      Optionally, patch numbers to use for each object. (default: None)
 
     Keyword Arguments:
 
@@ -184,11 +185,11 @@ class Catalog(object):
 
         npatch (int):       How many patches to split the catalog into (using kmeans) for the
                             purpose of jackknife variance or other options that involve running via
-                            patches. [default: 1]
+                            patches. (default: 1)
         kmeans_init (str):  If using kmeans to make patches, which init method to use.
-                            cf. `~Field.run_kmeans` [default: 'tree']
+                            cf. `~Field.run_kmeans` (default: 'tree')
         kmeans_alt (str):   If using kmeans to make patches, whether to use the alternate kmeans
-                            algorithm. cf. `~Field.run_kmeans` [default: False]
+                            algorithm. cf. `~Field.run_kmeans` (default: False)
 
         x_col (str or int): The column to use for the x values. This should be an integer for ASCII
                             files or a string for FITS files. (default: 0 or '0', which means not
@@ -400,7 +401,7 @@ class Catalog(object):
     }
     def __init__(self, file_name=None, config=None, num=0, logger=None, is_rand=False,
                  x=None, y=None, z=None, ra=None, dec=None, r=None, w=None, wpos=None, flag=None,
-                 g1=None, g2=None, k=None, **kwargs):
+                 g1=None, g2=None, k=None, patch=None, **kwargs):
 
         self.config = treecorr.config.merge_config(config,kwargs,Catalog._valid_params)
         self.orig_config = config.copy() if config is not None else {}
@@ -432,7 +433,7 @@ class Catalog(object):
 
         # First style -- read from a file
         if file_name is not None:
-            if any([v is not None for v in [x,y,z,ra,dec,r,g1,g2,k,w,wpos,flag]]):
+            if any([v is not None for v in [x,y,z,ra,dec,r,g1,g2,k,patch,w,wpos,flag]]):
                 raise TypeError("Vectors may not be provided when file_name is provided.")
             self.name = file_name
             self.logger.info("Reading input file %s",self.name)
@@ -484,6 +485,7 @@ class Catalog(object):
             self.g1 = self.makeArray(g1,'g1')
             self.g2 = self.makeArray(g2,'g2')
             self.k = self.makeArray(k,'k')
+            self.patch = self.makeArray(patch,'patch',int)
 
         # Apply units to x,y,ra,dec
         if self.x is not None:
@@ -558,9 +560,11 @@ class Catalog(object):
         if self.g1 is not None and len(self.g1) != self.ntot:
             raise ValueError("g1 has the wrong numbers of elements")
         if self.g2 is not None and len(self.g2) != self.ntot:
-            raise ValueError("g1 has the wrong numbers of elements")
+            raise ValueError("g2 has the wrong numbers of elements")
         if self.k is not None and len(self.k) != self.ntot:
             raise ValueError("k has the wrong numbers of elements")
+        if self.patch is not None and len(self.patch) != self.ntot:
+            raise ValueError("patch has the wrong numbers of elements")
 
         # Update the data according to the specified first and last row
         first_row = treecorr.config.get_from_list(self.config,'first_row',num,int,1)
@@ -590,6 +594,7 @@ class Catalog(object):
         if self.g1 is not None: self.g1 = self.g1[start:end]
         if self.g2 is not None: self.g2 = self.g2[start:end]
         if self.k is not None: self.k = self.k[start:end]
+        if self.patch is not None: self.patch = self.patch[start:end]
 
         # Check for NaN's:
         self.checkForNaN(self.x,'x')
@@ -673,8 +678,10 @@ class Catalog(object):
             else:
                 self.coords = '3d'
 
-        if 'npatch' in self.config:
+        if 'npatch' in self.config and self.config['npatch'] != 1:
             npatch = treecorr.config.get(self.config,'npatch',int)
+            if self.patch is not None:
+                raise ValueError("Cannot provide both patch and npatch")
             init = treecorr.config.get(self.config,'kmeans_init',str,'tree')
             alt = treecorr.config.get(self.config,'kmeans_alt',bool,False)
             if npatch < 1:
@@ -1406,7 +1413,6 @@ class Catalog(object):
 
     def __getstate__(self):
         d = self.__dict__.copy()
-        print('d = ',d)
         del d['logger']  # Oh well.  This is just lost in the copy.  Can't be pickled.
         del d['_field']
         del d['nfields']

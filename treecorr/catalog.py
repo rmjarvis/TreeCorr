@@ -1495,9 +1495,9 @@ class Catalog(object):
 
     def __repr__(self):
         s = 'Catalog('
-        if self.x is not None: s += 'x='+repr(self.x)+','
-        if self.y is not None: s += 'y='+repr(self.y)+','
-        if self.z is not None: s += 'z='+repr(self.z)+','
+        if self.x is not None and self.ra is not None: s += 'x='+repr(self.x)+','
+        if self.y is not None and self.ra is not None: s += 'y='+repr(self.y)+','
+        if self.z is not None and self.ra is not None: s += 'z='+repr(self.z)+','
         if self.ra is not None: s += 'ra='+repr(self.ra)+','
         if self.dec is not None: s += 'dec='+repr(self.dec)+','
         if self.r is not None: s += 'r='+repr(self.r)+','

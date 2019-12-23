@@ -97,6 +97,7 @@ class Catalog(object):
         g1:     The g1 component of the shear, if defined, as a numpy array. (None otherwise)
         g2:     The g2 component of the shear, if defined, as a numpy array. (None otherwise)
         k:      The convergence, kappa, if defined, as a numpy array. (None otherwise)
+        patch:  The patch number of each object, if patches are being used. (None otherwise)
 
         ntot:   The total number of objects (including those with zero weight)
         nobj:   The number of objects with non-zero weight
@@ -180,6 +181,14 @@ class Catalog(object):
         first_row (int):    Which row to take as the first row to be used. (default: 1)
         last_row (int):     Which row to take as the last row to be used. (default: -1, which means
                             the last row in the file)
+
+        npatch (int):       How many patches to split the catalog into (using kmeans) for the
+                            purpose of jackknife variance or other options that involve running via
+                            patches. [default: 1]
+        kmeans_init (str):  If using kmeans to make patches, which init method to use.
+                            cf. `~Field.run_kmeans` [default: 'tree']
+        kmeans_alt (str):   If using kmeans to make patches, whether to use the alternate kmeans
+                            algorithm. cf. `~Field.run_kmeans` [default: False]
 
         x_col (str or int): The column to use for the x values. This should be an integer for ASCII
                             files or a string for FITS files. (default: 0 or '0', which means not
@@ -305,6 +314,12 @@ class Catalog(object):
                 'The first row to use from the input catalog'),
         'last_row' : (int, True, -1, None,
                 'The last row to use from the input catalog.  The default is to use all of them.'),
+        'npatch' : (int, False, 1, None,
+                'Number of patches to split the catalog into'),
+        'kmeans_init' : (str, False, 'tree', ['tree','random','kmeans++'],
+                'Which initialization method to use for kmeans when making patches'),
+        'kmeans_alt' : (bool, False, False, None,
+                'Whether to use the alternate kmeans algorithm when making patches'),
         'x_col' : (str, True, '0', None,
                 'Which column to use for x. Should be an integer for ASCII catalogs.'),
         'y_col' : (str, True, '0', None,
@@ -412,6 +427,7 @@ class Catalog(object):
         self.g1 = None
         self.g2 = None
         self.k = None
+        self.patch = None
         self._setup_fields()
 
         # First style -- read from a file
@@ -656,6 +672,15 @@ class Catalog(object):
                 self.coords = 'flat'
             else:
                 self.coords = '3d'
+
+        if 'npatch' in self.config:
+            npatch = treecorr.config.get(self.config,'npatch',int)
+            init = treecorr.config.get(self.config,'kmeans_init',str,'tree')
+            alt = treecorr.config.get(self.config,'kmeans_alt',bool,False)
+            if npatch < 1:
+                raise ValueError("npatch must be >= 1")
+            field = self.getNField()
+            self.patch = field.run_kmeans(npatch, init=init, alt=alt)
 
         self.logger.info("   nobj = %d",self.nobj)
 

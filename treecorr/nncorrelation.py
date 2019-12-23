@@ -420,19 +420,22 @@ class NNCorrelation(treecorr.BinnedCorr2):
         xi[mask1] /= (rr.weight[mask1] * rrf)
         xi[mask2] = 0
 
-        varxi = np.zeros_like(rr.weight)
-        # Note: The use of varxi_factor here is semi-empirical.
-        #       It gives the increase in the variance over the case where RR >> DD.
-        #       I don't have a good derivation that this is the right factor to apply
-        #       when the random catalog is not >> larger than the data.
-        #       When I tried to derive this from first principles, I get the below formula,
-        #       but without the **2.  So I'm not sure why this factor needs to be squared.
-        #       It seems at least plausible that I missed something in the derivation that
-        #       leads to this getting squared, but I can't really justify it.
-        #       But it's also possible that this is wrong...
-        #       Anyway, it seems to give good results compared to the empirical variance.
-        #       cf. test_nn.py:test_varxi
-        varxi[mask1] = ddw * varxi_factor**2 / (rr.weight[mask1] * rrf)
+        if self.var_method == 'shot':
+            varxi = np.zeros_like(rr.weight)
+            # Note: The use of varxi_factor here is semi-empirical.
+            #       It gives the increase in the variance over the case where RR >> DD.
+            #       I don't have a good derivation that this is the right factor to apply
+            #       when the random catalog is not >> larger than the data.
+            #       When I tried to derive this from first principles, I get the below formula,
+            #       but without the **2.  So I'm not sure why this factor needs to be squared.
+            #       It seems at least plausible that I missed something in the derivation that
+            #       leads to this getting squared, but I can't really justify it.
+            #       But it's also possible that this is wrong...
+            #       Anyway, it seems to give good results compared to the empirical variance.
+            #       cf. test_nn.py:test_varxi
+            varxi[mask1] = ddw * varxi_factor**2 / (rr.weight[mask1] * rrf)
+        else:
+            varxi = None  # TODO
 
         return xi, varxi
 

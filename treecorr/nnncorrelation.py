@@ -84,7 +84,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         >>> drd.process...           # ... in all three
         >>> ddr.process...           # ... permutations
         >>> nn.write(file_name,rrr,drr,...)  # Write out to a file.
-        >>> zeta,varzeta = nn.calculateZeta(rrr,drr,...)  # Or get the 3pt function directly.
+        >>> zeta,varzeta = nnn.calculateZeta(rrr,drr,...)  # Or get the 3pt function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
@@ -512,8 +512,11 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         zeta[mask1] /= (rrr.weight[mask1] * rrrw)
         zeta[mask2] = 0
 
-        varzeta = np.zeros_like(rrr.weight)
-        varzeta[mask1] = 1./ (rrr.weight[mask1] * rrrw)
+        if self.var_method == 'shot':
+            varzeta = np.zeros_like(rrr.weight)
+            varzeta[mask1] = 1./ (rrr.weight[mask1] * rrrw)
+        else:
+            varzeta = None  # TODO
 
         return zeta, varzeta
 

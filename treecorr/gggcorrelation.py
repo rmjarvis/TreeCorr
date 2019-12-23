@@ -380,10 +380,6 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.gam2i[mask1] /= self.weight[mask1]
         self.gam3r[mask1] /= self.weight[mask1]
         self.gam3i[mask1] /= self.weight[mask1]
-        self.vargam0[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
-        self.vargam1[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
-        self.vargam2[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
-        self.vargam3[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
         self.meand1[mask1] /= self.weight[mask1]
         self.meanlogd1[mask1] /= self.weight[mask1]
         self.meand2[mask1] /= self.weight[mask1]
@@ -397,10 +393,6 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self._apply_units(mask1)
 
         # Use meanlogr when available, but set to nominal when no triangles in bin.
-        self.vargam0[mask2] = 0.
-        self.vargam1[mask2] = 0.
-        self.vargam2[mask2] = 0.
-        self.vargam3[mask2] = 0.
         self.meand2[mask2] = self.rnom[mask2]
         self.meanlogd2[mask2] = self.logr[mask2]
         self.meanu[mask2] = self.u[mask2]
@@ -409,6 +401,16 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.meanlogd3[mask2] = np.log(self.meand3[mask2])
         self.meand1[mask2] = self.v[mask2] * self.meand3[mask2] + self.meand2[mask2]
         self.meanlogd1[mask2] = np.log(self.meand1[mask2])
+
+        if self.var_method == 'shot':
+            self.vargam0[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
+            self.vargam1[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
+            self.vargam2[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
+            self.vargam3[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
+            self.vargam0[mask2] = 0.
+            self.vargam1[mask2] = 0.
+            self.vargam2[mask2] = 0.
+            self.vargam3[mask2] = 0.
 
 
     def clear(self):

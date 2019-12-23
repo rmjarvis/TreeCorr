@@ -296,8 +296,6 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.xim_im[mask1] /= self.weight[mask1]
         self.meanr[mask1] /= self.weight[mask1]
         self.meanlogr[mask1] /= self.weight[mask1]
-        self.varxip[mask1] = 2 * varg1 * varg2 / self.weight[mask1]
-        self.varxim[mask1] = 2 * varg1 * varg2 / self.weight[mask1]
 
         # Update the units of meanr, meanlogr
         self._apply_units(mask1)
@@ -305,8 +303,12 @@ class GGCorrelation(treecorr.BinnedCorr2):
         # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
         self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
-        self.varxip[mask2] = 0.
-        self.varxim[mask2] = 0.
+
+        if self.var_method == 'shot':
+            self.varxip[mask1] = 2 * varg1 * varg2 / self.weight[mask1]
+            self.varxim[mask1] = 2 * varg1 * varg2 / self.weight[mask1]
+            self.varxip[mask2] = 0.
+            self.varxim[mask2] = 0.
 
 
     def clear(self):

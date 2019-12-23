@@ -1350,6 +1350,38 @@ class Catalog(object):
             logger = self.logger
         return self.gsimplefields(logger=logger)
 
+    def getPatches(self):
+        """Return a list of Catalog instances each representing a single patch from this Catalog
+        """
+        import copy
+        if not hasattr(self, 'patches'):
+            if self.patch is None:
+                self.patches = [self]
+            else:
+                patch_set = set(self.patch)
+                self.patches = []
+                for i in patch_set:
+                    indx = self.patch == i
+                    x=self.x[indx] if self.x is not None and self.ra is None else None
+                    y=self.y[indx] if self.y is not None and self.ra is None else None
+                    z=self.z[indx] if self.z is not None and self.ra is None else None
+                    ra=self.ra[indx] if self.ra is not None else None
+                    dec=self.dec[indx] if self.dec is not None else None
+                    r=self.r[indx] if self.r is not None else None
+                    w=self.w[indx] if self.w is not None else None
+                    wpos=self.wpos[indx] if self.wpos is not None else None
+                    g1=self.g1[indx] if self.g1 is not None else None
+                    g2=self.g2[indx] if self.g2 is not None else None
+                    k=self.k[indx] if self.k is not None else None
+                    patch=self.patch[indx]
+                    assert np.all(patch == i)
+                    p = Catalog(config=self.config,
+                                x=x, y=y, z=z, ra=ra, dec=dec, r=r, w=w, wpos=wpos,
+                                g1=g1, g2=g2, k=k, patch=patch,
+                                npatch=1)
+                    self.patches.append(p)
+        return self.patches
+
     def write(self, file_name, file_type=None, cat_precision=None):
         """Write the catalog to a file.
 

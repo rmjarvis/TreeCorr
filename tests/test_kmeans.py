@@ -758,37 +758,55 @@ def test_cat_patches():
     x = rng.normal(0,s, (ngal,) )
     y = rng.normal(0,s, (ngal,) ) + 100  # Put everything at large y, so smallish angle on sky
     z = rng.normal(0,s, (ngal,) )
-    w = rng.random_sample(ngal)
     ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
 
     # cat0 is the base catalog without patches
-    cat0 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w)
+    cat0 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad')
 
     # 1. Make the patches automatically using kmeans
     #    Note: If npatch is a power of two, then the patch determination is completely
     #          deterministic, which is helpful for this test.
-    cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w, npatch=128)
+    cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128)
     p2 = cat0.getNField().run_kmeans(128)
     np.testing.assert_array_equal(cat1.patch, p2)
 
     # 2. Optionally can use alt algorithm
-    cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w, npatch=128,
+    cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
                             kmeans_alt=True)
     p3 = cat0.getNField().run_kmeans(128, alt=True)
     np.testing.assert_array_equal(cat2.patch, p3)
 
     # 3. Optionally can set different init method
-    cat3 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w, npatch=128,
+    cat3 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
                             kmeans_init='kmeans++')
     # Can't test this equalling a repeat run from cat0, because kmpp has a random aspect to it.
     # But at least check that it isn't equal to the other two versions.
     assert not np.array_equal(cat3.patch, p2)
     assert not np.array_equal(cat3.patch, p3)
-    cat3b = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w, npatch=128,
+    cat3b = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
                             kmeans_init='random')
     assert not np.array_equal(cat3b.patch, p2)
     assert not np.array_equal(cat3b.patch, p3)
     assert not np.array_equal(cat3b.patch, cat3.patch)
+
+    # 4. Pass in patch array explicitly
+    cat4 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=p2)
+    np.testing.assert_array_equal(cat4.patch, p2)
+
+
+    # Check some invalid parameters
+    with assert_raises(ValueError):
+        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128, patch=p2)
+    with assert_raises(ValueError):
+        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=p2[:1000])
+    with assert_raises(ValueError):
+        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=0)
+    with assert_raises(ValueError):
+        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
+                         kmeans_init='invalid')
+    with assert_raises(ValueError):
+        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
+                         kmeans_alt='maybe')
 
 
 if __name__ == '__main__':

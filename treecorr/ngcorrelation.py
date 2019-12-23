@@ -312,8 +312,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         import math
         self.clear()
 
-        if not isinstance(cat1,list): cat1 = [cat1]
-        if not isinstance(cat2,list): cat2 = [cat2]
+        if not isinstance(cat1,list): cat1 = cat1.getPatches()
+        if not isinstance(cat2,list): cat2 = cat2.getPatches()
 
         varg = treecorr.calculateVarG(cat2)
         self.logger.info("varg = %f: sig_sn (per component) = %f",varg,math.sqrt(varg))

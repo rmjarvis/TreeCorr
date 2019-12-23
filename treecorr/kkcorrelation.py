@@ -281,7 +281,6 @@ class KKCorrelation(treecorr.BinnedCorr2):
         self.xi[mask1] /= self.weight[mask1]
         self.meanr[mask1] /= self.weight[mask1]
         self.meanlogr[mask1] /= self.weight[mask1]
-        self.varxi[mask1] = vark1 * vark2 / self.weight[mask1]
 
         # Update the units of meanlogr
         self._apply_units(mask1)
@@ -289,7 +288,10 @@ class KKCorrelation(treecorr.BinnedCorr2):
         # Use meanlogr when available, but set to nominal when no pairs in bin.
         self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
-        self.varxi[mask2] = 0.
+
+        if self.var_method == 'shot':
+            self.varxi[mask1] = vark1 * vark2 / self.weight[mask1]
+            self.varxi[mask2] = 0.
 
 
     def clear(self):

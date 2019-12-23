@@ -184,6 +184,9 @@ class BinnedCorr3(object):
         zperiod (float):    For the 'Periodic' metric, the period to use in the z direction.
                             (default: period)
 
+        var_method (str):   Which method to use for estimating the variance. Options are:
+                            'shot', 'jackknife'.  (default: 'shot')
+
         num_threads (int):  How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
                             the constructor in the config dict.) Note that this won't work if the
@@ -256,6 +259,9 @@ class BinnedCorr3(object):
                 'The period to use for the y direction for the Periodic metric'),
         'zperiod': (float, False, None, None,
                 'The period to use for the z direction for the Periodic metric'),
+
+        'var_method': (str, False, 'shot', ['shot', 'jackknife'],
+                'The method to use for estimating the variance'),
     }
 
     def __init__(self, config=None, logger=None, **kwargs):
@@ -455,6 +461,8 @@ class BinnedCorr3(object):
         self.xperiod = treecorr.config.get(self.config,'xperiod',float,period)
         self.yperiod = treecorr.config.get(self.config,'yperiod',float,period)
         self.zperiod = treecorr.config.get(self.config,'zperiod',float,period)
+
+        self.var_method = treecorr.config.get(self.config,'var_method',str,'shot')
 
     def _process_all_auto(self, cat1, metric, num_threads):
         # I'm not sure which of these is more intuitive, but both are correct...

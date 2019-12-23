@@ -748,6 +748,48 @@ def test_init_kmpp():
     p_n = field.kmeans_assign_patches(cen_n)
     np.testing.assert_equal(sorted(p_n), list(range(n)))
 
+def test_cat_patches():
+    # Test the different ways to set patches in the catalog.
+
+    # Use the same input as test_radec()
+    ngal = 100000
+    s = 10.
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) ) + 100  # Put everything at large y, so smallish angle on sky
+    z = rng.normal(0,s, (ngal,) )
+    w = rng.random_sample(ngal)
+    ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
+
+    # cat0 is the base catalog without patches
+    cat0 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w)
+
+    # 1. Make the patches automatically using kmeans
+    #    Note: If npatch is a power of two, then the patch determination is completely
+    #          deterministic, which is helpful for this test.
+    cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w, npatch=128)
+    p2 = cat0.getNField().run_kmeans(128)
+    np.testing.assert_array_equal(cat1.patch, p2)
+
+    # 2. Optionally can use alt algorithm
+    cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w, npatch=128,
+                            kmeans_alt=True)
+    p3 = cat0.getNField().run_kmeans(128, alt=True)
+    np.testing.assert_array_equal(cat2.patch, p3)
+
+    # 3. Optionally can set different init method
+    cat3 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w, npatch=128,
+                            kmeans_init='kmeans++')
+    # Can't test this equalling a repeat run from cat0, because kmpp has a random aspect to it.
+    # But at least check that it isn't equal to the other two versions.
+    assert not np.array_equal(cat3.patch, p2)
+    assert not np.array_equal(cat3.patch, p3)
+    cat3b = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w, npatch=128,
+                            kmeans_init='random')
+    assert not np.array_equal(cat3b.patch, p2)
+    assert not np.array_equal(cat3b.patch, p3)
+    assert not np.array_equal(cat3b.patch, cat3.patch)
+
 
 if __name__ == '__main__':
     test_dessv()
@@ -756,3 +798,4 @@ if __name__ == '__main__':
     test_2d()
     test_init_random()
     test_init_kmpp()
+    test_cat_patches()

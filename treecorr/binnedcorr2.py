@@ -442,12 +442,25 @@ class BinnedCorr2(object):
         self.zperiod = treecorr.config.get(self.config,'zperiod',float,period)
 
         self.var_method = treecorr.config.get(self.config,'var_method',str,'shot')
+        self.results = {}  # for jackknife, etc. store the results of each pair of patches.
 
     def _process_all_auto(self, cat1, metric, num_threads):
-        for i,c1 in enumerate(cat1):
-            self.process_auto(c1,metric,num_threads)
-            for c2 in cat1[i+1:]:
-                self.process_cross(c1,c2,metric,num_threads)
+        if len(cat1) == 1:
+            self.process_auto(cat1[0],metric,num_threads)
+        else:
+            # When patch processing, keep track of the pair-wise results.
+            temp = self.copy()
+            for i,c1 in enumerate(cat1):
+                temp.clear()
+                temp.process_auto(c1,metric,num_threads)
+                self.results[(i,i)] = temp.copy()
+                self += temp
+                for j,c2 in enumerate(cat1):
+                    if i < j:
+                        temp.clear()
+                        temp.process_cross(c1,c2,metric,num_threads)
+                        self.results[(i,j)] = temp.copy()
+                        self += temp
 
     def _process_all_cross(self, cat1, cat2, metric, num_threads):
         if treecorr.config.get(self.config,'pairwise',bool,False):
@@ -461,6 +474,87 @@ class BinnedCorr2(object):
             for c1 in cat1:
                 for c2 in cat2:
                     self.process_cross(c1,c2,metric,num_threads)
+
+    def estimate_cov(self, num, denom, method):
+        """Estimate the covariance matrix based on the data
+
+        This function will calculate an estimate of the covariance matrix according to the
+        given method.
+
+        Options for method include:
+
+            - 'shot' = The variance based on "shot noise" only.  This includes the Poisson
+              counts of points for N statistics, shape noise for G statistics, and the observed
+              scatter in the values for K statistics.  In this case, the returned covariance
+              matrix will be diagonal, since there is no way to estimate the off-diagonal terms.
+            - 'jackknife' = A jackknife estimate of the covariance matrix based on the scatter
+              in the measurement when excluding one patch at a time.
+
+        The num and denom parameters give the attribute names for the numerator and denominator
+        of the ratio used to estimate the underlying statistic.  In most cases, denom should
+        be `weight` and num should be the attribute you care about.  E.g.
+
+            >>> cov = gg.estimate_cov('xip', 'weight', 'jackknife')
+
+        would return the jackknife estimate of the covariance matrix for xip using the (already
+        calculated) pair-wise results for the jackknife patches.
+
+        In all cases, the relevant processing needs to already have been completed and finalized.
+        And for all methods other than 'shot', the processing should have involved an appropriate
+        number of patches -- preferably more patches than the length of the vector for your
+        statistic, although this is not checked.
+
+        Parameters:
+            num (str):      The name of the attribute to use for the numerator of the vector.
+            denom (str):    The name of the attribute to use for the denominator of the vector.
+            method (str):   Which method to use to estimate the covariance matrix.
+
+        Returns:
+            A numpy array with the estimated covariance matrix.
+        """
+        if method == 'shot':
+            # This should already have been calculated.
+            return self._shot(num, denom)
+        elif method == 'jackknife':
+            return self._jackknife(num, denom)
+        else:
+            raise ValueError("Invalid method: %s"%method)
+
+    def _shot(self, num, denom):
+        v = np.zeros_like(getattr(self,num))
+        w = getattr(self,denom)  # Usually this is weight.
+        mask1 = w != 0
+        v[mask1] = self.var_num / getattr(self,denom)[mask1]
+        return np.diag(v.ravel())  # Return as a covariance matrix
+
+    def _jackknife(self, num, denom):
+        # Calculate the jackknife covariance for a statistic formed as sum(self.num)/sum(self.denom)
+        # e.g. for xip, num = 'xip' and denom = 'w', since the raw xip is not divided by sumw.
+
+        # The basic jackknife formula is:
+        # C = (1-1/npatch) Sum_i (v_i - v_mean) (v_i - v_mean)^T
+        # where v_i is the vector when excluding patch i, and v_mean is the mean of all {v_i}.
+        #   v_i = Sum_jk!=i num_jk / Sum_jk!=i denom_jk
+        pairs = list(self.results.keys())
+        if len(pairs) == 0:
+            raise ValueError("Jackknife covariance requires processing using patches.")
+        patch_nums = set(np.concatenate(pairs))
+        npatch = len(patch_nums)
+        vsize = len(getattr(self,num))
+        assert patch_nums == set(range(npatch))
+        assert len(pairs) == npatch * (npatch+1)/2
+        assert vsize == len(getattr(self,denom))
+        assert vsize == len(getattr(self.results[(0,0)],num))
+        assert vsize == len(getattr(self.results[(0,0)],denom))
+        v = np.zeros((npatch,vsize), dtype=float)
+        for i in patch_nums:
+            n = [getattr(self.results[(j,k)],num) for j,k in pairs if j!=i and k!=i]
+            d = [getattr(self.results[(j,k)],denom) for j,k in pairs if j!=i and k!=i]
+            v[i] = np.sum(n, axis=0) / np.sum(d, axis=0)
+        vmean = np.mean(v, axis=0)
+        v -= vmean
+        C = (1.-1./npatch) * v.T.dot(v)
+        return C
 
     def _set_num_threads(self, num_threads):
         if num_threads is None:

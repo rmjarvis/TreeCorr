@@ -72,13 +72,20 @@ def test_gg_jk():
         gamma = gamma.ravel()
         return x, y, np.real(gamma), np.imag(gamma)
 
-    # 1000 x 1000, so 10^6 points.  With jackknifing, that gives 10^4 per region.
-    nside = 1000
+    if __name__ == '__main__':
+        # 1000 x 1000, so 10^6 points.  With jackknifing, that gives 10^4 per region.
+        nside = 1000
+        tol_factor = 1
+    else:
+        # Use 1/10 of the objects when running unit tests
+        nside = 300
+        tol_factor = 4
 
     # The full simulation needs to run a lot of times to get a good estimate of the variance,
     # but this takes a long time.  So we store the results in the repo.
     # To redo the simulation, just delete the file data/test_gg_jk.fits
-    file_name = 'data/test_gg_jk.npz'
+    file_name = 'data/test_gg_jk_{}.npz'.format(nside)
+    print(file_name)
     if not os.path.isfile(file_name):
         nruns = 1000
         all_ggs = []
@@ -122,6 +129,7 @@ def test_gg_jk():
     np.random.seed(1234)
     # First run with the normal variance estimate, which is too small.
     x, y, g1, g2 = generate_shear_field(nside)
+
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
     gg1 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
     t0 = time.time()
@@ -140,8 +148,8 @@ def test_gg_jk():
     print('max pull for xim = ',np.sqrt(np.max((gg1.xim-mean_xim)**2/var_xim)))
     np.testing.assert_array_less((gg1.xip - mean_xip)**2/var_xip, 25) # within 5 sigma
     np.testing.assert_array_less((gg1.xim - mean_xim)**2/var_xim, 25)
-    np.testing.assert_allclose(gg1.varxip, mean_varxip, rtol=0.03)
-    np.testing.assert_allclose(gg1.varxim, mean_varxim, rtol=0.03)
+    np.testing.assert_allclose(gg1.varxip, mean_varxip, rtol=0.03 * tol_factor)
+    np.testing.assert_allclose(gg1.varxim, mean_varxim, rtol=0.03 * tol_factor)
 
     # The naive error estimates only includes shape noise, so it is an underestimate of
     # the full variance, which includes sample variance.
@@ -162,15 +170,17 @@ def test_gg_jk():
     print('xim = ',gg2.xim)
     print('varxip = ',gg2.varxip)
     print('varxim = ',gg2.varxim)
-    np.testing.assert_allclose(gg2.npairs, gg1.npairs, rtol=1.e-2, atol=2)
-    np.testing.assert_allclose(gg2.xip, gg1.xip, rtol=1.e-2)
-    np.testing.assert_allclose(gg2.xim, gg1.xim, rtol=3.e-2)
-    np.testing.assert_allclose(gg2.varxip, gg1.varxip, rtol=1.e-2)
-    np.testing.assert_allclose(gg2.varxim, gg1.varxim, rtol=1.e-2)
+    np.testing.assert_allclose(gg2.npairs, gg1.npairs, rtol=1.e-2*tol_factor)
+    np.testing.assert_allclose(gg2.xip, gg1.xip, rtol=1.e-2*tol_factor)
+    np.testing.assert_allclose(gg2.xim, gg1.xim, rtol=3.e-2*tol_factor)
+    np.testing.assert_allclose(gg2.varxip, gg1.varxip, rtol=1.e-2*tol_factor)
+    np.testing.assert_allclose(gg2.varxim, gg1.varxim, rtol=1.e-2*tol_factor)
 
     # Can get this as a (diagonal) covariance matrix using estimate_cov
     np.testing.assert_allclose(gg2.estimate_cov('xip','weight','shot'), np.diag(gg2.varxip))
     np.testing.assert_allclose(gg2.estimate_cov('xim','weight','shot'), np.diag(gg2.varxim))
+    np.testing.assert_allclose(gg1.estimate_cov('xip','weight','shot'), np.diag(gg1.varxip))
+    np.testing.assert_allclose(gg1.estimate_cov('xim','weight','shot'), np.diag(gg1.varxim))
 
     # Now run with jackknife variance estimate.  Should be much better.
     gg3 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
@@ -188,8 +198,8 @@ def test_gg_jk():
     np.testing.assert_allclose(gg3.xip, gg2.xip)
     np.testing.assert_allclose(gg3.xim, gg2.xim)
     # Not perfect, but within about 30%.
-    np.testing.assert_allclose(gg3.varxip, var_xip, rtol=0.3)
-    np.testing.assert_allclose(gg3.varxim, var_xim, rtol=0.3)
+    np.testing.assert_allclose(gg3.varxip, var_xip, rtol=0.3*tol_factor)
+    np.testing.assert_allclose(gg3.varxim, var_xim, rtol=0.3*tol_factor)
 
     # Can get the covariance matrix using estimate_cov, which is also stored as covxi? attributes
     np.testing.assert_allclose(gg3.estimate_cov('xip','weight','jackknife'), gg3.covxip)
@@ -211,9 +221,11 @@ def test_gg_jk():
     with assert_raises(AttributeError):
         gg2.estimate_cov('invalid','weight','shot')
     with assert_raises(AttributeError):
-        gg3.estimate_cov('invalid','weight','jackknife')
+        gg2.estimate_cov('xip','invalid','shot')
     with assert_raises(AttributeError):
-        gg3.estimate_cov('xip','invalid','jackknife')
+        gg2.estimate_cov('invalid','weight','jackknife')
+    with assert_raises(AttributeError):
+        gg2.estimate_cov('xip','invalid','jackknife')
     with assert_raises(ValueError):
         gg1.estimate_cov('xip','weight','jackknife')
 

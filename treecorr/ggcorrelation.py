@@ -303,12 +303,12 @@ class GGCorrelation(treecorr.BinnedCorr2):
         # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
         self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
+        self.var_num = 2. * varg1 * varg2
 
-        if self.var_method == 'shot':
-            self.varxip[mask1] = 2 * varg1 * varg2 / self.weight[mask1]
-            self.varxim[mask1] = 2 * varg1 * varg2 / self.weight[mask1]
-            self.varxip[mask2] = 0.
-            self.varxim[mask2] = 0.
+        self.covxip = self.estimate_cov('xip','weight', self.var_method)
+        self.covxim = self.estimate_cov('xim','weight', self.var_method)
+        self.varxip = self.covxip.diagonal().reshape(self.xip.shape) # in case TwoD
+        self.varxim = self.covxim.diagonal().reshape(self.xip.shape)
 
 
     def clear(self):

@@ -18,6 +18,8 @@ import coord
 import time
 import treecorr
 
+from test_helper import assert_raises
+
 def test_gg_jk():
     # Test the variance estimate for GG correlation with jackknife error estimate.
 
@@ -33,7 +35,7 @@ def test_gg_jk():
         # The rms shape ends up around 0.2 and min/max are around +-1.
         # Having a lot more large-scale than small-scale power means that sample variance is
         # very important, so the shot noise estimate of the variance is particularly bad.
-        Pk = 20. / (1. + 300.*ksq)
+        Pk = 1.e4 * ksq / (1. + 300.*ksq)**2
 
         # Make complex gaussian field in k-space.
         f1 = np.random.normal(size=Pk.shape)
@@ -122,7 +124,10 @@ def test_gg_jk():
     x, y, g1, g2 = generate_shear_field(nside)
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
     gg1 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    t0 = time.time()
     gg1.process(cat)
+    t1 = time.time()
+    print('Time for non-patch processing = ',t1-t0)
 
     print('npairs = ',gg1.npairs)
     print('xip = ',gg1.xip)
@@ -148,7 +153,10 @@ def test_gg_jk():
     # Now run with patches, but still with shot variance.  Should be basically the same answer.
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=64)
     gg2 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='shot')
+    t0 = time.time()
     gg2.process(cat)
+    t1 = time.time()
+    print('time for shot processing = ',t1-t0)
     print('npairs = ',gg2.npairs)
     print('xip = ',gg2.xip)
     print('xim = ',gg2.xim)
@@ -159,6 +167,55 @@ def test_gg_jk():
     np.testing.assert_allclose(gg2.xim, gg1.xim, rtol=3.e-2)
     np.testing.assert_allclose(gg2.varxip, gg1.varxip, rtol=1.e-2)
     np.testing.assert_allclose(gg2.varxim, gg1.varxim, rtol=1.e-2)
+
+    # Can get this as a (diagonal) covariance matrix using estimate_cov
+    np.testing.assert_allclose(gg2.estimate_cov('xip','weight','shot'), np.diag(gg2.varxip))
+    np.testing.assert_allclose(gg2.estimate_cov('xim','weight','shot'), np.diag(gg2.varxim))
+
+    # Now run with jackknife variance estimate.  Should be much better.
+    gg3 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
+    t0 = time.time()
+    gg3.process(cat)
+    t1 = time.time()
+    print('time for jackknife processing = ',t1-t0)
+    print('xip = ',gg3.xip)
+    print('xim = ',gg3.xim)
+    print('varxip = ',gg3.varxip)
+    print('ratio = ',gg3.varxip / var_xip)
+    print('varxim = ',gg3.varxim)
+    print('ratio = ',gg3.varxim / var_xim)
+    np.testing.assert_allclose(gg3.npairs, gg2.npairs)
+    np.testing.assert_allclose(gg3.xip, gg2.xip)
+    np.testing.assert_allclose(gg3.xim, gg2.xim)
+    # Not perfect, but within about 30%.
+    np.testing.assert_allclose(gg3.varxip, var_xip, rtol=0.3)
+    np.testing.assert_allclose(gg3.varxim, var_xim, rtol=0.3)
+
+    # Can get the covariance matrix using estimate_cov, which is also stored as covxi? attributes
+    np.testing.assert_allclose(gg3.estimate_cov('xip','weight','jackknife'), gg3.covxip)
+    np.testing.assert_allclose(gg3.estimate_cov('xim','weight','jackknife'), gg3.covxim)
+
+    # Can also get the shot covariance matrix using estimate_cov
+    np.testing.assert_allclose(gg3.estimate_cov('xip','weight','shot'), np.diag(gg2.varxip))
+    np.testing.assert_allclose(gg3.estimate_cov('xim','weight','shot'), np.diag(gg2.varxim))
+
+    # And can even get the jackknife covariance from a run that used var_method='shot'
+    np.testing.assert_allclose(gg2.estimate_cov('xip','weight','jackknife'), gg3.covxip)
+    np.testing.assert_allclose(gg2.estimate_cov('xim','weight','jackknife'), gg3.covxim)
+
+    # Check some invalid actions
+    with assert_raises(ValueError):
+        gg2.estimate_cov('xip','weight','invalid')
+    with assert_raises(ValueError):
+        gg3.estimate_cov('xip','weight','invalid')
+    with assert_raises(AttributeError):
+        gg2.estimate_cov('invalid','weight','shot')
+    with assert_raises(AttributeError):
+        gg3.estimate_cov('invalid','weight','jackknife')
+    with assert_raises(AttributeError):
+        gg3.estimate_cov('xip','invalid','jackknife')
+    with assert_raises(ValueError):
+        gg1.estimate_cov('xip','weight','jackknife')
 
 
 if __name__ == '__main__':

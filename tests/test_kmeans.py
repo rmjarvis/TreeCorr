@@ -19,7 +19,7 @@ import coord
 import warnings
 import treecorr
 
-from test_helper import get_from_wiki, CaptureLog, assert_raises, do_pickle, profile
+from test_helper import get_from_wiki, CaptureLog, assert_raises, profile
 
 
 def test_dessv():
@@ -748,110 +748,6 @@ def test_init_kmpp():
     p_n = field.kmeans_assign_patches(cen_n)
     np.testing.assert_equal(sorted(p_n), list(range(n)))
 
-def test_cat_patches():
-    # Test the different ways to set patches in the catalog.
-
-    # Use the same input as test_radec()
-    ngal = 100000
-    s = 10.
-    rng = np.random.RandomState(8675309)
-    x = rng.normal(0,s, (ngal,) )
-    y = rng.normal(0,s, (ngal,) ) + 100  # Put everything at large y, so smallish angle on sky
-    z = rng.normal(0,s, (ngal,) )
-    ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
-
-    # cat0 is the base catalog without patches
-    cat0 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad')
-    assert len(cat0.getPatches()) == 1
-    assert cat0.getPatches()[0].ntot == ngal
-
-    # 1. Make the patches automatically using kmeans
-    #    Note: If npatch is a power of two, then the patch determination is completely
-    #          deterministic, which is helpful for this test.
-    cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128)
-    p2 = cat0.getNField().run_kmeans(128)
-    np.testing.assert_array_equal(cat1.patch, p2)
-    assert len(cat1.getPatches()) == 128
-    assert np.sum([p.ntot for p in cat1.getPatches()]) == ngal
-
-    # 2. Optionally can use alt algorithm
-    cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
-                            kmeans_alt=True)
-    p3 = cat0.getNField().run_kmeans(128, alt=True)
-    np.testing.assert_array_equal(cat2.patch, p3)
-    assert len(cat2.getPatches()) == 128
-
-    # 3. Optionally can set different init method
-    cat3 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
-                            kmeans_init='kmeans++')
-    # Can't test this equalling a repeat run from cat0, because kmpp has a random aspect to it.
-    # But at least check that it isn't equal to the other two versions.
-    assert not np.array_equal(cat3.patch, p2)
-    assert not np.array_equal(cat3.patch, p3)
-    cat3b = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
-                             kmeans_init='random')
-    assert not np.array_equal(cat3b.patch, p2)
-    assert not np.array_equal(cat3b.patch, p3)
-    assert not np.array_equal(cat3b.patch, cat3.patch)
-
-    # 4. Pass in patch array explicitly
-    cat4 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=p2)
-    np.testing.assert_array_equal(cat4.patch, p2)
-
-    # 5. Read patch from a column in ASCII file
-    file_name5 = os.path.join('output','test_cat_patches.dat')
-    cat4.write(file_name5)
-    cat5 = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
-                            patch_col=3)
-    np.testing.assert_array_equal(cat5.patch, p2)
-
-    # 6. Read patch from a column in FITS file
-    try:
-        import fitsio
-    except ImportError:
-        print('Skip fitsio tests of patch_col')
-    else:
-        file_name6 = os.path.join('output','test_cat_patches.fits')
-        cat4.write(file_name6)
-        cat6 = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
-                                ra_units='rad', dec_units='rad', patch_col='patch')
-        np.testing.assert_array_equal(cat6.patch, p2)
-        cat6b = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
-                                 ra_units='rad', dec_units='rad', patch_col='patch', patch_hdu=1)
-        np.testing.assert_array_equal(cat6b.patch, p2)
-        assert len(cat6.getPatches()) == 128
-        assert len(cat6b.getPatches()) == 128
-
-    # Check serialization with patch
-    do_pickle(cat2)
-
-    # Check some invalid parameters
-    with assert_raises(ValueError):
-        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128, patch=p2)
-    with assert_raises(ValueError):
-        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=p2[:1000])
-    with assert_raises(ValueError):
-        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=0)
-    with assert_raises(ValueError):
-        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
-                         kmeans_init='invalid')
-    with assert_raises(ValueError):
-        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
-                         kmeans_alt='maybe')
-    with assert_raises(ValueError):
-        treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
-                         patch_col='invalid')
-    with assert_raises(ValueError):
-        treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
-                         patch_col=4)
-    with assert_raises(IOError):
-        treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
-                         patch_col='patch', patch_hdu=2)
-    with assert_raises(ValueError):
-        treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
-                         patch_col='patches')
-
-
 if __name__ == '__main__':
     test_dessv()
     test_radec()
@@ -859,4 +755,3 @@ if __name__ == '__main__':
     test_2d()
     test_init_random()
     test_init_kmpp()
-    test_cat_patches()

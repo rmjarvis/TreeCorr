@@ -18,7 +18,7 @@ import coord
 import time
 import treecorr
 
-from test_helper import assert_raises, do_pickle
+from test_helper import assert_raises, do_pickle, profile
 
 def test_cat_patches():
     # Test the different ways to set patches in the catalog.
@@ -182,7 +182,7 @@ def test_gg_jk():
         nside = 1000
         tol_factor = 1
     else:
-        # Use 1/10 of the objects when running unit tests
+        # Use ~1/10 of the objects when running unit tests
         nside = 300
         tol_factor = 4
 
@@ -317,6 +317,19 @@ def test_gg_jk():
     # And can even get the jackknife covariance from a run that used var_method='shot'
     np.testing.assert_allclose(gg2.estimate_cov('xip','weight','jackknife'), gg3.covxip)
     np.testing.assert_allclose(gg2.estimate_cov('xim','weight','jackknife'), gg3.covxim)
+
+    # Check sample covariance estimate
+    cov_xip = gg3.estimate_cov('xip','weight','sample')
+    cov_xim = gg3.estimate_cov('xim','weight','sample')
+    print('varxip = ',cov_xip.diagonal())
+    print('ratio = ',cov_xip.diagonal() / var_xip)
+    print('varxim = ',cov_xim.diagonal())
+    print('ratio = ',cov_xim.diagonal() / var_xim)
+    # It's not too bad ast small scales, but at larger scales the variance in the number of pairs
+    # among the different samples gets bigger (since some are near the edge, and others not).
+    # So this is only good to a little worse than a factor of 2.
+    np.testing.assert_allclose(cov_xip.diagonal(), var_xip, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(cov_xim.diagonal(), var_xim, rtol=0.6*tol_factor)
 
     # Check some invalid actions
     with assert_raises(ValueError):

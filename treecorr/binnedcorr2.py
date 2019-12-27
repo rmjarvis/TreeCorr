@@ -182,7 +182,7 @@ class BinnedCorr2(object):
                             (default: period)
 
         var_method (str):   Which method to use for estimating the variance. Options are:
-                            'shot', 'jackknife'.  (default: 'shot')
+                            'shot', 'jackknife', 'sample'.  (default: 'shot')
 
         num_threads (int):  How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
@@ -246,7 +246,7 @@ class BinnedCorr2(object):
         'zperiod': (float, False, None, None,
                 'The period to use for the z direction for the Periodic metric'),
 
-        'var_method': (str, False, 'shot', ['shot', 'jackknife'],
+        'var_method': (str, False, 'shot', ['shot', 'jackknife', 'sample'],
                 'The method to use for estimating the variance'),
     }
 
@@ -489,6 +489,8 @@ class BinnedCorr2(object):
               matrix will be diagonal, since there is no way to estimate the off-diagonal terms.
             - 'jackknife' = A jackknife estimate of the covariance matrix based on the scatter
               in the measurement when excluding one patch at a time.
+            - 'sample' = An estimate based on the sample (co-)variance of a set of samples,
+              taken as the patches of the input catalog.
 
         The num and denom parameters give the attribute names for the numerator and denominator
         of the ratio used to estimate the underlying statistic.  In most cases, denom should
@@ -517,6 +519,8 @@ class BinnedCorr2(object):
             return self._shot(num, denom)
         elif method == 'jackknife':
             return self._jackknife(num, denom)
+        elif method == 'sample':
+            return self._sample(num, denom)
         else:
             raise ValueError("Invalid method: %s"%method)
 
@@ -554,6 +558,40 @@ class BinnedCorr2(object):
         vmean = np.mean(v, axis=0)
         v -= vmean
         C = (1.-1./npatch) * v.T.dot(v)
+        return C
+
+    def _sample(self, num, denom):
+        # Calculate the sample covariance.
+
+        # This is kind of the converse of the jackknife.  We take each patch and use any
+        # correlations of it with any other patch.  The sample variance of these is the estimate
+        # of the overall variance.
+
+        # C = 1/(npatch-1) Sum_i w_i (v_i - v_mean) (v_i - v_mean)^T
+        # where v_i = Sum_j num_ij / Sum_j denom_ij
+        # and w_i is the fraction of the total weight in each patch
+        pairs = list(self.results.keys())
+        if len(pairs) == 0:
+            raise ValueError("Sample covariance requires processing using patches.")
+        patch_nums = set(np.concatenate(pairs))
+        npatch = len(patch_nums)
+        vsize = len(getattr(self,num))
+        assert patch_nums == set(range(npatch))
+        assert len(pairs) == npatch * (npatch+1)/2
+        assert vsize == len(getattr(self,denom))
+        assert vsize == len(getattr(self.results[(0,0)],num))
+        assert vsize == len(getattr(self.results[(0,0)],denom))
+        v = np.zeros((npatch,vsize), dtype=float)
+        w = np.zeros(npatch)
+        for i in patch_nums:
+            n = [getattr(self.results[(j,k)],num) for j,k in pairs if j==i or k==i]
+            d = [getattr(self.results[(j,k)],denom) for j,k in pairs if j==i or k==i]
+            v[i] = np.sum(n, axis=0) / np.sum(d, axis=0)
+            w[i] = np.sum(d)
+        vmean = np.mean(v, axis=0)
+        w /= np.sum(w)  # Now w is the fractional weight for each patch
+        v -= vmean
+        C = 1./(npatch-1) * (w * v.T).dot(v)
         return C
 
     def _set_num_threads(self, num_threads):

@@ -514,85 +514,7 @@ class BinnedCorr2(object):
         Returns:
             A numpy array with the estimated covariance matrix.
         """
-        if method == 'shot':
-            # This should already have been calculated.
-            return self._shot(num, denom)
-        elif method == 'jackknife':
-            return self._jackknife(num, denom)
-        elif method == 'sample':
-            return self._sample(num, denom)
-        else:
-            raise ValueError("Invalid method: %s"%method)
-
-    def _shot(self, num, denom):
-        v = np.zeros_like(getattr(self,num))
-        w = getattr(self,denom)  # Usually this is weight.
-        mask1 = w != 0
-        v[mask1] = self.var_num / getattr(self,denom)[mask1]
-        return np.diag(v.ravel())  # Return as a covariance matrix
-
-    def _jackknife(self, num, denom):
-        # Calculate the jackknife covariance for a statistic formed as sum(self.num)/sum(self.denom)
-        # e.g. for xip, num = 'xip' and denom = 'w', since the raw xip is not divided by sumw.
-
-        # The basic jackknife formula is:
-        # C = (1-1/npatch) Sum_i (v_i - v_mean) (v_i - v_mean)^T
-        # where v_i is the vector when excluding patch i, and v_mean is the mean of all {v_i}.
-        #   v_i = Sum_jk!=i num_jk / Sum_jk!=i denom_jk
-        pairs = list(self.results.keys())
-        if len(pairs) == 0:
-            raise ValueError("Jackknife covariance requires processing using patches.")
-        patch_nums = set(np.concatenate(pairs))
-        npatch = len(patch_nums)
-        vsize = len(getattr(self,num))
-        assert patch_nums == set(range(npatch))
-        assert len(pairs) == npatch * (npatch+1)/2
-        assert vsize == len(getattr(self,denom))
-        assert vsize == len(getattr(self.results[(0,0)],num))
-        assert vsize == len(getattr(self.results[(0,0)],denom))
-        v = np.zeros((npatch,vsize), dtype=float)
-        for i in patch_nums:
-            n = [getattr(self.results[(j,k)],num) for j,k in pairs if j!=i and k!=i]
-            d = [getattr(self.results[(j,k)],denom) for j,k in pairs if j!=i and k!=i]
-            v[i] = np.sum(n, axis=0) / np.sum(d, axis=0)
-        vmean = np.mean(v, axis=0)
-        v -= vmean
-        C = (1.-1./npatch) * v.T.dot(v)
-        return C
-
-    def _sample(self, num, denom):
-        # Calculate the sample covariance.
-
-        # This is kind of the converse of the jackknife.  We take each patch and use any
-        # correlations of it with any other patch.  The sample variance of these is the estimate
-        # of the overall variance.
-
-        # C = 1/(npatch-1) Sum_i w_i (v_i - v_mean) (v_i - v_mean)^T
-        # where v_i = Sum_j num_ij / Sum_j denom_ij
-        # and w_i is the fraction of the total weight in each patch
-        pairs = list(self.results.keys())
-        if len(pairs) == 0:
-            raise ValueError("Sample covariance requires processing using patches.")
-        patch_nums = set(np.concatenate(pairs))
-        npatch = len(patch_nums)
-        vsize = len(getattr(self,num))
-        assert patch_nums == set(range(npatch))
-        assert len(pairs) == npatch * (npatch+1)/2
-        assert vsize == len(getattr(self,denom))
-        assert vsize == len(getattr(self.results[(0,0)],num))
-        assert vsize == len(getattr(self.results[(0,0)],denom))
-        v = np.zeros((npatch,vsize), dtype=float)
-        w = np.zeros(npatch)
-        for i in patch_nums:
-            n = [getattr(self.results[(j,k)],num) for j,k in pairs if j==i or k==i]
-            d = [getattr(self.results[(j,k)],denom) for j,k in pairs if j==i or k==i]
-            v[i] = np.sum(n, axis=0) / np.sum(d, axis=0)
-            w[i] = np.sum(d)
-        vmean = np.mean(v, axis=0)
-        w /= np.sum(w)  # Now w is the fractional weight for each patch
-        v -= vmean
-        C = 1./(npatch-1) * (w * v.T).dot(v)
-        return C
+        return estimate_multi_cov([self], [num], [denom], method)
 
     def _set_num_threads(self, num_threads):
         if num_threads is None:
@@ -763,3 +685,145 @@ class BinnedCorr2(object):
         self.logger.info("Sampled %d pairs out of a total of %d.", n, ntot)
 
         return i1, i2, sep
+
+def estimate_multi_cov(corrs, nums, denoms, method):
+    """Estimate the covariance matrix of multiple statistics.
+
+    This is like the method `~BinnedCorr2.estimate_cov`, except that it will acoommodate
+    multiple statistics, possibly from multiple BinnedCorr2 objects.  Each of the given
+    parameters, ``corrs``, ``nums``, and ``denoms`` should be lists (of the same length)
+    giving the correlation object, the numerator attribute and the denominator attribute
+    for each statistic.
+
+    Options for method include:
+
+        - 'shot' = The variance based on "shot noise" only.  This includes the Poisson
+          counts of points for N statistics, shape noise for G statistics, and the observed
+          scatter in the values for K statistics.  In this case, the returned covariance
+          matrix will be diagonal, since there is no way to estimate the off-diagonal terms.
+        - 'jackknife' = A jackknife estimate of the covariance matrix based on the scatter
+          in the measurement when excluding one patch at a time.
+        - 'sample' = An estimate based on the sample (co-)variance of a set of samples,
+          taken as the patches of the input catalog.
+
+    For example, to find the combined covariance matrix for an NG tangential shear statistc,
+    along with the GG xi+ and xi- from the same area, using jackknife covariance estimation,
+    you would write:
+
+        >>> cov = treecorr.estimate_cov([ng,gg,gg], ['xi','xip','xim'],
+        ...                             ['weight','weight','weight'], 'jackknife')
+
+    In all cases, the relevant processing needs to already have been completed and finalized.
+    And for all methods other than 'shot', the processing should have involved an appropriate
+    number of patches -- preferably more patches than the length of the vector for your
+    statistic, although this is not checked.
+
+    Parameters:
+        corrs (list):   A list of `~BinnedCorr2` instances.
+        nums (list):    The names of the attribute to use for the numerators of the vector.
+        denoms (list):  The names of the attribute to use for the denominators of the vector.
+        method (str):   Which method to use to estimate the covariance matrix.
+
+    Returns:
+        A numpy array with the estimated covariance matrix.
+    """
+    if method == 'shot':
+        # This should already have been calculated.
+        return _cov_shot(corrs, nums, denoms)
+    elif method == 'jackknife':
+        return _cov_jackknife(corrs, nums, denoms)
+    elif method == 'sample':
+        return _cov_sample(corrs, nums, denoms)
+    else:
+        raise ValueError("Invalid method: %s"%method)
+
+def _cov_shot(corrs, nums, denoms):
+    vlist = []
+    for c, num, denom in zip(corrs, nums, denoms):
+        v = np.zeros_like(getattr(c,num))
+        w = getattr(c,denom)  # Usually this is weight.
+        mask1 = w != 0
+        v[mask1] = c.var_num / getattr(c,denom)[mask1]
+        vlist.append(v.ravel())
+    return np.diag(np.concatenate(vlist))  # Return as a covariance matrix
+
+def _cov_jackknife(corrs, nums, denoms):
+    # Calculate the jackknife covariance for a statistic formed as sum(corr.num)/sum(corr.denom)
+    # e.g. for xip, num = 'xip' and denom = 'w', since the raw xip is not divided by sumw.
+
+    # The basic jackknife formula is:
+    # C = (1-1/npatch) Sum_i (v_i - v_mean) (v_i - v_mean)^T
+    # where v_i is the vector when excluding patch i, and v_mean is the mean of all {v_i}.
+    #   v_i = Sum_jk!=i num_jk / Sum_jk!=i denom_jk
+    pairs = list(corrs[0].results.keys())
+    if len(pairs) == 0:
+        raise ValueError("Jackknife covariance requires processing using patches.")
+    for c in corrs[1:]:
+        if set(pairs) != set(c.results.keys()):
+            raise ValueError("All correlation functions must have used the same patchs")
+    patch_nums = set(np.concatenate(pairs))
+    npatch = len(patch_nums)
+    assert patch_nums == set(range(npatch))
+    assert len(pairs) == npatch * (npatch+1)/2
+    vsize = []
+    for c,num,denom in zip(corrs,nums,denoms):
+        vs = len(getattr(c,num))
+        assert vs == len(getattr(c,denom))
+        assert vs == len(getattr(c.results[(0,0)],num))
+        assert vs == len(getattr(c.results[(0,0)],denom))
+        vsize.append(vs)
+    v = np.zeros((npatch,np.sum(vsize)), dtype=float)
+    for i in patch_nums:
+        n=0
+        for c,num,denom,vs in zip(corrs,nums,denoms,vsize):
+            vnum = [getattr(c.results[(j,k)],num) for j,k in pairs if j!=i and k!=i]
+            vdenom = [getattr(c.results[(j,k)],denom) for j,k in pairs if j!=i and k!=i]
+            v[i,n:n+vs] = np.sum(vnum, axis=0) / np.sum(vdenom, axis=0)
+            n += vs
+    vmean = np.mean(v, axis=0)
+    v -= vmean
+    C = (1.-1./npatch) * v.T.dot(v)
+    return C
+
+def _cov_sample(corrs, nums, denoms):
+    # Calculate the sample covariance.
+
+    # This is kind of the converse of the jackknife.  We take each patch and use any
+    # correlations of it with any other patch.  The sample variance of these is the estimate
+    # of the overall variance.
+
+    # C = 1/(npatch-1) Sum_i w_i (v_i - v_mean) (v_i - v_mean)^T
+    # where v_i = Sum_j num_ij / Sum_j denom_ij
+    # and w_i is the fraction of the total weight in each patch
+    pairs = list(corrs[0].results.keys())
+    if len(pairs) == 0:
+        raise ValueError("Sample covariance requires processing using patches.")
+    for c in corrs[1:]:
+        if set(pairs) != set(c.results.keys()):
+            raise ValueError("All correlation functions must have used the same patchs")
+    patch_nums = set(np.concatenate(pairs))
+    npatch = len(patch_nums)
+    assert patch_nums == set(range(npatch))
+    assert len(pairs) == npatch * (npatch+1)/2
+    vsize = []
+    for c,num,denom in zip(corrs,nums,denoms):
+        vs = len(getattr(c,num))
+        assert vs == len(getattr(c,denom))
+        assert vs == len(getattr(c.results[(0,0)],num))
+        assert vs == len(getattr(c.results[(0,0)],denom))
+        vsize.append(vs)
+    v = np.zeros((npatch,np.sum(vsize)), dtype=float)
+    w = np.zeros(npatch, dtype=float)
+    for i in patch_nums:
+        n=0
+        w[i] = 0
+        for c,num,denom,vs in zip(corrs,nums,denoms,vsize):
+            vnum = [getattr(c.results[(j,k)],num) for j,k in pairs if j==i or k==i]
+            vdenom = [getattr(c.results[(j,k)],denom) for j,k in pairs if j==i or k==i]
+            v[i,n:n+vs] = np.sum(vnum, axis=0) / np.sum(vdenom, axis=0)
+            w[i] += np.sum(vdenom)
+    vmean = np.mean(v, axis=0)
+    w /= np.sum(w)  # Now w is the fractional weight for each patch
+    v -= vmean
+    C = 1./(npatch-1) * (w * v.T).dot(v)
+    return C

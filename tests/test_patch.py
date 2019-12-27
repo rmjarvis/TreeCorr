@@ -123,8 +123,6 @@ def test_cat_patches():
         treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
                          patch_col='patches')
 
-
-
 def test_gg_jk():
     # Test the variance estimate for GG correlation with jackknife error estimate.
 
@@ -307,8 +305,11 @@ def test_gg_jk():
     np.testing.assert_allclose(gg3.varxim, var_xim, rtol=0.3*tol_factor)
 
     # Can get the covariance matrix using estimate_cov, which is also stored as covxi? attributes
+    t0 = time.time()
     np.testing.assert_allclose(gg3.estimate_cov('xip','weight','jackknife'), gg3.covxip)
     np.testing.assert_allclose(gg3.estimate_cov('xim','weight','jackknife'), gg3.covxim)
+    t1 = time.time()
+    print('Time to calculate jackknife covariance = ',t1-t0)
 
     # Can also get the shot covariance matrix using estimate_cov
     np.testing.assert_allclose(gg3.estimate_cov('xip','weight','shot'), np.diag(gg2.varxip))
@@ -318,9 +319,30 @@ def test_gg_jk():
     np.testing.assert_allclose(gg2.estimate_cov('xip','weight','jackknife'), gg3.covxip)
     np.testing.assert_allclose(gg2.estimate_cov('xim','weight','jackknife'), gg3.covxim)
 
+    # Use estimate_multi_cov to get combined xip, xim covariance
+    t0 = time.time()
+    cov_xipm = treecorr.estimate_multi_cov([gg2,gg2], ['xip','xim'], ['weight','weight'],
+                                           'jackknife')
+    t1 = time.time()
+    print('Time for jackknife cross-covariance = ',t1-t0)
+    n1 = len(gg2.xip)
+    np.testing.assert_allclose(cov_xipm[:n1,:n1], gg3.covxip)
+    np.testing.assert_allclose(cov_xipm[n1:,n1:], gg3.covxim)
+    print('cross covariance = ',cov_xipm[:n1,n1:],np.sum(cov_xipm[n1:,n1:]**2))
+    # Make cross correlation matrix
+    c = cov_xipm[:n1,n1:]
+    c /= np.sqrt(gg3.varxip)[:,np.newaxis]
+    c /= np.sqrt(gg3.varxim)[np.newaxis,:]
+    print('cross correlation = ',c)
+    assert np.sum(c**2) > 1.e-2  # Should be significantly non-zero
+    assert np.all(np.abs(c) < 1.)  # And all are between -1 and -1.
+
     # Check sample covariance estimate
+    t0 = time.time()
     cov_xip = gg3.estimate_cov('xip','weight','sample')
     cov_xim = gg3.estimate_cov('xim','weight','sample')
+    t1 = time.time()
+    print('Time to calculate sample covariance = ',t1-t0)
     print('varxip = ',cov_xip.diagonal())
     print('ratio = ',cov_xip.diagonal() / var_xip)
     print('varxim = ',cov_xim.diagonal())
@@ -346,6 +368,15 @@ def test_gg_jk():
         gg2.estimate_cov('xip','invalid','jackknife')
     with assert_raises(ValueError):
         gg1.estimate_cov('xip','weight','jackknife')
+    with assert_raises(ValueError):
+        treecorr.estimate_multi_cov([gg2, gg1],['xip','xim'], ['weight','weight'], 'jackknife')
+    with assert_raises(ValueError):
+        treecorr.estimate_multi_cov([gg1, gg2],['xip','xim'], ['weight','weight'], 'jackknife')
+    with assert_raises(ValueError):
+        treecorr.estimate_multi_cov([gg1, gg2],['xip','xim'], ['weight','weight'], 'sample')
+    with assert_raises(ValueError):
+        treecorr.estimate_multi_cov([gg2, gg1],['xip','xim'], ['weight','weight'], 'sample')
+
 
 
 if __name__ == '__main__':

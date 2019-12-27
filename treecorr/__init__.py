@@ -46,7 +46,7 @@ Rperp_alias = 'FisherRperp'
 from . import util
 from .config import read_config, set_omp_threads
 from .catalog import Catalog, read_catalogs, calculateVarG, calculateVarK
-from .binnedcorr2 import BinnedCorr2
+from .binnedcorr2 import BinnedCorr2, estimate_multi_cov
 from .ggcorrelation import GGCorrelation
 from .nncorrelation import NNCorrelation
 from .kkcorrelation import KKCorrelation

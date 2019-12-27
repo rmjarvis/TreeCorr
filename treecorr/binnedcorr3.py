@@ -185,7 +185,7 @@ class BinnedCorr3(object):
                             (default: period)
 
         var_method (str):   Which method to use for estimating the variance. Options are:
-                            'shot', 'jackknife'.  (default: 'shot')
+                            'shot', 'jackknife', 'sample'.  (default: 'shot')
 
         num_threads (int):  How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
@@ -260,7 +260,7 @@ class BinnedCorr3(object):
         'zperiod': (float, False, None, None,
                 'The period to use for the z direction for the Periodic metric'),
 
-        'var_method': (str, False, 'shot', ['shot', 'jackknife'],
+        'var_method': (str, False, 'shot', ['shot', 'jackknife', 'sample'],
                 'The method to use for estimating the variance'),
     }
 

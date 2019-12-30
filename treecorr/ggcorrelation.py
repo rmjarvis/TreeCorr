@@ -322,6 +322,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.meanlogr.ravel()[:] = 0
         self.weight.ravel()[:] = 0
         self.npairs.ravel()[:] = 0
+        self.results.clear()
 
 
     def __iadd__(self, other):

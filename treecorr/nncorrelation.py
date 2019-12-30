@@ -278,7 +278,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
         self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
-
+        self.var_num = None
 
     def clear(self):
         """Clear the data vectors
@@ -287,6 +287,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.meanlogr.ravel()[:] = 0.
         self.weight.ravel()[:] = 0.
         self.npairs.ravel()[:] = 0.
+        self.results.clear()
         self.tot = 0.
 
     def __iadd__(self, other):

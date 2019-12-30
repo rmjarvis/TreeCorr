@@ -123,65 +123,71 @@ def test_cat_patches():
         treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
                          patch_col='patches')
 
+def generate_shear_field(nside):
+   # Generate a random shear field with a well-defined power spectrum.
+   # It generates shears on a grid nside x nside, and returns, x, y, g1, g2
+   kvals = np.fft.fftfreq(nside) * 2*np.pi
+   kx,ky = np.meshgrid(kvals,kvals)
+   k = kx + 1j*ky
+   ksq = kx**2 + ky**2
+
+   # Use a power spectrum with lots of large scale power.
+   # The rms shape ends up around 0.2 and min/max are around +-1.
+   # Having a lot more large-scale than small-scale power means that sample variance is
+   # very important, so the shot noise estimate of the variance is particularly bad.
+   Pk = 1.e4 * ksq / (1. + 300.*ksq)**2
+
+   # Make complex gaussian field in k-space.
+   f1 = np.random.normal(size=Pk.shape)
+   f2 = np.random.normal(size=Pk.shape)
+   f = (f1 + 1j*f2) * np.sqrt(0.5)
+
+   # Make f Hermitian, to correspond to E-mode-only field.
+   # Hermitian means f(-k) = conj(f(k)).
+   # Note: this is approximate.  It doesn't get all the k=0 and k=nside/2 correct.
+   # But this is good enough for xi- to be not close to zero.
+   ikxp = slice(1,(nside+1)//2)   # kx > 0
+   ikxn = slice(-1,nside//2,-1)   # kx < 0
+   ikyp = slice(1,(nside+1)//2)   # ky > 0
+   ikyn = slice(-1,nside//2,-1)   # ky < 0
+   f[ikyp,ikxn] = np.conj(f[ikyn,ikxp])
+   f[ikyn,ikxn] = np.conj(f[ikyp,ikxp])
+
+   # Multiply by the power spectrum to get a realization of a field with this P(k)
+   f *= Pk
+
+   # Inverse fft gives the real-space field.
+   kappa = nside * np.fft.ifft2(f)
+
+   # Multiply by exp(2iphi) to get gamma field, rather than kappa.
+   ksq[0,0] = 1.  # Avoid division by zero
+   exp2iphi = k**2 / ksq
+   f *= exp2iphi
+   gamma = nside * np.fft.ifft2(f)
+
+   # Generate x,y values for the real-space field
+   x,y = np.meshgrid(np.linspace(0.,1000.,nside), np.linspace(0.,1000.,nside))
+
+   x = x.ravel()
+   y = y.ravel()
+   gamma = gamma.ravel()
+   kappa = np.real(kappa.ravel())
+
+   return x, y, np.real(gamma), np.imag(gamma), kappa
+
+
 def test_gg_jk():
     # Test the variance estimate for GG correlation with jackknife error estimate.
-
-    def generate_shear_field(nside):
-        # Generate a random shear field with a well-defined power spectrum.
-        # It generates shears on a grid nside x nside, and returns, x, y, g1, g2
-        kvals = np.fft.fftfreq(nside) * 2*np.pi
-        kx,ky = np.meshgrid(kvals,kvals)
-        k = kx + 1j*ky
-        ksq = kx**2 + ky**2
-
-        # Use a power spectrum with lots of large scale power.
-        # The rms shape ends up around 0.2 and min/max are around +-1.
-        # Having a lot more large-scale than small-scale power means that sample variance is
-        # very important, so the shot noise estimate of the variance is particularly bad.
-        Pk = 1.e4 * ksq / (1. + 300.*ksq)**2
-
-        # Make complex gaussian field in k-space.
-        f1 = np.random.normal(size=Pk.shape)
-        f2 = np.random.normal(size=Pk.shape)
-        f = (f1 + 1j*f2) * np.sqrt(0.5)
-
-        # Make f Hermitian, to correspond to E-mode-only field.
-        # Hermitian means f(-k) = conj(f(k)).
-        # Note: this is approximate.  It doesn't get all the k=0 and k=nside/2 correct.
-        # But this is good enough for xi- to be not close to zero.
-        ikxp = slice(1,(nside+1)//2)   # kx > 0
-        ikxn = slice(-1,nside//2,-1)   # kx < 0
-        ikyp = slice(1,(nside+1)//2)   # ky > 0
-        ikyn = slice(-1,nside//2,-1)   # ky < 0
-        f[ikyp,ikxn] = np.conj(f[ikyn,ikxp])
-        f[ikyn,ikxn] = np.conj(f[ikyp,ikxp])
-
-        # Multiply by the power spectrum to get a realization of a field with this P(k)
-        f *= Pk
-
-        # Multiply by exp(2iphi) to get gamma field, rather than kappa.
-        ksq[0,0] = 1.  # Avoid division by zero
-        exp2iphi = k**2 / ksq
-        f *= exp2iphi
-
-        # Inverse fft gives the real-space field.
-        gamma = nside * np.fft.ifft2(f)
-
-        # Generate x,y values for the real-space field
-        x,y = np.meshgrid(np.linspace(0.,1000.,nside), np.linspace(0.,1000.,nside))
-
-        x = x.ravel()
-        y = y.ravel()
-        gamma = gamma.ravel()
-        return x, y, np.real(gamma), np.imag(gamma)
 
     if __name__ == '__main__':
         # 1000 x 1000, so 10^6 points.  With jackknifing, that gives 10^4 per region.
         nside = 1000
+        npatch = 64
         tol_factor = 1
     else:
         # Use ~1/10 of the objects when running unit tests
         nside = 300
+        npatch = 64
         tol_factor = 4
 
     # The full simulation needs to run a lot of times to get a good estimate of the variance,
@@ -193,7 +199,7 @@ def test_gg_jk():
         nruns = 1000
         all_ggs = []
         for run in range(nruns):
-            x, y, g1, g2 = generate_shear_field(nside)
+            x, y, g1, g2, _ = generate_shear_field(nside)
             print(run,': ',np.mean(g1),np.std(g1),np.min(g1),np.max(g1))
             cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
             gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
@@ -231,7 +237,7 @@ def test_gg_jk():
 
     np.random.seed(1234)
     # First run with the normal variance estimate, which is too small.
-    x, y, g1, g2 = generate_shear_field(nside)
+    x, y, g1, g2, _ = generate_shear_field(nside)
 
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
     gg1 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
@@ -262,12 +268,12 @@ def test_gg_jk():
     np.testing.assert_array_less(gg1.varxim, var_xim)
 
     # Now run with patches, but still with shot variance.  Should be basically the same answer.
-    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=64)
+    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch)
     gg2 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='shot')
     t0 = time.time()
     gg2.process(cat)
     t1 = time.time()
-    print('time for shot processing = ',t1-t0)
+    print('Time for shot processing = ',t1-t0)
     print('npairs = ',gg2.npairs)
     print('xip = ',gg2.xip)
     print('xim = ',gg2.xim)
@@ -290,7 +296,7 @@ def test_gg_jk():
     t0 = time.time()
     gg3.process(cat)
     t1 = time.time()
-    print('time for jackknife processing = ',t1-t0)
+    print('Time for jackknife processing = ',t1-t0)
     print('xip = ',gg3.xip)
     print('xim = ',gg3.xim)
     print('varxip = ',gg3.varxip)
@@ -378,7 +384,204 @@ def test_gg_jk():
         treecorr.estimate_multi_cov([gg2, gg1],['xip','xim'], ['weight','weight'], 'sample')
 
 
+def test_ng_jk():
+    # Test the variance estimate for NG correlation with jackknife error estimate.
+
+    if __name__ == '__main__':
+        # 1000 x 1000, so 10^6 points.  With jackknifing, that gives 10^4 per region.
+        nside = 1000
+        nlens = 50000
+        npatch = 64
+        tol_factor = 1
+    else:
+        # If much smaller, then there can be no lenses in some patches, so only 1/4 the galaxies
+        # and use half the number of patches
+        nside = 500
+        nlens = 30000
+        npatch = 32
+        tol_factor = 3
+
+    file_name = 'data/test_ng_jk_{}.npz'.format(nside)
+    print(file_name)
+    if not os.path.isfile(file_name):
+        nruns = 1000
+        all_ngs = []
+        for run in range(nruns):
+            x, y, g1, g2, k = generate_shear_field(nside)
+            thresh = np.partition(k.flatten(), -nlens)[-nlens]
+            w = np.zeros_like(k)
+            w[k>=thresh] = 1.
+            print(run,': ',np.mean(g1),np.std(g1),np.min(g1),np.max(g1),thresh)
+            cat1 = treecorr.Catalog(x=x, y=y, w=w)
+            cat2 = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
+            ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+            ng.process(cat1, cat2)
+            all_ngs.append(ng)
+
+        mean_xi = np.mean([ng.xi for ng in all_ngs], axis=0)
+        var_xi = np.var([ng.xi for ng in all_ngs], axis=0)
+        mean_varxi = np.mean([ng.varxi for ng in all_ngs], axis=0)
+
+        np.savez(file_name,
+                 mean_xi=mean_xi, var_xi=var_xi, mean_varxi=mean_varxi)
+
+    data = np.load(file_name)
+    mean_xi = data['mean_xi']
+    var_xi = data['var_xi']
+    mean_varxi = data['mean_varxi']
+
+    print('mean_xi = ',mean_xi)
+    print('mean_varxi = ',mean_varxi)
+    print('var_xi = ',var_xi)
+    print('ratio = ',var_xi / mean_varxi)
+
+    np.random.seed(1234)
+    # First run with the normal variance estimate, which is too small.
+    x, y, g1, g2, k = generate_shear_field(nside)
+    thresh = np.partition(k.flatten(), -nlens)[-nlens]
+    w = np.zeros_like(k)
+    w[k>=thresh] = 1.
+    cat1 = treecorr.Catalog(x=x, y=y, w=w)
+    cat2 = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
+    ng1 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    t0 = time.time()
+    ng1.process(cat1, cat2)
+    t1 = time.time()
+    print('Time for non-patch processing = ',t1-t0)
+
+    print('npairs = ',ng1.npairs)
+    print('xi = ',ng1.xi)
+    print('varxi = ',ng1.varxi)
+    print('pullsq for xi = ',(ng1.xi-mean_xi)**2/var_xi)
+    print('max pull for xi = ',np.sqrt(np.max((ng1.xi-mean_xi)**2/var_xi)))
+    np.testing.assert_array_less((ng1.xi - mean_xi)**2/var_xi, 25) # within 5 sigma
+    np.testing.assert_allclose(ng1.varxi, mean_varxi, rtol=0.03 * tol_factor)
+
+    # The naive error estimates only includes shape noise, so it is an underestimate of
+    # the full variance, which includes sample variance.
+    np.testing.assert_array_less(mean_varxi, var_xi)
+    np.testing.assert_array_less(ng1.varxi, var_xi)
+
+    # Now run with patches, but still with shot variance.  Should be basically the same answer.
+    cat2p = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch)
+    cat1p = treecorr.Catalog(x=x, y=y, w=w, patch=cat2p.patch)
+    print('tot w = ',np.sum(w))
+    print('Patch\tNlens')
+    for i in range(npatch):
+        print('%d\t%d'%(i,np.sum(w[cat2p.patch==i])))
+    ng2 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='shot')
+    t0 = time.time()
+    ng2.process(cat1p, cat2p)
+    t1 = time.time()
+    print('Time for shot processing = ',t1-t0)
+    print('npairs = ',ng2.npairs)
+    print('xi = ',ng2.xi)
+    print('varxi = ',ng2.varxi)
+    np.testing.assert_allclose(ng2.npairs, ng1.npairs, rtol=1.e-2*tol_factor)
+    np.testing.assert_allclose(ng2.xi, ng1.xi, rtol=3.e-2*tol_factor)
+    np.testing.assert_allclose(ng2.varxi, ng1.varxi, rtol=1.e-2*tol_factor)
+
+    # Can get this as a (diagonal) covariance matrix using estimate_cov
+    np.testing.assert_allclose(ng2.estimate_cov('xi','weight','shot'), np.diag(ng2.varxi))
+    np.testing.assert_allclose(ng1.estimate_cov('xi','weight','shot'), np.diag(ng1.varxi))
+
+    # Now run with jackknife variance estimate.  Should be much better.
+    ng3 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
+    t0 = time.time()
+    ng3.process(cat1p, cat2p)
+    t1 = time.time()
+    print('Time for jackknife processing = ',t1-t0)
+    print('xi = ',ng3.xi)
+    print('varxi = ',ng3.varxi)
+    print('ratio = ',ng3.varxi / var_xi)
+    np.testing.assert_allclose(ng3.npairs, ng2.npairs)
+    np.testing.assert_allclose(ng3.xi, ng2.xi)
+    np.testing.assert_allclose(ng3.varxi, var_xi, rtol=0.4*tol_factor)
+
+    # Check using estimate_cov
+    t0 = time.time()
+    np.testing.assert_allclose(ng3.estimate_cov('xi','weight','jackknife'), ng3.covxi)
+    t1 = time.time()
+    print('Time to calculate jackknife covariance = ',t1-t0)
+    np.testing.assert_allclose(ng3.estimate_cov('xi','weight','shot'), np.diag(ng2.varxi))
+    np.testing.assert_allclose(ng2.estimate_cov('xi','weight','jackknife'), ng3.covxi)
+
+    # Check only using patches for one of the two catalogs.
+    # Not as good as using patches for both, but not much worse.
+    ng4 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
+    t0 = time.time()
+    ng4.process(cat1p, cat2)
+    t1 = time.time()
+    print('Time for only patches for cat1 processing = ',t1-t0)
+    print('npairs = ',ng4.npairs)
+    print('xi = ',ng4.xi)
+    print('varxi = ',ng4.varxi)
+    np.testing.assert_allclose(ng4.npairs, ng1.npairs, rtol=1.e-2*tol_factor)
+    np.testing.assert_allclose(ng4.xi, ng1.xi, rtol=3.e-2*tol_factor)
+    np.testing.assert_allclose(ng4.varxi, var_xi, rtol=0.5*tol_factor)
+
+    ng5 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
+    t0 = time.time()
+    ng5.process(cat1, cat2p)
+    t1 = time.time()
+    print('Time for only patches for cat2 processing = ',t1-t0)
+    print('npairs = ',ng5.npairs)
+    print('xi = ',ng5.xi)
+    print('varxi = ',ng5.varxi)
+    np.testing.assert_allclose(ng5.npairs, ng1.npairs, rtol=1.e-2*tol_factor)
+    np.testing.assert_allclose(ng5.xi, ng1.xi, rtol=3.e-2*tol_factor)
+    np.testing.assert_allclose(ng5.varxi, var_xi, rtol=0.6*tol_factor)
+
+    # Check sample covariance estimate
+    t0 = time.time()
+    cov_xi = ng3.estimate_cov('xi','weight','sample')
+    t1 = time.time()
+    print('Time to calculate sample covariance = ',t1-t0)
+    print('varxi = ',cov_xi.diagonal())
+    print('ratio = ',cov_xi.diagonal() / var_xi)
+    np.testing.assert_allclose(cov_xi.diagonal(), var_xi, rtol=0.7*tol_factor)
+
+    cov_xi = ng4.estimate_cov('xi','weight','sample')
+    print('varxi = ',cov_xi.diagonal())
+    np.testing.assert_allclose(cov_xi.diagonal(), var_xi, rtol=0.7*tol_factor)
+
+    cov_xi = ng5.estimate_cov('xi','weight','sample')
+    print('varxi = ',cov_xi.diagonal())
+    np.testing.assert_allclose(cov_xi.diagonal(), var_xi, rtol=0.7*tol_factor)
+
+    # Check some invalid actions
+    with assert_raises(ValueError):
+        ng2.estimate_cov('xi','weight','invalid')
+    with assert_raises(ValueError):
+        ng3.estimate_cov('xi','weight','invalid')
+    with assert_raises(AttributeError):
+        ng2.estimate_cov('invalid','weight','shot')
+    with assert_raises(AttributeError):
+        ng2.estimate_cov('xi','invalid','shot')
+    with assert_raises(AttributeError):
+        ng2.estimate_cov('invalid','weight','jackknife')
+    with assert_raises(AttributeError):
+        ng2.estimate_cov('xi','invalid','jackknife')
+    with assert_raises(ValueError):
+        ng1.estimate_cov('xi','weight','jackknife')
+
+    cat1a = treecorr.Catalog(x=x[:100], y=y[:100], npatch=10)
+    cat2a = treecorr.Catalog(x=x[:100], y=y[:100], g1=g1[:100], g2=g2[:100], npatch=10)
+    cat1b = treecorr.Catalog(x=x[:100], y=y[:100], npatch=2)
+    cat2b = treecorr.Catalog(x=x[:100], y=y[:100], g1=g1[:100], g2=g2[:100], npatch=2)
+    ng6 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
+    ng7 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
+    with assert_raises(RuntimeError):
+        ng6.process(cat1a,cat2b)
+    with assert_raises(RuntimeError):
+        ng6.estimate_cov('xi','weight','sample')
+    with assert_raises(RuntimeError):
+        ng7.process(cat1b,cat2a)
+    with assert_raises(RuntimeError):
+        ng7.estimate_cov('xi','weight','sample')
+
 
 if __name__ == '__main__':
     test_cat_patches()
     test_gg_jk()
+    test_ng_jk()

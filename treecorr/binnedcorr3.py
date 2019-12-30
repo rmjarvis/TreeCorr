@@ -463,6 +463,7 @@ class BinnedCorr3(object):
         self.zperiod = treecorr.config.get(self.config,'zperiod',float,period)
 
         self.var_method = treecorr.config.get(self.config,'var_method',str,'shot')
+        self.results = {}  # for jackknife, etc. store the results of each pair of patches.
 
     def _process_all_auto(self, cat1, metric, num_threads):
         # I'm not sure which of these is more intuitive, but both are correct...

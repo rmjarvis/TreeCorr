@@ -288,10 +288,10 @@ class KKCorrelation(treecorr.BinnedCorr2):
         # Use meanlogr when available, but set to nominal when no pairs in bin.
         self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
+        self.var_num = vark1 * vark2
 
-        if self.var_method == 'shot':
-            self.varxi[mask1] = vark1 * vark2 / self.weight[mask1]
-            self.varxi[mask2] = 0.
+        self.covxi = self.estimate_cov('xi','weight', self.var_method)
+        self.varxi = self.covxi.diagonal().reshape(self.xi.shape) # in case TwoD
 
 
     def clear(self):
@@ -302,6 +302,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         self.meanlogr.ravel()[:] = 0
         self.weight.ravel()[:] = 0
         self.npairs.ravel()[:] = 0
+        self.results.clear()
 
     def __iadd__(self, other):
         """Add a second KKCorrelation's data to this one.

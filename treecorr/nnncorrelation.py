@@ -345,6 +345,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.meanv[:,:,:] = 0.
         self.weight[:,:,:] = 0.
         self.ntri[:,:,:] = 0.
+        self.results.clear()
         self.tot = 0.
 
     def __iadd__(self, other):

@@ -470,10 +470,17 @@ class BinnedCorr2(object):
                 if c1.ntot != c2.ntot:
                     raise ValueError("Number of objects must be equal for pairwise.")
                 self.process_pairwise(c1,c2,metric,num_threads)
+        elif len(cat1) == 1 and len(cat2) == 1:
+            self.process_cross(cat1[0],cat2[0],metric,num_threads)
         else:
-            for c1 in cat1:
-                for c2 in cat2:
-                    self.process_cross(c1,c2,metric,num_threads)
+            # When patch processing, keep track of the pair-wise results.
+            temp = self.copy()
+            for i,c1 in enumerate(cat1):
+                for j,c2 in enumerate(cat2):
+                    temp.clear()
+                    temp.process_cross(c1,c2,metric,num_threads)
+                    self.results[(i,j)] = temp.copy()
+                    self += temp
 
     def estimate_cov(self, num, denom, method):
         """Estimate the covariance matrix based on the data
@@ -761,10 +768,12 @@ def _cov_jackknife(corrs, nums, denoms):
     for c in corrs[1:]:
         if set(pairs) != set(c.results.keys()):
             raise ValueError("All correlation functions must have used the same patchs")
-    patch_nums = set(np.concatenate(pairs))
-    npatch = len(patch_nums)
-    assert patch_nums == set(range(npatch))
-    assert len(pairs) == npatch * (npatch+1)/2
+    patch_nums1 = set([p[0] for p in pairs])
+    patch_nums2 = set([p[1] for p in pairs])
+    npatch1 = len(patch_nums1)
+    npatch2 = len(patch_nums2)
+    assert patch_nums1 == set(range(npatch1))
+    assert patch_nums2 == set(range(npatch2))
     vsize = []
     for c,num,denom in zip(corrs,nums,denoms):
         vs = len(getattr(c,num))
@@ -772,14 +781,40 @@ def _cov_jackknife(corrs, nums, denoms):
         assert vs == len(getattr(c.results[(0,0)],num))
         assert vs == len(getattr(c.results[(0,0)],denom))
         vsize.append(vs)
-    v = np.zeros((npatch,np.sum(vsize)), dtype=float)
-    for i in patch_nums:
-        n=0
-        for c,num,denom,vs in zip(corrs,nums,denoms,vsize):
-            vnum = [getattr(c.results[(j,k)],num) for j,k in pairs if j!=i and k!=i]
-            vdenom = [getattr(c.results[(j,k)],denom) for j,k in pairs if j!=i and k!=i]
-            v[i,n:n+vs] = np.sum(vnum, axis=0) / np.sum(vdenom, axis=0)
-            n += vs
+
+    if npatch1 == npatch2:
+        npatch = npatch1
+        v = np.zeros((npatch1,np.sum(vsize)), dtype=float)
+        for i in patch_nums1:
+            n=0
+            for c,num,denom,vs in zip(corrs,nums,denoms,vsize):
+                vnum = [getattr(c.results[(j,k)],num) for j,k in pairs if j!=i and k!=i]
+                vdenom = [getattr(c.results[(j,k)],denom) for j,k in pairs if j!=i and k!=i]
+                v[i,n:n+vs] = np.sum(vnum, axis=0) / np.sum(vdenom, axis=0)
+                n += vs
+    elif npatch2 == 1:
+        npatch = npatch1
+        v = np.zeros((npatch1,np.sum(vsize)), dtype=float)
+        for i in patch_nums1:
+            n=0
+            for c,num,denom,vs in zip(corrs,nums,denoms,vsize):
+                vnum = [getattr(c.results[(j,0)],num) for j in patch_nums1 if j!=i]
+                vdenom = [getattr(c.results[(j,0)],denom) for j in patch_nums1 if j!=i]
+                v[i,n:n+vs] = np.sum(vnum, axis=0) / np.sum(vdenom, axis=0)
+                n += vs
+    elif npatch1 == 1:
+        npatch = npatch2
+        v = np.zeros((npatch2,np.sum(vsize)), dtype=float)
+        for i in patch_nums2:
+            n=0
+            for c,num,denom,vs in zip(corrs,nums,denoms,vsize):
+                vnum = [getattr(c.results[(0,j)],num) for j in patch_nums2 if j!=i]
+                vdenom = [getattr(c.results[(0,j)],denom) for j in patch_nums2 if j!=i]
+                v[i,n:n+vs] = np.sum(vnum, axis=0) / np.sum(vdenom, axis=0)
+                n += vs
+    else:
+        raise RuntimeError("All catalogs must use the same number of patches or use 1 patch.")
+
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = (1.-1./npatch) * v.T.dot(v)
@@ -801,10 +836,12 @@ def _cov_sample(corrs, nums, denoms):
     for c in corrs[1:]:
         if set(pairs) != set(c.results.keys()):
             raise ValueError("All correlation functions must have used the same patchs")
-    patch_nums = set(np.concatenate(pairs))
-    npatch = len(patch_nums)
-    assert patch_nums == set(range(npatch))
-    assert len(pairs) == npatch * (npatch+1)/2
+    patch_nums1 = set([p[0] for p in pairs])
+    patch_nums2 = set([p[1] for p in pairs])
+    npatch1 = len(patch_nums1)
+    npatch2 = len(patch_nums2)
+    assert patch_nums1 == set(range(npatch1))
+    assert patch_nums2 == set(range(npatch2))
     vsize = []
     for c,num,denom in zip(corrs,nums,denoms):
         vs = len(getattr(c,num))
@@ -812,16 +849,47 @@ def _cov_sample(corrs, nums, denoms):
         assert vs == len(getattr(c.results[(0,0)],num))
         assert vs == len(getattr(c.results[(0,0)],denom))
         vsize.append(vs)
-    v = np.zeros((npatch,np.sum(vsize)), dtype=float)
-    w = np.zeros(npatch, dtype=float)
-    for i in patch_nums:
-        n=0
-        w[i] = 0
-        for c,num,denom,vs in zip(corrs,nums,denoms,vsize):
-            vnum = [getattr(c.results[(j,k)],num) for j,k in pairs if j==i or k==i]
-            vdenom = [getattr(c.results[(j,k)],denom) for j,k in pairs if j==i or k==i]
-            v[i,n:n+vs] = np.sum(vnum, axis=0) / np.sum(vdenom, axis=0)
-            w[i] += np.sum(vdenom)
+
+    if npatch1 == npatch2:
+        npatch = npatch1
+        v = np.zeros((npatch1,np.sum(vsize)), dtype=float)
+        w = np.zeros(npatch1, dtype=float)
+        for i in patch_nums1:
+            n=0
+            w[i] = 0
+            for c,num,denom,vs in zip(corrs,nums,denoms,vsize):
+                vnum = [getattr(c.results[(j,k)],num) for j,k in pairs if j==i or k==i]
+                vdenom = [getattr(c.results[(j,k)],denom) for j,k in pairs if j==i or k==i]
+                v[i,n:n+vs] = np.sum(vnum, axis=0) / np.sum(vdenom, axis=0)
+                w[i] += np.sum(vdenom)
+                n += vs
+    elif npatch2 == 1:
+        npatch = npatch1
+        v = np.zeros((npatch1,np.sum(vsize)), dtype=float)
+        w = np.zeros(npatch1, dtype=float)
+        for i in patch_nums1:
+            n=0
+            for c,num,denom,vs in zip(corrs,nums,denoms,vsize):
+                vnum = getattr(c.results[(i,0)],num)
+                vdenom = getattr(c.results[(i,0)],denom)
+                v[i,n:n+vs] = vnum / vdenom
+                w[i] += np.sum(vdenom)
+                n += vs
+    elif npatch1 == 1:
+        npatch = npatch2
+        v = np.zeros((npatch2,np.sum(vsize)), dtype=float)
+        w = np.zeros(npatch2, dtype=float)
+        for i in patch_nums2:
+            n=0
+            for c,num,denom,vs in zip(corrs,nums,denoms,vsize):
+                vnum = getattr(c.results[(0,i)],num)
+                vdenom = getattr(c.results[(0,i)],denom)
+                v[i,n:n+vs] = vnum / vdenom
+                w[i] += np.sum(vdenom)
+                n += vs
+    else:
+        raise RuntimeError("All catalogs must use the same number of patches or use 1 patch.")
+
     vmean = np.mean(v, axis=0)
     w /= np.sum(w)  # Now w is the fractional weight for each patch
     v -= vmean

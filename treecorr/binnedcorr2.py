@@ -459,8 +459,9 @@ class BinnedCorr2(object):
                     if i < j:
                         temp.clear()
                         temp.process_cross(c1,c2,metric,num_threads)
-                        self.results[(i,j)] = temp.copy()
-                        self += temp
+                        if np.sum(temp.npairs) > 0:
+                            self.results[(i,j)] = temp.copy()
+                            self += temp
 
     def _process_all_cross(self, cat1, cat2, metric, num_threads):
         if treecorr.config.get(self.config,'pairwise',bool,False):
@@ -479,8 +480,9 @@ class BinnedCorr2(object):
                 for j,c2 in enumerate(cat2):
                     temp.clear()
                     temp.process_cross(c1,c2,metric,num_threads)
-                    self.results[(i,j)] = temp.copy()
-                    self += temp
+                    if i==j or np.sum(temp.npairs) > 0:
+                        self.results[(i,j)] = temp.copy()
+                        self += temp
 
     def estimate_cov(self, num, denom, method):
         """Estimate the covariance matrix based on the data

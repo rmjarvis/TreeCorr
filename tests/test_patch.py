@@ -286,10 +286,12 @@ def test_gg_jk():
     np.testing.assert_allclose(gg2.varxim, gg1.varxim, rtol=1.e-2*tol_factor)
 
     # Can get this as a (diagonal) covariance matrix using estimate_cov
-    np.testing.assert_allclose(gg2.estimate_cov('xip','weight','shot'), np.diag(gg2.varxip))
-    np.testing.assert_allclose(gg2.estimate_cov('xim','weight','shot'), np.diag(gg2.varxim))
-    np.testing.assert_allclose(gg1.estimate_cov('xip','weight','shot'), np.diag(gg1.varxip))
-    np.testing.assert_allclose(gg1.estimate_cov('xim','weight','shot'), np.diag(gg1.varxim))
+    np.testing.assert_allclose(gg2.estimate_cov('shot','xip'), np.diag(gg2.varxip))
+    np.testing.assert_allclose(gg2.estimate_cov('shot','xim'), np.diag(gg2.varxim))
+    # With no stat name, it does the full data vector [xip, xim]
+    n = gg1.nbins
+    np.testing.assert_allclose(gg1.estimate_cov('shot')[:n,:n], np.diag(gg1.varxip))
+    np.testing.assert_allclose(gg1.estimate_cov('shot')[n:,n:], np.diag(gg1.varxim))
 
     # Now run with jackknife variance estimate.  Should be much better.
     gg3 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
@@ -310,33 +312,31 @@ def test_gg_jk():
     np.testing.assert_allclose(gg3.varxip, var_xip, rtol=0.3*tol_factor)
     np.testing.assert_allclose(gg3.varxim, var_xim, rtol=0.3*tol_factor)
 
-    # Can get the covariance matrix using estimate_cov, which is also stored as covxi? attributes
+    # Can get the covariance matrix using estimate_cov, which is also stored as cov attribute
     t0 = time.time()
-    np.testing.assert_allclose(gg3.estimate_cov('xip','weight','jackknife'), gg3.covxip)
-    np.testing.assert_allclose(gg3.estimate_cov('xim','weight','jackknife'), gg3.covxim)
+    np.testing.assert_allclose(gg3.estimate_cov('jackknife'), gg3.cov)
+    np.testing.assert_allclose(gg3.estimate_cov('jackknife',None), gg3.cov)
+    np.testing.assert_allclose(gg3.estimate_cov('jackknife','xip'), gg3.cov[:n,:n])
+    np.testing.assert_allclose(gg3.estimate_cov('jackknife','xim'), gg3.cov[n:,n:])
     t1 = time.time()
     print('Time to calculate jackknife covariance = ',t1-t0)
 
     # Can also get the shot covariance matrix using estimate_cov
-    np.testing.assert_allclose(gg3.estimate_cov('xip','weight','shot'), np.diag(gg2.varxip))
-    np.testing.assert_allclose(gg3.estimate_cov('xim','weight','shot'), np.diag(gg2.varxim))
+    np.testing.assert_allclose(gg3.estimate_cov('shot','xip'), np.diag(gg2.varxip))
+    np.testing.assert_allclose(gg3.estimate_cov('shot','xim'), np.diag(gg2.varxim))
 
     # And can even get the jackknife covariance from a run that used var_method='shot'
-    np.testing.assert_allclose(gg2.estimate_cov('xip','weight','jackknife'), gg3.covxip)
-    np.testing.assert_allclose(gg2.estimate_cov('xim','weight','jackknife'), gg3.covxim)
+    np.testing.assert_allclose(gg2.estimate_cov('jackknife'), gg3.cov)
 
     # Use estimate_multi_cov to get combined xip, xim covariance
     t0 = time.time()
-    cov_xipm = treecorr.estimate_multi_cov([gg2,gg2], ['xip','xim'], ['weight','weight'],
-                                           'jackknife')
+    cov_xipm = treecorr.estimate_multi_cov([gg2,gg2], 'jackknife', ['xip','xim'])
     t1 = time.time()
     print('Time for jackknife cross-covariance = ',t1-t0)
-    n1 = len(gg2.xip)
-    np.testing.assert_allclose(cov_xipm[:n1,:n1], gg3.covxip)
-    np.testing.assert_allclose(cov_xipm[n1:,n1:], gg3.covxim)
-    print('cross covariance = ',cov_xipm[:n1,n1:],np.sum(cov_xipm[n1:,n1:]**2))
+    np.testing.assert_allclose(cov_xipm, gg3.cov)
+    print('cross covariance = ',cov_xipm[:n,n:],np.sum(cov_xipm[n:,n:]**2))
     # Make cross correlation matrix
-    c = cov_xipm[:n1,n1:]
+    c = cov_xipm[:n,n:]
     c /= np.sqrt(gg3.varxip)[:,np.newaxis]
     c /= np.sqrt(gg3.varxim)[np.newaxis,:]
     print('cross correlation = ',c)
@@ -345,8 +345,8 @@ def test_gg_jk():
 
     # Check sample covariance estimate
     t0 = time.time()
-    cov_xip = gg3.estimate_cov('xip','weight','sample')
-    cov_xim = gg3.estimate_cov('xim','weight','sample')
+    cov_xip = gg3.estimate_cov('sample','xip')
+    cov_xim = gg3.estimate_cov('sample','xim')
     t1 = time.time()
     print('Time to calculate sample covariance = ',t1-t0)
     print('varxip = ',cov_xip.diagonal())
@@ -361,27 +361,23 @@ def test_gg_jk():
 
     # Check some invalid actions
     with assert_raises(ValueError):
-        gg2.estimate_cov('xip','weight','invalid')
+        gg2.estimate_cov('invalid','xip')
     with assert_raises(ValueError):
-        gg3.estimate_cov('xip','weight','invalid')
-    with assert_raises(AttributeError):
-        gg2.estimate_cov('invalid','weight','shot')
-    with assert_raises(AttributeError):
-        gg2.estimate_cov('xip','invalid','shot')
-    with assert_raises(AttributeError):
-        gg2.estimate_cov('invalid','weight','jackknife')
-    with assert_raises(AttributeError):
-        gg2.estimate_cov('xip','invalid','jackknife')
+        gg2.estimate_cov('shot','invalid')
     with assert_raises(ValueError):
-        gg1.estimate_cov('xip','weight','jackknife')
+        gg2.estimate_cov('jackknife','invalid')
     with assert_raises(ValueError):
-        treecorr.estimate_multi_cov([gg2, gg1],['xip','xim'], ['weight','weight'], 'jackknife')
+        gg1.estimate_cov('jackknife','xip')
     with assert_raises(ValueError):
-        treecorr.estimate_multi_cov([gg1, gg2],['xip','xim'], ['weight','weight'], 'jackknife')
+        gg1.estimate_cov('jackknife')
     with assert_raises(ValueError):
-        treecorr.estimate_multi_cov([gg1, gg2],['xip','xim'], ['weight','weight'], 'sample')
+        treecorr.estimate_multi_cov([gg2, gg1],'jackknife', ['xip','xim'])
     with assert_raises(ValueError):
-        treecorr.estimate_multi_cov([gg2, gg1],['xip','xim'], ['weight','weight'], 'sample')
+        treecorr.estimate_multi_cov([gg1, gg2],'jackknife', ['xip','xim'])
+    with assert_raises(ValueError):
+        treecorr.estimate_multi_cov([gg1, gg2],'sample', ['xip','xim'])
+    with assert_raises(ValueError):
+        treecorr.estimate_multi_cov([gg2, gg1],'sample', ['xip','xim'])
 
 
 def test_ng_jk():
@@ -482,8 +478,8 @@ def test_ng_jk():
     np.testing.assert_allclose(ng2.varxi, ng1.varxi, rtol=1.e-2*tol_factor)
 
     # Can get this as a (diagonal) covariance matrix using estimate_cov
-    np.testing.assert_allclose(ng2.estimate_cov('xi','weight','shot'), np.diag(ng2.varxi))
-    np.testing.assert_allclose(ng1.estimate_cov('xi','weight','shot'), np.diag(ng1.varxi))
+    np.testing.assert_allclose(ng2.estimate_cov('shot'), np.diag(ng2.varxi))
+    np.testing.assert_allclose(ng1.estimate_cov('shot'), np.diag(ng1.varxi))
 
     # Now run with jackknife variance estimate.  Should be much better.
     ng3 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
@@ -500,11 +496,11 @@ def test_ng_jk():
 
     # Check using estimate_cov
     t0 = time.time()
-    np.testing.assert_allclose(ng3.estimate_cov('xi','weight','jackknife'), ng3.covxi)
+    np.testing.assert_allclose(ng3.estimate_cov('jackknife'), ng3.cov)
     t1 = time.time()
     print('Time to calculate jackknife covariance = ',t1-t0)
-    np.testing.assert_allclose(ng3.estimate_cov('xi','weight','shot'), np.diag(ng2.varxi))
-    np.testing.assert_allclose(ng2.estimate_cov('xi','weight','jackknife'), ng3.covxi)
+    np.testing.assert_allclose(ng3.estimate_cov('shot','xi'), np.diag(ng2.varxi))
+    np.testing.assert_allclose(ng2.estimate_cov('jackknife','xi'), ng3.cov)
 
     # Check only using patches for one of the two catalogs.
     # Not as good as using patches for both, but not much worse.
@@ -534,36 +530,32 @@ def test_ng_jk():
 
     # Check sample covariance estimate
     t0 = time.time()
-    cov_xi = ng3.estimate_cov('xi','weight','sample')
+    cov_xi = ng3.estimate_cov('sample')
     t1 = time.time()
     print('Time to calculate sample covariance = ',t1-t0)
     print('varxi = ',cov_xi.diagonal())
     print('ratio = ',cov_xi.diagonal() / var_xi)
     np.testing.assert_allclose(cov_xi.diagonal(), var_xi, rtol=0.7*tol_factor)
 
-    cov_xi = ng4.estimate_cov('xi','weight','sample')
+    cov_xi = ng4.estimate_cov('sample')
     print('varxi = ',cov_xi.diagonal())
     np.testing.assert_allclose(cov_xi.diagonal(), var_xi, rtol=0.7*tol_factor)
 
-    cov_xi = ng5.estimate_cov('xi','weight','sample')
+    cov_xi = ng5.estimate_cov('sample')
     print('varxi = ',cov_xi.diagonal())
     np.testing.assert_allclose(cov_xi.diagonal(), var_xi, rtol=0.7*tol_factor)
 
     # Check some invalid actions
     with assert_raises(ValueError):
-        ng2.estimate_cov('xi','weight','invalid')
+        ng2.estimate_cov('invalid')
     with assert_raises(ValueError):
-        ng3.estimate_cov('xi','weight','invalid')
-    with assert_raises(AttributeError):
-        ng2.estimate_cov('invalid','weight','shot')
-    with assert_raises(AttributeError):
-        ng2.estimate_cov('xi','invalid','shot')
-    with assert_raises(AttributeError):
-        ng2.estimate_cov('invalid','weight','jackknife')
-    with assert_raises(AttributeError):
-        ng2.estimate_cov('xi','invalid','jackknife')
+        ng2.estimate_cov('invalid','xi')
     with assert_raises(ValueError):
-        ng1.estimate_cov('xi','weight','jackknife')
+        ng2.estimate_cov('shot','invalid')
+    with assert_raises(ValueError):
+        ng2.estimate_cov('jackknife','invalid')
+    with assert_raises(ValueError):
+        ng1.estimate_cov('jackknife')
 
     cat1a = treecorr.Catalog(x=x[:100], y=y[:100], npatch=10)
     cat2a = treecorr.Catalog(x=x[:100], y=y[:100], g1=g1[:100], g2=g2[:100], npatch=10)
@@ -574,11 +566,11 @@ def test_ng_jk():
     with assert_raises(RuntimeError):
         ng6.process(cat1a,cat2b)
     with assert_raises(RuntimeError):
-        ng6.estimate_cov('xi','weight','sample')
+        ng6.estimate_cov('sample')
     with assert_raises(RuntimeError):
         ng7.process(cat1b,cat2a)
     with assert_raises(RuntimeError):
-        ng7.estimate_cov('xi','weight','sample')
+        ng7.estimate_cov('sample')
 
 def test_kappa_jk():
     # Test NK, KK, and KG with jackknife.
@@ -676,7 +668,7 @@ def test_kappa_jk():
     np.testing.assert_allclose(nk.varxi, var_nk_xi, rtol=0.5*tol_factor)
 
     # Check sample covariance estimate
-    cov_xi = nk.estimate_cov('xi','weight','sample')
+    cov_xi = nk.estimate_cov('sample')
     print('NK sample variance:')
     print('varxi = ',cov_xi.diagonal())
     print('ratio = ',cov_xi.diagonal() / var_nk_xi)
@@ -697,7 +689,7 @@ def test_kappa_jk():
     np.testing.assert_allclose(kk.varxi, var_kk_xi, rtol=0.4*tol_factor)
 
     # Check sample covariance estimate
-    cov_xi = kk.estimate_cov('xi','weight','sample')
+    cov_xi = kk.estimate_cov('sample')
     print('KK sample variance:')
     print('varxi = ',cov_xi.diagonal())
     print('ratio = ',cov_xi.diagonal() / var_kk_xi)
@@ -718,7 +710,7 @@ def test_kappa_jk():
     np.testing.assert_allclose(kg.varxi, var_kg_xi, rtol=0.3*tol_factor)
 
     # Check sample covariance estimate
-    cov_xi = kg.estimate_cov('xi','weight','sample')
+    cov_xi = kg.estimate_cov('sample')
     print('KG sample variance:')
     print('varxi = ',cov_xi.diagonal())
     print('ratio = ',cov_xi.diagonal() / var_kg_xi)

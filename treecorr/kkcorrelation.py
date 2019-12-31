@@ -38,19 +38,26 @@ class KKCorrelation(treecorr.BinnedCorr2):
     In addition, the following attributes are numpy arrays of length (nbins):
 
     Attributes:
-        logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
-        rnom:      The nominal center of the bin converted to regular distance.
-                   i.e. r = exp(logr).
-        meanr:     The (weighted) mean value of r for the pairs in each bin.
-                   If there are no pairs in a bin, then exp(logr) will be used instead.
-        meanlogr:  The (weighted) mean value of log(r) for the pairs in each bin.
-                   If there are no pairs in a bin, then logr will be used instead.
-        xi:        The correlation function, xi(r).
-        varxi:     The variance of xi, only including the shot noise propagated into the
-                   final correlation.  This does not include sample variance, so it is always
-                   an underestimate of the actual variance.
-        weight:    The total weight in each bin.
-        npairs:    The number of pairs going into each bin.
+        logr:       The nominal center of the bin in log(r) (the natural logarithm of r).
+        rnom:       The nominal center of the bin converted to regular distance.
+                    i.e. r = exp(logr).
+        meanr:      The (weighted) mean value of r for the pairs in each bin.
+                    If there are no pairs in a bin, then exp(logr) will be used instead.
+        meanlogr:   The (weighted) mean value of log(r) for the pairs in each bin.
+                    If there are no pairs in a bin, then logr will be used instead.
+        xi:         The correlation function, :math:`\\xi(r)`
+        varxi:      An estimate of the variance of :math:`\\xi`
+        weight:     The total weight in each bin.
+        npairs:     The number of pairs going into each bin.
+        cov:        An estimate of the full covariance matrix.
+
+    .. note::
+
+        The default method for estimating the variance and covariance attributes (``varxi``,
+        and ``cov``) is 'shot', which only includes the shot noise propagated into the final
+        correlation.  This does not include sample variance, so it is always an underestimate of
+        the actual variance.  To get better estimates, you need to set ``var_method`` to something
+        else and use patches in the input catalog(s).  cf. `Covariance Estimates`.
 
     If **sep_units** are given (either in the config dict or as a named kwarg) then the distances
     will all be in these units.  Note however, that if you separate out the steps of the
@@ -288,10 +295,10 @@ class KKCorrelation(treecorr.BinnedCorr2):
         # Use meanlogr when available, but set to nominal when no pairs in bin.
         self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
-        self.var_num = vark1 * vark2
 
-        self.covxi = self.estimate_cov('xi','weight', self.var_method)
-        self.varxi = self.covxi.diagonal().reshape(self.xi.shape) # in case TwoD
+        self.var_num = vark1 * vark2
+        self.cov = self.estimate_cov(self.var_method)
+        self.varxi.ravel()[:] = self.cov.diagonal()
 
 
     def clear(self):

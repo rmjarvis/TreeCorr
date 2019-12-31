@@ -46,14 +46,21 @@ class GGCorrelation(treecorr.BinnedCorr2):
         xim:        The correlation funciton, :math:`\\xi_-(r)`.
         xip_im:     The imaginary part of :math:`\\xi_+(r)`.
         xim_im:     The imaginary part of :math:`\\xi_-(r)`.
-        varxip:     The variance of xip, only including the shape noise propagated into
-                    the final correlation.  This does not include sample variance, so it
-                    is always an underestimate of the actual variance.
-        varxim:     The variance of xim, only including the shape noise propagated into
-                    the final correlation.  This does not include sample variance, so it
-                    is always an underestimate of the actual variance.
+        varxip:     An estimate of the variance of :math:``\\xi_+(r)`
+        varxim:     An estimate of the variance of :math:``\\xi_-(r)`
         weight:     The total weight in each bin.
         npairs:     The number of pairs going into each bin.
+        cov:        An estimate of the full covariance matrix for the data vector with
+                    :math:``\\xi_+`` first and then :math:``\\xi_-``.
+
+    .. note::
+
+        The default method for estimating the variance and covariance attributes (``varxip``,
+        ``varxim``, and ``cov``) is 'shot', which only includes the shape noise propagated into
+        the final correlation.  This does not include sample variance, so it is always an
+        underestimate of the actual variance.  To get better estimates, you need to set
+        ``var_method`` to something else and use patches in the input catalog(s).
+        cf. `Covariance Estimates`.
 
     If **sep_units** are given (either in the config dict or as a named kwarg) then the distances
     will all be in these units.  Note however, that if you separate out the steps of the
@@ -275,6 +282,28 @@ class GGCorrelation(treecorr.BinnedCorr2):
         treecorr._lib.ProcessPair(self.corr, f1.data, f2.data, self.output_dots,
                                   f1._d, f2._d, self._coords, self._bintype, self._metric)
 
+    def _getStatLen(self, stat):
+        if stat is None:
+            return 2*self._nbins
+        elif stat == 'xip' or stat == 'xim':
+            return self._nbins
+        else:
+            # This is also the one place where we check that stat is valid.
+            raise ValueError("Invalid statistic " + stat)
+
+    def _getStat(self, stat):
+        if stat is None:
+            return np.concatenate([self.xip.ravel(), self.xim.ravel()])
+        elif stat == 'xip':
+            return self.xip.ravel()
+        else:
+            return self.xim.ravel()
+
+    def _getWeight(self, stat):
+        if stat is None:
+            return np.concatenate([self.weight.ravel(), self.weight.ravel()])
+        else:  # invalid stat should already have been checked in _getStat
+            return self.weight.ravel()
 
     def finalize(self, varg1, varg2):
         """Finalize the calculation of the correlation function.
@@ -303,13 +332,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
         # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
         self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
+
         self.var_num = 2. * varg1 * varg2
-
-        self.covxip = self.estimate_cov('xip','weight', self.var_method)
-        self.covxim = self.estimate_cov('xim','weight', self.var_method)
-        self.varxip = self.covxip.diagonal().reshape(self.xip.shape) # in case TwoD
-        self.varxim = self.covxim.diagonal().reshape(self.xip.shape)
-
+        self.cov = self.estimate_cov(self.var_method)
+        self.varxip.ravel()[:] = self.cov.diagonal()[:self._nbins]
+        self.varxim.ravel()[:] = self.cov.diagonal()[self._nbins:]
 
     def clear(self):
         """Clear the data vectors
@@ -323,7 +350,6 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.weight.ravel()[:] = 0
         self.npairs.ravel()[:] = 0
         self.results.clear()
-
 
     def __iadd__(self, other):
         """Add a second GGCorrelation's data to this one.

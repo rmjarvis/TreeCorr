@@ -580,8 +580,153 @@ def test_ng_jk():
     with assert_raises(RuntimeError):
         ng7.estimate_cov('xi','weight','sample')
 
+def test_kappa_jk():
+    # Test NK, KK, and KG with jackknife.
+    # There's not really anything new to test here.  So just checking the interface works.
+
+    if __name__ == '__main__':
+        nside = 1000
+        nlens = 50000
+        npatch = 64
+        tol_factor = 1
+    else:
+        nside = 500
+        nlens = 30000
+        npatch = 32
+        tol_factor = 3
+
+    file_name = 'data/test_kappa_jk_{}.npz'.format(nside)
+    print(file_name)
+    if not os.path.isfile(file_name):
+        nruns = 1000
+        all_nks = []
+        all_kks = []
+        all_kgs = []
+        for run in range(nruns):
+            x, y, g1, g2, k = generate_shear_field(nside)
+            thresh = np.partition(k.flatten(), -nlens)[-nlens]
+            w = np.zeros_like(k)
+            w[k>=thresh] = 1.
+            print(run,': ',np.mean(k),np.std(k),np.min(k),np.max(k),thresh)
+            cat1 = treecorr.Catalog(x=x, y=y, k=k, w=w)
+            cat2 = treecorr.Catalog(x=x, y=y, k=k, g1=g1, g2=g2)
+            nk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+            kk = treecorr.KKCorrelation(bin_size=0.3, min_sep=6., max_sep=30.)
+            kg = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+            nk.process(cat1, cat2)
+            kk.process(cat2)
+            kg.process(cat2, cat2)
+            all_nks.append(nk)
+            all_kks.append(kk)
+            all_kgs.append(kg)
+
+        mean_nk_xi = np.mean([nk.xi for nk in all_nks], axis=0)
+        var_nk_xi = np.var([nk.xi for nk in all_nks], axis=0)
+        mean_kk_xi = np.mean([kk.xi for kk in all_kks], axis=0)
+        var_kk_xi = np.var([kk.xi for kk in all_kks], axis=0)
+        mean_kg_xi = np.mean([kg.xi for kg in all_kgs], axis=0)
+        var_kg_xi = np.var([kg.xi for kg in all_kgs], axis=0)
+
+        np.savez(file_name,
+                 mean_nk_xi=mean_nk_xi, var_nk_xi=var_nk_xi,
+                 mean_kk_xi=mean_kk_xi, var_kk_xi=var_kk_xi,
+                 mean_kg_xi=mean_kg_xi, var_kg_xi=var_kg_xi)
+
+    data = np.load(file_name)
+    mean_nk_xi = data['mean_nk_xi']
+    var_nk_xi = data['var_nk_xi']
+    mean_kk_xi = data['mean_kk_xi']
+    var_kk_xi = data['var_kk_xi']
+    mean_kg_xi = data['mean_kg_xi']
+    var_kg_xi = data['var_kg_xi']
+
+    print('mean_nk_xi = ',mean_nk_xi)
+    print('var_nk_xi = ',var_nk_xi)
+    print('mean_kk_xi = ',mean_kk_xi)
+    print('var_kk_xi = ',var_kk_xi)
+    print('mean_kg_xi = ',mean_kg_xi)
+    print('var_kg_xi = ',var_kg_xi)
+
+    np.random.seed(1234)
+    x, y, g1, g2, k = generate_shear_field(nside)
+    thresh = np.partition(k.flatten(), -nlens)[-nlens]
+    w = np.zeros_like(k)
+    w[k>=thresh] = 1.
+    cat1 = treecorr.Catalog(x=x, y=y, k=k, w=w)
+    cat2 = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k)
+    cat2p = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k, npatch=npatch)
+    cat1p = treecorr.Catalog(x=x, y=y, k=k, w=w, patch=cat2p.patch)
+
+    # NK
+    # This one is a bit touchy.  It only works well for a small range of scales.
+    # At smaller scales, there just aren't enough sources "behind" the lenses.
+    # And at larger scales, the power drops off too quickly (more quickly than shear),
+    # since convergence is a more local effect.  So for this choice of ngal, nlens,
+    # and power spectrum, this is where the covariance estimate works out reasonably well.
+    nk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10, max_sep=30., var_method='jackknife')
+    t0 = time.time()
+    nk.process(cat1p, cat2p)
+    t1 = time.time()
+    print('Time for NK jackknife processing = ',t1-t0)
+    print('xi = ',nk.xi)
+    print('varxi = ',nk.varxi)
+    print('ratio = ',nk.varxi / var_nk_xi)
+    np.testing.assert_allclose(nk.npairs, nk.npairs)
+    np.testing.assert_allclose(nk.xi, nk.xi)
+    np.testing.assert_allclose(nk.varxi, var_nk_xi, rtol=0.5*tol_factor)
+
+    # Check sample covariance estimate
+    cov_xi = nk.estimate_cov('xi','weight','sample')
+    print('NK sample variance:')
+    print('varxi = ',cov_xi.diagonal())
+    print('ratio = ',cov_xi.diagonal() / var_nk_xi)
+    np.testing.assert_allclose(cov_xi.diagonal(), var_nk_xi, rtol=0.6*tol_factor)
+
+    # KK
+    # Smaller scales to capture the more local kappa correlations.
+    kk = treecorr.KKCorrelation(bin_size=0.3, min_sep=6, max_sep=30., var_method='jackknife')
+    t0 = time.time()
+    kk.process(cat2p)
+    t1 = time.time()
+    print('Time for KK jackknife processing = ',t1-t0)
+    print('xi = ',kk.xi)
+    print('varxi = ',kk.varxi)
+    print('ratio = ',kk.varxi / var_kk_xi)
+    np.testing.assert_allclose(kk.npairs, kk.npairs)
+    np.testing.assert_allclose(kk.xi, kk.xi)
+    np.testing.assert_allclose(kk.varxi, var_kk_xi, rtol=0.4*tol_factor)
+
+    # Check sample covariance estimate
+    cov_xi = kk.estimate_cov('xi','weight','sample')
+    print('KK sample variance:')
+    print('varxi = ',cov_xi.diagonal())
+    print('ratio = ',cov_xi.diagonal() / var_kk_xi)
+    np.testing.assert_allclose(cov_xi.diagonal(), var_kk_xi, rtol=0.4*tol_factor)
+
+    # KG
+    # Same scales as we used for NG, which works fine with kappa as the "lens" too.
+    kg = treecorr.KGCorrelation(bin_size=0.3, min_sep=10, max_sep=50., var_method='jackknife')
+    t0 = time.time()
+    kg.process(cat2p, cat2p)
+    t1 = time.time()
+    print('Time for KG jackknife processing = ',t1-t0)
+    print('xi = ',kg.xi)
+    print('varxi = ',kg.varxi)
+    print('ratio = ',kg.varxi / var_kg_xi)
+    np.testing.assert_allclose(kg.npairs, kg.npairs)
+    np.testing.assert_allclose(kg.xi, kg.xi)
+    np.testing.assert_allclose(kg.varxi, var_kg_xi, rtol=0.3*tol_factor)
+
+    # Check sample covariance estimate
+    cov_xi = kg.estimate_cov('xi','weight','sample')
+    print('KG sample variance:')
+    print('varxi = ',cov_xi.diagonal())
+    print('ratio = ',cov_xi.diagonal() / var_kg_xi)
+    np.testing.assert_allclose(cov_xi.diagonal(), var_kg_xi, rtol=0.5*tol_factor)
+
 
 if __name__ == '__main__':
     test_cat_patches()
     test_gg_jk()
     test_ng_jk()
+    test_kappa_jk()

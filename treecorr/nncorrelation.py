@@ -34,17 +34,18 @@ class NNCorrelation(treecorr.BinnedCorr2):
     In addition, the following attributes are numpy arrays of length (nbins):
 
     Attributes:
-        logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
-        rnom:      The nominal center of the bin converted to regular distance.
-                   i.e. r = exp(logr).
-        meanr:     The (weighted) mean value of r for the pairs in each bin.
-                   If there are no pairs in a bin, then exp(logr) will be used instead.
-        meanlogr:  The mean value of log(r) for the pairs in each bin.
-                   If there are no pairs in a bin, then logr will be used instead.
-        weight:    The total weight in each bin.
-        npairs:    The number of pairs in each bin.
-        tot:       The total number of pairs processed, which is used to normalize
-                   the randoms if they have a different number of pairs.
+        logr:       The nominal center of the bin in log(r) (the natural logarithm of r).
+        rnom:       The nominal center of the bin converted to regular distance.
+                    i.e. r = exp(logr).
+        meanr:      The (weighted) mean value of r for the pairs in each bin.
+                    If there are no pairs in a bin, then exp(logr) will be used instead.
+        meanlogr:   The mean value of log(r) for the pairs in each bin.
+                    If there are no pairs in a bin, then logr will be used instead.
+        weight:     The total weight in each bin.
+        npairs:     The number of pairs going into each bin (including pairs where one or
+                    both objects have w=0).
+        tot:        The total number of pairs processed, which is used to normalize
+                    the randoms if they have a different number of pairs.
 
     If **sep_units** are given (either in the config dict or as a named kwarg) then the distances
     will all be in these units.  Note however, that if you separate out the steps of the

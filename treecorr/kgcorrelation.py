@@ -45,7 +45,8 @@ class KGCorrelation(treecorr.BinnedCorr2):
         xi_im:      The imaginary part of :math:`\\xi(r)`.
         varxi:      An estimate of the variance of :math:`\\xi`
         weight:     The total weight in each bin.
-        npairs:     The number of pairs going into each bin.
+        npairs:     The number of pairs going into each bin (including pairs where one or
+                    both objects have w=0).
         cov:        An estimate of the full covariance matrix.
 
     .. note::
@@ -343,7 +344,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         kgamX           The imag part of correlation function, <kappa gamma_x>
         sigma           The sqrt of the variance estimate of both of these
         weight          The total weight contributing to each bin
-        npairs          The number of pairs contributing ot each bin
+        npairs          The total number of pairs in each bin
         ==========      ========================================================
 
         If **sep_units** was given at construction, then the distances will all be in these units.

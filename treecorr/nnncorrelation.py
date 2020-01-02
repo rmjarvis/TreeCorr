@@ -28,43 +28,44 @@ class NNNCorrelation(treecorr.BinnedCorr3):
     Ojects of this class holds the following attributes:
 
     Attributes:
-        logr:      The nominal center of the bin in log(r) (the natural logarithm of r).
-        nbins:     The number of bins in logr where r = d2
-        bin_size:  The size of the bins in logr
-        min_sep:   The minimum separation being considered
-        max_sep:   The maximum separation being considered
-        nubins:    The number of bins in u where u = d3/d2
-        ubin_size: The size of the bins in u
-        min_u:     The minimum u being considered
-        max_u:     The maximum u being considered
-        nvbins:    The number of bins in v where v = +-(d1-d2)/d3
-        vbin_size: The size of the bins in v
-        min_v:     The minimum v being considered
-        max_v:     The maximum v being considered
-        logr1d:    The nominal centers of the nbins bins in log(r).
-        u1d:       The nominal centers of the nubins bins in u.
-        v1d:       The nominal centers of the nvbins bins in v.
+        logr:       The nominal center of the bin in log(r) (the natural logarithm of r).
+        nbins:      The number of bins in logr where r = d2
+        bin_size:   The size of the bins in logr
+        min_sep:    The minimum separation being considered
+        max_sep:    The maximum separation being considered
+        nubins:     The number of bins in u where u = d3/d2
+        ubin_size:  The size of the bins in u
+        min_u:      The minimum u being considered
+        max_u:      The maximum u being considered
+        nvbins:     The number of bins in v where v = +-(d1-d2)/d3
+        vbin_size:  The size of the bins in v
+        min_v:      The minimum v being considered
+        max_v:      The maximum v being considered
+        logr1d:     The nominal centers of the nbins bins in log(r).
+        u1d:        The nominal centers of the nubins bins in u.
+        v1d:        The nominal centers of the nvbins bins in v.
 
     In addition, the following attributes are numpy arrays whose shape is (nbins, nubins, nvbins):
 
     Attributes:
-        logr:      The nominal center of the bin in log(r).
-        rnom:      The nominal center of the bin converted to regular distance.
-                   i.e. r = exp(logr).
-        u:         The nominal center of the bin in u.
-        v:         The nominal center of the bin in v.
-        meand1:    The (weighted) mean value of d1 for the triangles in each bin.
-        meanlogd1: The mean value of log(d1) for the triangles in each bin.
-        meand2:    The (weighted) mean value of d2 (aka r) for the triangles in each bin.
-        meanlogd2: The mean value of log(d2) for the triangles in each bin.
-        meand2:    The (weighted) mean value of d3 for the triangles in each bin.
-        meanlogd2: The mean value of log(d3) for the triangles in each bin.
-        meanu:     The mean value of u for the triangles in each bin.
-        meanv:     The mean value of v for the triangles in each bin.
-        weight:    The total weight in each bin.
-        ntri:      The number of triangles in each bin.
-        tot:       The total number of triangles processed, which is used to normalize
-                   the randoms if they have a different number of triangles.
+        logr:       The nominal center of the bin in log(r).
+        rnom:       The nominal center of the bin converted to regular distance.
+                    i.e. r = exp(logr).
+        u:          The nominal center of the bin in u.
+        v:          The nominal center of the bin in v.
+        meand1:     The (weighted) mean value of d1 for the triangles in each bin.
+        meanlogd1:  The mean value of log(d1) for the triangles in each bin.
+        meand2:     The (weighted) mean value of d2 (aka r) for the triangles in each bin.
+        meanlogd2:  The mean value of log(d2) for the triangles in each bin.
+        meand2:     The (weighted) mean value of d3 for the triangles in each bin.
+        meanlogd2:  The mean value of log(d3) for the triangles in each bin.
+        meanu:      The mean value of u for the triangles in each bin.
+        meanv:      The mean value of v for the triangles in each bin.
+        weight:     The total weight in each bin.
+        ntri:       The number of triangles going into each bin (including those where one or
+                    more objects have w=0).
+        tot:        The total number of triangles processed, which is used to normalize
+                    the randoms if they have a different number of triangles.
 
     If **sep_units** are given (either in the config dict or as a named kwarg) then the distances
     will all be in these units.  Note however, that if you separate out the steps of the

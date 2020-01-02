@@ -48,7 +48,8 @@ class KKCorrelation(treecorr.BinnedCorr2):
         xi:         The correlation function, :math:`\\xi(r)`
         varxi:      An estimate of the variance of :math:`\\xi`
         weight:     The total weight in each bin.
-        npairs:     The number of pairs going into each bin.
+        npairs:     The number of pairs going into each bin (including pairs where one or
+                    both objects have w=0).
         cov:        An estimate of the full covariance matrix.
 
     .. note::
@@ -388,7 +389,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         xi              The estimate of the correlation function xi(r)
         sigma_xi        The sqrt of the variance estimate of xi(r)
         weight          The total weight contributing to each bin
-        npairs          The number of pairs contributing ot each bin
+        npairs          The total number of pairs in each bin
         ==========      ========================================================
 
         If **sep_units** was given at construction, then the distances will all be in these units.

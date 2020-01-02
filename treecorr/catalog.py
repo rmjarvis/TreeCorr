@@ -736,6 +736,7 @@ class Catalog(object):
             if self.w is None:
                 self.w = np.ones_like(col, dtype=float)
             self.w[index] = 0
+            col[index] = 0  # Don't leave the nans there.
 
     def read_ascii(self, file_name, num=0, is_rand=False):
         """Read the catalog from an ASCII file

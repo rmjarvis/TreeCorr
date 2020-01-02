@@ -179,19 +179,17 @@ Field<D,C>::Field(double* x, double* y, double* z, double* g1, double* g2, doubl
     if (z) {
         for(long i=0;i<nobj;++i) {
             WPosLeafInfo wp = get_wpos(wpos,w,i);
-            if (wp.wpos != 0.)
-                celldata.push_back(std::make_pair(
-                        CellDataHelper<D,C>::build(x[i],y[i],z[i],g1[i],g2[i],k[i],w[i]),
-                        wp));
+            celldata.push_back(std::make_pair(
+                    CellDataHelper<D,C>::build(x[i],y[i],z[i],g1[i],g2[i],k[i],w[i]),
+                    wp));
         }
     } else {
         Assert(C == Flat);
         for(long i=0;i<nobj;++i) {
             WPosLeafInfo wp = get_wpos(wpos,w,i);
-            if (wp.wpos != 0.)
-                celldata.push_back(std::make_pair(
-                        CellDataHelper<D,C>::build(x[i],y[i],0.,g1[i],g2[i],k[i],w[i]),
-                        wp));
+            celldata.push_back(std::make_pair(
+                    CellDataHelper<D,C>::build(x[i],y[i],0.,g1[i],g2[i],k[i],w[i]),
+                    wp));
         }
     }
     dbg<<"Built celldata with "<<celldata.size()<<" entries\n";
@@ -270,7 +268,7 @@ long CountNear(const Cell<D,C>* cell, const Position<C>& pos, double sep, double
 {
     double s = cell->getSize();
     const double dsq = (cell->getPos() - pos).normSq();
-    dbg<<"CountNear: "<<cell->getPos()<<"  "<<pos<<"  "<<dsq<<"  "<<s<<"  "<<sepsq<<std::endl;
+    xdbg<<"CountNear: "<<cell->getPos()<<"  "<<pos<<"  "<<dsq<<"  "<<s<<"  "<<sepsq<<std::endl;
 
     // If s == 0, then just check dsq
     if (s==0.) {
@@ -281,14 +279,14 @@ long CountNear(const Cell<D,C>* cell, const Position<C>& pos, double sep, double
         }
         else {
             Assert(sqrt(dsq) > sep);
-            dbg<<"s==0, d >= sep\n";
+            xdbg<<"s==0, d >= sep\n";
             return 0;
         }
     } else {
         // If d - s > sep, then no points are close enough.
         if (dsq > sepsq && dsq > SQR(sep+s)) {
             Assert(sqrt(dsq) - s > sep);
-            dbg<<"d - s > sep: "<<sqrt(dsq)-s<<" > "<<sep<<std::endl;
+            xdbg<<"d - s > sep: "<<sqrt(dsq)-s<<" > "<<sep<<std::endl;
             return 0;
         }
 
@@ -302,7 +300,7 @@ long CountNear(const Cell<D,C>* cell, const Position<C>& pos, double sep, double
         // Otherwise check the subcells.
         Assert(cell->getLeft());
         Assert(cell->getRight());
-        dbg<<"Recurse to subcells\n";
+        xdbg<<"Recurse to subcells\n";
         return (CountNear(cell->getLeft(), pos, sep, sepsq) +
                 CountNear(cell->getRight(), pos, sep, sepsq));
     }
@@ -398,19 +396,17 @@ SimpleField<D,C>::SimpleField(
     if (z) {
         for(long i=0;i<nobj;++i) {
             WPosLeafInfo wp = get_wpos(wpos,w,i);
-            if (wp.wpos != 0.)
-                celldata.push_back(std::make_pair(
-                        CellDataHelper<D,C>::build(x[i],y[i],z[i],g1[i],g2[i],k[i],w[i]),
-                        wp));
+            celldata.push_back(std::make_pair(
+                    CellDataHelper<D,C>::build(x[i],y[i],z[i],g1[i],g2[i],k[i],w[i]),
+                    wp));
         }
     } else {
         Assert(C == Flat);
         for(long i=0;i<nobj;++i) {
             WPosLeafInfo wp = get_wpos(wpos,w,i);
-            if (wp.wpos != 0.)
-                celldata.push_back(std::make_pair(
-                        CellDataHelper<D,C>::build(x[i],y[i],0.,g1[i],g2[i],k[i],w[i]),
-                        wp));
+            celldata.push_back(std::make_pair(
+                    CellDataHelper<D,C>::build(x[i],y[i],0.,g1[i],g2[i],k[i],w[i]),
+                    wp));
         }
     }
     dbg<<"Built celldata with "<<celldata.size()<<" entries\n";

@@ -30,7 +30,7 @@ def test_count_near():
     z = rng.random_sample(nobj)
     w = rng.random_sample(nobj)
 
-    # Some elements have w = 0.
+    # Some elements have w = 0.  These aren't special, but make sure it works with some w=0.
     use = rng.randint(30, size=nobj).astype(float)
     w[use == 0] = 0
 
@@ -45,7 +45,7 @@ def test_count_near():
     field = cat.getNField()
 
     t0 = time.time()
-    n1 = np.sum((x[w>0]-x0)**2 + (y[w>0]-y0)**2 < sep**2)
+    n1 = np.sum((x-x0)**2 + (y-y0)**2 < sep**2)
     t1 = time.time()
     n2 = field.count_near(x=x0, y=y0, sep=sep)
     t2 = time.time()
@@ -80,7 +80,7 @@ def test_count_near():
     field = cat.getNField()
 
     t0 = time.time()
-    n1 = np.sum((x[w>0]-x0)**2 + (y[w>0]-y0)**2 + (z[w>0]-z0)**2 < sep**2)
+    n1 = np.sum((x-x0)**2 + (y-y0)**2 + (z-z0)**2 < sep**2)
     t1 = time.time()
     n2 = field.count_near(x=x0, y=y0, z=z0, sep=sep)
     t2 = time.time()
@@ -134,7 +134,7 @@ def test_count_near():
     x0,y0,z0 = c.get_xyz()
     r0 = 2 * np.sin(sep/2)  # length of chord subtending 0.1 radians.
     t0 = time.time()
-    n1 = np.sum((x[w>0]-x0)**2 + (y[w>0]-y0)**2 + (z[w>0]-z0)**2 < r0**2)
+    n1 = np.sum((x-x0)**2 + (y-y0)**2 + (z-z0)**2 < r0**2)
     t1 = time.time()
     n2 = field.count_near(c, sep=sep*coord.radians)
     t2 = time.time()
@@ -202,7 +202,7 @@ def test_get_near():
     field = cat.getNField()
 
     t0 = time.time()
-    i1 = np.where(((x-x0)**2 + (y-y0)**2 < sep**2) & (w > 0))[0]
+    i1 = np.where(((x-x0)**2 + (y-y0)**2 < sep**2))[0]
     t1 = time.time()
     i2 = field.get_near(x=x0, y=y0, sep=sep)
     t2 = time.time()
@@ -247,7 +247,7 @@ def test_get_near():
     field = cat.getNField()
 
     t0 = time.time()
-    i1 = np.where(((x-x0)**2 + (y-y0)**2 + (z-z0)**2 < sep**2) & (w > 0))[0]
+    i1 = np.where(((x-x0)**2 + (y-y0)**2 + (z-z0)**2 < sep**2))[0]
     t1 = time.time()
     i2 = field.get_near(x=x0, y=y0, z=z0, sep=sep)
     t2 = time.time()
@@ -334,7 +334,7 @@ def test_get_near():
     x0,y0,z0 = c.get_xyz()
     r0 = 2 * np.sin(sep / 2)  # length of chord subtending sep radians.
     t0 = time.time()
-    i1 = np.where(((x-x0)**2 + (y-y0)**2 + (z-z0)**2 < r0**2) & (w > 0))[0]
+    i1 = np.where(((x-x0)**2 + (y-y0)**2 + (z-z0)**2 < r0**2))[0]
     t1 = time.time()
     i2 = field.get_near(c, sep=sep, sep_units='rad')
     t2 = time.time()

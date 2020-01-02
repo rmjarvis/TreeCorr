@@ -123,14 +123,13 @@ double Cell<D,C>::calculateInertia() const
 template <int D, int C>
 void BuildCellData(
     const std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, size_t start, size_t end,
-    Position<C>& pos, float& w, long& n)
+    Position<C>& pos, float& w)
 {
     Assert(start < end);
     double wp = vdata[start].second.wpos;
     pos = vdata[start].first->getPos();
     pos *= wp;
     w = vdata[start].first->getW();
-    n = (w != 0);
     double sumwp = wp;
     for(size_t i=start+1; i!=end; ++i) {
         const CellData<D,C>& data = *vdata[i].first;
@@ -138,7 +137,6 @@ void BuildCellData(
         pos += data.getPos() * wp;
         sumwp += wp;
         w += data.getW();
-        if (data.getW() != 0.) ++n;
     }
     if (sumwp != 0.) {
         pos /= sumwp;
@@ -156,20 +154,20 @@ void BuildCellData(
 template <int C>
 CellData<NData,C>::CellData(
     const std::vector<std::pair<CellData<NData,C>*,WPosLeafInfo> >& vdata, size_t start, size_t end) :
-    _w(0.), _n(0)
-{ BuildCellData(vdata,start,end,_pos,_w,_n); }
+    _w(0.), _n(end-start)
+{ BuildCellData(vdata,start,end,_pos,_w); }
 
 template <int C>
 CellData<KData,C>::CellData(
     const std::vector<std::pair<CellData<KData,C>*,WPosLeafInfo> >& vdata, size_t start, size_t end) :
-    _wk(0.), _w(0.), _n(0)
-{ BuildCellData(vdata,start,end,_pos,_w,_n); }
+    _wk(0.), _w(0.), _n(end-start)
+{ BuildCellData(vdata,start,end,_pos,_w); }
 
 template <int C>
 CellData<GData,C>::CellData(
     const std::vector<std::pair<CellData<GData,C>*,WPosLeafInfo> >& vdata, size_t start, size_t end) :
-    _wg(0.), _w(0.), _n(0)
-{ BuildCellData(vdata,start,end,_pos,_w,_n); }
+    _wg(0.), _w(0.), _n(end-start)
+{ BuildCellData(vdata,start,end,_pos,_w); }
 
 template <int C>
 void CellData<KData,C>::finishAverages(

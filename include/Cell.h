@@ -75,11 +75,11 @@ public:
     CellData() {}
 
     CellData(const Position<C>& pos, double w) :
-        _pos(pos), _w(w), _n(w != 0.) {}
+        _pos(pos), _w(w), _n(1) {}
 
     template <int C2>
     CellData(const Position<C2>& pos, double w) :
-        _pos(pos), _w(w), _n(w != 0.) {}
+        _pos(pos), _w(w), _n(1) {}
 
     CellData(const std::vector<std::pair<CellData<NData,C>*,WPosLeafInfo> >& vdata,
              size_t start, size_t end);
@@ -111,12 +111,12 @@ public:
     CellData() {}
 
     CellData(const Position<C>& pos, double k, double w) :
-        _pos(pos), _wk(w*k), _w(w), _n(w != 0.)
+        _pos(pos), _wk(w*k), _w(w), _n(1)
     {}
 
     template <int C2>
     CellData(const Position<C2>& pos, double k, double w) :
-        _pos(pos), _wk(w*k), _w(w), _n(w != 0.)
+        _pos(pos), _wk(w*k), _w(w), _n(1)
     {}
 
     CellData(const std::vector<std::pair<CellData<KData,C>*,WPosLeafInfo> >& vdata,
@@ -151,12 +151,12 @@ public:
     CellData() {}
 
     CellData(const Position<C>& pos, const std::complex<double>& g, double w) :
-        _pos(pos), _wg(w*g), _w(w), _n(w != 0.)
+        _pos(pos), _wg(w*g), _w(w), _n(1)
     {}
 
     template <int C2>
     CellData(const Position<C2>& pos, const std::complex<double>& g, double w) :
-        _pos(pos), _wg(w*g), _w(w), _n(w != 0.)
+        _pos(pos), _wg(w*g), _w(w), _n(1)
     {}
 
     CellData(const std::vector<std::pair<CellData<GData,C>*,WPosLeafInfo> >& vdata,

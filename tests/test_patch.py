@@ -391,7 +391,7 @@ def test_ng_jk():
         tol_factor = 1
     else:
         # If much smaller, then there can be no lenses in some patches, so only 1/4 the galaxies
-        # and use half the number of patches
+        # and use more than half the number of patches
         nside = 500
         nlens = 30000
         npatch = 32
@@ -459,8 +459,10 @@ def test_ng_jk():
     np.testing.assert_array_less(ng1.varxi, var_xi)
 
     # Now run with patches, but still with shot variance.  Should be basically the same answer.
-    cat2p = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch)
-    cat1p = treecorr.Catalog(x=x, y=y, w=w, patch=cat2p.patch)
+    # Note: This turns out to work significantly better if cat1 is used to make the patches.
+    # Otherwise the number of lenses per patch varies a lot, which affects the variance estimate.
+    cat1p = treecorr.Catalog(x=x, y=y, w=w, npatch=npatch)
+    cat2p = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, patch=cat1p.patch)
     print('tot w = ',np.sum(w))
     print('Patch\tNlens')
     for i in range(npatch):
@@ -492,7 +494,7 @@ def test_ng_jk():
     print('ratio = ',ng3.varxi / var_xi)
     np.testing.assert_allclose(ng3.weight, ng2.weight)
     np.testing.assert_allclose(ng3.xi, ng2.xi)
-    np.testing.assert_allclose(ng3.varxi, var_xi, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(ng3.varxi, var_xi, rtol=0.3*tol_factor)
 
     # Check using estimate_cov
     t0 = time.time()
@@ -526,7 +528,7 @@ def test_ng_jk():
     print('varxi = ',ng5.varxi)
     np.testing.assert_allclose(ng5.weight, ng1.weight, rtol=1.e-2*tol_factor)
     np.testing.assert_allclose(ng5.xi, ng1.xi, rtol=3.e-2*tol_factor)
-    np.testing.assert_allclose(ng5.varxi, var_xi, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(ng5.varxi, var_xi, rtol=0.4*tol_factor)
 
     # Check sample covariance estimate
     t0 = time.time()
@@ -535,15 +537,15 @@ def test_ng_jk():
     print('Time to calculate sample covariance = ',t1-t0)
     print('varxi = ',cov_xi.diagonal())
     print('ratio = ',cov_xi.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_xi.diagonal(), var_xi, rtol=0.7*tol_factor)
+    np.testing.assert_allclose(cov_xi.diagonal(), var_xi, rtol=0.6*tol_factor)
 
     cov_xi = ng4.estimate_cov('sample')
     print('varxi = ',cov_xi.diagonal())
-    np.testing.assert_allclose(cov_xi.diagonal(), var_xi, rtol=0.7*tol_factor)
+    np.testing.assert_allclose(cov_xi.diagonal(), var_xi, rtol=0.5*tol_factor)
 
     cov_xi = ng5.estimate_cov('sample')
     print('varxi = ',cov_xi.diagonal())
-    np.testing.assert_allclose(cov_xi.diagonal(), var_xi, rtol=0.7*tol_factor)
+    np.testing.assert_allclose(cov_xi.diagonal(), var_xi, rtol=0.5*tol_factor)
 
     # Check some invalid actions
     with assert_raises(ValueError):
@@ -646,8 +648,8 @@ def test_kappa_jk():
     w[k>=thresh] = 1.
     cat1 = treecorr.Catalog(x=x, y=y, k=k, w=w)
     cat2 = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k)
-    cat2p = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k, npatch=npatch)
-    cat1p = treecorr.Catalog(x=x, y=y, k=k, w=w, patch=cat2p.patch)
+    cat1p = treecorr.Catalog(x=x, y=y, k=k, w=w, npatch=npatch)
+    cat2p = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k, patch=cat1p.patch)
 
     # NK
     # This one is a bit touchy.  It only works well for a small range of scales.
@@ -686,7 +688,7 @@ def test_kappa_jk():
     print('ratio = ',kk.varxi / var_kk_xi)
     np.testing.assert_allclose(kk.weight, kk.weight)
     np.testing.assert_allclose(kk.xi, kk.xi)
-    np.testing.assert_allclose(kk.varxi, var_kk_xi, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(kk.varxi, var_kk_xi, rtol=0.3*tol_factor)
 
     # Check sample covariance estimate
     cov_xi = kk.estimate_cov('sample')

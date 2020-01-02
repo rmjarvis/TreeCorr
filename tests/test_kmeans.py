@@ -748,6 +748,40 @@ def test_init_kmpp():
     p_n = field.kmeans_assign_patches(cen_n)
     np.testing.assert_equal(sorted(p_n), list(range(n)))
 
+
+def test_zero_weight():
+    # Based on test_ra_dec, but where many galaxies have w=0.
+    # There used to be a bug where w=0 objects were not assigned to any patch.
+
+    ngal = 10000
+    s = 10.
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) ) + 100  # Put everything at large y, so smallish angle on sky
+    z = rng.normal(0,s, (ngal,) )
+    w = np.zeros(ngal)
+    w[np.random.choice(range(ngal), ngal//10, replace=False)] = 1.0
+    ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
+    print('minra = ',np.min(ra) * coord.radians / coord.degrees)
+    print('maxra = ',np.max(ra) * coord.radians / coord.degrees)
+    print('mindec = ',np.min(dec) * coord.radians / coord.degrees)
+    print('maxdec = ',np.max(dec) * coord.radians / coord.degrees)
+    cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w)
+    treecorr.set_omp_threads(1)
+
+    npatch = 16
+    field = cat.getNField()
+    t0 = time.time()
+    p = field.run_kmeans(npatch)
+    t1 = time.time()
+    print('patches = ',np.unique(p))
+    assert len(p) == cat.ntot
+    assert min(p) == 0
+    assert max(p) == npatch-1
+    print('w>0 patches = ',np.unique(p[w>0]))
+    print('w==0 patches = ',np.unique(p[w==0]))
+    assert set(p[w>0]) == set(p[w==0])
+
 if __name__ == '__main__':
     test_dessv()
     test_radec()
@@ -755,3 +789,4 @@ if __name__ == '__main__':
     test_2d()
     test_init_random()
     test_init_kmpp()
+    test_zero_weight()

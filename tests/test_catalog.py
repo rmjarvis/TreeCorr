@@ -487,7 +487,7 @@ def test_direct():
                   ra_units='hours', dec_units='degrees')
     assert_raises(ValueError, treecorr.Catalog, x=[], y=[])
     assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=np.zeros_like(x))
- 
+
 def test_var():
     nobj = 5000
     rng = np.random.RandomState(8675309)
@@ -662,18 +662,20 @@ def test_nan2():
     # This test is in response to issue #90.  Indeed it is largely the script that Joe helpfully
     # posted as a proof of the problem.
 
-    ra = np.random.uniform(0, 20, 10000)
-    dec = np.random.uniform(0, 20, 10000)
+    N = 10000
+    np.random.seed(1234)
+    ra = np.random.uniform(0, 20, N)
+    dec = np.random.uniform(0, 20, N)
 
-    g1 = np.random.uniform(-0.05, 0.05, 10000)
-    g2 = np.random.uniform(-0.05, 0.05, 10000)
-    k = np.random.uniform(-0.05, 0.05, 10000)
+    g1 = np.random.uniform(-0.05, 0.05, N)
+    g2 = np.random.uniform(-0.05, 0.05, N)
+    k = np.random.uniform(-0.05, 0.05, N)
 
     config = {
         'min_sep': 0.5,
-        'max_sep': 60.0,
+        'max_sep': 100.0,
         'nbins': 10,
-        'bin_slop':0.01,
+        'bin_slop':0.,
         'sep_units':'arcmin',
     }
 
@@ -691,11 +693,37 @@ def test_nan2():
 
     gg2 = treecorr.GGCorrelation(config)
     cat2 = treecorr.Catalog(ra=ra, dec=dec, g1=g1, g2=g2, k=k, ra_units='deg', dec_units='deg')
+
+    assert cat2.nobj == cat1.nobj  # same number of non-zero weight
+    assert cat2.ntot != cat1.ntot  # but not the same total
+
     gg2.process(cat2)
+    print('cat1.nobj, ntot = ',cat1.nobj,cat1.ntot)
+    print('cat2.nobj, ntot = ',cat2.nobj,cat2.ntot)
+    print('gg1.weight = ',gg1.weight)
+    print('gg2.weight = ',gg2.weight)
+    print('diff = ',gg1.weight-gg2.weight)
+    print('gg1.xip = ',gg1.xip)
+    print('gg2.xip = ',gg2.xip)
+    print('diff = ',gg1.xip-gg2.xip)
+    print('gg1.xim = ',gg1.xim)
+    print('gg2.xim = ',gg2.xim)
+    print('diff = ',gg1.xim-gg2.xim)
+    print('gg1.npairs = ',gg1.npairs)
+    print('gg2.npairs = ',gg2.npairs)
+
+    # First make sure that this particular random seed leads to different npairs for the
+    # range being measured.
+    assert np.any(gg1.npairs != gg2.npairs)
+
+    # But same weight
+    np.testing.assert_allclose(gg1.weight, gg2.weight)
 
     # Passes - NaNs ignored in mean calculation
-    np.testing.assert_allclose(gg1.xip, gg2.xip)
-    np.testing.assert_allclose(gg1.xim, gg2.xim)
+    # Not exactly identical, because cells are different in detail, so sums have different
+    # order of operations.
+    np.testing.assert_allclose(gg1.xip, gg2.xip, atol=1.e-8)
+    np.testing.assert_allclose(gg1.xim, gg2.xim, atol=1.e-8)
 
     # Used to fail from cat2.varg being NaN
     np.testing.assert_allclose(gg1.varxip, gg2.varxip)

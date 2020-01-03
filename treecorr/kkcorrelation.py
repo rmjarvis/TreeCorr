@@ -297,7 +297,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
 
-        self.var_num = vark1 * vark2
+        self._var_num = vark1 * vark2
         self.cov = self.estimate_cov(self.var_method)
         self.varxi.ravel()[:] = self.cov.diagonal()
 

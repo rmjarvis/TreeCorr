@@ -558,6 +558,194 @@ def test_ng_jk():
     with assert_raises(RuntimeError):
         ng7.estimate_cov('sample')
 
+def test_nn_jk():
+    # Test the variance estimate for NN correlation with jackknife error estimate.
+
+    if __name__ == '__main__':
+        nside = 1000
+        nlens = 50000
+        npatch = 64
+        rand_factor = 20
+        tol_factor = 1
+    else:
+        nside = 500
+        nlens = 20000
+        npatch = 32
+        rand_factor = 20
+        tol_factor = 3
+
+    # Make random catalog with 10x number of sources, randomly distributed.
+    np.random.seed(1234)
+    x = np.random.uniform(0,1000, rand_factor*nlens)
+    y = np.random.uniform(0,1000, rand_factor*nlens)
+    rand_cat = treecorr.Catalog(x=x, y=y)
+    rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    t0 = time.time()
+    rr.process(rand_cat)
+    t1 = time.time()
+    print('Time to process rand cat = ',t1-t0)
+
+    file_name = 'data/test_nn_jk_{}.npz'.format(nside)
+    print(file_name)
+    dx = 1000/nside
+    if not os.path.isfile(file_name):
+        nruns = 1000
+        all_xia = []
+        all_xib = []
+        for run in range(nruns):
+            x, y, _, _, k = generate_shear_field(nside)
+            x += np.random.uniform(-dx/2,dx/2,len(x))
+            y += np.random.uniform(-dx/2,dx/2,len(x))
+            thresh = np.partition(k.flatten(), -nlens)[-nlens]
+            w = np.zeros_like(k)
+            w[k>=thresh] = 1.
+            print(run,': ',np.mean(k),np.std(k),np.min(k),np.max(k),thresh)
+            cat = treecorr.Catalog(x=x, y=y, w=w)
+            nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+            nr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+            nn.process(cat)
+            nr.process(cat, rand_cat)
+            xia, varxi = nn.calculateXi(rr)
+            xib, varxi = nn.calculateXi(rr,nr)
+            all_xia.append(xia)
+            all_xib.append(xib)
+
+        mean_xia = np.mean(all_xia, axis=0)
+        mean_xib = np.mean(all_xib, axis=0)
+        var_xia = np.var(all_xia, axis=0)
+        var_xib = np.var(all_xib, axis=0)
+
+        np.savez(file_name,
+                 mean_xia=mean_xia, var_xia=var_xia,
+                 mean_xib=mean_xib, var_xib=var_xib,
+                )
+
+    data = np.load(file_name)
+    mean_xia = data['mean_xia']
+    var_xia = data['var_xia']
+    mean_xib = data['mean_xib']
+    var_xib = data['var_xib']
+
+    print('mean_xia = ',mean_xia)
+    print('var_xia = ',var_xia)
+    print('mean_xib = ',mean_xib)
+    print('var_xib = ',var_xib)
+
+    # First run with the normal variance estimate, which is too small.
+    x, y, _, _, k = generate_shear_field(nside)
+    x += np.random.uniform(-dx/2,dx/2,len(x))
+    y += np.random.uniform(-dx/2,dx/2,len(x))
+    thresh = np.partition(k.flatten(), -nlens)[-nlens]
+    w = np.zeros_like(k)
+    w[k>=thresh] = 1.
+    cat = treecorr.Catalog(x=x, y=y, w=w)
+    nn1 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    nr1 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    t0 = time.time()
+    nn1.process(cat)
+    t1 = time.time()
+    nr1.process(cat, rand_cat)
+    t2 = time.time()
+    xia1, varxia1 = nn1.calculateXi(rr)
+    t3 = time.time()
+    xib1, varxib1 = nn1.calculateXi(rr,nr1)
+    t4 = time.time()
+    print('Time for non-patch processing = ',t1-t0, t2-t1, t3-t2, t4-t3)
+
+    print('nn1.weight = ',nn1.weight)
+    print('nr1.weight = ',nr1.weight)
+    print('xia1 = ',xia1)
+    print('varxia1 = ',varxia1)
+    print('pullsq for xia = ',(xia1-mean_xia)**2/var_xia)
+    print('max pull for xia = ',np.sqrt(np.max((xia1-mean_xia)**2/var_xia)))
+    np.testing.assert_array_less((xia1 - mean_xia)**2/var_xia, 25) # within 5 sigma
+    print('xib1 = ',xib1)
+    print('varxib1 = ',varxib1)
+    print('pullsq for xi = ',(xib1-mean_xib)**2/var_xib)
+    print('max pull for xi = ',np.sqrt(np.max((xib1-mean_xib)**2/var_xib)))
+    np.testing.assert_array_less((xib1 - mean_xib)**2/var_xib, 25) # within 5 sigma
+
+    # The naive error estimates only includes shot noise, so it is an underestimate of
+    # the full variance, which includes sample variance.
+    np.testing.assert_array_less(varxia1, var_xia)
+    np.testing.assert_array_less(varxib1, var_xib)
+
+    # Now run with patches, but still with shot variance.  Should be basically the same answer.
+    catp = treecorr.Catalog(x=x, y=y, w=w, npatch=npatch)
+    print('tot w = ',np.sum(w))
+    print('Patch\tNlens')
+    for i in range(npatch):
+        print('%d\t%d'%(i,np.sum(w[catp.patch==i])))
+    nn2 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='shot')
+    nr2 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='shot')
+    t0 = time.time()
+    nn2.process(catp)
+    t1 = time.time()
+    nr2.process(catp, rand_cat)
+    t2 = time.time()
+    xia2, varxia2 = nn2.calculateXi(rr)
+    t3 = time.time()
+    xib2, varxib2 = nn2.calculateXi(rr,nr2)
+    t4 = time.time()
+    print('Time for shot processing = ',t1-t0, t2-t1, t3-t2, t4-t3)
+    print('nn2.weight = ',nn2.weight)
+    print('ratio = ',nn2.weight / nn1.weight)
+    print('nr2.weight = ',nr2.weight)
+    print('ratio = ',nr2.weight / nr1.weight)
+    print('xia = ',xia2)
+    print('varxia = ',varxia2)
+    print('xib = ',xib2)
+    print('varxib = ',varxib2)
+    np.testing.assert_allclose(nn2.weight, nn1.weight, rtol=1.e-2*tol_factor)
+    np.testing.assert_allclose(xia2, xia1, rtol=2.e-2*tol_factor)
+    np.testing.assert_allclose(varxia2, varxia1, rtol=2.e-2*tol_factor)
+    np.testing.assert_allclose(xib2, xib1, rtol=2.e-2*tol_factor)
+    np.testing.assert_allclose(varxib2, varxib1, rtol=2.e-2*tol_factor)
+
+    # Can get this as a (diagonal) covariance matrix using estimate_cov
+    np.testing.assert_allclose(nn2.estimate_cov('shot'), np.diag(varxib2))
+    np.testing.assert_allclose(nn1.estimate_cov('shot'), np.diag(varxib1))
+
+    # Now run with jackknife variance estimate.  Should be much better.
+    nn3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='jackknife')
+    nr3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='jackknife')
+    t0 = time.time()
+    nn3.process(catp)
+    t1 = time.time()
+    nr3.process(catp, rand_cat)
+    t2 = time.time()
+    xia3, varxia3 = nn3.calculateXi(rr)
+    t3 = time.time()
+    xib3, varxib3 = nn3.calculateXi(rr,nr3)
+    t4 = time.time()
+    print('Time for jackknife processing = ',t1-t0, t2-t1, t3-t2, t4-t3)
+    print('xia = ',xia3)
+    print('varxia = ',varxia3)
+    print('ratio = ',varxia3 / var_xia)
+    np.testing.assert_allclose(nn3.weight, nn2.weight)
+    np.testing.assert_allclose(xia3, xia2)
+    np.testing.assert_allclose(varxia3, var_xia, rtol=0.3*tol_factor)
+    print('xib = ',xib3)
+    print('varxib = ',varxib3)
+    print('ratio = ',varxib3 / var_xib)
+    np.testing.assert_allclose(xib3, xib2)
+    np.testing.assert_allclose(varxib3, var_xib, rtol=0.4*tol_factor)
+
+    # Check using estimate_cov
+    t0 = time.time()
+    cov3 = nn3.estimate_cov('jackknife')
+    t1 = time.time()
+    print('Time to calculate jackknife covariance = ',t1-t0)
+
+    # Check sample covariance estimate
+    t0 = time.time()
+    cov3b = nn3.estimate_cov('sample')
+    t1 = time.time()
+    print('Time to calculate sample covariance = ',t1-t0)
+    print('varxi = ',cov3b.diagonal())
+    print('ratio = ',cov3b.diagonal() / var_xib)
+    np.testing.assert_allclose(cov3b.diagonal(), var_xib, rtol=0.6*tol_factor)
+
 def test_kappa_jk():
     # Test NK, KK, and KG with jackknife.
     # There's not really anything new to test here.  So just checking the interface works.
@@ -708,3 +896,4 @@ if __name__ == '__main__':
     test_gg_jk()
     test_ng_jk()
     test_kappa_jk()
+    test_nn_jk()

@@ -444,6 +444,10 @@ class BinnedCorr2(object):
         self.var_method = treecorr.config.get(self.config,'var_method',str,'shot')
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
 
+    def _add_tot(self, rhs):
+        # No op for all but NNCorrelation, which needs to add the tot value
+        pass
+
     def _process_all_auto(self, cat1, metric, num_threads):
         if len(cat1) == 1:
             self.process_auto(cat1[0],metric,num_threads)
@@ -462,6 +466,9 @@ class BinnedCorr2(object):
                         if np.sum(temp.npairs) > 0:
                             self.results[(i,j)] = temp.copy()
                             self += temp
+                        else:
+                            # NNCorrelation needs to add the tot value
+                            self._add_tot(temp)
 
     def _process_all_cross(self, cat1, cat2, metric, num_threads):
         if treecorr.config.get(self.config,'pairwise',bool,False):
@@ -483,6 +490,9 @@ class BinnedCorr2(object):
                     if i==j or np.sum(temp.npairs) > 0:
                         self.results[(i,j)] = temp.copy()
                         self += temp
+                    else:
+                        # NNCorrelation needs to add the tot value
+                        self._add_tot(temp)
 
     def _getStatLen(self):
         # The length of the array that will be returned by _getStat.
@@ -757,7 +767,7 @@ def _cov_shot(corrs):
         v = np.zeros(c._getStatLen())
         w = c._getWeight()
         mask1 = w != 0
-        v[mask1] = c.var_num / w[mask1]
+        v[mask1] = c._var_num / w[mask1]
         vlist.append(v)
     return np.diag(np.concatenate(vlist))  # Return as a covariance matrix
 

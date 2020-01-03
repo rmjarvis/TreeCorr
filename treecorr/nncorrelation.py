@@ -84,6 +84,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.npairs = np.zeros_like(self.rnom, dtype=float)
         self.tot = 0.
         self._build_corr()
+        self._rr_weight = None  # Marker that calculateXi hasn't been called yet.
         self.logger.debug('Finished building NNCorr')
 
     def _build_corr(self):
@@ -279,7 +280,6 @@ class NNCorrelation(treecorr.BinnedCorr2):
         # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
         self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
-        self.var_num = None
 
     def clear(self):
         """Clear the data vectors
@@ -313,6 +313,11 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.tot += other.tot
         return self
 
+    def _add_tot(self, other):
+        # When storing results from a patch-based run, tot needs to be accumulated even if
+        # the total weight being accumulated comes out to be zero.
+        # This only applies to NNCorrelation.  For the other ones, this is a no op.
+        self.tot += other.tot
 
     def process(self, cat1, cat2=None, metric=None, num_threads=None):
         """Compute the correlation function.
@@ -348,6 +353,21 @@ class NNCorrelation(treecorr.BinnedCorr2):
         mean_np = np.mean(self.npairs)
         return 1 if mean_np == 0 else np.mean(self.weight)/mean_np
 
+    def _getStatLen(self):
+        # This doesn't need to be anything different than the default, but it is useful
+        # here to include the check that calculateXi has been run, since _getStat and _getWeight
+        # will need that to be the case.
+        if self._rr_weight is None:
+            raise RuntimeError("You need to call calculateXi before calling estimate_cov.")
+        else:
+            return self._nbins
+
+    def _getStat(self):
+        return self._stat
+
+    def _getWeight(self):
+        return self._rr_weight
+
     def calculateXi(self, rr, dr=None, rd=None):
         """Calculate the correlation function given another correlation function of random
         points using the same mask, and possibly cross correlations of the data and random.
@@ -362,6 +382,17 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         where DD is the data NN correlation function, which is the current object.
 
+        .. note::
+
+            The default method for estimating the variance is 'shot', which only includes the
+            shot noise propagated into the final correlation.  This does not include sample
+            variance, so it is always an underestimate of the actual variance.  To get better
+            estimates, you need to set ``var_method`` to something else and use patches in the
+            input catalog(s).  cf. `Covariance Estimates`.
+
+        After calling this method, you can use the `~BinnedCorr2.estimate_cov` method or use this
+        correlation object in the `~treecorr.estimate_multi_cov` function.
+
         Parameters:
             rr (NNCorrelation):     The auto-correlation of the random field (RR)
             dr (NNCorrelation):     The cross-correlation of the data with randoms (DR), if
@@ -374,7 +405,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
             Tuple containing
 
                 - xi = array of :math:`\\xi(r)`
-                - varxi = array of variance estimates of :math:`\\xi(r)`
+                - varxi = an estimate of the variance of :math:`\\xi(r)`
         """
         # Each random weight value needs to be rescaled by the ratio of total possible pairs.
         if rr.tot == 0:
@@ -389,16 +420,27 @@ class NNCorrelation(treecorr.BinnedCorr2):
         ddw = self._mean_weight()
         rrw = rr._mean_weight()
 
+        # Note: The use of varxi_factor for the shot noise varxi is semi-empirical.
+        #       It gives the increase in the variance over the case where RR >> DD.
+        #       I don't have a good derivation that this is the right factor to apply
+        #       when the random catalog is not >> larger than the data.
+        #       When I tried to derive this from first principles, I get the below formula,
+        #       but without the **2.  So I'm not sure why this factor needs to be squared.
+        #       It seems at least plausible that I missed something in the derivation that
+        #       leads to this getting squared, but I can't really justify it.
+        #       But it's also possible that this is wrong...
+        #       Anyway, it seems to give good results compared to the empirical variance.
+        #       cf. test_nn.py:test_varxi
         if dr is None:
             if rd is None:
-                xi = (self.weight - rr.weight * rrf)
+                xi = self.weight - rr.weight * rrf
                 varxi_factor = 1 + rrf*rrw/ddw
             else:
                 if rd.tot == 0:
                     raise ValueError("rd has tot=0.")
                 rdf = self.tot / rd.tot
                 rdw = rd._mean_weight()
-                xi = (self.weight - 2.*rd.weight * rdf + rr.weight * rrf)
+                xi = self.weight - 2.*rd.weight * rdf + rr.weight * rrf
                 varxi_factor = 1 + 2*rdf*rdw/ddw + rrf*rrw/ddw
         else:
             if dr.tot == 0:
@@ -406,14 +448,14 @@ class NNCorrelation(treecorr.BinnedCorr2):
             drf = self.tot / dr.tot
             drw = dr._mean_weight()
             if rd is None:
-                xi = (self.weight - 2.*dr.weight * drf + rr.weight * rrf)
+                xi = self.weight - 2.*dr.weight * drf + rr.weight * rrf
                 varxi_factor = 1 + 2*drf*drw/ddw + rrf*rrw/ddw
             else:
                 if rd.tot == 0:
                     raise ValueError("rd has tot=0.")
                 rdf = self.tot / rd.tot
                 rdw = rd._mean_weight()
-                xi = (self.weight - rd.weight * rdf - dr.weight * drf + rr.weight * rrf)
+                xi = self.weight - rd.weight * rdf - dr.weight * drf + rr.weight * rrf
                 varxi_factor = 1 + drf*drw/ddw + rdf*rdw/ddw + rrf*rrw/ddw
         if np.any(rr.weight == 0):
             self.logger.warning("Warning: Some bins for the randoms had no pairs.")
@@ -422,22 +464,52 @@ class NNCorrelation(treecorr.BinnedCorr2):
         xi[mask1] /= (rr.weight[mask1] * rrf)
         xi[mask2] = 0
 
-        if self.var_method == 'shot':
-            varxi = np.zeros_like(rr.weight)
-            # Note: The use of varxi_factor here is semi-empirical.
-            #       It gives the increase in the variance over the case where RR >> DD.
-            #       I don't have a good derivation that this is the right factor to apply
-            #       when the random catalog is not >> larger than the data.
-            #       When I tried to derive this from first principles, I get the below formula,
-            #       but without the **2.  So I'm not sure why this factor needs to be squared.
-            #       It seems at least plausible that I missed something in the derivation that
-            #       leads to this getting squared, but I can't really justify it.
-            #       But it's also possible that this is wrong...
-            #       Anyway, it seems to give good results compared to the empirical variance.
-            #       cf. test_nn.py:test_varxi
-            varxi[mask1] = ddw * varxi_factor**2 / (rr.weight[mask1] * rrf)
-        else:
-            varxi = None  # TODO
+        # Set up necessary info for estimate_cov
+        self._var_num = ddw * varxi_factor**2
+        self._rr_weight = rr.weight * rrf
+        diag_tot = np.sum([cij.tot for ij,cij in self.results.items() if ij[0] == ij[1]])
+        for ij, cij in self.results.items():
+            i,j = ij
+
+            # Now, we basically repeat the above bit for each patch to calculate _stat for each.
+            # However, the random catalog is a little tricky.  It is easier to put all the random
+            # bits (dr, rd, rr) into the i==j pairing.  This is where most of the correlation
+            # is happening, so it makes the most sense to make that part of the calculation
+            # as close to correct as possible all on its own.  Then the i!=j pairings just get
+            # the little bit of extra correlations from neighboring patches.
+            if i == j:
+                ifrac = cij.tot / diag_tot # The fraction of the weight in this diagonal pairing.
+                rrfi = rrf * ifrac
+                if dr is None and rd is None:
+                    cij._stat = cij.weight - rr.weight * rrfi
+                elif dr is None:
+                    rdi = [rd.results[(k,i)].weight for k,ii in rd.results.keys() if ii == i]
+                    if len(rdi) == 0:
+                        raise RuntimeError("RD must be run with the same patches as DD")
+                    rd_weight = np.sum(rdi, axis=0)
+                    cij._stat = cij.weight - 2.*rd_weight * rdf + rr.weight * rrfi
+                elif rd is None:
+                    dri = [dr.results[(i,k)].weight for ii,k in dr.results.keys() if ii == i]
+                    if len(dri) == 0:
+                        raise RuntimeError("DR must be run with the same patches as DD")
+                    dr_weight = np.sum(dri, axis=0)
+                    cij._stat = cij.weight - 2.*dr_weight * drf + rr.weight * rrfi
+                else:
+                    rdi = [rd.results[(k,i)].weight for k,ii in rd.results.keys() if ii == i]
+                    dri = [dr.results[(i,k)].weight for ii,k in dr.results.keys() if ii == i]
+                    if len(dri) == 0 or len(rdi) == 0:
+                        raise RuntimeError("DR and RD must be run with the same patches as DD")
+                    rd_weight = np.sum(rdi, axis=0)
+                    dr_weight = np.sum(dri, axis=0)
+                    cij._stat = cij.weight - rd_weight*rdf - dr_weight*drf + rr.weight*rrfi
+                cij._rr_weight = rr.weight * rrfi
+            else:
+                # For i != j, just use the dd term and no weight contibution.
+                cij._stat = cij.weight
+                cij._rr_weight = np.zeros(self.nbins)
+
+        cov = self.estimate_cov(self.var_method)
+        varxi = cov.diagonal()
 
         return xi, varxi
 

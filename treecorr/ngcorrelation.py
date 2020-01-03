@@ -261,7 +261,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
 
-        self.var_num = varg
+        self._var_num = varg
         self.cov = self.estimate_cov(self.var_method)
         self.varxi.ravel()[:] = self.cov.diagonal()
 

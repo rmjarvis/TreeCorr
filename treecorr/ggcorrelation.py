@@ -320,7 +320,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
 
-        self.var_num = 2. * varg1 * varg2
+        self._var_num = 2. * varg1 * varg2
         self.cov = self.estimate_cov(self.var_method)
         self.varxip.ravel()[:] = self.cov.diagonal()[:self._nbins]
         self.varxim.ravel()[:] = self.cov.diagonal()[self._nbins:]

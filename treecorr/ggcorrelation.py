@@ -283,28 +283,14 @@ class GGCorrelation(treecorr.BinnedCorr2):
         treecorr._lib.ProcessPair(self.corr, f1.data, f2.data, self.output_dots,
                                   f1._d, f2._d, self._coords, self._bintype, self._metric)
 
-    def _getStatLen(self, stat):
-        if stat is None:
-            return 2*self._nbins
-        elif stat == 'xip' or stat == 'xim':
-            return self._nbins
-        else:
-            # This is also the one place where we check that stat is valid.
-            raise ValueError("Invalid statistic " + stat)
+    def _getStatLen(self):
+        return 2*self._nbins
 
-    def _getStat(self, stat):
-        if stat is None:
-            return np.concatenate([self.xip.ravel(), self.xim.ravel()])
-        elif stat == 'xip':
-            return self.xip.ravel()
-        else:
-            return self.xim.ravel()
+    def _getStat(self):
+        return np.concatenate([self.xip.ravel(), self.xim.ravel()])
 
-    def _getWeight(self, stat):
-        if stat is None:
-            return np.concatenate([self.weight.ravel(), self.weight.ravel()])
-        else:  # invalid stat should already have been checked in _getStat
-            return self.weight.ravel()
+    def _getWeight(self):
+        return np.concatenate([self.weight.ravel(), self.weight.ravel()])
 
     def finalize(self, varg1, varg2):
         """Finalize the calculation of the correlation function.

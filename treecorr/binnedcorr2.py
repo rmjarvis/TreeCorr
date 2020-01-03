@@ -484,30 +484,23 @@ class BinnedCorr2(object):
                         self.results[(i,j)] = temp.copy()
                         self += temp
 
-    def _getStatLen(self, stat):
+    def _getStatLen(self):
         # The length of the array that will be returned by _getStat.
-        if stat is None or stat == 'xi':
-            return self._nbins
-        else:
-            # This is also the one place where we check that stat is valid.
-            raise ValueError("Invalid statistic " + stat)
+        return self._nbins
 
-    def _getStat(self, stat):
+    def _getStat(self):
         # The unnormalized statistic.
         # Usually, this is just the xi attribute.
         # Override in classes that need something different.
         # Note: this should only ever be called on things that haven't been finalized, but
         #       this fact is not checked anywhere.
-        if stat is None or stat == 'xi':
-            return self.xi.ravel()
-        else:
-            raise ValueError("Invalid statistic " + stat)
+        return self.xi.ravel()
 
-    def _getWeight(self, stat):
+    def _getWeight(self):
         # Again, override when this is not the right thing.
         return self.weight.ravel()
 
-    def estimate_cov(self, method, stat=None):
+    def estimate_cov(self, method):
         """Estimate the covariance matrix based on the data
 
         This function will calculate an estimate of the covariance matrix according to the
@@ -524,15 +517,12 @@ class BinnedCorr2(object):
             - 'sample' = An estimate based on the sample (co-)variance of a set of samples,
               taken as the patches of the input catalog.
 
-        The stat parameter is only relevant for classes that have more than one correlation
-        function.  E.g. `~GGCorrelation` has both xip and xim.  In this case, you can give the
-        name of the statistic as a string to indicate which one you want:
+        .. note::
 
-            >>> cov_xip = gg.estimate_cov('jackknife', 'xip')
-
-        The default ``stat=None`` will calculate the full covariance matrix for all statistics
-        in some canonical order.  See the class documentation of the ``cov`` attribute for what
-        this order is when there are multiple statistics.
+            For most classes, there is only a single statistic, so this calculates a covariance
+            matrix for that vector.  `~GGCorrelation` has two: ``xip`` and ``xim``, so in this
+            case the full data vector is ``xip`` followed by ``xim``, and this calculates the
+            covariance matrix for that full vector including both statistics.
 
         In all cases, the relevant processing needs to already have been completed and finalized.
         And for all methods other than 'shot', the processing should have involved an appropriate
@@ -541,13 +531,11 @@ class BinnedCorr2(object):
 
         Parameters:
             method (str):   Which method to use to estimate the covariance matrix.
-            stat (str):     The name of the statistic for which to calculate the covariance
-                            matrix (default: None, which mean do all statistics of this class).
 
         Returns:
             A numpy array with the estimated covariance matrix.
         """
-        return estimate_multi_cov([self], method, [stat])
+        return estimate_multi_cov([self], method)
 
     def _set_num_threads(self, num_threads):
         if num_threads is None:
@@ -719,7 +707,7 @@ class BinnedCorr2(object):
 
         return i1, i2, sep
 
-def estimate_multi_cov(corrs, method, stats=None):
+def estimate_multi_cov(corrs, method):
     """Estimate the covariance matrix of multiple statistics.
 
     This is like the method `~BinnedCorr2.estimate_cov`, except that it will acoommodate
@@ -736,27 +724,11 @@ def estimate_multi_cov(corrs, method, stats=None):
         - 'sample' = An estimate based on the sample (co-)variance of a set of samples,
           taken as the patches of the input catalog.
 
-    As with `~BinnedCorr2.estimate_cov`, the stats parameter lets you select one of several
-    statistics from some classes. E.g. `~GGCorrelation` has both xip and xim.  In this case,
-    ``stats`` would be a list of the same length as ``corrs`` listing the statistic to use
-    for each correlation object.  Use ``None`` for any that only have one statistic or to
-    use all the statistics of the class.
-
     For example, to find the combined covariance matrix for an NG tangential shear statistc,
     along with the GG xi+ and xi- from the same area, using jackknife covariance estimation,
     you would write::
 
         >>> cov = treecorr.estimate_multi_cov([ng,gg], 'jackknife')
-
-    This would be equivalent to either of the following::
-
-        >>> cov = treecorr.estimate_multi_cov([ng,gg], 'jackknife', [None, None])
-        >>> cov = treecorr.estimate_multi_cov([ng,gg,gg], 'jackknife', ['xi', 'xip', 'xim'])
-
-    If for some reason, you wanted to calculate a covariance matrix with xim before xip in the
-    data vector, you could write::
-
-        >>> cov = treecorr.estimate_multi_cov([gg,gg], 'jackknife', ['xim', 'xip'])
 
     In all cases, the relevant processing needs to already have been completed and finalized.
     And for all methods other than 'shot', the processing should have involved an appropriate
@@ -766,44 +738,40 @@ def estimate_multi_cov(corrs, method, stats=None):
     Parameters:
         corrs (list):   A list of `~BinnedCorr2` instances.
         method (str):   Which method to use to estimate the covariance matrix.
-        stats (list):   The names of the statistc to use for each correlation object.
-                        (default: None, which means use all statistics in each case)
 
     Returns:
         A numpy array with the estimated covariance matrix.
     """
-    if stats is None:
-        stats = [None] * len(corrs)
     if method == 'shot':
-        return _cov_shot(corrs, stats)
+        return _cov_shot(corrs)
     elif method == 'jackknife':
-        return _cov_jackknife(corrs, stats)
+        return _cov_jackknife(corrs)
     elif method == 'sample':
-        return _cov_sample(corrs, stats)
+        return _cov_sample(corrs)
     else:
         raise ValueError("Invalid method: %s"%method)
 
-def _cov_shot(corrs, stats):
+def _cov_shot(corrs):
     vlist = []
-    for c, stat in zip(corrs, stats):
-        v = np.zeros(c._getStatLen(stat))
-        w = c._getWeight(stat)
+    for c in corrs:
+        v = np.zeros(c._getStatLen())
+        w = c._getWeight()
         mask1 = w != 0
         v[mask1] = c.var_num / w[mask1]
         vlist.append(v)
     return np.diag(np.concatenate(vlist))  # Return as a covariance matrix
 
-def _make_cov_design_matrix(corr, stat, all_pairs):
-    vsize = corr._getStatLen(stat)
+def _make_cov_design_matrix(corr, all_pairs):
+    vsize = corr._getStatLen()
     npatch = len(all_pairs)
     vnum = np.zeros((npatch,vsize), dtype=float)
     vdenom = np.zeros((npatch,vsize), dtype=float)
     for i, row_pairs in enumerate(all_pairs):
-        vnum[i] = np.sum([corr.results[(j,k)]._getStat(stat) for j,k in row_pairs], axis=0)
-        vdenom[i] = np.sum([corr.results[(j,k)]._getWeight(stat) for j,k in row_pairs], axis=0)
+        vnum[i] = np.sum([corr.results[(j,k)]._getStat() for j,k in row_pairs], axis=0)
+        vdenom[i] = np.sum([corr.results[(j,k)]._getWeight() for j,k in row_pairs], axis=0)
     return vnum, vdenom
 
-def _cov_jackknife(corrs, stats):
+def _cov_jackknife(corrs):
     # Calculate the jackknife covariance for the given statistics
 
     # The basic jackknife formula is:
@@ -835,7 +803,7 @@ def _cov_jackknife(corrs, stats):
     else:
         raise RuntimeError("All catalogs must use the same number of patches or use 1 patch.")
 
-    vnum, vdenom = zip(*[_make_cov_design_matrix(c,s,vpairs) for c,s in zip(corrs,stats)])
+    vnum, vdenom = zip(*[_make_cov_design_matrix(c,vpairs) for c in corrs])
     v = np.hstack(vnum) / np.hstack(vdenom)
 
     vmean = np.mean(v, axis=0)
@@ -843,7 +811,7 @@ def _cov_jackknife(corrs, stats):
     C = (1.-1./npatch) * v.T.dot(v)
     return C
 
-def _cov_sample(corrs, stats):
+def _cov_sample(corrs):
     # Calculate the sample covariance.
 
     # This is kind of the converse of the jackknife.  We take each patch and use any
@@ -878,7 +846,7 @@ def _cov_sample(corrs, stats):
     else:
         raise RuntimeError("All catalogs must use the same number of patches or use 1 patch.")
 
-    vnum, vdenom = zip(*[_make_cov_design_matrix(c,s,vpairs) for c,s in zip(corrs,stats)])
+    vnum, vdenom = zip(*[_make_cov_design_matrix(c,vpairs) for c in corrs])
     vnum = np.hstack(vnum)
     vdenom = np.hstack(vdenom)
     v = vnum / vdenom

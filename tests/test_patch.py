@@ -286,12 +286,8 @@ def test_gg_jk():
     np.testing.assert_allclose(gg2.varxim, gg1.varxim, rtol=1.e-2*tol_factor)
 
     # Can get this as a (diagonal) covariance matrix using estimate_cov
-    np.testing.assert_allclose(gg2.estimate_cov('shot','xip'), np.diag(gg2.varxip))
-    np.testing.assert_allclose(gg2.estimate_cov('shot','xim'), np.diag(gg2.varxim))
-    # With no stat name, it does the full data vector [xip, xim]
-    n = gg1.nbins
-    np.testing.assert_allclose(gg1.estimate_cov('shot')[:n,:n], np.diag(gg1.varxip))
-    np.testing.assert_allclose(gg1.estimate_cov('shot')[n:,n:], np.diag(gg1.varxim))
+    np.testing.assert_allclose(gg2.estimate_cov('shot'),
+                               np.diag(np.concatenate([gg2.varxip, gg2.varxim])))
 
     # Now run with jackknife variance estimate.  Should be much better.
     gg3 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
@@ -315,69 +311,65 @@ def test_gg_jk():
     # Can get the covariance matrix using estimate_cov, which is also stored as cov attribute
     t0 = time.time()
     np.testing.assert_allclose(gg3.estimate_cov('jackknife'), gg3.cov)
-    np.testing.assert_allclose(gg3.estimate_cov('jackknife',None), gg3.cov)
-    np.testing.assert_allclose(gg3.estimate_cov('jackknife','xip'), gg3.cov[:n,:n])
-    np.testing.assert_allclose(gg3.estimate_cov('jackknife','xim'), gg3.cov[n:,n:])
     t1 = time.time()
     print('Time to calculate jackknife covariance = ',t1-t0)
 
     # Can also get the shot covariance matrix using estimate_cov
-    np.testing.assert_allclose(gg3.estimate_cov('shot','xip'), np.diag(gg2.varxip))
-    np.testing.assert_allclose(gg3.estimate_cov('shot','xim'), np.diag(gg2.varxim))
+    np.testing.assert_allclose(gg3.estimate_cov('shot'),
+                               np.diag(np.concatenate([gg2.varxip, gg2.varxim])))
 
     # And can even get the jackknife covariance from a run that used var_method='shot'
     np.testing.assert_allclose(gg2.estimate_cov('jackknife'), gg3.cov)
 
-    # Use estimate_multi_cov to get combined xip, xim covariance
+    # Check that cross-covariance between xip and xim is significant.
+    n = gg3.nbins
+    print('cross covariance = ',gg3.cov[:n,n:],np.sum(gg3.cov[n:,n:]**2))
+    # Make cross correlation matrix
+    c = gg3.cov[:n,n:] / (np.sqrt(gg3.varxip)[:,np.newaxis] * np.sqrt(gg3.varxim)[np.newaxis,:])
+    print('cross correlation = ',c)
+    assert np.sum(c**2) > 1.e-2    # Should be significantly non-zero
+    assert np.all(np.abs(c) < 1.)  # And all are between -1 and -1.
+
+    # If gg2 and gg3 were two different calculations, can use
+    # estimate_multi_cov to get combined covariance
     t0 = time.time()
-    cov_xipm = treecorr.estimate_multi_cov([gg2,gg2], 'jackknife', ['xip','xim'])
+    cov23 = treecorr.estimate_multi_cov([gg2,gg3], 'jackknife')
     t1 = time.time()
     print('Time for jackknife cross-covariance = ',t1-t0)
-    np.testing.assert_allclose(cov_xipm, gg3.cov)
-    print('cross covariance = ',cov_xipm[:n,n:],np.sum(cov_xipm[n:,n:]**2))
-    # Make cross correlation matrix
-    c = cov_xipm[:n,n:]
-    c /= np.sqrt(gg3.varxip)[:,np.newaxis]
-    c /= np.sqrt(gg3.varxim)[np.newaxis,:]
-    print('cross correlation = ',c)
-    assert np.sum(c**2) > 1.e-2  # Should be significantly non-zero
-    assert np.all(np.abs(c) < 1.)  # And all are between -1 and -1.
+    np.testing.assert_allclose(cov23[:2*n,:2*n], gg3.cov)
+    np.testing.assert_allclose(cov23[2*n:,2*n:], gg3.cov)
+    # In this case, they aren't different, so they are perfectly correlated.
+    np.testing.assert_allclose(cov23[:2*n,2*n:], gg3.cov)
+    np.testing.assert_allclose(cov23[2*n:,:2*n], gg3.cov)
 
     # Check sample covariance estimate
     t0 = time.time()
-    cov_xip = gg3.estimate_cov('sample','xip')
-    cov_xim = gg3.estimate_cov('sample','xim')
+    cov_sample = gg3.estimate_cov('sample')
     t1 = time.time()
     print('Time to calculate sample covariance = ',t1-t0)
-    print('varxip = ',cov_xip.diagonal())
-    print('ratio = ',cov_xip.diagonal() / var_xip)
-    print('varxim = ',cov_xim.diagonal())
-    print('ratio = ',cov_xim.diagonal() / var_xim)
+    print('varxip = ',cov_sample.diagonal()[:n])
+    print('ratio = ',cov_sample.diagonal()[:n] / var_xip)
+    print('varxim = ',cov_sample.diagonal()[n:])
+    print('ratio = ',cov_sample.diagonal()[n:] / var_xim)
     # It's not too bad ast small scales, but at larger scales the variance in the number of pairs
     # among the different samples gets bigger (since some are near the edge, and others not).
     # So this is only good to a little worse than a factor of 2.
-    np.testing.assert_allclose(cov_xip.diagonal(), var_xip, rtol=0.6*tol_factor)
-    np.testing.assert_allclose(cov_xim.diagonal(), var_xim, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(cov_sample.diagonal()[:n], var_xip, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(cov_sample.diagonal()[n:], var_xim, rtol=0.6*tol_factor)
 
     # Check some invalid actions
     with assert_raises(ValueError):
-        gg2.estimate_cov('invalid','xip')
-    with assert_raises(ValueError):
-        gg2.estimate_cov('shot','invalid')
-    with assert_raises(ValueError):
-        gg2.estimate_cov('jackknife','invalid')
-    with assert_raises(ValueError):
-        gg1.estimate_cov('jackknife','xip')
+        gg2.estimate_cov('invalid')
     with assert_raises(ValueError):
         gg1.estimate_cov('jackknife')
     with assert_raises(ValueError):
-        treecorr.estimate_multi_cov([gg2, gg1],'jackknife', ['xip','xim'])
+        treecorr.estimate_multi_cov([gg2, gg1],'jackknife')
     with assert_raises(ValueError):
-        treecorr.estimate_multi_cov([gg1, gg2],'jackknife', ['xip','xim'])
+        treecorr.estimate_multi_cov([gg1, gg2],'jackknife')
     with assert_raises(ValueError):
-        treecorr.estimate_multi_cov([gg1, gg2],'sample', ['xip','xim'])
+        treecorr.estimate_multi_cov([gg1, gg2],'sample')
     with assert_raises(ValueError):
-        treecorr.estimate_multi_cov([gg2, gg1],'sample', ['xip','xim'])
+        treecorr.estimate_multi_cov([gg2, gg1],'sample')
 
 
 def test_ng_jk():
@@ -501,8 +493,6 @@ def test_ng_jk():
     np.testing.assert_allclose(ng3.estimate_cov('jackknife'), ng3.cov)
     t1 = time.time()
     print('Time to calculate jackknife covariance = ',t1-t0)
-    np.testing.assert_allclose(ng3.estimate_cov('shot','xi'), np.diag(ng2.varxi))
-    np.testing.assert_allclose(ng2.estimate_cov('jackknife','xi'), ng3.cov)
 
     # Check only using patches for one of the two catalogs.
     # Not as good as using patches for both, but not much worse.
@@ -550,12 +540,6 @@ def test_ng_jk():
     # Check some invalid actions
     with assert_raises(ValueError):
         ng2.estimate_cov('invalid')
-    with assert_raises(ValueError):
-        ng2.estimate_cov('invalid','xi')
-    with assert_raises(ValueError):
-        ng2.estimate_cov('shot','invalid')
-    with assert_raises(ValueError):
-        ng2.estimate_cov('jackknife','invalid')
     with assert_raises(ValueError):
         ng1.estimate_cov('jackknife')
 

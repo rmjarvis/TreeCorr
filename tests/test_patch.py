@@ -699,7 +699,7 @@ def test_nn_jk():
     np.testing.assert_allclose(nn2.weight, nn1.weight, rtol=1.e-2*tol_factor)
     np.testing.assert_allclose(xia2, xia1, rtol=2.e-2*tol_factor)
     np.testing.assert_allclose(varxia2, varxia1, rtol=2.e-2*tol_factor)
-    np.testing.assert_allclose(xib2, xib1, rtol=2.e-2*tol_factor)
+    np.testing.assert_allclose(xib2, xib1, rtol=3.e-2*tol_factor)
     np.testing.assert_allclose(varxib2, varxib1, rtol=2.e-2*tol_factor)
 
     # Can get this as a (diagonal) covariance matrix using estimate_cov
@@ -724,7 +724,7 @@ def test_nn_jk():
     print('ratio = ',varxia3 / var_xia)
     np.testing.assert_allclose(nn3.weight, nn2.weight)
     np.testing.assert_allclose(xia3, xia2)
-    np.testing.assert_allclose(varxia3, var_xia, rtol=0.3*tol_factor)
+    np.testing.assert_allclose(varxia3, var_xia, rtol=0.4*tol_factor)
     print('xib = ',xib3)
     print('varxib = ',varxib3)
     print('ratio = ',varxib3 / var_xib)
@@ -744,7 +744,48 @@ def test_nn_jk():
     print('Time to calculate sample covariance = ',t1-t0)
     print('varxi = ',cov3b.diagonal())
     print('ratio = ',cov3b.diagonal() / var_xib)
-    np.testing.assert_allclose(cov3b.diagonal(), var_xib, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(cov3b.diagonal(), var_xib, rtol=0.7*tol_factor)
+
+    # Check NN cross-correlation and other combinations of dr, rd.
+    rn3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='jackknife')
+    t0 = time.time()
+    nn3.process(catp, catp)
+    t1 = time.time()
+    print('Time for cross processing = ',t1-t0)
+    np.testing.assert_allclose(nn3.weight, 2*nn2.weight)
+    rn3.process(rand_cat, catp)
+    xic3, varxic3 = nn3.calculateXi(rr,rd=rn3)
+    print('xic = ',xic3)
+    print('varxic = ',varxic3)
+    print('ratio = ',varxic3 / var_xib)
+    np.testing.assert_allclose(xic3, xib3)
+    np.testing.assert_allclose(varxic3, var_xib, rtol=0.4*tol_factor)
+    xid3, varxid3 = nn3.calculateXi(rr,dr=nr3,rd=rn3)
+    print('xid = ',xid3)
+    print('varxid = ',varxid3)
+    print('ratio = ',varxid3 / var_xib)
+    np.testing.assert_allclose(xid3, xib2)
+    np.testing.assert_allclose(varxid3, var_xib, rtol=0.4*tol_factor)
+
+    # Check some invalid parameters
+    with assert_raises(RuntimeError):
+        nn3.calculateXi(rr,dr=nr1)
+    with assert_raises(RuntimeError):
+        nn3.calculateXi(rr,dr=rn3)
+    with assert_raises(RuntimeError):
+        nn3.calculateXi(rr,rd=nr3)
+    with assert_raises(RuntimeError):
+        nn3.calculateXi(rr,dr=nr3,rd=nr3)
+    with assert_raises(RuntimeError):
+        nn3.calculateXi(rr,dr=rn3,rd=rn3)
+    with assert_raises(ValueError):
+        nn1.estimate_cov('jackknife')
+    with assert_raises(ValueError):
+        nn1.estimate_cov('sample')
+    nn4 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    nn4.process(catp)
+    with assert_raises(RuntimeError):
+        nn4.estimate_cov('jackknife')
 
 def test_kappa_jk():
     # Test NK, KK, and KG with jackknife.
@@ -895,5 +936,5 @@ if __name__ == '__main__':
     test_cat_patches()
     test_gg_jk()
     test_ng_jk()
-    test_kappa_jk()
     test_nn_jk()
+    test_kappa_jk()

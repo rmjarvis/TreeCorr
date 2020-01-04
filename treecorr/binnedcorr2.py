@@ -182,7 +182,10 @@ class BinnedCorr2(object):
                             (default: period)
 
         var_method (str):   Which method to use for estimating the variance. Options are:
-                            'shot', 'jackknife', 'sample'.  (default: 'shot')
+                            'shot', 'jackknife', 'sample', 'bootstrap', 'bootstrap2'.
+                            (default: 'shot')
+        num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
+                            'bootstrap2' var_methods.  (default: 500)
 
         num_threads (int):  How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
@@ -246,8 +249,11 @@ class BinnedCorr2(object):
         'zperiod': (float, False, None, None,
                 'The period to use for the z direction for the Periodic metric'),
 
-        'var_method': (str, False, 'shot', ['shot', 'jackknife', 'sample'],
+        'var_method': (str, False, 'shot',
+                ['shot', 'jackknife', 'sample', 'bootstrap', 'bootstrap2'],
                 'The method to use for estimating the variance'),
+        'num_bootstrap': (int, False, 500, None,
+                'How many bootstrap samples to use for the var_method=bootstrap'),
     }
 
     def __init__(self, config=None, logger=None, **kwargs):
@@ -442,6 +448,7 @@ class BinnedCorr2(object):
         self.zperiod = treecorr.config.get(self.config,'zperiod',float,period)
 
         self.var_method = treecorr.config.get(self.config,'var_method',str,'shot')
+        self.num_bootstrap = treecorr.config.get(self.config,'num_bootstrap',int,500)
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
 
     def _add_tot(self, rhs):
@@ -526,6 +533,15 @@ class BinnedCorr2(object):
               in the measurement when excluding one patch at a time.
             - 'sample' = An estimate based on the sample (co-)variance of a set of samples,
               taken as the patches of the input catalog.
+            - 'bootstrap' = An estimate based on a bootstrap resampling of the patches.
+              cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/
+            - 'bootstrap2' = A different bootstrap resampling method. It selects patches at
+              random with replacement and then generates the statistic using all the
+              auto-correlations at their selected repetition plus all the cross terms that
+              aren't actuall auto terms.
+
+        Both 'bootstrap' and 'bootstrap2' use the num_bootstrap parameter, wich can be set on
+        construction.
 
         .. note::
 
@@ -733,6 +749,15 @@ def estimate_multi_cov(corrs, method):
           in the measurement when excluding one patch at a time.
         - 'sample' = An estimate based on the sample (co-)variance of a set of samples,
           taken as the patches of the input catalog.
+        - 'bootstrap' = An estimate based on a bootstrap resampling of the patches.
+          cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/
+        - 'bootstrap2' = A different bootstrap resampling method. It selects patches at
+          random with replacement and then generates the statistic using all the
+          auto-correlations at their selected repetition plus all the cross terms that
+          aren't actuall auto terms.
+
+    Both 'bootstrap' and 'bootstrap2' use the num_bootstrap parameter, wich can be set on
+    construction.
 
     For example, to find the combined covariance matrix for an NG tangential shear statistc,
     along with the GG xi+ and xi- from the same area, using jackknife covariance estimation,
@@ -756,6 +781,10 @@ def estimate_multi_cov(corrs, method):
         return _cov_shot(corrs)
     elif method == 'jackknife':
         return _cov_jackknife(corrs)
+    elif method == 'bootstrap':
+        return _cov_bootstrap(corrs)
+    elif method == 'bootstrap2':
+        return _cov_bootstrap2(corrs)
     elif method == 'sample':
         return _cov_sample(corrs)
     else:
@@ -846,7 +875,12 @@ def _cov_sample(corrs):
 
     if npatch1 == npatch2:
         npatch = npatch1
-        vpairs = [ [(j,k) for j,k in pairs if j==i or k==i] for i in patch_nums1 ]
+        # Note: It's not obvious to me a priori which of these should be the right choice.
+        #       Empirically, they both underestimate the variance, but the second one
+        #       does so less on the tests I have in test_patch.py.  So that's the one I'm
+        #       using.
+        #vpairs = [ [(j,k) for j,k in pairs if j==i or k==i] for i in patch_nums1 ]
+        vpairs = [ [(j,k) for j,k in pairs if j==i] for i in patch_nums1 ]
     elif npatch2 == 1:
         npatch = npatch1
         vpairs = [ [(i,0)] for i in patch_nums1 ]
@@ -867,3 +901,115 @@ def _cov_sample(corrs):
     v -= vmean
     C = 1./(npatch-1) * (w * v.T).dot(v)
     return C
+
+def _cov_bootstrap(corrs):
+    # Calculate the bootstrap covariance
+
+    # This is based on the article A Valid and Fast Spatial Bootstrap for Correlation Functions
+    # by Ji Meng Loh, 2008, cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/abstract
+
+    # The structure is similar to the sample covariance.  We calculate the total correlation
+    # for each patch separately.  These are the "marks" in Loh.  Then we do a bootstrap
+    # sampling of these patches (random with replacement) and calculate the covariance from these
+    # resamplings.
+
+    # C = 1/(nboot) Sum_i (v_i - v_mean) (v_i - v_mean)^T
+
+    pairs = list(corrs[0].results.keys())
+    if len(pairs) == 0:
+        raise ValueError("Sample covariance requires processing using patches.")
+    for c in corrs[1:]:
+        if set(pairs) != set(c.results.keys()):
+            raise ValueError("All correlation functions must have used the same patchs")
+    patch_nums1 = set([p[0] for p in pairs])
+    patch_nums2 = set([p[1] for p in pairs])
+    npatch1 = len(patch_nums1)
+    npatch2 = len(patch_nums2)
+    assert patch_nums1 == set(range(npatch1))
+    assert patch_nums2 == set(range(npatch2))
+
+    if npatch1 == npatch2:
+        npatch = npatch1
+        #vpairs = [ [(j,k) for j,k in pairs if j==i or k==i] for i in patch_nums1 ]
+        vpairs = [ [(j,k) for j,k in pairs if j==i] for i in patch_nums1 ]
+    elif npatch2 == 1:
+        npatch = npatch1
+        vpairs = [ [(i,0)] for i in patch_nums1 ]
+    elif npatch1 == 1:
+        npatch = npatch2
+        vpairs = [ [(0,i)] for i in patch_nums2 ]
+    else:
+        raise RuntimeError("All catalogs must use the same number of patches or use 1 patch.")
+
+    vnum, vdenom = zip(*[_make_cov_design_matrix(c,vpairs) for c in corrs])
+    vnum = np.hstack(vnum)
+    vdenom = np.hstack(vdenom)
+
+    # The above repeats the sample variance code exactly.  At this point we start to do something
+    # different.  Now we resample these values and compute the total correlation result from
+    # each resampling.
+    nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
+    v = np.empty((nboot, vnum.shape[1]))
+    for k in range(nboot):
+        indx = np.random.randint(npatch, size=npatch)
+        v[k] = np.sum(vnum[indx],axis=0) / np.sum(vdenom[indx],axis=0)
+    vmean = np.mean(v, axis=0)
+    v -= vmean
+    C = 1./(nboot-1) * v.T.dot(v)
+    return C
+
+def _cov_bootstrap2(corrs):
+    # Calculate the 2-patch bootstrap covariance estimate.
+
+    # This is a different version of the bootstrap idea.  It selects patches at random with
+    # replacement, and then generates the statistic using all the auto-correlations at their
+    # selected repetition plus all the cross terms, which aren't actuall auto terms.
+    # It seems to do a slightly better job than the regular bootstrap, but it's really slow.
+    # The slow step is marked below.  It's a python list comprehension, so if it's a bottleneck,
+    # we could try to implement it in C to speed it up.
+
+    pairs = list(corrs[0].results.keys())
+    if len(pairs) == 0:
+        raise ValueError("Sample covariance requires processing using patches.")
+    for c in corrs[1:]:
+        if set(pairs) != set(c.results.keys()):
+            raise ValueError("All correlation functions must have used the same patchs")
+    patch_nums1 = set([p[0] for p in pairs])
+    patch_nums2 = set([p[1] for p in pairs])
+    npatch1 = len(patch_nums1)
+    npatch2 = len(patch_nums2)
+    assert patch_nums1 == set(range(npatch1))
+    assert patch_nums2 == set(range(npatch2))
+
+    if npatch1 != npatch2 and npatch1 != 1 and npatch2 != 1:
+        raise RuntimeError("All catalogs must use the same number of patches or use 1 patch.")
+    npatch = max(npatch1,npatch2)
+
+    nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
+    vpairs = []
+    for k in range(nboot):
+        indx = np.random.randint(npatch, size=npatch)
+
+        if npatch1 == npatch2:
+            # Include all represented auto-correlations once, repeating as appropriate
+            vpairs1 = [ (i,i) for i in indx ]
+
+            # And all pairs if that aren't really auto-correlations
+            # This is the really slow line.  It takes around 0.2 seconds for 64 patches, so with
+            # the default 500 bootstrap resamplings, that comes to 100 seconds.
+            temp = [ (i,j) for i in indx for j in indx if i != j and (i,j) in pairs ]
+            vpairs1.extend(temp)
+        elif npatch1 == 1:
+            vpairs1 = [ (0,i) for i in indx ]
+        else:
+            vpairs1 = [ (i,0) for i in indx ]
+
+        vpairs.append(vpairs1)
+
+    vnum, vdenom = zip(*[_make_cov_design_matrix(c,vpairs) for c in corrs])
+    v = np.hstack(vnum) / np.hstack(vdenom)
+    vmean = np.mean(v, axis=0)
+    v -= vmean
+    C = 1./(nboot-1) * v.T.dot(v)
+    return C
+

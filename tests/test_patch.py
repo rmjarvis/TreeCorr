@@ -177,7 +177,7 @@ def generate_shear_field(nside):
 
 
 def test_gg_jk():
-    # Test the variance estimate for GG correlation with jackknife error estimate.
+    # Test the variance estimate for GG correlation with jackknife (and other) error estimate.
 
     if __name__ == '__main__':
         # 1000 x 1000, so 10^6 points.  With jackknifing, that gives 10^4 per region.
@@ -357,11 +357,46 @@ def test_gg_jk():
     np.testing.assert_allclose(cov_sample.diagonal()[:n], var_xip, rtol=0.6*tol_factor)
     np.testing.assert_allclose(cov_sample.diagonal()[n:], var_xim, rtol=0.6*tol_factor)
 
+    # Check bootstrap covariance estimate
+    t0 = time.time()
+    cov_boot = gg3.estimate_cov('bootstrap')
+    t1 = time.time()
+    print('Time to calculate bootstrap covariance = ',t1-t0)
+    print('varxip = ',cov_boot.diagonal()[:n])
+    print('ratio = ',cov_boot.diagonal()[:n] / var_xip)
+    print('varxim = ',cov_boot.diagonal()[n:])
+    print('ratio = ',cov_boot.diagonal()[n:] / var_xim)
+    # Not really much better than sample.
+    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.6*tol_factor)
+
+    # Check bootstrap2 covariance estimate.
+    # Note: this one is really slow.  So trim down the number of bootstraps a lot for the
+    # nosetest run.
+    if __name__ != '__main__':
+        gg3.num_bootstrap = 50
+    t0 = time.time()
+    cov_boot = gg3.estimate_cov('bootstrap2')
+    t1 = time.time()
+    print('Time to calculate bootstrap2 covariance = ',t1-t0)
+    print('varxip = ',cov_boot.diagonal()[:n])
+    print('ratio = ',cov_boot.diagonal()[:n] / var_xip)
+    print('varxim = ',cov_boot.diagonal()[n:])
+    print('ratio = ',cov_boot.diagonal()[n:] / var_xim)
+    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
+
     # Check some invalid actions
     with assert_raises(ValueError):
         gg2.estimate_cov('invalid')
     with assert_raises(ValueError):
         gg1.estimate_cov('jackknife')
+    with assert_raises(ValueError):
+        gg1.estimate_cov('sample')
+    with assert_raises(ValueError):
+        gg1.estimate_cov('bootstrap')
+    with assert_raises(ValueError):
+        gg1.estimate_cov('bootstrap2')
     with assert_raises(ValueError):
         treecorr.estimate_multi_cov([gg2, gg1],'jackknife')
     with assert_raises(ValueError):
@@ -370,6 +405,14 @@ def test_gg_jk():
         treecorr.estimate_multi_cov([gg1, gg2],'sample')
     with assert_raises(ValueError):
         treecorr.estimate_multi_cov([gg2, gg1],'sample')
+    with assert_raises(ValueError):
+        treecorr.estimate_multi_cov([gg1, gg2],'bootstrap')
+    with assert_raises(ValueError):
+        treecorr.estimate_multi_cov([gg2, gg1],'bootstrap')
+    with assert_raises(ValueError):
+        treecorr.estimate_multi_cov([gg1, gg2],'bootstrap2')
+    with assert_raises(ValueError):
+        treecorr.estimate_multi_cov([gg2, gg1],'bootstrap2')
 
 
 def test_ng_jk():
@@ -522,26 +565,72 @@ def test_ng_jk():
 
     # Check sample covariance estimate
     t0 = time.time()
-    cov_xi = ng3.estimate_cov('sample')
+    cov_sample = ng3.estimate_cov('sample')
     t1 = time.time()
     print('Time to calculate sample covariance = ',t1-t0)
-    print('varxi = ',cov_xi.diagonal())
-    print('ratio = ',cov_xi.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_xi.diagonal(), var_xi, rtol=0.6*tol_factor)
+    print('varxi = ',cov_sample.diagonal())
+    print('ratio = ',cov_sample.diagonal() / var_xi)
+    np.testing.assert_allclose(cov_sample.diagonal(), var_xi, rtol=0.5*tol_factor)
 
-    cov_xi = ng4.estimate_cov('sample')
-    print('varxi = ',cov_xi.diagonal())
-    np.testing.assert_allclose(cov_xi.diagonal(), var_xi, rtol=0.5*tol_factor)
+    cov_sample = ng4.estimate_cov('sample')
+    print('varxi = ',cov_sample.diagonal())
+    print('ratio = ',cov_sample.diagonal() / var_xi)
+    np.testing.assert_allclose(cov_sample.diagonal(), var_xi, rtol=0.5*tol_factor)
 
-    cov_xi = ng5.estimate_cov('sample')
-    print('varxi = ',cov_xi.diagonal())
-    np.testing.assert_allclose(cov_xi.diagonal(), var_xi, rtol=0.5*tol_factor)
+    cov_sample = ng5.estimate_cov('sample')
+    print('varxi = ',cov_sample.diagonal())
+    print('ratio = ',cov_sample.diagonal() / var_xi)
+    np.testing.assert_allclose(cov_sample.diagonal(), var_xi, rtol=0.5*tol_factor)
+
+    # Check bootstrap covariance estimate
+    t0 = time.time()
+    cov_boot = ng3.estimate_cov('bootstrap')
+    t1 = time.time()
+    print('Time to calculate bootstrap covariance = ',t1-t0)
+    print('varxi = ',cov_boot.diagonal())
+    print('ratio = ',cov_boot.diagonal() / var_xi)
+    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
+    cov_boot = ng4.estimate_cov('bootstrap')
+    print('varxi = ',cov_boot.diagonal())
+    print('ratio = ',cov_boot.diagonal() / var_xi)
+    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.6*tol_factor)
+    cov_boot = ng5.estimate_cov('bootstrap')
+    print('varxi = ',cov_boot.diagonal())
+    print('ratio = ',cov_boot.diagonal() / var_xi)
+    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
+
+    # Check bootstrap2 covariance estimate.
+    # Note: this one is really slow.  So trim down the number of bootstraps a lot for the
+    # nosetest run.
+    if __name__ != '__main__':
+        ng3.num_bootstrap = 20
+    t0 = time.time()
+    cov_boot = ng3.estimate_cov('bootstrap2')
+    t1 = time.time()
+    print('Time to calculate bootstrap2 covariance = ',t1-t0)
+    print('varxi = ',cov_boot.diagonal())
+    print('ratio = ',cov_boot.diagonal() / var_xi)
+    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.3*tol_factor)
+    cov_boot = ng4.estimate_cov('bootstrap2')
+    print('varxi = ',cov_boot.diagonal())
+    print('ratio = ',cov_boot.diagonal() / var_xi)
+    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
+    cov_boot = ng5.estimate_cov('bootstrap2')
+    print('varxi = ',cov_boot.diagonal())
+    print('ratio = ',cov_boot.diagonal() / var_xi)
+    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
 
     # Check some invalid actions
     with assert_raises(ValueError):
         ng2.estimate_cov('invalid')
     with assert_raises(ValueError):
         ng1.estimate_cov('jackknife')
+    with assert_raises(ValueError):
+        ng1.estimate_cov('sample')
+    with assert_raises(ValueError):
+        ng1.estimate_cov('bootstrap')
+    with assert_raises(ValueError):
+        ng1.estimate_cov('bootstrap2')
 
     cat1a = treecorr.Catalog(x=x[:100], y=y[:100], npatch=10)
     cat2a = treecorr.Catalog(x=x[:100], y=y[:100], g1=g1[:100], g2=g2[:100], npatch=10)
@@ -554,9 +643,17 @@ def test_ng_jk():
     with assert_raises(RuntimeError):
         ng6.estimate_cov('sample')
     with assert_raises(RuntimeError):
+        ng6.estimate_cov('bootstrap')
+    with assert_raises(RuntimeError):
+        ng6.estimate_cov('bootstrap2')
+    with assert_raises(RuntimeError):
         ng7.process(cat1b,cat2a)
     with assert_raises(RuntimeError):
         ng7.estimate_cov('sample')
+    with assert_raises(RuntimeError):
+        ng7.estimate_cov('bootstrap')
+    with assert_raises(RuntimeError):
+        ng7.estimate_cov('bootstrap2')
 
 def test_nn_jk():
     # Test the variance estimate for NN correlation with jackknife error estimate.

@@ -31,9 +31,9 @@ New features
 - Added ability to run k-means algorithm on a catalog, which is much faster than other
   existing python k-means codes.  Also produces reliably more uniform patches.  See the
   discussion on PR #88 for details.
-- Added the ability to compute jackknife and sample variance estimates by dividing the
-  full calculation into correlations across patches.  Set ``var_method`` in the
-  Correlation class or use the ``estimate_cov`` method.
+- Added the ability to compute jackknife, sample, and bootstrap variance and covariance
+  estimates by dividing the full calculation into correlations across patches.
+  Set ``var_method`` in the Correlation class or use the ``estimate_cov`` method.
 - Added ``treecorr.estimate_multi_cov`` function, which will the compute covariance
   matrix across multiple statistics that have been run using the same set of patches.
 

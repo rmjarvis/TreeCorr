@@ -805,10 +805,37 @@ def _make_cov_design_matrix(corr, all_pairs):
     npatch = len(all_pairs)
     vnum = np.zeros((npatch,vsize), dtype=float)
     vdenom = np.zeros((npatch,vsize), dtype=float)
-    for i, row_pairs in enumerate(all_pairs):
-        vnum[i] = np.sum([corr.results[(j,k)]._getStat() for j,k in row_pairs], axis=0)
-        vdenom[i] = np.sum([corr.results[(j,k)]._getWeight() for j,k in row_pairs], axis=0)
+    for i, pairs in enumerate(all_pairs):
+        vnum[i] = np.sum([corr.results[(j,k)]._getStat() for j,k in pairs], axis=0)
+        vdenom[i] = np.sum([corr.results[(j,k)]._getWeight() for j,k in pairs], axis=0)
     return vnum, vdenom
+
+def _get_patch_nums(corrs):
+    pairs = list(corrs[0].results.keys())
+    if len(pairs) == 0:
+        raise ValueError("Jackknife covariance requires processing using patches.")
+    patch_nums1 = set([p[0] for p in pairs])
+    patch_nums2 = set([p[1] for p in pairs])
+    npatch1 = len(patch_nums1)
+    npatch2 = len(patch_nums2)
+    assert patch_nums1 == set(range(npatch1))
+    assert patch_nums2 == set(range(npatch2))
+    if npatch1 != npatch2 and npatch1 != 1 and npatch2 != 1:
+        raise RuntimeError("All catalogs must use the same number of patches or use 1 patch.")
+    npatch = max(npatch1, npatch2)
+    all_pairs = [pairs]  # Start these as lists for each corr instance.
+    npatch1 = [npatch1]  # These will all be either npatch or 1, but can be different combinations
+    npatch2 = [npatch2]  # of these for each corr.
+    for c in corrs[1:]:
+        pairs = list(c.results.keys())
+        n1 = len(set([p[0] for p in pairs]))
+        n2 = len(set([p[1] for p in pairs]))
+        if n1 not in (1,npatch) or n2 not in (1,npatch):
+            raise ValueError("All correlation functions must have used the same patchs")
+        all_pairs.append(pairs)
+        npatch1.append(n1)
+        npatch2.append(n2)
+    return npatch, npatch1, npatch2, all_pairs
 
 def _cov_jackknife(corrs):
     # Calculate the jackknife covariance for the given statistics
@@ -817,34 +844,24 @@ def _cov_jackknife(corrs):
     # C = (1-1/npatch) Sum_i (v_i - v_mean) (v_i - v_mean)^T
     # where v_i is the vector when excluding patch i, and v_mean is the mean of all {v_i}.
     #   v_i = Sum_jk!=i num_jk / Sum_jk!=i denom_jk
-    pairs = list(corrs[0].results.keys())
-    if len(pairs) == 0:
-        raise ValueError("Jackknife covariance requires processing using patches.")
-    for c in corrs[1:]:
-        if set(pairs) != set(c.results.keys()):
-            raise ValueError("All correlation functions must have used the same patchs")
-    patch_nums1 = set([p[0] for p in pairs])
-    patch_nums2 = set([p[1] for p in pairs])
-    npatch1 = len(patch_nums1)
-    npatch2 = len(patch_nums2)
-    assert patch_nums1 == set(range(npatch1))
-    assert patch_nums2 == set(range(npatch2))
 
-    if npatch1 == npatch2:
-        npatch = npatch1
-        vpairs = [ [(j,k) for j,k in pairs if j!=i and k!=i] for i in patch_nums1 ]
-    elif npatch2 == 1:
-        npatch = npatch1
-        vpairs = [ [(j,0) for j in patch_nums1 if j!=i] for i in patch_nums1 ]
-    elif npatch1 == 1:
-        npatch = npatch2
-        vpairs = [ [(0,j) for j in patch_nums2 if j!=i] for i in patch_nums2 ]
-    else:
-        raise RuntimeError("All catalogs must use the same number of patches or use 1 patch.")
+    npatch, npatch1, npatch2, all_pairs = _get_patch_nums(corrs)
 
-    vnum, vdenom = zip(*[_make_cov_design_matrix(c,vpairs) for c in corrs])
+    vnum = []
+    vdenom = []
+    for c, n1, n2, pairs in zip(corrs, npatch1, npatch2, all_pairs):
+        if n2 == 1:
+            vpairs = [ [(j,0) for j in range(n1) if j!=i] for i in range(n1) ]
+        elif n1 == 1:
+            vpairs = [ [(0,j) for j in range(n2) if j!=i] for i in range(n2) ]
+        else:
+            assert n1 == n2
+            vpairs = [ [(j,k) for j,k in pairs if j!=i and k!=i] for i in range(n1) ]
+        n, d = _make_cov_design_matrix(c,vpairs)
+        vnum.append(n)
+        vdenom.append(d)
+
     v = np.hstack(vnum) / np.hstack(vdenom)
-
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = (1.-1./npatch) * v.T.dot(v)
@@ -860,37 +877,28 @@ def _cov_sample(corrs):
     # C = 1/(npatch-1) Sum_i w_i (v_i - v_mean) (v_i - v_mean)^T
     # where v_i = Sum_j num_ij / Sum_j denom_ij
     # and w_i is the fraction of the total weight in each patch
-    pairs = list(corrs[0].results.keys())
-    if len(pairs) == 0:
-        raise ValueError("Sample covariance requires processing using patches.")
-    for c in corrs[1:]:
-        if set(pairs) != set(c.results.keys()):
-            raise ValueError("All correlation functions must have used the same patchs")
-    patch_nums1 = set([p[0] for p in pairs])
-    patch_nums2 = set([p[1] for p in pairs])
-    npatch1 = len(patch_nums1)
-    npatch2 = len(patch_nums2)
-    assert patch_nums1 == set(range(npatch1))
-    assert patch_nums2 == set(range(npatch2))
 
-    if npatch1 == npatch2:
-        npatch = npatch1
-        # Note: It's not obvious to me a priori which of these should be the right choice.
-        #       Empirically, they both underestimate the variance, but the second one
-        #       does so less on the tests I have in test_patch.py.  So that's the one I'm
-        #       using.
-        #vpairs = [ [(j,k) for j,k in pairs if j==i or k==i] for i in patch_nums1 ]
-        vpairs = [ [(j,k) for j,k in pairs if j==i] for i in patch_nums1 ]
-    elif npatch2 == 1:
-        npatch = npatch1
-        vpairs = [ [(i,0)] for i in patch_nums1 ]
-    elif npatch1 == 1:
-        npatch = npatch2
-        vpairs = [ [(0,i)] for i in patch_nums2 ]
-    else:
-        raise RuntimeError("All catalogs must use the same number of patches or use 1 patch.")
+    npatch, npatch1, npatch2, all_pairs = _get_patch_nums(corrs)
 
-    vnum, vdenom = zip(*[_make_cov_design_matrix(c,vpairs) for c in corrs])
+    vnum = []
+    vdenom = []
+    for c, n1, n2, pairs in zip(corrs, npatch1, npatch2, all_pairs):
+        if n2 == 1:
+            vpairs = [ [(i,0)] for i in range(n1) ]
+        elif n1 == 1:
+            vpairs = [ [(0,i)] for i in range(n2) ]
+        else:
+            assert n1 == n2
+            # Note: It's not obvious to me a priori which of these should be the right choice.
+            #       Empirically, they both underestimate the variance, but the second one
+            #       does so less on the tests I have in test_patch.py.  So that's the one I'm
+            #       using.
+            #vpairs = [ [(j,k) for j,k in pairs if j==i or k==i] for i in range(n1) ]
+            vpairs = [ [(j,k) for j,k in pairs if j==i] for i in range(n1) ]
+        n, d = _make_cov_design_matrix(c,vpairs)
+        vnum.append(n)
+        vdenom.append(d)
+
     vnum = np.hstack(vnum)
     vdenom = np.hstack(vdenom)
     v = vnum / vdenom
@@ -915,33 +923,23 @@ def _cov_bootstrap(corrs):
 
     # C = 1/(nboot) Sum_i (v_i - v_mean) (v_i - v_mean)^T
 
-    pairs = list(corrs[0].results.keys())
-    if len(pairs) == 0:
-        raise ValueError("Sample covariance requires processing using patches.")
-    for c in corrs[1:]:
-        if set(pairs) != set(c.results.keys()):
-            raise ValueError("All correlation functions must have used the same patchs")
-    patch_nums1 = set([p[0] for p in pairs])
-    patch_nums2 = set([p[1] for p in pairs])
-    npatch1 = len(patch_nums1)
-    npatch2 = len(patch_nums2)
-    assert patch_nums1 == set(range(npatch1))
-    assert patch_nums2 == set(range(npatch2))
+    npatch, npatch1, npatch2, all_pairs = _get_patch_nums(corrs)
 
-    if npatch1 == npatch2:
-        npatch = npatch1
-        #vpairs = [ [(j,k) for j,k in pairs if j==i or k==i] for i in patch_nums1 ]
-        vpairs = [ [(j,k) for j,k in pairs if j==i] for i in patch_nums1 ]
-    elif npatch2 == 1:
-        npatch = npatch1
-        vpairs = [ [(i,0)] for i in patch_nums1 ]
-    elif npatch1 == 1:
-        npatch = npatch2
-        vpairs = [ [(0,i)] for i in patch_nums2 ]
-    else:
-        raise RuntimeError("All catalogs must use the same number of patches or use 1 patch.")
+    vnum = []
+    vdenom = []
+    for c, n1, n2, pairs in zip(corrs, npatch1, npatch2, all_pairs):
+        if n2 == 1:
+            vpairs = [ [(i,0)] for i in range(n1) ]
+        elif n1 == 1:
+            vpairs = [ [(0,i)] for i in range(n2) ]
+        else:
+            assert n1 == n2
+            #vpairs = [ [(j,k) for j,k in pairs if j==i or k==i] for i in patch_nums1 ]
+            vpairs = [ [(j,k) for j,k in pairs if j==i] for i in range(n1) ]
+        n, d = _make_cov_design_matrix(c,vpairs)
+        vnum.append(n)
+        vdenom.append(d)
 
-    vnum, vdenom = zip(*[_make_cov_design_matrix(c,vpairs) for c in corrs])
     vnum = np.hstack(vnum)
     vdenom = np.hstack(vdenom)
 
@@ -968,48 +966,36 @@ def _cov_bootstrap2(corrs):
     # The slow step is marked below.  It's a python list comprehension, so if it's a bottleneck,
     # we could try to implement it in C to speed it up.
 
-    pairs = list(corrs[0].results.keys())
-    if len(pairs) == 0:
-        raise ValueError("Sample covariance requires processing using patches.")
-    for c in corrs[1:]:
-        if set(pairs) != set(c.results.keys()):
-            raise ValueError("All correlation functions must have used the same patchs")
-    patch_nums1 = set([p[0] for p in pairs])
-    patch_nums2 = set([p[1] for p in pairs])
-    npatch1 = len(patch_nums1)
-    npatch2 = len(patch_nums2)
-    assert patch_nums1 == set(range(npatch1))
-    assert patch_nums2 == set(range(npatch2))
-
-    if npatch1 != npatch2 and npatch1 != 1 and npatch2 != 1:
-        raise RuntimeError("All catalogs must use the same number of patches or use 1 patch.")
-    npatch = max(npatch1,npatch2)
+    npatch, npatch1, npatch2, all_pairs = _get_patch_nums(corrs)
 
     nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
-    vpairs = []
-    for k in range(nboot):
-        indx = np.random.randint(npatch, size=npatch)
+    vnum = []
+    vdenom = []
+    for c, n1, n2, pairs in zip(corrs, npatch1, npatch2, all_pairs):
+        vpairs = []
+        for k in range(nboot):
+            indx = np.random.randint(npatch, size=npatch)
+            if n2 == 1:
+                vpairs1 = [ (i,0) for i in indx ]
+            elif n1 == 1:
+                vpairs1 = [ (0,i) for i in indx ]
+            else:
+                assert n1 == n2
+                # Include all represented auto-correlations once, repeating as appropriate
+                vpairs1 = [ (i,i) for i in indx ]
 
-        if npatch1 == npatch2:
-            # Include all represented auto-correlations once, repeating as appropriate
-            vpairs1 = [ (i,i) for i in indx ]
+                # And all pairs if that aren't really auto-correlations
+                # This is the really slow line.  It takes around 0.2 seconds for 64 patches, so with
+                # the default 500 bootstrap resamplings, that comes to 100 seconds.
+                temp = [ (i,j) for i in indx for j in indx if i != j and (i,j) in pairs ]
+                vpairs1.extend(temp)
+            vpairs.append(vpairs1)
+        n, d = _make_cov_design_matrix(c,vpairs)
+        vnum.append(n)
+        vdenom.append(d)
 
-            # And all pairs if that aren't really auto-correlations
-            # This is the really slow line.  It takes around 0.2 seconds for 64 patches, so with
-            # the default 500 bootstrap resamplings, that comes to 100 seconds.
-            temp = [ (i,j) for i in indx for j in indx if i != j and (i,j) in pairs ]
-            vpairs1.extend(temp)
-        elif npatch1 == 1:
-            vpairs1 = [ (0,i) for i in indx ]
-        else:
-            vpairs1 = [ (i,0) for i in indx ]
-
-        vpairs.append(vpairs1)
-
-    vnum, vdenom = zip(*[_make_cov_design_matrix(c,vpairs) for c in corrs])
     v = np.hstack(vnum) / np.hstack(vdenom)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.T.dot(v)
     return C
-

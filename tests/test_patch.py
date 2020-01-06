@@ -1028,6 +1028,27 @@ def test_kappa_jk():
     print('ratio = ',cov_xi.diagonal() / var_kg_xi)
     np.testing.assert_allclose(cov_xi.diagonal(), var_kg_xi, rtol=0.5*tol_factor)
 
+    # Do a real multi-statistic covariance.
+    t0 = time.time()
+    cov = treecorr.estimate_multi_cov([nk,kk,kg], 'jackknife')
+    t1 = time.time()
+    print('Time for jackknife cross-covariance = ',t1-t0)
+    n1 = nk.nbins
+    n2 = nk.nbins + kk.nbins
+    np.testing.assert_allclose(cov[:n1,:n1], nk.cov)
+    np.testing.assert_allclose(cov[n1:n2,n1:n2], kk.cov)
+    np.testing.assert_allclose(cov[n2:,n2:], kg.cov)
+
+    # Turn into a correlation matrix
+    cor = cov / np.sqrt(cov.diagonal())[:,np.newaxis] / np.sqrt(cov.diagonal())[np.newaxis,:]
+
+    print('nk-kk cross correlation = ',cor[:n1,n1:n2])
+    print('nk-kg cross correlation = ',cor[:n1,n2:])
+    print('kk-kg cross correlation = ',cor[n1:n2,n2:])
+    # These should be rather large.  Most entries are > 0.1, so sum is much > 1.
+    assert np.sum(np.abs(cor[:n1,n1:n2])) > 1
+    assert np.sum(np.abs(cor[:n1,n2:])) > 1
+    assert np.sum(np.abs(cor[n1:n2,n2:])) > 1
 
 if __name__ == '__main__':
     test_cat_patches()

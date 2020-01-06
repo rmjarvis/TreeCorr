@@ -376,8 +376,9 @@ class Field(object):
     def kmeans_refine_centers(self, centers, max_iter=200, tol=1.e-5, alt=False):
         """Fast implementation of the K-Means algorithm
 
-        The standard K-Means algorithm is as follows:
-        (cf. https://en.wikipedia.org/wiki/K-means_clustering)
+        The standard K-Means algorithm is as follows
+        (cf. https://en.wikipedia.org/wiki/K-means_clustering):
+
         1. Choose centers somehow.  Traditionally, this is done by just selecting npatch random
            points from the full set, but we do this more smartly in `kmeans_initialize_centers`.
         2. For each point, measure the distance to each current patch center, and assign it to the

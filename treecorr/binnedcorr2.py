@@ -546,7 +546,7 @@ class BinnedCorr2(object):
         .. note::
 
             For most classes, there is only a single statistic, so this calculates a covariance
-            matrix for that vector.  `~GGCorrelation` has two: ``xip`` and ``xim``, so in this
+            matrix for that vector.  `GGCorrelation` has two: ``xip`` and ``xim``, so in this
             case the full data vector is ``xip`` followed by ``xim``, and this calculates the
             covariance matrix for that full vector including both statistics.
 
@@ -736,7 +736,7 @@ class BinnedCorr2(object):
 def estimate_multi_cov(corrs, method):
     """Estimate the covariance matrix of multiple statistics.
 
-    This is like the method `~BinnedCorr2.estimate_cov`, except that it will acoommodate
+    This is like the method `BinnedCorr2.estimate_cov`, except that it will acoommodate
     multiple statistics from a list ``corrs`` of BinnedCorr2 objects.
 
     Options for ``method`` include:
@@ -771,7 +771,7 @@ def estimate_multi_cov(corrs, method):
     statistic, although this is not checked.
 
     Parameters:
-        corrs (list):   A list of `~BinnedCorr2` instances.
+        corrs (list):   A list of `BinnedCorr2` instances.
         method (str):   Which method to use to estimate the covariance matrix.
 
     Returns:

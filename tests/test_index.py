@@ -56,7 +56,8 @@ def test_count_near():
     print('n3 = ',n3,'  time = ',t3-t2)
     assert n2 == n1
     assert n3 == n1
-    if platform.python_implementation != 'PyPy':
+    print('implementation is ',platform.python_implementation())
+    if platform.python_implementation() != 'PyPy':
         # The JIT in PyPy can sometimes beat the tree code.
         assert t2-t1 < t1-t0
         assert t3-t2 < t1-t0
@@ -93,7 +94,7 @@ def test_count_near():
     print('n3 = ',n3,'  time = ',t3-t2)
     assert n2 == n1
     assert n3 == n1
-    if platform.python_implementation != 'PyPy':
+    if platform.python_implementation() != 'PyPy':
         assert t2-t1 < t1-t0
         assert t3-t2 < t1-t0
 
@@ -146,7 +147,7 @@ def test_count_near():
     print('n3 = ',n3,'  time = ',t3-t2)
     assert n2 == n1
     assert n3 == n1
-    if platform.python_implementation != 'PyPy':
+    if platform.python_implementation() != 'PyPy':
         assert t2-t1 < t1-t0
         assert t3-t2 < t1-t0
 

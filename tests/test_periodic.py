@@ -242,16 +242,18 @@ def test_halotools():
     try:
         import halotools
         from astropy.utils.exceptions import AstropyWarning
+
+        # Note: halotools as of version 0.6 use astropy.extern.six, which is deprecated.
+        # Ignore the warning that is emitted about this.  And in later astropy versions, it
+        # now raises a ModuleNotFoundError.  So put it inside this try block.
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=AstropyWarning)
+            from halotools.mock_observables import npairs_3d
     except ImportError:
         print('Skipping test_halotools, since either halotools or astropy is not installed.')
         return
 
-    # Note: halotools as of version 0.6 use astropy.extern.six, which is deprecated.
-    # Ignore the warning that is emitted about this.
-    import warnings
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore', category=AstropyWarning)
-        from halotools.mock_observables import npairs_3d
 
     # Compare the Periodic metric with the same calculation in halotools
     # This first bit is directly from the documentation for halotools.npairs_3d

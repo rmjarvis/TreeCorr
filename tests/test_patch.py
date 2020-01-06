@@ -116,12 +116,16 @@ def test_cat_patches():
     with assert_raises(ValueError):
         treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                          patch_col=4)
-    with assert_raises(IOError):
-        treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
-                         patch_col='patch', patch_hdu=2)
-    with assert_raises(ValueError):
-        treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
-                         patch_col='patches')
+    try:
+        with assert_raises(IOError):
+            treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                             ra_units='rad', dec_units='rad', patch_col='patch', patch_hdu=2)
+        with assert_raises(ValueError):
+            treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                             ra_units='rad', dec_units='rad', patch_col='patches')
+    except NameError:
+        # file_name6 might not exist if skipeed above because of fitsio missing.
+        pass
 
 def generate_shear_field(nside):
    # Generate a random shear field with a well-defined power spectrum.

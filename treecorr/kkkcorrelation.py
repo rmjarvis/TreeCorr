@@ -337,9 +337,8 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         self.meand1[mask2] = self.v[mask2] * self.meand3[mask2] + self.meand2[mask2]
         self.meanlogd1[mask2] = np.log(self.meand1[mask2])
 
-        if self.var_method == 'shot':
-            self.varzeta[mask1] = vark1 * vark2 * vark3 / self.weight[mask1]
-            self.varzeta[mask2] = 0.
+        self.varzeta[mask1] = vark1 * vark2 * vark3 / self.weight[mask1]
+        self.varzeta[mask2] = 0.
 
 
     def clear(self):

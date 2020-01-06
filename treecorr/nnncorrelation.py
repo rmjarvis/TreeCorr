@@ -514,11 +514,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         zeta[mask1] /= (rrr.weight[mask1] * rrrw)
         zeta[mask2] = 0
 
-        if self.var_method == 'shot':
-            varzeta = np.zeros_like(rrr.weight)
-            varzeta[mask1] = 1./ (rrr.weight[mask1] * rrrw)
-        else:
-            varzeta = None  # TODO
+        varzeta = np.zeros_like(rrr.weight)
+        varzeta[mask1] = 1./ (rrr.weight[mask1] * rrrw)
 
         return zeta, varzeta
 

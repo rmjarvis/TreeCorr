@@ -70,7 +70,7 @@ void InitializeCentersTree(std::vector<Position<C> >& centers, const std::vector
         std::vector<long> selection(ncenters);
         SelectRandomFrom(ncells, selection);
         for (long i=0; i<ncenters; ++i) {
-            Assert(selection[i] < cells.size());
+            Assert(selection[i] < long(cells.size()));
             centers[i] = cells[selection[i]]->getPos();
         }
     } else {

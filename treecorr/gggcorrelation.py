@@ -403,16 +403,14 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.meand1[mask2] = self.v[mask2] * self.meand3[mask2] + self.meand2[mask2]
         self.meanlogd1[mask2] = np.log(self.meand1[mask2])
 
-        if self.var_method == 'shot':
-            self.vargam0[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
-            self.vargam1[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
-            self.vargam2[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
-            self.vargam3[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
-            self.vargam0[mask2] = 0.
-            self.vargam1[mask2] = 0.
-            self.vargam2[mask2] = 0.
-            self.vargam3[mask2] = 0.
-
+        self.vargam0[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
+        self.vargam1[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
+        self.vargam2[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
+        self.vargam3[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
+        self.vargam0[mask2] = 0.
+        self.vargam1[mask2] = 0.
+        self.vargam2[mask2] = 0.
+        self.vargam3[mask2] = 0.
 
     def clear(self):
         """Clear the data vectors

@@ -390,8 +390,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
             estimates, you need to set ``var_method`` to something else and use patches in the
             input catalog(s).  cf. `Covariance Estimates`.
 
-        After calling this method, you can use the `~BinnedCorr2.estimate_cov` method or use this
-        correlation object in the `~treecorr.estimate_multi_cov` function.
+        After calling this method, you can use the `BinnedCorr2.estimate_cov` method or use this
+        correlation object in the `estimate_multi_cov` function.
 
         Parameters:
             rr (NNCorrelation):     The auto-correlation of the random field (RR)

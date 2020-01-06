@@ -21,4 +21,5 @@ features in common about how they are constructed.  The common features are docu
     :members:
 
 
+.. autofunction:: treecorr.estimate_multi_cov
 

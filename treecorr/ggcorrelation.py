@@ -46,13 +46,13 @@ class GGCorrelation(treecorr.BinnedCorr2):
         xim:        The correlation funciton, :math:`\\xi_-(r)`.
         xip_im:     The imaginary part of :math:`\\xi_+(r)`.
         xim_im:     The imaginary part of :math:`\\xi_-(r)`.
-        varxip:     An estimate of the variance of :math:``\\xi_+(r)`
-        varxim:     An estimate of the variance of :math:``\\xi_-(r)`
+        varxip:     An estimate of the variance of :math:`\\xi_+(r)`
+        varxim:     An estimate of the variance of :math:`\\xi_-(r)`
         weight:     The total weight in each bin.
         npairs:     The number of pairs going into each bin (including pairs where one or
                     both objects have w=0).
         cov:        An estimate of the full covariance matrix for the data vector with
-                    :math:``\\xi_+`` first and then :math:``\\xi_-``.
+                    :math:`\\xi_+` first and then :math:`\\xi_-`.
 
     .. note::
 

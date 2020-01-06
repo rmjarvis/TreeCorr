@@ -187,9 +187,9 @@ class Catalog(object):
                             purpose of jackknife variance or other options that involve running via
                             patches. (default: 1)
         kmeans_init (str):  If using kmeans to make patches, which init method to use.
-                            cf. `~Field.run_kmeans` (default: 'tree')
+                            cf. `Field.run_kmeans` (default: 'tree')
         kmeans_alt (str):   If using kmeans to make patches, whether to use the alternate kmeans
-                            algorithm. cf. `~Field.run_kmeans` (default: False)
+                            algorithm. cf. `Field.run_kmeans` (default: False)
 
         x_col (str or int): The column to use for the x values. This should be an integer for ASCII
                             files or a string for FITS files. (default: 0 or '0', which means not

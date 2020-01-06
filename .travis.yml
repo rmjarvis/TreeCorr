@@ -101,7 +101,9 @@ install:
 
     # Only add optional ones for py3.6
     # They are slow to install, especially 3.8 and pypy, where installed from scratch.
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then $PIP install -U $__USER matplotlib nbval ipykernel scipy pandas; fi
+    # Downgrade jsonscheme for nbval.
+    # cf. https://gaborschulz.com/blog/my-jupyter-notebook-stopped-working-after-recent-package-upgrade/
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then $PIP install -U $__USER matplotlib nbval ipykernel scipy pandas jsonschema==3.0.2; fi
     # halotools doesn't work anymore in 3.6 (because of astropy change), so do this in 2.7.
     - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then $PIP install -U $__USER h5py halotools; fi
 

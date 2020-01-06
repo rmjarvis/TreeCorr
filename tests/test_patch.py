@@ -116,6 +116,9 @@ def test_cat_patches():
     with assert_raises(ValueError):
         treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                          patch_col=4)
+    with assert_raises(TypeError):
+        treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
+                         patch=p2)
     try:
         with assert_raises(IOError):
             treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',

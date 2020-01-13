@@ -415,6 +415,8 @@ class Catalog(object):
         self.orig_config = config.copy() if config is not None else {}
         if config and kwargs:
             self.orig_config.update(kwargs)
+        self._num = num
+        self._is_rand = is_rand
 
         if logger is not None:
             self.logger = logger
@@ -424,20 +426,50 @@ class Catalog(object):
                     self.config.get('log_file',None))
 
         # Start with everything set to None.  Overwrite as appropriate.
-        self.x = None
-        self.y = None
-        self.z = None
-        self.ra = None
-        self.dec = None
-        self.r = None
-        self.w = None
-        self.wpos = None
-        self.flag = None
-        self.g1 = None
-        self.g2 = None
-        self.k = None
-        self.patch = None
+        self._x = None
+        self._y = None
+        self._z = None
+        self._ra = None
+        self._dec = None
+        self._r = None
+        self._w = None
+        self._wpos = None
+        self._flag = None
+        self._g1 = None
+        self._g2 = None
+        self._k = None
+        self._patch = None
         self._setup_fields()
+
+        self._nontrivial_w = None
+        self._nobj = None
+        self._sumw = None
+        self._varg = None
+        self._vark = None
+
+        first_row = treecorr.config.get_from_list(self.config,'first_row',num,int,1)
+        if first_row < 1:
+            raise ValueError("first_row should be >= 1")
+        last_row = treecorr.config.get_from_list(self.config,'last_row',num,int,-1)
+        if last_row > 0 and last_row < first_row:
+            raise ValueError("last_row should be >= first_row")
+        if last_row > 0:
+            self.end = last_row
+        else:
+            self.end = None
+        if first_row > 1:
+            self.start = first_row-1
+        else:
+            self.start = 0
+
+        if 'npatch' in self.config and self.config['npatch'] != 1:
+            self.npatch = treecorr.config.get(self.config,'npatch',int)
+            if patch is not None or self.config.get('patch_col',0) not in (0,'0'):
+                raise ValueError("Cannot provide both patch and npatch")
+            if self.npatch < 1:
+                raise ValueError("npatch must be >= 1")
+        else:
+            self.npatch = 1
 
         # First style -- read from a file
         if file_name is not None:
@@ -456,14 +488,12 @@ class Catalog(object):
                 else:
                     file_type = 'ASCII'
                 self.logger.info("   file_type assumed to be %s from the file name.",file_type)
-
-            # Read the input file
             if file_type == 'FITS':
-                self.read_fits(file_name,num,is_rand)
-            elif file_type == 'ASCII':
-                self.read_ascii(file_name,num,is_rand)
-            else:  # pragma: no cover (This is already ensured by the config processing)
-                raise ValueError("Invalid file_type %s"%file_type)
+                self._check_fits(file_name, num, is_rand)
+            else:
+                self._check_ascii(file_name, num, is_rand)
+
+            self.file_type = file_type
 
         # Second style -- pass in the vectors directly
         else:
@@ -481,22 +511,49 @@ class Catalog(object):
                 if g1 is None or g2 is None:
                     raise TypeError("g1 and g2 must both be provided")
             self.name = ''
-            self.x = self.makeArray(x,'x')
-            self.y = self.makeArray(y,'y')
-            self.z = self.makeArray(z,'z')
-            self.ra = self.makeArray(ra,'ra')
-            self.dec = self.makeArray(dec,'dec')
-            self.r = self.makeArray(r,'r')
-            self.w = self.makeArray(w,'w')
-            self.wpos = self.makeArray(wpos,'wpos')
-            self.flag = self.makeArray(flag,'flag',int)
-            self.g1 = self.makeArray(g1,'g1')
-            self.g2 = self.makeArray(g2,'g2')
-            self.k = self.makeArray(k,'k')
-            self.patch = self.makeArray(patch,'patch',int)
+            self._x = self.makeArray(x,'x')
+            self._y = self.makeArray(y,'y')
+            self._z = self.makeArray(z,'z')
+            self._ra = self.makeArray(ra,'ra')
+            self._dec = self.makeArray(dec,'dec')
+            self._r = self.makeArray(r,'r')
+            self._w = self.makeArray(w,'w')
+            self._wpos = self.makeArray(wpos,'wpos')
+            self._flag = self.makeArray(flag,'flag',int)
+            self._g1 = self.makeArray(g1,'g1')
+            self._g2 = self.makeArray(g2,'g2')
+            self._k = self.makeArray(k,'k')
+            self._patch = self.makeArray(patch,'patch',int)
 
-        # Apply units to x,y,ra,dec
-        if self.x is not None:
+            # Check that all columns have the same length.  (This is impossible in file input)
+            if self._x is not None:
+                ntot = len(self._x)
+                if len(self._y) != ntot:
+                    raise ValueError("x and y have different numbers of elements")
+            else:
+                ntot = len(self._ra)
+                if len(self._dec) != ntot:
+                    raise ValueError("ra and dec have different numbers of elements")
+            if self._z is not None and len(self._z) != ntot:
+                raise ValueError("z has the wrong numbers of elements")
+            if self._r is not None and len(self._r) != ntot:
+                raise ValueError("r has the wrong numbers of elements")
+            if self._w is not None and len(self._w) != ntot:
+                raise ValueError("w has the wrong numbers of elements")
+            if self._wpos is not None and len(self._wpos) != ntot:
+                raise ValueError("wpos has the wrong numbers of elements")
+            if self._g1 is not None and len(self._g1) != ntot:
+                raise ValueError("g1 has the wrong numbers of elements")
+            if self._g2 is not None and len(self._g2) != ntot:
+                raise ValueError("g2 has the wrong numbers of elements")
+            if self._k is not None and len(self._k) != ntot:
+                raise ValueError("k has the wrong numbers of elements")
+            if self._patch is not None and len(self._patch) != ntot:
+                raise ValueError("patch has the wrong numbers of elements")
+            if ntot == 0:
+                raise ValueError("Input arrays have zero length")
+
+        if x is not None or self.config.get('x_col','0') not in [0,'0']:
             if 'x_units' in self.config and not 'y_units' in self.config:
                 raise TypeError("x_units specified without specifying y_units")
             if 'y_units' in self.config and not 'x_units' in self.config:
@@ -505,10 +562,6 @@ class Catalog(object):
                 raise TypeError("ra_units is invalid without ra")
             if 'dec_units' in self.config:
                 raise TypeError("dec_units is invalid without dec")
-            self.x_units = treecorr.config.get_from_list(self.config,'x_units',num,str,'radians')
-            self.y_units = treecorr.config.get_from_list(self.config,'y_units',num,str,'radians')
-            self.x *= self.x_units
-            self.y *= self.y_units
         else:
             if not self.config.get('ra_units',None):
                 raise TypeError("ra_units is required when using ra, dec")
@@ -518,187 +571,279 @@ class Catalog(object):
                 raise TypeError("x_units is invalid without x")
             if 'y_units' in self.config:
                 raise TypeError("y_units is invalid without y")
-            self.ra_units = treecorr.config.get_from_list(self.config,'ra_units',num)
-            self.dec_units = treecorr.config.get_from_list(self.config,'dec_units',num)
-            self.ra *= self.ra_units
-            self.dec *= self.dec_units
+
+        if file_name is None:
+            # For vector input option, can finish up now.
+            self._finish_input()
+
+    @property
+    def x(self):
+        if self._x is None:  # This should always be set (even if input is ra, dec), so it being
+                             # None is a good sentinal for the file not being read yet.
+            self._read_file()
+        return self._x
+
+    @property
+    def y(self):
+        if self._x is None: self._read_file()
+        return self._y
+
+    @property
+    def z(self):
+        if self._x is None: self._read_file()
+        return self._z
+
+    @property
+    def ra(self):
+        if self._x is None: self._read_file()
+        return self._ra
+
+    @property
+    def dec(self):
+        if self._x is None: self._read_file()
+        return self._dec
+
+    @property
+    def r(self):
+        if self._x is None: self._read_file()
+        return self._r
+
+    @property
+    def w(self):
+        if self._x is None: self._read_file()
+        return self._w
+
+    @property
+    def wpos(self):
+        if self._x is None: self._read_file()
+        return self._wpos
+
+    @property
+    def g1(self):
+        if self._x is None: self._read_file()
+        return self._g1
+
+    @property
+    def g2(self):
+        if self._x is None: self._read_file()
+        return self._g2
+
+    @property
+    def k(self):
+        if self._x is None: self._read_file()
+        return self._k
+
+    @property
+    def patch(self):
+        if self._x is None: self._read_file()
+        return self._patch
+
+    @property
+    def varg(self):
+        if self._varg is None:
+            if self.w is not None:
+                if self.g1 is not None:
+                    use = self.w != 0
+                    self._varg = np.sum(self.w[use]**2 * (self.g1[use]**2 + self.g2[use]**2))
+                    # The 2 is because we need the variance _per componenet_.
+                    self._varg /= 2.*self.sumw
+                else:
+                    self._varg = 0.
+            else:
+                if self.g1 is not None:
+                    self._varg = np.sum(self.g1**2 + self.g2**2) / (2.*self.nobj)
+                else:
+                    self._varg = 0.
+        return self._varg
+
+    @property
+    def vark(self):
+        if self._vark is None:
+            if self.w is not None:
+                if self.k is not None:
+                    use = self.w != 0
+                    self._vark = np.sum(self.w[use]**2 * self.k[use]**2)
+                    self._vark /= self.sumw
+                else:
+                    self._vark = 0.
+            else:
+                if self.k is not None:
+                    self._vark = np.sum(self.k**2) / self.nobj
+                else:
+                    self._vark = 0.
+        return self._vark
+
+    @property
+    def nontrivial_w(self):
+        if self._x is None: self._read_file()
+        return self._nontrivial_w
+
+    @property
+    def ntot(self):
+        return len(self.x)
+
+    @property
+    def nobj(self):
+        if self._nobj is None:
+            if self.w is not None:
+                use = self._w != 0
+                self._nobj = np.sum(use)
+            else:
+                self._nobj = self.ntot
+        return self._nobj
+
+    @property
+    def sumw(self):
+        if self._sumw is None:
+            if self.w is not None:
+                self._sumw = np.sum(self._w)
+            else:
+                self._sumw = self.ntot
+        return self._sumw
+
+    @property
+    def coords(self):
+        if self.ra is not None:
+            if self.r is None:
+                return 'spherical'
+            else:
+                return '3d'
+        else:
+            if self.z is None:
+                return 'flat'
+            else:
+                return '3d'
+
+    def _read_file(self):
+        # Read the input file
+        if self.file_type == 'FITS':
+            self.read_fits(self.name,self._num,self._is_rand)
+        elif self.file_type == 'ASCII':
+            self.read_ascii(self.name,self._num,self._is_rand)
+        else: # pragma: no cover
+            # This is already checked, so shouldn't be possible to happen.
+            raise ValueError("Invalid file_type %s"%self.file_type)
+        self._finish_input()
+
+    def _finish_input(self):
+        # Finish processing the data based on given inputs.
+
+        # Apply units to x,y,ra,dec
+        if self._x is not None:
+            self.x_units = treecorr.config.get_from_list(self.config,'x_units',self._num,str,'radians')
+            self.y_units = treecorr.config.get_from_list(self.config,'y_units',self._num,str,'radians')
+            self._x *= self.x_units
+            self._y *= self.y_units
+        else:
+            self.ra_units = treecorr.config.get_from_list(self.config,'ra_units',self._num)
+            self.dec_units = treecorr.config.get_from_list(self.config,'dec_units',self._num)
+            self._ra *= self.ra_units
+            self._dec *= self.dec_units
 
         # Apply flips if requested
-        flip_g1 = treecorr.config.get_from_list(self.config,'flip_g1',num,bool,False)
-        flip_g2 = treecorr.config.get_from_list(self.config,'flip_g2',num,bool,False)
+        flip_g1 = treecorr.config.get_from_list(self.config,'flip_g1',self._num,bool,False)
+        flip_g2 = treecorr.config.get_from_list(self.config,'flip_g2',self._num,bool,False)
         if flip_g1:
             self.logger.info("   Flipping sign of g1.")
-            self.g1 = -self.g1
+            self._g1 = -self._g1
         if flip_g2:
             self.logger.info("   Flipping sign of g2.")
-            self.g2 = -self.g2
+            self._g2 = -self._g2
 
         # Convert the flag to a weight
-        if self.flag is not None:
+        if self._flag is not None:
             if 'ignore_flag' in self.config:
-                ignore_flag = treecorr.config.get_from_list(self.config,'ignore_flag',num,int)
+                ignore_flag = treecorr.config.get_from_list(self.config,'ignore_flag',self._num,int)
             else:
-                ok_flag = treecorr.config.get_from_list(self.config,'ok_flag',num,int,0)
+                ok_flag = treecorr.config.get_from_list(self.config,'ok_flag',self._num,int,0)
                 ignore_flag = ~ok_flag
             # If we don't already have a weight column, make one with all values = 1.
-            if self.w is None:
-                self.w = np.ones_like(self.flag, dtype=float)
-            self.w[(self.flag & ignore_flag)!=0] = 0
-            self.logger.debug('Applied flag: w => %s',str(self.w))
+            if self._w is None:
+                self._w = np.ones_like(self._flag, dtype=float)
+            self._w[(self._flag & ignore_flag)!=0] = 0
+            self.logger.debug('Applied flag: w => %s',str(self._w))
 
-        # Check that all columns have the same length:
-        if self.x is not None:
-            self.ntot = len(self.x)
-            if len(self.y) != self.ntot:
-                raise ValueError("x and y have different numbers of elements")
+        if self._x is not None:
+            ntot = len(self._x)
         else:
-            self.ntot = len(self.ra)
-            if len(self.dec) != self.ntot:
-                raise ValueError("ra and dec have different numbers of elements")
-        if self.ntot == 0:
-            raise ValueError("Catalog has no objects!")
-        if self.z is not None and len(self.z) != self.ntot:
-            raise ValueError("z has the wrong numbers of elements")
-        if self.r is not None and len(self.r) != self.ntot:
-            raise ValueError("r has the wrong numbers of elements")
-        if self.w is not None and len(self.w) != self.ntot:
-            raise ValueError("w has the wrong numbers of elements")
-        if self.wpos is not None and len(self.wpos) != self.ntot:
-            raise ValueError("wpos has the wrong numbers of elements")
-        if self.g1 is not None and len(self.g1) != self.ntot:
-            raise ValueError("g1 has the wrong numbers of elements")
-        if self.g2 is not None and len(self.g2) != self.ntot:
-            raise ValueError("g2 has the wrong numbers of elements")
-        if self.k is not None and len(self.k) != self.ntot:
-            raise ValueError("k has the wrong numbers of elements")
-        if self.patch is not None and len(self.patch) != self.ntot:
-            raise ValueError("patch has the wrong numbers of elements")
+            ntot = len(self._ra)
 
         # Update the data according to the specified first and last row
-        first_row = treecorr.config.get_from_list(self.config,'first_row',num,int,1)
-        if first_row < 1:
-            raise ValueError("first_row should be >= 1")
-        last_row = treecorr.config.get_from_list(self.config,'last_row',num,int,-1)
-        if last_row > 0 and last_row < first_row:
-            raise ValueError("last_row should be >= first_row")
-        if last_row > 0:
-            end = last_row
-        else:
-            end = self.ntot
-        if first_row > 1:
-            start = first_row-1
-        else:
-            start = 0
-        self.ntot = end-start
-        self.logger.debug('start..end = %d..%d',start,end)
-        if self.x is not None: self.x = self.x[start:end]
-        if self.y is not None: self.y = self.y[start:end]
-        if self.z is not None: self.z = self.z[start:end]
-        if self.ra is not None: self.ra = self.ra[start:end]
-        if self.dec is not None: self.dec = self.dec[start:end]
-        if self.r is not None: self.r = self.r[start:end]
-        if self.w is not None: self.w = self.w[start:end]
-        if self.wpos is not None: self.wpos = self.wpos[start:end]
-        if self.g1 is not None: self.g1 = self.g1[start:end]
-        if self.g2 is not None: self.g2 = self.g2[start:end]
-        if self.k is not None: self.k = self.k[start:end]
-        if self.patch is not None: self.patch = self.patch[start:end]
+        if self.end is None:
+            self.end = ntot
+        ntot = self.end-self.start
+        self.logger.debug('start..end = %d..%d',self.start,self.end)
+        if self._x is not None: self._x = self._x[self.start:self.end]
+        if self._y is not None: self._y = self._y[self.start:self.end]
+        if self._z is not None: self._z = self._z[self.start:self.end]
+        if self._ra is not None: self._ra = self._ra[self.start:self.end]
+        if self._dec is not None: self._dec = self._dec[self.start:self.end]
+        if self._r is not None: self._r = self._r[self.start:self.end]
+        if self._w is not None: self._w = self._w[self.start:self.end]
+        if self._wpos is not None: self._wpos = self._wpos[self.start:self.end]
+        if self._g1 is not None: self._g1 = self._g1[self.start:self.end]
+        if self._g2 is not None: self._g2 = self._g2[self.start:self.end]
+        if self._k is not None: self._k = self._k[self.start:self.end]
+        if self._patch is not None: self._patch = self._patch[self.start:self.end]
 
         # Check for NaN's:
-        self.checkForNaN(self.x,'x')
-        self.checkForNaN(self.y,'y')
-        self.checkForNaN(self.z,'z')
-        self.checkForNaN(self.ra,'ra')
-        self.checkForNaN(self.dec,'dec')
-        self.checkForNaN(self.r,'r')
-        self.checkForNaN(self.g1,'g1')
-        self.checkForNaN(self.g2,'g2')
-        self.checkForNaN(self.k,'k')
-        self.checkForNaN(self.w,'w')
-        self.checkForNaN(self.wpos,'wpos')
+        self.checkForNaN(self._x,'x')
+        self.checkForNaN(self._y,'y')
+        self.checkForNaN(self._z,'z')
+        self.checkForNaN(self._ra,'ra')
+        self.checkForNaN(self._dec,'dec')
+        self.checkForNaN(self._r,'r')
+        self.checkForNaN(self._g1,'g1')
+        self.checkForNaN(self._g2,'g2')
+        self.checkForNaN(self._k,'k')
+        self.checkForNaN(self._w,'w')
+        self.checkForNaN(self._wpos,'wpos')
 
         # Copy w to wpos if necessary (Do this after checkForNaN's, since this may set some
         # entries to have w=0.)
-        if self.wpos is None:
+        if self._wpos is None:
             self.logger.debug('Using w for wpos')
         else:
             # Check that any wpos == 0 points also have w == 0
-            if np.any(self.wpos == 0.):
-                if self.w is None:
+            if np.any(self._wpos == 0.):
+                if self._w is None:
                     self.logger.warning('Some wpos values are zero, setting w=0 for these points.')
-                    self.w = np.ones((self.ntot), dtype=float)
+                    self._w = np.ones((ntot), dtype=float)
                 else:
-                    if np.any(self.w[self.wpos == 0.] != 0.):
+                    if np.any(self._w[self._wpos == 0.] != 0.):
                         self.logger.error('Some wpos values = 0 but have w!=0. This is invalid.\n'
                                           'Setting w=0 for these points.')
-                self.w[self.wpos == 0.] = 0.
+                self._w[self._wpos == 0.] = 0.
 
-        # Calculate some summary parameters here that will typically be needed
-        if self.w is not None:
-            self.nontrivial_w = True
-            use = self.w != 0
-            self.nobj = np.sum(use)
-            self.sumw = np.sum(self.w)
-            if self.sumw == 0.:
+        if self._w is not None:
+            sumw = np.sum(self._w)
+            if sumw == 0:
                 raise ValueError("Catalog has invalid sumw == 0")
-            if self.g1 is not None:
-                self.varg = np.sum(self.w[use]**2 * (self.g1[use]**2 + self.g2[use]**2))
-                # The 2 is because we need the variance _per componenet_.
-                self.varg /= 2.*self.sumw
-            else:
-                self.varg = 0.
-            if self.k is not None:
-                self.vark = np.sum(self.w[use]**2 * self.k[use]**2)
-                self.vark /= self.sumw
-            else:
-                self.vark = 0.
+            self._nontrivial_w = True
         else:
-            self.nontrivial_w = False
-            self.nobj = self.ntot
-            self.sumw = self.ntot
-            if self.g1 is not None:
-                self.varg = np.sum(self.g1**2 + self.g2**2) / (2.*self.nobj)
-            else:
-                self.varg = 0.
-            if self.k is not None:
-                self.vark = np.sum(self.k**2) / self.nobj
-            else:
-                self.vark = 0.
-            self.w = np.ones((self.ntot), dtype=float)
+            self._nontrivial_w = False
+            # Make w all 1s to simplify the use of w later in code.
+            self._w = np.ones((ntot), dtype=float)
 
-        if self.ra is not None:
+        if self._ra is not None:
             # Should have already been checked above, so just use assert here.
-            assert self.x is None
-            assert self.y is None
-            assert self.z is None
-            self.x, self.y, self.z = coord.CelestialCoord.radec_to_xyz(self.ra, self.dec)
-            if self.r is None:
-                self.coords = 'spherical'
-            else:
-                self.x *= self.r
-                self.y *= self.r
-                self.z *= self.r
-                self.coords = '3d'
+            assert self._x is None
+            assert self._y is None
+            assert self._z is None
+            self._x, self._y, self._z = coord.CelestialCoord.radec_to_xyz(self._ra, self._dec)
+            if self._r is not None:
+                self._x *= self._r
+                self._y *= self._r
+                self._z *= self._r
             self.x_units = self.y_units = 1.
-        else:
-            if self.z is None:
-                self.coords = 'flat'
-            else:
-                self.coords = '3d'
 
-        if 'npatch' in self.config and self.config['npatch'] != 1:
-            npatch = treecorr.config.get(self.config,'npatch',int)
-            if self.patch is not None:
-                raise ValueError("Cannot provide both patch and npatch")
+        if self.npatch != 1:
             init = treecorr.config.get(self.config,'kmeans_init',str,'tree')
             alt = treecorr.config.get(self.config,'kmeans_alt',bool,False)
-            if npatch < 1:
-                raise ValueError("npatch must be >= 1")
             field = self.getNField()
-            self.patch = field.run_kmeans(npatch, init=init, alt=alt)
+            self._patch = field.run_kmeans(self.npatch, init=init, alt=alt)
 
         self.logger.info("   nobj = %d",self.nobj)
-
 
     def makeArray(self, col, col_str, dtype=float):
         """Turn the input column into a numpy array if it wasn't already.
@@ -733,10 +878,88 @@ class Catalog(object):
             index = np.where(np.isnan(col))[0]
             self.logger.warning("Warning: NaNs found in %s column.  Skipping rows %s."%(
                                 col_str,str(index.tolist())))
-            if self.w is None:
-                self.w = np.ones_like(col, dtype=float)
-            self.w[index] = 0
+            if self._w is None:
+                self._w = np.ones_like(col, dtype=float)
+            self._w[index] = 0
             col[index] = 0  # Don't leave the nans there.
+
+    def _check_ascii(self, file_name, num=0, is_rand=False):
+        # Just check the consistency of the various column numbers so we can fail fast.
+
+        # Just read 1 row so we know how many columns there are.
+        # Also will give an IO error if the file is unreadable.
+        comment_marker = self.config.get('comment_marker','#')
+        delimiter = self.config.get('delimiter',None)
+        data = np.genfromtxt(file_name, comments=comment_marker, delimiter=delimiter, max_rows=1)
+        if len(data.shape) != 1:  # pragma: no cover
+            raise IOError('Unable to parse the input catalog as a numpy array')
+        ncols = data.shape[0]
+
+        # Get the column numbers or names
+        x_col = treecorr.config.get_from_list(self.config,'x_col',num,int,0)
+        y_col = treecorr.config.get_from_list(self.config,'y_col',num,int,0)
+        z_col = treecorr.config.get_from_list(self.config,'z_col',num,int,0)
+        ra_col = treecorr.config.get_from_list(self.config,'ra_col',num,int,0)
+        dec_col = treecorr.config.get_from_list(self.config,'dec_col',num,int,0)
+        r_col = treecorr.config.get_from_list(self.config,'r_col',num,int,0)
+        w_col = treecorr.config.get_from_list(self.config,'w_col',num,int,0)
+        wpos_col = treecorr.config.get_from_list(self.config,'wpos_col',num,int,0)
+        flag_col = treecorr.config.get_from_list(self.config,'flag_col',num,int,0)
+        g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,int,0)
+        g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,int,0)
+        k_col = treecorr.config.get_from_list(self.config,'k_col',num,int,0)
+        patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,int,0)
+
+        # Read x,y or ra,dec
+        if x_col != 0 or y_col != 0:
+            if x_col <= 0 or x_col > ncols:
+                raise TypeError("x_col missing or invalid for file %s"%file_name)
+            if y_col <= 0 or y_col > ncols:
+                raise TypeError("y_col missing or invalid for file %s"%file_name)
+            if z_col < 0 or z_col > ncols:
+                raise TypeError("z_col is invalid for file %s"%file_name)
+            if ra_col != 0:
+                raise TypeError("ra_col not allowed in conjunction with x/y cols")
+            if dec_col != 0:
+                raise TypeError("dec_col not allowed in conjunction with x/y cols")
+            if r_col != 0:
+                raise TypeError("r_col not allowed in conjunction with x/y cols")
+        elif ra_col != 0 or dec_col != 0:
+            if ra_col <= 0 or ra_col > ncols:
+                raise TypeError("ra_col missing or invalid for file %s"%file_name)
+            if dec_col <= 0 or dec_col > ncols:
+                raise TypeError("dec_col missing or invalid for file %s"%file_name)
+            if r_col < 0 or r_col > ncols:
+                raise TypeError("r_col is invalid for file %s"%file_name)
+            if z_col != 0:
+                raise TypeError("z_col not allowed in conjunction with ra/dec cols")
+        else:
+            raise TypeError("No valid position columns specified for file %s"%file_name)
+
+        if w_col < 0 or w_col > ncols:
+            raise TypeError("w_col is invalid for file %s"%file_name)
+        if wpos_col < 0 or wpos_col > ncols:
+            raise TypeError("wpos_col is invalid for file %s"%file_name)
+        if flag_col < 0 or flag_col > ncols:
+            raise TypeError("flag_col is invalid for file %s"%file_name)
+        if patch_col < 0 or patch_col > ncols:
+            raise ValueError("patch_col is invalid for file %s"%file_name)
+        if is_rand: return
+
+        if g1_col < 0 or g1_col > ncols or g2_col < 0 or g2_col > ncols or (g1_col!=0) != (g2_col!=0):
+            if isGColRequired(self.orig_config,num):
+                raise TypeError("g1_col, g2_col are invalid for file %s"%file_name)
+            else:
+                self.logger.warning("Warning: skipping g1_col, g2_col for %s, num=%d "%(
+                                    file_name,num) +
+                                    "because they are invalid, but unneeded.")
+
+        if k_col < 0 or k_col > ncols:
+            if isKColRequired(self.orig_config,num):
+                raise TypeError("k_col is invalid for file %s"%file_name)
+            else:
+                self.logger.warning("Warning: skipping k_col for %s, num=%d "%(file_name,num)+
+                                    "because it is invalid, but unneeded.")
 
     def read_ascii(self, file_name, num=0, is_rand=False):
         """Read the catalog from an ASCII file
@@ -779,8 +1002,6 @@ class Catalog(object):
         # If only one row, and not using pands, then the shape comes in as one-d.  Reshape it:
         if len(data.shape) == 1:
             data = data.reshape(1,-1)
-        if len(data.shape) != 2:  # pragma: no cover
-            raise IOError('Unable to parse the input catalog as a 2-d array')
         ncols = data.shape[1]
 
         # Get the column numbers or names
@@ -800,115 +1021,63 @@ class Catalog(object):
 
         # Read x,y or ra,dec
         if x_col != 0 or y_col != 0:
-            if x_col <= 0 or x_col > ncols:
-                raise TypeError("x_col missing or invalid for file %s"%file_name)
-            if y_col <= 0 or y_col > ncols:
-                raise TypeError("y_col missing or invalid for file %s"%file_name)
-            if z_col < 0 or z_col > ncols:
-                raise TypeError("z_col is invalid for file %s"%file_name)
-            if ra_col != 0:
-                raise TypeError("ra_col not allowed in conjunction with x/y cols")
-            if dec_col != 0:
-                raise TypeError("dec_col not allowed in conjunction with x/y cols")
-            if r_col != 0:
-                raise TypeError("r_col not allowed in conjunction with x/y cols")
             # NB. astype always copies, even if the type is already correct.
             # We actually want this, since it makes the result contiguous in memory,
             # which we will need.
-            self.x = data[:,x_col-1].astype(float)
-            self.logger.debug('read x = %s',str(self.x))
-            self.y = data[:,y_col-1].astype(float)
-            self.logger.debug('read y = %s',str(self.y))
+            self._x = data[:,x_col-1].astype(float)
+            self.logger.debug('read x = %s',str(self._x))
+            self._y = data[:,y_col-1].astype(float)
+            self.logger.debug('read y = %s',str(self._y))
             if z_col != 0:
-                self.z = data[:,z_col-1].astype(float)
-                self.logger.debug('read r = %s',str(self.r))
-        elif ra_col != 0 or dec_col != 0:
-            if ra_col <= 0 or ra_col > ncols:
-                raise TypeError("ra_col missing or invalid for file %s"%file_name)
-            if dec_col <= 0 or dec_col > ncols:
-                raise TypeError("dec_col missing or invalid for file %s"%file_name)
-            if r_col < 0 or r_col > ncols:
-                raise TypeError("r_col is invalid for file %s"%file_name)
-            if z_col != 0:
-                raise TypeError("z_col not allowed in conjunction with ra/dec cols")
-            self.ra = data[:,ra_col-1].astype(float)
-            self.logger.debug('read ra = %s',str(self.ra))
-            self.dec = data[:,dec_col-1].astype(float)
-            self.logger.debug('read dec = %s',str(self.dec))
-            if r_col != 0:
-                self.r = data[:,r_col-1].astype(float)
-                self.logger.debug('read r = %s',str(self.r))
+                self._z = data[:,z_col-1].astype(float)
+                self.logger.debug('read r = %s',str(self._r))
         else:
-            raise TypeError("No valid position columns specified for file %s"%file_name)
+            self._ra = data[:,ra_col-1].astype(float)
+            self.logger.debug('read ra = %s',str(self._ra))
+            self._dec = data[:,dec_col-1].astype(float)
+            self.logger.debug('read dec = %s',str(self._dec))
+            if r_col != 0:
+                self._r = data[:,r_col-1].astype(float)
+                self.logger.debug('read r = %s',str(self._r))
 
         # Read w
         if w_col != 0:
-            if w_col <= 0 or w_col > ncols:
-                raise TypeError("w_col is invalid for file %s"%file_name)
-            self.w = data[:,w_col-1].astype(float)
-            self.logger.debug('read w = %s',str(self.w))
+            self._w = data[:,w_col-1].astype(float)
+            self.logger.debug('read w = %s',str(self._w))
 
         # Read wpos
         if wpos_col != 0:
-            if wpos_col <= 0 or wpos_col > ncols:
-                raise TypeError("wpos_col is invalid for file %s"%file_name)
-            self.wpos = data[:,wpos_col-1].astype(float)
-            self.logger.debug('read wpos = %s',str(self.wpos))
+            self._wpos = data[:,wpos_col-1].astype(float)
+            self.logger.debug('read wpos = %s',str(self._wpos))
 
         # Read flag
         if flag_col != 0:
-            if flag_col <= 0 or flag_col > ncols:
-                raise TypeError("flag_col is invalid for file %s"%file_name)
-            self.flag = data[:,flag_col-1].astype(int)
-            self.logger.debug('read flag = %s',str(self.flag))
+            self._flag = data[:,flag_col-1].astype(int)
+            self.logger.debug('read flag = %s',str(self._flag))
+
+        # Read patch
+        if patch_col != 0:
+            self._patch = data[:,patch_col-1].astype(float)
+            self.logger.debug('read patch = %s',str(self._patch))
 
         # Return here if this file is a random catalog
         if is_rand: return
 
         # Read g1,g2
-        if (g1_col != 0 or g2_col != 0):
-            if g1_col <= 0 or g1_col > ncols or g2_col <= 0 or g2_col > ncols:
-                if isGColRequired(self.orig_config,num):
-                    raise TypeError("g1_col, g2_col are invalid for file %s"%file_name)
-                else:
-                    self.logger.warning("Warning: skipping g1_col, g2_col for %s, num=%d "%(
-                                        file_name,num) +
-                                        "because they are invalid, but unneeded.")
-            else:
-                self.g1 = data[:,g1_col-1].astype(float)
-                self.logger.debug('read g1 = %s',str(self.g1))
-                self.g2 = data[:,g2_col-1].astype(float)
-                self.logger.debug('read g2 = %s',str(self.g2))
+        if g1_col >= 0 and g1_col <= ncols:
+            self._g1 = data[:,g1_col-1].astype(float)
+            self.logger.debug('read g1 = %s',str(self._g1))
+            self._g2 = data[:,g2_col-1].astype(float)
+            self.logger.debug('read g2 = %s',str(self._g2))
 
         # Read k
-        if k_col != 0:
-            if k_col <= 0 or k_col > ncols:
-                if isKColRequired(self.orig_config,num):
-                    raise TypeError("k_col is invalid for file %s"%file_name)
-                else:
-                    self.logger.warning("Warning: skipping k_col for %s, num=%d "%(file_name,num)+
-                                        "because it is invalid, but unneeded.")
-            else:
-                self.k = data[:,k_col-1].astype(float)
-                self.logger.debug('read k = %s',str(self.k))
-
-        # Read patch
-        if patch_col != 0:
-            if patch_col <= 0 or patch_col > ncols:
-                raise ValueError("patch_col is invalid for file %s"%file_name)
-            else:
-                self.patch = data[:,patch_col-1].astype(float)
-                self.logger.debug('read patch = %s',str(self.patch))
+        if k_col >= 0 and k_col <= ncols:
+            self._k = data[:,k_col-1].astype(float)
+            self.logger.debug('read k = %s',str(self._k))
 
 
-    def read_fits(self, file_name, num=0, is_rand=False):
-        """Read the catalog from a FITS file
-
-        Parameters:
-            file_name (str):    The name of the file to read in.
-            num (int):          Which number catalog are we reading. (default: 0)
-            is_rand (bool):     Is this a random catalog? (default: False)
-        """
+    def _check_fits(self, file_name, num=0, is_rand=False):
+        # Just check the consistency of the various column numbers so we can fail fast.
         try:
             import fitsio
         except ImportError:
@@ -930,7 +1099,6 @@ class Catalog(object):
         k_col = treecorr.config.get_from_list(self.config,'k_col',num,str,'0')
         patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,str,'0')
 
-        # Check that position cols are valid:
         if x_col != '0' or y_col != '0':
             if x_col == '0':
                 raise ValueError("x_col missing for file %s"%file_name)
@@ -952,7 +1120,6 @@ class Catalog(object):
         else:
             raise ValueError("No valid position columns specified for file %s"%file_name)
 
-        # Check that g1,g2,k cols are valid
         if g1_col == '0' and isGColRequired(self.orig_config,num):
             raise ValueError("g1_col is missing for file %s"%file_name)
         if g2_col == '0' and isGColRequired(self.orig_config,num):
@@ -963,12 +1130,10 @@ class Catalog(object):
         if (g1_col != '0' and g2_col == '0') or (g1_col == '0' and g2_col != '0'):
             raise ValueError("g1_col, g2_col are invalid for file %s"%file_name)
 
-        # OK, now go ahead and read all the columns.
         hdu = treecorr.config.get_from_list(self.config,'hdu',num,int,1)
 
         with fitsio.FITS(file_name, 'r') as fits:
 
-            # Read x,y or ra,dec,r
             if x_col != '0':
                 x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
                 y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
@@ -976,16 +1141,10 @@ class Catalog(object):
                     raise ValueError("x_col is invalid for file %s"%file_name)
                 if y_col not in fits[y_hdu].get_colnames():
                     raise ValueError("y_col is invalid for file %s"%file_name)
-                self.x = fits[x_hdu].read_column(x_col).astype(float)
-                self.logger.debug('read x = %s',str(self.x))
-                self.y = fits[y_hdu].read_column(y_col).astype(float)
-                self.logger.debug('read y = %s',str(self.y))
                 if z_col != '0':
                     z_hdu = treecorr.config.get_from_list(self.config,'z_hdu',num,int,hdu)
                     if z_col not in fits[z_hdu].get_colnames():
                         raise ValueError("z_col is invalid for file %s"%file_name)
-                    self.z = fits[z_hdu].read_column(z_col).astype(float)
-                    self.logger.debug('read z = %s',str(self.z))
             else:
                 ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
                 dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
@@ -993,45 +1152,34 @@ class Catalog(object):
                     raise ValueError("ra_col is invalid for file %s"%file_name)
                 if dec_col not in fits[dec_hdu].get_colnames():
                     raise ValueError("dec_col is invalid for file %s"%file_name)
-                self.ra = fits[ra_hdu].read_column(ra_col).astype(float)
-                self.logger.debug('read ra = %s',str(self.ra))
-                self.dec = fits[dec_hdu].read_column(dec_col).astype(float)
-                self.logger.debug('read dec = %s',str(self.dec))
                 if r_col != '0':
                     r_hdu = treecorr.config.get_from_list(self.config,'r_hdu',num,int,hdu)
                     if r_col not in fits[r_hdu].get_colnames():
                         raise ValueError("r_col is invalid for file %s"%file_name)
-                    self.r = fits[r_hdu].read_column(r_col).astype(float)
-                    self.logger.debug('read r = %s',str(self.r))
 
-            # Read w
             if w_col != '0':
                 w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,int,hdu)
                 if w_col not in fits[w_hdu].get_colnames():
                     raise ValueError("w_col is invalid for file %s"%file_name)
-                self.w = fits[w_hdu].read_column(w_col).astype(float)
-                self.logger.debug('read w = %s',str(self.w))
 
-            # Read wpos
             if wpos_col != '0':
                 wpos_hdu = treecorr.config.get_from_list(self.config,'wpos_hdu',num,int,hdu)
                 if wpos_col not in fits[wpos_hdu].get_colnames():
                     raise ValueError("wpos_col is invalid for file %s"%file_name)
-                self.wpos = fits[wpos_hdu].read_column(wpos_col).astype(float)
-                self.logger.debug('read wpos = %s',str(self.wpos))
 
-            # Read flag
             if flag_col != '0':
                 flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
                 if flag_col not in fits[flag_hdu].get_colnames():
                     raise ValueError("flag_col is invalid for file %s"%file_name)
-                self.flag = fits[flag_hdu].read_column(flag_col).astype(int)
-                self.logger.debug('read flag = %s',str(self.flag))
+
+            if patch_col != '0':
+                patch_hdu = treecorr.config.get_from_list(self.config,'patch_hdu',num,int,hdu)
+                if patch_col not in fits[patch_hdu].get_colnames():
+                    raise ValueError("patch_col is invalid for file %s"%file_name)
 
             # Return here if this file is a random catalog
             if is_rand: return
 
-            # Read g1,g2
             if g1_col != '0':
                 g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
                 g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
@@ -1043,13 +1191,7 @@ class Catalog(object):
                         self.logger.warning("Warning: skipping g1_col, g2_col for %s, num=%d "%(
                                             file_name,num) +
                                             "because they are invalid, but unneeded.")
-                else:
-                    self.g1 = fits[g1_hdu].read_column(g1_col).astype(float)
-                    self.logger.debug('read g1 = %s',str(self.g1))
-                    self.g2 = fits[g2_hdu].read_column(g2_col).astype(float)
-                    self.logger.debug('read g2 = %s',str(self.g2))
 
-            # Read k
             if k_col != '0':
                 k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
                 if k_col not in fits[k_hdu].get_colnames():
@@ -1059,18 +1201,101 @@ class Catalog(object):
                         self.logger.warning("Warning: skipping k_col for %s, num=%d "%(
                                             file_name,num)+
                                             "because it is invalid, but unneeded.")
-                else:
-                    self.k = fits[k_hdu].read_column(k_col).astype(float)
-                    self.logger.debug('read k = %s',str(self.k))
+
+    def read_fits(self, file_name, num=0, is_rand=False):
+        """Read the catalog from a FITS file
+
+        Parameters:
+            file_name (str):    The name of the file to read in.
+            num (int):          Which number catalog are we reading. (default: 0)
+            is_rand (bool):     Is this a random catalog? (default: False)
+        """
+        import fitsio
+
+        # Get the column names
+        x_col = treecorr.config.get_from_list(self.config,'x_col',num,str,'0')
+        y_col = treecorr.config.get_from_list(self.config,'y_col',num,str,'0')
+        z_col = treecorr.config.get_from_list(self.config,'z_col',num,str,'0')
+        ra_col = treecorr.config.get_from_list(self.config,'ra_col',num,str,'0')
+        dec_col = treecorr.config.get_from_list(self.config,'dec_col',num,str,'0')
+        r_col = treecorr.config.get_from_list(self.config,'r_col',num,str,'0')
+        w_col = treecorr.config.get_from_list(self.config,'w_col',num,str,'0')
+        wpos_col = treecorr.config.get_from_list(self.config,'wpos_col',num,str,'0')
+        flag_col = treecorr.config.get_from_list(self.config,'flag_col',num,str,'0')
+        g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,str,'0')
+        g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,str,'0')
+        k_col = treecorr.config.get_from_list(self.config,'k_col',num,str,'0')
+        patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,str,'0')
+
+        hdu = treecorr.config.get_from_list(self.config,'hdu',num,int,1)
+
+        with fitsio.FITS(file_name, 'r') as fits:
+
+            # Read x,y or ra,dec,r
+            if x_col != '0':
+                x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
+                y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
+                self._x = fits[x_hdu].read_column(x_col).astype(float)
+                self.logger.debug('read x = %s',str(self._x))
+                self._y = fits[y_hdu].read_column(y_col).astype(float)
+                self.logger.debug('read y = %s',str(self._y))
+                if z_col != '0':
+                    z_hdu = treecorr.config.get_from_list(self.config,'z_hdu',num,int,hdu)
+                    self._z = fits[z_hdu].read_column(z_col).astype(float)
+                    self.logger.debug('read z = %s',str(self._z))
+            else:
+                ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
+                dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
+                self._ra = fits[ra_hdu].read_column(ra_col).astype(float)
+                self.logger.debug('read ra = %s',str(self._ra))
+                self._dec = fits[dec_hdu].read_column(dec_col).astype(float)
+                self.logger.debug('read dec = %s',str(self._dec))
+                if r_col != '0':
+                    r_hdu = treecorr.config.get_from_list(self.config,'r_hdu',num,int,hdu)
+                    self._r = fits[r_hdu].read_column(r_col).astype(float)
+                    self.logger.debug('read r = %s',str(self._r))
+
+            # Read w
+            if w_col != '0':
+                w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,int,hdu)
+                self._w = fits[w_hdu].read_column(w_col).astype(float)
+                self.logger.debug('read w = %s',str(self._w))
+
+            # Read wpos
+            if wpos_col != '0':
+                wpos_hdu = treecorr.config.get_from_list(self.config,'wpos_hdu',num,int,hdu)
+                self._wpos = fits[wpos_hdu].read_column(wpos_col).astype(float)
+                self.logger.debug('read wpos = %s',str(self._wpos))
+
+            # Read flag
+            if flag_col != '0':
+                flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
+                self._flag = fits[flag_hdu].read_column(flag_col).astype(int)
+                self.logger.debug('read flag = %s',str(self._flag))
 
             # Read patch
             if patch_col != '0':
                 patch_hdu = treecorr.config.get_from_list(self.config,'patch_hdu',num,int,hdu)
-                if patch_col not in fits[patch_hdu].get_colnames():
-                    raise ValueError("patch_col is invalid for file %s"%file_name)
-                else:
-                    self.patch = fits[patch_hdu].read_column(patch_col).astype(float)
-                    self.logger.debug('read patch = %s',str(self.patch))
+                self._patch = fits[patch_hdu].read_column(patch_col).astype(float)
+                self.logger.debug('read patch = %s',str(self._patch))
+
+            # Return here if this file is a random catalog
+            if is_rand: return
+
+            # Read g1,g2
+            g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
+            g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
+            if g1_col in fits[g1_hdu].get_colnames():
+                self._g1 = fits[g1_hdu].read_column(g1_col).astype(float)
+                self.logger.debug('read g1 = %s',str(self._g1))
+                self._g2 = fits[g2_hdu].read_column(g2_col).astype(float)
+                self.logger.debug('read g2 = %s',str(self._g2))
+
+            # Read k
+            k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
+            if k_col in fits[k_hdu].get_colnames():
+                self._k = fits[k_hdu].read_column(k_col).astype(float)
+                self.logger.debug('read k = %s',str(self._k))
 
     def _setup_fields(self):
         self._field = lambda : None  # Acts like a dead weakref
@@ -1514,12 +1739,7 @@ class Catalog(object):
 
     def __eq__(self, other):
         return (isinstance(other, Catalog) and
-                self.nobj == other.nobj and
                 self.ntot == other.ntot and
-                self.sumw == other.sumw and
-                self.varg == other.varg and
-                self.vark == other.vark and
-                self.coords == other.coords and
                 np.array_equal(self.x, other.x) and
                 np.array_equal(self.y, other.y) and
                 np.array_equal(self.z, other.z) and

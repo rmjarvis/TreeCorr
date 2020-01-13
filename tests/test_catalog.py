@@ -282,6 +282,7 @@ def test_ascii():
     with CaptureLog() as cl:
         cat10 = treecorr.Catalog(file_name, config, w_col=0, wpos_col=11, flag_col=0,
                                  logger=cl.logger)
+        cat10.x  # Force the read to happen.
     np.testing.assert_almost_equal(cat10.wpos, wpos)
     np.testing.assert_almost_equal(cat10.w[wpos==0], 0)
     np.testing.assert_almost_equal(cat10.w[wpos!=0], 1)

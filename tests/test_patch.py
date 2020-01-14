@@ -41,7 +41,7 @@ def test_cat_patches():
     #    Note: If npatch is a power of two, then the patch determination is completely
     #          deterministic, which is helpful for this test.
     cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128)
-    p2 = cat0.getNField().run_kmeans(128)
+    p2, cen = cat0.getNField().run_kmeans(128)
     np.testing.assert_array_equal(cat1.patch, p2)
     assert len(cat1.getPatches()) == 128
     assert np.sum([p.ntot for p in cat1.getPatches()]) == ngal
@@ -49,7 +49,7 @@ def test_cat_patches():
     # 2. Optionally can use alt algorithm
     cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
                             kmeans_alt=True)
-    p3 = cat0.getNField().run_kmeans(128, alt=True)
+    p3, cen = cat0.getNField().run_kmeans(128, alt=True)
     np.testing.assert_array_equal(cat2.patch, p3)
     assert len(cat2.getPatches()) == 128
 

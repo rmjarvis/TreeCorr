@@ -829,7 +829,7 @@ class Catalog(object):
             init = treecorr.config.get(self.config,'kmeans_init',str,'tree')
             alt = treecorr.config.get(self.config,'kmeans_alt',bool,False)
             field = self.getNField()
-            self._patch = field.run_kmeans(self.npatch, init=init, alt=alt)
+            self._patch, self._centers = field.run_kmeans(self.npatch, init=init, alt=alt)
 
         self.logger.info("   nobj = %d",self.nobj)
 

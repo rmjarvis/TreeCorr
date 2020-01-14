@@ -39,17 +39,21 @@ def test_dessv():
     npatch = 43
     field = cat.getNField()
     t0 = time.time()
-    patches = field.run_kmeans(npatch)
+    patches, cen = field.run_kmeans(npatch)
     t1 = time.time()
     print('patches = ',np.unique(patches))
     assert len(patches) == cat.ntot
     assert min(patches) == 0
     assert max(patches) == npatch-1
 
+    # Check the returned center to a direct calculation.
+    xyz = np.array([cat.x, cat.y, cat.z]).T
+    direct_cen = np.array([xyz[patches==i].mean(axis=0) for i in range(npatch)])
+    direct_cen /= np.sqrt(np.sum(direct_cen**2,axis=1)[:,np.newaxis])
+    np.testing.assert_allclose(cen, direct_cen, atol=1.e-3)
+
     # KMeans minimizes the total inertia.
     # Check this value and the rms size, which should also be quite small.
-    xyz = np.array([cat.x, cat.y, cat.z]).T
-    cen = np.array([xyz[patches==i].mean(axis=0) for i in range(npatch)])
     inertia = np.array([np.sum((xyz[patches==i] - cen[i])**2) for i in range(npatch)])
     sizes = np.array([np.mean((xyz[patches==i] - cen[i])**2) for i in range(npatch)])**0.5
     sizes *= 180. / np.pi * 60.  # convert to arcmin
@@ -73,13 +77,12 @@ def test_dessv():
 
     # Check the alternate algorithm.  rms inertia should be lower.
     t0 = time.time()
-    patches = field.run_kmeans(npatch, alt=True)
+    patches, cen = field.run_kmeans(npatch, alt=True)
     t1 = time.time()
     assert len(patches) == cat.ntot
     assert min(patches) == 0
     assert max(patches) == npatch-1
 
-    cen = np.array([xyz[patches==i].mean(axis=0) for i in range(npatch)])
     inertia = np.array([np.sum((xyz[patches==i] - cen[i])**2) for i in range(npatch)])
     sizes = np.array([np.mean((xyz[patches==i] - cen[i])**2) for i in range(npatch)])**0.5
     sizes *= 180. / np.pi * 60.  # convert to arcmin
@@ -105,13 +108,12 @@ def test_dessv():
     # InitializeCenters.
     field = cat.getNField(min_top=10)
     t0 = time.time()
-    patches = field.run_kmeans(npatch)
+    patches, cen = field.run_kmeans(npatch)
     t1 = time.time()
     assert len(patches) == cat.ntot
     assert min(patches) == 0
     assert max(patches) == npatch-1
 
-    cen = np.array([xyz[patches==i].mean(axis=0) for i in range(npatch)])
     inertia = np.array([np.sum((xyz[patches==i] - cen[i])**2) for i in range(npatch)])
     sizes = np.array([np.mean((xyz[patches==i] - cen[i])**2) for i in range(npatch)])**0.5
     sizes *= 180. / np.pi * 60.  # convert to arcmin
@@ -156,15 +158,19 @@ def test_radec():
     npatch = 111
     field = cat.getNField()
     t0 = time.time()
-    p = field.run_kmeans(npatch)
+    p, cen = field.run_kmeans(npatch)
     t1 = time.time()
     print('patches = ',np.unique(p))
     assert len(p) == cat.ntot
     assert min(p) == 0
     assert max(p) == npatch-1
 
+    # Check the returned center to a direct calculation.
     xyz = np.array([cat.x, cat.y, cat.z]).T
-    cen = np.array([np.average(xyz[p==i], axis=0, weights=w[p==i]) for i in range(npatch)])
+    direct_cen = np.array([np.average(xyz[p==i], axis=0, weights=w[p==i]) for i in range(npatch)])
+    direct_cen /= np.sqrt(np.sum(direct_cen**2,axis=1)[:,np.newaxis])
+    np.testing.assert_allclose(cen, direct_cen, atol=1.e-3)
+
     inertia = np.array([np.sum(w[p==i][:,None] * (xyz[p==i] - cen[i])**2) for i in range(npatch)])
     counts = np.array([np.sum(w[p==i]) for i in range(npatch)])
 
@@ -188,13 +194,12 @@ def test_radec():
 
     # Check the alternate algorithm.  rms inertia should be lower.
     t0 = time.time()
-    p = field.run_kmeans(npatch, alt=True)
+    p, cen = field.run_kmeans(npatch, alt=True)
     t1 = time.time()
     assert len(p) == cat.ntot
     assert min(p) == 0
     assert max(p) == npatch-1
 
-    cen = np.array([xyz[p==i].mean(axis=0) for i in range(npatch)])
     inertia = np.array([np.sum(w[p==i][:,None] * (xyz[p==i] - cen[i])**2) for i in range(npatch)])
     counts = np.array([np.sum(w[p==i]) for i in range(npatch)])
 
@@ -213,13 +218,12 @@ def test_radec():
     # InitializeCenters.
     field = cat.getNField(min_top=10)
     t0 = time.time()
-    p = field.run_kmeans(npatch)
+    p, cen = field.run_kmeans(npatch)
     t1 = time.time()
     assert len(p) == cat.ntot
     assert min(p) == 0
     assert max(p) == npatch-1
 
-    cen = np.array([xyz[p==i].mean(axis=0) for i in range(npatch)])
     inertia = np.array([np.sum(w[p==i][:,None] * (xyz[p==i] - cen[i])**2) for i in range(npatch)])
     counts = np.array([np.sum(w[p==i]) for i in range(npatch)])
 
@@ -251,7 +255,7 @@ def test_3d():
     npatch = 111
     field = cat.getNField()
     t0 = time.time()
-    p = field.run_kmeans(npatch)
+    p, cen = field.run_kmeans(npatch)
     t1 = time.time()
     print('patches = ',np.unique(p))
     assert len(p) == cat.ntot
@@ -259,7 +263,6 @@ def test_3d():
     assert max(p) == npatch-1
 
     xyz = np.array([x, y, z]).T
-    cen = np.array([np.average(xyz[p==i], axis=0, weights=w[p==i]) for i in range(npatch)])
     inertia = np.array([np.sum(w[p==i][:,None] * (xyz[p==i] - cen[i])**2) for i in range(npatch)])
     counts = np.array([np.sum(w[p==i]) for i in range(npatch)])
 
@@ -282,9 +285,8 @@ def test_3d():
     cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', r=r, w=w)
     field = cat.getNField()
     t0 = time.time()
-    p2 = field.run_kmeans(npatch)
+    p2, cen = field.run_kmeans(npatch)
     t1 = time.time()
-    cen = np.array([np.average(xyz[p2==i], axis=0, weights=w[p2==i]) for i in range(npatch)])
     inertia = np.array([np.sum(w[p2==i][:,None] * (xyz[p2==i] - cen[i])**2) for i in range(npatch)])
     counts = np.array([np.sum(w[p2==i]) for i in range(npatch)])
     print('time = ',t1-t0)
@@ -299,13 +301,12 @@ def test_3d():
 
     # Check the alternate algorithm.  rms inertia should be lower.
     t0 = time.time()
-    p = field.run_kmeans(npatch, alt=True)
+    p, cen = field.run_kmeans(npatch, alt=True)
     t1 = time.time()
     assert len(p) == cat.ntot
     assert min(p) == 0
     assert max(p) == npatch-1
 
-    cen = np.array([xyz[p==i].mean(axis=0) for i in range(npatch)])
     inertia = np.array([np.sum(w[p==i][:,None] * (xyz[p==i] - cen[i])**2) for i in range(npatch)])
     counts = np.array([np.sum(w[p==i]) for i in range(npatch)])
 
@@ -324,13 +325,12 @@ def test_3d():
     # InitializeCenters.
     field = cat.getNField(min_top=10)
     t0 = time.time()
-    p = field.run_kmeans(npatch)
+    p, cen = field.run_kmeans(npatch)
     t1 = time.time()
     assert len(p) == cat.ntot
     assert min(p) == 0
     assert max(p) == npatch-1
 
-    cen = np.array([xyz[p==i].mean(axis=0) for i in range(npatch)])
     inertia = np.array([np.sum(w[p==i][:,None] * (xyz[p==i] - cen[i])**2) for i in range(npatch)])
     counts = np.array([np.sum(w[p==i]) for i in range(npatch)])
 
@@ -366,7 +366,7 @@ def test_2d():
     npatch = 111
     field = cat.getGField()
     t0 = time.time()
-    p = field.run_kmeans(npatch)
+    p, cen = field.run_kmeans(npatch)
     t1 = time.time()
     print('patches = ',np.unique(p))
     assert len(p) == cat.ntot
@@ -374,7 +374,6 @@ def test_2d():
     assert max(p) == npatch-1
 
     xy = np.array([x, y]).T
-    cen = np.array([np.average(xy[p==i], axis=0, weights=w[p==i]) for i in range(npatch)])
     inertia = np.array([np.sum(w[p==i][:,None] * (xy[p==i] - cen[i])**2) for i in range(npatch)])
     counts = np.array([np.sum(w[p==i]) for i in range(npatch)])
 
@@ -393,13 +392,12 @@ def test_2d():
 
     # Check the alternate algorithm.  rms inertia should be lower.
     t0 = time.time()
-    p = field.run_kmeans(npatch, alt=True)
+    p, cen = field.run_kmeans(npatch, alt=True)
     t1 = time.time()
     assert len(p) == cat.ntot
     assert min(p) == 0
     assert max(p) == npatch-1
 
-    cen = np.array([xy[p==i].mean(axis=0) for i in range(npatch)])
     inertia = np.array([np.sum(w[p==i][:,None] * (xy[p==i] - cen[i])**2) for i in range(npatch)])
     counts = np.array([np.sum(w[p==i]) for i in range(npatch)])
 
@@ -418,13 +416,12 @@ def test_2d():
     # InitializeCenters.
     field = cat.getKField(min_top=10)
     t0 = time.time()
-    p = field.run_kmeans(npatch)
+    p, cen = field.run_kmeans(npatch)
     t1 = time.time()
     assert len(p) == cat.ntot
     assert min(p) == 0
     assert max(p) == npatch-1
 
-    cen = np.array([xy[p==i].mean(axis=0) for i in range(npatch)])
     inertia = np.array([np.sum(w[p==i][:,None] * (xy[p==i] - cen[i])**2) for i in range(npatch)])
     counts = np.array([np.sum(w[p==i]) for i in range(npatch)])
 
@@ -458,7 +455,6 @@ def test_init_random():
     npatch = 10
     field = cat.getNField()
     cen1 = field.kmeans_initialize_centers(npatch, 'random')
-    #print('cen = ',cen1)
     assert cen1.shape == (npatch, 3)
     p1 = field.kmeans_assign_patches(cen1)
     print('patches = ',np.unique(p1))
@@ -474,8 +470,7 @@ def test_init_random():
 
     # Now run the normal way
     # Use higher max_iter, since random isn't a great initialization.
-    p2 = field.run_kmeans(npatch, init='random', max_iter=1000)
-    cen2 = np.array([xyz[p2==i].mean(axis=0) for i in range(npatch)])
+    p2, cen2 = field.run_kmeans(npatch, init='random', max_iter=1000)
     inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
@@ -486,7 +481,6 @@ def test_init_random():
     print('3d with init=random, min_top=10')
     field = cat.getNField(min_top=10)
     cen1 = field.kmeans_initialize_centers(npatch, 'random')
-    #print('cen = ',cen1)
     assert cen1.shape == (npatch, 3)
     p1 = field.kmeans_assign_patches(cen1)
     print('patches = ',np.unique(p1))
@@ -501,8 +495,7 @@ def test_init_random():
     print('total inertia = ',np.sum(inertia1))
 
     # Now run the normal way
-    p2 = field.run_kmeans(npatch, init='random', max_iter=1000)
-    cen2 = np.array([xyz[p2==i].mean(axis=0) for i in range(npatch)])
+    p2, cen2 = field.run_kmeans(npatch, init='random', max_iter=1000)
     inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
@@ -515,7 +508,6 @@ def test_init_random():
     xy = np.array([x, y]).T
     field = cat.getNField()
     cen1 = field.kmeans_initialize_centers(npatch, 'random')
-    #print('cen = ',cen1)
     assert cen1.shape == (npatch, 2)
     p1 = field.kmeans_assign_patches(cen1)
     print('patches = ',np.unique(p1))
@@ -530,8 +522,7 @@ def test_init_random():
     print('total inertia = ',np.sum(inertia1))
 
     # Now run the normal way
-    p2 = field.run_kmeans(npatch, init='random', max_iter=1000)
-    cen2 = np.array([xy[p2==i].mean(axis=0) for i in range(npatch)])
+    p2, cen2 = field.run_kmeans(npatch, init='random', max_iter=1000)
     inertia2 = np.array([np.sum((xy[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
@@ -545,7 +536,6 @@ def test_init_random():
     xyz = np.array([cat.x, cat.y, cat.z]).T
     field = cat.getNField()
     cen1 = field.kmeans_initialize_centers(npatch, 'random')
-    #print('cen = ',cen1)
     assert cen1.shape == (npatch, 3)
     p1 = field.kmeans_assign_patches(cen1)
     print('patches = ',np.unique(p1))
@@ -560,8 +550,7 @@ def test_init_random():
     print('total inertia = ',np.sum(inertia1))
 
     # Now run the normal way
-    p2 = field.run_kmeans(npatch, init='random', max_iter=1000)
-    cen2 = np.array([xyz[p2==i].mean(axis=0) for i in range(npatch)])
+    p2, cen2 = field.run_kmeans(npatch, init='random', max_iter=1000)
     inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
@@ -614,7 +603,6 @@ def test_init_kmpp():
     npatch = 10
     field = cat.getNField()
     cen1 = field.kmeans_initialize_centers(npatch, 'kmeans++')
-    #print('cen = ',cen1)
     assert cen1.shape == (npatch, 3)
     p1 = field.kmeans_assign_patches(cen1)
     print('patches = ',np.unique(p1))
@@ -630,8 +618,7 @@ def test_init_kmpp():
 
     # Now run the normal way
     # Use higher max_iter, since random isn't a great initialization.
-    p2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000)
-    cen2 = np.array([xyz[p2==i].mean(axis=0) for i in range(npatch)])
+    p2, cen2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000)
     inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
@@ -642,7 +629,6 @@ def test_init_kmpp():
     print('3d with init=kmeans++, min_top=10')
     field = cat.getNField(min_top=10)
     cen1 = field.kmeans_initialize_centers(npatch, 'kmeans++')
-    #print('cen = ',cen1)
     assert cen1.shape == (npatch, 3)
     p1 = field.kmeans_assign_patches(cen1)
     print('patches = ',np.unique(p1))
@@ -657,8 +643,7 @@ def test_init_kmpp():
     print('total inertia = ',np.sum(inertia1))
 
     # Now run the normal way
-    p2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000)
-    cen2 = np.array([xyz[p2==i].mean(axis=0) for i in range(npatch)])
+    p2, cen2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000)
     inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
@@ -671,7 +656,6 @@ def test_init_kmpp():
     xy = np.array([x, y]).T
     field = cat.getNField()
     cen1 = field.kmeans_initialize_centers(npatch, 'kmeans++')
-    #print('cen = ',cen1)
     assert cen1.shape == (npatch, 2)
     p1 = field.kmeans_assign_patches(cen1)
     print('patches = ',np.unique(p1))
@@ -686,8 +670,7 @@ def test_init_kmpp():
     print('total inertia = ',np.sum(inertia1))
 
     # Now run the normal way
-    p2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000)
-    cen2 = np.array([xy[p2==i].mean(axis=0) for i in range(npatch)])
+    p2, cen2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000)
     inertia2 = np.array([np.sum((xy[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
@@ -701,7 +684,6 @@ def test_init_kmpp():
     xyz = np.array([cat.x, cat.y, cat.z]).T
     field = cat.getNField()
     cen1 = field.kmeans_initialize_centers(npatch, 'kmeans++')
-    #print('cen = ',cen1)
     assert cen1.shape == (npatch, 3)
     p1 = field.kmeans_assign_patches(cen1)
     print('patches = ',np.unique(p1))
@@ -716,8 +698,7 @@ def test_init_kmpp():
     print('total inertia = ',np.sum(inertia1))
 
     # Now run the normal way
-    p2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000)
-    cen2 = np.array([xyz[p2==i].mean(axis=0) for i in range(npatch)])
+    p2, cen2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000)
     inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
@@ -772,7 +753,7 @@ def test_zero_weight():
     npatch = 16
     field = cat.getNField()
     t0 = time.time()
-    p = field.run_kmeans(npatch)
+    p, c = field.run_kmeans(npatch)
     t1 = time.time()
     print('patches = ',np.unique(p))
     assert len(p) == cat.ntot

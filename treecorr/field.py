@@ -315,10 +315,15 @@ class Field(object):
         Returns:
             patches (array):    An array of patch labels, all integers from 0..npatch-1.
                                 Size is self.ntot.
+            centers (array):    An array of center coordinates used to make the patches.
+                                Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
+                                spherical geometries.  In the latter case, the centers represent
+                                (x,y,z) coordinates on the unit sphere.
         """
         centers = self.kmeans_initialize_centers(npatch, init)
         self.kmeans_refine_centers(centers, max_iter, tol, alt)
-        return self.kmeans_assign_patches(centers)
+        patches = self.kmeans_assign_patches(centers)
+        return patches, centers
 
     def kmeans_initialize_centers(self, npatch, init='tree'):
         """Use the field's tree structure to assign good initial centers for a K-Means run.

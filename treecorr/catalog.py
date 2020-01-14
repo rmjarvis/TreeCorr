@@ -182,6 +182,7 @@ class Catalog(object):
         first_row (int):    Which row to take as the first row to be used. (default: 1)
         last_row (int):     Which row to take as the last row to be used. (default: -1, which means
                             the last row in the file)
+        every_nth (int):    Only use every nth row of the input catalog. (default: 1)
 
         npatch (int):       How many patches to split the catalog into (using kmeans) for the
                             purpose of jackknife variance or other options that involve running via
@@ -318,7 +319,9 @@ class Catalog(object):
         'first_row' : (int, True, 1, None,
                 'The first row to use from the input catalog'),
         'last_row' : (int, True, -1, None,
-                'The last row to use from the input catalog.  The default is to use all of them.'),
+                'The last row to use from the input catalog. The default is to use all of them.'),
+        'every_nth' : (int, True, 1, None,
+                'Only use every nth row of the input catalog. The default is to use all of them.'),
         'npatch' : (int, False, 1, None,
                 'Number of patches to split the catalog into'),
         'kmeans_init' : (str, False, 'tree', ['tree','random','kmeans++'],
@@ -461,6 +464,9 @@ class Catalog(object):
             self.start = first_row-1
         else:
             self.start = 0
+        self.every_nth = treecorr.config.get_from_list(self.config,'every_nth',num,int,1)
+        if self.every_nth < 1:
+            raise ValueError("every_nth should be >= 1")
 
         if 'npatch' in self.config and self.config['npatch'] != 1:
             self.npatch = treecorr.config.get(self.config,'npatch',int)
@@ -511,19 +517,19 @@ class Catalog(object):
                 if g1 is None or g2 is None:
                     raise TypeError("g1 and g2 must both be provided")
             self.name = ''
-            self._x = self.makeArray(x,'x',self.start,self.end)
-            self._y = self.makeArray(y,'y',self.start,self.end)
-            self._z = self.makeArray(z,'z',self.start,self.end)
-            self._ra = self.makeArray(ra,'ra',self.start,self.end)
-            self._dec = self.makeArray(dec,'dec',self.start,self.end)
-            self._r = self.makeArray(r,'r',self.start,self.end)
-            self._w = self.makeArray(w,'w',self.start,self.end)
-            self._wpos = self.makeArray(wpos,'wpos',self.start,self.end)
-            self._flag = self.makeArray(flag,'flag',self.start,self.end,int)
-            self._g1 = self.makeArray(g1,'g1',self.start,self.end)
-            self._g2 = self.makeArray(g2,'g2',self.start,self.end)
-            self._k = self.makeArray(k,'k',self.start,self.end)
-            self._patch = self.makeArray(patch,'patch',self.start,self.end,int)
+            self._x = self.makeArray(x,'x')
+            self._y = self.makeArray(y,'y')
+            self._z = self.makeArray(z,'z')
+            self._ra = self.makeArray(ra,'ra')
+            self._dec = self.makeArray(dec,'dec')
+            self._r = self.makeArray(r,'r')
+            self._w = self.makeArray(w,'w')
+            self._wpos = self.makeArray(wpos,'wpos')
+            self._flag = self.makeArray(flag,'flag',int)
+            self._g1 = self.makeArray(g1,'g1')
+            self._g2 = self.makeArray(g2,'g2')
+            self._k = self.makeArray(k,'k')
+            self._patch = self.makeArray(patch,'patch',int)
 
             # Check that all columns have the same length.  (This is impossible in file input)
             if self._x is not None:
@@ -827,15 +833,13 @@ class Catalog(object):
 
         self.logger.info("   nobj = %d",self.nobj)
 
-    def makeArray(self, col, col_str, start=0, end=None, dtype=float):
+    def makeArray(self, col, col_str, dtype=float):
         """Turn the input column into a numpy array if it wasn't already.
         Also make sure the input in 1-d.
 
         Parameters:
             col (array-like):   The input column to be converted into a numpy array.
             col_str (str):      The name of the column.  Used only as information in logging output.
-            start (int):        The start element to include in the returned array (default: 0).
-            end (int):          The start element to include in the returned array (default: None).
             dtype (type):       The dtype for the returned array.  (default: float)
 
         Returns:
@@ -848,7 +852,7 @@ class Catalog(object):
                 col = col.reshape(-1)
                 self.logger.warning("Warning: Input %s column was not 1-d.\n"%col_str +
                                     "         Reshaping from %s to %s"%(s,col.shape))
-            col = col[self.start:self.end]
+            col = col[self.start:self.end:self.every_nth]
         return col
 
 
@@ -971,6 +975,10 @@ class Catalog(object):
             nrows = None
         else:
             nrows = self.end - self.start
+        if self.every_nth != 1:
+            start = skiprows
+            skiprows = lambda x: x < start or (x-start) % self.every_nth != 0
+            nrows = (nrows-1) // self.every_nth + 1
         try:
             import pandas
             if delimiter is None:
@@ -1225,50 +1233,50 @@ class Catalog(object):
             if x_col != '0':
                 x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
                 y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
-                self._x = fits[x_hdu][x_col][self.start:self.end].astype(float)
+                self._x = fits[x_hdu][x_col][self.start:self.end:self.every_nth].astype(float)
                 self.logger.debug('read x = %s',str(self._x))
-                self._y = fits[y_hdu][y_col][self.start:self.end].astype(float)
+                self._y = fits[y_hdu][y_col][self.start:self.end:self.every_nth].astype(float)
                 self.logger.debug('read y = %s',str(self._y))
                 ntot = len(self._x)
                 if z_col != '0':
                     z_hdu = treecorr.config.get_from_list(self.config,'z_hdu',num,int,hdu)
-                    self._z = fits[z_hdu][z_col][self.start:self.end].astype(float)
+                    self._z = fits[z_hdu][z_col][self.start:self.end:self.every_nth].astype(float)
                     self.logger.debug('read z = %s',str(self._z))
             else:
                 ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
                 dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
-                self._ra = fits[ra_hdu][ra_col][self.start:self.end].astype(float)
+                self._ra = fits[ra_hdu][ra_col][self.start:self.end:self.every_nth].astype(float)
                 self.logger.debug('read ra = %s',str(self._ra))
-                self._dec = fits[dec_hdu][dec_col][self.start:self.end].astype(float)
+                self._dec = fits[dec_hdu][dec_col][self.start:self.end:self.every_nth].astype(float)
                 self.logger.debug('read dec = %s',str(self._dec))
                 ntot = len(self._ra)
                 if r_col != '0':
                     r_hdu = treecorr.config.get_from_list(self.config,'r_hdu',num,int,hdu)
-                    self._r = fits[r_hdu][r_col][self.start:self.end].astype(float)
+                    self._r = fits[r_hdu][r_col][self.start:self.end:self.every_nth].astype(float)
                     self.logger.debug('read r = %s',str(self._r))
 
             # Read w
             if w_col != '0':
                 w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,int,hdu)
-                self._w = fits[w_hdu][w_col][self.start:self.end].astype(float)
+                self._w = fits[w_hdu][w_col][self.start:self.end:self.every_nth].astype(float)
                 self.logger.debug('read w = %s',str(self._w))
 
             # Read wpos
             if wpos_col != '0':
                 wpos_hdu = treecorr.config.get_from_list(self.config,'wpos_hdu',num,int,hdu)
-                self._wpos = fits[wpos_hdu][wpos_col][self.start:self.end].astype(float)
+                self._wpos = fits[wpos_hdu][wpos_col][self.start:self.end:self.every_nth].astype(float)
                 self.logger.debug('read wpos = %s',str(self._wpos))
 
             # Read flag
             if flag_col != '0':
                 flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
-                self._flag = fits[flag_hdu][flag_col][self.start:self.end].astype(int)
+                self._flag = fits[flag_hdu][flag_col][self.start:self.end:self.every_nth].astype(int)
                 self.logger.debug('read flag = %s',str(self._flag))
 
             # Read patch
             if patch_col != '0':
                 patch_hdu = treecorr.config.get_from_list(self.config,'patch_hdu',num,int,hdu)
-                self._patch = fits[patch_hdu][patch_col][self.start:self.end].astype(float)
+                self._patch = fits[patch_hdu][patch_col][self.start:self.end:self.every_nth].astype(float)
                 self.logger.debug('read patch = %s',str(self._patch))
 
             # Skip g1,g2,k if this file is a random catalog
@@ -1277,15 +1285,15 @@ class Catalog(object):
                 g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
                 g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
                 if g1_col in fits[g1_hdu].get_colnames():
-                    self._g1 = fits[g1_hdu][g1_col][self.start:self.end].astype(float)
+                    self._g1 = fits[g1_hdu][g1_col][self.start:self.end:self.every_nth].astype(float)
                     self.logger.debug('read g1 = %s',str(self._g1))
-                    self._g2 = fits[g2_hdu][g2_col][self.start:self.end].astype(float)
+                    self._g2 = fits[g2_hdu][g2_col][self.start:self.end:self.every_nth].astype(float)
                     self.logger.debug('read g2 = %s',str(self._g2))
 
                 # Read k
                 k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
                 if k_col in fits[k_hdu].get_colnames():
-                    self._k = fits[k_hdu][k_col][self.start:self.end].astype(float)
+                    self._k = fits[k_hdu][k_col][self.start:self.end:self.every_nth].astype(float)
                     self.logger.debug('read k = %s',str(self._k))
 
     def _setup_fields(self):

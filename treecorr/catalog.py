@@ -511,19 +511,19 @@ class Catalog(object):
                 if g1 is None or g2 is None:
                     raise TypeError("g1 and g2 must both be provided")
             self.name = ''
-            self._x = self.makeArray(x,'x')
-            self._y = self.makeArray(y,'y')
-            self._z = self.makeArray(z,'z')
-            self._ra = self.makeArray(ra,'ra')
-            self._dec = self.makeArray(dec,'dec')
-            self._r = self.makeArray(r,'r')
-            self._w = self.makeArray(w,'w')
-            self._wpos = self.makeArray(wpos,'wpos')
-            self._flag = self.makeArray(flag,'flag',int)
-            self._g1 = self.makeArray(g1,'g1')
-            self._g2 = self.makeArray(g2,'g2')
-            self._k = self.makeArray(k,'k')
-            self._patch = self.makeArray(patch,'patch',int)
+            self._x = self.makeArray(x,'x',self.start,self.end)
+            self._y = self.makeArray(y,'y',self.start,self.end)
+            self._z = self.makeArray(z,'z',self.start,self.end)
+            self._ra = self.makeArray(ra,'ra',self.start,self.end)
+            self._dec = self.makeArray(dec,'dec',self.start,self.end)
+            self._r = self.makeArray(r,'r',self.start,self.end)
+            self._w = self.makeArray(w,'w',self.start,self.end)
+            self._wpos = self.makeArray(wpos,'wpos',self.start,self.end)
+            self._flag = self.makeArray(flag,'flag',self.start,self.end,int)
+            self._g1 = self.makeArray(g1,'g1',self.start,self.end)
+            self._g2 = self.makeArray(g2,'g2',self.start,self.end)
+            self._k = self.makeArray(k,'k',self.start,self.end)
+            self._patch = self.makeArray(patch,'patch',self.start,self.end,int)
 
             # Check that all columns have the same length.  (This is impossible in file input)
             if self._x is not None:
@@ -768,24 +768,6 @@ class Catalog(object):
         else:
             ntot = len(self._ra)
 
-        # Update the data according to the specified first and last row
-        if self.end is None:
-            self.end = ntot
-        ntot = self.end-self.start
-        self.logger.debug('start..end = %d..%d',self.start,self.end)
-        if self._x is not None: self._x = self._x[self.start:self.end]
-        if self._y is not None: self._y = self._y[self.start:self.end]
-        if self._z is not None: self._z = self._z[self.start:self.end]
-        if self._ra is not None: self._ra = self._ra[self.start:self.end]
-        if self._dec is not None: self._dec = self._dec[self.start:self.end]
-        if self._r is not None: self._r = self._r[self.start:self.end]
-        if self._w is not None: self._w = self._w[self.start:self.end]
-        if self._wpos is not None: self._wpos = self._wpos[self.start:self.end]
-        if self._g1 is not None: self._g1 = self._g1[self.start:self.end]
-        if self._g2 is not None: self._g2 = self._g2[self.start:self.end]
-        if self._k is not None: self._k = self._k[self.start:self.end]
-        if self._patch is not None: self._patch = self._patch[self.start:self.end]
-
         # Check for NaN's:
         self.checkForNaN(self._x,'x')
         self.checkForNaN(self._y,'y')
@@ -845,13 +827,15 @@ class Catalog(object):
 
         self.logger.info("   nobj = %d",self.nobj)
 
-    def makeArray(self, col, col_str, dtype=float):
+    def makeArray(self, col, col_str, start=0, end=None, dtype=float):
         """Turn the input column into a numpy array if it wasn't already.
         Also make sure the input in 1-d.
 
         Parameters:
             col (array-like):   The input column to be converted into a numpy array.
             col_str (str):      The name of the column.  Used only as information in logging output.
+            start (int):        The start element to include in the returned array (default: 0).
+            end (int):          The start element to include in the returned array (default: None).
             dtype (type):       The dtype for the returned array.  (default: float)
 
         Returns:
@@ -864,6 +848,7 @@ class Catalog(object):
                 col = col.reshape(-1)
                 self.logger.warning("Warning: Input %s column was not 1-d.\n"%col_str +
                                     "         Reshaping from %s to %s"%(s,col.shape))
+            col = col[self.start:self.end]
         return col
 
 
@@ -971,40 +956,47 @@ class Catalog(object):
         """
         comment_marker = self.config.get('comment_marker','#')
         delimiter = self.config.get('delimiter',None)
+        # I want read_csv to ignore header lines that start with the comment marker, but
+        # there is currently a bug in read_csv that messing things up when we do this.
+        # cf. https://github.com/pydata/pandas/issues/4623
+        # For now, my workaround in to count how many lines start with the comment marker
+        # and skip them by hand.
+        skiprows = 0
+        with open(file_name, 'r') as fid:
+            for line in fid:  # pragma: no branch
+                if line.startswith(comment_marker): skiprows += 1
+                else: break
+        skiprows += self.start
+        if self.end is None:
+            nrows = None
+        else:
+            nrows = self.end - self.start
         try:
             import pandas
-            # I want read_csv to ignore header lines that start with the comment marker, but
-            # there is currently a bug in read_csv that messing things up when we do this.
-            # cf. https://github.com/pydata/pandas/issues/4623
-            # For now, my workaround in to count how many lines start with the comment marker
-            # and skip them by hand.
-            skip = 0
-            with open(file_name, 'r') as fid:
-                for line in fid:  # pragma: no branch
-                    if line.startswith(comment_marker): skip += 1
-                    else: break
             if delimiter is None:
                 data = pandas.read_csv(file_name, comment=comment_marker, delim_whitespace=True,
-                                       header=None, skiprows=skip)
+                                       header=None, skiprows=skiprows, nrows=nrows)
             else:
                 data = pandas.read_csv(file_name, comment=comment_marker, delimiter=delimiter,
-                                       header=None, skiprows=skip)
+                                       header=None, skiprows=skiprows, nrows=nrows)
             data = data.dropna(axis=0).values
         except ImportError:
             self.logger.warning("Unable to import pandas..  Using np.genfromtxt instead.\n"+
                                 "Installing pandas is recommended for increased speed when "+
                                 "reading ASCII catalogs.")
-            data = np.genfromtxt(file_name, comments=comment_marker, delimiter=delimiter)
-
-        self.logger.debug('read data from %s, num=%d',file_name,num)
-        self.logger.debug('data shape = %s',str(data.shape))
+            data = np.genfromtxt(file_name, comments=comment_marker, delimiter=delimiter,
+                                 skip_header=skiprows, max_rows=nrows)
 
         # If only one row, and not using pands, then the shape comes in as one-d.  Reshape it:
         if len(data.shape) == 1:
             data = data.reshape(1,-1)
         ncols = data.shape[1]
+        ntot = data.shape[0]
 
-        # Get the column numbers or names
+        self.logger.debug('read data from %s, num=%d',file_name,num)
+        self.logger.debug('data shape = %s',str(data.shape))
+
+        # Get the column numbers
         x_col = treecorr.config.get_from_list(self.config,'x_col',num,int,0)
         y_col = treecorr.config.get_from_list(self.config,'y_col',num,int,0)
         z_col = treecorr.config.get_from_list(self.config,'z_col',num,int,0)
@@ -1060,20 +1052,19 @@ class Catalog(object):
             self._patch = data[:,patch_col-1].astype(float)
             self.logger.debug('read patch = %s',str(self._patch))
 
-        # Return here if this file is a random catalog
-        if is_rand: return
+        # Skip g1,g2,k if this file is a random catalog
+        if not is_rand:
+            # Read g1,g2
+            if g1_col >= 0 and g1_col <= ncols:
+                self._g1 = data[:,g1_col-1].astype(float)
+                self.logger.debug('read g1 = %s',str(self._g1))
+                self._g2 = data[:,g2_col-1].astype(float)
+                self.logger.debug('read g2 = %s',str(self._g2))
 
-        # Read g1,g2
-        if g1_col >= 0 and g1_col <= ncols:
-            self._g1 = data[:,g1_col-1].astype(float)
-            self.logger.debug('read g1 = %s',str(self._g1))
-            self._g2 = data[:,g2_col-1].astype(float)
-            self.logger.debug('read g2 = %s',str(self._g2))
-
-        # Read k
-        if k_col >= 0 and k_col <= ncols:
-            self._k = data[:,k_col-1].astype(float)
-            self.logger.debug('read k = %s',str(self._k))
+            # Read k
+            if k_col >= 0 and k_col <= ncols:
+                self._k = data[:,k_col-1].astype(float)
+                self.logger.debug('read k = %s',str(self._k))
 
 
     def _check_fits(self, file_name, num=0, is_rand=False):
@@ -1177,7 +1168,6 @@ class Catalog(object):
                 if patch_col not in fits[patch_hdu].get_colnames():
                     raise ValueError("patch_col is invalid for file %s"%file_name)
 
-            # Return here if this file is a random catalog
             if is_rand: return
 
             if g1_col != '0':
@@ -1235,67 +1225,68 @@ class Catalog(object):
             if x_col != '0':
                 x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
                 y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
-                self._x = fits[x_hdu].read_column(x_col).astype(float)
+                self._x = fits[x_hdu][x_col][self.start:self.end].astype(float)
                 self.logger.debug('read x = %s',str(self._x))
-                self._y = fits[y_hdu].read_column(y_col).astype(float)
+                self._y = fits[y_hdu][y_col][self.start:self.end].astype(float)
                 self.logger.debug('read y = %s',str(self._y))
+                ntot = len(self._x)
                 if z_col != '0':
                     z_hdu = treecorr.config.get_from_list(self.config,'z_hdu',num,int,hdu)
-                    self._z = fits[z_hdu].read_column(z_col).astype(float)
+                    self._z = fits[z_hdu][z_col][self.start:self.end].astype(float)
                     self.logger.debug('read z = %s',str(self._z))
             else:
                 ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
                 dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
-                self._ra = fits[ra_hdu].read_column(ra_col).astype(float)
+                self._ra = fits[ra_hdu][ra_col][self.start:self.end].astype(float)
                 self.logger.debug('read ra = %s',str(self._ra))
-                self._dec = fits[dec_hdu].read_column(dec_col).astype(float)
+                self._dec = fits[dec_hdu][dec_col][self.start:self.end].astype(float)
                 self.logger.debug('read dec = %s',str(self._dec))
+                ntot = len(self._ra)
                 if r_col != '0':
                     r_hdu = treecorr.config.get_from_list(self.config,'r_hdu',num,int,hdu)
-                    self._r = fits[r_hdu].read_column(r_col).astype(float)
+                    self._r = fits[r_hdu][r_col][self.start:self.end].astype(float)
                     self.logger.debug('read r = %s',str(self._r))
 
             # Read w
             if w_col != '0':
                 w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,int,hdu)
-                self._w = fits[w_hdu].read_column(w_col).astype(float)
+                self._w = fits[w_hdu][w_col][self.start:self.end].astype(float)
                 self.logger.debug('read w = %s',str(self._w))
 
             # Read wpos
             if wpos_col != '0':
                 wpos_hdu = treecorr.config.get_from_list(self.config,'wpos_hdu',num,int,hdu)
-                self._wpos = fits[wpos_hdu].read_column(wpos_col).astype(float)
+                self._wpos = fits[wpos_hdu][wpos_col][self.start:self.end].astype(float)
                 self.logger.debug('read wpos = %s',str(self._wpos))
 
             # Read flag
             if flag_col != '0':
                 flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
-                self._flag = fits[flag_hdu].read_column(flag_col).astype(int)
+                self._flag = fits[flag_hdu][flag_col][self.start:self.end].astype(int)
                 self.logger.debug('read flag = %s',str(self._flag))
 
             # Read patch
             if patch_col != '0':
                 patch_hdu = treecorr.config.get_from_list(self.config,'patch_hdu',num,int,hdu)
-                self._patch = fits[patch_hdu].read_column(patch_col).astype(float)
+                self._patch = fits[patch_hdu][patch_col][self.start:self.end].astype(float)
                 self.logger.debug('read patch = %s',str(self._patch))
 
-            # Return here if this file is a random catalog
-            if is_rand: return
+            # Skip g1,g2,k if this file is a random catalog
+            if not is_rand:
+                # Read g1,g2
+                g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
+                g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
+                if g1_col in fits[g1_hdu].get_colnames():
+                    self._g1 = fits[g1_hdu][g1_col][self.start:self.end].astype(float)
+                    self.logger.debug('read g1 = %s',str(self._g1))
+                    self._g2 = fits[g2_hdu][g2_col][self.start:self.end].astype(float)
+                    self.logger.debug('read g2 = %s',str(self._g2))
 
-            # Read g1,g2
-            g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
-            g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
-            if g1_col in fits[g1_hdu].get_colnames():
-                self._g1 = fits[g1_hdu].read_column(g1_col).astype(float)
-                self.logger.debug('read g1 = %s',str(self._g1))
-                self._g2 = fits[g2_hdu].read_column(g2_col).astype(float)
-                self.logger.debug('read g2 = %s',str(self._g2))
-
-            # Read k
-            k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
-            if k_col in fits[k_hdu].get_colnames():
-                self._k = fits[k_hdu].read_column(k_col).astype(float)
-                self.logger.debug('read k = %s',str(self._k))
+                # Read k
+                k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
+                if k_col in fits[k_hdu].get_colnames():
+                    self._k = fits[k_hdu][k_col][self.start:self.end].astype(float)
+                    self.logger.debug('read k = %s',str(self._k))
 
     def _setup_fields(self):
         self._field = lambda : None  # Acts like a dead weakref

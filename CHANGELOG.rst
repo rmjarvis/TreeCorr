@@ -23,6 +23,7 @@ open an issue and we can investigate how to accommodate your use case.
 Performance Improvements
 ------------------------
 
+- Delayed the loading of Catalogs from files until the data is actually needed.
 
 
 New features
@@ -36,6 +37,7 @@ New features
   Set ``var_method`` in the Correlation class or use the ``estimate_cov`` method.
 - Added ``treecorr.estimate_multi_cov`` function, which will the compute covariance
   matrix across multiple statistics that have been run using the same set of patches.
+- Added every_nth option for Catalogs to read in a fraction of the rows.
 
 
 Bug fixes

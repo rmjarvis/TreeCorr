@@ -288,6 +288,54 @@ def test_ascii():
     np.testing.assert_almost_equal(cat10.w[wpos!=0], 1)
     assert 'Some wpos values are zero, setting w=0 for these points' in cl.output
 
+    # Test using a limited set of rows
+    del config['flip_g1']
+    del config['flip_g2']
+    config['first_row'] = 1010
+    config['last_row'] = 3456
+    cat11 = treecorr.Catalog(file_name, config)
+    np.testing.assert_equal(len(cat11.ra), 2447)
+    np.testing.assert_equal(cat11.ntot, 2447)
+    np.testing.assert_equal(cat11.nobj, np.sum(cat11.w != 0))
+    np.testing.assert_equal(cat11.sumw, np.sum(cat11.w))
+    np.testing.assert_equal(cat11.sumw, np.sum(cat6.w[1009:3456]))
+    np.testing.assert_almost_equal(cat11.g1[1111], g1[2120])
+    np.testing.assert_almost_equal(cat11.g2[1111], g2[2120])
+    np.testing.assert_almost_equal(cat11.k[1111], k[2120])
+
+    config['file_name'] = file_name
+    cat12 = treecorr.read_catalogs(config, key='file_name', is_rand=True)[0]
+    np.testing.assert_equal(len(cat12.x), 2447)
+    np.testing.assert_equal(cat12.ntot, 2447)
+    np.testing.assert_equal(cat12.nobj, np.sum(cat12.w != 0))
+    np.testing.assert_equal(cat12.sumw, np.sum(cat12.w))
+    np.testing.assert_equal(cat12.sumw, np.sum(cat6.w[1009:3456]))
+    assert cat12.g1 is None
+    assert cat12.g2 is None
+    assert cat12.k is None
+
+    config['every_nth'] = 10
+    cat13 = treecorr.Catalog(file_name, config)
+    np.testing.assert_equal(len(cat13.x), 245)
+    np.testing.assert_equal(cat13.ntot, 245)
+    np.testing.assert_equal(cat13.nobj, np.sum(cat13.w != 0))
+    np.testing.assert_equal(cat13.sumw, np.sum(cat13.w))
+    print('first few = ',cat13.w[:3])
+    print('from cat6: ',cat6.w[1009:1039])
+    print('last few = ',cat13.w[-3:])
+    print('from cat6: ',cat6.w[3426:3456])
+    print('cat13.w = ',cat13.w)
+    print('len = ',len(cat13.w))
+    print('cat6.w[1009:3456:10] = ',cat6.w[1009:3456:10])
+    print('len = ',len(cat6.w[1009:3456:10]))
+    print('cat6.w[3449] = ',cat6.w[3449])
+    print('cat6.w[3456] = ',cat6.w[3456])
+    print('cat6.w[3459] = ',cat6.w[3459])
+    np.testing.assert_equal(cat13.sumw, np.sum(cat6.w[1009:3456:10]))
+    np.testing.assert_almost_equal(cat13.g1[100], g1[2009])
+    np.testing.assert_almost_equal(cat13.g2[100], g2[2009])
+    np.testing.assert_almost_equal(cat13.k[100], k[2009])
+
     do_pickle(cat1)
     do_pickle(cat2)
     do_pickle(cat3)
@@ -382,22 +430,33 @@ def test_fits():
     cat3 = treecorr.Catalog(file_name, config)
     np.testing.assert_equal(len(cat3.x), 49900)
     np.testing.assert_equal(cat3.ntot, 49900)
-    np.testing.assert_equal(cat3.nobj, sum(cat3.w != 0))
-    np.testing.assert_equal(cat3.sumw, sum(cat3.w))
-    np.testing.assert_equal(cat3.sumw, sum(cat2.w[100:50000]))
-    np.testing.assert_almost_equal(cat3.g1[46292], 0.0005066675)
-    np.testing.assert_almost_equal(cat3.g2[46292], -0.0001006742)
-    np.testing.assert_almost_equal(cat3.k[46292], -0.0008628797)
+    np.testing.assert_equal(cat3.nobj, np.sum(cat3.w != 0))
+    np.testing.assert_equal(cat3.sumw, np.sum(cat3.w))
+    np.testing.assert_equal(cat3.sumw, np.sum(cat2.w[100:50000]))
+    np.testing.assert_almost_equal(cat3.g1[46292], cat2.g1[46392])
+    np.testing.assert_almost_equal(cat3.g2[46292], cat2.g2[46392])
+    np.testing.assert_almost_equal(cat3.k[46292], cat2.k[46392])
 
     cat4 = treecorr.read_catalogs(config, key='file_name', is_rand=True)[0]
     np.testing.assert_equal(len(cat4.x), 49900)
     np.testing.assert_equal(cat4.ntot, 49900)
-    np.testing.assert_equal(cat4.nobj, sum(cat4.w != 0))
-    np.testing.assert_equal(cat4.sumw, sum(cat4.w))
-    np.testing.assert_equal(cat4.sumw, sum(cat2.w[100:50000]))
+    np.testing.assert_equal(cat4.nobj, np.sum(cat4.w != 0))
+    np.testing.assert_equal(cat4.sumw, np.sum(cat4.w))
+    np.testing.assert_equal(cat4.sumw, np.sum(cat2.w[100:50000]))
     assert cat4.g1 is None
     assert cat4.g2 is None
     assert cat4.k is None
+
+    config['every_nth'] = 100
+    cat5 = treecorr.Catalog(file_name, config)
+    np.testing.assert_equal(len(cat5.x), 499)
+    np.testing.assert_equal(cat5.ntot, 499)
+    np.testing.assert_equal(cat5.nobj, np.sum(cat5.w != 0))
+    np.testing.assert_equal(cat5.sumw, np.sum(cat5.w))
+    np.testing.assert_equal(cat5.sumw, np.sum(cat2.w[100:50000:100]))
+    np.testing.assert_almost_equal(cat5.g1[123], cat2.g1[12400])
+    np.testing.assert_almost_equal(cat5.g2[123], cat2.g2[12400])
+    np.testing.assert_almost_equal(cat5.k[123], cat2.k[12400])
 
     do_pickle(cat1)
     do_pickle(cat2)

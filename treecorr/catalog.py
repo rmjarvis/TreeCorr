@@ -1719,26 +1719,31 @@ class Catalog(object):
         self._setup_fields()
 
     def __repr__(self):
-        s = 'Catalog('
-        if self.x is not None and self.ra is not None: s += 'x='+repr(self.x)+','
-        if self.y is not None and self.ra is not None: s += 'y='+repr(self.y)+','
-        if self.z is not None and self.ra is not None: s += 'z='+repr(self.z)+','
-        if self.ra is not None: s += 'ra='+repr(self.ra)+','
-        if self.dec is not None: s += 'dec='+repr(self.dec)+','
-        if self.r is not None: s += 'r='+repr(self.r)+','
-        if self.w is not None: s += 'w='+repr(self.w)+','
-        if self.wpos is not None: s += 'wpos='+repr(self.wpos)+','
-        if self.g1 is not None: s += 'g1='+repr(self.g1)+','
-        if self.g2 is not None: s += 'g2='+repr(self.g2)+','
-        if self.k is not None: s += 'k='+repr(self.k)+','
-        if self.patch is not None: s += 'patch='+repr(self.patch)+','
-        # remove the last ','
-        s = s[:-1] + ')'
+        s = 'treecorr.Catalog('
+        if self._x is not None:
+            if self.x is not None and self.ra is None: s += 'x='+repr(self.x)+','
+            if self.y is not None and self.ra is None: s += 'y='+repr(self.y)+','
+            if self.z is not None and self.ra is None: s += 'z='+repr(self.z)+','
+            if self.ra is not None: s += 'ra='+repr(self.ra)+",ra_units='rad',"
+            if self.dec is not None: s += 'dec='+repr(self.dec)+",dec_units='rad',"
+            if self.r is not None: s += 'r='+repr(self.r)+','
+            if self.w is not None: s += 'w='+repr(self.w)+','
+            if self.wpos is not None: s += 'wpos='+repr(self.wpos)+','
+            if self.g1 is not None: s += 'g1='+repr(self.g1)+','
+            if self.g2 is not None: s += 'g2='+repr(self.g2)+','
+            if self.k is not None: s += 'k='+repr(self.k)+','
+            if self.patch is not None: s += 'patch='+repr(self.patch)+','
+            # remove the last ','
+            s = s[:-1] + ')'
+        else:
+            # Catalog isn't loaded yet. Use file_name info here instead.
+            s += 'file_name='+repr(self.name)+','
+            s += 'config ='+repr(self.config)
+            s += ')'
         return s
 
     def __eq__(self, other):
         return (isinstance(other, Catalog) and
-                self.ntot == other.ntot and
                 np.array_equal(self.x, other.x) and
                 np.array_equal(self.y, other.y) and
                 np.array_equal(self.z, other.z) and

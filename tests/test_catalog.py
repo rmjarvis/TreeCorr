@@ -18,6 +18,8 @@ import time
 import coord
 import warnings
 import gc
+import copy
+import pickle
 from numpy import pi
 import treecorr
 
@@ -347,6 +349,42 @@ def test_ascii():
     do_pickle(cat9)
     do_pickle(cat10)
 
+    # Check repr.  Usually too long, but cat13 is short enough to eval properly.
+    from numpy import array
+    original = np.get_printoptions()
+    np.set_printoptions(precision=20)
+    #print('cat13 = ',repr(cat13))
+    cat13a = eval(repr(cat13))
+    assert cat13a == cat13
+
+    # Check unloaded catalog.  (Recapitulates do_pickle, but careful not to call == too soon.)
+    cat14 = treecorr.Catalog(file_name, config)
+    cat14a = pickle.loads(pickle.dumps(cat14))
+    assert cat14._x is None  # Loading isn't forced by pickling
+    assert cat14a._x is None
+    cat14b = copy.copy(cat14)
+    assert cat14._x is None  # Or copy
+    assert cat14b._x is None
+    cat14c = copy.deepcopy(cat14)
+    assert cat14._x is None  # Or deepcopy
+    assert cat14c._x is None
+    print('cat14 = ',repr(cat14))
+    cat14d = eval(repr(cat14))
+    assert cat14._x is None  # Or repr
+    assert cat14d._x is None
+    # == does finish the load though, so now check that they are all equal.
+    assert cat14a == cat14
+    assert cat14b == cat14
+    assert cat14c == cat14
+    assert cat14d == cat14
+    assert cat14._x is not None
+    assert cat14a._x is not None
+    assert cat14b._x is not None
+    assert cat14c._x is not None
+    assert cat14d._x is not None
+    np.set_printoptions(**original)
+
+
 def test_fits():
     try:
         import fitsio
@@ -462,6 +500,41 @@ def test_fits():
     do_pickle(cat2)
     do_pickle(cat3)
     do_pickle(cat4)
+
+    # Check repr.  Usually too long, but cat13 is short enough to eval properly.
+    from numpy import array
+    original = np.get_printoptions()
+    np.set_printoptions(precision=20)
+    #print('cat5 = ',repr(cat5))
+    cat5a = eval(repr(cat5))
+    assert cat5a == cat5
+
+    # Check unloaded catalog.  (Recapitulates do_pickle, but careful not to call == too soon.)
+    cat6 = treecorr.Catalog(file_name, config)
+    cat6a = pickle.loads(pickle.dumps(cat6))
+    assert cat6._x is None  # Loading isn't forced by pickling
+    assert cat6a._x is None
+    cat6b = copy.copy(cat6)
+    assert cat6._x is None  # Or copy
+    assert cat6b._x is None
+    cat6c = copy.deepcopy(cat6)
+    assert cat6._x is None  # Or deepcopy
+    assert cat6c._x is None
+    print('cat6 = ',repr(cat6))
+    cat6d = eval(repr(cat6))
+    assert cat6._x is None  # Or repr
+    assert cat6d._x is None
+    # == does finish the load though, so now check that they are all equal.
+    assert cat6a == cat6
+    assert cat6b == cat6
+    assert cat6c == cat6
+    assert cat6d == cat6
+    assert cat6._x is not None
+    assert cat6a._x is not None
+    assert cat6b._x is not None
+    assert cat6c._x is not None
+    assert cat6d._x is not None
+    np.set_printoptions(**original)
 
     assert_raises(ValueError, treecorr.Catalog, file_name, config, first_row=-10)
     assert_raises(ValueError, treecorr.Catalog, file_name, config, first_row=0)

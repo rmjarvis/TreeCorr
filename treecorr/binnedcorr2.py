@@ -461,12 +461,14 @@ class BinnedCorr2(object):
         else:
             # When patch processing, keep track of the pair-wise results.
             temp = self.copy()
-            for i,c1 in enumerate(cat1):
+            for ii,c1 in enumerate(cat1):
+                i = c1.patch if c1.patch is not None else ii
                 temp.clear()
                 temp.process_auto(c1,metric,num_threads)
                 self.results[(i,i)] = temp.copy()
                 self += temp
-                for j,c2 in enumerate(cat1):
+                for jj,c2 in enumerate(cat1):
+                    j = c2.patch if c2.patch is not None else jj
                     if i < j:
                         temp.clear()
                         temp.process_cross(c1,c2,metric,num_threads)
@@ -490,8 +492,10 @@ class BinnedCorr2(object):
         else:
             # When patch processing, keep track of the pair-wise results.
             temp = self.copy()
-            for i,c1 in enumerate(cat1):
-                for j,c2 in enumerate(cat2):
+            for ii,c1 in enumerate(cat1):
+                i = c1.patch if c1.patch is not None else ii
+                for jj,c2 in enumerate(cat2):
+                    j = c2.patch if c2.patch is not None else jj
                     temp.clear()
                     temp.process_cross(c1,c2,metric,num_threads)
                     if i==j or np.sum(temp.npairs) > 0:

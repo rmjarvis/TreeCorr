@@ -94,8 +94,13 @@ def test_cat_patches():
         assert len(cat6.get_patches()) == 128
         assert len(cat6b.get_patches()) == 128
 
+    # 7. Set a single patch number
+    cat7 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=3)
+    np.testing.assert_array_equal(cat7.patch, 3)
+
     # Check serialization with patch
     do_pickle(cat2)
+    do_pickle(cat7)
 
     # Check some invalid parameters
     with assert_raises(ValueError):

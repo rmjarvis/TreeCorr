@@ -98,6 +98,7 @@ class Catalog(object):
         g2:     The g2 component of the shear, if defined, as a numpy array. (None otherwise)
         k:      The convergence, kappa, if defined, as a numpy array. (None otherwise)
         patch:  The patch number of each object, if patches are being used. (None otherwise)
+                Note: If the entire catalog is a single patch, then patch may be an int.
 
         ntot:   The total number of objects (including those with zero weight)
         nobj:   The number of objects with non-zero weight
@@ -170,6 +171,8 @@ class Catalog(object):
         k (array):          The kappa values to use for scalar correlations. (This may represent
                             any scalar field.) (default: None)
         patch (array):      Optionally, patch numbers to use for each object. (default: None)
+                            Note: This may also be an int if the entire catalog represents a
+                            single patch.
 
     Keyword Arguments:
 
@@ -445,10 +448,12 @@ class Catalog(object):
         self._setup_fields()
 
         self._nontrivial_w = None
+        self._single_patch = None
         self._nobj = None
         self._sumw = None
         self._varg = None
         self._vark = None
+        self._patches = None
 
         first_row = treecorr.config.get_from_list(self.config,'first_row',num,int,1)
         if first_row < 1:
@@ -529,7 +534,12 @@ class Catalog(object):
             self._g1 = self.makeArray(g1,'g1')
             self._g2 = self.makeArray(g2,'g2')
             self._k = self.makeArray(k,'k')
-            self._patch = self.makeArray(patch,'patch',int)
+            try:
+                self._patch = int(patch)
+                self._single_patch = True
+            except TypeError:
+                self._patch = self.makeArray(patch,'patch',int)
+                self._single_patch = False
 
             # Check that all columns have the same length.  (This is impossible in file input)
             if self._x is not None:
@@ -554,7 +564,7 @@ class Catalog(object):
                 raise ValueError("g2 has the wrong numbers of elements")
             if self._k is not None and len(self._k) != ntot:
                 raise ValueError("k has the wrong numbers of elements")
-            if self._patch is not None and len(self._patch) != ntot:
+            if self._patch is not None and not self._single_patch and len(self._patch) != ntot:
                 raise ValueError("patch has the wrong numbers of elements")
             if ntot == 0:
                 raise ValueError("Input arrays have zero length")
@@ -1579,12 +1589,12 @@ class Catalog(object):
         """Return a list of Catalog instances each representing a single patch from this Catalog
         """
         import copy
-        if not hasattr(self, 'patches'):
+        if self._patches is None:
             if self.patch is None:
-                self.patches = [self]
+                self._patches = [self]
             else:
                 patch_set = set(self.patch)
-                self.patches = []
+                self._patches = []
                 for i in patch_set:
                     indx = self.patch == i
                     x=self.x[indx] if self.x is not None and self.ra is None else None
@@ -1598,14 +1608,11 @@ class Catalog(object):
                     g1=self.g1[indx] if self.g1 is not None else None
                     g2=self.g2[indx] if self.g2 is not None else None
                     k=self.k[indx] if self.k is not None else None
-                    patch=self.patch[indx]
-                    assert np.all(patch == i)
                     p = Catalog(config=self.config,
                                 x=x, y=y, z=z, ra=ra, dec=dec, r=r, w=w, wpos=wpos,
-                                g1=g1, g2=g2, k=k, patch=patch,
-                                npatch=1)
-                    self.patches.append(p)
-        return self.patches
+                                g1=g1, g2=g2, k=k, patch=i, npatch=1)
+                    self._patches.append(p)
+        return self._patches
 
     def write(self, file_name, file_type=None, cat_precision=None):
         """Write the catalog to a file.

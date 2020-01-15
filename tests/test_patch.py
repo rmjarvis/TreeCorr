@@ -25,6 +25,7 @@ def test_cat_patches():
 
     # Use the same input as test_radec()
     ngal = 100000
+    npatch = 128
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
@@ -40,27 +41,27 @@ def test_cat_patches():
     # 1. Make the patches automatically using kmeans
     #    Note: If npatch is a power of two, then the patch determination is completely
     #          deterministic, which is helpful for this test.
-    cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128)
-    p2, cen = cat0.getNField().run_kmeans(128)
+    cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch)
+    p2, cen = cat0.getNField().run_kmeans(npatch)
     np.testing.assert_array_equal(cat1.patch, p2)
-    assert len(cat1.get_patches()) == 128
+    assert len(cat1.get_patches()) == npatch
     assert np.sum([p.ntot for p in cat1.get_patches()]) == ngal
 
     # 2. Optionally can use alt algorithm
-    cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
+    cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch,
                             kmeans_alt=True)
-    p3, cen = cat0.getNField().run_kmeans(128, alt=True)
+    p3, cen = cat0.getNField().run_kmeans(npatch, alt=True)
     np.testing.assert_array_equal(cat2.patch, p3)
-    assert len(cat2.get_patches()) == 128
+    assert len(cat2.get_patches()) == npatch
 
     # 3. Optionally can set different init method
-    cat3 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
+    cat3 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch,
                             kmeans_init='kmeans++')
     # Can't test this equalling a repeat run from cat0, because kmpp has a random aspect to it.
     # But at least check that it isn't equal to the other two versions.
     assert not np.array_equal(cat3.patch, p2)
     assert not np.array_equal(cat3.patch, p3)
-    cat3b = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
+    cat3b = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch,
                              kmeans_init='random')
     assert not np.array_equal(cat3b.patch, p2)
     assert not np.array_equal(cat3b.patch, p3)
@@ -91,8 +92,8 @@ def test_cat_patches():
         cat6b = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
                                  ra_units='rad', dec_units='rad', patch_col='patch', patch_hdu=1)
         np.testing.assert_array_equal(cat6b.patch, p2)
-        assert len(cat6.get_patches()) == 128
-        assert len(cat6b.get_patches()) == 128
+        assert len(cat6.get_patches()) == npatch
+        assert len(cat6b.get_patches()) == npatch
 
     # 7. Set a single patch number
     cat7 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=3)
@@ -104,16 +105,16 @@ def test_cat_patches():
 
     # Check some invalid parameters
     with assert_raises(ValueError):
-        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128, patch=p2)
+        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch, patch=p2)
     with assert_raises(ValueError):
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=p2[:1000])
     with assert_raises(ValueError):
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=0)
     with assert_raises(ValueError):
-        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
+        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch,
                          kmeans_init='invalid')
     with assert_raises(ValueError):
-        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
+        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch,
                          kmeans_alt='maybe')
     with assert_raises(ValueError):
         treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
@@ -134,6 +135,128 @@ def test_cat_patches():
     except NameError:
         # file_name6 might not exist if skipeed above because of fitsio missing.
         pass
+
+def test_cat_centers():
+    # Test writing patch centers and setting patches from centers.
+
+    if __name__ == '__main__':
+        ngal = 100000
+    else:
+        ngal = 10000
+    npatch = 128
+    s = 10.
+
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) ) + 100  # Put everything at large y, so smallish angle on sky
+    z = rng.normal(0,s, (ngal,) )
+    ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
+
+    cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch)
+    centers = [(c.x.mean(), c.y.mean(), c.z.mean()) for c in cat1.get_patches()]
+    centers /= np.sqrt(np.sum(np.array(centers)**2,axis=1))[:,np.newaxis]
+    centers2 = cat1.get_patch_centers()
+    print('center0 = ',centers[0])
+    print('          ',centers2[0])
+    print('center1 = ',centers[1])
+    print('          ',centers2[1])
+    print('max center difference = ',np.max(np.abs(centers2-centers)))
+    for p in range(npatch):
+        np.testing.assert_allclose(centers2[p], centers[p], atol=1.e-4)
+
+    # Write the centers to a file
+    cen_file = os.path.join('output','test_cat_centers.dat')
+    cat1.write_patch_centers(cen_file)
+
+    # Read the centers file
+    centers3 = cat1.read_patch_centers(cen_file)
+    np.testing.assert_allclose(centers3, centers2)
+
+    # Set patches from a centers dict
+    cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
+                            patch_centers=centers2)
+    np.testing.assert_array_equal(cat2.patch, cat1.patch)
+    np.testing.assert_array_equal(cat2.get_patch_centers(), centers2)
+
+    # Set patches from file
+    cat3 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
+                            patch_centers=cen_file)
+    np.testing.assert_array_equal(cat3.patch, cat1.patch)
+    np.testing.assert_array_equal(cat3.get_patch_centers(), centers2)
+
+    # If doing this from a config dict, patch_centers will be found in the config dict.
+    config = dict(ra_units='rad', dec_units='rad', patch_centers=cen_file)
+    cat4 = treecorr.Catalog(config=config, ra=ra, dec=dec)
+    np.testing.assert_array_equal(cat4.patch, cat1.patch)
+    np.testing.assert_array_equal(cat4.get_patch_centers(), centers2)
+
+    # If the original catalog had manual patches set, it needs to calculate the centers
+    # after the fact, so things aren't perfect, but should be close.
+    cat5 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
+                            patch=cat1.patch)
+    np.testing.assert_array_equal(cat5.patch, cat1.patch)
+    np.testing.assert_allclose(cat5.get_patch_centers(), centers2, atol=1.e-4)
+
+    cat6 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
+                            patch_centers=cat5.get_patch_centers())
+    print('n diff = ',np.sum(cat6.patch != cat5.patch))
+    assert np.sum(cat6.patch != cat5.patch) < 10
+    np.testing.assert_allclose(cat6.get_patch_centers(), cat5.get_patch_centers())
+
+    # The patch centers from the patch sub-catalogs should match.
+    cen5 = [c.get_patch_centers()[0] for c in cat5.get_patches()]
+    np.testing.assert_array_equal(cen5, cat5.get_patch_centers())
+
+    # With weights, things can be a bit farther off of course.
+    w=rng.uniform(1,2,len(ra))
+    cat7 = treecorr.Catalog(ra=ra, dec=dec, w=w, ra_units='rad', dec_units='rad',
+                            patch=cat1.patch)
+    cat8 = treecorr.Catalog(ra=ra, dec=dec, w=w, ra_units='rad', dec_units='rad',
+                            patch_centers=cat7.get_patch_centers())
+    print('n diff = ',np.sum(cat8.patch != cat7.patch))
+    assert np.sum(cat8.patch != cat7.patch) < 200
+    np.testing.assert_allclose(cat8.get_patch_centers(), cat7.get_patch_centers())
+
+    # Check flat
+    cat9 = treecorr.Catalog(x=x, y=y, npatch=npatch)
+    cen_file2 = os.path.join('output','test_cat_centers.txt')
+    cat9.write_patch_centers(cen_file2)
+    centers9 = cat9.read_patch_centers(cen_file2)
+    np.testing.assert_allclose(centers9, cat9.get_patch_centers())
+
+    cat10 = treecorr.Catalog(x=x, y=y, patch_centers=cen_file2)
+    np.testing.assert_array_equal(cat10.patch, cat9.patch)
+    np.testing.assert_array_equal(cat10.get_patch_centers(), cat9.get_patch_centers())
+
+    cat11 = treecorr.Catalog(x=x, y=y, patch=cat9.patch)
+    cat12 = treecorr.Catalog(x=x, y=y, patch_centers=cat11.get_patch_centers())
+    print('n diff = ',np.sum(cat12.patch != cat11.patch))
+    assert np.sum(cat12.patch != cat11.patch) < 10
+
+    cat13 = treecorr.Catalog(x=x, y=y, w=w, patch=cat9.patch)
+    cat14 = treecorr.Catalog(x=x, y=y, w=w, patch_centers=cat13.get_patch_centers())
+    print('n diff = ',np.sum(cat14.patch != cat13.patch))
+    assert np.sum(cat14.patch != cat13.patch) < 200
+
+    # The patch centers from the patch sub-catalogs should match.
+    cen13 = [c.get_patch_centers()[0] for c in cat13.get_patches()]
+    np.testing.assert_array_equal(cen13, cat13.get_patch_centers())
+
+    # Check for some invalid values
+    with assert_raises(ValueError):
+        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
+                         patch_centers=cen_file, npatch=3)
+    with assert_raises(ValueError):
+        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
+                         patch_centers=cen_file, patch=3)
+    with assert_raises(ValueError):
+        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
+                         patch_centers=cen_file, patch_col=3)
+    with assert_raises(RuntimeError):
+        c=treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
+                           patch=np.random.uniform(10,20,len(ra)))
+        c.get_patch_centers()  # Missing some patch numbers
+
 
 def generate_shear_field(nside):
    # Generate a random shear field with a well-defined power spectrum.
@@ -1064,6 +1187,7 @@ def test_kappa_jk():
 
 if __name__ == '__main__':
     test_cat_patches()
+    test_cat_centers()
     test_gg_jk()
     test_ng_jk()
     test_nn_jk()

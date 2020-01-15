@@ -173,6 +173,9 @@ class Catalog(object):
         patch (array):      Optionally, patch numbers to use for each object. (default: None)
                             Note: This may also be an int if the entire catalog represents a
                             single patch.
+        patch_centers (str or array): Alternative to setting patch by hand or using kmeans, you
+                            may instead give patch_centers either as a file name or an array
+                            from which the patches will be determined. (default: None)
 
     Keyword Arguments:
 
@@ -331,6 +334,8 @@ class Catalog(object):
                 'Which initialization method to use for kmeans when making patches'),
         'kmeans_alt' : (bool, False, False, None,
                 'Whether to use the alternate kmeans algorithm when making patches'),
+        'patch_centers' : (str, False, None, None,
+                'File with patch centers to use to determine patches'),
         'x_col' : (str, True, '0', None,
                 'Which column to use for x. Should be an integer for ASCII catalogs.'),
         'y_col' : (str, True, '0', None,
@@ -415,7 +420,7 @@ class Catalog(object):
     }
     def __init__(self, file_name=None, config=None, num=0, logger=None, is_rand=False,
                  x=None, y=None, z=None, ra=None, dec=None, r=None, w=None, wpos=None, flag=None,
-                 g1=None, g2=None, k=None, patch=None, **kwargs):
+                 g1=None, g2=None, k=None, patch=None, patch_centers=None, **kwargs):
 
         self.config = treecorr.config.merge_config(config,kwargs,Catalog._valid_params)
         self.orig_config = config.copy() if config is not None else {}
@@ -454,6 +459,7 @@ class Catalog(object):
         self._varg = None
         self._vark = None
         self._patches = None
+        self._centers = None
 
         first_row = treecorr.config.get_from_list(self.config,'first_row',num,int,1)
         if first_row < 1:
@@ -481,6 +487,20 @@ class Catalog(object):
                 raise ValueError("npatch must be >= 1")
         else:
             self.npatch = 1
+
+        if patch_centers is None and 'patch_centers' in self.config:
+            # file name version may be in a config dict, rather than kwarg.
+            patch_centers = treecorr.config.get(self.config,'patch_centers',str)
+
+        if patch_centers is not None:
+            if patch is not None or self.config.get('patch_col',0) not in (0,'0'):
+                raise ValueError("Cannot provide both patch and patch_centers")
+            if 'npatch' in self.config and self.config['npatch'] != 1:
+                raise ValueError("Cannot provide both npatch and patch_centers")
+            if isinstance(patch_centers, np.ndarray):
+                self._centers = patch_centers
+            else:
+                self._centers = self.read_patch_centers(patch_centers)
 
         # First style -- read from a file
         if file_name is not None:
@@ -840,6 +860,9 @@ class Catalog(object):
             alt = treecorr.config.get(self.config,'kmeans_alt',bool,False)
             field = self.getNField()
             self._patch, self._centers = field.run_kmeans(self.npatch, init=init, alt=alt)
+        elif self._centers is not None:
+            field = self.getNField()
+            self._patch = field.kmeans_assign_patches(self._centers)
 
         self.logger.info("   nobj = %d",self.nobj)
 
@@ -1584,6 +1607,109 @@ class Catalog(object):
         if logger is None:
             logger = self.logger
         return self.gsimplefields(logger=logger)
+
+    def _weighted_mean(self, x, idx=None):
+        # Find the weighted mean of some column.
+        # If weights are set, then return sum(w * x) / sum(w)
+        # Else, just sum(x) / N
+        if self._nontrivial_w:
+            if idx is None:
+                return np.sum(x * self.w) / self.sumw
+            else:
+                return np.sum(x[idx] * self.w[idx]) / np.sum(self.w[idx])
+        else:
+            return np.mean(x[idx])
+
+    def get_patch_centers(self):
+        """Return an array of patch centers corresponding to the patches in this catalog.
+
+        If the patches were set either using K-Means or by giving the centers, then this
+        will just return that same center array.  Otherwise, it will be calculated from the
+        positions of the objects with each patch number.
+
+        Returns:
+            centers (array):    An array of center coordinates used to make the patches.
+                                Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
+                                spherical geometries.  In the latter case, the centers represent
+                                (x,y,z) coordinates on the unit sphere.
+        """
+        if self._centers is None:
+            if self.patch is None or self._single_patch:
+                if self.coords == 'flat':
+                    self._centers = np.array([[self._weighted_mean(self.x),
+                                               self._weighted_mean(self.y)]])
+                else:
+                    self._centers = np.array([[self._weighted_mean(self.x),
+                                               self._weighted_mean(self.y),
+                                               self._weighted_mean(self.z)]])
+            else:
+                npatch = np.max(self.patch) + 1
+                self._centers = np.empty((npatch,2 if self.z is None else 3))
+                for p in range(npatch):
+                    indx = np.where(self.patch == p)[0]
+                    if len(indx) == 0:
+                        raise RuntimeError("Cannot find center for patch %s."%p +
+                                           "  No items with this patch number")
+                    if self.coords == 'flat':
+                        self._centers[p] = [self._weighted_mean(self.x,indx),
+                                            self._weighted_mean(self.y,indx)]
+                    else:
+                        self._centers[p] = [self._weighted_mean(self.x,indx),
+                                            self._weighted_mean(self.y,indx),
+                                            self._weighted_mean(self.z,indx)]
+            if self.coords == 'spherical':
+                self._centers /= np.sqrt(np.sum(self._centers**2,axis=1))[:,np.newaxis]
+        return self._centers
+
+    def write_patch_centers(self, file_name):
+        """Write the patch centers to a file.
+
+        The output file will include the following columns:
+
+        ========      =======================================================
+        Column        Description
+        ========      =======================================================
+        patch         patch number (0..npatch-1)
+        x             mean x values
+        y             mean y values
+        z             mean z values (only for spherical or 3d coordinates)
+        ========      =======================================================
+
+        It will write a FITS file if the file name ends with '.fits', otherwise an ASCII file.
+
+        Parameters:
+            file_name (str):    The name of the file to write to.
+        """
+        self.logger.info('Writing centers to %s',file_name)
+
+        centers = self.get_patch_centers()
+        col_names = ['patch', 'x', 'y']
+        if self.coords != 'flat':
+            col_names.append('z')
+        columns = [np.arange(centers.shape[0])]
+        for i in range(centers.shape[1]):
+            columns.append(centers[:,i])
+
+        treecorr.util.gen_write(file_name, col_names, columns, precision=16, logger=self.logger)
+
+    def read_patch_centers(self, file_name):
+        """Read patch centers from a file.
+
+        This function typically gets called automatically when setting patch_centers as a
+        string, being the file name.  The patch centers are read from the file and returned.
+
+        Parameters:
+            file_name (str):    The name of the file to write to.
+
+        Returns:
+            centers (array):    The centers, which can be used to determine the patches.
+        """
+        self.logger.info('Reading centers from %s',file_name)
+
+        data, params = treecorr.util.gen_read(file_name, logger=self.logger)
+        data = data.view(float).reshape(data.shape + (-1,))
+        centers = data[:,1:]  # Strip off the patches column.
+        return centers
 
     def get_patches(self):
         """Return a list of Catalog instances each representing a single patch from this Catalog

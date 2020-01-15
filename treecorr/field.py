@@ -445,6 +445,7 @@ class Field(object):
         from treecorr.util import long_ptr as lp
         patches = np.empty(self.ntot, dtype=int)
         npatch = centers.shape[0]
+        centers = np.ascontiguousarray(centers)
         treecorr._lib.KMeansAssign(self.data, dp(centers), npatch,
                                    lp(patches), self.ntot, self._d, self._coords)
         return patches

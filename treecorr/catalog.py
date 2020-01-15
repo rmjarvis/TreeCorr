@@ -1575,7 +1575,7 @@ class Catalog(object):
             logger = self.logger
         return self.gsimplefields(logger=logger)
 
-    def getPatches(self):
+    def get_patches(self):
         """Return a list of Catalog instances each representing a single patch from this Catalog
         """
         import copy

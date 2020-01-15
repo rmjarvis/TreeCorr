@@ -358,8 +358,8 @@ class KKCorrelation(treecorr.BinnedCorr2):
         import math
         self.clear()
 
-        if not isinstance(cat1,list): cat1 = cat1.getPatches()
-        if cat2 is not None and not isinstance(cat2,list): cat2 = cat2.getPatches()
+        if not isinstance(cat1,list): cat1 = cat1.get_patches()
+        if cat2 is not None and not isinstance(cat2,list): cat2 = cat2.get_patches()
 
         if cat2 is None:
             vark1 = treecorr.calculateVarK(cat1)

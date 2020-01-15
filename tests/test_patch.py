@@ -34,8 +34,8 @@ def test_cat_patches():
 
     # cat0 is the base catalog without patches
     cat0 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad')
-    assert len(cat0.getPatches()) == 1
-    assert cat0.getPatches()[0].ntot == ngal
+    assert len(cat0.get_patches()) == 1
+    assert cat0.get_patches()[0].ntot == ngal
 
     # 1. Make the patches automatically using kmeans
     #    Note: If npatch is a power of two, then the patch determination is completely
@@ -43,15 +43,15 @@ def test_cat_patches():
     cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128)
     p2, cen = cat0.getNField().run_kmeans(128)
     np.testing.assert_array_equal(cat1.patch, p2)
-    assert len(cat1.getPatches()) == 128
-    assert np.sum([p.ntot for p in cat1.getPatches()]) == ngal
+    assert len(cat1.get_patches()) == 128
+    assert np.sum([p.ntot for p in cat1.get_patches()]) == ngal
 
     # 2. Optionally can use alt algorithm
     cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
                             kmeans_alt=True)
     p3, cen = cat0.getNField().run_kmeans(128, alt=True)
     np.testing.assert_array_equal(cat2.patch, p3)
-    assert len(cat2.getPatches()) == 128
+    assert len(cat2.get_patches()) == 128
 
     # 3. Optionally can set different init method
     cat3 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=128,
@@ -91,8 +91,8 @@ def test_cat_patches():
         cat6b = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
                                  ra_units='rad', dec_units='rad', patch_col='patch', patch_hdu=1)
         np.testing.assert_array_equal(cat6b.patch, p2)
-        assert len(cat6.getPatches()) == 128
-        assert len(cat6b.getPatches()) == 128
+        assert len(cat6.get_patches()) == 128
+        assert len(cat6b.get_patches()) == 128
 
     # Check serialization with patch
     do_pickle(cat2)

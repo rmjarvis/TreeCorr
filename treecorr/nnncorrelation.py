@@ -416,9 +416,9 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                                 in the constructor in the config dict.)
         """
         self.clear()
-        if not isinstance(cat1,list): cat1 = cat1.getPatches()
-        if cat2 is not None and not isinstance(cat2,list): cat2 = cat2.getPatches()
-        if cat3 is not None and not isinstance(cat3,list): cat3 = cat3.getPatches()
+        if not isinstance(cat1,list): cat1 = cat1.get_patches()
+        if cat2 is not None and not isinstance(cat2,list): cat2 = cat2.get_patches()
+        if cat3 is not None and not isinstance(cat3,list): cat3 = cat3.get_patches()
 
         if cat2 is None and cat3 is None:
             self._process_all_auto(cat1, metric, num_threads)

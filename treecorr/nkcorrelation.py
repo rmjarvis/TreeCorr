@@ -313,8 +313,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
         import math
         self.clear()
 
-        if not isinstance(cat1,list): cat1 = cat1.getPatches()
-        if not isinstance(cat2,list): cat2 = cat2.getPatches()
+        if not isinstance(cat1,list): cat1 = cat1.get_patches()
+        if not isinstance(cat2,list): cat2 = cat2.get_patches()
 
         vark = treecorr.calculateVarK(cat2)
         self.logger.info("vark = %f: sig_k = %f",vark,math.sqrt(vark))

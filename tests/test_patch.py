@@ -78,6 +78,15 @@ def test_cat_patches():
                             patch_col=3)
     np.testing.assert_array_equal(cat5.patch, p2)
 
+    # Just load a single patch from an ASCII file with many patches.
+    for i in range(npatch):
+        cat = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
+                               patch_col=3, patch=i)
+        assert cat.patch == cat5.get_patches()[i].patch
+        np.testing.assert_array_equal(cat.x,cat5.get_patches()[i].x)
+        np.testing.assert_array_equal(cat.y,cat5.get_patches()[i].y)
+        assert cat == cat5.get_patches()[i]
+
     # 6. Read patch from a column in FITS file
     try:
         import fitsio
@@ -94,6 +103,14 @@ def test_cat_patches():
         np.testing.assert_array_equal(cat6b.patch, p2)
         assert len(cat6.get_patches()) == npatch
         assert len(cat6b.get_patches()) == npatch
+
+        for i in range(npatch):
+            cat = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                                   ra_units='rad', dec_units='rad', patch_col='patch', patch=i)
+            assert cat.patch == cat6.get_patches()[i].patch
+            np.testing.assert_array_equal(cat.x,cat6.get_patches()[i].x)
+            np.testing.assert_array_equal(cat.y,cat6.get_patches()[i].y)
+            assert cat == cat6.get_patches()[i]
 
     # 7. Set a single patch number
     cat7 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=3)

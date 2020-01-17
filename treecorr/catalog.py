@@ -681,7 +681,7 @@ class Catalog(object):
     @property
     def varg(self):
         if self._varg is None:
-            if self.w is not None:
+            if self.nontrivial_w:
                 if self.g1 is not None:
                     use = self.w != 0
                     self._varg = np.sum(self.w[use]**2 * (self.g1[use]**2 + self.g2[use]**2))
@@ -699,7 +699,7 @@ class Catalog(object):
     @property
     def vark(self):
         if self._vark is None:
-            if self.w is not None:
+            if self.nontrivial_w:
                 if self.k is not None:
                     use = self.w != 0
                     self._vark = np.sum(self.w[use]**2 * self.k[use]**2)
@@ -725,7 +725,7 @@ class Catalog(object):
     @property
     def nobj(self):
         if self._nobj is None:
-            if self.w is not None:
+            if self.nontrivial_w:
                 use = self._w != 0
                 self._nobj = np.sum(use)
             else:
@@ -734,11 +734,7 @@ class Catalog(object):
 
     @property
     def sumw(self):
-        if self._sumw is None:
-            if self.w is not None:
-                self._sumw = np.sum(self._w)
-            else:
-                self._sumw = self.ntot
+        if self._x is None: self._read_file()
         return self._sumw
 
     @property
@@ -838,12 +834,13 @@ class Catalog(object):
                 self._w[self._wpos == 0.] = 0.
 
         if self._w is not None:
-            sumw = np.sum(self._w)
-            if sumw == 0:
-                raise ValueError("Catalog has invalid sumw == 0")
             self._nontrivial_w = True
+            self._sumw = np.sum(self._w)
+            if self._sumw == 0:
+                raise ValueError("Catalog has invalid sumw == 0")
         else:
             self._nontrivial_w = False
+            self._sumw = ntot
             # Make w all 1s to simplify the use of w later in code.
             self._w = np.ones((ntot), dtype=float)
 
@@ -1638,7 +1635,7 @@ class Catalog(object):
         # Find the weighted mean of some column.
         # If weights are set, then return sum(w * x) / sum(w)
         # Else, just sum(x) / N
-        if self._nontrivial_w:
+        if self.nontrivial_w:
             if idx is None:
                 return np.sum(x * self.w) / self.sumw
             else:
@@ -1886,7 +1883,7 @@ class Catalog(object):
             if self.ra is not None: s += 'ra='+repr(self.ra)+",ra_units='rad',"
             if self.dec is not None: s += 'dec='+repr(self.dec)+",dec_units='rad',"
             if self.r is not None: s += 'r='+repr(self.r)+','
-            if self.w is not None: s += 'w='+repr(self.w)+','
+            if self.nontrivial_w: s += 'w='+repr(self.w)+','
             if self.wpos is not None: s += 'wpos='+repr(self.wpos)+','
             if self.g1 is not None: s += 'g1='+repr(self.g1)+','
             if self.g2 is not None: s += 'g2='+repr(self.g2)+','

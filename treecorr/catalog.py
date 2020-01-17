@@ -489,11 +489,10 @@ class Catalog(object):
             self.npatch = 1
 
         try:
-            self._patch = int(patch)
-            self._single_patch = True
+            self._single_patch = int(patch)
             patch = None
         except TypeError:
-            self._single_patch = False
+            pass
 
         if patch_centers is None and 'patch_centers' in self.config:
             # file name version may be in a config dict, rather than kwarg.
@@ -561,8 +560,7 @@ class Catalog(object):
             self._g1 = self.makeArray(g1,'g1')
             self._g2 = self.makeArray(g2,'g2')
             self._k = self.makeArray(k,'k')
-            if not self._single_patch:
-                self._patch = self.makeArray(patch,'patch',int)
+            self._patch = self.makeArray(patch,'patch',int)
 
             # Check that all columns have the same length.  (This is impossible in file input)
             if self._x is not None:
@@ -587,7 +585,7 @@ class Catalog(object):
                 raise ValueError("g2 has the wrong numbers of elements")
             if self._k is not None and len(self._k) != ntot:
                 raise ValueError("k has the wrong numbers of elements")
-            if self._patch is not None and not self._single_patch and len(self._patch) != ntot:
+            if self._patch is not None and len(self._patch) != ntot:
                 raise ValueError("patch has the wrong numbers of elements")
             if ntot == 0:
                 raise ValueError("Input arrays have zero length")
@@ -675,7 +673,10 @@ class Catalog(object):
     @property
     def patch(self):
         if self._x is None: self._read_file()
-        return self._patch
+        if self._single_patch is not None:
+            return self._single_patch
+        else:
+            return self._patch
 
     @property
     def varg(self):
@@ -865,13 +866,10 @@ class Catalog(object):
             self._patch, self._centers = field.run_kmeans(self.npatch, init=init, alt=alt)
         elif self._centers is not None:
             field = self.getNField()
-            patch = field.kmeans_assign_patches(self._centers)
-            if self._single_patch:
-                single_patch = self._patch
-                self._patch = patch
-                self._select_patch(single_patch)
-            else:
-                self._patch = patch
+            self._patch = field.kmeans_assign_patches(self._centers)
+
+        if self._patch is not None and self._single_patch is not None:
+            self._select_patch(self._single_patch)
 
         self.logger.info("   nobj = %d",self.nobj)
 
@@ -892,8 +890,7 @@ class Catalog(object):
         self._g1 = self._g1[indx] if self._g1 is not None else None
         self._g2 = self._g2[indx] if self._g2 is not None else None
         self._k = self._k[indx] if self._k is not None else None
-        self._patch = single_patch
-        self._single_patch = True
+        self._patch = None
 
     def makeArray(self, col, col_str, dtype=float):
         """Turn the input column into a numpy array if it wasn't already.
@@ -1663,7 +1660,7 @@ class Catalog(object):
                                 (x,y,z) coordinates on the unit sphere.
         """
         if self._centers is None:
-            if self.patch is None or self._single_patch:
+            if self._patch is None:
                 if self.coords == 'flat':
                     self._centers = np.array([[self._weighted_mean(self.x),
                                                self._weighted_mean(self.y)]])

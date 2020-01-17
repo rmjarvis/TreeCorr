@@ -6,9 +6,12 @@ the variance (or covariance matrix), which do a better job of capturing sample
 variance than the default (and previously only) method of computing just the
 shot noise component.
 
-This requires dividing the input Catalog into patches, which can be done either by
-giving patch numbers explicitly for each galaxy or by having TreeCorr split it
-into some number of patches for you automatically (using KMeans).
+This requires dividing the input Catalog into patches, which can be done by:
+
+1. giving patch numbers explicitly for each galaxy.
+2. having TreeCorr split it into some number of patches for you automatically (using KMeans).
+3. giving the patch centers to use, which will assign each galaxy to the patch corresponding
+   to the nearest center position.
 
 There is one "bug fix", which is worth calling out, since it's possible that some
 people have relied on the "feature" which this fixes.  The npairs attribute had

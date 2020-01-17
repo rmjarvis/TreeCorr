@@ -534,6 +534,7 @@ class Catalog(object):
 
         # Second style -- pass in the vectors directly
         else:
+            self.file_type = None
             if x is not None or y is not None:
                 if x is None or y is None:
                     raise TypeError("x and y must both be provided")
@@ -547,7 +548,7 @@ class Catalog(object):
             if g1 is not None or g2 is not None:
                 if g1 is None or g2 is None:
                     raise TypeError("g1 and g2 must both be provided")
-            self.name = ''
+            self.name = None
             self._x = self.makeArray(x,'x')
             self._y = self.makeArray(y,'y')
             self._z = self.makeArray(z,'z')
@@ -1734,12 +1735,32 @@ class Catalog(object):
         centers = data[:,1:]  # Strip off the patches column.
         return centers
 
-    def get_patches(self):
+    def get_patches(self, unloaded=False):
         """Return a list of Catalog instances each representing a single patch from this Catalog
+
+        Parameters:
+            unloaded (bool):    Whether to try to leave the returned patch catalogs in an
+                                "unloaded" state, wherein they will not load the data from a
+                                file until they are used.  This only works if the current catalog
+                                was loaded from a file.  (And if the patches are set using
+                                patch_centers, this won't even trigger a load of the current
+                                Catalog.) (default: False)
         """
         import copy
         if self._patches is None:
-            if self.patch is None:
+            if unloaded and self.name is not None:
+                if self._centers is not None:
+                    patch_set = range(len(self._centers))
+                elif self._single_patch is not None:
+                    patch_set = [self._single_patch]
+                elif self.patch is None:
+                    patch_set = [None]
+                else:
+                    patch_set = set(self.patch)
+                self._patches = [Catalog(config=self.config, file_name=self.name,
+                                         patch=i, npatch=1, patch_centers=self._centers)
+                                 for i in patch_set]
+            elif self._patch is None:
                 self._patches = [self]
             else:
                 patch_set = set(self.patch)

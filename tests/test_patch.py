@@ -24,7 +24,7 @@ def test_cat_patches():
     # Test the different ways to set patches in the catalog.
 
     # Use the same input as test_radec()
-    ngal = 100000
+    ngal = 10000
     npatch = 128
     s = 10.
     rng = np.random.RandomState(8675309)
@@ -76,7 +76,9 @@ def test_cat_patches():
     cat4.write(file_name5)
     cat5 = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                             patch_col=3)
+    assert cat5._x is None  # sentinal that file is unloaded yet.
     np.testing.assert_array_equal(cat5.patch, p2)
+    assert cat5._x is not None # Now it's loaded, since we accessed cat5.patch.
 
     # Just load a single patch from an ASCII file with many patches.
     for i in range(npatch):
@@ -86,6 +88,27 @@ def test_cat_patches():
         np.testing.assert_array_equal(cat.x,cat5.get_patches()[i].x)
         np.testing.assert_array_equal(cat.y,cat5.get_patches()[i].y)
         assert cat == cat5.get_patches()[i]
+
+    # Can get patches in unloaded state with unloaded=True.
+    cat5b = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
+                             patch_col=3)
+    assert cat5b._x is None  # not loaded yet.
+    cat5b_patches = cat5b.get_patches(unloaded=True)
+    assert cat5b._x is not None  # Need to load to get number of patches.
+    for i in range(4):  # Don't bother with all the patches.  4 suffices to check this.
+        assert cat5b_patches[i]._x is None  # But single patch not loaded yet.
+        assert np.all(cat5b_patches[i].patch == i)  # Triggers load of patch.
+        np.testing.assert_array_equal(cat5b_patches[i].x, cat5.x[cat5.patch == i])
+
+    # Just load a single patch from an ASCII file with many patches.
+    for i in range(4):
+        cat = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
+                               patch_col=3, patch=i)
+        assert cat.patch == cat5.get_patches()[i].patch
+        np.testing.assert_array_equal(cat.x,cat5.get_patches()[i].x)
+        np.testing.assert_array_equal(cat.y,cat5.get_patches()[i].y)
+        assert cat == cat5.get_patches()[i]
+        assert cat == cat5b_patches[i]
 
     # 6. Read patch from a column in FITS file
     try:
@@ -104,17 +127,40 @@ def test_cat_patches():
         assert len(cat6.get_patches()) == npatch
         assert len(cat6b.get_patches()) == npatch
 
-        for i in range(npatch):
+        # Calling get_patches will not force loading of the file.
+        cat6c = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                                 ra_units='rad', dec_units='rad', patch_col='patch')
+        assert cat6c._x is None  # not loaded yet.
+        cat6c_patches = cat6c.get_patches(unloaded=True)
+        assert cat6c._x is not None
+        for i in range(4):
+            assert cat6c_patches[i]._x is None  # single patch not loaded yet.
+            assert np.all(cat6c_patches[i].patch == i)  # Triggers load of patch.
+            np.testing.assert_array_equal(cat6c_patches[i].x, cat6.x[cat6.patch == i])
+
             cat = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
                                    ra_units='rad', dec_units='rad', patch_col='patch', patch=i)
             assert cat.patch == cat6.get_patches()[i].patch
             np.testing.assert_array_equal(cat.x,cat6.get_patches()[i].x)
             np.testing.assert_array_equal(cat.y,cat6.get_patches()[i].y)
             assert cat == cat6.get_patches()[i]
+            assert cat == cat6c_patches[i]
 
     # 7. Set a single patch number
     cat7 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=3)
     np.testing.assert_array_equal(cat7.patch, 3)
+    cat8 = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                            ra_units='rad', dec_units='rad', patch_col='patch', patch=3)
+    np.testing.assert_array_equal(cat8.patch, 3)
+
+    # unloaded=True works if not from a file, but it's not any different
+    assert cat1.get_patches(unloaded=True) == cat1.get_patches()
+    assert cat2.get_patches(unloaded=True) == cat2.get_patches()
+    assert cat5.get_patches(unloaded=True) == cat5.get_patches()
+    assert cat7.get_patches(unloaded=True) == cat7.get_patches()
+    assert cat8.get_patches(unloaded=True) == cat8.get_patches()
+    cat9 = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad')
+    assert cat9.get_patches(unloaded=True) == cat9.get_patches()
 
     # Check serialization with patch
     do_pickle(cat2)
@@ -267,6 +313,27 @@ def test_cat_centers():
         np.testing.assert_array_equal(cat.x,cat14.get_patches()[i].x)
         np.testing.assert_array_equal(cat.y,cat14.get_patches()[i].y)
         assert cat == cat14.get_patches()[i]
+
+    # Loading from a file with patch_centers can mean that get_patches won't trigger a load.
+    file_name15 = os.path.join('output','test_cat_centers.dat')
+    cat14.write(file_name15)
+    cat15 = treecorr.Catalog(file_name15, x_col=1, y_col=2, w_col=3,
+                             patch_centers=cat14.get_patch_centers())
+    assert cat15._x is None  # not loaded yet.
+    cat15_patches = cat15.get_patches(unloaded=True)
+    assert cat15._x is None  # Unlike above (in test_cat_patches) it's still unloaded.
+    for i in range(4):  # Don't bother with all the patches.  4 suffices to check this.
+        assert cat15_patches[i]._x is None  # Single patch also not loaded yet.
+        assert np.all(cat15_patches[i].patch == i)  # Triggers load of patch.
+        np.testing.assert_array_equal(cat15_patches[i].x, cat15.x[cat15.patch == i])
+
+        cat = treecorr.Catalog(file_name15, x_col=1, y_col=2, w_col=3,
+                               patch_centers=cat15.get_patch_centers(), patch=i)
+        assert cat.patch == cat15.get_patches()[i].patch
+        np.testing.assert_array_equal(cat.x,cat15_patches[i].x)
+        np.testing.assert_array_equal(cat.y,cat15_patches[i].y)
+        assert cat == cat15_patches[i]
+        assert cat == cat15.get_patches()[i]
 
     # Check for some invalid values
     with assert_raises(ValueError):

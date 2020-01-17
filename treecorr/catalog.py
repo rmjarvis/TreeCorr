@@ -98,8 +98,7 @@ class Catalog(object):
         g2:     The g2 component of the shear, if defined, as a numpy array. (None otherwise)
         k:      The convergence, kappa, if defined, as a numpy array. (None otherwise)
         patch:  The patch number of each object, if patches are being used. (None otherwise)
-                Note: If the entire catalog is a single patch, then patch may be an int.
-
+                If the entire catalog is a single patch, then ``patch`` may be an int.
         ntot:   The total number of objects (including those with zero weight)
         nobj:   The number of objects with non-zero weight
         sumw:   The sum of the weights
@@ -170,10 +169,11 @@ class Catalog(object):
                             spinor field.) (default: None)
         k (array):          The kappa values to use for scalar correlations. (This may represent
                             any scalar field.) (default: None)
-        patch (array):      Optionally, patch numbers to use for each object. (default: None)
+        patch (array or int): Optionally, patch numbers to use for each object. (default: None)
                             Note: This may also be an int if the entire catalog represents a
-                            single patch.
-        patch_centers (str or array): Alternative to setting patch by hand or using kmeans, you
+                            single patch.  If ``patch_centers`` is given this will select those
+                            items from the full input that correspond to the given patch number.
+        patch_centers (array or str): Alternative to setting patch by hand or using kmeans, you
                             may instead give patch_centers either as a file name or an array
                             from which the patches will be determined. (default: None)
 
@@ -488,6 +488,13 @@ class Catalog(object):
         else:
             self.npatch = 1
 
+        try:
+            self._patch = int(patch)
+            self._single_patch = True
+            patch = None
+        except TypeError:
+            self._single_patch = False
+
         if patch_centers is None and 'patch_centers' in self.config:
             # file name version may be in a config dict, rather than kwarg.
             patch_centers = treecorr.config.get(self.config,'patch_centers',str)
@@ -554,12 +561,8 @@ class Catalog(object):
             self._g1 = self.makeArray(g1,'g1')
             self._g2 = self.makeArray(g2,'g2')
             self._k = self.makeArray(k,'k')
-            try:
-                self._patch = int(patch)
-                self._single_patch = True
-            except TypeError:
+            if not self._single_patch:
                 self._patch = self.makeArray(patch,'patch',int)
-                self._single_patch = False
 
             # Check that all columns have the same length.  (This is impossible in file input)
             if self._x is not None:
@@ -862,9 +865,35 @@ class Catalog(object):
             self._patch, self._centers = field.run_kmeans(self.npatch, init=init, alt=alt)
         elif self._centers is not None:
             field = self.getNField()
-            self._patch = field.kmeans_assign_patches(self._centers)
+            patch = field.kmeans_assign_patches(self._centers)
+            if self._single_patch:
+                single_patch = self._patch
+                self._patch = patch
+                self._select_patch(single_patch)
+            else:
+                self._patch = patch
 
         self.logger.info("   nobj = %d",self.nobj)
+
+    def _select_patch(self, single_patch):
+        # Trim the catalog to only include a single patch
+        # Note: This is slightly inefficient in that it reads the whole catalog first
+        # and then removes all but one patch.  But that's easier for now that figuring out
+        # which items to remove along the way based on the patch_centers.
+        indx = np.where(self._patch == single_patch)
+        self._x = self._x[indx] if self._x is not None else None
+        self._y = self._y[indx] if self._y is not None else None
+        self._z = self._z[indx] if self._z is not None else None
+        self._ra = self._ra[indx] if self._ra is not None else None
+        self._dec = self._dec[indx] if self._dec is not None else None
+        self._r = self._r[indx] if self._r is not None else None
+        self._w = self._w[indx] if self._w is not None else None
+        self._wpos = self._wpos[indx] if self._wpos is not None else None
+        self._g1 = self._g1[indx] if self._g1 is not None else None
+        self._g2 = self._g2[indx] if self._g2 is not None else None
+        self._k = self._k[indx] if self._k is not None else None
+        self._patch = single_patch
+        self._single_patch = True
 
     def makeArray(self, col, col_str, dtype=float):
         """Turn the input column into a numpy array if it wasn't already.

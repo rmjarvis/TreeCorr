@@ -237,10 +237,19 @@ def test_cat_centers():
     cat14 = treecorr.Catalog(x=x, y=y, w=w, patch_centers=cat13.get_patch_centers())
     print('n diff = ',np.sum(cat14.patch != cat13.patch))
     assert np.sum(cat14.patch != cat13.patch) < 200
+    np.testing.assert_array_equal(cat14.get_patch_centers(), cat13.get_patch_centers())
 
     # The patch centers from the patch sub-catalogs should match.
     cen13 = [c.get_patch_centers()[0] for c in cat13.get_patches()]
     np.testing.assert_array_equal(cen13, cat13.get_patch_centers())
+
+    # Using the full patch centers, you can also just load a single patch.
+    for i in range(npatch):
+        cat = treecorr.Catalog(x=x, y=y, w=w, patch_centers=cat13.get_patch_centers(), patch=i)
+        assert cat.patch == cat14.get_patches()[i].patch
+        np.testing.assert_array_equal(cat.x,cat14.get_patches()[i].x)
+        np.testing.assert_array_equal(cat.y,cat14.get_patches()[i].y)
+        assert cat == cat14.get_patches()[i]
 
     # Check for some invalid values
     with assert_raises(ValueError):
@@ -248,7 +257,7 @@ def test_cat_centers():
                          patch_centers=cen_file, npatch=3)
     with assert_raises(ValueError):
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
-                         patch_centers=cen_file, patch=3)
+                         patch_centers=cen_file, patch=np.ones_like(ra))
     with assert_raises(ValueError):
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
                          patch_centers=cen_file, patch_col=3)

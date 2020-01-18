@@ -37,6 +37,10 @@ divide the input `Catalog` into patches.  There are several ways to do this.
 2. Read a "patch" column from an input file using **patch_col**.
 3. Set the **npatch** parameter to have TreeCorr split the `Catalog` into the
    given number of patches for you, using a K-Means algorithm (cf. `Field.run_kmeans`)
+4. Set the **patch_centers** parameter to use an existing set of patch centers
+   (typically from a previous TreeCorr K-Means calculation, written out using
+   `Catalog.write_patch_centers`), so TreeCorr can assign each galaxy to the patch
+   with the closest center.
 
 Variance Methods
 ----------------

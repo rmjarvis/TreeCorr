@@ -673,10 +673,10 @@ class Catalog(object):
 
     @property
     def patch(self):
-        if self._x is None: self._read_file()
         if self._single_patch is not None:
             return self._single_patch
         else:
+            if self._x is None: self._read_file()
             return self._patch
 
     @property
@@ -716,7 +716,7 @@ class Catalog(object):
 
     @property
     def nontrivial_w(self):
-        if self._x is None: self._read_file()
+        if self._nontrivial_w is None: self._read_file()
         return self._nontrivial_w
 
     @property
@@ -735,7 +735,7 @@ class Catalog(object):
 
     @property
     def sumw(self):
-        if self._x is None: self._read_file()
+        if self._sumw is None: self._read_file()
         return self._sumw
 
     @property
@@ -1734,6 +1734,35 @@ class Catalog(object):
         data = data.view(float).reshape(data.shape + (-1,))
         centers = data[:,1:]  # Strip off the patches column.
         return centers
+
+    def unload(self):
+        """Return a Catalog to an "unloaded" state.
+
+        When a Catalog is read in from a file, it tries to delay the loading of the data from
+        disk until it is actually needed.  This is especially important when running over a
+        set of patches, since you may not be able to fit all the patches in memory at once.
+
+        After the load, this method will return the Catalog back to the unloaded state to
+        recover the memory in the data arrays.  If the Catalog is needed again during further
+        processing, it will re-load the data from disk at that time.
+
+        This will also call self.clear_cache() to recover any memory from fields that have been
+        constructed as well.
+        """
+        if self.file_type is not None:
+            self._x = None
+            self._y = None
+            self._z = None
+            self._ra = None
+            self._dec = None
+            self._r = None
+            self._w = None
+            self._wpos = None
+            self._g1 = None
+            self._g2 = None
+            self._k = None
+            self._patch = None
+        self.clear_cache()
 
     def get_patches(self, unloaded=False):
         """Return a list of Catalog instances each representing a single patch from this Catalog

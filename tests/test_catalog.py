@@ -384,6 +384,21 @@ def test_ascii():
     assert cat14d._x is not None
     np.set_printoptions(**original)
 
+    # Can also unload the Catalog to recover the memory
+    cat14a.unload()
+    assert cat14a._x is None  # Unloaded now.
+    assert cat14a._y is None
+    assert cat14a._z is None
+    assert cat14a._ra is None
+    assert cat14a._dec is None
+    assert cat14a._r is None
+    assert cat14a._w is None
+    assert cat14a._wpos is None
+    assert cat14a._g1 is None
+    assert cat14a._g2 is None
+    assert cat14a._k is None
+    assert cat14a == cat14    # When needed, it will reload, e.g. here to check equality.
+
 
 def test_fits():
     try:
@@ -536,6 +551,21 @@ def test_fits():
     assert cat6d._x is not None
     np.set_printoptions(**original)
 
+    # Can also unload the Catalog to recover the memory
+    cat6a.unload()
+    assert cat6a._x is None  # Unloaded now.
+    assert cat6a._y is None
+    assert cat6a._z is None
+    assert cat6a._ra is None
+    assert cat6a._dec is None
+    assert cat6a._r is None
+    assert cat6a._w is None
+    assert cat6a._wpos is None
+    assert cat6a._g1 is None
+    assert cat6a._g2 is None
+    assert cat6a._k is None
+    assert cat6a == cat6    # When needed, it will reload, e.g. here to check equality.
+
     assert_raises(ValueError, treecorr.Catalog, file_name, config, first_row=-10)
     assert_raises(ValueError, treecorr.Catalog, file_name, config, first_row=0)
     assert_raises(ValueError, treecorr.Catalog, file_name, config, first_row=60000)
@@ -581,6 +611,10 @@ def test_direct():
 
     do_pickle(cat1)
     do_pickle(cat2)
+
+    # unload() is valid on direct Catalogs, but doesn't do anything.
+    cat2.unload()
+    assert cat2._x is not None  # Cannot unload without file
 
     assert_raises(TypeError, treecorr.Catalog, x=x)
     assert_raises(TypeError, treecorr.Catalog, y=y)

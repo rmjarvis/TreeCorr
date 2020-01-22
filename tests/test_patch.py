@@ -89,14 +89,20 @@ def test_cat_patches():
         np.testing.assert_array_equal(cat.y,cat5.patches[i].y)
         assert cat == cat5.patches[i]
 
-    # Can get patches in unloaded state with unloaded=True.
+    # Patches start in an unloaded state (by default)
     cat5b = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                              patch_col=3)
     assert not cat5b.loaded
-    cat5b_patches = cat5b.get_patches(unloaded=True)
+    cat5b_patches = cat5b.get_patches()  # Default is to match full catalog, so unloaded=True here.
     assert cat5b.loaded   # Needed to load to get number of patches.
+    cat5b_patches2 = cat5b.get_patches(unloaded=True)  # Can also be explicit.
+    cat5b_patches3 = cat5b.get_patches(unloaded=False)
+    cat5b_patches4 = cat5b.get_patches()  # Default now is False, since cat5b got loaded.
     for i in range(4):  # Don't bother with all the patches.  4 suffices to check this.
         assert not cat5b_patches[i].loaded   # But single patch not loaded yet.
+        assert not cat5b_patches2[i].loaded
+        assert cat5b_patches3[i].loaded      # Unless we asked it to load
+        assert cat5b_patches4[i].loaded
         assert np.all(cat5b_patches[i].patch == i)  # Triggers load of patch.
         np.testing.assert_array_equal(cat5b_patches[i].x, cat5.x[cat5.patch == i])
 
@@ -131,10 +137,16 @@ def test_cat_patches():
         cat6c = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
                                  ra_units='rad', dec_units='rad', patch_col='patch')
         assert not cat6c.loaded
-        cat6c_patches = cat6c.get_patches(unloaded=True)
+        cat6c_patches = cat6c.get_patches()
         assert cat6c.loaded
+        cat6c_patches2 = cat6c.get_patches(unloaded=True)
+        cat6c_patches3 = cat6c.get_patches(unloaded=False)
+        cat6c_patches4 = cat6c.get_patches()
         for i in range(4):
             assert not cat6c_patches[i].loaded
+            assert not cat6c_patches2[i].loaded
+            assert cat6c_patches3[i].loaded
+            assert cat6c_patches4[i].loaded
             assert np.all(cat6c_patches[i].patch == i)  # Triggers load of patch.
             np.testing.assert_array_equal(cat6c_patches[i].x, cat6.x[cat6.patch == i])
 
@@ -320,7 +332,7 @@ def test_cat_centers():
     cat15 = treecorr.Catalog(file_name15, x_col=1, y_col=2, w_col=3,
                              patch_centers=cat14.patch_centers)
     assert cat15._x is None  # not loaded yet.
-    cat15_patches = cat15.get_patches(unloaded=True)
+    cat15_patches = cat15.get_patches()
     assert cat15._x is None  # Unlike above (in test_cat_patches) it's still unloaded.
     for i in range(4):  # Don't bother with all the patches.  4 suffices to check this.
         assert cat15_patches[i]._x is None  # Single patch also not loaded yet.

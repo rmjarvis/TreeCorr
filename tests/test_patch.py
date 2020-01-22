@@ -76,9 +76,9 @@ def test_cat_patches():
     cat4.write(file_name5)
     cat5 = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                             patch_col=3)
-    assert cat5._x is None  # sentinal that file is unloaded yet.
+    assert not cat5.loaded
     np.testing.assert_array_equal(cat5.patch, p2)
-    assert cat5._x is not None # Now it's loaded, since we accessed cat5.patch.
+    assert cat5.loaded   # Now it's loaded, since we accessed cat5.patch.
 
     # Just load a single patch from an ASCII file with many patches.
     for i in range(npatch):
@@ -92,11 +92,11 @@ def test_cat_patches():
     # Can get patches in unloaded state with unloaded=True.
     cat5b = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                              patch_col=3)
-    assert cat5b._x is None  # not loaded yet.
+    assert not cat5b.loaded
     cat5b_patches = cat5b.get_patches(unloaded=True)
-    assert cat5b._x is not None  # Need to load to get number of patches.
+    assert cat5b.loaded   # Needed to load to get number of patches.
     for i in range(4):  # Don't bother with all the patches.  4 suffices to check this.
-        assert cat5b_patches[i]._x is None  # But single patch not loaded yet.
+        assert not cat5b_patches[i].loaded   # But single patch not loaded yet.
         assert np.all(cat5b_patches[i].patch == i)  # Triggers load of patch.
         np.testing.assert_array_equal(cat5b_patches[i].x, cat5.x[cat5.patch == i])
 
@@ -130,11 +130,11 @@ def test_cat_patches():
         # Calling get_patches will not force loading of the file.
         cat6c = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
                                  ra_units='rad', dec_units='rad', patch_col='patch')
-        assert cat6c._x is None  # not loaded yet.
+        assert not cat6c.loaded
         cat6c_patches = cat6c.get_patches(unloaded=True)
-        assert cat6c._x is not None
+        assert cat6c.loaded
         for i in range(4):
-            assert cat6c_patches[i]._x is None  # single patch not loaded yet.
+            assert not cat6c_patches[i].loaded
             assert np.all(cat6c_patches[i].patch == i)  # Triggers load of patch.
             np.testing.assert_array_equal(cat6c_patches[i].x, cat6.x[cat6.patch == i])
 

@@ -1794,7 +1794,7 @@ class Catalog(object):
             self._patch = None
         self.clear_cache()
 
-    def get_patches(self, unloaded=False):
+    def get_patches(self, unloaded=None):
         """Return a list of Catalog instances each representing a single patch from this Catalog
 
         After calling this function once, the patches may be repeatedly accessed by the
@@ -1808,9 +1808,12 @@ class Catalog(object):
                                 file until they are used.  This only works if the current catalog
                                 was loaded from a file.  (And if the patches are set using
                                 patch_centers, this won't even trigger a load of the current
-                                Catalog.) (default: False)
+                                Catalog.) (default: None, which means to match the load state
+                                of the current Catalog)
         """
         import copy
+        if unloaded is None:
+            unloaded = not self.loaded
         if unloaded and self.name is not None:
             if self._centers is not None:
                 patch_set = range(len(self._centers))

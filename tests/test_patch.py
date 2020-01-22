@@ -35,8 +35,8 @@ def test_cat_patches():
 
     # cat0 is the base catalog without patches
     cat0 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad')
-    assert len(cat0.get_patches()) == 1
-    assert cat0.get_patches()[0].ntot == ngal
+    assert len(cat0.patches) == 1
+    assert cat0.patches[0].ntot == ngal
 
     # 1. Make the patches automatically using kmeans
     #    Note: If npatch is a power of two, then the patch determination is completely
@@ -44,15 +44,15 @@ def test_cat_patches():
     cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch)
     p2, cen = cat0.getNField().run_kmeans(npatch)
     np.testing.assert_array_equal(cat1.patch, p2)
-    assert len(cat1.get_patches()) == npatch
-    assert np.sum([p.ntot for p in cat1.get_patches()]) == ngal
+    assert len(cat1.patches) == npatch
+    assert np.sum([p.ntot for p in cat1.patches]) == ngal
 
     # 2. Optionally can use alt algorithm
     cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch,
                             kmeans_alt=True)
     p3, cen = cat0.getNField().run_kmeans(npatch, alt=True)
     np.testing.assert_array_equal(cat2.patch, p3)
-    assert len(cat2.get_patches()) == npatch
+    assert len(cat2.patches) == npatch
 
     # 3. Optionally can set different init method
     cat3 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch,
@@ -84,10 +84,10 @@ def test_cat_patches():
     for i in range(npatch):
         cat = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                                patch_col=3, patch=i)
-        assert cat.patch == cat5.get_patches()[i].patch
-        np.testing.assert_array_equal(cat.x,cat5.get_patches()[i].x)
-        np.testing.assert_array_equal(cat.y,cat5.get_patches()[i].y)
-        assert cat == cat5.get_patches()[i]
+        assert cat.patch == cat5.patches[i].patch
+        np.testing.assert_array_equal(cat.x,cat5.patches[i].x)
+        np.testing.assert_array_equal(cat.y,cat5.patches[i].y)
+        assert cat == cat5.patches[i]
 
     # Can get patches in unloaded state with unloaded=True.
     cat5b = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
@@ -104,10 +104,10 @@ def test_cat_patches():
     for i in range(4):
         cat = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                                patch_col=3, patch=i)
-        assert cat.patch == cat5.get_patches()[i].patch
-        np.testing.assert_array_equal(cat.x,cat5.get_patches()[i].x)
-        np.testing.assert_array_equal(cat.y,cat5.get_patches()[i].y)
-        assert cat == cat5.get_patches()[i]
+        assert cat.patch == cat5.patches[i].patch
+        np.testing.assert_array_equal(cat.x,cat5.patches[i].x)
+        np.testing.assert_array_equal(cat.y,cat5.patches[i].y)
+        assert cat == cat5.patches[i]
         assert cat == cat5b_patches[i]
 
     # 6. Read patch from a column in FITS file
@@ -124,8 +124,8 @@ def test_cat_patches():
         cat6b = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
                                  ra_units='rad', dec_units='rad', patch_col='patch', patch_hdu=1)
         np.testing.assert_array_equal(cat6b.patch, p2)
-        assert len(cat6.get_patches()) == npatch
-        assert len(cat6b.get_patches()) == npatch
+        assert len(cat6.patches) == npatch
+        assert len(cat6b.patches) == npatch
 
         # Calling get_patches will not force loading of the file.
         cat6c = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
@@ -140,10 +140,10 @@ def test_cat_patches():
 
             cat = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
                                    ra_units='rad', dec_units='rad', patch_col='patch', patch=i)
-            assert cat.patch == cat6.get_patches()[i].patch
-            np.testing.assert_array_equal(cat.x,cat6.get_patches()[i].x)
-            np.testing.assert_array_equal(cat.y,cat6.get_patches()[i].y)
-            assert cat == cat6.get_patches()[i]
+            assert cat.patch == cat6.patches[i].patch
+            np.testing.assert_array_equal(cat.x,cat6.patches[i].x)
+            np.testing.assert_array_equal(cat.y,cat6.patches[i].y)
+            assert cat == cat6.patches[i]
             assert cat == cat6c_patches[i]
 
     # 7. Set a single patch number
@@ -216,9 +216,9 @@ def test_cat_centers():
     ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
 
     cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch)
-    centers = [(c.x.mean(), c.y.mean(), c.z.mean()) for c in cat1.get_patches()]
+    centers = [(c.x.mean(), c.y.mean(), c.z.mean()) for c in cat1.patches]
     centers /= np.sqrt(np.sum(np.array(centers)**2,axis=1))[:,np.newaxis]
-    centers2 = cat1.get_patch_centers()
+    centers2 = cat1.patch_centers
     print('center0 = ',centers[0])
     print('          ',centers2[0])
     print('center1 = ',centers[1])
@@ -239,86 +239,86 @@ def test_cat_centers():
     cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
                             patch_centers=centers2)
     np.testing.assert_array_equal(cat2.patch, cat1.patch)
-    np.testing.assert_array_equal(cat2.get_patch_centers(), centers2)
+    np.testing.assert_array_equal(cat2.patch_centers, centers2)
 
     # Set patches from file
     cat3 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
                             patch_centers=cen_file)
     np.testing.assert_array_equal(cat3.patch, cat1.patch)
-    np.testing.assert_array_equal(cat3.get_patch_centers(), centers2)
+    np.testing.assert_array_equal(cat3.patch_centers, centers2)
 
     # If doing this from a config dict, patch_centers will be found in the config dict.
     config = dict(ra_units='rad', dec_units='rad', patch_centers=cen_file)
     cat4 = treecorr.Catalog(config=config, ra=ra, dec=dec)
     np.testing.assert_array_equal(cat4.patch, cat1.patch)
-    np.testing.assert_array_equal(cat4.get_patch_centers(), centers2)
+    np.testing.assert_array_equal(cat4.patch_centers, centers2)
 
     # If the original catalog had manual patches set, it needs to calculate the centers
     # after the fact, so things aren't perfect, but should be close.
     cat5 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
                             patch=cat1.patch)
     np.testing.assert_array_equal(cat5.patch, cat1.patch)
-    np.testing.assert_allclose(cat5.get_patch_centers(), centers2, atol=1.e-4)
+    np.testing.assert_allclose(cat5.patch_centers, centers2, atol=1.e-4)
 
     cat6 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
-                            patch_centers=cat5.get_patch_centers())
+                            patch_centers=cat5.patch_centers)
     print('n diff = ',np.sum(cat6.patch != cat5.patch))
     assert np.sum(cat6.patch != cat5.patch) < 10
-    np.testing.assert_allclose(cat6.get_patch_centers(), cat5.get_patch_centers())
+    np.testing.assert_allclose(cat6.patch_centers, cat5.patch_centers)
 
     # The patch centers from the patch sub-catalogs should match.
-    cen5 = [c.get_patch_centers()[0] for c in cat5.get_patches()]
-    np.testing.assert_array_equal(cen5, cat5.get_patch_centers())
+    cen5 = [c.patch_centers[0] for c in cat5.patches]
+    np.testing.assert_array_equal(cen5, cat5.patch_centers)
 
     # With weights, things can be a bit farther off of course.
     w=rng.uniform(1,2,len(ra))
     cat7 = treecorr.Catalog(ra=ra, dec=dec, w=w, ra_units='rad', dec_units='rad',
                             patch=cat1.patch)
     cat8 = treecorr.Catalog(ra=ra, dec=dec, w=w, ra_units='rad', dec_units='rad',
-                            patch_centers=cat7.get_patch_centers())
+                            patch_centers=cat7.patch_centers)
     print('n diff = ',np.sum(cat8.patch != cat7.patch))
     assert np.sum(cat8.patch != cat7.patch) < 200
-    np.testing.assert_allclose(cat8.get_patch_centers(), cat7.get_patch_centers())
+    np.testing.assert_allclose(cat8.patch_centers, cat7.patch_centers)
 
     # Check flat
     cat9 = treecorr.Catalog(x=x, y=y, npatch=npatch)
     cen_file2 = os.path.join('output','test_cat_centers.txt')
     cat9.write_patch_centers(cen_file2)
     centers9 = cat9.read_patch_centers(cen_file2)
-    np.testing.assert_allclose(centers9, cat9.get_patch_centers())
+    np.testing.assert_allclose(centers9, cat9.patch_centers)
 
     cat10 = treecorr.Catalog(x=x, y=y, patch_centers=cen_file2)
     np.testing.assert_array_equal(cat10.patch, cat9.patch)
-    np.testing.assert_array_equal(cat10.get_patch_centers(), cat9.get_patch_centers())
+    np.testing.assert_array_equal(cat10.patch_centers, cat9.patch_centers)
 
     cat11 = treecorr.Catalog(x=x, y=y, patch=cat9.patch)
-    cat12 = treecorr.Catalog(x=x, y=y, patch_centers=cat11.get_patch_centers())
+    cat12 = treecorr.Catalog(x=x, y=y, patch_centers=cat11.patch_centers)
     print('n diff = ',np.sum(cat12.patch != cat11.patch))
     assert np.sum(cat12.patch != cat11.patch) < 10
 
     cat13 = treecorr.Catalog(x=x, y=y, w=w, patch=cat9.patch)
-    cat14 = treecorr.Catalog(x=x, y=y, w=w, patch_centers=cat13.get_patch_centers())
+    cat14 = treecorr.Catalog(x=x, y=y, w=w, patch_centers=cat13.patch_centers)
     print('n diff = ',np.sum(cat14.patch != cat13.patch))
     assert np.sum(cat14.patch != cat13.patch) < 200
-    np.testing.assert_array_equal(cat14.get_patch_centers(), cat13.get_patch_centers())
+    np.testing.assert_array_equal(cat14.patch_centers, cat13.patch_centers)
 
     # The patch centers from the patch sub-catalogs should match.
-    cen13 = [c.get_patch_centers()[0] for c in cat13.get_patches()]
-    np.testing.assert_array_equal(cen13, cat13.get_patch_centers())
+    cen13 = [c.patch_centers[0] for c in cat13.patches]
+    np.testing.assert_array_equal(cen13, cat13.patch_centers)
 
     # Using the full patch centers, you can also just load a single patch.
     for i in range(npatch):
-        cat = treecorr.Catalog(x=x, y=y, w=w, patch_centers=cat13.get_patch_centers(), patch=i)
-        assert cat.patch == cat14.get_patches()[i].patch
-        np.testing.assert_array_equal(cat.x,cat14.get_patches()[i].x)
-        np.testing.assert_array_equal(cat.y,cat14.get_patches()[i].y)
-        assert cat == cat14.get_patches()[i]
+        cat = treecorr.Catalog(x=x, y=y, w=w, patch_centers=cat13.patch_centers, patch=i)
+        assert cat.patch == cat14.patches[i].patch
+        np.testing.assert_array_equal(cat.x,cat14.patches[i].x)
+        np.testing.assert_array_equal(cat.y,cat14.patches[i].y)
+        assert cat == cat14.patches[i]
 
     # Loading from a file with patch_centers can mean that get_patches won't trigger a load.
     file_name15 = os.path.join('output','test_cat_centers.dat')
     cat14.write(file_name15)
     cat15 = treecorr.Catalog(file_name15, x_col=1, y_col=2, w_col=3,
-                             patch_centers=cat14.get_patch_centers())
+                             patch_centers=cat14.patch_centers)
     assert cat15._x is None  # not loaded yet.
     cat15_patches = cat15.get_patches(unloaded=True)
     assert cat15._x is None  # Unlike above (in test_cat_patches) it's still unloaded.
@@ -328,12 +328,12 @@ def test_cat_centers():
         np.testing.assert_array_equal(cat15_patches[i].x, cat15.x[cat15.patch == i])
 
         cat = treecorr.Catalog(file_name15, x_col=1, y_col=2, w_col=3,
-                               patch_centers=cat15.get_patch_centers(), patch=i)
-        assert cat.patch == cat15.get_patches()[i].patch
+                               patch_centers=cat15.patch_centers, patch=i)
+        assert cat.patch == cat15.patches[i].patch
         np.testing.assert_array_equal(cat.x,cat15_patches[i].x)
         np.testing.assert_array_equal(cat.y,cat15_patches[i].y)
         assert cat == cat15_patches[i]
-        assert cat == cat15.get_patches()[i]
+        assert cat == cat15.patches[i]
 
     # Check for some invalid values
     with assert_raises(ValueError):

@@ -684,6 +684,18 @@ class Catalog(object):
             return self._patch
 
     @property
+    def patches(self):
+        if self._patches is None:
+            self.get_patches()  # Implicitly sets self._patches
+        return self._patches
+
+    @property
+    def patch_centers(self):
+        if self._centers is None:
+            self.get_patch_centers()  # Implicitly sets self._centers
+        return self._centers
+
+    @property
     def varg(self):
         if self._varg is None:
             if self.nontrivial_w:
@@ -1644,6 +1656,9 @@ class Catalog(object):
         will just return that same center array.  Otherwise, it will be calculated from the
         positions of the objects with each patch number.
 
+        After calling this function once, you can use the attribute ``patch_centers`` to access
+        the centers repeatedly without triggering any recalculation.
+
         Returns:
             centers (array):    An array of center coordinates used to make the patches.
                                 Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
@@ -1699,7 +1714,7 @@ class Catalog(object):
         """
         self.logger.info('Writing centers to %s',file_name)
 
-        centers = self.get_patch_centers()
+        centers = self.patch_centers
         col_names = ['patch', 'x', 'y']
         if self.coords != 'flat':
             col_names.append('z')
@@ -1782,6 +1797,11 @@ class Catalog(object):
     def get_patches(self, unloaded=False):
         """Return a list of Catalog instances each representing a single patch from this Catalog
 
+        After calling this function once, the patches may be repeatedly accessed by the
+        ``patches`` attribute, without triggering a rebuild of the patches.  Furthermore,
+        if ``patches`` is accessed before calling this function, it will be called automatically
+        (with the default unloaded parameter).
+
         Parameters:
             unloaded (bool):    Whether to try to leave the returned patch catalogs in an
                                 "unloaded" state, wherein they will not load the data from a
@@ -1791,41 +1811,40 @@ class Catalog(object):
                                 Catalog.) (default: False)
         """
         import copy
-        if self._patches is None:
-            if unloaded and self.name is not None:
-                if self._centers is not None:
-                    patch_set = range(len(self._centers))
-                elif self._single_patch is not None:
-                    patch_set = [self._single_patch]
-                elif self.patch is None:
-                    patch_set = [None]
-                else:
-                    patch_set = set(self.patch)
-                self._patches = [Catalog(config=self.config, file_name=self.name,
-                                         patch=i, npatch=1, patch_centers=self._centers)
-                                 for i in patch_set]
-            elif self._patch is None:
-                self._patches = [self]
+        if unloaded and self.name is not None:
+            if self._centers is not None:
+                patch_set = range(len(self._centers))
+            elif self._single_patch is not None:
+                patch_set = [self._single_patch]
+            elif self.patch is None:
+                patch_set = [None]
             else:
                 patch_set = set(self.patch)
-                self._patches = []
-                for i in patch_set:
-                    indx = self.patch == i
-                    x=self.x[indx] if self.x is not None and self.ra is None else None
-                    y=self.y[indx] if self.y is not None and self.ra is None else None
-                    z=self.z[indx] if self.z is not None and self.ra is None else None
-                    ra=self.ra[indx] if self.ra is not None else None
-                    dec=self.dec[indx] if self.dec is not None else None
-                    r=self.r[indx] if self.r is not None else None
-                    w=self.w[indx] if self.w is not None else None
-                    wpos=self.wpos[indx] if self.wpos is not None else None
-                    g1=self.g1[indx] if self.g1 is not None else None
-                    g2=self.g2[indx] if self.g2 is not None else None
-                    k=self.k[indx] if self.k is not None else None
-                    p = Catalog(config=self.config,
-                                x=x, y=y, z=z, ra=ra, dec=dec, r=r, w=w, wpos=wpos,
-                                g1=g1, g2=g2, k=k, patch=i, npatch=1)
-                    self._patches.append(p)
+            self._patches = [Catalog(config=self.config, file_name=self.name,
+                                     patch=i, npatch=1, patch_centers=self._centers)
+                             for i in patch_set]
+        elif self._patch is None:
+            self._patches = [self]
+        else:
+            patch_set = set(self.patch)
+            self._patches = []
+            for i in patch_set:
+                indx = self.patch == i
+                x=self.x[indx] if self.x is not None and self.ra is None else None
+                y=self.y[indx] if self.y is not None and self.ra is None else None
+                z=self.z[indx] if self.z is not None and self.ra is None else None
+                ra=self.ra[indx] if self.ra is not None else None
+                dec=self.dec[indx] if self.dec is not None else None
+                r=self.r[indx] if self.r is not None else None
+                w=self.w[indx] if self.w is not None else None
+                wpos=self.wpos[indx] if self.wpos is not None else None
+                g1=self.g1[indx] if self.g1 is not None else None
+                g2=self.g2[indx] if self.g2 is not None else None
+                k=self.k[indx] if self.k is not None else None
+                p = Catalog(config=self.config,
+                            x=x, y=y, z=z, ra=ra, dec=dec, r=r, w=w, wpos=wpos,
+                            g1=g1, g2=g2, k=k, patch=i, npatch=1)
+                self._patches.append(p)
         return self._patches
 
     def write(self, file_name, file_type=None, cat_precision=None):

@@ -615,60 +615,64 @@ class Catalog(object):
             self._finish_input()
 
     @property
+    def loaded(self):
+        # _x gets set regardless of whether input used x,y or ra,dec, so the state of this
+        # attribute is a good sentinal for whether the file has been loaded yet.
+        return self._x is not None
+
+    @property
     def x(self):
-        if self._x is None:  # This should always be set (even if input is ra, dec), so it being
-                             # None is a good sentinal for the file not being read yet.
-            self._read_file()
+        self.load()
         return self._x
 
     @property
     def y(self):
-        if self._x is None: self._read_file()
+        self.load()
         return self._y
 
     @property
     def z(self):
-        if self._x is None: self._read_file()
+        self.load()
         return self._z
 
     @property
     def ra(self):
-        if self._x is None: self._read_file()
+        self.load()
         return self._ra
 
     @property
     def dec(self):
-        if self._x is None: self._read_file()
+        self.load()
         return self._dec
 
     @property
     def r(self):
-        if self._x is None: self._read_file()
+        self.load()
         return self._r
 
     @property
     def w(self):
-        if self._x is None: self._read_file()
+        self.load()
         return self._w
 
     @property
     def wpos(self):
-        if self._x is None: self._read_file()
+        self.load()
         return self._wpos
 
     @property
     def g1(self):
-        if self._x is None: self._read_file()
+        self.load()
         return self._g1
 
     @property
     def g2(self):
-        if self._x is None: self._read_file()
+        self.load()
         return self._g2
 
     @property
     def k(self):
-        if self._x is None: self._read_file()
+        self.load()
         return self._k
 
     @property
@@ -676,7 +680,7 @@ class Catalog(object):
         if self._single_patch is not None:
             return self._single_patch
         else:
-            if self._x is None: self._read_file()
+            self.load()
             return self._patch
 
     @property
@@ -716,7 +720,7 @@ class Catalog(object):
 
     @property
     def nontrivial_w(self):
-        if self._nontrivial_w is None: self._read_file()
+        if self._nontrivial_w is None: self.load()
         return self._nontrivial_w
 
     @property
@@ -735,7 +739,7 @@ class Catalog(object):
 
     @property
     def sumw(self):
-        if self._sumw is None: self._read_file()
+        if self._sumw is None: self.load()
         return self._sumw
 
     @property
@@ -750,17 +754,6 @@ class Catalog(object):
                 return 'flat'
             else:
                 return '3d'
-
-    def _read_file(self):
-        # Read the input file
-        if self.file_type == 'FITS':
-            self.read_fits(self.name,self._num,self._is_rand)
-        elif self.file_type == 'ASCII':
-            self.read_ascii(self.name,self._num,self._is_rand)
-        else: # pragma: no cover
-            # This is already checked, so shouldn't be possible to happen.
-            raise ValueError("Invalid file_type %s"%self.file_type)
-        self._finish_input()
 
     def _finish_input(self):
         # Finish processing the data based on given inputs.
@@ -1735,8 +1728,30 @@ class Catalog(object):
         centers = data[:,1:]  # Strip off the patches column.
         return centers
 
+    def load(self):
+        """Load the data from a file, if it isn't yet loaded.
+
+        When a Catalog is read in from a file, it tries to delay the loading of the data from
+        disk until it is actually needed.  This is especially important when running over a
+        set of patches, since you may not be able to fit all the patches in memory at once.
+
+        One does not normally need to call this method explicitly.  It will run automatically
+        whenever the data is needed.  However, if you want to directly control when the disk
+        access happens, you can use this function.
+        """
+        if not self.loaded:
+            # Read the input file
+            if self.file_type == 'FITS':
+                self.read_fits(self.name,self._num,self._is_rand)
+            elif self.file_type == 'ASCII':
+                self.read_ascii(self.name,self._num,self._is_rand)
+            else: # pragma: no cover
+                # This is already checked, so shouldn't be possible to happen.
+                raise ValueError("Invalid file_type %s"%self.file_type)
+            self._finish_input()
+
     def unload(self):
-        """Return a Catalog to an "unloaded" state.
+        """Bring the Catalog back to an "unloaded" state.
 
         When a Catalog is read in from a file, it tries to delay the loading of the data from
         disk until it is actually needed.  This is especially important when running over a
@@ -1926,7 +1941,7 @@ class Catalog(object):
 
     def __repr__(self):
         s = 'treecorr.Catalog('
-        if self._x is not None:
+        if self.loaded:
             if self.x is not None and self.ra is None: s += 'x='+repr(self.x)+','
             if self.y is not None and self.ra is None: s += 'y='+repr(self.y)+','
             if self.z is not None and self.ra is None: s += 'z='+repr(self.z)+','

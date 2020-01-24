@@ -723,6 +723,7 @@ def test_ng():
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','ng.out'), names=True, skip_header=1)
     xi_simple, _, _ = ng.calculateXi()
+    np.testing.assert_equal(xi_simple, ng.xi)
     np.testing.assert_allclose(corr2_output['gamT'], xi_simple, rtol=1.e-3)
 
     # Check the fits write option
@@ -752,7 +753,7 @@ def test_ng():
 
     # Check the read function
     ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
-    ng2.read(out_file_name1)
+    ng2.read(out_file_name2)
     np.testing.assert_almost_equal(ng2.logr, ng.logr)
     np.testing.assert_almost_equal(ng2.meanr, ng.meanr)
     np.testing.assert_almost_equal(ng2.meanlogr, ng.meanlogr)

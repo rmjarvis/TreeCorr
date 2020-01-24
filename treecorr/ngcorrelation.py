@@ -49,6 +49,9 @@ class NGCorrelation(treecorr.BinnedCorr2):
         npairs:     The number of pairs going into each bin (including pairs where one or
                     both objects have w=0).
         cov:        An estimate of the full covariance matrix.
+        raw_xi:     The raw value of xi, uncorrected by an RG calculation. cf. `calculateXi`
+        raw_xi_im:  The raw value of xi_im, uncorrected by an RG calculation. cf. `calculateXi`
+        raw_varxi:  The raw value of varxi, uncorrected by an RG calculation. cf. `calculateXi`
 
     .. note::
 
@@ -93,8 +96,11 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.meanlogr = np.zeros_like(self.rnom, dtype=float)
         self.weight = np.zeros_like(self.rnom, dtype=float)
         self.npairs = np.zeros_like(self.rnom, dtype=float)
-        self._build_corr()
         self.logger.debug('Finished building NGCorr')
+        self.raw_xi = self.xi
+        self.raw_xi_im = self.xi_im
+        self.raw_varxi = self.varxi
+        self._build_corr()
 
     def _build_corr(self):
         from treecorr.util import double_ptr as dp
@@ -102,7 +108,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
                 self._d1, self._d2, self._bintype,
                 self._min_sep,self._max_sep,self._nbins,self._bin_size,self.b,
                 self.min_rpar, self.max_rpar, self.xperiod, self.yperiod, self.zperiod,
-                dp(self.xi),dp(self.xi_im), dp(None), dp(None),
+                dp(self.raw_xi),dp(self.raw_xi_im), dp(None), dp(None),
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
 
     def __del__(self):
@@ -249,8 +255,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         mask1 = self.weight != 0
         mask2 = self.weight == 0
 
-        self.xi[mask1] /= self.weight[mask1]
-        self.xi_im[mask1] /= self.weight[mask1]
+        self.raw_xi[mask1] /= self.weight[mask1]
+        self.raw_xi_im[mask1] /= self.weight[mask1]
         self.meanr[mask1] /= self.weight[mask1]
         self.meanlogr[mask1] /= self.weight[mask1]
 
@@ -263,19 +269,22 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         self._var_num = varg
         self.cov = self.estimate_cov(self.var_method)
-        self.varxi.ravel()[:] = self.cov.diagonal()
+        self.raw_varxi.ravel()[:] = self.cov.diagonal()
 
     def clear(self):
         """Clear the data vectors
         """
-        self.xi.ravel()[:] = 0
-        self.xi_im.ravel()[:] = 0
-        self.varxi.ravel()[:] = 0
+        self.raw_xi.ravel()[:] = 0
+        self.raw_xi_im.ravel()[:] = 0
+        self.raw_varxi.ravel()[:] = 0
         self.meanr.ravel()[:] = 0
         self.meanlogr.ravel()[:] = 0
         self.weight.ravel()[:] = 0
         self.npairs.ravel()[:] = 0
         self.results.clear()
+        self.xi = self.raw_xi
+        self.xi_im = self.raw_xi_im
+        self.varxi = self.raw_varxi
 
     def __iadd__(self, other):
         """Add a second NGCorrelation's data to this one.
@@ -292,9 +301,9 @@ class NGCorrelation(treecorr.BinnedCorr2):
             raise ValueError("NGCorrelation to be added is not compatible with this one.")
 
         self._set_metric(other.metric, other.coords)
-        self.xi.ravel()[:] += other.xi.ravel()[:]
-        self.xi_im.ravel()[:] += other.xi_im.ravel()[:]
-        self.varxi.ravel()[:] += other.varxi.ravel()[:]
+        self.raw_xi.ravel()[:] += other.xi.ravel()[:]
+        self.raw_xi_im.ravel()[:] += other.xi_im.ravel()[:]
+        self.raw_varxi.ravel()[:] += other.varxi.ravel()[:]
         self.meanr.ravel()[:] += other.meanr.ravel()[:]
         self.meanlogr.ravel()[:] += other.meanlogr.ravel()[:]
         self.weight.ravel()[:] += other.weight.ravel()[:]
@@ -339,6 +348,10 @@ class NGCorrelation(treecorr.BinnedCorr2):
         - If rg is not None, then a compensated calculation is done:
           :math:`\\langle \\gamma_T\\rangle = (DG - RG)`
 
+        After calling this function, the attributes ``xi``, ``xi_im``, and ``varxi`` will
+        correspond to the compensated values (if rg is provided).  The raw, uncompensated values
+        are available as ``rawxi``, ``raw_xi_im``, and ``raw_varxi``.
+
         Parameters:
             rg (NGCorrelation): The cross-correlation using random locations as the lenses
                                 (RG), if desired.  (default: None)
@@ -350,10 +363,26 @@ class NGCorrelation(treecorr.BinnedCorr2):
                 - xi_im = array of the imaginary part of :math:`\\xi(R)`
                 - varxi = array of the variance estimates of the above values
         """
-        if rg is None:
-            return self.xi, self.xi_im, self.varxi
+        if rg is not None:
+            self.xi = self.raw_xi - rg.xi
+            self.xi_im = self.raw_xi_im - rg.xi_im
+            self.varxi = self.raw_varxi + rg.varxi
+
+            # If patches were used, also update the patch covariances
+            for ij, cij in self.results.items():
+                i,j = ij
+                if ij not in rg.results:
+                    raise RuntimeError("RG must be run with the same patches as DG")
+                rgij = rg.results[ij]
+                rgf = np.sum(cij.weight) / np.sum(rgij.weight)
+                cij.xi = cij.raw_xi - rg.results[ij].xi * rgf
+                cij.xi_im = cij.raw_xi_im - rg.results[ij].xi_im * rgf
         else:
-            return (self.xi - rg.xi), (self.xi_im - rg.xi_im), (self.varxi + rg.varxi)
+            self.xi = self.raw_xi
+            self.xi_im = self.raw_xi_im
+            self.varxi = self.raw_varxi
+
+        return self.xi, self.xi_im, self.varxi
 
 
     def write(self, file_name, rg=None, file_type=None, precision=None):
@@ -444,6 +473,9 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.metric = params['metric'].strip()
         self.sep_units = params['sep_units'].strip()
         self.bin_type = params['bin_type'].strip()
+        self.raw_xi = self.xi
+        self.raw_xi_im = self.xi_im
+        self.raw_varxi = self.varxi
         self._build_corr()
 
 

@@ -23,13 +23,17 @@ change causes problems for you, it is likely that you only need to switch
 open an issue and we can investigate how to accommodate your use case.
 
 
-API Changes
------------
+Output Format Changes
+---------------------
 
 - When writing an `NNCorrelation` to a file, if `NNCorrelation.calculatXi` has
   already been called, then the calculated ``xi`` and ``varxi`` will be written
   to the output file, even if you don't provide the random catalog to the
   `NNCorrealtion.write` function.
+- Similarly, if `NGCorrelation.calculateXi` or `NKCorrelation.calculateXi` has
+  been called using a random catalog, then the ``xi`` and ``varxi`` columns in
+  the output file will be the compensated statistics, rather than the raw ones.
+
 
 Performance Improvements
 ------------------------

@@ -47,6 +47,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
         npairs:     The number of pairs going into each bin (including pairs where one or
                     both objects have w=0).
         cov:        An estimate of the full covariance matrix.
+        raw_xi:     The raw value of xi, uncorrected by an RK calculation. cf. `calculateXi`
+        raw_varxi:  The raw value of varxi, uncorrected by an RK calculation. cf. `calculateXi`
 
     .. note::
 
@@ -91,6 +93,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.meanlogr = np.zeros_like(self.rnom, dtype=float)
         self.weight = np.zeros_like(self.rnom, dtype=float)
         self.npairs = np.zeros_like(self.rnom, dtype=float)
+        self.raw_xi = self.xi
+        self.raw_varxi = self.varxi
         self._build_corr()
         self.logger.debug('Finished building NKCorr')
 
@@ -100,7 +104,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
                 self._d1, self._d2, self._bintype,
                 self._min_sep,self._max_sep,self._nbins,self._bin_size,self.b,
                 self.min_rpar, self.max_rpar, self.xperiod, self.yperiod, self.zperiod,
-                dp(self.xi), dp(None), dp(None), dp(None),
+                dp(self.raw_xi), dp(None), dp(None), dp(None),
                 dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
 
     def __del__(self):
@@ -246,7 +250,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
         mask1 = self.weight != 0
         mask2 = self.weight == 0
 
-        self.xi[mask1] /= self.weight[mask1]
+        self.raw_xi[mask1] /= self.weight[mask1]
         self.meanr[mask1] /= self.weight[mask1]
         self.meanlogr[mask1] /= self.weight[mask1]
 
@@ -259,17 +263,20 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         self._var_num = vark
         self.cov = self.estimate_cov(self.var_method)
-        self.varxi.ravel()[:] = self.cov.diagonal()
+        self.raw_varxi.ravel()[:] = self.cov.diagonal()
 
     def clear(self):
         """Clear the data vectors
         """
-        self.xi.ravel()[:] = 0
+        self.raw_xi.ravel()[:] = 0
+        self.raw_varxi.ravel()[:] = 0
         self.meanr.ravel()[:] = 0
         self.meanlogr.ravel()[:] = 0
         self.weight.ravel()[:] = 0
         self.npairs.ravel()[:] = 0
         self.results.clear()
+        self.xi = self.raw_xi
+        self.varxi = self.raw_varxi
 
     def __iadd__(self, other):
         """Add a second NKCorrelation's data to this one.
@@ -286,7 +293,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
             raise ValueError("NKCorrelation to be added is not compatible with this one.")
 
         self._set_metric(other.metric, other.coords)
-        self.xi.ravel()[:] += other.xi.ravel()[:]
+        self.raw_xi.ravel()[:] += other.raw_xi.ravel()[:]
+        self.raw_varxi.ravel()[:] += other.raw_varxi.ravel()[:]
         self.meanr.ravel()[:] += other.meanr.ravel()[:]
         self.meanlogr.ravel()[:] += other.meanlogr.ravel()[:]
         self.weight.ravel()[:] += other.weight.ravel()[:]
@@ -331,6 +339,10 @@ class NKCorrelation(treecorr.BinnedCorr2):
         - If rk is not None, then a compensated calculation is done:
           :math:`\\langle \\kappa \\rangle = (DK - RK)`
 
+        After calling this function, the attributes ``xi`` and ``varxi`` will correspond to the
+        compensated values (if rk is provided).  The raw, uncompensated values are available as
+        ``rawxi`` and ``raw_varxi``.
+
         Parameters:
             rk (NKCorrelation): The cross-correlation using random locations as the lenses (RK),
                                 if desired.  (default: None)
@@ -341,10 +353,23 @@ class NKCorrelation(treecorr.BinnedCorr2):
                 - xi = array of :math:`\\xi(r)`
                 - varxi = array of variance estimates of :math:`\\xi(r)`
         """
-        if rk is None:
-            return self.xi, self.varxi
+        if rk is not None:
+            self.xi = self.raw_xi - rk.xi
+            self.varxi = self.raw_varxi + rk.varxi
+
+            # If patches were used, also update the patch covariances
+            for ij, cij in self.results.items():
+                i,j = ij
+                if ij not in rk.results:
+                    raise RuntimeError("RG must be run with the same patches as DG")
+                rkij = rk.results[ij]
+                rkf = np.sum(cij.weight) / np.sum(rkij.weight)
+                cij.xi = cij.raw_xi - rk.results[ij].xi * rkf
         else:
-            return self.xi - rk.xi, self.varxi + rk.varxi
+            self.xi = self.raw_xi
+            self.varxi = self.raw_varxi
+
+        return self.xi, self.varxi
 
 
     def write(self, file_name, rk=None, file_type=None, precision=None):
@@ -434,6 +459,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.metric = params['metric'].strip()
         self.sep_units = params['sep_units'].strip()
         self.bin_type = params['bin_type'].strip()
+        self.raw_xi = self.xi
+        self.raw_varxi = self.varxi
         self._build_corr()
 
 

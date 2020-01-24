@@ -301,9 +301,9 @@ class NGCorrelation(treecorr.BinnedCorr2):
             raise ValueError("NGCorrelation to be added is not compatible with this one.")
 
         self._set_metric(other.metric, other.coords)
-        self.raw_xi.ravel()[:] += other.xi.ravel()[:]
-        self.raw_xi_im.ravel()[:] += other.xi_im.ravel()[:]
-        self.raw_varxi.ravel()[:] += other.varxi.ravel()[:]
+        self.raw_xi.ravel()[:] += other.raw_xi.ravel()[:]
+        self.raw_xi_im.ravel()[:] += other.raw_xi_im.ravel()[:]
+        self.raw_varxi.ravel()[:] += other.raw_varxi.ravel()[:]
         self.meanr.ravel()[:] += other.meanr.ravel()[:]
         self.meanlogr.ravel()[:] += other.meanlogr.ravel()[:]
         self.weight.ravel()[:] += other.weight.ravel()[:]

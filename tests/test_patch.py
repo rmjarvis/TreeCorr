@@ -1246,8 +1246,7 @@ def test_kappa_jk():
     print('xi = ',nk.xi)
     print('varxi = ',nk.varxi)
     print('ratio = ',nk.varxi / var_nk_xi)
-    np.testing.assert_allclose(nk.weight, nk.weight)
-    np.testing.assert_allclose(nk.xi, nk.xi)
+    np.testing.assert_array_less((nk.xi - mean_nk_xi)**2/var_nk_xi, 25) # within 5 sigma
     np.testing.assert_allclose(nk.varxi, var_nk_xi, rtol=0.5*tol_factor)
 
     # Check sample covariance estimate
@@ -1256,6 +1255,34 @@ def test_kappa_jk():
     print('varxi = ',cov_xi.diagonal())
     print('ratio = ',cov_xi.diagonal() / var_nk_xi)
     np.testing.assert_allclose(cov_xi.diagonal(), var_nk_xi, rtol=0.6*tol_factor)
+
+    # Use a random catalog
+    # In this case the locations of the source catalog are fine to use as our random catalog,
+    # since they fill the region where the lenses are allowed to be.
+    rk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    t0 = time.time()
+    rk.process(cat2p, cat2p)
+    t1 = time.time()
+    print('Time for processing RK = ',t1-t0)
+
+    nk2 = nk.copy()
+    nk2.calculateXi(rk)
+    print('xi = ',nk2.xi)
+    print('varxi = ',nk2.varxi)
+    print('ratio = ',nk2.varxi / var_nk_xi)
+    # Things don't change much with RG in this case, since there aren't strong edge effects.
+    np.testing.assert_allclose(nk2.weight, nk.weight, rtol=0.02*tol_factor)
+    np.testing.assert_allclose(nk2.xi, nk.xi, rtol=0.02*tol_factor)
+    np.testing.assert_allclose(nk2.varxi, nk.varxi, rtol=0.02*tol_factor)
+
+    # Check using estimate_cov
+    t0 = time.time()
+    cov = nk2.estimate_cov('jackknife')
+    idx = np.where(np.abs(cov - nk.cov) > 3.e-6)
+    np.testing.assert_allclose(nk2.estimate_cov('jackknife'), nk.cov,
+                               rtol=0.4*tol_factor, atol=3.e-6*tol_factor)
+    t1 = time.time()
+    print('Time to calculate jackknife covariance = ',t1-t0)
 
     # KK
     # Smaller scales to capture the more local kappa correlations.

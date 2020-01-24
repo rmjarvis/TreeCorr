@@ -482,6 +482,7 @@ def test_nk():
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','nk.out'), names=True, skip_header=1)
     xi_simple, _ = nk.calculateXi()
+    np.testing.assert_equal(xi_simple, nk.xi)
     np.testing.assert_allclose(corr2_output['kappa'], xi_simple, rtol=1.e-3)
 
     # Check the fits write option
@@ -509,7 +510,7 @@ def test_nk():
 
     # Check the read function
     nk2 = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
-    nk2.read(out_file_name1)
+    nk2.read(out_file_name2)
     np.testing.assert_almost_equal(nk2.logr, nk.logr)
     np.testing.assert_almost_equal(nk2.meanr, nk.meanr)
     np.testing.assert_almost_equal(nk2.meanlogr, nk.meanlogr)

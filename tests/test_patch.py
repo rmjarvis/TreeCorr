@@ -860,6 +860,37 @@ def test_ng_jk():
     print('ratio = ',cov_boot.diagonal() / var_xi)
     np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
 
+    # Use a random catalog
+    # In this case the locations of the source catalog are fine to use as our random catalog,
+    # since they fill the region where the lenses are allowed to be.
+    rg3 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    t0 = time.time()
+    rg3.process(cat2p, cat2p)
+    t1 = time.time()
+    print('Time for processing RG = ',t1-t0)
+
+    ng3b = ng3.copy()
+    ng3b.calculateXi(rg3)
+    print('xi = ',ng3b.xi)
+    print('varxi = ',ng3b.varxi)
+    print('ratio = ',ng3b.varxi / var_xi)
+    # Things don't change much with RG in this case, since there aren't strong edge effects.
+    np.testing.assert_allclose(ng3b.weight, ng3.weight, rtol=0.02*tol_factor)
+    np.testing.assert_allclose(ng3b.xi, ng3.xi, rtol=0.02*tol_factor)
+    np.testing.assert_allclose(ng3b.varxi, ng3.varxi, rtol=0.02*tol_factor)
+
+    # Check using estimate_cov
+    t0 = time.time()
+    cov = ng3b.estimate_cov('jackknife')
+    idx = np.where(np.abs(cov - ng3.cov) > 3.e-6)
+    # The covariance has more terms that differ. 3x5 is the largest difference, needing rtol=0.4.
+    # I think this is correct -- mostly this is testing that I didn't totally mess up the
+    # weight normalization when applying the RG to the patches.
+    np.testing.assert_allclose(ng3b.estimate_cov('jackknife'), ng3.cov,
+                               rtol=0.4*tol_factor, atol=3.e-6*tol_factor)
+    t1 = time.time()
+    print('Time to calculate jackknife covariance = ',t1-t0)
+
     # Check some invalid actions
     with assert_raises(ValueError):
         ng2.estimate_cov('invalid')

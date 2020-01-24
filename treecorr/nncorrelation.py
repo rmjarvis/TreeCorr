@@ -47,6 +47,13 @@ class NNCorrelation(treecorr.BinnedCorr2):
         tot:        The total number of pairs processed, which is used to normalize
                     the randoms if they have a different number of pairs.
 
+    If `calculateXi` has been called, then the following will also be available:
+
+    Attributes:
+        xi:         The correlation function, :math:`\\xi(r)`
+        varxi:      An estimate of the variance of :math:`\\xi`
+        cov:        An estimate of the full covariance matrix.
+
     If **sep_units** are given (either in the config dict or as a named kwarg) then the distances
     will all be in these units.  Note however, that if you separate out the steps of the
     `process` command and use `process_auto` and/or `process_cross`, then the units will not be
@@ -391,7 +398,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
             input catalog(s).  cf. `Covariance Estimates`.
 
         After calling this method, you can use the `BinnedCorr2.estimate_cov` method or use this
-        correlation object in the `estimate_multi_cov` function.
+        correlation object in the `estimate_multi_cov` function.  Also, the calculated xi and
+        varxi returned from this function will be available as attributes.
 
         Parameters:
             rr (NNCorrelation):     The auto-correlation of the random field (RR)
@@ -511,6 +519,10 @@ class NNCorrelation(treecorr.BinnedCorr2):
         cov = self.estimate_cov(self.var_method)
         varxi = cov.diagonal()
 
+        self.xi = xi
+        self.varxi = varxi
+        self.cov = cov
+
         return xi, varxi
 
 
@@ -533,8 +545,10 @@ class NNCorrelation(treecorr.BinnedCorr2):
         r_nom           The nominal center of the bin in r
         meanr           The mean value <r> of pairs that fell into each bin
         meanlogr        The mean value <log(r)> of pairs that fell into each bin
-        xi              The estimator xi (if rr is given)
-        sigma_xi        The sqrt of the variance estimate of xi (if rr is given)
+        xi              The estimator xi (if rr is given, or calculateXi has
+                            been called)
+        sigma_xi        The sqrt of the variance estimate of xi (if rr is given
+                            or calculateXi has been called)
         DD              The total weight of pairs in each bin.
         RR              The total weight of RR pairs in each bin (if rr is given)
         DR              The total weight of DR pairs in each bin (if dr is given)
@@ -565,6 +579,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
         col_names = [ 'r_nom','meanr','meanlogr' ]
         columns = [ self.rnom, self.meanr, self.meanlogr ]
         if rr is None:
+            if hasattr(self, 'xi'):
+                col_names += [ 'xi','sigma_xi' ]
+                columns += [ self.xi, np.sqrt(self.varxi) ]
             col_names += [ 'DD', 'npairs' ]
             columns += [ self.weight, self.npairs ]
             if dr is not None:
@@ -633,6 +650,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.metric = params['metric'].strip()
         self.sep_units = params['sep_units'].strip()
         self.bin_type = params['bin_type'].strip()
+        if 'xi' in data.dtype.names:
+            self.xi = data['xi']
+            self.varxi = data['sigma_xi']**2
         self._build_corr()
 
 

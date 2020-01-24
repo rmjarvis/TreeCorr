@@ -23,6 +23,14 @@ change causes problems for you, it is likely that you only need to switch
 open an issue and we can investigate how to accommodate your use case.
 
 
+API Changes
+-----------
+
+- When writing an `NNCorrelation` to a file, if `NNCorrelation.calculatXi` has
+  already been called, then the calculated ``xi`` and ``varxi`` will be written
+  to the output file, even if you don't provide the random catalog to the
+  `NNCorrealtion.write` function.
+
 Performance Improvements
 ------------------------
 
@@ -41,6 +49,8 @@ New features
 - Added ``treecorr.estimate_multi_cov`` function, which will the compute covariance
   matrix across multiple statistics that have been run using the same set of patches.
 - Added every_nth option for Catalogs to read in a fraction of the rows.
+- After calling `NNCorrelation.calculateXi`, the calculated ``xi``, ``varxi`` and
+  ``cov`` are available as attributes.
 
 
 Bug fixes

@@ -474,6 +474,11 @@ def test_direct_count():
     rr.process(rcat1,rcat2)
     xi, varxi = dd.calculateXi(rr)
 
+    # After calling calculateXi, you can access the result via attributes
+    np.testing.assert_array_equal(xi, dd.xi)
+    np.testing.assert_array_equal(varxi, dd.varxi)
+    np.testing.assert_array_equal(varxi, dd.cov.diagonal())
+
     # First do this via the corr2 function.
     config = treecorr.config.read_config('configs/nn_direct.yaml')
     logger = treecorr.config.setup_logger(0)
@@ -1118,6 +1123,11 @@ def test_direct_linear():
     rd.process(rcat1,cat2)
     xi, varxi = dd.calculateXi(rr, dr, rd)
 
+    # After calling calculateXi, you can access the result via attributes
+    np.testing.assert_array_equal(xi, dd.xi)
+    np.testing.assert_array_equal(varxi, dd.varxi)
+    np.testing.assert_array_equal(varxi, dd.cov.diagonal())
+
     with assert_raises(TypeError):
         dd.calculateXi(dr=dr)
     with assert_raises(TypeError):
@@ -1286,6 +1296,7 @@ def test_nn():
     np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
 
     # Check the read function (not at very high accuracy for the ASCII I/O)
+    dd.calculateXi(rr,dr)  # reset this to the better calculation
     dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
     dd2.read(out_file_name)
     np.testing.assert_allclose(dd2.logr, dd.logr, rtol=1.e-3)
@@ -1293,6 +1304,8 @@ def test_nn():
     np.testing.assert_allclose(dd2.meanlogr, dd.meanlogr, rtol=1.e-3)
     np.testing.assert_allclose(dd2.npairs, dd.npairs, rtol=1.e-3)
     np.testing.assert_allclose(dd2.tot, dd.tot, rtol=1.e-3)
+    np.testing.assert_allclose(dd2.xi, dd.xi, rtol=1.e-3)
+    np.testing.assert_allclose(dd2.varxi, dd.varxi, rtol=1.e-3)
     assert dd2.coords == dd.coords
     assert dd2.metric == dd.metric
     assert dd2.sep_units == dd.sep_units
@@ -1342,12 +1355,43 @@ def test_nn():
     header = fitsio.read_header(out_file_name3, 1)
     np.testing.assert_almost_equal(header['tot'], dd.tot)
 
+    out_file_name4 = os.path.join('output','nn_out4.fits')
+    dd.write(out_file_name4)  # Without rr, then xi and varxi are still written, but not RR, DR
+    data = fitsio.read(out_file_name4)
+    np.testing.assert_almost_equal(data['r_nom'], np.exp(dd.logr))
+    np.testing.assert_almost_equal(data['meanr'], dd.meanr)
+    np.testing.assert_almost_equal(data['meanlogr'], dd.meanlogr)
+    np.testing.assert_almost_equal(data['xi'], xi)
+    np.testing.assert_almost_equal(data['sigma_xi'], np.sqrt(varxi))
+    np.testing.assert_almost_equal(data['DD'], dd.npairs)
+    assert 'RR' not in data.dtype.names
+    assert 'DR' not in data.dtype.names
+    header = fitsio.read_header(out_file_name4, 1)
+    np.testing.assert_almost_equal(header['tot'], dd.tot)
+
+    out_file_name5 = os.path.join('output','nn_out5.fits')
+    del dd.xi  # Equivalent to not having called calculateXi
+    del dd.varxi
+    dd.write(out_file_name5)
+    data = fitsio.read(out_file_name5)
+    np.testing.assert_almost_equal(data['r_nom'], np.exp(dd.logr))
+    np.testing.assert_almost_equal(data['meanr'], dd.meanr)
+    np.testing.assert_almost_equal(data['meanlogr'], dd.meanlogr)
+    np.testing.assert_almost_equal(data['DD'], dd.npairs)
+    assert 'xi' not in data.dtype.names
+    assert 'varxi' not in data.dtype.names
+    assert 'RR' not in data.dtype.names
+    assert 'DR' not in data.dtype.names
+    header = fitsio.read_header(out_file_name5, 1)
+    np.testing.assert_almost_equal(header['tot'], dd.tot)
+
     with assert_raises(TypeError):
         dd.write(out_file_name3, dr=dr)
     with assert_raises(TypeError):
         dd.write(out_file_name3, rd=dr)
 
     # Check the read function
+    dd.calculateXi(rr,dr)  # gets xi, varxi back in dd
     dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
     dd2.read(out_file_name1)
     np.testing.assert_almost_equal(dd2.logr, dd.logr)
@@ -1355,21 +1399,40 @@ def test_nn():
     np.testing.assert_almost_equal(dd2.meanlogr, dd.meanlogr)
     np.testing.assert_almost_equal(dd2.npairs, dd.npairs)
     np.testing.assert_almost_equal(dd2.tot, dd.tot)
+    np.testing.assert_almost_equal(dd2.xi, dd.xi)
+    np.testing.assert_almost_equal(dd2.varxi, dd.varxi)
     assert dd2.coords == dd.coords
     assert dd2.metric == dd.metric
     assert dd2.sep_units == dd.sep_units
     assert dd2.bin_type == dd.bin_type
 
-    dd2.read(out_file_name3)
-    np.testing.assert_almost_equal(dd2.logr, dd.logr)
-    np.testing.assert_almost_equal(dd2.meanr, dd.meanr)
-    np.testing.assert_almost_equal(dd2.meanlogr, dd.meanlogr)
-    np.testing.assert_almost_equal(dd2.npairs, dd.npairs)
-    np.testing.assert_almost_equal(dd2.tot, dd.tot)
-    assert dd2.coords == dd.coords
-    assert dd2.metric == dd.metric
-    assert dd2.sep_units == dd.sep_units
-    assert dd2.bin_type == dd.bin_type
+    dd3 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+    dd3.read(out_file_name3)
+    np.testing.assert_almost_equal(dd3.logr, dd.logr)
+    np.testing.assert_almost_equal(dd3.meanr, dd.meanr)
+    np.testing.assert_almost_equal(dd3.meanlogr, dd.meanlogr)
+    np.testing.assert_almost_equal(dd3.npairs, dd.npairs)
+    np.testing.assert_almost_equal(dd3.tot, dd.tot)
+    np.testing.assert_almost_equal(dd3.xi, dd.xi)
+    np.testing.assert_almost_equal(dd3.varxi, dd.varxi)
+    assert dd3.coords == dd.coords
+    assert dd3.metric == dd.metric
+    assert dd3.sep_units == dd.sep_units
+    assert dd3.bin_type == dd.bin_type
+
+    dd4 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+    dd4.read(out_file_name5)
+    np.testing.assert_almost_equal(dd4.logr, dd.logr)
+    np.testing.assert_almost_equal(dd4.meanr, dd.meanr)
+    np.testing.assert_almost_equal(dd4.meanlogr, dd.meanlogr)
+    np.testing.assert_almost_equal(dd4.npairs, dd.npairs)
+    np.testing.assert_almost_equal(dd4.tot, dd.tot)
+    assert not hasattr(dd4,'xi')
+    assert not hasattr(dd4,'varxi')
+    assert dd4.coords == dd.coords
+    assert dd4.metric == dd.metric
+    assert dd4.sep_units == dd.sep_units
+    assert dd4.bin_type == dd.bin_type
 
 
 def test_3d():

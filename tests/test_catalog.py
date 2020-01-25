@@ -500,7 +500,24 @@ def test_fits():
     assert cat4.g2 is None
     assert cat4.k is None
 
+    # Check all rows with every_nth first.  This used to not work right due to a bug in fitsio.
+    # cf. https://github.com/esheldon/fitsio/pull/286
     config['every_nth'] = 100
+    del config['first_row']
+    del config['last_row']
+    cat5a = treecorr.Catalog(file_name, config)
+    np.testing.assert_equal(len(cat5a.x), 3910)
+    np.testing.assert_equal(cat5a.ntot, 3910)
+    np.testing.assert_equal(cat5a.nobj, np.sum(cat5a.w != 0))
+    np.testing.assert_equal(cat5a.sumw, np.sum(cat5a.w))
+    np.testing.assert_equal(cat5a.sumw, np.sum(cat2.w[::100]))
+    np.testing.assert_almost_equal(cat5a.g1[123], cat2.g1[12300])
+    np.testing.assert_almost_equal(cat5a.g2[123], cat2.g2[12300])
+    np.testing.assert_almost_equal(cat5a.k[123], cat2.k[12300])
+
+    # Now with first, last, and every_nth
+    config['first_row'] = 101
+    config['last_row'] = 50000
     cat5 = treecorr.Catalog(file_name, config)
     np.testing.assert_equal(len(cat5.x), 499)
     np.testing.assert_equal(cat5.ntot, 499)

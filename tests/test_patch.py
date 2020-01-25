@@ -331,11 +331,11 @@ def test_cat_centers():
     cat14.write(file_name15)
     cat15 = treecorr.Catalog(file_name15, x_col=1, y_col=2, w_col=3,
                              patch_centers=cat14.patch_centers)
-    assert cat15._x is None  # not loaded yet.
+    assert not cat15.loaded
     cat15_patches = cat15.get_patches()
-    assert cat15._x is None  # Unlike above (in test_cat_patches) it's still unloaded.
+    assert not cat15.loaded  # Unlike above (in test_cat_patches) it's still unloaded.
     for i in range(4):  # Don't bother with all the patches.  4 suffices to check this.
-        assert cat15_patches[i]._x is None  # Single patch also not loaded yet.
+        assert not cat15_patches[i].loaded
         assert np.all(cat15_patches[i].patch == i)  # Triggers load of patch.
         np.testing.assert_array_equal(cat15_patches[i].x, cat15.x[cat15.patch == i])
 

@@ -1291,54 +1291,69 @@ class Catalog(object):
 
         with fitsio.FITS(file_name, 'r') as fits:
 
+            # Figure out what slice to use.  If all rows, then None is faster,
+            # otherwise give the range explicitly.
+            # Note: this is a workaround for a bug in fitsio <= 1.0.6.
+            # cf. https://github.com/esheldon/fitsio/pull/286
+            # We should be able to always use s = slice(self.start, self.end, self.every_nth)
+            if self.start == 0 and self.end is None and self.every_nth is None:
+                s = None
+            else:
+                if x_col != '0':
+                    x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
+                else:
+                    x_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
+                end = self.end if self.end is not None else fits[x_hdu].get_nrows()
+                s = np.arange(self.start, end, self.every_nth)
+
             # Read x,y or ra,dec,r
             if x_col != '0':
                 x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
                 y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
-                self._x = fits[x_hdu][x_col][self.start:self.end:self.every_nth].astype(float)
+                self._x = fits[x_hdu][x_col][s].astype(float)
                 self.logger.debug('read x = %s',str(self._x))
-                self._y = fits[y_hdu][y_col][self.start:self.end:self.every_nth].astype(float)
+                self._y = fits[y_hdu][y_col][s].astype(float)
                 self.logger.debug('read y = %s',str(self._y))
                 ntot = len(self._x)
                 if z_col != '0':
                     z_hdu = treecorr.config.get_from_list(self.config,'z_hdu',num,int,hdu)
-                    self._z = fits[z_hdu][z_col][self.start:self.end:self.every_nth].astype(float)
+                    self._z = fits[z_hdu][z_col][s].astype(float)
                     self.logger.debug('read z = %s',str(self._z))
             else:
                 ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
                 dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
-                self._ra = fits[ra_hdu][ra_col][self.start:self.end:self.every_nth].astype(float)
+                self._ra = fits[ra_hdu][ra_col][s].astype(float)
                 self.logger.debug('read ra = %s',str(self._ra))
-                self._dec = fits[dec_hdu][dec_col][self.start:self.end:self.every_nth].astype(float)
+                self._dec = fits[dec_hdu][dec_col][s].astype(float)
                 self.logger.debug('read dec = %s',str(self._dec))
                 ntot = len(self._ra)
                 if r_col != '0':
                     r_hdu = treecorr.config.get_from_list(self.config,'r_hdu',num,int,hdu)
-                    self._r = fits[r_hdu][r_col][self.start:self.end:self.every_nth].astype(float)
+                    self._r = fits[r_hdu][r_col][s].astype(float)
                     self.logger.debug('read r = %s',str(self._r))
 
             # Read w
             if w_col != '0':
                 w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,int,hdu)
-                self._w = fits[w_hdu][w_col][self.start:self.end:self.every_nth].astype(float)
+                self._w = fits[w_hdu][w_col][s].astype(float)
                 self.logger.debug('read w = %s',str(self._w))
 
             # Read wpos
             if wpos_col != '0':
                 wpos_hdu = treecorr.config.get_from_list(self.config,'wpos_hdu',num,int,hdu)
-                self._wpos = fits[wpos_hdu][wpos_col][self.start:self.end:self.every_nth].astype(float)
+                self._wpos = fits[wpos_hdu][wpos_col][s].astype(float)
                 self.logger.debug('read wpos = %s',str(self._wpos))
 
             # Read flag
             if flag_col != '0':
                 flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
-                self._flag = fits[flag_hdu][flag_col][self.start:self.end:self.every_nth].astype(int)
+                self._flag = fits[flag_hdu][flag_col][s].astype(int)
                 self.logger.debug('read flag = %s',str(self._flag))
 
             # Read patch
             if patch_col != '0':
                 patch_hdu = treecorr.config.get_from_list(self.config,'patch_hdu',num,int,hdu)
-                self._patch = fits[patch_hdu][patch_col][self.start:self.end:self.every_nth].astype(float)
+                self._patch = fits[patch_hdu][patch_col][s].astype(float)
                 self.logger.debug('read patch = %s',str(self._patch))
 
             # Skip g1,g2,k if this file is a random catalog
@@ -1347,15 +1362,15 @@ class Catalog(object):
                 g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
                 g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
                 if g1_col in fits[g1_hdu].get_colnames():
-                    self._g1 = fits[g1_hdu][g1_col][self.start:self.end:self.every_nth].astype(float)
+                    self._g1 = fits[g1_hdu][g1_col][s].astype(float)
                     self.logger.debug('read g1 = %s',str(self._g1))
-                    self._g2 = fits[g2_hdu][g2_col][self.start:self.end:self.every_nth].astype(float)
+                    self._g2 = fits[g2_hdu][g2_col][s].astype(float)
                     self.logger.debug('read g2 = %s',str(self._g2))
 
                 # Read k
                 k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
                 if k_col in fits[k_hdu].get_colnames():
-                    self._k = fits[k_hdu][k_col][self.start:self.end:self.every_nth].astype(float)
+                    self._k = fits[k_hdu][k_col][s].astype(float)
                     self.logger.debug('read k = %s',str(self._k))
 
     def _setup_fields(self):

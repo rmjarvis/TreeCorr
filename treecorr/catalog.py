@@ -852,8 +852,8 @@ class Catalog(object):
             # Make w all 1s to simplify the use of w later in code.
             self._w = np.ones((ntot), dtype=float)
 
-        if self._ra is not None:
-            self._generate_xyz()
+        # If using ra/dec, generate x,y,z
+        self._generate_xyz()
 
         if self.npatch != 1:
             init = treecorr.config.get(self.config,'kmeans_init',str,'tree')
@@ -871,6 +871,7 @@ class Catalog(object):
             # This is straightforward.  Just select the rows with patch == single_patch
             use = np.where(self._patch == single_patch)[0]
         elif self._centers is not None:
+            self._generate_xyz()
             # TODO: This is slow.  Implement this without field.
             revert_w = False
             revert_wpos = False

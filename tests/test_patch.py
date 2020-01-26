@@ -292,6 +292,12 @@ def test_cat_centers():
     assert np.sum(cat8.patch != cat7.patch) < 200
     np.testing.assert_allclose(cat8.patch_centers, cat7.patch_centers)
 
+    # But given the same patch centers, the weight doesn't change the assigned patches.
+    cat8b = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
+                             patch_centers=cat7.patch_centers)
+    np.testing.assert_array_equal(cat8.patch, cat8b.patch)
+    np.testing.assert_array_equal(cat8.patch_centers, cat8b.patch_centers)
+
     # Check flat
     cat9 = treecorr.Catalog(x=x, y=y, npatch=npatch)
     cen_file2 = os.path.join('output','test_cat_centers.txt')
@@ -346,6 +352,34 @@ def test_cat_centers():
         np.testing.assert_array_equal(cat.y,cat15_patches[i].y)
         assert cat == cat15_patches[i]
         assert cat == cat15.patches[i]
+
+    # Check fits
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        file_name17 = os.path.join('output','test_cat_centers.fits')
+        cat8.write(file_name17)
+        cat17 = treecorr.Catalog(file_name17, ra_col='ra', dec_col='dec', w_col='w',
+                                 ra_units='rad', dec_units='rad',
+                                 patch_centers=cat8.patch_centers)
+        assert not cat17.loaded
+        cat17_patches = cat17.get_patches()
+        assert not cat17.loaded  # Unlike above (in test_cat_patches) it's still unloaded.
+        for i in range(4):  # Don't bother with all the patches.  4 suffices to check this.
+            assert not cat17_patches[i].loaded
+            assert np.all(cat17_patches[i].patch == i)  # Triggers load of patch.
+            np.testing.assert_array_equal(cat17_patches[i].ra, cat17.ra[cat17.patch == i])
+
+            cat = treecorr.Catalog(file_name17, ra_col='ra', dec_col='dec', w_col='w',
+                                   ra_units='rad', dec_units='rad',
+                                   patch_centers=cat8.patch_centers, patch=i)
+            assert cat.patch == cat17.patches[i].patch
+            np.testing.assert_array_equal(cat.ra,cat17_patches[i].ra)
+            np.testing.assert_array_equal(cat.dec,cat17_patches[i].dec)
+            assert cat == cat17_patches[i]
+            assert cat == cat17.patches[i]
 
     # Check for some invalid values
     with assert_raises(ValueError):

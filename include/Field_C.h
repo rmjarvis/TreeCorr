@@ -57,3 +57,6 @@ extern void KMeansRun(void* field, double* centers, long npatch, int max_iter, d
                       int alt, int d, int coords);
 extern void KMeansAssign(void* field, double* centers, long npatch,
                          long* patches, long n, int d, int coords);
+
+extern void SelectPatch(int patch, double* centers, long npatch, double* x, double* y, double* z,
+                        long* use, long n);

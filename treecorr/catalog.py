@@ -872,20 +872,15 @@ class Catalog(object):
             use = np.where(self._patch == single_patch)[0]
         elif self._centers is not None:
             self._generate_xyz()
-            # TODO: This is slow.  Implement this without field.
-            revert_w = False
-            revert_wpos = False
-            if self._w is None:
-                self._w = np.ones_like(self._x)
-                revert_w = True
-            if self._wpos is None:
-                self._wpos = self._w
-                revert_wpos = True
-            field = self.getNField()
-            patch = field.kmeans_assign_patches(self._centers)
-            use = np.where(patch == single_patch)[0]
-            if revert_w: self._w = None
-            if revert_wpos: self._wpos = None
+            use = np.empty(self.ntot, dtype=int)
+            from .util import double_ptr as dp
+            from .util import long_ptr as lp
+            npatch = self._centers.shape[0]
+            centers = np.ascontiguousarray(self._centers)
+            treecorr._lib.SelectPatch(single_patch, dp(centers), npatch,
+                                      dp(self._x), dp(self._y), dp(self._z),
+                                      lp(use), self.ntot)
+            use = np.where(use)[0]
         else:
             use = slice(None)  # Which ironically means use all. :)
         return use

@@ -996,4 +996,49 @@ void KMeansAssign(void* field, double* centers, long npatch, long* patches, long
     }
 }
 
-
+void SelectPatch(int patch, double* centers, long npatch, double* x, double* y, double* z,
+                 long* use, long n)
+{
+    // Notation: p = the good patch we are looking for
+    //           q = other patches
+    //           if p is the closest, then use = 1, else use = 0.
+    if (z) {
+        // 3d version
+        double px = centers[3*patch];
+        double py = centers[3*patch+1];
+        double pz = centers[3*patch+2];
+        for (;n;--n,++x,++y,++z,++use) {
+            double p_dsq = SQR(*x-px) + SQR(*y-py) + SQR(*z-pz);
+            *use = 1;
+            for (int q=0; q<npatch; ++q) {
+                if (q == patch) continue;
+                double qx = centers[3*q];
+                double qy = centers[3*q+1];
+                double qz = centers[3*q+2];
+                double q_dsq = SQR(*x-qx) + SQR(*y-qy) + SQR(*z-qz);
+                if (q_dsq < p_dsq) {
+                    *use = 0;
+                    break;
+                }
+            }
+        }
+    } else {
+        // 2d version
+        double px = centers[2*patch];
+        double py = centers[2*patch+1];
+        for (;n;--n,++x,++y,++use) {
+            double p_dsq = SQR(*x-px) + SQR(*y-py);
+            *use = 1;
+            for (int q=0; q<npatch; ++q) {
+                if (q == patch) continue;
+                double qx = centers[2*q];
+                double qy = centers[2*q+1];
+                double q_dsq = SQR(*x-qx) + SQR(*y-qy);
+                if (q_dsq < p_dsq) {
+                    *use = 0;
+                    break;
+                }
+            }
+        }
+    }
+}

@@ -612,6 +612,8 @@ class Catalog(object):
 
         if file_name is None:
             # For vector input option, can finish up now.
+            if self._single_patch is not None:
+                self._select_patch(self._single_patch)
             self._finish_input()
 
     @property
@@ -851,10 +853,48 @@ class Catalog(object):
             self._w = np.ones((ntot), dtype=float)
 
         if self._ra is not None:
-            # Should have already been checked above, so just use assert here.
-            assert self._x is None
+            self._generate_xyz()
+
+        if self.npatch != 1:
+            init = treecorr.config.get(self.config,'kmeans_init',str,'tree')
+            alt = treecorr.config.get(self.config,'kmeans_alt',bool,False)
+            field = self.getNField()
+            self._patch, self._centers = field.run_kmeans(self.npatch, init=init, alt=alt)
+        elif self._centers is not None and self._patch is None and self._single_patch is None:
+            field = self.getNField()
+            self._patch = field.kmeans_assign_patches(self._centers)
+
+        self.logger.info("   nobj = %d",self.nobj)
+
+    def _get_patch_index(self, single_patch):
+        if self._patch is not None:
+            # This is straightforward.  Just select the rows with patch == single_patch
+            use = np.where(self._patch == single_patch)[0]
+        elif self._centers is not None:
+            # TODO: This is slow.  Implement this without field.
+            revert_w = False
+            revert_wpos = False
+            if self._w is None:
+                self._w = np.ones_like(self._x)
+                revert_w = True
+            if self._wpos is None:
+                self._wpos = self._w
+                revert_wpos = True
+            field = self.getNField()
+            patch = field.kmeans_assign_patches(self._centers)
+            use = np.where(patch == single_patch)[0]
+            if revert_w: self._w = None
+            if revert_wpos: self._wpos = None
+        else:
+            use = slice(None)  # Which ironically means use all. :)
+        return use
+
+    def _generate_xyz(self):
+        if self._x is None:
             assert self._y is None
             assert self._z is None
+            assert self._ra is not None
+            assert self._dec is not None
             self._x, self._y, self._z = coord.CelestialCoord.radec_to_xyz(self._ra, self._dec)
             if self._r is not None:
                 self._x *= self._r
@@ -862,26 +902,12 @@ class Catalog(object):
                 self._z *= self._r
             self.x_units = self.y_units = 1.
 
-        if self.npatch != 1:
-            init = treecorr.config.get(self.config,'kmeans_init',str,'tree')
-            alt = treecorr.config.get(self.config,'kmeans_alt',bool,False)
-            field = self.getNField()
-            self._patch, self._centers = field.run_kmeans(self.npatch, init=init, alt=alt)
-        elif self._centers is not None:
-            field = self.getNField()
-            self._patch = field.kmeans_assign_patches(self._centers)
-
-        if self._patch is not None and self._single_patch is not None:
-            self._select_patch(self._single_patch)
-
-        self.logger.info("   nobj = %d",self.nobj)
-
     def _select_patch(self, single_patch):
         # Trim the catalog to only include a single patch
         # Note: This is slightly inefficient in that it reads the whole catalog first
         # and then removes all but one patch.  But that's easier for now that figuring out
         # which items to remove along the way based on the patch_centers.
-        indx = np.where(self._patch == single_patch)
+        indx = self._get_patch_index(single_patch)
         self._x = self._x[indx] if self._x is not None else None
         self._y = self._y[indx] if self._y is not None else None
         self._z = self._z[indx] if self._z is not None else None
@@ -925,7 +951,7 @@ class Catalog(object):
             col (array):    The input column to check.
             col_str (str):  The name of the column.  Used only as information in logging output.
         """
-        if col is not None and any(np.isnan(col)):
+        if col is not None and np.any(np.isnan(col)):
             index = np.where(np.isnan(col))[0]
             self.logger.warning("Warning: NaNs found in %s column.  Skipping rows %s."%(
                                 col_str,str(index.tolist())))
@@ -1136,6 +1162,8 @@ class Catalog(object):
                 self._k = data[:,k_col-1].astype(float)
                 self.logger.debug('read k = %s',str(self._k))
 
+        if self._single_patch is not None:
+            self._select_patch(self._single_patch)
 
     def _check_fits(self, file_name, num=0, is_rand=False):
         # Just check the consistency of the various column numbers so we can fail fast.
@@ -1332,6 +1360,27 @@ class Catalog(object):
                     self._r = fits[r_hdu][r_col][s].astype(float)
                     self.logger.debug('read r = %s',str(self._r))
 
+            # Read patch
+            if patch_col != '0':
+                patch_hdu = treecorr.config.get_from_list(self.config,'patch_hdu',num,int,hdu)
+                self._patch = fits[patch_hdu][patch_col][s].astype(float)
+                self.logger.debug('read patch = %s',str(self._patch))
+
+            # If only reading in a single patch, do it now.
+            if self._single_patch is not None:
+                use = self._get_patch_index(self._single_patch)
+                self._x = self._x[use] if self._x is not None else None
+                self._y = self._y[use] if self._y is not None else None
+                self._z = self._z[use] if self._z is not None else None
+                self._ra = self._ra[use] if self._ra is not None else None
+                self._dec = self._dec[use] if self._dec is not None else None
+                self._r = self._r[use] if self._r is not None else None
+                self._patch = None
+                if s is None:
+                    s = use
+                else:
+                    s = s[use]
+
             # Read w
             if w_col != '0':
                 w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,int,hdu)
@@ -1349,12 +1398,6 @@ class Catalog(object):
                 flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
                 self._flag = fits[flag_hdu][flag_col][s].astype(int)
                 self.logger.debug('read flag = %s',str(self._flag))
-
-            # Read patch
-            if patch_col != '0':
-                patch_hdu = treecorr.config.get_from_list(self.config,'patch_hdu',num,int,hdu)
-                self._patch = fits[patch_hdu][patch_col][s].astype(float)
-                self.logger.debug('read patch = %s',str(self._patch))
 
             # Skip g1,g2,k if this file is a random catalog
             if not is_rand:

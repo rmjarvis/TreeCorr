@@ -884,6 +884,10 @@ class Catalog(object):
             from .util import long_ptr as lp
             npatch = self._centers.shape[0]
             centers = np.ascontiguousarray(self._centers)
+            if self._z is None:
+                assert centers.shape[1] == 2
+            else:
+                assert centers.shape[1] == 3
             treecorr._lib.SelectPatch(single_patch, dp(centers), npatch,
                                       dp(self._x), dp(self._y), dp(self._z),
                                       lp(use), self.ntot)
@@ -1819,9 +1823,10 @@ class Catalog(object):
         self.logger.info('Reading centers from %s',file_name)
 
         data, params = treecorr.util.gen_read(file_name, logger=self.logger)
-        data = data.view(float).reshape(data.shape + (-1,))
-        centers = data[:,1:]  # Strip off the patches column.
-        return centers
+        if 'z' in data.dtype.names:
+            return np.column_stack((data['x'],data['y'],data['z']))
+        else:
+            return np.column_stack((data['x'],data['y']))
 
     def load(self):
         """Load the data from a file, if it isn't yet loaded.

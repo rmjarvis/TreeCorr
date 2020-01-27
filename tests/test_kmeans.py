@@ -747,7 +747,8 @@ def test_zero_weight():
     print('maxra = ',np.max(ra) * coord.radians / coord.degrees)
     print('mindec = ',np.min(dec) * coord.radians / coord.degrees)
     print('maxdec = ',np.max(dec) * coord.radians / coord.degrees)
-    cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w)
+    cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w,
+                           keep_zero_weight=True)
     treecorr.set_omp_threads(1)
 
     npatch = 16

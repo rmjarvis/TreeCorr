@@ -41,7 +41,7 @@ def test_count_near():
 
     # Start with flat coords
 
-    cat = treecorr.Catalog(x=x, y=y, w=w, g1=w, g2=w, k=w)
+    cat = treecorr.Catalog(x=x, y=y, w=w, g1=w, g2=w, k=w, keep_zero_weight=True)
     field = cat.getNField()
 
     t0 = time.time()
@@ -77,7 +77,7 @@ def test_count_near():
     ra = np.arctan2(y,x) * coord.radians / coord.degrees
 
     cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='deg', dec_units='deg',
-                           w=w, g1=w, g2=w, k=w)
+                           w=w, g1=w, g2=w, k=w, keep_zero_weight=True)
     field = cat.getNField()
 
     t0 = time.time()
@@ -125,7 +125,7 @@ def test_count_near():
 
     # Spherical
     cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='deg', dec_units='deg',
-                           w=w, g1=w, g2=w, k=w)
+                           w=w, g1=w, g2=w, k=w, keep_zero_weight=True)
     field = cat.getNField()
 
     x /= r
@@ -199,7 +199,7 @@ def test_get_near():
 
     # Start with flat coords
 
-    cat = treecorr.Catalog(x=x, y=y, w=w, g1=w, g2=w, k=w)
+    cat = treecorr.Catalog(x=x, y=y, w=w, g1=w, g2=w, k=w, keep_zero_weight=True)
     field = cat.getNField()
 
     t0 = time.time()
@@ -244,7 +244,7 @@ def test_get_near():
     ra = np.arctan2(y,x) * coord.radians / coord.degrees
 
     cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='deg', dec_units='deg',
-                           w=w, g1=w, g2=w, k=w)
+                           w=w, g1=w, g2=w, k=w, keep_zero_weight=True)
     field = cat.getNField()
 
     t0 = time.time()
@@ -325,7 +325,7 @@ def test_get_near():
 
     # Spherical
     cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='deg', dec_units='deg',
-                           w=w, g1=w, g2=w, k=w)
+                           w=w, g1=w, g2=w, k=w, keep_zero_weight=True)
     field = cat.getNField()
 
     x /= r
@@ -417,8 +417,8 @@ def test_sample_pairs():
 
     # Start with flat coords
 
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g11, g2=g21, k=k1)
-    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g12, g2=g22, k=k2)
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g11, g2=g21, k=k1, keep_zero_weight=True)
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g12, g2=g22, k=k2, keep_zero_weight=True)
 
     # Note: extend range low enough that some bins have < 100 pairs.
     nn = treecorr.NNCorrelation(min_sep=0.001, max_sep=0.01, bin_size=0.1, max_top=0)
@@ -466,8 +466,8 @@ def test_sample_pairs():
     # more often stops before getting to the leaves.
     # Also switch to 3d coordinates.
 
-    cat1 = treecorr.Catalog(x=x1, y=y1, z=z1, w=w1, g1=g11, g2=g21, k=k1)
-    cat2 = treecorr.Catalog(x=x2, y=y2, z=z2, w=w2, g1=g12, g2=g22, k=k2)
+    cat1 = treecorr.Catalog(x=x1, y=y1, z=z1, w=w1, g1=g11, g2=g21, k=k1, keep_zero_weight=True)
+    cat2 = treecorr.Catalog(x=x2, y=y2, z=z2, w=w2, g1=g12, g2=g22, k=k2, keep_zero_weight=True)
 
     gg = treecorr.GGCorrelation(min_sep=0.4, nbins=10, bin_size=0.1, max_top=0)
     gg.process(cat1, cat2)

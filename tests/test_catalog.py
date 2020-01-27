@@ -77,6 +77,7 @@ def test_ascii():
         'g2_col' : 7,
         'kk_file_name' : 'kk.out',  # These make sure k and g are required.
         'gg_file_name' : 'gg.out',
+        'keep_zero_weight' : True,
     }
     cat1 = treecorr.Catalog(file_name, config)
     np.testing.assert_almost_equal(cat1.x, x)
@@ -458,6 +459,7 @@ def test_fits():
     config['w_col'] = 'MU'
     config['flag_col'] = 'INDEX'
     config['ignore_flag'] = 64
+    config['keep_zero_weight'] = True
     cat2 = treecorr.Catalog(file_name, config)
     np.testing.assert_almost_equal(cat2.x[390934], 78.4782, decimal=4)
     np.testing.assert_almost_equal(cat2.y[290333], 83.1579, decimal=4)
@@ -788,7 +790,7 @@ def test_nan():
     print('k is nan at ',np.where(np.isnan(k)))
 
     with CaptureLog() as cl:
-        cat1 = treecorr.Catalog(x=x, y=y, z=z, w=w, k=k, logger=cl.logger)
+        cat1 = treecorr.Catalog(x=x, y=y, z=z, w=w, k=k, logger=cl.logger, keep_zero_weight=True)
     assert "NaNs found in x column." in cl.output
     assert "NaNs found in y column." in cl.output
     assert "NaNs found in z column." in cl.output
@@ -807,7 +809,8 @@ def test_nan():
 
     with CaptureLog() as cl:
         cat2 = treecorr.Catalog(ra=ra, dec=dec, r=r, w=w, wpos=wpos, g1=g1, g2=g2,
-                                ra_units='hours', dec_units='degrees', logger=cl.logger)
+                                ra_units='hours', dec_units='degrees', logger=cl.logger,
+                                keep_zero_weight=True)
     assert "NaNs found in ra column." in cl.output
     assert "NaNs found in dec column." in cl.output
     assert "NaNs found in r column." in cl.output
@@ -830,7 +833,7 @@ def test_nan():
 
     # If no weight column, it is make automatically to deal with Nans.
     with CaptureLog() as cl:
-        cat3 = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, logger=cl.logger)
+        cat3 = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, logger=cl.logger, keep_zero_weight=True)
     mask = np.isnan(x) | np.isnan(y) | np.isnan(g1) | np.isnan(g2)
     good = ~mask
     assert cat3.ntot == nobj
@@ -876,10 +879,18 @@ def test_nan2():
     k = np.concatenate((k, [np.nan]))
 
     gg2 = treecorr.GGCorrelation(config)
-    cat2 = treecorr.Catalog(ra=ra, dec=dec, g1=g1, g2=g2, k=k, ra_units='deg', dec_units='deg')
+    cat2 = treecorr.Catalog(ra=ra, dec=dec, g1=g1, g2=g2, k=k, ra_units='deg', dec_units='deg',
+                            keep_zero_weight=True)
 
     assert cat2.nobj == cat1.nobj  # same number of non-zero weight
     assert cat2.ntot != cat1.ntot  # but not the same total
+
+    # With (default) keep_zero_weight=False, catalogs are identical
+    cat2b = treecorr.Catalog(ra=ra, dec=dec, g1=g1, g2=g2, k=k, ra_units='deg', dec_units='deg',
+                             keep_zero_weight=False)
+    assert cat2b.nobj == cat1.nobj
+    assert cat2b.ntot == cat1.ntot
+    assert cat2b == cat1
 
     gg2.process(cat2)
     print('cat1.nobj, ntot = ',cat1.nobj,cat1.ntot)

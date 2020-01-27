@@ -99,7 +99,8 @@ class Catalog(object):
         k:      The convergence, kappa, if defined, as a numpy array. (None otherwise)
         patch:  The patch number of each object, if patches are being used. (None otherwise)
                 If the entire catalog is a single patch, then ``patch`` may be an int.
-        ntot:   The total number of objects (including those with zero weight)
+        ntot:   The total number of objects (including those with zero weight if keep_zero_weight
+                is set to True)
         nobj:   The number of objects with non-zero weight
         sumw:   The sum of the weights
         varg:   The shear variance (aka shape noise) (0 if g1,g2 are not defined)
@@ -266,6 +267,11 @@ class Catalog(object):
 
         flip_g1 (bool):     Whtether to flip the sign of the input g1 values. (default: False)
         flip_g2 (bool):     Whtether to flip the sign of the input g2 values. (default: False)
+        keep_zero_weight (bool): Whether to keep objects with wpos=0 in the catalog (including
+                            any objects that indirectly get wpos=0 due to NaN or flags), so they
+                            would be included in ntot and also in npairs calculations that use
+                            this Catalog, although of course not contribute to the accumulated
+                            weight of pairs. (default: False)
 
         hdu (int):          For FITS files, which hdu to read. (default: 1)
         x_hdu (int):        Which hdu to use for the x values. (default: hdu)
@@ -407,6 +413,8 @@ class Catalog(object):
                 'Whether to flip the sign of g1'),
         'flip_g2' : (bool, True, False, None,
                 'Whether to flip the sign of g2'),
+        'keep_zero_weight' : (bool, False, False, None,
+                'Whether to keep objects with zero weight in the catalog'),
         'verbose' : (int, False, 1, [0, 1, 2, 3],
                 'How verbose the code should be during processing. ',
                 '0 = Errors Only, 1 = Warnings, 2 = Progress, 3 = Debugging'),
@@ -805,6 +813,8 @@ class Catalog(object):
             if self._w is None:
                 self._w = np.ones_like(self._flag, dtype=float)
             self._w[(self._flag & ignore_flag)!=0] = 0
+            if self._wpos is not None:
+                self._wpos[(self._flag & ignore_flag)!=0] = 0
             self.logger.debug('Applied flag: w => %s',str(self._w))
 
         if self._x is not None:
@@ -851,6 +861,12 @@ class Catalog(object):
             self._sumw = ntot
             # Make w all 1s to simplify the use of w later in code.
             self._w = np.ones((ntot), dtype=float)
+
+        keep_zero_weight = treecorr.config.get(self.config,'keep_zero_weight',bool,False)
+        if self._nontrivial_w and not keep_zero_weight:
+            wpos = self._wpos if self._wpos is not None else self._w
+            if np.any(wpos == 0):
+                self.select(wpos != 0)
 
         # If using ra/dec, generate x,y,z
         self._generate_xyz()
@@ -904,6 +920,15 @@ class Catalog(object):
         # and then removes all but one patch.  But that's easier for now that figuring out
         # which items to remove along the way based on the patch_centers.
         indx = self._get_patch_index(single_patch)
+        self._patch = None
+        self.select(indx)
+
+    def select(self, indx):
+        """Trim the catalog to only include those objects with the give indices.
+
+        Parameters:
+            indx:       A numpy array of index values to keep.
+        """
         self._x = self._x[indx] if self._x is not None else None
         self._y = self._y[indx] if self._y is not None else None
         self._z = self._z[indx] if self._z is not None else None
@@ -915,7 +940,7 @@ class Catalog(object):
         self._g1 = self._g1[indx] if self._g1 is not None else None
         self._g2 = self._g2[indx] if self._g2 is not None else None
         self._k = self._k[indx] if self._k is not None else None
-        self._patch = None
+        self._patch = self._patch[indx] if self._patch is not None else None
 
     def makeArray(self, col, col_str, dtype=float):
         """Turn the input column into a numpy array if it wasn't already.
@@ -1365,12 +1390,7 @@ class Catalog(object):
             # If only reading in a single patch, do it now.
             if self._single_patch is not None:
                 use = self._get_patch_index(self._single_patch)
-                self._x = self._x[use] if self._x is not None else None
-                self._y = self._y[use] if self._y is not None else None
-                self._z = self._z[use] if self._z is not None else None
-                self._ra = self._ra[use] if self._ra is not None else None
-                self._dec = self._dec[use] if self._dec is not None else None
-                self._r = self._r[use] if self._r is not None else None
+                self.select(use)
                 self._patch = None
                 if s is None:
                     s = use
@@ -2030,6 +2050,8 @@ class Catalog(object):
             if self.g2 is not None: s += 'g2='+repr(self.g2)+','
             if self.k is not None: s += 'k='+repr(self.k)+','
             if self.patch is not None: s += 'patch='+repr(self.patch)+','
+            wpos = self._wpos if self._wpos is not None else self._w
+            if np.any(wpos == 0): s += 'keep_zero_weight=True,'
             # remove the last ','
             s = s[:-1] + ')'
         else:

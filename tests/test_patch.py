@@ -770,12 +770,13 @@ def test_ng_jk():
     # Now run with patches, but still with shot variance.  Should be basically the same answer.
     # Note: This turns out to work significantly better if cat1 is used to make the patches.
     # Otherwise the number of lenses per patch varies a lot, which affects the variance estimate.
-    cat1p = treecorr.Catalog(x=x, y=y, w=w, npatch=npatch)
+    # But that means we need to keep the w=0 object in the catalog, so all objects get a patch.
+    cat1p = treecorr.Catalog(x=x, y=y, w=w, npatch=npatch, keep_zero_weight=True)
     cat2p = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, patch=cat1p.patch)
     print('tot w = ',np.sum(w))
     print('Patch\tNlens')
     for i in range(npatch):
-        print('%d\t%d'%(i,np.sum(w[cat2p.patch==i])))
+        print('%d\t%d'%(i,np.sum(cat2p.w[cat2p.patch==i])))
     ng2 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='shot')
     t0 = time.time()
     ng2.process(cat1p, cat2p)
@@ -966,15 +967,15 @@ def test_nn_jk():
     if __name__ == '__main__':
         nside = 1000
         nlens = 50000
-        npatch = 64
+        npatch = 32
         rand_factor = 20
         tol_factor = 1
     else:
         nside = 500
         nlens = 20000
-        npatch = 32
+        npatch = 8
         rand_factor = 20
-        tol_factor = 3
+        tol_factor = 4
 
     # Make random catalog with 10x number of sources, randomly distributed.
     np.random.seed(1234)
@@ -1073,11 +1074,14 @@ def test_nn_jk():
     np.testing.assert_array_less(varxib1, var_xib)
 
     # Now run with patches, but still with shot variance.  Should be basically the same answer.
-    catp = treecorr.Catalog(x=x, y=y, w=w, npatch=npatch)
+    # The jackknife estimate (later) works better if the patches are based on the full catalog
+    # rather than the weighted catalog, since it covers the area more smoothly.
+    full_catp = treecorr.Catalog(x=x, y=y, npatch=npatch)
+    catp = treecorr.Catalog(x=x, y=y, w=w, patch_centers=full_catp.patch_centers)
     print('tot w = ',np.sum(w))
     print('Patch\tNlens')
     for i in range(npatch):
-        print('%d\t%d'%(i,np.sum(w[catp.patch==i])))
+        print('%d\t%d'%(i,np.sum(catp.w[catp.patch==i])))
     nn2 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='shot')
     nr2 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='shot')
     t0 = time.time()
@@ -1126,12 +1130,14 @@ def test_nn_jk():
     print('ratio = ',varxia3 / var_xia)
     np.testing.assert_allclose(nn3.weight, nn2.weight)
     np.testing.assert_allclose(xia3, xia2)
-    np.testing.assert_allclose(varxia3, var_xia, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(varxia3, var_xia, rtol=0.5*tol_factor)
     print('xib = ',xib3)
     print('varxib = ',varxib3)
     print('ratio = ',varxib3 / var_xib)
     np.testing.assert_allclose(xib3, xib2)
-    np.testing.assert_allclose(varxib3, var_xib, rtol=0.4*tol_factor)
+    # The large scale variance isn't so great, but most of the range is pretty close.
+    np.testing.assert_allclose(varxib3[:-1], var_xib[:-1], rtol=0.15*tol_factor)
+    np.testing.assert_allclose(varxib3, var_xib, rtol=0.6*tol_factor)
 
     # Check using estimate_cov
     t0 = time.time()
@@ -1146,7 +1152,7 @@ def test_nn_jk():
     print('Time to calculate sample covariance = ',t1-t0)
     print('varxi = ',cov3b.diagonal())
     print('ratio = ',cov3b.diagonal() / var_xib)
-    np.testing.assert_allclose(cov3b.diagonal(), var_xib, rtol=0.7*tol_factor)
+    np.testing.assert_allclose(cov3b.diagonal(), var_xib, rtol=0.6*tol_factor)
 
     # Check NN cross-correlation and other combinations of dr, rd.
     rn3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='jackknife')
@@ -1160,14 +1166,16 @@ def test_nn_jk():
     print('xic = ',xic3)
     print('varxic = ',varxic3)
     print('ratio = ',varxic3 / var_xib)
+    print('ratio = ',varxic3 / varxib3)
     np.testing.assert_allclose(xic3, xib3)
-    np.testing.assert_allclose(varxic3, var_xib, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(varxic3, varxib3)
     xid3, varxid3 = nn3.calculateXi(rr,dr=nr3,rd=rn3)
     print('xid = ',xid3)
     print('varxid = ',varxid3)
     print('ratio = ',varxid3 / var_xib)
+    print('ratio = ',varxid3 / varxib3)
     np.testing.assert_allclose(xid3, xib2)
-    np.testing.assert_allclose(varxid3, var_xib, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(varxid3, varxib3)
 
     # Check some invalid parameters
     with assert_raises(RuntimeError):
@@ -1263,7 +1271,7 @@ def test_kappa_jk():
     w[k>=thresh] = 1.
     cat1 = treecorr.Catalog(x=x, y=y, k=k, w=w)
     cat2 = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k)
-    cat1p = treecorr.Catalog(x=x, y=y, k=k, w=w, npatch=npatch)
+    cat1p = treecorr.Catalog(x=x, y=y, k=k, w=w, keep_zero_weight=True, npatch=npatch)
     cat2p = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k, patch=cat1p.patch)
 
     # NK

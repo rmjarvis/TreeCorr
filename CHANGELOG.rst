@@ -13,16 +13,6 @@ This requires dividing the input Catalog into patches, which can be done by:
 3. giving the patch centers to use, which will assign each galaxy to the patch corresponding
    to the nearest center position.
 
-There is one "bug fix", which is worth calling out, since it's possible that some
-people have relied on the "feature" which this fixes.  The npairs attribute had
-only included pairs where both objects have w != 0.  This led to some problems
-with the new patches stuff when the input catalogs had some w=0 objects.  So
-now the number that is accumulated in npairs includes objects with w=0. If this
-change causes problems for you, it is likely that you only need to switch
-``npairs`` to ``weight`` in your code.  But if that is not sufficient, please
-open an issue and we can investigate how to accommodate your use case.
-
-
 Output Format Changes
 ---------------------
 
@@ -55,11 +45,11 @@ New features
 - Added every_nth option for Catalogs to read in a fraction of the rows.
 - After calling `NNCorrelation.calculateXi`, the calculated ``xi``, ``varxi`` and
   ``cov`` are available as attributes.
+- Added ``keep_zero_weight`` option to include wpos=0 objects in the total npairs
+  if you want.  The default is to throw out wpos=0 objects at the start, but there
+  may be reasons to keep them, so that's now an option when building the Catalog.
 
 
 Bug fixes
 ---------
 
-- Changed npairs to include pairs with w=0 objects.  This had been an undocumented
-  and not particularly well-motivated "feature", but it led to some problems with the
-  new kmeans stuff when there are some w=0 points in the field.

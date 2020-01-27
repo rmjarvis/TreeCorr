@@ -1359,8 +1359,8 @@ class Catalog(object):
             # Note: this is a workaround for a bug in fitsio <= 1.0.6.
             # cf. https://github.com/esheldon/fitsio/pull/286
             # We should be able to always use s = slice(self.start, self.end, self.every_nth)
-            if self.start == 0 and self.end is None and self.every_nth is None:
-                s = None
+            if self.start == 0 and self.end is None and self.every_nth == 1:
+                s = slice(None)
             else:
                 if x_col != '0':
                     x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
@@ -1407,7 +1407,7 @@ class Catalog(object):
                 use = self._get_patch_index(self._single_patch)
                 self.select(use)
                 self._patch = None
-                if s is None:
+                if s == slice(None):
                     s = use
                 else:
                     s = s[use]

@@ -520,8 +520,10 @@ class Catalog(object):
         if file_name is not None:
             if any([v is not None for v in [x,y,z,ra,dec,r,g1,g2,k,patch,w,wpos,flag]]):
                 raise TypeError("Vectors may not be provided when file_name is provided.")
+            self.file_name = file_name
             self.name = file_name
-            self.logger.info("Reading input file %s",self.name)
+            if self._single_patch is not None:
+                self.name += " patch " + str(self._single_patch)
 
             # Figure out which file type the catalog is
             file_type = treecorr.config.get_from_list(self.config,'file_type',num)
@@ -556,7 +558,10 @@ class Catalog(object):
             if g1 is not None or g2 is not None:
                 if g1 is None or g2 is None:
                     raise TypeError("g1 and g2 must both be provided")
+            self.file_name = None
             self.name = None
+            if self._single_patch is not None:
+                self.name = "patch " + str(self._single_patch)
             self._x = self.makeArray(x,'x')
             self._y = self.makeArray(y,'y')
             self._z = self.makeArray(z,'z')
@@ -1841,11 +1846,12 @@ class Catalog(object):
         access happens, you can use this function.
         """
         if not self.loaded:
+            self.logger.info("Reading input file %s",self.name)
             # Read the input file
             if self.file_type == 'FITS':
-                self.read_fits(self.name,self._num,self._is_rand)
+                self.read_fits(self.file_name,self._num,self._is_rand)
             elif self.file_type == 'ASCII':
-                self.read_ascii(self.name,self._num,self._is_rand)
+                self.read_ascii(self.file_name,self._num,self._is_rand)
             else: # pragma: no cover
                 # This is already checked, so shouldn't be possible to happen.
                 raise ValueError("Invalid file_type %s"%self.file_type)
@@ -1900,7 +1906,7 @@ class Catalog(object):
         import copy
         if unloaded is None:
             unloaded = not self.loaded
-        if unloaded and self.name is not None:
+        if unloaded and self.file_name is not None:
             if self._centers is not None:
                 patch_set = range(len(self._centers))
             elif self._single_patch is not None:
@@ -1909,7 +1915,7 @@ class Catalog(object):
                 patch_set = [None]
             else:
                 patch_set = set(self.patch)
-            self._patches = [Catalog(config=self.config, file_name=self.name,
+            self._patches = [Catalog(config=self.config, file_name=self.file_name,
                                      patch=i, npatch=1, patch_centers=self._centers)
                              for i in patch_set]
         elif self._patch is None:
@@ -2068,7 +2074,7 @@ class Catalog(object):
             s = s[:-1] + ')'
         else:
             # Catalog isn't loaded yet. Use file_name info here instead.
-            s += 'file_name='+repr(self.name)+','
+            s += 'file_name='+repr(self.file_name)+','
             s += 'config ='+repr(self.config)
             s += ')'
         return s

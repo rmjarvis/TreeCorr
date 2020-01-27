@@ -571,6 +571,9 @@ class Catalog(object):
             self._k = self.makeArray(k,'k')
             self._patch = self.makeArray(patch,'patch',int)
 
+            # Apply units as appropriate
+            self._apply_units()
+
             # Check that all columns have the same length.  (This is impossible in file input)
             if self._x is not None:
                 ntot = len(self._x)
@@ -780,18 +783,6 @@ class Catalog(object):
     def _finish_input(self):
         # Finish processing the data based on given inputs.
 
-        # Apply units to x,y,ra,dec
-        if self._x is not None:
-            self.x_units = treecorr.config.get_from_list(self.config,'x_units',self._num,str,'radians')
-            self.y_units = treecorr.config.get_from_list(self.config,'y_units',self._num,str,'radians')
-            self._x *= self.x_units
-            self._y *= self.y_units
-        else:
-            self.ra_units = treecorr.config.get_from_list(self.config,'ra_units',self._num)
-            self.dec_units = treecorr.config.get_from_list(self.config,'dec_units',self._num)
-            self._ra *= self.ra_units
-            self._dec *= self.dec_units
-
         # Apply flips if requested
         flip_g1 = treecorr.config.get_from_list(self.config,'flip_g1',self._num,bool,False)
         flip_g2 = treecorr.config.get_from_list(self.config,'flip_g2',self._num,bool,False)
@@ -900,6 +891,19 @@ class Catalog(object):
         else:
             use = slice(None)  # Which ironically means use all. :)
         return use
+
+    def _apply_units(self):
+        # Apply units to x,y,ra,dec
+        if self._x is not None:
+            self.x_units = treecorr.config.get_from_list(self.config,'x_units',self._num,str,'radians')
+            self.y_units = treecorr.config.get_from_list(self.config,'y_units',self._num,str,'radians')
+            self._x *= self.x_units
+            self._y *= self.y_units
+        else:
+            self.ra_units = treecorr.config.get_from_list(self.config,'ra_units',self._num)
+            self.dec_units = treecorr.config.get_from_list(self.config,'dec_units',self._num)
+            self._ra *= self.ra_units
+            self._dec *= self.dec_units
 
     def _generate_xyz(self):
         if self._x is None:
@@ -1148,6 +1152,7 @@ class Catalog(object):
             if r_col != 0:
                 self._r = data[:,r_col-1].astype(float)
                 self.logger.debug('read r = %s',str(self._r))
+        self._apply_units()
 
         # Read w
         if w_col != 0:
@@ -1380,6 +1385,7 @@ class Catalog(object):
                     r_hdu = treecorr.config.get_from_list(self.config,'r_hdu',num,int,hdu)
                     self._r = fits[r_hdu][r_col][s].astype(float)
                     self.logger.debug('read r = %s',str(self._r))
+            self._apply_units()
 
             # Read patch
             if patch_col != '0':
@@ -1910,8 +1916,8 @@ class Catalog(object):
                 x=self.x[indx] if self.x is not None and self.ra is None else None
                 y=self.y[indx] if self.y is not None and self.ra is None else None
                 z=self.z[indx] if self.z is not None and self.ra is None else None
-                ra=self.ra[indx] if self.ra is not None else None
-                dec=self.dec[indx] if self.dec is not None else None
+                ra=self.ra[indx]/self.ra_units if self.ra is not None else None
+                dec=self.dec[indx]/self.dec_units if self.dec is not None else None
                 r=self.r[indx] if self.r is not None else None
                 w=self.w[indx] if self.w is not None else None
                 wpos=self.wpos[indx] if self.wpos is not None else None

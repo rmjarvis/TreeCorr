@@ -1750,6 +1750,7 @@ class Catalog(object):
                                 (x,y,z) coordinates on the unit sphere.
         """
         if self._centers is None:
+            self.load()
             if self._patch is None:
                 if self.coords == 'flat':
                     self._centers = np.array([[self._weighted_mean(self.x),

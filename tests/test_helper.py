@@ -16,13 +16,17 @@ import logging
 import sys
 import os
 
-def get_from_wiki(file_name):
+def get_from_wiki(file_name, host=None):
     """We host some larger files used for the test suite separately on the TreeCorr wiki repo
     so people don't need to download them with the code when checking out the repo.
     Most people don't run the tests after all.
+
+    The default host is the wiki page, but you can also download from a different host url.
     """
     local_file_name = os.path.join('data',file_name)
-    url = 'https://github.com/rmjarvis/TreeCorr/wiki/' + file_name
+    if host is None:
+        host = 'https://github.com/rmjarvis/TreeCorr/wiki/'
+    url = host + file_name
     if not os.path.isfile(local_file_name):
         try:
             from urllib.request import urlopen

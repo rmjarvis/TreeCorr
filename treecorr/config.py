@@ -19,6 +19,7 @@ from __future__ import print_function
 import sys
 from . import _lib
 import coord
+import numpy as np
 
 
 def parse_variable(config, v):
@@ -73,7 +74,7 @@ def parse_bool(value):
                 return val
             except Exception:
                 raise ValueError("Unable to parse %s as a bool."%value)
-    elif isinstance(value,(bool, int)):
+    elif isinstance(value,(bool, int, np.bool_)):
         return value
     else:
         raise ValueError("Unable to parse %s as a bool."%value)

@@ -272,6 +272,9 @@ class Catalog(object):
                             would be included in ntot and also in npairs calculations that use
                             this Catalog, although of course not contribute to the accumulated
                             weight of pairs. (default: False)
+        save_patch_dir (str): If desired, when building patches from this Catalog, save them
+                            as FITS files in the given directory for more efficient loading when
+                            doing cross-patch correlations.
 
         hdu (int):          For FITS files, which hdu to read. (default: 1)
         x_hdu (int):        Which hdu to use for the x values. (default: hdu)
@@ -415,6 +418,8 @@ class Catalog(object):
                 'Whether to flip the sign of g2'),
         'keep_zero_weight' : (bool, False, False, None,
                 'Whether to keep objects with zero weight in the catalog'),
+        'save_patch_dir' : (str, False, None, None,
+                'If desired, save the patches as FITS files in this directory.'),
         'verbose' : (int, False, 1, [0, 1, 2, 3],
                 'How verbose the code should be during processing. ',
                 '0 = Errors Only, 1 = Warnings, 2 = Progress, 3 = Debugging'),
@@ -515,6 +520,8 @@ class Catalog(object):
                 self._centers = patch_centers
             else:
                 self._centers = self.read_patch_centers(patch_centers)
+
+        self.save_patch_dir = self.config.get('save_patch_dir',None)
 
         # First style -- read from a file
         if file_name is not None:
@@ -1180,7 +1187,7 @@ class Catalog(object):
 
         # Read patch
         if patch_col != 0:
-            self._patch = data[:,patch_col-1].astype(float)
+            self._patch = data[:,patch_col-1].astype(int)
             self.logger.debug('read patch = %s',str(self._patch))
 
         # Skip g1,g2,k if this file is a random catalog
@@ -1399,7 +1406,7 @@ class Catalog(object):
             # Read patch
             if patch_col != '0':
                 patch_hdu = treecorr.config.get_from_list(self.config,'patch_hdu',num,int,hdu)
-                self._patch = fits[patch_hdu][patch_col][s].astype(float)
+                self._patch = fits[patch_hdu][patch_col][s].astype(int)
                 self.logger.debug('read patch = %s',str(self._patch))
 
             # If only reading in a single patch, do it now.
@@ -1904,9 +1911,58 @@ class Catalog(object):
                                 of the current Catalog)
         """
         import copy
+        import os
+
+        def build_patches():
+            patch_set = set(self.patch)
+            patches = []
+            for i in patch_set:
+                indx = self.patch == i
+                x=self.x[indx] if self.x is not None and self.ra is None else None
+                y=self.y[indx] if self.y is not None and self.ra is None else None
+                z=self.z[indx] if self.z is not None and self.ra is None else None
+                ra=self.ra[indx] if self.ra is not None else None
+                dec=self.dec[indx] if self.dec is not None else None
+                r=self.r[indx] if self.r is not None else None
+                w=self.w[indx] if self.nontrivial_w else None
+                wpos=self.wpos[indx] if self.wpos is not None else None
+                g1=self.g1[indx] if self.g1 is not None else None
+                g2=self.g2[indx] if self.g2 is not None else None
+                k=self.k[indx] if self.k is not None else None
+                check_wpos = self._wpos if self._wpos is not None else self._w
+                kwargs = dict(keep_zero_weight=np.any(check_wpos==0))
+                if self.ra is not None:
+                    kwargs['ra_units'] = 'rad'
+                    kwargs['dec_units'] = 'rad'
+                p = Catalog(x=x, y=y, z=z, ra=ra, dec=dec, r=r, w=w, wpos=wpos,
+                            g1=g1, g2=g2, k=k, patch=i, **kwargs)
+                patches.append(p)
+            return patches
+
         if unloaded is None:
             unloaded = not self.loaded
+
+        # Write the patches to files if requested.
+        if self.save_patch_dir is not None:
+            self._patches = build_patches()
+            file_names = []
+            for i, p in enumerate(self._patches):
+                if self.file_name is not None:
+                    file_name = os.path.splitext(os.path.basename(self.file_name))[0]
+                    file_name += '_%00d.fits'%i
+                else:
+                    file_name = 'patch%00d.fits'%i
+                file_name = os.path.join(self.save_patch_dir, file_name)
+                self.logger.info('Writing patch %d to %s',i,file_name)
+                col_names = p.write(file_name)
+                file_names.append(file_name)
+        else:
+            self._patches = None
+            file_names = None
+
         if unloaded and self.file_name is not None:
+            # This is a litle tricky, since we don't want to trigger a load if the catalog
+            # isn't loaded yet.  So try to get the patches from centers or single_patch first.
             if self._centers is not None:
                 patch_set = range(len(self._centers))
             elif self._single_patch is not None:
@@ -1915,31 +1971,24 @@ class Catalog(object):
                 patch_set = [None]
             else:
                 patch_set = set(self.patch)
-            self._patches = [Catalog(config=self.config, file_name=self.file_name,
-                                     patch=i, npatch=1, patch_centers=self._centers)
-                             for i in patch_set]
+            if file_names is None:
+                self._patches = [Catalog(config=self.config, file_name=self.file_name,
+                                        patch=i, npatch=1, patch_centers=self._centers)
+                                 for i in patch_set]
+            else:
+                kwargs = {c + '_col' : c for c in col_names if c != 'patch'}
+                if 'ra' in col_names:
+                    kwargs['ra_units'] = 'rad'
+                    kwargs['dec_units'] = 'rad'
+                self._patches = [Catalog(file_name=file_names[i],
+                                         patch=i, patch_centers=self._centers, **kwargs)
+                                 for i in patch_set]
         elif self._patch is None:
             self._patches = [self]
-        else:
-            patch_set = set(self.patch)
-            self._patches = []
-            for i in patch_set:
-                indx = self.patch == i
-                x=self.x[indx] if self.x is not None and self.ra is None else None
-                y=self.y[indx] if self.y is not None and self.ra is None else None
-                z=self.z[indx] if self.z is not None and self.ra is None else None
-                ra=self.ra[indx]/self.ra_units if self.ra is not None else None
-                dec=self.dec[indx]/self.dec_units if self.dec is not None else None
-                r=self.r[indx] if self.r is not None else None
-                w=self.w[indx] if self.w is not None else None
-                wpos=self.wpos[indx] if self.wpos is not None else None
-                g1=self.g1[indx] if self.g1 is not None else None
-                g2=self.g2[indx] if self.g2 is not None else None
-                k=self.k[indx] if self.k is not None else None
-                p = Catalog(config=self.config,
-                            x=x, y=y, z=z, ra=ra, dec=dec, r=r, w=w, wpos=wpos,
-                            g1=g1, g2=g2, k=k, patch=i, npatch=1)
-                self._patches.append(p)
+        elif self._patches is None:
+            self._patches = build_patches()
+        # else already built above.
+
         return self._patches
 
     def write(self, file_name, file_type=None, cat_precision=None):
@@ -1983,6 +2032,8 @@ class Catalog(object):
             cat_precision (int): For ASCII output catalogs, the desired precision. (default: 16;
                                 this value can also be given in the Catalog constructor in the
                                 config dict.)
+        Returns:
+            col_names (list):   The column names that were written to the file
         """
         self.logger.info('Writing catalog to %s',file_name)
 
@@ -2019,7 +2070,7 @@ class Catalog(object):
         if self.k is not None:
             col_names.append('k')
             columns.append(self.k)
-        if self.patch is not None:
+        if self._patch is not None:
             col_names.append('patch')
             columns.append(self.patch)
 
@@ -2028,6 +2079,7 @@ class Catalog(object):
 
         treecorr.util.gen_write(file_name, col_names, columns, precision=cat_precision,
                                 file_type=file_type, logger=self.logger)
+        return col_names
 
     def copy(self):
         """Make a copy"""

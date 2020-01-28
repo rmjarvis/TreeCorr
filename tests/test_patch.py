@@ -1390,6 +1390,87 @@ def test_kappa_jk():
     assert np.sum(np.abs(cor[:n1,n2:])) > 1
     assert np.sum(np.abs(cor[n1:n2,n2:])) > 1
 
+def test_save_patches():
+    # Test the option to write the patches to disk
+
+    try:
+        import fitsio
+    except ImportError:
+        print('Save_patches feature requires fitsio')
+        return
+
+    ngal = 10000
+    npatch = 128
+    s = 10.
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) ) + 100  # Put everything at large y, so smallish angle on sky
+    z = rng.normal(0,s, (ngal,) )
+    ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
+
+    file_name = os.path.join('output','test_save_patches.fits')
+    cat0 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad')
+    cat0.write(file_name)
+
+    # When catalog has explicit ra, dec, etc., then file names are patch000.fits, ...
+    cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch,
+                            save_patch_dir='output')
+    assert len(cat1.patches) == npatch
+    for i in range(npatch):
+        patch_file_name = os.path.join('output','patch%00d.fits'%i)
+        assert os.path.exists(patch_file_name)
+        cat_i = treecorr.Catalog(patch_file_name, ra_col='ra', dec_col='dec',
+                                 ra_units='rad', dec_units='rad', patch=i)
+        assert not cat_i.loaded
+        assert cat1.patches[i].loaded
+        assert cat_i == cat1.patches[i]
+        assert cat_i.loaded
+
+    # When catalog is a file, then base name off of given file_name.
+    cat2 = treecorr.Catalog(file_name, ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                            npatch=npatch, save_patch_dir='output')
+    assert not cat2.loaded
+    assert len(cat2.patches) == npatch
+    assert cat2.loaded  # Making patches triggers load.  Also when write happens.
+    for i in range(npatch):
+        patch_file_name = os.path.join('output','test_save_patches_%00d.fits'%i)
+        assert os.path.exists(patch_file_name)
+        cat_i = treecorr.Catalog(patch_file_name, ra_col='ra', dec_col='dec',
+                                 ra_units='rad', dec_units='rad', patch=i)
+        assert not cat_i.loaded
+        assert not cat2.patches[i].loaded
+        assert cat_i == cat2.patches[i]
+        assert cat_i.loaded
+        assert cat2.patches[i].loaded
+
+    # Check x,y,z, as well as other possible columns
+    w = rng.uniform(1,2, (ngal,) )
+    g1 = rng.uniform(-0.5,0.5, (ngal,) )
+    g2 = rng.uniform(-0.5,0.5, (ngal,) )
+    k = rng.uniform(-1.2,1.2, (ngal,) )
+    cat3 = treecorr.Catalog(x=x, y=y, z=z, w=w, g1=g1, g2=g2, k=k, npatch=npatch)
+    file_name2 = os.path.join('output','test_save_patches2.dat')
+    cat3.write(file_name2)
+
+    cat4 = treecorr.Catalog(file_name2,
+                            x_col=1, y_col=2, z_col=3, w_col=4,
+                            g1_col=5, g2_col=6, k_col=7, patch_col=8,
+                            save_patch_dir='output')
+    assert not cat4.loaded
+    assert len(cat4.patches) == npatch
+    assert cat4.loaded  # Making patches triggers load.
+    for i in range(npatch):
+        patch_file_name = os.path.join('output','test_save_patches2_%00d.fits'%i)
+        assert os.path.exists(patch_file_name)
+        cat_i = treecorr.Catalog(patch_file_name, patch=i,
+                                 x_col='x', y_col='y', z_col='z', w_col='w',
+                                 g1_col='g1', g2_col='g2', k_col='k')
+        assert not cat_i.loaded
+        assert not cat4.patches[i].loaded
+        assert cat_i == cat4.patches[i]
+        assert cat_i.loaded
+        assert cat4.patches[i].loaded
+
 if __name__ == '__main__':
     test_cat_patches()
     test_cat_centers()
@@ -1397,3 +1478,4 @@ if __name__ == '__main__':
     test_ng_jk()
     test_nn_jk()
     test_kappa_jk()
+    test_save_patches()

@@ -48,6 +48,8 @@ New features
 - Added ``keep_zero_weight`` option to include wpos=0 objects in the total npairs
   if you want.  The default is to throw out wpos=0 objects at the start, but there
   may be reasons to keep them, so that's now an option when building the Catalog.
+- Added ``save_patch_dir`` as an optional location to write patch catalog for increased
+  efficiency when using patches across multiple processes.
 
 
 Bug fixes

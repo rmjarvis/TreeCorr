@@ -1121,8 +1121,14 @@ class Catalog(object):
             self.logger.warning("Unable to import pandas..  Using np.genfromtxt instead.\n"+
                                 "Installing pandas is recommended for increased speed when "+
                                 "reading ASCII catalogs.")
-            data = np.genfromtxt(file_name, comments=comment_marker, delimiter=delimiter,
-                                 skip_header=skiprows, max_rows=nrows)
+            if self.every_nth == 1:
+                data = np.genfromtxt(file_name, comments=comment_marker, delimiter=delimiter,
+                                     skip_header=skiprows, max_rows=nrows)
+            else:
+                # Numpy can't handle skiprows being a function.  Have to do this manually.
+                data = np.genfromtxt(file_name, comments=comment_marker, delimiter=delimiter,
+                                     skip_header=start, max_rows=self.end - self.start)
+                data = data[::self.every_nth]
 
         # If only one row, and not using pands, then the shape comes in as one-d.  Reshape it:
         if len(data.shape) == 1:

@@ -7,10 +7,11 @@ import treecorr
 import fitsio
 import numpy as np
 import os
+import time
 
 from test_helper import get_from_wiki, profile
 
-def run_dessv():
+def download():
     # The download can be a bit slow, and the files need to be merged to get something
     # that includes both ra/dec and e1,e2.  So we did this block once and uploaded
     # the results to the wiki.  Normal test running can just get the result from the wiki.
@@ -53,19 +54,27 @@ def run_dessv():
         print('writing merged file: ',source_file)
         treecorr.util.gen_write(source_file, col_names, cols, file_type='FITS')
 
-    # First determine patch centers using 1/10 of the total source catalog.
-    # Only need positions for this.
-    print('Read 1/10 of source catalog for kmeans patches')
-    npatch = 128
-    small_cat = treecorr.Catalog(source_file, ra_col='RA', dec_col='DEC', file_type='FITS',
-                                 ra_units='deg', dec_units='deg', every_nth=10, npatch=npatch,
-                                 verbose=2)
+    return source_file, lens_file
 
-    # Write the patch centers
-    patch_file = os.path.join('output','test_dessv_patches.fits')
-    small_cat.write_patch_centers(patch_file)
-    print('wrote patch centers file ',patch_file)
-    print('centers = ',small_cat.patch_centers)
+def run_dessv(source_file, lens_file, use_patches):
+    if use_patches:
+        # First determine patch centers using 1/10 of the total source catalog.
+        # Only need positions for this.
+        print('Read 1/10 of source catalog for kmeans patches')
+        npatch = 128
+        small_cat = treecorr.Catalog(source_file, ra_col='RA', dec_col='DEC', file_type='FITS',
+                                     ra_units='deg', dec_units='deg', every_nth=10, npatch=npatch,
+                                     verbose=2)
+
+        # Write the patch centers
+        patch_file = os.path.join('output','test_dessv_patches.fits')
+        small_cat.write_patch_centers(patch_file)
+        print('wrote patch centers file ',patch_file)
+        #print('centers = ',small_cat.patch_centers)
+
+        patch_kwargs = dict(patch_centers=patch_file, save_patch_dir='output')
+    else:
+        patch_kwargs = {}
 
     # Now load the full catalog using these patch centers.
     # Note: typically, these would be different files, not the same file.
@@ -73,23 +82,20 @@ def run_dessv():
     print('make source catalog')
     sources = treecorr.Catalog(source_file, ra_col='RA', dec_col='DEC', file_type='FITS',
                                ra_units='deg', dec_units='deg',
-                               g1_col='E_1', g2_col='E_2', w_col='W',
-                               patch_centers=patch_file, verbose=2)
+                               g1_col='E_1', g2_col='E_2', w_col='W', k_col='SENS',
+                               **patch_kwargs)
 
     print('make lens catalog')
     lenses = treecorr.Catalog(lens_file, ra_col='RA', dec_col='DEC', file_type='FITS',
                               ra_units='deg', dec_units='deg',
-                              patch_centers=patch_file, verbose=2)
-    print('make sens catalog')
-    sens = treecorr.Catalog(source_file, ra_col='RA', dec_col='DEC', file_type='FITS',
-                            ra_units='deg', dec_units='deg',
-                            k_col='SENS', w_col='W',
-                            patch_centers=patch_file, verbose=2)
+                              **patch_kwargs)
 
     # Configuration of correlation functions.
     bin_config = dict(bin_size=0.2, min_sep=10., max_sep=200., 
                       bin_slop=0.1, sep_units='arcmin',
-                      verbose=2, output_dots=False)
+                      verbose=1, output_dots=False)
+    if use_patches:
+        bin_config['var_method'] = 'jackknife'
 
     # Run the various 2pt correlations.  I'll skip NN here, to avoid dealing with randoms,
     # but that could be included as well.
@@ -106,7 +112,8 @@ def run_dessv():
     print('ng.xi = ',ng.xi)
     nbins = len(ng.xi)
 
-    cov = treecorr.estimate_multi_cov([ng,gg], 'jackknife')
+    method = 'jackknife' if use_patches else 'shot'
+    cov = treecorr.estimate_multi_cov([ng,gg], method)
     print('cov = ',cov)
     print('sigma = ',np.sqrt(cov.diagonal()))
     print('S/N = ',np.concatenate([gg.xip,gg.xim,ng.xi]) / np.sqrt(cov.diagonal()))
@@ -121,8 +128,8 @@ def run_dessv():
     print('Process nk')
     nk = treecorr.NKCorrelation(bin_config)
 
-    kk.process(sens)
-    nk.process(lenses, sens)
+    kk.process(sources)
+    nk.process(lenses, sources)
 
     ng.xi /= nk.xi
     gg.xip /= kk.xi
@@ -140,5 +147,14 @@ def run_dessv():
 
 
 if __name__ == '__main__':
+    source_file, lens_file = download()
+    t0 = time.time()
+    print('Run without patches:')
+    run_dessv(source_file, lens_file, use_patches=False)
+    t1 = time.time()
+    print('Run with patches:')
     with profile():
-        run_dessv()
+        run_dessv(source_file, lens_file, use_patches=True)
+    t2 = time.time()
+    print('Time for normal non-patch run = ',t1-t0)
+    print('Time for normal patch run with jackknife covariance = ',t2-t1)

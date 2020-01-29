@@ -157,4 +157,4 @@ if __name__ == '__main__':
         run_dessv(source_file, lens_file, use_patches=True)
     t2 = time.time()
     print('Time for normal non-patch run = ',t1-t0)
-    print('Time for normal patch run with jackknife covariance = ',t2-t1)
+    print('Time for patch run with jackknife covariance = ',t2-t1)

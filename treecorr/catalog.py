@@ -566,7 +566,7 @@ class Catalog(object):
                 if g1 is None or g2 is None:
                     raise TypeError("g1 and g2 must both be provided")
             self.file_name = None
-            self.name = None
+            self.name = ''
             if self._single_patch is not None:
                 self.name = "patch " + str(self._single_patch)
             self._x = self.makeArray(x,'x')

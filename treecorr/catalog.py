@@ -1920,7 +1920,7 @@ class Catalog(object):
         import os
 
         def build_patches():
-            patch_set = set(self.patch)
+            patch_set = sorted(set(self.patch))
             patches = []
             for i in patch_set:
                 indx = self.patch == i
@@ -1976,7 +1976,7 @@ class Catalog(object):
             elif self.patch is None:
                 patch_set = [None]
             else:
-                patch_set = set(self.patch)
+                patch_set = sorted(set(self.patch))
             if file_names is None:
                 self._patches = [Catalog(config=self.config, file_name=self.file_name,
                                         patch=i, npatch=1, patch_centers=self._centers)

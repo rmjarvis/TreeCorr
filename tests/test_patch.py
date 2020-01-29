@@ -84,10 +84,20 @@ def test_cat_patches():
     for i in range(npatch):
         cat = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                                patch_col=3, patch=i)
-        assert cat.patch == cat5.patches[i].patch
+        assert cat.patch == cat5.patches[i].patch == i
         np.testing.assert_array_equal(cat.x,cat5.patches[i].x)
         np.testing.assert_array_equal(cat.y,cat5.patches[i].y)
         assert cat == cat5.patches[i]
+
+        cata = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
+                                patch_col=3, patch=i, last_row=ngal//2)
+        catb = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
+                                patch_col=3, patch=i, first_row=ngal//2+1)
+        assert cata.patch == i
+        np.testing.assert_array_equal(cata.x,cat5.patches[i].x[:cata.nobj])
+        np.testing.assert_array_equal(cata.y,cat5.patches[i].y[:cata.nobj])
+        np.testing.assert_array_equal(catb.x,cat5.patches[i].x[cata.nobj:])
+        np.testing.assert_array_equal(catb.y,cat5.patches[i].y[cata.nobj:])
 
     # Patches start in an unloaded state (by default)
     cat5b = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
@@ -157,6 +167,16 @@ def test_cat_patches():
             np.testing.assert_array_equal(cat.y,cat6.patches[i].y)
             assert cat == cat6.patches[i]
             assert cat == cat6c_patches[i]
+
+            cata = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', last_row=ngal//2,
+                                    ra_units='rad', dec_units='rad', patch_col='patch', patch=i)
+            catb = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', first_row=ngal//2+1,
+                                    ra_units='rad', dec_units='rad', patch_col='patch', patch=i)
+            assert cata.patch == i
+            np.testing.assert_array_equal(cata.x,cat6.patches[i].x[:cata.nobj])
+            np.testing.assert_array_equal(cata.y,cat6.patches[i].y[:cata.nobj])
+            np.testing.assert_array_equal(catb.x,cat6.patches[i].x[cata.nobj:])
+            np.testing.assert_array_equal(catb.y,cat6.patches[i].y[cata.nobj:])
 
     # 7. Set a single patch number
     cat7 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=3)
@@ -238,6 +258,9 @@ def test_cat_centers():
     print('max center difference = ',np.max(np.abs(centers2-centers)))
     for p in range(npatch):
         np.testing.assert_allclose(centers2[p], centers[p], atol=1.e-4)
+    centers3 = cat1.get_patch_centers()
+    for p in range(npatch):
+        np.testing.assert_allclose(centers3[p], centers2[p])
 
     # Write the centers to a file
     cen_file = os.path.join('output','test_cat_centers.dat')
@@ -937,6 +960,8 @@ def test_ng_jk():
         ng1.estimate_cov('bootstrap')
     with assert_raises(ValueError):
         ng1.estimate_cov('bootstrap2')
+    with assert_raises(RuntimeError):
+        ng3.calculateXi(rg=ng1)
 
     cat1a = treecorr.Catalog(x=x[:100], y=y[:100], npatch=10)
     cat2a = treecorr.Catalog(x=x[:100], y=y[:100], g1=g1[:100], g2=g2[:100], npatch=10)
@@ -1389,6 +1414,11 @@ def test_kappa_jk():
     assert np.sum(np.abs(cor[:n1,n1:n2])) > 1
     assert np.sum(np.abs(cor[:n1,n2:])) > 1
     assert np.sum(np.abs(cor[n1:n2,n2:])) > 1
+
+    rk2 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    rk2.process(cat2, cat2)
+    with assert_raises(RuntimeError):
+        nk2.calculateXi(rk=rk2)
 
 def test_save_patches():
     # Test the option to write the patches to disk

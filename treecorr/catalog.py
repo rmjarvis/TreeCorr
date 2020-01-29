@@ -1420,10 +1420,10 @@ class Catalog(object):
                 use = self._get_patch_index(self._single_patch)
                 self.select(use)
                 self._patch = None
-                if s == slice(None):
-                    s = use
-                else:
+                if isinstance(s,np.ndarray):
                     s = s[use]
+                else:
+                    s = use
 
             # Read w
             if w_col != '0':

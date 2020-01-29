@@ -426,6 +426,12 @@ def test_fits():
     np.testing.assert_almost_equal(cat1.g2[46392], -0.0001006742)
     np.testing.assert_almost_equal(cat1.k[46392], -0.0008628797)
 
+    cat1b = treecorr.Catalog(file_name, config, every_nth=10)
+    np.testing.assert_equal(len(cat1b.ra), 39094)
+    np.testing.assert_equal(cat1b.nobj, 39094)
+    np.testing.assert_almost_equal(cat1.ra[0], 56.4195 * (pi/180.))
+    np.testing.assert_almost_equal(cat1.ra[39094], 60.9119 * (pi/180.))
+
     assert_raises(ValueError, treecorr.Catalog, file_name, config, ra_col='invalid')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, dec_col='invalid')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, r_col='invalid')
@@ -598,6 +604,9 @@ def test_fits():
     assert_raises(ValueError, treecorr.Catalog, file_name, config, g1_col='0')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, g2_col='0')
 
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, every_nth=0)
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, every_nth=-10)
+
 def test_direct():
 
     nobj = 5000
@@ -747,6 +756,14 @@ def test_var():
     vark = np.sum(allw**2 * allk**2) / np.sum(allw)
     assert np.isclose(treecorr.calculateVarG(cats), varg)
     assert np.isclose(treecorr.calculateVarK(cats), vark)
+
+    # With no g1,g2,k, varg=vark=0
+    cat = treecorr.Catalog(x=x, y=y)
+    assert cat.varg == 0
+    assert cat.vark == 0
+    cat = treecorr.Catalog(x=x, y=y, w=w)
+    assert cat.varg == 0
+    assert cat.vark == 0
 
 
 def test_nan():

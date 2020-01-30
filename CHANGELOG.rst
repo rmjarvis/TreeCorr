@@ -16,10 +16,10 @@ This requires dividing the input Catalog into patches, which can be done by:
 Output Format Changes
 ---------------------
 
-- When writing an `NNCorrelation` to a file, if `NNCorrelation.calculatXi` has
+- When writing an `NNCorrelation` to a file, if `NNCorrelation.calculateXi` has
   already been called, then the calculated ``xi`` and ``varxi`` will be written
   to the output file, even if you don't provide the random catalog to the
-  `NNCorrealtion.write` function.
+  `NNCorrelation.write` function.
 - Similarly, if `NGCorrelation.calculateXi` or `NKCorrelation.calculateXi` has
   been called using a random catalog, then the ``xi`` and ``varxi`` columns in
   the output file will be the compensated statistics, rather than the raw ones.

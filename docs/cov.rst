@@ -42,6 +42,13 @@ divide the input `Catalog` into patches.  There are several ways to do this.
    `Catalog.write_patch_centers`), so TreeCorr can assign each galaxy to the patch
    with the closest center.
 
+It is also possible to save the separate catalogs corresponding to each patch.
+To do this, set the **save_patch_dir** option in the `Catalog` initialization.
+Then when you first access the patches (via **cat.patches** for instance) it will
+write out each patch's data to a file in this directory.  This is recommended,
+especially if you are going to run the patch calculations over multiple
+proceses.
+
 Variance Methods
 ----------------
 
@@ -73,7 +80,7 @@ from the sample.  Then the covariance matrix is estimated as
 
 .. math::
 
-    C = \left(1 - \frac{1}{N_\mathrm{patch}} \right) \sum_i (\xi_i - \bar\xi)^T (\xi_i-\bar_xi)
+    C = \left(1 - \frac{1}{N_\mathrm{patch}} \right) \sum_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)
 
 "sample"
 ^^^^^^^^
@@ -85,7 +92,7 @@ of these vectors, scaled by the relative total weight in each patch.
 
 .. math::
 
-    C = \frac{1}{N_\mathrm{patch}-1} \sum_i w_i (\xi_i - \bar\xi)^T (\xi_i-\bar_xi)
+    C = \frac{1}{N_\mathrm{patch}-1} \sum_i w_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)
 
 For :math:`w_i`, we use the total weight in the correlation measurement for each patch
 divided by the total weight in all patches.  This is roughly equal to
@@ -112,7 +119,7 @@ Then the covariance estimate is the sample variance of these resampled results:
 
 .. math::
 
-    C = \frac{1}{N_\mathrm{boot}-1} \sum_i (\xi_i - \bar\xi)^T (\xi_i-\bar_xi)
+    C = \frac{1}{N_\mathrm{boot}-1} \sum_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)
 
 The default number of bootstrap resamplings is 500, but you can change this in the
 Correlation constructor using the parameter **num_bootstrap**.

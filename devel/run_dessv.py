@@ -60,6 +60,9 @@ def run_dessv(source_file, lens_file, use_patches):
     if use_patches:
         # First determine patch centers using 1/10 of the total source catalog.
         # Only need positions for this.
+        # This isn't strictly necessary.  It's trying to showcase how to do this when the
+        # whole catalog doesn't fit in memory.  If it all fits, then fine to use the full
+        # source catalog to run KMeans.
         print('Read 1/10 of source catalog for kmeans patches')
         npatch = 128
         small_cat = treecorr.Catalog(source_file, ra_col='RA', dec_col='DEC', file_type='FITS',
@@ -77,8 +80,7 @@ def run_dessv(source_file, lens_file, use_patches):
         patch_kwargs = {}
 
     # Now load the full catalog using these patch centers.
-    # Note: typically, these would be different files, not the same file.
-    # They should use the same patch_file though.
+    # Note: they need to use the same patch_file!
     print('make source catalog')
     sources = treecorr.Catalog(source_file, ra_col='RA', dec_col='DEC', file_type='FITS',
                                ra_units='deg', dec_units='deg',

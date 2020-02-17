@@ -329,11 +329,11 @@ class BinnedCorr3(object):
             self.min_sep = self.max_sep*math.exp(-self.nbins*bin_size)
         if self.sep_units == '':
             self.logger.info("r: nbins = %d, min,max sep = %g..%g, bin_size = %g",
-                             self.nbins,self.min_sep,self.max_sep,self.bin_size)
+                             self.nbins, self.min_sep, self.max_sep, self.bin_size)
         else:
             self.logger.info("r: nbins = %d, min,max sep = %g..%g %s, bin_size = %g",
-                             self.nbins,self.min_sep/self._sep_units,self.max_sep/self._sep_units,
-                             self.sep_units,self.bin_size)
+                             self.nbins, self.min_sep, self.max_sep, self.sep_units,
+                             self.bin_size)
         # The underscore-prefixed names are in natural units (radians for angles)
         self._min_sep = self.min_sep * self._sep_units
         self._max_sep = self.max_sep * self._sep_units

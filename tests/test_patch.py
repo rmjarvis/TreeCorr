@@ -640,6 +640,7 @@ def test_gg_jk():
     np.testing.assert_allclose(cov23[2*n:,:2*n], gg3.cov)
 
     # Check sample covariance estimate
+    treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='sample')
     t0 = time.time()
     cov_sample = gg3.estimate_cov('sample')
     t1 = time.time()
@@ -655,6 +656,7 @@ def test_gg_jk():
     np.testing.assert_allclose(cov_sample.diagonal()[n:], var_xim, rtol=0.6*tol_factor)
 
     # Check bootstrap covariance estimate
+    treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='bootstrap')
     t0 = time.time()
     cov_boot = gg3.estimate_cov('bootstrap')
     t1 = time.time()
@@ -670,6 +672,7 @@ def test_gg_jk():
     # Check bootstrap2 covariance estimate.
     # Note: this one is really slow.  So trim down the number of bootstraps a lot for the
     # nosetest run.
+    treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='bootstrap2')
     if __name__ != '__main__':
         gg3.num_bootstrap = 50
     t0 = time.time()

@@ -271,6 +271,10 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.cov = self.estimate_cov(self.var_method)
         self.raw_varxi.ravel()[:] = self.cov.diagonal()
 
+        self.xi = self.raw_xi
+        self.xi_im = self.raw_xi_im
+        self.varxi = self.raw_varxi
+
     def clear(self):
         """Clear the data vectors
         """
@@ -281,6 +285,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.meanlogr.ravel()[:] = 0
         self.weight.ravel()[:] = 0
         self.npairs.ravel()[:] = 0
+        if hasattr(self,'cov'):
+            self.cov.ravel()[:] = 0
         self.results.clear()
         self.xi = self.raw_xi
         self.xi_im = self.raw_xi_im
@@ -348,7 +354,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         - If rg is not None, then a compensated calculation is done:
           :math:`\\langle \\gamma_T\\rangle = (DG - RG)`
 
-        After calling this function, the attributes ``xi``, ``xi_im``, and ``varxi`` will
+        After calling this function, the attributes ``xi``, ``xi_im``, ``varxi``, and ``cov`` will
         correspond to the compensated values (if rg is provided).  The raw, uncompensated values
         are available as ``rawxi``, ``raw_xi_im``, and ``raw_varxi``.
 
@@ -366,7 +372,6 @@ class NGCorrelation(treecorr.BinnedCorr2):
         if rg is not None:
             self.xi = self.raw_xi - rg.xi
             self.xi_im = self.raw_xi_im - rg.xi_im
-            self.varxi = self.raw_varxi + rg.varxi
 
             # If patches were used, also update the patch covariances
             for ij, cij in self.results.items():
@@ -377,6 +382,12 @@ class NGCorrelation(treecorr.BinnedCorr2):
                 rgf = np.sum(cij.weight) / np.sum(rgij.weight)
                 cij.xi = cij.raw_xi - rg.results[ij].xi * rgf
                 cij.xi_im = cij.raw_xi_im - rg.results[ij].xi_im * rgf
+
+            if len(self.results) > 0:
+                self.cov = self.estimate_cov(self.var_method)
+                self.varxi.ravel()[:] = self.cov.diagonal()
+            else:
+                self.varxi = self.raw_varxi + rg.varxi
         else:
             self.xi = self.raw_xi
             self.xi_im = self.raw_xi_im

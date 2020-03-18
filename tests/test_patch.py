@@ -938,7 +938,7 @@ def test_ng_jk():
     # Things don't change much with RG in this case, since there aren't strong edge effects.
     np.testing.assert_allclose(ng3b.weight, ng3.weight, rtol=0.02*tol_factor)
     np.testing.assert_allclose(ng3b.xi, ng3.xi, rtol=0.02*tol_factor)
-    np.testing.assert_allclose(ng3b.varxi, ng3.varxi, rtol=0.02*tol_factor)
+    np.testing.assert_allclose(ng3b.varxi, ng3.varxi, rtol=0.3*tol_factor)
 
     # Check using estimate_cov
     t0 = time.time()

@@ -96,11 +96,11 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.meanlogr = np.zeros_like(self.rnom, dtype=float)
         self.weight = np.zeros_like(self.rnom, dtype=float)
         self.npairs = np.zeros_like(self.rnom, dtype=float)
-        self.logger.debug('Finished building NGCorr')
         self.raw_xi = self.xi
         self.raw_xi_im = self.xi_im
         self.raw_varxi = self.varxi
         self._build_corr()
+        self.logger.debug('Finished building NGCorr')
 
     def _build_corr(self):
         from treecorr.util import double_ptr as dp

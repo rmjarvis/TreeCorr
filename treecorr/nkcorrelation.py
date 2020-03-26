@@ -274,6 +274,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.meanlogr.ravel()[:] = 0
         self.weight.ravel()[:] = 0
         self.npairs.ravel()[:] = 0
+        if hasattr(self,'cov'):
+            self.cov.ravel()[:] = 0
         self.results.clear()
         self.xi = self.raw_xi
         self.varxi = self.raw_varxi
@@ -339,9 +341,9 @@ class NKCorrelation(treecorr.BinnedCorr2):
         - If rk is not None, then a compensated calculation is done:
           :math:`\\langle \\kappa \\rangle = (DK - RK)`
 
-        After calling this function, the attributes ``xi`` and ``varxi`` will correspond to the
-        compensated values (if rk is provided).  The raw, uncompensated values are available as
-        ``rawxi`` and ``raw_varxi``.
+        After calling this function, the attributes ``xi``, ``varxi`` and ``cov'' will correspond
+        to the compensated values (if rk is provided).  The raw, uncompensated values are
+        available as ``rawxi`` and ``raw_varxi``.
 
         Parameters:
             rk (NKCorrelation): The cross-correlation using random locations as the lenses (RK),
@@ -355,7 +357,6 @@ class NKCorrelation(treecorr.BinnedCorr2):
         """
         if rk is not None:
             self.xi = self.raw_xi - rk.xi
-            self.varxi = self.raw_varxi + rk.varxi
 
             # If patches were used, also update the patch covariances
             for ij, cij in self.results.items():
@@ -365,6 +366,12 @@ class NKCorrelation(treecorr.BinnedCorr2):
                 rkij = rk.results[ij]
                 rkf = np.sum(cij.weight) / np.sum(rkij.weight)
                 cij.xi = cij.raw_xi - rk.results[ij].xi * rkf
+
+            if len(self.results) > 0:
+                self.cov = self.estimate_cov(self.var_method)
+                self.varxi.ravel()[:] = self.cov.diagonal()
+            else:
+                self.varxi = self.raw_varxi + rk.varxi
         else:
             self.xi = self.raw_xi
             self.varxi = self.raw_varxi

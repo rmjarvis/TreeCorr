@@ -980,6 +980,12 @@ def _cov_bootstrap2(corrs):
     vdenom = []
     for c, n1, n2, pairs in zip(corrs, npatch1, npatch2, all_pairs):
         vpairs = []
+        if n1 != 1 and n2 != 1:
+            # Precompute this for use below.
+            ok = np.zeros((n1, n1), dtype=bool)
+            for (i,j) in pairs:
+                if i != j:
+                    ok[i,j] = True
         for k in range(nboot):
             indx = np.random.randint(npatch, size=npatch)
             if n2 == 1:
@@ -991,10 +997,10 @@ def _cov_bootstrap2(corrs):
                 # Include all represented auto-correlations once, repeating as appropriate
                 vpairs1 = [ (i,i) for i in indx ]
 
-                # And all pairs if that aren't really auto-correlations
-                # This is the really slow line.  It takes around 0.2 seconds for 64 patches, so with
-                # the default 500 bootstrap resamplings, that comes to 100 seconds.
-                temp = [ (i,j) for i in indx for j in indx if i != j and (i,j) in pairs ]
+                # And all other pairs that aren't really auto-correlations
+                # This is way faster with the precomputed ok matrix.
+                # Like 0.005 seconds per call rather than 1.2 seconds for 128 patches!
+                temp = [ (i,j) for i in indx for j in indx if ok[i,j] ]
                 vpairs1.extend(temp)
             vpairs.append(vpairs1)
         n, d = _make_cov_design_matrix(c,vpairs)

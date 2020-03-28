@@ -471,6 +471,7 @@ class Catalog(object):
         self._sumw = None
         self._varg = None
         self._vark = None
+        self._npatch = 1
         self._patches = None
         self._centers = None
 
@@ -503,9 +504,11 @@ class Catalog(object):
 
         try:
             self._single_patch = int(patch)
-            patch = None
         except TypeError:
             pass
+        else:
+            patch = None
+            self._npatch = 1
 
         if patch_centers is None and 'patch_centers' in self.config:
             # file name version may be in a config dict, rather than kwarg.
@@ -582,6 +585,8 @@ class Catalog(object):
             self._g2 = self.makeArray(g2,'g2')
             self._k = self.makeArray(k,'k')
             self._patch = self.makeArray(patch,'patch',int)
+            if self._patch is not None:
+                self._set_npatch()
 
             # Apply units as appropriate
             self._apply_units()
@@ -878,12 +883,22 @@ class Catalog(object):
             init = treecorr.config.get(self.config,'kmeans_init',str,'tree')
             alt = treecorr.config.get(self.config,'kmeans_alt',bool,False)
             field = self.getNField()
+            self.logger.info("Finding %d patches using kmeans.",self.npatch)
             self._patch, self._centers = field.run_kmeans(self.npatch, init=init, alt=alt)
+            self._set_npatch()
         elif self._centers is not None and self._patch is None and self._single_patch is None:
             field = self.getNField()
             self._patch = field.kmeans_assign_patches(self._centers)
+            self._set_npatch()
 
         self.logger.info("   nobj = %d",self.nobj)
+
+    def _set_npatch(self):
+        self._npatch = max(self._patch) + 1
+        self.logger.info("Assigned patch numbers 0..%d",self._npatch-1)
+        if set(self._patch) != set(range(self._npatch)):
+            self.logger.warning("WARNING: Some patch numbers in range (0..%d) have no objects.",
+                                self._npatch-1)
 
     def _get_patch_index(self, single_patch):
         if self._patch is not None:
@@ -942,6 +957,7 @@ class Catalog(object):
         indx = self._get_patch_index(single_patch)
         self._patch = None
         self.select(indx)
+        self._npatch = 1
 
     def select(self, indx):
         """Trim the catalog to only include those objects with the give indices.
@@ -1195,6 +1211,7 @@ class Catalog(object):
         if patch_col != 0:
             self._patch = data[:,patch_col-1].astype(int)
             self.logger.debug('read patch = %s',str(self._patch))
+            self._set_npatch()
 
         # Skip g1,g2,k if this file is a random catalog
         if not is_rand:
@@ -1414,6 +1431,7 @@ class Catalog(object):
                 patch_hdu = treecorr.config.get_from_list(self.config,'patch_hdu',num,int,hdu)
                 self._patch = fits[patch_hdu][patch_col][s].astype(int)
                 self.logger.debug('read patch = %s',str(self._patch))
+                self._set_npatch()
 
             # If only reading in a single patch, do it now.
             if self._single_patch is not None:
@@ -1778,7 +1796,7 @@ class Catalog(object):
                                                self._weighted_mean(self.y),
                                                self._weighted_mean(self.z)]])
             else:
-                npatch = np.max(self.patch) + 1
+                npatch = self._npatch
                 self._centers = np.empty((npatch,2 if self.z is None else 3))
                 for p in range(npatch):
                     indx = np.where(self.patch == p)[0]
@@ -1921,6 +1939,11 @@ class Catalog(object):
 
         def build_patches():
             patch_set = sorted(set(self.patch))
+            if len(patch_set) != self._npatch:
+                self.logger.error("WARNING: Some patch numbers do not contain any objects!")
+                missing = set(range(self._npatch)) - set(patch_set)
+                self.logger.warning("The following patch numbers have no objects: %s",missing)
+                self.logger.warning("This may be a problem depending on your use case.")
             patches = []
             for i in patch_set:
                 indx = self.patch == i

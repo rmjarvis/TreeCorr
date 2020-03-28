@@ -975,19 +975,7 @@ def test_ng_jk():
     with assert_raises(RuntimeError):
         ng6.process(cat1a,cat2b)
     with assert_raises(RuntimeError):
-        ng6.estimate_cov('sample')
-    with assert_raises(RuntimeError):
-        ng6.estimate_cov('bootstrap')
-    with assert_raises(RuntimeError):
-        ng6.estimate_cov('bootstrap2')
-    with assert_raises(RuntimeError):
         ng7.process(cat1b,cat2a)
-    with assert_raises(RuntimeError):
-        ng7.estimate_cov('sample')
-    with assert_raises(RuntimeError):
-        ng7.estimate_cov('bootstrap')
-    with assert_raises(RuntimeError):
-        ng7.estimate_cov('bootstrap2')
 
 def test_nn_jk():
     # Test the variance estimate for NN correlation with jackknife error estimate.
@@ -1504,6 +1492,182 @@ def test_save_patches():
         assert cat_i.loaded
         assert cat4.patches[i].loaded
 
+def test_clusters():
+    # The original version of J/K variance assumed that both catalogs had some items
+    # in every patch.  But clusters can be very low density, so it can be very plausible
+    # that some patches won't have any clusters in them.  This should be allowed.
+    # (Thanks to Ariel Amsellem and Judit Prat for pointing out this bug in the
+    # original implementation.)
+
+    npatch = 128  # Only deterministic if power of 2
+    nlens = 400   # Average of 3.13 clusters per patch.  So ~4% should have zero clusters.
+    nsource = 50000
+    tol_factor = 1
+    np.random.seed(1234)
+    rng = np.random.RandomState(1234)
+
+    def make_gals():
+        lens_x = rng.uniform(0,1000,nlens)
+        lens_y = rng.uniform(0,1000,nlens)
+        source_x = rng.uniform(0,1000,nsource)
+        source_y = rng.uniform(0,1000,nsource)
+        m = rng.uniform(0.05,0.2,nlens)
+
+        # SIS model: g = g0/r
+        dx = source_x - lens_x[:,np.newaxis]
+        dy = source_y - lens_y[:,np.newaxis]
+        rsq = dx**2 + dy**2
+        g = dx + 1j * dy
+        g *= g
+        g /= rsq
+        g /= np.sqrt(rsq)
+        g *= -m[:,np.newaxis]
+        g = np.sum(g,axis=0)
+        source_g1 = g.real
+        source_g2 = g.imag
+        source_g1 += rng.normal(0,3.e-3)
+        source_g2 += rng.normal(0,3.e-3)
+        return lens_x, lens_y, source_x, source_y, source_g1, source_g2
+
+    file_name = 'data/test_clusters_{}.npz'.format(nlens)
+    print(file_name)
+    if not os.path.isfile(file_name):
+        nruns = 1000
+        all_ngs = []
+        for run in range(nruns):
+            print(run)
+            lens_x, lens_y, source_x, source_y, source_g1, source_g2 = make_gals()
+            cat1 = treecorr.Catalog(x=lens_x, y=lens_y)
+            cat2 = treecorr.Catalog(x=source_x, y=source_y, g1=source_g1, g2=source_g2)
+            ng = treecorr.NGCorrelation(bin_size=0.4, min_sep=1., max_sep=20.)
+            ng.process(cat1, cat2)
+            all_ngs.append(ng)
+
+        mean_xi = np.mean([ng.xi for ng in all_ngs], axis=0)
+        var_xi = np.var([ng.xi for ng in all_ngs], axis=0)
+        mean_varxi = np.mean([ng.varxi for ng in all_ngs], axis=0)
+
+        np.savez(file_name,
+                 mean_xi=mean_xi, var_xi=var_xi, mean_varxi=mean_varxi)
+
+    data = np.load(file_name)
+    mean_xi = data['mean_xi']
+    var_xi = data['var_xi']
+    mean_varxi = data['mean_varxi']
+
+    print('mean_xi = ',mean_xi)
+    print('mean_varxi = ',mean_varxi)
+    print('var_xi = ',var_xi)
+    print('ratio = ',var_xi / mean_varxi)
+
+    # First run with the normal variance estimate, which is too small.
+    lens_x, lens_y, source_x, source_y, source_g1, source_g2 = make_gals()
+    cat1 = treecorr.Catalog(x=lens_x, y=lens_y)
+    cat2 = treecorr.Catalog(x=source_x, y=source_y, g1=source_g1, g2=source_g2)
+    ng1 = treecorr.NGCorrelation(bin_size=0.4, min_sep=1., max_sep=20.)
+    t0 = time.time()
+    ng1.process(cat1, cat2)
+    t1 = time.time()
+    print('Time for non-patch processing = ',t1-t0)
+
+    print('weight = ',ng1.weight)
+    print('xi = ',ng1.xi)
+    print('varxi = ',ng1.varxi)
+    print('mean_varxi = ',mean_varxi)
+    print('npair = ',ng1.npairs)
+    print('pullsq for xi = ',(ng1.xi-mean_xi)**2/var_xi)
+    print('max pull for xi = ',np.sqrt(np.max((ng1.xi-mean_xi)**2/var_xi)))
+    np.testing.assert_array_less((ng1.xi - mean_xi)**2/var_xi, 25) # within 5 sigma
+    np.testing.assert_allclose(ng1.varxi, mean_varxi, rtol=0.4 * tol_factor)
+
+    # The naive error estimates only includes shape noise, so it is an underestimate of
+    # the full variance, which includes sample variance.
+    np.testing.assert_array_less(mean_varxi, var_xi)
+    np.testing.assert_array_less(ng1.varxi, var_xi)
+
+    # Now run with patches, but still with shot variance.  Should be basically the same answer.
+    # Note: This turns out to work significantly better if cat1 is used to make the patches.
+    # Otherwise the number of lenses per patch varies a lot, which affects the variance estimate.
+    # But that means we need to keep the w=0 object in the catalog, so all objects get a patch.
+    cat2p = treecorr.Catalog(x=source_x, y=source_y, g1=source_g1, g2=source_g2, npatch=npatch)
+    cat1p = treecorr.Catalog(x=lens_x, y=lens_y, patch_centers=cat2p.patch_centers)
+    print('tot n = ',nlens)
+    print('Patch\tNlens')
+    nwith0 = 0
+    for i in range(npatch):
+        n = np.sum(cat1p.w[cat1p.patch==i])
+        #print('%d\t%d'%(i,n))
+        if n == 0: nwith0 += 1
+    print('Found %s patches with no lenses'%nwith0)
+    assert nwith0 > 0  # This is the point of this test!
+    ng2 = treecorr.NGCorrelation(bin_size=0.4, min_sep=1., max_sep=20., var_method='shot')
+    t0 = time.time()
+    ng2.process(cat1p, cat2p)
+    t1 = time.time()
+    print('Time for shot processing = ',t1-t0)
+    print('weight = ',ng2.weight)
+    print('xi = ',ng2.xi)
+    print('varxi = ',ng2.varxi)
+    np.testing.assert_allclose(ng2.weight, ng1.weight, rtol=3.e-2*tol_factor)
+    np.testing.assert_allclose(ng2.xi, ng1.xi, rtol=3.e-2*tol_factor)
+    np.testing.assert_allclose(ng2.varxi, ng1.varxi, rtol=3.e-2*tol_factor)
+
+    # Now run with jackknife variance estimate.  Should be much better.
+    ng3 = treecorr.NGCorrelation(bin_size=0.4, min_sep=1., max_sep=20., var_method='jackknife')
+    t0 = time.time()
+    ng3.process(cat1p, cat2p)
+    t1 = time.time()
+    print('Time for jackknife processing = ',t1-t0)
+    print('xi = ',ng3.xi)
+    print('varxi = ',ng3.varxi)
+    print('ratio = ',ng3.varxi / var_xi)
+    np.testing.assert_allclose(ng3.weight, ng2.weight)
+    np.testing.assert_allclose(ng3.xi, ng2.xi)
+    np.testing.assert_allclose(ng3.varxi, var_xi, rtol=0.4*tol_factor)
+
+    # Check sample covariance estimate
+    t0 = time.time()
+    with assert_raises(RuntimeError):
+        cov_sample = ng3.estimate_cov('sample')
+    t1 = time.time()
+    print('Time to calculate sample covariance = ',t1-t0)
+
+    # Check bootstrap covariance estimate
+    t0 = time.time()
+    cov_boot = ng3.estimate_cov('bootstrap')
+    t1 = time.time()
+    print('Time to calculate bootstrap covariance = ',t1-t0)
+    print('varxi = ',cov_boot.diagonal())
+    print('ratio = ',cov_boot.diagonal() / var_xi)
+    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.4*tol_factor)
+
+    # Check bootstrap2 covariance estimate.
+    t0 = time.time()
+    cov_boot = ng3.estimate_cov('bootstrap2')
+    t1 = time.time()
+    print('Time to calculate bootstrap2 covariance = ',t1-t0)
+    print('varxi = ',cov_boot.diagonal())
+    print('ratio = ',cov_boot.diagonal() / var_xi)
+    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
+
+    # Use a random catalog
+    # In this case the locations of the source catalog are fine to use as our random catalog,
+    # since they fill the region where the lenses are allowed to be.
+    rg3 = treecorr.NGCorrelation(bin_size=0.4, min_sep=1., max_sep=20.)
+    t0 = time.time()
+    rg3.process(cat2p, cat2p)
+    t1 = time.time()
+    print('Time for processing RG = ',t1-t0)
+
+    ng3b = ng3.copy()
+    ng3b.calculateXi(rg3)
+    print('xi = ',ng3b.xi)
+    print('varxi = ',ng3b.varxi)
+    print('ratio = ',ng3b.varxi / var_xi)
+    np.testing.assert_allclose(ng3b.weight, ng3.weight, rtol=0.02*tol_factor)
+    np.testing.assert_allclose(ng3b.xi, ng3.xi, rtol=0.02*tol_factor)
+    np.testing.assert_allclose(ng3b.varxi, var_xi, rtol=0.3*tol_factor)
+
 if __name__ == '__main__':
     test_cat_patches()
     test_cat_centers()
@@ -1512,3 +1676,4 @@ if __name__ == '__main__':
     test_nn_jk()
     test_kappa_jk()
     test_save_patches()
+    test_clusters()

@@ -318,8 +318,12 @@ class KGCorrelation(treecorr.BinnedCorr2):
         import math
         self.clear()
 
-        if not isinstance(cat1,list): cat1 = cat1.get_patches()
-        if not isinstance(cat2,list): cat2 = cat2.get_patches()
+        if not isinstance(cat1,list):
+            self.npatch1 = cat1._npatch
+            cat1 = cat1.get_patches()
+        if not isinstance(cat2,list):
+            self.npatch2 = cat2._npatch
+            cat2 = cat2.get_patches()
 
         vark = treecorr.calculateVarK(cat1)
         varg = treecorr.calculateVarG(cat2)

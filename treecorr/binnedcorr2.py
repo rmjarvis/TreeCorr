@@ -918,45 +918,49 @@ def _cov_sample(corrs):
     return C
 
 def _cov_bootstrap(corrs):
-    # Calculate the bootstrap covariance
+    # Calculate the marked-point bootstrap covariance
 
     # This is based on the article A Valid and Fast Spatial Bootstrap for Correlation Functions
     # by Ji Meng Loh, 2008, cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/abstract
 
-    # The structure is similar to the sample covariance.  We calculate the total correlation
-    # for each patch separately.  These are the "marks" in Loh.  Then we do a bootstrap
-    # sampling of these patches (random with replacement) and calculate the covariance from these
-    # resamplings.
+    # We do a bootstrap sampling of the patches.  For each patch selected, we include
+    # all pairs that have the sampled patch in the first position.  In the Loh prescription,
+    # the sums of pairs with a given choice of first patch would be the marks.  Here, we
+    # don't quite do that, since the marks would involve a ratio, so the division is biased
+    # when somewhat noisy.  Rather, we sum the numerators and denominators of the marks
+    # separately and divide the sums.
+
+    # From the bootstrap totals, v_i, the estimated covariance matrix is
 
     # C = 1/(nboot) Sum_i (v_i - v_mean) (v_i - v_mean)^T
 
     npatch, all_pairs = _get_patch_nums(corrs, 'bootstrap')
 
+    nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
     vnum = []
     vdenom = []
     for c, pairs in zip(corrs, all_pairs):
-        if c.npatch2 == 1:
-            vpairs = [ [(i,0)] for i in range(c.npatch1) ]
-        elif c.npatch1 == 1:
-            vpairs = [ [(0,i)] for i in range(c.npatch2) ]
-        else:
-            assert c.npatch1 == c.npatch2
-            vpairs = [ [(j,k) for j,k in pairs if j==i] for i in range(c.npatch1) ]
+        vpairs = []
+        if c.npatch1 != 1 and c.npatch2 != 1:
+            # Precompute this for use below.
+            ok = np.zeros((c.npatch1, c.npatch1), dtype=bool)
+            for (i,j) in pairs:
+                ok[i,j] = True
+        for k in range(nboot):
+            indx = np.random.randint(npatch, size=npatch)
+            if c.npatch2 == 1:
+                vpairs1 = [ (i,0) for i in indx ]
+            elif c.npatch1 == 1:
+                vpairs1 = [ (0,i) for i in indx ]
+            else:
+                assert c.npatch1 == c.npatch2
+                vpairs1 = [ (i,j) for i in indx for j in range(c.npatch2) if ok[i,j] ]
+            vpairs.append(vpairs1)
         n, d = _make_cov_design_matrix(c,vpairs)
         vnum.append(n)
         vdenom.append(d)
 
-    vnum = np.hstack(vnum)
-    vdenom = np.hstack(vdenom)
-
-    # The above repeats the sample variance code exactly.  At this point we start to do something
-    # different.  Now we resample these values and compute the total correlation result from
-    # each resampling.
-    nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
-    v = np.empty((nboot, vnum.shape[1]))
-    for k in range(nboot):
-        indx = np.random.randint(npatch, size=npatch)
-        v[k] = np.sum(vnum[indx],axis=0) / np.sum(vdenom[indx],axis=0)
+    v = np.hstack(vnum) / np.hstack(vdenom)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.T.dot(v)
@@ -968,9 +972,8 @@ def _cov_bootstrap2(corrs):
     # This is a different version of the bootstrap idea.  It selects patches at random with
     # replacement, and then generates the statistic using all the auto-correlations at their
     # selected repetition plus all the cross terms, which aren't actuall auto terms.
-    # It seems to do a slightly better job than the regular bootstrap, but it's really slow.
-    # The slow step is marked below.  It's a python list comprehension, so if it's a bottleneck,
-    # we could try to implement it in C to speed it up.
+    # It seems to do a slightly better job than the marked-point bootstrap above from the
+    # tests done in the test suite.  But the difference is generally pretty small.
 
     npatch, all_pairs = _get_patch_nums(corrs, 'bootstrap2')
 

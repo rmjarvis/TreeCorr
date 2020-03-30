@@ -363,15 +363,90 @@ class NKCorrelation(treecorr.BinnedCorr2):
             self.xi = self.raw_xi - rk.xi
 
             # If patches were used, also update the patch covariances
-            for ij, cij in self.results.items():
-                i,j = ij
-                if ij not in rk.results:
-                    raise RuntimeError("RG must be run with the same patches as DG")
-                rkij = rk.results[ij]
-                rkf = np.sum(cij.weight) / np.sum(rkij.weight)
-                cij.xi = cij.raw_xi - rk.results[ij].xi * rkf
-
             if len(self.results) > 0:
+                if len(rk.results) == 0 or rk.npatch1 != self.npatch1 or rk.npatch2 != self.npatch2:
+                    raise RuntimeError("RK must be run with the same patches as DK")
+                # Pre calculate a couple things we'll need in the correction terms below.
+                suma = sumar = 0
+                for ij, cij in self.results.items():
+                    if ij not in rk.results: continue
+                    rkij = rk.results[ij]
+                    a = cij.weight / self.weight - rkij.weight / rk.weight
+                    sumar += a*rkij.xi
+                for ij, rkij in rk.results.items():
+                    if ij in self.results: continue
+                    a = - rkij.weight / rk.weight
+                    sumar += a*rkij.xi
+
+                for ij, cij in self.results.items():
+                    if ij not in rk.results:
+                        # For sparse (probably too sparse, but allowed) random runs, it's possible
+                        # for an RK result to have no pairs, but there be at least one pair in DK.
+                        # Don't subtract off any RK for that.
+                        continue
+                    rkij = rk.results[ij]
+
+                    # This next line is the main effect.  Subtract off the random RK term for
+                    # this pair of patches scaled by the overall relative weight of the random
+                    # catalog to the data catalog.
+                    cij.xi = cij.raw_xi - rkij.xi * self.weight / rk.weight
+
+                    # The above alone gets pretty close, but when the data or randoms have a
+                    # highly variable weight, it's not quite perfect for a jackknife variance
+                    # estimate.  (Unknown whether this correction is good or not for other
+                    # variance methods.)
+                    # Here is a sketch of the first order correction which we'll apply below.
+
+                    # Correct jackknife random term when leaving out patch i:
+                    #     RK = (Sum_k!=i r_k) / (Sum_k!=i w_k)
+                    # Our approximate value based on only the above term: (use d for data weights)
+                    #     Rk^ = (Sum_k!=i r_k) / (Sum_k w_k) * (Sum_k d_k) / (Sum_k!=i d_k)
+                    # The difference is (after some algebra and approximating w_k/Sum_k w_k << 1
+                    #                    for both data and randoms):
+                    #     Rk^ - Rk = (Sum_k!=i d_k / D - Sum_k!=i w_k / W) (Sum_k!=i r_k) / W
+                    #     where I've adopted the notation D = Sum_k d_k, W = Sum_k w_k
+                    # Define a_k = d_k/D - w_k/W
+                    # Then
+                    #     (Rk^-Rk) W = (Sum_k!=i a_k) (Sum_k!=i r_k)
+                    #                = (A-a_i) (R-r_i)
+                    #                = (A-a_i) R + A (R-r_i) - AR + a_i r_i
+                    #                = (Sum_k!=i a_k) R + A (Sum_k!=i r_k) - AR + a_i r_i
+                    #                = (Sum_k!=i a_k) R + A (Sum_k!=i r_k) - AR +
+                    #                      Sum_k a_k r_k - Sum_k!=i a_k r_k
+                    #     where similarly A = Sum_k a_k, R = Sum_k r_k
+                    # We can simplify further by noting that
+                    #       A = 0
+                    # So,
+                    #     Rk^-Rk = Sum_k!=i a_k R / W - Sum_k!=i a_k r_k / W + Sum_k a_k r_k / W
+                    # The first two terms are amenable to correcting each entry in the results.
+                    # The last one is an overall constant.  Split that up among the i==j entries.
+                    # Note: We computed Sum_k a_k r_k above as sumar
+                    #       Also, R = Sum_k r_k = rk.xi * rk.weight, and W = rk.weight
+                    #       All the terms need a self.weight factor, since that will be
+                    #       (approximately) the denominator when all of these are summed up.
+
+                    a = cij.weight / self.weight - rkij.weight / rk.weight
+                    cij.xi -= a * rk.xi * self.weight
+                    cij.xi += a * rkij.xi * self.weight / rk.weight
+                    if ij[0] == ij[1]:
+                        cij.xi -= sumar / self.npatch1 * self.weight / rk.weight
+
+                # If the randoms include extra pairs that didn't show up in results, then we
+                # need to add them with just the subtracted randoms so the sums come out right.
+                for ij, rkij in rk.results.items():
+                    if ij in self.results: continue
+                    new_cij = cij.copy()
+                    new_cij.xi = -rkij.xi * self.weight / rk.weight
+
+                    a = - rkij.weight / rk.weight
+                    new_cij.xi -= a * rk.xi * self.weight
+                    new_cij.xi += a * rkij.xi * self.weight / rk.weight
+                    if ij[0] == ij[1]:
+                        new_cij.xi -= sumar / self.npatch1 * self.weight / rk.weight
+
+                    new_cij.weight[:] = 0
+                    self.results[ij] = new_cij
+
                 self.cov = self.estimate_cov(self.var_method)
                 self.varxi.ravel()[:] = self.cov.diagonal()
             else:

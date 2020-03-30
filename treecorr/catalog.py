@@ -885,20 +885,18 @@ class Catalog(object):
             field = self.getNField()
             self.logger.info("Finding %d patches using kmeans.",self.npatch)
             self._patch, self._centers = field.run_kmeans(self.npatch, init=init, alt=alt)
-            self._set_npatch()
+            self._npatch = self.npatch
         elif self._centers is not None and self._patch is None and self._single_patch is None:
             field = self.getNField()
             self._patch = field.kmeans_assign_patches(self._centers)
-            self._set_npatch()
+            self._npatch = len(self._centers)
+            self.logger.info("Assigned patch numbers according %d centers",self._npatch)
 
         self.logger.info("   nobj = %d",self.nobj)
 
     def _set_npatch(self):
         self._npatch = max(self._patch) + 1
         self.logger.info("Assigned patch numbers 0..%d",self._npatch-1)
-        if set(self._patch) != set(range(self._npatch)):
-            self.logger.warning("WARNING: Some patch numbers in range (0..%d) have no objects.",
-                                self._npatch-1)
 
     def _get_patch_index(self, single_patch):
         if self._patch is not None:

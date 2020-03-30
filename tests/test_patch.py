@@ -1668,6 +1668,217 @@ def test_clusters():
     np.testing.assert_allclose(ng3b.xi, ng3.xi, rtol=0.02*tol_factor)
     np.testing.assert_allclose(ng3b.varxi, var_xi, rtol=0.3*tol_factor)
 
+
+def test_brute_jk():
+    # With bin_slop = 0, the jackknife calculation from patches should match a
+    # brute force calcaulation where we literally remove one patch at a time to make
+    # the vectors.
+    nside = 100
+    nlens = 100
+    nsource = 5000
+    npatch = 16
+    rand_factor = 5
+
+    np.random.seed(1234)
+    x, y, g1, g2, k = generate_shear_field(nside)
+
+    rng = np.random.RandomState(8675309)
+    indx = rng.choice(range(len(x)),nsource,replace=False)
+    source_cat = treecorr.Catalog(x=x[indx], y=y[indx],
+                                  g1=g1[indx], g2=g2[indx], k=k[indx],
+                                  npatch=npatch)
+    print('source_cat patches = ',np.unique(source_cat.patch))
+    print('len = ',source_cat.nobj, source_cat.ntot)
+    assert source_cat.nobj == nsource
+    indx = rng.choice(np.where(k>0)[0],nlens,replace=False)
+    print('indx = ',indx)
+    lens_cat = treecorr.Catalog(x=x[indx], y=y[indx], k=k[indx],
+                                g1=g1[indx], g2=g2[indx],
+                                patch_centers=source_cat.patch_centers)
+    print('lens_cat patches = ',np.unique(lens_cat.patch))
+    print('len = ',lens_cat.nobj, lens_cat.ntot)
+    assert lens_cat.nobj == nlens
+
+    rand_source_cat = treecorr.Catalog(x=rng.uniform(0,1000,nsource),
+                                       y=rng.uniform(0,1000,nsource),
+                                       patch_centers=source_cat.patch_centers)
+    print('rand_source_cat patches = ',np.unique(rand_source_cat.patch))
+    print('len = ',rand_source_cat.nobj, rand_source_cat.ntot)
+    rand_lens_cat = treecorr.Catalog(x=rng.uniform(0,1000,nsource),
+                                     y=rng.uniform(0,1000,nsource),
+                                     patch_centers=source_cat.patch_centers)
+    print('rand_lens_cat patches = ',np.unique(rand_lens_cat.patch))
+    print('len = ',rand_lens_cat.nobj, rand_lens_cat.ntot)
+
+    # Start with NK, since relatively simple.
+    nk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
+                                var_method='jackknife')
+    nk.process(lens_cat, source_cat)
+    print('TreeCorr jackknife:')
+    print('nk = ',nk.xi)
+    print('var = ',nk.varxi)
+
+    # Now do this using brute force calculation.
+    print('Direct jackknife:')
+    xi_list = []
+    for i in range(npatch):
+        lens_cat1 = treecorr.Catalog(x=lens_cat.x[lens_cat.patch != i],
+                                     y=lens_cat.y[lens_cat.patch != i])
+        source_cat1 = treecorr.Catalog(x=source_cat.x[source_cat.patch != i],
+                                       y=source_cat.y[source_cat.patch != i],
+                                       k=source_cat.k[source_cat.patch != i])
+        nk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        nk1.process(lens_cat1, source_cat1)
+        xi_list.append(nk1.xi)
+    xi_list = np.array(xi_list)
+    xi = np.mean(xi_list, axis=0)
+    print('mean xi = ',xi)
+    C = np.cov(xi_list.T, bias=True) * (len(xi_list)-1)
+    varxi = np.diagonal(C)
+    print('varxi = ',varxi)
+    # xi isn't exact because of the variation in denominators, which doesn't commute with the mean.
+    # nk.xi is more accurate for the overall estimate of the correlation function.
+    # The difference gets less as npatch increases.
+    np.testing.assert_allclose(nk.xi, xi, rtol=0.01)
+    np.testing.assert_allclose(nk.varxi, varxi)
+
+    # Repeat with randoms.
+    rk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+    rk.process(rand_lens_cat, source_cat)
+    nk.calculateXi(rk)
+    print('With randoms:')
+    print('nk = ',nk.xi)
+    print('var = ',nk.varxi)
+
+    print('Direct jackknife:')
+    xi_list = []
+    for i in range(npatch):
+        lens_cat1 = treecorr.Catalog(x=lens_cat.x[lens_cat.patch != i],
+                                     y=lens_cat.y[lens_cat.patch != i])
+        rand_lens_cat1 = treecorr.Catalog(x=rand_lens_cat.x[rand_lens_cat.patch != i],
+                                          y=rand_lens_cat.y[rand_lens_cat.patch != i])
+        source_cat1 = treecorr.Catalog(x=source_cat.x[source_cat.patch != i],
+                                       y=source_cat.y[source_cat.patch != i],
+                                       k=source_cat.k[source_cat.patch != i])
+        nk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        nk1.process(lens_cat1, source_cat1)
+        rk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        rk1.process(rand_lens_cat1, source_cat1)
+        nk1.calculateXi(rk1)
+        xi_list.append(nk1.xi)
+    xi_list = np.array(xi_list)
+    C = np.cov(xi_list.T, bias=True) * (len(xi_list)-1)
+    varxi = np.diagonal(C)
+    print('var = ',varxi)
+    # This isn't exact, but gets closer when npatch is large and patches have nearly the same
+    # number of randoms
+    print('NK ratio = ',nk.varxi / varxi)
+    np.testing.assert_allclose(nk.varxi, varxi, rtol=0.03)
+
+    # Repeat for NG, GG, KK, KG
+    ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
+                                var_method='jackknife')
+    ng.process(lens_cat, source_cat)
+    gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
+                                var_method='jackknife')
+    gg.process(source_cat)
+    kk = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
+                                var_method='jackknife')
+    kk.process(source_cat)
+    kg = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
+                                var_method='jackknife')
+    kg.process(lens_cat, source_cat)
+
+    # Now do this using brute force calculation.
+    print('Direct jackknife:')
+    ng_xi_list = []
+    gg_xip_list = []
+    gg_xim_list = []
+    kk_xi_list = []
+    kg_xi_list = []
+    for i in range(npatch):
+        lens_cat1 = treecorr.Catalog(x=lens_cat.x[lens_cat.patch != i],
+                                     y=lens_cat.y[lens_cat.patch != i],
+                                     k=lens_cat.k[lens_cat.patch != i])
+        source_cat1 = treecorr.Catalog(x=source_cat.x[source_cat.patch != i],
+                                       y=source_cat.y[source_cat.patch != i],
+                                       k=source_cat.k[source_cat.patch != i],
+                                       g1=source_cat.g1[source_cat.patch != i],
+                                       g2=source_cat.g2[source_cat.patch != i])
+        ng1 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        ng1.process(lens_cat1, source_cat1)
+        ng_xi_list.append(ng1.xi)
+        gg1 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        gg1.process(source_cat1)
+        gg_xip_list.append(gg1.xip)
+        gg_xim_list.append(gg1.xim)
+        kk1 = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        kk1.process(source_cat1)
+        kk_xi_list.append(kk1.xi)
+        kg1 = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        kg1.process(lens_cat1, source_cat1)
+        kg_xi_list.append(kg1.xi)
+    ng_xi_list = np.array(ng_xi_list)
+    varxi = np.diagonal(np.cov(ng_xi_list.T, bias=True)) * (len(ng_xi_list)-1)
+    print('NG: treecorr jackknife varxi = ',ng.varxi)
+    print('NG: direct jackknife varxi = ',varxi)
+    np.testing.assert_allclose(ng.varxi, varxi)
+    gg_xip_list = np.array(gg_xip_list)
+    varxi = np.diagonal(np.cov(gg_xip_list.T, bias=True)) * (len(gg_xip_list)-1)
+    print('GG: treecorr jackknife varxip = ',gg.varxip)
+    print('GG: direct jackknife varxip = ',varxi)
+    np.testing.assert_allclose(gg.varxip, varxi)
+    gg_xim_list = np.array(gg_xim_list)
+    varxi = np.diagonal(np.cov(gg_xim_list.T, bias=True)) * (len(gg_xim_list)-1)
+    print('GG: treecorr jackknife varxip = ',gg.varxip)
+    print('GG: direct jackknife varxip = ',varxi)
+    np.testing.assert_allclose(gg.varxim, varxi)
+    kk_xi_list = np.array(kk_xi_list)
+    varxi = np.diagonal(np.cov(kk_xi_list.T, bias=True)) * (len(kk_xi_list)-1)
+    print('KK: treecorr jackknife varxi = ',kk.varxi)
+    print('KK: direct jackknife varxi = ',varxi)
+    np.testing.assert_allclose(kk.varxi, varxi)
+    kg_xi_list = np.array(kg_xi_list)
+    varxi = np.diagonal(np.cov(kg_xi_list.T, bias=True)) * (len(kg_xi_list)-1)
+    print('KG: treecorr jackknife varxi = ',kg.varxi)
+    print('KG: direct jackknife varxi = ',varxi)
+    np.testing.assert_allclose(kg.varxi, varxi)
+
+    # Repeat NG with randoms.
+    rg = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+    rg.process(rand_lens_cat, source_cat)
+    ng.calculateXi(rg)
+    print('With randoms:')
+    print('ng = ',ng.xi)
+    print('var = ',ng.varxi)
+
+    print('Direct jackknife:')
+    xi_list = []
+    for i in range(npatch):
+        lens_cat1 = treecorr.Catalog(x=lens_cat.x[lens_cat.patch != i],
+                                     y=lens_cat.y[lens_cat.patch != i])
+        rand_lens_cat1 = treecorr.Catalog(x=rand_lens_cat.x[rand_lens_cat.patch != i],
+                                          y=rand_lens_cat.y[rand_lens_cat.patch != i])
+        source_cat1 = treecorr.Catalog(x=source_cat.x[source_cat.patch != i],
+                                       y=source_cat.y[source_cat.patch != i],
+                                       g1=source_cat.g1[source_cat.patch != i],
+                                       g2=source_cat.g2[source_cat.patch != i])
+        ng1 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        ng1.process(lens_cat1, source_cat1)
+        rg1 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        rg1.process(rand_lens_cat1, source_cat1)
+        ng1.calculateXi(rg1)
+        xi_list.append(ng1.xi)
+    xi_list = np.array(xi_list)
+    C = np.cov(xi_list.T, bias=True) * (len(xi_list)-1)
+    varxi = np.diagonal(C)
+    print('var = ',varxi)
+    # This isn't exact, but gets closer when npatch is large and patches have nearly the same
+    # number of randoms
+    print('NG ratio = ',ng.varxi / varxi)
+    np.testing.assert_allclose(ng.varxi, varxi, rtol=0.01)
+
+
 if __name__ == '__main__':
     test_cat_patches()
     test_cat_centers()
@@ -1677,3 +1888,4 @@ if __name__ == '__main__':
     test_kappa_jk()
     test_save_patches()
     test_clusters()
+    test_brute_jk()

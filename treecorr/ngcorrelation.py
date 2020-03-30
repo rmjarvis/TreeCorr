@@ -378,14 +378,60 @@ class NGCorrelation(treecorr.BinnedCorr2):
             self.xi_im = self.raw_xi_im - rg.xi_im
 
             # If patches were used, also update the patch covariances
-            for ij, cij in self.results.items():
-                i,j = ij
-                if ij not in rg.results:
+            if len(self.results) > 0:
+                if len(rg.results) == 0 or rg.npatch1 != self.npatch1 or rg.npatch2 != self.npatch2:
                     raise RuntimeError("RG must be run with the same patches as DG")
-                rgij = rg.results[ij]
-                rgf = np.sum(cij.weight) / np.sum(rgij.weight)
-                cij.xi = cij.raw_xi - rg.results[ij].xi * rgf
-                cij.xi_im = cij.raw_xi_im - rg.results[ij].xi_im * rgf
+                suma = sumar = sumarim = 0
+                for ij, cij in self.results.items():
+                    if ij not in rg.results: continue
+                    rgij = rg.results[ij]
+                    a = cij.weight / self.weight - rgij.weight / rg.weight
+                    sumar += a*rgij.xi
+                    sumarim += a*rgij.xi_im
+                for ij, rgij in rg.results.items():
+                    if ij in self.results: continue
+                    a = - rgij.weight / rg.weight
+                    sumar += a*rgij.xi
+                    sumarim += a*rgij.xi_im
+
+                for ij, cij in self.results.items():
+                    if ij not in rg.results:
+                        continue
+                    rgij = rg.results[ij]
+
+                    cij.xi = cij.raw_xi - rgij.xi * self.weight / rg.weight
+                    cij.xi_im = cij.raw_xi_im - rgij.xi_im * self.weight / rg.weight
+
+                    # Correction to make jackknife come out a bit closer.
+                    # See corresponding NKCorrelation code for explanation of these corrections.
+                    a = cij.weight / self.weight - rgij.weight / rg.weight
+                    cij.xi -= a * rg.xi * self.weight
+                    cij.xi += a * rgij.xi * self.weight / rg.weight
+                    cij.xi_im -= a * rg.xi_im * self.weight
+                    cij.xi_im += a * rgij.xi_im * self.weight / rg.weight
+                    if ij[0] == ij[1]:
+                        cij.xi -= sumar / self.npatch1 * self.weight / rg.weight
+                        cij.xi_im -= sumarim / self.npatch1 * self.weight / rg.weight
+
+                # If the randoms include extra pairs that didn't show up in results, then we
+                # need to add them with just the subtracted randoms so the sums come out right.
+                for ij, rgij in rg.results.items():
+                    if ij in self.results: continue
+                    new_cij = cij.copy()
+                    new_cij.xi = -rgij.xi * self.weight / rg.weight
+                    new_cij.xi_im = -rgij.xi_im * self.weight / rg.weight
+
+                    a = - rgij.weight / rg.weight
+                    new_cij.xi -= a * rg.xi * self.weight
+                    new_cij.xi += a * rgij.xi * self.weight / rg.weight
+                    new_cij.xi_im -= a * rg.xi_im * self.weight
+                    new_cij.xi_im += a * rgij.xi_im * self.weight / rg.weight
+                    if ij[0] == ij[1]:
+                        new_cij.xi -= sumar / self.npatch1 * self.weight / rg.weight
+                        new_cij.xi_im -= sumarim / self.npatch1 * self.weight / rg.weight
+
+                    new_cij.weight[:] = 0
+                    self.results[ij] = new_cij
 
             if len(self.results) > 0:
                 self.cov = self.estimate_cov(self.var_method)

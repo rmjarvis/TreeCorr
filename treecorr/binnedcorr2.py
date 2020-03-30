@@ -819,13 +819,15 @@ def _cov_shot(corrs):
 def _make_cov_design_matrix(corr, all_pairs):
     vsize = corr._getStatLen()
     npatch = len(all_pairs)
-    vnum = np.zeros((npatch,vsize), dtype=float)
-    vdenom = np.zeros((npatch,vsize), dtype=float)
+    num = np.zeros((npatch,vsize), dtype=float)
+    denom = np.zeros((npatch,vsize), dtype=float)
     for i, pairs in enumerate(all_pairs):
-        vnum[i] = np.sum([corr.results[(j,k)]._getStat() for j,k in pairs], axis=0)
-        vdenom[i] = np.sum([corr.results[(j,k)]._getWeight() for j,k in pairs], axis=0)
-    vdenom[vdenom == 0] = 1  # Guard against division by zero.
-    return vnum, vdenom
+        num[i] = np.sum([corr.results[(j,k)]._getStat() for j,k in pairs], axis=0)
+        denom[i] = np.sum([corr.results[(j,k)]._getWeight() for j,k in pairs], axis=0)
+    denom[denom == 0] = 1  # Guard against division by zero.
+    v = num / denom
+    w = np.sum(denom, axis=1)
+    return v, w
 
 def _get_patch_nums(corrs, name):
     pairs = list(corrs[0].results.keys())
@@ -852,8 +854,7 @@ def _cov_jackknife(corrs):
 
     npatch, all_pairs = _get_patch_nums(corrs, 'jackknife')
 
-    vnum = []
-    vdenom = []
+    vlist = []
     for c, pairs in zip(corrs, all_pairs):
         if c.npatch2 == 1:
             vpairs = [ [(j,0) for j in range(c.npatch1) if j!=i] for i in range(c.npatch1) ]
@@ -862,11 +863,10 @@ def _cov_jackknife(corrs):
         else:
             assert c.npatch1 == c.npatch2
             vpairs = [ [(j,k) for j,k in pairs if j!=i and k!=i] for i in range(c.npatch1) ]
-        n, d = _make_cov_design_matrix(c,vpairs)
-        vnum.append(n)
-        vdenom.append(d)
+        v, w = _make_cov_design_matrix(c,vpairs)
+        vlist.append(v)
 
-    v = np.hstack(vnum) / np.hstack(vdenom)
+    v = np.hstack(vlist)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = (1.-1./npatch) * v.T.dot(v)
@@ -885,8 +885,8 @@ def _cov_sample(corrs):
 
     npatch, all_pairs = _get_patch_nums(corrs, 'sample')
 
-    vnum = []
-    vdenom = []
+    vlist = []
+    wlist = []
     for c, pairs in zip(corrs, all_pairs):
         if c.npatch2 == 1:
             vpairs = [ [(i,0)] for i in range(c.npatch1) ]
@@ -902,17 +902,15 @@ def _cov_sample(corrs):
             vpairs = [ [(j,k) for j,k in pairs if j==i] for i in range(c.npatch1) ]
         if any([len(v) == 0 for v in vpairs]):
             raise RuntimeError("Cannot compute sample variance when some patches have no data.")
-        n, d = _make_cov_design_matrix(c,vpairs)
-        vnum.append(n)
-        vdenom.append(d)
+        v, w = _make_cov_design_matrix(c,vpairs)
+        vlist.append(v)
+        wlist.append(w)
 
-    vnum = np.hstack(vnum)
-    vdenom = np.hstack(vdenom)
-    v = vnum / vdenom
-    w = np.sum(vdenom,axis=1)
+    v = np.hstack(vlist)
+    w = np.sum(wlist,axis=0)
+    w /= np.sum(w)  # Now w is the fractional weight for each patch
 
     vmean = np.mean(v, axis=0)
-    w /= np.sum(w)  # Now w is the fractional weight for each patch
     v -= vmean
     C = 1./(npatch-1) * (w * v.T).dot(v)
     return C
@@ -937,8 +935,7 @@ def _cov_bootstrap(corrs):
     npatch, all_pairs = _get_patch_nums(corrs, 'bootstrap')
 
     nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
-    vnum = []
-    vdenom = []
+    vlist = []
     for c, pairs in zip(corrs, all_pairs):
         vpairs = []
         if c.npatch1 != 1 and c.npatch2 != 1:
@@ -956,11 +953,10 @@ def _cov_bootstrap(corrs):
                 assert c.npatch1 == c.npatch2
                 vpairs1 = [ (i,j) for i in indx for j in range(c.npatch2) if ok[i,j] ]
             vpairs.append(vpairs1)
-        n, d = _make_cov_design_matrix(c,vpairs)
-        vnum.append(n)
-        vdenom.append(d)
+        v, w = _make_cov_design_matrix(c,vpairs)
+        vlist.append(v)
 
-    v = np.hstack(vnum) / np.hstack(vdenom)
+    v = np.hstack(vlist)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.T.dot(v)
@@ -978,8 +974,7 @@ def _cov_bootstrap2(corrs):
     npatch, all_pairs = _get_patch_nums(corrs, 'bootstrap2')
 
     nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
-    vnum = []
-    vdenom = []
+    vlist = []
     for c, pairs in zip(corrs, all_pairs):
         vpairs = []
         if c.npatch1 != 1 and c.npatch2 != 1:
@@ -1005,11 +1000,10 @@ def _cov_bootstrap2(corrs):
                 temp = [ (i,j) for i in indx for j in indx if ok[i,j] ]
                 vpairs1.extend(temp)
             vpairs.append(vpairs1)
-        n, d = _make_cov_design_matrix(c,vpairs)
-        vnum.append(n)
-        vdenom.append(d)
+        v, w = _make_cov_design_matrix(c,vpairs)
+        vlist.append(v)
 
-    v = np.hstack(vnum) / np.hstack(vdenom)
+    v = np.hstack(vlist)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.T.dot(v)

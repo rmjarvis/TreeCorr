@@ -1711,7 +1711,7 @@ def test_brute_jk():
     print('len = ',rand_lens_cat.nobj, rand_lens_cat.ntot)
 
     # Start with NK, since relatively simple.
-    nk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
+    nk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True,
                                 var_method='jackknife')
     nk.process(lens_cat, source_cat)
     print('TreeCorr jackknife:')
@@ -1727,7 +1727,7 @@ def test_brute_jk():
         source_cat1 = treecorr.Catalog(x=source_cat.x[source_cat.patch != i],
                                        y=source_cat.y[source_cat.patch != i],
                                        k=source_cat.k[source_cat.patch != i])
-        nk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        nk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
         nk1.process(lens_cat1, source_cat1)
         xi_list.append(nk1.xi)
     xi_list = np.array(xi_list)
@@ -1743,7 +1743,7 @@ def test_brute_jk():
     np.testing.assert_allclose(nk.varxi, varxi)
 
     # Repeat with randoms.
-    rk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+    rk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
     rk.process(rand_lens_cat, source_cat)
     nk.calculateXi(rk)
     print('With randoms:')
@@ -1760,9 +1760,9 @@ def test_brute_jk():
         source_cat1 = treecorr.Catalog(x=source_cat.x[source_cat.patch != i],
                                        y=source_cat.y[source_cat.patch != i],
                                        k=source_cat.k[source_cat.patch != i])
-        nk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        nk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
         nk1.process(lens_cat1, source_cat1)
-        rk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        rk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
         rk1.process(rand_lens_cat1, source_cat1)
         nk1.calculateXi(rk1)
         xi_list.append(nk1.xi)
@@ -1770,22 +1770,19 @@ def test_brute_jk():
     C = np.cov(xi_list.T, bias=True) * (len(xi_list)-1)
     varxi = np.diagonal(C)
     print('var = ',varxi)
-    # This isn't exact, but gets closer when npatch is large and patches have nearly the same
-    # number of randoms
-    print('NK ratio = ',nk.varxi / varxi)
-    np.testing.assert_allclose(nk.varxi, varxi, rtol=0.03)
+    np.testing.assert_allclose(nk.varxi, varxi)
 
     # Repeat for NG, GG, KK, KG
-    ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
+    ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True,
                                 var_method='jackknife')
     ng.process(lens_cat, source_cat)
-    gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
+    gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True,
                                 var_method='jackknife')
     gg.process(source_cat)
-    kk = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
+    kk = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True,
                                 var_method='jackknife')
     kk.process(source_cat)
-    kg = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
+    kg = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True,
                                 var_method='jackknife')
     kg.process(lens_cat, source_cat)
 
@@ -1805,17 +1802,17 @@ def test_brute_jk():
                                        k=source_cat.k[source_cat.patch != i],
                                        g1=source_cat.g1[source_cat.patch != i],
                                        g2=source_cat.g2[source_cat.patch != i])
-        ng1 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        ng1 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
         ng1.process(lens_cat1, source_cat1)
         ng_xi_list.append(ng1.xi)
-        gg1 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        gg1 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
         gg1.process(source_cat1)
         gg_xip_list.append(gg1.xip)
         gg_xim_list.append(gg1.xim)
-        kk1 = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        kk1 = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
         kk1.process(source_cat1)
         kk_xi_list.append(kk1.xi)
-        kg1 = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        kg1 = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
         kg1.process(lens_cat1, source_cat1)
         kg_xi_list.append(kg1.xi)
     ng_xi_list = np.array(ng_xi_list)
@@ -1845,7 +1842,7 @@ def test_brute_jk():
     np.testing.assert_allclose(kg.varxi, varxi)
 
     # Repeat NG with randoms.
-    rg = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+    rg = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
     rg.process(rand_lens_cat, source_cat)
     ng.calculateXi(rg)
     print('With randoms:')
@@ -1863,9 +1860,9 @@ def test_brute_jk():
                                        y=source_cat.y[source_cat.patch != i],
                                        g1=source_cat.g1[source_cat.patch != i],
                                        g2=source_cat.g2[source_cat.patch != i])
-        ng1 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        ng1 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
         ng1.process(lens_cat1, source_cat1)
-        rg1 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        rg1 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
         rg1.process(rand_lens_cat1, source_cat1)
         ng1.calculateXi(rg1)
         xi_list.append(ng1.xi)

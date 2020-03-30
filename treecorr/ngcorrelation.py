@@ -100,6 +100,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.raw_xi_im = self.xi_im
         self.raw_varxi = self.varxi
         self._build_corr()
+        self._rg = None
         self.logger.debug('Finished building NGCorr')
 
     def _build_corr(self):
@@ -288,6 +289,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         if hasattr(self,'cov'):
             self.cov.ravel()[:] = 0
         self.results.clear()
+        self._rg = None
         self.xi = self.raw_xi
         self.xi_im = self.raw_xi_im
         self.varxi = self.raw_varxi
@@ -376,64 +378,24 @@ class NGCorrelation(treecorr.BinnedCorr2):
         if rg is not None:
             self.xi = self.raw_xi - rg.xi
             self.xi_im = self.raw_xi_im - rg.xi_im
+            self._rg = rg
 
-            # If patches were used, also update the patch covariances
             if len(self.results) > 0:
                 if len(rg.results) == 0 or rg.npatch1 != self.npatch1 or rg.npatch2 != self.npatch2:
                     raise RuntimeError("RG must be run with the same patches as DG")
-                suma = sumar = sumarim = 0
-                for ij, cij in self.results.items():
-                    if ij not in rg.results: continue
-                    rgij = rg.results[ij]
-                    a = cij.weight / self.weight - rgij.weight / rg.weight
-                    sumar += a*rgij.xi
-                    sumarim += a*rgij.xi_im
-                for ij, rgij in rg.results.items():
+                # If there are any rg patch pairs that aren't in results (e.g. due to different
+                # edge effects among the various pairs in consideration), then we need to add
+                # some dummy results to make sure all the right pairs are computed when we make
+                # the vectors for the covariance matrix.
+                template = next(iter(self.results.values()))  # Just need something to copy.
+                for ij in rg.results:
                     if ij in self.results: continue
-                    a = - rgij.weight / rg.weight
-                    sumar += a*rgij.xi
-                    sumarim += a*rgij.xi_im
-
-                for ij, cij in self.results.items():
-                    if ij not in rg.results:
-                        continue
-                    rgij = rg.results[ij]
-
-                    cij.xi = cij.raw_xi - rgij.xi * self.weight / rg.weight
-                    cij.xi_im = cij.raw_xi_im - rgij.xi_im * self.weight / rg.weight
-
-                    # Correction to make jackknife come out a bit closer.
-                    # See corresponding NKCorrelation code for explanation of these corrections.
-                    a = cij.weight / self.weight - rgij.weight / rg.weight
-                    cij.xi -= a * rg.xi * self.weight
-                    cij.xi += a * rgij.xi * self.weight / rg.weight
-                    cij.xi_im -= a * rg.xi_im * self.weight
-                    cij.xi_im += a * rgij.xi_im * self.weight / rg.weight
-                    if ij[0] == ij[1]:
-                        cij.xi -= sumar / self.npatch1 * self.weight / rg.weight
-                        cij.xi_im -= sumarim / self.npatch1 * self.weight / rg.weight
-
-                # If the randoms include extra pairs that didn't show up in results, then we
-                # need to add them with just the subtracted randoms so the sums come out right.
-                for ij, rgij in rg.results.items():
-                    if ij in self.results: continue
-                    new_cij = cij.copy()
-                    new_cij.xi = -rgij.xi * self.weight / rg.weight
-                    new_cij.xi_im = -rgij.xi_im * self.weight / rg.weight
-
-                    a = - rgij.weight / rg.weight
-                    new_cij.xi -= a * rg.xi * self.weight
-                    new_cij.xi += a * rgij.xi * self.weight / rg.weight
-                    new_cij.xi_im -= a * rg.xi_im * self.weight
-                    new_cij.xi_im += a * rgij.xi_im * self.weight / rg.weight
-                    if ij[0] == ij[1]:
-                        new_cij.xi -= sumar / self.npatch1 * self.weight / rg.weight
-                        new_cij.xi_im -= sumarim / self.npatch1 * self.weight / rg.weight
-
-                    new_cij.weight[:] = 0
+                    new_cij = template.copy()
+                    new_cij.xi.ravel()[:] = 0
+                    new_cij.xi_im.ravel()[:] = 0
+                    new_cij.weight.ravel()[:] = 0
                     self.results[ij] = new_cij
 
-            if len(self.results) > 0:
                 self.cov = self.estimate_cov(self.var_method)
                 self.varxi.ravel()[:] = self.cov.diagonal()
             else:
@@ -445,6 +407,17 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         return self.xi, self.xi_im, self.varxi
 
+    def _calculate_v_from_pairs(self, pairs):
+        okij = set(self.results.keys())
+        n = np.sum([self.results[ij]._getStat() for ij in pairs if ij in okij], axis=0)
+        d = np.sum([self.results[ij]._getWeight() for ij in pairs if ij in okij], axis=0)
+        d[d == 0] = 1  # Guard against division by zero.
+        v = n/d
+        w = np.sum(d)
+        if self._rg is not None:
+            rg, _ = self._rg._calculate_v_from_pairs(pairs)
+            v -= rg
+        return v,w
 
     def write(self, file_name, rg=None, file_type=None, precision=None):
         """Write the correlation function to the file, file_name.

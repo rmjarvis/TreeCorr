@@ -749,6 +749,27 @@ class BinnedCorr2(object):
 
         return i1, i2, sep
 
+    def _calculate_v_from_pairs(self, pairs):
+        # This is the normal calculation.  It needs to be overridden when there are randoms.
+        n = np.sum([self.results[ij]._getStat() for ij in pairs], axis=0)
+        d = np.sum([self.results[ij]._getWeight() for ij in pairs], axis=0)
+        d[d == 0] = 1  # Guard against division by zero.
+        v = n/d
+        w = np.sum(d)
+        return v,w
+
+    def _make_cov_design_matrix(self, all_pairs):
+        vsize = self._getStatLen()
+        npatch = len(all_pairs)
+        v = np.zeros((npatch,vsize), dtype=float)
+        w = np.zeros(npatch, dtype=float)
+        for i, pairs in enumerate(all_pairs):
+            vi, wi = self._calculate_v_from_pairs(pairs)
+            v[i] = vi
+            w[i] = wi
+        return v, w
+
+
 def estimate_multi_cov(corrs, method):
     """Estimate the covariance matrix of multiple statistics.
 
@@ -816,19 +837,6 @@ def _cov_shot(corrs):
         vlist.append(v)
     return np.diag(np.concatenate(vlist))  # Return as a covariance matrix
 
-def _make_cov_design_matrix(corr, all_pairs):
-    vsize = corr._getStatLen()
-    npatch = len(all_pairs)
-    num = np.zeros((npatch,vsize), dtype=float)
-    denom = np.zeros((npatch,vsize), dtype=float)
-    for i, pairs in enumerate(all_pairs):
-        num[i] = np.sum([corr.results[(j,k)]._getStat() for j,k in pairs], axis=0)
-        denom[i] = np.sum([corr.results[(j,k)]._getWeight() for j,k in pairs], axis=0)
-    denom[denom == 0] = 1  # Guard against division by zero.
-    v = num / denom
-    w = np.sum(denom, axis=1)
-    return v, w
-
 def _get_patch_nums(corrs, name):
     pairs = list(corrs[0].results.keys())
     if len(pairs) == 0:
@@ -863,7 +871,7 @@ def _cov_jackknife(corrs):
         else:
             assert c.npatch1 == c.npatch2
             vpairs = [ [(j,k) for j,k in pairs if j!=i and k!=i] for i in range(c.npatch1) ]
-        v, w = _make_cov_design_matrix(c,vpairs)
+        v, w = c._make_cov_design_matrix(vpairs)
         vlist.append(v)
 
     v = np.hstack(vlist)
@@ -902,7 +910,7 @@ def _cov_sample(corrs):
             vpairs = [ [(j,k) for j,k in pairs if j==i] for i in range(c.npatch1) ]
         if any([len(v) == 0 for v in vpairs]):
             raise RuntimeError("Cannot compute sample variance when some patches have no data.")
-        v, w = _make_cov_design_matrix(c,vpairs)
+        v, w = c._make_cov_design_matrix(vpairs)
         vlist.append(v)
         wlist.append(w)
 
@@ -953,7 +961,7 @@ def _cov_bootstrap(corrs):
                 assert c.npatch1 == c.npatch2
                 vpairs1 = [ (i,j) for i in indx for j in range(c.npatch2) if ok[i,j] ]
             vpairs.append(vpairs1)
-        v, w = _make_cov_design_matrix(c,vpairs)
+        v, w = c._make_cov_design_matrix(vpairs)
         vlist.append(v)
 
     v = np.hstack(vlist)
@@ -1000,7 +1008,7 @@ def _cov_bootstrap2(corrs):
                 temp = [ (i,j) for i in indx for j in indx if ok[i,j] ]
                 vpairs1.extend(temp)
             vpairs.append(vpairs1)
-        v, w = _make_cov_design_matrix(c,vpairs)
+        v, w = c._make_cov_design_matrix(vpairs)
         vlist.append(v)
 
     v = np.hstack(vlist)

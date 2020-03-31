@@ -1778,8 +1778,6 @@ def test_brute_jk():
                                 var_method='jackknife')
     kg.process(lens_cat, source_cat)
 
-    # Now do this using brute force calculation.
-    print('Direct jackknife:')
     ng_xi_list = []
     gg_xip_list = []
     gg_xim_list = []
@@ -1837,11 +1835,7 @@ def test_brute_jk():
     rg = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
     rg.process(rand_lens_cat, source_cat)
     ng.calculateXi(rg)
-    print('With randoms:')
-    print('ng = ',ng.xi)
-    print('var = ',ng.varxi)
 
-    print('Direct jackknife:')
     xi_list = []
     for i in range(npatch):
         lens_cat1 = treecorr.Catalog(x=lens_cat.x[lens_cat.patch != i],
@@ -1861,9 +1855,87 @@ def test_brute_jk():
     xi_list = np.array(xi_list)
     C = np.cov(xi_list.T, bias=True) * (len(xi_list)-1)
     varxi = np.diagonal(C)
-    print('var = ',varxi)
+    print('NG with randoms:')
+    print('treecorr jackknife varxi = ',ng.varxi)
+    print('direct jackknife varxi = ',varxi)
     np.testing.assert_allclose(ng.varxi, varxi)
 
+    # Finally, test NN, which is complicated, since several different combinations of randoms.
+    # 1. (DD-RR)/RR
+    # 2. (DD-2DR+RR)/RR
+    # 3. (DD-2RD+RR)/RR
+    # 4. (DD-DR-RD+RR)/RR
+    dd = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
+                                var_method='jackknife')
+    dd.process(lens_cat, source_cat)
+    rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
+                                var_method='jackknife')
+    rr.process(rand_lens_cat, rand_source_cat)
+    rd = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
+                                var_method='jackknife')
+    rd.process(rand_lens_cat, source_cat)
+    dr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
+                                var_method='jackknife')
+    dr.process(lens_cat, rand_source_cat)
+
+    # Now do this using brute force calculation.
+    xi1_list = []
+    xi2_list = []
+    xi3_list = []
+    xi4_list = []
+    for i in range(npatch):
+        lens_cat1 = treecorr.Catalog(x=lens_cat.x[lens_cat.patch != i],
+                                     y=lens_cat.y[lens_cat.patch != i])
+        source_cat1 = treecorr.Catalog(x=source_cat.x[source_cat.patch != i],
+                                       y=source_cat.y[source_cat.patch != i])
+        rand_lens_cat1 = treecorr.Catalog(x=rand_lens_cat.x[rand_lens_cat.patch != i],
+                                          y=rand_lens_cat.y[rand_lens_cat.patch != i])
+        rand_source_cat1 = treecorr.Catalog(x=rand_source_cat.x[rand_source_cat.patch != i],
+                                            y=rand_source_cat.y[rand_source_cat.patch != i])
+        dd1 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        dd1.process(lens_cat1, source_cat1)
+        rr1 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        rr1.process(rand_lens_cat1, rand_source_cat1)
+        rd1 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        rd1.process(rand_lens_cat1, source_cat1)
+        dr1 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+        dr1.process(lens_cat1, rand_source_cat1)
+        xi1_list.append(dd1.calculateXi(rr1)[0])
+        xi2_list.append(dd1.calculateXi(rr1,dr=dr1)[0])
+        xi3_list.append(dd1.calculateXi(rr1,rd=rd1)[0])
+        xi4_list.append(dd1.calculateXi(rr1,dr=dr1,rd=rd1)[0])
+
+    print('(DD-RR)/RR')
+    xi1_list = np.array(xi1_list)
+    xi1, varxi1 = dd.calculateXi(rr)
+    varxi = np.diagonal(np.cov(xi1_list.T, bias=True)) * (len(xi1_list)-1)
+    print('treecorr jackknife varxi = ',varxi1)
+    print('direct jackknife varxi = ',varxi)
+    np.testing.assert_allclose(dd.varxi, varxi)
+
+    print('(DD-2DR+RR)/RR')
+    xi2_list = np.array(xi2_list)
+    xi2, varxi2 = dd.calculateXi(rr, dr=dr)
+    varxi = np.diagonal(np.cov(xi2_list.T, bias=True)) * (len(xi2_list)-1)
+    print('treecorr jackknife varxi = ',varxi2)
+    print('direct jackknife varxi = ',varxi)
+    np.testing.assert_allclose(dd.varxi, varxi)
+
+    print('(DD-2RD+RR)/RR')
+    xi3_list = np.array(xi3_list)
+    xi3, varxi3 = dd.calculateXi(rr, rd=rd)
+    varxi = np.diagonal(np.cov(xi3_list.T, bias=True)) * (len(xi3_list)-1)
+    print('treecorr jackknife varxi = ',varxi3)
+    print('direct jackknife varxi = ',varxi)
+    np.testing.assert_allclose(dd.varxi, varxi)
+
+    print('(DD-DR-RD+RR)/RR')
+    xi4_list = np.array(xi4_list)
+    xi4, varxi4 = dd.calculateXi(rr, rd=rd, dr=dr)
+    varxi = np.diagonal(np.cov(xi4_list.T, bias=True)) * (len(xi4_list)-1)
+    print('treecorr jackknife varxi = ',varxi4)
+    print('direct jackknife varxi = ',varxi)
+    np.testing.assert_allclose(dd.varxi, varxi)
 
 if __name__ == '__main__':
     test_cat_patches()

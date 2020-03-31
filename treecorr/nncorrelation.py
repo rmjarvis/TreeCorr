@@ -320,11 +320,15 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.tot += other.tot
         return self
 
-    def _add_tot(self, other):
+    def _add_tot(self, i, j, other):
         # When storing results from a patch-based run, tot needs to be accumulated even if
         # the total weight being accumulated comes out to be zero.
         # This only applies to NNCorrelation.  For the other ones, this is a no op.
         self.tot += other.tot
+        # We also have to keep all pairs in the results dict, otherwise the tot calculation
+        # gets messed up.  We need to accumulate the tot value of all pairs, even if
+        # the resulting weight is zero.
+        self.results[(i,j)] = other.copy()
 
     def process(self, cat1, cat2=None, metric=None, num_threads=None):
         """Compute the correlation function.
@@ -368,15 +372,15 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
     def _getStatLen(self):
         # This doesn't need to be anything different than the default, but it is useful
-        # here to include the check that calculateXi has been run, since _getStat and _getWeight
-        # will need that to be the case.
+        # here to include the check that calculateXi has been run, since _rr, _dr, _rd
+        # will need to be set.
         if self._rr_weight is None:
             raise RuntimeError("You need to call calculateXi before calling estimate_cov.")
         else:
             return self._nbins
 
     def _getStat(self):
-        return self._stat
+        return self.weight
 
     def _getWeight(self):
         return self._rr_weight
@@ -427,12 +431,42 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         # rrf is the factor to scale rr weights to get something commensurate to the dd density.
         rrf = self.tot / rr.tot
+        # Likewise for the other two potential randoms:
+        if dr is not None:
+            if dr.tot == 0:
+                raise ValueError("dr has tot=0.")
+            drf = self.tot / dr.tot
+        if rd is not None:
+            if rd.tot == 0:
+                raise ValueError("rd has tot=0.")
+            rdf = self.tot / rd.tot
 
-        # ddw and rrw are the mean weight of the dd and rr pairs.
-        # This is only needed for the variance estimate, since there is shot noise on the
-        # number of pairs, not the weight.
+        # Calculate xi based on which randoms are provided.
+        denom = rr.weight * rrf
+        if dr is None and rd is None:
+            self.xi = self.weight - denom
+        elif rd is not None and dr is None:
+            self.xi = self.weight - 2.*rd.weight * rdf + denom
+        elif dr is not None and rd is None:
+            self.xi = self.weight - 2.*dr.weight * drf + denom
+        else:
+            self.xi = self.weight - rd.weight * rdf - dr.weight * drf + denom
+
+        # Divide by RR in all cases.
+        if np.any(rr.weight == 0):
+            self.logger.warning("Warning: Some bins for the randoms had no pairs.")
+            denom[rr.weight==0] = 1.  # guard against division by 0.
+        self.xi /= denom
+
+        # Set up necessary info for estimate_cov
+
+        # First the bits needed for shot noise covariance:
         ddw = self._mean_weight()
         rrw = rr._mean_weight()
+        if dr is not None:
+            drw = dr._mean_weight()
+        if rd is not None:
+            rdw = rd._mean_weight()
 
         # Note: The use of varxi_factor for the shot noise varxi is semi-empirical.
         #       It gives the increase in the variance over the case where RR >> DD.
@@ -445,92 +479,98 @@ class NNCorrelation(treecorr.BinnedCorr2):
         #       But it's also possible that this is wrong...
         #       Anyway, it seems to give good results compared to the empirical variance.
         #       cf. test_nn.py:test_varxi
-        if dr is None:
-            if rd is None:
-                xi = self.weight - rr.weight * rrf
-                varxi_factor = 1 + rrf*rrw/ddw
-            else:
-                if rd.tot == 0:
-                    raise ValueError("rd has tot=0.")
-                rdf = self.tot / rd.tot
-                rdw = rd._mean_weight()
-                xi = self.weight - 2.*rd.weight * rdf + rr.weight * rrf
-                varxi_factor = 1 + 2*rdf*rdw/ddw + rrf*rrw/ddw
+        if dr is None and rd is None:
+            varxi_factor = 1 + rrf*rrw/ddw
+        elif rd is not None and dr is None:
+            varxi_factor = 1 + 2*rdf*rdw/ddw + rrf*rrw/ddw
+        elif dr is not None and rd is None:
+            varxi_factor = 1 + 2*drf*drw/ddw + rrf*rrw/ddw
         else:
-            if dr.tot == 0:
-                raise ValueError("dr has tot=0.")
-            drf = self.tot / dr.tot
-            drw = dr._mean_weight()
-            if rd is None:
-                xi = self.weight - 2.*dr.weight * drf + rr.weight * rrf
-                varxi_factor = 1 + 2*drf*drw/ddw + rrf*rrw/ddw
-            else:
-                if rd.tot == 0:
-                    raise ValueError("rd has tot=0.")
-                rdf = self.tot / rd.tot
-                rdw = rd._mean_weight()
-                xi = self.weight - rd.weight * rdf - dr.weight * drf + rr.weight * rrf
-                varxi_factor = 1 + drf*drw/ddw + rdf*rdw/ddw + rrf*rrw/ddw
-        if np.any(rr.weight == 0):
-            self.logger.warning("Warning: Some bins for the randoms had no pairs.")
-        mask1 = rr.weight != 0
-        mask2 = rr.weight == 0
-        xi[mask1] /= (rr.weight[mask1] * rrf)
-        xi[mask2] = 0
-
-        # Set up necessary info for estimate_cov
+            varxi_factor = 1 + drf*drw/ddw + rdf*rdw/ddw + rrf*rrw/ddw
         self._var_num = ddw * varxi_factor**2
         self._rr_weight = rr.weight * rrf
-        diag_tot = np.sum([cij.tot for ij,cij in self.results.items() if ij[0] == ij[1]])
-        for ij, cij in self.results.items():
-            i,j = ij
 
-            # Now, we basically repeat the above bit for each patch to calculate _stat for each.
-            # However, the random catalog is a little tricky.  It is easier to put all the random
-            # bits (dr, rd, rr) into the i==j pairing.  This is where most of the correlation
-            # is happening, so it makes the most sense to make that part of the calculation
-            # as close to correct as possible all on its own.  Then the i!=j pairings just get
-            # the little bit of extra correlations from neighboring patches.
-            if i == j:
-                ifrac = cij.tot / diag_tot # The fraction of the weight in this diagonal pairing.
-                rrfi = rrf * ifrac
-                if dr is None and rd is None:
-                    cij._stat = cij.weight - rr.weight * rrfi
-                elif dr is None:
-                    rdi = [rd.results[(k,i)].weight for k,ii in rd.results.keys() if ii == i]
-                    if len(rdi) == 0:
-                        raise RuntimeError("RD must be run with the same patches as DD")
-                    rd_weight = np.sum(rdi, axis=0)
-                    cij._stat = cij.weight - 2.*rd_weight * rdf + rr.weight * rrfi
-                elif rd is None:
-                    dri = [dr.results[(i,k)].weight for ii,k in dr.results.keys() if ii == i]
-                    if len(dri) == 0:
-                        raise RuntimeError("DR must be run with the same patches as DD")
-                    dr_weight = np.sum(dri, axis=0)
-                    cij._stat = cij.weight - 2.*dr_weight * drf + rr.weight * rrfi
-                else:
-                    rdi = [rd.results[(k,i)].weight for k,ii in rd.results.keys() if ii == i]
-                    dri = [dr.results[(i,k)].weight for ii,k in dr.results.keys() if ii == i]
-                    if len(dri) == 0 or len(rdi) == 0:
-                        raise RuntimeError("DR and RD must be run with the same patches as DD")
-                    rd_weight = np.sum(rdi, axis=0)
-                    dr_weight = np.sum(dri, axis=0)
-                    cij._stat = cij.weight - rd_weight*rdf - dr_weight*drf + rr.weight*rrfi
-                cij._rr_weight = rr.weight * rrfi
-            else:
-                # For i != j, just use the dd term and no weight contibution.
-                cij._stat = cij.weight
-                cij._rr_weight = np.zeros(self.nbins)
+        # Now set up the bits needed for patch-based covariance
+        self._rr = rr
+        self._dr = dr
+        self._rd = rd
 
-        cov = self.estimate_cov(self.var_method)
-        varxi = cov.diagonal()
+        if len(self.results) > 0:
+            if len(rr.results) == 0 or rr.npatch1 != self.npatch1 or rr.npatch2 != self.npatch2:
+                raise RuntimeError("RR must be run with the same patches as DD")
 
-        self.xi = xi
-        self.varxi = varxi
-        self.cov = cov
+            # If there are any rk patch pairs that aren't in results (e.g. due to different
+            # edge effects among the various pairs in consideration), then we need to add
+            # some dummy results to make sure all the right pairs are computed when we make
+            # the vectors for the covariance matrix.
+            add_ij = []
+            for ij in rr.results:
+                if ij not in self.results:
+                    add_ij.append(ij)
 
-        return xi, varxi
+            if dr is not None:
+                if len(dr.results) == 0 or dr.npatch1 != self.npatch1 or dr.npatch2 != self.npatch2:
+                    raise RuntimeError("DR must be run with the same patches as DD")
+                for ij in dr.results:
+                    if ij not in self.results:
+                        add_ij.append(ij)
 
+            if rd is not None:
+                if len(rd.results) == 0 or rd.npatch1 != self.npatch1 or rd.npatch2 != self.npatch2:
+                    raise RuntimeError("RD must be run with the same patches as DD")
+                for ij in rd.results:
+                    if ij not in self.results:
+                        add_ij.append(ij)
+
+            template = next(iter(self.results.values()))  # Just need something to copy.
+            for ij in add_ij:
+                new_cij = template.copy()
+                new_cij.weight.ravel()[:] = 0
+                self.results[ij] = new_cij
+
+
+        # Now that it's all set up, calculate the covariance and set varxi to the diagonal.
+        self.cov = self.estimate_cov(self.var_method)
+        self.varxi = self.cov.diagonal()
+        return self.xi, self.varxi
+
+    def _calculate_xi_from_pairs(self, pairs):
+        okij = set(self.results.keys())
+        dd = np.sum([self.results[ij].weight for ij in pairs if ij in okij], axis=0)
+        dd_tot = np.sum([self.results[ij].tot for ij in pairs if ij in okij])
+        okij = set(self._rr.results.keys())
+        rr = np.sum([self._rr.results[ij].weight for ij in pairs if ij in okij], axis=0)
+        rr_tot = np.sum([self._rr.results[ij].tot for ij in pairs if ij in okij])
+        if rr_tot == 0:
+            raise RuntimeError("rr during patch-based covariance calculation has tot=0.")
+        rrf = dd_tot / rr_tot
+        if self._dr is not None:
+            okij = set(self._dr.results.keys())
+            dr = np.sum([self._dr.results[ij].weight for ij in pairs if ij in okij], axis=0)
+            dr_tot = np.sum([self._dr.results[ij].tot for ij in pairs if ij in okij])
+            if dr_tot == 0:
+                raise RuntimeError("dr during patch-based covariance calculation has tot=0.")
+            drf = dd_tot / dr_tot
+        if self._rd is not None:
+            okij = set(self._rd.results.keys())
+            rd = np.sum([self._rd.results[ij].weight for ij in pairs if ij in okij], axis=0)
+            rd_tot = np.sum([self._rd.results[ij].tot for ij in pairs if ij in okij])
+            if rd_tot == 0:
+                raise RuntimeError("rd during patch-based covariance calculation has tot=0.")
+            rdf = dd_tot / rd_tot
+        denom = rr * rrf
+        if self._dr is None and self._rd is None:
+            xi = dd - denom
+        elif self._rd is not None and self._dr is None:
+            xi = dd - 2.*rd * rdf + denom
+        elif self._dr is not None and self._rd is None:
+            xi = dd - 2.*dr * drf + denom
+        else:
+            xi = dd - rd * rdf - dr * drf + denom
+        denom[denom == 0] = 1  # Guard against division by zero.
+        xi /= denom
+        w = np.sum(denom)
+        return xi,w
 
     def write(self, file_name, rr=None, dr=None, rd=None, file_type=None, precision=None):
         """Write the correlation function to the file, file_name.

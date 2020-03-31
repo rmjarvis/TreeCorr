@@ -452,7 +452,7 @@ class BinnedCorr2(object):
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
         self.npatch1 = self.npatch2 = 1
 
-    def _add_tot(self, rhs):
+    def _add_tot(self, i, j, other):
         # No op for all but NNCorrelation, which needs to add the tot value
         pass
 
@@ -482,7 +482,7 @@ class BinnedCorr2(object):
                             self += temp
                         else:
                             # NNCorrelation needs to add the tot value
-                            self._add_tot(temp)
+                            self._add_tot(i, j, temp)
 
     def _process_all_cross(self, cat1, cat2, metric, num_threads):
         if treecorr.config.get(self.config,'pairwise',bool,False):
@@ -515,7 +515,7 @@ class BinnedCorr2(object):
                         self += temp
                     else:
                         # NNCorrelation needs to add the tot value
-                        self._add_tot(temp)
+                        self._add_tot(i, j, temp)
 
     def _getStatLen(self):
         # The length of the array that will be returned by _getStat.
@@ -750,25 +750,25 @@ class BinnedCorr2(object):
 
         return i1, i2, sep
 
-    def _calculate_v_from_pairs(self, pairs):
+    def _calculate_xi_from_pairs(self, pairs):
         # This is the normal calculation.  It needs to be overridden when there are randoms.
         n = np.sum([self.results[ij]._getStat() for ij in pairs], axis=0)
         d = np.sum([self.results[ij]._getWeight() for ij in pairs], axis=0)
         d[d == 0] = 1  # Guard against division by zero.
-        v = n/d
+        xi = n/d
         w = np.sum(d)
-        return v,w
+        return xi,w
 
     def _make_cov_design_matrix(self, all_pairs):
-        vsize = self._getStatLen()
-        npatch = len(all_pairs)
-        v = np.zeros((npatch,vsize), dtype=float)
-        w = np.zeros(npatch, dtype=float)
+        xisize = self._getStatLen()
+        nrows = len(all_pairs)
+        x = np.zeros((nrows,xisize), dtype=float)
+        w = np.zeros(nrows, dtype=float)
         for i, pairs in enumerate(all_pairs):
-            vi, wi = self._calculate_v_from_pairs(pairs)
-            v[i] = vi
+            xi, wi = self._calculate_xi_from_pairs(pairs)
+            x[i] = xi
             w[i] = wi
-        return v, w
+        return x, w
 
 
 def estimate_multi_cov(corrs, method):

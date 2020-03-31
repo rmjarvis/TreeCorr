@@ -182,10 +182,10 @@ class BinnedCorr2(object):
                             (default: period)
 
         var_method (str):   Which method to use for estimating the variance. Options are:
-                            'shot', 'jackknife', 'sample', 'bootstrap', 'bootstrap2'.
+                            'shot', 'jackknife', 'sample', 'bootstrap', 'marked_bootstrap'.
                             (default: 'shot')
         num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
-                            'bootstrap2' var_methods.  (default: 500)
+                            'marked_bootstrap' var_methods.  (default: 500)
 
         num_threads (int):  How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
@@ -250,10 +250,10 @@ class BinnedCorr2(object):
                 'The period to use for the z direction for the Periodic metric'),
 
         'var_method': (str, False, 'shot',
-                ['shot', 'jackknife', 'sample', 'bootstrap', 'bootstrap2'],
+                ['shot', 'jackknife', 'sample', 'bootstrap', 'marked_bootstrap'],
                 'The method to use for estimating the variance'),
         'num_bootstrap': (int, False, 500, None,
-                'How many bootstrap samples to use for the var_method=bootstrap'),
+                'How many bootstrap samples to use for the var_method=bootstrap and marked_bootstrap'),
     }
 
     def __init__(self, config=None, logger=None, **kwargs):
@@ -549,14 +549,15 @@ class BinnedCorr2(object):
               in the measurement when excluding one patch at a time.
             - 'sample' = An estimate based on the sample (co-)variance of a set of samples,
               taken as the patches of the input catalog.
-            - 'bootstrap' = An estimate based on a bootstrap resampling of the patches.
-              cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/
-            - 'bootstrap2' = A different bootstrap resampling method. It selects patches at
-              random with replacement and then generates the statistic using all the
-              auto-correlations at their selected repetition plus all the cross terms that
-              aren't actuall auto terms.
+            - 'bootstrap' = A bootstrap covariance estimate. It selects patches at random with
+              replacement and then generates the statistic using all the auto-correlations at
+              their selected repetition plus all the cross terms that aren't actuall auto terms.
+            - 'marked_bootstrap' = An estimate based on a marked-point bootstrap resampling of the
+              patches.  Similar to bootstrap, but only samples the patches of the first catalog and
+              uses all patches from the second catalog that correspond to each patch selection of
+              the first catalog.  cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/
 
-        Both 'bootstrap' and 'bootstrap2' use the num_bootstrap parameter, wich can be set on
+        Both 'bootstrap' and 'marked_bootstrap' use the num_bootstrap parameter, wich can be set on
         construction.
 
         .. note::
@@ -786,14 +787,15 @@ def estimate_multi_cov(corrs, method):
           in the measurement when excluding one patch at a time.
         - 'sample' = An estimate based on the sample (co-)variance of a set of samples,
           taken as the patches of the input catalog.
-        - 'bootstrap' = An estimate based on a bootstrap resampling of the patches.
-          cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/
-        - 'bootstrap2' = A different bootstrap resampling method. It selects patches at
-          random with replacement and then generates the statistic using all the
-          auto-correlations at their selected repetition plus all the cross terms that
-          aren't actuall auto terms.
+        - 'bootstrap' = A bootstrap covariance estimate. It selects patches at random with
+          replacement and then generates the statistic using all the auto-correlations at
+          their selected repetition plus all the cross terms that aren't actuall auto terms.
+        - 'marked_bootstrap' = An estimate based on a marked-point bootstrap resampling of the
+          patches.  Similar to bootstrap, but only samples the patches of the first catalog and
+          uses all patches from the second catalog that correspond to each patch selection of
+          the first catalog.  cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/
 
-    Both 'bootstrap' and 'bootstrap2' use the num_bootstrap parameter, wich can be set on
+    Both 'bootstrap' and 'marked_bootstrap' use the num_bootstrap parameter, wich can be set on
     construction.
 
     For example, to find the combined covariance matrix for an NG tangential shear statistc,
@@ -820,8 +822,8 @@ def estimate_multi_cov(corrs, method):
         return _cov_jackknife(corrs)
     elif method == 'bootstrap':
         return _cov_bootstrap(corrs)
-    elif method == 'bootstrap2':
-        return _cov_bootstrap2(corrs)
+    elif method == 'marked_bootstrap':
+        return _cov_marked(corrs)
     elif method == 'sample':
         return _cov_sample(corrs)
     else:
@@ -923,7 +925,7 @@ def _cov_sample(corrs):
     C = 1./(npatch-1) * (w * v.T).dot(v)
     return C
 
-def _cov_bootstrap(corrs):
+def _cov_marked(corrs):
     # Calculate the marked-point bootstrap covariance
 
     # This is based on the article A Valid and Fast Spatial Bootstrap for Correlation Functions
@@ -940,7 +942,7 @@ def _cov_bootstrap(corrs):
 
     # C = 1/(nboot) Sum_i (v_i - v_mean) (v_i - v_mean)^T
 
-    npatch, all_pairs = _get_patch_nums(corrs, 'bootstrap')
+    npatch, all_pairs = _get_patch_nums(corrs, 'marked_bootstrap')
 
     nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
     vlist = []
@@ -970,7 +972,7 @@ def _cov_bootstrap(corrs):
     C = 1./(nboot-1) * v.T.dot(v)
     return C
 
-def _cov_bootstrap2(corrs):
+def _cov_bootstrap(corrs):
     # Calculate the 2-patch bootstrap covariance estimate.
 
     # This is a different version of the bootstrap idea.  It selects patches at random with
@@ -979,7 +981,7 @@ def _cov_bootstrap2(corrs):
     # It seems to do a slightly better job than the marked-point bootstrap above from the
     # tests done in the test suite.  But the difference is generally pretty small.
 
-    npatch, all_pairs = _get_patch_nums(corrs, 'bootstrap2')
+    npatch, all_pairs = _get_patch_nums(corrs, 'bootstrap')
 
     nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
     vlist = []

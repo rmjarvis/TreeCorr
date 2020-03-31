@@ -655,12 +655,12 @@ def test_gg_jk():
     np.testing.assert_allclose(cov_sample.diagonal()[:n], var_xip, rtol=0.6*tol_factor)
     np.testing.assert_allclose(cov_sample.diagonal()[n:], var_xim, rtol=0.6*tol_factor)
 
-    # Check bootstrap covariance estimate
-    treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='bootstrap')
+    # Check marked-point bootstrap covariance estimate
+    treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='marked_bootstrap')
     t0 = time.time()
-    cov_boot = gg3.estimate_cov('bootstrap')
+    cov_boot = gg3.estimate_cov('marked_bootstrap')
     t1 = time.time()
-    print('Time to calculate bootstrap covariance = ',t1-t0)
+    print('Time to calculate marked_bootstrap covariance = ',t1-t0)
     print('varxip = ',cov_boot.diagonal()[:n])
     print('ratio = ',cov_boot.diagonal()[:n] / var_xip)
     print('varxim = ',cov_boot.diagonal()[n:])
@@ -669,16 +669,12 @@ def test_gg_jk():
     np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.6*tol_factor)
     np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.6*tol_factor)
 
-    # Check bootstrap2 covariance estimate.
-    # Note: this one is really slow.  So trim down the number of bootstraps a lot for the
-    # nosetest run.
-    treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='bootstrap2')
-    if __name__ != '__main__':
-        gg3.num_bootstrap = 50
+    # Check bootstrap covariance estimate.
+    treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='bootstrap')
     t0 = time.time()
-    cov_boot = gg3.estimate_cov('bootstrap2')
+    cov_boot = gg3.estimate_cov('bootstrap')
     t1 = time.time()
-    print('Time to calculate bootstrap2 covariance = ',t1-t0)
+    print('Time to calculate bootstrap covariance = ',t1-t0)
     print('varxip = ',cov_boot.diagonal()[:n])
     print('ratio = ',cov_boot.diagonal()[:n] / var_xip)
     print('varxim = ',cov_boot.diagonal()[n:])
@@ -694,9 +690,9 @@ def test_gg_jk():
     with assert_raises(ValueError):
         gg1.estimate_cov('sample')
     with assert_raises(ValueError):
-        gg1.estimate_cov('bootstrap')
+        gg1.estimate_cov('marked_bootstrap')
     with assert_raises(ValueError):
-        gg1.estimate_cov('bootstrap2')
+        gg1.estimate_cov('bootstrap')
     with assert_raises(ValueError):
         treecorr.estimate_multi_cov([gg2, gg1],'jackknife')
     with assert_raises(ValueError):
@@ -706,13 +702,13 @@ def test_gg_jk():
     with assert_raises(ValueError):
         treecorr.estimate_multi_cov([gg2, gg1],'sample')
     with assert_raises(ValueError):
+        treecorr.estimate_multi_cov([gg1, gg2],'marked_bootstrap')
+    with assert_raises(ValueError):
+        treecorr.estimate_multi_cov([gg2, gg1],'marked_bootstrap')
+    with assert_raises(ValueError):
         treecorr.estimate_multi_cov([gg1, gg2],'bootstrap')
     with assert_raises(ValueError):
         treecorr.estimate_multi_cov([gg2, gg1],'bootstrap')
-    with assert_raises(ValueError):
-        treecorr.estimate_multi_cov([gg1, gg2],'bootstrap2')
-    with assert_raises(ValueError):
-        treecorr.estimate_multi_cov([gg2, gg1],'bootstrap2')
 
 
 def test_ng_jk():
@@ -883,40 +879,36 @@ def test_ng_jk():
     print('ratio = ',cov_sample.diagonal() / var_xi)
     np.testing.assert_allclose(cov_sample.diagonal(), var_xi, rtol=0.5*tol_factor)
 
-    # Check bootstrap covariance estimate
+    # Check marked_bootstrap covariance estimate
+    t0 = time.time()
+    cov_boot = ng3.estimate_cov('marked_bootstrap')
+    t1 = time.time()
+    print('Time to calculate marked_bootstrap covariance = ',t1-t0)
+    print('varxi = ',cov_boot.diagonal())
+    print('ratio = ',cov_boot.diagonal() / var_xi)
+    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
+    cov_boot = ng4.estimate_cov('marked_bootstrap')
+    print('varxi = ',cov_boot.diagonal())
+    print('ratio = ',cov_boot.diagonal() / var_xi)
+    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.6*tol_factor)
+    cov_boot = ng5.estimate_cov('marked_bootstrap')
+    print('varxi = ',cov_boot.diagonal())
+    print('ratio = ',cov_boot.diagonal() / var_xi)
+    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
+
+    # Check bootstrap covariance estimate.
     t0 = time.time()
     cov_boot = ng3.estimate_cov('bootstrap')
     t1 = time.time()
     print('Time to calculate bootstrap covariance = ',t1-t0)
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.3*tol_factor)
     cov_boot = ng4.estimate_cov('bootstrap')
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
     cov_boot = ng5.estimate_cov('bootstrap')
-    print('varxi = ',cov_boot.diagonal())
-    print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
-
-    # Check bootstrap2 covariance estimate.
-    # Note: this one is really slow.  So trim down the number of bootstraps a lot for the
-    # nosetest run.
-    if __name__ != '__main__':
-        ng3.num_bootstrap = 20
-    t0 = time.time()
-    cov_boot = ng3.estimate_cov('bootstrap2')
-    t1 = time.time()
-    print('Time to calculate bootstrap2 covariance = ',t1-t0)
-    print('varxi = ',cov_boot.diagonal())
-    print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.3*tol_factor)
-    cov_boot = ng4.estimate_cov('bootstrap2')
-    print('varxi = ',cov_boot.diagonal())
-    print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
-    cov_boot = ng5.estimate_cov('bootstrap2')
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
     np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
@@ -960,9 +952,9 @@ def test_ng_jk():
     with assert_raises(ValueError):
         ng1.estimate_cov('sample')
     with assert_raises(ValueError):
-        ng1.estimate_cov('bootstrap')
+        ng1.estimate_cov('marked_bootstrap')
     with assert_raises(ValueError):
-        ng1.estimate_cov('bootstrap2')
+        ng1.estimate_cov('bootstrap')
     with assert_raises(RuntimeError):
         ng3.calculateXi(rg=ng1)
 
@@ -1632,20 +1624,20 @@ def test_clusters():
     t1 = time.time()
     print('Time to calculate sample covariance = ',t1-t0)
 
-    # Check bootstrap covariance estimate
+    # Check marked_bootstrap covariance estimate
     t0 = time.time()
-    cov_boot = ng3.estimate_cov('bootstrap')
+    cov_boot = ng3.estimate_cov('marked_bootstrap')
     t1 = time.time()
-    print('Time to calculate bootstrap covariance = ',t1-t0)
+    print('Time to calculate marked_bootstrap covariance = ',t1-t0)
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
     np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.4*tol_factor)
 
-    # Check bootstrap2 covariance estimate.
+    # Check bootstrap covariance estimate.
     t0 = time.time()
-    cov_boot = ng3.estimate_cov('bootstrap2')
+    cov_boot = ng3.estimate_cov('bootstrap')
     t1 = time.time()
-    print('Time to calculate bootstrap2 covariance = ',t1-t0)
+    print('Time to calculate bootstrap covariance = ',t1-t0)
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
     np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
@@ -1870,10 +1862,7 @@ def test_brute_jk():
     C = np.cov(xi_list.T, bias=True) * (len(xi_list)-1)
     varxi = np.diagonal(C)
     print('var = ',varxi)
-    # This isn't exact, but gets closer when npatch is large and patches have nearly the same
-    # number of randoms
-    print('NG ratio = ',ng.varxi / varxi)
-    np.testing.assert_allclose(ng.varxi, varxi, rtol=0.01)
+    np.testing.assert_allclose(ng.varxi, varxi)
 
 
 if __name__ == '__main__':

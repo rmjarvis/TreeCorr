@@ -390,17 +390,17 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         return self.xi, self.varxi
 
-    def _calculate_v_from_pairs(self, pairs):
+    def _calculate_xi_from_pairs(self, pairs):
         okij = set(self.results.keys())
         n = np.sum([self.results[ij]._getStat() for ij in pairs if ij in okij], axis=0)
         d = np.sum([self.results[ij]._getWeight() for ij in pairs if ij in okij], axis=0)
         d[d == 0] = 1  # Guard against division by zero.
-        v = n/d
+        xi = n/d
         w = np.sum(d)
         if self._rk is not None:
-            rk, _ = self._rk._calculate_v_from_pairs(pairs)
-            v -= rk
-        return v,w
+            rk, _ = self._rk._calculate_xi_from_pairs(pairs)
+            xi -= rk
+        return xi,w
 
     def write(self, file_name, rk=None, file_type=None, precision=None):
         """Write the correlation function to the file, file_name.

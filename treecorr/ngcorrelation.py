@@ -407,17 +407,17 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         return self.xi, self.xi_im, self.varxi
 
-    def _calculate_v_from_pairs(self, pairs):
+    def _calculate_xi_from_pairs(self, pairs):
         okij = set(self.results.keys())
         n = np.sum([self.results[ij]._getStat() for ij in pairs if ij in okij], axis=0)
         d = np.sum([self.results[ij]._getWeight() for ij in pairs if ij in okij], axis=0)
         d[d == 0] = 1  # Guard against division by zero.
-        v = n/d
+        xi = n/d
         w = np.sum(d)
         if self._rg is not None:
-            rg, _ = self._rg._calculate_v_from_pairs(pairs)
-            v -= rg
-        return v,w
+            rg, _ = self._rg._calculate_xi_from_pairs(pairs)
+            xi -= rg
+        return xi,w
 
     def write(self, file_name, rg=None, file_type=None, precision=None):
         """Write the correlation function to the file, file_name.

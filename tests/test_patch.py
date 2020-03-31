@@ -652,8 +652,8 @@ def test_gg_jk():
     # It's not too bad ast small scales, but at larger scales the variance in the number of pairs
     # among the different samples gets bigger (since some are near the edge, and others not).
     # So this is only good to a little worse than a factor of 2.
-    np.testing.assert_allclose(cov_sample.diagonal()[:n], var_xip, rtol=0.6*tol_factor)
-    np.testing.assert_allclose(cov_sample.diagonal()[n:], var_xim, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(cov_sample.diagonal()[:n], var_xip, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(cov_sample.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
 
     # Check marked-point bootstrap covariance estimate
     treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='marked_bootstrap')
@@ -667,7 +667,7 @@ def test_gg_jk():
     print('ratio = ',cov_boot.diagonal()[n:] / var_xim)
     # Not really much better than sample.
     np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.6*tol_factor)
-    np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
 
     # Check bootstrap covariance estimate.
     treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='bootstrap')
@@ -679,8 +679,8 @@ def test_gg_jk():
     print('ratio = ',cov_boot.diagonal()[:n] / var_xip)
     print('varxim = ',cov_boot.diagonal()[n:])
     print('ratio = ',cov_boot.diagonal()[n:] / var_xim)
-    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.5*tol_factor)
-    np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.3*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.4*tol_factor)
 
     # Check some invalid actions
     with assert_raises(ValueError):
@@ -903,7 +903,7 @@ def test_ng_jk():
     print('Time to calculate bootstrap covariance = ',t1-t0)
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.3*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.2*tol_factor)
     cov_boot = ng4.estimate_cov('bootstrap')
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
@@ -911,7 +911,7 @@ def test_ng_jk():
     cov_boot = ng5.estimate_cov('bootstrap')
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.4*tol_factor)
 
     # Use a random catalog
     # In this case the locations of the source catalog are fine to use as our random catalog,
@@ -1138,7 +1138,7 @@ def test_nn_jk():
     print('ratio = ',varxia3 / var_xia)
     np.testing.assert_allclose(nn3.weight, nn2.weight)
     np.testing.assert_allclose(xia3, xia2)
-    np.testing.assert_allclose(varxia3, var_xia, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(varxia3, var_xia, rtol=0.4*tol_factor)
     print('xib = ',xib3)
     print('varxib = ',varxib3)
     print('ratio = ',varxib3 / var_xib)
@@ -1160,7 +1160,7 @@ def test_nn_jk():
     print('Time to calculate sample covariance = ',t1-t0)
     print('varxi = ',cov3b.diagonal())
     print('ratio = ',cov3b.diagonal() / var_xib)
-    np.testing.assert_allclose(cov3b.diagonal(), var_xib, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(cov3b.diagonal(), var_xib, rtol=0.5*tol_factor)
 
     # Check NN cross-correlation and other combinations of dr, rd.
     rn3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='jackknife')
@@ -1374,7 +1374,7 @@ def test_kappa_jk():
     print('KG sample variance:')
     print('varxi = ',cov_xi.diagonal())
     print('ratio = ',cov_xi.diagonal() / var_kg_xi)
-    np.testing.assert_allclose(cov_xi.diagonal(), var_kg_xi, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(cov_xi.diagonal(), var_kg_xi, rtol=0.4*tol_factor)
 
     # Do a real multi-statistic covariance.
     t0 = time.time()
@@ -1615,7 +1615,7 @@ def test_clusters():
     print('ratio = ',ng3.varxi / var_xi)
     np.testing.assert_allclose(ng3.weight, ng2.weight)
     np.testing.assert_allclose(ng3.xi, ng2.xi)
-    np.testing.assert_allclose(ng3.varxi, var_xi, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(ng3.varxi, var_xi, rtol=0.3*tol_factor)
 
     # Check sample covariance estimate
     t0 = time.time()
@@ -1631,7 +1631,7 @@ def test_clusters():
     print('Time to calculate marked_bootstrap covariance = ',t1-t0)
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.3*tol_factor)
 
     # Check bootstrap covariance estimate.
     t0 = time.time()

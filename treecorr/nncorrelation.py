@@ -496,38 +496,40 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self._rd = rd
 
         if len(self.results) > 0:
-            if len(rr.results) == 0 or rr.npatch1 != self.npatch1 or rr.npatch2 != self.npatch2:
-                raise RuntimeError("RR must be run with the same patches as DD")
-
-            # If there are any rk patch pairs that aren't in results (e.g. due to different
+            # If there are any rr,rd,dr patch pairs that aren't in results (e.g. due to different
             # edge effects among the various pairs in consideration), then we need to add
             # some dummy results to make sure all the right pairs are computed when we make
             # the vectors for the covariance matrix.
             add_ij = []
-            for ij in rr.results:
-                if ij not in self.results:
-                    add_ij.append(ij)
+            if rr.npatch1 != 1 and rr.npatch2 != 1:
+                if rr.npatch1 != self.npatch1 or rr.npatch2 != self.npatch2:
+                    raise RuntimeError("If using patches, RR must be run with the same patches as DD")
+                for ij in rr.results:
+                    if ij not in self.results:
+                        add_ij.append(ij)
 
-            if dr is not None:
-                if len(dr.results) == 0 or dr.npatch1 != self.npatch1 or dr.npatch2 != self.npatch2:
-                    raise RuntimeError("DR must be run with the same patches as DD")
+            if dr is not None and (len(dr.results) == 0 or dr.npatch1 != self.npatch1 or
+                                   dr.npatch2 not in (self.npatch2, 1)):
+                raise RuntimeError("DR must be run with the same patches as DD")
+            if dr is not None and dr.npatch2 != 1:
                 for ij in dr.results:
                     if ij not in self.results:
                         add_ij.append(ij)
 
-            if rd is not None:
-                if len(rd.results) == 0 or rd.npatch1 != self.npatch1 or rd.npatch2 != self.npatch2:
-                    raise RuntimeError("RD must be run with the same patches as DD")
+            if rd is not None and (len(rd.results) == 0 or rd.npatch2 != self.npatch2 or
+                                   rd.npatch1 not in (self.npatch1, 1)):
+                raise RuntimeError("RD must be run with the same patches as DD")
+            if rd is not None and rd.npatch1 != 1:
                 for ij in rd.results:
                     if ij not in self.results:
                         add_ij.append(ij)
 
-            template = next(iter(self.results.values()))  # Just need something to copy.
-            for ij in add_ij:
-                new_cij = template.copy()
-                new_cij.weight.ravel()[:] = 0
-                self.results[ij] = new_cij
-
+            if len(add_ij) > 0:
+                template = next(iter(self.results.values()))  # Just need something to copy.
+                for ij in add_ij:
+                    new_cij = template.copy()
+                    new_cij.weight.ravel()[:] = 0
+                    self.results[ij] = new_cij
 
         # Now that it's all set up, calculate the covariance and set varxi to the diagonal.
         self.cov = self.estimate_cov(self.var_method)
@@ -537,27 +539,39 @@ class NNCorrelation(treecorr.BinnedCorr2):
     def _calculate_xi_from_pairs(self, pairs):
         okij = set(self.results.keys())
         dd = np.sum([self.results[ij].weight for ij in pairs if ij in okij], axis=0)
-        dd_tot = np.sum([self.results[ij].tot for ij in pairs if ij in okij])
-        okij = set(self._rr.results.keys())
-        rr = np.sum([self._rr.results[ij].weight for ij in pairs if ij in okij], axis=0)
-        rr_tot = np.sum([self._rr.results[ij].tot for ij in pairs if ij in okij])
-        if rr_tot == 0:
-            raise RuntimeError("rr during patch-based covariance calculation has tot=0.")
-        rrf = dd_tot / rr_tot
+        if len(self._rr.results) > 0:
+            dd_tot = np.sum([self.results[ij].tot for ij in pairs if ij in okij])
+            okij = set(self._rr.results.keys())
+            rr = np.sum([self._rr.results[ij].weight for ij in pairs if ij in okij], axis=0)
+            rr_tot = np.sum([self._rr.results[ij].tot for ij in pairs if ij in okij])
+            rrf = dd_tot / rr_tot
+        else:
+            diag_tot = np.sum([cij.tot for ij,cij in self.results.items() if ij[0] == ij[1]])
+            rr_frac = np.sum([self.results[ij].tot for ij in pairs if ij[0] == ij[1]]) / diag_tot
+            rr = self._rr.weight * rr_frac
+            rrf = self.tot / self._rr.tot
         if self._dr is not None:
             okij = set(self._dr.results.keys())
-            dr = np.sum([self._dr.results[ij].weight for ij in pairs if ij in okij], axis=0)
-            dr_tot = np.sum([self._dr.results[ij].tot for ij in pairs if ij in okij])
-            if dr_tot == 0:
-                raise RuntimeError("dr during patch-based covariance calculation has tot=0.")
-            drf = dd_tot / dr_tot
+            if self._dr.npatch2 > 1:
+                dr = np.sum([self._dr.results[ij].weight for ij in pairs if ij in okij], axis=0)
+                dr_tot = np.sum([self._dr.results[ij].tot for ij in pairs if ij in okij])
+                drf = dd_tot / dr_tot
+            else:
+                xpairs = [(ij[0],0) for ij in pairs if ij[0] == ij[1]]
+                dr = np.sum([self._dr.results[ij].weight for ij in xpairs if ij in okij], axis=0)
+                dr_tot = np.sum([self._dr.results[ij].tot for ij in xpairs if ij in okij])
+                drf = self.tot / self._dr.tot
         if self._rd is not None:
             okij = set(self._rd.results.keys())
-            rd = np.sum([self._rd.results[ij].weight for ij in pairs if ij in okij], axis=0)
-            rd_tot = np.sum([self._rd.results[ij].tot for ij in pairs if ij in okij])
-            if rd_tot == 0:
-                raise RuntimeError("rd during patch-based covariance calculation has tot=0.")
-            rdf = dd_tot / rd_tot
+            if self._rd.npatch1 > 1:
+                rd = np.sum([self._rd.results[ij].weight for ij in pairs if ij in okij], axis=0)
+                rd_tot = np.sum([self._rd.results[ij].tot for ij in pairs if ij in okij])
+                rdf = dd_tot / rd_tot
+            else:
+                xpairs = [(0,ij[0]) for ij in pairs if ij[0] == ij[1]]
+                rd = np.sum([self._rd.results[ij].weight for ij in xpairs if ij in okij], axis=0)
+                rd_tot = np.sum([self._rd.results[ij].tot for ij in xpairs if ij in okij])
+                rdf = self.tot / self._rd.tot
         denom = rr * rrf
         if self._dr is None and self._rd is None:
             xi = dd - denom

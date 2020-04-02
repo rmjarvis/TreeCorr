@@ -546,8 +546,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
             rr_tot = np.sum([self._rr.results[ij].tot for ij in pairs if ij in okij])
             rrf = dd_tot / rr_tot
         else:
-            diag_tot = np.sum([cij.tot for ij,cij in self.results.items() if ij[0] == ij[1]])
-            rr_frac = np.sum([self.results[ij].tot for ij in pairs if ij[0] == ij[1]]) / diag_tot
+            diag_tot = np.sum([cij.tot**0.5 for ij,cij in self.results.items() if ij[0] == ij[1]])
+            rr_frac = np.sum([self.results[ij].tot**0.5 for ij in pairs if ij[0] == ij[1]]) / diag_tot
             rr = self._rr.weight * rr_frac
             rrf = self.tot / self._rr.tot
         if self._dr is not None:

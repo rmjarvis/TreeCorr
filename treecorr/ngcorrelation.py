@@ -380,9 +380,10 @@ class NGCorrelation(treecorr.BinnedCorr2):
             self.xi_im = self.raw_xi_im - rg.xi_im
             self._rg = rg
 
+            if rg.npatch1 not in (1,self.npatch1) or rg.npatch2 != self.npatch2:
+                raise RuntimeError("RG must be run with the same patches as DG")
+
             if len(self.results) > 0:
-                if len(rg.results) == 0 or rg.npatch1 != self.npatch1 or rg.npatch2 != self.npatch2:
-                    raise RuntimeError("RG must be run with the same patches as DG")
                 # If there are any rg patch pairs that aren't in results (e.g. due to different
                 # edge effects among the various pairs in consideration), then we need to add
                 # some dummy results to make sure all the right pairs are computed when we make
@@ -415,6 +416,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         xi = n/d
         w = np.sum(d)
         if self._rg is not None:
+            if self._rg.npatch1 == 1:
+                pairs = [(0,ij[1]) for ij in pairs if ij[0] == ij[1]]
             rg, _ = self._rg._calculate_xi_from_pairs(pairs)
             xi -= rg
         return xi,w

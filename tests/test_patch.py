@@ -1143,9 +1143,7 @@ def test_nn_jk():
     print('varxib = ',varxib3)
     print('ratio = ',varxib3 / var_xib)
     np.testing.assert_allclose(xib3, xib2)
-    # The large scale variance isn't so great, but most of the range is pretty close.
-    np.testing.assert_allclose(varxib3[:-1], var_xib[:-1], rtol=0.15*tol_factor)
-    np.testing.assert_allclose(varxib3, var_xib, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(varxib3, var_xib, rtol=0.4*tol_factor)
 
     # Check using estimate_cov
     t0 = time.time()

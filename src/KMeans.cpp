@@ -28,13 +28,13 @@ extern void SelectRandomFrom(long m, std::vector<long>& selection);
 
 template <int D, int C>
 void InitializeCentersTree(std::vector<Position<C> >& centers, const Cell<D,C>* cell,
-                           int first, int ncenters)
+                           long first, int ncenters)
 {
     dbg<<"Recursive InitializeCentersTree: "<<first<<"  "<<ncenters<<std::endl;
     xdbg<<"pos = "<<cell->getPos()<<std::endl;
     if (ncenters == 1) {
         xdbg<<"Only 1 center.  Use this cell.\n";
-        Assert(first < int(centers.size()));
+        Assert(first < long(centers.size()));
         dbg<<"initial center["<<first<<"] = "<<cell->getPos()<<std::endl;
         centers[first] = cell->getPos();
     } else if (cell->getLeft()) {
@@ -52,7 +52,7 @@ void InitializeCentersTree(std::vector<Position<C> >& centers, const Cell<D,C>* 
         // Shouldn't ever happen -- this means a leaf is very close to the top.
         // But still, let's do soemthing at least vaguely sensible if it does.
         for (int i=0; i<ncenters; ++i) {
-            Assert(first+i < int(centers.size()));
+            Assert(first+i < long(centers.size()));
             centers[first+i] = Position<C>(cell->getPos()*(1. + urand() * 1.e-8));
         }
     }
@@ -650,9 +650,9 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
 #endif
 
         // We start with all patches as candidates.
-        long npatch = centers.size();
+        int npatch = centers.size();
         std::vector<long> patches(npatch);
-        for (long i=0; i<npatch; ++i) patches[i] = i;
+        for (int i=0; i<npatch; ++i) patches[i] = i;
 
         // Set up a work space where we save dsq calculations.
         std::vector<double> saved_dsq(npatch);
@@ -696,42 +696,42 @@ double CalculateShiftSq(const std::vector<Position<C> >& centers,
 
 // C = Threed or Sphere
 template <int C>
-void WriteCenters(const std::vector<Position<C> >& centers, double* pycenters, long npatch)
+void WriteCenters(const std::vector<Position<C> >& centers, double* pycenters, int npatch)
 {
-    for(long i=0; i<npatch; ++i, pycenters+=3) {
+    for(int i=0; i<npatch; ++i, pycenters+=3) {
         pycenters[0] = centers[i].getX();
         pycenters[1] = centers[i].getY();
         pycenters[2] = centers[i].getZ();
     }
 }
 template <int C>
-void ReadCenters(std::vector<Position<C> >& centers, const double* pycenters, long npatch)
+void ReadCenters(std::vector<Position<C> >& centers, const double* pycenters, int npatch)
 {
-    for(long i=0; i<npatch; ++i, pycenters+=3) {
+    for(int i=0; i<npatch; ++i, pycenters+=3) {
         centers[i] = Position<C>(pycenters[0], pycenters[1], pycenters[2]);
     }
 }
 
 // C = Flat
 template <>
-void WriteCenters(const std::vector<Position<Flat> >& centers, double* pycenters, long npatch)
+void WriteCenters(const std::vector<Position<Flat> >& centers, double* pycenters, int npatch)
 {
-    for(long i=0; i<npatch; ++i, pycenters+=2) {
+    for(int i=0; i<npatch; ++i, pycenters+=2) {
         pycenters[0] = centers[i].getX();
         pycenters[1] = centers[i].getY();
     }
 }
 
 template <>
-void ReadCenters(std::vector<Position<Flat> >& centers, const double* pycenters, long npatch)
+void ReadCenters(std::vector<Position<Flat> >& centers, const double* pycenters, int npatch)
 {
-    for(long i=0; i<npatch; ++i, pycenters+=2) {
+    for(int i=0; i<npatch; ++i, pycenters+=2) {
         centers[i] = Position<Flat>(pycenters[0], pycenters[1]);
     }
 }
 
 template <int D, int C>
-void KMeansInitTree2(Field<D,C>*field, double* pycenters, long npatch)
+void KMeansInitTree2(Field<D,C>*field, double* pycenters, int npatch)
 {
     dbg<<"Start KMeansInitTree for "<<npatch<<" patches\n";
     const std::vector<Cell<D,C>*> cells = field->getCells();
@@ -741,7 +741,7 @@ void KMeansInitTree2(Field<D,C>*field, double* pycenters, long npatch)
 }
 
 template <int D, int C>
-void KMeansInitRand2(Field<D,C>*field, double* pycenters, long npatch)
+void KMeansInitRand2(Field<D,C>*field, double* pycenters, int npatch)
 {
     dbg<<"Start KMeansInitRand for "<<npatch<<" patches\n";
     const std::vector<Cell<D,C>*> cells = field->getCells();
@@ -751,7 +751,7 @@ void KMeansInitRand2(Field<D,C>*field, double* pycenters, long npatch)
 }
 
 template <int D, int C>
-void KMeansInitKMPP2(Field<D,C>*field, double* pycenters, long npatch)
+void KMeansInitKMPP2(Field<D,C>*field, double* pycenters, int npatch)
 {
     dbg<<"Start KMeansInitKMPP for "<<npatch<<" patches\n";
     const std::vector<Cell<D,C>*> cells = field->getCells();
@@ -761,7 +761,7 @@ void KMeansInitKMPP2(Field<D,C>*field, double* pycenters, long npatch)
 }
 
 template <int D, int C>
-void KMeansRun2(Field<D,C>*field, double* pycenters, long npatch, int max_iter, double tol,
+void KMeansRun2(Field<D,C>*field, double* pycenters, int npatch, int max_iter, double tol,
                 bool alt)
 {
     dbg<<"Start KMeansRun for "<<npatch<<" patches\n";
@@ -823,7 +823,7 @@ void KMeansRun2(Field<D,C>*field, double* pycenters, long npatch, int max_iter, 
 }
 
 template <int D, int C>
-void KMeansAssign2(Field<D,C>*field, double* pycenters, long npatch, long* patches, long n)
+void KMeansAssign2(Field<D,C>*field, double* pycenters, int npatch, long* patches, long n)
 {
     dbg<<"Start KMeansAssign for "<<npatch<<" patches\n";
     const std::vector<Cell<D,C>*> cells = field->getCells();
@@ -839,7 +839,7 @@ void KMeansAssign2(Field<D,C>*field, double* pycenters, long npatch, long* patch
 }
 
 template <int D>
-void KMeansInitTree1(void* field, double* centers, long npatch, int coords)
+void KMeansInitTree1(void* field, double* centers, int npatch, int coords)
 {
     switch(coords) {
       case Flat:
@@ -854,7 +854,7 @@ void KMeansInitTree1(void* field, double* centers, long npatch, int coords)
     }
 }
 
-void KMeansInitTree(void* field, double* centers, long npatch, int d, int coords)
+void KMeansInitTree(void* field, double* centers, int npatch, int d, int coords)
 {
     switch(d) {
       case NData:
@@ -870,7 +870,7 @@ void KMeansInitTree(void* field, double* centers, long npatch, int d, int coords
 }
 
 template <int D>
-void KMeansInitRand1(void* field, double* centers, long npatch, int coords)
+void KMeansInitRand1(void* field, double* centers, int npatch, int coords)
 {
     switch(coords) {
       case Flat:
@@ -885,7 +885,7 @@ void KMeansInitRand1(void* field, double* centers, long npatch, int coords)
     }
 }
 
-void KMeansInitRand(void* field, double* centers, long npatch, int d, int coords)
+void KMeansInitRand(void* field, double* centers, int npatch, int d, int coords)
 {
     switch(d) {
       case NData:
@@ -901,7 +901,7 @@ void KMeansInitRand(void* field, double* centers, long npatch, int d, int coords
 }
 
 template <int D>
-void KMeansInitKMPP1(void* field, double* centers, long npatch, int coords)
+void KMeansInitKMPP1(void* field, double* centers, int npatch, int coords)
 {
     switch(coords) {
       case Flat:
@@ -916,7 +916,7 @@ void KMeansInitKMPP1(void* field, double* centers, long npatch, int coords)
     }
 }
 
-void KMeansInitKMPP(void* field, double* centers, long npatch, int d, int coords)
+void KMeansInitKMPP(void* field, double* centers, int npatch, int d, int coords)
 {
     switch(d) {
       case NData:
@@ -932,7 +932,7 @@ void KMeansInitKMPP(void* field, double* centers, long npatch, int d, int coords
 }
 
 template <int D>
-void KMeansRun1(void* field, double* centers, long npatch, int max_iter, double tol, bool alt,
+void KMeansRun1(void* field, double* centers, int npatch, int max_iter, double tol, bool alt,
                 int coords)
 {
     switch(coords) {
@@ -948,7 +948,7 @@ void KMeansRun1(void* field, double* centers, long npatch, int max_iter, double 
     }
 }
 
-void KMeansRun(void* field, double* centers, long npatch, int max_iter, double tol, int alt,
+void KMeansRun(void* field, double* centers, int npatch, int max_iter, double tol, int alt,
                int d, int coords)
 {
     switch(d) {
@@ -965,7 +965,7 @@ void KMeansRun(void* field, double* centers, long npatch, int max_iter, double t
 }
 
 template <int D>
-void KMeansAssign1(void* field, double* centers, long npatch, long* patches, long n, int coords)
+void KMeansAssign1(void* field, double* centers, int npatch, long* patches, long n, int coords)
 {
     switch(coords) {
       case Flat:
@@ -980,7 +980,7 @@ void KMeansAssign1(void* field, double* centers, long npatch, long* patches, lon
     }
 }
 
-void KMeansAssign(void* field, double* centers, long npatch, long* patches, long n,
+void KMeansAssign(void* field, double* centers, int npatch, long* patches, long n,
                   int d, int coords)
 {
     switch(d) {
@@ -996,7 +996,7 @@ void KMeansAssign(void* field, double* centers, long npatch, long* patches, long
     }
 }
 
-void SelectPatch(int patch, double* centers, long npatch, double* x, double* y, double* z,
+void SelectPatch(int patch, double* centers, int npatch, double* x, double* y, double* z,
                  long* use, long n)
 {
     // Notation: p = the good patch we are looking for

@@ -494,8 +494,6 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         if len(self.results) > 0:
             # Check that rr,dr,rd use the same patches as dd
-            print('rr patch = ',rr.npatch1, rr.npatch2)
-            print('dd patch = ',self.npatch1, self.npatch2)
             if rr.npatch1 != 1 and rr.npatch2 != 1:
                 if rr.npatch1 != self.npatch1 or rr.npatch2 != self.npatch2:
                     raise RuntimeError("If using patches, RR must be run with the same patches as DD")

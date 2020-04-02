@@ -199,12 +199,16 @@ def test_cat_patches():
     do_pickle(cat7)
 
     # Check some invalid parameters
+    # Can't have both npatch and patch
     with assert_raises(ValueError):
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch, patch=p2)
+    # patch has to have same number of entries
     with assert_raises(ValueError):
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=p2[:1000])
+    # npatch=0 is not allowed
     with assert_raises(ValueError):
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=0)
+    # bad option names
     with assert_raises(ValueError):
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch,
                          kmeans_init='invalid')
@@ -214,21 +218,26 @@ def test_cat_patches():
     with assert_raises(ValueError):
         treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                          patch_col='invalid')
+    # bad patch col
     with assert_raises(ValueError):
         treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                          patch_col=4)
+    # cannot give vector for patch when others are from file name
+    # (Should this be revisited?  Allow this?)
     with assert_raises(TypeError):
         treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                          patch=p2)
     try:
+        # bad patch hdu
         with assert_raises(IOError):
             treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
                              ra_units='rad', dec_units='rad', patch_col='patch', patch_hdu=2)
+        # bad patch col name for fits
         with assert_raises(ValueError):
             treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
                              ra_units='rad', dec_units='rad', patch_col='patches')
     except NameError:
-        # file_name6 might not exist if skipeed above because of fitsio missing.
+        # file_name6 might not exist if skipped above because of fitsio missing.
         pass
 
 def test_cat_centers():
@@ -405,6 +414,7 @@ def test_cat_centers():
             assert cat == cat17.patches[i]
 
     # Check for some invalid values
+    # Can't have both patch_centers and another patch specification
     with assert_raises(ValueError):
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
                          patch_centers=cen_file, npatch=3)
@@ -414,10 +424,11 @@ def test_cat_centers():
     with assert_raises(ValueError):
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
                          patch_centers=cen_file, patch_col=3)
+    # Missing some patch numbers
     with assert_raises(RuntimeError):
         c=treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
                            patch=np.random.uniform(10,20,len(ra)))
-        c.get_patch_centers()  # Missing some patch numbers
+        c.get_patch_centers()
 
 
 def generate_shear_field(nside):
@@ -683,8 +694,10 @@ def test_gg_jk():
     np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.4*tol_factor)
 
     # Check some invalid actions
+    # Bad var_method
     with assert_raises(ValueError):
         gg2.estimate_cov('invalid')
+    # Not run on patches, but need patches
     with assert_raises(ValueError):
         gg1.estimate_cov('jackknife')
     with assert_raises(ValueError):
@@ -693,10 +706,11 @@ def test_gg_jk():
         gg1.estimate_cov('marked_bootstrap')
     with assert_raises(ValueError):
         gg1.estimate_cov('bootstrap')
-    with assert_raises(ValueError):
-        treecorr.estimate_multi_cov([gg2, gg1],'jackknife')
+    # All of them need to use patches
     with assert_raises(ValueError):
         treecorr.estimate_multi_cov([gg1, gg2],'jackknife')
+    with assert_raises(ValueError):
+        treecorr.estimate_multi_cov([gg2, gg1],'jackknife')
     with assert_raises(ValueError):
         treecorr.estimate_multi_cov([gg1, gg2],'sample')
     with assert_raises(ValueError):
@@ -709,6 +723,26 @@ def test_gg_jk():
         treecorr.estimate_multi_cov([gg1, gg2],'bootstrap')
     with assert_raises(ValueError):
         treecorr.estimate_multi_cov([gg2, gg1],'bootstrap')
+    # All need to use the same patches
+    cat3 = treecorr.Catalog(x=x[:100], y=y[:100], g1=g1[:100], g2=g2[:100], npatch=7)
+    gg3 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    gg3.process(cat3)
+    with assert_raises(RuntimeError):
+        treecorr.estimate_multi_cov([gg3, gg2],'jackknife')
+    with assert_raises(RuntimeError):
+        treecorr.estimate_multi_cov([gg2, gg3],'jackknife')
+    with assert_raises(RuntimeError):
+        treecorr.estimate_multi_cov([gg3, gg2],'sample')
+    with assert_raises(RuntimeError):
+        treecorr.estimate_multi_cov([gg2, gg3],'sample')
+    with assert_raises(RuntimeError):
+        treecorr.estimate_multi_cov([gg3, gg2],'marked_bootstrap')
+    with assert_raises(RuntimeError):
+        treecorr.estimate_multi_cov([gg2, gg3],'marked_bootstrap')
+    with assert_raises(RuntimeError):
+        treecorr.estimate_multi_cov([gg3, gg2],'bootstrap')
+    with assert_raises(RuntimeError):
+        treecorr.estimate_multi_cov([gg2, gg3],'bootstrap')
 
 
 def test_ng_jk():
@@ -966,8 +1000,10 @@ def test_ng_jk():
     np.testing.assert_allclose(cov, ng3.cov, rtol=0.4*tol_factor, atol=3.e-6*tol_factor)
 
     # Check some invalid actions
+    # Bad var_method
     with assert_raises(ValueError):
         ng2.estimate_cov('invalid')
+    # Not run on patches, but need patches
     with assert_raises(ValueError):
         ng1.estimate_cov('jackknife')
     with assert_raises(ValueError):
@@ -976,6 +1012,7 @@ def test_ng_jk():
         ng1.estimate_cov('marked_bootstrap')
     with assert_raises(ValueError):
         ng1.estimate_cov('bootstrap')
+    # rg also needs patches (at least for the g part).
     with assert_raises(RuntimeError):
         ng3.calculateXi(rg=ng1)
 
@@ -985,6 +1022,7 @@ def test_ng_jk():
     cat2b = treecorr.Catalog(x=x[:100], y=y[:100], g1=g1[:100], g2=g2[:100], npatch=2)
     ng6 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
     ng7 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
+    # All catalogs need to have the same number of patches
     with assert_raises(RuntimeError):
         ng6.process(cat1a,cat2b)
     with assert_raises(RuntimeError):
@@ -1218,10 +1256,11 @@ def test_nn_jk():
     t1 = time.time()
     print('Time for cross processing with patches = ',t1-t0)
     np.testing.assert_allclose(nn4.weight, nn2.weight)
-    xia4, varxia4 = nn4.calculateXi(rr4)
-    xib4, varxib4 = nn4.calculateXi(rr4,dr=nr4)
-    xic4, varxic4 = nn4.calculateXi(rr4,rd=rn4)
-    xid4, varxid4 = nn4.calculateXi(rr4,dr=nr4,rd=rn4)
+    # Use copy so we test feature of adding additional result keys in dr or rd.
+    xia4, varxia4 = nn4.copy().calculateXi(rr4)
+    xib4, varxib4 = nn4.copy().calculateXi(rr4,dr=nr4)
+    xic4, varxic4 = nn4.copy().calculateXi(rr4,rd=rn4)
+    xid4, varxid4 = nn4.copy().calculateXi(rr4,dr=nr4,rd=rn4)
     print('xia = ',xia4)
     print('xib = ',xib4)
     print('xic = ',xic4)
@@ -1241,6 +1280,7 @@ def test_nn_jk():
     np.testing.assert_allclose(varxid4, varxib4)
 
     # Check some invalid parameters
+    # randoms need patches, at least for d part.
     with assert_raises(RuntimeError):
         nn3.calculateXi(rr,dr=nr1)
     with assert_raises(RuntimeError):
@@ -1251,14 +1291,41 @@ def test_nn_jk():
         nn3.calculateXi(rr,dr=nr3,rd=nr3)
     with assert_raises(RuntimeError):
         nn3.calculateXi(rr,dr=rn3,rd=rn3)
+    # Not run on patches, but need patches
     with assert_raises(ValueError):
         nn1.estimate_cov('jackknife')
     with assert_raises(ValueError):
         nn1.estimate_cov('sample')
-    nn4 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-    nn4.process(catp)
+    # Need to run calculateXi to get patch-based covariance
+    nn5 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    nn5.process(catp)
     with assert_raises(RuntimeError):
-        nn4.estimate_cov('jackknife')
+        nn5.estimate_cov('jackknife')
+
+    # Randoms need to use the same number of patches as data
+    catp7 = treecorr.Catalog(x=x[:100], y=y[:100], npatch=7)
+    rand_catp7 = treecorr.Catalog(x=rx[:100], y=ry[:100], npatch=7)
+    nn6 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    rr6 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    rn6 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    nr6 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    nn6.process(catp7)
+    rr6.process(rand_catp7)
+    rn6.process(rand_catp7, catp7)
+    nr6.process(catp7, rand_catp7)
+    with assert_raises(RuntimeError):
+        nn6.calculateXi(rr4)
+    with assert_raises(RuntimeError):
+        nn6.calculateXi(rr6, dr=nr4)
+    with assert_raises(RuntimeError):
+        nn6.calculateXi(rr6, rd=rn4)
+    with assert_raises(RuntimeError):
+        nn6.calculateXi(rr6, dr=nr4, rd=rn6)
+    with assert_raises(RuntimeError):
+        nn6.calculateXi(rr6, dr=nr6, rd=rn4)
+    with assert_raises(RuntimeError):
+        nn6.calculateXi(rr4, dr=nr6, rd=rn6)
+
 
 def test_kappa_jk():
     # Test NK, KK, and KG with jackknife.

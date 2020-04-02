@@ -379,9 +379,6 @@ class NNCorrelation(treecorr.BinnedCorr2):
         else:
             return self._nbins
 
-    def _getStat(self):
-        return self.weight
-
     def _getWeight(self):
         return self._rr_weight
 
@@ -496,33 +493,34 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self._rd = rd
 
         if len(self.results) > 0:
-            # If there are any rr,rd,dr patch pairs that aren't in results (e.g. due to different
-            # edge effects among the various pairs in consideration), then we need to add
-            # some dummy results to make sure all the right pairs are computed when we make
-            # the vectors for the covariance matrix.
-            add_ij = []
+            # Check that rr,dr,rd use the same patches as dd
+            print('rr patch = ',rr.npatch1, rr.npatch2)
+            print('dd patch = ',self.npatch1, self.npatch2)
             if rr.npatch1 != 1 and rr.npatch2 != 1:
                 if rr.npatch1 != self.npatch1 or rr.npatch2 != self.npatch2:
                     raise RuntimeError("If using patches, RR must be run with the same patches as DD")
-                for ij in rr.results:
-                    if ij not in self.results:
-                        add_ij.append(ij)
 
             if dr is not None and (len(dr.results) == 0 or dr.npatch1 != self.npatch1 or
                                    dr.npatch2 not in (self.npatch2, 1)):
                 raise RuntimeError("DR must be run with the same patches as DD")
-            if dr is not None and dr.npatch2 != 1:
-                for ij in dr.results:
-                    if ij not in self.results:
-                        add_ij.append(ij)
-
             if rd is not None and (len(rd.results) == 0 or rd.npatch2 != self.npatch2 or
                                    rd.npatch1 not in (self.npatch1, 1)):
                 raise RuntimeError("RD must be run with the same patches as DD")
+
+            # If there are any rd,dr patch pairs that aren't in results (because dr is a cross
+            # correlation, and dd,rr may be auto-correlations), then we need to add some dummy
+            # results to make sure all the right pairs are computed when we make the vectors for
+            # the covariance matrix.
+            add_ij = set()
+            if dr is not None and dr.npatch2 != 1:
+                for ij in dr.results:
+                    if ij not in self.results:
+                        add_ij.add(ij)
+
             if rd is not None and rd.npatch1 != 1:
                 for ij in rd.results:
                     if ij not in self.results:
-                        add_ij.append(ij)
+                        add_ij.add(ij)
 
             if len(add_ij) > 0:
                 template = next(iter(self.results.values()))  # Just need something to copy.

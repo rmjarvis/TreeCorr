@@ -152,7 +152,7 @@ struct CellDataHelper<GData,Sphere>
     { return new CellData<GData,Sphere>(Position<Sphere>(x,y,z), std::complex<double>(g1,g2), w); }
 };
 
-inline WPosLeafInfo get_wpos(double* wpos, double* w, int i)
+inline WPosLeafInfo get_wpos(double* wpos, double* w, long i)
 {
     WPosLeafInfo wp;
     wp.wpos = wpos ? wpos[i] : w[i];

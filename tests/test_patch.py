@@ -916,33 +916,54 @@ def test_ng_jk():
     # Use a random catalog
     # In this case the locations of the source catalog are fine to use as our random catalog,
     # since they fill the region where the lenses are allowed to be.
-    rg3 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    rg4 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
     t0 = time.time()
-    rg3.process(cat2p, cat2p)
+    rg4.process(cat2p, cat2p)
     t1 = time.time()
     print('Time for processing RG = ',t1-t0)
 
-    ng3b = ng3.copy()
-    ng3b.calculateXi(rg3)
-    print('xi = ',ng3b.xi)
-    print('varxi = ',ng3b.varxi)
-    print('ratio = ',ng3b.varxi / var_xi)
-    # Things don't change much with RG in this case, since there aren't strong edge effects.
-    np.testing.assert_allclose(ng3b.weight, ng3.weight, rtol=0.02*tol_factor)
-    np.testing.assert_allclose(ng3b.xi, ng3.xi, rtol=0.02*tol_factor)
-    np.testing.assert_allclose(ng3b.varxi, var_xi, rtol=0.3*tol_factor)
+    ng4 = ng3.copy()
+    ng4.calculateXi(rg4)
+    print('xi = ',ng4.xi)
+    print('varxi = ',ng4.varxi)
+    print('ratio = ',ng4.varxi / var_xi)
+    np.testing.assert_allclose(ng4.weight, ng3.weight, rtol=0.02*tol_factor)
+    np.testing.assert_allclose(ng4.xi, ng3.xi, rtol=0.02*tol_factor)
+    np.testing.assert_allclose(ng4.varxi, var_xi, rtol=0.3*tol_factor)
 
     # Check using estimate_cov
     t0 = time.time()
-    cov = ng3b.estimate_cov('jackknife')
-    idx = np.where(np.abs(cov - ng3.cov) > 3.e-6)
+    cov = ng4.estimate_cov('jackknife')
+    t1 = time.time()
+    print('Time to calculate jackknife covariance = ',t1-t0)
     # The covariance has more terms that differ. 3x5 is the largest difference, needing rtol=0.4.
     # I think this is correct -- mostly this is testing that I didn't totally mess up the
     # weight normalization when applying the RG to the patches.
-    np.testing.assert_allclose(ng3b.estimate_cov('jackknife'), ng3.cov,
-                               rtol=0.4*tol_factor, atol=3.e-6*tol_factor)
+    np.testing.assert_allclose(cov, ng3.cov, rtol=0.4*tol_factor, atol=3.e-6*tol_factor)
+
+    # Use a random catalog without patches.
+    rg5 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    t0 = time.time()
+    rg5.process(cat2, cat2p)
+    t1 = time.time()
+    print('Time for processing RG = ',t1-t0)
+
+    ng5 = ng3.copy()
+    ng5.calculateXi(rg5)
+    print('xi = ',ng5.xi)
+    print('varxi = ',ng5.varxi)
+    print('ratio = ',ng5.varxi / var_xi)
+    np.testing.assert_allclose(ng5.weight, ng3.weight, rtol=0.02*tol_factor)
+    np.testing.assert_allclose(ng5.xi, ng3.xi, rtol=0.02*tol_factor)
+    # This does only slightly worse.
+    np.testing.assert_allclose(ng5.varxi, var_xi, rtol=0.4*tol_factor)
+
+    # Check using estimate_cov
+    t0 = time.time()
+    cov = ng5.estimate_cov('jackknife')
     t1 = time.time()
     print('Time to calculate jackknife covariance = ',t1-t0)
+    np.testing.assert_allclose(cov, ng3.cov, rtol=0.4*tol_factor, atol=3.e-6*tol_factor)
 
     # Check some invalid actions
     with assert_raises(ValueError):
@@ -1343,21 +1364,45 @@ def test_kappa_jk():
     # Use a random catalog
     # In this case the locations of the source catalog are fine to use as our random catalog,
     # since they fill the region where the lenses are allowed to be.
-    rk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    rk2 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
     t0 = time.time()
-    rk.process(cat2p, cat2p)
+    rk2.process(cat2p, cat2p)
     t1 = time.time()
     print('Time for processing RK = ',t1-t0)
 
     nk2 = nk.copy()
-    nk2.calculateXi(rk)
+    nk2.calculateXi(rk2)
     print('xi = ',nk2.xi)
     print('varxi = ',nk2.varxi)
     print('ratio = ',nk2.varxi / var_nk_xi)
-    # Things don't change much with RK in this case, since there aren't strong edge effects.
     np.testing.assert_allclose(nk2.weight, nk.weight, rtol=0.02*tol_factor)
     np.testing.assert_allclose(nk2.xi, nk.xi, rtol=0.02*tol_factor)
     np.testing.assert_allclose(nk2.varxi, var_nk_xi, rtol=0.3*tol_factor)
+
+    # Check using estimate_cov
+    t0 = time.time()
+    cov = nk2.estimate_cov('jackknife')
+    idx = np.where(np.abs(cov - nk.cov) > 3.e-6)
+    np.testing.assert_allclose(nk2.estimate_cov('jackknife'), nk.cov,
+                               rtol=0.4*tol_factor, atol=3.e-6*tol_factor)
+    t1 = time.time()
+    print('Time to calculate jackknife covariance = ',t1-t0)
+
+    # Use a random catalog without patches
+    rk3 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    t0 = time.time()
+    rk3.process(cat2, cat2p)
+    t1 = time.time()
+    print('Time for processing RK = ',t1-t0)
+
+    nk3 = nk.copy()
+    nk3.calculateXi(rk3)
+    print('xi = ',nk3.xi)
+    print('varxi = ',nk3.varxi)
+    print('ratio = ',nk3.varxi / var_nk_xi)
+    np.testing.assert_allclose(nk3.weight, nk.weight, rtol=0.02*tol_factor)
+    np.testing.assert_allclose(nk3.xi, nk.xi, rtol=0.02*tol_factor)
+    np.testing.assert_allclose(nk3.varxi, var_nk_xi, rtol=0.4*tol_factor)
 
     # Check using estimate_cov
     t0 = time.time()

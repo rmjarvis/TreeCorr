@@ -365,9 +365,10 @@ class NKCorrelation(treecorr.BinnedCorr2):
             self.xi = self.raw_xi - rk.xi
             self._rk = rk
 
+            if rk.npatch1 not in (1,self.npatch1) or rk.npatch2 != self.npatch2:
+                raise RuntimeError("RK must be run with the same patches as DK")
+
             if len(self.results) > 0:
-                if len(rk.results) == 0 or rk.npatch1 != self.npatch1 or rk.npatch2 != self.npatch2:
-                    raise RuntimeError("RK must be run with the same patches as DK")
                 # If there are any rk patch pairs that aren't in results (e.g. due to different
                 # edge effects among the various pairs in consideration), then we need to add
                 # some dummy results to make sure all the right pairs are computed when we make
@@ -398,6 +399,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
         xi = n/d
         w = np.sum(d)
         if self._rk is not None:
+            if self._rk.npatch1 == 1:
+                pairs = [(0,ij[1]) for ij in pairs if ij[0] == ij[1]]
             rk, _ = self._rk._calculate_xi_from_pairs(pairs)
             xi -= rk
         return xi,w

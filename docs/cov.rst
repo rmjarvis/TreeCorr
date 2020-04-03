@@ -80,7 +80,7 @@ from the sample.  Then the covariance matrix is estimated as
 
 .. math::
 
-    C = \left(1 - \frac{1}{N_\mathrm{patch}} \right) \sum_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)
+    C = \frac{N_\mathrm{patch} - 1}{N_\mathrm{patch}} \sum_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)
 
 "sample"
 ^^^^^^^^
@@ -92,18 +92,61 @@ of these vectors, scaled by the relative total weight in each patch.
 
 .. math::
 
-    C = \frac{1}{N_\mathrm{patch}-1} \sum_i w_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)
+    C = \frac{\bar w_i}{\sum_i w_i - \frac{\sum_i w_i^2}{\sum_i w_i}} \sum_i w_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)
 
 For :math:`w_i`, we use the total weight in the correlation measurement for each patch
 divided by the total weight in all patches.  This is roughly equal to
 :math:`1/N_\mathrm{patch}` but captures somewhat any patch-to-patch variation in area
 that might be present.
 
-"bootstrap"
-^^^^^^^^^^^
+.. note::
 
-This estimate s based on a bootstrap resampling of the patches.  Specifically, we follow
-the method described in *A valid and Fast Spatial Bootstrap for Correlation Functions*
+    If all the patches are equal weight, the above equation reduces to:
+
+    .. math::
+
+        C = \frac{1}{N_\mathrm{patch} (N_\mathrm{patch} - 1)} \sum_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)
+
+
+"bootstrap2"
+^^^^^^^^^^^^
+
+This estimate implements a bootstrap resampling of the patches as follows:
+
+1. Select :math:`N_\mathrm{patch}` patch numbers at random from the full list
+   :math:`[0 \dots N_\mathrm{patch}{-}1]` with replacement, so some patch numbers
+   will appear more than once, and some will be missing.
+
+2. Calculate the total correlation function that would have been computed
+   from these patches rather than the original patches.
+
+3. The auto-correlations are included at the selected repetition for the bootstrap
+   samples.  So if a patch number is repeated, its auto-correlation is included that
+   many times.
+
+4. Cross-correlations between patches are included only if the two patches
+   aren't actually the same patch (i.e. it's not actually an auto-correlation).
+   This prevents extra auto-correlations (where most of the signal typically occurs)
+   from being included in the sum.
+
+5. Repeat steps 1-4 a total of :math:`N_\mathrm{bootstrap}` times to build up a large
+   set of resampled correlation functions, :math:`\{\xi_i\}`.
+
+6. Then the covariance estimate is the sample variance of these resampled results:
+
+    .. math::
+
+        C = \frac{1}{N_\mathrm{bootstrap}-1} \sum_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)
+
+The default number of bootstrap resamplings is 500, but you can change this in the
+Correlation constructor using the parameter **num_bootstrap**.
+
+"marked_bootstrap"
+^^^^^^^^^^^^^^^^^^
+
+This estimate is based on a "marked-point" bootstrap resampling of the patches.
+Specifically, we follow the method described in
+*A valid and Fast Spatial Bootstrap for Correlation Functions*
 by Ji Meng Loh, 2008.  cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/.
 
 This method starts out the same as the "sample" method.  It computes the correlation
@@ -119,30 +162,10 @@ Then the covariance estimate is the sample variance of these resampled results:
 
 .. math::
 
-    C = \frac{1}{N_\mathrm{boot}-1} \sum_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)
+    C = \frac{1}{N_\mathrm{bootstrap}-1} \sum_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)
 
 The default number of bootstrap resamplings is 500, but you can change this in the
 Correlation constructor using the parameter **num_bootstrap**.
-
-"bootstrap2"
-^^^^^^^^^^^^
-
-This implements a different manner of bootstrap resampling.  Rather than precomputing
-the results for each patch individually as recommended by Loh, 2008, this method
-calculates the final statistic using only the auto-correlations and cross-correlations
-of the chosen resampled patches.
-
-The auto-correlations are included at the selected repetition for the bootstrap
-samples.  Cross-correlations between patches are included only if the two patches
-aren't actually the same patch (i.e. it's not actually an auto-correlation).
-
-This method is quite a bit slower to compute than "bootstrap", but it seems to
-produce somewhat more accurate estimates of the covariance for the simple tests
-that we have done comparing the two.
-
-The default number of bootstrap resamplings is 500, but you can change this in the
-Correlation constructor using the parameter **num_bootstrap**.
-
 
 Covariance Matrix
 -----------------

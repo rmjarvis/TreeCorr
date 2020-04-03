@@ -920,9 +920,14 @@ def _cov_sample(corrs):
     w = np.sum(wlist,axis=0)
     w /= np.sum(w)  # Now w is the fractional weight for each patch
 
-    vmean = np.mean(v, axis=0)
-    v -= vmean
-    C = 1./(npatch-1) * (w * v.T).dot(v)
+    sumvw = np.sum(v * w[:,np.newaxis])
+    sumw = np.sum(w)
+    sumww = np.sum(w**2)
+    meanv = sumvw / sumw
+    meanw = sumw / npatch
+    v -= meanv
+    #C = 1./(npatch-1) * (w * v.T).dot(v)  # if all w are ==, equivalent to this.
+    C = meanw / (sumw - sumww/sumw) * (w * v.T).dot(v)
     return C
 
 def _cov_marked(corrs):

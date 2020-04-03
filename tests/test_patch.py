@@ -1227,7 +1227,7 @@ def test_nn_jk():
     print('Time to calculate sample covariance = ',t1-t0)
     print('varxi = ',cov3b.diagonal())
     print('ratio = ',cov3b.diagonal() / var_xib)
-    np.testing.assert_allclose(cov3b.diagonal(), var_xib, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(cov3b.diagonal(), var_xib, rtol=0.4*tol_factor)
 
     # Check NN cross-correlation and other combinations of dr, rd.
     rn3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='jackknife')

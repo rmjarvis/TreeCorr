@@ -19,9 +19,10 @@ import coord
 import warnings
 import treecorr
 
-from test_helper import get_from_wiki, CaptureLog, assert_raises, profile
+from test_helper import get_from_wiki, CaptureLog, assert_raises, profile, timer
 
 
+@timer
 def test_dessv():
     try:
         import fitsio
@@ -136,6 +137,7 @@ def test_dessv():
 
 
 
+@timer
 def test_radec():
     # Very similar to the above, but with a random set of points, so it will run even
     # if the user doesn't have fitsio installed.
@@ -240,6 +242,7 @@ def test_radec():
     print('max counts = ',np.max(counts))
 
 
+@timer
 def test_3d():
     # Like the above, but using x,y,z positions.
 
@@ -347,6 +350,7 @@ def test_3d():
     print('max counts = ',np.max(counts))
 
 
+@timer
 def test_2d():
     # Like the above, but using x,y positions.
     # An additional check here is that this works with other fields besides NField, even though
@@ -438,6 +442,7 @@ def test_2d():
     print('max counts = ',np.max(counts))
 
 
+@timer
 def test_init_random():
     # Test the init=random option
 
@@ -586,6 +591,7 @@ def test_init_random():
     np.testing.assert_equal(sorted(p_n), list(range(n)))
 
 
+@timer
 def test_init_kmpp():
     # Test the init=random option
 
@@ -730,6 +736,7 @@ def test_init_kmpp():
     np.testing.assert_equal(sorted(p_n), list(range(n)))
 
 
+@timer
 def test_zero_weight():
     # Based on test_ra_dec, but where many galaxies have w=0.
     # There used to be a bug where w=0 objects were not assigned to any patch.

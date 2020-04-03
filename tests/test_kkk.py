@@ -17,8 +17,9 @@ import treecorr
 import os
 import coord
 
-from test_helper import get_script_name, do_pickle, assert_raises
+from test_helper import get_script_name, do_pickle, assert_raises, timer
 
+@timer
 def test_direct():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
     # This should exactly match the treecorr result if brute=True.
@@ -243,6 +244,7 @@ def test_direct():
         kkk.process_cross21(cat, cat)
 
 
+@timer
 def test_direct_spherical():
     # Repeat in spherical coords
 
@@ -355,6 +357,7 @@ def test_direct_spherical():
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-4, atol=1.e-6)
 
+@timer
 def test_constant():
     # A fairly trivial test is to use a constant value of kappa everywhere.
 
@@ -398,6 +401,7 @@ def test_constant():
     np.testing.assert_allclose(kkk.zeta, A**3, rtol=3.e-3)
 
 
+@timer
 def test_kkk():
     # Use kappa(r) = A exp(-r^2/2s^2)
     #

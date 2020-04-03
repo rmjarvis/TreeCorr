@@ -20,8 +20,9 @@ import time
 import shutil
 import sys
 
-from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog, assert_raises
+from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog, assert_raises, timer
 
+@timer
 def test_log_binning():
     import math
     # Test some basic properties of the base class with respect to Log binning
@@ -226,6 +227,7 @@ def test_log_binning():
     np.testing.assert_almost_equal(nn.b, 0.15)
 
 
+@timer
 def test_linear_binning():
     import math
     # Test some basic properties of the base class with respect to Linear binning
@@ -406,6 +408,7 @@ def test_linear_binning():
     np.testing.assert_almost_equal(nn.b, 0.0025)
 
 
+@timer
 def test_direct_count():
     # If the catalogs are small enough, we can do a direct count of the number of pairs
     # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
@@ -629,6 +632,7 @@ def test_direct_count():
     np.testing.assert_allclose(dd8.meanlogr, dd.meanlogr)
 
 
+@timer
 def test_direct_spherical():
     # Repeat in spherical coords
 
@@ -754,6 +758,7 @@ def test_direct_spherical():
         dd2.process(cat1, cat2, metric='Rlens')
 
 
+@timer
 def test_pairwise():
     # Test the pairwise option.
 
@@ -827,6 +832,7 @@ def test_pairwise():
 
 
 
+@timer
 def test_direct_3d():
     # This is the same as the above test, but using the 3d correlations
 
@@ -889,6 +895,7 @@ def test_direct_3d():
     with assert_raises(ValueError):
         dd3.process(cat1, metric='Rlens')
 
+@timer
 def test_direct_arc():
     # This is the same as the above test, but using the Arc distance metric
 
@@ -978,6 +985,7 @@ def test_direct_arc():
         ddr.process(cat2f, cat2r, metric='Arc')
 
 
+@timer
 def test_direct_partial():
     # There are two ways to specify using only parts of a catalog:
     # 1. The parameters first_row and last_row would usually be used for files, but they are a
@@ -1034,6 +1042,7 @@ def test_direct_partial():
     np.testing.assert_array_equal(ddb.npairs, true_npairs)
 
 
+@timer
 def test_direct_linear():
     # This is the same as test_direct_3d, but using linear binning
 
@@ -1187,6 +1196,7 @@ def test_direct_linear():
 
 
 
+@timer
 def test_nn():
     # Use a simple probability distribution for the galaxies:
     #
@@ -1435,6 +1445,7 @@ def test_nn():
     assert dd4.bin_type == dd.bin_type
 
 
+@timer
 def test_3d():
     # For this one, build a Gaussian cloud around some random point in 3D space and do the
     # correlation function in 3D.
@@ -1557,6 +1568,7 @@ def test_3d():
                                   rtol=0.1*tol_factor)
 
 
+@timer
 def test_list():
     # Test that we can use a list of files for either data or rand or both.
 
@@ -1733,6 +1745,7 @@ def test_list():
         os.remove(mv_output_file)
     os.rename(output_file, mv_output_file)
 
+@timer
 def test_split():
     # Time the various split_method options.
 
@@ -1794,6 +1807,7 @@ def test_split():
                   split_method='invalid')
 
 
+@timer
 def test_varxi():
     # Test that varxi is correct (or close) based on actual variance of many runs.
 
@@ -1908,6 +1922,7 @@ def test_varxi():
     np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.05 * tol_factor)
 
 
+@timer
 def test_sph_linear():
 
     # Initially, there was an error using linear binning with sep_units.
@@ -1944,6 +1959,7 @@ def test_sph_linear():
     np.testing.assert_allclose(dd.meanr, range(1,10), rtol=0.1)
 
 
+@timer
 def test_linear_binslop():
 
     # Jack Elvin-Poole reported a problem with version 4.0.1 using linear binning

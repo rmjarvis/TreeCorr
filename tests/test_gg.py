@@ -18,9 +18,10 @@ import coord
 import time
 import treecorr
 
-from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog, assert_raises
+from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog, assert_raises, timer
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
 
+@timer
 def test_direct():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
     # This should exactly match the treecorr result if brute_force=True
@@ -198,6 +199,7 @@ def test_direct():
     with assert_raises(ValueError):
         gg2 += gg6
 
+@timer
 def test_direct_spherical():
     # Repeat in spherical coords
 
@@ -335,6 +337,7 @@ def test_direct_spherical():
     np.testing.assert_allclose(gg.xim_im, true_xim.imag, rtol=1.e-3, atol=2.e-4)
 
 
+@timer
 def test_pairwise():
     # Test the pairwise option.
 
@@ -408,6 +411,7 @@ def test_pairwise():
     assert "for cats first, second" in cl.output
 
 
+@timer
 def test_gg():
     # cf. http://adsabs.harvard.edu/abs/2002A%26A...389..729S for the basic formulae I use here.
     #
@@ -603,6 +607,7 @@ def test_gg():
     np.testing.assert_allclose(corr2_output2['Gamsq'], gamsq, rtol=1.e-4)
 
 
+@timer
 def test_mapsq():
     # Use the same gamma(r) as in test_gg.
     # This time, rather than use a smaller catalog in the nosetests run, we skip the run
@@ -793,6 +798,7 @@ def test_mapsq():
 
 
 
+@timer
 def test_spherical():
     # This is the same field we used for test_gg, but put into spherical coords.
     # We do the spherical trig by hand using the obvious formulae, rather than the clever
@@ -956,6 +962,7 @@ def test_spherical():
     assert max(abs(corr2_output['xim_im'])) < 2.e-7 * tol_factor
 
 
+@timer
 def test_aardvark():
     try:
         import fitsio
@@ -1068,6 +1075,7 @@ def test_aardvark():
         assert max(abs(xim_err)) < 3.e-8
 
 
+@timer
 def test_shuffle():
     # Check that the code is insensitive to shuffling the input data vectors.
 
@@ -1103,6 +1111,7 @@ def test_shuffle():
     print('max diff = ',max(abs(gg_u.xip - gg_s.xip)))
     assert max(abs(gg_u.xip - gg_s.xip)) < 1.e-14
 
+@timer
 def test_haloellip():
     """Test that the constant and quadrupole versions of the Clampitt halo ellipticity calculation
     are equivalent to xi+ and xi- (respectively) of the shear-shear cross correlation, where
@@ -1265,6 +1274,7 @@ def test_haloellip():
     print('expected signal = ',e_a * lens_mean_absg / 2.)
     np.testing.assert_allclose(gg.xip, e_a * lens_mean_absg/2., rtol=tol*5)
 
+@timer
 def test_varxi():
     # Test that varxip, varxim are correct (or close) based on actual variance of many runs.
 

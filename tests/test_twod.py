@@ -15,7 +15,7 @@ import numpy as np
 import treecorr
 import time
 
-from test_helper import assert_raises
+from test_helper import assert_raises, timer
 
 def get_correlation_length_matrix(size, e1, e2):
 
@@ -75,6 +75,7 @@ def corr2d(x, y, kappa1, kappa2, w=None, rmax=1., bins=513, return_counts=False)
         return xi.T
 
 
+@timer
 def test_twod():
     try:
         from scipy.spatial.distance import pdist, squareform
@@ -222,6 +223,7 @@ def test_twod():
     assert_raises(TypeError, treecorr.NNCorrelation, max_sep=max_sep, bin_type='TwoD')
 
 
+@timer
 def test_twod_singlebin():
 
     # Test the singleBin function for TwoD bintype.

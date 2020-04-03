@@ -19,8 +19,9 @@ import gc
 import treecorr
 import platform
 
-from test_helper import CaptureLog, assert_raises
+from test_helper import CaptureLog, assert_raises, timer
 
+@timer
 def test_count_near():
 
     nobj = 100000
@@ -171,6 +172,7 @@ def test_count_near():
     gc.collect()
 
 
+@timer
 def test_get_near():
 
     nobj = 100000
@@ -391,6 +393,7 @@ def test_get_near():
     np.testing.assert_array_equal(i5, i1)
 
 
+@timer
 def test_sample_pairs():
 
     nobj = 10000

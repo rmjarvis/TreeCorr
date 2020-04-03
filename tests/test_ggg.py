@@ -18,8 +18,9 @@ import os
 import coord
 import time
 
-from test_helper import get_script_name, do_pickle, assert_raises
+from test_helper import get_script_name, do_pickle, assert_raises, timer
 
+@timer
 def test_direct():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
     # This should exactly match the treecorr result if brute=True.
@@ -338,6 +339,7 @@ def test_direct():
         ggg.process_cross21(cat, cat)
 
 
+@timer
 def test_direct_spherical():
     # Repeat in spherical coords
 
@@ -502,6 +504,7 @@ def test_direct_spherical():
     np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-3, atol=1.e-4)
 
 
+@timer
 def test_ggg():
     # Use gamma_t(r) = gamma0 r^2/r0^2 exp(-r^2/2r0^2)
     # i.e. gamma(r) = -gamma0 exp(-r^2/2r0^2) (x+iy)^2 / r0^2
@@ -820,6 +823,7 @@ def test_ggg():
     assert ggg2.bin_type == ggg.bin_type
 
 
+@timer
 def test_map3():
     # Use the same gamma(r) as in test_gg.
     # This time, rather than use a smaller catalog in the nosetests run, we skip the run

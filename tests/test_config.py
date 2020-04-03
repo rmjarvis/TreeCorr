@@ -18,8 +18,9 @@ import sys
 import logging
 import numpy as np
 
-from test_helper import CaptureLog, assert_raises
+from test_helper import CaptureLog, assert_raises, timer
 
+@timer
 def test_parse_variables():
     """Test parse_variables functionality
     """
@@ -62,6 +63,7 @@ def test_parse_variables():
     with assert_raises(ValueError):
         treecorr.config.parse_variable(config, 'file_name2 = [h1, h2, h3')
 
+@timer
 def test_parse_bool():
     """Test parse_bool functionality
     """
@@ -92,6 +94,7 @@ def test_parse_bool():
     with assert_raises(ValueError):
         treecorr.config.parse_bool('Hello')
 
+@timer
 def test_parse_unit():
     """Test parse_unit functionality
     """
@@ -112,6 +115,7 @@ def test_parse_unit():
         treecorr.config.parse_unit('Mpc')
 
 
+@timer
 def test_read():
     """Test different ways of reading a config file.
     """
@@ -215,6 +219,7 @@ def test_read():
         treecorr.config.read_config('configs/nn_list6.config')
 
 
+@timer
 def test_logger():
     """Test setting up a logger.
     """
@@ -258,6 +263,7 @@ def test_logger():
     assert isinstance(logger6.handlers[0], logging.StreamHandler)
 
 
+@timer
 def test_check():
     """Test checking the validity of config values.
     """
@@ -335,6 +341,7 @@ def test_check():
     del config1['n2_file_name']
 
 
+@timer
 def test_print():
     """Test print_params.
     """
@@ -344,6 +351,7 @@ def test_print():
     treecorr.print_corr3_params()
 
 
+@timer
 def test_get():
     """Test getting a parameter from a config dict
     """
@@ -386,6 +394,7 @@ def test_get():
         treecorr.config.get_from_list(config1, 'flip_g1', 2, bool, False)
 
 
+@timer
 def test_merge():
     """Test merging two config dicts.
     """
@@ -432,6 +441,7 @@ def test_merge():
         treecorr.config.merge_config(config1, kwargs, treecorr.Catalog._valid_params)
 
 
+@timer
 def test_omp():
     """Test setting the number of omp threads.
     """
@@ -511,6 +521,7 @@ def test_omp():
         assert "OpenMP reports that it will use 1 threads" in cl.output
         assert "Unable to use multiple threads" in cl.output
 
+@timer
 def test_util():
     # Test some error handling in utility functions that shouldn't be possible to get to
     # in normal running, so we need to call things explicitly to get the coverage.

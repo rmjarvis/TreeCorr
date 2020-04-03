@@ -23,8 +23,9 @@ import pickle
 from numpy import pi
 import treecorr
 
-from test_helper import get_from_wiki, CaptureLog, assert_raises, do_pickle
+from test_helper import get_from_wiki, CaptureLog, assert_raises, do_pickle, timer
 
+@timer
 def test_ascii():
 
     nobj = 5000
@@ -401,6 +402,7 @@ def test_ascii():
     assert cat14a == cat14    # When needed, it will reload, e.g. here to check equality.
 
 
+@timer
 def test_fits():
     try:
         import fitsio
@@ -607,6 +609,7 @@ def test_fits():
     assert_raises(ValueError, treecorr.Catalog, file_name, config, every_nth=0)
     assert_raises(ValueError, treecorr.Catalog, file_name, config, every_nth=-10)
 
+@timer
 def test_direct():
 
     nobj = 5000
@@ -683,6 +686,7 @@ def test_direct():
     assert_raises(ValueError, treecorr.Catalog, x=[], y=[])
     assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=np.zeros_like(x))
 
+@timer
 def test_var():
     nobj = 5000
     rng = np.random.RandomState(8675309)
@@ -766,6 +770,7 @@ def test_var():
     assert cat.vark == 0
 
 
+@timer
 def test_nan():
     # Test handling of Nan values (w -> 0)
 
@@ -862,6 +867,7 @@ def test_nan():
     np.testing.assert_almost_equal(cat3.g2[good], g2[good])
     np.testing.assert_almost_equal(cat3.w[mask], 0)
 
+@timer
 def test_nan2():
     # This test is in response to issue #90.  Indeed it is largely the script that Joe helpfully
     # posted as a proof of the problem.
@@ -946,6 +952,7 @@ def test_nan2():
     np.testing.assert_allclose(cat1.vark, cat2.vark)
 
 
+@timer
 def test_contiguous():
     # This unit test comes from Melanie Simet who discovered a bug in earlier
     # versions of the code that the Catalog didn't correctly handle input arrays
@@ -1001,6 +1008,7 @@ def test_contiguous():
     np.testing.assert_equal(ng.xi, ng_float.xi)
 
 
+@timer
 def test_list():
     # Test different ways to read in a list of catalog names.
     # This is based on the bug report for Issue #10.
@@ -1071,6 +1079,7 @@ def test_list():
         np.testing.assert_almost_equal(cats[k].x, x_list[k])
         np.testing.assert_almost_equal(cats[k].y, y_list[k])
 
+@timer
 def test_write():
     # Test that writing a Catalog to a file and then reading it back in works correctly
     ngal = 20000
@@ -1161,6 +1170,7 @@ def test_write():
     assert cat2r_fits.g2 is None
     assert cat2r_fits.k is None
 
+@timer
 def test_field():
     # Test making various kinds of fields
     # Note: This is mostly just a coverage test to make sure there aren't any errors
@@ -1396,6 +1406,7 @@ def test_field():
     assert_raises(NotImplementedError, treecorr.SimpleField)
 
 
+@timer
 def test_lru():
     f = lambda x: x+1
     size = 10

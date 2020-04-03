@@ -18,14 +18,19 @@ import coord
 import time
 import treecorr
 
-from test_helper import assert_raises, do_pickle, profile
+from test_helper import assert_raises, do_pickle, profile, timer
 
+@timer
 def test_cat_patches():
     # Test the different ways to set patches in the catalog.
 
     # Use the same input as test_radec()
-    ngal = 10000
-    npatch = 128
+    if __name__ == '__main__':
+        ngal = 10000
+        npatch = 128
+    else:
+        ngal = 1000
+        npatch = 8
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
@@ -204,7 +209,7 @@ def test_cat_patches():
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch, patch=p2)
     # patch has to have same number of entries
     with assert_raises(ValueError):
-        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=p2[:1000])
+        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=p2[:17])
     # npatch=0 is not allowed
     with assert_raises(ValueError):
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=0)
@@ -240,14 +245,16 @@ def test_cat_patches():
         # file_name6 might not exist if skipped above because of fitsio missing.
         pass
 
+@timer
 def test_cat_centers():
     # Test writing patch centers and setting patches from centers.
 
     if __name__ == '__main__':
         ngal = 100000
+        npatch = 128
     else:
-        ngal = 10000
-    npatch = 128
+        ngal = 1000
+        npatch = 8
     s = 10.
 
     rng = np.random.RandomState(8675309)
@@ -484,6 +491,7 @@ def generate_shear_field(nside):
    return x, y, np.real(gamma), np.imag(gamma), kappa
 
 
+@timer
 def test_gg_jk():
     # Test the variance estimate for GG correlation with jackknife (and other) error estimate.
 
@@ -494,9 +502,9 @@ def test_gg_jk():
         tol_factor = 1
     else:
         # Use ~1/10 of the objects when running unit tests
-        nside = 300
-        npatch = 64
-        tol_factor = 4
+        nside = 200
+        npatch = 16
+        tol_factor = 8
 
     # The full simulation needs to run a lot of times to get a good estimate of the variance,
     # but this takes a long time.  So we store the results in the repo.
@@ -745,6 +753,7 @@ def test_gg_jk():
         treecorr.estimate_multi_cov([gg2, gg3],'bootstrap')
 
 
+@timer
 def test_ng_jk():
     # Test the variance estimate for NG correlation with jackknife error estimate.
 
@@ -757,10 +766,10 @@ def test_ng_jk():
     else:
         # If much smaller, then there can be no lenses in some patches, so only 1/4 the galaxies
         # and use more than half the number of patches
-        nside = 500
-        nlens = 30000
-        npatch = 32
-        tol_factor = 3
+        nside = 200
+        nlens = 3000
+        npatch = 8
+        tol_factor = 4
 
     file_name = 'data/test_ng_jk_{}.npz'.format(nside)
     print(file_name)
@@ -1028,6 +1037,7 @@ def test_ng_jk():
     with assert_raises(RuntimeError):
         ng7.process(cat1b,cat2a)
 
+@timer
 def test_nn_jk():
     # Test the variance estimate for NN correlation with jackknife error estimate.
 
@@ -1039,7 +1049,7 @@ def test_nn_jk():
         tol_factor = 1
     else:
         nside = 500
-        nlens = 20000
+        nlens = 500
         npatch = 8
         rand_factor = 20
         tol_factor = 4
@@ -1327,6 +1337,7 @@ def test_nn_jk():
         nn6.calculateXi(rr4, dr=nr6, rd=rn6)
 
 
+@timer
 def test_kappa_jk():
     # Test NK, KK, and KG with jackknife.
     # There's not really anything new to test here.  So just checking the interface works.
@@ -1337,9 +1348,9 @@ def test_kappa_jk():
         npatch = 64
         tol_factor = 1
     else:
-        nside = 500
-        nlens = 30000
-        npatch = 32
+        nside = 200
+        nlens = 2000
+        npatch = 8
         tol_factor = 3
 
     file_name = 'data/test_kappa_jk_{}.npz'.format(nside)
@@ -1446,15 +1457,6 @@ def test_kappa_jk():
     np.testing.assert_allclose(nk2.xi, nk.xi, rtol=0.02*tol_factor)
     np.testing.assert_allclose(nk2.varxi, var_nk_xi, rtol=0.3*tol_factor)
 
-    # Check using estimate_cov
-    t0 = time.time()
-    cov = nk2.estimate_cov('jackknife')
-    idx = np.where(np.abs(cov - nk.cov) > 3.e-6)
-    np.testing.assert_allclose(nk2.estimate_cov('jackknife'), nk.cov,
-                               rtol=0.4*tol_factor, atol=3.e-6*tol_factor)
-    t1 = time.time()
-    print('Time to calculate jackknife covariance = ',t1-t0)
-
     # Use a random catalog without patches
     rk3 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
     t0 = time.time()
@@ -1470,15 +1472,6 @@ def test_kappa_jk():
     np.testing.assert_allclose(nk3.weight, nk.weight, rtol=0.02*tol_factor)
     np.testing.assert_allclose(nk3.xi, nk.xi, rtol=0.02*tol_factor)
     np.testing.assert_allclose(nk3.varxi, var_nk_xi, rtol=0.4*tol_factor)
-
-    # Check using estimate_cov
-    t0 = time.time()
-    cov = nk2.estimate_cov('jackknife')
-    idx = np.where(np.abs(cov - nk.cov) > 3.e-6)
-    np.testing.assert_allclose(nk2.estimate_cov('jackknife'), nk.cov,
-                               rtol=0.4*tol_factor, atol=3.e-6*tol_factor)
-    t1 = time.time()
-    print('Time to calculate jackknife covariance = ',t1-t0)
 
     # KK
     # Smaller scales to capture the more local kappa correlations.
@@ -1549,6 +1542,7 @@ def test_kappa_jk():
     with assert_raises(RuntimeError):
         nk2.calculateXi(rk=rk2)
 
+@timer
 def test_save_patches():
     # Test the option to write the patches to disk
 
@@ -1558,8 +1552,12 @@ def test_save_patches():
         print('Save_patches feature requires fitsio')
         return
 
-    ngal = 10000
-    npatch = 128
+    if __name__ == '__main__':
+        ngal = 10000
+        npatch = 128
+    else:
+        ngal = 1000
+        npatch = 8
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
@@ -1630,6 +1628,7 @@ def test_save_patches():
         assert cat_i.loaded
         assert cat4.patches[i].loaded
 
+@timer
 def test_clusters():
     # The original version of J/K variance assumed that both catalogs had some items
     # in every patch.  But clusters can be very low density, so it can be very plausible
@@ -1637,18 +1636,26 @@ def test_clusters():
     # (Thanks to Ariel Amsellem and Judit Prat for pointing out this bug in the
     # original implementation.)
 
-    npatch = 128  # Only deterministic if power of 2
-    nlens = 400   # Average of 3.13 clusters per patch.  So ~4% should have zero clusters.
-    nsource = 50000
-    tol_factor = 1
+    if __name__ == '__main__':
+        npatch = 128  # Only deterministic if power of 2
+        nlens = 400   # Average of 3.13 clusters per patch.  So ~4% should have zero clusters.
+        nsource = 50000
+        size = 1000
+        tol_factor = 1
+    else:
+        npatch = 32
+        nlens = 60
+        nsource = 1000
+        size = 200
+        tol_factor = 3
     np.random.seed(1234)
     rng = np.random.RandomState(1234)
 
     def make_gals():
-        lens_x = rng.uniform(0,1000,nlens)
-        lens_y = rng.uniform(0,1000,nlens)
-        source_x = rng.uniform(0,1000,nsource)
-        source_y = rng.uniform(0,1000,nsource)
+        lens_x = rng.uniform(0,size,nlens)
+        lens_y = rng.uniform(0,size,nlens)
+        source_x = rng.uniform(0,size,nsource)
+        source_y = rng.uniform(0,size,nsource)
         m = rng.uniform(0.05,0.2,nlens)
 
         # SIS model: g = g0/r
@@ -1807,15 +1814,25 @@ def test_clusters():
     np.testing.assert_allclose(ng3b.varxi, var_xi, rtol=0.3*tol_factor)
 
 
+@timer
 def test_brute_jk():
     # With bin_slop = 0, the jackknife calculation from patches should match a
     # brute force calcaulation where we literally remove one patch at a time to make
     # the vectors.
-    nside = 100
-    nlens = 100
-    nsource = 5000
-    npatch = 16
-    rand_factor = 5
+    if __name__ == '__main__':
+        nside = 100
+        nlens = 100
+        nsource = 5000
+        npatch = 32
+        rand_factor = 5
+        tol_factor = 1
+    else:
+        nside = 100
+        nlens = 30
+        nsource = 500
+        npatch = 16
+        rand_factor = 5
+        tol_factor = 3
 
     np.random.seed(1234)
     x, y, g1, g2, k = generate_shear_field(nside)
@@ -1837,13 +1854,13 @@ def test_brute_jk():
     print('len = ',lens_cat.nobj, lens_cat.ntot)
     assert lens_cat.nobj == nlens
 
-    rand_source_cat = treecorr.Catalog(x=rng.uniform(0,1000,nsource),
-                                       y=rng.uniform(0,1000,nsource),
+    rand_source_cat = treecorr.Catalog(x=rng.uniform(0,1000,nsource*rand_factor),
+                                       y=rng.uniform(0,1000,nsource*rand_factor),
                                        patch_centers=source_cat.patch_centers)
     print('rand_source_cat patches = ',np.unique(rand_source_cat.patch))
     print('len = ',rand_source_cat.nobj, rand_source_cat.ntot)
-    rand_lens_cat = treecorr.Catalog(x=rng.uniform(0,1000,nsource),
-                                     y=rng.uniform(0,1000,nsource),
+    rand_lens_cat = treecorr.Catalog(x=rng.uniform(0,1000,nlens*rand_factor),
+                                     y=rng.uniform(0,1000,nlens*rand_factor),
                                      patch_centers=source_cat.patch_centers)
     print('rand_lens_cat patches = ',np.unique(rand_lens_cat.patch))
     print('len = ',rand_lens_cat.nobj, rand_lens_cat.ntot)
@@ -1877,7 +1894,7 @@ def test_brute_jk():
     # xi isn't exact because of the variation in denominators, which doesn't commute with the mean.
     # nk.xi is more accurate for the overall estimate of the correlation function.
     # The difference gets less as npatch increases.
-    np.testing.assert_allclose(nk.xi, xi, rtol=0.01)
+    np.testing.assert_allclose(nk.xi, xi, rtol=0.01 * tol_factor)
     np.testing.assert_allclose(nk.varxi, varxi)
 
     # Repeat with randoms.

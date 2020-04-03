@@ -17,9 +17,9 @@ import time
 import os
 import treecorr
 
-from test_helper import assert_raises
+from test_helper import assert_raises, timer
 
-
+@timer
 def test_direct_count():
     # This is essentially the same as test_nn.py:test_direct_count, but using periodic distances.
     # And the points are uniform in the box, so plenty of pairs crossing the edges.
@@ -122,6 +122,7 @@ def test_direct_count():
     with assert_raises(ValueError):
         rr.process(rcat1,rcat2)
 
+@timer
 def test_direct_3d():
     # This is the same as the above test, but using the 3d correlations
 
@@ -168,6 +169,7 @@ def test_direct_3d():
     np.testing.assert_array_equal(dd.npairs, true_npairs)
 
 
+@timer
 def test_periodic_ps():
     # Make a kappa field with a known power spectrum on a periodic grid.
     # This is heavily based on the GalSim PowerSpectrumRealizer class.
@@ -238,6 +240,7 @@ def test_periodic_ps():
     np.testing.assert_allclose(gg.xip, true_xip, rtol=0.15)
 
 
+@timer
 def test_halotools():
     try:
         import halotools
@@ -334,6 +337,7 @@ def wrap(x1, x2, xp, x3):
                 return x1, x2+xp
         else: return x1, x2
 
+@timer
 def test_3pt():
     # Test a direct calculation of the 3pt function with the Periodic metric.
 

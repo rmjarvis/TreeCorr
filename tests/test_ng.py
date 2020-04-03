@@ -18,9 +18,10 @@ import os
 import sys
 import coord
 
-from test_helper import get_script_name, do_pickle, CaptureLog, assert_raises
+from test_helper import get_script_name, do_pickle, CaptureLog, assert_raises, timer
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
 
+@timer
 def test_direct():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
     # This should exactly match the treecorr result if brute=True.
@@ -179,6 +180,7 @@ def test_direct():
 
 
 
+@timer
 def test_direct_spherical():
     # Repeat in spherical coords
 
@@ -297,6 +299,7 @@ def test_direct_spherical():
     np.testing.assert_allclose(ng.xi_im, true_xi.imag, atol=2.e-4)
 
 
+@timer
 def test_pairwise():
     # Test the pairwise option.
 
@@ -362,6 +365,7 @@ def test_pairwise():
     assert "for cats first, second" in cl.output
 
 
+@timer
 def test_single():
     # Use gamma_t(r) = gamma0 exp(-r^2/2r0^2) around a single lens
     # i.e. gamma(r) = -gamma0 exp(-r^2/2r0^2) (x+iy)^2/r^2
@@ -445,6 +449,7 @@ def test_single():
 
 
 
+@timer
 def test_pairwise2():
     # Test the same profile, but with the pairwise calcualtion:
     nsource = 300000
@@ -501,6 +506,7 @@ def test_pairwise2():
     np.testing.assert_allclose(corr2_output['gamX'], 0, atol=1.e-4)
 
 
+@timer
 def test_spherical():
     # This is the same profile we used for test_single, but put into spherical coords.
     # We do the spherical trig by hand using the obvious formulae, rather than the clever
@@ -631,6 +637,7 @@ def test_spherical():
     np.testing.assert_allclose(corr2_output['gamX'], 0., atol=3.e-5)
 
 
+@timer
 def test_ng():
     # Use gamma_t(r) = gamma0 exp(-r^2/2r0^2) around a bunch of foreground lenses.
     # i.e. gamma(r) = -gamma0 exp(-r^2/2r0^2) (x+iy)^2/r^2
@@ -768,6 +775,7 @@ def test_ng():
     assert ng2.bin_type == ng.bin_type
 
 
+@timer
 def test_nmap():
     # Same scenario as above.
     # Use gamma_t(r) = gamma0 exp(-r^2/2r0^2) around a bunch of foreground lenses.
@@ -990,6 +998,7 @@ def test_nmap():
         gg.calculateMapSq(m2_uform='Other')
 
 
+@timer
 def test_pieces():
     # Test that we can do the calculation in pieces and recombine the results
     try:
@@ -1147,6 +1156,7 @@ def test_pieces():
     np.testing.assert_allclose(data['sigma']**2, full_ng.varxi, rtol=1.e-7)
 
 
+@timer
 def test_haloellip():
     """This is similar to the Clampitt halo ellipticity measurement, but using counts for the
     background galaxies rather than shears.
@@ -1270,6 +1280,7 @@ def test_haloellip():
     print('expected signal = ',0.5 * halo_mean_gsq)
     np.testing.assert_allclose(ng.xi, -0.5 * halo_mean_gsq, rtol=0.05)
 
+@timer
 def test_varxi():
     # Test that varxi is correct (or close) based on actual variance of many runs.
 

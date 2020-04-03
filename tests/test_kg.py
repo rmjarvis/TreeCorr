@@ -17,8 +17,9 @@ import treecorr
 import os
 import coord
 
-from test_helper import get_script_name, do_pickle, CaptureLog, assert_raises
+from test_helper import get_script_name, do_pickle, CaptureLog, assert_raises, timer
 
+@timer
 def test_direct():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
     # This should exactly match the treecorr result if brute=True.
@@ -171,6 +172,7 @@ def test_direct():
     with assert_raises(ValueError):
         kg2 += kg6
 
+@timer
 def test_direct_spherical():
     # Repeat in spherical coords
 
@@ -287,6 +289,7 @@ def test_direct_spherical():
     np.testing.assert_allclose(kg.xi_im, true_xi.imag, rtol=1.e-3, atol=1.e-3)
 
 
+@timer
 def test_pairwise():
     # Test the pairwise option.
 
@@ -353,6 +356,7 @@ def test_pairwise():
     assert "for cats first, second" in cl.output
 
 
+@timer
 def test_single():
     # Use gamma_t(r) = gamma0 exp(-r^2/2r0^2) around a single lens
     # i.e. gamma(r) = -gamma0 exp(-r^2/2r0^2) (x+iy)^2/r^2
@@ -410,6 +414,7 @@ def test_single():
     np.testing.assert_allclose(corr2_output['kgamX'], 0., atol=1.e-4)
 
 
+@timer
 def test_pairwise2():
     # Test the same profile, but with the pairwise calcualtion:
     nsource = 100000
@@ -465,6 +470,7 @@ def test_pairwise2():
     np.testing.assert_allclose(corr2_output['kgamX'], 0., atol=1.e-4)
 
 
+@timer
 def test_kg():
     # Use gamma_t(r) = gamma0 exp(-r^2/2r0^2) around a bunch of foreground lenses.
     # i.e. gamma(r) = -gamma0 exp(-r^2/2r0^2) (x+iy)^2/r^2
@@ -564,6 +570,7 @@ def test_kg():
     assert kg2.bin_type == kg.bin_type
 
 
+@timer
 def test_varxi():
     # Test that varxi is correct (or close) based on actual variance of many runs.
 
@@ -617,6 +624,7 @@ def test_varxi():
     print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
     np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.02 * tol_factor)
 
+@timer
 def test_negw():
     # Test having some weights be < 0.
     # Daniel Gruen had a use case where some weights were negative, and it used to die

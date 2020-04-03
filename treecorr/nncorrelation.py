@@ -505,11 +505,16 @@ class NNCorrelation(treecorr.BinnedCorr2):
                                    rd.npatch1 not in (self.npatch1, 1)):
                 raise RuntimeError("RD must be run with the same patches as DD")
 
-            # If there are any rd,dr patch pairs that aren't in results (because dr is a cross
-            # correlation, and dd,rr may be auto-correlations), then we need to add some dummy
-            # results to make sure all the right pairs are computed when we make the vectors for
-            # the covariance matrix.
+            # If there are any rr,rd,dr patch pairs that aren't in results (because dr is a cross
+            # correlation, and dd,rr may be auto-correlations, or because the d catalogs has some
+            # patches with no items), then we need to add some dummy results to make sure all the
+            # right pairs are computed when we make the vectors for the covariance matrix.
             add_ij = set()
+            if rr.npatch1 != 1 and rr.npatch2 != 1:
+                for ij in rr.results:
+                    if ij not in self.results:
+                        add_ij.add(ij)
+
             if dr is not None and dr.npatch2 != 1:
                 for ij in dr.results:
                     if ij not in self.results:
@@ -525,6 +530,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
                 for ij in add_ij:
                     new_cij = template.copy()
                     new_cij.weight.ravel()[:] = 0
+                    new_cij.tot = 0
                     self.results[ij] = new_cij
 
         # Now that it's all set up, calculate the covariance and set varxi to the diagonal.

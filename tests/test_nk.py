@@ -18,8 +18,9 @@ import os
 import sys
 import coord
 
-from test_helper import get_script_name, do_pickle, CaptureLog, assert_raises
+from test_helper import get_script_name, do_pickle, CaptureLog, assert_raises, timer
 
+@timer
 def test_direct():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
     # This should exactly match the treecorr result if brute force.
@@ -167,6 +168,7 @@ def test_direct():
     np.testing.assert_allclose(nk4.xi, nk.xi)
 
 
+@timer
 def test_direct_spherical():
     # Repeat in spherical coords
 
@@ -277,6 +279,7 @@ def test_direct_spherical():
     np.testing.assert_allclose(nk.xi, true_xi, rtol=1.e-3, atol=1.e-6)
 
 
+@timer
 def test_pairwise():
     # Test the pairwise option.
 
@@ -339,6 +342,7 @@ def test_pairwise():
     assert "for cats first, second" in cl.output
 
 
+@timer
 def test_single():
     # Use kappa(r) = kappa0 exp(-r^2/2r0^2) (1-r^2/2r0^2) around a single lens
 
@@ -396,6 +400,7 @@ def test_single():
     np.testing.assert_allclose(corr2_output['kappa'], nk.xi, rtol=1.e-3)
 
 
+@timer
 def test_nk():
     # Use kappa(r) = kappa0 exp(-r^2/2r0^2) (1-r^2/2r0^2) around many lenses.
 
@@ -524,6 +529,7 @@ def test_nk():
     assert nk2.bin_type == nk.bin_type
 
 
+@timer
 def test_varxi():
     # Test that varxi is correct (or close) based on actual variance of many runs.
 

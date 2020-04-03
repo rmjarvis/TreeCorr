@@ -17,8 +17,9 @@ import treecorr
 import os
 import coord
 
-from test_helper import get_script_name, do_pickle, assert_raises, CaptureLog
+from test_helper import get_script_name, do_pickle, assert_raises, CaptureLog, timer
 
+@timer
 def test_log_binning():
     import math
     # Test some basic properties of the base class
@@ -524,6 +525,7 @@ def is_ccw(x1,y1, x2,y2, x3,y3):
     return x2*y3-x3*y2 > 0.
 
 
+@timer
 def test_direct_count_auto():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
@@ -875,6 +877,7 @@ def test_direct_count_auto():
     np.testing.assert_allclose(ddd15.meanv, ddd.meanv)
 
 
+@timer
 def test_direct_count_cross():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if brute=True
@@ -1051,6 +1054,7 @@ def test_direct_count_cross():
     config['file_name2'] = 'data/nnn_direct_cross_data2.dat'
     config['rand_file_name2'] = 'data/nnn_direct_cross_rand2.dat'
 
+@timer
 def test_direct_spherical():
     # Repeat in spherical coords
 
@@ -1152,6 +1156,7 @@ def test_direct_spherical():
     np.testing.assert_allclose(ddd.weight, true_weight, rtol=1.e-5, atol=1.e-8)
 
 
+@timer
 def test_direct_arc():
     # Repeat the spherical test with metric='Arc'
 
@@ -1257,6 +1262,7 @@ def test_direct_arc():
     np.testing.assert_allclose(ddd.weight, true_weight, rtol=1.e-5, atol=1.e-8)
 
 
+@timer
 def test_direct_partial():
     # Test the two ways to only use parts of a catalog:
 
@@ -1368,6 +1374,7 @@ def is_ccw_3d(x1,y1,z1, x2,y2,z2, x3,y3,z3):
     # ccw if the cross product is in the opposite direction of (x1,y1,z1) from (0,0,0)
     return x*x1 + y*y1 + z*z1 < 0.
 
+@timer
 def test_direct_3d_auto():
     # This is the same as the above test, but using the 3d correlations
 
@@ -1494,6 +1501,7 @@ def test_direct_3d_auto():
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
 
+@timer
 def test_direct_3d_cross():
     # This is the same as the above test, but using the 3d correlations
 
@@ -1612,6 +1620,7 @@ def test_direct_3d_cross():
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
 
+@timer
 def test_nnn():
     # Use a simple probability distribution for the galaxies:
     #
@@ -2009,6 +2018,7 @@ def test_nnn():
 
 
 
+@timer
 def test_3d():
     # For this one, build a Gaussian cloud around some random point in 3D space and do the
     # correlation function in 3D.
@@ -2134,6 +2144,7 @@ def test_3d():
                                   atol=0.1*tol_factor)
 
 
+@timer
 def test_list():
     # Test that we can use a list of files for either data or rand or both.
     data_cats = []

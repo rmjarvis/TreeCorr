@@ -20,8 +20,9 @@ import time
 import shutil
 import sys
 
-from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog, assert_raises
+from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog, assert_raises, timer
 
+@timer
 def test_nn_direct_rperp():
     # This is the same as test_nn.py:test_direct_3d, but using the perpendicular distance metric
 
@@ -82,6 +83,7 @@ def test_nn_direct_rperp():
     np.testing.assert_array_equal(dd.npairs, true_npairs)
 
 
+@timer
 def test_nn_direct_oldrperp():
     # This is the same as the above test, but using the old perpendicular distance metric
 
@@ -144,6 +146,7 @@ def test_nn_direct_oldrperp():
     np.testing.assert_array_equal(dd.npairs, true_npairs)
 
 
+@timer
 def test_nn_direct_rlens():
     # This is the same as the above test, but using the Rlens distance metric
 
@@ -211,6 +214,7 @@ def test_nn_direct_rlens():
     np.testing.assert_array_equal(dd.npairs, true_npairs)
 
 
+@timer
 def test_rperp_minmax():
     """This test is based on a bug report from Erika Wagoner where the lowest bins were
     getting spuriously high w(rp) values.  It stemmed from a subtlety about how large
@@ -308,6 +312,7 @@ def test_rperp_minmax():
     np.testing.assert_allclose(dd1.npairs, dd2.npairs[2:-2], rtol=1.e-6)
 
 
+@timer
 def test_ng_rlens():
     # Same test_ng.py:test_ng, except use R_lens for separation.
     # Use gamma_t(r) = gamma0 exp(-R^2/2R0^2) around a bunch of foreground lenses.
@@ -484,6 +489,7 @@ def test_ng_rlens():
     np.testing.assert_allclose(ng1s.xi_im, 0, atol=1.e-5)
 
 
+@timer
 def test_ng_rlens_bkg():
     # Same as above, except limit the sources to be in the background of the lens.
 
@@ -704,6 +710,7 @@ def test_ng_rlens_bkg():
     np.testing.assert_allclose(ng3.xi_im, 0, atol=1.e-3)
 
 
+@timer
 def test_ng_rperp():
     # This test stems from a bug report by Eske Pedersen, which had been giving seg faults
     # with version 4.0.2.  So the main test here is that it doesn't give a seg fault.
@@ -751,6 +758,7 @@ def test_ng_rperp():
     np.testing.assert_allclose(ng.xi, true_xi, rtol=1.e-3)
 
 
+@timer
 def test_gg_rlens():
     # Similar to test_ng_rlens, but we give the lenses a shape and do a GG correlation.
     # Use gamma_t(r) = gamma0 exp(-R^2/2R0^2) around a bunch of foreground lenses.
@@ -1056,6 +1064,7 @@ def test_gg_rlens():
     assert max(abs(ggs2.xim_im)) < 7.e-6
 
 
+@timer
 def test_gg_rperp():
     # Same as above, but using Rperp.
 
@@ -1251,6 +1260,7 @@ def test_gg_rperp():
     np.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
 
 
+@timer
 def test_gg_rperp_local():
     # Same as above, but using min_rpar, max_rpar to get local (intrinsic alignment) correlations.
 
@@ -1480,6 +1490,7 @@ def test_gg_rperp_local():
     with assert_raises(ValueError):
         gg3.process(lens_cat, source_cat)
 
+@timer
 def test_gg_oldrperp():
     # Same as above, but using OldRperp.
 
@@ -1673,6 +1684,7 @@ def test_gg_oldrperp():
     np.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
 
 
+@timer
 def test_gg_oldrperp_local():
     # Same as above, but using min_rpar, max_rpar to get local (intrinsic alignment) correlations.
 
@@ -1889,6 +1901,7 @@ def test_gg_oldrperp_local():
     np.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
 
 
+@timer
 def test_symmetric():
     """Test that RPerp is symmetric in rpar values around 0.
 

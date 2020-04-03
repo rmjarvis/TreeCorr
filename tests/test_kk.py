@@ -17,8 +17,9 @@ import treecorr
 import os
 import coord
 
-from test_helper import get_script_name, do_pickle, CaptureLog, assert_raises
+from test_helper import get_script_name, do_pickle, CaptureLog, assert_raises, timer
 
+@timer
 def test_direct():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
     # This should exactly match the treecorr result if brute force.
@@ -158,6 +159,7 @@ def test_direct():
         kk2 += kk6
 
 
+@timer
 def test_direct_spherical():
     # Repeat in spherical coords
 
@@ -262,6 +264,7 @@ def test_direct_spherical():
     np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-3, atol=1.e-6)
 
 
+@timer
 def test_pairwise():
     # Test the pairwise option.
 
@@ -326,6 +329,7 @@ def test_pairwise():
     assert "for cats first, second" in cl.output
 
 
+@timer
 def test_constant():
     # A fairly trivial test is to use a constant value of kappa everywhere.
 
@@ -351,6 +355,7 @@ def test_constant():
     np.testing.assert_allclose(kk.xi, A**2, rtol=1.e-3)
 
 
+@timer
 def test_kk():
     # cf. http://adsabs.harvard.edu/abs/2002A%26A...389..729S for the basic formulae I use here.
     #
@@ -450,6 +455,7 @@ def test_kk():
     assert kk2.sep_units == kk.sep_units
     assert kk2.bin_type == kk.bin_type
 
+@timer
 def test_large_scale():
     # Test very large scales, comparing Arc, Euclidean (spherical), and Euclidean (3d)
 
@@ -555,6 +561,7 @@ def test_large_scale():
     print('max = ',np.max(np.abs((kk_sphere.xi-interp_euclid))))
     np.testing.assert_allclose(kk_sphere.xi, interp_euclid, atol=1.e-3*tol)
 
+@timer
 def test_varxi():
     # Test that varxi is correct (or close) based on actual variance of many runs.
 

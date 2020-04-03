@@ -92,20 +92,12 @@ of these vectors, scaled by the relative total weight in each patch.
 
 .. math::
 
-    C = \frac{\bar w_i}{\sum_i w_i - \frac{\sum_i w_i^2}{\sum_i w_i}} \sum_i w_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)
+    C = \frac{1}{N_\mathrm{patch} - 1} \sum_i w_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)
 
 For :math:`w_i`, we use the total weight in the correlation measurement for each patch
 divided by the total weight in all patches.  This is roughly equal to
 :math:`1/N_\mathrm{patch}` but captures somewhat any patch-to-patch variation in area
 that might be present.
-
-.. note::
-
-    If all the patches are equal weight, the above equation reduces to:
-
-    .. math::
-
-        C = \frac{1}{N_\mathrm{patch} (N_\mathrm{patch} - 1)} \sum_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)
 
 
 "bootstrap2"

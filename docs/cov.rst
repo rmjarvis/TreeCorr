@@ -100,8 +100,8 @@ divided by the total weight in all patches.  This is roughly equal to
 that might be present.
 
 
-"bootstrap2"
-^^^^^^^^^^^^
+"bootstrap"
+^^^^^^^^^^^
 
 This estimate implements a bootstrap resampling of the patches as follows:
 

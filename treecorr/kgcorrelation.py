@@ -91,23 +91,24 @@ class KGCorrelation(treecorr.BinnedCorr2):
         self.meanlogr = np.zeros_like(self.rnom, dtype=float)
         self.weight = np.zeros_like(self.rnom, dtype=float)
         self.npairs = np.zeros_like(self.rnom, dtype=float)
-        self._build_corr()
         self.logger.debug('Finished building KGCorr')
 
-    def _build_corr(self):
-        from treecorr.util import double_ptr as dp
-        self.corr = treecorr._lib.BuildCorr2(
-                self._d1, self._d2, self._bintype,
-                self._min_sep,self._max_sep,self._nbins,self._bin_size,self.b,
-                self.min_rpar, self.max_rpar, self.xperiod, self.yperiod, self.zperiod,
-                dp(self.xi),dp(self.xi_im), dp(None), dp(None),
-                dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
+    @property
+    def corr(self):
+        if not hasattr(self, '_corr'):
+            from treecorr.util import double_ptr as dp
+            self._corr = treecorr._lib.BuildCorr2(
+                    self._d1, self._d2, self._bintype,
+                    self._min_sep,self._max_sep,self._nbins,self._bin_size,self.b,
+                    self.min_rpar, self.max_rpar, self.xperiod, self.yperiod, self.zperiod,
+                    dp(self.xi),dp(self.xi_im), dp(None), dp(None),
+                    dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
+        return self._corr
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
-        # In case __init__ failed to get that far
-        if hasattr(self,'corr'):  # pragma: no branch
+        if hasattr(self, '_corr'):
             if not treecorr._ffi._lock.locked(): # pragma: no branch
                 treecorr._lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
 
@@ -142,13 +143,12 @@ class KGCorrelation(treecorr.BinnedCorr2):
 
     def __getstate__(self):
         d = self.__dict__.copy()
-        del d['corr']
-        del d['logger']  # Oh well.  This is just lost in the copy.  Can't be pickled.
+        d.pop('_corr',None)
+        d.pop('logger',None)  # Oh well.  This is just lost in the copy.  Can't be pickled.
         return d
 
     def __setstate__(self, d):
         self.__dict__ = d
-        self._build_corr()
         self.logger = treecorr.config.setup_logger(
                 treecorr.config.get(self.config,'verbose',int,1),
                 self.config.get('log_file',None))
@@ -414,6 +414,3 @@ class KGCorrelation(treecorr.BinnedCorr2):
         self.metric = params['metric'].strip()
         self.sep_units = params['sep_units'].strip()
         self.bin_type = params['bin_type'].strip()
-        self._build_corr()
-
-

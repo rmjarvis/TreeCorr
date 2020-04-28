@@ -45,6 +45,11 @@ def test_count_near():
     cat = treecorr.Catalog(x=x, y=y, w=w, g1=w, g2=w, k=w, keep_zero_weight=True)
     field = cat.getNField()
 
+    # The count_near code is only faster if the tree has been built.
+    # Which is deferred until the first time you need it.
+    # The simplest way to trigger the build is to ask for ntop
+    field.nTopLevelNodes
+
     t0 = time.time()
     n1 = np.sum((x-x0)**2 + (y-y0)**2 < sep**2)
     t1 = time.time()
@@ -80,6 +85,7 @@ def test_count_near():
     cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='deg', dec_units='deg',
                            w=w, g1=w, g2=w, k=w, keep_zero_weight=True)
     field = cat.getNField()
+    field.nTopLevelNodes
 
     t0 = time.time()
     n1 = np.sum((x-x0)**2 + (y-y0)**2 + (z-z0)**2 < sep**2)
@@ -128,6 +134,7 @@ def test_count_near():
     cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='deg', dec_units='deg',
                            w=w, g1=w, g2=w, k=w, keep_zero_weight=True)
     field = cat.getNField()
+    field.nTopLevelNodes
 
     x /= r
     y /= r
@@ -203,6 +210,7 @@ def test_get_near():
 
     cat = treecorr.Catalog(x=x, y=y, w=w, g1=w, g2=w, k=w, keep_zero_weight=True)
     field = cat.getNField()
+    field.nTopLevelNodes
 
     t0 = time.time()
     i1 = np.where(((x-x0)**2 + (y-y0)**2 < sep**2))[0]
@@ -248,6 +256,7 @@ def test_get_near():
     cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='deg', dec_units='deg',
                            w=w, g1=w, g2=w, k=w, keep_zero_weight=True)
     field = cat.getNField()
+    field.nTopLevelNodes
 
     t0 = time.time()
     i1 = np.where(((x-x0)**2 + (y-y0)**2 + (z-z0)**2 < sep**2))[0]
@@ -329,6 +338,7 @@ def test_get_near():
     cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='deg', dec_units='deg',
                            w=w, g1=w, g2=w, k=w, keep_zero_weight=True)
     field = cat.getNField()
+    field.nTopLevelNodes
 
     x /= r
     y /= r

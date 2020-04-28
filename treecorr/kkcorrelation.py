@@ -344,7 +344,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         return self
 
 
-    def process(self, cat1, cat2=None, metric=None, num_threads=None):
+    def process(self, cat1, cat2=None, metric=None, num_threads=None, low_mem=False):
         """Compute the correlation function.
 
         If only 1 argument is given, then compute an auto-correlation function.
@@ -363,6 +363,8 @@ class KKCorrelation(treecorr.BinnedCorr2):
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
+            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
+                                This only works if using patches. (default: False)
         """
         import math
         self.clear()
@@ -379,13 +381,13 @@ class KKCorrelation(treecorr.BinnedCorr2):
             vark1 = treecorr.calculateVarK(cat1)
             vark2 = vark1
             self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
-            self._process_all_auto(cat1,metric,num_threads)
+            self._process_all_auto(cat1, metric, num_threads, low_mem)
         else:
             vark1 = treecorr.calculateVarK(cat1)
             vark2 = treecorr.calculateVarK(cat2)
             self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
             self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
-            self._process_all_cross(cat1,cat2,metric,num_threads)
+            self._process_all_cross(cat1, cat2, metric, num_threads, low_mem)
         self.finalize(vark1,vark2)
 
 

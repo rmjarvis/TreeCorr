@@ -447,7 +447,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
             self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
             self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
             self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
-            self._process_all_cross(cat1,cat2,cat3, metric, num_threads)
+            self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
         self.finalize(vark1,vark2,vark3)
 
 

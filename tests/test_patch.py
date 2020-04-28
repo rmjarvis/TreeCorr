@@ -2122,6 +2122,101 @@ def test_brute_jk():
     print('direct jackknife varxi = ',varxi)
     np.testing.assert_allclose(dd.varxi, varxi)
 
+@timer
+def test_lowmem():
+    # Test using patches to keep the memory usage lower.
+
+    try:
+        import fitsio
+        import guppy
+    except ImportError:
+        print('test_lowmem requires fitsio and guppy')
+        return
+
+    if __name__ == '__main__':
+        ngal = 2000000
+        npatch = 128
+        himem = 1.e8
+        lomem = 5.e6
+    else:
+        ngal = 100000
+        npatch = 16
+        himem = 4.e6
+        lomem = 4.e5
+    s = 10.
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) ) + 100  # Put everything at large y, so smallish angle on sky
+    z = rng.normal(0,s, (ngal,) )
+    ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
+
+    file_name = os.path.join('output','test_lowmem.fits')
+    orig_cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad')
+    orig_cat.write(file_name)
+    del orig_cat
+
+    hp = guppy.hpy()
+    hp.setrelheap()
+    print('0: ',hp.heap().size)
+
+    partial_cat = treecorr.Catalog(file_name, every_nth=100,
+                                   ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                                   npatch=npatch)
+    print('1: ',hp.heap().size)
+
+    patch_centers = partial_cat.patch_centers
+    del partial_cat
+    print('2: ',hp.heap().size)
+
+    full_cat = treecorr.Catalog(file_name,
+                                ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                                patch_centers=patch_centers, save_patch_dir='output')
+    print('3: ',hp.heap().size)
+
+    dd = treecorr.NNCorrelation(bin_size=0.5, min_sep=10., max_sep=300., sep_units='arcmin')
+    print('4: ',hp.heap().size)
+    #print(hp.heap())
+
+    t0 = time.time()
+    s0 = hp.heap().size
+    dd.process(full_cat)
+    t1 = time.time()
+    s1 = hp.heap().size
+    print('5: ',hp.heap().size, t1-t0, s1-s0)
+    #print(hp.heap())
+    #print(hp.heap().byrcs)
+    assert s1-s0 > himem  # This version uses a lot of memory.
+
+    npairs1 = dd.npairs
+    print('npairs = ',npairs1)
+
+    full_cat.unload()
+    dd.clear()
+    print('6: ',hp.heap().size)
+    #print(hp.heap())
+    #print(hp.heap()[0].byrcs)
+    #print(hp.heap()[0].byrcs[0].byvia)
+
+    t0 = time.time()
+    s0 = hp.heap().size
+    with profile():
+        dd.process(full_cat, low_mem=True)
+    t1 = time.time()
+    s1 = hp.heap().size
+    print('7: ',hp.heap().size, t1-t0, s1-s0)
+    print(hp.heap())
+    print(hp.heap()[0].byrcs)
+    print(hp.heap()[0].byrcs[0].byvia)
+    assert s1-s0 < lomem  # This version uses a lot less memory
+    #print('dict = ',dd.__dict__)
+
+    npairs2 = dd.npairs
+    print('npairs = ',npairs2)
+    np.testing.assert_array_equal(npairs1, npairs2)
+
+    # TODO: Add tests of lowmem cross processing.  And other Correlation types.
+
+
 if __name__ == '__main__':
     test_cat_patches()
     test_cat_centers()
@@ -2132,3 +2227,4 @@ if __name__ == '__main__':
     test_save_patches()
     test_clusters()
     test_brute_jk()
+    test_lowmem()

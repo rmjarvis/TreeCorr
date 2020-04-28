@@ -426,7 +426,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
             raise NotImplementedError("No partial cross NNN yet.")
         else:
             assert cat2 is not None and cat3 is not None
-            self._process_all_cross(cat1,cat2,cat3, metric, num_threads)
+            self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
         self.finalize()
 
     def calculateZeta(self, rrr, drr=None, rdr=None, rrd=None,

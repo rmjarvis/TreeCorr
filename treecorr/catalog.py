@@ -2031,8 +2031,7 @@ class Catalog(object):
                 if 'ra' in col_names:
                     kwargs['ra_units'] = 'rad'
                     kwargs['dec_units'] = 'rad'
-                self._patches = [Catalog(file_name=file_names[i],
-                                         patch=i, patch_centers=self._centers, **kwargs)
+                self._patches = [Catalog(file_name=file_names[i], patch=i, **kwargs)
                                  for i in range(len(file_names))]
 
         return self._patches

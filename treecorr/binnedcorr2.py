@@ -452,9 +452,16 @@ class BinnedCorr2(object):
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
         self.npatch1 = self.npatch2 = 1
 
-    def _add_tot(self, i, j, other):
+    def _add_tot(self, i, j, c1, c2):
         # No op for all but NNCorrelation, which needs to add the tot value
         pass
+
+    def _trivially_zero(self, c1, c2, metric):
+        # For now, ignore the metric.  Just be conservative about how much space we need.
+        x1,y1,z1,s1 = c1._get_center_size()
+        x2,y2,z2,s2 = c2._get_center_size()
+        d = ((x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2)**0.5
+        return (d > s1 + s2 + 2*self._max_sep)  # The 2* is where we are being conservative.
 
     def _process_all_auto(self, cat1, metric, num_threads, low_mem):
         if len(cat1) == 1:
@@ -475,14 +482,18 @@ class BinnedCorr2(object):
                     j = c2.patch if c2.patch is not None else jj
                     if i < j:
                         temp.clear()
-                        self.logger.info('Process patches %d,%d cross',i,j)
-                        temp.process_cross(c1,c2,metric,num_threads)
+                        if not self._trivially_zero(c1,c2,metric):
+                            self.logger.info('Process patches %d,%d cross',i,j)
+                            temp.process_cross(c1,c2,metric,num_threads)
+                        else:
+                            self.logger.info('Skipping patches %d,%d cross, ' +
+                                             'which are too far apart',i,j)
                         if np.sum(temp.npairs) > 0:
                             self.results[(i,j)] = temp._copy_for_results()
                             self += temp
                         else:
                             # NNCorrelation needs to add the tot value
-                            self._add_tot(i, j, temp)
+                            self._add_tot(i, j, c1, c2)
                         if low_mem and jj != ii+1:
                             # Don't unload i+1, since that's the next one we'll need.
                             c2.unload()
@@ -520,7 +531,7 @@ class BinnedCorr2(object):
                         self += temp
                     else:
                         # NNCorrelation needs to add the tot value
-                        self._add_tot(i, j, temp)
+                        self._add_tot(i, j, c1, c2)
                     if low_mem:
                         c2.unload()
                 if low_mem:

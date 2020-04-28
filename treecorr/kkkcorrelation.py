@@ -114,28 +114,29 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         self.meanv = np.zeros(shape, dtype=float)
         self.weight = np.zeros(shape, dtype=float)
         self.ntri = np.zeros(shape, dtype=float)
-        self._build_corr()
         self.logger.debug('Finished building KKKCorr')
 
-    def _build_corr(self):
-        from treecorr.util import double_ptr as dp
-        self.corr = treecorr._lib.BuildCorr3(
-                self._d1, self._d2, self._d3, self._bintype,
-                self._min_sep,self._max_sep,self.nbins,self._bin_size,self.b,
-                self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
-                self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
-                self.min_rpar, self.max_rpar, self.xperiod, self.yperiod, self.zperiod,
-                dp(self.zeta), dp(None), dp(None), dp(None),
-                dp(None), dp(None), dp(None), dp(None),
-                dp(self.meand1), dp(self.meanlogd1), dp(self.meand2), dp(self.meanlogd2),
-                dp(self.meand3), dp(self.meanlogd3), dp(self.meanu), dp(self.meanv),
-                dp(self.weight), dp(self.ntri));
+    @property
+    def corr(self):
+        if not hasattr(self, '_corr'):
+            from treecorr.util import double_ptr as dp
+            self._corr = treecorr._lib.BuildCorr3(
+                    self._d1, self._d2, self._d3, self._bintype,
+                    self._min_sep,self._max_sep,self.nbins,self._bin_size,self.b,
+                    self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
+                    self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
+                    self.min_rpar, self.max_rpar, self.xperiod, self.yperiod, self.zperiod,
+                    dp(self.zeta), dp(None), dp(None), dp(None),
+                    dp(None), dp(None), dp(None), dp(None),
+                    dp(self.meand1), dp(self.meanlogd1), dp(self.meand2), dp(self.meanlogd2),
+                    dp(self.meand3), dp(self.meanlogd3), dp(self.meanu), dp(self.meanv),
+                    dp(self.weight), dp(self.ntri));
+        return self._corr
 
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
-        # In case __init__ failed to get that far
-        if hasattr(self,'corr'):  # pragma: no branch
+        if hasattr(self, '_corr'):
             if not treecorr._ffi._lock.locked(): # pragma: no branch
                 treecorr._lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3, self._bintype)
 
@@ -184,13 +185,12 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
     def __getstate__(self):
         d = self.__dict__.copy()
-        del d['corr']
-        del d['logger']  # Oh well.  This is just lost in the copy.  Can't be pickled.
+        d.pop('_corr',None)
+        d.pop('logger',None)  # Oh well.  This is just lost in the copy.  Can't be pickled.
         return d
 
     def __setstate__(self, d):
         self.__dict__ = d
-        self._build_corr()
         self.logger = treecorr.config.setup_logger(
                 treecorr.config.get(self.config,'verbose',int,1),
                 self.config.get('log_file',None))
@@ -551,6 +551,3 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         self.metric = params['metric'].strip()
         self.sep_units = params['sep_units'].strip()
         self.bin_type = params['bin_type'].strip()
-        self._build_corr()
-
-

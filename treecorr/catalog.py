@@ -463,7 +463,7 @@ class Catalog(object):
         self._g2 = None
         self._k = None
         self._patch = None
-        self._setup_fields()
+        self._field = lambda : None
 
         self._nontrivial_w = None
         self._single_patch = None
@@ -1476,25 +1476,49 @@ class Catalog(object):
                     self._k = fits[k_hdu][k_col][s].astype(float)
                     self.logger.debug('read k = %s',str(self._k))
 
-    def _setup_fields(self):
-        self._field = lambda : None  # Acts like a dead weakref
+    @property
+    def nfields(self):
+        if not hasattr(self, '_nfields'):
+            # Make simple functions that call NField, etc. with self as the first argument.
+            def get_nfield(*args, **kwargs): return treecorr.NField(self, *args, **kwargs)
+            # Now wrap these in LRU_Caches with (initially) just 1 element being cached.
+            self._nfields = treecorr.util.LRU_Cache(get_nfield, 1)
+        return self._nfields
 
-        # Make simple functions that call NField, etc. with self as the first argument.
+    @property
+    def kfields(self):
+        if not hasattr(self, '_kfields'):
+            def get_kfield(*args, **kwargs): return treecorr.KField(self, *args, **kwargs)
+            self._kfields = treecorr.util.LRU_Cache(get_kfield, 1)
+        return self._kfields
 
-        def get_nfield(*args, **kwargs): return treecorr.NField(self, *args, **kwargs)
-        def get_kfield(*args, **kwargs): return treecorr.KField(self, *args, **kwargs)
-        def get_gfield(*args, **kwargs): return treecorr.GField(self, *args, **kwargs)
-        def get_nsimplefield(*args, **kwargs): return treecorr.NSimpleField(self, *args, **kwargs)
-        def get_ksimplefield(*args, **kwargs): return treecorr.KSimpleField(self, *args, **kwargs)
-        def get_gsimplefield(*args, **kwargs): return treecorr.GSimpleField(self, *args, **kwargs)
+    @property
+    def gfields(self):
+        if not hasattr(self, '_gfields'):
+            def get_gfield(*args, **kwargs): return treecorr.GField(self, *args, **kwargs)
+            self._gfields = treecorr.util.LRU_Cache(get_gfield, 1)
+        return self._gfields
 
-        # Now wrap these in LRU_Caches with (initially) just 1 element being cached.
-        self.nfields = treecorr.util.LRU_Cache(get_nfield, 1)
-        self.kfields = treecorr.util.LRU_Cache(get_kfield, 1)
-        self.gfields = treecorr.util.LRU_Cache(get_gfield, 1)
-        self.nsimplefields = treecorr.util.LRU_Cache(get_nsimplefield, 1)
-        self.ksimplefields = treecorr.util.LRU_Cache(get_ksimplefield, 1)
-        self.gsimplefields = treecorr.util.LRU_Cache(get_gsimplefield, 1)
+    @property
+    def nsimplefields(self):
+        if not hasattr(self, '_nsimplefields'):
+            def get_nsimplefield(*args,**kwargs): return treecorr.NSimpleField(self,*args,**kwargs)
+            self._nsimplefields = treecorr.util.LRU_Cache(get_nsimplefield, 1)
+        return self._nsimplefields
+
+    @property
+    def ksimplefields(self):
+        if not hasattr(self, '_ksimplefields'):
+            def get_ksimplefield(*args,**kwargs): return treecorr.KSimpleField(self,*args,**kwargs)
+            self._ksimplefields = treecorr.util.LRU_Cache(get_ksimplefield, 1)
+        return self._ksimplefields
+
+    @property
+    def gsimplefields(self):
+        if not hasattr(self, '_gsimplefields'):
+            def get_gsimplefield(*args,**kwargs): return treecorr.GSimpleField(self,*args,**kwargs)
+            self._gsimplefields = treecorr.util.LRU_Cache(get_gsimplefield, 1)
+        return self._gsimplefields
 
     def resize_cache(self, maxsize):
         """Resize all field caches.
@@ -1543,13 +1567,12 @@ class Catalog(object):
         Parameters:
             maxsize (float):    The new maximum number of fields of each type to cache.
         """
-        self.nfields.resize(maxsize)
-        self.kfields.resize(maxsize)
-        self.gfields.resize(maxsize)
-        self.nsimplefields.resize(maxsize)
-        self.ksimplefields.resize(maxsize)
-        self.gsimplefields.resize(maxsize)
-
+        if hasattr(self, '_nfields'): self.nfields.resize(maxsize)
+        if hasattr(self, '_kfields'): self.kfields.resize(maxsize)
+        if hasattr(self, '_gfields'): self.gfields.resize(maxsize)
+        if hasattr(self, '_nsimplefields'): self.nsimplefields.resize(maxsize)
+        if hasattr(self, '_ksimplefields'): self.ksimplefields.resize(maxsize)
+        if hasattr(self, '_gsimplefields'): self.gsimplefields.resize(maxsize)
 
     def clear_cache(self):
         """Clear all field caches.
@@ -1580,12 +1603,12 @@ class Catalog(object):
             >>> cat.ksimplefields.clear()
             >>> cat.gsimplefields.clear()
         """
-        self.nfields.clear()
-        self.kfields.clear()
-        self.gfields.clear()
-        self.nsimplefields.clear()
-        self.ksimplefields.clear()
-        self.gsimplefields.clear()
+        if hasattr(self, '_nfields'): self.nfields.clear()
+        if hasattr(self, '_kfields'): self.kfields.clear()
+        if hasattr(self, '_gfields'): self.gfields.clear()
+        if hasattr(self, '_nsimplefields'): self.nsimplefields.clear()
+        if hasattr(self, '_ksimplefields'): self.ksimplefields.clear()
+        if hasattr(self, '_gsimplefields'): self.gsimplefields.clear()
         self._field = lambda : None  # Acts like a dead weakref
 
     @property
@@ -2108,14 +2131,14 @@ class Catalog(object):
 
     def __getstate__(self):
         d = self.__dict__.copy()
-        del d['logger']  # Oh well.  This is just lost in the copy.  Can't be pickled.
-        del d['_field']
-        del d['nfields']
-        del d['kfields']
-        del d['gfields']
-        del d['nsimplefields']
-        del d['ksimplefields']
-        del d['gsimplefields']
+        d.pop('logger',None)  # Oh well.  This is just lost in the copy.  Can't be pickled.
+        d.pop('_field',None)
+        d.pop('_nfields',None)
+        d.pop('_kfields',None)
+        d.pop('_gfields',None)
+        d.pop('_nsimplefields',None)
+        d.pop('_ksimplefields',None)
+        d.pop('_gsimplefields',None)
         return d
 
     def __setstate__(self, d):
@@ -2123,7 +2146,7 @@ class Catalog(object):
         self.logger = treecorr.config.setup_logger(
                 treecorr.config.get(self.config,'verbose',int,1),
                 self.config.get('log_file',None))
-        self._setup_fields()
+        self._field = lambda : None
 
     def __repr__(self):
         s = 'treecorr.Catalog('

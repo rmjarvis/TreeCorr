@@ -2135,14 +2135,14 @@ def test_lowmem():
 
     if __name__ == '__main__':
         ngal = 2000000
-        npatch = 128
-        himem = 1.e8
-        lomem = 5.e6
+        npatch = 64
+        himem = 5.e7
+        lomem = 2.e6
     else:
         ngal = 100000
         npatch = 16
-        himem = 4.e6
-        lomem = 4.e5
+        himem = 3.e6
+        lomem = 1.e5
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
@@ -2188,7 +2188,7 @@ def test_lowmem():
     assert s1-s0 > himem  # This version uses a lot of memory.
 
     npairs1 = dd.npairs
-    print('npairs = ',npairs1)
+    #print('npairs = ',npairs1)
 
     full_cat.unload()
     dd.clear()
@@ -2199,19 +2199,20 @@ def test_lowmem():
 
     t0 = time.time()
     s0 = hp.heap().size
-    with profile():
+    #with profile():
+    if True:
         dd.process(full_cat, low_mem=True)
     t1 = time.time()
     s1 = hp.heap().size
     print('7: ',hp.heap().size, t1-t0, s1-s0)
-    print(hp.heap())
-    print(hp.heap()[0].byrcs)
-    print(hp.heap()[0].byrcs[0].byvia)
+    #print(hp.heap())
+    #print(hp.heap()[0].byrcs)
+    #print(hp.heap()[0].byrcs[0].byvia)
     assert s1-s0 < lomem  # This version uses a lot less memory
     #print('dict = ',dd.__dict__)
 
     npairs2 = dd.npairs
-    print('npairs = ',npairs2)
+    #print('npairs = ',npairs2)
     np.testing.assert_array_equal(npairs1, npairs2)
 
     # TODO: Add tests of lowmem cross processing.  And other Correlation types.

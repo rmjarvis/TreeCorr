@@ -141,6 +141,15 @@ class KGCorrelation(treecorr.BinnedCorr2):
         import copy
         return copy.deepcopy(self)
 
+    def _copy_for_results(self):
+        # Make a copy of just the things we need to keep in results.
+        ret = KGCorrelation.__new__(KGCorrelation)
+        ret._nbins = self._nbins
+        ret.xi = self.xi.copy()
+        ret.weight = self.weight.copy()
+        ret.config = self.config  # not deep copy, so cheap, but makes repr work
+        return ret
+
     def __getstate__(self):
         d = self.__dict__.copy()
         d.pop('_corr',None)

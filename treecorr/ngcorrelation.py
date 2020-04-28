@@ -150,6 +150,15 @@ class NGCorrelation(treecorr.BinnedCorr2):
         import copy
         return copy.deepcopy(self)
 
+    def _copy_for_results(self):
+        # Make a copy of just the things we need to keep in results.
+        ret = NGCorrelation.__new__(NGCorrelation)
+        ret._nbins = self._nbins
+        ret.xi = self.xi.copy()
+        ret.weight = self.weight.copy()
+        ret.config = self.config  # not deep copy, so cheap, but makes repr work
+        return ret
+
     def __getstate__(self):
         d = self.__dict__.copy()
         d.pop('_corr',None)
@@ -393,7 +402,6 @@ class NGCorrelation(treecorr.BinnedCorr2):
                     if ij in self.results: continue
                     new_cij = template.copy()
                     new_cij.xi.ravel()[:] = 0
-                    new_cij.xi_im.ravel()[:] = 0
                     new_cij.weight.ravel()[:] = 0
                     self.results[ij] = new_cij
 

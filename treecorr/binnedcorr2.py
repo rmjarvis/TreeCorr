@@ -471,7 +471,7 @@ class BinnedCorr2(object):
                 temp.process_auto(c1,metric,num_threads)
                 self.results[(i,i)] = temp._copy_for_results()
                 self += temp
-                for jj,c2 in enumerate(cat1):
+                for jj,c2 in list(enumerate(cat1))[::-1]:
                     j = c2.patch if c2.patch is not None else jj
                     if i < j:
                         temp.clear()
@@ -483,8 +483,9 @@ class BinnedCorr2(object):
                         else:
                             # NNCorrelation needs to add the tot value
                             self._add_tot(i, j, temp)
-                    if low_mem:
-                        c2.unload()
+                        if low_mem and jj != ii+1:
+                            # Don't unload i+1, since that's the next one we'll need.
+                            c2.unload()
                 if low_mem:
                     c1.unload()
 

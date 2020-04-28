@@ -1936,6 +1936,9 @@ class Catalog(object):
             self._g2 = None
             self._k = None
             self._patch = None
+            if self._patches is not None:
+                for p in self._patches:
+                    p.unload()
         self.clear_cache()
 
     def get_patches(self, unloaded=None):

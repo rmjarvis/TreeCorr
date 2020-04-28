@@ -538,7 +538,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
             self.logger.info("varg1 = %f: sig_g = %f",varg1,math.sqrt(varg1))
             self.logger.info("varg2 = %f: sig_g = %f",varg2,math.sqrt(varg2))
             self.logger.info("varg3 = %f: sig_g = %f",varg3,math.sqrt(varg3))
-            self._process_all_cross(cat1,cat2,cat3, metric, num_threads)
+            self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
         self.finalize(varg1,varg2,varg3)
 
 

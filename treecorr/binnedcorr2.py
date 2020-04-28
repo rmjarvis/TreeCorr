@@ -456,7 +456,7 @@ class BinnedCorr2(object):
         # No op for all but NNCorrelation, which needs to add the tot value
         pass
 
-    def _process_all_auto(self, cat1, metric, num_threads):
+    def _process_all_auto(self, cat1, metric, num_threads, low_mem):
         if len(cat1) == 1:
             self.process_auto(cat1[0],metric,num_threads)
         else:
@@ -483,8 +483,12 @@ class BinnedCorr2(object):
                         else:
                             # NNCorrelation needs to add the tot value
                             self._add_tot(i, j, temp)
+                    if low_mem:
+                        c2.unload()
+                if low_mem:
+                    c1.unload()
 
-    def _process_all_cross(self, cat1, cat2, metric, num_threads):
+    def _process_all_cross(self, cat1, cat2, metric, num_threads, low_mem):
         if treecorr.config.get(self.config,'pairwise',bool,False):
             if len(cat1) != len(cat2):
                 raise ValueError("Number of files for 1 and 2 must be equal for pairwise.")
@@ -516,6 +520,10 @@ class BinnedCorr2(object):
                     else:
                         # NNCorrelation needs to add the tot value
                         self._add_tot(i, j, temp)
+                    if low_mem:
+                        c2.unload()
+                if low_mem:
+                    c1.unload()
 
     def _getStatLen(self):
         # The length of the array that will be returned by _getStat.

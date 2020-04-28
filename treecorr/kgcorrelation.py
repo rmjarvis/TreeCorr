@@ -308,7 +308,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         return self
 
 
-    def process(self, cat1, cat2, metric=None, num_threads=None):
+    def process(self, cat1, cat2, metric=None, num_threads=None, low_mem=False):
         """Compute the correlation function.
 
         Both arguments may be lists, in which case all items in the list are used
@@ -323,6 +323,8 @@ class KGCorrelation(treecorr.BinnedCorr2):
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
+            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
+                                This only works if using patches. (default: False)
         """
         import math
         self.clear()
@@ -338,7 +340,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
         varg = treecorr.calculateVarG(cat2)
         self.logger.info("vark = %f: sig_k = %f",vark,math.sqrt(vark))
         self.logger.info("varg = %f: sig_sn (per component) = %f",varg,math.sqrt(varg))
-        self._process_all_cross(cat1,cat2,metric,num_threads)
+        self._process_all_cross(cat1, cat2, metric, num_threads, low_mem)
         self.finalize(vark,varg)
 
 

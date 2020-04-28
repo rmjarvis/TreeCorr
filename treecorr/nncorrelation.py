@@ -329,15 +329,21 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.tot += other.tot
         return self
 
-    def _add_tot(self, i, j, other):
+    def _add_tot(self, i, j, c1, c2):
         # When storing results from a patch-based run, tot needs to be accumulated even if
         # the total weight being accumulated comes out to be zero.
         # This only applies to NNCorrelation.  For the other ones, this is a no op.
-        self.tot += other.tot
+        tot = c1.sumw * c2.sumw
+        self.tot += tot
         # We also have to keep all pairs in the results dict, otherwise the tot calculation
         # gets messed up.  We need to accumulate the tot value of all pairs, even if
         # the resulting weight is zero.
-        self.results[(i,j)] = other._copy_for_results()
+        res = NNCorrelation.__new__(NNCorrelation)
+        res._nbins = self._nbins
+        res.weight = np.zeros_like(self.weight)
+        res.tot = tot
+        res.config = self.config  # not deep copy, so cheap, but makes repr work
+        self.results[(i,j)] = res
 
     def process(self, cat1, cat2=None, metric=None, num_threads=None, low_mem=False):
         """Compute the correlation function.

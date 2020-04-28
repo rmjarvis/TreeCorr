@@ -2136,18 +2136,18 @@ def test_lowmem():
     if __name__ == '__main__':
         ngal = 2000000
         npatch = 64
-        himem = 5.e7
+        himem = 8.e7   # These are empirical of course.  The point is himem >> lomem.
         lomem = 2.e6
     else:
         ngal = 100000
         npatch = 16
-        himem = 3.e6
-        lomem = 1.e5
+        himem = 4.e6
+        lomem = 2.e5
     s = 10.
     rng = np.random.RandomState(8675309)
-    x = rng.normal(0,s, (ngal,) )
-    y = rng.normal(0,s, (ngal,) ) + 100  # Put everything at large y, so smallish angle on sky
-    z = rng.normal(0,s, (ngal,) )
+    x = rng.uniform(-20,20, (ngal,) )
+    y = rng.uniform(80,120, (ngal,) )  # Put everything at large y, so smallish angle on sky
+    z = rng.uniform(-20,20, (ngal,) )
     ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
 
     file_name = os.path.join('output','test_lowmem.fits')
@@ -2170,12 +2170,11 @@ def test_lowmem():
 
     full_cat = treecorr.Catalog(file_name,
                                 ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
-                                patch_centers=patch_centers, save_patch_dir='output')
+                                patch_centers=patch_centers)
     print('3: ',hp.heap().size)
 
-    dd = treecorr.NNCorrelation(bin_size=0.5, min_sep=10., max_sep=300., sep_units='arcmin')
+    dd = treecorr.NNCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     print('4: ',hp.heap().size)
-    #print(hp.heap())
 
     t0 = time.time()
     s0 = hp.heap().size
@@ -2183,36 +2182,28 @@ def test_lowmem():
     t1 = time.time()
     s1 = hp.heap().size
     print('5: ',hp.heap().size, t1-t0, s1-s0)
-    #print(hp.heap())
-    #print(hp.heap().byrcs)
     assert s1-s0 > himem  # This version uses a lot of memory.
 
     npairs1 = dd.npairs
-    #print('npairs = ',npairs1)
 
     full_cat.unload()
     dd.clear()
     print('6: ',hp.heap().size)
-    #print(hp.heap())
-    #print(hp.heap()[0].byrcs)
-    #print(hp.heap()[0].byrcs[0].byvia)
+
+    # Remake with save_patch_dir.
+    save_cat = treecorr.Catalog(file_name,
+                                ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                                patch_centers=patch_centers, save_patch_dir='output')
 
     t0 = time.time()
     s0 = hp.heap().size
-    #with profile():
-    if True:
-        dd.process(full_cat, low_mem=True)
+    dd.process(save_cat, low_mem=True)
     t1 = time.time()
     s1 = hp.heap().size
     print('7: ',hp.heap().size, t1-t0, s1-s0)
-    #print(hp.heap())
-    #print(hp.heap()[0].byrcs)
-    #print(hp.heap()[0].byrcs[0].byvia)
     assert s1-s0 < lomem  # This version uses a lot less memory
-    #print('dict = ',dd.__dict__)
 
     npairs2 = dd.npairs
-    #print('npairs = ',npairs2)
     np.testing.assert_array_equal(npairs1, npairs2)
 
     # TODO: Add tests of lowmem cross processing.  And other Correlation types.

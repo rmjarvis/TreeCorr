@@ -797,6 +797,19 @@ class Catalog(object):
             else:
                 return '3d'
 
+    def _get_center_size(self):
+        if not hasattr(self, '_cen_s'):
+            mx = np.mean(self.x)
+            my = np.mean(self.y)
+            mz = 0
+            dsq = (self.x - mx)**2 + (self.y - my)**2
+            if self.z is not None:
+                mz = np.mean(self.z)
+                dsq += (self.z - mz)**2
+            s = np.max(dsq)**0.5
+            self._cen_s = (mx, my, mz, s)
+        return self._cen_s
+
     def _finish_input(self):
         # Finish processing the data based on given inputs.
 

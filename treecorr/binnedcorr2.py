@@ -469,7 +469,7 @@ class BinnedCorr2(object):
                 temp.clear()
                 self.logger.info('Process patch %d auto',i)
                 temp.process_auto(c1,metric,num_threads)
-                self.results[(i,i)] = temp.copy()
+                self.results[(i,i)] = temp._copy_for_results()
                 self += temp
                 for jj,c2 in enumerate(cat1):
                     j = c2.patch if c2.patch is not None else jj
@@ -478,7 +478,7 @@ class BinnedCorr2(object):
                         self.logger.info('Process patches %d,%d cross',i,j)
                         temp.process_cross(c1,c2,metric,num_threads)
                         if np.sum(temp.npairs) > 0:
-                            self.results[(i,j)] = temp.copy()
+                            self.results[(i,j)] = temp._copy_for_results()
                             self += temp
                         else:
                             # NNCorrelation needs to add the tot value
@@ -511,7 +511,7 @@ class BinnedCorr2(object):
                     self.logger.info('Process patches %d,%d cross',i,j)
                     temp.process_cross(c1,c2,metric,num_threads)
                     if i==j or np.sum(temp.npairs) > 0:
-                        self.results[(i,j)] = temp.copy()
+                        self.results[(i,j)] = temp._copy_for_results()
                         self += temp
                     else:
                         # NNCorrelation needs to add the tot value

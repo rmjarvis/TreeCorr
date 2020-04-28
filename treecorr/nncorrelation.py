@@ -139,6 +139,15 @@ class NNCorrelation(treecorr.BinnedCorr2):
         import copy
         return copy.deepcopy(self)
 
+    def _copy_for_results(self):
+        # Make a copy of just the things we need to keep in results.
+        ret = NNCorrelation.__new__(NNCorrelation)
+        ret._nbins = self._nbins
+        ret.weight = self.weight.copy()
+        ret.tot = self.tot
+        ret.config = self.config  # not deep copy, so cheap, but makes repr work
+        return ret
+
     def __getstate__(self):
         d = self.__dict__.copy()
         d.pop('_corr',None)
@@ -328,7 +337,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         # We also have to keep all pairs in the results dict, otherwise the tot calculation
         # gets messed up.  We need to accumulate the tot value of all pairs, even if
         # the resulting weight is zero.
-        self.results[(i,j)] = other.copy()
+        self.results[(i,j)] = other._copy_for_results()
 
     def process(self, cat1, cat2=None, metric=None, num_threads=None):
         """Compute the correlation function.

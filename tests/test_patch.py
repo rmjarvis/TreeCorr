@@ -1628,6 +1628,28 @@ def test_save_patches():
         assert cat_i.loaded
         assert cat4.patches[i].loaded
 
+    # If patches are made with patch_centers, then making patches doesn't trigger full load.
+    cat5 = treecorr.Catalog(file_name2,
+                            x_col=1, y_col=2, z_col=3, w_col=4,
+                            g1_col=5, g2_col=6, k_col=7, patch_centers=cat4.patch_centers,
+                            save_patch_dir='output')
+    assert not cat5.loaded
+    assert len(cat5.patches) == npatch
+    assert not cat5.loaded
+    for i in range(npatch):
+        patch_file_name = cat5.patches[i].file_name
+        assert patch_file_name == os.path.join('output','test_save_patches2_%00d.fits'%i)
+        assert os.path.exists(patch_file_name)
+        cat_i = treecorr.Catalog(patch_file_name, patch=i,
+                                 x_col='x', y_col='y', z_col='z', w_col='w',
+                                 g1_col='g1', g2_col='g2', k_col='k')
+        assert not cat_i.loaded
+        assert not cat5.patches[i].loaded
+        assert cat_i == cat5.patches[i]
+        assert cat_i.loaded
+        assert cat5.patches[i].loaded
+    assert not cat5.loaded
+
 @timer
 def test_clusters():
     # The original version of J/K variance assumed that both catalogs had some items

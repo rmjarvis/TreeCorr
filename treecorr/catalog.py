@@ -1935,14 +1935,33 @@ class Catalog(object):
         import copy
         import os
 
-        def build_patches():
+        if unloaded is None:
+            unloaded = not self.loaded
+
+        if unloaded and self.file_name is not None:
+            # This is a litle tricky, since we don't want to trigger a load if the catalog
+            # isn't loaded yet.  So try to get the patches from centers or single_patch first.
+            if self._centers is not None:
+                patch_set = range(len(self._centers))
+            elif self._single_patch is not None:
+                patch_set = [self._single_patch]
+            elif self.patch is None:
+                patch_set = [None]
+            else:
+                patch_set = sorted(set(self.patch))
+            self._patches = [Catalog(config=self.config, file_name=self.file_name,
+                                     patch=i, npatch=1, patch_centers=self._centers)
+                             for i in patch_set]
+        elif self._patch is None:
+            self._patches = [self]
+        else:
             patch_set = sorted(set(self.patch))
             if len(patch_set) != self._npatch:
                 self.logger.error("WARNING: Some patch numbers do not contain any objects!")
                 missing = set(range(self._npatch)) - set(patch_set)
                 self.logger.warning("The following patch numbers have no objects: %s",missing)
                 self.logger.warning("This may be a problem depending on your use case.")
-            patches = []
+            self._patches = []
             for i in patch_set:
                 indx = self.patch == i
                 x=self.x[indx] if self.x is not None and self.ra is None else None
@@ -1963,15 +1982,10 @@ class Catalog(object):
                     kwargs['dec_units'] = 'rad'
                 p = Catalog(x=x, y=y, z=z, ra=ra, dec=dec, r=r, w=w, wpos=wpos,
                             g1=g1, g2=g2, k=k, patch=i, **kwargs)
-                patches.append(p)
-            return patches
-
-        if unloaded is None:
-            unloaded = not self.loaded
+                self._patches.append(p)
 
         # Write the patches to files if requested.
         if self.save_patch_dir is not None:
-            self._patches = build_patches()
             file_names = []
             for i, p in enumerate(self._patches):
                 if self.file_name is not None:
@@ -1983,38 +1997,17 @@ class Catalog(object):
                 self.logger.info('Writing patch %d to %s',i,file_name)
                 col_names = p.write(file_name)
                 file_names.append(file_name)
-        else:
-            self._patches = None
-            file_names = None
-
-        if unloaded and self.file_name is not None:
-            # This is a litle tricky, since we don't want to trigger a load if the catalog
-            # isn't loaded yet.  So try to get the patches from centers or single_patch first.
-            if self._centers is not None:
-                patch_set = range(len(self._centers))
-            elif self._single_patch is not None:
-                patch_set = [self._single_patch]
-            elif self.patch is None:
-                patch_set = [None]
-            else:
-                patch_set = sorted(set(self.patch))
-            if file_names is None:
-                self._patches = [Catalog(config=self.config, file_name=self.file_name,
-                                        patch=i, npatch=1, patch_centers=self._centers)
-                                 for i in patch_set]
-            else:
+                if unloaded:
+                    p.unload()
+            if unloaded:
+                # If unloaded, replace _patches with a version the reads from these files.
                 kwargs = {c + '_col' : c for c in col_names if c != 'patch'}
                 if 'ra' in col_names:
                     kwargs['ra_units'] = 'rad'
                     kwargs['dec_units'] = 'rad'
                 self._patches = [Catalog(file_name=file_names[i],
                                          patch=i, patch_centers=self._centers, **kwargs)
-                                 for i in patch_set]
-        elif self._patch is None:
-            self._patches = [self]
-        elif self._patches is None:
-            self._patches = build_patches()
-        # else already built above.
+                                 for i in range(len(file_names))]
 
         return self._patches
 

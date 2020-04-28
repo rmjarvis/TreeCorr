@@ -47,25 +47,33 @@ public:
 
     long getNObj() const { return _nobj; }
     double getSizeSq() const { return _sizesq; }
-    long getNTopLevel() const { return long(_cells.size()); }
-    const std::vector<Cell<D,C>*>& getCells() const { return _cells; }
+    Position<C> getCenter() const { return _center; }
+    double getSize() const { return std::sqrt(_sizesq); }
+    long getNTopLevel() const { BuildCells(); return long(_cells.size()); }
+    const std::vector<Cell<D,C>*>& getCells() const { BuildCells(); return _cells; }
     long countNear(double x, double y, double z, double sep) const;
     void getNear(double x, double y, double z, double sep, long* indices, long n) const;
 
 private:
 
-    // This finishes the work of the Field constructor.
-    template <int SM>
-    void BuildCells(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& celldata,
-                    double minsize, double maxsize,
-                    bool brute, int mintop, int maxtop);
-
     long _nobj;
     double _minsize;
     double _maxsize;
     SplitMethod _sm;
+    bool _brute;
+    int _mintop;
+    int _maxtop;
+    Position<C> _center;
     double _sizesq;
-    std::vector<Cell<D,C>*> _cells;
+    mutable std::vector<Cell<D,C>*> _cells;
+
+    // This is set at the start, but once we finish making all the cells, we don't need it anymore.
+    mutable std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> > _celldata;
+
+    // This finishes the work of the Field constructor.
+    void BuildCells() const;
+    template <int SM> void DoBuildCells() const;
+
 };
 
 // A SimpleField just stores the celldata.  It doesn't go on to build up the Cells.

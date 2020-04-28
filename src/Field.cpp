@@ -165,7 +165,8 @@ Field<D,C>::Field(double* x, double* y, double* z, double* g1, double* g2, doubl
                   double* w, double* wpos, long nobj,
                   double minsize, double maxsize,
                   SplitMethod sm, bool brute, int mintop, int maxtop) :
-    _nobj(nobj), _minsize(minsize), _maxsize(maxsize), _sm(sm)
+    _nobj(nobj), _minsize(minsize), _maxsize(maxsize), _sm(sm),
+    _brute(brute), _mintop(mintop), _maxtop(maxtop)
 {
     //set_verbose(2);
     dbg<<"Starting to Build Field with "<<nobj<<" objects\n";
@@ -174,12 +175,12 @@ Field<D,C>::Field(double* x, double* y, double* z, double* g1, double* g2, doubl
     for(int i=0;i<5;++i) {
         xdbg<<x[i]<<"  "<<y[i]<<"  "<<(z?z[i]:0)<<"  "<<g1[i]<<"  "<<g2[i]<<"  "<<k[i]<<"  "<<w[i]<<"  "<<(wpos?wpos[i]:0)<<std::endl;
     }
-    std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> > celldata;
-    celldata.reserve(nobj);
+
+    _celldata.reserve(nobj);
     if (z) {
         for(long i=0;i<nobj;++i) {
             WPosLeafInfo wp = get_wpos(wpos,w,i);
-            celldata.push_back(std::make_pair(
+            _celldata.push_back(std::make_pair(
                     CellDataHelper<D,C>::build(x[i],y[i],z[i],g1[i],g2[i],k[i],w[i]),
                     wp));
         }
@@ -187,25 +188,38 @@ Field<D,C>::Field(double* x, double* y, double* z, double* g1, double* g2, doubl
         Assert(C == Flat);
         for(long i=0;i<nobj;++i) {
             WPosLeafInfo wp = get_wpos(wpos,w,i);
-            celldata.push_back(std::make_pair(
+            _celldata.push_back(std::make_pair(
                     CellDataHelper<D,C>::build(x[i],y[i],0.,g1[i],g2[i],k[i],w[i]),
                     wp));
         }
     }
-    dbg<<"Built celldata with "<<celldata.size()<<" entries\n";
+    dbg<<"Built celldata with "<<_celldata.size()<<" entries\n";
 
-    switch (sm) {
+    // Calculate the overall center and size
+    CellData<D,C> ave(_celldata, 0, _celldata.size());
+    ave.finishAverages(_celldata, 0, _celldata.size());
+    _center = ave.getPos();
+    _sizesq = CalculateSizeSq(_center, _celldata, 0, _celldata.size());
+}
+
+template <int D, int C>
+void Field<D,C>::BuildCells() const
+{
+    // Signal that we already built the cells.
+    if (_celldata.size() == 0) return;
+
+    switch (_sm) {
       case MIDDLE:
-           BuildCells<MIDDLE>(celldata, minsize, maxsize, brute, mintop, maxtop);
+           DoBuildCells<MIDDLE>();
            break;
       case MEDIAN:
-           BuildCells<MEDIAN>(celldata, minsize, maxsize, brute, mintop, maxtop);
+           DoBuildCells<MEDIAN>();
            break;
       case MEAN:
-           BuildCells<MEAN>(celldata, minsize, maxsize, brute, mintop, maxtop);
+           DoBuildCells<MEAN>();
            break;
       case RANDOM:
-           BuildCells<RANDOM>(celldata, minsize, maxsize, brute, mintop, maxtop);
+           DoBuildCells<RANDOM>();
            break;
       default:
            throw std::runtime_error("Invalid SplitMethod");
@@ -213,16 +227,14 @@ Field<D,C>::Field(double* x, double* y, double* z, double* g1, double* g2, doubl
 }
 
 template <int D, int C> template <int SM>
-void Field<D,C>::BuildCells(
-    std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& celldata,
-    double minsize, double maxsize, bool brute, int mintop, int maxtop)
+void Field<D,C>::DoBuildCells() const
 {
     // We don't build Cells that are too big or too small based on the min/max separation:
 
-    double minsizesq = minsize * minsize;
+    double minsizesq = _minsize * _minsize;
     xdbg<<"minsizesq = "<<minsizesq<<std::endl;
 
-    double maxsizesq = maxsize * maxsize;
+    double maxsizesq = _maxsize * _maxsize;
     xdbg<<"maxsizesq = "<<maxsizesq<<std::endl;
 
     // This is done in two parts so that we can do the (time-consuming) second part in
@@ -230,22 +242,24 @@ void Field<D,C>::BuildCells(
     // First we setup what all the top-level cells are going to be.
     // Then we build them and their sub-nodes.
 
+    // Setup the top level cells:
     std::vector<CellData<D,C>*> top_data;
     std::vector<double> top_sizesq;
     std::vector<size_t> top_start;
     std::vector<size_t> top_end;
 
-    // Setup the top level cells:
-    _sizesq = SetupTopLevelCells<D,C,SM>(celldata, maxsizesq, 0, celldata.size(), mintop, maxtop,
-                                         top_data, top_sizesq, top_start, top_end);
+    SetupTopLevelCells<D,C,SM>(_celldata, maxsizesq, 0, _celldata.size(), _mintop, _maxtop,
+                               top_data, top_sizesq, top_start, top_end);
     const ptrdiff_t n = top_data.size();
+
+    // Now build the lower cells in parallel
     dbg<<"Field has "<<n<<" top-level nodes.  Building lower nodes...\n";
     _cells.resize(n);
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
     for(ptrdiff_t i=0;i<n;++i) {
-        _cells[i] = BuildCell<D,C,SM>(celldata, minsizesq, brute,
+        _cells[i] = BuildCell<D,C,SM>(_celldata, minsizesq, _brute,
                                       top_start[i], top_end[i],
                                       top_data[i], top_sizesq[i]);
         xdbg<<i<<": "<<_cells[i]->getN()<<"  "<<_cells[i]->getW()<<"  "<<
@@ -253,14 +267,17 @@ void Field<D,C>::BuildCells(
     }
 
     // delete any CellData elements that didn't get kept in the _cells object.
-    for (size_t i=0;i<celldata.size();++i) if (celldata[i].first) delete celldata[i].first;
+    for (size_t i=0;i<_celldata.size();++i) if (_celldata[i].first) delete _celldata[i].first;
     //set_verbose(1);
+    _celldata.clear();
 }
 
 template <int D, int C>
 Field<D,C>::~Field()
 {
-    for(size_t i=0; i<_cells.size(); ++i) delete _cells[i];
+    for (size_t i=0; i<_cells.size(); ++i) delete _cells[i];
+    // If this is still around, need to delete those too.
+    for (size_t i=0; i<_celldata.size(); ++i) if (_celldata[i].first) delete _celldata[i].first;
 }
 
 template <int D, int C>
@@ -309,6 +326,7 @@ long CountNear(const Cell<D,C>* cell, const Position<C>& pos, double sep, double
 template <int D, int C>
 long Field<D,C>::countNear(double x, double y, double z, double sep) const
 {
+    BuildCells();  // Make sure this is done.
     Position<C> pos(x,y,z);
     double sepsq = sep*sep;
     long ntot = 0;
@@ -373,6 +391,7 @@ void GetNear(const Cell<D,C>* cell, const Position<C>& pos, double sep, double s
 template <int D, int C>
 void Field<D,C>::getNear(double x, double y, double z, double sep, long* indices, long n) const
 {
+    BuildCells();  // Make sure this is done.
     Position<C> pos(x,y,z);
     double sepsq = sep*sep;
     dbg<<"Start getNear: "<<_cells.size()<<" top level cells\n";

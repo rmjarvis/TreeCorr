@@ -185,6 +185,25 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>&
     xdbg<<"Start process (cross): M,C = "<<M<<"  "<<C<<std::endl;
     Assert(_coords == -1 || _coords == C);
     _coords = C;
+
+    // Before possibly triggering a call to BuildCells, check if we can early exit.
+    MetricHelper<M> metric1(_minrpar, _maxrpar, _xp, _yp, _zp);
+    const Position<C>& p1 = field1.getCenter();
+    const Position<C>& p2 = field2.getCenter();
+    double s1 = field1.getSize();
+    double s2 = field2.getSize();
+    const double rsq = metric1.DistSq(p1, p2, s1, s2);
+    double s1ps2 = s1 + s2;
+    double rpar = 0; // Gets set to correct value by isRParOutsideRange if appropriate
+    if (metric1.isRParOutsideRange(p1, p2, s1ps2, rpar) ||
+        (BinTypeHelper<B>::tooSmallDist(rsq, s1ps2, _minsep, _minsepsq) &&
+         metric1.tooSmallDist(p1, p2, rsq, rpar, s1ps2, _minsep, _minsepsq)) ||
+        (BinTypeHelper<B>::tooLargeDist(rsq, s1ps2, _maxsep, _maxsepsq) &&
+         metric1.tooLargeDist(p1, p2, rsq, rpar, s1ps2, _fullmaxsep, _fullmaxsepsq))) {
+        dbg<<"Fields have no relevant coverage.  Early exit.\n";
+        return;
+    }
+
     const long n1 = field1.getNTopLevel();
     const long n2 = field2.getNTopLevel();
     dbg<<"field1 has "<<n1<<" top level nodes\n";

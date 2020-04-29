@@ -97,7 +97,7 @@ install:
 
     # Extra packages only needed for testing:
     # fitsio is technically optional, but better to do those tests on all systems.
-    - $PIP install -U $__USER pytest codecov pytest-cov fitsio
+    - $PIP install -U $__USER pytest codecov pytest-cov fitsio mpi4py pytest-mpi
 
     # Only add optional ones for py3.6
     # They are slow to install, especially 3.8 and pypy, where installed from scratch.
@@ -114,6 +114,7 @@ script:
 
     - cd tests
     - pytest --cov=treecorr test*.py
+    - mpiexec -n 3 pytest --cov=treecorr mpi_test*.py
     - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pytest --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env; fi
 
 after_success:

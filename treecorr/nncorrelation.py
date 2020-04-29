@@ -345,7 +345,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         res.config = self.config  # not deep copy, so cheap, but makes repr work
         self.results[(i,j)] = res
 
-    def process(self, cat1, cat2=None, metric=None, num_threads=None, low_mem=False):
+    def process(self, cat1, cat2=None, metric=None, num_threads=None, comm=None, low_mem=False):
         """Compute the correlation function.
 
         If only 1 argument is given, then compute an auto-correlation function.
@@ -364,6 +364,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
+            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between
+                                processes.  If used, the rank=0 process will have the final
+                                computation. This only works if using patches. (default: None)
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
         """
@@ -378,9 +381,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
             cat2 = cat2.get_patches()
 
         if cat2 is None or len(cat2) == 0:
-            self._process_all_auto(cat1, metric, num_threads, low_mem)
+            self._process_all_auto(cat1, metric, num_threads, comm, low_mem)
         else:
-            self._process_all_cross(cat1, cat2, metric, num_threads, low_mem)
+            self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
         self.finalize()
 
     def _mean_weight(self):

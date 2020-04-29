@@ -2157,38 +2157,32 @@ def test_lowmem():
 
     hp = guppy.hpy()
     hp.setrelheap()
-    print('0: ',hp.heap().size)
 
     partial_cat = treecorr.Catalog(file_name, every_nth=100,
                                    ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
                                    npatch=npatch)
-    print('1: ',hp.heap().size)
 
     patch_centers = partial_cat.patch_centers
     del partial_cat
-    print('2: ',hp.heap().size)
 
     full_cat = treecorr.Catalog(file_name,
                                 ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
                                 patch_centers=patch_centers)
-    print('3: ',hp.heap().size)
 
     dd = treecorr.NNCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
-    print('4: ',hp.heap().size)
 
     t0 = time.time()
     s0 = hp.heap().size
     dd.process(full_cat)
     t1 = time.time()
     s1 = hp.heap().size
-    print('5: ',hp.heap().size, t1-t0, s1-s0)
+    print('regular: ',hp.heap().size, t1-t0, s1-s0)
     assert s1-s0 > himem  # This version uses a lot of memory.
 
     npairs1 = dd.npairs
 
     full_cat.unload()
     dd.clear()
-    print('6: ',hp.heap().size)
 
     # Remake with save_patch_dir.
     save_cat = treecorr.Catalog(file_name,
@@ -2200,14 +2194,142 @@ def test_lowmem():
     dd.process(save_cat, low_mem=True)
     t1 = time.time()
     s1 = hp.heap().size
-    print('7: ',hp.heap().size, t1-t0, s1-s0)
+    print('lomem: ',hp.heap().size, t1-t0, s1-s0)
     assert s1-s0 < lomem  # This version uses a lot less memory
-
     npairs2 = dd.npairs
     np.testing.assert_array_equal(npairs1, npairs2)
 
-    # TODO: Add tests of lowmem cross processing.  And other Correlation types.
+    # Check running as a cross-correlation
+    save_cat.unload()
+    t0 = time.time()
+    s0 = hp.heap().size
+    dd.process(save_cat, save_cat, low_mem=True)
+    t1 = time.time()
+    s1 = hp.heap().size
+    print('lomem x: ',hp.heap().size, t1-t0, s1-s0)
+    assert s1-s0 < lomem
+    npairs3 = dd.npairs
+    np.testing.assert_array_equal(npairs3, npairs2)
 
+    # Check other combinations
+    # Use a smaller catalog to run faster.
+    g1 = rng.uniform(-0.1,0.1, (ngal//100,) )
+    g2 = rng.uniform(-0.1,0.1, (ngal//100,) )
+    k = rng.uniform(-0.1,0.1, (ngal//100,) )
+    gk_cat0 = treecorr.Catalog(ra=ra[:ngal//100], dec=dec[:ngal//100],
+                               ra_units='rad', dec_units='rad',
+                               g1=g1, g2=g2, k=k,
+                               npatch=4)
+    patch_centers = gk_cat0.patch_centers
+    file_name = os.path.join('output','test_lowmem_gk.fits')
+    gk_cat0.write(file_name)
+    del gk_cat0
+    hp.setrelheap()
+
+    gk_cat1 = treecorr.Catalog(file_name,
+                               ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                               g1_col='g1', g2_col='g2', k_col='k',
+                               patch_centers=patch_centers)
+    gk_cat2 = treecorr.Catalog(file_name,
+                               ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                               g1_col='g1', g2_col='g2', k_col='k',
+                               patch_centers=patch_centers, save_patch_dir='output')
+
+    gg1 = treecorr.GGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
+    t0 = time.time()
+    s0 = hp.heap().size
+    gg1.process(gk_cat1)
+    t1 = time.time()
+    s1 = hp.heap().size
+    print('GG1: ',hp.heap().size, t1-t0, s1-s0)
+    gk_cat1.unload()
+    gg2 = treecorr.GGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
+    t0 = time.time()
+    s0 = hp.heap().size
+    gg2.process(gk_cat2, low_mem=True)
+    t1 = time.time()
+    s1 = hp.heap().size
+    print('GG2: ',hp.heap().size, t1-t0, s1-s0)
+    gk_cat2.unload()
+    np.testing.assert_allclose(gg1.xip, gg2.xip)
+    np.testing.assert_allclose(gg1.xim, gg2.xim)
+    np.testing.assert_allclose(gg1.weight, gg2.weight)
+
+    ng1 = treecorr.NGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
+    t0 = time.time()
+    s0 = hp.heap().size
+    ng1.process(gk_cat1, gk_cat1)
+    t1 = time.time()
+    s1 = hp.heap().size
+    print('NG1: ',hp.heap().size, t1-t0, s1-s0)
+    gk_cat1.unload()
+    ng2 = treecorr.NGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
+    t0 = time.time()
+    s0 = hp.heap().size
+    ng2.process(gk_cat2, gk_cat2, low_mem=True)
+    t1 = time.time()
+    s1 = hp.heap().size
+    print('NG2: ',hp.heap().size, t1-t0, s1-s0)
+    gk_cat2.unload()
+    np.testing.assert_allclose(ng1.xi, ng2.xi)
+    np.testing.assert_allclose(ng1.weight, ng2.weight)
+
+    kk1 = treecorr.KKCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
+    t0 = time.time()
+    s0 = hp.heap().size
+    kk1.process(gk_cat1)
+    t1 = time.time()
+    s1 = hp.heap().size
+    print('KK1: ',hp.heap().size, t1-t0, s1-s0)
+    gk_cat1.unload()
+    kk2 = treecorr.KKCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
+    t0 = time.time()
+    s0 = hp.heap().size
+    kk2.process(gk_cat2, low_mem=True)
+    t1 = time.time()
+    s1 = hp.heap().size
+    print('KK2: ',hp.heap().size, t1-t0, s1-s0)
+    gk_cat2.unload()
+    np.testing.assert_allclose(kk1.xi, kk2.xi)
+    np.testing.assert_allclose(kk1.weight, kk2.weight)
+
+    nk1 = treecorr.NKCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
+    t0 = time.time()
+    s0 = hp.heap().size
+    nk1.process(gk_cat1, gk_cat1)
+    t1 = time.time()
+    s1 = hp.heap().size
+    print('NK1: ',hp.heap().size, t1-t0, s1-s0)
+    gk_cat1.unload()
+    nk2 = treecorr.NKCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
+    t0 = time.time()
+    s0 = hp.heap().size
+    nk2.process(gk_cat2, gk_cat2, low_mem=True)
+    t1 = time.time()
+    s1 = hp.heap().size
+    print('NK2: ',hp.heap().size, t1-t0, s1-s0)
+    gk_cat2.unload()
+    np.testing.assert_allclose(nk1.xi, nk2.xi)
+    np.testing.assert_allclose(nk1.weight, nk2.weight)
+
+    kg1 = treecorr.KGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
+    t0 = time.time()
+    s0 = hp.heap().size
+    kg1.process(gk_cat1, gk_cat1)
+    t1 = time.time()
+    s1 = hp.heap().size
+    print('KG1: ',hp.heap().size, t1-t0, s1-s0)
+    gk_cat1.unload()
+    kg2 = treecorr.KGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
+    t0 = time.time()
+    s0 = hp.heap().size
+    kg2.process(gk_cat2, gk_cat2, low_mem=True)
+    t1 = time.time()
+    s1 = hp.heap().size
+    print('KG2: ',hp.heap().size, t1-t0, s1-s0)
+    gk_cat2.unload()
+    np.testing.assert_allclose(kg1.xi, kg2.xi)
+    np.testing.assert_allclose(kg1.weight, kg2.weight)
 
 if __name__ == '__main__':
     test_cat_patches()

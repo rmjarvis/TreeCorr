@@ -836,7 +836,7 @@ class Catalog(object):
             self._w[(self._flag & ignore_flag)!=0] = 0
             if self._wpos is not None:
                 self._wpos[(self._flag & ignore_flag)!=0] = 0
-            self.logger.debug('Applied flag: w => %s',str(self._w))
+            self.logger.debug('Applied flag')
 
         if self._x is not None:
             ntot = len(self._x)
@@ -1187,41 +1187,41 @@ class Catalog(object):
             # We actually want this, since it makes the result contiguous in memory,
             # which we will need.
             self._x = data[:,x_col-1].astype(float)
-            self.logger.debug('read x = %s',str(self._x))
+            self.logger.debug('read x')
             self._y = data[:,y_col-1].astype(float)
-            self.logger.debug('read y = %s',str(self._y))
+            self.logger.debug('read y')
             if z_col != 0:
                 self._z = data[:,z_col-1].astype(float)
-                self.logger.debug('read r = %s',str(self._r))
+                self.logger.debug('read r')
         else:
             self._ra = data[:,ra_col-1].astype(float)
-            self.logger.debug('read ra = %s',str(self._ra))
+            self.logger.debug('read ra')
             self._dec = data[:,dec_col-1].astype(float)
-            self.logger.debug('read dec = %s',str(self._dec))
+            self.logger.debug('read dec')
             if r_col != 0:
                 self._r = data[:,r_col-1].astype(float)
-                self.logger.debug('read r = %s',str(self._r))
+                self.logger.debug('read r')
         self._apply_units()
 
         # Read w
         if w_col != 0:
             self._w = data[:,w_col-1].astype(float)
-            self.logger.debug('read w = %s',str(self._w))
+            self.logger.debug('read w')
 
         # Read wpos
         if wpos_col != 0:
             self._wpos = data[:,wpos_col-1].astype(float)
-            self.logger.debug('read wpos = %s',str(self._wpos))
+            self.logger.debug('read wpos')
 
         # Read flag
         if flag_col != 0:
             self._flag = data[:,flag_col-1].astype(int)
-            self.logger.debug('read flag = %s',str(self._flag))
+            self.logger.debug('read flag')
 
         # Read patch
         if patch_col != 0:
             self._patch = data[:,patch_col-1].astype(int)
-            self.logger.debug('read patch = %s',str(self._patch))
+            self.logger.debug('read patch')
             self._set_npatch()
 
         # Skip g1,g2,k if this file is a random catalog
@@ -1229,14 +1229,14 @@ class Catalog(object):
             # Read g1,g2
             if g1_col >= 0 and g1_col <= ncols:
                 self._g1 = data[:,g1_col-1].astype(float)
-                self.logger.debug('read g1 = %s',str(self._g1))
+                self.logger.debug('read g1')
                 self._g2 = data[:,g2_col-1].astype(float)
-                self.logger.debug('read g2 = %s',str(self._g2))
+                self.logger.debug('read g2')
 
             # Read k
             if k_col >= 0 and k_col <= ncols:
                 self._k = data[:,k_col-1].astype(float)
-                self.logger.debug('read k = %s',str(self._k))
+                self.logger.debug('read k')
 
         if self._single_patch is not None:
             self._select_patch(self._single_patch)
@@ -1415,33 +1415,33 @@ class Catalog(object):
                 x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
                 y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
                 self._x = fits[x_hdu][x_col][s].astype(float)
-                self.logger.debug('read x = %s',str(self._x))
+                self.logger.debug('read x')
                 self._y = fits[y_hdu][y_col][s].astype(float)
-                self.logger.debug('read y = %s',str(self._y))
+                self.logger.debug('read y')
                 ntot = len(self._x)
                 if z_col != '0':
                     z_hdu = treecorr.config.get_from_list(self.config,'z_hdu',num,int,hdu)
                     self._z = fits[z_hdu][z_col][s].astype(float)
-                    self.logger.debug('read z = %s',str(self._z))
+                    self.logger.debug('read z')
             else:
                 ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
                 dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
                 self._ra = fits[ra_hdu][ra_col][s].astype(float)
-                self.logger.debug('read ra = %s',str(self._ra))
+                self.logger.debug('read ra')
                 self._dec = fits[dec_hdu][dec_col][s].astype(float)
-                self.logger.debug('read dec = %s',str(self._dec))
+                self.logger.debug('read dec')
                 ntot = len(self._ra)
                 if r_col != '0':
                     r_hdu = treecorr.config.get_from_list(self.config,'r_hdu',num,int,hdu)
                     self._r = fits[r_hdu][r_col][s].astype(float)
-                    self.logger.debug('read r = %s',str(self._r))
+                    self.logger.debug('read r')
             self._apply_units()
 
             # Read patch
             if patch_col != '0':
                 patch_hdu = treecorr.config.get_from_list(self.config,'patch_hdu',num,int,hdu)
                 self._patch = fits[patch_hdu][patch_col][s].astype(int)
-                self.logger.debug('read patch = %s',str(self._patch))
+                self.logger.debug('read patch')
                 self._set_npatch()
 
             # If only reading in a single patch, do it now.
@@ -1458,19 +1458,19 @@ class Catalog(object):
             if w_col != '0':
                 w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,int,hdu)
                 self._w = fits[w_hdu][w_col][s].astype(float)
-                self.logger.debug('read w = %s',str(self._w))
+                self.logger.debug('read w')
 
             # Read wpos
             if wpos_col != '0':
                 wpos_hdu = treecorr.config.get_from_list(self.config,'wpos_hdu',num,int,hdu)
                 self._wpos = fits[wpos_hdu][wpos_col][s].astype(float)
-                self.logger.debug('read wpos = %s',str(self._wpos))
+                self.logger.debug('read wpos')
 
             # Read flag
             if flag_col != '0':
                 flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
                 self._flag = fits[flag_hdu][flag_col][s].astype(int)
-                self.logger.debug('read flag = %s',str(self._flag))
+                self.logger.debug('read flag')
 
             # Skip g1,g2,k if this file is a random catalog
             if not is_rand:
@@ -1479,15 +1479,15 @@ class Catalog(object):
                 g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
                 if g1_col in fits[g1_hdu].get_colnames():
                     self._g1 = fits[g1_hdu][g1_col][s].astype(float)
-                    self.logger.debug('read g1 = %s',str(self._g1))
+                    self.logger.debug('read g1')
                     self._g2 = fits[g2_hdu][g2_col][s].astype(float)
-                    self.logger.debug('read g2 = %s',str(self._g2))
+                    self.logger.debug('read g2')
 
                 # Read k
                 k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
                 if k_col in fits[k_hdu].get_colnames():
                     self._k = fits[k_hdu][k_col][s].astype(float)
-                    self.logger.debug('read k = %s',str(self._k))
+                    self.logger.debug('read k')
 
     @property
     def nfields(self):

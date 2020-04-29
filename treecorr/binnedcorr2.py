@@ -524,9 +524,13 @@ class BinnedCorr2(object):
                 for jj,c2 in enumerate(cat2):
                     j = c2.patch if c2.patch is not None else jj
                     temp.clear()
-                    self.logger.info('Process patches %d,%d cross',i,j)
-                    temp.process_cross(c1,c2,metric,num_threads)
-                    if i==j or np.sum(temp.npairs) > 0:
+                    if not self._trivially_zero(c1,c2,metric):
+                        self.logger.info('Process patches %d,%d cross',i,j)
+                        temp.process_cross(c1,c2,metric,num_threads)
+                    else:
+                        self.logger.info('Skipping patches %d,%d cross, ' +
+                                         'which are too far apart',i,j)
+                    if np.sum(temp.npairs) > 0:
                         self.results[(i,j)] = temp._copy_for_results()
                         self += temp
                     else:

@@ -27,7 +27,8 @@ except ImportError:
     print('Skipping mpi tests, since either mpi4py or fitsio is not installed')
     no_mpi = True
 
-from test_helper import get_from_wiki, timer, NiceComm
+from test_helper import get_from_wiki, timer
+from mpi_helper import NiceComm
 
 # Might as well let these be globals.  They are the same for all tests below.
 comm = NiceComm(MPI.COMM_WORLD)

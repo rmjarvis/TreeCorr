@@ -2006,7 +2006,7 @@ class Catalog(object):
                     p.unload()
         self.clear_cache()
 
-    def get_patches(self, low_mem=None):
+    def get_patches(self, low_mem=False):
         """Return a list of Catalog instances each representing a single patch from this Catalog
 
         After calling this function once, the patches may be repeatedly accessed by the
@@ -2020,14 +2020,10 @@ class Catalog(object):
                                 file until they are used.  This only works if the current catalog
                                 was loaded from a file.  (And if the patches are set using
                                 patch_centers, this won't even trigger a load of the current
-                                Catalog.) (default: None, which means to match the load state
-                                of the current Catalog)
+                                Catalog.) (default: False)
         """
         import copy
         import os
-
-        if low_mem is None:
-            low_mem = not self.loaded
 
         if low_mem and self.file_name is not None:
             # This is a litle tricky, since we don't want to trigger a load if the catalog
@@ -2036,14 +2032,16 @@ class Catalog(object):
                 patch_set = range(len(self._centers))
             elif self._single_patch is not None:
                 patch_set = [self._single_patch]
-            elif self.patch is None:
+            elif self._single_patch is not None or self.patch is None:
+                # This triggers a load of the current catalog, but no choice here.
                 patch_set = [None]
             else:
                 patch_set = sorted(set(self.patch))
+            centers = self._centers if self._patch is None else None
             self._patches = [Catalog(config=self.config, file_name=self.file_name,
-                                     patch=i, npatch=1, patch_centers=self._centers)
+                                     patch=i, npatch=1, patch_centers=centers)
                              for i in patch_set]
-        elif self._patch is None:
+        elif self._single_patch is not None or self.patch is None:
             self._patches = [self]
         else:
             patch_set = sorted(set(self.patch))
@@ -2092,6 +2090,7 @@ class Catalog(object):
                     p.unload()
             if low_mem:
                 # If low_mem, replace _patches with a version the reads from these files.
+                # This will typically be a lot faster for when the load does happen.
                 kwargs = {c + '_col' : c for c in col_names if c != 'patch'}
                 if 'ra' in col_names:
                     kwargs['ra_units'] = 'rad'

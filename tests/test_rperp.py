@@ -731,10 +731,10 @@ def test_ng_rperp():
     print('ng.npairs = ',repr(ng.npairs))
     print('ng.xi = ',repr(ng.xi))
 
-    true_npairs = [  2193.,   4939.,  10788.,  21843.,  39859.,  53866.,  80550.,
-                   105475., 126586.,  80363.]
-    true_xi = [-0.00632522, -0.0006389 ,  0.00218298, -0.00136964, -0.00100577,
-                0.00242409,  0.00811821,  0.00506488,  0.00722495, -0.00494053]
+    true_npairs = [  2193.,   4940.,  10792.,  21846.,  39847.,  53867.,  80555.,
+                    105466., 126601.,  80360.]
+    true_xi = [-0.00630174, -0.00049443,  0.00213589, -0.00138997, -0.00106433,
+                0.00246789,  0.00806851,  0.00505585,  0.00719003, -0.00491967]
 
     np.testing.assert_allclose(ng.npairs, true_npairs, rtol=1.e-3)
     # Note: the atol=1.e-4 is only required for a few machines, including Travis and nersc.

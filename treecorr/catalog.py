@@ -838,11 +838,6 @@ class Catalog(object):
                 self._wpos[(self._flag & ignore_flag)!=0] = 0
             self.logger.debug('Applied flag')
 
-        if self._x is not None:
-            ntot = len(self._x)
-        else:
-            ntot = len(self._ra)
-
         # Check for NaN's:
         self.checkForNaN(self._x,'x')
         self.checkForNaN(self._y,'y')
@@ -856,6 +851,10 @@ class Catalog(object):
         self.checkForNaN(self._w,'w')
         self.checkForNaN(self._wpos,'wpos')
 
+        # If using ra/dec, generate x,y,z
+        # Note: This also makes self.ntot work properly.
+        self._generate_xyz()
+
         # Copy w to wpos if necessary (Do this after checkForNaN's, since this may set some
         # entries to have w=0.)
         if self._wpos is None:
@@ -865,7 +864,7 @@ class Catalog(object):
             if np.any(self._wpos == 0.):
                 if self._w is None:
                     self.logger.warning('Some wpos values are zero, setting w=0 for these points.')
-                    self._w = np.ones((ntot), dtype=float)
+                    self._w = np.ones((self.ntot), dtype=float)
                 else:
                     if np.any(self._w[self._wpos == 0.] != 0.):
                         self.logger.error('Some wpos values = 0 but have w!=0. This is invalid.\n'
@@ -879,18 +878,15 @@ class Catalog(object):
                 raise ValueError("Catalog has invalid sumw == 0")
         else:
             self._nontrivial_w = False
-            self._sumw = ntot
+            self._sumw = self.ntot
             # Make w all 1s to simplify the use of w later in code.
-            self._w = np.ones((ntot), dtype=float)
+            self._w = np.ones((self.ntot), dtype=float)
 
         keep_zero_weight = treecorr.config.get(self.config,'keep_zero_weight',bool,False)
         if self._nontrivial_w and not keep_zero_weight:
             wpos = self._wpos if self._wpos is not None else self._w
             if np.any(wpos == 0):
                 self.select(wpos != 0)
-
-        # If using ra/dec, generate x,y,z
-        self._generate_xyz()
 
         if self.npatch != 1:
             init = treecorr.config.get(self.config,'kmeans_init',str,'tree')
@@ -1161,7 +1157,6 @@ class Catalog(object):
         if len(data.shape) == 1:
             data = data.reshape(1,-1)
         ncols = data.shape[1]
-        ntot = data.shape[0]
 
         self.logger.debug('read data from %s, num=%d',file_name,num)
         self.logger.debug('data shape = %s',str(data.shape))
@@ -1418,7 +1413,6 @@ class Catalog(object):
                 self.logger.debug('read x')
                 self._y = fits[y_hdu][y_col][s].astype(float)
                 self.logger.debug('read y')
-                ntot = len(self._x)
                 if z_col != '0':
                     z_hdu = treecorr.config.get_from_list(self.config,'z_hdu',num,int,hdu)
                     self._z = fits[z_hdu][z_col][s].astype(float)
@@ -1430,7 +1424,6 @@ class Catalog(object):
                 self.logger.debug('read ra')
                 self._dec = fits[dec_hdu][dec_col][s].astype(float)
                 self.logger.debug('read dec')
-                ntot = len(self._ra)
                 if r_col != '0':
                     r_hdu = treecorr.config.get_from_list(self.config,'r_hdu',num,int,hdu)
                     self._r = fits[r_hdu][r_col][s].astype(float)

@@ -264,6 +264,11 @@ class Catalog(object):
                             Equivalent to ignore_flag = ~0.)
         ok_flag (int):      Which flags should be considered ok. (default: 0.  i.e. all non-zero
                             flags are ignored.)
+        allow_xyz (bool):   Whether to allow x,y,z values in conjunction with ra,dec.  Normally,
+                            it is an error to have both kinds of positions, but if you know that
+                            the x,y,z, values are consistent with the given ra,dec values, it
+                            can save time to input them, rather than calculate them using trig
+                            functions. (default: False)
 
         flip_g1 (bool):     Whtether to flip the sign of the input g1 values. (default: False)
         flip_g2 (bool):     Whtether to flip the sign of the input g2 values. (default: False)
@@ -384,6 +389,8 @@ class Catalog(object):
                 'Ignore objects with flag & ignore_flag != 0 (bitwise &)'),
         'ok_flag': (int, True, 0, None,
                 'Ignore objects with flag & ~ok_flag != 0 (bitwise &, ~)'),
+        'allow_xyz': (bool, False, False, None,
+                'Whether to allow x,y,z inputs in conjunction with ra,dec'),
         'hdu': (int, True, 1, None,
                 'Which HDU in a fits file to use rather than hdu=1'),
         'x_hdu': (int, True, None, None,
@@ -525,6 +532,7 @@ class Catalog(object):
                 self._centers = self.read_patch_centers(patch_centers)
 
         self.save_patch_dir = self.config.get('save_patch_dir',None)
+        allow_xyz = self.config.get('allow_xyz', False)
 
         # First style -- read from a file
         if file_name is not None:
@@ -558,7 +566,7 @@ class Catalog(object):
             if x is not None or y is not None:
                 if x is None or y is None:
                     raise TypeError("x and y must both be provided")
-                if ra is not None or dec is not None:
+                if (ra is not None or dec is not None) and not allow_xyz:
                     raise TypeError("ra and dec may not be provided with x,y")
                 if r is not None:
                     raise TypeError("r may not be provided with x,y")
@@ -624,9 +632,9 @@ class Catalog(object):
                 raise TypeError("x_units specified without specifying y_units")
             if 'y_units' in self.config and not 'x_units' in self.config:
                 raise TypeError("y_units specified without specifying x_units")
-            if 'ra_units' in self.config:
+            if 'ra_units' in self.config and not allow_xyz:
                 raise TypeError("ra_units is invalid without ra")
-            if 'dec_units' in self.config:
+            if 'dec_units' in self.config and not allow_xyz:
                 raise TypeError("dec_units is invalid without dec")
         else:
             if not self.config.get('ra_units',None):
@@ -932,16 +940,16 @@ class Catalog(object):
 
     def _apply_units(self):
         # Apply units to x,y,ra,dec
-        if self._x is not None:
-            self.x_units = treecorr.config.get_from_list(self.config,'x_units',self._num,str,'radians')
-            self.y_units = treecorr.config.get_from_list(self.config,'y_units',self._num,str,'radians')
-            self._x *= self.x_units
-            self._y *= self.y_units
-        else:
+        if self._ra is not None:
             self.ra_units = treecorr.config.get_from_list(self.config,'ra_units',self._num)
             self.dec_units = treecorr.config.get_from_list(self.config,'dec_units',self._num)
             self._ra *= self.ra_units
             self._dec *= self.dec_units
+        else:
+            self.x_units = treecorr.config.get_from_list(self.config,'x_units',self._num,str,'radians')
+            self.y_units = treecorr.config.get_from_list(self.config,'y_units',self._num,str,'radians')
+            self._x *= self.x_units
+            self._y *= self.y_units
 
     def _generate_xyz(self):
         if self._x is None:
@@ -1050,6 +1058,7 @@ class Catalog(object):
         g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,int,0)
         k_col = treecorr.config.get_from_list(self.config,'k_col',num,int,0)
         patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,int,0)
+        allow_xyz = self.config.get('allow_xyz', False)
 
         # Read x,y or ra,dec
         if x_col != 0 or y_col != 0:
@@ -1059,11 +1068,11 @@ class Catalog(object):
                 raise TypeError("y_col missing or invalid for file %s"%file_name)
             if z_col < 0 or z_col > ncols:
                 raise TypeError("z_col is invalid for file %s"%file_name)
-            if ra_col != 0:
+            if ra_col != 0 and not allow_xyz:
                 raise TypeError("ra_col not allowed in conjunction with x/y cols")
-            if dec_col != 0:
+            if dec_col != 0 and not allow_xyz:
                 raise TypeError("dec_col not allowed in conjunction with x/y cols")
-            if r_col != 0:
+            if r_col != 0 and not allow_xyz:
                 raise TypeError("r_col not allowed in conjunction with x/y cols")
         elif ra_col != 0 or dec_col != 0:
             if ra_col <= 0 or ra_col > ncols:
@@ -1072,7 +1081,7 @@ class Catalog(object):
                 raise TypeError("dec_col missing or invalid for file %s"%file_name)
             if r_col < 0 or r_col > ncols:
                 raise TypeError("r_col is invalid for file %s"%file_name)
-            if z_col != 0:
+            if z_col != 0 and not allow_xyz:
                 raise TypeError("z_col not allowed in conjunction with ra/dec cols")
         else:
             raise TypeError("No valid position columns specified for file %s"%file_name)
@@ -1258,24 +1267,25 @@ class Catalog(object):
         g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,str,'0')
         k_col = treecorr.config.get_from_list(self.config,'k_col',num,str,'0')
         patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,str,'0')
+        allow_xyz = self.config.get('allow_xyz', False)
 
         if x_col != '0' or y_col != '0':
             if x_col == '0':
                 raise ValueError("x_col missing for file %s"%file_name)
             if y_col == '0':
                 raise ValueError("y_col missing for file %s"%file_name)
-            if ra_col != '0':
+            if ra_col != '0' and not allow_xyz:
                 raise ValueError("ra_col not allowed in conjunction with x/y cols")
-            if dec_col != '0':
+            if dec_col != '0' and not allow_xyz:
                 raise ValueError("dec_col not allowed in conjunction with x/y cols")
-            if r_col != '0':
+            if r_col != '0' and not allow_xyz:
                 raise ValueError("r_col not allowed in conjunction with x/y cols")
         elif ra_col != '0' or dec_col != '0':
             if ra_col == '0':
                 raise ValueError("ra_col missing for file %s"%file_name)
             if dec_col == '0':
                 raise ValueError("dec_col missing for file %s"%file_name)
-            if z_col != '0':
+            if z_col != '0' and not allow_xyz:
                 raise ValueError("z_col not allowed in conjunction with ra/dec cols")
         else:
             raise ValueError("No valid position columns specified for file %s"%file_name)
@@ -2053,9 +2063,9 @@ class Catalog(object):
             self._patches = []
             for i in patch_set:
                 indx = self.patch == i
-                x=self.x[indx] if self.x is not None and self.ra is None else None
-                y=self.y[indx] if self.y is not None and self.ra is None else None
-                z=self.z[indx] if self.z is not None and self.ra is None else None
+                x=self.x[indx] if self.x is not None else None
+                y=self.y[indx] if self.y is not None else None
+                z=self.z[indx] if self.z is not None else None
                 ra=self.ra[indx] if self.ra is not None else None
                 dec=self.dec[indx] if self.dec is not None else None
                 r=self.r[indx] if self.r is not None else None
@@ -2069,6 +2079,7 @@ class Catalog(object):
                 if self.ra is not None:
                     kwargs['ra_units'] = 'rad'
                     kwargs['dec_units'] = 'rad'
+                    kwargs['allow_xyz'] = True
                 p = Catalog(x=x, y=y, z=z, ra=ra, dec=dec, r=r, w=w, wpos=wpos,
                             g1=g1, g2=g2, k=k, patch=i, **kwargs)
                 self._patches.append(p)

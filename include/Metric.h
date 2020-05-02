@@ -199,14 +199,14 @@ struct MetricHelper<OldRperp>
         //          ~= (1 + 1/4 dr^2 / r1^2) s
         //
         // We also take the conservative approach of only increasing s for the closer point, not
-        // decreasing it for the larger one.
+        // decreasing it for the farther one.
 
         if (r1sq < r2sq) {
-            if (s1 != 0.)
+            if (s1 != 0. && s1 < std::numeric_limits<double>::infinity())
                 s1 *= (1. + 0.25 * (r2sq-r1sq)/r1sq);
         } else {
-            if (s2 != 0.)
-                s2 *= (1. + 0.25 * (r2sq-r1sq)/r1sq);
+            if (s2 != 0. && s2 < std::numeric_limits<double>::infinity())
+                s2 *= (1. + 0.25 * (r1sq-r2sq)/r2sq);
         }
 
         // This can end up negative with rounding errors.  So take the abs value to be safe.

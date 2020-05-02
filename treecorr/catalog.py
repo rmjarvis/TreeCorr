@@ -2006,16 +2006,16 @@ class Catalog(object):
                     p.unload()
         self.clear_cache()
 
-    def get_patches(self, unloaded=None):
+    def get_patches(self, low_mem=None):
         """Return a list of Catalog instances each representing a single patch from this Catalog
 
         After calling this function once, the patches may be repeatedly accessed by the
         ``patches`` attribute, without triggering a rebuild of the patches.  Furthermore,
         if ``patches`` is accessed before calling this function, it will be called automatically
-        (with the default unloaded parameter).
+        (with the default low_mem parameter).
 
         Parameters:
-            unloaded (bool):    Whether to try to leave the returned patch catalogs in an
+            low_mem (bool):     Whether to try to leave the returned patch catalogs in an
                                 "unloaded" state, wherein they will not load the data from a
                                 file until they are used.  This only works if the current catalog
                                 was loaded from a file.  (And if the patches are set using
@@ -2026,10 +2026,10 @@ class Catalog(object):
         import copy
         import os
 
-        if unloaded is None:
-            unloaded = not self.loaded
+        if low_mem is None:
+            low_mem = not self.loaded
 
-        if unloaded and self.file_name is not None:
+        if low_mem and self.file_name is not None:
             # This is a litle tricky, since we don't want to trigger a load if the catalog
             # isn't loaded yet.  So try to get the patches from centers or single_patch first.
             if self._centers is not None:
@@ -2088,10 +2088,10 @@ class Catalog(object):
                 self.logger.info('Writing patch %d to %s',i,file_name)
                 col_names = p.write(file_name)
                 file_names.append(file_name)
-                if unloaded:
+                if low_mem:
                     p.unload()
-            if unloaded:
-                # If unloaded, replace _patches with a version the reads from these files.
+            if low_mem:
+                # If low_mem, replace _patches with a version the reads from these files.
                 kwargs = {c + '_col' : c for c in col_names if c != 'patch'}
                 if 'ra' in col_names:
                     kwargs['ra_units'] = 'rad'

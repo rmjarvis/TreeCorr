@@ -345,7 +345,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         res.config = self.config  # not deep copy, so cheap, but makes repr work
         self.results[(i,j)] = res
 
-    def process(self, cat1, cat2=None, metric=None, num_threads=None, comm=None, low_mem=False):
+    def process(self, cat1, cat2=None, metric=None, num_threads=None, comm=None, low_mem=None):
         """Compute the correlation function.
 
         If only 1 argument is given, then compute an auto-correlation function.
@@ -374,11 +374,11 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
         if not isinstance(cat1,list):
             self.npatch1 = cat1._npatch
-            cat1 = cat1.get_patches()
+            cat1 = cat1.get_patches(low_mem=low_mem)
             if cat2 is None: self.npatch2 = self.npatch1
         if cat2 is not None and not isinstance(cat2,list):
             self.npatch2 = cat2._npatch
-            cat2 = cat2.get_patches()
+            cat2 = cat2.get_patches(low_mem=low_mem)
 
         if cat2 is None or len(cat2) == 0:
             self._process_all_auto(cat1, metric, num_threads, comm, low_mem)

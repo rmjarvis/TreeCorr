@@ -328,7 +328,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         return self
 
 
-    def process(self, cat1, cat2, metric=None, num_threads=None, comm=None, low_mem=False):
+    def process(self, cat1, cat2, metric=None, num_threads=None, comm=None, low_mem=None):
         """Compute the correlation function.
 
         Both arguments may be lists, in which case all items in the list are used
@@ -354,10 +354,10 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         if not isinstance(cat1,list):
             self.npatch1 = cat1._npatch
-            cat1 = cat1.get_patches()
+            cat1 = cat1.get_patches(low_mem=low_mem)
         if not isinstance(cat2,list):
             self.npatch2 = cat2._npatch
-            cat2 = cat2.get_patches()
+            cat2 = cat2.get_patches(low_mem=low_mem)
 
         varg = treecorr.calculateVarG(cat2)
         self.logger.info("varg = %f: sig_sn (per component) = %f",varg,math.sqrt(varg))

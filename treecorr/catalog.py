@@ -18,6 +18,8 @@
 import numpy as np
 import coord
 import weakref
+import copy
+import os
 import treecorr
 
 class Catalog(object):
@@ -723,15 +725,11 @@ class Catalog(object):
 
     @property
     def patches(self):
-        if self._patches is None:
-            self.get_patches()  # Implicitly sets self._patches
-        return self._patches
+        return self.get_patches()
 
     @property
     def patch_centers(self):
-        if self._centers is None:
-            self.get_patch_centers()  # Implicitly sets self._centers
-        return self._centers
+        return self.get_patch_centers()
 
     @property
     def varg(self):
@@ -1883,33 +1881,36 @@ class Catalog(object):
                                 spherical geometries.  In the latter case, the centers represent
                                 (x,y,z) coordinates on the unit sphere.
         """
-        if self._centers is None:
-            self.load()
-            if self._patch is None:
-                if self.coords == 'flat':
-                    self._centers = np.array([[self._weighted_mean(self.x),
-                                               self._weighted_mean(self.y)]])
-                else:
-                    self._centers = np.array([[self._weighted_mean(self.x),
-                                               self._weighted_mean(self.y),
-                                               self._weighted_mean(self.z)]])
+        # Early exit
+        if self._centers is not None:
+            return self._centers
+
+        self.load()
+        if self._patch is None:
+            if self.coords == 'flat':
+                self._centers = np.array([[self._weighted_mean(self.x),
+                                            self._weighted_mean(self.y)]])
             else:
-                npatch = self._npatch
-                self._centers = np.empty((npatch,2 if self.z is None else 3))
-                for p in range(npatch):
-                    indx = np.where(self.patch == p)[0]
-                    if len(indx) == 0:
-                        raise RuntimeError("Cannot find center for patch %s."%p +
-                                           "  No items with this patch number")
-                    if self.coords == 'flat':
-                        self._centers[p] = [self._weighted_mean(self.x,indx),
-                                            self._weighted_mean(self.y,indx)]
-                    else:
-                        self._centers[p] = [self._weighted_mean(self.x,indx),
-                                            self._weighted_mean(self.y,indx),
-                                            self._weighted_mean(self.z,indx)]
-            if self.coords == 'spherical':
-                self._centers /= np.sqrt(np.sum(self._centers**2,axis=1))[:,np.newaxis]
+                self._centers = np.array([[self._weighted_mean(self.x),
+                                            self._weighted_mean(self.y),
+                                            self._weighted_mean(self.z)]])
+        else:
+            npatch = self._npatch
+            self._centers = np.empty((npatch,2 if self.z is None else 3))
+            for p in range(npatch):
+                indx = np.where(self.patch == p)[0]
+                if len(indx) == 0:
+                    raise RuntimeError("Cannot find center for patch %s."%p +
+                                        "  No items with this patch number")
+                if self.coords == 'flat':
+                    self._centers[p] = [self._weighted_mean(self.x,indx),
+                                        self._weighted_mean(self.y,indx)]
+                else:
+                    self._centers[p] = [self._weighted_mean(self.x,indx),
+                                        self._weighted_mean(self.y,indx),
+                                        self._weighted_mean(self.z,indx)]
+        if self.coords == 'spherical':
+            self._centers /= np.sqrt(np.sum(self._centers**2,axis=1))[:,np.newaxis]
         return self._centers
 
     def write_patch_centers(self, file_name):
@@ -2034,8 +2035,9 @@ class Catalog(object):
                                 patch_centers, this won't even trigger a load of the current
                                 Catalog.) (default: False)
         """
-        import copy
-        import os
+        # Early exit
+        if self._patches is not None:
+            return self._patches
 
         if low_mem and self.file_name is not None:
             # This is a litle tricky, since we don't want to trigger a load if the catalog

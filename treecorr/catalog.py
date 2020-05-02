@@ -980,6 +980,8 @@ class Catalog(object):
         Parameters:
             indx:       A numpy array of index values to keep.
         """
+        if type(indx) == slice and indx == slice(None):
+            return
         self._x = self._x[indx] if self._x is not None else None
         self._y = self._y[indx] if self._y is not None else None
         self._z = self._z[indx] if self._z is not None else None

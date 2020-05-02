@@ -1369,6 +1369,32 @@ class Catalog(object):
             num (int):          Which number catalog are we reading. (default: 0)
             is_rand (bool):     Is this a random catalog? (default: False)
         """
+        # Helper functions for things we might do in one of two places.
+        def set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col):
+            if x_col != '0' and x_col in data:
+                self._x = data[x_col].astype(float)
+                self.logger.debug('read x')
+                self._y = data[y_col].astype(float)
+                self.logger.debug('read y')
+                if z_col != '0':
+                    self._z = data[z_col].astype(float)
+                    self.logger.debug('read z')
+            elif ra_col in data:
+                self._ra = data[ra_col].astype(float)
+                self.logger.debug('read ra')
+                self._dec = data[dec_col].astype(float)
+                self.logger.debug('read dec')
+                if r_col != '0':
+                    self._r = data[r_col].astype(float)
+                    self.logger.debug('read r')
+            self._apply_units()
+
+        def set_patch(data, patch_col):
+            if patch_col != '0' and patch_col in data:
+                self._patch = data[patch_col].astype(int)
+                self.logger.debug('read patch')
+                self._set_npatch()
+
         import fitsio
 
         # Get the column names
@@ -1405,81 +1431,114 @@ class Catalog(object):
                 end = self.end if self.end is not None else fits[x_hdu].get_nrows()
                 s = np.arange(self.start, end, self.every_nth)
 
-            # Read x,y or ra,dec,r
-            if x_col != '0':
-                x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
-                y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
-                self._x = fits[x_hdu][x_col][s].astype(float)
-                self.logger.debug('read x')
-                self._y = fits[y_hdu][y_col][s].astype(float)
-                self.logger.debug('read y')
-                if z_col != '0':
-                    z_hdu = treecorr.config.get_from_list(self.config,'z_hdu',num,int,hdu)
-                    self._z = fits[z_hdu][z_col][s].astype(float)
-                    self.logger.debug('read z')
-            else:
-                ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
-                dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
-                self._ra = fits[ra_hdu][ra_col][s].astype(float)
-                self.logger.debug('read ra')
-                self._dec = fits[dec_hdu][dec_col][s].astype(float)
-                self.logger.debug('read dec')
-                if r_col != '0':
-                    r_hdu = treecorr.config.get_from_list(self.config,'r_hdu',num,int,hdu)
-                    self._r = fits[r_hdu][r_col][s].astype(float)
-                    self.logger.debug('read r')
-            self._apply_units()
+            all_cols = [x_col, y_col, z_col,
+                        ra_col, dec_col, r_col,
+                        patch_col,
+                        w_col, wpos_col, flag_col,
+                        g1_col, g2_col, k_col]
 
-            # Read patch
-            if patch_col != '0':
-                patch_hdu = treecorr.config.get_from_list(self.config,'patch_hdu',num,int,hdu)
-                self._patch = fits[patch_hdu][patch_col][s].astype(int)
-                self.logger.debug('read patch')
-                self._set_npatch()
+            # It's faster to read in all the columsn in one read, rather than individually.
+            # Typically (very close to always!), all the columns are in the same hdu.
+            # Thus, the following would normally work fine.
+            #     use_cols = [c for c in all_cols if c != '0']
+            #     data = fits[hdu][use_cols][:]
+            # However, we allow the option to have different columns read from different hdus.
+            # So this is slightly more complicated.
+            x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
+            y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
+            z_hdu = treecorr.config.get_from_list(self.config,'z_hdu',num,int,hdu)
+            ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
+            dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
+            r_hdu = treecorr.config.get_from_list(self.config,'r_hdu',num,int,hdu)
+            patch_hdu = treecorr.config.get_from_list(self.config,'patch_hdu',num,int,hdu)
+            w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,int,hdu)
+            wpos_hdu = treecorr.config.get_from_list(self.config,'wpos_hdu',num,int,hdu)
+            flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
+            g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
+            g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
+            k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
+            all_hdus = [x_hdu, y_hdu, z_hdu,
+                        ra_hdu, dec_hdu, r_hdu,
+                        patch_hdu,
+                        w_hdu, wpos_hdu, flag_hdu,
+                        g1_hdu, g2_hdu, k_hdu]
+            col_by_hdu = dict(zip(all_cols,all_hdus))
+            all_hdus = set(all_hdus + [hdu])
+            all_cols = [c for c in all_cols if c != '0']
 
-            # If only reading in a single patch, do it now.
+            data = {}
+            # Also, if we are only reading in one patch, we should adjust s before doing this.
             if self._single_patch is not None:
+                if patch_col != '0':
+                    data[patch_col] = fits[patch_hdu][patch_col][s]
+                    all_cols.remove(patch_col)
+                    set_patch(data, patch_col)
+                elif self._centers is not None:
+                    pos_cols = [x_col, y_col, z_col, ra_col, dec_col, r_col]
+                    pos_cols = [c for c in pos_cols if c != '0']
+                    for c in pos_cols:
+                        all_cols.remove(c)
+                    for h in all_hdus:
+                        use_cols1 = [c for c in pos_cols if col_by_hdu[c] == h]
+                        data1 = fits[h][use_cols1][s]
+                        for c in use_cols1:
+                            data[c] = data1[c]
+                    set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col)
                 use = self._get_patch_index(self._single_patch)
                 self.select(use)
-                self._patch = None
                 if isinstance(s,np.ndarray):
                     s = s[use]
                 else:
                     s = use
+                self._patch = None
+                data = {}  # Start fresh, since the ones we used so far are done.
 
-            # Read w
+                # We might actually be done now, in which case, just return.
+                # (Else the fits read below won't actually work.)
+                if len(all_cols) == 0:
+                    return
+
+            # Now read the rest using the updated s
+            for h in all_hdus:
+                use_cols1 = [c for c in all_cols if col_by_hdu[c] == h and
+                                                    c in fits[h].get_colnames()]
+                data1 = fits[h][use_cols1][s]
+                for c in use_cols1:
+                    data[c] = data1[c]
+
+            # Set position values
+            set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col)
+
+            # Set patch
+            set_patch(data, patch_col)
+
+            # Set w
             if w_col != '0':
-                w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,int,hdu)
-                self._w = fits[w_hdu][w_col][s].astype(float)
+                self._w = data[w_col].astype(float)
                 self.logger.debug('read w')
 
-            # Read wpos
+            # Set wpos
             if wpos_col != '0':
-                wpos_hdu = treecorr.config.get_from_list(self.config,'wpos_hdu',num,int,hdu)
-                self._wpos = fits[wpos_hdu][wpos_col][s].astype(float)
+                self._wpos = data[wpos_col].astype(float)
                 self.logger.debug('read wpos')
 
-            # Read flag
+            # Set flag
             if flag_col != '0':
-                flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
-                self._flag = fits[flag_hdu][flag_col][s].astype(int)
+                self._flag = data[flag_col].astype(int)
                 self.logger.debug('read flag')
 
             # Skip g1,g2,k if this file is a random catalog
             if not is_rand:
-                # Read g1,g2
-                g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
-                g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
+                # Set g1,g2
                 if g1_col in fits[g1_hdu].get_colnames():
-                    self._g1 = fits[g1_hdu][g1_col][s].astype(float)
+                    self._g1 = data[g1_col].astype(float)
                     self.logger.debug('read g1')
-                    self._g2 = fits[g2_hdu][g2_col][s].astype(float)
+                    self._g2 = data[g2_col].astype(float)
                     self.logger.debug('read g2')
 
-                # Read k
-                k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
+                # Set k
                 if k_col in fits[k_hdu].get_colnames():
-                    self._k = fits[k_hdu][k_col][s].astype(float)
+                    self._k = data[k_col].astype(float)
                     self.logger.debug('read k')
 
     @property

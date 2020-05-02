@@ -892,7 +892,7 @@ class Catalog(object):
         if self._nontrivial_w and not keep_zero_weight:
             wpos = self._wpos if self._wpos is not None else self._w
             if np.any(wpos == 0):
-                self.select(wpos != 0)
+                self.select(np.where(wpos != 0)[0])
 
         if self.npatch != 1:
             init = treecorr.config.get(self.config,'kmeans_init',str,'tree')
@@ -2066,7 +2066,7 @@ class Catalog(object):
                 self.logger.warning("This may be a problem depending on your use case.")
             self._patches = []
             for i in patch_set:
-                indx = self.patch == i
+                indx = np.where(self.patch == i)[0]
                 x=self.x[indx] if self.x is not None else None
                 y=self.y[indx] if self.y is not None else None
                 z=self.z[indx] if self.z is not None else None

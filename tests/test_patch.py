@@ -108,15 +108,15 @@ def test_cat_patches():
     cat5b = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                              patch_col=3)
     assert not cat5b.loaded
-    cat5b_patches = cat5b.get_patches()  # Default is to match full catalog, so low_mem=True here.
+    cat5b_patches = cat5b.get_patches(low_mem=True)
     assert cat5b.loaded   # Needed to load to get number of patches.
-    cat5b_patches2 = cat5b.get_patches(low_mem=True)  # Can also be explicit.
+    cat5b_patches2 = cat5b.get_patches(low_mem=True)  # Repeat with loaded cat5b should be equiv.
     cat5b_patches3 = cat5b.get_patches(low_mem=False)
-    cat5b_patches4 = cat5b.get_patches()  # Default now is False, since cat5b got loaded.
+    cat5b_patches4 = cat5b.get_patches()  # Default is False
     for i in range(4):  # Don't bother with all the patches.  4 suffices to check this.
         assert not cat5b_patches[i].loaded   # But single patch not loaded yet.
         assert not cat5b_patches2[i].loaded
-        assert cat5b_patches3[i].loaded      # Unless we asked it to load
+        assert cat5b_patches3[i].loaded      # Unless we didn't ask for low memory.
         assert cat5b_patches4[i].loaded
         assert np.all(cat5b_patches[i].patch == i)  # Triggers load of patch.
         np.testing.assert_array_equal(cat5b_patches[i].x, cat5.x[cat5.patch == i])
@@ -152,7 +152,7 @@ def test_cat_patches():
         cat6c = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
                                  ra_units='rad', dec_units='rad', patch_col='patch')
         assert not cat6c.loaded
-        cat6c_patches = cat6c.get_patches()
+        cat6c_patches = cat6c.get_patches(low_mem=True)
         assert cat6c.loaded
         cat6c_patches2 = cat6c.get_patches(low_mem=True)
         cat6c_patches3 = cat6c.get_patches(low_mem=False)
@@ -190,7 +190,7 @@ def test_cat_patches():
                             ra_units='rad', dec_units='rad', patch_col='patch', patch=3)
     np.testing.assert_array_equal(cat8.patch, 3)
 
-    # unloaded=True works if not from a file, but it's not any different
+    # low_mem=True works if not from a file, but it's not any different
     assert cat1.get_patches(low_mem=True) == cat1.get_patches()
     assert cat2.get_patches(low_mem=True) == cat2.get_patches()
     assert cat5.get_patches(low_mem=True) == cat5.get_patches()
@@ -377,7 +377,7 @@ def test_cat_centers():
     cat15 = treecorr.Catalog(file_name15, x_col=1, y_col=2, w_col=3,
                              patch_centers=cat14.patch_centers)
     assert not cat15.loaded
-    cat15_patches = cat15.get_patches()
+    cat15_patches = cat15.get_patches(low_mem=True)
     assert not cat15.loaded  # Unlike above (in test_cat_patches) it's still unloaded.
     for i in range(4):  # Don't bother with all the patches.  4 suffices to check this.
         assert not cat15_patches[i].loaded
@@ -404,7 +404,7 @@ def test_cat_centers():
                                  ra_units='rad', dec_units='rad',
                                  patch_centers=cat8.patch_centers)
         assert not cat17.loaded
-        cat17_patches = cat17.get_patches()
+        cat17_patches = cat17.get_patches(low_mem=True)
         assert not cat17.loaded  # Unlike above (in test_cat_patches) it's still unloaded.
         for i in range(4):  # Don't bother with all the patches.  4 suffices to check this.
             assert not cat17_patches[i].loaded
@@ -1587,6 +1587,7 @@ def test_save_patches():
     cat2 = treecorr.Catalog(file_name, ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
                             npatch=npatch, save_patch_dir='output')
     assert not cat2.loaded
+    cat2.get_patches(low_mem=True)
     assert len(cat2.patches) == npatch
     assert cat2.loaded  # Making patches triggers load.  Also when write happens.
     for i in range(npatch):
@@ -1614,6 +1615,7 @@ def test_save_patches():
                             g1_col=5, g2_col=6, k_col=7, patch_col=8,
                             save_patch_dir='output')
     assert not cat4.loaded
+    cat4.get_patches(low_mem=True)
     assert len(cat4.patches) == npatch
     assert cat4.loaded  # Making patches triggers load.
     for i in range(npatch):
@@ -1627,6 +1629,10 @@ def test_save_patches():
         assert cat_i == cat4.patches[i]
         assert cat_i.loaded
         assert cat4.patches[i].loaded
+    # Make sure making patch_centers doesn't screw things up.  (It used to.)
+    cat4.patch_centers
+    assert cat4.get_patches(low_mem=True) == cat4.patches
+    assert cat4.get_patches(low_mem=False) == cat4.patches
 
     # If patches are made with patch_centers, then making patches doesn't trigger full load.
     cat5 = treecorr.Catalog(file_name2,
@@ -1634,6 +1640,7 @@ def test_save_patches():
                             g1_col=5, g2_col=6, k_col=7, patch_centers=cat4.patch_centers,
                             save_patch_dir='output')
     assert not cat5.loaded
+    cat5.get_patches(low_mem=True)
     assert len(cat5.patches) == npatch
     assert not cat5.loaded
     for i in range(npatch):

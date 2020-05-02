@@ -328,7 +328,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         return self
 
 
-    def process(self, cat1, cat2, metric=None, num_threads=None, comm=None, low_mem=None):
+    def process(self, cat1, cat2, metric=None, num_threads=None, comm=None, low_mem=False):
         """Compute the correlation function.
 
         Both arguments may be lists, in which case all items in the list are used

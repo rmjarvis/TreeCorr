@@ -50,17 +50,25 @@ file ``TreeCorr_LICENSE`` with the distribution.  See that file for details.
 Installation
 ------------
 
-The easiest way to install TreeCorr is with pip::
+The easiest ways to install TreeCorr are either with pip::
 
     pip install treecorr
+
+or with conda::
+
+    conda install treecorr
 
 If you have previously installed TreeCorr, and want to upgrade to a new
 released version, you should do::
 
     pip install treecorr --upgrade
 
+or::
+
+    conda update treecorr
+
 Depending on the write permissions of the python distribution for your specific
-system, you might need to use one of the following variants::
+system, you might need to use one of the following variants for pip installation::
 
     sudo pip install treecorr
     pip install treecorr --user
@@ -80,7 +88,23 @@ into ``PREFIX/lib/python3.7/site-packages``.
 If you would rather download the tarball and install TreeCorr yourself,
 that is also relatively straightforward:
 
-1. Install dependencies
+1. Download TreeCorr
+^^^^^^^^^^^^^^^^^^^^
+
+   You can download the latest tarball from::
+
+        https://github.com/rmjarvis/TreeCorr/releases/
+
+   Or you can clone the repository using either of the following::
+
+        git clone git@github.com:GalSim-developers/GalSim.git
+        git clone https://github.com/GalSim-developers/GalSim.git
+
+   which will start out in the current stable release branch.
+
+   Either way, cd into the TreeCorr directory.
+
+2. Install dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^
 
    All required dependencies should be installed automatically for you by
@@ -96,6 +120,10 @@ that is also relatively straightforward:
 
         pip install -r requirements.txt
 
+   or::
+
+        conda install treecorr --only-deps
+
    The last dependency is the only one that typically could cause any problems, since it in
    turn depends on a library called libffi.  This is a common thing to have installed already
    on linux machines, so it is likely that you won't have any trouble with it, but if you get
@@ -104,7 +132,6 @@ that is also relatively straightforward:
 
    See https://cffi.readthedocs.io/en/latest/installation.html for more information about
    installing cffi, including its libffi dependency.
-
 
    .. note::
 
@@ -121,23 +148,6 @@ that is also relatively straightforward:
             pip install pandas
 
         But they are not installed with TreeCorr automatically.
-
-
-2. Download TreeCorr
-^^^^^^^^^^^^^^^^^^^^
-
-   You can download the latest tarball from::
-
-        https://github.com/rmjarvis/TreeCorr/releases/
-
-   Or you can clone the repository using either of the following::
-
-        git clone git@github.com:GalSim-developers/GalSim.git
-        git clone https://github.com/GalSim-developers/GalSim.git
-
-   which will start out in the current stable release branch.
-
-   Either way, cd into the TreeCorr directory.
 
 
 3. Install
@@ -173,7 +183,6 @@ that is also relatively straightforward:
         pip install -r test_requirements.txt
         cd tests
         nosetests
-
 
 
 Two-point Correlations
@@ -268,6 +277,7 @@ in a fits file would look something like the following::
     >>> gg.process(cat)
     >>> xip = gg.xip  # The xi_plus correlation function
     >>> xim = gg.xim  # The xi_minus correlation function
+    >>> gg.write('gg.out')  # Write results to a file
 
 For more involved worked examples, see our `Jupyter notebook tutorial
 <https://github.com/rmjarvis/TreeCorr/blob/master/tests/Tutorial.ipynb>`_.

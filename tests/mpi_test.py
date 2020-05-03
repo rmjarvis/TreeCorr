@@ -16,7 +16,6 @@ import numpy as np
 import time
 import os
 import unittest
-import pytest
 import treecorr
 
 try:
@@ -42,8 +41,8 @@ else:
     nrows = 10000  # quicker on pytest runs
 
 
-@timer
 @unittest.skipIf(no_mpi, 'Unable to import mpi4py or fitsio')
+@timer
 def setup():
     # Make sure we have Aardvark.fit
     if rank == 0:
@@ -64,16 +63,13 @@ def setup():
     comm.Barrier()
 
 
-test_corr_params = [(treecorr.GGCorrelation, True, ['xip', 'xim', 'npairs']),
-                    (treecorr.NGCorrelation, False, ['xi', 'xi_im', 'npairs']),
-                    (treecorr.NKCorrelation, False, ['xi', 'npairs']),
-                    (treecorr.NNCorrelation, True, ['npairs']),
-                    (treecorr.KGCorrelation, False, ['xi', 'xi_im', 'npairs']),
-                    (treecorr.KKCorrelation, True, ['xi', 'npairs'])]
-@timer
-@pytest.mark.parametrize('args', test_corr_params)
-@unittest.skipIf(no_mpi, 'Unable to import mpi4py or fitsio')
-def test_mpi_corr(args):
+test_corr_args = [(treecorr.GGCorrelation, True, ['xip', 'xim', 'npairs']),
+                  (treecorr.NGCorrelation, False, ['xi', 'xi_im', 'npairs']),
+                  (treecorr.NKCorrelation, False, ['xi', 'npairs']),
+                  (treecorr.NNCorrelation, True, ['npairs']),
+                  (treecorr.KGCorrelation, False, ['xi', 'xi_im', 'npairs']),
+                  (treecorr.KKCorrelation, True, ['xi', 'npairs'])]
+def do_mpi_corr(args):
     Correlation, auto, attr = args
     if rank == 0:
         print('Start test_mpi_corr for ',Correlation.__name__,flush=True)
@@ -118,7 +114,12 @@ def test_mpi_corr(args):
         for a in attr:
             np.testing.assert_allclose(getattr(corr0,a), getattr(corr1,a))
 
+@unittest.skipIf(no_mpi, 'Unable to import mpi4py or fitsio')
+@timer
+def test_mpi_corr():
+    for arg in test_corr_args:
+        do_mpi_corr(arg)
+
 if __name__ == '__main__':
     setup()
-    for args in test_corr_params:
-        test_mpi_corr(args)
+    test_mpi_corr()

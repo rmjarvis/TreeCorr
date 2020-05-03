@@ -18,7 +18,8 @@ import os
 import sys
 import coord
 
-from test_helper import get_script_name, do_pickle, CaptureLog, assert_raises, timer
+from test_helper import get_script_name, do_pickle, CaptureLog
+from test_helper import assert_raises, timer, assert_warns
 
 @timer
 def test_direct():
@@ -306,7 +307,8 @@ def test_pairwise():
     nbins = 10
     bin_size = np.log(max_sep/min_sep) / nbins
     nk = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
-    nk.process_pairwise(cat1, cat2)
+    with assert_warns(FutureWarning):
+        nk.process_pairwise(cat1, cat2)
     nk.finalize(cat2.vark)
 
     true_npairs = np.zeros(nbins, dtype=int)
@@ -338,7 +340,8 @@ def test_pairwise():
     cat2.name = "second"
     with CaptureLog() as cl:
         nk.logger = cl.logger
-        nk.process_pairwise(cat1, cat2, metric='Euclidean', num_threads=2)
+        with assert_warns(FutureWarning):
+            nk.process_pairwise(cat1, cat2, metric='Euclidean', num_threads=2)
     assert "for cats first, second" in cl.output
 
 

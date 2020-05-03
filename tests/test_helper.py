@@ -169,7 +169,7 @@ else:
             warnings.simplefilter("always")
             yield w
         assert len(w) >= 1, "Expected warning %s was not raised."%(wtype)
-        assert issubclass(w[0].category, wtype), \
+        assert any([issubclass(ww.category, wtype) for ww in w]), \
                 "Warning raised was the wrong type (got %s, expected %s)"%(
                 w[0].category, wtype)
 

@@ -17,7 +17,8 @@ import treecorr
 import os
 import coord
 
-from test_helper import get_script_name, do_pickle, CaptureLog, assert_raises, timer
+from test_helper import get_script_name, do_pickle, CaptureLog
+from test_helper import assert_raises, timer, assert_warns
 
 @timer
 def test_direct():
@@ -318,7 +319,8 @@ def test_pairwise():
     nbins = 10
     bin_size = np.log(max_sep/min_sep) / nbins
     kg = treecorr.KGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
-    kg.process_pairwise(cat1, cat2)
+    with assert_warns(FutureWarning):
+        kg.process_pairwise(cat1, cat2)
     kg.finalize(cat1.vark, cat2.varg)
 
     true_npairs = np.zeros(nbins, dtype=int)
@@ -352,7 +354,8 @@ def test_pairwise():
     cat2.name = "second"
     with CaptureLog() as cl:
         kg.logger = cl.logger
-        kg.process_pairwise(cat1, cat2, metric='Euclidean', num_threads=2)
+        with assert_warns(FutureWarning):
+            kg.process_pairwise(cat1, cat2, metric='Euclidean', num_threads=2)
     assert "for cats first, second" in cl.output
 
 
@@ -438,7 +441,8 @@ def test_pairwise2():
     source_cat = treecorr.Catalog(x=x+dx, y=y+dx, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     kg = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1, pairwise=True)
-    kg.process(lens_cat, source_cat)
+    with assert_warns(FutureWarning):
+        kg.process(lens_cat, source_cat)
 
     r = kg.meanr
     true_kgt = kappa * gamma0 * np.exp(-0.5*r**2/r0**2)
@@ -457,7 +461,8 @@ def test_pairwise2():
     source_cat.write(os.path.join('data','kg_pairwise_source.dat'))
     config = treecorr.read_config('configs/kg_pairwise.yaml')
     config['verbose'] = 0
-    treecorr.corr2(config)
+    with assert_warns(FutureWarning):
+        treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','kg_pairwise.out'), names=True,
                                     skip_header=1)
     print('kg.xi = ',kg.xi)

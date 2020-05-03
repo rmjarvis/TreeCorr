@@ -81,14 +81,17 @@ class Field(object):
     def __init__(self):
         raise NotImplementedError("Field is an abstract base class.  It cannot be instantiated.")
 
-    def _determine_min_top(self, min_top):
+    def _determine_top(self, min_top, max_top):
         if min_top is None:
             n_cpu = treecorr.get_omp_threads()
             # int.bit_length is a trick to avoid going through float.
             # bit_length(n-1) == ceil(log2(n)), which is what we want.
-            return max(3, int.bit_length(n_cpu-1))
+            min_top = max(3, int.bit_length(n_cpu-1))
         else:
-            return int(min_top)
+            min_top = int(min_top)
+        max_top = int(max_top)
+        min_top = min(min_top, max_top)  # If min_top > max_top favor max_top.
+        return min_top, max_top
 
     @property
     def nTopLevelNodes(self):
@@ -499,8 +502,7 @@ class NField(Field):
         self._sm = _parse_split_method(split_method)
         self._d = 1  # NData
         self.brute = bool(brute)
-        self.min_top = self._determine_min_top(min_top)
-        self.max_top = int(max_top)
+        self.min_top, self.max_top = self._determine_top(min_top, max_top)
         self.coords = coords if coords is not None else cat.coords
         self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
 
@@ -562,8 +564,7 @@ class KField(Field):
         self._sm = _parse_split_method(split_method)
         self._d = 2  # KData
         self.brute = bool(brute)
-        self.min_top = self._determine_min_top(min_top)
-        self.max_top = int(max_top)
+        self.min_top, self.max_top = self._determine_top(min_top, max_top)
         self.coords = coords if coords is not None else cat.coords
         self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
 
@@ -623,8 +624,7 @@ class GField(Field):
         self._sm = _parse_split_method(split_method)
         self._d = 3  # GData
         self.brute = bool(brute)
-        self.min_top = self._determine_min_top(min_top)
-        self.max_top = int(max_top)
+        self.min_top, self.max_top = self._determine_top(min_top, max_top)
         self.coords = coords if coords is not None else cat.coords
         self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
 

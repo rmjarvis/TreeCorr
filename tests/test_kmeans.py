@@ -38,7 +38,7 @@ def test_dessv():
     # Use an odd number to make sure we force some of the shuffle bits in InitializeCenters
     # to happen.
     npatch = 43
-    field = cat.getNField()
+    field = cat.getNField(max_top=5)
     t0 = time.time()
     patches, cen = field.run_kmeans(npatch)
     t1 = time.time()

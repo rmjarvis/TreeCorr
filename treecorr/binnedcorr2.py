@@ -464,25 +464,19 @@ class BinnedCorr2(object):
         return (d > s1 + s2 + 2*self._max_sep)  # The 2* is where we are being conservative.
 
     def _process_all_auto(self, cat1, metric, num_threads, comm, low_mem):
-        def is_my_job(comm, i, j, n):
+
+        def is_my_job(my_indices, i, j, n):
             # Helper function to figure out if a given (i,j) job should be done on the
             # current process.
 
             # Always my job if not using MPI.
-            if not comm:
+            if my_indices is None:
                 return True
 
             # Now the tricky part.  If using MPI, we need to divide up the jobs smartly.
             # The first point is to divvy up the auto jobs evenly.  This is where most of the
             # work is done, so we want those to be spreads as evenly as possibly across procs.
-            rank = comm.Get_rank()
-            size = comm.Get_size()
-            my_indices = np.arange(n * rank // size, n * (rank+1) // size)
-            if i == j == 0:
-                # Just report this once.
-                self.logger.info("Rank %d: My indices are %s",rank,my_indices)
-
-            # If both indices are mine, then do the job.
+            # Therefore, if both indices are mine, then do the job.
             # This reduces the number of catalogs this machine needs to load up.
             # If the auto i,i and j,j are both my job, then i and j are already being loaded
             # on this machine, so also do that job.
@@ -517,10 +511,21 @@ class BinnedCorr2(object):
             # When patch processing, keep track of the pair-wise results.
             if self.npatch1 == 1:
                 self.npatch1 = self.npatch2 = len(cat1)
+            n = self.npatch1
+
+            # Setup for deciding when this is my job.
+            if comm:
+                size = comm.Get_size()
+                rank = comm.Get_rank()
+                my_indices = np.arange(n * rank // size, n * (rank+1) // size)
+                self.logger.info("Rank %d: My indices are %s",rank,my_indices)
+            else:
+                my_indices = None
+
             temp = self.copy()
             for ii,c1 in enumerate(cat1):
                 i = c1.patch if c1.patch is not None else ii
-                if is_my_job(comm, i, i, self.npatch1):
+                if is_my_job(my_indices, i, i, n):
                     temp.clear()
                     self.logger.info('Process patch %d auto',i)
                     temp.process_auto(c1,metric,num_threads)
@@ -528,7 +533,7 @@ class BinnedCorr2(object):
                     self += temp
                 for jj,c2 in list(enumerate(cat1))[::-1]:
                     j = c2.patch if c2.patch is not None else jj
-                    if i < j and is_my_job(comm, i, j, self.npatch1):
+                    if i < j and is_my_job(my_indices, i, j, n):
                         temp.clear()
                         if not self._trivially_zero(c1,c2,metric):
                             self.logger.info('Process patches %d,%d cross',i,j)
@@ -561,28 +566,21 @@ class BinnedCorr2(object):
                         self.results.update(temp.results)
 
     def _process_all_cross(self, cat1, cat2, metric, num_threads, comm, low_mem):
-        def is_my_job(comm, i, j, n1, n2):
+
+        def is_my_job(my_indices, i, j, n1, n2):
             # Helper function to figure out if a given (i,j) job should be done on the
             # current process.
 
             # Always my job if not using MPI.
-            if not comm:
+            if my_indices is None:
                 return True
 
             # This is much simpler than in the auto case, since the set of catalogs for
             # cat1 and cat2 are different, we can just split up one of them among the jobs.
-            rank = comm.Get_rank()
-            size = comm.Get_size()
             if n1 > n2:
-                my_indices = np.arange(n1 * rank // size, n1 * (rank+1) // size)
                 k = i
             else:
-                my_indices = np.arange(n2 * rank // size, n2 * (rank+1) // size)
                 k = j
-            if i == j == 0:
-                # Just report this once.
-                self.logger.info("Rank %d: My indices are %s",rank,my_indices)
-
             if k in my_indices:
                 self.logger.info("Rank %d: Job (%d,%d) is mine.",rank,i,j)
                 return True
@@ -610,12 +608,27 @@ class BinnedCorr2(object):
                 self.npatch2 = len(cat2)
             if self.npatch1 != self.npatch2 and self.npatch1 != 1 and self.npatch2 != 1:
                 raise RuntimeError("Cross correlation requires both catalogs use the same patches.")
+
+            # Setup for deciding when this is my job.
+            n1 = self.npatch1
+            n2 = self.npatch2
+            if comm:
+                size = comm.Get_size()
+                rank = comm.Get_rank()
+                if n1 > n2:
+                    my_indices = np.arange(n1 * rank // size, n1 * (rank+1) // size)
+                else:
+                    my_indices = np.arange(n2 * rank // size, n2 * (rank+1) // size)
+                self.logger.info("Rank %d: My indices are %s",rank,my_indices)
+            else:
+                my_indices = None
+
             temp = self.copy()
             for ii,c1 in enumerate(cat1):
                 i = c1.patch if c1.patch is not None else ii
                 for jj,c2 in enumerate(cat2):
                     j = c2.patch if c2.patch is not None else jj
-                    if is_my_job(comm, i, j, self.npatch1, self.npatch2):
+                    if is_my_job(my_indices, i, j, n1, n2):
                         temp.clear()
                         if not self._trivially_zero(c1,c2,metric):
                             self.logger.info('Process patches %d,%d cross',i,j)

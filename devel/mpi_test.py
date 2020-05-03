@@ -150,7 +150,7 @@ def run_serial():
     print('Made cat', t1-t0)
 
     gg = treecorr.GGCorrelation(nbins=200, min_sep=1., max_sep=400., sep_units='arcmin',
-                                verbose=1, min_top=8, log_file='serial.log')
+                                verbose=1, log_file='serial.log')
 
     # These next two steps don't need to be done separately.  They will automatically
     # happen when calling process.  But separating them out makes it easier to profile.
@@ -189,7 +189,7 @@ def run_parallel():
 
     # Everyone needs to make their own Correlation object.
     gg = treecorr.GGCorrelation(nbins=200, min_sep=1., max_sep=400., sep_units='arcmin',
-                                verbose=1, min_top=8, log_file='parallel_%d.log'%rank)
+                                verbose=1, log_file='parallel_%d.log'%rank)
 
     cat.load()
     t2 = time.time()

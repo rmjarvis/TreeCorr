@@ -227,8 +227,6 @@ class BinnedCorr2(object):
                 'The number of digits after the decimal in the output.'),
         'pairwise' : (bool, True, False, None,
                 'Whether to do a pair-wise cross-correlation '),
-        'num_threads' : (int, False, None, None,
-                'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
         'm2_uform' : (str, False, 'Crittenden', ['Crittenden', 'Schneider'],
                 'The function form of the mass aperture.'),
         'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp', 'FisherRperp', 'OldRperp',
@@ -254,6 +252,8 @@ class BinnedCorr2(object):
                 'The method to use for estimating the variance'),
         'num_bootstrap': (int, False, 500, None,
                 'How many bootstrap samples to use for the var_method=bootstrap and marked_bootstrap'),
+        'num_threads' : (int, False, None, None,
+                'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
     }
 
     def __init__(self, config=None, logger=None, **kwargs):

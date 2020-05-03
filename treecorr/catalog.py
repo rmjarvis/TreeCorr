@@ -637,19 +637,21 @@ class Catalog(object):
                 raise TypeError("x_units specified without specifying y_units")
             if 'y_units' in self.config and not 'x_units' in self.config:
                 raise TypeError("y_units specified without specifying x_units")
-            if 'ra_units' in self.config and not allow_xyz:
-                raise TypeError("ra_units is invalid without ra")
-            if 'dec_units' in self.config and not allow_xyz:
-                raise TypeError("dec_units is invalid without dec")
         else:
-            if not self.config.get('ra_units',None):
-                raise TypeError("ra_units is required when using ra, dec")
-            if not self.config.get('dec_units',None):
-                raise TypeError("dec_units is required when using ra, dec")
             if 'x_units' in self.config:
                 raise TypeError("x_units is invalid without x")
             if 'y_units' in self.config:
                 raise TypeError("y_units is invalid without y")
+        if ra is not None or self.config.get('ra_col','0') not in [0,'0']:
+            if not self.config.get('ra_units',None):
+                raise TypeError("ra_units is required when using ra, dec")
+            if not self.config.get('dec_units',None):
+                raise TypeError("dec_units is required when using ra, dec")
+        else:
+            if 'ra_units' in self.config:
+                raise TypeError("ra_units is invalid without ra")
+            if 'dec_units' in self.config:
+                raise TypeError("dec_units is invalid without dec")
 
         if file_name is None:
             # For vector input option, can finish up now.
@@ -1209,7 +1211,7 @@ class Catalog(object):
         patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,int,0)
 
         # Read x,y or ra,dec
-        if x_col != 0 or y_col != 0:
+        if x_col != 0:
             # NB. astype always copies, even if the type is already correct.
             # We actually want this, since it makes the result contiguous in memory,
             # which we will need.
@@ -1220,7 +1222,7 @@ class Catalog(object):
             if z_col != 0:
                 self._z = data[:,z_col-1].astype(float)
                 self.logger.debug('read r')
-        else:
+        if ra_col != 0:
             self._ra = data[:,ra_col-1].astype(float)
             self.logger.debug('read ra')
             self._dec = data[:,dec_col-1].astype(float)
@@ -1327,6 +1329,11 @@ class Catalog(object):
 
         with fitsio.FITS(file_name, 'r') as fits:
 
+            if hdu not in fits:
+                raise ValueError("Invalid hdu=%d for file %s"%(hdu,file_name))
+            if not isinstance(fits[hdu], fitsio.hdu.TableHDU):
+                raise ValueError("Invalid hdu=%d for file %s (Not a TableHDU)"%(hdu,file_name))
+
             if x_col != '0':
                 x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
                 y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
@@ -1412,7 +1419,7 @@ class Catalog(object):
                 if z_col != '0':
                     self._z = data[z_col].astype(float)
                     self.logger.debug('read z')
-            elif ra_col in data:
+            if ra_col != '0' and ra_col in data:
                 self._ra = data[ra_col].astype(float)
                 self.logger.debug('read ra')
                 self._dec = data[dec_col].astype(float)
@@ -1535,6 +1542,8 @@ class Catalog(object):
             for h in all_hdus:
                 use_cols1 = [c for c in all_cols if col_by_hdu[c] == h and
                                                     c in fits[h].get_colnames()]
+                if len(use_cols1) == 0:
+                    continue
                 data1 = fits[h][use_cols1][s]
                 for c in use_cols1:
                     data[c] = data1[c]

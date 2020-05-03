@@ -381,7 +381,7 @@ def test_cat_centers():
         assert cat == cat14.patches[i]
 
     # Loading from a file with patch_centers can mean that get_patches won't trigger a load.
-    file_name15 = os.path.join('output','test_cat_centers.dat')
+    file_name15 = os.path.join('output','test_cat_centers_f15.dat')
     cat14.write(file_name15)
     cat15 = treecorr.Catalog(file_name15, x_col=1, y_col=2, w_col=3,
                              patch_centers=cat14.patch_centers)
@@ -440,6 +440,19 @@ def test_cat_centers():
     with assert_raises(ValueError):
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
                          patch_centers=cen_file, patch_col=3)
+
+    # patch_centers is wrong shape
+    with assert_raises(ValueError):
+        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
+                         patch_centers=cen_file2)
+    with assert_raises(ValueError):
+        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
+                         patch_centers=cat9.patch_centers)
+    with assert_raises(ValueError):
+        treecorr.Catalog(x=x, y=y, patch_centers=cen_file)
+    with assert_raises(ValueError):
+        treecorr.Catalog(x=x, y=y, patch_centers=cat1.patch_centers)
+
     # Missing some patch numbers
     with assert_raises(RuntimeError):
         c=treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',

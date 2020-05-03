@@ -996,6 +996,45 @@ void KMeansAssign(void* field, double* centers, int npatch, long* patches, long 
     }
 }
 
+void QuickAssign(double* centers, int npatch,
+                 double* x, double* y, double* z, long* patches, long n)
+{
+    if (z) {
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+        for (int i=0; i<n; ++i) {
+            int kmin = 0;
+            double min_rsq = SQR(x[i]-centers[0]) + SQR(y[i]-centers[1]) + SQR(z[i]-centers[2]);
+            for (int k=1; k<npatch; ++k) {
+                double rsq = SQR(x[i]-centers[3*k]) + SQR(y[i]-centers[3*k+1]) + SQR(z[i]-centers[3*k+2]);
+                if (rsq < min_rsq) {
+                    kmin = k;
+                    min_rsq = rsq;
+                }
+            }
+            patches[i] = kmin;
+        }
+    } else {
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+        for (int i=0; i<n; ++i) {
+            int kmin = 0;
+            double min_rsq = SQR(x[i]-centers[0]) + SQR(y[i]-centers[1]);
+            for (int k=1; k<npatch; ++k) {
+                double rsq = SQR(x[i]-centers[2*k]) + SQR(y[i]-centers[2*k+1]);
+                if (rsq < min_rsq) {
+                    kmin = k;
+                    min_rsq = rsq;
+                }
+            }
+            patches[i] = kmin;
+        }
+    }
+}
+
+
 void SelectPatch(int patch, double* centers, int npatch, double* x, double* y, double* z,
                  long* use, long n)
 {

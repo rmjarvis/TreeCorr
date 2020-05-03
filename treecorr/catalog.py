@@ -1729,7 +1729,7 @@ class Catalog(object):
         return self._field()
 
     def getNField(self, min_size=0, max_size=None, split_method=None, brute=False,
-                  min_top=3, max_top=10, coords=None, logger=None):
+                  min_top=None, max_top=10, coords=None, logger=None):
         """Return an `NField` based on the positions in this catalog.
 
         The `NField` object is cached, so this is efficient to call multiple times.
@@ -1743,7 +1743,7 @@ class Catalog(object):
                                 constructor in the config dict.)
             brute (bool):       Whether to force traversal to the leaves. (default: False)
             min_top (int):      The minimum number of top layers to use when setting up the
-                                field. (default: 3)
+                                field. (default: :math:`max(3, \\log_2(N_{cpu}))`)
             max_top (int):      The maximum number of top layers to use when setting up the
                                 field. (default: 10)
             coords (str):       The kind of coordinate system to use. (default: self.coords)
@@ -1763,7 +1763,7 @@ class Catalog(object):
 
 
     def getKField(self, min_size=0, max_size=None, split_method=None, brute=False,
-                  min_top=3, max_top=10, coords=None, logger=None):
+                  min_top=None, max_top=10, coords=None, logger=None):
         """Return a `KField` based on the k values in this catalog.
 
         The `KField` object is cached, so this is efficient to call multiple times.
@@ -1777,7 +1777,7 @@ class Catalog(object):
                                 constructor in the config dict.)
             brute (bool):       Whether to force traversal to the leaves. (default: False)
             min_top (int):      The minimum number of top layers to use when setting up the
-                                field. (default: 3)
+                                field. (default: :math:`max(3, \\log_2(N_{cpu}))`)
             max_top (int):      The maximum number of top layers to use when setting up the
                                 field. (default: 10)
             coords (str):       The kind of coordinate system to use. (default self.coords)
@@ -1799,7 +1799,7 @@ class Catalog(object):
 
 
     def getGField(self, min_size=0, max_size=None, split_method=None, brute=False,
-                  min_top=3, max_top=10, coords=None, logger=None):
+                  min_top=None, max_top=10, coords=None, logger=None):
         """Return a `GField` based on the g1,g2 values in this catalog.
 
         The `GField` object is cached, so this is efficient to call multiple times.
@@ -1813,7 +1813,7 @@ class Catalog(object):
                                 constructor in the config dict.)
             brute (bool):       Whether to force traversal to the leaves. (default: False)
             min_top (int):      The minimum number of top layers to use when setting up the
-                                field. (default: 3)
+                                field. (default: :math:`max(3, \\log_2(N_{cpu}))`)
             max_top (int):      The maximum number of top layers to use when setting up the
                                 field. (default: 10)
             coords (str):       The kind of coordinate system to use. (default self.coords)

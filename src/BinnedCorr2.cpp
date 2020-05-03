@@ -1463,6 +1463,15 @@ int SetOMPThreads(int num_threads)
 #endif
 }
 
+int GetOMPThreads()
+{
+#ifdef _OPENMP
+    return omp_get_max_threads();
+#else
+    return 1;
+#endif
+}
+
 template <int M, int D1, int D2, int B>
 long SamplePairs2d(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2,
                    double minsep, double maxsep,

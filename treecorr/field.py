@@ -49,8 +49,9 @@ class Field(object):
           so the root cells will be at least this large.  The default is None, which means
           we care about all sizes, so there may be only one root cell (but typically more
           because of **min_top**).
-        - **min_top** sets the minimum number of initial levels to skip.  The default is 3,
-          which means there will be at least 8 root cells (assuming ntot >= 8).
+        - **min_top** sets the minimum number of initial levels to skip.  The default is either 3
+          or :math:`\\log_2(N_{cpu})`, whichever is larger.  This means there will be at least 8
+          (or :math:`N_{cpu}`) root cells (assuming ntot is at least this large of course).
         - **max_top** sets the maximum number of initial levels to skip.  The default is 10,
           which means there could be up to 1024 root cells.
 
@@ -79,6 +80,15 @@ class Field(object):
     """
     def __init__(self):
         raise NotImplementedError("Field is an abstract base class.  It cannot be instantiated.")
+
+    def _determine_min_top(self, min_top):
+        if min_top is None:
+            n_cpu = treecorr.get_omp_threads()
+            # int.bit_length is a trick to avoid going through float.
+            # bit_length(n-1) == ceil(log2(n)), which is what we want.
+            return max(3, int.bit_length(n_cpu-1))
+        else:
+            return int(min_top)
 
     @property
     def nTopLevelNodes(self):
@@ -466,14 +476,14 @@ class NField(Field):
                         (default: 'mean')
     :param brute        Whether to force traversal to the leaves for this field. (default: False)
     :param min_top:     The minimum number of top layers to use when setting up the field.
-                        (default: 3)
+                        (default: :math:`max(3, \\log_2(N_{cpu}))`)
     :param max_top:     The maximum number of top layers to use when setting up the field.
                         (default: 10)
     :param coords       The kind of coordinate system to use. (default: cat.coords)
     :param logger:      A logger file if desired. (default: None)
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
-                 min_top=3, max_top=10, coords=None, logger=None):
+                 min_top=None, max_top=10, coords=None, logger=None):
         from treecorr.util import double_ptr as dp
         if logger:
             if cat.name != '':
@@ -489,7 +499,7 @@ class NField(Field):
         self._sm = _parse_split_method(split_method)
         self._d = 1  # NData
         self.brute = bool(brute)
-        self.min_top = int(min_top)
+        self.min_top = self._determine_min_top(min_top)
         self.max_top = int(max_top)
         self.coords = coords if coords is not None else cat.coords
         self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
@@ -529,14 +539,14 @@ class KField(Field):
                         (default: 'mean')
     :param brute        Whether to force traversal to the leaves for this field. (default: False)
     :param min_top:     The minimum number of top layers to use when setting up the field.
-                        (default: 3)
+                        (default: :math:`max(3, \\log_2(N_{cpu}))`)
     :param max_top:     The maximum number of top layers to use when setting up the field.
                         (default: 10)
     :param coords       The kind of coordinate system to use. (default: cat.coords)
     :param logger:      A logger file if desired. (default: None)
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
-                 min_top=3, max_top=10, coords=None, logger=None):
+                 min_top=None, max_top=10, coords=None, logger=None):
         from treecorr.util import double_ptr as dp
         if logger:
             if cat.name != '':
@@ -552,7 +562,7 @@ class KField(Field):
         self._sm = _parse_split_method(split_method)
         self._d = 2  # KData
         self.brute = bool(brute)
-        self.min_top = int(min_top)
+        self.min_top = self._determine_min_top(min_top)
         self.max_top = int(max_top)
         self.coords = coords if coords is not None else cat.coords
         self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
@@ -590,14 +600,14 @@ class GField(Field):
                         (default: 'mean')
     :param brute        Whether to force traversal to the leaves for this field. (default: False)
     :param min_top:     The minimum number of top layers to use when setting up the field.
-                        (default: 3)
+                        (default: :math:`max(3, \\log_2(N_{cpu}))`)
     :param max_top:     The maximum number of top layers to use when setting up the field.
                         (default: 10)
     :param coords       The kind of coordinate system to use. (default: cat.coords)
     :param logger:      A logger file if desired. (default: None)
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
-                 min_top=3, max_top=10, coords=None, logger=None):
+                 min_top=None, max_top=10, coords=None, logger=None):
         from treecorr.util import double_ptr as dp
         if logger:
             if cat.name != '':
@@ -613,7 +623,7 @@ class GField(Field):
         self._sm = _parse_split_method(split_method)
         self._d = 3  # GData
         self.brute = bool(brute)
-        self.min_top = int(min_top)
+        self.min_top = self._determine_min_top(min_top)
         self.max_top = int(max_top)
         self.coords = coords if coords is not None else cat.coords
         self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums

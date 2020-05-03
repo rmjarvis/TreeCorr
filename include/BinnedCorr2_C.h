@@ -30,6 +30,7 @@ extern void ProcessPair(void* corr, void* field1, void* field2, int dots,
                         int d1, int d2, int coord, int bin_type, int metric);
 
 extern int SetOMPThreads(int num_threads);
+extern int GetOMPThreads();
 
 extern long SamplePairs(void* corr, void* field1, void* field2, double min_sep, double max_sep,
                         int d1, int d2, int coords, int bin_type, int metric,

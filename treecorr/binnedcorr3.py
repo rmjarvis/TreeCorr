@@ -162,7 +162,7 @@ class BinnedCorr3(object):
                               the range.
 
         min_top (int):      The minimum number of top layers to use when setting up the field.
-                            (default: 3)
+                            (default: :math:`max(3, \\log_2(N_{cpu}))`)
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             The top-level cells are where each calculation job starts. There will
                             typically be of order 2^max_top top-level cells. (default: 10)
@@ -235,7 +235,7 @@ class BinnedCorr3(object):
                 'The default is True if verbose >= 2 and there is no log_file.  Else False.'),
         'split_method' : (str, False, 'mean', ['mean', 'median', 'middle', 'random'],
                 'Which method to use for splitting cells.'),
-        'min_top' : (int, False, 3, None,
+        'min_top' : (int, False, None, None,
                 'The minimum number of top layers to use when setting up the field.'),
         'max_top' : (int, False, 10, None,
                 'The maximum number of top layers to use when setting up the field.'),
@@ -391,7 +391,7 @@ class BinnedCorr3(object):
         self.split_method = self.config.get('split_method','mean')
         self.logger.debug("Using split_method = %s",self.split_method)
 
-        self.min_top = treecorr.config.get(self.config,'min_top',int,3)
+        self.min_top = treecorr.config.get(self.config,'min_top',int,None)
         self.max_top = treecorr.config.get(self.config,'max_top',int,10)
 
         self.bin_slop = treecorr.config.get(self.config,'bin_slop',float,-1.0)

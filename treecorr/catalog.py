@@ -902,12 +902,27 @@ class Catalog(object):
             self._patch, self._centers = field.run_kmeans(self.npatch, init=init, alt=alt)
             self._npatch = self.npatch
         elif self._centers is not None and self._patch is None and self._single_patch is None:
-            field = self.getNField()
-            self._patch = field.kmeans_assign_patches(self._centers)
-            self._npatch = len(self._centers)
+            if ((self.coords == 'flat' and self._centers.shape[1] != 2) or
+                (self.coords != 'flat' and self._centers.shape[1] != 3)):
+                raise ValueError("Centers array has wrong shape.")
+            self._assign_patches()
             self.logger.info("Assigned patch numbers according %d centers",self._npatch)
 
         self.logger.info("   nobj = %d",self.nobj)
+
+    def _assign_patches(self):
+        # This is equivalent to the following:
+        #   field = self.getNField()
+        #   self._patch = field.kmeans_assign_patches(self._centers)
+        # However, when the field is not already created, it's faster to just run through
+        # all the points directly and assign which one is closest.
+        from treecorr.util import double_ptr as dp
+        from treecorr.util import long_ptr as lp
+        self._patch = np.empty(self.ntot, dtype=int)
+        self._npatch = self._centers.shape[0]
+        centers = np.ascontiguousarray(self._centers)
+        treecorr._lib.QuickAssign(dp(centers), self._npatch,
+                                  dp(self.x), dp(self.y), dp(self.z), lp(self._patch), self.ntot)
 
     def _set_npatch(self):
         self._npatch = max(self._patch) + 1

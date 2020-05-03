@@ -902,7 +902,8 @@ class Catalog(object):
         if self.npatch != 1:
             init = treecorr.config.get(self.config,'kmeans_init',str,'tree')
             alt = treecorr.config.get(self.config,'kmeans_alt',bool,False)
-            field = self.getNField()
+            max_top = int.bit_length(self.npatch)-1
+            field = self.getNField(max_top=max_top)
             self.logger.info("Finding %d patches using kmeans.",self.npatch)
             self._patch, self._centers = field.run_kmeans(self.npatch, init=init, alt=alt)
             self._npatch = self.npatch

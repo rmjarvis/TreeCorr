@@ -28,9 +28,11 @@ def test_cat_patches():
     if __name__ == '__main__':
         ngal = 10000
         npatch = 128
+        max_top = 7
     else:
         ngal = 1000
         npatch = 8
+        max_top = 3
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
@@ -47,7 +49,7 @@ def test_cat_patches():
     #    Note: If npatch is a power of two, then the patch determination is completely
     #          deterministic, which is helpful for this test.
     cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch)
-    p2, cen = cat0.getNField().run_kmeans(npatch)
+    p2, cen = cat0.getNField(max_top=max_top).run_kmeans(npatch)
     np.testing.assert_array_equal(cat1.patch, p2)
     assert len(cat1.patches) == npatch
     assert np.sum([p.ntot for p in cat1.patches]) == ngal
@@ -55,7 +57,7 @@ def test_cat_patches():
     # 2. Optionally can use alt algorithm
     cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch,
                             kmeans_alt=True)
-    p3, cen = cat0.getNField().run_kmeans(npatch, alt=True)
+    p3, cen = cat0.getNField(max_top=max_top).run_kmeans(npatch, alt=True)
     np.testing.assert_array_equal(cat2.patch, p3)
     assert len(cat2.patches) == npatch
 

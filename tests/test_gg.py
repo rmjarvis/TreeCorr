@@ -18,7 +18,8 @@ import coord
 import time
 import treecorr
 
-from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog, assert_raises, timer
+from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog
+from test_helper import assert_raises, timer, assert_warns
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
 
 @timer
@@ -367,7 +368,8 @@ def test_pairwise():
     nbins = 10
     bin_size = np.log(max_sep/min_sep) / nbins
     gg = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
-    gg.process_pairwise(cat1, cat2)
+    with assert_warns(FutureWarning):
+        gg.process_pairwise(cat1, cat2)
     gg.finalize(cat1.varg, cat2.varg)
 
     true_npairs = np.zeros(nbins, dtype=int)
@@ -407,7 +409,8 @@ def test_pairwise():
     cat2.name = "second"
     with CaptureLog() as cl:
         gg.logger = cl.logger
-        gg.process_pairwise(cat1, cat2, metric='Euclidean', num_threads=2)
+        with assert_warns(FutureWarning):
+            gg.process_pairwise(cat1, cat2, metric='Euclidean', num_threads=2)
     assert "for cats first, second" in cl.output
 
 

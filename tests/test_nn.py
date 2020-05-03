@@ -20,7 +20,8 @@ import time
 import shutil
 import sys
 
-from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog, assert_raises, timer
+from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog
+from test_helper import assert_raises, timer, assert_warns
 
 @timer
 def test_log_binning():
@@ -784,7 +785,8 @@ def test_pairwise():
     nbins = 10
     bin_size = np.log(max_sep/min_sep) / nbins
     dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
-    dd.process_pairwise(cat1, cat2)
+    with assert_warns(FutureWarning):
+        dd.process_pairwise(cat1, cat2)
     dd.finalize()
 
     true_npairs = np.zeros(nbins, dtype=int)
@@ -811,24 +813,30 @@ def test_pairwise():
     cat2.name = "second"
     with CaptureLog() as cl:
         dd.logger = cl.logger
-        dd.process_pairwise(cat1, cat2, metric='Euclidean', num_threads=2)
+        with assert_warns(FutureWarning):
+            dd.process_pairwise(cat1, cat2, metric='Euclidean', num_threads=2)
     assert "for cats first, second" in cl.output
 
     # Can also run this via process if pairwise is set in constructor.
     dd2 = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, pairwise=True)
-    dd2.process(cat1, cat2)
+    with assert_warns(FutureWarning):
+        dd2.process(cat1, cat2)
     np.testing.assert_array_equal(dd2.npairs, true_npairs)
     np.testing.assert_allclose(dd2.weight, true_weight, rtol=1.e-5, atol=1.e-8)
 
     with assert_raises(ValueError):
-        dd2.process(cat1, [cat2, cat2])
+        with assert_warns(FutureWarning):
+            dd2.process(cat1, [cat2, cat2])
     with assert_raises(ValueError):
-        dd2.process([cat1, cat1], cat2)
+        with assert_warns(FutureWarning):
+            dd2.process([cat1, cat1], cat2)
     cat3 = treecorr.Catalog(x=x2[:500], y=y2[:500], w=w2[:500])
     with assert_raises(ValueError):
-        dd2.process(cat1, cat3)
+        with assert_warns(FutureWarning):
+            dd2.process(cat1, cat3)
     with assert_raises(ValueError):
-        dd2.process(cat2, cat3)
+        with assert_warns(FutureWarning):
+            dd2.process(cat2, cat3)
 
 
 

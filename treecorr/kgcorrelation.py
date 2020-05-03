@@ -216,6 +216,11 @@ class KGCorrelation(treecorr.BinnedCorr2):
         calling this function as often as desired, the `finalize` command will
         finish the calculation.
 
+        .. note::
+
+            This function is deprecated and slated to be removed.
+            If you have a need for it, please open an issue to describe your use case.
+
         Parameters:
             cat1 (Catalog):     The first catalog to process
             cat2 (Catalog):     The second catalog to process
@@ -226,6 +231,10 @@ class KGCorrelation(treecorr.BinnedCorr2):
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
         """
+        import warnings
+        warnings.warn("The process_pairwise function is slated to be removed in a future version. "+
+                      "If you are actually using this function usefully, please "+
+                      "open an issue to describe your use case.", FutureWarning)
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process KG pairwise-correlations')
         else:

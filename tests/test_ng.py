@@ -18,7 +18,8 @@ import os
 import sys
 import coord
 
-from test_helper import get_script_name, do_pickle, CaptureLog, assert_raises, timer
+from test_helper import get_script_name, do_pickle, CaptureLog
+from test_helper import assert_raises, timer, assert_warns
 from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
 
 @timer
@@ -327,7 +328,8 @@ def test_pairwise():
     nbins = 10
     bin_size = np.log(max_sep/min_sep) / nbins
     ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
-    ng.process_pairwise(cat1, cat2)
+    with assert_warns(FutureWarning):
+        ng.process_pairwise(cat1, cat2)
     ng.finalize(cat2.varg)
 
     true_npairs = np.zeros(nbins, dtype=int)
@@ -361,7 +363,8 @@ def test_pairwise():
     cat2.name = "second"
     with CaptureLog() as cl:
         ng.logger = cl.logger
-        ng.process_pairwise(cat1, cat2, metric='Euclidean', num_threads=2)
+        with assert_warns(FutureWarning):
+            ng.process_pairwise(cat1, cat2, metric='Euclidean', num_threads=2)
     assert "for cats first, second" in cl.output
 
 
@@ -471,7 +474,8 @@ def test_pairwise2():
     source_cat = treecorr.Catalog(x=x+dx, y=y+dx, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1, pairwise=True)
-    ng.process(lens_cat, source_cat)
+    with assert_warns(FutureWarning):
+        ng.process(lens_cat, source_cat)
 
     r = ng.meanr
     true_gt = gamma0 * np.exp(-0.5*r**2/r0**2)
@@ -493,7 +497,8 @@ def test_pairwise2():
     source_cat.write(os.path.join('data','ng_pairwise_source.dat'))
     config = treecorr.read_config('configs/ng_pairwise.yaml')
     config['verbose'] = 0
-    treecorr.corr2(config)
+    with assert_warns(FutureWarning):
+        treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','ng_pairwise.out'), names=True,
                                     skip_header=1)
     print('ng.xi = ',ng.xi)

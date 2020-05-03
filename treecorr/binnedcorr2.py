@@ -158,7 +158,7 @@ class BinnedCorr2(object):
         pairwise (bool):    Whether to use a different kind of calculation for cross correlations
                             whereby corresponding items in the two catalogs are correlated pairwise
                             rather than the usual case of every item in one catalog being correlated
-                            with every item in the other catalog. (default: False)
+                            with every item in the other catalog. (default: False) (DEPRECATED)
         m2_uform (str):     The default functional form to use for aperture mass calculations.
                             see `calculateMapSq` for more details.  (default: 'Crittenden')
 
@@ -226,7 +226,7 @@ class BinnedCorr2(object):
         'precision' : (int, False, 4, None,
                 'The number of digits after the decimal in the output.'),
         'pairwise' : (bool, True, False, None,
-                'Whether to do a pair-wise cross-correlation '),
+                'Whether to do a pair-wise cross-correlation. (DEPRECATED)'),
         'm2_uform' : (str, False, 'Crittenden', ['Crittenden', 'Schneider'],
                 'The function form of the mass aperture.'),
         'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp', 'FisherRperp', 'OldRperp',
@@ -590,6 +590,10 @@ class BinnedCorr2(object):
                 return False
 
         if treecorr.config.get(self.config,'pairwise',bool,False):
+            import warnings
+            warnings.warn("The pairwise option is slated to be removed in a future version. "+
+                          "If you are actually using this parameter usefully, please "+
+                          "open an issue to describe your use case.", FutureWarning)
             if len(cat1) != len(cat2):
                 raise ValueError("Number of files for 1 and 2 must be equal for pairwise.")
             for c1,c2 in zip(cat1,cat2):

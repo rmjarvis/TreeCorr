@@ -13,77 +13,209 @@
 
 # Run using:
 #   mpiexec -n 4 python mpi_test.py
-
-# Note: This script is the basis for mpi_test.py in the tests directory.
-#       This version is probably a bit closer to a real world application.
+#
+# Note for NERSC users: The conda (or pip) installed won't work correctly.
+# You need to install mpi4py by hand using their cray compilers.  See:
+# https://docs.nersc.gov/programming/high-level-environments/python/mpi4py/#mpi4py-in-your-custom-conda-environment
+#
+# See also the issue that I was having before resolving this:
+# https://nersc.servicenowservices.com/nav_to.do?uri=%2Fincident.do%3Fsys_id%3Dcc9f38341be85c102548ea82f54bcbea%26sysparm_view%3Dess
 
 import numpy as np
 import time
 import os
+import sys
+import shutil
+import socket
+import fitsio
 import treecorr
+try:
+    from urllib2 import urlopen
+except ImportError:
+    from urllib.request import urlopen
+
 from mpi4py import MPI
-
-from test_helper import NiceComm
-
-# NiceComm makes it so Barrier doesn't run 100% CPU.  This isn't so important if you're
-# really running mpi on multiple machines, but it helps when running on a single machine.
-comm = NiceComm(MPI.COMM_WORLD)
-
+comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 nproc = comm.Get_size()
 
-file_name = 'Aardvark.fit'
-patch_file = 'mpi_patches.fits'
+if 1:
+    # DES Y1: 80 GB
+    file_name = "mcal-y1a1.fits"
+    patch_file = 'y1_patches.fits'
+    url = "http://desdr-server.ncsa.illinois.edu/despublic/y1a1_files/shear_catalogs/mcal-y1a1-combined-riz-unblind-v4-matched.fits"
+    ra_col='ra'
+    dec_col='dec'
+    ra_units='deg'
+    dec_units='deg'
+    g1_col='e1'
+    g2_col='e2'
+    flag_col='flags_select'
+else:
+    # Aardvark: 15 MB
+    file_name= "Aardvark.fit"
+    patch_file = 'aardvark_patches.fits'
+    url = "https://github.com/rmjarvis/TreeCorr/wiki/Aardvark.fit"
+    ra_col='RA'
+    dec_col='DEC'
+    ra_units='deg'
+    dec_units='deg'
+    g1_col='GAMMA1'
+    g2_col='GAMMA2'
+    flag_col=None
 
-# First make the patches.  Do this on one process.
-# For a real-life example, this might be made once and saved.
-# Or it might be made from a smaller version of the catalog:
-# either with the every_nth option, or maybe on a redmagic catalog or similar,
-# which would be smaller than the full source catalog, etc.
-if rank == 0 and not os.path.exists(patch_file):
-    part_cat = treecorr.Catalog(file_name,
-                                ra_col='RA', dec_col='DEC', ra_units='deg', dec_units='deg',
-                                g1_col='GAMMA1', g2_col='GAMMA2',
-                                npatch=32)
-    part_cat.write_patch_centers(patch_file)
-    del part_cat
-    print('Done making patches',flush=True)
+def download_file():
+    if not os.path.exists(file_name):
+        u = urlopen(url)
+        print('urlinfo: ')
+        print(u.info())
+        file_size = int(u.info().get("Content-Length"))
+        print("file_size = %d MBytes"%(file_size/1024**2))
+        with open('/proc/sys/net/core/rmem_default', 'r') as f:
+            block_sz = int(f.read())
+        print("block size = %d KBytes"%(block_sz/1024))
+        with open(file_name, 'wb') as f:
+            file_size_dl = 0
+            dot_step = file_size / 400.
+            next_dot = dot_step
+            while True:
+                buffer = u.read(block_sz)
+                if not buffer: break
+                file_size_dl += len(buffer)
+                f.write(buffer)
+                # Easy status bar
+                if file_size_dl > next_dot:
+                    sys.stdout.write('.')
+                    sys.stdout.flush()
+                    next_dot += dot_step
 
-comm.Barrier()
+        print('Done downloading',file_name)
+    else:
+        print('Using catalog file %s'%file_name)
 
-# Now all processes make the full cat with these patches.
-# Note: this doesn't actually read anything from disk yet.
-full_cat = treecorr.Catalog(file_name,
-                            ra_col='RA', dec_col='DEC', ra_units='deg', dec_units='deg',
-                            g1_col='GAMMA1', g2_col='GAMMA2', k_col='KAPPA',
-                            patch_centers=patch_file)
-print(rank,'Made full_cat',flush=True)
+    # It's helpful to have a separate file for each process.  Otherwise they all end up
+    # fighting over the read and the I/O becomes much slower.
+    # It's also vv helpful to save a version with only the relevant columns, so fitsio
+    # doesn't have to scan past all the useless extra information.
 
-# First run on one process.  A real world example would skip this part.
-t0 = time.time()
-if rank == 0:
-    gg0 = treecorr.GGCorrelation(nbins=20, min_sep=1., max_sep=400., sep_units='arcmin')
-    gg0.process(full_cat)
-comm.Barrier()
-t1 = time.time()
-print(rank,'Done with non-parallel computation',t1-t0,flush=True)
+    fname_0 = file_name.replace('.fits','_0.fits')
+    if not os.path.exists(fname_0):
+        all_cols = [ra_col, dec_col, g1_col, g2_col, flag_col]
+        all_cols = [c for c in all_cols if c is not None]
+        with fitsio.FITS(file_name, 'r') as fits:
+            data = fits[1][all_cols][:]
+        fitsio.write(fname_0, data)
+        print('wrote',fname_0)
+    for p in range(nproc):
+        fname_p = file_name.replace('.fits','%d.fits'%p)
+        if not os.path.exists(fname_p):
+            shutil.copyfile(fname_0, fname_p)
+            print('copied',fname_0,'to',fname_p)
 
-# Now run in parallel.
-# Everyone needs to make their own Correlation object.
-gg1 = treecorr.GGCorrelation(nbins=20, min_sep=1., max_sep=400., sep_units='arcmin',
-                             verbose=1)
+def make_patches():
+    # First make the patches.  Do this on one process.
+    # For a real-life example, this might be made once and saved.
+    # Or it might be made from a smaller version of the catalog:
+    # either with the every_nth option, or maybe on a redmagic catalog or similar,
+    # which would be smaller than the full source catalog, etc.
+    # Here, we use every_nth to reduce the catalog size.
+    if not os.path.exists(patch_file):
+        print('Making patches')
+        fname = file_name.replace('.fits','_0.fits')
+        part_cat = treecorr.Catalog(fname,
+                                    ra_col=ra_col, dec_col=ra_col,
+                                    ra_units=ra_units, dec_units=dec_units,
+                                    g1_col=g1_col, g2_col=g1_col, flag_col=flag_col,
+                                    npatch=32, verbose=2)
+        print('Done loading file: nobj = ',part_cat.nobj,part_cat.ntot)
+        part_cat.get_patches()
+        print('Made patches: ',part_cat.patch_centers)
+        part_cat.write_patch_centers(patch_file)
+        print('Wrote patch file ',patch_file)
+        del part_cat
+        print('Done making patches')
+    else:
+        print('Using existing patch file')
 
-# To use the multiple process, just pass comm to the process command.
-gg1.process(full_cat, comm=comm)
-comm.Barrier()
-t2 = time.time()
-print(rank,'Done with parallel computation',t2-t1,flush=True)
+def run_serial():
+    from test_helper import profile
+    t0 = time.time()
+    fname = file_name.replace('.fits','_0.fits')
+    cat = treecorr.Catalog(fname,
+                           ra_col=ra_col, dec_col=ra_col,
+                           ra_units=ra_units, dec_units=dec_units,
+                           g1_col=g1_col, g2_col=g1_col, flag_col=flag_col,
+                           patch_centers=patch_file)
+    t1 = time.time()
+    print('Made cat', t1-t0)
 
-# rank 0 has the completed result.
-if rank == 0:
-    print('serial   xip = ',gg0.xip, t1-t0,flush=True)
-    print('parallel xip = ',gg1.xip, t2-t1,flush=True)
+    gg = treecorr.GGCorrelation(nbins=200, min_sep=1., max_sep=400., sep_units='arcmin',
+                                verbose=1, min_top=8, log_file='serial.log')
 
-    np.testing.assert_allclose(gg0.npairs, gg1.npairs)
-    np.testing.assert_allclose(gg0.xip, gg1.xip)
-    np.testing.assert_allclose(gg0.xim, gg1.xim)
+    # These next two steps don't need to be done separately.  They will automatically
+    # happen when calling process.  But separating them out makes it easier to profile.
+    with profile():
+        cat.load()
+    t2 = time.time()
+    print('Loaded', t2-t1)
+
+    with profile():
+        cat.get_patches()
+    t3 = time.time()
+    print('Made patches', t3-t2)
+
+    with profile():
+        gg.process(cat)
+    t4 = time.time()
+    print('Processed', t4-t3)
+    print('Done with non-parallel computation',t4-t0)
+    print('xip = ',gg.xip, flush=True)
+
+def run_parallel():
+
+    t0 = time.time()
+    print(rank,socket.gethostname(),flush=True)
+    fname = file_name.replace('.fits','%d.fits'%rank)[:]
+
+    # All processes make the full cat with these patches.
+    # Note: this doesn't actually read anything from disk yet.
+    cat = treecorr.Catalog(fname,
+                           ra_col=ra_col, dec_col=ra_col,
+                           ra_units=ra_units, dec_units=dec_units,
+                           g1_col=g1_col, g2_col=g1_col, flag_col=flag_col,
+                           patch_centers=patch_file)
+    t1 = time.time()
+    print('Made cat', t1-t0, flush=True)
+
+    # Everyone needs to make their own Correlation object.
+    gg = treecorr.GGCorrelation(nbins=200, min_sep=1., max_sep=400., sep_units='arcmin',
+                                verbose=1, min_top=8, log_file='parallel_%d.log'%rank)
+
+    cat.load()
+    t2 = time.time()
+    print('Loaded', t2-t1)
+
+    cat.get_patches()
+    t3 = time.time()
+    print('Made patches', t3-t2)
+
+    # To use the multiple process, just pass comm to the process command.
+    gg.process(cat, comm=comm)
+    t4 = time.time()
+    print('Processed', t4-t3)
+    comm.Barrier()
+    t5 = time.time()
+    print('Barrier', t5-t4)
+    print(rank,'Done with parallel computation',t5-t0,flush=True)
+
+    # rank 0 has the completed result.
+    if rank == 0:
+        print('xip = ',gg.xip, flush=True)
+
+if __name__ == '__main__':
+    if rank == 0:
+        download_file()
+        make_patches()
+        run_serial()
+    comm.Barrier()
+    run_parallel()

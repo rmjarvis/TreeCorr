@@ -323,6 +323,9 @@ class Catalog(object):
         cat_precision (int): The precision to use when writing a Catalog to an ASCII file. This
                             should be an integer, which specifies how many digits to write.
                             (default: 16)
+
+        num_threads (int):  How many OpenMP threads to use during the catalog load steps.
+                            (default: use the number of cpu cores)
     """
     # Dict describing the valid kwarg parameters, what types they are, and a description:
     # Each value is a tuple with the following elements:
@@ -921,6 +924,7 @@ class Catalog(object):
         self._patch = np.empty(self.ntot, dtype=int)
         self._npatch = self._centers.shape[0]
         centers = np.ascontiguousarray(self._centers)
+        treecorr.set_omp_threads(self.config.get('num_threads',None))
         treecorr._lib.QuickAssign(dp(centers), self._npatch,
                                   dp(self.x), dp(self.y), dp(self.z), lp(self._patch), self.ntot)
 
@@ -943,6 +947,7 @@ class Catalog(object):
                 assert centers.shape[1] == 2
             else:
                 assert centers.shape[1] == 3
+            treecorr.set_omp_threads(self.config.get('num_threads',None))
             treecorr._lib.SelectPatch(single_patch, dp(centers), npatch,
                                       dp(self._x), dp(self._y), dp(self._z),
                                       lp(use), self.ntot)
@@ -975,6 +980,7 @@ class Catalog(object):
             self._y = np.empty(ntot, dtype=float)
             self._z = np.empty(ntot, dtype=float)
             from .util import double_ptr as dp
+            treecorr.set_omp_threads(self.config.get('num_threads',None))
             treecorr._lib.GenerateXYZ(dp(self._x), dp(self._y), dp(self._z),
                                       dp(self._ra), dp(self._dec), dp(self._r), ntot)
             self.x_units = self.y_units = 1.

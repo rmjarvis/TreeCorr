@@ -27,6 +27,48 @@ def ensure_dir(target):
         if not os.path.exists(d):
             os.makedirs(d)
 
+def set_omp_threads(num_threads, logger=None):
+    """Set the number of OpenMP threads to use in the C++ layer.
+
+    :param num_threads: The target number of threads to use
+    :param logger:      If desired, a logger object for logging any warnings here. (default: None)
+
+    :returns:           The  number of threads OpenMP reports that it will use.  Typically this
+                        matches the input, but OpenMP reserves the right not to comply with
+                        the requested number of threads.
+    """
+    input_num_threads = num_threads  # Save the input value.
+
+    # If num_threads is auto, get it from cpu_count
+    if num_threads is None or num_threads <= 0:
+        import multiprocessing
+        num_threads = multiprocessing.cpu_count()
+        if logger:
+            logger.debug('multiprocessing.cpu_count() = %d',num_threads)
+
+    # Tell OpenMP to use this many threads
+    if logger:
+        logger.debug('Telling OpenMP to use %d threads',num_threads)
+    num_threads = treecorr._lib.SetOMPThreads(num_threads)
+
+    # Report back appropriately.
+    if logger:
+        logger.debug('OpenMP reports that it will use %d threads',num_threads)
+        if num_threads > 1:
+            logger.info('Using %d threads.',num_threads)
+        elif input_num_threads is not None and input_num_threads != 1:
+            # Only warn if the user specifically asked for num_threads != 1.
+            logger.warning("Unable to use multiple threads, since OpenMP is not enabled.")
+
+    return num_threads
+
+def get_omp_threads():
+    """Get the number of OpenMP threads currently set to be used in the C++ layer.
+
+    :returns:           The  number of threads OpenMP reports that it will use.
+    """
+    return treecorr._lib.GetOMPThreads()
+
 def gen_write(file_name, col_names, columns, params=None, precision=4, file_type=None, logger=None):
     """Write some columns to an output file with the given column names.
 

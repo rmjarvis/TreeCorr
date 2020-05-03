@@ -43,8 +43,8 @@ _lib = _ffi.dlopen(lib_file)
 
 Rperp_alias = 'FisherRperp'
 
-from . import util
-from .config import read_config, set_omp_threads
+from .config import read_config
+from .util import set_omp_threads, get_omp_threads
 from .catalog import Catalog, read_catalogs, calculateVarG, calculateVarK
 from .binnedcorr2 import BinnedCorr2, estimate_multi_cov
 from .ggcorrelation import GGCorrelation
@@ -61,4 +61,3 @@ from .kkkcorrelation import KKKCorrelation
 from .gggcorrelation import GGGCorrelation
 from .corr2 import corr2, print_corr2_params, corr2_valid_params, corr2_aliases
 from .corr3 import corr3, print_corr3_params, corr3_valid_params, corr3_aliases
-

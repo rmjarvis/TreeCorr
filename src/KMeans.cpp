@@ -15,6 +15,7 @@
 //#define DEBUGLOGGING
 
 #include <vector>
+#include <cmath>
 #include "Field.h"
 #include "Cell.h"
 #include "dbg.h"
@@ -1001,7 +1002,7 @@ void QuickAssign(double* centers, int npatch,
 {
     if (z) {
 #ifdef _OPENMP
-#pragma omp for schedule(static)
+#pragma omp parallel for schedule(static)
 #endif
         for (int i=0; i<n; ++i) {
             int kmin = 0;
@@ -1017,7 +1018,7 @@ void QuickAssign(double* centers, int npatch,
         }
     } else {
 #ifdef _OPENMP
-#pragma omp for schedule(static)
+#pragma omp parallel for schedule(static)
 #endif
         for (int i=0; i<n; ++i) {
             int kmin = 0;
@@ -1046,17 +1047,20 @@ void SelectPatch(int patch, double* centers, int npatch, double* x, double* y, d
         double px = centers[3*patch];
         double py = centers[3*patch+1];
         double pz = centers[3*patch+2];
-        for (;n;--n,++x,++y,++z,++use) {
-            double p_dsq = SQR(*x-px) + SQR(*y-py) + SQR(*z-pz);
-            *use = 1;
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+        for (int i=0; i<n; ++i) {
+            double p_dsq = SQR(x[i]-px) + SQR(y[i]-py) + SQR(z[i]-pz);
+            use[i] = 1;
             for (int q=0; q<npatch; ++q) {
                 if (q == patch) continue;
                 double qx = centers[3*q];
                 double qy = centers[3*q+1];
                 double qz = centers[3*q+2];
-                double q_dsq = SQR(*x-qx) + SQR(*y-qy) + SQR(*z-qz);
+                double q_dsq = SQR(x[i]-qx) + SQR(y[i]-qy) + SQR(z[i]-qz);
                 if (q_dsq < p_dsq) {
-                    *use = 0;
+                    use[i] = 0;
                     break;
                 }
             }
@@ -1065,19 +1069,51 @@ void SelectPatch(int patch, double* centers, int npatch, double* x, double* y, d
         // 2d version
         double px = centers[2*patch];
         double py = centers[2*patch+1];
-        for (;n;--n,++x,++y,++use) {
-            double p_dsq = SQR(*x-px) + SQR(*y-py);
-            *use = 1;
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+        for (int i=0; i<n; ++i) {
+            double p_dsq = SQR(x[i]-px) + SQR(y[i]-py);
+            use[i] = 1;
             for (int q=0; q<npatch; ++q) {
                 if (q == patch) continue;
                 double qx = centers[2*q];
                 double qy = centers[2*q+1];
-                double q_dsq = SQR(*x-qx) + SQR(*y-qy);
+                double q_dsq = SQR(x[i]-qx) + SQR(y[i]-qy);
                 if (q_dsq < p_dsq) {
-                    *use = 0;
+                    use[i] = 0;
                     break;
                 }
             }
+        }
+    }
+}
+
+void GenerateXYZ(double* x, double* y, double* z, double* ra, double* dec, double* r, long n)
+{
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+    for (int i=0; i<n; ++i) {
+        double sr, cr, sd, cd;
+#ifdef _GLIBCXX_HAVE_SINCOS
+        ::sincos(ra[i],&sr,&cr);
+        ::sincos(dec[i],&sd,&cd);
+#else
+        // If the native sincos function isn't available, then most compilers will still optimize
+        // these into a single trig call for each.
+        sr = std::sin(ra[i]);
+        cr = std::cos(ra[i]);
+        sd = std::sin(dec[i]);
+        cd = std::cos(dec[i]);
+#endif
+        x[i] = cd * cr;
+        y[i] = cd * sr;
+        z[i] = sd;
+        if (r) {
+            x[i] *= r[i];
+            y[i] *= r[i];
+            z[i] *= r[i];
         }
     }
 }

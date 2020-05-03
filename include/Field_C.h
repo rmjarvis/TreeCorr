@@ -57,8 +57,11 @@ extern void KMeansRun(void* field, double* centers, int npatch, int max_iter, do
                       int alt, int d, int coords);
 extern void KMeansAssign(void* field, double* centers, int npatch,
                          long* patches, long n, int d, int coords);
+
+// These aren't field functions, but I'm putting them here anyway, since they're related to patches.
 extern void QuickAssign(double* centers, int npatch,
                         double* x, double* y, double* z, long* patches, long n);
-
 extern void SelectPatch(int patch, double* centers, int npatch, double* x, double* y, double* z,
                         long* use, long n);
+extern void GenerateXYZ(double* x, double* y, double* z, double* ra, double* dec, double* r,
+                        long n);

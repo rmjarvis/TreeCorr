@@ -970,11 +970,13 @@ class Catalog(object):
             assert self._z is None
             assert self._ra is not None
             assert self._dec is not None
-            self._x, self._y, self._z = coord.CelestialCoord.radec_to_xyz(self._ra, self._dec)
-            if self._r is not None:
-                self._x *= self._r
-                self._y *= self._r
-                self._z *= self._r
+            ntot = len(self._ra)
+            self._x = np.empty(ntot, dtype=float)
+            self._y = np.empty(ntot, dtype=float)
+            self._z = np.empty(ntot, dtype=float)
+            from .util import double_ptr as dp
+            treecorr._lib.GenerateXYZ(dp(self._x), dp(self._y), dp(self._z),
+                                      dp(self._ra), dp(self._dec), dp(self._r), ntot)
             self.x_units = self.y_units = 1.
 
     def _select_patch(self, single_patch):

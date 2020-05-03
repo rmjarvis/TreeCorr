@@ -284,19 +284,19 @@ class Catalog(object):
                             doing cross-patch correlations.
 
         hdu (int):          For FITS files, which hdu to read. (default: 1)
-        x_hdu (int):        Which hdu to use for the x values. (default: hdu)
-        y_hdu (int):        Which hdu to use for the y values. (default: hdu)
-        z_hdu (int):        Which hdu to use for the z values. (default: hdu)
-        ra_hdu (int):       Which hdu to use for the ra values. (default: hdu)
-        dec_hdu (int):      Which hdu to use for the dec values. (default: hdu)
-        r_hdu (int):        Which hdu to use for the r values. (default: hdu)
-        g1_hdu (int):       Which hdu to use for the g1 values. (default: hdu)
-        g2_hdu (int):       Which hdu to use for the g2 values. (default: hdu)
-        k_hdu (int):        Which hdu to use for the k values. (default: hdu)
-        patch_hdu (int):    Which hdu to use for the patch numbers. (default: hdu)
-        w_hdu (int):        Which hdu to use for the w values. (default: hdu)
-        wpos_hdu (int):     Which hdu to use for the wpos values. (default: hdu)
-        flag_hdu (int):     Which hdu to use for the flag values. (default: hdu)
+        x_hdu (int):        Which hdu to use for the x values. (default: hdu) (DEPRECATED)
+        y_hdu (int):        Which hdu to use for the y values. (default: hdu) (DEPRECATED)
+        z_hdu (int):        Which hdu to use for the z values. (default: hdu) (DEPRECATED)
+        ra_hdu (int):       Which hdu to use for the ra values. (default: hdu) (DEPRECATED)
+        dec_hdu (int):      Which hdu to use for the dec values. (default: hdu) (DEPRECATED)
+        r_hdu (int):        Which hdu to use for the r values. (default: hdu) (DEPRECATED)
+        g1_hdu (int):       Which hdu to use for the g1 values. (default: hdu) (DEPRECATED)
+        g2_hdu (int):       Which hdu to use for the g2 values. (default: hdu) (DEPRECATED)
+        k_hdu (int):        Which hdu to use for the k values. (default: hdu) (DEPRECATED)
+        patch_hdu (int):    Which hdu to use for the patch numbers. (default: hdu) (DEPRECATED)
+        w_hdu (int):        Which hdu to use for the w values. (default: hdu) (DEPRECATED)
+        wpos_hdu (int):     Which hdu to use for the wpos values. (default: hdu) (DEPRECATED)
+        flag_hdu (int):     Which hdu to use for the flag values. (default: hdu) (DEPRECATED)
 
         verbose (int):      If no logger is provided, this will optionally specify a logging level
                             to use.
@@ -399,31 +399,31 @@ class Catalog(object):
         'hdu': (int, True, 1, None,
                 'Which HDU in a fits file to use rather than hdu=1'),
         'x_hdu': (int, True, None, None,
-                'Which HDU to use for the x_col. default is the global hdu value.'),
+                'Which HDU to use for the x_col. default is the global hdu value. (DEPRECATED)'),
         'y_hdu': (int, True, None, None,
-                'Which HDU to use for the y_col. default is the global hdu value.'),
+                'Which HDU to use for the y_col. default is the global hdu value. (DEPRECATED)'),
         'z_hdu': (int, True, None, None,
-                'Which HDU to use for the z_col. default is the global hdu value.'),
+                'Which HDU to use for the z_col. default is the global hdu value. (DEPRECATED)'),
         'ra_hdu': (int, True, None, None,
-                'Which HDU to use for the ra_col. default is the global hdu value.'),
+                'Which HDU to use for the ra_col. default is the global hdu value. (DEPRECATED)'),
         'dec_hdu': (int, True, None, None,
-                'Which HDU to use for the dec_col. default is the global hdu value.'),
+                'Which HDU to use for the dec_col. default is the global hdu value. (DEPRECATED)'),
         'r_hdu': (int, True, None, None,
-                'Which HDU to use for the r_col. default is the global hdu value.'),
+                'Which HDU to use for the r_col. default is the global hdu value. (DEPRECATED)'),
         'g1_hdu': (int, True, None, None,
-                'Which HDU to use for the g1_col. default is the global hdu value.'),
+                'Which HDU to use for the g1_col. default is the global hdu value. (DEPRECATED)'),
         'g2_hdu': (int, True, None, None,
-                'Which HDU to use for the g2_col. default is the global hdu value.'),
+                'Which HDU to use for the g2_col. default is the global hdu value. (DEPRECATED)'),
         'k_hdu': (int, True, None, None,
-                'Which HDU to use for the k_col. default is the global hdu value.'),
+                'Which HDU to use for the k_col. default is the global hdu value. (DEPRECATED)'),
         'patch_hdu': (int, True, None, None,
-                'Which HDU to use for the patch_col. default is the global hdu value.'),
+                'Which HDU to use for the patch_col. default is the global hdu value. (DEPRECATED)'),
         'w_hdu': (int, True, None, None,
-                'Which HDU to use for the w_col. default is the global hdu value.'),
+                'Which HDU to use for the w_col. default is the global hdu value. (DEPRECATED)'),
         'wpos_hdu': (int, True, None, None,
-                'Which HDU to use for the wpos_col. default is the global hdu value.'),
+                'Which HDU to use for the wpos_col. default is the global hdu value. (DEPRECATED)'),
         'flag_hdu': (int, True, None, None,
-                'Which HDU to use for the flag_col. default is the global hdu value.'),
+                'Which HDU to use for the flag_col. default is the global hdu value. (DEPRECATED)'),
         'flip_g1' : (bool, True, False, None,
                 'Whether to flip the sign of g1'),
         'flip_g2' : (bool, True, False, None,
@@ -1502,6 +1502,11 @@ class Catalog(object):
                         patch_hdu,
                         w_hdu, wpos_hdu, flag_hdu,
                         g1_hdu, g2_hdu, k_hdu]
+            if set(all_hdus) != set([hdu]):
+                import warnings
+                warnings.warn("All *_hdu parameters are slated to be removed in a future version. "+
+                              "If you are actually using these parameters usefully, please "+
+                              "open an issue to describe your use case.", FutureWarning)
             col_by_hdu = dict(zip(all_cols,all_hdus))
             all_hdus = set(all_hdus + [hdu])
             all_cols = [c for c in all_cols if c != '0']

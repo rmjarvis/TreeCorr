@@ -23,7 +23,7 @@ import pickle
 from numpy import pi
 import treecorr
 
-from test_helper import get_from_wiki, CaptureLog, assert_raises, do_pickle, timer
+from test_helper import get_from_wiki, CaptureLog, assert_raises, do_pickle, timer, assert_warns
 
 @timer
 def test_ascii():
@@ -795,6 +795,34 @@ def test_hdu():
                          k_col='k', g1_col='g1', g2_col='g2',
                          hdu=1)
 
+    # The rest of these tests use a feature I'm thinking of removing.
+    # I'm pretty sure no one probably uses different hdus for each column.
+    # But for now they are allowed, so test them.
+    with assert_warns(FutureWarning):
+        cat9 = treecorr.Catalog(fname, allow_xyz=True,
+                                x_col='x', y_col='y', z_col='z',
+                                ra_col='ra', dec_col='dec', r_col='r',
+                                ra_units='rad', dec_units='rad',
+                                w_col='w', wpos_col='wpos', flag_col='flag',
+                                k_col='k', g1_col='g1', g2_col='g2',
+                                x_hdu=1, y_hdu=1, z_hdu=1,
+                                ra_hdu=2, dec_hdu=1, r_hdu=2,
+                                w_hdu=1, wpos_hdu=2, flag_hdu=1,
+                                k_hdu=1, g1_hdu=1, g2_hdu=2)
+        assert cat9 == cat1
+
+    with assert_warns(FutureWarning):
+        cat10 = treecorr.Catalog(fname, allow_xyz=True,
+                                x_col='x', y_col='y', z_col='z',
+                                ra_col='ra', dec_col='dec', r_col='r',
+                                ra_units='rad', dec_units='rad',
+                                w_col='w', wpos_col='wpos', flag_col='flag',
+                                k_col='k', g1_col='g1', g2_col='g2',
+                                x_hdu=3, y_hdu=3, z_hdu=3,
+                                ra_hdu=4, dec_hdu=4, r_hdu=4,
+                                w_hdu=5, wpos_hdu=5, flag_hdu=5,
+                                k_hdu=6, g1_hdu=6, g2_hdu=6)
+        assert cat10 == cat1
 
 @timer
 def test_direct():

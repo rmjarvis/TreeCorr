@@ -97,7 +97,7 @@ install:
 
     # Extra packages only needed for testing:
     # fitsio is technically optional, but better to do those tests on all systems.
-    - $PIP install -U $__USER pytest codecov pytest-cov fitsio mpi4py pytest-mpi
+    - $PIP install -U $__USER pytest codecov pytest-cov fitsio mpi4py pytest-mpi pathlib
 
     # Only add optional ones for py3.6
     # They are slow to install, especially 3.8 and pypy, where installed from scratch.

@@ -114,7 +114,7 @@ script:
 
     - cd tests
     - pytest --cov=treecorr test*.py
-    - mpiexec -n 3 pytest --cov=treecorr mpi_test*.py
+    - mpiexec -n 2 pytest mpi_test*.py
     - mpiexec -n 1 pytest --cov=treecorr mpi_test*.py
     - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pytest --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env; fi
 

@@ -34,6 +34,14 @@ try:
 except ImportError:
     from urllib.request import urlopen
 
+# Some parameters you can play with here that will affect both serial (not really "serial", since
+# it still uses OpenMP -- just running on 1 node) and parallel runs.
+bin_size = 0.01
+min_sep = 1         # arcmin
+min_sep = 600
+bin_slop = 1        # Can dial down to 0 to take longer
+low_mem = False     # Set to True to use less memory during processing.
+
 from mpi4py import MPI
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
@@ -63,6 +71,7 @@ else:
     g1_col='GAMMA1'
     g2_col='GAMMA2'
     flag_col=None
+
 
 def download_file():
     if not os.path.exists(file_name):
@@ -141,16 +150,20 @@ def run_serial():
     from test_helper import profile
     t0 = time.time()
     fname = file_name.replace('.fits','_0.fits')
+    log_file = 'serial.log'
+
     cat = treecorr.Catalog(fname,
                            ra_col=ra_col, dec_col=ra_col,
                            ra_units=ra_units, dec_units=dec_units,
                            g1_col=g1_col, g2_col=g1_col, flag_col=flag_col,
+                           verbose=1, log_file=log_file,
                            patch_centers=patch_file)
     t1 = time.time()
     print('Made cat', t1-t0)
 
-    gg = treecorr.GGCorrelation(nbins=200, min_sep=1., max_sep=400., sep_units='arcmin',
-                                verbose=1, log_file='serial.log')
+    gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep,
+                                sep_units='arcmin', bin_slop=bin_slop,
+                                verbose=1, log_file=log_file)
 
     # These next two steps don't need to be done separately.  They will automatically
     # happen when calling process.  But separating them out makes it easier to profile.
@@ -165,7 +178,7 @@ def run_serial():
     print('Made patches', t3-t2)
 
     with profile():
-        gg.process(cat)
+        gg.process(cat, low_mem=low_mem)
     t4 = time.time()
     print('Processed', t4-t3)
     print('Done with non-parallel computation',t4-t0)
@@ -176,6 +189,7 @@ def run_parallel():
     t0 = time.time()
     print(rank,socket.gethostname(),flush=True)
     fname = file_name.replace('.fits','%d.fits'%rank)[:]
+    log_file = 'parallel_%d.log'%rank
 
     # All processes make the full cat with these patches.
     # Note: this doesn't actually read anything from disk yet.
@@ -183,29 +197,31 @@ def run_parallel():
                            ra_col=ra_col, dec_col=ra_col,
                            ra_units=ra_units, dec_units=dec_units,
                            g1_col=g1_col, g2_col=g1_col, flag_col=flag_col,
+                           verbose=1, log_file=log_file,
                            patch_centers=patch_file)
     t1 = time.time()
     print('Made cat', t1-t0, flush=True)
 
     # Everyone needs to make their own Correlation object.
-    gg = treecorr.GGCorrelation(nbins=200, min_sep=1., max_sep=400., sep_units='arcmin',
-                                verbose=1, log_file='parallel_%d.log'%rank)
+    gg = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep,
+                                sep_units='arcmin', bin_slop=bin_slop,
+                                verbose=1, log_file=log_file)
 
     cat.load()
     t2 = time.time()
-    print('Loaded', t2-t1)
+    print(rank,'Loaded', t2-t1, flush=True)
 
     cat.get_patches()
     t3 = time.time()
-    print('Made patches', t3-t2)
+    print(rank,'Made patches', t3-t2, flush=True)
 
     # To use the multiple process, just pass comm to the process command.
-    gg.process(cat, comm=comm)
+    gg.process(cat, comm=comm, low_mem=low_mem)
     t4 = time.time()
-    print('Processed', t4-t3)
+    print(rank,'Processed', t4-t3, flush=True)
     comm.Barrier()
     t5 = time.time()
-    print('Barrier', t5-t4)
+    print(rank,'Barrier', t5-t4, flush=True)
     print(rank,'Done with parallel computation',t5-t0,flush=True)
 
     # rank 0 has the completed result.

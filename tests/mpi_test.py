@@ -72,7 +72,7 @@ test_corr_args = [(treecorr.GGCorrelation, True, ['xip', 'xim', 'npairs']),
 def do_mpi_corr(args):
     Correlation, auto, attr = args
     if rank == 0:
-        print('Start test_mpi_corr for ',Correlation.__name__,flush=True)
+        print('Start test_mpi_corr for ',Correlation.__name__)
 
     # All processes make the full cat with these patches.
     # Note: this doesn't actually read anything from disk yet.
@@ -92,7 +92,7 @@ def do_mpi_corr(args):
 
     t1 = time.time()
     comm.Barrier()
-    print(rank,'Done with non-parallel computation',flush=True)
+    print(rank,'Done with non-parallel computation')
 
     # Now run in parallel.
     # Everyone needs to make their own Correlation object.
@@ -105,12 +105,12 @@ def do_mpi_corr(args):
         corr1.process(full_cat, full_cat, comm=comm)
     t2 = time.time()
     comm.Barrier()
-    print(rank,'Done with parallel computation',flush=True)
+    print(rank,'Done with parallel computation')
 
     # rank 0 has the completed result.
     if rank == 0:
-        print('serial   %s = '%attr[0],getattr(corr0,attr[0]), t1-t0,flush=True)
-        print('parallel %s = '%attr[0],getattr(corr1,attr[0]), t2-t1,flush=True)
+        print('serial   %s = '%attr[0],getattr(corr0,attr[0]), t1-t0)
+        print('parallel %s = '%attr[0],getattr(corr1,attr[0]), t2-t1)
         for a in attr:
             np.testing.assert_allclose(getattr(corr0,a), getattr(corr1,a))
 

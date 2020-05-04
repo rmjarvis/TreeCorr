@@ -12,6 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 from __future__ import print_function
+import time
 
 try:
     from mpi4py import MPI

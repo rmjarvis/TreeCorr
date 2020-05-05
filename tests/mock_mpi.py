@@ -45,11 +45,12 @@ import numpy as np
 #   2. I only implemented the lowercase methods of Comm.  It would probably
 #      be pretty simple to define Send, Recv, etc. to be equivalent to send,
 #      recv, etc., but I haven't bothered.
-#   3. I also didn't implement isend and irecv.  Sorry.
-#   4. I don't think Barrier() works properly in python 2.7.  Also sorry.
-#   5. There may be other functions in the mpi4py API that I didn't implement.
+#   3. I also didn't implement isend and irecv.  Sorry.  I don't use them,
+#      so I didn't bother to understand them well enough to implement here.
+#   4. There may be other functions in the mpi4py API that I didn't implement.
 #      The documentation of mpi4py is pretty terrible, so while I tried to
 #      identify the main functionality, it's very likely I missed some things.
+#   5. It doesn't work on python 2.
 
 
 class MockComm(object):
@@ -121,33 +122,8 @@ def mock_mpiexec(nproc, target):
     """Run a function, given as target, as though it were an MPI session using mpiexec -n nproc
     but using multiprocessing instead of mpi.
     """
-    from multiprocessing import Pipe, Process, set_start_method
+    from multiprocessing import Pipe, Process, Barrier, set_start_method
     set_start_method('spawn', force=True)
-    try:
-        from multiprocessing import Barrier
-    except ImportError:  # no Barrier in 2.7
-        # https://stackoverflow.com/questions/28375646/python-2-7-multiprocessing-barrier
-        # I don't think this works quite right.  Seems to only work correctly on the first
-        # call to Barrier.  But I'm not going to try to figure it out, since 2.7 isn't
-        # really necessary anymore. This at least makes the code work in 2.7.
-        from multiprocessing import Semaphore, Value
-        class Barrier:
-            def __init__(self, n):
-                self.n       = n
-                self.count   = Value('i', 0)
-                self.mutex   = Semaphore(1)
-                self.barrier = Semaphore(0)
-
-            def wait(self):
-                self.mutex.acquire()
-                self.count.value += 1
-                self.mutex.release()
-
-                if self.count.value == self.n:
-                    self.barrier.release()
-
-                self.barrier.acquire()
-                self.barrier.release()
 
     # Make the message passing pipes
     all_pipes = [ {} for p in range(nproc) ]

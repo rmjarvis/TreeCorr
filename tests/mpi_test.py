@@ -15,80 +15,57 @@ from __future__ import print_function
 import numpy as np
 import time
 import os
-import unittest
 import treecorr
 
-try:
-    import fitsio
-    from mpi4py import MPI
-    no_mpi = False
-except ImportError:
-    print('Skipping mpi tests, since either mpi4py or fitsio is not installed')
-    no_mpi = True
-
-from test_helper import get_from_wiki, timer
-from mpi_helper import NiceComm
-
-# Might as well let these be globals.  They are the same for all tests below.
-comm = NiceComm(MPI.COMM_WORLD)
-rank = comm.Get_rank()
-size = comm.Get_size()
-file_name = os.path.join('data','Aardvark.fit')
-patch_file = os.path.join('data','mpi_patches.fits')
-if __name__ == '__main__':
-    nrows = 0  # all rows
-else:
-    nrows = 10000  # quicker on pytest runs
-
-
-@unittest.skipIf(no_mpi, 'Unable to import mpi4py or fitsio')
-@timer
 def setup():
+    from test_helper import get_from_wiki
+
+    file_name = os.path.join('data','Aardvark.fit')
+    patch_file = os.path.join('data','mpi_patches.fits')
+
     # Make sure we have Aardvark.fit
-    if rank == 0:
-        get_from_wiki('Aardvark.fit')
+    get_from_wiki('Aardvark.fit')
 
     # And all the tests will use these patches.  Make them once and save them.
     # For a real-life example, this might be made once and saved.
     # Or it might be made from a smaller version of the catalog:
     # either with the every_nth option, or maybe on a redmagic catalog or similar,
     # which would be smaller than the full source catalog, etc.
-    if rank == 0 and not os.path.exists(patch_file):
+    if not os.path.exists(patch_file):
         part_cat = treecorr.Catalog(file_name,
                                     ra_col='RA', dec_col='DEC', ra_units='deg', dec_units='deg',
                                     npatch=8)
         part_cat.write_patch_centers(patch_file)
         del part_cat
 
-    comm.Barrier()
+def do_mpi_corr(comm, Correlation, auto, attr):
+    rank = comm.Get_rank()
+    size = comm.Get_size()
+    file_name = os.path.join('data','Aardvark.fit')
+    patch_file = os.path.join('data','mpi_patches.fits')
+    if False:
+        nrows = 0  # all rows
+    else:
+        nrows = 10000  # quicker, and still tests functionality.
 
-
-test_corr_args = [(treecorr.GGCorrelation, True, ['xip', 'xim', 'npairs']),
-                  (treecorr.NGCorrelation, False, ['xi', 'xi_im', 'npairs']),
-                  (treecorr.NKCorrelation, False, ['xi', 'npairs']),
-                  (treecorr.NNCorrelation, True, ['npairs']),
-                  (treecorr.KGCorrelation, False, ['xi', 'xi_im', 'npairs']),
-                  (treecorr.KKCorrelation, True, ['xi', 'npairs'])]
-def do_mpi_corr(args):
-    Correlation, auto, attr = args
     if rank == 0:
-        print('Start test_mpi_corr for ',Correlation.__name__)
+        print('Start do_mpi_corr for ',Correlation.__name__)
 
     # All processes make the full cat with these patches.
     # Note: this doesn't actually read anything from disk yet.
-    full_cat = treecorr.Catalog(file_name,
-                                ra_col='RA', dec_col='DEC', ra_units='deg', dec_units='deg',
-                                g1_col='GAMMA1', g2_col='GAMMA2', k_col='KAPPA',
-                                patch_centers=patch_file, last_row=nrows)
+    cat = treecorr.Catalog(file_name,
+                           ra_col='RA', dec_col='DEC', ra_units='deg', dec_units='deg',
+                           g1_col='GAMMA1', g2_col='GAMMA2', k_col='KAPPA',
+                           patch_centers=patch_file, last_row=nrows)
 
     # First run on one process
     t0 = time.time()
     if rank == 0:
         corr0 = Correlation(nbins=100, min_sep=1., max_sep=400., sep_units='arcmin')
         if auto:
-            corr0.process(full_cat)
+            corr0.process(cat)
         else:
-            corr0.process(full_cat, full_cat)
+            corr0.process(cat, cat)
 
     t1 = time.time()
     comm.Barrier()
@@ -100,9 +77,9 @@ def do_mpi_corr(args):
 
     # To use the multiple process, just pass comm to the process command.
     if auto:
-        corr1.process(full_cat, comm=comm)
+        corr1.process(cat, comm=comm)
     else:
-        corr1.process(full_cat, full_cat, comm=comm)
+        corr1.process(cat, cat, comm=comm)
     t2 = time.time()
     comm.Barrier()
     print(rank,'Done with parallel computation')
@@ -114,12 +91,108 @@ def do_mpi_corr(args):
         for a in attr:
             np.testing.assert_allclose(getattr(corr0,a), getattr(corr1,a))
 
-@unittest.skipIf(no_mpi, 'Unable to import mpi4py or fitsio')
-@timer
-def test_mpi_corr():
-    for arg in test_corr_args:
-        do_mpi_corr(arg)
+def do_mpi_corr2(comm, Correlation, attr):
+    # Repeat cross correlations where one of the two catalogs doesn't use patches.
+
+    rank = comm.Get_rank()
+    size = comm.Get_size()
+    file_name = os.path.join('data','Aardvark.fit')
+    patch_file = os.path.join('data','mpi_patches.fits')
+    if False:
+        nrows = 0  # all rows
+    else:
+        nrows = 10000  # quicker, and still tests functionality.
+
+    if rank == 0:
+        print('Start do_mpi_corr2 for ',Correlation.__name__)
+
+    cat1 = treecorr.Catalog(file_name,
+                            ra_col='RA', dec_col='DEC', ra_units='deg', dec_units='deg',
+                            g1_col='GAMMA1', g2_col='GAMMA2', k_col='KAPPA',
+                            patch_centers=patch_file, last_row=nrows)
+    cat2 = treecorr.Catalog(file_name,
+                            ra_col='RA', dec_col='DEC', ra_units='deg', dec_units='deg',
+                            g1_col='GAMMA1', g2_col='GAMMA2', k_col='KAPPA',
+                            last_row=nrows)
+
+    # First run on one process
+    t0 = time.time()
+    if rank == 0:
+        corr0 = Correlation(nbins=100, min_sep=1., max_sep=400., sep_units='arcmin')
+        corr0.process(cat1, cat2)
+
+    t1 = time.time()
+    comm.Barrier()
+    print(rank,'Done with non-parallel computation')
+
+    # Now run in parallel.
+    # Everyone needs to make their own Correlation object.
+    corr1 = Correlation(nbins=100, min_sep=1., max_sep=400., sep_units='arcmin', verbose=1)
+
+    # To use the multiple process, just pass comm to the process command.
+    corr1.process(cat1, cat2, comm=comm)
+    t2 = time.time()
+    comm.Barrier()
+    print(rank,'Done with parallel computation')
+
+    # rank 0 has the completed result.
+    if rank == 0:
+        print('serial   %s = '%attr[0],getattr(corr0,attr[0]), t1-t0)
+        print('parallel %s = '%attr[0],getattr(corr1,attr[0]), t2-t1)
+        for a in attr:
+            np.testing.assert_allclose(getattr(corr0,a), getattr(corr1,a))
+
+    # Repeat in the other direction.
+    t0 = time.time()
+    if rank == 0:
+        corr0.process(cat2, cat1)
+    t1 = time.time()
+    comm.Barrier()
+    print(rank,'Done with non-parallel computation')
+
+    corr1.process(cat2, cat1, comm=comm)
+    t2 = time.time()
+    comm.Barrier()
+    print(rank,'Done with parallel computation')
+
+    if rank == 0:
+        print('serial   %s = '%attr[0],getattr(corr0,attr[0]), t1-t0)
+        print('parallel %s = '%attr[0],getattr(corr1,attr[0]), t2-t1)
+        for a in attr:
+            np.testing.assert_allclose(getattr(corr0,a), getattr(corr1,a))
+
+def do_mpi_gg(comm):
+    do_mpi_corr(comm, treecorr.GGCorrelation, True, ['xip', 'xim', 'npairs'])
+
+def do_mpi_ng(comm):
+    do_mpi_corr(comm, treecorr.NGCorrelation, False, ['xi', 'xi_im', 'npairs'])
+    do_mpi_corr2(comm, treecorr.NGCorrelation, ['xi', 'xi_im', 'npairs'])
+
+def do_mpi_nk(comm):
+    do_mpi_corr(comm, treecorr.NKCorrelation, False, ['xi', 'npairs'])
+    do_mpi_corr2(comm, treecorr.NKCorrelation, ['xi', 'npairs'])
+
+def do_mpi_nn(comm):
+    do_mpi_corr(comm, treecorr.NNCorrelation, True, ['npairs'])
+
+def do_mpi_kg(comm):
+    do_mpi_corr(comm, treecorr.KGCorrelation, False, ['xi', 'xi_im', 'npairs'])
+    do_mpi_corr2(comm, treecorr.KGCorrelation, ['xi', 'xi_im', 'npairs'])
+
+def do_mpi_kk(comm):
+    do_mpi_corr(comm, treecorr.KKCorrelation, True, ['xi', 'npairs'])
 
 if __name__ == '__main__':
-    setup()
-    test_mpi_corr()
+    from mpi4py import MPI
+    from mpi_helper import NiceComm
+    comm = NiceComm(MPI.COMM_WORLD)
+    rank = comm.Get_rank()
+    if rank == 0:
+        setup()
+    comm.Barrier()
+    do_mpi_gg(comm)
+    do_mpi_ng(comm)
+    do_mpi_nk(comm)
+    do_mpi_nn(comm)
+    do_mpi_kg(comm)
+    do_mpi_kk(comm)

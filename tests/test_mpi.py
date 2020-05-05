@@ -13,36 +13,44 @@
 
 from __future__ import print_function
 import treecorr
+import unittest
+import sys
 
 from test_helper import timer
 from mock_mpi import mock_mpiexec
 from mpi_test import *
 
+@unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer
 def test_mpi_gg():
     mock_mpiexec(4, do_mpi_gg)
     mock_mpiexec(1, do_mpi_gg)
 
+@unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer
 def test_mpi_ng():
     mock_mpiexec(4, do_mpi_ng)
     mock_mpiexec(1, do_mpi_ng)
 
+@unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer
 def test_mpi_nk():
     mock_mpiexec(4, do_mpi_nk)
     mock_mpiexec(1, do_mpi_nk)
 
+@unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer
 def test_mpi_nn():
     mock_mpiexec(4, do_mpi_nn)
     mock_mpiexec(1, do_mpi_nn)
 
+@unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer
 def test_mpi_kg():
     mock_mpiexec(4, do_mpi_kg)
     mock_mpiexec(1, do_mpi_kg)
 
+@unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer
 def test_mpi_kk():
     mock_mpiexec(4, do_mpi_kk)

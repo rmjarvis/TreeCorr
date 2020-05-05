@@ -121,7 +121,8 @@ def mock_mpiexec(nproc, target):
     """Run a function, given as target, as though it were an MPI session using mpiexec -n nproc
     but using multiprocessing instead of mpi.
     """
-    from multiprocessing import Pipe, Process
+    from multiprocessing import Pipe, Process, set_start_method
+    set_start_method('spawn', force=True)
     try:
         from multiprocessing import Barrier
     except ImportError:  # no Barrier in 2.7

@@ -171,7 +171,7 @@ def test_radec():
     xyz = np.array([cat.x, cat.y, cat.z]).T
     direct_cen = np.array([np.average(xyz[p==i], axis=0, weights=w[p==i]) for i in range(npatch)])
     direct_cen /= np.sqrt(np.sum(direct_cen**2,axis=1)[:,np.newaxis])
-    np.testing.assert_allclose(cen, direct_cen, atol=1.e-3)
+    np.testing.assert_allclose(cen, direct_cen, atol=2.e-3)
 
     inertia = np.array([np.sum(w[p==i][:,None] * (xyz[p==i] - cen[i])**2) for i in range(npatch)])
     counts = np.array([np.sum(w[p==i]) for i in range(npatch)])

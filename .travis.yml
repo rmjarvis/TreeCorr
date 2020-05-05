@@ -97,13 +97,13 @@ install:
 
     # Extra packages only needed for testing:
     # fitsio is technically optional, but better to do those tests on all systems.
-    - $PIP install -U $__USER pytest codecov pytest-cov fitsio mpi4py guppy
+    - $PIP install -U $__USER pytest codecov pytest-cov fitsio mpi4py
 
     # Only add optional ones for py3.6
     # They are slow to install, especially 3.8 and pypy, where installed from scratch.
     # Note: nbval 0.9.4 seems to have a bug.  I'm getting:
     # FileNotFoundError: [Errno 2] No such file or directory: '/home/travis/virtualenv/python3.6.7/lib/python3.6/site-packages/nbformat/v4/nbformat.v4.1.schema.json'
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then $PIP install -U $__USER matplotlib nbval==0.9.3 ipykernel scipy pandas; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then $PIP install -U $__USER matplotlib nbval==0.9.3 ipykernel scipy pandas guppy3; fi
     # halotools doesn't work anymore in 3.6 (because of astropy change), so do this in 2.7.
     - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then $PIP install -U $__USER h5py halotools; fi
 

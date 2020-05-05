@@ -2170,9 +2170,8 @@ def test_lowmem():
 
     try:
         import fitsio
-        import guppy
     except ImportError:
-        print('test_lowmem requires fitsio and guppy')
+        print('test_lowmem requires fitsio and (preferably) guppy')
         return
 
     if __name__ == '__main__':
@@ -2197,8 +2196,12 @@ def test_lowmem():
     orig_cat.write(file_name)
     del orig_cat
 
-    hp = guppy.hpy()
-    hp.setrelheap()
+    try:
+        import guppy
+        hp = guppy.hpy()
+        hp.setrelheap()
+    except Exception:
+        hp = None
 
     partial_cat = treecorr.Catalog(file_name, every_nth=100,
                                    ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
@@ -2214,11 +2217,11 @@ def test_lowmem():
     dd = treecorr.NNCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
 
     t0 = time.time()
-    s0 = hp.heap().size
+    s0 = hp.heap().size if hp else 0
     dd.process(full_cat)
     t1 = time.time()
-    s1 = hp.heap().size
-    print('regular: ',hp.heap().size, t1-t0, s1-s0)
+    s1 = hp.heap().size if hp else 2*himem
+    print('regular: ',s1, t1-t0, s1-s0)
     assert s1-s0 > himem  # This version uses a lot of memory.
 
     npairs1 = dd.npairs
@@ -2232,11 +2235,11 @@ def test_lowmem():
                                 patch_centers=patch_centers, save_patch_dir='output')
 
     t0 = time.time()
-    s0 = hp.heap().size
+    s0 = hp.heap().size if hp else 0
     dd.process(save_cat, low_mem=True)
     t1 = time.time()
-    s1 = hp.heap().size
-    print('lomem: ',hp.heap().size, t1-t0, s1-s0)
+    s1 = hp.heap().size if hp else 0
+    print('lomem: ',s1, t1-t0, s1-s0)
     assert s1-s0 < lomem  # This version uses a lot less memory
     npairs2 = dd.npairs
     np.testing.assert_array_equal(npairs1, npairs2)
@@ -2244,11 +2247,11 @@ def test_lowmem():
     # Check running as a cross-correlation
     save_cat.unload()
     t0 = time.time()
-    s0 = hp.heap().size
+    s0 = hp.heap().size if hp else 0
     dd.process(save_cat, save_cat, low_mem=True)
     t1 = time.time()
-    s1 = hp.heap().size
-    print('lomem x: ',hp.heap().size, t1-t0, s1-s0)
+    s1 = hp.heap().size if hp else 0
+    print('lomem x: ',s1, t1-t0, s1-s0)
     assert s1-s0 < lomem
     npairs3 = dd.npairs
     np.testing.assert_array_equal(npairs3, npairs2)
@@ -2266,7 +2269,7 @@ def test_lowmem():
     file_name = os.path.join('output','test_lowmem_gk.fits')
     gk_cat0.write(file_name)
     del gk_cat0
-    hp.setrelheap()
+    if hp: hp.setrelheap()
 
     gk_cat1 = treecorr.Catalog(file_name,
                                ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
@@ -2279,19 +2282,19 @@ def test_lowmem():
 
     gg1 = treecorr.GGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()
-    s0 = hp.heap().size
+    s0 = hp.heap().size if hp else 0
     gg1.process(gk_cat1)
     t1 = time.time()
-    s1 = hp.heap().size
-    print('GG1: ',hp.heap().size, t1-t0, s1-s0)
+    s1 = hp.heap().size if hp else 0
+    print('GG1: ',s1, t1-t0, s1-s0)
     gk_cat1.unload()
     gg2 = treecorr.GGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()
-    s0 = hp.heap().size
+    s0 = hp.heap().size if hp else 0
     gg2.process(gk_cat2, low_mem=True)
     t1 = time.time()
-    s1 = hp.heap().size
-    print('GG2: ',hp.heap().size, t1-t0, s1-s0)
+    s1 = hp.heap().size if hp else 0
+    print('GG2: ',s1, t1-t0, s1-s0)
     gk_cat2.unload()
     np.testing.assert_allclose(gg1.xip, gg2.xip)
     np.testing.assert_allclose(gg1.xim, gg2.xim)
@@ -2299,76 +2302,76 @@ def test_lowmem():
 
     ng1 = treecorr.NGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()
-    s0 = hp.heap().size
+    s0 = hp.heap().size if hp else 0
     ng1.process(gk_cat1, gk_cat1)
     t1 = time.time()
-    s1 = hp.heap().size
-    print('NG1: ',hp.heap().size, t1-t0, s1-s0)
+    s1 = hp.heap().size if hp else 0
+    print('NG1: ',s1, t1-t0, s1-s0)
     gk_cat1.unload()
     ng2 = treecorr.NGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()
-    s0 = hp.heap().size
+    s0 = hp.heap().size if hp else 0
     ng2.process(gk_cat2, gk_cat2, low_mem=True)
     t1 = time.time()
-    s1 = hp.heap().size
-    print('NG2: ',hp.heap().size, t1-t0, s1-s0)
+    s1 = hp.heap().size if hp else 0
+    print('NG2: ',s1, t1-t0, s1-s0)
     gk_cat2.unload()
     np.testing.assert_allclose(ng1.xi, ng2.xi)
     np.testing.assert_allclose(ng1.weight, ng2.weight)
 
     kk1 = treecorr.KKCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()
-    s0 = hp.heap().size
+    s0 = hp.heap().size if hp else 0
     kk1.process(gk_cat1)
     t1 = time.time()
-    s1 = hp.heap().size
-    print('KK1: ',hp.heap().size, t1-t0, s1-s0)
+    s1 = hp.heap().size if hp else 0
+    print('KK1: ',s1, t1-t0, s1-s0)
     gk_cat1.unload()
     kk2 = treecorr.KKCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()
-    s0 = hp.heap().size
+    s0 = hp.heap().size if hp else 0
     kk2.process(gk_cat2, low_mem=True)
     t1 = time.time()
-    s1 = hp.heap().size
-    print('KK2: ',hp.heap().size, t1-t0, s1-s0)
+    s1 = hp.heap().size if hp else 0
+    print('KK2: ',s1, t1-t0, s1-s0)
     gk_cat2.unload()
     np.testing.assert_allclose(kk1.xi, kk2.xi)
     np.testing.assert_allclose(kk1.weight, kk2.weight)
 
     nk1 = treecorr.NKCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()
-    s0 = hp.heap().size
+    s0 = hp.heap().size if hp else 0
     nk1.process(gk_cat1, gk_cat1)
     t1 = time.time()
-    s1 = hp.heap().size
-    print('NK1: ',hp.heap().size, t1-t0, s1-s0)
+    s1 = hp.heap().size if hp else 0
+    print('NK1: ',s1, t1-t0, s1-s0)
     gk_cat1.unload()
     nk2 = treecorr.NKCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()
-    s0 = hp.heap().size
+    s0 = hp.heap().size if hp else 0
     nk2.process(gk_cat2, gk_cat2, low_mem=True)
     t1 = time.time()
-    s1 = hp.heap().size
-    print('NK2: ',hp.heap().size, t1-t0, s1-s0)
+    s1 = hp.heap().size if hp else 0
+    print('NK2: ',s1, t1-t0, s1-s0)
     gk_cat2.unload()
     np.testing.assert_allclose(nk1.xi, nk2.xi)
     np.testing.assert_allclose(nk1.weight, nk2.weight)
 
     kg1 = treecorr.KGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()
-    s0 = hp.heap().size
+    s0 = hp.heap().size if hp else 0
     kg1.process(gk_cat1, gk_cat1)
     t1 = time.time()
-    s1 = hp.heap().size
-    print('KG1: ',hp.heap().size, t1-t0, s1-s0)
+    s1 = hp.heap().size if hp else 0
+    print('KG1: ',s1, t1-t0, s1-s0)
     gk_cat1.unload()
     kg2 = treecorr.KGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()
-    s0 = hp.heap().size
+    s0 = hp.heap().size if hp else 0
     kg2.process(gk_cat2, gk_cat2, low_mem=True)
     t1 = time.time()
-    s1 = hp.heap().size
-    print('KG2: ',hp.heap().size, t1-t0, s1-s0)
+    s1 = hp.heap().size if hp else 0
+    print('KG2: ',s1, t1-t0, s1-s0)
     gk_cat2.unload()
     np.testing.assert_allclose(kg1.xi, kg2.xi)
     np.testing.assert_allclose(kg1.weight, kg2.weight)

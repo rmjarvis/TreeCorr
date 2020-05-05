@@ -1408,6 +1408,7 @@ def test_field():
                             w=w, g1=g1, g2=g2, k=k)
     cat2.logger = None
     cat3 = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k, w=w)
+    cat3 = cat3.copy()  # This tests that post-pickled catalog still works correctly.
     cat4 = treecorr.Catalog(x=x, y=y, w=w)
     logger = treecorr.config.setup_logger(1)
 

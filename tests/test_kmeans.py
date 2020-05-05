@@ -97,7 +97,7 @@ def test_dessv():
     print('mean size = ',np.mean(sizes))
     print('rms size = ',np.std(sizes))
     assert np.sum(inertia) < 200.  # Total shouldn't increase much. (And often decreases.)
-    assert np.std(inertia) < 0.1 * np.mean(inertia)  # rms should be even smaller here.
+    assert np.std(inertia) < 0.15 * np.mean(inertia)  # rms should be even smaller here.
     assert np.std(sizes) < 0.1 * np.mean(sizes)  # This is only a little bit smaller.
 
     # This doesn't keep the counts as equal as the standard algorithm.
@@ -211,7 +211,7 @@ def test_radec():
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 200.  # Total shouldn't increase much. (And often decreases.)
-    assert np.std(inertia) < 0.1 * np.mean(inertia)  # rms should be even smaller here.
+    assert np.std(inertia) < 0.15 * np.mean(inertia)  # rms should be even smaller here.
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))

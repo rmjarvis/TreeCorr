@@ -49,7 +49,7 @@ def do_mpi_corr(comm, Correlation, auto, attr):
         nrows = 10000  # quicker, and still tests functionality.
 
     if rank == 0:
-        print('Start do_mpi_corr for ',Correlation.__name__)
+        print('Start do_mpi_corr for ',Correlation.__name__,flush=True)
 
     # All processes make the full cat with these patches.
     # Note: this doesn't actually read anything from disk yet.
@@ -57,6 +57,7 @@ def do_mpi_corr(comm, Correlation, auto, attr):
                            ra_col='RA', dec_col='DEC', ra_units='deg', dec_units='deg',
                            g1_col='GAMMA1', g2_col='GAMMA2', k_col='KAPPA',
                            patch_centers=patch_file, last_row=nrows)
+    print(rank,'Made catalog',flush=True)
 
     # First run on one process
     t0 = time.time()
@@ -69,7 +70,7 @@ def do_mpi_corr(comm, Correlation, auto, attr):
 
     t1 = time.time()
     comm.Barrier()
-    print(rank,'Done with non-parallel computation')
+    print(rank,'Done with non-parallel computation',flush=True)
 
     # Now run in parallel.
     # Everyone needs to make their own Correlation object.
@@ -82,12 +83,12 @@ def do_mpi_corr(comm, Correlation, auto, attr):
         corr1.process(cat, cat, comm=comm)
     t2 = time.time()
     comm.Barrier()
-    print(rank,'Done with parallel computation')
+    print(rank,'Done with parallel computation',flush=True)
 
     # rank 0 has the completed result.
     if rank == 0:
-        print('serial   %s = '%attr[0],getattr(corr0,attr[0]), t1-t0)
-        print('parallel %s = '%attr[0],getattr(corr1,attr[0]), t2-t1)
+        print('serial   %s = '%attr[0],getattr(corr0,attr[0]), t1-t0,flush=True)
+        print('parallel %s = '%attr[0],getattr(corr1,attr[0]), t2-t1,flush=True)
         for a in attr:
             np.testing.assert_allclose(getattr(corr0,a), getattr(corr1,a))
 
@@ -104,7 +105,7 @@ def do_mpi_corr2(comm, Correlation, attr):
         nrows = 10000  # quicker, and still tests functionality.
 
     if rank == 0:
-        print('Start do_mpi_corr2 for ',Correlation.__name__)
+        print('Start do_mpi_corr2 for ',Correlation.__name__,flush=True)
 
     cat1 = treecorr.Catalog(file_name,
                             ra_col='RA', dec_col='DEC', ra_units='deg', dec_units='deg',
@@ -123,7 +124,7 @@ def do_mpi_corr2(comm, Correlation, attr):
 
     t1 = time.time()
     comm.Barrier()
-    print(rank,'Done with non-parallel computation')
+    print(rank,'Done with non-parallel computation',flush=True)
 
     # Now run in parallel.
     # Everyone needs to make their own Correlation object.
@@ -133,12 +134,12 @@ def do_mpi_corr2(comm, Correlation, attr):
     corr1.process(cat1, cat2, comm=comm)
     t2 = time.time()
     comm.Barrier()
-    print(rank,'Done with parallel computation')
+    print(rank,'Done with parallel computation',flush=True)
 
     # rank 0 has the completed result.
     if rank == 0:
-        print('serial   %s = '%attr[0],getattr(corr0,attr[0]), t1-t0)
-        print('parallel %s = '%attr[0],getattr(corr1,attr[0]), t2-t1)
+        print('serial   %s = '%attr[0],getattr(corr0,attr[0]), t1-t0,flush=True)
+        print('parallel %s = '%attr[0],getattr(corr1,attr[0]), t2-t1,flush=True)
         for a in attr:
             np.testing.assert_allclose(getattr(corr0,a), getattr(corr1,a))
 
@@ -148,16 +149,16 @@ def do_mpi_corr2(comm, Correlation, attr):
         corr0.process(cat2, cat1)
     t1 = time.time()
     comm.Barrier()
-    print(rank,'Done with non-parallel computation')
+    print(rank,'Done with non-parallel computation',flush=True)
 
     corr1.process(cat2, cat1, comm=comm)
     t2 = time.time()
     comm.Barrier()
-    print(rank,'Done with parallel computation')
+    print(rank,'Done with parallel computation',flush=True)
 
     if rank == 0:
-        print('serial   %s = '%attr[0],getattr(corr0,attr[0]), t1-t0)
-        print('parallel %s = '%attr[0],getattr(corr1,attr[0]), t2-t1)
+        print('serial   %s = '%attr[0],getattr(corr0,attr[0]), t1-t0,flush=True)
+        print('parallel %s = '%attr[0],getattr(corr1,attr[0]), t2-t1,flush=True)
         for a in attr:
             np.testing.assert_allclose(getattr(corr0,a), getattr(corr1,a))
 

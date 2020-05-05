@@ -114,10 +114,10 @@ script:
 
     - cd tests
     - pytest --cov=treecorr test*.py
-    # coverage with multiple mpi jobs sometimes clobbers the writes, so only do mpi coverage
-    # with a single-job run.
-    - mpiexec -n 2 pytest mpi_test*.py
-    - mpiexec -n 1 pytest --cov=treecorr --cov-append mpi_test*.py
+    # Don't do coverage for mpi tests.  Those are included in the main tests with mock_mpi.
+    # These just check that the code works when run in a real mpi session.
+    - mpiexec -n 2 python -u mpi_test.py
+    - mpiexec -n 1 python -u mpi_test.py
     - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pytest --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env; fi
 
 after_success:

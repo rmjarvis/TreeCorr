@@ -557,11 +557,15 @@ class Catalog(object):
                 name, ext = os.path.splitext(file_name)
                 if ext.lower().startswith('.fit'):
                     file_type = 'FITS'
+                elif ext.lower().startswith('.hdf'):
+                    file_type = "HDF"
                 else:
                     file_type = 'ASCII'
                 self.logger.info("   file_type assumed to be %s from the file name.",file_type)
             if file_type == 'FITS':
                 self._check_fits(file_name, num, is_rand)
+            elif file_type == 'HDF':
+                print("Not written check_hdf")
             else:
                 self._check_ascii(file_name, num, is_rand)
 
@@ -1407,6 +1411,17 @@ class Catalog(object):
                                             file_name,num)+
                                             "because it is invalid, but unneeded.")
 
+    def read_hdf(self, file_name, num=0, is_rand=False):
+        """Read the catalog from an HDF5 file
+
+        Parameters:
+            file_name (str):    The name of the file to read in.
+            num (int):          Which number catalog are we reading. (default: 0)
+            is_rand (bool):     Is this a random catalog? (default: False)
+        """
+        return self._read_structured(file_name, catalog_formats.HdfReader,
+            num=num, is_rand=is_rand)
+
     def read_fits(self, file_name, num=0, is_rand=False):
         """Read the catalog from a FITS file
 
@@ -1417,16 +1432,9 @@ class Catalog(object):
         """
 
         return self._read_structured(file_name, catalog_formats.FitsReader,
-            num=num, is_rand=False,)
+            num=num, is_rand=is_rand)
 
     def _read_structured(self, file_name, reader, num=0, is_rand=False):
-        """Read the catalog from a FITS file
-
-        Parameters:
-            file_name (str):    The name of the file to read in.
-            num (int):          Which number catalog are we reading. (default: 0)
-            is_rand (bool):     Is this a random catalog? (default: False)
-        """
         # Helper functions for things we might do in one of two places.
         def set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col):
             if x_col != '0' and x_col in data:
@@ -1469,7 +1477,11 @@ class Catalog(object):
         k_col = treecorr.config.get_from_list(self.config,'k_col',num,str,'0')
         patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,str,'0')
 
-        hdu = treecorr.config.get_from_list(self.config,'hdu',num,int,1)
+        hdu_type = reader.subgroup_type
+
+        hdu = treecorr.config.get_from_list(self.config,'hdu',num,
+                                            hdu_type,
+                                            reader.subgroup_default)
 
         with reader(file_name) as infile:
 
@@ -1482,10 +1494,12 @@ class Catalog(object):
                 s = slice(None)
             else:
                 if x_col != '0':
-                    x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
+                    x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,
+                                                          hdu_type,hdu)
                     col = x_col
                 else:
-                    x_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
+                    x_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,
+                                                          hdu_type,hdu)
                     col = ra_col
                 end = self.end if self.end is not None else infile.row_count(x_hdu, col)
                 s = np.arange(self.start, end, self.every_nth)
@@ -1503,19 +1517,19 @@ class Catalog(object):
             #     data = fits[hdu][use_cols][:]
             # However, we allow the option to have different columns read from different hdus.
             # So this is slightly more complicated.
-            x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
-            y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
-            z_hdu = treecorr.config.get_from_list(self.config,'z_hdu',num,int,hdu)
-            ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
-            dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
-            r_hdu = treecorr.config.get_from_list(self.config,'r_hdu',num,int,hdu)
-            patch_hdu = treecorr.config.get_from_list(self.config,'patch_hdu',num,int,hdu)
-            w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,int,hdu)
-            wpos_hdu = treecorr.config.get_from_list(self.config,'wpos_hdu',num,int,hdu)
-            flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
-            g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
-            g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
-            k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
+            x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,hdu_type,hdu)
+            y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,hdu_type,hdu)
+            z_hdu = treecorr.config.get_from_list(self.config,'z_hdu',num,hdu_type,hdu)
+            ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,hdu_type,hdu)
+            dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,hdu_type,hdu)
+            r_hdu = treecorr.config.get_from_list(self.config,'r_hdu',num,hdu_type,hdu)
+            patch_hdu = treecorr.config.get_from_list(self.config,'patch_hdu',num,hdu_type,hdu)
+            w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,hdu_type,hdu)
+            wpos_hdu = treecorr.config.get_from_list(self.config,'wpos_hdu',num,hdu_type,hdu)
+            flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,hdu_type,hdu)
+            g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,hdu_type,hdu)
+            g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,hdu_type,hdu)
+            k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,hdu_type,hdu)
             all_hdus = [x_hdu, y_hdu, z_hdu,
                         ra_hdu, dec_hdu, r_hdu,
                         patch_hdu,
@@ -2033,6 +2047,8 @@ class Catalog(object):
                 self.read_fits(self.file_name,self._num,self._is_rand)
             elif self.file_type == 'ASCII':
                 self.read_ascii(self.file_name,self._num,self._is_rand)
+            elif self.file_type == 'HDF':
+                self.read_hdf(self.file_name,self._num,self._is_rand)
             else: # pragma: no cover
                 # This is already checked, so shouldn't be possible to happen.
                 raise ValueError("Invalid file_type %s"%self.file_type)

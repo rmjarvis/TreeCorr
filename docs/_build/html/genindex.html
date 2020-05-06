@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; TreeCorr 4.0.10 documentation</title>
+  <title>Index &mdash; TreeCorr 4.1.0 documentation</title>
   
 
   
@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                4.0
+                4.1
               </div>
             
           
@@ -91,11 +91,13 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 4.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -166,16 +168,19 @@
  <a href="#_"><strong>_</strong></a>
  | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
+ | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#K"><strong>K</strong></a>
+ | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
  | <a href="#W"><strong>W</strong></a>
  
 </div>
@@ -308,9 +313,14 @@
 </li>
       <li><a href="field.html#treecorr.Field.cat">cat() (treecorr.Field property)</a>
 </li>
-      <li><a href="catalog.html#treecorr.Catalog">Catalog (class in treecorr)</a>
+      <li>
+    catalog
+
+      <ul>
+        <li><a href="catalog.html#module-catalog">module</a>
 </li>
-      <li><a href="catalog.html#module-catalog">catalog (module)</a>
+      </ul></li>
+      <li><a href="catalog.html#treecorr.Catalog">Catalog (class in treecorr)</a>
 </li>
       <li><a href="scripts.html#treecorr.config.check_config">check_config() (in module treecorr.config)</a>
 </li>
@@ -340,8 +350,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="catalog.html#treecorr.Catalog.clear_cache">clear_cache() (treecorr.Catalog method)</a>
 </li>
-      <li><a href="scripts.html#module-config">config (module)</a>
+      <li>
+    config
+
+      <ul>
+        <li><a href="scripts.html#module-config">module</a>
 </li>
+      </ul></li>
       <li><a href="scripts.html#treecorr.config.convert">convert() (in module treecorr.config)</a>
 </li>
       <li><a href="catalog.html#treecorr.Catalog.copy">copy() (treecorr.Catalog method)</a>
@@ -371,6 +386,18 @@
       <li><a href="scripts.html#treecorr.corr3">corr3() (in module treecorr)</a>
 </li>
       <li><a href="field.html#treecorr.Field.count_near">count_near() (treecorr.Field method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="correlation2.html#treecorr.BinnedCorr2.estimate_cov">estimate_cov() (treecorr.BinnedCorr2 method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="correlation2.html#treecorr.estimate_multi_cov">estimate_multi_cov() (in module treecorr)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -412,14 +439,18 @@
 </li>
       <li><a href="field.html#treecorr.Field.get_near">get_near() (treecorr.Field method)</a>
 </li>
+      <li><a href="catalog.html#treecorr.Catalog.get_patch_centers">get_patch_centers() (treecorr.Catalog method)</a>
+</li>
+      <li><a href="catalog.html#treecorr.Catalog.get_patches">get_patches() (treecorr.Catalog method)</a>
+</li>
       <li><a href="catalog.html#treecorr.Catalog.getGField">getGField() (treecorr.Catalog method)</a>
 </li>
       <li><a href="catalog.html#treecorr.Catalog.getGSimpleField">getGSimpleField() (treecorr.Catalog method)</a>
 </li>
-      <li><a href="catalog.html#treecorr.Catalog.getKField">getKField() (treecorr.Catalog method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="catalog.html#treecorr.Catalog.getKField">getKField() (treecorr.Catalog method)</a>
+</li>
       <li><a href="catalog.html#treecorr.Catalog.getKSimpleField">getKSimpleField() (treecorr.Catalog method)</a>
 </li>
       <li><a href="catalog.html#treecorr.Catalog.getNField">getNField() (treecorr.Catalog method)</a>
@@ -456,13 +487,27 @@
 </li>
       <li><a href="kg.html#treecorr.KGCorrelation">KGCorrelation (class in treecorr)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="kk.html#treecorr.KKCorrelation">KKCorrelation (class in treecorr)</a>
 </li>
       <li><a href="kkk.html#treecorr.KKKCorrelation">KKKCorrelation (class in treecorr)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="field.html#treecorr.Field.kmeans_assign_patches">kmeans_assign_patches() (treecorr.Field method)</a>
+</li>
+      <li><a href="field.html#treecorr.Field.kmeans_initialize_centers">kmeans_initialize_centers() (treecorr.Field method)</a>
+</li>
+      <li><a href="field.html#treecorr.Field.kmeans_refine_centers">kmeans_refine_centers() (treecorr.Field method)</a>
+</li>
       <li><a href="field.html#treecorr.KSimpleField">KSimpleField (class in treecorr)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="catalog.html#treecorr.Catalog.load">load() (treecorr.Catalog method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -472,10 +517,21 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="catalog.html#treecorr.Catalog.makeArray">makeArray() (treecorr.Catalog method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="scripts.html#treecorr.config.merge_config">merge_config() (in module treecorr.config)</a>
 </li>
+      <li>
+    module
+
+      <ul>
+        <li><a href="catalog.html#module-catalog">catalog</a>
+</li>
+        <li><a href="scripts.html#module-config">config</a>
+</li>
+        <li><a href="catalog.html#module-treecorr.catalog">treecorr.catalog</a>
+</li>
+        <li><a href="scripts.html#module-treecorr.config">treecorr.config</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -630,7 +686,11 @@
 </li>
       <li><a href="catalog.html#treecorr.Catalog.read_fits">read_fits() (treecorr.Catalog method)</a>
 </li>
+      <li><a href="catalog.html#treecorr.Catalog.read_patch_centers">read_patch_centers() (treecorr.Catalog method)</a>
+</li>
       <li><a href="catalog.html#treecorr.Catalog.resize_cache">resize_cache() (treecorr.Catalog method)</a>
+</li>
+      <li><a href="field.html#treecorr.Field.run_kmeans">run_kmeans() (treecorr.Field method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -640,7 +700,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="correlation2.html#treecorr.BinnedCorr2.sample_pairs">sample_pairs() (treecorr.BinnedCorr2 method)</a>
 </li>
-      <li><a href="scripts.html#treecorr.config.set_omp_threads">set_omp_threads() (in module treecorr.config)</a>
+      <li><a href="catalog.html#treecorr.Catalog.select">select() (treecorr.Catalog method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -654,11 +714,29 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="catalog.html#module-treecorr.catalog">treecorr.catalog (module)</a>
+      <li>
+    treecorr.catalog
+
+      <ul>
+        <li><a href="catalog.html#module-treecorr.catalog">module</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="scripts.html#module-treecorr.config">treecorr.config (module)</a>
+      <li>
+    treecorr.config
+
+      <ul>
+        <li><a href="scripts.html#module-treecorr.config">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="catalog.html#treecorr.Catalog.unload">unload() (treecorr.Catalog method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -690,6 +768,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="catalog.html#treecorr.Catalog.write_patch_centers">write_patch_centers() (treecorr.Catalog method)</a>
+</li>
       <li><a href="ggg.html#treecorr.GGGCorrelation.writeMap3">writeMap3() (treecorr.GGGCorrelation method)</a>
 </li>
       <li><a href="gg.html#treecorr.GGCorrelation.writeMapSq">writeMapSq() (treecorr.GGCorrelation method)</a>

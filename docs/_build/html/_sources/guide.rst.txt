@@ -77,13 +77,13 @@ You can also bypass the I/O on the input side as well::
 
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
 
-You always need to include either **x** and **y** or **ra** and **dec**.
+You always need to include either ``x`` and ``y`` or ``ra`` and ``dec``.
 Which other columns you need depends on what kind of correlation function you want to calculate
-from the data.  For GG, you need **g1** and **g2**, but for kappa correlations, you would use
-**k** instead.
+from the data.  For GG, you need ``g1`` and ``g2``, but for kappa correlations, you would use
+``k`` instead.
 
-You can optionally provide a weight column as well with **w** if desired.  To have the calculation
-skip some objects (e.g. objects with some kind of flag set), simply provide **w** where those
+You can optionally provide a weight column as well with ``w`` if desired.  To have the calculation
+skip some objects (e.g. objects with some kind of flag set), simply provide ``w`` where those
 objects have ``w[i] = 0``.
 
 See the doc string for `Catalog` for more information.
@@ -105,9 +105,9 @@ You should see their doc strings for details, but they all work similarly.
 For the last three, there is no auto-correlation option, of course, just the cross-correlation.
 
 The other main difference between these other correlation classes from GG is that there is only a
-single correlation function, so it is called **xi** rather than **xip** and **xim**.
+single correlation function, so it is called ``xi`` rather than ``xip`` and ``xim``.
 
-Also, NN does not have any kind of **xi** attribute.  You need to perform an additional
+Also, NN does not have any kind of ``xi`` attribute.  You need to perform an additional
 calculation involving random catalogs for that.  See `Using random catalogs` below for more details.
 
 
@@ -152,7 +152,7 @@ if you want to use a simpler estimator xi = (DD-RR)/RR, then you can omit the dr
 The simpler estimator is slightly biased though, so this is not recommended.
 
 The NG and NK classes also have a :meth:`~treecorr.NGCorrelation.calculateXi` method to allow for the use of compensated
-estimators in those cases as well.  They already have a **xi** attribute though, which is the
+estimators in those cases as well.  They already have a ``xi`` attribute though, which is the
 uncompensated estimator.  These correlations do not suffer as much from masking effects,
 so the compensation is not as required.  However, it does produce a slightly better estimate
 of the correlation function if you are able to use a random catalog.

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>treecorr.binnedcorr3 &mdash; TreeCorr 4.0.10 documentation</title>
+  <title>treecorr.binnedcorr3 &mdash; TreeCorr 4.1.0 documentation</title>
   
 
   
@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                4.0
+                4.1
               </div>
             
           
@@ -90,11 +90,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../metric.html">Metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 3.3 to 4.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 4.0 to 4.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
 
@@ -323,10 +325,11 @@
 <span class="sd">                              the range.</span>
 
 <span class="sd">        min_top (int):      The minimum number of top layers to use when setting up the field.</span>
-<span class="sd">                            (default: 3)</span>
+<span class="sd">                            (default: :math:`\\max(3, \\log_2(N_{\\rm cpu}))`)</span>
 <span class="sd">        max_top (int):      The maximum number of top layers to use when setting up the field.</span>
 <span class="sd">                            The top-level cells are where each calculation job starts. There will</span>
-<span class="sd">                            typically be of order 2^max_top top-level cells. (default: 10)</span>
+<span class="sd">                            typically be of order :math:`2^{\\rm max\\_top}` top-level cells.</span>
+<span class="sd">                            (default: 10)</span>
 <span class="sd">        precision (int):    The precision to use for the output values. This specifies how many</span>
 <span class="sd">                            digits to write. (default: 4)</span>
 
@@ -344,6 +347,9 @@
 <span class="sd">                            (default: period)</span>
 <span class="sd">        zperiod (float):    For the &#39;Periodic&#39; metric, the period to use in the z direction.</span>
 <span class="sd">                            (default: period)</span>
+
+<span class="sd">        var_method (str):   Which method to use for estimating the variance.  So far, only &#39;shot&#39;</span>
+<span class="sd">                            is implemented. (default: &#39;shot&#39;)</span>
 
 <span class="sd">        num_threads (int):  How many OpenMP threads to use during the calculation.</span>
 <span class="sd">                            (default: use the number of cpu cores; this value can also be given in</span>
@@ -393,7 +399,7 @@
                 <span class="s1">&#39;The default is True if verbose &gt;= 2 and there is no log_file.  Else False.&#39;</span><span class="p">),</span>
         <span class="s1">&#39;split_method&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="s1">&#39;middle&#39;</span><span class="p">,</span> <span class="s1">&#39;random&#39;</span><span class="p">],</span>
                 <span class="s1">&#39;Which method to use for splitting cells.&#39;</span><span class="p">),</span>
-        <span class="s1">&#39;min_top&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s1">&#39;min_top&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="s1">&#39;The minimum number of top layers to use when setting up the field.&#39;</span><span class="p">),</span>
         <span class="s1">&#39;max_top&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="s1">&#39;The maximum number of top layers to use when setting up the field.&#39;</span><span class="p">),</span>
@@ -417,9 +423,12 @@
                 <span class="s1">&#39;The period to use for the y direction for the Periodic metric&#39;</span><span class="p">),</span>
         <span class="s1">&#39;zperiod&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="s1">&#39;The period to use for the z direction for the Periodic metric&#39;</span><span class="p">),</span>
+
+        <span class="s1">&#39;var_method&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;shot&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;shot&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;The method to use for estimating the variance&#39;</span><span class="p">),</span>
     <span class="p">}</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">merge_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">kwargs</span><span class="p">,</span><span class="n">BinnedCorr3</span><span class="o">.</span><span class="n">_valid_params</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">setup_logger</span><span class="p">(</span>
@@ -484,11 +493,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="o">*</span><span class="n">bin_size</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sep_units</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;r: nbins = </span><span class="si">%d</span><span class="s2">, min,max sep = </span><span class="si">%g</span><span class="s2">..</span><span class="si">%g</span><span class="s2">, bin_size = </span><span class="si">%g</span><span class="s2">&quot;</span><span class="p">,</span>
-                             <span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span><span class="p">)</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;r: nbins = </span><span class="si">%d</span><span class="s2">, min,max sep = </span><span class="si">%g</span><span class="s2">..</span><span class="si">%g</span><span class="s2"> </span><span class="si">%s</span><span class="s2">, bin_size = </span><span class="si">%g</span><span class="s2">&quot;</span><span class="p">,</span>
-                             <span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_sep_units</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_sep_units</span><span class="p">,</span>
-                             <span class="bp">self</span><span class="o">.</span><span class="n">sep_units</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span><span class="p">)</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sep_units</span><span class="p">,</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span><span class="p">)</span>
         <span class="c1"># The underscore-prefixed names are in natural units (radians for angles)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_min_sep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_sep</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sep_units</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_max_sep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sep_units</span>
@@ -546,7 +555,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;split_method&#39;</span><span class="p">,</span><span class="s1">&#39;mean&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Using split_method = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">split_method</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;min_top&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;min_top&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;max_top&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;bin_slop&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">,</span><span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
@@ -616,6 +625,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">xperiod</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;xperiod&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">,</span><span class="n">period</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">yperiod</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;yperiod&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">,</span><span class="n">period</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">zperiod</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;zperiod&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">,</span><span class="n">period</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_method</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;var_method&#39;</span><span class="p">,</span><span class="nb">str</span><span class="p">,</span><span class="s1">&#39;shot&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># for jackknife, etc. store the results of each pair of patches.</span>
 
     <span class="k">def</span> <span class="nf">_process_all_auto</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">):</span>
         <span class="c1"># I&#39;m not sure which of these is more intuitive, but both are correct...</span>

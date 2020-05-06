@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Configuration Parameters &mdash; TreeCorr 4.0.10 documentation</title>
+  <title>Configuration Parameters &mdash; TreeCorr 4.1.0 documentation</title>
   
 
   
@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                4.0
+                4.1
               </div>
             
           
@@ -92,6 +92,8 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration Parameters</a><ul>
@@ -106,7 +108,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 4.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -203,9 +205,9 @@ quotes around the names, or it won’t be parsed correctly:</p>
 <dd class="field-even"><p>(str or list)
 The file(s) to use for the second field for a cross-correlation.</p>
 <p>If you want to cross-correlate one file (or set of files) with another, then
-<strong>file_name2</strong> is used to specify the second thing being correlated.  e.g.
-for galaxy-galaxy lensing, <strong>file_name</strong> should be the catalog of lenses, and
-<strong>file_name2</strong> should be the catalog of source shear values.</p>
+<code class="docutils literal notranslate"><span class="pre">file_name2</span></code> is used to specify the second thing being correlated.  e.g.
+for galaxy-galaxy lensing, <code class="docutils literal notranslate"><span class="pre">file_name</span></code> should be the catalog of lenses, and
+<code class="docutils literal notranslate"><span class="pre">file_name2</span></code> should be the catalog of source shear values.</p>
 </dd>
 <dt class="field-odd">file_name3</dt>
 <dd class="field-odd"><p>(str or list)
@@ -213,45 +215,45 @@ The file(s) to use for the third field for a three-point cross-correlation.</p>
 </dd>
 <dt class="field-even">rand_file_name</dt>
 <dd class="field-even"><p>(str or list)
-If necessary, a list of random files with the same masking as the <strong>file_name</strong> catalog.</p>
+If necessary, a list of random files with the same masking as the <code class="docutils literal notranslate"><span class="pre">file_name</span></code> catalog.</p>
 </dd>
 <dt class="field-odd">rand_file_name2</dt>
 <dd class="field-odd"><p>(str or list)
-If necessary, a list of random files with the same masking as the <strong>file_name2</strong> catalog.</p>
+If necessary, a list of random files with the same masking as the <code class="docutils literal notranslate"><span class="pre">file_name2</span></code> catalog.</p>
 </dd>
 <dt class="field-even">rand_file_name3</dt>
 <dd class="field-even"><p>(str or list)
-If necessary, a list of random files with the same masking as the <strong>file_name3</strong> catalog.</p>
+If necessary, a list of random files with the same masking as the <code class="docutils literal notranslate"><span class="pre">file_name3</span></code> catalog.</p>
 <p>When doing NN and NNN correlations, you need to account for masks and variable
 depth by providing a file or list of files that correspond to a uniform-
 density field as observed with the same masking and other observational
 details.  For cross-correlations, you need to provide both of the above
 values to separately calibrate the first and second fields.</p>
-<p><strong>rand_file_name</strong> may also be used for NG and NK correlations, but it is not
+<p><code class="docutils literal notranslate"><span class="pre">rand_file_name</span></code> may also be used for NG and NK correlations, but it is not
 required in those cases.</p>
 </dd>
 <dt class="field-odd">file_list</dt>
-<dd class="field-odd"><p>(str) A text file with file names in lieu of <strong>file_name</strong>.</p>
+<dd class="field-odd"><p>(str) A text file with file names in lieu of <code class="docutils literal notranslate"><span class="pre">file_name</span></code>.</p>
 </dd>
 <dt class="field-even">file_list2</dt>
-<dd class="field-even"><p>(str) A text file with file names in lieu of <strong>file_name2</strong>.</p>
+<dd class="field-even"><p>(str) A text file with file names in lieu of <code class="docutils literal notranslate"><span class="pre">file_name2</span></code>.</p>
 </dd>
 <dt class="field-odd">file_list3</dt>
-<dd class="field-odd"><p>(str) A text file with file names in lieu of <strong>file_name3</strong>.</p>
+<dd class="field-odd"><p>(str) A text file with file names in lieu of <code class="docutils literal notranslate"><span class="pre">file_name3</span></code>.</p>
 </dd>
 <dt class="field-even">rand_file_list</dt>
-<dd class="field-even"><p>(str) A text file with file names in lieu of <strong>rand_file_name</strong>.</p>
+<dd class="field-even"><p>(str) A text file with file names in lieu of <code class="docutils literal notranslate"><span class="pre">rand_file_name</span></code>.</p>
 </dd>
 <dt class="field-odd">rand_file_list2</dt>
-<dd class="field-odd"><p>(str) A text file with file names in lieu of <strong>rand_file_name2</strong>.</p>
+<dd class="field-odd"><p>(str) A text file with file names in lieu of <code class="docutils literal notranslate"><span class="pre">rand_file_name2</span></code>.</p>
 </dd>
 <dt class="field-even">rand_file_list3</dt>
-<dd class="field-even"><p>(str) A text file with file names in lieu of <strong>rand_file_name3</strong>.</p>
+<dd class="field-even"><p>(str) A text file with file names in lieu of <code class="docutils literal notranslate"><span class="pre">rand_file_name3</span></code>.</p>
 <p>If you have a list of file names, it may be cumbersome to list them all
-in the <strong>file_name</strong> (etc) parameter.  It may be easier to do something like
-<code class="docutils literal notranslate"><span class="pre">ls</span> <span class="pre">*.cat</span> <span class="pre">&gt;</span> <span class="pre">catlist</span></code> and then use <strong>file_list=catlist</strong> as the list of
-file names to use.  Of course, it is an error to specify both <strong>file_list</strong>
-and <strong>file_name</strong> (or any of the other corresponding pairs).</p>
+in the <code class="docutils literal notranslate"><span class="pre">file_name</span></code> (etc) parameter.  It may be easier to do something like
+<code class="docutils literal notranslate"><span class="pre">ls</span> <span class="pre">*.cat</span> <span class="pre">&gt;</span> <span class="pre">catlist</span></code> and then use <code class="docutils literal notranslate"><span class="pre">file_list=catlist</span></code> as the list of
+file names to use.  Of course, it is an error to specify both <code class="docutils literal notranslate"><span class="pre">file_list</span></code>
+and <code class="docutils literal notranslate"><span class="pre">file_name</span></code> (or any of the other corresponding pairs).</p>
 </dd>
 <dt class="field-odd">file_type</dt>
 <dd class="field-odd"><p>(ASCII or FITS) The file type of the input files.</p>
@@ -263,7 +265,7 @@ and <strong>file_name</strong> (or any of the other corresponding pairs).</p>
 <dd class="field-odd"><p>(str, default = ‘#’) The first (non-whitespace) character of comment lines in an input ASCII catalog.</p>
 <p>The default file type is normally ASCII.  However, if the file name
 includes “.fit” in it, then a fits binary table is assumed.
-You can override this behavior using <strong>file_type</strong>.</p>
+You can override this behavior using <code class="docutils literal notranslate"><span class="pre">file_type</span></code>.</p>
 <p>Furthermore, you may specify a delimiter for ASCII catalogs if desired.
 e.g. delimiter=’,’ for a comma-separated value file.  Similarly,
 comment lines usually begin with ‘#’, but you may specify something
@@ -280,22 +282,26 @@ different HDU, you can specify which one to use here.</p>
 </dd>
 <dt class="field-even">last_row</dt>
 <dd class="field-even"><p>(int, default=-1)</p>
+</dd>
+<dt class="field-odd">every_nth</dt>
+<dd class="field-odd"><p>(int, default=1)</p>
 <p>You can optionally not use all the rows in the input file.
-You may specify <strong>first_row</strong>, <strong>last_row</strong>, or both to limit the rows being used.
-The rows are numbered starting with 1.  If <strong>last_row</strong> is not positive, it
-means to use all the rows (starting with <strong>first_row</strong>).</p>
+You may specify <code class="docutils literal notranslate"><span class="pre">first_row</span></code>, <code class="docutils literal notranslate"><span class="pre">last_row</span></code>, or both to limit the rows being used.
+The rows are numbered starting with 1.  If <code class="docutils literal notranslate"><span class="pre">last_row</span></code> is not positive, it
+means to use to the end of the file.  If <code class="docutils literal notranslate"><span class="pre">every_nth</span></code> is set, it will skip
+rows, selecting only 1 out of every n rows.</p>
 </dd>
-<dt class="field-odd">x_col</dt>
-<dd class="field-odd"><p>(int/str) Which column to use for x.</p>
+<dt class="field-even">x_col</dt>
+<dd class="field-even"><p>(int/str) Which column to use for x.</p>
 </dd>
-<dt class="field-even">y_col</dt>
-<dd class="field-even"><p>(int/str) Which column to use for y.</p>
+<dt class="field-odd">y_col</dt>
+<dd class="field-odd"><p>(int/str) Which column to use for y.</p>
 </dd>
-<dt class="field-odd">ra_col</dt>
-<dd class="field-odd"><p>(int/str) Which column to use for ra.</p>
+<dt class="field-even">ra_col</dt>
+<dd class="field-even"><p>(int/str) Which column to use for ra.</p>
 </dd>
-<dt class="field-even">dec_col</dt>
-<dd class="field-even"><p>(int/str) Which column to use for dec.</p>
+<dt class="field-odd">dec_col</dt>
+<dd class="field-odd"><p>(int/str) Which column to use for dec.</p>
 <p>For the positions of the objects, you can specify either x,y values, which
 imply a flat-sky approximation has already been performed (or ignored),
 or ra,dec values, which are of course positions on the curved sky.</p>
@@ -303,131 +309,148 @@ or ra,dec values, which are of course positions on the curved sky.</p>
 the first column (not 0!).
 For FITS files, the columns are specified by name, not number.</p>
 </dd>
-<dt class="field-odd">x_units</dt>
-<dd class="field-odd"><p>(str, default=None) The units of x values.</p>
+<dt class="field-even">x_units</dt>
+<dd class="field-even"><p>(str, default=None) The units of x values.</p>
 </dd>
-<dt class="field-even">y_units</dt>
-<dd class="field-even"><p>(str, default=None) The units of y values.</p>
+<dt class="field-odd">y_units</dt>
+<dd class="field-odd"><p>(str, default=None) The units of y values.</p>
 </dd>
-<dt class="field-odd">ra_units</dt>
-<dd class="field-odd"><p>(str) The units of ra values.</p>
+<dt class="field-even">ra_units</dt>
+<dd class="field-even"><p>(str) The units of ra values.</p>
 </dd>
-<dt class="field-even">dec_units</dt>
-<dd class="field-even"><p>(str) The units of dec values.</p>
+<dt class="field-odd">dec_units</dt>
+<dd class="field-odd"><p>(str) The units of dec values.</p>
 <p>All distances on the sky include a “units” parameter to specify what in
 units the values are specified.  Options for units are radians, hours,
 degrees, arcmin, arcsec.  For ra, dec the units field is required.
 But for x,y, you can ignore all the unit issues, in which case the
 output distances will be in the same units as the input positions.</p>
 </dd>
-<dt class="field-odd">r_col</dt>
-<dd class="field-odd"><p>(int/str) Which column to use for r.</p>
+<dt class="field-even">r_col</dt>
+<dd class="field-even"><p>(int/str) Which column to use for r.</p>
 <p>When using spherical coordinates, ra,dec, you can optionally provide a
 distance to the object.  In this case, the calculation will be done in
 three dimensional distances rather than angular distances.  The distances
 between objects will be the 3-D Euclidean distance, so you should define
 your r values appropriately, given whatever cosmology you are assuming.</p>
-<p><strong>r_col</strong> is invalid in conjunction with <strong>x_col</strong>, <strong>y_col</strong>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">r_col</span></code> is invalid in conjunction with <code class="docutils literal notranslate"><span class="pre">x_col</span></code>, <code class="docutils literal notranslate"><span class="pre">y_col</span></code>.</p>
 </dd>
-<dt class="field-even">z_col</dt>
-<dd class="field-even"><p>(int/str) Which column to use for z.</p>
+<dt class="field-odd">z_col</dt>
+<dd class="field-odd"><p>(int/str) Which column to use for z.</p>
 <p>Rather than specifying 3-D coordinates as (ra, dec, r), you may instead
 specify them as (x, y, z).</p>
-<p><strong>z_col</strong> is invalid in conjunction with <strong>ra_col</strong>, <strong>dec_col</strong>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">z_col</span></code> is invalid in conjunction with <code class="docutils literal notranslate"><span class="pre">ra_col</span></code>, <code class="docutils literal notranslate"><span class="pre">dec_col</span></code>.</p>
 </dd>
-<dt class="field-odd">g1_col</dt>
-<dd class="field-odd"><p>(int/str) Which column to use for g1.</p>
+<dt class="field-even">g1_col</dt>
+<dd class="field-even"><p>(int/str) Which column to use for g1.</p>
 </dd>
-<dt class="field-even">g2_col</dt>
-<dd class="field-even"><p>(int/str) Which column to use for g2.</p>
+<dt class="field-odd">g2_col</dt>
+<dd class="field-odd"><p>(int/str) Which column to use for g2.</p>
 <p>If you are doing one of the shear correlation functions (i.e. NG, KG, GG),
 then you need to specify the shear estimates of the corresponding galaxies.
 The g1,g2 values are taken to be reduced shear values.  They should be
 unbiases estimators of g1,g2, so they are allowed to exceed <span class="math notranslate nohighlight">\(|g| = 1\)</span>.
 (This is required for some methods to produce unbiased estimates.</p>
 </dd>
-<dt class="field-odd">k_col</dt>
-<dd class="field-odd"><p>(int/str) Which column to use for kappa.</p>
+<dt class="field-even">k_col</dt>
+<dd class="field-even"><p>(int/str) Which column to use for kappa.</p>
 <p>If you are doing one of the kappa correlation functions (i.e. NK, KG, KK),
 then you need to specify the column to use for kappa.  While kappa is
 nominally the lensing convergence, it could really be any scalar quantity,
 like temperature, size, etc.</p>
 </dd>
+<dt class="field-odd">patch_col</dt>
+<dd class="field-odd"><p>(int/str) Which column to use for patch.</p>
+<p>Use precalculated patch numbers to split the catalog into patches.</p>
+</dd>
 <dt class="field-even">w_col</dt>
 <dd class="field-even"><p>(int/str) Which column to use for the weight (if any).</p>
+</dd>
+<dt class="field-odd">wpos_col</dt>
+<dd class="field-odd"><p>(int/str) Which column to use for the position weight (if any).</p>
 <p>The weight column is optional. If omitted, all weights are taken to be 1.</p>
 </dd>
-<dt class="field-odd">flag_col</dt>
-<dd class="field-odd"><p>(int/str) Which column to use for the weight (if any).</p>
+<dt class="field-even">flag_col</dt>
+<dd class="field-even"><p>(int/str) Which column to use for the weight (if any).</p>
 </dd>
-<dt class="field-even">ignore_flag</dt>
-<dd class="field-even"><p>(int) What flag(s) should be ignored.</p>
+<dt class="field-odd">ignore_flag</dt>
+<dd class="field-odd"><p>(int) What flag(s) should be ignored.</p>
 </dd>
-<dt class="field-odd">ok_flag</dt>
-<dd class="field-odd"><p>(int) What flag(s) are ok to use.</p>
+<dt class="field-even">ok_flag</dt>
+<dd class="field-even"><p>(int) What flag(s) are ok to use.</p>
 <p>The code can be set to ignore objects with a particular flag value if desired.
 Some codes output a flag along with the shear value.  Typically any flag != 0
 should be ignored, but you can optionally have the code ignore only particular
-flags, treating the flag value as a bit mask.  If <strong>ignore_flag</strong> is set to
+flags, treating the flag value as a bit mask.  If <code class="docutils literal notranslate"><span class="pre">ignore_flag</span></code> is set to
 something, then objects with <code class="docutils literal notranslate"><span class="pre">(flag</span> <span class="pre">&amp;</span> <span class="pre">ignore_flag</span> <span class="pre">!=</span> <span class="pre">0)</span></code> will be ignored.
-If <strong>ok_flag</strong> is set, then objects with <code class="docutils literal notranslate"><span class="pre">(flag</span> <span class="pre">&amp;</span> <span class="pre">~ok_flag</span> <span class="pre">!=</span> <span class="pre">0)</span></code> will be ignored.
+If <code class="docutils literal notranslate"><span class="pre">ok_flag</span></code> is set, then objects with <code class="docutils literal notranslate"><span class="pre">(flag</span> <span class="pre">&amp;</span> <span class="pre">~ok_flag</span> <span class="pre">!=</span> <span class="pre">0)</span></code> will be ignored.
 The default is equivalent to <code class="docutils literal notranslate"><span class="pre">ok_flag</span> <span class="pre">=</span> <span class="pre">0</span></code>, which ignores any flag != 0.</p>
 </dd>
-<dt class="field-even">flip_g1</dt>
-<dd class="field-even"><p>(bool, default=False) Whether to flip the sign of g1.</p>
+<dt class="field-odd">x_hdu</dt>
+<dd class="field-odd"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">x_col</span></code>.</p>
 </dd>
-<dt class="field-odd">flip_g2</dt>
-<dd class="field-odd"><p>(bool, default=False) Whether to flip the sign of g2.</p>
-<p>Sometimes there are issues with the sign conventions of gamma.  If you
-need to flip the sign of g1 or g2, you may do that with <strong>flip_g1</strong> or <strong>flip_g2</strong>
-(or both).</p>
+<dt class="field-even">y_hdu</dt>
+<dd class="field-even"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">y_col</span></code>.</p>
 </dd>
-<dt class="field-even">x_hdu</dt>
-<dd class="field-even"><p>(int) Which HDU to use for the <strong>x_col</strong>.</p>
+<dt class="field-odd">z_hdu</dt>
+<dd class="field-odd"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">z_col</span></code>.</p>
 </dd>
-<dt class="field-odd">y_hdu</dt>
-<dd class="field-odd"><p>(int) Which HDU to use for the <strong>y_col</strong>.</p>
+<dt class="field-even">ra_hdu</dt>
+<dd class="field-even"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">ra_col</span></code>.</p>
 </dd>
-<dt class="field-even">z_hdu</dt>
-<dd class="field-even"><p>(int) Which HDU to use for the <strong>z_col</strong>.</p>
+<dt class="field-odd">dec_hdu</dt>
+<dd class="field-odd"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">dec_col</span></code>.</p>
 </dd>
-<dt class="field-odd">ra_hdu</dt>
-<dd class="field-odd"><p>(int) Which HDU to use for the <strong>ra_col</strong>.</p>
+<dt class="field-even">r_hdu</dt>
+<dd class="field-even"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">r_col</span></code>.</p>
 </dd>
-<dt class="field-even">dec_hdu</dt>
-<dd class="field-even"><p>(int) Which HDU to use for the <strong>dec_col</strong>.</p>
+<dt class="field-odd">g1_hdu</dt>
+<dd class="field-odd"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">g1_col</span></code>.</p>
 </dd>
-<dt class="field-odd">r_hdu</dt>
-<dd class="field-odd"><p>(int) Which HDU to use for the <strong>r_col</strong>.</p>
+<dt class="field-even">g2_hdu</dt>
+<dd class="field-even"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">g2_col</span></code>.</p>
 </dd>
-<dt class="field-even">g1_hdu</dt>
-<dd class="field-even"><p>(int) Which HDU to use for the <strong>g1_col</strong>.</p>
+<dt class="field-odd">k_hdu</dt>
+<dd class="field-odd"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">k_col</span></code>.</p>
 </dd>
-<dt class="field-odd">g2_hdu</dt>
-<dd class="field-odd"><p>(int) Which HDU to use for the <strong>g2_col</strong>.</p>
-</dd>
-<dt class="field-even">k_hdu</dt>
-<dd class="field-even"><p>(int) Which HDU to use for the <strong>k_col</strong>.</p>
+<dt class="field-even">patch_hdu</dt>
+<dd class="field-even"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">patch_col</span></code>.</p>
 </dd>
 <dt class="field-odd">w_hdu</dt>
-<dd class="field-odd"><p>(int) Which HDU to use for the <strong>w_col</strong>.</p>
+<dd class="field-odd"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">w_col</span></code>.</p>
 </dd>
-<dt class="field-even">flag_hdu</dt>
-<dd class="field-even"><p>(int) Which HDU to use for the <strong>flag_col</strong>.</p>
+<dt class="field-even">wpos_hdu</dt>
+<dd class="field-even"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">wpos_col</span></code>.</p>
+</dd>
+<dt class="field-odd">flag_hdu</dt>
+<dd class="field-odd"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">flag_col</span></code>.</p>
 <p>If you want to use an HDU other than the first one, normally you would
-specify which fits extension to use with the <strong>hdu</strong> parameter.  However, if
+specify which fits extension to use with the <code class="docutils literal notranslate"><span class="pre">hdu</span></code> parameter.  However, if
 different columns need to come from different HDUs, then you can override
-the default (given by <strong>hdu</strong> or 1 if there is no <strong>hdu</strong> parameter) for each
+the default (given by <code class="docutils literal notranslate"><span class="pre">hdu</span></code> or 1 if there is no <code class="docutils literal notranslate"><span class="pre">hdu</span></code> parameter) for each
 column separately.</p>
+</dd>
+<dt class="field-even">allow_xyz</dt>
+<dd class="field-even"><p>(bool, default=False)</p>
+<p>Whether to allow x,y,z columns in conjunction with ra, dec.</p>
+</dd>
+<dt class="field-odd">flip_g1</dt>
+<dd class="field-odd"><p>(bool, default=False) Whether to flip the sign of g1.</p>
+</dd>
+<dt class="field-even">flip_g2</dt>
+<dd class="field-even"><p>(bool, default=False) Whether to flip the sign of g2.</p>
+<p>Sometimes there are issues with the sign conventions of gamma.  If you
+need to flip the sign of g1 or g2, you may do that with <code class="docutils literal notranslate"><span class="pre">flip_g1</span></code> or <code class="docutils literal notranslate"><span class="pre">flip_g2</span></code>
+(or both).</p>
 </dd>
 </dl>
 <div class="section" id="notes-about-the-above-parameters">
 <h3>Notes about the above parameters<a class="headerlink" href="#notes-about-the-above-parameters" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>If you are cross-correlating two files with different formats, you may
-set any of the above items from <strong>file_type</strong> to <strong>flip_g2</strong> as a two element
+set any of the above items from <code class="docutils literal notranslate"><span class="pre">file_type</span></code> to <code class="docutils literal notranslate"><span class="pre">flip_g2</span></code> as a two element
 list (i.e. two values separated by a space).  In this case, the first
-item refers to the file(s) in <strong>file_name</strong>, and the second item refers
+item refers to the file(s) in <code class="docutils literal notranslate"><span class="pre">file_name</span></code>, and the second item refers
 to the file(s) in files_name2.</p></li>
 <li><p>You may not mix (x,y) columns with (ra,dec) columns, since its meaning
 would be ambiguous.</p></li>
@@ -462,12 +485,12 @@ the column name or number for the file to which it does apply.</p></li>
 parameters.  The fourth one is automatically calculated from the values
 of the other three.</p>
 <p>See <a class="reference internal" href="binning.html#binning"><span class="std std-ref">Binning</span></a> for details about how these parameters are used for the
-different choice of <strong>bin_type</strong>.</p>
+different choice of <code class="docutils literal notranslate"><span class="pre">bin_type</span></code>.</p>
 </dd>
 <dt class="field-even">sep_units</dt>
-<dd class="field-even"><p>(str, default=None) The units to use for <strong>min_sep</strong> and <strong>max_sep</strong>.</p>
-<p><strong>sep_units</strong> is also the units of R in the output file.  For ra, dec values,
-you should always specify <strong>sep_units</strong> explicitly to indicate what angular
+<dd class="field-even"><p>(str, default=None) The units to use for <code class="docutils literal notranslate"><span class="pre">min_sep</span></code> and <code class="docutils literal notranslate"><span class="pre">max_sep</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">sep_units</span></code> is also the units of R in the output file.  For ra, dec values,
+you should always specify <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> explicitly to indicate what angular
 units you want to use for the separations.  But if your catalogs use x,y,
 or if you specify 3-d correlations with r, then the output separations are
 in the same units as the input positions.</p>
@@ -479,19 +502,19 @@ in the same units as the input positions.</p>
 distance pairs for the two nodes have a spread in distance that is less than the
 bin size.  i.e. the error in the tree traversal is less than the uncertainty
 induced by just binning the results into a histogram.  This factor can be changed
-by the parameter <strong>bin_slop</strong>.  It is probably best to keep it at 1, but if you want to
+by the parameter <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code>.  It is probably best to keep it at 1, but if you want to
 make the code more conservative, you can decrease it, in which case the error
 from using the tree nodes will be less than the error in the histogram binning.
 (In practice, if you are going to do this, you are probably better off just
-decreasing the <strong>bin_size</strong> instead and leaving <code class="docutils literal notranslate"><span class="pre">bin_slop=1</span></code>.)</p>
+decreasing the <code class="docutils literal notranslate"><span class="pre">bin_size</span></code> instead and leaving <code class="docutils literal notranslate"><span class="pre">bin_slop=1</span></code>.)</p>
 <p>See <a class="reference internal" href="binning.html#bin-slop"><span class="std std-ref">bin_slop</span></a> for more discussion about this parameter.</p>
 </dd>
 <dt class="field-even">brute</dt>
 <dd class="field-even"><p>(bool/int, default=False) Whether to do the “brute force” algorithm, where the
 tree traversal always goes to the leaf cells.</p>
 <p>In addition to True or False, whose meanings are obvious, you may also set
-<strong>brute</strong> to 1 or 2, which means to go to the leaves for cat1 or cat2, respectively,
-but stop traversing the other catalog according to the normal <strong>bin_slop</strong> criterion.</p>
+<code class="docutils literal notranslate"><span class="pre">brute</span></code> to 1 or 2, which means to go to the leaves for cat1 or cat2, respectively,
+but stop traversing the other catalog according to the normal <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> criterion.</p>
 <p>See <a class="reference internal" href="binning.html#brute"><span class="std std-ref">brute</span></a> for more discussion about this parameter.</p>
 </dd>
 <dt class="field-odd">min_u</dt>
@@ -580,14 +603,14 @@ of the true error bars.</p>
 <p>This is the normal density two-point correlation function.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><p><strong>R_nom</strong> = The center of the bin</p></li>
-<li><p><strong>meanR</strong> = The mean separation of the points that went into the bin.</p></li>
-<li><p><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</p></li>
-<li><p><strong>xi</strong> = The correlation function.</p></li>
-<li><p><strong>sigma_xi</strong> = The 1-sigma error bar for xi.</p></li>
-<li><p><strong>DD</strong>, <strong>RR</strong> = The raw numbers of pairs for the data and randoms</p></li>
-<li><p><strong>DR</strong> (if <code class="docutils literal notranslate"><span class="pre">nn_statistic=compensated</span></code>) = The cross terms between data and random.</p></li>
-<li><p><strong>RD</strong> (if <code class="docutils literal notranslate"><span class="pre">nn_statistic=compensated</span></code> cross-correlation) = The cross term between random and data, which for a cross-correlation is not equivalent to <strong>DR</strong>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">R_nom</span></code> = The center of the bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanR</span></code> = The mean separation of the points that went into the bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanlogR</span></code> = The mean log(R) of the points that went into the bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xi</span></code> = The correlation function.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sigma_xi</span></code> = The 1-sigma error bar for xi.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DD</span></code>, <code class="docutils literal notranslate"><span class="pre">RR</span></code> = The raw numbers of pairs for the data and randoms</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DR</span></code> (if <code class="docutils literal notranslate"><span class="pre">nn_statistic=compensated</span></code>) = The cross terms between data and random.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RD</span></code> (if <code class="docutils literal notranslate"><span class="pre">nn_statistic=compensated</span></code> cross-correlation) = The cross term between random and data, which for a cross-correlation is not equivalent to <code class="docutils literal notranslate"><span class="pre">DR</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">nn_statistic</dt>
@@ -604,18 +627,18 @@ of the true error bars.</p>
 lensing.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><p><strong>R_nom</strong> = The center of the bin</p></li>
-<li><p><strong>meanR</strong> = The mean separation of the points that went into the bin.</p></li>
-<li><p><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</p></li>
-<li><p><strong>gamT</strong> = The mean tangential shear with respect to the point in question.</p></li>
-<li><p><strong>gamX</strong> = The shear component 45 degrees from the tangential direction.</p></li>
-<li><p><strong>sigma</strong> = The 1-sigma error bar for <strong>gamT</strong> and <strong>gamX</strong>.</p></li>
-<li><p><strong>weight</strong> = The total weight of the pairs in each bin.</p></li>
-<li><p><strong>npairs</strong> = The total number of pairs in each bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">R_nom</span></code> = The center of the bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanR</span></code> = The mean separation of the points that went into the bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanlogR</span></code> = The mean log(R) of the points that went into the bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gamT</span></code> = The mean tangential shear with respect to the point in question.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gamX</span></code> = The shear component 45 degrees from the tangential direction.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sigma</span></code> = The 1-sigma error bar for <code class="docutils literal notranslate"><span class="pre">gamT</span></code> and <code class="docutils literal notranslate"><span class="pre">gamX</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">weight</span></code> = The total weight of the pairs in each bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">npairs</span></code> = The total number of pairs in each bin.</p></li>
 </ul>
 </dd>
 <dt class="field-even">ng_statistic</dt>
-<dd class="field-even"><p>(str, default=’compensated’ if <strong>rand_files</strong> is given, otherwise ‘simple’) Which statistic to use for the mean shear as the estimator of the NG correlation function.</p>
+<dd class="field-even"><p>(str, default=’compensated’ if <code class="docutils literal notranslate"><span class="pre">rand_files</span></code> is given, otherwise ‘simple’) Which statistic to use for the mean shear as the estimator of the NG correlation function.</p>
 <p>Options are:</p>
 <ul>
 <li><p>‘compensated’ is simiar to the Landy-Szalay statistic:
@@ -635,12 +658,12 @@ Define:</p>
 <p>This is the shear-shear correlation function, used for cosmic shear.</p>
 <p>The output columns are:</p>
 <ul>
-<li><p><strong>R_nom</strong> = The center of the bin</p></li>
-<li><p><strong>meanR</strong> = The mean separation of the points that went into the bin.</p></li>
-<li><p><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</p></li>
-<li><p><strong>xip</strong> = &lt;g1 g1 + g2 g2&gt; where g1 and g2 are measured with respect to the line joining the two galaxies.</p></li>
-<li><p><strong>xim</strong> = &lt;g1 g1 - g2 g2&gt; where g1 and g2 are measured with respect to the line joining the two galaxies.</p></li>
-<li><p><strong>xip_im</strong> = &lt;g2 g1 - g1 g2&gt;.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">R_nom</span></code> = The center of the bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanR</span></code> = The mean separation of the points that went into the bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanlogR</span></code> = The mean log(R) of the points that went into the bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xip</span></code> = &lt;g1 g1 + g2 g2&gt; where g1 and g2 are measured with respect to the line joining the two galaxies.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xim</span></code> = &lt;g1 g1 - g2 g2&gt; where g1 and g2 are measured with respect to the line joining the two galaxies.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xip_im</span></code> = &lt;g2 g1 - g1 g2&gt;.</p>
 <blockquote>
 <div><p>In the formulation of xi+ using complex numbers, this is the imaginary component.
 It should normally be consistent with zero, especially for an
@@ -649,7 +672,7 @@ get each galaxy in both positions, then this would come out
 exactly zero.</p>
 </div></blockquote>
 </li>
-<li><p><strong>xim_im</strong> = &lt;g2 g1 + g1 g2&gt;.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">xim_im</span></code> = &lt;g2 g1 + g1 g2&gt;.</p>
 <blockquote>
 <div><p>In the formulation of xi- using complex
 numbers, this is the imaginary component.
@@ -657,9 +680,9 @@ It should be consistent with zero for parity invariant shear
 fields.</p>
 </div></blockquote>
 </li>
-<li><p><strong>sigma_xi</strong> = The 1-sigma error bar for xi+ and xi-.</p></li>
-<li><p><strong>weight</strong> = The total weight of the pairs in each bin.</p></li>
-<li><p><strong>npairs</strong> = The total number of pairs in each bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sigma_xi</span></code> = The 1-sigma error bar for xi+ and xi-.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">weight</span></code> = The total weight of the pairs in each bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">npairs</span></code> = The total number of pairs in each bin.</p></li>
 </ul>
 </dd>
 <dt class="field-even">nk_file_name</dt>
@@ -668,17 +691,17 @@ fields.</p>
 really any scalar quantity, so it can be used for temperature, size, etc.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><p><strong>R_nom</strong> = The center of the bin</p></li>
-<li><p><strong>meanR</strong> = The mean separation of the points that went into the bin.</p></li>
-<li><p><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</p></li>
-<li><p><strong>kappa</strong> = The mean kappa this distance from the foreground points.</p></li>
-<li><p><strong>sigma</strong> = The 1-sigma error bar for &lt;kappa&gt;.</p></li>
-<li><p><strong>weight</strong> = The total weight of the pairs in each bin.</p></li>
-<li><p><strong>npairs</strong> = The total number of pairs in each bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">R_nom</span></code> = The center of the bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanR</span></code> = The mean separation of the points that went into the bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanlogR</span></code> = The mean log(R) of the points that went into the bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kappa</span></code> = The mean kappa this distance from the foreground points.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sigma</span></code> = The 1-sigma error bar for &lt;kappa&gt;.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">weight</span></code> = The total weight of the pairs in each bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">npairs</span></code> = The total number of pairs in each bin.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">nk_statistic</dt>
-<dd class="field-odd"><p>(str, default=’compensated’ if <strong>rand_files</strong> is given, otherwise ‘simple’) Which statistic to use for the mean shear as the estimator of the NK correlation function.</p>
+<dd class="field-odd"><p>(str, default=’compensated’ if <code class="docutils literal notranslate"><span class="pre">rand_files</span></code> is given, otherwise ‘simple’) Which statistic to use for the mean shear as the estimator of the NK correlation function.</p>
 <p>Options are:</p>
 <ul>
 <li><p>‘compensated’ is simiar to the Landy-Szalay statistic:
@@ -688,9 +711,9 @@ Define:</p>
 <li><p>RK = Sum(kappa around random points), scaled to be equivalent in effective number as the number of pairs in NK.</p></li>
 <li><p>npairs = number of pairs in NK.</p></li>
 </ul>
-<p>Then this statistic is <strong>&lt;kappa&gt;</strong> = (NK-RK)/npairs</p>
+<p>Then this statistic is <code class="docutils literal notranslate"><span class="pre">&lt;kappa&gt;</span></code> = (NK-RK)/npairs</p>
 </li>
-<li><p>‘simple’ is the normal version: <strong>&lt;kappa&gt;</strong> = NK/npairs</p></li>
+<li><p>‘simple’ is the normal version: <code class="docutils literal notranslate"><span class="pre">&lt;kappa&gt;</span></code> = NK/npairs</p></li>
 </ul>
 </dd>
 <dt class="field-even">kk_file_name</dt>
@@ -699,13 +722,13 @@ Define:</p>
 scalar quantity, so it can be used for temperature, size, etc.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><p><strong>R_nom</strong> = The center of the bin</p></li>
-<li><p><strong>meanR</strong> = The mean separation of the points that went into the bin.</p></li>
-<li><p><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</p></li>
-<li><p><strong>xi</strong> = The correlation function &lt;k k&gt;</p></li>
-<li><p><strong>sigma_xi</strong> = The 1-sigma error bar for xi.</p></li>
-<li><p><strong>weight</strong> = The total weight of the pairs in each bin.</p></li>
-<li><p><strong>npairs</strong> = The total number of pairs in each bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">R_nom</span></code> = The center of the bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanR</span></code> = The mean separation of the points that went into the bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanlogR</span></code> = The mean log(R) of the points that went into the bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xi</span></code> = The correlation function &lt;k k&gt;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sigma_xi</span></code> = The 1-sigma error bar for xi.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">weight</span></code> = The total weight of the pairs in each bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">npairs</span></code> = The total number of pairs in each bin.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">kg_file_name</dt>
@@ -715,14 +738,14 @@ galaxy-galaxy lensing, weighting the tangential shears by the foreground
 kappa values.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><p><strong>R_nom</strong> = The center of the bin</p></li>
-<li><p><strong>meanR</strong> = The mean separation of the points that went into the bin.</p></li>
-<li><p><strong>meanlogR</strong> = The mean log(R) of the points that went into the bin.</p></li>
-<li><p><strong>kgamT</strong> = The kappa-weighted mean tangential shear.</p></li>
-<li><p><strong>kgamX</strong> = The kappa-weighted shear component 45 degrees from the tangential direction.</p></li>
-<li><p><strong>sigma</strong> = The 1-sigma error bar for <strong>kgamT</strong> and <strong>kgamX</strong>.</p></li>
-<li><p><strong>weight</strong> = The total weight of the pairs in each bin.</p></li>
-<li><p><strong>npairs</strong> = The total number of pairs in each bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">R_nom</span></code> = The center of the bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanR</span></code> = The mean separation of the points that went into the bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanlogR</span></code> = The mean log(R) of the points that went into the bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kgamT</span></code> = The kappa-weighted mean tangential shear.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kgamX</span></code> = The kappa-weighted shear component 45 degrees from the tangential direction.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sigma</span></code> = The 1-sigma error bar for <code class="docutils literal notranslate"><span class="pre">kgamT</span></code> and <code class="docutils literal notranslate"><span class="pre">kgamX</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">weight</span></code> = The total weight of the pairs in each bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">npairs</span></code> = The total number of pairs in each bin.</p></li>
 </ul>
 </dd>
 <dt class="field-even">nnn_file_name</dt>
@@ -730,19 +753,19 @@ kappa values.</p>
 <p>This is three-point correlation function of number counts.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><p><strong>R_nom</strong> = The center of the bin in R = d2 where d1 &gt; d2 &gt; d3</p></li>
-<li><p><strong>u_nom</strong> = The center of the bin in u = d3/d2</p></li>
-<li><p><strong>v_nom</strong> = The center of the bin in v = +-(d1-d2)/d3</p></li>
-<li><p><strong>meand1</strong> = The mean value of d1 for the triangles in each bin</p></li>
-<li><p><strong>meanlogd1</strong> = The mean value of log(d1) for the triangles in each bin</p></li>
-<li><p><strong>meand2</strong> = The mean value of d2 for the triangles in each bin</p></li>
-<li><p><strong>meanlogd2</strong> = The mean value of log(d2) for the triangles in each bin</p></li>
-<li><p><strong>meand3</strong> = The mean value of d3 for the triangles in each bin</p></li>
-<li><p><strong>meanlogd3</strong> = The mean value of log(d3) for the triangles in each bin</p></li>
-<li><p><strong>zeta</strong> = The correlation function.</p></li>
-<li><p><strong>sigma_zeta</strong> = The 1-sigma error bar for zeta.</p></li>
-<li><p><strong>DDD</strong>, <strong>RRR</strong> = The raw numbers of triangles for the data and randoms</p></li>
-<li><p><strong>DDR</strong>, <strong>DRD</strong>, <strong>RDD</strong>, <strong>DRR</strong>, <strong>RDR</strong>, <strong>RRD</strong> (if <code class="docutils literal notranslate"><span class="pre">nn_statistic=compensated</span></code>) = The cross terms between data and random.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">R_nom</span></code> = The center of the bin in R = d2 where d1 &gt; d2 &gt; d3</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">u_nom</span></code> = The center of the bin in u = d3/d2</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">v_nom</span></code> = The center of the bin in v = +-(d1-d2)/d3</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meand1</span></code> = The mean value of d1 for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanlogd1</span></code> = The mean value of log(d1) for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meand2</span></code> = The mean value of d2 for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanlogd2</span></code> = The mean value of log(d2) for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meand3</span></code> = The mean value of d3 for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanlogd3</span></code> = The mean value of log(d3) for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">zeta</span></code> = The correlation function.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sigma_zeta</span></code> = The 1-sigma error bar for zeta.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DDD</span></code>, <code class="docutils literal notranslate"><span class="pre">RRR</span></code> = The raw numbers of triangles for the data and randoms</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DDR</span></code>, <code class="docutils literal notranslate"><span class="pre">DRD</span></code>, <code class="docutils literal notranslate"><span class="pre">RDD</span></code>, <code class="docutils literal notranslate"><span class="pre">DRR</span></code>, <code class="docutils literal notranslate"><span class="pre">RDR</span></code>, <code class="docutils literal notranslate"><span class="pre">RRD</span></code> (if <code class="docutils literal notranslate"><span class="pre">nn_statistic=compensated</span></code>) = The cross terms between data and random.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">nnn_statistic</dt>
@@ -763,26 +786,26 @@ All are complex-valued functions of (d1,d2,d3).  The offer several options for t
 direction.  We choose to use the triangle centroid as the reference point.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><p><strong>R_nom</strong> = The center of the bin in R = d2 where d1 &gt; d2 &gt; d3</p></li>
-<li><p><strong>u_nom</strong> = The center of the bin in u = d3/d2</p></li>
-<li><p><strong>v_nom</strong> = The center of the bin in v = +-(d1-d2)/d3</p></li>
-<li><p><strong>meand1</strong> = The mean value of d1 for the triangles in each bin</p></li>
-<li><p><strong>meanlogd1</strong> = The mean value of log(d1) for the triangles in each bin</p></li>
-<li><p><strong>meand2</strong> = The mean value of d2 for the triangles in each bin</p></li>
-<li><p><strong>meanlogd2</strong> = The mean value of log(d2) for the triangles in each bin</p></li>
-<li><p><strong>meand3</strong> = The mean value of d3 for the triangles in each bin</p></li>
-<li><p><strong>meanlogd3</strong> = The mean value of log(d3) for the triangles in each bin</p></li>
-<li><p><strong>gam0r</strong> = The real part of Gamma_0.</p></li>
-<li><p><strong>gam0i</strong> = The imag part of Gamma_0.</p></li>
-<li><p><strong>gam1r</strong> = The real part of Gamma_1.</p></li>
-<li><p><strong>gam1i</strong> = The imag part of Gamma_1.</p></li>
-<li><p><strong>gam2r</strong> = The real part of Gamma_2.</p></li>
-<li><p><strong>gam2i</strong> = The imag part of Gamma_2.</p></li>
-<li><p><strong>gam3r</strong> = The real part of Gamma_3.</p></li>
-<li><p><strong>gam3i</strong> = The imag part of Gamma_3.</p></li>
-<li><p><strong>sigma_gam</strong> = The 1-sigma error bar for the Gamma values.</p></li>
-<li><p><strong>weight</strong> = The total weight of the triangles in each bin.</p></li>
-<li><p><strong>ntri</strong> = The total number of triangles in each bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">R_nom</span></code> = The center of the bin in R = d2 where d1 &gt; d2 &gt; d3</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">u_nom</span></code> = The center of the bin in u = d3/d2</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">v_nom</span></code> = The center of the bin in v = +-(d1-d2)/d3</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meand1</span></code> = The mean value of d1 for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanlogd1</span></code> = The mean value of log(d1) for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meand2</span></code> = The mean value of d2 for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanlogd2</span></code> = The mean value of log(d2) for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meand3</span></code> = The mean value of d3 for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanlogd3</span></code> = The mean value of log(d3) for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gam0r</span></code> = The real part of Gamma_0.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gam0i</span></code> = The imag part of Gamma_0.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gam1r</span></code> = The real part of Gamma_1.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gam1i</span></code> = The imag part of Gamma_1.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gam2r</span></code> = The real part of Gamma_2.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gam2i</span></code> = The imag part of Gamma_2.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gam3r</span></code> = The real part of Gamma_3.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gam3i</span></code> = The imag part of Gamma_3.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sigma_gam</span></code> = The 1-sigma error bar for the Gamma values.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">weight</span></code> = The total weight of the triangles in each bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ntri</span></code> = The total number of triangles in each bin.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">kkk_file_name</dt>
@@ -790,19 +813,19 @@ direction.  We choose to use the triangle centroid as the reference point.</p>
 <p>This is the three-point correlation function of a scalar field.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><p><strong>R_nom</strong> = The center of the bin in R = d2 where d1 &gt; d2 &gt; d3</p></li>
-<li><p><strong>u_nom</strong> = The center of the bin in u = d3/d2</p></li>
-<li><p><strong>v_nom</strong> = The center of the bin in v = +-(d1-d2)/d3</p></li>
-<li><p><strong>meand1</strong> = The mean value of d1 for the triangles in each bin</p></li>
-<li><p><strong>meanlogd1</strong> = The mean value of log(d1) for the triangles in each bin</p></li>
-<li><p><strong>meand2</strong> = The mean value of d2 for the triangles in each bin</p></li>
-<li><p><strong>meanlogd2</strong> = The mean value of log(d2) for the triangles in each bin</p></li>
-<li><p><strong>meand3</strong> = The mean value of d3 for the triangles in each bin</p></li>
-<li><p><strong>meanlogd3</strong> = The mean value of log(d3) for the triangles in each bin</p></li>
-<li><p><strong>zeta</strong> = The correlation function.</p></li>
-<li><p><strong>sigma_zeta</strong> = The 1-sigma error bar for zeta.</p></li>
-<li><p><strong>weight</strong> = The total weight of the triangles in each bin.</p></li>
-<li><p><strong>ntri</strong> = The total number of triangles in each bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">R_nom</span></code> = The center of the bin in R = d2 where d1 &gt; d2 &gt; d3</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">u_nom</span></code> = The center of the bin in u = d3/d2</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">v_nom</span></code> = The center of the bin in v = +-(d1-d2)/d3</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meand1</span></code> = The mean value of d1 for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanlogd1</span></code> = The mean value of log(d1) for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meand2</span></code> = The mean value of d2 for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanlogd2</span></code> = The mean value of log(d2) for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meand3</span></code> = The mean value of d3 for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meanlogd3</span></code> = The mean value of log(d3) for the triangles in each bin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">zeta</span></code> = The correlation function.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sigma_zeta</span></code> = The 1-sigma error bar for zeta.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">weight</span></code> = The total weight of the triangles in each bin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ntri</span></code> = The total number of triangles in each bin.</p></li>
 </ul>
 </dd>
 <dt class="field-even">precision</dt>
@@ -825,13 +848,13 @@ functions.</p>
 derived from the shear-shear correlation function.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><p><strong>R</strong> = The radius of the aperture.  (Spaced the same way as  <strong>R_nom</strong> is in the correlation function output files.</p></li>
-<li><p><strong>Mapsq</strong> = The E-mode aperture mass variance for each radius R.</p></li>
-<li><p><strong>Mxsq</strong> = The B-mode aperture mass variance.</p></li>
-<li><p><strong>MMxa</strong>, <strong>MMxb</strong> = Two semi-independent estimate for the E-B cross term.  (Both should be consistent with zero for parity invariance shear fields.)</p></li>
-<li><p><strong>sig_map</strong> = The 1-sigma error bar for these values.</p></li>
-<li><p><strong>Gamsq</strong> = The variance of the top-hat weighted mean shear in apertures of the given radius R.</p></li>
-<li><p><strong>sig_gam</strong> = The 1-sigma error bar for <strong>Gamsq</strong>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">R</span></code> = The radius of the aperture.  (Spaced the same way as  <code class="docutils literal notranslate"><span class="pre">R_nom</span></code> is in the correlation function output files.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Mapsq</span></code> = The E-mode aperture mass variance for each radius R.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Mxsq</span></code> = The B-mode aperture mass variance.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MMxa</span></code>, <code class="docutils literal notranslate"><span class="pre">MMxb</span></code> = Two semi-independent estimate for the E-B cross term.  (Both should be consistent with zero for parity invariance shear fields.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sig_map</span></code> = The 1-sigma error bar for these values.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Gamsq</span></code> = The variance of the top-hat weighted mean shear in apertures of the given radius R.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sig_gam</span></code> = The 1-sigma error bar for <code class="docutils literal notranslate"><span class="pre">Gamsq</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">m2_uform</dt>
@@ -849,7 +872,7 @@ Q = 1/4Pi r^2 exp(-r^2/2)</p>
 <p>is easier to use.  For example, the skewness of the aperture mass
 has a closed form solution in terms of the 3-point function for the
 Crittenden form, but no such formula is known for the Schneider form.</p>
-<p>The <strong>m2_uform</strong> parameter allows you to switch between the two forms,
+<p>The <code class="docutils literal notranslate"><span class="pre">m2_uform</span></code> parameter allows you to switch between the two forms,
 at least for 2-point applications.  (You will get an error if you
 try to use ‘Schneider’ with the m3 output.)</p>
 </dd>
@@ -860,10 +883,10 @@ aperture-smoothed density field, derived from the count-shear correlation
 function.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><p><strong>R</strong> = The radius of the aperture.  (Spaced the same way as  <strong>R_nom</strong> is in the correlation function output files.</p></li>
-<li><p><strong>NMap</strong> = The E-mode aperture mass correlated with the density smoothed with the same aperture profile as the aperture mass statistic uses.</p></li>
-<li><p><strong>NMx</strong> = The corresponding B-mode statistic.</p></li>
-<li><p><strong>sig_nmap</strong> = The 1-sigma error bar for these values.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">R</span></code> = The radius of the aperture.  (Spaced the same way as  <code class="docutils literal notranslate"><span class="pre">R_nom</span></code> is in the correlation function output files.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NMap</span></code> = The E-mode aperture mass correlated with the density smoothed with the same aperture profile as the aperture mass statistic uses.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NMx</span></code> = The corresponding B-mode statistic.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sig_nmap</span></code> = The 1-sigma error bar for these values.</p></li>
 </ul>
 </dd>
 <dt class="field-even">norm_file_name</dt>
@@ -872,18 +895,18 @@ function.</p>
 provides an estimate of the correlation coefficient, r.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><p><strong>R</strong> = The radius of the aperture.  (Spaced the same way as  <strong>R_nom</strong> is in the correlation function output files.</p></li>
-<li><p><strong>NMap</strong> = The E-mode aperture mass correlated with the density smoothed with the same aperture profile as the aperture mass statistic uses.</p></li>
-<li><p><strong>NMx</strong> = The corresponding B-mode statistic.</p></li>
-<li><p><strong>sig_nmap</strong> = The 1-sigma error bar for these values.</p></li>
-<li><p><strong>Napsq</strong> = The variance of the aperture-weighted galaxy density.</p></li>
-<li><p><strong>sig_napsq</strong> = The 1-sigma error bar for &lt;Nap^2&gt;.</p></li>
-<li><p><strong>Mapsq</strong> = The aperture mass variance.</p></li>
-<li><p><strong>sig_mapsq</strong> = The 1-sigma error bar for &lt;Map^2&gt;.</p></li>
-<li><p><strong>NMap_norm</strong> = &lt;Nap Map&gt;^2 / (&lt;Nap^2&gt; &lt;Map^2&gt;)</p></li>
-<li><p><strong>sig_norm</strong> = The 1-sigma error bar for this value.</p></li>
-<li><p><strong>Nsq_Mapsq</strong> = &lt;Nap^2&gt; / &lt;Map^2&gt;</p></li>
-<li><p><strong>sig_nn_mm</strong> = The 1-sigma error bar for this value.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">R</span></code> = The radius of the aperture.  (Spaced the same way as  <code class="docutils literal notranslate"><span class="pre">R_nom</span></code> is in the correlation function output files.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NMap</span></code> = The E-mode aperture mass correlated with the density smoothed with the same aperture profile as the aperture mass statistic uses.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NMx</span></code> = The corresponding B-mode statistic.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sig_nmap</span></code> = The 1-sigma error bar for these values.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Napsq</span></code> = The variance of the aperture-weighted galaxy density.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sig_napsq</span></code> = The 1-sigma error bar for &lt;Nap^2&gt;.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Mapsq</span></code> = The aperture mass variance.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sig_mapsq</span></code> = The 1-sigma error bar for &lt;Map^2&gt;.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NMap_norm</span></code> = &lt;Nap Map&gt;^2 / (&lt;Nap^2&gt; &lt;Map^2&gt;)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sig_norm</span></code> = The 1-sigma error bar for this value.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Nsq_Mapsq</span></code> = &lt;Nap^2&gt; / &lt;Map^2&gt;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sig_nn_mm</span></code> = The 1-sigma error bar for this value.</p></li>
 </ul>
 </dd>
 </dl>
@@ -908,7 +931,7 @@ write them to a file instead.  With the <a class="reference internal" href="scri
 specified with the <code class="docutils literal notranslate"><span class="pre">-l</span></code> command line argument.</p>
 </dd>
 <dt class="field-odd">output_dots</dt>
-<dd class="field-odd"><p>(bool, default=(<strong>verbose</strong>&gt;=2)) Whether to output progress dots during the
+<dd class="field-odd"><p>(bool, default=(<code class="docutils literal notranslate"><span class="pre">verbose</span></code>&gt;=2)) Whether to output progress dots during the
 calculation of the correlation function.</p>
 </dd>
 <dt class="field-even">split_method</dt>
@@ -917,11 +940,11 @@ calculation of the correlation function.</p>
 of points into two chld cells.  The direction is always taken to be the
 coordinate direction with the largest extent.  Then, in that direction,
 you can split at the mean value, the median value, or the “middle” =
-(xmin+xmax)/2.  To select among these, <strong>split_method</strong> may be given as
+(xmin+xmax)/2.  To select among these, <code class="docutils literal notranslate"><span class="pre">split_method</span></code> may be given as
 “mean”, “median”, or “middle” respectively.</p>
 <p>In addition, sometimes it may be useful to inject some randomness into the
 tree construction to study how much the results depend on the specific splitting
-used.  For that purpose, there is also the option to set <strong>split_method</strong> = ‘random’,
+used.  For that purpose, there is also the option to set <code class="docutils literal notranslate"><span class="pre">split_method</span></code> = ‘random’,
 which will choose a random point in the middle two quartiles of the range.</p>
 </dd>
 <dt class="field-odd">min_top</dt>

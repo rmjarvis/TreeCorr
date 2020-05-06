@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Binning &mdash; TreeCorr 4.0.10 documentation</title>
+  <title>Binning &mdash; TreeCorr 4.1.0 documentation</title>
   
 
   
@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -36,7 +36,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Fields" href="field.html" />
+    <link rel="next" title="Patches" href="patches.html" />
     <link rel="prev" title="Metrics" href="metric.html" /> 
 </head>
 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                4.0
+                4.1
               </div>
             
           
@@ -103,11 +103,13 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 4.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -177,13 +179,13 @@
 <h1>Binning<a class="headerlink" href="#binning" title="Permalink to this headline">¶</a></h1>
 <p>To be useful, the measured correlations need to be binned in some way to
 find the average correlation among many pairs of nearly the same separation.
-The different ways to bin the results may be specified using the <strong>bin_type</strong>
+The different ways to bin the results may be specified using the <code class="docutils literal notranslate"><span class="pre">bin_type</span></code>
 parameter in <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a> or <a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3" title="treecorr.BinnedCorr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr3</span></code></a>.</p>
 <div class="section" id="log">
 <h2>“Log”<a class="headerlink" href="#log" title="Permalink to this headline">¶</a></h2>
 <p>The default way to bin the results in TreeCorr is uniformly in log(r),
 where r is defined according to the specified metric
-(cf. <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a>).  This corresponds to <strong>bin_type</strong> = “Log”, although
+(cf. <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a>).  This corresponds to <code class="docutils literal notranslate"><span class="pre">bin_type</span></code> = “Log”, although
 one normally omits this, as it is the default.</p>
 <p>For most correlation functions, which tend to be approximately power laws, this
 binning is the most appropriate, since it naturally handles a large dynamic range
@@ -191,18 +193,18 @@ in the separation.</p>
 <p>The exact binning is specified using any 3 of the following 4 parameters:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><strong>nbins</strong>       How many bins to use.</p></li>
-<li><p><strong>bin_size</strong>    The width of the bins in log(r).</p></li>
-<li><p><strong>min_sep</strong>     The minimum separation r to include.</p></li>
-<li><p><strong>max_sep</strong>     The maximum separation r to include.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nbins</span></code>       How many bins to use.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bin_size</span></code>    The width of the bins in log(r).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_sep</span></code>     The minimum separation r to include.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_sep</span></code>     The maximum separation r to include.</p></li>
 </ul>
 </div></blockquote>
 <p>For a pair with a metric distance r, the index of the corresponding bin in the
 output array is <code class="docutils literal notranslate"><span class="pre">int(log(r)</span> <span class="pre">-</span> <span class="pre">log(min_sep))/bin_size)</span></code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If <strong>nbins</strong> is the omitted value, then <strong>bin_size</strong> might need to be decreased
-slightly to accommodate an integer number of bins with the given <strong>min_sep</strong> and <strong>max_sep</strong>.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">nbins</span></code> is the omitted value, then <code class="docutils literal notranslate"><span class="pre">bin_size</span></code> might need to be decreased
+slightly to accommodate an integer number of bins with the given <code class="docutils literal notranslate"><span class="pre">min_sep</span></code> and <code class="docutils literal notranslate"><span class="pre">max_sep</span></code>.</p>
 </div>
 </div>
 <div class="section" id="linear">
@@ -210,44 +212,44 @@ slightly to accommodate an integer number of bins with the given <strong>min_sep
 <p>For use cases where the scales of interest span only a relatively small range of distances,
 it may be more convenient to use linear binning rather than logarithmic.  A notable
 example of this is BAO investigations, where the interesting region is near the BAO peak.
-In these cases, using <strong>bin_type</strong> = “Linear” may be preferred.</p>
+In these cases, using <code class="docutils literal notranslate"><span class="pre">bin_type</span></code> = “Linear” may be preferred.</p>
 <p>As with “Log”, the binning may be specified using any 3 of the following 4 parameters:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><strong>nbins</strong>       How many bins to use.</p></li>
-<li><p><strong>bin_size</strong>    The width of the bins in r.</p></li>
-<li><p><strong>min_sep</strong>     The minimum separation r to include.</p></li>
-<li><p><strong>max_sep</strong>     The maximum separation r to include.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nbins</span></code>       How many bins to use.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bin_size</span></code>    The width of the bins in r.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_sep</span></code>     The minimum separation r to include.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_sep</span></code>     The maximum separation r to include.</p></li>
 </ul>
 </div></blockquote>
 <p>For a pair with a metric distance r, the index of the corresponding bin in the
 output array is <code class="docutils literal notranslate"><span class="pre">int((r</span> <span class="pre">-</span> <span class="pre">min_sep)/bin_size)</span></code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If <strong>nbins</strong> is the omitted value, then <strong>bin_size</strong> might need to be decreased
-slightly to accommodate an integer number of bins with the given <strong>min_sep</strong> and <strong>max_sep</strong>.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">nbins</span></code> is the omitted value, then <code class="docutils literal notranslate"><span class="pre">bin_size</span></code> might need to be decreased
+slightly to accommodate an integer number of bins with the given <code class="docutils literal notranslate"><span class="pre">min_sep</span></code> and <code class="docutils literal notranslate"><span class="pre">max_sep</span></code>.</p>
 </div>
 </div>
 <div class="section" id="twod">
 <h2>“TwoD”<a class="headerlink" href="#twod" title="Permalink to this headline">¶</a></h2>
-<p>To bin the correlation in two dimensions, (x,y), you can use <strong>bin_type</strong> = “TwoD”.
+<p>To bin the correlation in two dimensions, (x,y), you can use <code class="docutils literal notranslate"><span class="pre">bin_type</span></code> = “TwoD”.
 This will keep track of not only the distance between two points, but also the
 direction.  The results are then binned linearly in both the delta x and delta y values.</p>
 <p>The exact binning is specified using any 2 of the following 3 parameters:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><strong>nbins</strong>       How many bins to use in each direction.</p></li>
-<li><p><strong>bin_size</strong>    The width of the bins in dx and dy.</p></li>
-<li><p><strong>max_sep</strong>     The maximum absolute value of dx or dy to include.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nbins</span></code>       How many bins to use in each direction.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bin_size</span></code>    The width of the bins in dx and dy.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_sep</span></code>     The maximum absolute value of dx or dy to include.</p></li>
 </ul>
 </div></blockquote>
 <p>For a pair with a directed separation (dx,dy), the indices of the corresponding bin in the
 2-d output array are <code class="docutils literal notranslate"><span class="pre">int((dx</span> <span class="pre">+</span> <span class="pre">max_sep)/bin_size)</span></code>, <code class="docutils literal notranslate"><span class="pre">int((dy</span> <span class="pre">+</span> <span class="pre">max_sep)/bin_size)</span></code>.</p>
 <p>The binning is symmetric around (0,0), so the minimum separation in either direction is
-<strong>-max_sep</strong>, and the maximum is <strong>+max_sep</strong>.
-If is also permissible to specify <strong>min_sep</strong> to exclude small separations from being
+<code class="docutils literal notranslate"><span class="pre">-max_sep</span></code>, and the maximum is <code class="docutils literal notranslate"><span class="pre">+max_sep</span></code>.
+If is also permissible to specify <code class="docutils literal notranslate"><span class="pre">min_sep</span></code> to exclude small separations from being
 accumulated, but the binning will still include a bin that crosses over (dx,dy) = (0,0)
-if <strong>nbins</strong> is odd, or four bins that touch (0,0) if <strong>nbins</strong> is even.</p>
+if <code class="docutils literal notranslate"><span class="pre">nbins</span></code> is odd, or four bins that touch (0,0) if <code class="docutils literal notranslate"><span class="pre">nbins</span></code> is even.</p>
 <p>Note that this metric is only valid when the input positions are given as x,y (not ra, dec),
 and the metric is “Euclidean”.  If you have a use case for other combinations, please
 open an issue with your specific case, and we can try to figure out how it should be implemented.</p>
@@ -257,7 +259,7 @@ open an issue with your specific case, and we can try to figure out how it shoul
 <p>There are a few other options which impact how the binning is done.</p>
 <div class="section" id="sep-units">
 <h3>sep_units<a class="headerlink" href="#sep-units" title="Permalink to this headline">¶</a></h3>
-<p>The optional parameter <strong>sep_units</strong> lets you specify what units you want for
+<p>The optional parameter <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> lets you specify what units you want for
 the binned separations if the separations are angles.</p>
 <p>Valid options are “arcsec”, “arcmin”, “degrees”, “hours”, or “radians”.  The default if
 not specified is “radians”.</p>
@@ -273,32 +275,35 @@ units will be whatever the units are for these values.</p>
 </div>
 <div class="section" id="bin-slop">
 <h3>bin_slop<a class="headerlink" href="#bin-slop" title="Permalink to this headline">¶</a></h3>
-<p>This parameter is really the reason TreeCorr is fast.</p>
-<p>The fundamental approximation of TreeCorr is that if you have decided to bin your
-correlation function with some non-zero bin size, then you have implicitly defined
-a resolution in separation below which you don’t care about the exact separation
+<p>One of the main reasons that TreeCorr is able to compute correlation functions
+so quickly is that it allows the bin edges to be a little bit fuzzy. A pairs whose
+separation is very close to a dividing line between two bins might be placed
+in the next bin over from where an exact calculation would put it.</p>
+<p>This is normally completely fine for any real-world application.
+Indeed, by deciding to bin your correlation function with some non-zero bin size, you have
+implicitly defined a resolution below which you don’t care about the exact separation
 values.</p>
 <p>The approximation TreeCorr makes is to allow some <em>additional</em> imprecision that is a
-fraction of this level.  Namely <strong>bin_slop</strong>.  Specifically, <strong>bin_slop</strong> specifies by
-what fraction of the bin size can a given pair of points be placed into the wrong bin.</p>
+fraction of this level.  Namely <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code>.  Specifically, <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> specifies the
+maximum possible error any pair can have, given as a fraction of the bin size.</p>
 <p>You can think of it as turning all of your rectangular bins into overlapping trapezoids,
-where <strong>bin_slop</strong> defines the ratio of the angled portion to the flat mean width.
-Larger <strong>bin_slop</strong> allows for more overlap (and is thus faster), while smaller <strong>bin_slop</strong>
+where <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> defines the ratio of the angled portion to the flat mean width.
+Larger <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> allows for more overlap (and is thus faster), while smaller <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code>
 gets closer to putting each pair perfectly into the bin it belongs in.</p>
-<p>The default <strong>bin_slop</strong> for the “Log” bin type is such that <code class="docutils literal notranslate"><span class="pre">bin_slop</span> <span class="pre">*</span> <span class="pre">bin_size</span></code>
-is 0.1.  Or if <code class="docutils literal notranslate"><span class="pre">bin_size</span> <span class="pre">&lt;</span> <span class="pre">0.1</span></code>, then we use <strong>bin_slop</strong> = 1.  This has been
+<p>The default <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> for the “Log” bin type is such that <code class="docutils literal notranslate"><span class="pre">bin_slop</span> <span class="pre">*</span> <span class="pre">bin_size</span></code>
+is 0.1.  Or if <code class="docutils literal notranslate"><span class="pre">bin_size</span> <span class="pre">&lt;</span> <span class="pre">0.1</span></code>, then we use <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> = 1.  This has been
 found to give fairly good accuracy across a variety of applications.  However,
 for high precision measurements, it may be appropriate to use a smaller value than
 this.  Especially if your bins are fairly large.</p>
-<p>A typical test to perform on your data is to cut <strong>bin_slop</strong> in half and see if your
+<p>A typical test to perform on your data is to cut <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> in half and see if your
 results change significantly.  If not, you are probably fine, but if they change by an
 appreciable amount (according to whatever you think that means for your science),
-then your original <strong>bin_slop</strong> was too large.</p>
-<p>To understand the impact of the <strong>bin_slop</strong> parameter, it helps to start by thinking
+then your original <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> was too large.</p>
+<p>To understand the impact of the <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> parameter, it helps to start by thinking
 about when it is set to 0.
-If <strong>bin_slop</strong> = 0, then TreeCorr does essentially a brute-force calculation,
+If <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> = 0, then TreeCorr does essentially a brute-force calculation,
 where each pair of points is always placed into the correct bin.</p>
-<p>But if <strong>bin_slop</strong> &gt; 0, then any given pair is allowed to be placed in the wrong bin
+<p>But if <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> &gt; 0, then any given pair is allowed to be placed in the wrong bin
 so long as the true separation is within this fraction of a bin from the edge.
 For example, if a bin nominally goes from 10 to 20 arcmin, then with bin_slop = 0.05,
 TreeCorr will accumulate pairs with separations ranging from 9.5 to 20.5 arcmin into this
@@ -320,26 +325,26 @@ This of course is much slower, but this option can be useful for testing purpose
 For instance, comparisons to brute force results have been invaluable in TreeCorr
 development of the faster algorithms.  Some science cases also use comparison to brute
 force results to confirm that they are not significantly impacted by using non-zero
-<strong>bin_slop</strong>.</p>
-<p>Setting <strong>brute</strong> = True is roughly equivalent to setting <strong>bin_slop</strong> = 0.  However,
+<code class="docutils literal notranslate"><span class="pre">bin_slop</span></code>.</p>
+<p>Setting <code class="docutils literal notranslate"><span class="pre">brute</span></code> = True is roughly equivalent to setting <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> = 0.  However,
 there is a distinction between these two cases.
 Internally, the former will <em>always</em> traverse the tree all the way to the leaves.  So
 every pair will be calculated individually.  This really is the brute force calculation.</p>
-<p>However, <strong>bin_slop</strong> = 0 will allow for the traversal to stop early if all possible pairs in a
+<p>However, <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> = 0 will allow for the traversal to stop early if all possible pairs in a
 given pair of cells fall into the same bin.  This can be quite a large speedup in some cases.
 And especially for NN correlations, there is no disadvantage to doing so.</p>
-<p>For shear correlations, there can be a slight difference between using <strong>bin_slop</strong> = 0 and
-<strong>brute</strong> = True because the shear projections won’t be precisely equal in the two cases.
+<p>For shear correlations, there can be a slight difference between using <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> = 0 and
+<code class="docutils literal notranslate"><span class="pre">brute</span></code> = True because the shear projections won’t be precisely equal in the two cases.
 Shear correlations require parallel transporting the shear values to the centers of
 the cells, and then when accumulating pairs, the shears are projected onto the line joining
-the two points.  Both of these lead to slight differences in the results of a <strong>bin_slop</strong> = 0
+the two points.  Both of these lead to slight differences in the results of a <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> = 0
 calculation compared to the true brute force calculation.
 If the difference is seen to matter for you, this is probably a sign that you should decrease
 your bin size.</p>
-<p>Additionally, there is one other way to use the <strong>brute</strong> parameter.  If you set
-<strong>brute</strong> to 1 or 2, rather than True or False, then the forced traversal to the
-leaf cells will only apply to <strong>cat1</strong> or <strong>cat2</strong> respectively.  The cells for the other
-catalog will use the normal criterion based on the <strong>bin_slop</strong> parameter to decide whether
+<p>Additionally, there is one other way to use the <code class="docutils literal notranslate"><span class="pre">brute</span></code> parameter.  If you set
+<code class="docutils literal notranslate"><span class="pre">brute</span></code> to 1 or 2, rather than True or False, then the forced traversal to the
+leaf cells will only apply to <code class="docutils literal notranslate"><span class="pre">cat1</span></code> or <code class="docutils literal notranslate"><span class="pre">cat2</span></code> respectively.  The cells for the other
+catalog will use the normal criterion based on the <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> parameter to decide whether
 it is acceptable to use a non-leaf cell or to continue traversing the tree.</p>
 </div>
 </div>
@@ -353,7 +358,7 @@ it is acceptable to use a non-leaf cell or to continue traversing the tree.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="field.html" class="btn btn-neutral float-right" title="Fields" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="patches.html" class="btn btn-neutral float-right" title="Patches" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="metric.html" class="btn btn-neutral float-left" title="Metrics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

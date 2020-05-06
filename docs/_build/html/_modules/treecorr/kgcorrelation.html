@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>treecorr.kgcorrelation &mdash; TreeCorr 4.0.10 documentation</title>
+  <title>treecorr.kgcorrelation &mdash; TreeCorr 4.1.0 documentation</title>
   
 
   
@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                4.0
+                4.1
               </div>
             
           
@@ -90,11 +90,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../metric.html">Metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 3.3 to 4.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 4.0 to 4.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
 
@@ -181,8 +183,15 @@
 
 
 <div class="viewcode-block" id="KGCorrelation"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation">[docs]</a><span class="k">class</span> <span class="nc">KGCorrelation</span><span class="p">(</span><span class="n">treecorr</span><span class="o">.</span><span class="n">BinnedCorr2</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 2-point kappa-shear correlation</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 2-point kappa-shear correlation</span>
 <span class="sd">    function.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        While we use the term kappa (:math:`\kappa`) here and the letter K in various places,</span>
+<span class="sd">        in fact any scalar field will work here.  For example, you can use this to compute</span>
+<span class="sd">        correlations of some survey property, such as seeing, with shear, where &quot;kappa&quot; would</span>
+<span class="sd">        really be the measured property, e.g. the observed sizes of the stars.</span>
 
 <span class="sd">    Ojects of this class holds the following attributes:</span>
 
@@ -195,25 +204,33 @@
 <span class="sd">    In addition, the following attributes are numpy arrays of length (nbins):</span>
 
 <span class="sd">    Attributes:</span>
-<span class="sd">        logr:      The nominal center of the bin in log(r) (the natural logarithm of r).</span>
-<span class="sd">        rnom:      The nominal center of the bin converted to regular distance.</span>
-<span class="sd">                   i.e. r = exp(logr).</span>
-<span class="sd">        meanr:     The (weighted) mean value of r for the pairs in each bin.</span>
-<span class="sd">                   If there are no pairs in a bin, then exp(logr) will be used instead.</span>
-<span class="sd">        meanlogr:  The (weighted) mean value of log(r) for the pairs in each bin.</span>
-<span class="sd">                   If there are no pairs in a bin, then logr will be used instead.</span>
-<span class="sd">        xi:        The correlation function, :math:`\\xi(r) = \\langle \\kappa \\gamma_T\\rangle`.</span>
-<span class="sd">        xi_im:     The imaginary part of :math:`\\xi(r)`.</span>
-<span class="sd">        varxi:     The variance of :math:`\\xi`, only including the shape noise propagated into the</span>
-<span class="sd">                   final correlation.  This does not include sample variance, so it is always</span>
-<span class="sd">                   an underestimate of the actual variance.</span>
-<span class="sd">        weight:    The total weight in each bin.</span>
-<span class="sd">        npairs:    The number of pairs going into each bin.</span>
+<span class="sd">        logr:       The nominal center of the bin in log(r) (the natural logarithm of r).</span>
+<span class="sd">        rnom:       The nominal center of the bin converted to regular distance.</span>
+<span class="sd">                    i.e. r = exp(logr).</span>
+<span class="sd">        meanr:      The (weighted) mean value of r for the pairs in each bin.</span>
+<span class="sd">                    If there are no pairs in a bin, then exp(logr) will be used instead.</span>
+<span class="sd">        meanlogr:   The (weighted) mean value of log(r) for the pairs in each bin.</span>
+<span class="sd">                    If there are no pairs in a bin, then logr will be used instead.</span>
+<span class="sd">        xi:         The correlation function, :math:`\xi(r) = \langle \kappa\, \gamma_T\rangle`.</span>
+<span class="sd">        xi_im:      The imaginary part of :math:`\xi(r)`.</span>
+<span class="sd">        varxi:      An estimate of the variance of :math:`\xi`</span>
+<span class="sd">        weight:     The total weight in each bin.</span>
+<span class="sd">        npairs:     The number of pairs going into each bin (including pairs where one or</span>
+<span class="sd">                    both objects have w=0).</span>
+<span class="sd">        cov:        An estimate of the full covariance matrix.</span>
 
-<span class="sd">    If **sep_units** are given (either in the config dict or as a named kwarg) then the distances</span>
+<span class="sd">    .. note::</span>
+
+<span class="sd">        The default method for estimating the variance and covariance attributes (``varxi``,</span>
+<span class="sd">        and ``cov``) is &#39;shot&#39;, which only includes the shape noise propagated into the final</span>
+<span class="sd">        correlation.  This does not include sample variance, so it is always an underestimate of</span>
+<span class="sd">        the actual variance.  To get better estimates, you need to set ``var_method`` to something</span>
+<span class="sd">        else and use patches in the input catalog(s).  cf. `Covariance Estimates`.</span>
+
+<span class="sd">    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances</span>
 <span class="sd">    will all be in these units.  Note however, that if you separate out the steps of the</span>
-<span class="sd">    `process` command and use `process_cross`, then the units will not be applied to **meanr** or</span>
-<span class="sd">    **meanlogr** until the `finalize` function is called.</span>
+<span class="sd">    `process` command and use `process_cross`, then the units will not be applied to ``meanr`` or</span>
+<span class="sd">    ``meanlogr`` until the `finalize` function is called.</span>
 
 <span class="sd">    The typical usage pattern is as follows:</span>
 
@@ -224,15 +241,18 @@
 
 <span class="sd">    Parameters:</span>
 <span class="sd">        config (dict):  A configuration dict that can be used to pass in kwargs if desired.</span>
-<span class="sd">                        This dict is allowed to have addition entries in addition to those listed</span>
+<span class="sd">                        This dict is allowed to have addition entries besides those listed</span>
 <span class="sd">                        in `BinnedCorr2`, which are ignored here. (default: None)</span>
 <span class="sd">        logger:         If desired, a logger object for logging. (default: None, in which case</span>
 <span class="sd">                        one will be built according to the config dict&#39;s verbose level.)</span>
 
-<span class="sd">    See the documentation for `BinnedCorr2` for the list of other allowed kwargs,</span>
-<span class="sd">    which may be passed either directly or in the config dict.</span>
+<span class="sd">    Keyword Arguments:</span>
+<span class="sd">        **kwargs:       See the documentation for `BinnedCorr2` for the list of allowed keyword</span>
+<span class="sd">                        arguments, which may be passed either directly or in the config dict.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="KGCorrelation.__init__"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="KGCorrelation.__init__"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize `KGCorrelation`.  See class doc for details.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">treecorr</span><span class="o">.</span><span class="n">BinnedCorr2</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_d1</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># KData</span>
@@ -244,28 +264,29 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">npairs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_build_corr</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building KGCorr&#39;</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_build_corr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="k">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">corr</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">BuildCorr2</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_d1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_min_sep</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_sep</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_nbins</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_bin_size</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">min_rpar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_rpar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xperiod</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yperiod</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zperiod</span><span class="p">,</span>
-                <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xi_im</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
-                <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npairs</span><span class="p">));</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">corr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_corr&#39;</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="kn">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_corr</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">BuildCorr2</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_d1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_min_sep</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_sep</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_nbins</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_bin_size</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">min_rpar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_rpar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xperiod</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yperiod</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zperiod</span><span class="p">,</span>
+                    <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xi_im</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
+                    <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npairs</span><span class="p">));</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_corr</span>
 
-    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Using memory allocated from the C layer means we have to explicitly deallocate it</span>
         <span class="c1"># rather than being able to rely on the Python memory manager.</span>
-        <span class="c1"># In case __init__ failed to get that far</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;corr&#39;</span><span class="p">):</span>  <span class="c1"># pragma: no branch</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_corr&#39;</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_ffi</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">locked</span><span class="p">():</span> <span class="c1"># pragma: no branch</span>
                 <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">DestroyCorr2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">)</span>
 
-<div class="viewcode-block" id="KGCorrelation.__eq__"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation.__eq__">[docs]</a>    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return whether two KGCorrelations are equal&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="KGCorrelation.__eq__"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation.__eq__">[docs]</a>    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return whether two `KGCorrelation` instances are equal&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">KGCorrelation</span><span class="p">)</span> <span class="ow">and</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">nbins</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">nbins</span> <span class="ow">and</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">bin_size</span> <span class="ow">and</span>
@@ -293,20 +314,28 @@
         <span class="kn">import</span> <span class="nn">copy</span>
         <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
+    <span class="k">def</span> <span class="nf">_copy_for_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Make a copy of just the things we need to keep in results.</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">KGCorrelation</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">KGCorrelation</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_nbins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nbins</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">xi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span>  <span class="c1"># not deep copy, so cheap, but makes repr work</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
     <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="k">del</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;corr&#39;</span><span class="p">]</span>
-        <span class="k">del</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;logger&#39;</span><span class="p">]</span>  <span class="c1"># Oh well.  This is just lost in the copy.  Can&#39;t be pickled.</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;_corr&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;logger&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># Oh well.  This is just lost in the copy.  Can&#39;t be pickled.</span>
         <span class="k">return</span> <span class="n">d</span>
 
     <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">=</span> <span class="n">d</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_build_corr</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">setup_logger</span><span class="p">(</span>
                 <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;log_file&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">))</span>
 
-<div class="viewcode-block" id="KGCorrelation.__repr__"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation.__repr__">[docs]</a>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="KGCorrelation.__repr__"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation.__repr__">[docs]</a>    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;KGCorrelation(config=</span><span class="si">%r</span><span class="s1">)&#39;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span></div>
 
 <div class="viewcode-block" id="KGCorrelation.process_cross"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation.process_cross">[docs]</a>    <span class="k">def</span> <span class="nf">process_cross</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -340,10 +369,10 @@
         <span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_minmax_size</span><span class="p">()</span>
 
         <span class="n">f1</span> <span class="o">=</span> <span class="n">cat1</span><span class="o">.</span><span class="n">getKField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span><span class="p">,</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="ow">is</span> <span class="kc">True</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="ow">is</span> <span class="mi">1</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="ow">is</span> <span class="kc">True</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
         <span class="n">f2</span> <span class="o">=</span> <span class="n">cat2</span><span class="o">.</span><span class="n">getGField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span><span class="p">,</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="ow">is</span> <span class="kc">True</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="ow">is</span> <span class="mi">2</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="ow">is</span> <span class="kc">True</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting </span><span class="si">%d</span><span class="s1"> jobs.&#39;</span><span class="p">,</span><span class="n">f1</span><span class="o">.</span><span class="n">nTopLevelNodes</span><span class="p">)</span>
@@ -360,6 +389,13 @@
 <span class="sd">        calling this function as often as desired, the `finalize` command will</span>
 <span class="sd">        finish the calculation.</span>
 
+<span class="sd">        .. warning::</span>
+
+<span class="sd">            .. deprecated:: 4.1</span>
+
+<span class="sd">                This function is deprecated and slated to be removed.</span>
+<span class="sd">                If you have a need for it, please open an issue to describe your use case.</span>
+
 <span class="sd">        Parameters:</span>
 <span class="sd">            cat1 (Catalog):     The first catalog to process</span>
 <span class="sd">            cat2 (Catalog):     The second catalog to process</span>
@@ -370,6 +406,10 @@
 <span class="sd">                                (default: use the number of cpu cores; this value can also be given</span>
 <span class="sd">                                in the constructor in the config dict.)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">warnings</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The process_pairwise function is slated to be removed in a future version. &quot;</span><span class="o">+</span>
+                      <span class="s2">&quot;If you are actually using this function usefully, please &quot;</span><span class="o">+</span>
+                      <span class="s2">&quot;open an issue to describe your use case.&quot;</span><span class="p">,</span> <span class="ne">FutureWarning</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">cat1</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="n">cat2</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting process KG pairwise-correlations&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -405,7 +445,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">xi_im</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">varxi</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">=</span> <span class="n">vark</span> <span class="o">*</span> <span class="n">varg</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span>
 
         <span class="c1"># Update the units of meanr, meanlogr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_apply_units</span><span class="p">(</span><span class="n">mask1</span><span class="p">)</span>
@@ -413,8 +452,10 @@
         <span class="c1"># Use meanr, meanlogr when available, but set to nominal when no pairs in bin.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logr</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">varxi</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span></div>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">=</span> <span class="n">vark</span> <span class="o">*</span> <span class="n">varg</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_cov</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_method</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">varxi</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cov</span><span class="o">.</span><span class="n">diagonal</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="KGCorrelation.clear"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Clear the data vectors</span>
@@ -424,14 +465,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">npairs</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">npairs</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="KGCorrelation.__iadd__"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation.__iadd__">[docs]</a>    <span class="k">def</span> <span class="nf">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add a second KGCorrelation&#39;s data to this one.</span>
+<div class="viewcode-block" id="KGCorrelation.__iadd__"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation.__iadd__">[docs]</a>    <span class="k">def</span> <span class="fm">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a second `KGCorrelation`&#39;s data to this one.</span>
 
-<span class="sd">        Note: For this to make sense, both Correlation objects should have been using</span>
-<span class="sd">        `process_cross`, and they should not have had `finalize` called yet.</span>
-<span class="sd">        Then, after adding them together, you should call `finalize` on the sum.</span>
+<span class="sd">        .. note::</span>
+
+<span class="sd">            For this to make sense, both `KGCorrelation` objects should have been using</span>
+<span class="sd">            `process_cross`, and they should not have had `finalize` called yet.</span>
+<span class="sd">            Then, after adding them together, you should call `finalize` on the sum.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">KGCorrelation</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Can only add another KGCorrelation object&quot;</span><span class="p">)</span>
@@ -450,7 +494,7 @@
         <span class="k">return</span> <span class="bp">self</span></div>
 
 
-<div class="viewcode-block" id="KGCorrelation.process"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation.process">[docs]</a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="KGCorrelation.process"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation.process">[docs]</a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Compute the correlation function.</span>
 
 <span class="sd">        Both arguments may be lists, in which case all items in the list are used</span>
@@ -465,23 +509,32 @@
 <span class="sd">            num_threads (int):  How many OpenMP threads to use during the calculation.</span>
 <span class="sd">                                (default: use the number of cpu cores; this value can also be given</span>
 <span class="sd">                                in the constructor in the config dict.)</span>
+<span class="sd">            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between</span>
+<span class="sd">                                processes.  If used, the rank=0 process will have the final</span>
+<span class="sd">                                computation. This only works if using patches. (default: None)</span>
+<span class="sd">            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.</span>
+<span class="sd">                                This only works if using patches. (default: False)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">math</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span> <span class="n">cat1</span> <span class="o">=</span> <span class="p">[</span><span class="n">cat1</span><span class="p">]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cat2</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span> <span class="n">cat2</span> <span class="o">=</span> <span class="p">[</span><span class="n">cat2</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">=</span> <span class="n">cat1</span><span class="o">.</span><span class="n">_npatch</span>
+            <span class="n">cat1</span> <span class="o">=</span> <span class="n">cat1</span><span class="o">.</span><span class="n">get_patches</span><span class="p">(</span><span class="n">low_mem</span><span class="o">=</span><span class="n">low_mem</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cat2</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span> <span class="o">=</span> <span class="n">cat2</span><span class="o">.</span><span class="n">_npatch</span>
+            <span class="n">cat2</span> <span class="o">=</span> <span class="n">cat2</span><span class="o">.</span><span class="n">get_patches</span><span class="p">(</span><span class="n">low_mem</span><span class="o">=</span><span class="n">low_mem</span><span class="p">)</span>
 
         <span class="n">vark</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">calculateVarK</span><span class="p">(</span><span class="n">cat1</span><span class="p">)</span>
         <span class="n">varg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">calculateVarG</span><span class="p">(</span><span class="n">cat2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;vark = </span><span class="si">%f</span><span class="s2">: sig_k = </span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">vark</span><span class="p">,</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">vark</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;varg = </span><span class="si">%f</span><span class="s2">: sig_sn (per component) = </span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">varg</span><span class="p">,</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">varg</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_process_all_cross</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">cat2</span><span class="p">,</span><span class="n">metric</span><span class="p">,</span><span class="n">num_threads</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_process_all_cross</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">finalize</span><span class="p">(</span><span class="n">vark</span><span class="p">,</span><span class="n">varg</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="KGCorrelation.write"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Write the correlation function to the file, file_name.</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Write the correlation function to the file, file_name.</span>
 
 <span class="sd">        The output file will include the following columns:</span>
 
@@ -489,16 +542,20 @@
 <span class="sd">        Column          Description</span>
 <span class="sd">        ==========      ========================================================</span>
 <span class="sd">        r_nom           The nominal center of the bin in r</span>
-<span class="sd">        meanr           The mean value &lt;r&gt; of pairs that fell into each bin</span>
-<span class="sd">        meanlogr        The mean value &lt;log(r)&gt; of pairs that fell into each bin</span>
-<span class="sd">        kgamT           The real part of correlation function, &lt;kappa gamma_t&gt;</span>
-<span class="sd">        kgamX           The imag part of correlation function, &lt;kappa gamma_x&gt;</span>
+<span class="sd">        meanr           The mean value :math:`\langle r\rangle` of pairs that</span>
+<span class="sd">                        fell into each bin</span>
+<span class="sd">        meanlogr        The mean value :math:`\langle \log(r)\rangle` of pairs</span>
+<span class="sd">                        that fell into each bin</span>
+<span class="sd">        kgamT           The real part of correlation function,</span>
+<span class="sd">                        :math:`\langle \kappa\, \gamma_T\rangle`</span>
+<span class="sd">        kgamX           The imag part of correlation function,</span>
+<span class="sd">                        :math:`\langle \kappa\, \gamma_\times\rangle`</span>
 <span class="sd">        sigma           The sqrt of the variance estimate of both of these</span>
 <span class="sd">        weight          The total weight contributing to each bin</span>
-<span class="sd">        npairs          The number of pairs contributing ot each bin</span>
+<span class="sd">        npairs          The total number of pairs in each bin</span>
 <span class="sd">        ==========      ========================================================</span>
 
-<span class="sd">        If **sep_units** was given at construction, then the distances will all be in these units.</span>
+<span class="sd">        If ``sep_units`` was given at construction, then the distances will all be in these units.</span>
 <span class="sd">        Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or</span>
 <span class="sd">        radians (for spherical coordinates).</span>
 
@@ -531,9 +588,11 @@
 <span class="sd">        This should be a file that was written by TreeCorr, preferably a FITS file, so there</span>
 <span class="sd">        is no loss of information.</span>
 
-<span class="sd">        Warning: The KGCorrelation object should be constructed with the same configuration</span>
-<span class="sd">        parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not</span>
-<span class="sd">        checked by the read function.</span>
+<span class="sd">        .. warning::</span>
+
+<span class="sd">            The `KGCorrelation` object should be constructed with the same configuration</span>
+<span class="sd">            parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not</span>
+<span class="sd">            checked by the read function.</span>
 
 <span class="sd">        Parameters:</span>
 <span class="sd">            file_name (str):    The name of the file to read in.</span>
@@ -560,10 +619,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;coords&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metric</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;metric&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sep_units</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;sep_units&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;bin_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_build_corr</span><span class="p">()</span></div></div>
-
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;bin_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div></div>
 </pre></div>
 
            </div>

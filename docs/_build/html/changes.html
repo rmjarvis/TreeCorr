@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Changes from version 3.3 to 4.0 &mdash; TreeCorr 4.0.10 documentation</title>
+  <title>Changes from version 4.0 to 4.1 &mdash; TreeCorr 4.1.0 documentation</title>
   
 
   
@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                4.0
+                4.1
               </div>
             
           
@@ -92,26 +92,16 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Changes from version 3.3 to 4.0</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#dependency-changes">Dependency changes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#api-changes">API changes</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Changes from version 4.0 to 4.1</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#output-format-changes">Output Format Changes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#performance-improvements">Performance Improvements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#new-features">New features</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bug-fixes">Bug fixes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-0-0-to-4-0-1">Changes from version 4.0.0 to 4.0.1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-0-1-to-4-0-2">Changes from version 4.0.1 to 4.0.2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-0-2-to-4-0-3">Changes from version 4.0.2 to 4.0.3</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-0-3-to-4-0-4">Changes from version 4.0.3 to 4.0.4</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-0-4-to-4-0-5">Changes from version 4.0.4 to 4.0.5</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-0-5-to-4-0-6">Changes from version 4.0.5 to 4.0.6</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-0-6-to-4-0-7">Changes from version 4.0.6 to 4.0.7</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-0-7-to-4-0-8">Changes from version 4.0.7 to 4.0.8</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-0-8-to-4-0-9">Changes from version 4.0.8 to 4.0.9</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-0-9-to-4-0-10">Changes from version 4.0.9 to 4.0.10</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
@@ -160,7 +150,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Changes from version 3.3 to 4.0</li>
+      <li>Changes from version 4.0 to 4.1</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -179,238 +169,80 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="changes-from-version-3-3-to-4-0">
-<h1>Changes from version 3.3 to 4.0<a class="headerlink" href="#changes-from-version-3-3-to-4-0" title="Permalink to this headline">¶</a></h1>
-<p>This version includes a number of backwards-incompatible API changes, so
-we are making it a major version update.  In most cases, these should not be
-very onerous to deal with, but many of them would have been annoying to make
-work in a backwards-compatible way.  Therefore, you are advised to read through
-the list of changes carefully to see what aspects of your code might need to
-be adjusted slightly to work with version 4.x.</p>
-<p>The main feature updates here include:</p>
+  <div class="section" id="changes-from-version-4-0-to-4-1">
+<h1>Changes from version 4.0 to 4.1<a class="headerlink" href="#changes-from-version-4-0-to-4-1" title="Permalink to this headline">¶</a></h1>
+<p>This release mostly adds the ability to compute jackknife and other estimates of
+the variance (or covariance matrix), which do a better job of capturing sample
+variance than the default (and previously only) method of computing just the
+shot noise component.</p>
+<p>This requires dividing the input Catalog into patches, which can be done by:</p>
+<ol class="arabic simple">
+<li><p>Giving patch numbers explicitly for each galaxy.</p></li>
+<li><p>Having TreeCorr split it into some number of patches for you automatically (using K-Means).</p></li>
+<li><p>Giving the patch centers to use, which will assign each galaxy to the patch corresponding
+to the nearest center position.</p></li>
+</ol>
+<p>For more details about making patches, see <a class="reference external" href="https://rmjarvis.github.io/TreeCorr/_build/html/patches.html">Patches</a></p>
+<p>For details about using patches to compute better covariance matrices,
+see <a class="reference external" href="https://rmjarvis.github.io/TreeCorr/_build/html/cov.html">Covariance Estimates</a></p>
+<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+4.1%22+is%3Aclosed">Relevant PRs and Issues</a></p>
+<div class="section" id="output-format-changes">
+<h2>Output Format Changes<a class="headerlink" href="#output-format-changes" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>Linear binning</p></li>
-<li><p>Two-dimensional 2-point correlations</p></li>
-<li><p>Large speed improvements when bin_slop &lt;&lt; 1</p></li>
-<li><p>Update to the Rperp metric to better match other usage in literature</p></li>
-<li><p>New “Periodic” metric</p></li>
-<li><p>New Field.get_near funtion</p></li>
-<li><p>New BinnedCorr2.sample_pairs function</p></li>
-</ul>
-<p>Lots of other more minor updates as detailed in the list below.  The numbers at
-the ends of some items below indicate which issue or PR is connected with the
-change:</p>
-<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+4.0%22+is%3Aclosed">https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+4.0%22+is%3Aclosed</a></p>
-<div class="section" id="dependency-changes">
-<h2>Dependency changes<a class="headerlink" href="#dependency-changes" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Added dependency on LSSTDESC.Coord, and removed the TreeCorr implementation
-of the same functionality. (#77)</p></li>
-<li><p>Made fitsio dependency optional, which means that setup.py won’t automatically
-install it for you.  If you plan to use TreeCorr with FITS files, you will
-need to install fitsio yourself. (#57)</p></li>
-<li><p>Made pandas dependency optional, which means that setup.py won’t automatically
-install it for you.  Pandas is never required, but if you plan to use TreeCorr
-with ASCII input catalogs, installing pandas will provide a performance
-improvement. (#57)</p></li>
-<li><p>Removed dependency on future. (#85)</p></li>
-</ul>
-</div>
-<div class="section" id="api-changes">
-<h2>API changes<a class="headerlink" href="#api-changes" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Removed the treecorr Angle, AngleUnit, and CelestialCoord classes, along
-with other related functions.  These have never been highly used in TreeCorr,
-and all such usage are now relegated to the LSSTDESC.Coord package.
-If you have been using any of these features, you should switch you code
-to using Coord instead. (#77)</p></li>
-<li><p>Added some attributes of the various Correlation objects to the output files
-to improve serialization – the ability to write to a file and then read back
-in that file and get back something equivalent.  For FITS output files, this
-change is non-intrusive.  But for ASCII files, it adds a comment line at the
-top with the relevant information.  Therefore, if you are reading from ASCII
-output files, you might need to slightly change your code to skip the first
-line.  (e.g. with np.genfromtxt(…, skip_header=1).)</p></li>
-<li><p>Changed the meaning of the Rperp metric to match the definition in Fisher
-et al, 1994.  This definition is probably closer to what people have expected
-the Rperp metric to mean, so this is likely an improvement for most use
-cases.  However, the difference between the two is not completely negligible
-for typical use cases, so we have preserved the previous functionality as
-metric=OldRperp.  If you care about preserving this, you should either
-change your code to use this metric name instead of Rperp, or set
-<code class="docutils literal notranslate"><span class="pre">treecorr.Rperp_alias</span> <span class="pre">=</span> <span class="pre">'OldRperp'</span></code> before using it. (#73)</p></li>
-<li><p>Updated the caching of the fields built for a given catalog to only cache
-one (the most recently built) field, rather than all fields built.  If you
-had been relying on multiple fields being cached, this could lead to a
-performance regression for you.  However, you can update the number of
-fields cached with catalog.resize_cache(n). (#53)</p></li>
-<li><p>Using bin_slop=0 no longer does the brute force calculation.  Rather, it
-stops traversing the tree when all pairs for a given pair of cells would
-fall into the same bin.  This distinction is normally not important, and
-the new behavior is merely a performance increase.  However, there is a
-numerical difference for shear correlations, as the shear projection is not
-exactly equivalent.  To obtain the brute force calculation, use the new
-<code class="docutils literal notranslate"><span class="pre">brute=True</span></code> option. (#82)</p></li>
-<li><p>Changed how the 3pt correlation v binning is specified.  Now, you should
-only specify the range and number of bins for positive v values. The negative
-v’s will also be accumulated over the same range of absolute values as the
-positive v’s. This should normally not be a hardship, since if you want to
-accumulate negative v’s, you probably want the same range as the positive
-v’s. But it enables you, for instance, to accumulate all flattened triangles
-with 0.8 &lt; abs(v) &lt; 1.0 in one pass rather than two. (#85)</p></li>
-<li><p>Changed the behavior of specifying min_sep, max_sep, and bin_size (omitting
-nbins) to respect max_sep and reduce bin_size slightly, rather than
-respect bin_size and increase max_sep.  This seems like the behavior that
-most people would expect for this combination. (#85)</p></li>
-<li><p>Changed the name of the variance attributes for shear-shear correlations
-to varxip and varxim, rather than just a single varxi.  For the current
-naive shot-noise-only estimate of the variance, they are equal, but we plan
-to have other variance estimates where they could differ.  So this change
-is preparing for future work that will need the difference.</p></li>
-<li><p>Changed the name of the variance attributes for shear-shear-shear correlations
-to vargam0, vargam1, vargam2, and vargam3, rather than just a single vargam.</p></li>
-<li><p>Changed the column names in GG and GGG output files for the sigma estimates
-to sigma_xip and sigma_xim for GG and sigma_gam0, sigma_gam1, sigma_gam2,
-and sigma_gam3 for GGG.</p></li>
-<li><p>Changed the column names in output files that used an upper case R (R_nom,
-meanR, and meanlogR) to use a lower case r (r_nom, meanr, meanlogr) to match
-the rest of the documentation.</p></li>
-<li><p>Removed support for python 2.6.  (Probably no one cares…)</p></li>
-<li><p>Removed deprecated aliases in the config processing.</p></li>
+<li><p>When writing an <a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNCorrelation</span></code></a> to a file, if <a class="reference internal" href="nn.html#treecorr.NNCorrelation.calculateXi" title="treecorr.NNCorrelation.calculateXi"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NNCorrelation.calculateXi</span></code></a> has
+already been called, then the calculated <code class="docutils literal notranslate"><span class="pre">xi</span></code> and <code class="docutils literal notranslate"><span class="pre">varxi</span></code> will be written
+to the output file, even if you don’t provide the random catalog to the
+<a class="reference internal" href="nn.html#treecorr.NNCorrelation.write" title="treecorr.NNCorrelation.write"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NNCorrelation.write</span></code></a> function.</p></li>
+<li><p>Similarly, if <a class="reference internal" href="ng.html#treecorr.NGCorrelation.calculateXi" title="treecorr.NGCorrelation.calculateXi"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NGCorrelation.calculateXi</span></code></a> or <a class="reference internal" href="nk.html#treecorr.NKCorrelation.calculateXi" title="treecorr.NKCorrelation.calculateXi"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NKCorrelation.calculateXi</span></code></a> has
+been called using a random catalog, then the <code class="docutils literal notranslate"><span class="pre">xi</span></code> and <code class="docutils literal notranslate"><span class="pre">varxi</span></code> columns in
+the output file will be the compensated statistics, rather than the raw ones.</p></li>
 </ul>
 </div>
 <div class="section" id="performance-improvements">
 <h2>Performance Improvements<a class="headerlink" href="#performance-improvements" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>Improved efficiency of runs that use bin_slop &lt; 1. (Especially &lt;&lt; 1). (#16)</p></li>
-<li><p>Reduced the memory required for the constructed trees slightly. (By 8 bytes
-per galaxy.) (#82)</p></li>
-<li><p>Updated the caching of the fields to allow for more flexibility about how
-many fields are cached for a given catalog.  The default is to cache 1 field,
-which is normally appropriate, but you can use catalog.resize_cache(n) to
-either increase this number or to tell it not to cache at all (n=0). (#53)</p></li>
-<li><p>Added a catalog.clear_cache() function, which lets you manually clear the
-cache to release the memory of the cached field(s). (#53)</p></li>
-<li><p>Improved both the speed and accuracy of the Rlens metric calculation. (#77)</p></li>
-<li><p>Improved both the speed and accuracy of 3pt correlation functions. (#85)</p></li>
+<li><p>Improved the speed of reading in FITS files, mostly by telling fitsio to read
+all of the columns at once rather than doing them one at a time.</p></li>
+<li><p>Delayed the loading of Catalogs from files until the data is actually needed.
+Specifically, if the full catalog is never needed, and only patches are used,
+then this allows for a much reduced memory footprint with a new <code class="docutils literal notranslate"><span class="pre">low_mem</span></code>
+option for <code class="docutils literal notranslate"><span class="pre">process</span></code> calls.</p></li>
+<li><p>Added OpenMP parallelization to the (ra,dec) -&gt; (x,y,z) calculation to speed
+up that step during Catalog loading.</p></li>
 </ul>
 </div>
 <div class="section" id="new-features">
 <h2>New features<a class="headerlink" href="#new-features" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>Added a new concept, called bin_type for all the Correlation objects.  There
-are currently three possible options for bin_type:</p>
-<ul>
-<li><p>‘Log’ is equivalent to the previous behavior of binning in log space.</p></li>
-<li><p>‘Linear’ bins linearly in r. (#5)</p></li>
-<li><p>‘TwoD’ bins linearly in x and y. (#70)</p></li>
-</ul>
-</li>
-<li><p>Added the ability to use min_rpar and max_rpar with the Arc metric. (#61)</p></li>
-<li><p>Added a different definition of Rperp, called FisherRperp, which follows
-the definition in Fisher et al, 1994.  This definition is both more standard
-and slightly faster to calculate.  We think this is the definition that most
-people expect when using Rperp, so we have changed Rperp to be an alias of
-FisherRperp.  The name OldRperp has been added to perserve the old meaning
-of Rperp in case that is important for any science use cases. (#73)</p></li>
-<li><p>Added better messaging when OpenMP is not found to work with the available
-clang compiler. (#75)</p></li>
-<li><p>Added new methods Field.count_near and Field.get_near, which return the
-number of or the indices of points in the field that are near a given
-other coordinate. (#44)</p></li>
-<li><p>Added new method BinnedCorr2.sample_pairs, which returns a random sampling
-of pairs within a given range of separations.  E.g. a sample of pairs that
-fell into a given bin of the correlation function. (#67)</p></li>
-<li><p>Added <code class="docutils literal notranslate"><span class="pre">brute</span></code> option for Correlation instances.  This is equivalent to the
-old behavior of <code class="docutils literal notranslate"><span class="pre">bin_slop=0</span></code>. (#82)</p></li>
-<li><p>Added ‘Periodic’ metric. (#56)</p></li>
-<li><p>Added <code class="docutils literal notranslate"><span class="pre">min_top</span></code> option for Fields. (#84)</p></li>
-<li><p>Added calculation of &lt;Map^3&gt; and related quantities. (#85)</p></li>
-<li><p>Added option to provide R values for MapSq and related statistics. (#85)</p></li>
-</ul>
-</div>
-<div class="section" id="bug-fixes">
-<h2>Bug fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Added tot attribute to the NN and NNN output files, which fixes an error
-where NNCorrelation and NNNCorrelation did not round trip correctly through
-a FITS output file.  Now the tot attribute is set properly when reading.</p></li>
-<li><p>Fixed the Catalog.copy() method, which wasn’t working properly.</p></li>
-<li><p>Fixed an error in the Schneider NMap calculation. (#77)</p></li>
-<li><p>Fixed a factor of 2 missing in the estimate of varxi. (#72)</p></li>
-</ul>
-</div>
-<div class="section" id="changes-from-version-4-0-0-to-4-0-1">
-<h2>Changes from version 4.0.0 to 4.0.1<a class="headerlink" href="#changes-from-version-4-0-0-to-4-0-1" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Fixed an error in the installation when the compiler is not recognized that
-would cause it to go into an infinite loop.</p></li>
-</ul>
-</div>
-<div class="section" id="changes-from-version-4-0-1-to-4-0-2">
-<h2>Changes from version 4.0.1 to 4.0.2<a class="headerlink" href="#changes-from-version-4-0-1-to-4-0-2" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Fixed an error in the bin_slop treatment for Linear binning when sep_units
-is not 1 (i.e. radians for angular separations).</p></li>
-</ul>
-</div>
-<div class="section" id="changes-from-version-4-0-2-to-4-0-3">
-<h2>Changes from version 4.0.2 to 4.0.3<a class="headerlink" href="#changes-from-version-4-0-2-to-4-0-3" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Fixed an error that could sometimes cause a seg fault for certain input data
-sets.</p></li>
-</ul>
-</div>
-<div class="section" id="changes-from-version-4-0-3-to-4-0-4">
-<h2>Changes from version 4.0.3 to 4.0.4<a class="headerlink" href="#changes-from-version-4-0-3-to-4-0-4" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Fixed an error in the treatment of rpar for Rperp and OldRperp metrics, where
-it was not letting rpar be negative when the object in cat1 is farther away
-than the object in cat2.  (I.e. when r1 &gt; r2, rpar should be &lt; 0.)
-[UPDATE: This fix didn’t actually take for some reason.  Now fixed in 4.0.6.]</p></li>
-</ul>
-</div>
-<div class="section" id="changes-from-version-4-0-4-to-4-0-5">
-<h2>Changes from version 4.0.4 to 4.0.5<a class="headerlink" href="#changes-from-version-4-0-4-to-4-0-5" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Fixed an error in the variance calculation, which had been NaN if any of the
-input g1,g2 or k (as appropriate) were NaN. (#90)</p></li>
-</ul>
-</div>
-<div class="section" id="changes-from-version-4-0-5-to-4-0-6">
-<h2>Changes from version 4.0.5 to 4.0.6<a class="headerlink" href="#changes-from-version-4-0-5-to-4-0-6" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Fixed an error in the treatment of rpar for Rperp and OldRperp metrics, where
-it was not letting rpar be negative when the object in cat1 is farther away
-than the object in cat2.  (I.e. when r1 &gt; r2, rpar should be &lt; 0.)
-[This was the fix that was supposed to have been active in 4.0.4.]</p></li>
-<li><p>Fixed a subtle bug in the wpos handling during Cell construction.</p></li>
-</ul>
-</div>
-<div class="section" id="changes-from-version-4-0-6-to-4-0-7">
-<h2>Changes from version 4.0.6 to 4.0.7<a class="headerlink" href="#changes-from-version-4-0-6-to-4-0-7" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Added -stdlib=libc++ flag for clang.</p></li>
-<li><p>Added support for some other varieties of OpenMP.</p></li>
-<li><p>Added support for using ccache when compiling.</p></li>
-</ul>
-</div>
-<div class="section" id="changes-from-version-4-0-7-to-4-0-8">
-<h2>Changes from version 4.0.7 to 4.0.8<a class="headerlink" href="#changes-from-version-4-0-7-to-4-0-8" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Fixed error in the check for whether ccache is available.</p></li>
-</ul>
-</div>
-<div class="section" id="changes-from-version-4-0-8-to-4-0-9">
-<h2>Changes from version 4.0.8 to 4.0.9<a class="headerlink" href="#changes-from-version-4-0-8-to-4-0-9" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Fixed error in code to build tree when some weights are &lt; 0. (#95)</p></li>
-</ul>
-</div>
-<div class="section" id="changes-from-version-4-0-9-to-4-0-10">
-<h2>Changes from version 4.0.9 to 4.0.10<a class="headerlink" href="#changes-from-version-4-0-9-to-4-0-10" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Fixed another error when some weights are &lt; 0 for spherical coordinates.</p></li>
+<li><p>Added <a class="reference internal" href="field.html#treecorr.Field.run_kmeans" title="treecorr.Field.run_kmeans"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Field.run_kmeans</span></code></a> to run K-Means algorithm on a Field to determine a
+good set of patches to use.  This will be run automatically simply by setting
+<code class="docutils literal notranslate"><span class="pre">npatch</span></code> when building a <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a>.</p></li>
+<li><p>Added ability input patch numbers from input file or input arrays using
+<code class="docutils literal notranslate"><span class="pre">patch_col</span></code> or <code class="docutils literal notranslate"><span class="pre">patch</span></code> respectively.</p></li>
+<li><p>Added ability to write patch centers to a file with <a class="reference internal" href="catalog.html#treecorr.Catalog.write_patch_centers" title="treecorr.Catalog.write_patch_centers"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Catalog.write_patch_centers</span></code></a>.</p></li>
+<li><p>Added ability to define patch numbers from patch centers (either a file or
+the <code class="docutils literal notranslate"><span class="pre">patch_centers</span></code> attribute of another Catalog).</p></li>
+<li><p>Added the ability to compute jackknife, sample, bootstrap, and marked bootstrap
+variance and covariance estimates by dividing the full calculation into
+correlations across patches.  Set <code class="docutils literal notranslate"><span class="pre">var_method</span></code> in the Correlation class or
+use the <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2.estimate_cov" title="treecorr.BinnedCorr2.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr2.estimate_cov</span></code></a> method.</p></li>
+<li><p>Added <a class="reference internal" href="correlation2.html#treecorr.estimate_multi_cov" title="treecorr.estimate_multi_cov"><code class="xref any py py-func docutils literal notranslate"><span class="pre">estimate_multi_cov</span></code></a> function, which will the compute covariance
+matrix across multiple statistics that have been run using the same set of patches.</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">every_nth</span></code> option for Catalogs to read in a fraction of the rows.</p></li>
+<li><p>After calling <a class="reference internal" href="nn.html#treecorr.NNCorrelation.calculateXi" title="treecorr.NNCorrelation.calculateXi"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NNCorrelation.calculateXi</span></code></a>, the calculated <code class="docutils literal notranslate"><span class="pre">xi</span></code>, <code class="docutils literal notranslate"><span class="pre">varxi</span></code> and
+<code class="docutils literal notranslate"><span class="pre">cov</span></code> are available as attributes.</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">keep_zero_weight</span></code> option to include wpos=0 objects in the total npairs
+if you want.  The default is to throw out wpos=0 objects at the start, but there
+may be reasons to keep them, so that’s now an option when building the Catalog.</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">allow_xyz</span></code> option to allow x,y,z columns be provided along with ra,dec
+columns.  Normally this is not allowed, but if you know they are consistent,
+then this option allows them to be input directly to avoid recalculating them.</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">low_mem</span></code> option to <code class="docutils literal notranslate"><span class="pre">process</span></code> calls to unload patches that aren’t being
+used, thus saving memory at the expense of some extra I/O time.</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">save_patch_dir</span></code> as an optional location to write patch catalogs for increased
+efficiency when using <code class="docutils literal notranslate"><span class="pre">low_mem</span></code> option.</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">comm</span></code> option to <code class="docutils literal notranslate"><span class="pre">process</span></code> calls to use MPI to split a job up over
+multiple machines.</p></li>
 </ul>
 </div>
 </div>

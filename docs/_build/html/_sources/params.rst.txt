@@ -32,19 +32,19 @@ Parameters about the input file(s)
     The file(s) to use for the second field for a cross-correlation.
 
     If you want to cross-correlate one file (or set of files) with another, then
-    **file_name2** is used to specify the second thing being correlated.  e.g.
-    for galaxy-galaxy lensing, **file_name** should be the catalog of lenses, and
-    **file_name2** should be the catalog of source shear values.
+    ``file_name2`` is used to specify the second thing being correlated.  e.g.
+    for galaxy-galaxy lensing, ``file_name`` should be the catalog of lenses, and
+    ``file_name2`` should be the catalog of source shear values.
 
 :file_name3: (str or list)
     The file(s) to use for the third field for a three-point cross-correlation.
 
 :rand_file_name: (str or list)
-    If necessary, a list of random files with the same masking as the **file_name** catalog.
+    If necessary, a list of random files with the same masking as the ``file_name`` catalog.
 :rand_file_name2: (str or list)
-    If necessary, a list of random files with the same masking as the **file_name2** catalog.
+    If necessary, a list of random files with the same masking as the ``file_name2`` catalog.
 :rand_file_name3: (str or list)
-    If necessary, a list of random files with the same masking as the **file_name3** catalog.
+    If necessary, a list of random files with the same masking as the ``file_name3`` catalog.
 
     When doing NN and NNN correlations, you need to account for masks and variable
     depth by providing a file or list of files that correspond to a uniform-
@@ -52,21 +52,21 @@ Parameters about the input file(s)
     details.  For cross-correlations, you need to provide both of the above
     values to separately calibrate the first and second fields.
 
-    **rand_file_name** may also be used for NG and NK correlations, but it is not
+    ``rand_file_name`` may also be used for NG and NK correlations, but it is not
     required in those cases.
 
-:file_list: (str) A text file with file names in lieu of **file_name**.
-:file_list2: (str) A text file with file names in lieu of **file_name2**.
-:file_list3: (str) A text file with file names in lieu of **file_name3**.
-:rand_file_list: (str) A text file with file names in lieu of **rand_file_name**.
-:rand_file_list2: (str) A text file with file names in lieu of **rand_file_name2**.
-:rand_file_list3: (str) A text file with file names in lieu of **rand_file_name3**.
+:file_list: (str) A text file with file names in lieu of ``file_name``.
+:file_list2: (str) A text file with file names in lieu of ``file_name2``.
+:file_list3: (str) A text file with file names in lieu of ``file_name3``.
+:rand_file_list: (str) A text file with file names in lieu of ``rand_file_name``.
+:rand_file_list2: (str) A text file with file names in lieu of ``rand_file_name2``.
+:rand_file_list3: (str) A text file with file names in lieu of ``rand_file_name3``.
 
     If you have a list of file names, it may be cumbersome to list them all
-    in the **file_name** (etc) parameter.  It may be easier to do something like
-    ``ls *.cat > catlist`` and then use **file_list=catlist** as the list of
-    file names to use.  Of course, it is an error to specify both **file_list**
-    and **file_name** (or any of the other corresponding pairs).
+    in the ``file_name`` (etc) parameter.  It may be easier to do something like
+    ``ls *.cat > catlist`` and then use ``file_list=catlist`` as the list of
+    file names to use.  Of course, it is an error to specify both ``file_list``
+    and ``file_name`` (or any of the other corresponding pairs).
 
 :file_type: (ASCII or FITS) The file type of the input files.
 :delimiter: (str, default = '\0') The delimeter between input values in an ASCII catalog.
@@ -74,7 +74,7 @@ Parameters about the input file(s)
 
     The default file type is normally ASCII.  However, if the file name
     includes ".fit" in it, then a fits binary table is assumed.
-    You can override this behavior using **file_type**.
+    You can override this behavior using ``file_type``.
 
     Furthermore, you may specify a delimiter for ASCII catalogs if desired.
     e.g. delimiter=',' for a comma-separated value file.  Similarly,
@@ -89,11 +89,13 @@ Parameters about the input file(s)
 
 :first_row: (int, default=1)
 :last_row: (int, default=-1)
+:every_nth: (int, default=1)
 
     You can optionally not use all the rows in the input file.
-    You may specify **first_row**, **last_row**, or both to limit the rows being used.
-    The rows are numbered starting with 1.  If **last_row** is not positive, it
-    means to use all the rows (starting with **first_row**).
+    You may specify ``first_row``, ``last_row``, or both to limit the rows being used.
+    The rows are numbered starting with 1.  If ``last_row`` is not positive, it
+    means to use to the end of the file.  If ``every_nth`` is set, it will skip
+    rows, selecting only 1 out of every n rows.
 
 :x_col: (int/str) Which column to use for x.
 :y_col: (int/str) Which column to use for y.
@@ -127,14 +129,14 @@ Parameters about the input file(s)
     between objects will be the 3-D Euclidean distance, so you should define
     your r values appropriately, given whatever cosmology you are assuming.
 
-    **r_col** is invalid in conjunction with **x_col**, **y_col**.
+    ``r_col`` is invalid in conjunction with ``x_col``, ``y_col``.
 
 :z_col: (int/str) Which column to use for z.
 
     Rather than specifying 3-D coordinates as (ra, dec, r), you may instead
     specify them as (x, y, z).
 
-    **z_col** is invalid in conjunction with **ra_col**, **dec_col**.
+    ``z_col`` is invalid in conjunction with ``ra_col``, ``dec_col``.
 
 :g1_col: (int/str) Which column to use for g1.
 :g2_col: (int/str) Which column to use for g2.
@@ -152,7 +154,12 @@ Parameters about the input file(s)
     nominally the lensing convergence, it could really be any scalar quantity,
     like temperature, size, etc.
 
+:patch_col: (int/str) Which column to use for patch.
+
+    Use precalculated patch numbers to split the catalog into patches.
+
 :w_col: (int/str) Which column to use for the weight (if any).
+:wpos_col: (int/str) Which column to use for the position weight (if any).
 
     The weight column is optional. If omitted, all weights are taken to be 1.
 
@@ -163,44 +170,50 @@ Parameters about the input file(s)
     The code can be set to ignore objects with a particular flag value if desired.
     Some codes output a flag along with the shear value.  Typically any flag != 0
     should be ignored, but you can optionally have the code ignore only particular
-    flags, treating the flag value as a bit mask.  If **ignore_flag** is set to
+    flags, treating the flag value as a bit mask.  If ``ignore_flag`` is set to
     something, then objects with ``(flag & ignore_flag != 0)`` will be ignored.
-    If **ok_flag** is set, then objects with ``(flag & ~ok_flag != 0)`` will be ignored.
+    If ``ok_flag`` is set, then objects with ``(flag & ~ok_flag != 0)`` will be ignored.
     The default is equivalent to ``ok_flag = 0``, which ignores any flag != 0.
 
+:x_hdu: (int) Which HDU to use for the ``x_col``.
+:y_hdu: (int) Which HDU to use for the ``y_col``.
+:z_hdu: (int) Which HDU to use for the ``z_col``.
+:ra_hdu: (int) Which HDU to use for the ``ra_col``.
+:dec_hdu: (int) Which HDU to use for the ``dec_col``.
+:r_hdu: (int) Which HDU to use for the ``r_col``.
+:g1_hdu: (int) Which HDU to use for the ``g1_col``.
+:g2_hdu: (int) Which HDU to use for the ``g2_col``.
+:k_hdu: (int) Which HDU to use for the ``k_col``.
+:patch_hdu: (int) Which HDU to use for the ``patch_col``.
+:w_hdu: (int) Which HDU to use for the ``w_col``.
+:wpos_hdu: (int) Which HDU to use for the ``wpos_col``.
+:flag_hdu: (int) Which HDU to use for the ``flag_col``.
+
+    If you want to use an HDU other than the first one, normally you would
+    specify which fits extension to use with the ``hdu`` parameter.  However, if
+    different columns need to come from different HDUs, then you can override
+    the default (given by ``hdu`` or 1 if there is no ``hdu`` parameter) for each
+    column separately.
+
+:allow_xyz: (bool, default=False)
+
+    Whether to allow x,y,z columns in conjunction with ra, dec.
+    
 :flip_g1: (bool, default=False) Whether to flip the sign of g1.
 :flip_g2: (bool, default=False) Whether to flip the sign of g2.
 
     Sometimes there are issues with the sign conventions of gamma.  If you
-    need to flip the sign of g1 or g2, you may do that with **flip_g1** or **flip_g2**
+    need to flip the sign of g1 or g2, you may do that with ``flip_g1`` or ``flip_g2``
     (or both).
-
-:x_hdu: (int) Which HDU to use for the **x_col**.
-:y_hdu: (int) Which HDU to use for the **y_col**.
-:z_hdu: (int) Which HDU to use for the **z_col**.
-:ra_hdu: (int) Which HDU to use for the **ra_col**.
-:dec_hdu: (int) Which HDU to use for the **dec_col**.
-:r_hdu: (int) Which HDU to use for the **r_col**.
-:g1_hdu: (int) Which HDU to use for the **g1_col**.
-:g2_hdu: (int) Which HDU to use for the **g2_col**.
-:k_hdu: (int) Which HDU to use for the **k_col**.
-:w_hdu: (int) Which HDU to use for the **w_col**.
-:flag_hdu: (int) Which HDU to use for the **flag_col**.
-
-    If you want to use an HDU other than the first one, normally you would
-    specify which fits extension to use with the **hdu** parameter.  However, if
-    different columns need to come from different HDUs, then you can override
-    the default (given by **hdu** or 1 if there is no **hdu** parameter) for each
-    column separately.
 
 
 Notes about the above parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - If you are cross-correlating two files with different formats, you may
-  set any of the above items from **file_type** to **flip_g2** as a two element
+  set any of the above items from ``file_type`` to ``flip_g2`` as a two element
   list (i.e. two values separated by a space).  In this case, the first
-  item refers to the file(s) in **file_name**, and the second item refers
+  item refers to the file(s) in ``file_name``, and the second item refers
   to the file(s) in files_name2.
 
 - You may not mix (x,y) columns with (ra,dec) columns, since its meaning
@@ -233,12 +246,12 @@ Parameters about the binned correlation function to be calculated
     of the other three.
 
     See `Binning` for details about how these parameters are used for the
-    different choice of **bin_type**.
+    different choice of ``bin_type``.
 
-:sep_units: (str, default=None) The units to use for **min_sep** and **max_sep**.
+:sep_units: (str, default=None) The units to use for ``min_sep`` and ``max_sep``.
 
-    **sep_units** is also the units of R in the output file.  For ra, dec values,
-    you should always specify **sep_units** explicitly to indicate what angular
+    ``sep_units`` is also the units of R in the output file.  For ra, dec values,
+    you should always specify ``sep_units`` explicitly to indicate what angular
     units you want to use for the separations.  But if your catalogs use x,y,
     or if you specify 3-d correlations with r, then the output separations are
     in the same units as the input positions.
@@ -251,11 +264,11 @@ Parameters about the binned correlation function to be calculated
     distance pairs for the two nodes have a spread in distance that is less than the
     bin size.  i.e. the error in the tree traversal is less than the uncertainty
     induced by just binning the results into a histogram.  This factor can be changed
-    by the parameter **bin_slop**.  It is probably best to keep it at 1, but if you want to
+    by the parameter ``bin_slop``.  It is probably best to keep it at 1, but if you want to
     make the code more conservative, you can decrease it, in which case the error
     from using the tree nodes will be less than the error in the histogram binning.
     (In practice, if you are going to do this, you are probably better off just
-    decreasing the **bin_size** instead and leaving ``bin_slop=1``.)
+    decreasing the ``bin_size`` instead and leaving ``bin_slop=1``.)
 
     See `bin_slop` for more discussion about this parameter.
 
@@ -263,8 +276,8 @@ Parameters about the binned correlation function to be calculated
     tree traversal always goes to the leaf cells.
 
     In addition to True or False, whose meanings are obvious, you may also set
-    **brute** to 1 or 2, which means to go to the leaves for cat1 or cat2, respectively,
-    but stop traversing the other catalog according to the normal **bin_slop** criterion.
+    ``brute`` to 1 or 2, which means to go to the leaves for cat1 or cat2, respectively,
+    but stop traversing the other catalog according to the normal ``bin_slop`` criterion.
 
     See `brute` for more discussion about this parameter.
 
@@ -332,14 +345,14 @@ about the output columns.
 
     The output columns are:
 
-    - **R_nom** = The center of the bin
-    - **meanR** = The mean separation of the points that went into the bin.
-    - **meanlogR** = The mean log(R) of the points that went into the bin.
-    - **xi** = The correlation function.
-    - **sigma_xi** = The 1-sigma error bar for xi.
-    - **DD**, **RR** = The raw numbers of pairs for the data and randoms
-    - **DR** (if ``nn_statistic=compensated``) = The cross terms between data and random.
-    - **RD** (if ``nn_statistic=compensated`` cross-correlation) = The cross term between random and data, which for a cross-correlation is not equivalent to **DR**.
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``xi`` = The correlation function.
+    - ``sigma_xi`` = The 1-sigma error bar for xi.
+    - ``DD``, ``RR`` = The raw numbers of pairs for the data and randoms
+    - ``DR`` (if ``nn_statistic=compensated``) = The cross terms between data and random.
+    - ``RD`` (if ``nn_statistic=compensated`` cross-correlation) = The cross term between random and data, which for a cross-correlation is not equivalent to ``DR``.
 
 :nn_statistic: (str, default='compensated') Which statistic to use for xi as the estimator of the NN correlation function.
 
@@ -355,16 +368,16 @@ about the output columns.
 
     The output columns are:
 
-    - **R_nom** = The center of the bin
-    - **meanR** = The mean separation of the points that went into the bin.
-    - **meanlogR** = The mean log(R) of the points that went into the bin.
-    - **gamT** = The mean tangential shear with respect to the point in question.
-    - **gamX** = The shear component 45 degrees from the tangential direction.
-    - **sigma** = The 1-sigma error bar for **gamT** and **gamX**.
-    - **weight** = The total weight of the pairs in each bin.
-    - **npairs** = The total number of pairs in each bin.
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``gamT`` = The mean tangential shear with respect to the point in question.
+    - ``gamX`` = The shear component 45 degrees from the tangential direction.
+    - ``sigma`` = The 1-sigma error bar for ``gamT`` and ``gamX``.
+    - ``weight`` = The total weight of the pairs in each bin.
+    - ``npairs`` = The total number of pairs in each bin.
 
-:ng_statistic: (str, default='compensated' if **rand_files** is given, otherwise 'simple') Which statistic to use for the mean shear as the estimator of the NG correlation function.
+:ng_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the mean shear as the estimator of the NG correlation function.
 
     Options are:
 
@@ -384,12 +397,12 @@ about the output columns.
 
     The output columns are:
 
-    - **R_nom** = The center of the bin
-    - **meanR** = The mean separation of the points that went into the bin.
-    - **meanlogR** = The mean log(R) of the points that went into the bin.
-    - **xip** = <g1 g1 + g2 g2> where g1 and g2 are measured with respect to the line joining the two galaxies.
-    - **xim** = <g1 g1 - g2 g2> where g1 and g2 are measured with respect to the line joining the two galaxies.
-    - **xip_im** = <g2 g1 - g1 g2>.
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``xip`` = <g1 g1 + g2 g2> where g1 and g2 are measured with respect to the line joining the two galaxies.
+    - ``xim`` = <g1 g1 - g2 g2> where g1 and g2 are measured with respect to the line joining the two galaxies.
+    - ``xip_im`` = <g2 g1 - g1 g2>.
 
         In the formulation of xi+ using complex numbers, this is the imaginary component.
         It should normally be consistent with zero, especially for an
@@ -397,16 +410,16 @@ about the output columns.
         get each galaxy in both positions, then this would come out
         exactly zero.
 
-    - **xim_im** = <g2 g1 + g1 g2>.
+    - ``xim_im`` = <g2 g1 + g1 g2>.
 
         In the formulation of xi- using complex
         numbers, this is the imaginary component.
         It should be consistent with zero for parity invariant shear
         fields.
 
-    - **sigma_xi** = The 1-sigma error bar for xi+ and xi-.
-    - **weight** = The total weight of the pairs in each bin.
-    - **npairs** = The total number of pairs in each bin.
+    - ``sigma_xi`` = The 1-sigma error bar for xi+ and xi-.
+    - ``weight`` = The total weight of the pairs in each bin.
+    - ``npairs`` = The total number of pairs in each bin.
 
 :nk_file_name: (str) The output filename for count-kappa correlation function.
 
@@ -415,15 +428,15 @@ about the output columns.
 
     The output columns are:
 
-    - **R_nom** = The center of the bin
-    - **meanR** = The mean separation of the points that went into the bin.
-    - **meanlogR** = The mean log(R) of the points that went into the bin.
-    - **kappa** = The mean kappa this distance from the foreground points.
-    - **sigma** = The 1-sigma error bar for <kappa>.
-    - **weight** = The total weight of the pairs in each bin.
-    - **npairs** = The total number of pairs in each bin.
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``kappa`` = The mean kappa this distance from the foreground points.
+    - ``sigma`` = The 1-sigma error bar for <kappa>.
+    - ``weight`` = The total weight of the pairs in each bin.
+    - ``npairs`` = The total number of pairs in each bin.
 
-:nk_statistic: (str, default='compensated' if **rand_files** is given, otherwise 'simple') Which statistic to use for the mean shear as the estimator of the NK correlation function.
+:nk_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the mean shear as the estimator of the NK correlation function.
 
     Options are:
 
@@ -434,8 +447,8 @@ about the output columns.
       - RK = Sum(kappa around random points), scaled to be equivalent in effective number as the number of pairs in NK.
       - npairs = number of pairs in NK.
 
-      Then this statistic is **<kappa>** = (NK-RK)/npairs
-    - 'simple' is the normal version: **<kappa>** = NK/npairs
+      Then this statistic is ``<kappa>`` = (NK-RK)/npairs
+    - 'simple' is the normal version: ``<kappa>`` = NK/npairs
 
 :kk_file_name: (str) The output filename for kappa-kappa correlation function.
 
@@ -444,13 +457,13 @@ about the output columns.
 
     The output columns are:
 
-    - **R_nom** = The center of the bin
-    - **meanR** = The mean separation of the points that went into the bin.
-    - **meanlogR** = The mean log(R) of the points that went into the bin.
-    - **xi** = The correlation function <k k>
-    - **sigma_xi** = The 1-sigma error bar for xi.
-    - **weight** = The total weight of the pairs in each bin.
-    - **npairs** = The total number of pairs in each bin.
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``xi`` = The correlation function <k k>
+    - ``sigma_xi`` = The 1-sigma error bar for xi.
+    - ``weight`` = The total weight of the pairs in each bin.
+    - ``npairs`` = The total number of pairs in each bin.
 
 :kg_file_name: (str) The output filename for kappa-shear correlation function.
 
@@ -460,14 +473,14 @@ about the output columns.
 
     The output columns are:
 
-    - **R_nom** = The center of the bin
-    - **meanR** = The mean separation of the points that went into the bin.
-    - **meanlogR** = The mean log(R) of the points that went into the bin.
-    - **kgamT** = The kappa-weighted mean tangential shear.
-    - **kgamX** = The kappa-weighted shear component 45 degrees from the tangential direction.
-    - **sigma** = The 1-sigma error bar for **kgamT** and **kgamX**.
-    - **weight** = The total weight of the pairs in each bin.
-    - **npairs** = The total number of pairs in each bin.
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``kgamT`` = The kappa-weighted mean tangential shear.
+    - ``kgamX`` = The kappa-weighted shear component 45 degrees from the tangential direction.
+    - ``sigma`` = The 1-sigma error bar for ``kgamT`` and ``kgamX``.
+    - ``weight`` = The total weight of the pairs in each bin.
+    - ``npairs`` = The total number of pairs in each bin.
 
 :nnn_file_name: (str) The output filename for count-count-count correlation function.
 
@@ -475,19 +488,19 @@ about the output columns.
 
     The output columns are:
 
-    - **R_nom** = The center of the bin in R = d2 where d1 > d2 > d3
-    - **u_nom** = The center of the bin in u = d3/d2
-    - **v_nom** = The center of the bin in v = +-(d1-d2)/d3
-    - **meand1** = The mean value of d1 for the triangles in each bin
-    - **meanlogd1** = The mean value of log(d1) for the triangles in each bin
-    - **meand2** = The mean value of d2 for the triangles in each bin
-    - **meanlogd2** = The mean value of log(d2) for the triangles in each bin
-    - **meand3** = The mean value of d3 for the triangles in each bin
-    - **meanlogd3** = The mean value of log(d3) for the triangles in each bin
-    - **zeta** = The correlation function.
-    - **sigma_zeta** = The 1-sigma error bar for zeta.
-    - **DDD**, **RRR** = The raw numbers of triangles for the data and randoms
-    - **DDR**, **DRD**, **RDD**, **DRR**, **RDR**, **RRD** (if ``nn_statistic=compensated``) = The cross terms between data and random.
+    - ``R_nom`` = The center of the bin in R = d2 where d1 > d2 > d3
+    - ``u_nom`` = The center of the bin in u = d3/d2
+    - ``v_nom`` = The center of the bin in v = +-(d1-d2)/d3
+    - ``meand1`` = The mean value of d1 for the triangles in each bin
+    - ``meanlogd1`` = The mean value of log(d1) for the triangles in each bin
+    - ``meand2`` = The mean value of d2 for the triangles in each bin
+    - ``meanlogd2`` = The mean value of log(d2) for the triangles in each bin
+    - ``meand3`` = The mean value of d3 for the triangles in each bin
+    - ``meanlogd3`` = The mean value of log(d3) for the triangles in each bin
+    - ``zeta`` = The correlation function.
+    - ``sigma_zeta`` = The 1-sigma error bar for zeta.
+    - ``DDD``, ``RRR`` = The raw numbers of triangles for the data and randoms
+    - ``DDR``, ``DRD``, ``RDD``, ``DRR``, ``RDR``, ``RRD`` (if ``nn_statistic=compensated``) = The cross terms between data and random.
 
 :nnn_statistic: (str, default='compensated') Which statistic to use for xi as the estimator of the NNN correlation function.
 
@@ -507,26 +520,26 @@ about the output columns.
 
     The output columns are:
 
-    - **R_nom** = The center of the bin in R = d2 where d1 > d2 > d3
-    - **u_nom** = The center of the bin in u = d3/d2
-    - **v_nom** = The center of the bin in v = +-(d1-d2)/d3
-    - **meand1** = The mean value of d1 for the triangles in each bin
-    - **meanlogd1** = The mean value of log(d1) for the triangles in each bin
-    - **meand2** = The mean value of d2 for the triangles in each bin
-    - **meanlogd2** = The mean value of log(d2) for the triangles in each bin
-    - **meand3** = The mean value of d3 for the triangles in each bin
-    - **meanlogd3** = The mean value of log(d3) for the triangles in each bin
-    - **gam0r** = The real part of Gamma_0.
-    - **gam0i** = The imag part of Gamma_0.
-    - **gam1r** = The real part of Gamma_1.
-    - **gam1i** = The imag part of Gamma_1.
-    - **gam2r** = The real part of Gamma_2.
-    - **gam2i** = The imag part of Gamma_2.
-    - **gam3r** = The real part of Gamma_3.
-    - **gam3i** = The imag part of Gamma_3.
-    - **sigma_gam** = The 1-sigma error bar for the Gamma values.
-    - **weight** = The total weight of the triangles in each bin.
-    - **ntri** = The total number of triangles in each bin.
+    - ``R_nom`` = The center of the bin in R = d2 where d1 > d2 > d3
+    - ``u_nom`` = The center of the bin in u = d3/d2
+    - ``v_nom`` = The center of the bin in v = +-(d1-d2)/d3
+    - ``meand1`` = The mean value of d1 for the triangles in each bin
+    - ``meanlogd1`` = The mean value of log(d1) for the triangles in each bin
+    - ``meand2`` = The mean value of d2 for the triangles in each bin
+    - ``meanlogd2`` = The mean value of log(d2) for the triangles in each bin
+    - ``meand3`` = The mean value of d3 for the triangles in each bin
+    - ``meanlogd3`` = The mean value of log(d3) for the triangles in each bin
+    - ``gam0r`` = The real part of Gamma_0.
+    - ``gam0i`` = The imag part of Gamma_0.
+    - ``gam1r`` = The real part of Gamma_1.
+    - ``gam1i`` = The imag part of Gamma_1.
+    - ``gam2r`` = The real part of Gamma_2.
+    - ``gam2i`` = The imag part of Gamma_2.
+    - ``gam3r`` = The real part of Gamma_3.
+    - ``gam3i`` = The imag part of Gamma_3.
+    - ``sigma_gam`` = The 1-sigma error bar for the Gamma values.
+    - ``weight`` = The total weight of the triangles in each bin.
+    - ``ntri`` = The total number of triangles in each bin.
 
 :kkk_file_name: (str) The output filename for kappa-kappa-kappa correlation function.
 
@@ -534,19 +547,19 @@ about the output columns.
 
     The output columns are:
 
-    - **R_nom** = The center of the bin in R = d2 where d1 > d2 > d3
-    - **u_nom** = The center of the bin in u = d3/d2
-    - **v_nom** = The center of the bin in v = +-(d1-d2)/d3
-    - **meand1** = The mean value of d1 for the triangles in each bin
-    - **meanlogd1** = The mean value of log(d1) for the triangles in each bin
-    - **meand2** = The mean value of d2 for the triangles in each bin
-    - **meanlogd2** = The mean value of log(d2) for the triangles in each bin
-    - **meand3** = The mean value of d3 for the triangles in each bin
-    - **meanlogd3** = The mean value of log(d3) for the triangles in each bin
-    - **zeta** = The correlation function.
-    - **sigma_zeta** = The 1-sigma error bar for zeta.
-    - **weight** = The total weight of the triangles in each bin.
-    - **ntri** = The total number of triangles in each bin.
+    - ``R_nom`` = The center of the bin in R = d2 where d1 > d2 > d3
+    - ``u_nom`` = The center of the bin in u = d3/d2
+    - ``v_nom`` = The center of the bin in v = +-(d1-d2)/d3
+    - ``meand1`` = The mean value of d1 for the triangles in each bin
+    - ``meanlogd1`` = The mean value of log(d1) for the triangles in each bin
+    - ``meand2`` = The mean value of d2 for the triangles in each bin
+    - ``meanlogd2`` = The mean value of log(d2) for the triangles in each bin
+    - ``meand3`` = The mean value of d3 for the triangles in each bin
+    - ``meanlogd3`` = The mean value of log(d3) for the triangles in each bin
+    - ``zeta`` = The correlation function.
+    - ``sigma_zeta`` = The 1-sigma error bar for zeta.
+    - ``weight`` = The total weight of the triangles in each bin.
+    - ``ntri`` = The total number of triangles in each bin.
 
 :precision: (int) The number of digits after the decimal in the output.
 
@@ -569,13 +582,13 @@ functions.
 
     The output columns are:
 
-    - **R** = The radius of the aperture.  (Spaced the same way as  **R_nom** is in the correlation function output files.
-    - **Mapsq** = The E-mode aperture mass variance for each radius R.
-    - **Mxsq** = The B-mode aperture mass variance.
-    - **MMxa**, **MMxb** = Two semi-independent estimate for the E-B cross term.  (Both should be consistent with zero for parity invariance shear fields.)
-    - **sig_map** = The 1-sigma error bar for these values.
-    - **Gamsq** = The variance of the top-hat weighted mean shear in apertures of the given radius R.
-    - **sig_gam** = The 1-sigma error bar for **Gamsq**.
+    - ``R`` = The radius of the aperture.  (Spaced the same way as  ``R_nom`` is in the correlation function output files.
+    - ``Mapsq`` = The E-mode aperture mass variance for each radius R.
+    - ``Mxsq`` = The B-mode aperture mass variance.
+    - ``MMxa``, ``MMxb`` = Two semi-independent estimate for the E-B cross term.  (Both should be consistent with zero for parity invariance shear fields.)
+    - ``sig_map`` = The 1-sigma error bar for these values.
+    - ``Gamsq`` = The variance of the top-hat weighted mean shear in apertures of the given radius R.
+    - ``sig_gam`` = The 1-sigma error bar for ``Gamsq``.
 
 :m2_uform: (str, default='Crittenden') The function form of the aperture
 
@@ -593,7 +606,7 @@ functions.
     has a closed form solution in terms of the 3-point function for the
     Crittenden form, but no such formula is known for the Schneider form.
 
-    The **m2_uform** parameter allows you to switch between the two forms,
+    The ``m2_uform`` parameter allows you to switch between the two forms,
     at least for 2-point applications.  (You will get an error if you
     try to use 'Schneider' with the m3 output.)
 
@@ -605,10 +618,10 @@ functions.
 
     The output columns are:
 
-    - **R** = The radius of the aperture.  (Spaced the same way as  **R_nom** is in the correlation function output files.
-    - **NMap** = The E-mode aperture mass correlated with the density smoothed with the same aperture profile as the aperture mass statistic uses.
-    - **NMx** = The corresponding B-mode statistic.
-    - **sig_nmap** = The 1-sigma error bar for these values.
+    - ``R`` = The radius of the aperture.  (Spaced the same way as  ``R_nom`` is in the correlation function output files.
+    - ``NMap`` = The E-mode aperture mass correlated with the density smoothed with the same aperture profile as the aperture mass statistic uses.
+    - ``NMx`` = The corresponding B-mode statistic.
+    - ``sig_nmap`` = The 1-sigma error bar for these values.
 
 :norm_file_name: (str) The output filename for <Nap Map>^2/<Nap^2><Map^2> and related values.
 
@@ -617,18 +630,18 @@ functions.
 
     The output columns are:
 
-    - **R** = The radius of the aperture.  (Spaced the same way as  **R_nom** is in the correlation function output files.
-    - **NMap** = The E-mode aperture mass correlated with the density smoothed with the same aperture profile as the aperture mass statistic uses.
-    - **NMx** = The corresponding B-mode statistic.
-    - **sig_nmap** = The 1-sigma error bar for these values.
-    - **Napsq** = The variance of the aperture-weighted galaxy density.
-    - **sig_napsq** = The 1-sigma error bar for <Nap^2>.
-    - **Mapsq** = The aperture mass variance.
-    - **sig_mapsq** = The 1-sigma error bar for <Map^2>.
-    - **NMap_norm** = <Nap Map>^2 / (<Nap^2> <Map^2>)
-    - **sig_norm** = The 1-sigma error bar for this value.
-    - **Nsq_Mapsq** = <Nap^2> / <Map^2>
-    - **sig_nn_mm** = The 1-sigma error bar for this value.
+    - ``R`` = The radius of the aperture.  (Spaced the same way as  ``R_nom`` is in the correlation function output files.
+    - ``NMap`` = The E-mode aperture mass correlated with the density smoothed with the same aperture profile as the aperture mass statistic uses.
+    - ``NMx`` = The corresponding B-mode statistic.
+    - ``sig_nmap`` = The 1-sigma error bar for these values.
+    - ``Napsq`` = The variance of the aperture-weighted galaxy density.
+    - ``sig_napsq`` = The 1-sigma error bar for <Nap^2>.
+    - ``Mapsq`` = The aperture mass variance.
+    - ``sig_mapsq`` = The 1-sigma error bar for <Map^2>.
+    - ``NMap_norm`` = <Nap Map>^2 / (<Nap^2> <Map^2>)
+    - ``sig_norm`` = The 1-sigma error bar for this value.
+    - ``Nsq_Mapsq`` = <Nap^2> / <Map^2>
+    - ``sig_nn_mm`` = The 1-sigma error bar for this value.
 
 
 Miscellaneous parameters
@@ -649,7 +662,7 @@ Miscellaneous parameters
     write them to a file instead.  With the `corr2` executable, this can also be
     specified with the ``-l`` command line argument.
 
-:output_dots: (bool, default=(**verbose**>=2)) Whether to output progress dots during the
+:output_dots: (bool, default=(``verbose``>=2)) Whether to output progress dots during the
     calculation of the correlation function.
 
 :split_method: (str, default='mean') Which method to use for splitting cells.
@@ -658,12 +671,12 @@ Miscellaneous parameters
     of points into two chld cells.  The direction is always taken to be the
     coordinate direction with the largest extent.  Then, in that direction,
     you can split at the mean value, the median value, or the "middle" =
-    (xmin+xmax)/2.  To select among these, **split_method** may be given as
+    (xmin+xmax)/2.  To select among these, ``split_method`` may be given as
     "mean", "median", or "middle" respectively.
 
     In addition, sometimes it may be useful to inject some randomness into the
     tree construction to study how much the results depend on the specific splitting
-    used.  For that purpose, there is also the option to set **split_method** = 'random',
+    used.  For that purpose, there is also the option to set ``split_method`` = 'random',
     which will choose a random point in the middle two quartiles of the range.
 
 :min_top: (int, default=3) The minimum number of top layers to use when setting up the field.

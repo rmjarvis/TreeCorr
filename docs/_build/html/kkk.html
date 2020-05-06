@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>KKKCorrelation: Kappa-kappa-kappa correlations &mdash; TreeCorr 4.0.10 documentation</title>
+  <title>KKKCorrelation: Kappa-kappa-kappa correlations &mdash; TreeCorr 4.1.0 documentation</title>
   
 
   
@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                4.0
+                4.1
               </div>
             
           
@@ -97,11 +97,13 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 4.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -171,15 +173,19 @@
             
   <div class="section" id="kkkcorrelation-kappa-kappa-kappa-correlations">
 <h1>KKKCorrelation: Kappa-kappa-kappa correlations<a class="headerlink" href="#kkkcorrelation-kappa-kappa-kappa-correlations" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
+<dl class="py class">
 <dt id="treecorr.KKKCorrelation">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">KKKCorrelation</code><span class="sig-paren">(</span><em class="sig-param">config=None</em>, <em class="sig-param">logger=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">KKKCorrelation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">treecorr.binnedcorr3.BinnedCorr3</span></code></p>
 <p>This class handles the calculation and storage of a 3-point kappa-kappa-kappa correlation
 function.</p>
-<p>Note: while we use the term kappa here and the letter K in various places, in fact
-any scalar field will work here.  For example, you can use this to compute correlations
-of the CMB temperature fluctuations, where “kappa” would really be delta T.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>While we use the term kappa (<span class="math notranslate nohighlight">\(\kappa\)</span>) here and the letter K in various places,
+in fact any scalar field will work here.  For example, you can use this to compute
+correlations of the CMB temperature fluctuations, where “kappa” would really be
+<span class="math notranslate nohighlight">\(\Delta T\)</span>.</p>
+</div>
 <p>See the doc string of <a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3" title="treecorr.BinnedCorr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr3</span></code></a> for a description of how the triangles are binned.</p>
 <p>Ojects of this class holds the following attributes:</p>
 <dl class="field-list simple">
@@ -225,16 +231,17 @@ i.e. r = exp(logr).</p></li>
 the final correlation.  This does not include sample variance, so it is always
 an underestimate of the actual variance.</p></li>
 <li><p><strong>weight</strong> – The total weight in each bin.</p></li>
-<li><p><strong>ntri</strong> – The number of triangles going into each bin.</p></li>
+<li><p><strong>ntri</strong> – The number of triangles going into each bin (including those where one or
+more objects have w=0).</p></li>
 </ul>
 </dd>
 </dl>
-<p>If <strong>sep_units</strong> are given (either in the config dict or as a named kwarg) then the distances
+<p>If <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> are given (either in the config dict or as a named kwarg) then the distances
 will all be in these units.  Note however, that if you separate out the steps of the
 <a class="reference internal" href="#treecorr.KKKCorrelation.process" title="treecorr.KKKCorrelation.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process</span></code></a> command and use <a class="reference internal" href="#treecorr.KKKCorrelation.process_auto" title="treecorr.KKKCorrelation.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a> and/or <a class="reference internal" href="#treecorr.KKKCorrelation.process_cross" title="treecorr.KKKCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>, then the units will not be
-applied to <strong>meanr</strong> or <strong>meanlogr</strong> until the <a class="reference internal" href="#treecorr.KKKCorrelation.finalize" title="treecorr.KKKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> function is called.</p>
+applied to <code class="docutils literal notranslate"><span class="pre">meanr</span></code> or <code class="docutils literal notranslate"><span class="pre">meanlogr</span></code> until the <a class="reference internal" href="#treecorr.KKKCorrelation.finalize" title="treecorr.KKKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> function is called.</p>
 <p>The typical usage pattern is as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kkk</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">KKKCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kkk</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">KKKCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">kkk</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>              <span class="c1"># For auto-correlation.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">kkk</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">cat2</span><span class="p">,</span><span class="n">cat3</span><span class="p">)</span>   <span class="c1"># For cross-correlation.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">kkk</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>          <span class="c1"># Write out to a file.</span>
@@ -245,57 +252,62 @@ applied to <strong>meanr</strong> or <strong>meanlogr</strong> until the <a clas
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in kwargs if desired.
-This dict is allowed to have addition entries in addition to those listed
+This dict is allowed to have addition entries besides those listed
 in <a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3" title="treecorr.BinnedCorr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr3</span></code></a>, which are ignored here. (default: None)</p></li>
 <li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
 one will be built according to the config dict’s verbose level.)</p></li>
 </ul>
 </dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>**kwargs</strong> – See the documentation for <a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3" title="treecorr.BinnedCorr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr3</span></code></a> for the list of allowed keyword
+arguments, which may be passed either directly or in the config dict.</p>
+</dd>
 </dl>
-<p>See the documentation for <a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3" title="treecorr.BinnedCorr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr3</span></code></a> for the list of other allowed kwargs, which may be
-passed either directly or in the config dict.</p>
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.KKKCorrelation.__eq__">
-<code class="sig-name descname">__eq__</code><span class="sig-paren">(</span><em class="sig-param">other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.__eq__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return whether two KKKCorrelations are equal</p>
+<code class="sig-name descname">__eq__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether two <a class="reference internal" href="#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a> instances are equal</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.KKKCorrelation.__iadd__">
-<code class="sig-name descname">__iadd__</code><span class="sig-paren">(</span><em class="sig-param">other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.__iadd__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.__iadd__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a second KKKCorrelation’s data to this one.</p>
-<p>Note: For this to make sense, both Correlation objects should have been using
-<a class="reference internal" href="#treecorr.KKKCorrelation.process_auto" title="treecorr.KKKCorrelation.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a> and/or <a class="reference internal" href="#treecorr.KKKCorrelation.process_cross" title="treecorr.KKKCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>, and they should not have had <a class="reference internal" href="#treecorr.KKKCorrelation.finalize" title="treecorr.KKKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> called yet.
-Then, after adding them together, you should call <a class="reference internal" href="#treecorr.KKKCorrelation.finalize" title="treecorr.KKKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> on the sum.</p>
+<code class="sig-name descname">__iadd__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.__iadd__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.__iadd__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a second <a class="reference internal" href="#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a>’s data to this one.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For this to make sense, both <a class="reference internal" href="#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a> objects should have been using
+<a class="reference internal" href="#treecorr.KKKCorrelation.process_auto" title="treecorr.KKKCorrelation.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a> and/or <a class="reference internal" href="#treecorr.KKKCorrelation.process_cross" title="treecorr.KKKCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>, and they should not have had <a class="reference internal" href="#treecorr.KKKCorrelation.finalize" title="treecorr.KKKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> called
+yet.  Then, after adding them together, you should call <a class="reference internal" href="#treecorr.KKKCorrelation.finalize" title="treecorr.KKKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> on the sum.</p>
+</div>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.KKKCorrelation.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">config=None</em>, <em class="sig-param">logger=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize <a class="reference internal" href="#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a>.  See class doc for details.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.KKKCorrelation.__repr__">
 <code class="sig-name descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.__repr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.__repr__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return repr(self).</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.KKKCorrelation.clear">
 <code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.clear" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clear the data vectors</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.KKKCorrelation.copy">
 <code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a copy</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.KKKCorrelation.finalize">
-<code class="sig-name descname">finalize</code><span class="sig-paren">(</span><em class="sig-param">vark1</em>, <em class="sig-param">vark2</em>, <em class="sig-param">vark3</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.finalize" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">finalize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vark1</span></em>, <em class="sig-param"><span class="n">vark2</span></em>, <em class="sig-param"><span class="n">vark3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.finalize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finalize the calculation of the correlation function.</p>
 <p>The <a class="reference internal" href="#treecorr.KKKCorrelation.process_auto" title="treecorr.KKKCorrelation.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a> and <a class="reference internal" href="#treecorr.KKKCorrelation.process_cross" title="treecorr.KKKCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a> commands accumulate values in each bin,
 so they can be called multiple times if appropriate.  Afterwards, this command
@@ -311,9 +323,9 @@ finishes the calculation by dividing by the total weight.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.KKKCorrelation.process">
-<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param">cat1</em>, <em class="sig-param">cat2=None</em>, <em class="sig-param">cat3=None</em>, <em class="sig-param">metric=None</em>, <em class="sig-param">num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.process" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cat3</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.process" title="Permalink to this definition">¶</a></dt>
 <dd><p>Accumulate the number of triangles of points between cat1, cat2, and cat3.</p>
 <ul class="simple">
 <li><p>If only 1 argument is given, then compute an auto-correlation function.</p></li>
@@ -323,12 +335,15 @@ first catalog taking two corners of the triangles. (Not implemented yet.)</p></l
 </ul>
 <p>All arguments may be lists, in which case all items in the list are used
 for that element of the correlation.</p>
-<p>Note: For a correlation of multiple catalogs, it matters which corner of the
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For a correlation of multiple catalogs, it matters which corner of the
 triangle comes from which catalog.  The final accumulation will have
 d1 &gt; d2 &gt; d3 where d1 is between two points in cat2,cat3; d2 is between
 points in cat1,cat3; and d3 is between points in cat1,cat2.  To accumulate
 all the possible triangles between three catalogs, you should call this
 multiple times with the different catalogs in different positions.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -348,9 +363,9 @@ in the constructor in the config dict.)</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.KKKCorrelation.process_auto">
-<code class="sig-name descname">process_auto</code><span class="sig-paren">(</span><em class="sig-param">cat</em>, <em class="sig-param">metric=None</em>, <em class="sig-param">num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.process_auto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.process_auto" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process_auto</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.process_auto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.process_auto" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process a single catalog, accumulating the auto-correlation.</p>
 <p>This accumulates the auto-correlation for the given catalog.  After
 calling this function as often as desired, the <a class="reference internal" href="#treecorr.KKKCorrelation.finalize" title="treecorr.KKKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
@@ -370,9 +385,9 @@ in the constructor in the config dict.)</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.KKKCorrelation.process_cross">
-<code class="sig-name descname">process_cross</code><span class="sig-paren">(</span><em class="sig-param">cat1</em>, <em class="sig-param">cat2</em>, <em class="sig-param">cat3</em>, <em class="sig-param">metric=None</em>, <em class="sig-param">num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.process_cross"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.process_cross" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process_cross</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">cat3</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.process_cross"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.process_cross" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process a set of three catalogs, accumulating the 3pt cross-correlation.</p>
 <p>This accumulates the cross-correlation for the given catalogs.  After
 calling this function as often as desired, the <a class="reference internal" href="#treecorr.KKKCorrelation.finalize" title="treecorr.KKKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
@@ -394,9 +409,9 @@ in the constructor in the config dict.)</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.KKKCorrelation.process_cross21">
-<code class="sig-name descname">process_cross21</code><span class="sig-paren">(</span><em class="sig-param">cat1</em>, <em class="sig-param">cat2</em>, <em class="sig-param">metric=None</em>, <em class="sig-param">num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.process_cross21"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.process_cross21" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process_cross21</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.process_cross21"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.process_cross21" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process two catalogs, accumulating the 3pt cross-correlation, where two of the
 points in each triangle come from the first catalog, and one from the second.</p>
 <p>This accumulates the cross-correlation for the given catalogs.  After
@@ -422,15 +437,18 @@ in the constructor in the config dict.)</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.KKKCorrelation.read">
-<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">file_name</em>, <em class="sig-param">file_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.read" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">file_type</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read in values from a file.</p>
 <p>This should be a file that was written by TreeCorr, preferably a FITS file, so there
 is no loss of information.</p>
-<p>Warning: The KKKCorrelation object should be constructed with the same configuration
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The <a class="reference internal" href="#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a> object should be constructed with the same configuration
 parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
 checked by the read function.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -442,9 +460,9 @@ automatically from the extension of file_name.)</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.KKKCorrelation.write">
-<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param">file_name</em>, <em class="sig-param">file_type=None</em>, <em class="sig-param">precision=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.write" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">file_type</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">precision</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the correlation function to the file, file_name.</p>
 <p>The output file will include the following columns:</p>
 <table class="docutils align-default">
@@ -468,34 +486,42 @@ automatically from the extension of file_name.)</p></li>
 <td><p>The nominal center of the bin in v = +-(d1-d2)/d3</p></td>
 </tr>
 <tr class="row-odd"><td><p>meand1</p></td>
-<td><p>The mean value &lt;d1&gt; of triangles that fell into each bin</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle d1\rangle\)</span> of triangles that
+fell into each bin</p></td>
 </tr>
 <tr class="row-even"><td><p>meanlogd1</p></td>
-<td><p>The mean value &lt;log(d1)&gt; of triangles that fell into each bin</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle \log(d1)\rangle\)</span> of triangles
+that fell into each bin</p></td>
 </tr>
 <tr class="row-odd"><td><p>meand2</p></td>
-<td><p>The mean value &lt;d2&gt; of triangles that fell into each bin</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle d2\rangle\)</span> of triangles that
+fell into each bin</p></td>
 </tr>
 <tr class="row-even"><td><p>meanlogd2</p></td>
-<td><p>The mean value &lt;log(d2)&gt; of triangles that fell into each bin</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle \log(d2)\rangle\)</span> of triangles
+that fell into each bin</p></td>
 </tr>
 <tr class="row-odd"><td><p>meand3</p></td>
-<td><p>The mean value &lt;d3&gt; of triangles that fell into each bin</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle d3\rangle\)</span> of triangles that
+fell into each bin</p></td>
 </tr>
 <tr class="row-even"><td><p>meanlogd3</p></td>
-<td><p>The mean value &lt;log(d3)&gt; of triangles that fell into each bin</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle \log(d3)\rangle\)</span> of triangles
+that fell into each bin</p></td>
 </tr>
 <tr class="row-odd"><td><p>meanu</p></td>
-<td><p>The mean value &lt;u&gt; of triangles that fell into each bin</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle u\rangle\)</span> of triangles that
+fell into each bin</p></td>
 </tr>
 <tr class="row-even"><td><p>meanv</p></td>
-<td><p>The mean value &lt;v&gt; of triangles that fell into each bin</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle v\rangle\)</span> of triangles that
+fell into each bin</p></td>
 </tr>
 <tr class="row-odd"><td><p>zeta</p></td>
-<td><p>The estimator of zeta(r,u,v)</p></td>
+<td><p>The estimator of <span class="math notranslate nohighlight">\(\zeta(r,u,v)\)</span></p></td>
 </tr>
 <tr class="row-even"><td><p>sigma_zeta</p></td>
-<td><p>The sqrt of the variance estimate of zeta</p></td>
+<td><p>The sqrt of the variance estimate of <span class="math notranslate nohighlight">\(\zeta\)</span></p></td>
 </tr>
 <tr class="row-odd"><td><p>weight</p></td>
 <td><p>The total weight of triangles contributing to each bin</p></td>
@@ -505,7 +531,7 @@ automatically from the extension of file_name.)</p></li>
 </tr>
 </tbody>
 </table>
-<p>If <strong>sep_units</strong> was given at construction, then the distances will all be in these units.
+<p>If <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> was given at construction, then the distances will all be in these units.
 Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
 radians (for spherical coordinates).</p>
 <dl class="field-list simple">

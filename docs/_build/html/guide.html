@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting Started Guide &mdash; TreeCorr 4.0.10 documentation</title>
+  <title>Getting Started Guide &mdash; TreeCorr 4.1.0 documentation</title>
   
 
   
@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -36,7 +36,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Changes from version 3.3 to 4.0" href="changes.html" />
+    <link rel="next" title="Changes from version 4.0 to 4.1" href="changes.html" />
     <link rel="prev" title="Configuration Parameters" href="params.html" /> 
 </head>
 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                4.0
+                4.1
               </div>
             
           
@@ -92,6 +92,8 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
@@ -105,7 +107,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#manually-accumulating-the-correlation-function">Manually accumulating the correlation function</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 4.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -242,12 +244,12 @@ regular python kwargs.  For example:</p>
 <span class="n">cat</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">g1</span><span class="o">=</span><span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="o">=</span><span class="n">g2</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>You always need to include either <strong>x</strong> and <strong>y</strong> or <strong>ra</strong> and <strong>dec</strong>.
+<p>You always need to include either <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> or <code class="docutils literal notranslate"><span class="pre">ra</span></code> and <code class="docutils literal notranslate"><span class="pre">dec</span></code>.
 Which other columns you need depends on what kind of correlation function you want to calculate
-from the data.  For GG, you need <strong>g1</strong> and <strong>g2</strong>, but for kappa correlations, you would use
-<strong>k</strong> instead.</p>
-<p>You can optionally provide a weight column as well with <strong>w</strong> if desired.  To have the calculation
-skip some objects (e.g. objects with some kind of flag set), simply provide <strong>w</strong> where those
+from the data.  For GG, you need <code class="docutils literal notranslate"><span class="pre">g1</span></code> and <code class="docutils literal notranslate"><span class="pre">g2</span></code>, but for kappa correlations, you would use
+<code class="docutils literal notranslate"><span class="pre">k</span></code> instead.</p>
+<p>You can optionally provide a weight column as well with <code class="docutils literal notranslate"><span class="pre">w</span></code> if desired.  To have the calculation
+skip some objects (e.g. objects with some kind of flag set), simply provide <code class="docutils literal notranslate"><span class="pre">w</span></code> where those
 objects have <code class="docutils literal notranslate"><span class="pre">w[i]</span> <span class="pre">=</span> <span class="pre">0</span></code>.</p>
 <p>See the doc string for <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a> for more information.</p>
 </div>
@@ -267,8 +269,8 @@ objects have <code class="docutils literal notranslate"><span class="pre">w[i]</
 <p>You should see their doc strings for details, but they all work similarly.
 For the last three, there is no auto-correlation option, of course, just the cross-correlation.</p>
 <p>The other main difference between these other correlation classes from GG is that there is only a
-single correlation function, so it is called <strong>xi</strong> rather than <strong>xip</strong> and <strong>xim</strong>.</p>
-<p>Also, NN does not have any kind of <strong>xi</strong> attribute.  You need to perform an additional
+single correlation function, so it is called <code class="docutils literal notranslate"><span class="pre">xi</span></code> rather than <code class="docutils literal notranslate"><span class="pre">xip</span></code> and <code class="docutils literal notranslate"><span class="pre">xim</span></code>.</p>
+<p>Also, NN does not have any kind of <code class="docutils literal notranslate"><span class="pre">xi</span></code> attribute.  You need to perform an additional
 calculation involving random catalogs for that.  See <a class="reference internal" href="#using-random-catalogs"><span class="std std-ref">Using random catalogs</span></a> below for more details.</p>
 </div>
 <div class="section" id="three-point-correlation-classes">
@@ -307,7 +309,7 @@ which is the most widely used estimator for count-count correlation functions.  
 if you want to use a simpler estimator xi = (DD-RR)/RR, then you can omit the dr parameter.
 The simpler estimator is slightly biased though, so this is not recommended.</p>
 <p>The NG and NK classes also have a <a class="reference internal" href="ng.html#treecorr.NGCorrelation.calculateXi" title="treecorr.NGCorrelation.calculateXi"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calculateXi()</span></code></a> method to allow for the use of compensated
-estimators in those cases as well.  They already have a <strong>xi</strong> attribute though, which is the
+estimators in those cases as well.  They already have a <code class="docutils literal notranslate"><span class="pre">xi</span></code> attribute though, which is the
 uncompensated estimator.  These correlations do not suffer as much from masking effects,
 so the compensation is not as required.  However, it does produce a slightly better estimate
 of the correlation function if you are able to use a random catalog.</p>
@@ -358,7 +360,7 @@ auto-correlations.  See the doc strings for these methods for more information.<
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="changes.html" class="btn btn-neutral float-right" title="Changes from version 3.3 to 4.0" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="changes.html" class="btn btn-neutral float-right" title="Changes from version 4.0 to 4.1" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="params.html" class="btn btn-neutral float-left" title="Configuration Parameters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

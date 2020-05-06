@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Input Data &mdash; TreeCorr 4.0.10 documentation</title>
+  <title>Input Data &mdash; TreeCorr 4.1.0 documentation</title>
   
 
   
@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                4.0
+                4.1
               </div>
             
           
@@ -96,11 +96,13 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 4.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -170,9 +172,9 @@
 <h1>Input Data<a class="headerlink" href="#input-data" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="the-catalog-class">
 <h2>The Catalog class<a class="headerlink" href="#the-catalog-class" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<dl class="py class">
 <dt id="treecorr.Catalog">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">Catalog</code><span class="sig-paren">(</span><em class="sig-param">file_name=None</em>, <em class="sig-param">config=None</em>, <em class="sig-param">num=0</em>, <em class="sig-param">logger=None</em>, <em class="sig-param">is_rand=False</em>, <em class="sig-param">x=None</em>, <em class="sig-param">y=None</em>, <em class="sig-param">z=None</em>, <em class="sig-param">ra=None</em>, <em class="sig-param">dec=None</em>, <em class="sig-param">r=None</em>, <em class="sig-param">w=None</em>, <em class="sig-param">wpos=None</em>, <em class="sig-param">flag=None</em>, <em class="sig-param">g1=None</em>, <em class="sig-param">g2=None</em>, <em class="sig-param">k=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">Catalog</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">is_rand</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">z</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ra</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dec</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">r</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">w</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">wpos</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">flag</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">g1</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">g2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">k</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">patch</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">patch_centers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog" title="Permalink to this definition">¶</a></dt>
 <dd><p>A set of input data (positions and other quantities) to be correlated.</p>
 <p>A Catalog object keeps track of the relevant information for a number of objects to
 be correlated.  The objects each have some kind of position (for instance (x,y), (ra,dec),
@@ -200,7 +202,7 @@ values.  For (x,y) positions, the units are optional (and usually unnecessary).<
 </div>
 <p>This reads the given columns from the input file.  The input file may be either
 a FITS catalog or an ASCII catalog.  Normally the file type is determined according to the
-file’s extension (e.g. ‘.fits’ here), but it can also be set explicitly with <strong>file_type</strong>.</p>
+file’s extension (e.g. ‘.fits’ here), but it can also be set explicitly with <code class="docutils literal notranslate"><span class="pre">file_type</span></code>.</p>
 <p>Finally, you may store all the various parameters in a configuration dict
 and just pass the dict as an argument after the file name:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;ra_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;ALPHA2000&#39;</span><span class="p">,</span>
@@ -242,7 +244,10 @@ weight column provided.)</p></li>
 <li><p><strong>g1</strong> – The g1 component of the shear, if defined, as a numpy array. (None otherwise)</p></li>
 <li><p><strong>g2</strong> – The g2 component of the shear, if defined, as a numpy array. (None otherwise)</p></li>
 <li><p><strong>k</strong> – The convergence, kappa, if defined, as a numpy array. (None otherwise)</p></li>
-<li><p><strong>ntot</strong> – The total number of objects (including those with zero weight)</p></li>
+<li><p><strong>patch</strong> – The patch number of each object, if patches are being used. (None otherwise)
+If the entire catalog is a single patch, then <code class="docutils literal notranslate"><span class="pre">patch</span></code> may be an int.</p></li>
+<li><p><strong>ntot</strong> – The total number of objects (including those with zero weight if keep_zero_weight
+is set to True)</p></li>
 <li><p><strong>nobj</strong> – The number of objects with non-zero weight</p></li>
 <li><p><strong>sumw</strong> – The sum of the weights</p></li>
 <li><p><strong>varg</strong> – The shear variance (aka shape noise) (0 if g1,g2 are not defined)
@@ -265,9 +270,9 @@ The possibilities for this attribute are:</p>
 </ul>
 </div></blockquote>
 </li>
-<li><p><strong>field</strong> – If any of the <strong>get?Field</strong> methods have been called to construct a field from
-this catalog (either explicitly or implicitly via a <strong>corr.process()</strong> command),
-then this attribute will hold the most recent field to have been constructed.
+<li><p><strong>field</strong> – If any of the <code class="docutils literal notranslate"><span class="pre">get?Field</span></code> methods have been called to construct a field from
+this catalog (either explicitly or implicitly via a <a class="reference internal" href="nn.html#treecorr.NNCorrelation.process" title="treecorr.NNCorrelation.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">corr.process()</span></code></a> command, then this attribute will hold the most recent
+field to have been constructed.
 Note: it holds this field as a weakref, so if caching is turned off with
 <code class="docutils literal notranslate"><span class="pre">resize_cache(0)</span></code>, and the field has been garbage collected, then this attribute
 will be None.</p></li>
@@ -276,13 +281,13 @@ will be None.</p></li>
 <dt class="field-even">Parameters</dt>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>file_name</strong> (<em>str</em>) – The name of the catalog file to be read in. (default: None, in which
-case the columns need to be entered directly with <strong>x</strong>, <strong>y</strong>, etc.)</p></li>
+case the columns need to be entered directly with <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, etc.)</p></li>
 <li><p><strong>config</strong> (<em>dict</em>) – A configuration dict which defines attributes about how to read the
 file.  Any optional kwargs may be given here in the config dict if
 desired.  Invalid keys in the config dict are ignored. (default: None)</p></li>
 <li><p><strong>num</strong> (<em>int</em>) – Which number catalog are we reading.  e.g. for NG correlations the
 catalog for the N has num=0, the one for G has num=1.  This is only
-necessary if you are using a config dict where things like <strong>x_col</strong>
+necessary if you are using a config dict where things like <code class="docutils literal notranslate"><span class="pre">x_col</span></code>
 have multiple values.  (default: 0)</p></li>
 <li><p><strong>logger</strong> – If desired, a Logger object for logging. (default: None, in which case
 one will be built according to the config dict’s verbose level.)</p></li>
@@ -312,6 +317,13 @@ spinor field.) (default: None)</p></li>
 spinor field.) (default: None)</p></li>
 <li><p><strong>k</strong> (<em>array</em>) – The kappa values to use for scalar correlations. (This may represent
 any scalar field.) (default: None)</p></li>
+<li><p><strong>patch</strong> (<em>array</em><em> or </em><em>int</em>) – Optionally, patch numbers to use for each object. (default: None)
+Note: This may also be an int if the entire catalog represents a
+single patch.  If <code class="docutils literal notranslate"><span class="pre">patch_centers</span></code> is given this will select those
+items from the full input that correspond to the given patch number.</p></li>
+<li><p><strong>patch_centers</strong> (<em>array</em><em> or </em><em>str</em>) – Alternative to setting patch by hand or using kmeans, you
+may instead give patch_centers either as a file name or an array
+from which the patches will be determined. (default: None)</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Keyword Arguments</dt>
@@ -325,6 +337,14 @@ which means any whitespace)</p></li>
 <li><p><strong>first_row</strong> (<em>int</em>) – Which row to take as the first row to be used. (default: 1)</p></li>
 <li><p><strong>last_row</strong> (<em>int</em>) – Which row to take as the last row to be used. (default: -1, which means
 the last row in the file)</p></li>
+<li><p><strong>every_nth</strong> (<em>int</em>) – Only use every nth row of the input catalog. (default: 1)</p></li>
+<li><p><strong>npatch</strong> (<em>int</em>) – How many patches to split the catalog into (using kmeans) for the
+purpose of jackknife variance or other options that involve running via
+patches. (default: 1)</p></li>
+<li><p><strong>kmeans_init</strong> (<em>str</em>) – If using kmeans to make patches, which init method to use.
+cf. <a class="reference internal" href="field.html#treecorr.Field.run_kmeans" title="treecorr.Field.run_kmeans"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Field.run_kmeans</span></code></a> (default: ‘tree’)</p></li>
+<li><p><strong>kmeans_alt</strong> (<em>str</em>) – If using kmeans to make patches, whether to use the alternate kmeans
+algorithm. cf. <a class="reference internal" href="field.html#treecorr.Field.run_kmeans" title="treecorr.Field.run_kmeans"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Field.run_kmeans</span></code></a> (default: False)</p></li>
 <li><p><strong>x_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the x values. This should be an integer for ASCII
 files or a string for FITS files. (default: 0 or ‘0’, which means not
 to read in this column. When reading from a file, either x_col and
@@ -371,6 +391,9 @@ not to read in this column.)</p></li>
 <li><p><strong>k_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the kappa values. This should be an integer for
 ASCII files or a string for FITS files. (default: 0 or ‘0’, which means
 not to read in this column.)</p></li>
+<li><p><strong>patch_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the patch numbers. This should be an integer
+for ASCII files or a string for FITS files. (default: 0 or ‘0’, which
+means not to read in this column.)</p></li>
 <li><p><strong>w_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the weight values. This should be an integer for
 ASCII files or a string for FITS files. (default: 0 or ‘0’, which means
 not to read in this column.)</p></li>
@@ -385,8 +408,21 @@ technically flag &amp; ~ok_flag != 0) will be given a weight of 0.
 Equivalent to ignore_flag = ~0.)</p></li>
 <li><p><strong>ok_flag</strong> (<em>int</em>) – Which flags should be considered ok. (default: 0.  i.e. all non-zero
 flags are ignored.)</p></li>
+<li><p><strong>allow_xyz</strong> (<em>bool</em>) – Whether to allow x,y,z values in conjunction with ra,dec.  Normally,
+it is an error to have both kinds of positions, but if you know that
+the x,y,z, values are consistent with the given ra,dec values, it
+can save time to input them, rather than calculate them using trig
+functions. (default: False)</p></li>
 <li><p><strong>flip_g1</strong> (<em>bool</em>) – Whtether to flip the sign of the input g1 values. (default: False)</p></li>
 <li><p><strong>flip_g2</strong> (<em>bool</em>) – Whtether to flip the sign of the input g2 values. (default: False)</p></li>
+<li><p><strong>keep_zero_weight</strong> (<em>bool</em>) – Whether to keep objects with wpos=0 in the catalog (including
+any objects that indirectly get wpos=0 due to NaN or flags), so they
+would be included in ntot and also in npairs calculations that use
+this Catalog, although of course not contribute to the accumulated
+weight of pairs. (default: False)</p></li>
+<li><p><strong>save_patch_dir</strong> (<em>str</em>) – If desired, when building patches from this Catalog, save them
+as FITS files in the given directory for more efficient loading when
+doing cross-patch correlations with the <code class="docutils literal notranslate"><span class="pre">low_mem</span></code> option.</p></li>
 <li><p><strong>hdu</strong> (<em>int</em>) – For FITS files, which hdu to read. (default: 1)</p></li>
 <li><p><strong>x_hdu</strong> (<em>int</em>) – Which hdu to use for the x values. (default: hdu)</p></li>
 <li><p><strong>y_hdu</strong> (<em>int</em>) – Which hdu to use for the y values. (default: hdu)</p></li>
@@ -397,6 +433,7 @@ flags are ignored.)</p></li>
 <li><p><strong>g1_hdu</strong> (<em>int</em>) – Which hdu to use for the g1 values. (default: hdu)</p></li>
 <li><p><strong>g2_hdu</strong> (<em>int</em>) – Which hdu to use for the g2 values. (default: hdu)</p></li>
 <li><p><strong>k_hdu</strong> (<em>int</em>) – Which hdu to use for the k values. (default: hdu)</p></li>
+<li><p><strong>patch_hdu</strong> (<em>int</em>) – Which hdu to use for the patch numbers. (default: hdu)</p></li>
 <li><p><strong>w_hdu</strong> (<em>int</em>) – Which hdu to use for the w values. (default: hdu)</p></li>
 <li><p><strong>wpos_hdu</strong> (<em>int</em>) – Which hdu to use for the wpos values. (default: hdu)</p></li>
 <li><p><strong>flag_hdu</strong> (<em>int</em>) – Which hdu to use for the flag values. (default: hdu)</p></li>
@@ -430,12 +467,14 @@ of the range.</p></li>
 <li><p><strong>cat_precision</strong> (<em>int</em>) – The precision to use when writing a Catalog to an ASCII file. This
 should be an integer, which specifies how many digits to write.
 (default: 16)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the catalog load steps.
+(default: use the number of cpu cores)</p></li>
 </ul>
 </dd>
 </dl>
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Catalog.checkForNaN">
-<code class="sig-name descname">checkForNaN</code><span class="sig-paren">(</span><em class="sig-param">col</em>, <em class="sig-param">col_str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.checkForNaN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.checkForNaN" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">checkForNaN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">col</span></em>, <em class="sig-param"><span class="n">col_str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.checkForNaN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.checkForNaN" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check if the column has any NaNs.  If so, set those rows to have w[k]=0.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -447,7 +486,7 @@ should be an integer, which specifies how many digits to write.
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Catalog.clear_cache">
 <code class="sig-name descname">clear_cache</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.clear_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.clear_cache" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clear all field caches.</p>
@@ -455,7 +494,7 @@ should be an integer, which specifies how many digits to write.
 be an optimization for your use case.  Normally only a single field is built for a
 given catalog, and it is usually efficient to cache it, so it can be reused multiple
 times.  E.g. for the usual Landy-Szalay NN calculation:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dd</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">data_cat</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dd</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">data_cat</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand_cat</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">data_cat</span><span class="p">,</span> <span class="n">rand_cat</span><span class="p">)</span>
 </pre></div>
@@ -467,7 +506,7 @@ the catalog object does.  If you need to recover this memory and don’t want to
 the catalog yet, this method lets you clear the cache.</p>
 <p>There are separate caches for each kind of field.  If you want to clear just one or
 some of them, you can call clear separately for the different caches:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">nfields</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">nfields</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">kfields</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">gfields</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">nsimplefields</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
@@ -477,15 +516,15 @@ some of them, you can call clear separately for the different caches:</p>
 </div>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Catalog.copy">
 <code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a copy</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Catalog.getGField">
-<code class="sig-name descname">getGField</code><span class="sig-paren">(</span><em class="sig-param">min_size=0</em>, <em class="sig-param">max_size=None</em>, <em class="sig-param">split_method=None</em>, <em class="sig-param">brute=False</em>, <em class="sig-param">min_top=3</em>, <em class="sig-param">max_top=10</em>, <em class="sig-param">coords=None</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getGField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getGField" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">getGField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">min_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">max_size</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">split_method</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">brute</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">min_top</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_top</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getGField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getGField" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <a class="reference internal" href="field.html#treecorr.GField" title="treecorr.GField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GField</span></code></a> based on the g1,g2 values in this catalog.</p>
 <p>The <a class="reference internal" href="field.html#treecorr.GField" title="treecorr.GField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GField</span></code></a> object is cached, so this is efficient to call multiple times.
 cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="treecorr.Catalog.resize_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">resize_cache</span></code></a> and <a class="reference internal" href="#treecorr.Catalog.clear_cache" title="treecorr.Catalog.clear_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">clear_cache</span></code></a>.</p>
@@ -499,7 +538,7 @@ cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="t
 constructor in the config dict.)</p></li>
 <li><p><strong>brute</strong> (<em>bool</em>) – Whether to force traversal to the leaves. (default: False)</p></li>
 <li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the
-field. (default: 3)</p></li>
+field. (default: <span class="math notranslate nohighlight">\(\max(3, \log_2(N_{\rm cpu}))\)</span>)</p></li>
 <li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the
 field. (default: 10)</p></li>
 <li><p><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default self.coords)</p></li>
@@ -512,9 +551,9 @@ field. (default: 10)</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Catalog.getGSimpleField">
-<code class="sig-name descname">getGSimpleField</code><span class="sig-paren">(</span><em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getGSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getGSimpleField" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">getGSimpleField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getGSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getGSimpleField" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <a class="reference internal" href="field.html#treecorr.GSimpleField" title="treecorr.GSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GSimpleField</span></code></a> based on the g1,g2 values in this catalog.</p>
 <p>The <a class="reference internal" href="field.html#treecorr.GSimpleField" title="treecorr.GSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GSimpleField</span></code></a> object is cached, so this is efficient to call multiple times.
 cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="treecorr.Catalog.resize_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">resize_cache</span></code></a> and <a class="reference internal" href="#treecorr.Catalog.clear_cache" title="treecorr.Catalog.clear_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">clear_cache</span></code></a></p>
@@ -528,9 +567,9 @@ cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="t
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Catalog.getKField">
-<code class="sig-name descname">getKField</code><span class="sig-paren">(</span><em class="sig-param">min_size=0</em>, <em class="sig-param">max_size=None</em>, <em class="sig-param">split_method=None</em>, <em class="sig-param">brute=False</em>, <em class="sig-param">min_top=3</em>, <em class="sig-param">max_top=10</em>, <em class="sig-param">coords=None</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getKField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getKField" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">getKField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">min_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">max_size</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">split_method</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">brute</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">min_top</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_top</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getKField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getKField" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <a class="reference internal" href="field.html#treecorr.KField" title="treecorr.KField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KField</span></code></a> based on the k values in this catalog.</p>
 <p>The <a class="reference internal" href="field.html#treecorr.KField" title="treecorr.KField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KField</span></code></a> object is cached, so this is efficient to call multiple times.
 cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="treecorr.Catalog.resize_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">resize_cache</span></code></a> and <a class="reference internal" href="#treecorr.Catalog.clear_cache" title="treecorr.Catalog.clear_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">clear_cache</span></code></a></p>
@@ -544,7 +583,7 @@ cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="t
 constructor in the config dict.)</p></li>
 <li><p><strong>brute</strong> (<em>bool</em>) – Whether to force traversal to the leaves. (default: False)</p></li>
 <li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the
-field. (default: 3)</p></li>
+field. (default: <span class="math notranslate nohighlight">\(\max(3, \log_2(N_{\rm cpu}))\)</span>)</p></li>
 <li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the
 field. (default: 10)</p></li>
 <li><p><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default self.coords)</p></li>
@@ -557,9 +596,9 @@ field. (default: 10)</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Catalog.getKSimpleField">
-<code class="sig-name descname">getKSimpleField</code><span class="sig-paren">(</span><em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getKSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getKSimpleField" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">getKSimpleField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getKSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getKSimpleField" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <a class="reference internal" href="field.html#treecorr.KSimpleField" title="treecorr.KSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KSimpleField</span></code></a> based on the k values in this catalog.</p>
 <p>The <a class="reference internal" href="field.html#treecorr.KSimpleField" title="treecorr.KSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KSimpleField</span></code></a> object is cached, so this is efficient to call multiple times.
 cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="treecorr.Catalog.resize_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">resize_cache</span></code></a> and <a class="reference internal" href="#treecorr.Catalog.clear_cache" title="treecorr.Catalog.clear_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">clear_cache</span></code></a></p>
@@ -573,9 +612,9 @@ cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="t
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Catalog.getNField">
-<code class="sig-name descname">getNField</code><span class="sig-paren">(</span><em class="sig-param">min_size=0</em>, <em class="sig-param">max_size=None</em>, <em class="sig-param">split_method=None</em>, <em class="sig-param">brute=False</em>, <em class="sig-param">min_top=3</em>, <em class="sig-param">max_top=10</em>, <em class="sig-param">coords=None</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getNField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getNField" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">getNField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">min_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">max_size</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">split_method</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">brute</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">min_top</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_top</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getNField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getNField" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an <a class="reference internal" href="field.html#treecorr.NField" title="treecorr.NField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NField</span></code></a> based on the positions in this catalog.</p>
 <p>The <a class="reference internal" href="field.html#treecorr.NField" title="treecorr.NField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NField</span></code></a> object is cached, so this is efficient to call multiple times.
 cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="treecorr.Catalog.resize_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">resize_cache</span></code></a> and <a class="reference internal" href="#treecorr.Catalog.clear_cache" title="treecorr.Catalog.clear_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">clear_cache</span></code></a></p>
@@ -589,7 +628,7 @@ cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="t
 constructor in the config dict.)</p></li>
 <li><p><strong>brute</strong> (<em>bool</em>) – Whether to force traversal to the leaves. (default: False)</p></li>
 <li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the
-field. (default: 3)</p></li>
+field. (default: <span class="math notranslate nohighlight">\(\max(3, \log_2(N_{\rm cpu}))\)</span>)</p></li>
 <li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the
 field. (default: 10)</p></li>
 <li><p><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default: self.coords)</p></li>
@@ -602,9 +641,9 @@ field. (default: 10)</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Catalog.getNSimpleField">
-<code class="sig-name descname">getNSimpleField</code><span class="sig-paren">(</span><em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getNSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getNSimpleField" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">getNSimpleField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.getNSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.getNSimpleField" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an <a class="reference internal" href="field.html#treecorr.NSimpleField" title="treecorr.NSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NSimpleField</span></code></a> based on the positions in this catalog.</p>
 <p>The <a class="reference internal" href="field.html#treecorr.NSimpleField" title="treecorr.NSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NSimpleField</span></code></a> object is cached, so this is efficient to call multiple times.
 cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="treecorr.Catalog.resize_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">resize_cache</span></code></a> and <a class="reference internal" href="#treecorr.Catalog.clear_cache" title="treecorr.Catalog.clear_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">clear_cache</span></code></a></p>
@@ -618,7 +657,57 @@ cf. <a class="reference internal" href="#treecorr.Catalog.resize_cache" title="t
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
+<dt id="treecorr.Catalog.get_patch_centers">
+<code class="sig-name descname">get_patch_centers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.get_patch_centers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.get_patch_centers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an array of patch centers corresponding to the patches in this catalog.</p>
+<p>If the patches were set either using K-Means or by giving the centers, then this
+will just return that same center array.  Otherwise, it will be calculated from the
+positions of the objects with each patch number.</p>
+<p>This function is automatically called when accessing the property
+<code class="docutils literal notranslate"><span class="pre">patch_centers</span></code>.  So you should not normally need to call it directly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>An array of center coordinates used to make the patches.
+Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
+spherical geometries.  In the latter case, the centers represent
+(x,y,z) coordinates on the unit sphere.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.Catalog.get_patches">
+<code class="sig-name descname">get_patches</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">low_mem</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.get_patches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.get_patches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of Catalog instances each representing a single patch from this Catalog</p>
+<p>After calling this function once, the patches may be repeatedly accessed by the
+<code class="docutils literal notranslate"><span class="pre">patches</span></code> attribute, without triggering a rebuild of the patches.  Furthermore,
+if <code class="docutils literal notranslate"><span class="pre">patches</span></code> is accessed before calling this function, it will be called automatically
+(with the default low_mem parameter).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>low_mem</strong> (<em>bool</em>) – Whether to try to leave the returned patch catalogs in an
+“unloaded” state, wherein they will not load the data from a
+file until they are used.  This only works if the current catalog
+was loaded from a file or the patches were saved (using
+<code class="docutils literal notranslate"><span class="pre">save_patch_dir</span></code>). (default: False)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.Catalog.load">
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the data from a file, if it isn’t yet loaded.</p>
+<p>When a Catalog is read in from a file, it tries to delay the loading of the data from
+disk until it is actually needed.  This is especially important when running over a
+set of patches, since you may not be able to fit all the patches in memory at once.</p>
+<p>One does not normally need to call this method explicitly.  It will run automatically
+whenever the data is needed.  However, if you want to directly control when the disk
+access happens, you can use this function.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="treecorr.Catalog.makeArray">
 <code class="sig-name descname">makeArray</code><span class="sig-paren">(</span><em class="sig-param">col</em>, <em class="sig-param">col_str</em>, <em class="sig-param">dtype=&lt;class 'float'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.makeArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.makeArray" title="Permalink to this definition">¶</a></dt>
 <dd><p>Turn the input column into a numpy array if it wasn’t already.
@@ -637,9 +726,9 @@ Also make sure the input in 1-d.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Catalog.read_ascii">
-<code class="sig-name descname">read_ascii</code><span class="sig-paren">(</span><em class="sig-param">file_name</em>, <em class="sig-param">num=0</em>, <em class="sig-param">is_rand=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.read_ascii"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.read_ascii" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read_ascii</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">num</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">is_rand</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.read_ascii"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.read_ascii" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read the catalog from an ASCII file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -652,9 +741,9 @@ Also make sure the input in 1-d.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Catalog.read_fits">
-<code class="sig-name descname">read_fits</code><span class="sig-paren">(</span><em class="sig-param">file_name</em>, <em class="sig-param">num=0</em>, <em class="sig-param">is_rand=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.read_fits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.read_fits" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read_fits</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">num</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">is_rand</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.read_fits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.read_fits" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read the catalog from a FITS file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -667,15 +756,31 @@ Also make sure the input in 1-d.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
+<dt id="treecorr.Catalog.read_patch_centers">
+<code class="sig-name descname">read_patch_centers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.read_patch_centers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.read_patch_centers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read patch centers from a file.</p>
+<p>This function typically gets called automatically when setting patch_centers as a
+string, being the file name.  The patch centers are read from the file and returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The centers, as an array, which can be used to determine the patches.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="treecorr.Catalog.resize_cache">
-<code class="sig-name descname">resize_cache</code><span class="sig-paren">(</span><em class="sig-param">maxsize</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.resize_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.resize_cache" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">resize_cache</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">maxsize</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.resize_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.resize_cache" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resize all field caches.</p>
 <p>The various kinds of fields built from this catalog are cached.  This may or may not
 be an optimization for your use case.  Normally only a single field is built for a
 given catalog, and it is usually efficient to cache it, so it can be reused multiple
 times.  E.g. for the usual Landy-Szalay NN calculation:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dd</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">data_cat</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dd</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">data_cat</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand_cat</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">data_cat</span><span class="p">,</span> <span class="n">rand_cat</span><span class="p">)</span>
 </pre></div>
@@ -698,7 +803,7 @@ number you set.  This will use more memory, but may be an optimization for you d
 on what your are doing.</p>
 <p>Finally, if you want to set different sizes for the different kinds of fields, then
 you can call resize separately for the different caches:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">nfields</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">maxsize</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">nfields</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">maxsize</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">kfields</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">maxsize</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">gfields</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">maxsize</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">nsimplefields</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">maxsize</span><span class="p">)</span>
@@ -713,14 +818,39 @@ you can call resize separately for the different caches:</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
+<dt id="treecorr.Catalog.select">
+<code class="sig-name descname">select</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">indx</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.select"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.select" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trim the catalog to only include those objects with the give indices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>indx</strong> – A numpy array of index values to keep.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.Catalog.unload">
+<code class="sig-name descname">unload</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.unload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.unload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bring the Catalog back to an “unloaded” state, if possible.</p>
+<p>When a Catalog is read in from a file, it tries to delay the loading of the data from
+disk until it is actually needed.  After loading, this method will return the Catalog
+back to the unloaded state to recover the memory in the data arrays. If the Catalog is
+needed again during further processing, it will re-load the data from disk at that time.</p>
+<p>This will also call <a class="reference internal" href="#treecorr.Catalog.clear_cache" title="treecorr.Catalog.clear_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">clear_cache</span></code></a> to recover any memory from fields that have been
+constructed as well.</p>
+<p>If the Catalog was not read in from a file, then this function will only do the
+<a class="reference internal" href="#treecorr.Catalog.clear_cache" title="treecorr.Catalog.clear_cache"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">clear_cache</span></code></a> step.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="treecorr.Catalog.write">
-<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param">file_name</em>, <em class="sig-param">file_type=None</em>, <em class="sig-param">cat_precision=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.write" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">file_type</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cat_precision</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the catalog to a file.</p>
 <p>Note that the position columns are output using the same units as were used when
 building the Catalog.  If you want to use a different unit, you can set the catalog’s
 units directly before writing.  e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="s1">&#39;cat.dat&#39;</span><span class="p">,</span> <span class="n">ra</span><span class="o">=</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">dec</span><span class="p">,</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="s1">&#39;cat.dat&#39;</span><span class="p">,</span> <span class="n">ra</span><span class="o">=</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">dec</span><span class="p">,</span>
 <span class="go">                           ra_units=&#39;hours&#39;, dec_units=&#39;degrees&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">ra_units</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">degrees</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;new_cat.dat&#39;</span><span class="p">)</span>
@@ -772,10 +902,13 @@ corresponding attribute is not None):</p>
 <tr class="row-even"><td><p>k</p></td>
 <td><p>self.k if not None</p></td>
 </tr>
-<tr class="row-odd"><td><p>meanR</p></td>
+<tr class="row-odd"><td><p>patch</p></td>
+<td><p>self.patch if not None</p></td>
+</tr>
+<tr class="row-even"><td><p>meanR</p></td>
 <td><p>The mean value &lt;R&gt; of pairs that fell into each bin.</p></td>
 </tr>
-<tr class="row-even"><td><p>meanlogR</p></td>
+<tr class="row-odd"><td><p>meanlogR</p></td>
 <td><p>The mean value &lt;logR&gt; of pairs that fell into each bin.</p></td>
 </tr>
 </tbody>
@@ -791,6 +924,47 @@ this value can also be given in the Catalog constructor in the
 config dict.)</p></li>
 </ul>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The column names that were written to the file as a list.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.Catalog.write_patch_centers">
+<code class="sig-name descname">write_patch_centers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.write_patch_centers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.write_patch_centers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the patch centers to a file.</p>
+<p>The output file will include the following columns:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 87%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>patch</p></td>
+<td><p>patch number (0..npatch-1)</p></td>
+</tr>
+<tr class="row-odd"><td><p>x</p></td>
+<td><p>mean x values</p></td>
+</tr>
+<tr class="row-even"><td><p>y</p></td>
+<td><p>mean y values</p></td>
+</tr>
+<tr class="row-odd"><td><p>z</p></td>
+<td><p>mean z values (only for spherical or 3d coordinates)</p></td>
+</tr>
+</tbody>
+</table>
+<p>It will write a FITS file if the file name ends with ‘.fits’, otherwise an ASCII file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -799,9 +973,9 @@ config dict.)</p></li>
 </div>
 <div class="section" id="other-utilities-related-to-catalogs">
 <h2>Other utilities related to catalogs<a class="headerlink" href="#other-utilities-related-to-catalogs" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<dl class="py function">
 <dt id="treecorr.read_catalogs">
-<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">read_catalogs</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">key=None</em>, <em class="sig-param">list_key=None</em>, <em class="sig-param">num=0</em>, <em class="sig-param">logger=None</em>, <em class="sig-param">is_rand=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#read_catalogs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.read_catalogs" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">read_catalogs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">key</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">list_key</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">is_rand</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#read_catalogs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.read_catalogs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read in a list of catalogs for the given key.</p>
 <p>key should be the file_name parameter or similar key word.
 list_key should be be corresponging file_list parameter, if appropriate.
@@ -831,9 +1005,9 @@ skip k_col, g1_col, and g2_col if they were set for the main catalog.
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="treecorr.calculateVarG">
-<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">calculateVarG</code><span class="sig-paren">(</span><em class="sig-param">cat_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#calculateVarG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.calculateVarG" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">calculateVarG</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#calculateVarG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.calculateVarG" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the overall shear variance from a list of catalogs.</p>
 <p>The catalogs are assumed to be equivalent, so this is just the average shear
 variance (per component) weighted by the number of objects in each catalog.</p>
@@ -847,9 +1021,9 @@ variance (per component) weighted by the number of objects in each catalog.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="treecorr.calculateVarK">
-<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">calculateVarK</code><span class="sig-paren">(</span><em class="sig-param">cat_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#calculateVarK"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.calculateVarK" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">calculateVarK</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#calculateVarK"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.calculateVarK" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the overall kappa variance from a list of catalogs.</p>
 <p>The catalogs are assumed to be equivalent, so this is just the average kappa
 variance weighted by the number of objects in each catalog.</p>
@@ -863,9 +1037,9 @@ variance weighted by the number of objects in each catalog.</p>
 </dl>
 </dd></dl>
 
-<span class="target" id="module-treecorr.catalog"></span><span class="target" id="module-catalog"></span><dl class="function">
+<span class="target" id="module-treecorr.catalog"></span><span class="target" id="module-catalog"></span><dl class="py function">
 <dt id="treecorr.catalog.isGColRequired">
-<code class="sig-prename descclassname">treecorr.catalog.</code><code class="sig-name descname">isGColRequired</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">num</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#isGColRequired"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.catalog.isGColRequired" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.catalog.</code><code class="sig-name descname">isGColRequired</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">num</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#isGColRequired"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.catalog.isGColRequired" title="Permalink to this definition">¶</a></dt>
 <dd><p>A quick helper function that checks whether we need to bother reading the g1,g2 columns.</p>
 <p>It checks the config dict for the output file names gg_file_name, ng_file_name (only if
 num == 1), etc.  If the output files indicate that we don’t need the g1/g2 columns, then
@@ -890,9 +1064,9 @@ False if not.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="treecorr.catalog.isKColRequired">
-<code class="sig-prename descclassname">treecorr.catalog.</code><code class="sig-name descname">isKColRequired</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">num</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#isKColRequired"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.catalog.isKColRequired" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.catalog.</code><code class="sig-name descname">isKColRequired</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">num</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#isKColRequired"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.catalog.isKColRequired" title="Permalink to this definition">¶</a></dt>
 <dd><p>A quick helper function that checks whether we need to bother reading the k column.</p>
 <p>The logic here is the same as for <a class="reference internal" href="#treecorr.catalog.isGColRequired" title="treecorr.catalog.isGColRequired"><code class="xref any py py-func docutils literal notranslate"><span class="pre">isGColRequired</span></code></a>, but we check for output files that require
 the k column rather than g1,g2.</p>

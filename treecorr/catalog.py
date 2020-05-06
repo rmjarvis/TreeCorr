@@ -1506,6 +1506,8 @@ class Catalog(object):
             # We should be able to always use s = slice(self.start, self.end, self.every_nth)
             if self.start == 0 and self.end is None and self.every_nth == 1:
                 s = slice(None)
+            # fancy indexing in h5py is incredibly slow, so we explicitly
+            # check if we can slice or not
             elif infile.can_slice:
                 s = slice(self.start, self.end, self.every_nth)
             else:

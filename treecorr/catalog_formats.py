@@ -3,6 +3,7 @@ import numpy as np
 class FitsReader:
     subgroup_type = int
     subgroup_default = 1
+
     def __init__(self, file_name):
         import fitsio
         # packaging is used by pip so is installed basically everywhere
@@ -31,6 +32,9 @@ class FitsReader:
 
     def check_valid_ext(self, hdu):
         import fitsio
+        if hdu not in self:
+            raise ValueError("Invalid hdu={} for file {} (does not exist)".format(
+                             hdu,self.file_name))
         if not isinstance(self.file[hdu], fitsio.hdu.TableHDU):
             raise ValueError("Invalid hdu={} for file {} (Not a TableHDU)".format(
                              hdu,self.file_name))
@@ -43,6 +47,7 @@ class HdfReader:
     def __init__(self, file_name):
         import h5py
         self.file = h5py.File(file_name, 'r')
+        self.file_name = file_name
 
     def __contains__(self, ext):
         return ext in self.file.keys()
@@ -54,17 +59,20 @@ class HdfReader:
             group = '/'
         return self.file[group]
 
-    def check_valid_ext(self, hdu):
-        return True
+    def check_valid_ext(self, ext):
+        # root always exists
+        if ext == '':
+            return True
+        if ext not in self:
+            raise ValueError("Invalid ext={} for file {} (does not exist)".format(
+                             ext,self.file_name))
 
     def read(self, group, cols, s):
         g = self._group(group)
-        print(group, cols, s)
         if np.isscalar(cols):
             data = g[cols][s]
         else:
             data = {col: g[col][s] for col in cols}
-        print("Done")
         return data
 
     def row_count(self, group, col):

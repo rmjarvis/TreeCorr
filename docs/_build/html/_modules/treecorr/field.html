@@ -461,9 +461,10 @@
 
 <span class="sd">        In addition to the normal k-means algorithm, we also offer an alternate algorithm, which</span>
 <span class="sd">        can produce slightly better patches for the purpose of patch-based covariance estimation.</span>
-<span class="sd">        The ideal patch definition for such use would be to minimize the rms inertia of each patch,</span>
-<span class="sd">        not the total (or mean) inertia.  It turns out that it is difficult to devise an algorithm</span>
-<span class="sd">        that literally does this, since it has a tendancy to become unstable and not converge.</span>
+<span class="sd">        The ideal patch definition for such use would be to minimize the standard deviation (std)</span>
+<span class="sd">        of the inertia of each patch, not the total (or mean) inertia.  It turns out that it is</span>
+<span class="sd">        difficult to devise an algorithm that literally does this, since it has a tendancy to</span>
+<span class="sd">        become unstable and not converge.</span>
 
 <span class="sd">        However, adding a penalty term to the patch assignment step of the normal k-means</span>
 <span class="sd">        algorithm turns out to work reasonably well.  The penalty term we use is :math:`f I_i`,</span>
@@ -476,7 +477,7 @@
 
 <span class="sd">        The penalty term means that patches with less inertia get more points on the next</span>
 <span class="sd">        iteration, and vice versa, which tends to equalize the inertia values somewhat.</span>
-<span class="sd">        The resulting patches have significantly lower rms inertia, but typically only slightly</span>
+<span class="sd">        The resulting patches have significantly lower std inertia, but typically only slightly</span>
 <span class="sd">        higher total inertia.</span>
 
 <span class="sd">        For the scaling constant, :math:`f`, we chose</span>
@@ -491,7 +492,7 @@
 <span class="sd">        near the edges of the patches, so patches still get most of the points near their previous</span>
 <span class="sd">        centers, even if they already have larger than average inertia, but some of the points in</span>
 <span class="sd">        the outskirts of the patch might switch to a nearby patch with smaller inertia.  The</span>
-<span class="sd">        factor of 3 is purely empirical, and was found to give good results in terms of rms</span>
+<span class="sd">        factor of 3 is purely empirical, and was found to give good results in terms of std</span>
 <span class="sd">        inertia on some test data (the DES SV field).</span>
 
 <span class="sd">        The alternate algorithm is available by specifying ``alt=True``.  Despite it typically</span>
@@ -517,8 +518,9 @@
 <span class="sd">                                    - &#39;kmeans++&#39; =  Use the k-means++ algorithm.</span>
 <span class="sd">                                      cf. https://en.wikipedia.org/wiki/K-means%2B%2B</span>
 
-<span class="sd">            alt (bool):         Use the alternate assignment algorithm to minimize the rms inertia</span>
-<span class="sd">                                rather than the total inertia (aka WCSS). (default: False)</span>
+<span class="sd">            alt (bool):         Use the alternate assignment algorithm to minimize the standard</span>
+<span class="sd">                                deviation of the inertia rather than the total inertia (aka WCSS).</span>
+<span class="sd">                                (default: False)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Tuple containing</span>
@@ -540,9 +542,9 @@
 
 <span class="sd">        The classic K-Means algorithm involves starting with random points as the initial</span>
 <span class="sd">        centers of the patches.  This has a tendency to result in rather poor results in</span>
-<span class="sd">        terms of having similar sized patches at the end.  Specifically, the rms inertia</span>
-<span class="sd">        of the local minimum that the K-Means algorithm settles into tends to be fairly high</span>
-<span class="sd">        for typical geometries.</span>
+<span class="sd">        terms of having similar sized patches at the end.  Specifically, the standard deviation</span>
+<span class="sd">        of the inertia at the local minimum that the K-Means algorithm settles into tends to be</span>
+<span class="sd">        fairly high for typical geometries.</span>
 
 <span class="sd">        A better approach is to use the existing tree structure to star out with centers that</span>
 <span class="sd">        are fairly evenly spread out through the field.  This algorithm traverses the tree</span>
@@ -627,8 +629,9 @@
 <span class="sd">            max_iter (int):     How many iterations at most to run. (default: 200)</span>
 <span class="sd">            tol (float):        Tolerance in the rms centroid shift to consider as converged</span>
 <span class="sd">                                as a fraction of the total field size. (default: 1.e-5)</span>
-<span class="sd">            alt (bool):         Use the alternate assignment algorithm to minimize the rms inertia</span>
-<span class="sd">                                rather than the total inertia (aka WCSS). (default: False)</span>
+<span class="sd">            alt (bool):         Use the alternate assignment algorithm to minimize the standard</span>
+<span class="sd">                                deviation of the inertia rather than the total inertia (aka WCSS).</span>
+<span class="sd">                                (default: False)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="kn">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
         <span class="n">npatch</span> <span class="o">=</span> <span class="n">centers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>

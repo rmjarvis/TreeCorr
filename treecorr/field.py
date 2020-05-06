@@ -298,9 +298,10 @@ class Field(object):
 
         In addition to the normal k-means algorithm, we also offer an alternate algorithm, which
         can produce slightly better patches for the purpose of patch-based covariance estimation.
-        The ideal patch definition for such use would be to minimize the rms inertia of each patch,
-        not the total (or mean) inertia.  It turns out that it is difficult to devise an algorithm
-        that literally does this, since it has a tendancy to become unstable and not converge.
+        The ideal patch definition for such use would be to minimize the standard deviation (std)
+        of the inertia of each patch, not the total (or mean) inertia.  It turns out that it is
+        difficult to devise an algorithm that literally does this, since it has a tendancy to
+        become unstable and not converge.
 
         However, adding a penalty term to the patch assignment step of the normal k-means
         algorithm turns out to work reasonably well.  The penalty term we use is :math:`f I_i`,
@@ -313,7 +314,7 @@ class Field(object):
 
         The penalty term means that patches with less inertia get more points on the next
         iteration, and vice versa, which tends to equalize the inertia values somewhat.
-        The resulting patches have significantly lower rms inertia, but typically only slightly
+        The resulting patches have significantly lower std inertia, but typically only slightly
         higher total inertia.
 
         For the scaling constant, :math:`f`, we chose
@@ -328,7 +329,7 @@ class Field(object):
         near the edges of the patches, so patches still get most of the points near their previous
         centers, even if they already have larger than average inertia, but some of the points in
         the outskirts of the patch might switch to a nearby patch with smaller inertia.  The
-        factor of 3 is purely empirical, and was found to give good results in terms of rms
+        factor of 3 is purely empirical, and was found to give good results in terms of std
         inertia on some test data (the DES SV field).
 
         The alternate algorithm is available by specifying ``alt=True``.  Despite it typically
@@ -354,8 +355,9 @@ class Field(object):
                                     - 'kmeans++' =  Use the k-means++ algorithm.
                                       cf. https://en.wikipedia.org/wiki/K-means%2B%2B
 
-            alt (bool):         Use the alternate assignment algorithm to minimize the rms inertia
-                                rather than the total inertia (aka WCSS). (default: False)
+            alt (bool):         Use the alternate assignment algorithm to minimize the standard
+                                deviation of the inertia rather than the total inertia (aka WCSS).
+                                (default: False)
 
         Returns:
             Tuple containing
@@ -377,9 +379,9 @@ class Field(object):
 
         The classic K-Means algorithm involves starting with random points as the initial
         centers of the patches.  This has a tendency to result in rather poor results in
-        terms of having similar sized patches at the end.  Specifically, the rms inertia
-        of the local minimum that the K-Means algorithm settles into tends to be fairly high
-        for typical geometries.
+        terms of having similar sized patches at the end.  Specifically, the standard deviation
+        of the inertia at the local minimum that the K-Means algorithm settles into tends to be
+        fairly high for typical geometries.
 
         A better approach is to use the existing tree structure to star out with centers that
         are fairly evenly spread out through the field.  This algorithm traverses the tree
@@ -464,8 +466,9 @@ class Field(object):
             max_iter (int):     How many iterations at most to run. (default: 200)
             tol (float):        Tolerance in the rms centroid shift to consider as converged
                                 as a fraction of the total field size. (default: 1.e-5)
-            alt (bool):         Use the alternate assignment algorithm to minimize the rms inertia
-                                rather than the total inertia (aka WCSS). (default: False)
+            alt (bool):         Use the alternate assignment algorithm to minimize the standard
+                                deviation of the inertia rather than the total inertia (aka WCSS).
+                                (default: False)
         """
         from treecorr.util import double_ptr as dp
         npatch = centers.shape[0]

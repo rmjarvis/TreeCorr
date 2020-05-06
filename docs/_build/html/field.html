@@ -530,11 +530,12 @@ estimates of the errors in the correlation functions.</p>
 and we define patches <span class="math notranslate nohighlight">\(S_i\)</span> to comprise disjoint subsets of the <span class="math notranslate nohighlight">\(j\)</span>
 values, then the inertia <span class="math notranslate nohighlight">\(I_i\)</span> of each patch is defined as:</p>
 <div class="math notranslate nohighlight">
-\[I_i = \sum_{j \in S_i} \left| \vec x_j - \vec \mu_i \right|^2\]</div>
+\[I_i = \sum_{j \in S_i} \left| \vec x_j - \vec \mu_i \right|^2,\]</div>
 <p>where <span class="math notranslate nohighlight">\(\vec \mu_i\)</span> is the center of each patch:</p>
 <div class="math notranslate nohighlight">
-\[\vec \mu_i \equiv \sum_{j \in S_i} \vec x_j\]</div>
-<p>The k-means algorithm finds a solution that is a local minimum in the total inertia,
+\[\vec \mu_i \equiv \frac{\sum_{j \in S_i} \vec x_j}{N_i},\]</div>
+<p>and <span class="math notranslate nohighlight">\(N_i\)</span> is the number of points assigned to patch <span class="math notranslate nohighlight">\(S_i\)</span>.
+The k-means algorithm finds a solution that is a local minimum in the total inertia,
 <span class="math notranslate nohighlight">\(\sum_i I_i\)</span>.</p>
 <p>In addition to the normal k-means algorithm, we also offer an alternate algorithm, which
 can produce slightly better patches for the purpose of patch-based covariance estimation.
@@ -546,7 +547,7 @@ algorithm turns out to work reasonably well.  The penalty term we use is <span c
 where <span class="math notranslate nohighlight">\(f\)</span> is a scaling constant (see below).  When doing the assignment step we assign
 each point <span class="math notranslate nohighlight">\(j\)</span> to the patch <span class="math notranslate nohighlight">\(i\)</span> that gives the minimum penalized distance</p>
 <div class="math notranslate nohighlight">
-\[{d_{ij}^\prime}^2 \equiv \left| \vec x_j - \mu_i \right|^2 + f I_i.\]</div>
+\[d_{ij}^{\prime\;\! 2} = \left| \vec x_j - \mu_i \right|^2 + f I_i.\]</div>
 <p>The penalty term means that patches with less inertia get more points on the next
 iteration, and vice versa, which tends to equalize the inertia values somewhat.
 The resulting patches have significantly lower rms inertia, but typically only slightly

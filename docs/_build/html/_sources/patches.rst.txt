@@ -50,28 +50,27 @@ Running K-Means
 ---------------
 
 One standard way to split up a set of objects into roughly equal area
-groups is an algorithm called
+patches is an algorithm called
 `k-means clustering <https://en.wikipedia.org/wiki/K-means_clustering>`_.
 
-The basic idea of the algorithm is to divide the points into
-:math:`k` groups such that the total "inertia" is minimized.
+The basic idea of the algorithm is to divide the points :math:`\vec x_j` into
+:math:`k` patches, :math:`S_i`, such that the total "inertia" is minimized.
+Inertia :math:`I_i` of each patch is defined as follows:
 
-Intertia is defined as follows:
+.. math::
 
-1. Determine the centroid of each group, :math:`S_i`:
+    I_i = \sum_{j \in S_i} \left| \vec x_j - \vec \mu_i \right|^2,
 
-   .. math::
+where :math:`\vec \mu_i` is the center of each patch:
 
-        \vec \mu_i = \sum_{j \in S_i} \vec x_j
+.. math::
 
-2. Then the intertia :math:`I_i` of each group :math:`S_i` is
+    \vec \mu_i \equiv \frac{\sum_{j \in S_i} \vec x_j}{N_i},
 
-   .. math::
-
-        I_i = \sum_{j \in S_i} \left| \vec x_j - \vec \mu_i \right|^2
-
-The k-means algorithm attempts to minimize the total intertia in all the groups,
-or equivalently the average inertia among all the groups.
+and :math:`N_i` is the number of points assigned to patch :math:`S_i`.
+The k-means algorithm finds a solution that is a local minimum in the total inertia,
+:math:`\sum_i I_i`, or equivalently the mean inertia :math:`\langle I_i \rangle`
+of all the patches.
 
 This definition of inertia is a relatively good proxy for area on the
 sky that has objects, so this algorithm is a good choice for dividing up a
@@ -85,7 +84,7 @@ There are also two additional options which can affect how the k-means
 algorithm runs:
 
 * ``kmeans_init`` specifies what procedure to use for the initialization
-  of the groups.  Options are:
+  of the patches.  Options are:
 
    * 'random' = Choose initial centers randomly from among the input points.
      This is the traditional k-means initialization algorithm.
@@ -293,10 +292,10 @@ Using MPI
 
 Another use case that is enabled by using patches is
 to divide up the work of calculating a correlation function
-over multiple machines with MPI with `mpi4py <https://mpi4py.readthedocs.io/en/stable/>`_.
+over multiple machines with MPI using `mpi4py <https://mpi4py.readthedocs.io/en/stable/>`_.
 
 For this usage, the `process <NNCorrelation.process>` functions take an optional ``comm``
-parameter.  When running in an MPI job, you can pass in comm=MPI.COMM_WORLD,
+parameter.  When running in an MPI job, you can pass in ``comm=MPI.COMM_WORLD``,
 and TreeCorr will divide up the work among however many nodes you are using.
 The results will be sent back the the rank 0 node and combined to produce the
 complete answer:
@@ -334,14 +333,15 @@ You would then run this script using (e.g. with 4 processes)::
 
 The file defining the patch centers should already be written to make sure
 that each machine is using the same patch definitions.  There is some level of
-randomness in the k-means calculation, so if you use npatch=N, then each
+randomness in the k-means calculation, so if you use ``npatch=N``, then each
 machine may end up with different patch definitions, which would definitely
 mess things up.
 
 If you wanted to have it all run in a single script, you should have only
 the rank 0 process define the patches, send it cat.patch_centers to the
 other ranks, who can then build their catalogs using this.
-But it's probably easier to just precompute the centers and save them to a file.
+But it's probably easier to just precompute the centers and save them to a file
+before starting the MPI run.
 
 A more complete worked example is
 `available <https://github.com/rmjarvis/TreeCorr/blob/master/devel/mpi_example.py>`_

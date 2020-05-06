@@ -191,21 +191,115 @@ class FitsReader:
 
 
 class HdfReader:
+    """Reader interface for HDF5 files.
+    Uses h5py to read columns, etc.
+    """
+    # h5py can always accept slices as indices
+    can_slice = True
+
     def __init__(self, file_name):
         import h5py
         self.file = h5py.File(file_name, 'r')
+        self.file_name = file_name
 
-    def read(self, group, cols, s):
+    def __contains__(self, ext):
+        """Check if there is an extension with the given name in the file.
+
+        Parameters
+        ----------
+        ext: str
+            name or index to search for
+
+        Returns
+        -------
+        bool
+            Whether the extension exists
+        """
+        return ext in self.file.keys()
+
+    def _group(self, ext):
+        # get a group from a name, using
+        # the root if the group is empty
+        if ext == '':
+            ext = '/'
+        return self.file[ext]
+
+    def check_valid_ext(self, ext):
+        """Check if an extension is valid for reading, and raise ValueError if not.
+
+        The ext must exist - there is no other requirement for HDF files.
+
+        Parameters
+        ----------
+        ext: str
+            The extension to check
+        """
+        # root always exists
+        if ext == '' or ext == '/':
+            return True
+        if ext not in self:
+            raise ValueError("Invalid ext={} for file {} (does not exist)".format(
+                             ext,self.file_name))
+
+    def read(self, ext, cols, s):
+        """Read a slice of a column or list of columns from a specified extension.
+
+        Slices should always be used when reading HDF files - using a sequence of
+        integers is painfully slow.
+
+        Parameters
+        ----------
+        ext: str
+            The HDF (sub-)group to use
+        cols: str/list
+            The name(s) of column(s) to read
+        s: slice/array
+            A slice object or selection of integers to read
+
+        Returns
+        -------
+        data: dict
+            The data that is read.
+        """
+        g = self._group(ext)
         if np.isscalar(cols):
-            return self.file[group][cols][s]
+            data = g[cols][s]
         else:
-            return {col: self.file[group][col][s] for col in cols}
+            data = {col: g[col][s] for col in cols}
+        return data
 
-    def row_count(self, group, col):
-        return self.file[group][col].size
+    def row_count(self, ext, col):
+        """Count the number of rows in the named extension and column
 
-    def names(self, group):
-        return list(self.file[group].keys())
+        Unlike in FitsReader, col is required.
+
+        Parameters
+        ----------
+        ext: str
+            The HDF group name to use
+        col: str
+            The column to use
+
+        Returns
+        -------
+        count: int
+        """
+        return self._group(ext)[col].size
+
+    def names(self, ext):
+        """Return a list of the names of all the columns in an extension
+
+        Parameters
+        ----------
+        ext: str
+            The extension to search for columns
+
+        Returns
+        -------
+        names: list
+            A list of string column names
+        """
+        return list(self._group(ext).keys())
 
     def __enter__(self):
         # Context manager, enables "with HdfReader(filename) as f:"

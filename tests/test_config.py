@@ -18,7 +18,7 @@ import sys
 import logging
 import numpy as np
 
-from test_helper import CaptureLog, assert_raises, timer
+from test_helper import CaptureLog, assert_raises, timer, assert_warns
 
 @timer
 def test_parse_variables():

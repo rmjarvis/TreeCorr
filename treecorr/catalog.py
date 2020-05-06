@@ -420,31 +420,31 @@ class Catalog(object):
                 'Whether to allow x,y,z inputs in conjunction with ra,dec'),
         'ext': (int, True, None, None,
                 'Which extension/group in a fits/hdf file to use. Default=1 (fits), root (hdf)'),
-        'x_ext': (int, True, None, None,
+        'x_ext': ((int,str), True, None, None,
                 'Which extension to use for the x_col. default is the global ext value.'),
-        'y_ext': (int, True, None, None,
+        'y_ext': ((int,str), True, None, None,
                 'Which extension to use for the y_col. default is the global ext value.'),
-        'z_ext': (int, True, None, None,
+        'z_ext': ((int,str), True, None, None,
                 'Which extension to use for the z_col. default is the global ext value.'),
-        'ra_ext': (int, True, None, None,
+        'ra_ext': ((int,str), True, None, None,
                 'Which extension to use for the ra_col. default is the global ext value.'),
-        'dec_ext': (int, True, None, None,
+        'dec_ext': ((int,str), True, None, None,
                 'Which extension to use for the dec_col. default is the global ext value.'),
-        'r_ext': (int, True, None, None,
+        'r_ext': ((int,str), True, None, None,
                 'Which extension to use for the r_col. default is the global ext value.'),
-        'g1_ext': (int, True, None, None,
+        'g1_ext': ((int,str), True, None, None,
                 'Which extension to use for the g1_col. default is the global ext value.'),
-        'g2_ext': (int, True, None, None,
+        'g2_ext': ((int,str), True, None, None,
                 'Which extension to use for the g2_col. default is the global ext value.'),
-        'k_ext': (int, True, None, None,
+        'k_ext': ((int,str), True, None, None,
                 'Which extension to use for the k_col. default is the global ext value.'),
-        'patch_ext': (int, True, None, None,
+        'patch_ext': ((int,str), True, None, None,
                 'Which extension to use for the patch_col. default is the global ext value.'),
-        'w_ext': (int, True, None, None,
+        'w_ext': ((int,str), True, None, None,
                 'Which extension to use for the w_col. default is the global ext value.'),
-        'wpos_ext': (int, True, None, None,
+        'wpos_ext': ((int,str), True, None, None,
                 'Which extension to use for the wpos_col. default is the global ext value.'),
-        'flag_ext': (int, True, None, None,
+        'flag_ext': ((int,str), True, None, None,
                 'Which extension to use for the flag_col. default is the global ext value.'),
         'flip_g1' : (bool, True, False, None,
                 'Whether to flip the sign of g1'),
@@ -604,6 +604,8 @@ class Catalog(object):
                 name, ext = os.path.splitext(file_name)
                 if ext.lower().startswith('.fit'):
                     file_type = 'FITS'
+                elif ext.lower().startswith('.hdf'):
+                    file_type = "HDF"
                 else:
                     file_type = 'ASCII'
                 self.logger.info("   file_type assumed to be %s from the file name.",file_type)
@@ -2090,6 +2092,8 @@ class Catalog(object):
                 self.read_fits(self.file_name,self._num,self._is_rand)
             elif self.file_type == 'ASCII':
                 self.read_ascii(self.file_name,self._num,self._is_rand)
+            elif self.file_type == 'HDF':
+                self.read_hdf(self.file_name,self._num,self._is_rand)
             else: # pragma: no cover
                 # This is already checked, so shouldn't be possible to happen.
                 raise ValueError("Invalid file_type %s"%self.file_type)

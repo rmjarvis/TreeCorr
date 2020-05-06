@@ -231,19 +231,29 @@ def check_config(config, params, aliases=None, logger=None):
         if key not in params:
             raise TypeError("Invalid parameter %s."%key)
 
-        value_type, may_be_list, default_value, valid_values = params[key][:4]
+        value_types, may_be_list, default_value, valid_values = params[key][:4]
+
+        def parse(value, value_types, name):
+            if not isinstance(value_types, (list, tuple)):
+                value_types = [value_types]
+            for value_type in value_types:
+                try:
+                    if value_type is bool:
+                        return value_type, parse_bool(value)
+                    else:
+                        return value_type, value_type(value)
+                except ValueError:
+                    continue
+            raise ValueError("Could not parse {}={} as (any of) type(s) {}".format(
+                              name, value, value_types))
+
+
 
         # Get the value
         if may_be_list and isinstance(config[key], list):
-            if value_type is bool:
-                value = [ parse_bool(v) for v in config[key] ]
-            else:
-                value = [ value_type(v) for v in config[key] ]
+            value_type, value = [parse(v, value_types, key) for v in config[key] ]
         else:
-            if value_type is bool:
-                value = parse_bool(config[key])
-            else:
-                value = value_type(config[key])
+            value_type, value = parse(config[key], value_types, key)
 
         # If limited allowed values, check that this is one of them.
         if valid_values is not None:
@@ -251,7 +261,7 @@ def check_config(config, params, aliases=None, logger=None):
                 matches = [ v for v in valid_values if value == v ]
                 if len(matches) == 0:
                     # Allow the string to be longer.  e.g. degrees is valid if 'deg' is in valid_values.
-                    matches = [ v for v in valid_values if value.startswith(v) ]
+                    matches = [ v for v in valid_values if isinstance(v, str) and value.startswith(v)]
                 if len(matches) != 1:
                     raise ValueError("Parameter %s has invalid value %s.  Valid values are %s."%(
                         key, config[key], str(valid_values)))

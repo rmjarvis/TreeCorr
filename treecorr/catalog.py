@@ -21,7 +21,7 @@ import weakref
 import copy
 import os
 import treecorr
-
+from . import catalog_formats
 class Catalog(object):
     """A set of input data (positions and other quantities) to be correlated.
 
@@ -590,7 +590,9 @@ class Catalog(object):
                     file_type = 'ASCII'
                 self.logger.info("   file_type assumed to be %s from the file name.",file_type)
             if file_type == 'FITS':
-                self._check_fits(file_name, num, is_rand)
+                self._check_fits_hdf(file_name, catalog_formats.FitsReader, num, is_rand)
+            elif file_type == 'HDF':
+                self._check_fits_hdf(file_name, catalog_formats.HdfReader, num, is_rand)
             else:
                 self._check_ascii(file_name, num, is_rand)
 
@@ -1303,13 +1305,8 @@ class Catalog(object):
         if self._single_patch is not None:
             self._select_patch(self._single_patch)
 
-    def _check_fits(self, file_name, num=0, is_rand=False):
+    def _check_fits_hdf(self, file_name, reader, num=0, is_rand=False):
         # Just check the consistency of the various column numbers so we can fail fast.
-        try:
-            import fitsio
-        except ImportError:
-            self.logger.error("Unable to import fitsio.  Cannot read catalog %s"%file_name)
-            raise
 
         # Get the column names
         x_col = treecorr.config.get_from_list(self.config,'x_col',num,str,'0')
@@ -1358,68 +1355,66 @@ class Catalog(object):
         if (g1_col != '0' and g2_col == '0') or (g1_col == '0' and g2_col != '0'):
             raise ValueError("g1_col, g2_col are invalid for file %s"%file_name)
 
-        hdu = treecorr.config.get_from_list(self.config,'hdu',num,int,1)
 
-        with fitsio.FITS(file_name, 'r') as fits:
+        with reader(file_name) as infile:
+
+            hdu = infile.choose_extension(self.config, 'hdu', num)
 
             # Technically, this doesn't catch all possible errors.  If someone specifies
             # an invalid flag_hdu or something, then they'll get the fitsio error message.
             # But this should probably catch the majorit of error cases.
-            if hdu not in fits:
-                raise ValueError("Invalid hdu=%d for file %s"%(hdu,file_name))
-            if not isinstance(fits[hdu], fitsio.hdu.TableHDU):
-                raise ValueError("Invalid hdu=%d for file %s (Not a TableHDU)"%(hdu,file_name))
+            infile.check_valid_ext(hdu)
 
             if x_col != '0':
-                x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
-                y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
-                if x_col not in fits[x_hdu].get_colnames():
+                x_hdu = infile.choose_extension(self.config, 'x_hdu', num, hdu)
+                y_hdu = infile.choose_extension(self.config, 'y_hdu', num, hdu)
+                if x_col not in infile.names(x_hdu):
                     raise ValueError("x_col is invalid for file %s"%file_name)
-                if y_col not in fits[y_hdu].get_colnames():
+                if y_col not in infile.names(y_hdu):
                     raise ValueError("y_col is invalid for file %s"%file_name)
                 if z_col != '0':
-                    z_hdu = treecorr.config.get_from_list(self.config,'z_hdu',num,int,hdu)
-                    if z_col not in fits[z_hdu].get_colnames():
+                    z_hdu = infile.choose_extension(self.config, 'z_hdu', num, hdu)
+                    if z_col not in infile.names(z_hdu):
                         raise ValueError("z_col is invalid for file %s"%file_name)
             else:
-                ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
-                dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
-                if ra_col not in fits[ra_hdu].get_colnames():
+                ra_hdu = infile.choose_extension(self.config, 'ra_hdu', num, hdu)
+                dec_hdu = infile.choose_extension(self.config, 'dec_hdu', num, hdu)
+                if ra_col not in infile.names(ra_hdu):
                     raise ValueError("ra_col is invalid for file %s"%file_name)
-                if dec_col not in fits[dec_hdu].get_colnames():
+                if dec_col not in infile.names(dec_hdu):
                     raise ValueError("dec_col is invalid for file %s"%file_name)
                 if r_col != '0':
-                    r_hdu = treecorr.config.get_from_list(self.config,'r_hdu',num,int,hdu)
-                    if r_col not in fits[r_hdu].get_colnames():
+                    r_hdu = infile.choose_extension(self.config, 'r_hdu', num, hdu)
+                    if r_col not in infile.names(r_hdu):
                         raise ValueError("r_col is invalid for file %s"%file_name)
 
             if w_col != '0':
-                w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,int,hdu)
-                if w_col not in fits[w_hdu].get_colnames():
+                w_hdu = infile.choose_extension(self.config, 'w_hdu', num, hdu)
+                if w_col not in infile.names(w_hdu):
                     raise ValueError("w_col is invalid for file %s"%file_name)
 
             if wpos_col != '0':
-                wpos_hdu = treecorr.config.get_from_list(self.config,'wpos_hdu',num,int,hdu)
-                if wpos_col not in fits[wpos_hdu].get_colnames():
+                wpos_hdu = infile.choose_extension(self.config, 'wpos_hdu', num, hdu)
+                if wpos_col not in infile.names(wpos_hdu):
                     raise ValueError("wpos_col is invalid for file %s"%file_name)
 
             if flag_col != '0':
-                flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
-                if flag_col not in fits[flag_hdu].get_colnames():
+                flag_hdu = infile.choose_extension(self.config, 'flag_hdu', num, hdu)
+                if flag_col not in infile.names(flag_hdu):
                     raise ValueError("flag_col is invalid for file %s"%file_name)
 
             if patch_col != '0':
-                patch_hdu = treecorr.config.get_from_list(self.config,'patch_hdu',num,int,hdu)
-                if patch_col not in fits[patch_hdu].get_colnames():
+                patch_hdu = infile.choose_extension(self.config, 'patch_hdu', num, hdu)
+                if patch_col not in infile.names(patch_hdu):
                     raise ValueError("patch_col is invalid for file %s"%file_name)
 
             if is_rand: return
 
             if g1_col != '0':
-                g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
-                g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
-                if (g1_col not in fits[g1_hdu].get_colnames() or
-                    g2_col not in fits[g2_hdu].get_colnames()):
+                g1_hdu = infile.choose_extension(self.config, 'g1_hdu', num, hdu)
+                g2_hdu = infile.choose_extension(self.config, 'g2_hdu', num, hdu)
+                if (g1_col not in infile.names(g1_hdu) or
+                    g2_col not in infile.names(g2_hdu)):
                     if isGColRequired(self.orig_config,num):
                         raise ValueError("g1_col, g2_col are invalid for file %s"%file_name)
                     else:
@@ -1428,14 +1423,25 @@ class Catalog(object):
                                             "because they are invalid, but unneeded.")
 
             if k_col != '0':
-                k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
-                if k_col not in fits[k_hdu].get_colnames():
+                k_hdu = infile.choose_extension(self.config, 'k_hdu', num, hdu)
+                if k_col not in infile.names(k_hdu):
                     if isKColRequired(self.orig_config,num):
                         raise ValueError("k_col is invalid for file %s"%file_name)
                     else:
                         self.logger.warning("Warning: skipping k_col for %s, num=%d "%(
                                             file_name,num)+
                                             "because it is invalid, but unneeded.")
+
+    def read_hdf(self, file_name, num=0, is_rand=False):
+        """Read the catalog from an HDF5 file
+
+        Parameters:
+            file_name (str):    The name of the file to read in.
+            num (int):          Which number catalog are we reading. (default: 0)
+            is_rand (bool):     Is this a random catalog? (default: False)
+        """
+        return self._read_structured(file_name, catalog_formats.HdfReader,
+            num=num, is_rand=is_rand)
 
     def read_fits(self, file_name, num=0, is_rand=False):
         """Read the catalog from a FITS file
@@ -1445,6 +1451,11 @@ class Catalog(object):
             num (int):          Which number catalog are we reading. (default: 0)
             is_rand (bool):     Is this a random catalog? (default: False)
         """
+
+        return self._read_structured(file_name, catalog_formats.FitsReader,
+            num=num, is_rand=is_rand)
+
+    def _read_structured(self, file_name, reader, num=0, is_rand=False):
         # Helper functions for things we might do in one of two places.
         def set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col):
             if x_col != '0' and x_col in data:
@@ -1471,7 +1482,6 @@ class Catalog(object):
                 self.logger.debug('read patch')
                 self._set_npatch()
 
-        import fitsio
 
         # Get the column names
         x_col = treecorr.config.get_from_list(self.config,'x_col',num,str,'0')
@@ -1488,9 +1498,10 @@ class Catalog(object):
         k_col = treecorr.config.get_from_list(self.config,'k_col',num,str,'0')
         patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,str,'0')
 
-        hdu = treecorr.config.get_from_list(self.config,'hdu',num,int,1)
 
-        with fitsio.FITS(file_name, 'r') as fits:
+        with reader(file_name) as infile:
+
+            hdu = infile.choose_extension(self.config, 'hdu', num)
 
             # Figure out what slice to use.  If all rows, then None is faster,
             # otherwise give the range explicitly.
@@ -1499,12 +1510,19 @@ class Catalog(object):
             # We should be able to always use s = slice(self.start, self.end, self.every_nth)
             if self.start == 0 and self.end is None and self.every_nth == 1:
                 s = slice(None)
+            # fancy indexing in h5py is incredibly slow, so we explicitly
+            # check if we can slice or not.  This checks for the fitsio version in
+            # the fits case
+            elif infile.can_slice:
+                s = slice(self.start, self.end, self.every_nth)
             else:
                 if x_col != '0':
-                    x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
+                    x_hdu = infile.choose_extension(self.config, 'x_hdu', num, hdu)
+                    col = x_col
                 else:
-                    x_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
-                end = self.end if self.end is not None else fits[x_hdu].get_nrows()
+                    x_hdu = infile.choose_extension(self.config, 'ra_hdu', num, hdu)
+                    col = ra_col
+                end = self.end if self.end is not None else infile.row_count(x_hdu, col)
                 s = np.arange(self.start, end, self.every_nth)
 
             all_cols = [x_col, y_col, z_col,
@@ -1513,26 +1531,26 @@ class Catalog(object):
                         w_col, wpos_col, flag_col,
                         g1_col, g2_col, k_col]
 
-            # It's faster to read in all the columsn in one read, rather than individually.
-            # Typically (very close to always!), all the columns are in the same hdu.
+            # It's faster in FITS to read in all the columns in one read, rather than individually.
+            # Typically (very close to always!), all the columns are in the same extension.
             # Thus, the following would normally work fine.
             #     use_cols = [c for c in all_cols if c != '0']
             #     data = fits[hdu][use_cols][:]
-            # However, we allow the option to have different columns read from different hdus.
+            # However, we allow the option to have different columns read from different extensions.
             # So this is slightly more complicated.
-            x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
-            y_hdu = treecorr.config.get_from_list(self.config,'y_hdu',num,int,hdu)
-            z_hdu = treecorr.config.get_from_list(self.config,'z_hdu',num,int,hdu)
-            ra_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
-            dec_hdu = treecorr.config.get_from_list(self.config,'dec_hdu',num,int,hdu)
-            r_hdu = treecorr.config.get_from_list(self.config,'r_hdu',num,int,hdu)
-            patch_hdu = treecorr.config.get_from_list(self.config,'patch_hdu',num,int,hdu)
-            w_hdu = treecorr.config.get_from_list(self.config,'w_hdu',num,int,hdu)
-            wpos_hdu = treecorr.config.get_from_list(self.config,'wpos_hdu',num,int,hdu)
-            flag_hdu = treecorr.config.get_from_list(self.config,'flag_hdu',num,int,hdu)
-            g1_hdu = treecorr.config.get_from_list(self.config,'g1_hdu',num,int,hdu)
-            g2_hdu = treecorr.config.get_from_list(self.config,'g2_hdu',num,int,hdu)
-            k_hdu = treecorr.config.get_from_list(self.config,'k_hdu',num,int,hdu)
+            x_hdu = infile.choose_extension(self.config, 'x_hdu', num, hdu)
+            y_hdu = infile.choose_extension(self.config, 'y_hdu', num, hdu)
+            z_hdu = infile.choose_extension(self.config, 'z_hdu', num, hdu)
+            ra_hdu = infile.choose_extension(self.config, 'ra_hdu', num, hdu)
+            dec_hdu = infile.choose_extension(self.config, 'dec_hdu', num, hdu)
+            r_hdu = infile.choose_extension(self.config, 'r_hdu', num, hdu)
+            patch_hdu = infile.choose_extension(self.config, 'patch_hdu', num, hdu)
+            w_hdu = infile.choose_extension(self.config, 'w_hdu', num, hdu)
+            wpos_hdu = infile.choose_extension(self.config, 'wpos_hdu', num, hdu)
+            flag_hdu = infile.choose_extension(self.config, 'flag_hdu', num, hdu)
+            g1_hdu = infile.choose_extension(self.config, 'g1_hdu', num, hdu)
+            g2_hdu = infile.choose_extension(self.config, 'g2_hdu', num, hdu)
+            k_hdu = infile.choose_extension(self.config, 'k_hdu', num, hdu)
             all_hdus = [x_hdu, y_hdu, z_hdu,
                         ra_hdu, dec_hdu, r_hdu,
                         patch_hdu,
@@ -1546,9 +1564,10 @@ class Catalog(object):
             # Also, if we are only reading in one patch, we should adjust s before doing this.
             if self._single_patch is not None:
                 if patch_col != '0':
-                    data[patch_col] = fits[patch_hdu][patch_col][s]
+                    data[patch_col] = infile.read(patch_hdu, patch_col, s)
                     all_cols.remove(patch_col)
                     set_patch(data, patch_col)
+                    end1 = infile.row_count(patch_hdu, patch_col)
                 elif self._centers is not None:
                     pos_cols = [x_col, y_col, z_col, ra_col, dec_col, r_col]
                     pos_cols = [c for c in pos_cols if c != '0']
@@ -1556,16 +1575,19 @@ class Catalog(object):
                         all_cols.remove(c)
                     for h in all_hdus:
                         use_cols1 = [c for c in pos_cols if col_by_hdu[c] == h]
-                        data1 = fits[h][use_cols1][s]
+                        data1 = infile.read(h, use_cols1, s)
                         for c in use_cols1:
                             data[c] = data1[c]
+                    end1 = infile.row_count(h, c)
                     set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col)
                 use = self._get_patch_index(self._single_patch)
                 self.select(use)
                 if isinstance(s,np.ndarray):
                     s = s[use]
-                else:
+                elif s == slice(None):
                     s = use
+                else:
+                    s = np.arange(s.start, end1, s.step)[use]
                 self._patch = None
                 data = {}  # Start fresh, since the ones we used so far are done.
 
@@ -1577,10 +1599,10 @@ class Catalog(object):
             # Now read the rest using the updated s
             for h in all_hdus:
                 use_cols1 = [c for c in all_cols if col_by_hdu[c] == h and
-                                                    c in fits[h].get_colnames()]
+                                                    c in infile.names(h)]
                 if len(use_cols1) == 0:
                     continue
-                data1 = fits[h][use_cols1][s]
+                data1 = infile.read(h, use_cols1, s)
                 for c in use_cols1:
                     data[c] = data1[c]
 
@@ -1608,14 +1630,14 @@ class Catalog(object):
             # Skip g1,g2,k if this file is a random catalog
             if not is_rand:
                 # Set g1,g2
-                if g1_col in fits[g1_hdu].get_colnames():
+                if g1_col in infile.names(g1_hdu):
                     self._g1 = data[g1_col].astype(float)
                     self.logger.debug('read g1')
                     self._g2 = data[g2_col].astype(float)
                     self.logger.debug('read g2')
 
                 # Set k
-                if k_col in fits[k_hdu].get_colnames():
+                if k_col in infile.names(k_hdu):
                     self._k = data[k_col].astype(float)
                     self.logger.debug('read k')
 

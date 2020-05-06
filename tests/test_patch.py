@@ -252,7 +252,7 @@ def test_cat_patches():
         treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                          patch=p2)
     try:
-        # bad patch hdu
+        # bad patch ext
         with assert_raises(IOError):
             treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
                              ra_units='rad', dec_units='rad', patch_col='patch', patch_ext=2)

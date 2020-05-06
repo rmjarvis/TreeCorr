@@ -418,7 +418,7 @@ class Catalog(object):
                 'Ignore objects with flag & ~ok_flag != 0 (bitwise &, ~)'),
         'allow_xyz': (bool, True, False, None,
                 'Whether to allow x,y,z inputs in conjunction with ra,dec'),
-        'ext': (int, True, None, None,
+        'ext': ((int,str), True, None, None,
                 'Which extension/group in a fits/hdf file to use. Default=1 (fits), root (hdf)'),
         'x_ext': ((int,str), True, None, None,
                 'Which extension to use for the x_col. default is the global ext value.'),

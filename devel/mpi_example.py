@@ -116,7 +116,7 @@ def download_file():
         fitsio.write(fname_0, data)
         print('wrote',fname_0)
     for p in range(nproc):
-        fname_p = file_name.replace('.fits','%d.fits'%p)
+        fname_p = file_name.replace('.fits','_%d.fits'%p)
         if not os.path.exists(fname_p):
             shutil.copyfile(fname_0, fname_p)
             print('copied',fname_0,'to',fname_p)
@@ -185,7 +185,7 @@ def run_parallel():
 
     t0 = time.time()
     print(rank,socket.gethostname(),flush=True)
-    fname = file_name.replace('.fits','%d.fits'%rank)[:]
+    fname = file_name.replace('.fits','_%d.fits'%rank)[:]
     log_file = 'parallel_%d.log'%rank
 
     # All processes make the full cat with these patches.

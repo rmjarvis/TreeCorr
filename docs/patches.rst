@@ -23,9 +23,9 @@ correlation function:
    split the work among more than one node on a cluster.  The most
    effective way to do this is to split the data into patches.
    See `Using MPI` below.
-4. To run K-Means on some data set for non-correlation reasons.
+4. To run k-means on some data set for non-correlation reasons.
    TreeCorr happens to have an extremely efficient implementation of the
-   K-Means algorithm.  So if you want to perform K-Means clustering on
+   k-means algorithm.  So if you want to perform k-means clustering on
    some data that can be represnted in a TreeCorr `Catalog` (i.e.
    only 2 or 3 spatial dimensions), then using TreeCorr may be a
    particularly efficient way to do the clustering.
@@ -51,7 +51,7 @@ Running K-Means
 
 One standard way to split up a set of objects into roughly equal area
 groups is an algorithm called
-`K-Means Clustering <https://en.wikipedia.org/wiki/K-means_clustering>`_.
+`k-means clustering <https://en.wikipedia.org/wiki/K-means_clustering>`_.
 
 The basic idea of the algorithm is to divide the points into
 :math:`k` groups such that the total "inertia" is minimized.
@@ -70,26 +70,26 @@ Intertia is defined as follows:
 
         I_i = \sum_{j \in S_i} \left| \vec x_j - \vec \mu_i \right|^2
 
-The K-Means algorithm attempts to minimize the total intertia in all the groups,
+The k-means algorithm attempts to minimize the total intertia in all the groups,
 or equivalently the average inertia among all the groups.
 
 This definition of inertia is a relatively good proxy for area on the
 sky that has objects, so this algorithm is a good choice for dividing up a
 catalog of astronomical objects into fairly uniform patches.
 
-To use the TreeCorr implementation of K-Means, simply
+To use the TreeCorr implementation of k-means, simply
 set the ``npatch`` parameter in the `Catalog` constructor to specifiy
 how many patches you want TreeCorr to split the data into.
 
-There are also two additional options which can affect how the K-Means
+There are also two additional options which can affect how the k-means
 algorithm runs:
 
 * ``kmeans_init`` specifies what procedure to use for the initialization
   of the groups.  Options are:
 
    * 'random' = Choose initial centers randomly from among the input points.
-     This is the traditional K-Means initialization algorithm.
-   * 'kmeans++' = Use `K-Means++ <https://en.wikipedia.org/wiki/K-means%2B%2B>`_,
+     This is the traditional k-means initialization algorithm.
+   * 'kmeans++' = Use `k-means++ <https://en.wikipedia.org/wiki/K-means%2B%2B>`_,
      an improved algorithm by Arthur and Vassilvitskii
      with a provable upper bound for how close the final result will
      be to the global minimum possible total inertia.
@@ -99,15 +99,15 @@ algorithm runs:
      (See :ref:`Comparison with other implementations <Comparison>` below.)
 
 * ``kmeans_alt`` specifies whether to use an alternate iteration algorithm
-  similar to K-Means, which often produces somewhat more uniform patches.
+  similar to k-means, which often produces somewhat more uniform patches.
 
   This alternate algorithm specifically targets minimizing the rms inertia
   rather than the mean inertia, so it tends to lead to patches that have
-  a smaller final rms than the regular K-Means algorithm.
+  a smaller final rms size than the regular k-means algorithm.
 
   This is not the default algorithm because it is not provably (at least by
   me) stable.  It is possible that the iteration can get into a failure mode
-  where one patch will end up with zero objects.  The regular K-Means
+  where one patch will end up with zero objects.  The regular k-means
   provably cannot fail in this way.
 
   So if you care especially about having very uniform patch sizes, you might
@@ -120,7 +120,7 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
 .. _Comparison:
 .. admonition:: Comparison with other implementations
 
-    Before implementing K-Means in TreeCorr, I investigated what other options
+    Before implementing k-means in TreeCorr, I investigated what other options
     there were in the Python landscape.  I found the following implementations:
 
     * `scipy.cluster.vq.kmeans <https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.vq.kmeans.html>`_
@@ -138,7 +138,7 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
 
     The ideal patches would be essentially uniform in size according to some measure of the
     effective area of the patch. To make things simple, I just used the inertia as my
-    proxy for area, since that's the thing that K-Means algorithms natively work with.
+    proxy for area, since that's the thing that k-means algorithms natively work with.
 
     However, we don't really care about the total inertia being minimized.  For most purposes
     here, we really want the patches to be all close to the *same* size.  So rather than
@@ -146,11 +146,11 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
 
     Fortunately, the process of minimizing the total inertia does tend to select patches with
     small rms as well, but it is worth noting that this is not directly targeted by the
-    normal K-Means algorithm. And furthermore, the K-Means algorithm almost never finds the true
+    normal k-means algorithm. And furthermore, the k-means algorithm almost never finds the true
     global minimum inertia. The quality of the local minimum depends pretty strongly on the
     choice of initial centers to seed the iterative part of the algorithm.
 
-    Comparing the results of the various K-Means implementations, I found that they all tend
+    Comparing the results of the various k-means implementations, I found that they all tend
     to be either fairly slow, taking a minute or more for just 1 million objects, or they have
     very high rms inertia.
     I reran each code multiple times using a different random million selected from the original
@@ -162,30 +162,30 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
     Since there was no existing implementation I was particularly happy with,
     I implemented it myself in TreeCorr. It turns out (not surprisingly) that the ball tree
     structure that TreeCorr already uses for doing correlation functions quickly is also very
-    useful for doing K-Means quickly. Also, the quality of the K-Means result is pretty dependent
+    useful for doing k-means quickly. Also, the quality of the k-means result is pretty dependent
     on the choice of the initial centers, and using the ball tree for the initialization turns
     out to produce reliably better results than the initialization methods used by other packages.
 
     The big red dots in the lower left corner are the TreeCorr implementation of the standard
-    K-Means clustering algorithm. It typically takes about 1 or 2 seconds to classify these
+    k-means clustering algorithm. It typically takes about 1 or 2 seconds to classify these
     1 million points into 40 patches, and the rms inertia is usually less than any other
     implementation.
 
     The `notebook <https://github.com/rmjarvis/TreeCorr/blob/master/devel/kmeans.ipynb>`_ also
     includes plots of total inertia, rms size using according to the mean d^2 rather than sum,
-    and rms counts. The TreeCorr algorithm tends to be the best K-Means implementation according to
+    and rms counts. The TreeCorr algorithm tends to be the best k-means implementation according to
     any of these metrics.
 
     In addition, you can see some slightly smaller orange dots, which have even lower rms inertia
     but take very slightly longer to run. These are the alternate algorithm I mentioned above.
-    This alternate algorithm is similar to K-Means, but it penalizes patches with a
+    This alternate algorithm is similar to k-means, but it penalizes patches with a
     larger-than-average inertia, so they give up some of their outer points to patches with
     smaller inertia. In other words, it explicitly targets making the rms inertia as small as
     possible.  But in practice, it is not much worse in terms of total inertia either.
 
     The alternate algorithm is available using alt=True in `Field.run_kmeans`.
     I left this as a non-default option for two reasons. First, it's not actually the real
-    K-Means, so I didn't want to confuse people who just want to use this for regular K-Means
+    k-means, so I didn't want to confuse people who just want to use this for regular k-means
     clustering. But second, I'm not completely sure that it is always stable. There is a free
     parameter in the penalty function I chose, which I set to 3. Setting it to 4 gave even better
     results (slightly), but at 5 the algorithm broke down with neighboring patches trading
@@ -193,7 +193,7 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
 
     I couldn't convince myself that 4 was actually a magic number and not just the particular
     value for this data set. So 3 might be safe, or there might be data sets where that also
-    leads to this runaway trading failure mode. I know the regular K-Means algorithm can't get
+    leads to this runaway trading failure mode. I know the regular k-means algorithm can't get
     into this mode, so it's always safe. Therefore, I think it's better to force the user to
     intentionally select the alternate algorithm if they really care about having a low rms
     patch size, with the normal algorithm being the backup if the alternate one fails for them.
@@ -243,7 +243,7 @@ The overall procedure for doing this is as follows:
    geometry, which is intrinsically sparser (say a catalog of red sequence
    galaxies or clusters or even stars).  Or it could be the large catalog
    you want to use, but sampled using the ``every_nth`` option to read
-   in only a fraction of the rows.  Run K-Means on the smaller catalog
+   in only a fraction of the rows.  Run k-means on the smaller catalog
    and write the patch_centers to a file, as describe `above <Using Patch Centers>`.
 2. Set up a directory somewhere that TreeCorr can use as temporary
    space for writing the individual patch files.
@@ -334,7 +334,7 @@ You would then run this script using (e.g. with 4 processes)::
 
 The file defining the patch centers should already be written to make sure
 that each machine is using the same patch definitions.  There is some level of
-randomness in the K-Means calculation, so if you use npatch=N, then each
+randomness in the k-means calculation, so if you use npatch=N, then each
 machine may end up with different patch definitions, which would definitely
 mess things up.
 

@@ -261,7 +261,7 @@ class Field(object):
         return ind
 
     def run_kmeans(self, npatch, max_iter=200, tol=1.e-5, init='tree', alt=False):
-        """Use k-means algorithm to set patch labels for a field.
+        r"""Use k-means algorithm to set patch labels for a field.
 
         The k-means algorithm (cf. https://en.wikipedia.org/wiki/K-means_clustering) identifies
         a center position for each patch.  Each point is then assigned to the patch whose center
@@ -278,34 +278,65 @@ class Field(object):
         more or less similar inertia, which make them useful for jackknife or other sampling
         estimates of the errors in the correlation functions.
 
+        More specifically, if the points :math:`j` have vector positions :math:`\vec x_j`,
+        and we define patches :math:`S_i` to comprise disjoint subsets of the :math:`j`
+        values, then the inertia :math:`I_i` of each patch is defined as:
+
+        .. math::
+
+            I_i = \sum_{j \in S_i} \left| \vec x_j - \vec \mu_i \right|^2
+
+        where :math:`\vec \mu_i` is the center of each patch:
+
+        .. math::
+
+            \vec \mu_i \equiv \sum_{j \in S_i} \vec x_j
+
+        The k-means algorithm finds a solution that is a local minimum in the total inertia,
+        :math:`\sum_i I_i`.
+
         In addition to the normal k-means algorithm, we also offer an alternate algorithm, which
-        can produce slightly better patches for the purpose of error estimation.  The ideal patch
-        definition for such use would be to minimize the rms inertia of each patch, not the total
-        inertia.  It turns out that it is difficult to devise an algorithm that literally does
-        this, since it has a tendancy to become unstable and not converge.  However, adding a
-        penalty term to the patch assignment step of the normal k-means algorithm turns out to
-        work reasonably well.
+        can produce slightly better patches for the purpose of patch-based covariance estimation.
+        The ideal patch definition for such use would be to minimize the rms inertia of each patch,
+        not the total (or mean) inertia.  It turns out that it is difficult to devise an algorithm
+        that literally does this, since it has a tendancy to become unstable and not converge.
 
-        Specifically, we assign each point k to the patch with the minimum d_ik^2 + f I_i, where
-        d_ik is the distance to the center of patch i, I_i is the inertia of that patch from the
-        previous iteration, and f is a scaling constant (see below). The penalty term means that
-        patches with less inertia get more points on the next iteration, and vice versa, which
-        results in centers that have significantly lower rms inertia, but only slightly higher
-        total inertia.
+        However, adding a penalty term to the patch assignment step of the normal k-means
+        algorithm turns out to work reasonably well.  The penalty term we use is :math:`f I_i`,
+        where :math:`f` is a scaling constant (see below).  When doing the assignment step we assign
+        each point :math:`j` to the patch :math:`i` that gives the minimum penalized distance
 
-        For the scaling constant, f, we chose 3/<N_i>, three times the inverse of the mean number
-        of points in each patch.  The 1/<N_i> factor makes the two terms of comparable magnitude,
-        so patches still get most of the points near them, even if they already have larger than
-        average inertia, but some of the points in the outskirts of the patch might switch to
-        a nearby patch with smaller inertia.  The factor of 3 is purely empirical, and was found
-        to give good results in terms of rms inertia on some test data (the DES SV field).
+        .. math::
+
+            {d_{ij}^\prime}^2 \equiv \left| \vec x_j - \mu_i \right|^2 + f I_i.
+
+        The penalty term means that patches with less inertia get more points on the next
+        iteration, and vice versa, which tends to equalize the inertia values somewhat.
+        The resulting patches have significantly lower rms inertia, but typically only slightly
+        higher total inertia.
+
+        For the scaling constant, :math:`f`, we chose
+
+        .. math::
+
+            f = \frac{3}{\langle N_i\rangle},
+
+        three times the inverse of the mean number of points in each patch.
+
+        The :math:`1/\langle N_i\rangle` factor makes the two terms of comparable magnitude
+        near the edges of the patches, so patches still get most of the points near their previous
+        centers, even if they already have larger than average inertia, but some of the points in
+        the outskirts of the patch might switch to a nearby patch with smaller inertia.  The
+        factor of 3 is purely empirical, and was found to give good results in terms of rms
+        inertia on some test data (the DES SV field).
 
         The alternate algorithm is available by specifying ``alt=True``.  Despite it typically
         giving better patch centers than the standard algorithm, we don't make it the default,
-        because it is possible for the iteration to become unstable, leading to some patches
-        with no points in them.  If this happens for you, your best bet is probably to switch
-        to the standard algorithm, which should never suffer from this problem (at least with
-        reasonable initialization of the centers).
+        because it may be possible for the iteration to become unstable, leading to some patches
+        with no points in them. (This happened in our tests when the arbitrary factor in the
+        scaling constant was 5 instead of 3, but I could not prove that 3 would always avoid this
+        failure mode.) If this happens for you, your best bet is probably to switch to the
+        standard algorithm, which can never suffer from this problem.
 
         Parameters:
             npatch (int):       How many patches to generate

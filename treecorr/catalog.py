@@ -21,7 +21,7 @@ import weakref
 import copy
 import os
 import treecorr
-
+from . import catalog_formats
 class Catalog(object):
     """A set of input data (positions and other quantities) to be correlated.
 
@@ -1415,6 +1415,18 @@ class Catalog(object):
             num (int):          Which number catalog are we reading. (default: 0)
             is_rand (bool):     Is this a random catalog? (default: False)
         """
+
+        return self._read_structured(file_name, catalog_formats.FitsReader,
+            num=num, is_rand=False,)
+
+    def _read_structured(self, file_name, reader, num=0, is_rand=False):
+        """Read the catalog from a FITS file
+
+        Parameters:
+            file_name (str):    The name of the file to read in.
+            num (int):          Which number catalog are we reading. (default: 0)
+            is_rand (bool):     Is this a random catalog? (default: False)
+        """
         # Helper functions for things we might do in one of two places.
         def set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col):
             if x_col != '0' and x_col in data:
@@ -1441,7 +1453,6 @@ class Catalog(object):
                 self.logger.debug('read patch')
                 self._set_npatch()
 
-        import fitsio
 
         # Get the column names
         x_col = treecorr.config.get_from_list(self.config,'x_col',num,str,'0')
@@ -1460,7 +1471,7 @@ class Catalog(object):
 
         hdu = treecorr.config.get_from_list(self.config,'hdu',num,int,1)
 
-        with fitsio.FITS(file_name, 'r') as fits:
+        with reader(file_name) as infile:
 
             # Figure out what slice to use.  If all rows, then None is faster,
             # otherwise give the range explicitly.
@@ -1472,9 +1483,11 @@ class Catalog(object):
             else:
                 if x_col != '0':
                     x_hdu = treecorr.config.get_from_list(self.config,'x_hdu',num,int,hdu)
+                    col = x_col
                 else:
                     x_hdu = treecorr.config.get_from_list(self.config,'ra_hdu',num,int,hdu)
-                end = self.end if self.end is not None else fits[x_hdu].get_nrows()
+                    col = ra_col
+                end = self.end if self.end is not None else infile.row_count(x_hdu, col)
                 s = np.arange(self.start, end, self.every_nth)
 
             all_cols = [x_col, y_col, z_col,
@@ -1516,7 +1529,7 @@ class Catalog(object):
             # Also, if we are only reading in one patch, we should adjust s before doing this.
             if self._single_patch is not None:
                 if patch_col != '0':
-                    data[patch_col] = fits[patch_hdu][patch_col][s]
+                    data[patch_col] = infile.read(patch_hdu, patch_col, s)
                     all_cols.remove(patch_col)
                     set_patch(data, patch_col)
                 elif self._centers is not None:
@@ -1526,7 +1539,7 @@ class Catalog(object):
                         all_cols.remove(c)
                     for h in all_hdus:
                         use_cols1 = [c for c in pos_cols if col_by_hdu[c] == h]
-                        data1 = fits[h][use_cols1][s]
+                        data1 = infile.read(h, use_cols1, s)
                         for c in use_cols1:
                             data[c] = data1[c]
                     set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col)
@@ -1547,10 +1560,10 @@ class Catalog(object):
             # Now read the rest using the updated s
             for h in all_hdus:
                 use_cols1 = [c for c in all_cols if col_by_hdu[c] == h and
-                                                    c in fits[h].get_colnames()]
+                                                    c in infile.names(h)]
                 if len(use_cols1) == 0:
                     continue
-                data1 = fits[h][use_cols1][s]
+                data1 = infile.read(h, use_cols1, s)
                 for c in use_cols1:
                     data[c] = data1[c]
 
@@ -1578,14 +1591,14 @@ class Catalog(object):
             # Skip g1,g2,k if this file is a random catalog
             if not is_rand:
                 # Set g1,g2
-                if g1_col in fits[g1_hdu].get_colnames():
+                if g1_col in infile.names(g1_hdu):
                     self._g1 = data[g1_col].astype(float)
                     self.logger.debug('read g1')
                     self._g2 = data[g2_col].astype(float)
                     self.logger.debug('read g2')
 
                 # Set k
-                if k_col in fits[k_hdu].get_colnames():
+                if k_col in infile.names(k_hdu):
                     self._k = data[k_col].astype(float)
                     self.logger.debug('read k')
 

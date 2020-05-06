@@ -162,10 +162,11 @@ class BinnedCorr3(object):
                               the range.
 
         min_top (int):      The minimum number of top layers to use when setting up the field.
-                            (default: :math:`max(3, \\log_2(N_{cpu}))`)
+                            (default: :math:`\\max(3, \\log_2(N_{\\rm cpu}))`)
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             The top-level cells are where each calculation job starts. There will
-                            typically be of order 2^max_top top-level cells. (default: 10)
+                            typically be of order :math:`2^{\\rm max\\_top}` top-level cells.
+                            (default: 10)
         precision (int):    The precision to use for the output values. This specifies how many
                             digits to write. (default: 4)
 

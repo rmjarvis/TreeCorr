@@ -20,7 +20,7 @@ import numpy as np
 
 
 class NNCorrelation(treecorr.BinnedCorr2):
-    """This class handles the calculation and storage of a 2-point count-count correlation
+    r"""This class handles the calculation and storage of a 2-point count-count correlation
     function.  i.e. the regular density correlation function.
 
     Ojects of this class holds the following attributes:
@@ -50,14 +50,14 @@ class NNCorrelation(treecorr.BinnedCorr2):
     If `calculateXi` has been called, then the following will also be available:
 
     Attributes:
-        xi:         The correlation function, :math:`\\xi(r)`
-        varxi:      An estimate of the variance of :math:`\\xi`
+        xi:         The correlation function, :math:`\xi(r)`
+        varxi:      An estimate of the variance of :math:`\xi`
         cov:        An estimate of the full covariance matrix.
 
-    If **sep_units** are given (either in the config dict or as a named kwarg) then the distances
+    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
     will all be in these units.  Note however, that if you separate out the steps of the
     `process` command and use `process_auto` and/or `process_cross`, then the units will not be
-    applied to **meanr** or **meanlogr** until the `finalize` function is called.
+    applied to ``meanr`` or ``meanlogr`` until the `finalize` function is called.
 
     The typical usage pattern is as follows:
 
@@ -72,15 +72,18 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries in addition to those listed
+                        This dict is allowed to have addition entries besides those listed
                         in `BinnedCorr2`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    See the documentation for `BinnedCorr2` for the list of other allowed kwargs, which may be
-    passed either directly or in the config dict.
+    Keyword Arguments:
+        **kwargs:       See the documentation for `BinnedCorr2` for the list of allowed keyword
+                        arguments, which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
+        """Initialize `NNCorrelation`.  See class doc for details.
+        """
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
         self._d1 = 1  # NData
@@ -113,7 +116,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
                 treecorr._lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
 
     def __eq__(self, other):
-        """Return whether two NNCorrelations are equal"""
+        """Return whether two `NNCorrelation` instances are equal"""
         return (isinstance(other, NNCorrelation) and
                 self.nbins == other.nbins and
                 self.bin_size == other.bin_size and
@@ -249,10 +252,12 @@ class NNCorrelation(treecorr.BinnedCorr2):
         After calling this function as often as desired, the `finalize` command will
         finish the calculation.
 
-        .. note::
+        .. warning::
 
-            This function is deprecated and slated to be removed.
-            If you have a need for it, please open an issue to describe your use case.
+            .. deprecated:: 4.1
+
+                This function is deprecated and slated to be removed.
+                If you have a need for it, please open an issue to describe your use case.
 
         Parameters:
             cat1 (Catalog):     The first catalog to process
@@ -317,11 +322,13 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.tot = 0.
 
     def __iadd__(self, other):
-        """Add a second NNCorrelation's data to this one.
+        """Add a second `NNCorrelation`'s data to this one.
 
-        Note: For this to make sense, both Correlation objects should have been using
-        `process_auto` and/or `process_cross`, and they should not have had `finalize` called yet.
-        Then, after adding them together, you should call `finalize` on the sum.
+        .. note::
+
+            For this to make sense, both `NNCorrelation` objects should have been using
+            `process_auto` and/or `process_cross`, and they should not have had `finalize` called
+            yet.  Then, after adding them together, you should call `finalize` on the sum.
         """
         if not isinstance(other, NNCorrelation):
             raise TypeError("Can only add another NNCorrelation object")
@@ -412,16 +419,16 @@ class NNCorrelation(treecorr.BinnedCorr2):
         return self._rr_weight
 
     def calculateXi(self, rr, dr=None, rd=None):
-        """Calculate the correlation function given another correlation function of random
+        r"""Calculate the correlation function given another correlation function of random
         points using the same mask, and possibly cross correlations of the data and random.
 
-        The rr value is the NNCorrelation function for random points.
+        The rr value is the `NNCorrelation` function for random points.
         For a signal that involves a cross correlations, there should be two random
         cross-correlations: data-random and random-data, given as dr and rd.
 
-        - If dr is None, the simple correlation function :math:`\\xi = (DD/RR - 1)` is used.
-        - if dr is given and rd is None, then :math:`\\xi = (DD - 2DR + RR)/RR` is used.
-        - If dr and rd are both given, then :math:`\\xi = (DD - DR - RD + RR)/RR` is used.
+        - If dr is None, the simple correlation function :math:`\xi = (DD/RR - 1)` is used.
+        - if dr is given and rd is None, then :math:`\xi = (DD - 2DR + RR)/RR` is used.
+        - If dr and rd are both given, then :math:`\xi = (DD - DR - RD + RR)/RR` is used.
 
         where DD is the data NN correlation function, which is the current object.
 
@@ -448,8 +455,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
         Returns:
             Tuple containing
 
-                - xi = array of :math:`\\xi(r)`
-                - varxi = an estimate of the variance of :math:`\\xi(r)`
+                - xi = array of :math:`\xi(r)`
+                - varxi = an estimate of the variance of :math:`\xi(r)`
         """
         # Each random weight value needs to be rescaled by the ratio of total possible pairs.
         if rr.tot == 0:
@@ -618,36 +625,38 @@ class NNCorrelation(treecorr.BinnedCorr2):
         return xi,w
 
     def write(self, file_name, rr=None, dr=None, rd=None, file_type=None, precision=None):
-        """Write the correlation function to the file, file_name.
+        r"""Write the correlation function to the file, file_name.
 
-        rr is the NNCorrelation function for random points.
-        If dr is None, the simple correlation function :math:`\\xi = (DD - RR)/RR` is used.
-        if dr is given and rd is None, then :math:`\\xi = (DD - 2DR + RR)/RR` is used.
-        If dr and rd are both given, then :math:`\\xi = (DD - DR - RD + RR)/RR` is used.
+        rr is the `NNCorrelation` function for random points.
+        If dr is None, the simple correlation function :math:`\xi = (DD - RR)/RR` is used.
+        if dr is given and rd is None, then :math:`\xi = (DD - 2DR + RR)/RR` is used.
+        If dr and rd are both given, then :math:`\xi = (DD - DR - RD + RR)/RR` is used.
 
         Normally, at least rr should be provided, but if this is also None, then only the
         basic accumulated number of pairs are output (along with the separation columns).
 
         The output file will include the following columns:
 
-        ==========      =========================================================
+        ==========      ==========================================================
         Column          Description
-        ==========      =========================================================
+        ==========      ==========================================================
         r_nom           The nominal center of the bin in r
-        meanr           The mean value <r> of pairs that fell into each bin
-        meanlogr        The mean value <log(r)> of pairs that fell into each bin
-        xi              The estimator xi (if rr is given, or calculateXi has
-                            been called)
+        meanr           The mean value :math:`\langle r\rangle` of pairs that fell
+                        into each bin
+        meanlogr        The mean value :math:`\langle \log(r)\rangle` of pairs that
+                        fell into each bin
+        xi              The estimator :math:`\xi` (if rr is given, or calculateXi
+                        has been called)
         sigma_xi        The sqrt of the variance estimate of xi (if rr is given
-                            or calculateXi has been called)
+                        or calculateXi has been called)
         DD              The total weight of pairs in each bin.
         RR              The total weight of RR pairs in each bin (if rr is given)
         DR              The total weight of DR pairs in each bin (if dr is given)
         RD              The total weight of RD pairs in each bin (if rd is given)
         npairs          The total number of pairs in each bin
-        ==========      =========================================================
+        ==========      ==========================================================
 
-        If **sep_units** was given at construction, then the distances will all be in these units.
+        If ``sep_units`` was given at construction, then the distances will all be in these units.
         Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
         radians (for spherical coordinates).
 
@@ -713,9 +722,11 @@ class NNCorrelation(treecorr.BinnedCorr2):
         This should be a file that was written by TreeCorr, preferably a FITS file, so there
         is no loss of information.
 
-        Warning: The NNCorrelation object should be constructed with the same configuration
-        parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
-        checked by the read function.
+        .. warning::
+
+            The `NNCorrelation` object should be constructed with the same configuration
+            parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+            checked by the read function.
 
         Parameters:
             file_name (str):   The name of the file to read in.
@@ -746,33 +757,33 @@ class NNCorrelation(treecorr.BinnedCorr2):
             self.varxi = data['sigma_xi']**2
 
     def calculateNapSq(self, rr, R=None, dr=None, rd=None, m2_uform=None):
-        """Calculate the correlary to the aperture mass statistics for counts.
+        r"""Calculate the corrollary to the aperture mass statistics for counts.
 
         .. math::
 
-            \\langle N_{ap}^2 \\rangle(R) &= \\int_{0}^{rmax} \\frac{r dr}{2R^2}
-            \\left [ T_+\\left(\\frac{r}{R}\\right) \\xi(r) \\right] \\\\
+            \langle N_{ap}^2 \rangle(R) &= \int_{0}^{rmax} \frac{r dr}{2R^2}
+            \left [ T_+\left(\frac{r}{R}\right) \xi(r) \right] \\
 
-        The **m2_uform** parameter sets which definition of the aperture mass to use.
+        The ``m2_uform`` parameter sets which definition of the aperture mass to use.
         The default is to use 'Crittenden'.
 
-        If **m2_uform** is 'Crittenden':
+        If ``m2_uform`` is 'Crittenden':
 
         .. math::
 
-            U(r) &= \\frac{1}{2\\pi} (1-r^2) \\exp(-r^2/2) \\\\
-            T_+(s) &= \\frac{s^4 - 16s^2 + 32}{128} \\exp(-s^2/4) \\\\
-            rmax &= \\infty
+            U(r) &= \frac{1}{2\pi} (1-r^2) \exp(-r^2/2) \\
+            T_+(s) &= \frac{s^4 - 16s^2 + 32}{128} \exp(-s^2/4) \\
+            rmax &= \infty
 
         cf. Crittenden, et al (2002): ApJ, 568, 20
 
-        If **m2_uform** is 'Schneider':
+        If ``m2_uform`` is 'Schneider':
 
         .. math::
 
-            U(r) &= \\frac{9}{\\pi} (1-r^2) (1/3-r^2) \\\\
-            T_+(s) &= \\frac{12}{5\\pi} (2-15s^2) \\arccos(s/2) \\\\
-            &\\qquad + \\frac{1}{100\\pi} s \\sqrt{4-s^2} (120 + 2320s^2 - 754s^4 + 132s^6 - 9s^8) \\\\
+            U(r) &= \frac{9}{\pi} (1-r^2) (1/3-r^2) \\
+            T_+(s) &= \frac{12}{5\pi} (2-15s^2) \arccos(s/2) \\
+            &\qquad + \frac{1}{100\pi} s \sqrt{4-s^2} (120 + 2320s^2 - 754s^4 + 132s^6 - 9s^8) \\
             rmax &= 2R
 
         cf. Schneider, et al (2002): A&A, 389, 729
@@ -794,7 +805,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         Returns:
             Tuple containing
 
-                - nsq = array of :math:`\\langle N_{ap}^2 \\rangle(R)`
+                - nsq = array of :math:`\langle N_{ap}^2 \rangle(R)`
                 - varnsq = array of variance estimates of this value
         """
         if m2_uform is None:

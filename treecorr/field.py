@@ -27,7 +27,7 @@ def _parse_split_method(split_method):
 
 
 class Field(object):
-    """A Field in TreeCorr is the object that stores the tree structure we use for efficient
+    r"""A Field in TreeCorr is the object that stores the tree structure we use for efficient
     calculation of the correlation functions.
 
     The root "cell" in the tree has information about the whole field, including the total
@@ -37,29 +37,29 @@ class Field(object):
 
     It also points to two sub-cells which each describe about half the points.  These are commonly
     referred to as "daughter cells".  They in turn point to two more cells each, and so on until
-    we get to cells that are considered "small enough" according to the **min_size** parameter given
+    we get to cells that are considered "small enough" according to the ``min_size`` parameter given
     in the constructor.  These lowest level cells are referred to as "leaves".
 
     Technically, a Field doesn't have just one of these trees.  To make parallel computation
     more efficient, we actually skip the first few layers of the tree as described above and
     store a list of root cells.  The three parameters that determine how many of these there
-    will be are **max_size**, **min_top**, and **max_top**:
+    will be are ``max_size``, ``min_top``, and ``max_top``:
 
-        - **max_size** sets the maximum size cell that we want to make sure we have in the trees,
+        - ``max_size`` sets the maximum size cell that we want to make sure we have in the trees,
           so the root cells will be at least this large.  The default is None, which means
           we care about all sizes, so there may be only one root cell (but typically more
-          because of **min_top**).
-        - **min_top** sets the minimum number of initial levels to skip.  The default is either 3
-          or :math:`\\log_2(N_{cpu})`, whichever is larger.  This means there will be at least 8
+          because of ``min_top``).
+        - ``min_top`` sets the minimum number of initial levels to skip.  The default is either 3
+          or :math:`\log_2(N_{cpu})`, whichever is larger.  This means there will be at least 8
           (or :math:`N_{cpu}`) root cells (assuming ntot is at least this large of course).
-        - **max_top** sets the maximum number of initial levels to skip.  The default is 10,
+        - ``max_top`` sets the maximum number of initial levels to skip.  The default is 10,
           which means there could be up to 1024 root cells.
 
-    Finally, the **split_method** parameter sets how the points in a cell should be divided
+    Finally, the ``split_method`` parameter sets how the points in a cell should be divided
     when forming the two daughter cells.  The split is always done according to whichever
     dimension has the largest extent.  E.g. if max(\|x - meanx\|) is larger than max(\|y - meany\|)
     and (for 3d) max(\|z - meanz\|), then it will split according to the x values.  But then
-    it may split in different ways according to **split_method**.  The allowed values are:
+    it may split in different ways according to ``split_method``.  The allowed values are:
 
         - 'mean' means to divide the points at the average (mean) value of x, y or z.
         - 'median' means to divide the points at the median value of x, y, or z.
@@ -70,11 +70,11 @@ class Field(object):
     Field itself is an abstract base class for the specific types of field classes.
     As such, it cannot be constructed directly.  You should make one of the concrete subclasses:
 
-        - NField describes a field of objects to be counted only.
-        - KField describes a field of points sampling a scalar field (e.g. kappa in the
+        - `NField` describes a field of objects to be counted only.
+        - `KField` describes a field of points sampling a scalar field (e.g. kappa in the
           weak lensing context).  In addition to the above values, cells keep track of
           the mean kappa value in the given region.
-        - GField describes a field of points sampling a spinor field (e.g. gamma in the
+        - `GField` describes a field of points sampling a spinor field (e.g. gamma in the
           weak lensing context).  In addition to the above values, cells keep track of
           the mean (complex) gamma value in the given region.
     """
@@ -138,7 +138,7 @@ class Field(object):
         Parameters:
             ra (float or Angle):    The right ascension of the target location
             dec (float or Angle):   The declination of the target location
-            c (CelestialCorod):     A coord.CelestialCoord object in lieu of (ra, dec)
+            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
             sep (float or Angle):   The separation distance
             ra_units (str):         The units of ra if given as a float
             dec_units (str):        The units of dec if given as a float
@@ -149,18 +149,18 @@ class Field(object):
         Parameters:
             ra (float or Angle):    The right ascension of the target location
             dec (float or Angle):   The declination of the target location
-            c (CelestialCorod):     A coord.CelestialCoord object in lieu of (ra, dec)
+            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
             r (float):              The distance to the target location
             sep (float):            The separation distance
             ra_units (str):         The units of ra if given as a float
             dec_units (str):        The units of dec if given as a float
 
-        In all cases, for parameters that angles (ra, dec, sep for 'spherical'), you may either
-        provide this quantity as a coord.Angle instance, or you may provide ra_units, dec_units
+        In all cases, for parameters that are angles (ra, dec, sep for 'spherical'), you may either
+        provide this quantity as a ``coord.Angle`` instance, or you may provide ra_units, dec_units
         or sep_units respectively to specify which angular units are providing.
 
         Finally, in cases where ra, dec are allowed, you may instead provide a
-        coord.CelestialCoord instance as the first argument to specify both RA and Dec.
+        ``coord.CelestialCoord`` instance as the first argument to specify both RA and Dec.
         """
         if self.min_size == 0:
             # If min_size = 0, then regular method is already exact.
@@ -206,7 +206,7 @@ class Field(object):
         Parameters:
             ra (float or Angle):    The right ascension of the target location
             dec (float or Angle):   The declination of the target location
-            c (CelestialCorod):     A coord.CelestialCoord object in lieu of (ra, dec)
+            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
             sep (float or Angle):   The separation distance
             ra_units (str):         The units of ra if given as a float
             dec_units (str):        The units of dec if given as a float
@@ -217,18 +217,18 @@ class Field(object):
         Parameters:
             ra (float or Angle):    The right ascension of the target location
             dec (float or Angle):   The declination of the target location
-            c (CelestialCorod):     A coord.CelestialCoord object in lieu of (ra, dec)
+            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
             r (float):              The distance to the target location
             sep (float):            The separation distance
             ra_units (str):         The units of ra if given as a float
             dec_units (str):        The units of dec if given as a float
 
-        In all cases, for parameters that angles (ra, dec, sep for 'spherical'), you may either
-        provide this quantity as a coord.Angle instance, or you may provide ra_units, dec_units
+        In all cases, for parameters that are angles (ra, dec, sep for 'spherical'), you may either
+        provide this quantity as a ``coord.Angle`` instance, or you may provide ra_units, dec_units
         or sep_units respectively to specify which angular units are providing.
 
         Finally, in cases where ra, dec are allowed, you may instead provide a
-        coord.CelestialCoord instance as the first argument to specify both RA and Dec.
+        ``coord.CelestialCoord`` instance as the first argument to specify both RA and Dec.
         """
         x,y,z,sep = treecorr.util.parse_xyzsep(args, kwargs, self._coords)
         if self.min_size == 0:
@@ -270,15 +270,15 @@ class Field(object):
 
         The process tends to converge relatively quickly.  The convergence criterion we use
         is a tolerance on the rms shift in the centroid positions as a fraction of the overall
-        size of the whole field.  This is settable as **tol** (default 1.e-5).  You can also
-        set the maximum number of iterations to allow as **max_iter** (default 200).
+        size of the whole field.  This is settable as ``tol`` (default 1.e-5).  You can also
+        set the maximum number of iterations to allow as ``max_iter`` (default 200).
 
         The upshot of the k-means process is to minimize the total within-cluster sum of squares
         (WCSS), also known as the "inertia" of each patch.  This tends to produce patches with
         more or less similar inertia, which make them useful for jackknife or other sampling
         estimates of the errors in the correlation functions.
 
-        In addition to the normal k-means algorith, we also offer an alternate algorithm, which
+        In addition to the normal k-means algorithm, we also offer an alternate algorithm, which
         can produce slightly better patches for the purpose of error estimation.  The ideal patch
         definition for such use would be to minimize the rms inertia of each patch, not the total
         inertia.  It turns out that it is difficult to devise an algorithm that literally does
@@ -300,7 +300,7 @@ class Field(object):
         a nearby patch with smaller inertia.  The factor of 3 is purely empirical, and was found
         to give good results in terms of rms inertia on some test data (the DES SV field).
 
-        The alternate algorithm is available by specifying **alt=True**.  Despite it typically
+        The alternate algorithm is available by specifying ``alt=True``.  Despite it typically
         giving better patch centers than the standard algorithm, we don't make it the default,
         because it is possible for the iteration to become unstable, leading to some patches
         with no points in them.  If this happens for you, your best bet is probably to switch
@@ -312,26 +312,28 @@ class Field(object):
             max_iter (int):     How many iterations at most to run. (default: 200)
             tol (float):        Tolerance in the rms centroid shift to consider as converged
                                 as a fraction of the total field size. (default: 1.e-5)
-            init (str):         Initialization method. Options are::
+            init (str):         Initialization method. Options are:
 
-                                    - 'tree' (default) Use the normal tree structure of the field,
-                                      traversing down to a level where there are npatch cells,
-                                      and use the centroids of these cells as the initial centers.
-                                      This is almost always the best choice.
-                                    - 'random' Use npatch random points as the intial centers.
-                                    - 'kmeans++' Use the k-means++ algorithm.
+                                    - 'tree' (default) =  Use the normal tree structure of the
+                                      field, traversing down to a level where there are npatch
+                                      cells, and use the centroids of these cells as the initial
+                                      centers.  This is almost always the best choice.
+                                    - 'random' =  Use npatch random points as the intial centers.
+                                    - 'kmeans++' =  Use the k-means++ algorithm.
                                       cf. https://en.wikipedia.org/wiki/K-means%2B%2B
 
-            alt (bool):         Use the alternate assignment algorithm to minimize the rms size
+            alt (bool):         Use the alternate assignment algorithm to minimize the rms inertia
                                 rather than the total inertia (aka WCSS). (default: False)
 
         Returns:
-            patches (array):    An array of patch labels, all integers from 0..npatch-1.
-                                Size is self.ntot.
-            centers (array):    An array of center coordinates used to make the patches.
-                                Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
-                                spherical geometries.  In the latter case, the centers represent
-                                (x,y,z) coordinates on the unit sphere.
+            Tuple containing
+
+                - patches (array): An array of patch labels, all integers from 0..npatch-1.
+                  Size is self.ntot.
+                - centers (array): An array of center coordinates used to make the patches.
+                  Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
+                  spherical geometries.  In the latter case, the centers represent
+                  (x,y,z) coordinates on the unit sphere.
         """
         centers = self.kmeans_initialize_centers(npatch, init)
         self.kmeans_refine_centers(centers, max_iter, tol, alt)
@@ -354,21 +356,21 @@ class Field(object):
 
         Parameters:
             npatch (int):       How many patches to generate initial centers for
-            init (str):         Initialization method. Options are::
+            init (str):         Initialization method. Options are:
 
-                                    - 'tree' (default) Use the normal tree structure of the field,
-                                      traversing down to a level where there are npatch cells,
-                                      and use the centroids of these cells as the initial centers.
-                                      This is almost always the best choice.
-                                    - 'random' Use npatch random points as the intial centers.
-                                    - 'kmeans++' Use the k-means++ algorithm.
+                                    - 'tree' (default) =  Use the normal tree structure of the
+                                      field, traversing down to a level where there are npatch
+                                      cells, and use the centroids of these cells as the initial
+                                      centers.  This is almost always the best choice.
+                                    - 'random' =  Use npatch random points as the intial centers.
+                                    - 'kmeans++' =  Use the k-means++ algorithm.
                                       cf. https://en.wikipedia.org/wiki/K-means%2B%2B
 
         Returns:
-            centers (array):    An array of center coordinates.
-                                Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
-                                spherical geometries.  In the latter case, the centers represent
-                                (x,y,z) coordinates on the unit sphere.
+            An array of center coordinates.
+            Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
+            spherical geometries.  In the latter case, the centers represent
+            (x,y,z) coordinates on the unit sphere.
         """
         from treecorr.util import double_ptr as dp
         if npatch > self.ntot:
@@ -419,7 +421,7 @@ class Field(object):
         As a result, this algorithm typically takes a fraction of a second for ~a million points.
         Indeed most of the time spent in the full kmeans calculation is in building the tree
         in the first place, rather than actually running the kmeans code.  With the alternate
-        algorithm (**alt=True**), the time is only slightly slower from having to calculate
+        algorithm (``alt=True``), the time is only slightly slower from having to calculate
         the sizes at each step.
 
         Parameters:
@@ -430,7 +432,7 @@ class Field(object):
             max_iter (int):     How many iterations at most to run. (default: 200)
             tol (float):        Tolerance in the rms centroid shift to consider as converged
                                 as a fraction of the total field size. (default: 1.e-5)
-            alt (bool):         Use the alternate assignment algorithm to minimize the rms size
+            alt (bool):         Use the alternate assignment algorithm to minimize the rms inertia
                                 rather than the total inertia (aka WCSS). (default: False)
         """
         from treecorr.util import double_ptr as dp
@@ -451,8 +453,7 @@ class Field(object):
                                 (x,y,z) coordinates on the unit sphere.
 
         Returns:
-            patches (array):    An array of patch labels, all integers from 0..npatch-1.
-                                Size is self.ntot.
+            An array of patch labels, all integers from 0..npatch-1.  Size is self.ntot.
         """
         from treecorr.util import double_ptr as dp
         from treecorr.util import long_ptr as lp
@@ -465,25 +466,27 @@ class Field(object):
 
 
 class NField(Field):
-    """This class stores the positions and number of objects in a tree structure from which it is
+    r"""This class stores the positions and number of objects in a tree structure from which it is
     efficient to compute correlation functions.
 
     An NField is typically created from a Catalog object using
 
         >>> nfield = cat.getNField(min_size, max_size, b)
 
-    :param cat:         The catalog from which to make the field.
-    :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)
-    :param max_size:    The maximum radius cell required (usually max_sep). (default: None)
-    :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random').
-                        (default: 'mean')
-    :param brute        Whether to force traversal to the leaves for this field. (default: False)
-    :param min_top:     The minimum number of top layers to use when setting up the field.
-                        (default: :math:`max(3, \\log_2(N_{cpu}))`)
-    :param max_top:     The maximum number of top layers to use when setting up the field.
-                        (default: 10)
-    :param coords       The kind of coordinate system to use. (default: cat.coords)
-    :param logger:      A logger file if desired. (default: None)
+    Parameters:
+        cat (Catalog):      The catalog from which to make the field.
+        min_size (float):   The minimum radius cell required (usually min_sep). (default: 0)
+        max_size (float):   The maximum radius cell required (usually max_sep). (default: None)
+        split_method (str): Which split method to use ('mean', 'median', 'middle', or 'random').
+                            (default: 'mean')
+        brute (bool):       Whether to force traversal to the leaves for this field.
+                            (default: False)
+        min_top (int):      The minimum number of top layers to use when setting up the field.
+                            (default: :math:`\max(3, \log_2(N_{\rm cpu}))`)
+        max_top (int):      The maximum number of top layers to use when setting up the field.
+                            (default: 10)
+        coords (str):       The kind of coordinate system to use. (default: cat.coords)
+        logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, logger=None):
@@ -527,25 +530,27 @@ class NField(Field):
 
 
 class KField(Field):
-    """This class stores the values of a scalar field (kappa in the weak lensing context) in a
+    r"""This class stores the values of a scalar field (kappa in the weak lensing context) in a
     tree structure from which it is efficient to compute correlation functions.
 
     A KField is typically created from a Catalog object using
 
         >>> kfield = cat.getKField(min_size, max_size, b)
 
-    :param cat:         The catalog from which to make the field.
-    :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)
-    :param max_size:    The maximum radius cell required (usually max_sep). (default: None)
-    :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random').
-                        (default: 'mean')
-    :param brute        Whether to force traversal to the leaves for this field. (default: False)
-    :param min_top:     The minimum number of top layers to use when setting up the field.
-                        (default: :math:`max(3, \\log_2(N_{cpu}))`)
-    :param max_top:     The maximum number of top layers to use when setting up the field.
-                        (default: 10)
-    :param coords       The kind of coordinate system to use. (default: cat.coords)
-    :param logger:      A logger file if desired. (default: None)
+    Parameters:
+        cat (Catalog):      The catalog from which to make the field.
+        min_size (float):   The minimum radius cell required (usually min_sep). (default: 0)
+        max_size (float):   The maximum radius cell required (usually max_sep). (default: None)
+        split_method (str): Which split method to use ('mean', 'median', 'middle', or 'random').
+                            (default: 'mean')
+        brute (bool):       Whether to force traversal to the leaves for this field.
+                            (default: False)
+        min_top (int):      The minimum number of top layers to use when setting up the field.
+                            (default: :math:`\max(3, \log_2(N_{\rm cpu}))`)
+        max_top (int):      The maximum number of top layers to use when setting up the field.
+                            (default: 10)
+        coords (str):       The kind of coordinate system to use. (default: cat.coords)
+        logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, logger=None):
@@ -587,25 +592,27 @@ class KField(Field):
 
 
 class GField(Field):
-    """This class stores the values of a spinor field (gamma in the weak lensing context) in a
+    r"""This class stores the values of a spinor field (gamma in the weak lensing context) in a
     tree structure from which it is efficient to compute correlation functions.
 
     A GField is typically created from a Catalog object using
 
         >>> gfield = cat.getGField(min_size, max_size, b)
 
-    :param cat:         The catalog from which to make the field.
-    :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)
-    :param max_size:    The maximum radius cell required (usually max_sep). (default: None)
-    :param split_method: Which split method to use ('mean', 'median', 'middle', or 'random').
-                        (default: 'mean')
-    :param brute        Whether to force traversal to the leaves for this field. (default: False)
-    :param min_top:     The minimum number of top layers to use when setting up the field.
-                        (default: :math:`max(3, \\log_2(N_{cpu}))`)
-    :param max_top:     The maximum number of top layers to use when setting up the field.
-                        (default: 10)
-    :param coords       The kind of coordinate system to use. (default: cat.coords)
-    :param logger:      A logger file if desired. (default: None)
+    Parameters:
+        cat (Catalog):      The catalog from which to make the field.
+        min_size (float):   The minimum radius cell required (usually min_sep). (default: 0)
+        max_size (float):   The maximum radius cell required (usually max_sep). (default: None)
+        split_method (str): Which split method to use ('mean', 'median', 'middle', or 'random').
+                            (default: 'mean')
+        brute (bool):       Whether to force traversal to the leaves for this field.
+                            (default: False)
+        min_top (int):      The minimum number of top layers to use when setting up the field.
+                            (default: :math:`\max(3, \log_2(N_{\rm cpu}))`)
+        max_top (int):      The maximum number of top layers to use when setting up the field.
+                            (default: 10)
+        coords (str):       The kind of coordinate system to use. (default: cat.coords)
+        logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, logger=None):
@@ -669,8 +676,9 @@ class NSimpleField(SimpleField):
 
         >>> nfield = cat.getNSimpleField()
 
-    :param cat:         The catalog from which to make the field.
-    :param logger:      A logger file if desired. (default: None)
+    Parameters:
+        cat (Catalog):      The catalog from which to make the field.
+        logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, logger=None):
         from treecorr.util import double_ptr as dp
@@ -706,8 +714,9 @@ class KSimpleField(SimpleField):
 
         >>> kfield = cat.getKSimpleField()
 
-    :param cat:         The catalog from which to make the field.
-    :param logger:      A logger file if desired. (default: None)
+    Parameters:
+        cat (Catalog):      The catalog from which to make the field.
+        logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, logger=None):
         from treecorr.util import double_ptr as dp
@@ -744,8 +753,9 @@ class GSimpleField(SimpleField):
 
         >>> gfield = cat.getGSimpleField()
 
-    :param cat:         The catalog from which to make the field.
-    :param logger:      A logger file if desired. (default: None)
+    Parameters:
+        cat (Catalog):      The catalog from which to make the field.
+        logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, logger=None):
         from treecorr.util import double_ptr as dp

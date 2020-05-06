@@ -54,7 +54,7 @@ class Catalog(object):
 
     This reads the given columns from the input file.  The input file may be either
     a FITS catalog or an ASCII catalog.  Normally the file type is determined according to the
-    file's extension (e.g. '.fits' here), but it can also be set explicitly with **file_type**.
+    file's extension (e.g. '.fits' here), but it can also be set explicitly with ``file_type``.
 
     Finally, you may store all the various parameters in a configuration dict
     and just pass the dict as an argument after the file name::
@@ -124,16 +124,17 @@ class Catalog(object):
                     - 'spherical' = spherical coordinates.  Set when ra,dec are given.
                     - '3d' = 3-dimensional coordinates.  Set when x,y,z or ra,dec,r are given.
 
-        field:  If any of the **get?Field** methods have been called to construct a field from
-                this catalog (either explicitly or implicitly via a **corr.process()** command),
-                then this attribute will hold the most recent field to have been constructed.
+        field:  If any of the ``get?Field`` methods have been called to construct a field from
+                this catalog (either explicitly or implicitly via a `corr.process()
+                <NNCorrelation.process>` command, then this attribute will hold the most recent
+                field to have been constructed.
                 Note: it holds this field as a weakref, so if caching is turned off with
                 ``resize_cache(0)``, and the field has been garbage collected, then this attribute
                 will be None.
 
     Parameters:
         file_name (str):    The name of the catalog file to be read in. (default: None, in which
-                            case the columns need to be entered directly with **x**, **y**, etc.)
+                            case the columns need to be entered directly with ``x``, ``y``, etc.)
 
         config (dict):      A configuration dict which defines attributes about how to read the
                             file.  Any optional kwargs may be given here in the config dict if
@@ -141,7 +142,7 @@ class Catalog(object):
 
         num (int):          Which number catalog are we reading.  e.g. for NG correlations the
                             catalog for the N has num=0, the one for G has num=1.  This is only
-                            necessary if you are using a config dict where things like **x_col**
+                            necessary if you are using a config dict where things like ``x_col``
                             have multiple values.  (default: 0)
         logger:             If desired, a Logger object for logging. (default: None, in which case
                             one will be built according to the config dict's verbose level.)
@@ -281,7 +282,7 @@ class Catalog(object):
                             weight of pairs. (default: False)
         save_patch_dir (str): If desired, when building patches from this Catalog, save them
                             as FITS files in the given directory for more efficient loading when
-                            doing cross-patch correlations.
+                            doing cross-patch correlations with the ``low_mem`` option.
 
         hdu (int):          For FITS files, which hdu to read. (default: 1)
         x_hdu (int):        Which hdu to use for the x values. (default: hdu)
@@ -335,7 +336,7 @@ class Catalog(object):
     #    list of valid values
     #    description
     _valid_params = {
-        'file_type' : (str, False, None, ['ASCII', 'FITS'],
+        'file_type' : (str, True, None, ['ASCII', 'FITS'],
                 'The file type of the input files. The default is to use the file name extension.'),
         'delimiter' : (str, True, None, None,
                 'The delimeter between values in an ASCII catalog. The default is any whitespace.'),
@@ -347,14 +348,6 @@ class Catalog(object):
                 'The last row to use from the input catalog. The default is to use all of them.'),
         'every_nth' : (int, True, 1, None,
                 'Only use every nth row of the input catalog. The default is to use all of them.'),
-        'npatch' : (int, False, 1, None,
-                'Number of patches to split the catalog into'),
-        'kmeans_init' : (str, False, 'tree', ['tree','random','kmeans++'],
-                'Which initialization method to use for kmeans when making patches'),
-        'kmeans_alt' : (bool, False, False, None,
-                'Whether to use the alternate kmeans algorithm when making patches'),
-        'patch_centers' : (str, False, None, None,
-                'File with patch centers to use to determine patches'),
         'x_col' : (str, True, '0', None,
                 'Which column to use for x. Should be an integer for ASCII catalogs.'),
         'y_col' : (str, True, '0', None,
@@ -394,7 +387,7 @@ class Catalog(object):
                 'Ignore objects with flag & ignore_flag != 0 (bitwise &)'),
         'ok_flag': (int, True, 0, None,
                 'Ignore objects with flag & ~ok_flag != 0 (bitwise &, ~)'),
-        'allow_xyz': (bool, False, False, None,
+        'allow_xyz': (bool, True, False, None,
                 'Whether to allow x,y,z inputs in conjunction with ra,dec'),
         'hdu': (int, True, 1, None,
                 'Which HDU in a fits file to use rather than hdu=1'),
@@ -428,8 +421,17 @@ class Catalog(object):
                 'Whether to flip the sign of g1'),
         'flip_g2' : (bool, True, False, None,
                 'Whether to flip the sign of g2'),
+
         'keep_zero_weight' : (bool, False, False, None,
                 'Whether to keep objects with zero weight in the catalog'),
+        'npatch' : (int, False, 1, None,
+                'Number of patches to split the catalog into'),
+        'kmeans_init' : (str, False, 'tree', ['tree','random','kmeans++'],
+                'Which initialization method to use for kmeans when making patches'),
+        'kmeans_alt' : (bool, False, False, None,
+                'Whether to use the alternate kmeans algorithm when making patches'),
+        'patch_centers' : (str, False, None, None,
+                'File with patch centers to use to determine patches'),
         'save_patch_dir' : (str, False, None, None,
                 'If desired, save the patches as FITS files in this directory.'),
         'verbose' : (int, False, 1, [0, 1, 2, 3],
@@ -1744,7 +1746,7 @@ class Catalog(object):
                                 constructor in the config dict.)
             brute (bool):       Whether to force traversal to the leaves. (default: False)
             min_top (int):      The minimum number of top layers to use when setting up the
-                                field. (default: :math:`max(3, \\log_2(N_{cpu}))`)
+                                field. (default: :math:`\\max(3, \\log_2(N_{\\rm cpu}))`)
             max_top (int):      The maximum number of top layers to use when setting up the
                                 field. (default: 10)
             coords (str):       The kind of coordinate system to use. (default: self.coords)
@@ -1778,7 +1780,7 @@ class Catalog(object):
                                 constructor in the config dict.)
             brute (bool):       Whether to force traversal to the leaves. (default: False)
             min_top (int):      The minimum number of top layers to use when setting up the
-                                field. (default: :math:`max(3, \\log_2(N_{cpu}))`)
+                                field. (default: :math:`\\max(3, \\log_2(N_{\\rm cpu}))`)
             max_top (int):      The maximum number of top layers to use when setting up the
                                 field. (default: 10)
             coords (str):       The kind of coordinate system to use. (default self.coords)
@@ -1814,7 +1816,7 @@ class Catalog(object):
                                 constructor in the config dict.)
             brute (bool):       Whether to force traversal to the leaves. (default: False)
             min_top (int):      The minimum number of top layers to use when setting up the
-                                field. (default: :math:`max(3, \\log_2(N_{cpu}))`)
+                                field. (default: :math:`\\max(3, \\log_2(N_{\\rm cpu}))`)
             max_top (int):      The maximum number of top layers to use when setting up the
                                 field. (default: 10)
             coords (str):       The kind of coordinate system to use. (default self.coords)
@@ -1908,14 +1910,14 @@ class Catalog(object):
         will just return that same center array.  Otherwise, it will be calculated from the
         positions of the objects with each patch number.
 
-        After calling this function once, you can use the attribute ``patch_centers`` to access
-        the centers repeatedly without triggering any recalculation.
+        This function is automatically called when accessing the property
+        ``patch_centers``.  So you should not normally need to call it directly.
 
         Returns:
-            centers (array):    An array of center coordinates used to make the patches.
-                                Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
-                                spherical geometries.  In the latter case, the centers represent
-                                (x,y,z) coordinates on the unit sphere.
+            An array of center coordinates used to make the patches.
+            Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
+            spherical geometries.  In the latter case, the centers represent
+            (x,y,z) coordinates on the unit sphere.
         """
         # Early exit
         if self._centers is not None:
@@ -1990,7 +1992,7 @@ class Catalog(object):
             file_name (str):    The name of the file to write to.
 
         Returns:
-            centers (array):    The centers, which can be used to determine the patches.
+            The centers, as an array, which can be used to determine the patches.
         """
         self.logger.info('Reading centers from %s',file_name)
 
@@ -2024,18 +2026,18 @@ class Catalog(object):
             self._finish_input()
 
     def unload(self):
-        """Bring the Catalog back to an "unloaded" state.
+        """Bring the Catalog back to an "unloaded" state, if possible.
 
         When a Catalog is read in from a file, it tries to delay the loading of the data from
-        disk until it is actually needed.  This is especially important when running over a
-        set of patches, since you may not be able to fit all the patches in memory at once.
+        disk until it is actually needed.  After loading, this method will return the Catalog
+        back to the unloaded state to recover the memory in the data arrays. If the Catalog is
+        needed again during further processing, it will re-load the data from disk at that time.
 
-        After the load, this method will return the Catalog back to the unloaded state to
-        recover the memory in the data arrays.  If the Catalog is needed again during further
-        processing, it will re-load the data from disk at that time.
-
-        This will also call self.clear_cache() to recover any memory from fields that have been
+        This will also call `clear_cache` to recover any memory from fields that have been
         constructed as well.
+
+        If the Catalog was not read in from a file, then this function will only do the
+        `clear_cache` step.
         """
         if self.file_type is not None:
             self._x = None
@@ -2067,9 +2069,8 @@ class Catalog(object):
             low_mem (bool):     Whether to try to leave the returned patch catalogs in an
                                 "unloaded" state, wherein they will not load the data from a
                                 file until they are used.  This only works if the current catalog
-                                was loaded from a file.  (And if the patches are set using
-                                patch_centers, this won't even trigger a load of the current
-                                Catalog.) (default: False)
+                                was loaded from a file or the patches were saved (using
+                                ``save_patch_dir``). (default: False)
         """
         # Early exit
         if self._patches is not None:
@@ -2193,7 +2194,7 @@ class Catalog(object):
                                 this value can also be given in the Catalog constructor in the
                                 config dict.)
         Returns:
-            col_names (list):   The column names that were written to the file
+            The column names that were written to the file as a list.
         """
         self.logger.info('Writing catalog to %s',file_name)
 

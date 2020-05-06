@@ -2,15 +2,17 @@ Covariance Estimates
 ====================
 
 In addition to calculating the correlation function, TreeCorr can also
-estimate the variance of the measured values or even the covariance matrix.
+estimate the variance of the resulting array of values, or even the
+covariance matrix.
 
 This simplest estimate of the variance involves propagating the shot noise
 of the individual measurements into the final results.  For shear (G) mesurements,
-this includes the so-called "shape noise".  For scalar (K) measurements, this
-includes the point variance of the k values.  This variance estimate is the
+this includes the so-called "shape noise". For scalar (K) measurements, this
+includes the point variance of the k values. For count (N) measurements,
+it comes from the Poisson statistics of counting. This variance estimate is the
 default if you don't specify something different, and it will be recorded as
-**varxi** for most types of correlations.  For GG, there are two quantities,
-**varxip** and **varxim**, which give the variance of **xip** and **xim**
+``varxi`` for most types of correlations.  For GG, there are two quantities,
+``varxip`` and ``varxim``, which give the variance of ``xip`` and ``xim``
 respectively.
 
 However, this kind of variance estimate does not capture the sample variance.
@@ -26,40 +28,19 @@ patches to estimate the overall sample variance.
     2-point correlation functions.  Implementing this for 3-point functions
     is still an open issue.
 
-Patches
--------
-
-The first step to get an improved variance or covariance estimate is to
-divide the input `Catalog` into patches.  There are several ways to do this.
-
-1. Set the **patch** parameter in the input to give an explicit patch number to
-   each object in the catalog.
-2. Read a "patch" column from an input file using **patch_col**.
-3. Set the **npatch** parameter to have TreeCorr split the `Catalog` into the
-   given number of patches for you, using a K-Means algorithm (cf. `Field.run_kmeans`)
-4. Set the **patch_centers** parameter to use an existing set of patch centers
-   (typically from a previous TreeCorr K-Means calculation, written out using
-   `Catalog.write_patch_centers`), so TreeCorr can assign each galaxy to the patch
-   with the closest center.
-
-It is also possible to save the separate catalogs corresponding to each patch.
-To do this, set the **save_patch_dir** option in the `Catalog` initialization.
-Then when you first access the patches (via **cat.patches** for instance) it will
-write out each patch's data to a file in this directory.  This is recommended,
-especially if you are going to run the patch calculations over multiple
-proceses.
+See `Patches` for information on defining the patches to use for your input `Catalog`.
 
 Variance Methods
 ----------------
 
-To get one of the patch-based variance estimates for the **varxi** or similar
-attribute, you can set the **var_method** parameter in the constructor.  e.g.::
+To get one of the patch-based variance estimates for the ``varxi`` or similar
+attribute, you can set the ``var_method`` parameter in the constructor.  e.g.::
 
-    >>> ng = treecorre.NGCorrelation(nbins=10, min_sep=1, max_sep=100, var_method='jackknife')
+    >>> ng = treecorr.NGCorrelation(nbins=10, min_sep=1, max_sep=100, var_method='jackknife')
 
 This tells TreeCorr to use the jackknife algorithm for computing the covariance matrix.
-Then **varxi** is taken as the diagonal of this covariance matrix.
-The full covariance matrix is also recorded at the **cov** attribute.
+Then ``varxi`` is taken as the diagonal of this covariance matrix.
+The full covariance matrix is also recorded at the ``cov`` attribute.
 
 The following variance methods are implemented:
 
@@ -131,7 +112,7 @@ This estimate implements a bootstrap resampling of the patches as follows:
         C = \frac{1}{N_\mathrm{bootstrap}-1} \sum_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)
 
 The default number of bootstrap resamplings is 500, but you can change this in the
-Correlation constructor using the parameter **num_bootstrap**.
+Correlation constructor using the parameter ``num_bootstrap``.
 
 "marked_bootstrap"
 ^^^^^^^^^^^^^^^^^^
@@ -157,20 +138,20 @@ Then the covariance estimate is the sample variance of these resampled results:
     C = \frac{1}{N_\mathrm{bootstrap}-1} \sum_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)
 
 The default number of bootstrap resamplings is 500, but you can change this in the
-Correlation constructor using the parameter **num_bootstrap**.
+Correlation constructor using the parameter ``num_bootstrap``.
 
 Covariance Matrix
 -----------------
 
-As mentioned above, the covariance matrix corresponding to the specified **var_method**
-will be saved as the **cov** attribute of the correlation instance after processing
+As mentioned above, the covariance matrix corresponding to the specified ``var_method``
+will be saved as the ``cov`` attribute of the correlation instance after processing
 is complete.
 
 However, if the processing was done using patches, then you can also compute the
 covariance matrix for any of the above methods without redoing the processing
 using `BinnedCorr2.estimate_cov`.  E.g.::
 
-    >>> ng = treecorre.NGCorrelation(nbins=10, min_sep=1, max_sep=100)
+    >>> ng = treecorr.NGCorrelation(nbins=10, min_sep=1, max_sep=100)
     >>> ng.process(lens_cat, source_cat)  # At least one of these needs to have patches set.
     >>> cov_jk = ng.estimate_cov('jackknife')
     >>> cov_boot = ng.estimate_cov('bootstrap')
@@ -178,9 +159,9 @@ using `BinnedCorr2.estimate_cov`.  E.g.::
 Additionally, you can compute the joint covariance matrix for a number of statistics
 that were processed using the same patches with `treecorr.estimate_multi_cov`.  E.g.::
 
-    >>> ng = treecorre.NGCorrelation(nbins=10, min_sep=1, max_sep=100)
+    >>> ng = treecorr.NGCorrelation(nbins=10, min_sep=1, max_sep=100)
     >>> ng.process(lens_cat, source_cat)
-    >>> gg = treecorre.GGCorrelation(nbins=10, min_sep=1, max_sep=100)
+    >>> gg = treecorr.GGCorrelation(nbins=10, min_sep=1, max_sep=100)
     >>> gg.process(source_cat)
     >>> cov = treecorr.estimate_multi_cov([ng,gg], 'jackknife')
 

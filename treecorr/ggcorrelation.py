@@ -20,7 +20,7 @@ import numpy as np
 
 
 class GGCorrelation(treecorr.BinnedCorr2):
-    """This class handles the calculation and storage of a 2-point shear-shear correlation
+    r"""This class handles the calculation and storage of a 2-point shear-shear correlation
     function.
 
     Ojects of this class holds the following attributes:
@@ -42,17 +42,17 @@ class GGCorrelation(treecorr.BinnedCorr2):
                     If there are no pairs in a bin, then exp(logr) will be used instead.
         meanlogr:   The (weighted) mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
-        xip:        The correlation function, :math:`\\xi_+(r)`.
-        xim:        The correlation funciton, :math:`\\xi_-(r)`.
-        xip_im:     The imaginary part of :math:`\\xi_+(r)`.
-        xim_im:     The imaginary part of :math:`\\xi_-(r)`.
-        varxip:     An estimate of the variance of :math:`\\xi_+(r)`
-        varxim:     An estimate of the variance of :math:`\\xi_-(r)`
+        xip:        The correlation function, :math:`\xi_+(r)`.
+        xim:        The correlation funciton, :math:`\xi_-(r)`.
+        xip_im:     The imaginary part of :math:`\xi_+(r)`.
+        xim_im:     The imaginary part of :math:`\xi_-(r)`.
+        varxip:     An estimate of the variance of :math:`\xi_+(r)`
+        varxim:     An estimate of the variance of :math:`\xi_-(r)`
         weight:     The total weight in each bin.
         npairs:     The number of pairs going into each bin (including pairs where one or
                     both objects have w=0).
         cov:        An estimate of the full covariance matrix for the data vector with
-                    :math:`\\xi_+` first and then :math:`\\xi_-`.
+                    :math:`\xi_+` first and then :math:`\xi_-`.
 
     .. note::
 
@@ -63,10 +63,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
         ``var_method`` to something else and use patches in the input catalog(s).
         cf. `Covariance Estimates`.
 
-    If **sep_units** are given (either in the config dict or as a named kwarg) then the distances
+    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
     will all be in these units.  Note however, that if you separate out the steps of the
     `process` command and use `process_auto` and/or `process_cross`, then the
-    units will not be applied to **meanr** or **meanlogr** until the `finalize` function is
+    units will not be applied to ``meanr`` or ``meanlogr`` until the `finalize` function is
     called.
 
     The typical usage pattern is as follows:
@@ -79,15 +79,18 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries in addition to those listed
+                        This dict is allowed to have addition entries besides those listed
                         in `BinnedCorr2`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    See the documentation for `BinnedCorr2` for the list of other allowed kwargs,
-    which may be passed either directly or in the config dict.
+    Keyword Arguments:
+        **kwargs:       See the documentation for `BinnedCorr2` for the list of allowed keyword
+                        arguments, which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
+        """Initialize `GGCorrelation`.  See class doc for details.
+        """
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
         self._d1 = 3  # GData
@@ -124,7 +127,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
                 treecorr._lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
 
     def __eq__(self, other):
-        """Return whether two GGCorrelations are equal"""
+        """Return whether two `GGCorrelation` instances are equal"""
         return (isinstance(other, GGCorrelation) and
                 self.nbins == other.nbins and
                 self.bin_size == other.bin_size and
@@ -267,10 +270,12 @@ class GGCorrelation(treecorr.BinnedCorr2):
         calling this function as often as desired, the `finalize` command will
         finish the calculation.
 
-        .. note::
+        .. warning::
 
-            This function is deprecated and slated to be removed.
-            If you have a need for it, please open an issue to describe your use case.
+            .. deprecated:: 4.1
+
+                This function is deprecated and slated to be removed.
+                If you have a need for it, please open an issue to describe your use case.
 
         Parameters:
             cat1 (Catalog):     The first catalog to process
@@ -358,11 +363,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.results.clear()
 
     def __iadd__(self, other):
-        """Add a second GGCorrelation's data to this one.
+        """Add a second `GGCorrelation`'s data to this one.
 
         .. note::
 
-            For this to make sense, both Correlation objects should have been using
+            For this to make sense, both `GGCorrelation` objects should have been using
             `process_auto` and/or `process_cross`, and they should not have had `finalize`
             called yet.  Then, after adding them together, you should call `finalize` on the sum.
         """
@@ -436,27 +441,29 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
 
     def write(self, file_name, file_type=None, precision=None):
-        """Write the correlation function to the file, file_name.
+        r"""Write the correlation function to the file, file_name.
 
         The output file will include the following columns:
 
-        =========       =========================================================
+        =========       ========================================================
         Column          Description
-        =========       =========================================================
+        =========       ========================================================
         r_nom           The nominal center of the bin in r
-        meanr           The mean value <r> of pairs that fell into each bin
-        meanlogr        The mean value <log(r)> of pairs that fell into each bin
-        xip             The real part of the :math:`\\xi_+` correlation function
-        xim             The real part of the :math:`\\xi_-` correlation function
-        xip_im          The imag part of the :math:`\\xi_+` correlation function
-        xim_im          The imag part of the :math:`\\xi_-` correlation function
-        sigma_xip       The sqrt of the variance estimate of :math:`\\xi_+`
-        sigma_xim       The sqrt of the variance estimate of :math:`\\xi_-`
+        meanr           The mean value :math:`\langle r \rangle` of pairs that
+                        fell into each bin
+        meanlogr        The mean value :math:`\langle \log(r) \rangle` of pairs
+                        that fell into each bin
+        xip             The real part of the :math:`\xi_+` correlation function
+        xim             The real part of the :math:`\xi_-` correlation function
+        xip_im          The imag part of the :math:`\xi_+` correlation function
+        xim_im          The imag part of the :math:`\xi_-` correlation function
+        sigma_xip       The sqrt of the variance estimate of :math:`\xi_+`
+        sigma_xim       The sqrt of the variance estimate of :math:`\xi_-`
         weight          The total weight contributing to each bin
         npairs          The total number of pairs in each bin
-        =========       =========================================================
+        =========       ========================================================
 
-        If **sep_units** was given at construction, then the distances will all be in these units.
+        If ``sep_units`` was given at construction, then the distances will all be in these units.
         Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
         radians (for spherical coordinates).
 
@@ -492,9 +499,11 @@ class GGCorrelation(treecorr.BinnedCorr2):
         This should be a file that was written by TreeCorr, preferably a FITS file, so there
         is no loss of information.
 
-        Warning: The GGCorrelation object should be constructed with the same configuration
-        parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
-        checked by the read function.
+        .. warning::
+
+            The `GGCorrelation` object should be constructed with the same configuration
+            parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+            checked by the read function.
 
         Parameters:
             file_name (str):    The name of the file to read in.
@@ -533,41 +542,41 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
 
     def calculateMapSq(self, R=None, m2_uform=None):
-        """Calculate the aperture mass statistics from the correlation function.
+        r"""Calculate the aperture mass statistics from the correlation function.
 
         .. math::
 
-            \\langle M_{ap}^2 \\rangle(R) &= \\int_{0}^{rmax} \\frac{r dr}{2R^2}
-            \\left [ T_+\\left(\\frac{r}{R}\\right) \\xi_+(r) +
-            T_-\\left(\\frac{r}{R}\\right) \\xi_-(r) \\right] \\\\
-            \\langle M_\\times^2 \\rangle(R) &= \\int_{0}^{rmax} \\frac{r dr}{2R^2}
-            \\left [ T_+\\left(\\frac{r}{R}\\right) \\xi_+(r) -
-            T_-\\left(\\frac{r}{R}\\right) \\xi_-(r) \\right]
+            \langle M_{ap}^2 \rangle(R) &= \int_{0}^{rmax} \frac{r dr}{2R^2}
+            \left [ T_+\left(\frac{r}{R}\right) \xi_+(r) +
+            T_-\left(\frac{r}{R}\right) \xi_-(r) \right] \\
+            \langle M_\times^2 \rangle(R) &= \int_{0}^{rmax} \frac{r dr}{2R^2}
+            \left[ T_+\left(\frac{r}{R}\right) \xi_+(r) -
+            T_-\left(\frac{r}{R}\right) \xi_-(r) \right]
 
-        The **m2_uform** parameter sets which definition of the aperture mass to use.
+        The ``m2_uform`` parameter sets which definition of the aperture mass to use.
         The default is to use 'Crittenden'.
 
-        If **m2_uform** is 'Crittenden':
+        If ``m2_uform`` is 'Crittenden':
 
         .. math::
 
-            U(r) &= \\frac{1}{2\\pi} (1-r^2) \\exp(-r^2/2) \\\\
-            Q(r) &= \\frac{1}{4\\pi} r^2 \\exp(-r^2/2) \\\\
-            T_+(s) &= \\frac{s^4 - 16s^2 + 32}{128} \\exp(-s^2/4) \\\\
-            T_-(s) &= \\frac{s^4}{128} \\exp(-s^2/4) \\\\
-            rmax &= \\infty
+            U(r) &= \frac{1}{2\pi} (1-r^2) \exp(-r^2/2) \\
+            Q(r) &= \frac{1}{4\pi} r^2 \exp(-r^2/2) \\
+            T_+(s) &= \frac{s^4 - 16s^2 + 32}{128} \exp(-s^2/4) \\
+            T_-(s) &= \frac{s^4}{128} \exp(-s^2/4) \\
+            rmax &= \infty
 
         cf. Crittenden, et al (2002): ApJ, 568, 20
 
-        If **m2_uform** is 'Schneider':
+        If ``m2_uform`` is 'Schneider':
 
         .. math::
 
-            U(r) &= \\frac{9}{\\pi} (1-r^2) (1/3-r^2) \\\\
-            Q(r) &= \\frac{6}{\\pi} r^2 (1-r^2) \\\\
-            T_+(s) &= \\frac{12}{5\\pi} (2-15s^2) \\arccos(s/2) \\\\
-            &\qquad + \\frac{1}{100\\pi} s \\sqrt{4-s^2} (120 + 2320s^2 - 754s^4 + 132s^6 - 9s^8) \\\\
-            T_-(s) &= \\frac{3}{70\\pi} s^3 (4-s^2)^{7/2} \\\\
+            U(r) &= \frac{9}{\pi} (1-r^2) (1/3-r^2) \\
+            Q(r) &= \frac{6}{\pi} r^2 (1-r^2) \\
+            T_+(s) &= \frac{12}{5\pi} (2-15s^2) \arccos(s/2) \\
+            &\qquad + \frac{1}{100\pi} s \sqrt{4-s^2} (120 + 2320s^2 - 754s^4 + 132s^6 - 9s^8) \\
+            T_-(s) &= \frac{3}{70\pi} s^3 (4-s^2)^{7/2} \\
             rmax &= 2R
 
         cf. Schneider, et al (2002): A&A, 389, 729
@@ -587,12 +596,12 @@ class GGCorrelation(treecorr.BinnedCorr2):
         Returns:
             Tuple containing
 
-                - mapsq = array of :math:`\\langle M_{ap}^2 \\rangle(R)`
+                - mapsq = array of :math:`\langle M_{ap}^2 \rangle(R)`
                 - mapsq_im = the imaginary part of mapsq, which is an estimate of
-                  :math:`\\langle M_{ap} M_\\times \\rangle(R)`
-                - mxsq = array of :math:`\\langle M_\\times^2 \\rangle(R)`
+                  :math:`\langle M_{ap} M_\times \rangle(R)`
+                - mxsq = array of :math:`\langle M_\times^2 \rangle(R)`
                 - mxsq_im = the imaginary part of mxsq, which is an estimate of
-                  :math:`\\langle M_{ap} M_\\times \\rangle(R)`
+                  :math:`\langle M_{ap} M_\times \rangle(R)`
                 - varmapsq = array of the variance estimate of either mapsq or mxsq
         """
         if m2_uform is None:
@@ -643,23 +652,23 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
 
     def calculateGamSq(self, R=None, eb=False):
-        """Calculate the tophat shear variance from the correlation function.
+        r"""Calculate the tophat shear variance from the correlation function.
 
         .. math::
 
-            \\langle \\gamma^2 \\rangle(R) &= \\int_0^{2R} \\frac{r dr}{R^2} S_+(s) \\xi_+(r) \\\\
-            \\langle \\gamma^2 \\rangle_E(R) &= \\int_0^{2R} \\frac{r dr}{2 R^2}
-            \\left [ S_+\\left(\\frac{r}{R}\\right) \\xi_+(r) +
-            S_-\\left(\\frac{r}{R}\\right) \\xi_-(r) \\right ] \\\\
-            \\langle \\gamma^2 \\rangle_B(R) &= \\int_0^{2R} \\frac{r dr}{2 R^2}
-            \\left [ S_+\\left(\\frac{r}{R}\\right) \\xi_+(r) -
-            S_-\\left(\\frac{r}{R}\\right) \\xi_-(r) \\right ] \\\\
+            \langle \gamma^2 \rangle(R) &= \int_0^{2R} \frac{r dr}{R^2} S_+(s) \xi_+(r) \\
+            \langle \gamma^2 \rangle_E(R) &= \int_0^{2R} \frac{r dr}{2 R^2}
+            \left[ S_+\left(\frac{r}{R}\right) \xi_+(r) +
+            S_-\left(\frac{r}{R}\right) \xi_-(r) \right] \\
+            \langle \gamma^2 \rangle_B(R) &= \int_0^{2R} \frac{r dr}{2 R^2}
+            \left[ S_+\left(\frac{r}{R}\right) \xi_+(r) -
+            S_-\left(\frac{r}{R}\right) \xi_-(r) \right] \\
 
-            S_+(s) &= \\frac{1}{\\pi} \\left(4 \\arccos(s/2) - s \\sqrt{4-s^2} \\right) \\\\
-            S_-(s) &= \\begin{cases}
-            s<=2, & [ s \\sqrt{4-s^2} (6-s^2) - 8(3-s^2) \\arcsin(s/2) ] / (\\pi s^4) \\\\
-            s>=2, & 4(s^2-3)/(s^4)
-            \\end{cases}
+            S_+(s) &= \frac{1}{\pi} \left(4 \arccos(s/2) - s \sqrt{4-s^2} \right) \\
+            S_-(s) &= \begin{cases}
+            s<=2, & \frac{1}{\pi s^4} \left(s \sqrt{4-s^2} (6-s^2) - 8(3-s^2) \arcsin(s/2)\right)\\
+            s>=2, & \frac{1}{s^4} \left(4(s^2-3)\right)
+            \end{cases}
 
         cf. Schneider, et al (2002): A&A, 389, 729
 
@@ -675,15 +684,15 @@ class GGCorrelation(treecorr.BinnedCorr2):
             R (array):  The R values at which to calculate the shear variance.
                         (default: None, which means use self.rnom)
             eb (bool):  Whether to include the E/B decomposition as well as the total
-                        :math:`\\langle \\gamma^2\\rangle`.  (default: False)
+                        :math:`\langle \gamma^2\rangle`.  (default: False)
 
         Returns:
             Tuple containing
 
-                - gamsq = array of :math:`\\langle \\gamma^2 \\rangle(R)`
+                - gamsq = array of :math:`\langle \gamma^2 \rangle(R)`
                 - vargamsq = array of the variance estimate of gamsq
-                - gamsq_e  (Only if eb is True) = array of :math:`\\langle \\gamma^2 \\rangle_E(R)`
-                - gamsq_b  (Only if eb is True) = array of :math:`\\langle \\gamma^2 \\rangle_B(R)`
+                - gamsq_e  (Only if eb is True) = array of :math:`\langle \gamma^2 \rangle_E(R)`
+                - gamsq_b  (Only if eb is True) = array of :math:`\langle \gamma^2 \rangle_B(R)`
                 - vargamsq_e  (Only if eb is True) = array of the variance estimate of
                   gamsq_e or gamsq_b
         """
@@ -724,10 +733,10 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
 
     def writeMapSq(self, file_name, R=None, m2_uform=None, file_type=None, precision=None):
-        """Write the aperture mass statistics based on the correlation function to the
+        r"""Write the aperture mass statistics based on the correlation function to the
         file, file_name.
 
-        See `calculateMapSq` for an explanation of the **m2_uform** parameter.
+        See `calculateMapSq` for an explanation of the ``m2_uform`` parameter.
 
         The output file will include the following columns:
 
@@ -735,13 +744,19 @@ class GGCorrelation(treecorr.BinnedCorr2):
         Column          Description
         =========       ==========================================================
         R               The aperture radius
-        Mapsq           The real part of <M_ap^2> (cf. `calculateMapSq`)
-        Mxsq            The real part of <M_x^2>
-        MMxa            The imag part of <M_ap^2>: an estimator of <M_ap Mx>
-        MMxa            The imag part of <M_x^2>: an estimator of <M_ap Mx>
-        sig_map         The sqrt of the variance estimate of <M_ap^2>
-        Gamsq           The tophat shear variance <gamma^2> (cf. `calculateGamSq`)
-        sig_gam         The sqrt of the variance estimate of <gamma^2>
+        Mapsq           The real part of :math:`\langle M_{ap}^2\rangle`
+                         (cf. `calculateMapSq`)
+        Mxsq            The real part of :math:`\langle M_\times^2\rangle`
+        MMxa            The imag part of :math:`\langle M_{ap}^2\rangle`:
+                         an estimator of :math:`\langle M_{ap} M_\times\rangle`
+        MMxa            The imag part of :math:`\langle M_\times^2\rangle`:
+                         an estimator of :math:`\langle M_{ap} M_\times\rangle`
+        sig_map         The sqrt of the variance estimate of
+                         :math:`\langle M_{ap}^2\rangle`
+        Gamsq           The tophat shear variance :math:`\langle \gamma^2\rangle`
+                         (cf. `calculateGamSq`)
+        sig_gam         The sqrt of the variance estimate of
+                         :math:`\langle \gamma^2\rangle`
         =========       ==========================================================
 
         Parameters:

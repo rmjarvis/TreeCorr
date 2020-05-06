@@ -306,9 +306,9 @@ def print_params(params):
 def convert(value, value_type, key):
     """Convert the given value to the given type.
 
-    The **key** helps determine what kind of conversion should be performed.
-    Specifically if 'unit' is in the **key** value, then a unit conversion is done.
-    Otherwise, it just parses the **value** according to the **value_type**.
+    The ``key`` helps determine what kind of conversion should be performed.
+    Specifically if 'unit' is in the ``key`` value, then a unit conversion is done.
+    Otherwise, it just parses the ``value`` according to the ``value_type``.
 
     :param value:       The input value to be converted.  Usually a string.
     :param value_type:  The type to convert to.
@@ -327,8 +327,8 @@ def get_from_list(config, key, num, value_type=str, default=None):
     """A helper function to get a key from config that is allowed to be a list
 
     Some of the config values are allowed to be lists of values, in which case we take the
-    **num** item from the list.  If they are not a list, then the given value is used for
-    all values of **num**.
+    ``num`` item from the list.  If they are not a list, then the given value is used for
+    all values of ``num``.
 
     :param config:      The configuration dict from which to get the key value.
     :param key:         What key to get from config.

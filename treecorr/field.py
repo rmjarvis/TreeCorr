@@ -284,14 +284,15 @@ class Field(object):
 
         .. math::
 
-            I_i = \sum_{j \in S_i} \left| \vec x_j - \vec \mu_i \right|^2
+            I_i = \sum_{j \in S_i} \left| \vec x_j - \vec \mu_i \right|^2,
 
         where :math:`\vec \mu_i` is the center of each patch:
 
         .. math::
 
-            \vec \mu_i \equiv \sum_{j \in S_i} \vec x_j
+            \vec \mu_i \equiv \frac{\sum_{j \in S_i} \vec x_j}{N_i},
 
+        and :math:`N_i` is the number of points assigned to patch :math:`S_i`.
         The k-means algorithm finds a solution that is a local minimum in the total inertia,
         :math:`\sum_i I_i`.
 
@@ -308,7 +309,7 @@ class Field(object):
 
         .. math::
 
-            {d_{ij}^\prime}^2 \equiv \left| \vec x_j - \mu_i \right|^2 + f I_i.
+            d_{ij}^{\prime\;\! 2} = \left| \vec x_j - \mu_i \right|^2 + f I_i.
 
         The penalty term means that patches with less inertia get more points on the next
         iteration, and vice versa, which tends to equalize the inertia values somewhat.

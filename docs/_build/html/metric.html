@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Metrics &mdash; TreeCorr 4.0.10 documentation</title>
+  <title>Metrics &mdash; TreeCorr 4.1.0 documentation</title>
   
 
   
@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                4.0
+                4.1
               </div>
             
           
@@ -100,11 +100,13 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 4.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -178,7 +180,7 @@ that is, the metric defining the space.</p>
 which just uses the normal Euclidean distance between two points.  However, there are a few
 other options, which are useful for various applications.</p>
 <p>Both <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a> and <a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3" title="treecorr.BinnedCorr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr3</span></code></a> take an optional
-<strong>metric</strong> parameter, which should be one of the following string values:</p>
+<code class="docutils literal notranslate"><span class="pre">metric</span></code> parameter, which should be one of the following string values:</p>
 <div class="section" id="euclidean">
 <h2>“Euclidean”<a class="headerlink" href="#euclidean" title="Permalink to this headline">¶</a></h2>
 <p>This is the default metric, and is the only current option for 2-dimensional flat correlations,
@@ -196,7 +198,7 @@ correction, but as the angles get large, the difference between the great circle
 the chord distance becomes significant.  The conversion formula is</p>
 <p><span class="math notranslate nohighlight">\(d_{\rm GC} = 2 \arcsin(d_{\rm Euclidean} / 2)\)</span></p>
 <p>TreeCorr applies this formula at the end as part of the <code class="docutils literal notranslate"><span class="pre">finalize</span></code> function
-(e.g. <a class="reference internal" href="gg.html#treecorr.GGCorrelation.finalize" title="treecorr.GGCorrelation.finalize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">finalize()</span></code></a>), so the <strong>meanr</strong> and <strong>meanlogr</strong> attributes
+(e.g. <a class="reference internal" href="gg.html#treecorr.GGCorrelation.finalize" title="treecorr.GGCorrelation.finalize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">finalize()</span></code></a>), so the <code class="docutils literal notranslate"><span class="pre">meanr</span></code> and <code class="docutils literal notranslate"><span class="pre">meanlogr</span></code> attributes
 will be in terms of great circle distances.  However, they will not necessarily be spaced
 precisely uniformly in log(r), since the original bin spacing will have been set up in terms
 of the chord distances.</p>
@@ -232,14 +234,14 @@ and it identifies the metric separation as just the perpendicular component, <sp
 separation, <span class="math notranslate nohighlight">\(\theta\)</span>, on the sky, so the two radial vectors are nearly parallel.
 In this limit, the formula for <span class="math notranslate nohighlight">\(d\)</span> reduces to</p>
 <p><span class="math notranslate nohighlight">\(d_{\rm Rperp} \approx \left(\frac{2 r_1 r_2}{r_1+r_2}\right) \theta\)</span></p>
-<p>This metric also permits the use of two other parameters, <strong>min_rpar</strong> and <strong>max_rpar</strong>,
+<p>This metric also permits the use of two other parameters, <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> and <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code>,
 which set the minimum and maximum values of <span class="math notranslate nohighlight">\(r_\parallel\)</span> for pairs to be included in the
 correlations.</p>
 <p>The sign of <span class="math notranslate nohighlight">\(r_\parallel\)</span> is defined such that positive values mean
 the object from the second catalog is farther away.  Thus, if the first catalog represents
 lenses and the second catalog represents lensed source galaxies, then setting
-<strong>min_rpar</strong> = 0 will restrict the sources to being in the background of each lens.
-Similarly, setting <strong>min_rpar</strong> = -50, <strong>max_rpar</strong> = 50 will restrict the sources to be
+<code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> = 0 will restrict the sources to being in the background of each lens.
+Similarly, setting <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> = -50, <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code> = 50 will restrict the sources to be
 within 50 Mpc (say, assuming the catalog distances are given in Mpc) of the lenses.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -270,14 +272,14 @@ separation, <span class="math notranslate nohighlight">\(\theta\)</span>, on the
 In this limit, the formula for <span class="math notranslate nohighlight">\(d\)</span> reduces to</p>
 <p><span class="math notranslate nohighlight">\(d_{\rm OldRperp} \approx \left(\sqrt{r_1 r_2}\right) \theta\)</span></p>
 <p>As with the regular “Rperp”, this metric permits the use of two other parameters,
-<strong>min_rpar</strong> and <strong>max_rpar</strong>,
+<code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> and <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code>,
 which set the minimum and maximum values of <span class="math notranslate nohighlight">\(r_\parallel\)</span> for pairs to be included in the
 correlations.</p>
 <p>The sign of <span class="math notranslate nohighlight">\(r_\parallel\)</span> is defined such that positive values mean
 the object from the second catalog is farther away.  Thus, if the first catalog represents
 lenses and the second catalog represents lensed source galaxies, then setting
-<strong>min_rpar</strong> = 0 will restrict the sources to being in the background of each lens.
-Similarly, setting <strong>min_rpar</strong> = -50, <strong>max_rpar</strong> = 50 will restrict the sources to be
+<code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> = 0 will restrict the sources to being in the background of each lens.
+Similarly, setting <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> = -50, <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code> = 50 will restrict the sources to be
 within 50 Mpc (say, assuming the catalog distances are given in Mpc) of the lenses.</p>
 </div>
 <div class="section" id="rlens">
@@ -292,17 +294,17 @@ radial distance to the object in the first catalog.
 In other words, this is the distance from the first object (nominally the “lens”) to the
 line of sight to the second object (nominally the “source”).  This is commonly referred to
 as the impact parameter of the light path from the source as it passes the lens.</p>
-<p>This metric also permits the use of two other parameters, <strong>min_rpar</strong> and <strong>max_rpar</strong>,
+<p>This metric also permits the use of two other parameters, <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> and <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code>,
 which set the minimum and maximum values of <span class="math notranslate nohighlight">\(r_\parallel = r_2 - r_1\)</span> for pairs to be
 included in the correlations.</p>
 <p>The sign of <span class="math notranslate nohighlight">\(r_\parallel\)</span> is defined such that positive values mean
 the object from the second catalog is farther away. Thus, setting
-<strong>min_rpar</strong> = 0 will restrict the sources to being in the background of each lens.
-Similarly, setting <strong>min_rpar</strong> = -50, <strong>max_rpar</strong> = 50 will restrict the sources to be
+<code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> = 0 will restrict the sources to being in the background of each lens.
+Similarly, setting <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> = -50, <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code> = 50 will restrict the sources to be
 within 50 Mpc (say, assuming the catalog distances are given in Mpc) of the lenses.</p>
 <p>Since the basic metric does not use the radial distance to the source galaxies (<span class="math notranslate nohighlight">\(r_2\)</span>),
 they are not required.  You may just provide (ra,dec) coordinates for the sources.
-However, if you want to use the <strong>min_rpar</strong> or <strong>max_rpar</strong> options, then
+However, if you want to use the <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> or <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code> options, then
 the source coordinates need to include r.</p>
 </div>
 <div class="section" id="periodic">
@@ -311,9 +313,9 @@ the source coordinates need to include r.</p>
 except that the space is given periodic boundaries, and the distance between two
 points is taken to be the <em>smallest</em> distance in the periodically repeating space.
 It is invalid for Spherical coordinates.</p>
-<p>When constructing the correlation object, you need to set <strong>period</strong> if the period is the
+<p>When constructing the correlation object, you need to set <code class="docutils literal notranslate"><span class="pre">period</span></code> if the period is the
 same in each direction.  Or if you want different periods in each direction, you can
-set <strong>xperiod</strong>, <strong>yperiod</strong>, and (if 3-d) <strong>zperiod</strong> individually.
+set <code class="docutils literal notranslate"><span class="pre">xperiod</span></code>, <code class="docutils literal notranslate"><span class="pre">yperiod</span></code>, and (if 3-d) <code class="docutils literal notranslate"><span class="pre">zperiod</span></code> individually.
 We call these periods <span class="math notranslate nohighlight">\(L_x\)</span>, <span class="math notranslate nohighlight">\(L_y\)</span>, and <span class="math notranslate nohighlight">\(L_z\)</span> below.</p>
 <p>The distance is defined as</p>
 <div class="math notranslate nohighlight">

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>GGCorrelation: Shear-shear correlations &mdash; TreeCorr 4.0.10 documentation</title>
+  <title>GGCorrelation: Shear-shear correlations &mdash; TreeCorr 4.1.0 documentation</title>
   
 
   
@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                4.0
+                4.1
               </div>
             
           
@@ -100,11 +100,13 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 4.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -174,9 +176,9 @@
             
   <div class="section" id="ggcorrelation-shear-shear-correlations">
 <h1>GGCorrelation: Shear-shear correlations<a class="headerlink" href="#ggcorrelation-shear-shear-correlations" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
+<dl class="py class">
 <dt id="treecorr.GGCorrelation">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">GGCorrelation</code><span class="sig-paren">(</span><em class="sig-param">config=None</em>, <em class="sig-param">logger=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">GGCorrelation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">treecorr.binnedcorr2.BinnedCorr2</span></code></p>
 <p>This class handles the calculation and storage of a 2-point shear-shear correlation
 function.</p>
@@ -206,24 +208,32 @@ If there are no pairs in a bin, then logr will be used instead.</p></li>
 <li><p><strong>xim</strong> – The correlation funciton, <span class="math notranslate nohighlight">\(\xi_-(r)\)</span>.</p></li>
 <li><p><strong>xip_im</strong> – The imaginary part of <span class="math notranslate nohighlight">\(\xi_+(r)\)</span>.</p></li>
 <li><p><strong>xim_im</strong> – The imaginary part of <span class="math notranslate nohighlight">\(\xi_-(r)\)</span>.</p></li>
-<li><p><strong>varxip</strong> – The variance of xip, only including the shape noise propagated into
-the final correlation.  This does not include sample variance, so it
-is always an underestimate of the actual variance.</p></li>
-<li><p><strong>varxim</strong> – The variance of xim, only including the shape noise propagated into
-the final correlation.  This does not include sample variance, so it
-is always an underestimate of the actual variance.</p></li>
+<li><p><strong>varxip</strong> – An estimate of the variance of <span class="math notranslate nohighlight">\(\xi_+(r)\)</span></p></li>
+<li><p><strong>varxim</strong> – An estimate of the variance of <span class="math notranslate nohighlight">\(\xi_-(r)\)</span></p></li>
 <li><p><strong>weight</strong> – The total weight in each bin.</p></li>
-<li><p><strong>npairs</strong> – The number of pairs going into each bin.</p></li>
+<li><p><strong>npairs</strong> – The number of pairs going into each bin (including pairs where one or
+both objects have w=0).</p></li>
+<li><p><strong>cov</strong> – An estimate of the full covariance matrix for the data vector with
+<span class="math notranslate nohighlight">\(\xi_+\)</span> first and then <span class="math notranslate nohighlight">\(\xi_-\)</span>.</p></li>
 </ul>
 </dd>
 </dl>
-<p>If <strong>sep_units</strong> are given (either in the config dict or as a named kwarg) then the distances
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The default method for estimating the variance and covariance attributes (<code class="docutils literal notranslate"><span class="pre">varxip</span></code>,
+<code class="docutils literal notranslate"><span class="pre">varxim</span></code>, and <code class="docutils literal notranslate"><span class="pre">cov</span></code>) is ‘shot’, which only includes the shape noise propagated into
+the final correlation.  This does not include sample variance, so it is always an
+underestimate of the actual variance.  To get better estimates, you need to set
+<code class="docutils literal notranslate"><span class="pre">var_method</span></code> to something else and use patches in the input catalog(s).
+cf. <a class="reference internal" href="cov.html#covariance-estimates"><span class="std std-ref">Covariance Estimates</span></a>.</p>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> are given (either in the config dict or as a named kwarg) then the distances
 will all be in these units.  Note however, that if you separate out the steps of the
 <a class="reference internal" href="#treecorr.GGCorrelation.process" title="treecorr.GGCorrelation.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process</span></code></a> command and use <a class="reference internal" href="#treecorr.GGCorrelation.process_auto" title="treecorr.GGCorrelation.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a> and/or <a class="reference internal" href="#treecorr.GGCorrelation.process_cross" title="treecorr.GGCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>, then the
-units will not be applied to <strong>meanr</strong> or <strong>meanlogr</strong> until the <a class="reference internal" href="#treecorr.GGCorrelation.finalize" title="treecorr.GGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> function is
+units will not be applied to <code class="docutils literal notranslate"><span class="pre">meanr</span></code> or <code class="docutils literal notranslate"><span class="pre">meanlogr</span></code> until the <a class="reference internal" href="#treecorr.GGCorrelation.finalize" title="treecorr.GGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> function is
 called.</p>
 <p>The typical usage pattern is as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">GGCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">GGCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gg</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>         <span class="c1"># For auto-correlation.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gg</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">cat2</span><span class="p">)</span>   <span class="c1"># For cross-correlation.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gg</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>     <span class="c1"># Write out to a file.</span>
@@ -234,60 +244,62 @@ called.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in kwargs if desired.
-This dict is allowed to have addition entries in addition to those listed
+This dict is allowed to have addition entries besides those listed
 in <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a>, which are ignored here. (default: None)</p></li>
 <li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
 one will be built according to the config dict’s verbose level.)</p></li>
 </ul>
 </dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>**kwargs</strong> – See the documentation for <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a> for the list of allowed keyword
+arguments, which may be passed either directly or in the config dict.</p>
+</dd>
 </dl>
-<p>See the documentation for <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a> for the list of other allowed kwargs,
-which may be passed either directly or in the config dict.</p>
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.GGCorrelation.__eq__">
-<code class="sig-name descname">__eq__</code><span class="sig-paren">(</span><em class="sig-param">other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.__eq__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return whether two GGCorrelations are equal</p>
+<code class="sig-name descname">__eq__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether two <a class="reference internal" href="#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a> instances are equal</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.GGCorrelation.__iadd__">
-<code class="sig-name descname">__iadd__</code><span class="sig-paren">(</span><em class="sig-param">other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.__iadd__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.__iadd__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a second GGCorrelation’s data to this one.</p>
+<code class="sig-name descname">__iadd__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.__iadd__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.__iadd__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a second <a class="reference internal" href="#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a>’s data to this one.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For this to make sense, both Correlation objects should have been using
+<p>For this to make sense, both <a class="reference internal" href="#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a> objects should have been using
 <a class="reference internal" href="#treecorr.GGCorrelation.process_auto" title="treecorr.GGCorrelation.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a> and/or <a class="reference internal" href="#treecorr.GGCorrelation.process_cross" title="treecorr.GGCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>, and they should not have had <a class="reference internal" href="#treecorr.GGCorrelation.finalize" title="treecorr.GGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>
 called yet.  Then, after adding them together, you should call <a class="reference internal" href="#treecorr.GGCorrelation.finalize" title="treecorr.GGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> on the sum.</p>
 </div>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.GGCorrelation.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">config=None</em>, <em class="sig-param">logger=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize <a class="reference internal" href="#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a>.  See class doc for details.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.GGCorrelation.__repr__">
 <code class="sig-name descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.__repr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.__repr__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return repr(self).</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.GGCorrelation.calculateGamSq">
-<code class="sig-name descname">calculateGamSq</code><span class="sig-paren">(</span><em class="sig-param">R=None</em>, <em class="sig-param">eb=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.calculateGamSq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.calculateGamSq" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">calculateGamSq</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">eb</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.calculateGamSq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.calculateGamSq" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the tophat shear variance from the correlation function.</p>
 <div class="math notranslate nohighlight">
 \[ \begin{align}\begin{aligned}\begin{split}\langle \gamma^2 \rangle(R) &amp;= \int_0^{2R} \frac{r dr}{R^2} S_+(s) \xi_+(r) \\
 \langle \gamma^2 \rangle_E(R) &amp;= \int_0^{2R} \frac{r dr}{2 R^2}
-\left [ S_+\left(\frac{r}{R}\right) \xi_+(r) +
-S_-\left(\frac{r}{R}\right) \xi_-(r) \right ] \\
+\left[ S_+\left(\frac{r}{R}\right) \xi_+(r) +
+S_-\left(\frac{r}{R}\right) \xi_-(r) \right] \\
 \langle \gamma^2 \rangle_B(R) &amp;= \int_0^{2R} \frac{r dr}{2 R^2}
-\left [ S_+\left(\frac{r}{R}\right) \xi_+(r) -
-S_-\left(\frac{r}{R}\right) \xi_-(r) \right ] \\\end{split}\\\begin{split}S_+(s) &amp;= \frac{1}{\pi} \left(4 \arccos(s/2) - s \sqrt{4-s^2} \right) \\
+\left[ S_+\left(\frac{r}{R}\right) \xi_+(r) -
+S_-\left(\frac{r}{R}\right) \xi_-(r) \right] \\\end{split}\\\begin{split}S_+(s) &amp;= \frac{1}{\pi} \left(4 \arccos(s/2) - s \sqrt{4-s^2} \right) \\
 S_-(s) &amp;= \begin{cases}
-s&lt;=2, &amp; [ s \sqrt{4-s^2} (6-s^2) - 8(3-s^2) \arcsin(s/2) ] / (\pi s^4) \\
-s&gt;=2, &amp; 4(s^2-3)/(s^4)
+s&lt;=2, &amp; \frac{1}{\pi s^4} \left(s \sqrt{4-s^2} (6-s^2) - 8(3-s^2) \arcsin(s/2)\right)\\
+s&gt;=2, &amp; \frac{1}{s^4} \left(4(s^2-3)\right)
 \end{cases}\end{split}\end{aligned}\end{align} \]</div>
 <p>cf. Schneider, et al (2002): A&amp;A, 389, 729</p>
 <p>The default behavior is not to compute the E/B versions.  They are calculated if
@@ -322,20 +334,20 @@ gamsq_e or gamsq_b</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.GGCorrelation.calculateMapSq">
-<code class="sig-name descname">calculateMapSq</code><span class="sig-paren">(</span><em class="sig-param">R=None</em>, <em class="sig-param">m2_uform=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.calculateMapSq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.calculateMapSq" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">calculateMapSq</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">m2_uform</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.calculateMapSq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.calculateMapSq" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the aperture mass statistics from the correlation function.</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\langle M_{ap}^2 \rangle(R) &amp;= \int_{0}^{rmax} \frac{r dr}{2R^2}
 \left [ T_+\left(\frac{r}{R}\right) \xi_+(r) +
 T_-\left(\frac{r}{R}\right) \xi_-(r) \right] \\
 \langle M_\times^2 \rangle(R) &amp;= \int_{0}^{rmax} \frac{r dr}{2R^2}
-\left [ T_+\left(\frac{r}{R}\right) \xi_+(r) -
+\left[ T_+\left(\frac{r}{R}\right) \xi_+(r) -
 T_-\left(\frac{r}{R}\right) \xi_-(r) \right]\end{split}\]</div>
-<p>The <strong>m2_uform</strong> parameter sets which definition of the aperture mass to use.
+<p>The <code class="docutils literal notranslate"><span class="pre">m2_uform</span></code> parameter sets which definition of the aperture mass to use.
 The default is to use ‘Crittenden’.</p>
-<p>If <strong>m2_uform</strong> is ‘Crittenden’:</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">m2_uform</span></code> is ‘Crittenden’:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}U(r) &amp;= \frac{1}{2\pi} (1-r^2) \exp(-r^2/2) \\
 Q(r) &amp;= \frac{1}{4\pi} r^2 \exp(-r^2/2) \\
@@ -343,7 +355,7 @@ T_+(s) &amp;= \frac{s^4 - 16s^2 + 32}{128} \exp(-s^2/4) \\
 T_-(s) &amp;= \frac{s^4}{128} \exp(-s^2/4) \\
 rmax &amp;= \infty\end{split}\]</div>
 <p>cf. Crittenden, et al (2002): ApJ, 568, 20</p>
-<p>If <strong>m2_uform</strong> is ‘Schneider’:</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">m2_uform</span></code> is ‘Schneider’:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}U(r) &amp;= \frac{9}{\pi} (1-r^2) (1/3-r^2) \\
 Q(r) &amp;= \frac{6}{\pi} r^2 (1-r^2) \\
@@ -384,21 +396,21 @@ constructor in the config dict.)</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.GGCorrelation.clear">
 <code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.clear" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clear the data vectors</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.GGCorrelation.copy">
 <code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a copy</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.GGCorrelation.finalize">
-<code class="sig-name descname">finalize</code><span class="sig-paren">(</span><em class="sig-param">varg1</em>, <em class="sig-param">varg2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.finalize" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">finalize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">varg1</span></em>, <em class="sig-param"><span class="n">varg2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.finalize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finalize the calculation of the correlation function.</p>
 <p>The <a class="reference internal" href="#treecorr.GGCorrelation.process_auto" title="treecorr.GGCorrelation.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a> and <a class="reference internal" href="#treecorr.GGCorrelation.process_cross" title="treecorr.GGCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a> commands accumulate values in each bin,
 so they can be called multiple times if appropriate.  Afterwards, this command
@@ -413,9 +425,9 @@ finishes the calculation by dividing each column by the total weight.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.GGCorrelation.process">
-<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param">cat1</em>, <em class="sig-param">cat2=None</em>, <em class="sig-param">metric=None</em>, <em class="sig-param">num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.process" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">comm</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">low_mem</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.process" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the correlation function.</p>
 <p>If only 1 argument is given, then compute an auto-correlation function.
 If 2 arguments are given, then compute a cross-correlation function.</p>
@@ -433,14 +445,19 @@ constructor in the config dict.)</p></li>
 <li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
 (default: use the number of cpu cores; this value can also be given
 in the constructor in the config dict.)</p></li>
+<li><p><strong>comm</strong> (<em>mpi4py.Comm</em>) – If running MPI, an mpi4py Comm object to communicate between
+processes.  If used, the rank=0 process will have the final
+computation. This only works if using patches. (default: None)</p></li>
+<li><p><strong>low_mem</strong> (<em>bool</em>) – Whether to sacrifice a little speed to try to reduce memory usage.
+This only works if using patches. (default: False)</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.GGCorrelation.process_auto">
-<code class="sig-name descname">process_auto</code><span class="sig-paren">(</span><em class="sig-param">cat</em>, <em class="sig-param">metric=None</em>, <em class="sig-param">num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.process_auto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.process_auto" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process_auto</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.process_auto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.process_auto" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process a single catalog, accumulating the auto-correlation.</p>
 <p>This accumulates the weighted sums into the bins, but does not finalize
 the calculation by dividing by the total weight at the end.  After
@@ -461,9 +478,9 @@ in the constructor in the config dict.)</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.GGCorrelation.process_cross">
-<code class="sig-name descname">process_cross</code><span class="sig-paren">(</span><em class="sig-param">cat1</em>, <em class="sig-param">cat2</em>, <em class="sig-param">metric=None</em>, <em class="sig-param">num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.process_cross"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.process_cross" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process_cross</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.process_cross"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.process_cross" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process a single pair of catalogs, accumulating the cross-correlation.</p>
 <p>This accumulates the weighted sums into the bins, but does not finalize
 the calculation by dividing by the total weight at the end.  After
@@ -485,15 +502,22 @@ in the constructor in the config dict.)</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.GGCorrelation.process_pairwise">
-<code class="sig-name descname">process_pairwise</code><span class="sig-paren">(</span><em class="sig-param">cat1</em>, <em class="sig-param">cat2</em>, <em class="sig-param">metric=None</em>, <em class="sig-param">num_threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.process_pairwise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.process_pairwise" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process_pairwise</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.process_pairwise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.process_pairwise" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process a single pair of catalogs, accumulating the cross-correlation, only using
 the corresponding pairs of objects in each catalog.</p>
 <p>This accumulates the weighted sums into the bins, but does not finalize
 the calculation by dividing by the total weight at the end.  After
 calling this function as often as desired, the <a class="reference internal" href="#treecorr.GGCorrelation.finalize" title="treecorr.GGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
 finish the calculation.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 4.1: </span>This function is deprecated and slated to be removed.
+If you have a need for it, please open an issue to describe your use case.</p>
+</div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -510,15 +534,18 @@ in the constructor in the config dict.)</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.GGCorrelation.read">
-<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">file_name</em>, <em class="sig-param">file_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.read" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">file_type</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read in values from a file.</p>
 <p>This should be a file that was written by TreeCorr, preferably a FITS file, so there
 is no loss of information.</p>
-<p>Warning: The GGCorrelation object should be constructed with the same configuration
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The <a class="reference internal" href="#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a> object should be constructed with the same configuration
 parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
 checked by the read function.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -530,9 +557,9 @@ automatically from the extension of file_name.)</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.GGCorrelation.write">
-<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param">file_name</em>, <em class="sig-param">file_type=None</em>, <em class="sig-param">precision=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.write" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">file_type</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">precision</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the correlation function to the file, file_name.</p>
 <p>The output file will include the following columns:</p>
 <table class="docutils align-default">
@@ -550,10 +577,12 @@ automatically from the extension of file_name.)</p></li>
 <td><p>The nominal center of the bin in r</p></td>
 </tr>
 <tr class="row-odd"><td><p>meanr</p></td>
-<td><p>The mean value &lt;r&gt; of pairs that fell into each bin</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle r \rangle\)</span> of pairs that
+fell into each bin</p></td>
 </tr>
 <tr class="row-even"><td><p>meanlogr</p></td>
-<td><p>The mean value &lt;log(r)&gt; of pairs that fell into each bin</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle \log(r) \rangle\)</span> of pairs
+that fell into each bin</p></td>
 </tr>
 <tr class="row-odd"><td><p>xip</p></td>
 <td><p>The real part of the <span class="math notranslate nohighlight">\(\xi_+\)</span> correlation function</p></td>
@@ -577,11 +606,11 @@ automatically from the extension of file_name.)</p></li>
 <td><p>The total weight contributing to each bin</p></td>
 </tr>
 <tr class="row-even"><td><p>npairs</p></td>
-<td><p>The number of pairs contributing ot each bin</p></td>
+<td><p>The total number of pairs in each bin</p></td>
 </tr>
 </tbody>
 </table>
-<p>If <strong>sep_units</strong> was given at construction, then the distances will all be in these units.
+<p>If <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> was given at construction, then the distances will all be in these units.
 Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
 radians (for spherical coordinates).</p>
 <dl class="field-list simple">
@@ -597,12 +626,12 @@ this value can also be given in the constructor in the config dict.)</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.GGCorrelation.writeMapSq">
-<code class="sig-name descname">writeMapSq</code><span class="sig-paren">(</span><em class="sig-param">file_name</em>, <em class="sig-param">R=None</em>, <em class="sig-param">m2_uform=None</em>, <em class="sig-param">file_type=None</em>, <em class="sig-param">precision=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.writeMapSq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.writeMapSq" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">writeMapSq</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">R</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">m2_uform</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">file_type</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">precision</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.writeMapSq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.writeMapSq" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the aperture mass statistics based on the correlation function to the
 file, file_name.</p>
-<p>See <a class="reference internal" href="#treecorr.GGCorrelation.calculateMapSq" title="treecorr.GGCorrelation.calculateMapSq"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateMapSq</span></code></a> for an explanation of the <strong>m2_uform</strong> parameter.</p>
+<p>See <a class="reference internal" href="#treecorr.GGCorrelation.calculateMapSq" title="treecorr.GGCorrelation.calculateMapSq"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateMapSq</span></code></a> for an explanation of the <code class="docutils literal notranslate"><span class="pre">m2_uform</span></code> parameter.</p>
 <p>The output file will include the following columns:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -619,25 +648,49 @@ file, file_name.</p>
 <td><p>The aperture radius</p></td>
 </tr>
 <tr class="row-odd"><td><p>Mapsq</p></td>
-<td><p>The real part of &lt;M_ap^2&gt; (cf. <a class="reference internal" href="#treecorr.GGCorrelation.calculateMapSq" title="treecorr.GGCorrelation.calculateMapSq"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateMapSq</span></code></a>)</p></td>
+<td><dl class="simple">
+<dt>The real part of <span class="math notranslate nohighlight">\(\langle M_{ap}^2\rangle\)</span></dt><dd><p>(cf. <a class="reference internal" href="#treecorr.GGCorrelation.calculateMapSq" title="treecorr.GGCorrelation.calculateMapSq"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateMapSq</span></code></a>)</p>
+</dd>
+</dl>
+</td>
 </tr>
 <tr class="row-even"><td><p>Mxsq</p></td>
-<td><p>The real part of &lt;M_x^2&gt;</p></td>
+<td><p>The real part of <span class="math notranslate nohighlight">\(\langle M_\times^2\rangle\)</span></p></td>
 </tr>
 <tr class="row-odd"><td><p>MMxa</p></td>
-<td><p>The imag part of &lt;M_ap^2&gt;: an estimator of &lt;M_ap Mx&gt;</p></td>
+<td><dl class="simple">
+<dt>The imag part of <span class="math notranslate nohighlight">\(\langle M_{ap}^2\rangle\)</span>:</dt><dd><p>an estimator of <span class="math notranslate nohighlight">\(\langle M_{ap} M_\times\rangle\)</span></p>
+</dd>
+</dl>
+</td>
 </tr>
 <tr class="row-even"><td><p>MMxa</p></td>
-<td><p>The imag part of &lt;M_x^2&gt;: an estimator of &lt;M_ap Mx&gt;</p></td>
+<td><dl class="simple">
+<dt>The imag part of <span class="math notranslate nohighlight">\(\langle M_\times^2\rangle\)</span>:</dt><dd><p>an estimator of <span class="math notranslate nohighlight">\(\langle M_{ap} M_\times\rangle\)</span></p>
+</dd>
+</dl>
+</td>
 </tr>
 <tr class="row-odd"><td><p>sig_map</p></td>
-<td><p>The sqrt of the variance estimate of &lt;M_ap^2&gt;</p></td>
+<td><dl class="simple">
+<dt>The sqrt of the variance estimate of</dt><dd><p><span class="math notranslate nohighlight">\(\langle M_{ap}^2\rangle\)</span></p>
+</dd>
+</dl>
+</td>
 </tr>
 <tr class="row-even"><td><p>Gamsq</p></td>
-<td><p>The tophat shear variance &lt;gamma^2&gt; (cf. <a class="reference internal" href="#treecorr.GGCorrelation.calculateGamSq" title="treecorr.GGCorrelation.calculateGamSq"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateGamSq</span></code></a>)</p></td>
+<td><dl class="simple">
+<dt>The tophat shear variance <span class="math notranslate nohighlight">\(\langle \gamma^2\rangle\)</span></dt><dd><p>(cf. <a class="reference internal" href="#treecorr.GGCorrelation.calculateGamSq" title="treecorr.GGCorrelation.calculateGamSq"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateGamSq</span></code></a>)</p>
+</dd>
+</dl>
+</td>
 </tr>
 <tr class="row-odd"><td><p>sig_gam</p></td>
-<td><p>The sqrt of the variance estimate of &lt;gamma^2&gt;</p></td>
+<td><dl class="simple">
+<dt>The sqrt of the variance estimate of</dt><dd><p><span class="math notranslate nohighlight">\(\langle \gamma^2\rangle\)</span></p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>

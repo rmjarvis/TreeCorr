@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>TreeCorr Documentation &mdash; TreeCorr 4.0.10 documentation</title>
+  <title>TreeCorr Documentation &mdash; TreeCorr 4.1.0 documentation</title>
   
 
   
@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                4.0
+                4.1
               </div>
             
           
@@ -91,11 +91,13 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 4.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -167,8 +169,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="overview.html#installation">Installation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="overview.html#install-dependencies">1. Install dependencies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="overview.html#download-treecorr">2. Download TreeCorr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="overview.html#download-treecorr">1. Download TreeCorr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="overview.html#install-dependencies">2. Install dependencies</a></li>
 <li class="toctree-l3"><a class="reference internal" href="overview.html#install">3. Install</a></li>
 <li class="toctree-l3"><a class="reference internal" href="overview.html#run-tests-optional">4. Run Tests (optional)</a></li>
 </ul>
@@ -222,6 +224,26 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="patches.html#defining-patches-on-input">Defining Patches on Input</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patches.html#running-k-means">Running K-Means</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patches.html#using-patch-centers">Using Patch Centers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patches.html#reducing-memory-use">Reducing Memory Use</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patches.html#using-mpi">Using MPI</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cov.html#variance-methods">Variance Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cov.html#shot">“shot”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cov.html#jackknife">“jackknife”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cov.html#sample">“sample”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cov.html#bootstrap">“bootstrap”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cov.html#marked-bootstrap">“marked_bootstrap”</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cov.html#covariance-matrix">Covariance Matrix</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="scripts.html#the-corr2-and-corr3-executables">The corr2 and corr3 executables</a></li>
@@ -252,22 +274,10 @@
 <li class="toctree-l2"><a class="reference internal" href="guide.html#manually-accumulating-the-correlation-function">Manually accumulating the correlation function</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 4.0</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#dependency-changes">Dependency changes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#api-changes">API changes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#output-format-changes">Output Format Changes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changes.html#performance-improvements">Performance Improvements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changes.html#new-features">New features</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#bug-fixes">Bug fixes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-4-0-0-to-4-0-1">Changes from version 4.0.0 to 4.0.1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-4-0-1-to-4-0-2">Changes from version 4.0.1 to 4.0.2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-4-0-2-to-4-0-3">Changes from version 4.0.2 to 4.0.3</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-4-0-3-to-4-0-4">Changes from version 4.0.3 to 4.0.4</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-4-0-4-to-4-0-5">Changes from version 4.0.4 to 4.0.5</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-4-0-5-to-4-0-6">Changes from version 4.0.5 to 4.0.6</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-4-0-6-to-4-0-7">Changes from version 4.0.6 to 4.0.7</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-4-0-7-to-4-0-8">Changes from version 4.0.7 to 4.0.8</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-4-0-8-to-4-0-9">Changes from version 4.0.8 to 4.0.9</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-4-0-9-to-4-0-10">Changes from version 4.0.9 to 4.0.10</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>

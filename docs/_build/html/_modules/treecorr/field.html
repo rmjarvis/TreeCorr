@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>treecorr.field &mdash; TreeCorr 4.0.10 documentation</title>
+  <title>treecorr.field &mdash; TreeCorr 4.1.0 documentation</title>
   
 
   
@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                4.0
+                4.1
               </div>
             
           
@@ -90,11 +90,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../metric.html">Metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 3.3 to 4.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 4.0 to 4.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
 
@@ -188,7 +190,7 @@
 
 
 <div class="viewcode-block" id="Field"><a class="viewcode-back" href="../../field.html#treecorr.Field">[docs]</a><span class="k">class</span> <span class="nc">Field</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A Field in TreeCorr is the object that stores the tree structure we use for efficient</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A Field in TreeCorr is the object that stores the tree structure we use for efficient</span>
 <span class="sd">    calculation of the correlation functions.</span>
 
 <span class="sd">    The root &quot;cell&quot; in the tree has information about the whole field, including the total</span>
@@ -198,28 +200,29 @@
 
 <span class="sd">    It also points to two sub-cells which each describe about half the points.  These are commonly</span>
 <span class="sd">    referred to as &quot;daughter cells&quot;.  They in turn point to two more cells each, and so on until</span>
-<span class="sd">    we get to cells that are considered &quot;small enough&quot; according to the **min_size** parameter given</span>
+<span class="sd">    we get to cells that are considered &quot;small enough&quot; according to the ``min_size`` parameter given</span>
 <span class="sd">    in the constructor.  These lowest level cells are referred to as &quot;leaves&quot;.</span>
 
 <span class="sd">    Technically, a Field doesn&#39;t have just one of these trees.  To make parallel computation</span>
 <span class="sd">    more efficient, we actually skip the first few layers of the tree as described above and</span>
 <span class="sd">    store a list of root cells.  The three parameters that determine how many of these there</span>
-<span class="sd">    will be are **max_size**, **min_top**, and **max_top**:</span>
+<span class="sd">    will be are ``max_size``, ``min_top``, and ``max_top``:</span>
 
-<span class="sd">        - **max_size** sets the maximum size cell that we want to make sure we have in the trees,</span>
+<span class="sd">        - ``max_size`` sets the maximum size cell that we want to make sure we have in the trees,</span>
 <span class="sd">          so the root cells will be at least this large.  The default is None, which means</span>
 <span class="sd">          we care about all sizes, so there may be only one root cell (but typically more</span>
-<span class="sd">          because of **min_top**).</span>
-<span class="sd">        - **min_top** sets the minimum number of initial levels to skip.  The default is 3,</span>
-<span class="sd">          which means there will be at least 8 root cells (assuming ntot &gt;= 8).</span>
-<span class="sd">        - **max_top** sets the maximum number of initial levels to skip.  The default is 10,</span>
+<span class="sd">          because of ``min_top``).</span>
+<span class="sd">        - ``min_top`` sets the minimum number of initial levels to skip.  The default is either 3</span>
+<span class="sd">          or :math:`\log_2(N_{cpu})`, whichever is larger.  This means there will be at least 8</span>
+<span class="sd">          (or :math:`N_{cpu}`) root cells (assuming ntot is at least this large of course).</span>
+<span class="sd">        - ``max_top`` sets the maximum number of initial levels to skip.  The default is 10,</span>
 <span class="sd">          which means there could be up to 1024 root cells.</span>
 
-<span class="sd">    Finally, the **split_method** parameter sets how the points in a cell should be divided</span>
+<span class="sd">    Finally, the ``split_method`` parameter sets how the points in a cell should be divided</span>
 <span class="sd">    when forming the two daughter cells.  The split is always done according to whichever</span>
 <span class="sd">    dimension has the largest extent.  E.g. if max(\|x - meanx\|) is larger than max(\|y - meany\|)</span>
 <span class="sd">    and (for 3d) max(\|z - meanz\|), then it will split according to the x values.  But then</span>
-<span class="sd">    it may split in different ways according to **split_method**.  The allowed values are:</span>
+<span class="sd">    it may split in different ways according to ``split_method``.  The allowed values are:</span>
 
 <span class="sd">        - &#39;mean&#39; means to divide the points at the average (mean) value of x, y or z.</span>
 <span class="sd">        - &#39;median&#39; means to divide the points at the median value of x, y, or z.</span>
@@ -230,16 +233,28 @@
 <span class="sd">    Field itself is an abstract base class for the specific types of field classes.</span>
 <span class="sd">    As such, it cannot be constructed directly.  You should make one of the concrete subclasses:</span>
 
-<span class="sd">        - NField describes a field of objects to be counted only.</span>
-<span class="sd">        - KField describes a field of points sampling a scalar field (e.g. kappa in the</span>
+<span class="sd">        - `NField` describes a field of objects to be counted only.</span>
+<span class="sd">        - `KField` describes a field of points sampling a scalar field (e.g. kappa in the</span>
 <span class="sd">          weak lensing context).  In addition to the above values, cells keep track of</span>
 <span class="sd">          the mean kappa value in the given region.</span>
-<span class="sd">        - GField describes a field of points sampling a spinor field (e.g. gamma in the</span>
+<span class="sd">        - `GField` describes a field of points sampling a spinor field (e.g. gamma in the</span>
 <span class="sd">          weak lensing context).  In addition to the above values, cells keep track of</span>
 <span class="sd">          the mean (complex) gamma value in the given region.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Field is an abstract base class.  It cannot be instantiated.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_determine_top</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_top</span><span class="p">,</span> <span class="n">max_top</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">min_top</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">n_cpu</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">get_omp_threads</span><span class="p">()</span>
+            <span class="c1"># int.bit_length is a trick to avoid going through float.</span>
+            <span class="c1"># bit_length(n-1) == ceil(log2(n)), which is what we want.</span>
+            <span class="n">min_top</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="nb">int</span><span class="o">.</span><span class="n">bit_length</span><span class="p">(</span><span class="n">n_cpu</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">min_top</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_top</span><span class="p">)</span>
+        <span class="n">max_top</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_top</span><span class="p">)</span>
+        <span class="n">min_top</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">min_top</span><span class="p">,</span> <span class="n">max_top</span><span class="p">)</span>  <span class="c1"># If min_top &gt; max_top favor max_top.</span>
+        <span class="k">return</span> <span class="n">min_top</span><span class="p">,</span> <span class="n">max_top</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nTopLevelNodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -286,7 +301,7 @@
 <span class="sd">        Parameters:</span>
 <span class="sd">            ra (float or Angle):    The right ascension of the target location</span>
 <span class="sd">            dec (float or Angle):   The declination of the target location</span>
-<span class="sd">            c (CelestialCorod):     A coord.CelestialCoord object in lieu of (ra, dec)</span>
+<span class="sd">            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)</span>
 <span class="sd">            sep (float or Angle):   The separation distance</span>
 <span class="sd">            ra_units (str):         The units of ra if given as a float</span>
 <span class="sd">            dec_units (str):        The units of dec if given as a float</span>
@@ -297,18 +312,18 @@
 <span class="sd">        Parameters:</span>
 <span class="sd">            ra (float or Angle):    The right ascension of the target location</span>
 <span class="sd">            dec (float or Angle):   The declination of the target location</span>
-<span class="sd">            c (CelestialCorod):     A coord.CelestialCoord object in lieu of (ra, dec)</span>
+<span class="sd">            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)</span>
 <span class="sd">            r (float):              The distance to the target location</span>
 <span class="sd">            sep (float):            The separation distance</span>
 <span class="sd">            ra_units (str):         The units of ra if given as a float</span>
 <span class="sd">            dec_units (str):        The units of dec if given as a float</span>
 
-<span class="sd">        In all cases, for parameters that angles (ra, dec, sep for &#39;spherical&#39;), you may either</span>
-<span class="sd">        provide this quantity as a coord.Angle instance, or you may provide ra_units, dec_units</span>
+<span class="sd">        In all cases, for parameters that are angles (ra, dec, sep for &#39;spherical&#39;), you may either</span>
+<span class="sd">        provide this quantity as a ``coord.Angle`` instance, or you may provide ra_units, dec_units</span>
 <span class="sd">        or sep_units respectively to specify which angular units are providing.</span>
 
 <span class="sd">        Finally, in cases where ra, dec are allowed, you may instead provide a</span>
-<span class="sd">        coord.CelestialCoord instance as the first argument to specify both RA and Dec.</span>
+<span class="sd">        ``coord.CelestialCoord`` instance as the first argument to specify both RA and Dec.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># If min_size = 0, then regular method is already exact.</span>
@@ -354,7 +369,7 @@
 <span class="sd">        Parameters:</span>
 <span class="sd">            ra (float or Angle):    The right ascension of the target location</span>
 <span class="sd">            dec (float or Angle):   The declination of the target location</span>
-<span class="sd">            c (CelestialCorod):     A coord.CelestialCoord object in lieu of (ra, dec)</span>
+<span class="sd">            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)</span>
 <span class="sd">            sep (float or Angle):   The separation distance</span>
 <span class="sd">            ra_units (str):         The units of ra if given as a float</span>
 <span class="sd">            dec_units (str):        The units of dec if given as a float</span>
@@ -365,18 +380,18 @@
 <span class="sd">        Parameters:</span>
 <span class="sd">            ra (float or Angle):    The right ascension of the target location</span>
 <span class="sd">            dec (float or Angle):   The declination of the target location</span>
-<span class="sd">            c (CelestialCorod):     A coord.CelestialCoord object in lieu of (ra, dec)</span>
+<span class="sd">            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)</span>
 <span class="sd">            r (float):              The distance to the target location</span>
 <span class="sd">            sep (float):            The separation distance</span>
 <span class="sd">            ra_units (str):         The units of ra if given as a float</span>
 <span class="sd">            dec_units (str):        The units of dec if given as a float</span>
 
-<span class="sd">        In all cases, for parameters that angles (ra, dec, sep for &#39;spherical&#39;), you may either</span>
-<span class="sd">        provide this quantity as a coord.Angle instance, or you may provide ra_units, dec_units</span>
+<span class="sd">        In all cases, for parameters that are angles (ra, dec, sep for &#39;spherical&#39;), you may either</span>
+<span class="sd">        provide this quantity as a ``coord.Angle`` instance, or you may provide ra_units, dec_units</span>
 <span class="sd">        or sep_units respectively to specify which angular units are providing.</span>
 
 <span class="sd">        Finally, in cases where ra, dec are allowed, you may instead provide a</span>
-<span class="sd">        coord.CelestialCoord instance as the first argument to specify both RA and Dec.</span>
+<span class="sd">        ``coord.CelestialCoord`` instance as the first argument to specify both RA and Dec.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="n">sep</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">parse_xyzsep</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -400,39 +415,245 @@
     <span class="k">def</span> <span class="nf">_get_near</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">sep</span><span class="p">):</span>
         <span class="c1"># If self.min_size &gt; 0, these results may be approximate, since the tree will have</span>
         <span class="c1"># grouped points within this separation together.</span>
-        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="k">import</span> <span class="n">long_ptr</span> <span class="k">as</span> <span class="n">lp</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="kn">import</span> <span class="n">long_ptr</span> <span class="k">as</span> <span class="n">lp</span>
         <span class="c1"># First count how many there are, so we can allocate the array for the indices.</span>
         <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count_near</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">sep</span><span class="p">)</span>
         <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
         <span class="c1"># Now fill the array with the indices of the nearby points.</span>
         <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">FieldGetNear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span> <span class="n">lp</span><span class="p">(</span><span class="n">ind</span><span class="p">),</span> <span class="n">n</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">ind</span></div>
+        <span class="k">return</span> <span class="n">ind</span>
+
+<div class="viewcode-block" id="Field.run_kmeans"><a class="viewcode-back" href="../../field.html#treecorr.Field.run_kmeans">[docs]</a>    <span class="k">def</span> <span class="nf">run_kmeans</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">npatch</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-5</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="s1">&#39;tree&#39;</span><span class="p">,</span> <span class="n">alt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Use k-means algorithm to set patch labels for a field.</span>
+
+<span class="sd">        The k-means algorithm (cf. https://en.wikipedia.org/wiki/K-means_clustering) identifies</span>
+<span class="sd">        a center position for each patch.  Each point is then assigned to the patch whose center</span>
+<span class="sd">        is closest.  The centers are then updated to be the mean position of all the points</span>
+<span class="sd">        assigned to the patch.  This process is repeated until the center locations have converged.</span>
+
+<span class="sd">        The process tends to converge relatively quickly.  The convergence criterion we use</span>
+<span class="sd">        is a tolerance on the rms shift in the centroid positions as a fraction of the overall</span>
+<span class="sd">        size of the whole field.  This is settable as ``tol`` (default 1.e-5).  You can also</span>
+<span class="sd">        set the maximum number of iterations to allow as ``max_iter`` (default 200).</span>
+
+<span class="sd">        The upshot of the k-means process is to minimize the total within-cluster sum of squares</span>
+<span class="sd">        (WCSS), also known as the &quot;inertia&quot; of each patch.  This tends to produce patches with</span>
+<span class="sd">        more or less similar inertia, which make them useful for jackknife or other sampling</span>
+<span class="sd">        estimates of the errors in the correlation functions.</span>
+
+<span class="sd">        In addition to the normal k-means algorithm, we also offer an alternate algorithm, which</span>
+<span class="sd">        can produce slightly better patches for the purpose of error estimation.  The ideal patch</span>
+<span class="sd">        definition for such use would be to minimize the rms inertia of each patch, not the total</span>
+<span class="sd">        inertia.  It turns out that it is difficult to devise an algorithm that literally does</span>
+<span class="sd">        this, since it has a tendancy to become unstable and not converge.  However, adding a</span>
+<span class="sd">        penalty term to the patch assignment step of the normal k-means algorithm turns out to</span>
+<span class="sd">        work reasonably well.</span>
+
+<span class="sd">        Specifically, we assign each point k to the patch with the minimum d_ik^2 + f I_i, where</span>
+<span class="sd">        d_ik is the distance to the center of patch i, I_i is the inertia of that patch from the</span>
+<span class="sd">        previous iteration, and f is a scaling constant (see below). The penalty term means that</span>
+<span class="sd">        patches with less inertia get more points on the next iteration, and vice versa, which</span>
+<span class="sd">        results in centers that have significantly lower rms inertia, but only slightly higher</span>
+<span class="sd">        total inertia.</span>
+
+<span class="sd">        For the scaling constant, f, we chose 3/&lt;N_i&gt;, three times the inverse of the mean number</span>
+<span class="sd">        of points in each patch.  The 1/&lt;N_i&gt; factor makes the two terms of comparable magnitude,</span>
+<span class="sd">        so patches still get most of the points near them, even if they already have larger than</span>
+<span class="sd">        average inertia, but some of the points in the outskirts of the patch might switch to</span>
+<span class="sd">        a nearby patch with smaller inertia.  The factor of 3 is purely empirical, and was found</span>
+<span class="sd">        to give good results in terms of rms inertia on some test data (the DES SV field).</span>
+
+<span class="sd">        The alternate algorithm is available by specifying ``alt=True``.  Despite it typically</span>
+<span class="sd">        giving better patch centers than the standard algorithm, we don&#39;t make it the default,</span>
+<span class="sd">        because it is possible for the iteration to become unstable, leading to some patches</span>
+<span class="sd">        with no points in them.  If this happens for you, your best bet is probably to switch</span>
+<span class="sd">        to the standard algorithm, which should never suffer from this problem (at least with</span>
+<span class="sd">        reasonable initialization of the centers).</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            npatch (int):       How many patches to generate</span>
+<span class="sd">            max_iter (int):     How many iterations at most to run. (default: 200)</span>
+<span class="sd">            tol (float):        Tolerance in the rms centroid shift to consider as converged</span>
+<span class="sd">                                as a fraction of the total field size. (default: 1.e-5)</span>
+<span class="sd">            init (str):         Initialization method. Options are:</span>
+
+<span class="sd">                                    - &#39;tree&#39; (default) =  Use the normal tree structure of the</span>
+<span class="sd">                                      field, traversing down to a level where there are npatch</span>
+<span class="sd">                                      cells, and use the centroids of these cells as the initial</span>
+<span class="sd">                                      centers.  This is almost always the best choice.</span>
+<span class="sd">                                    - &#39;random&#39; =  Use npatch random points as the intial centers.</span>
+<span class="sd">                                    - &#39;kmeans++&#39; =  Use the k-means++ algorithm.</span>
+<span class="sd">                                      cf. https://en.wikipedia.org/wiki/K-means%2B%2B</span>
+
+<span class="sd">            alt (bool):         Use the alternate assignment algorithm to minimize the rms inertia</span>
+<span class="sd">                                rather than the total inertia (aka WCSS). (default: False)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple containing</span>
+
+<span class="sd">                - patches (array): An array of patch labels, all integers from 0..npatch-1.</span>
+<span class="sd">                  Size is self.ntot.</span>
+<span class="sd">                - centers (array): An array of center coordinates used to make the patches.</span>
+<span class="sd">                  Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or</span>
+<span class="sd">                  spherical geometries.  In the latter case, the centers represent</span>
+<span class="sd">                  (x,y,z) coordinates on the unit sphere.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">centers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kmeans_initialize_centers</span><span class="p">(</span><span class="n">npatch</span><span class="p">,</span> <span class="n">init</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kmeans_refine_centers</span><span class="p">(</span><span class="n">centers</span><span class="p">,</span> <span class="n">max_iter</span><span class="p">,</span> <span class="n">tol</span><span class="p">,</span> <span class="n">alt</span><span class="p">)</span>
+        <span class="n">patches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kmeans_assign_patches</span><span class="p">(</span><span class="n">centers</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">patches</span><span class="p">,</span> <span class="n">centers</span></div>
+
+<div class="viewcode-block" id="Field.kmeans_initialize_centers"><a class="viewcode-back" href="../../field.html#treecorr.Field.kmeans_initialize_centers">[docs]</a>    <span class="k">def</span> <span class="nf">kmeans_initialize_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">npatch</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="s1">&#39;tree&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Use the field&#39;s tree structure to assign good initial centers for a K-Means run.</span>
+
+<span class="sd">        The classic K-Means algorithm involves starting with random points as the initial</span>
+<span class="sd">        centers of the patches.  This has a tendency to result in rather poor results in</span>
+<span class="sd">        terms of having similar sized patches at the end.  Specifically, the rms inertia</span>
+<span class="sd">        of the local minimum that the K-Means algorithm settles into tends to be fairly high</span>
+<span class="sd">        for typical geometries.</span>
+
+<span class="sd">        A better approach is to use the existing tree structure to star out with centers that</span>
+<span class="sd">        are fairly evenly spread out through the field.  This algorithm traverses the tree</span>
+<span class="sd">        until we get to a level that has enough cells for the requested number of patches.</span>
+<span class="sd">        Then it uses the centroids of these cells as the initial patch centers.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            npatch (int):       How many patches to generate initial centers for</span>
+<span class="sd">            init (str):         Initialization method. Options are:</span>
+
+<span class="sd">                                    - &#39;tree&#39; (default) =  Use the normal tree structure of the</span>
+<span class="sd">                                      field, traversing down to a level where there are npatch</span>
+<span class="sd">                                      cells, and use the centroids of these cells as the initial</span>
+<span class="sd">                                      centers.  This is almost always the best choice.</span>
+<span class="sd">                                    - &#39;random&#39; =  Use npatch random points as the intial centers.</span>
+<span class="sd">                                    - &#39;kmeans++&#39; =  Use the k-means++ algorithm.</span>
+<span class="sd">                                      cf. https://en.wikipedia.org/wiki/K-means%2B%2B</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            An array of center coordinates.</span>
+<span class="sd">            Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or</span>
+<span class="sd">            spherical geometries.  In the latter case, the centers represent</span>
+<span class="sd">            (x,y,z) coordinates on the unit sphere.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="kn">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+        <span class="k">if</span> <span class="n">npatch</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntot</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid npatch.  Cannot be greater than self.ntot.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">npatch</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid npatch.  Cannot be less than 1.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">==</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">Flat</span><span class="p">:</span>
+            <span class="n">centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">npatch</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">npatch</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">init</span> <span class="o">==</span> <span class="s1">&#39;tree&#39;</span><span class="p">:</span>
+            <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">KMeansInitTree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dp</span><span class="p">(</span><span class="n">centers</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">npatch</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">init</span> <span class="o">==</span> <span class="s1">&#39;random&#39;</span><span class="p">:</span>
+            <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">KMeansInitRand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dp</span><span class="p">(</span><span class="n">centers</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">npatch</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">init</span> <span class="o">==</span> <span class="s1">&#39;kmeans++&#39;</span><span class="p">:</span>
+            <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">KMeansInitKMPP</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dp</span><span class="p">(</span><span class="n">centers</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">npatch</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid init: </span><span class="si">%s</span><span class="s2">. &quot;</span><span class="o">%</span><span class="n">init</span> <span class="o">+</span>
+                             <span class="s2">&quot;Must be one of &#39;tree&#39;, &#39;random&#39;, or &#39;kmeans++.&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">centers</span></div>
+
+<div class="viewcode-block" id="Field.kmeans_refine_centers"><a class="viewcode-back" href="../../field.html#treecorr.Field.kmeans_refine_centers">[docs]</a>    <span class="k">def</span> <span class="nf">kmeans_refine_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">centers</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-5</span><span class="p">,</span> <span class="n">alt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fast implementation of the K-Means algorithm</span>
+
+<span class="sd">        The standard K-Means algorithm is as follows</span>
+<span class="sd">        (cf. https://en.wikipedia.org/wiki/K-means_clustering):</span>
+
+<span class="sd">        1. Choose centers somehow.  Traditionally, this is done by just selecting npatch random</span>
+<span class="sd">           points from the full set, but we do this more smartly in `kmeans_initialize_centers`.</span>
+<span class="sd">        2. For each point, measure the distance to each current patch center, and assign it to the</span>
+<span class="sd">           patch that has the closest center.</span>
+<span class="sd">        3. Update all the centers to be the centroid of the points assigned to each patch.</span>
+<span class="sd">        4. Repeat 2, 3 until the rms shift in the centers is less than some tolerance or the</span>
+<span class="sd">           maximum number of iterations is reached.</span>
+<span class="sd">        5. Assign the corresponding patch label to each point (`kmeans_assign_patches`).</span>
+
+<span class="sd">        In TreeCorr, we use the tree structure to massively increase the speed of steps 2 and 3.</span>
+<span class="sd">        For a given cell, we know both its center and its size, so we can quickly check whether</span>
+<span class="sd">        all the points in the cell are closer to one center than another.  This lets us quickly</span>
+<span class="sd">        cull centers from consideration as we traverse the tree.  Once we get to a cell where only</span>
+<span class="sd">        one center can be closest for any of the points in it, we stop traversing and assign the</span>
+<span class="sd">        whole cell to that patch.</span>
+
+<span class="sd">        Further, it is also fast to update the new centroid, since the sum of all the positions</span>
+<span class="sd">        for a cell is just N times the cell&#39;s centroid.</span>
+
+<span class="sd">        As a result, this algorithm typically takes a fraction of a second for ~a million points.</span>
+<span class="sd">        Indeed most of the time spent in the full kmeans calculation is in building the tree</span>
+<span class="sd">        in the first place, rather than actually running the kmeans code.  With the alternate</span>
+<span class="sd">        algorithm (``alt=True``), the time is only slightly slower from having to calculate</span>
+<span class="sd">        the sizes at each step.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            centers (array):    An array of center coordinates. (modified by this function)</span>
+<span class="sd">                                Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or</span>
+<span class="sd">                                spherical geometries.  In the latter case, the centers represent</span>
+<span class="sd">                                (x,y,z) coordinates on the unit sphere.</span>
+<span class="sd">            max_iter (int):     How many iterations at most to run. (default: 200)</span>
+<span class="sd">            tol (float):        Tolerance in the rms centroid shift to consider as converged</span>
+<span class="sd">                                as a fraction of the total field size. (default: 1.e-5)</span>
+<span class="sd">            alt (bool):         Use the alternate assignment algorithm to minimize the rms inertia</span>
+<span class="sd">                                rather than the total inertia (aka WCSS). (default: False)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="kn">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+        <span class="n">npatch</span> <span class="o">=</span> <span class="n">centers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">KMeansRun</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dp</span><span class="p">(</span><span class="n">centers</span><span class="p">),</span> <span class="n">npatch</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_iter</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">tol</span><span class="p">),</span>
+                                <span class="nb">bool</span><span class="p">(</span><span class="n">alt</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Field.kmeans_assign_patches"><a class="viewcode-back" href="../../field.html#treecorr.Field.kmeans_assign_patches">[docs]</a>    <span class="k">def</span> <span class="nf">kmeans_assign_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">centers</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Assign patch numbers to each point according to the given centers.</span>
+
+<span class="sd">        This is final step in the full K-Means algorithm.  It assignes patch numbers to each</span>
+<span class="sd">        point in the field according to which center is closest.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            centers (array):    An array of center coordinates.</span>
+<span class="sd">                                Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or</span>
+<span class="sd">                                spherical geometries.  In the latter case, the centers represent</span>
+<span class="sd">                                (x,y,z) coordinates on the unit sphere.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            An array of patch labels, all integers from 0..npatch-1.  Size is self.ntot.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="kn">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="kn">import</span> <span class="n">long_ptr</span> <span class="k">as</span> <span class="n">lp</span>
+        <span class="n">patches</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ntot</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">npatch</span> <span class="o">=</span> <span class="n">centers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">centers</span><span class="p">)</span>
+        <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">KMeansAssign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dp</span><span class="p">(</span><span class="n">centers</span><span class="p">),</span> <span class="n">npatch</span><span class="p">,</span>
+                                   <span class="n">lp</span><span class="p">(</span><span class="n">patches</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">patches</span></div></div>
 
 
 <div class="viewcode-block" id="NField"><a class="viewcode-back" href="../../field.html#treecorr.NField">[docs]</a><span class="k">class</span> <span class="nc">NField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This class stores the positions and number of objects in a tree structure from which it is</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class stores the positions and number of objects in a tree structure from which it is</span>
 <span class="sd">    efficient to compute correlation functions.</span>
 
 <span class="sd">    An NField is typically created from a Catalog object using</span>
 
 <span class="sd">        &gt;&gt;&gt; nfield = cat.getNField(min_size, max_size, b)</span>
 
-<span class="sd">    :param cat:         The catalog from which to make the field.</span>
-<span class="sd">    :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)</span>
-<span class="sd">    :param max_size:    The maximum radius cell required (usually max_sep). (default: None)</span>
-<span class="sd">    :param split_method: Which split method to use (&#39;mean&#39;, &#39;median&#39;, &#39;middle&#39;, or &#39;random&#39;)</span>
-<span class="sd">                        (default: &#39;mean&#39;)</span>
-<span class="sd">    :param brute        Whether to force traversal to the leaves for this field. (default: False)</span>
-<span class="sd">    :param min_top:     The minimum number of top layers to use when setting up the field.</span>
-<span class="sd">                        (default: 3)</span>
-<span class="sd">    :param max_top:     The maximum number of top layers to use when setting up the field.</span>
-<span class="sd">                        (default: 10)</span>
-<span class="sd">    :param coords       The kind of coordinate system to use. (default: cat.coords)</span>
-<span class="sd">    :param logger:      A logger file if desired (default: None)</span>
+<span class="sd">    Parameters:</span>
+<span class="sd">        cat (Catalog):      The catalog from which to make the field.</span>
+<span class="sd">        min_size (float):   The minimum radius cell required (usually min_sep). (default: 0)</span>
+<span class="sd">        max_size (float):   The maximum radius cell required (usually max_sep). (default: None)</span>
+<span class="sd">        split_method (str): Which split method to use (&#39;mean&#39;, &#39;median&#39;, &#39;middle&#39;, or &#39;random&#39;).</span>
+<span class="sd">                            (default: &#39;mean&#39;)</span>
+<span class="sd">        brute (bool):       Whether to force traversal to the leaves for this field.</span>
+<span class="sd">                            (default: False)</span>
+<span class="sd">        min_top (int):      The minimum number of top layers to use when setting up the field.</span>
+<span class="sd">                            (default: :math:`\max(3, \log_2(N_{\rm cpu}))`)</span>
+<span class="sd">        max_top (int):      The maximum number of top layers to use when setting up the field.</span>
+<span class="sd">                            (default: 10)</span>
+<span class="sd">        coords (str):       The kind of coordinate system to use. (default: cat.coords)</span>
+<span class="sd">        logger (Logger):    A logger file if desired. (default: None)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                 <span class="n">min_top</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="k">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">min_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="kn">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
         <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building NField from cat </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">cat</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -440,14 +661,14 @@
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building NField&#39;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_cat</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ntot</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">ntot</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">min_size</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">brute</span> <span class="k">else</span> <span class="mf">0.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">max_size</span><span class="p">)</span> <span class="k">if</span> <span class="n">max_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span> <span class="o">=</span> <span class="n">split_method</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sm</span> <span class="o">=</span> <span class="n">_parse_split_method</span><span class="p">(</span><span class="n">split_method</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_d</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># NData</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">brute</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_top</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_top</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_determine_top</span><span class="p">(</span><span class="n">min_top</span><span class="p">,</span> <span class="n">max_top</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span> <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">cat</span><span class="o">.</span><span class="n">coords</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">coord_enum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>  <span class="c1"># These are the C++-layer enums</span>
 
@@ -458,7 +679,7 @@
         <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building NField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Using memory allocated from the C layer means we have to explicitly deallocate it</span>
         <span class="c1"># rather than being able to rely on the Python memory manager.</span>
 
@@ -472,29 +693,31 @@
 
 
 <div class="viewcode-block" id="KField"><a class="viewcode-back" href="../../field.html#treecorr.KField">[docs]</a><span class="k">class</span> <span class="nc">KField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This class stores the values of a scalar field (kappa in the weak lensing context) in a</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class stores the values of a scalar field (kappa in the weak lensing context) in a</span>
 <span class="sd">    tree structure from which it is efficient to compute correlation functions.</span>
 
 <span class="sd">    A KField is typically created from a Catalog object using</span>
 
 <span class="sd">        &gt;&gt;&gt; kfield = cat.getKField(min_size, max_size, b)</span>
 
-<span class="sd">    :param cat:         The catalog from which to make the field.</span>
-<span class="sd">    :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)</span>
-<span class="sd">    :param max_size:    The maximum radius cell required (usually max_sep). (default: None)</span>
-<span class="sd">    :param split_method: Which split method to use (&#39;mean&#39;, &#39;median&#39;, &#39;middle&#39;, or &#39;random&#39;)</span>
-<span class="sd">                        (default: &#39;mean&#39;)</span>
-<span class="sd">    :param brute        Whether to force traversal to the leaves for this field. (default: False)</span>
-<span class="sd">    :param min_top:     The minimum number of top layers to use when setting up the field.</span>
-<span class="sd">                        (default: 3)</span>
-<span class="sd">    :param max_top:     The maximum number of top layers to use when setting up the field.</span>
-<span class="sd">                        (default: 10)</span>
-<span class="sd">    :param coords       The kind of coordinate system to use. (default: cat.coords)</span>
-<span class="sd">    :param logger:      A logger file if desired (default: None)</span>
+<span class="sd">    Parameters:</span>
+<span class="sd">        cat (Catalog):      The catalog from which to make the field.</span>
+<span class="sd">        min_size (float):   The minimum radius cell required (usually min_sep). (default: 0)</span>
+<span class="sd">        max_size (float):   The maximum radius cell required (usually max_sep). (default: None)</span>
+<span class="sd">        split_method (str): Which split method to use (&#39;mean&#39;, &#39;median&#39;, &#39;middle&#39;, or &#39;random&#39;).</span>
+<span class="sd">                            (default: &#39;mean&#39;)</span>
+<span class="sd">        brute (bool):       Whether to force traversal to the leaves for this field.</span>
+<span class="sd">                            (default: False)</span>
+<span class="sd">        min_top (int):      The minimum number of top layers to use when setting up the field.</span>
+<span class="sd">                            (default: :math:`\max(3, \log_2(N_{\rm cpu}))`)</span>
+<span class="sd">        max_top (int):      The maximum number of top layers to use when setting up the field.</span>
+<span class="sd">                            (default: 10)</span>
+<span class="sd">        coords (str):       The kind of coordinate system to use. (default: cat.coords)</span>
+<span class="sd">        logger (Logger):    A logger file if desired. (default: None)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                 <span class="n">min_top</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="k">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">min_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="kn">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
         <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building KField from cat </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">cat</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -502,14 +725,14 @@
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building KField&#39;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_cat</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ntot</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">ntot</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">min_size</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">brute</span> <span class="k">else</span> <span class="mf">0.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">max_size</span><span class="p">)</span> <span class="k">if</span> <span class="n">max_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span> <span class="o">=</span> <span class="n">split_method</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sm</span> <span class="o">=</span> <span class="n">_parse_split_method</span><span class="p">(</span><span class="n">split_method</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_d</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># KData</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">brute</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_top</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_top</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_determine_top</span><span class="p">(</span><span class="n">min_top</span><span class="p">,</span> <span class="n">max_top</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span> <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">cat</span><span class="o">.</span><span class="n">coords</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">coord_enum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>  <span class="c1"># These are the C++-layer enums</span>
 
@@ -521,7 +744,7 @@
         <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building KField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Using memory allocated from the C layer means we have to explicitly deallocate it</span>
         <span class="c1"># rather than being able to rely on the Python memory manager.</span>
 
@@ -532,29 +755,31 @@
 
 
 <div class="viewcode-block" id="GField"><a class="viewcode-back" href="../../field.html#treecorr.GField">[docs]</a><span class="k">class</span> <span class="nc">GField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This class stores the values of a spinor field (gamma in the weak lensing context) in a</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class stores the values of a spinor field (gamma in the weak lensing context) in a</span>
 <span class="sd">    tree structure from which it is efficient to compute correlation functions.</span>
 
 <span class="sd">    A GField is typically created from a Catalog object using</span>
 
 <span class="sd">        &gt;&gt;&gt; gfield = cat.getGField(min_size, max_size, b)</span>
 
-<span class="sd">    :param cat:         The catalog from which to make the field.</span>
-<span class="sd">    :param min_size:    The minimum radius cell required (usually min_sep). (default: 0)</span>
-<span class="sd">    :param max_size:    The maximum radius cell required (usually max_sep). (default: None)</span>
-<span class="sd">    :param split_method: Which split method to use (&#39;mean&#39;, &#39;median&#39;, &#39;middle&#39;, or &#39;random&#39;)</span>
-<span class="sd">                        (default: &#39;mean&#39;)</span>
-<span class="sd">    :param brute        Whether to force traversal to the leaves for this field. (default: False)</span>
-<span class="sd">    :param min_top:     The minimum number of top layers to use when setting up the field.</span>
-<span class="sd">                        (default: 3)</span>
-<span class="sd">    :param max_top:     The maximum number of top layers to use when setting up the field.</span>
-<span class="sd">                        (default: 10)</span>
-<span class="sd">    :param coords       The kind of coordinate system to use. (default: cat.coords)</span>
-<span class="sd">    :param logger:      A logger file if desired (default: None)</span>
+<span class="sd">    Parameters:</span>
+<span class="sd">        cat (Catalog):      The catalog from which to make the field.</span>
+<span class="sd">        min_size (float):   The minimum radius cell required (usually min_sep). (default: 0)</span>
+<span class="sd">        max_size (float):   The maximum radius cell required (usually max_sep). (default: None)</span>
+<span class="sd">        split_method (str): Which split method to use (&#39;mean&#39;, &#39;median&#39;, &#39;middle&#39;, or &#39;random&#39;).</span>
+<span class="sd">                            (default: &#39;mean&#39;)</span>
+<span class="sd">        brute (bool):       Whether to force traversal to the leaves for this field.</span>
+<span class="sd">                            (default: False)</span>
+<span class="sd">        min_top (int):      The minimum number of top layers to use when setting up the field.</span>
+<span class="sd">                            (default: :math:`\max(3, \log_2(N_{\rm cpu}))`)</span>
+<span class="sd">        max_top (int):      The maximum number of top layers to use when setting up the field.</span>
+<span class="sd">                            (default: 10)</span>
+<span class="sd">        coords (str):       The kind of coordinate system to use. (default: cat.coords)</span>
+<span class="sd">        logger (Logger):    A logger file if desired. (default: None)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                 <span class="n">min_top</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="k">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">min_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="kn">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
         <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building GField from cat </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">cat</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -562,14 +787,14 @@
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building GField&#39;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_cat</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ntot</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">ntot</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">min_size</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">brute</span> <span class="k">else</span> <span class="mf">0.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">max_size</span><span class="p">)</span> <span class="k">if</span> <span class="n">max_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span> <span class="o">=</span> <span class="n">split_method</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sm</span> <span class="o">=</span> <span class="n">_parse_split_method</span><span class="p">(</span><span class="n">split_method</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_d</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># GData</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">brute</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">brute</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_top</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_top</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_determine_top</span><span class="p">(</span><span class="n">min_top</span><span class="p">,</span> <span class="n">max_top</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span> <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">cat</span><span class="o">.</span><span class="n">coords</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">coord_enum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>  <span class="c1"># These are the C++-layer enums</span>
 
@@ -581,7 +806,7 @@
         <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building GField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Using memory allocated from the C layer means we have to explicitly deallocate it</span>
         <span class="c1"># rather than being able to rely on the Python memory manager.</span>
 
@@ -602,7 +827,7 @@
 <span class="sd">        - KSimpleField describes a field of points sampling a scalar field.</span>
 <span class="sd">        - GSimpleField describes a field of points sampling a spinor field.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
             <span class="s2">&quot;SimpleField is an abstract base class.  It cannot be instantiated.&quot;</span><span class="p">)</span></div>
 
@@ -614,11 +839,12 @@
 
 <span class="sd">        &gt;&gt;&gt; nfield = cat.getNSimpleField()</span>
 
-<span class="sd">    :param cat:         The catalog from which to make the field.</span>
-<span class="sd">    :param logger:      A logger file if desired (default: None)</span>
+<span class="sd">    Parameters:</span>
+<span class="sd">        cat (Catalog):      The catalog from which to make the field.</span>
+<span class="sd">        logger (Logger):    A logger file if desired. (default: None)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="k">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="kn">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
         <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building NSimpleField from cat </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">cat</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -634,7 +860,7 @@
         <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building NSimpleField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Using memory allocated from the C layer means we have to explicitly deallocate it</span>
         <span class="c1"># rather than being able to rely on the Python memory manager.</span>
 
@@ -651,11 +877,12 @@
 
 <span class="sd">        &gt;&gt;&gt; kfield = cat.getKSimpleField()</span>
 
-<span class="sd">    :param cat:         The catalog from which to make the field.</span>
-<span class="sd">    :param logger:      A logger file if desired (default: None)</span>
+<span class="sd">    Parameters:</span>
+<span class="sd">        cat (Catalog):      The catalog from which to make the field.</span>
+<span class="sd">        logger (Logger):    A logger file if desired. (default: None)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="k">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="kn">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
         <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building KSimpleField from cat </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">cat</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -672,7 +899,7 @@
         <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building KSimpleField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Using memory allocated from the C layer means we have to explicitly deallocate it</span>
         <span class="c1"># rather than being able to rely on the Python memory manager.</span>
 
@@ -689,11 +916,12 @@
 
 <span class="sd">        &gt;&gt;&gt; gfield = cat.getGSimpleField()</span>
 
-<span class="sd">    :param cat:         The catalog from which to make the field.</span>
-<span class="sd">    :param logger:      A logger file if desired (default: None)</span>
+<span class="sd">    Parameters:</span>
+<span class="sd">        cat (Catalog):      The catalog from which to make the field.</span>
+<span class="sd">        logger (Logger):    A logger file if desired. (default: None)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="k">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="kn">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
         <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building GSimpleField from cat </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">cat</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -710,7 +938,7 @@
         <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building KSimpleField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Using memory allocated from the C layer means we have to explicitly deallocate it</span>
         <span class="c1"># rather than being able to rely on the Python memory manager.</span>
 

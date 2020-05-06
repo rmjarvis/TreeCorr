@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Two-point Correlation Functions &mdash; TreeCorr 4.0.10 documentation</title>
+  <title>Two-point Correlation Functions &mdash; TreeCorr 4.1.0 documentation</title>
   
 
   
@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                4.0
+                4.1
               </div>
             
           
@@ -100,11 +100,13 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 4.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -186,9 +188,9 @@ functions:</p>
 </div>
 <p>Each of the above classes is a sub-class of the base class BinnedCorr2, so they have a number of
 features in common about how they are constructed.  The common features are documented here.</p>
-<dl class="class">
+<dl class="py class">
 <dt id="treecorr.BinnedCorr2">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">BinnedCorr2</code><span class="sig-paren">(</span><em class="sig-param">config=None</em>, <em class="sig-param">logger=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr2" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">BinnedCorr2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr2" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class stores the results of a 2-point correlation calculation, along with some
 ancillary data.</p>
 <p>This is a base class that is not intended to be constructed directly.  But it has a few
@@ -210,7 +212,7 @@ since this is often how we keep track of parameters, but if you don’t want to
 use one or if you want to change some parameters from what are in a config dict,
 then you can use normal kwargs, which take precedence over anything in the config dict.</p>
 <p>There are a number of possible definitions for the distance between two points, which
-are appropriate for different use cases.  These are specified by the <strong>metric</strong> parameter.
+are appropriate for different use cases.  These are specified by the <code class="docutils literal notranslate"><span class="pre">metric</span></code> parameter.
 The possible options are:</p>
 <blockquote>
 <div><ul class="simple">
@@ -323,16 +325,17 @@ the range.</p></li>
 </ul>
 </p></li>
 <li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the field.
-(default: 3)</p></li>
+(default: <span class="math notranslate nohighlight">\(\max(3, \log_2(N_{\rm cpu}))\)</span>)</p></li>
 <li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the field.
 The top-level cells are where each calculation job starts. There will
-typically be of order 2^max_top top-level cells. (default: 10)</p></li>
+typically be of order <span class="math notranslate nohighlight">\(2^{\rm max\_top}\)</span> top-level cells.
+(default: 10)</p></li>
 <li><p><strong>precision</strong> (<em>int</em>) – The precision to use for the output values. This specifies how many
 digits to write. (default: 4)</p></li>
 <li><p><strong>pairwise</strong> (<em>bool</em>) – Whether to use a different kind of calculation for cross correlations
 whereby corresponding items in the two catalogs are correlated pairwise
 rather than the usual case of every item in one catalog being correlated
-with every item in the other catalog. (default: False)</p></li>
+with every item in the other catalog. (default: False) (DEPRECATED)</p></li>
 <li><p><strong>m2_uform</strong> (<em>str</em>) – The default functional form to use for aperture mass calculations.
 see <a class="reference internal" href="gg.html#treecorr.GGCorrelation.calculateMapSq" title="treecorr.GGCorrelation.calculateMapSq"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateMapSq</span></code></a> for more details.  (default: ‘Crittenden’)</p></li>
 <li><p><strong>metric</strong> (<em>str</em>) – Which metric to use for distance measurements.  Options are listed
@@ -353,36 +356,91 @@ to allow for pairs being included in the correlation function.
 (default: period)</p></li>
 <li><p><strong>zperiod</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in the z direction.
 (default: period)</p></li>
+<li><p><strong>var_method</strong> (<em>str</em>) – Which method to use for estimating the variance. Options are:
+‘shot’, ‘jackknife’, ‘sample’, ‘bootstrap’, ‘marked_bootstrap’.
+(default: ‘shot’)</p></li>
+<li><p><strong>num_bootstrap</strong> (<em>int</em>) – How many bootstrap samples to use for the ‘bootstrap’ and
+‘marked_bootstrap’ var_methods.  (default: 500)</p></li>
 <li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
-(default: use the number of cpu cores; this value can also be given in
-the constructor in the config dict.) Note that this won’t work if the
+(default: use the number of cpu cores) Note that this won’t work if the
 system’s C compiler cannot use OptnMP (e.g. clang prior to version 3.7.)</p></li>
 </ul>
 </dd>
 </dl>
-<dl class="method">
+<dl class="py method">
+<dt id="treecorr.BinnedCorr2.estimate_cov">
+<code class="sig-name descname">estimate_cov</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">method</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.estimate_cov"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr2.estimate_cov" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the covariance matrix based on the data</p>
+<p>This function will calculate an estimate of the covariance matrix according to the
+given method.</p>
+<p>Options for <code class="docutils literal notranslate"><span class="pre">method</span></code> include:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>‘shot’ = The variance based on “shot noise” only.  This includes the Poisson
+counts of points for N statistics, shape noise for G statistics, and the observed
+scatter in the values for K statistics.  In this case, the returned covariance
+matrix will be diagonal, since there is no way to estimate the off-diagonal terms.</p></li>
+<li><p>‘jackknife’ = A jackknife estimate of the covariance matrix based on the scatter
+in the measurement when excluding one patch at a time.</p></li>
+<li><p>‘sample’ = An estimate based on the sample covariance of a set of samples,
+taken as the patches of the input catalog.</p></li>
+<li><p>‘bootstrap’ = A bootstrap covariance estimate. It selects patches at random with
+replacement and then generates the statistic using all the auto-correlations at
+their selected repetition plus all the cross terms that aren’t actually auto terms.</p></li>
+<li><p>‘marked_bootstrap’ = An estimate based on a marked-point bootstrap resampling of the
+patches.  Similar to bootstrap, but only samples the patches of the first catalog and
+uses all patches from the second catalog that correspond to each patch selection of
+the first catalog.  cf. <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/">https://ui.adsabs.harvard.edu/abs/2008ApJ…681..726L/</a></p></li>
+</ul>
+</div></blockquote>
+<p>Both ‘bootstrap’ and ‘marked_bootstrap’ use the num_bootstrap parameter, which can be set on
+construction.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For most classes, there is only a single statistic, so this calculates a covariance
+matrix for that vector.  <a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a> has two: <code class="docutils literal notranslate"><span class="pre">xip</span></code> and <code class="docutils literal notranslate"><span class="pre">xim</span></code>, so in this
+case the full data vector is <code class="docutils literal notranslate"><span class="pre">xip</span></code> followed by <code class="docutils literal notranslate"><span class="pre">xim</span></code>, and this calculates the
+covariance matrix for that full vector including both statistics.</p>
+</div>
+<p>In all cases, the relevant processing needs to already have been completed and finalized.
+And for all methods other than ‘shot’, the processing should have involved an appropriate
+number of patches – preferably more patches than the length of the vector for your
+statistic, although this is not checked.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>method</strong> (<em>str</em>) – Which method to use to estimate the covariance matrix.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A numpy array with the estimated covariance matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="treecorr.BinnedCorr2.sample_pairs">
-<code class="sig-name descname">sample_pairs</code><span class="sig-paren">(</span><em class="sig-param">n</em>, <em class="sig-param">cat1</em>, <em class="sig-param">cat2</em>, <em class="sig-param">min_sep</em>, <em class="sig-param">max_sep</em>, <em class="sig-param">metric=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.sample_pairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr2.sample_pairs" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sample_pairs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n</span></em>, <em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">min_sep</span></em>, <em class="sig-param"><span class="n">max_sep</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.sample_pairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr2.sample_pairs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a random sample of n pairs whose separations fall between min_sep and max_sep.</p>
 <p>This would typically be used to get some random subset of the indices of pairs that
 fell into a particular bin of the correlation.  E.g. to get 100 pairs from the third
-bin of a BinnedCorr2 instance, corr, you could write:</p>
+bin of a <a class="reference internal" href="#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a> instance, corr, you could write:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">min_sep</span> <span class="o">=</span> <span class="n">corr</span><span class="o">.</span><span class="n">left_edges</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>   <span class="c1"># third bin has i=2</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">max_sep</span> <span class="o">=</span> <span class="n">corr</span><span class="o">.</span><span class="n">right_edges</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">,</span> <span class="n">sep</span> <span class="o">=</span> <span class="n">corr</span><span class="o">.</span><span class="n">sample_pairs</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">min_sep</span><span class="p">,</span> <span class="n">max_sep</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The min_sep and max_sep should use the same units as were defined which constructing
+<p>The min_sep and max_sep should use the same units as were defined when constructing
 the corr instance.</p>
 <p>The selection process will also use the same bin_slop as specified (either explicitly or
 implicitly) when constructing the corr instance.  This means that some of the pairs may
 have actual separations slightly outside of the specified range.  If you want a selection
 using an exact range without any slop, you should construct a new Correlation instance
-with brute=True or bin_slop=0, and call sample_pairs with that.</p>
+with bin_slop=0, and call sample_pairs with that.</p>
 <p>The returned separations will likewise correspond to the separation of the cells in the
-tree where the correlation function would have decided that the pair falls into the
-given bin.  Therefore, if these cells were not leaf cells, then they will not typically
-be equal to the real separation for the given metric.</p>
+tree that TreeCorr used to place the pairs into the given bin.  Therefore, if these cells
+were not leaf cells, then they will not typically be equal to the real separations for the
+given metric.  If you care about the exact separations for each pair, you should either
+call sample_pairs from a Correlation instance with brute=True or recalculate the
+distances yourself from the original data.</p>
 <p>Also, note that min_sep and max_sep may be arbitrary.  There is no requirement that they
 be edges of one of the standard bins for this correlation function.  There is also no
 requirement that this correlation instance has already accumulated pairs via a call
@@ -416,6 +474,57 @@ self.metric, or ‘Euclidean’ if not set yet)</p></li>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt id="treecorr.estimate_multi_cov">
+<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">estimate_multi_cov</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">corrs</span></em>, <em class="sig-param"><span class="n">method</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#estimate_multi_cov"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.estimate_multi_cov" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the covariance matrix of multiple statistics.</p>
+<p>This is like the method <a class="reference internal" href="#treecorr.BinnedCorr2.estimate_cov" title="treecorr.BinnedCorr2.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr2.estimate_cov</span></code></a>, except that it will acoommodate
+multiple statistics from a list <code class="docutils literal notranslate"><span class="pre">corrs</span></code> of <a class="reference internal" href="#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a> objects.</p>
+<p>Options for <code class="docutils literal notranslate"><span class="pre">method</span></code> include:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>‘shot’ = The variance based on “shot noise” only.  This includes the Poisson
+counts of points for N statistics, shape noise for G statistics, and the observed
+scatter in the values for K statistics.  In this case, the returned covariance
+matrix will be diagonal, since there is no way to estimate the off-diagonal terms.</p></li>
+<li><p>‘jackknife’ = A jackknife estimate of the covariance matrix based on the scatter
+in the measurement when excluding one patch at a time.</p></li>
+<li><p>‘sample’ = An estimate based on the sample covariance of a set of samples,
+taken as the patches of the input catalog.</p></li>
+<li><p>‘bootstrap’ = A bootstrap covariance estimate. It selects patches at random with
+replacement and then generates the statistic using all the auto-correlations at
+their selected repetition plus all the cross terms that aren’t actually auto terms.</p></li>
+<li><p>‘marked_bootstrap’ = An estimate based on a marked-point bootstrap resampling of the
+patches.  Similar to bootstrap, but only samples the patches of the first catalog and
+uses all patches from the second catalog that correspond to each patch selection of
+the first catalog.  cf. <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/">https://ui.adsabs.harvard.edu/abs/2008ApJ…681..726L/</a></p></li>
+</ul>
+</div></blockquote>
+<p>Both ‘bootstrap’ and ‘marked_bootstrap’ use the num_bootstrap parameter, which can be set on
+construction.</p>
+<p>For example, to find the combined covariance matrix for an NG tangential shear statistc,
+along with the GG xi+ and xi- from the same area, using jackknife covariance estimation,
+you would write:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">estimate_multi_cov</span><span class="p">([</span><span class="n">ng</span><span class="p">,</span><span class="n">gg</span><span class="p">],</span> <span class="s1">&#39;jackknife&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In all cases, the relevant processing needs to already have been completed and finalized.
+And for all methods other than ‘shot’, the processing should have involved an appropriate
+number of patches – preferably more patches than the length of the vector for your
+statistic, although this is not checked.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>corrs</strong> (<em>list</em>) – A list of <a class="reference internal" href="#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a> instances.</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – Which method to use to estimate the covariance matrix.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A numpy array with the estimated covariance matrix.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

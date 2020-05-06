@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Three-point Correlation Functions &mdash; TreeCorr 4.0.10 documentation</title>
+  <title>Three-point Correlation Functions &mdash; TreeCorr 4.1.0 documentation</title>
   
 
   
@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                4.0
+                4.1
               </div>
             
           
@@ -97,11 +97,13 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 3.3 to 4.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -181,9 +183,9 @@ auto-correlation functions:</p>
 <p>There are plans to add the various cross-correlations, but they have not yet been implemented.</p>
 <p>Each of the above classes is a sub-class of the base class BinnedCorr3, so they have a number of
 features in common about how they are constructed.  The common features are documented here.</p>
-<dl class="class">
+<dl class="py class">
 <dt id="treecorr.BinnedCorr3">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">BinnedCorr3</code><span class="sig-paren">(</span><em class="sig-param">config=None</em>, <em class="sig-param">logger=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr3" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">BinnedCorr3</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr3" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class stores the results of a 3-point correlation calculation, along with some
 ancillary data.</p>
 <p>This is a base class that is not intended to be constructed directly.  But it has a few
@@ -328,10 +330,11 @@ the range.</p></li>
 </ul>
 </p></li>
 <li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the field.
-(default: 3)</p></li>
+(default: <span class="math notranslate nohighlight">\(\max(3, \log_2(N_{\rm cpu}))\)</span>)</p></li>
 <li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the field.
 The top-level cells are where each calculation job starts. There will
-typically be of order 2^max_top top-level cells. (default: 10)</p></li>
+typically be of order <span class="math notranslate nohighlight">\(2^{\rm max\_top}\)</span> top-level cells.
+(default: 10)</p></li>
 <li><p><strong>precision</strong> (<em>int</em>) – The precision to use for the output values. This specifies how many
 digits to write. (default: 4)</p></li>
 <li><p><strong>metric</strong> (<em>str</em>) – Which metric to use for distance measurements.  Options are listed
@@ -348,6 +351,8 @@ above.  (default: ‘Euclidean’)</p></li>
 (default: period)</p></li>
 <li><p><strong>zperiod</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in the z direction.
 (default: period)</p></li>
+<li><p><strong>var_method</strong> (<em>str</em>) – Which method to use for estimating the variance.  So far, only ‘shot’
+is implemented. (default: ‘shot’)</p></li>
 <li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
 (default: use the number of cpu cores; this value can also be given in
 the constructor in the config dict.) Note that this won’t work if the

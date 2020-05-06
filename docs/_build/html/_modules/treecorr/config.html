@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>treecorr.config &mdash; TreeCorr 4.0.10 documentation</title>
+  <title>treecorr.config &mdash; TreeCorr 4.1.0 documentation</title>
   
 
   
@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                4.0
+                4.1
               </div>
             
           
@@ -90,11 +90,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../metric.html">Metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 3.3 to 4.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 4.0 to 4.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
 
@@ -176,10 +178,11 @@
 <span class="sd">.. module:: config</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_lib</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_lib</span>
 <span class="kn">import</span> <span class="nn">coord</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
 <div class="viewcode-block" id="parse_variable"><a class="viewcode-back" href="../../scripts.html#treecorr.config.parse_variable">[docs]</a><span class="k">def</span> <span class="nf">parse_variable</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
@@ -234,7 +237,7 @@
                 <span class="k">return</span> <span class="n">val</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unable to parse </span><span class="si">%s</span><span class="s2"> as a bool.&quot;</span><span class="o">%</span><span class="n">value</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,(</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,(</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)):</span>
         <span class="k">return</span> <span class="n">value</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unable to parse </span><span class="si">%s</span><span class="s2"> as a bool.&quot;</span><span class="o">%</span><span class="n">value</span><span class="p">)</span></div>
@@ -408,8 +411,10 @@
         <span class="c1"># If limited allowed values, check that this is one of them.</span>
         <span class="k">if</span> <span class="n">valid_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">value_type</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
-                <span class="c1"># Allow the string to be longer.  e.g. degrees is valid if &#39;deg&#39; is in valid_values.</span>
-                <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">valid_values</span> <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="p">]</span>
+                <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">valid_values</span> <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="n">v</span> <span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># Allow the string to be longer.  e.g. degrees is valid if &#39;deg&#39; is in valid_values.</span>
+                    <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">valid_values</span> <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="p">]</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter </span><span class="si">%s</span><span class="s2"> has invalid value </span><span class="si">%s</span><span class="s2">.  Valid values are </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="o">%</span><span class="p">(</span>
                         <span class="n">key</span><span class="p">,</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">valid_values</span><span class="p">)))</span>
@@ -464,9 +469,9 @@
 <div class="viewcode-block" id="convert"><a class="viewcode-back" href="../../scripts.html#treecorr.config.convert">[docs]</a><span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_type</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Convert the given value to the given type.</span>
 
-<span class="sd">    The **key** helps determine what kind of conversion should be performed.</span>
-<span class="sd">    Specifically if &#39;unit&#39; is in the **key** value, then a unit conversion is done.</span>
-<span class="sd">    Otherwise, it just parses the **value** according to the **value_type**.</span>
+<span class="sd">    The ``key`` helps determine what kind of conversion should be performed.</span>
+<span class="sd">    Specifically if &#39;unit&#39; is in the ``key`` value, then a unit conversion is done.</span>
+<span class="sd">    Otherwise, it just parses the ``value`` according to the ``value_type``.</span>
 
 <span class="sd">    :param value:       The input value to be converted.  Usually a string.</span>
 <span class="sd">    :param value_type:  The type to convert to.</span>
@@ -485,8 +490,8 @@
     <span class="sd">&quot;&quot;&quot;A helper function to get a key from config that is allowed to be a list</span>
 
 <span class="sd">    Some of the config values are allowed to be lists of values, in which case we take the</span>
-<span class="sd">    **num** item from the list.  If they are not a list, then the given value is used for</span>
-<span class="sd">    all values of **num**.</span>
+<span class="sd">    ``num`` item from the list.  If they are not a list, then the given value is used for</span>
+<span class="sd">    all values of ``num``.</span>
 
 <span class="sd">    :param config:      The configuration dict from which to get the key value.</span>
 <span class="sd">    :param key:         What key to get from config.</span>
@@ -550,42 +555,6 @@
             <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">valid_params</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
                 <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
     <span class="k">return</span> <span class="n">check_config</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">valid_params</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="set_omp_threads"><a class="viewcode-back" href="../../scripts.html#treecorr.config.set_omp_threads">[docs]</a><span class="k">def</span> <span class="nf">set_omp_threads</span><span class="p">(</span><span class="n">num_threads</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Set the number of OpenMP threads to use in the C++ layer.</span>
-
-<span class="sd">    :param num_threads: The target number of threads to use</span>
-<span class="sd">    :param logger:      If desired, a logger object for logging any warnings here. (default: None)</span>
-
-<span class="sd">    :returns:           The  number of threads OpenMP reports that it will use.  Typically this</span>
-<span class="sd">                        matches the input, but OpenMP reserves the right not to comply with</span>
-<span class="sd">                        the requested number of threads.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">input_num_threads</span> <span class="o">=</span> <span class="n">num_threads</span>  <span class="c1"># Save the input value.</span>
-
-    <span class="c1"># If num_threads is auto, get it from cpu_count</span>
-    <span class="k">if</span> <span class="n">num_threads</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">num_threads</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">multiprocessing</span>
-        <span class="n">num_threads</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;multiprocessing.cpu_count() = </span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">num_threads</span><span class="p">)</span>
-
-    <span class="c1"># Tell OpenMP to use this many threads</span>
-    <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Telling OpenMP to use </span><span class="si">%d</span><span class="s1"> threads&#39;</span><span class="p">,</span><span class="n">num_threads</span><span class="p">)</span>
-    <span class="n">num_threads</span> <span class="o">=</span> <span class="n">_lib</span><span class="o">.</span><span class="n">SetOMPThreads</span><span class="p">(</span><span class="n">num_threads</span><span class="p">)</span>
-
-    <span class="c1"># Report back appropriately.</span>
-    <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;OpenMP reports that it will use </span><span class="si">%d</span><span class="s1"> threads&#39;</span><span class="p">,</span><span class="n">num_threads</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">num_threads</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using </span><span class="si">%d</span><span class="s1"> threads.&#39;</span><span class="p">,</span><span class="n">num_threads</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">input_num_threads</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">input_num_threads</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="c1"># Only warn if the user specifically asked for num_threads != 1.</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unable to use multiple threads, since OpenMP is not enabled.&quot;</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">num_threads</span></div>
 
 
 

@@ -127,22 +127,19 @@ def make_patches():
     # Or it might be made from a smaller version of the catalog:
     # either with the every_nth option, or maybe on a redmagic catalog or similar,
     # which would be smaller than the full source catalog, etc.
-    # Here, we use every_nth to reduce the catalog size.
     if not os.path.exists(patch_file):
         print('Making patches')
         fname = file_name.replace('.fits','_0.fits')
-        part_cat = treecorr.Catalog(fname,
-                                    ra_col=ra_col, dec_col=ra_col,
-                                    ra_units=ra_units, dec_units=dec_units,
-                                    g1_col=g1_col, g2_col=g1_col, flag_col=flag_col,
-                                    npatch=32, verbose=2)
-        print('Done loading file: nobj = ',part_cat.nobj,part_cat.ntot)
-        part_cat.get_patches()
-        print('Made patches: ',part_cat.patch_centers)
-        part_cat.write_patch_centers(patch_file)
+        cat = treecorr.Catalog(fname,
+                               ra_col=ra_col, dec_col=ra_col,
+                               ra_units=ra_units, dec_units=dec_units,
+                               g1_col=g1_col, g2_col=g1_col, flag_col=flag_col,
+                               npatch=32, verbose=2)
+        print('Done loading file: nobj = ',cat.nobj,cat.ntot)
+        cat.get_patches()
+        print('Made patches: ',cat.patch_centers)
+        cat.write_patch_centers(patch_file)
         print('Wrote patch file ',patch_file)
-        del part_cat
-        print('Done making patches')
     else:
         print('Using existing patch file')
 

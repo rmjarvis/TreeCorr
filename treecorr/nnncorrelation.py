@@ -67,10 +67,10 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         tot:        The total number of triangles processed, which is used to normalize
                     the randoms if they have a different number of triangles.
 
-    If **sep_units** are given (either in the config dict or as a named kwarg) then the distances
+    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
     will all be in these units.  Note however, that if you separate out the steps of the
     `process` command and use `process_auto` and/or `process_cross`, then the units will not be
-    applied to **meanr** or **meanlogr** until the `finalize` function is called.
+    applied to ``meanr`` or ``meanlogr`` until the `finalize` function is called.
 
     The typical usage pattern is as follows:
 
@@ -89,15 +89,18 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries in addition to those listed
+                        This dict is allowed to have addition entries besides those listed
                         in `BinnedCorr3`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    See the documentation for `BinnedCorr3` for the list of other allowed kwargs, which may be
-    passed either directly or in the config dict.
+    Keyword Arguments:
+        **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
+                        arguments, which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
+        """Initialize `NNNCorrelation`.  See class doc for details.
+        """
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
 
         self._d1 = 1  # NData
@@ -142,7 +145,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                 treecorr._lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3, self._bintype)
 
     def __eq__(self, other):
-        """Return whether two NNNCorrelations are equal"""
+        """Return whether two `NNNCorrelation` instances are equal"""
         return (isinstance(other, NNNCorrelation) and
                 self.nbins == other.nbins and
                 self.bin_size == other.bin_size and
@@ -350,11 +353,13 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.tot = 0.
 
     def __iadd__(self, other):
-        """Add a second NNNCorrelation's data to this one.
+        """Add a second `NNNCorrelation`'s data to this one.
 
-        Note: For this to make sense, both Correlation objects should have been using
-        `process_auto` and/or `process_cross`, and they should not have had `finalize` called yet.
-        Then, after adding them together, you should call `finalize` on the sum.
+        .. note::
+
+            For this to make sense, both `NNNCorrelation` objects should have been using
+            `process_auto` and/or `process_cross`, and they should not have had `finalize` called
+            yet.  Then, after adding them together, you should call `finalize` on the sum.
         """
         if not isinstance(other, NNNCorrelation):
             raise TypeError("Can only add another NNNCorrelation object")
@@ -395,12 +400,14 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         All arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
 
-        Note: For a correlation of multiple catalogs, it matters which corner of the
-        triangle comes from which catalog.  The final accumulation will have
-        d1 > d2 > d3 where d1 is between two points in cat2,cat3; d2 is between
-        points in cat1,cat3; and d3 is between points in cat1,cat2.  To accumulate
-        all the possible triangles between three catalogs, you should call this
-        multiple times with the different catalogs in different positions.
+        .. note::
+
+            For a correlation of multiple catalogs, it matters which corner of the
+            triangle comes from which catalog.  The final accumulation will have
+            d1 > d2 > d3 where d1 is between two points in cat2,cat3; d2 is between
+            points in cat1,cat3; and d3 is between points in cat1,cat2.  To accumulate
+            all the possible triangles between three catalogs, you should call this
+            multiple times with the different catalogs in different positions.
 
         Parameters:
             cat1 (Catalog):     A catalog or list of catalogs for the first N field.
@@ -431,25 +438,25 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
     def calculateZeta(self, rrr, drr=None, rdr=None, rrd=None,
                       ddr=None, drd=None, rdd=None):
-        """Calculate the 3pt function given another 3pt function of random
+        r"""Calculate the 3pt function given another 3pt function of random
         points using the same mask, and possibly cross correlations of the data and random.
 
         There are two possible formulae that are currently supported.
 
-        1. The simplest formula to use is :math:`\\zeta^\\prime = (DDD-RRR)/RRR`.
-           In this case, only rrr needs to be given, the NNNCorrelation of a random field.
-           However, note that in this case, the return value is not normally called :math:`\\zeta`.
+        1. The simplest formula to use is :math:`\zeta^\prime = (DDD-RRR)/RRR`.
+           In this case, only rrr needs to be given, the `NNNCorrelation` of a random field.
+           However, note that in this case, the return value is not normally called :math:`\zeta`.
            Rather, this is an estimator of
 
            .. math::
-               \\zeta^\\prime(d_1,d_2,d_3) = \\zeta(d_1,d_2,d_3) + \\xi(d_1) + \\xi(d_2) + \\xi(d_3)
+               \zeta^\prime(d_1,d_2,d_3) = \zeta(d_1,d_2,d_3) + \xi(d_1) + \xi(d_2) + \xi(d_3)
 
-           where :math:`\\xi` is the two-point correlation function for each leg of the triangle.
+           where :math:`\xi` is the two-point correlation function for each leg of the triangle.
            You would typically want to calculate that separately and subtract off the
            two-point contributions.
 
         2. For auto-correlations, a better formula is
-           :math:`\\zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR`.
+           :math:`\zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR`.
            In this case, DDR, etc. calculate the triangles where two points come from either
            the data or the randoms.  In the case of DDR for instance, points x1 and x2 on the
            triangle have data and x3 uses randoms, where points x1, x2, x3 are opposite sides
@@ -470,8 +477,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         Returns:
             Tuple containing
 
-                - zeta = array of :math:`\\zeta(d_1,d_2,d_3)`
-                - varzeta = array of variance estimates of :math:`\\zeta(d_1,d_2,d_3)`
+                - zeta = array of :math:`\zeta(d_1,d_2,d_3)`
+                - varzeta = array of variance estimates of :math:`\zeta(d_1,d_2,d_3)`
         """
         # Each random ntri value needs to be rescaled by the ratio of total possible tri.
         if rrr.tot == 0:
@@ -522,29 +529,29 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
     def write(self, file_name, rrr=None, drr=None, rdr=None, rrd=None,
               ddr=None, drd=None, rdd=None, file_type=None, precision=None):
-        """Write the correlation function to the file, file_name.
+        r"""Write the correlation function to the file, file_name.
 
         Normally, at least rrr should be provided, but if this is None, then only the
         basic accumulated number of triangles are output (along with the columns parametrizing
         the size and shape of the triangles).
 
         If at least rrr is given, then it will output an estimate of the final 3pt correlation
-        function, :math:`\\zeta`. There are two possible formulae that are currently supported.
+        function, :math:`\zeta`. There are two possible formulae that are currently supported.
 
-        1. The simplest formula to use is :math:`\\zeta^\\prime = (DDD-RRR)/RRR`.
-           In this case, only rrr needs to be given, the NNNCorrelation of a random field.
+        1. The simplest formula to use is :math:`\zeta^\prime = (DDD-RRR)/RRR`.
+           In this case, only rrr needs to be given, the `NNNCorrelation` of a random field.
            However, note that in this case, the return value is not what is normally called
-           :math:`\\zeta`.  Rather, this is an estimator of
+           :math:`\zeta`.  Rather, this is an estimator of
 
            .. math::
-               \\zeta^\\prime(d_1,d_2,d_3) = \\zeta(d_1,d_2,d_3) + \\xi(d_1) + \\xi(d_2) + \\xi(d_3)
+               \zeta^\prime(d_1,d_2,d_3) = \zeta(d_1,d_2,d_3) + \xi(d_1) + \xi(d_2) + \xi(d_3)
 
-           where :math:`\\xi` is the two-point correlation function for each leg of the triangle.
+           where :math:`\xi` is the two-point correlation function for each leg of the triangle.
            You would typically want to calculate that separately and subtract off the
            two-point contributions.
 
         2. For auto-correlations, a better formula is
-           :math:`\\zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR`.
+           :math:`\zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR`.
            In this case, DDR, etc. calculate the triangles where two points come from either
            the data or the randoms.  In the case of DDR for instance, points x1 and x2 on the
            triangle have data and x3 uses randoms, where points x1, x2, x3 are opposite sides
@@ -554,22 +561,31 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         The output file will include the following columns:
 
-        ==========      ===============================================================
+        ==========      ================================================================
         Column          Description
-        ==========      ===============================================================
+        ==========      ================================================================
         r_nom           The nominal center of the bin in r = d2 where d1 > d2 > d3
         u_nom           The nominal center of the bin in u = d3/d2
         v_nom           The nominal center of the bin in v = +-(d1-d2)/d3
-        meand1          The mean value <d1> of triangles that fell into each bin
-        meanlogd1       The mean value <logd1> of triangles that fell into each bin
-        meand2          The mean value <d2> of triangles that fell into each bin
-        meanlogd2       The mean value <logd2> of triangles that fell into each bin
-        meand3          The mean value <d3> of triangles that fell into each bin
-        meanlogd3       The mean value <logd3> of triangles that fell into each bin
-        meanu           The mean value <u> of triangles that fell into each bin
-        meanv           The mean value <v> of triangles that fell into each bin
-        zeta            The estimator zeta (if rrr is given)
-        sigma_zeta      The sqrt of the variance estimate of zeta (if rrr is given)
+        meand1          The mean value :math:`\langle d1\rangle` of triangles that fell
+                        into each bin
+        meanlogd1       The mean value :math:`\langle \log(d1)\rangle` of triangles that
+                        fell into each bin
+        meand2          The mean value :math:`\langle d2\rangle` of triangles that fell
+                        into each bin
+        meanlogd2       The mean value :math:`\langle \log(d2)\rangle` of triangles that
+                        fell into each bin
+        meand3          The mean value :math:`\langle d3\rangle` of triangles that fell
+                        into each bin
+        meanlogd3       The mean value :math:`\langle \log(d3)\rangle` of triangles that
+                        fell into each bin
+        meanu           The mean value :math:`\langle u\rangle` of triangles that fell
+                        into each bin
+        meanv           The mean value :math:`\langle v\rangle` of triangles that fell
+                        into each bin
+        zeta            The estimator :math:`\zeta(r,u,v)` (if rrr is given)
+        sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
+                        (if rrr is given)
         DDD             The total weight of DDD triangles in each bin
         RRR             The total weight of RRR triangles in each bin (if rrr is given)
         DRR             The total weight of DRR triangles in each bin (if drr is given)
@@ -579,9 +595,9 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         DRD             The total weight of DRD triangles in each bin (if drd is given)
         RDD             The total weight of RDD triangles in each bin (if rdd is given)
         ntri            The number of triangles contributing to each bin
-        ==========      ===============================================================
+        ==========      ================================================================
 
-        If **sep_units** was given at construction, then the distances will all be in these units.
+        If ``sep_units`` was given at construction, then the distances will all be in these units.
         Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
         radians (for spherical coordinates).
 
@@ -647,9 +663,11 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         This should be a file that was written by TreeCorr, preferably a FITS file, so there
         is no loss of information.
 
-        Warning: The NNNCorrelation object should be constructed with the same configuration
-        parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
-        checked by the read function.
+        .. warning::
+
+            The `NNNCorrelation` object should be constructed with the same configuration
+            parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+            checked by the read function.
 
         Parameters:
             file_name (str):    The name of the file to read in.

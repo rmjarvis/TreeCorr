@@ -20,8 +20,15 @@ import numpy as np
 
 
 class NKCorrelation(treecorr.BinnedCorr2):
-    """This class handles the calculation and storage of a 2-point count-kappa correlation
+    r"""This class handles the calculation and storage of a 2-point count-kappa correlation
     function.
+
+    .. note::
+
+        While we use the term kappa (:math:`\kappa`) here and the letter K in various places,
+        in fact any scalar field will work here.  For example, you can use this to compute
+        correlations of non-shear quantities, e.g. the sizes or concentrations of galaxies, around
+        a set of lenses, where "kappa" would be the measurements of these quantities.
 
     Ojects of this class holds the following attributes:
 
@@ -41,8 +48,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
                     If there are no pairs in a bin, then exp(logr) will be used instead.
         meanlogr:   The (weighted) mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
-        xi:         The correlation function, :math:`\\xi(r) = \\langle \\kappa\\rangle`.
-        varxi:      An estimate of the variance of :math:`\\xi`
+        xi:         The correlation function, :math:`\xi(r) = \langle \kappa\rangle`.
+        varxi:      An estimate of the variance of :math:`\xi`
         weight:     The total weight in each bin.
         npairs:     The number of pairs going into each bin (including pairs where one or
                     both objects have w=0).
@@ -60,10 +67,10 @@ class NKCorrelation(treecorr.BinnedCorr2):
         cf. `Covariance Estimates`.
 
 
-    If **sep_units** are given (either in the config dict or as a named kwarg) then the distances
+    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
     will all be in these units.  Note however, that if you separate out the steps of the
-    `process` command and use `process_cross`, then the units will not be applied to **meanr** or
-    **meanlogr** until the `finalize` function is called.
+    `process` command and use `process_cross`, then the units will not be applied to ``meanr`` or
+    ``meanlogr`` until the `finalize` function is called.
 
     The typical usage pattern is as follows:
 
@@ -74,15 +81,18 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries in addition to those listed
+                        This dict is allowed to have addition entries besides those listed
                         in `BinnedCorr2`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    See the documentation for `BinnedCorr2` for the list of other allowed kwargs, which may be
-    passed either directly or in the config dict.
+    Keyword Arguments:
+        **kwargs:       See the documentation for `BinnedCorr2` for the list of allowed keyword
+                        arguments, which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
+        """Initialize `NKCorrelation`.  See class doc for details.
+        """
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
         self._d1 = 1  # NData
@@ -118,7 +128,7 @@ class NKCorrelation(treecorr.BinnedCorr2):
                 treecorr._lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
 
     def __eq__(self, other):
-        """Return whether two NKCorrelations are equal"""
+        """Return whether two `NKCorrelation` instances are equal"""
         return (isinstance(other, NKCorrelation) and
                 self.nbins == other.nbins and
                 self.bin_size == other.bin_size and
@@ -220,10 +230,12 @@ class NKCorrelation(treecorr.BinnedCorr2):
         calling this function as often as desired, the `finalize` command will
         finish the calculation.
 
-        .. note::
+        .. warning::
 
-            This function is deprecated and slated to be removed.
-            If you have a need for it, please open an issue to describe your use case.
+            .. deprecated:: 4.1
+
+                This function is deprecated and slated to be removed.
+                If you have a need for it, please open an issue to describe your use case.
 
         Parameters:
             cat1 (Catalog):     The first catalog to process
@@ -301,11 +313,13 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.varxi = self.raw_varxi
 
     def __iadd__(self, other):
-        """Add a second NKCorrelation's data to this one.
+        """Add a second `NKCorrelation`'s data to this one.
 
-        Note: For this to make sense, both Correlation objects should have been using
-        `process_cross`, and they should not have had `finalize` called yet.
-        Then, after adding them together, you should call `finalize` on the sum.
+        .. note::
+
+            For this to make sense, both `NKCorrelation` objects should have been using
+            `process_cross`, and they should not have had `finalize` called yet.
+            Then, after adding them together, you should call `finalize` on the sum.
         """
         if not isinstance(other, NKCorrelation):
             raise TypeError("Can only add another NKCorrelation object")
@@ -362,15 +376,16 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
 
     def calculateXi(self, rk=None):
-        """Calculate the correlation function possibly given another correlation function
+        r"""Calculate the correlation function possibly given another correlation function
         that uses random points for the foreground objects.
 
-        - If rk is None, the simple correlation function :math:`\\langle \\kappa \\rangle` is
+        - If rk is None, the simple correlation function :math:`\langle \kappa \rangle` is
           returned.
         - If rk is not None, then a compensated calculation is done:
-          :math:`\\langle \\kappa \\rangle = (DK - RK)`
+          :math:`\langle \kappa \rangle = (DK - RK)`, where DK represents the mean kappa
+          around the lenses and RK represents the mean kappa around random points.
 
-        After calling this function, the attributes ``xi``, ``varxi`` and ``cov'' will correspond
+        After calling this function, the attributes ``xi``, ``varxi`` and ``cov`` will correspond
         to the compensated values (if rk is provided).  The raw, uncompensated values are
         available as ``rawxi`` and ``raw_varxi``.
 
@@ -381,8 +396,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
         Returns:
             Tuple containing
 
-                - xi = array of :math:`\\xi(r)`
-                - varxi = array of variance estimates of :math:`\\xi(r)`
+                - xi = array of :math:`\xi(r)`
+                - varxi = array of variance estimates of :math:`\xi(r)`
         """
         if rk is not None:
             self.xi = self.raw_xi - rk.xi
@@ -429,12 +444,13 @@ class NKCorrelation(treecorr.BinnedCorr2):
         return xi,w
 
     def write(self, file_name, rk=None, file_type=None, precision=None):
-        """Write the correlation function to the file, file_name.
+        r"""Write the correlation function to the file, file_name.
 
-        - If rk is None, the simple correlation function :math:`\\langle \\kappa \\rangle(R)` is
+        - If rk is None, the simple correlation function :math:`\langle \kappa \rangle(R)` is
           used.
         - If rk is not None, then a compensated calculation is done:
-          :math:`\\langle \\kappa \\rangle(R) = (DK - RK)`.
+          :math:`\langle \kappa \rangle = (DK - RK)`, where DK represents the mean kappa
+          around the lenses and RK represents the mean kappa around random points.
 
         The output file will include the following columns:
 
@@ -442,15 +458,18 @@ class NKCorrelation(treecorr.BinnedCorr2):
         Column          Description
         ==========      =========================================================
         r_nom           The nominal center of the bin in r
-        meanr           The mean value <r> of pairs that fell into each bin
-        meanlogr        The mean value <log(r)> of pairs that fell into each bin
-        kappa           The mean value of <kappa>(r)
-        sigma           The sqrt of the variance estimate of <kappa>
+        meanr           The mean value :math:`\langle r\rangle` of pairs that
+                        fell into each bin
+        meanlogr        The mean value :math:`\langle \log(r)\rangle` of pairs
+                        that fell into each bin
+        kappa           The mean value :math:`\langle \kappa\rangle(r)`
+        sigma           The sqrt of the variance estimate of
+                        :math:`\langle \kappa\rangle`
         weight          The total weight contributing to each bin
         npairs          The total number of pairs in each bin
         ==========      =========================================================
 
-        If **sep_units** was given at construction, then the distances will all be in these units.
+        If ``sep_units`` was given at construction, then the distances will all be in these units.
         Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
         radians (for spherical coordinates).
 
@@ -486,9 +505,11 @@ class NKCorrelation(treecorr.BinnedCorr2):
         This should be a file that was written by TreeCorr, preferably a FITS file, so there
         is no loss of information.
 
-        Warning: The NKCorrelation object should be constructed with the same configuration
-        parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
-        checked by the read function.
+        .. warning::
+
+            The `NKCorrelation` object should be constructed with the same configuration
+            parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+            checked by the read function.
 
         Parameters:
             file_name (str):    The name of the file to read in.

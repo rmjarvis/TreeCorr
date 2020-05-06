@@ -46,7 +46,7 @@ class BinnedCorr2(object):
     then you can use normal kwargs, which take precedence over anything in the config dict.
 
     There are a number of possible definitions for the distance between two points, which
-    are appropriate for different use cases.  These are specified by the **metric** parameter.
+    are appropriate for different use cases.  These are specified by the ``metric`` parameter.
     The possible options are:
 
         - 'Euclidean' = straight line Euclidean distance between two points.
@@ -149,10 +149,11 @@ class BinnedCorr2(object):
                               the range.
 
         min_top (int):      The minimum number of top layers to use when setting up the field.
-                            (default: :math:`max(3, \\log_2(N_{cpu}))`)
+                            (default: :math:`\\max(3, \\log_2(N_{\\rm cpu}))`)
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             The top-level cells are where each calculation job starts. There will
-                            typically be of order 2^max_top top-level cells. (default: 10)
+                            typically be of order :math:`2^{\\rm max\\_top}` top-level cells.
+                            (default: 10)
         precision (int):    The precision to use for the output values. This specifies how many
                             digits to write. (default: 4)
         pairwise (bool):    Whether to use a different kind of calculation for cross correlations
@@ -188,8 +189,7 @@ class BinnedCorr2(object):
                             'marked_bootstrap' var_methods.  (default: 500)
 
         num_threads (int):  How many OpenMP threads to use during the calculation.
-                            (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the
+                            (default: use the number of cpu cores) Note that this won't work if the
                             system's C compiler cannot use OptnMP (e.g. clang prior to version 3.7.)
     """
     _valid_params = {
@@ -689,17 +689,17 @@ class BinnedCorr2(object):
               matrix will be diagonal, since there is no way to estimate the off-diagonal terms.
             - 'jackknife' = A jackknife estimate of the covariance matrix based on the scatter
               in the measurement when excluding one patch at a time.
-            - 'sample' = An estimate based on the sample (co-)variance of a set of samples,
+            - 'sample' = An estimate based on the sample covariance of a set of samples,
               taken as the patches of the input catalog.
             - 'bootstrap' = A bootstrap covariance estimate. It selects patches at random with
               replacement and then generates the statistic using all the auto-correlations at
-              their selected repetition plus all the cross terms that aren't actuall auto terms.
+              their selected repetition plus all the cross terms that aren't actually auto terms.
             - 'marked_bootstrap' = An estimate based on a marked-point bootstrap resampling of the
               patches.  Similar to bootstrap, but only samples the patches of the first catalog and
               uses all patches from the second catalog that correspond to each patch selection of
               the first catalog.  cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/
 
-        Both 'bootstrap' and 'marked_bootstrap' use the num_bootstrap parameter, wich can be set on
+        Both 'bootstrap' and 'marked_bootstrap' use the num_bootstrap parameter, which can be set on
         construction.
 
         .. note::
@@ -799,25 +799,27 @@ class BinnedCorr2(object):
 
         This would typically be used to get some random subset of the indices of pairs that
         fell into a particular bin of the correlation.  E.g. to get 100 pairs from the third
-        bin of a BinnedCorr2 instance, corr, you could write::
+        bin of a `BinnedCorr2` instance, corr, you could write::
 
             >>> min_sep = corr.left_edges[2]   # third bin has i=2
             >>> max_sep = corr.right_edges[2]
             >>> i1, i2, sep = corr.sample_pairs(100, cat1, cat2, min_sep, max_sep)
 
-        The min_sep and max_sep should use the same units as were defined which constructing
+        The min_sep and max_sep should use the same units as were defined when constructing
         the corr instance.
 
         The selection process will also use the same bin_slop as specified (either explicitly or
         implicitly) when constructing the corr instance.  This means that some of the pairs may
         have actual separations slightly outside of the specified range.  If you want a selection
         using an exact range without any slop, you should construct a new Correlation instance
-        with brute=True or bin_slop=0, and call sample_pairs with that.
+        with bin_slop=0, and call sample_pairs with that.
 
         The returned separations will likewise correspond to the separation of the cells in the
-        tree where the correlation function would have decided that the pair falls into the
-        given bin.  Therefore, if these cells were not leaf cells, then they will not typically
-        be equal to the real separation for the given metric.
+        tree that TreeCorr used to place the pairs into the given bin.  Therefore, if these cells
+        were not leaf cells, then they will not typically be equal to the real separations for the
+        given metric.  If you care about the exact separations for each pair, you should either
+        call sample_pairs from a Correlation instance with brute=True or recalculate the
+        distances yourself from the original data.
 
         Also, note that min_sep and max_sep may be arbitrary.  There is no requirement that they
         be edges of one of the standard bins for this correlation function.  There is also no
@@ -917,7 +919,7 @@ def estimate_multi_cov(corrs, method):
     """Estimate the covariance matrix of multiple statistics.
 
     This is like the method `BinnedCorr2.estimate_cov`, except that it will acoommodate
-    multiple statistics from a list ``corrs`` of BinnedCorr2 objects.
+    multiple statistics from a list ``corrs`` of `BinnedCorr2` objects.
 
     Options for ``method`` include:
 
@@ -927,17 +929,17 @@ def estimate_multi_cov(corrs, method):
           matrix will be diagonal, since there is no way to estimate the off-diagonal terms.
         - 'jackknife' = A jackknife estimate of the covariance matrix based on the scatter
           in the measurement when excluding one patch at a time.
-        - 'sample' = An estimate based on the sample (co-)variance of a set of samples,
+        - 'sample' = An estimate based on the sample covariance of a set of samples,
           taken as the patches of the input catalog.
         - 'bootstrap' = A bootstrap covariance estimate. It selects patches at random with
           replacement and then generates the statistic using all the auto-correlations at
-          their selected repetition plus all the cross terms that aren't actuall auto terms.
+          their selected repetition plus all the cross terms that aren't actually auto terms.
         - 'marked_bootstrap' = An estimate based on a marked-point bootstrap resampling of the
           patches.  Similar to bootstrap, but only samples the patches of the first catalog and
           uses all patches from the second catalog that correspond to each patch selection of
           the first catalog.  cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/
 
-    Both 'bootstrap' and 'marked_bootstrap' use the num_bootstrap parameter, wich can be set on
+    Both 'bootstrap' and 'marked_bootstrap' use the num_bootstrap parameter, which can be set on
     construction.
 
     For example, to find the combined covariance matrix for an NG tangential shear statistc,
@@ -1119,7 +1121,7 @@ def _cov_bootstrap(corrs):
 
     # This is a different version of the bootstrap idea.  It selects patches at random with
     # replacement, and then generates the statistic using all the auto-correlations at their
-    # selected repetition plus all the cross terms, which aren't actuall auto terms.
+    # selected repetition plus all the cross terms, which aren't actually auto terms.
     # It seems to do a slightly better job than the marked-point bootstrap above from the
     # tests done in the test suite.  But the difference is generally pretty small.
 

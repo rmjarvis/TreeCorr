@@ -12,6 +12,7 @@ TreeCorr Documentation
    correlation3
    metric
    binning
+   patches
    cov
    field
    scripts

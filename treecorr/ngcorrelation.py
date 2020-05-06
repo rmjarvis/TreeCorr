@@ -20,7 +20,7 @@ import numpy as np
 
 
 class NGCorrelation(treecorr.BinnedCorr2):
-    """This class handles the calculation and storage of a 2-point count-shear correlation
+    r"""This class handles the calculation and storage of a 2-point count-shear correlation
     function.  This is the tangential shear profile around lenses, commonly referred to as
     galaxy-galaxy lensing.
 
@@ -42,9 +42,9 @@ class NGCorrelation(treecorr.BinnedCorr2):
                     If there are no pairs in a bin, then exp(logr) will be used instead.
         meanlogr:   The (weighted) mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
-        xi:         The correlation function, :math:`\\xi(r) = \\langle \\gamma_T\\rangle`.
-        xi_im:      The imaginary part of :math:`\\xi(r)`.
-        varxi:      An estimate of the variance of :math:`\\xi`
+        xi:         The correlation function, :math:`\xi(r) = \langle \gamma_T\rangle`.
+        xi_im:      The imaginary part of :math:`\xi(r)`.
+        varxi:      An estimate of the variance of :math:`\xi`
         weight:     The total weight in each bin.
         npairs:     The number of pairs going into each bin (including pairs where one or
                     both objects have w=0).
@@ -62,10 +62,10 @@ class NGCorrelation(treecorr.BinnedCorr2):
         ``var_method`` to something else and use patches in the input catalog(s).
         cf. `Covariance Estimates`.
 
-    If **sep_units** are given (either in the config dict or as a named kwarg) then the distances
+    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
     will all be in these units.  Note however, that if you separate out the steps of the
-    `process` command and use `process_cross`, then the units will not be applied to **meanr** or
-    **meanlogr** until the `finalize` function is called.
+    `process` command and use `process_cross`, then the units will not be applied to ``meanr`` or
+    ``meanlogr`` until the `finalize` function is called.
 
     The typical usage pattern is as follows:
 
@@ -76,15 +76,18 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries in addition to those listed
+                        This dict is allowed to have addition entries besides those listed
                         in `BinnedCorr2`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    See the documentation for `BinnedCorr2` for the list of other allowed kwargs, which may be
-    passed either directly or in the config dict.
+    Keyword Arguments:
+        **kwargs:       See the documentation for `BinnedCorr2` for the list of allowed keyword
+                        arguments, which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
+        """Initialize `NGCorrelation`.  See class doc for details.
+        """
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
         self._d1 = 1  # NData
@@ -122,7 +125,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
                 treecorr._lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
 
     def __eq__(self, other):
-        """Return whether two NGCorrelations are equal"""
+        """Return whether two `NGCorrelation` instances are equal"""
         return (isinstance(other, NGCorrelation) and
                 self.nbins == other.nbins and
                 self.bin_size == other.bin_size and
@@ -225,10 +228,12 @@ class NGCorrelation(treecorr.BinnedCorr2):
         calling this function as often as desired, the `finalize` command will
         finish the calculation.
 
-        .. note::
+        .. warning::
 
-            This function is deprecated and slated to be removed.
-            If you have a need for it, please open an issue to describe your use case.
+            .. deprecated:: 4.1
+
+                This function is deprecated and slated to be removed.
+                If you have a need for it, please open an issue to describe your use case.
 
         Parameters:
             cat1 (Catalog):     The first catalog to process
@@ -313,11 +318,13 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.varxi = self.raw_varxi
 
     def __iadd__(self, other):
-        """Add a second NGCorrelation's data to this one.
+        """Add a second `NGCorrelation`'s data to this one.
 
-        Note: For this to make sense, both Correlation objects should have been using
-        `process_cross`, and they should not have had `finalize` called yet.
-        Then, after adding them together, you should call `finalize` on the sum.
+        .. note::
+
+            For this to make sense, both `NGCorrelation` objects should have been using
+            `process_cross`, and they should not have had `finalize` called yet.
+            Then, after adding them together, you should call `finalize` on the sum.
         """
         if not isinstance(other, NGCorrelation):
             raise TypeError("Can only add another NGCorrelation object")
@@ -375,13 +382,14 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
 
     def calculateXi(self, rg=None):
-        """Calculate the correlation function possibly given another correlation function
+        r"""Calculate the correlation function possibly given another correlation function
         that uses random points for the foreground objects.
 
-        - If rg is None, the simple correlation function :math:`\\langle \\gamma_T\\rangle` is
+        - If rg is None, the simple correlation function :math:`\langle \gamma_T\rangle` is
           returned.
         - If rg is not None, then a compensated calculation is done:
-          :math:`\\langle \\gamma_T\\rangle = (DG - RG)`
+          :math:`\langle \gamma_T\rangle = (DG - RG)`, where DG represents the mean shear
+          around the lenses and RG represents the mean shear around random points.
 
         After calling this function, the attributes ``xi``, ``xi_im``, ``varxi``, and ``cov`` will
         correspond to the compensated values (if rg is provided).  The raw, uncompensated values
@@ -394,8 +402,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         Returns:
             Tuple containing
 
-                - xi = array of the real part of :math:`\\xi(R)`
-                - xi_im = array of the imaginary part of :math:`\\xi(R)`
+                - xi = array of the real part of :math:`\xi(R)`
+                - xi_im = array of the imaginary part of :math:`\xi(R)`
                 - varxi = array of the variance estimates of the above values
         """
         if rg is not None:
@@ -445,11 +453,12 @@ class NGCorrelation(treecorr.BinnedCorr2):
         return xi,w
 
     def write(self, file_name, rg=None, file_type=None, precision=None):
-        """Write the correlation function to the file, file_name.
+        r"""Write the correlation function to the file, file_name.
 
-        - If rg is None, the simple correlation function :math:`\\langle \\gamma_T\\rangle` is used.
+        - If rg is None, the simple correlation function :math:`\langle \gamma_T\rangle` is used.
         - If rg is not None, then a compensated calculation is done:
-          :math:`\\langle \\gamma_T\\rangle = (DG - RG)`
+          :math:`\langle \gamma_T\rangle = (DG - RG)`, where DG represents the mean shear
+          around the lenses and RG represents the mean shear around random points.
 
         The output file will include the following columns:
 
@@ -457,16 +466,20 @@ class NGCorrelation(treecorr.BinnedCorr2):
         Column          Description
         ==========      =============================================================
         r_nom           The nominal center of the bin in r
-        meanr           The mean value <r> of pairs that fell into each bin
-        meanlogr        The mean value <log(r)> of pairs that fell into each bin
-        gamT            The real part of the mean tangential shear <gamma_T>(r)
-        gamX            The imag part of the mean tangential shear <gamma_X>(r)
+        meanr           The mean value :math:`\langle r \rangle` of pairs that fell
+                        into each bin
+        meanlogr        The mean value :math:`\langle \log(r) \rangle` of pairs that
+                        fell into each bin
+        gamT            The real part of the mean tangential shear,
+                        :math:`\langle \gamma_T \rangle(r)`
+        gamX            The imag part of the mean tangential shear,
+                        :math:`\langle \gamma_\times \rangle(r)`
         sigma           The sqrt of the variance estimate of either of these
         weight          The total weight contributing to each bin
         npairs          The total number of pairs in each bin
         ==========      =============================================================
 
-        If **sep_units** was given at construction, then the distances will all be in these units.
+        If ``sep_units`` was given at construction, then the distances will all be in these units.
         Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
         radians (for spherical coordinates).
 
@@ -502,9 +515,11 @@ class NGCorrelation(treecorr.BinnedCorr2):
         This should be a file that was written by TreeCorr, preferably a FITS file, so there
         is no loss of information.
 
-        Warning: The NGCorrelation object should be constructed with the same configuration
-        parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
-        checked by the read function.
+        .. warning::
+
+            The `NGCorrelation` object should be constructed with the same configuration
+            parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+            checked by the read function.
 
         Parameters:
             file_name (str):    The name of the file to read in.
@@ -537,34 +552,34 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.raw_varxi = self.varxi
 
     def calculateNMap(self, R=None, rg=None, m2_uform=None):
-        """Calculate the aperture mass statistics from the correlation function.
+        r"""Calculate the aperture mass statistics from the correlation function.
 
         .. math::
 
-            \\langle N M_{ap} \\rangle(R) &= \\int_{0}^{rmax} \\frac{r dr}{R^2}
-            T_\\times\\left(\\frac{r}{R}\\right) \\Re\\xi(r) \\\\
-            \\langle N M_{\\times} \\rangle(R) &= \\int_{0}^{rmax} \\frac{r dr}{R^2}
-            T_\\times\\left(\\frac{r}{R}\\right) \\Im\\xi(r)
+            \langle N M_{ap} \rangle(R) &= \int_{0}^{rmax} \frac{r dr}{R^2}
+            T_\times\left(\frac{r}{R}\right) \Re\xi(r) \\
+            \langle N M_{\times} \rangle(R) &= \int_{0}^{rmax} \frac{r dr}{R^2}
+            T_\times\left(\frac{r}{R}\right) \Im\xi(r)
 
-        The **m2_uform** parameter sets which definition of the aperture mass to use.
+        The ``m2_uform`` parameter sets which definition of the aperture mass to use.
         The default is to use 'Crittenden'.
 
-        If **m2_uform** is 'Crittenden':
+        If ``m2_uform`` is 'Crittenden':
 
         .. math::
 
-            U(r) &= \\frac{1}{2\\pi} (1-r^2) \\exp(-r^2/2) \\\\
-            T_\\times(s) &= \\frac{s^2}{128} (12-s^2) \\exp(-s^2/4)
+            U(r) &= \frac{1}{2\pi} (1-r^2) \exp(-r^2/2) \\
+            T_\times(s) &= \frac{s^2}{128} (12-s^2) \exp(-s^2/4)
 
         cf. Crittenden, et al (2002): ApJ, 568, 20
 
-        If **m2_uform** is 'Schneider':
+        If ``m2_uform`` is 'Schneider':
 
         .. math::
 
-            U(r) &= \\frac{9}{\\pi} (1-r^2) (1/3-r^2) \\\\
-            T_\\times(s) &= \\frac{18}{\\pi} s^2 \\arccos(s/2) \\\\
-            &\qquad - \\frac{3}{40\\pi} s^3 \\sqrt{4-s^2} (196 - 74s^2 + 14s^4 - s^6)
+            U(r) &= \frac{9}{\pi} (1-r^2) (1/3-r^2) \\
+            T_\times(s) &= \frac{18}{\pi} s^2 \arccos(s/2) \\
+            &\qquad - \frac{3}{40\pi} s^3 \sqrt{4-s^2} (196 - 74s^2 + 14s^4 - s^6)
 
         cf. Schneider, et al (2002): A&A, 389, 729
 
@@ -583,8 +598,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         Returns:
             Tuple containing
 
-                - nmap = array of :math:`\\langle N M_{ap} \\rangle(R)`
-                - nmx = array of :math:`\\langle N M_{\\times} \\rangle(R)`
+                - nmap = array of :math:`\langle N M_{ap} \rangle(R)`
+                - nmx = array of :math:`\langle N M_{\times} \rangle(R)`
                 - varnmap = array of variance estimates of the above values
         """
         if m2_uform is None:
@@ -626,23 +641,23 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
 
     def writeNMap(self, file_name, R=None, rg=None, m2_uform=None, file_type=None, precision=None):
-        """Write the cross correlation of the foreground galaxy counts with the aperture mass
+        r"""Write the cross correlation of the foreground galaxy counts with the aperture mass
         based on the correlation function to the file, file_name.
 
-        If rg is provided, the compensated calculation will be used for :math:`\\xi`.
+        If rg is provided, the compensated calculation will be used for :math:`\xi`.
 
-        See `calculateNMap` for an explanation of the **m2_uform** parameter.
+        See `calculateNMap` for an explanation of the ``m2_uform`` parameter.
 
         The output file will include the following columns:
 
-        ==========      ====================================================
+        ==========      =========================================================
         Column          Description
-        ==========      ====================================================
+        ==========      =========================================================
         R               The radius of the aperture.
-        NMap            The mean value <N_ap M_ap>(R)
-        NMx             The mean value <N_ap M_x>(R)
+        NMap            An estimate of :math:`\langle N_{ap} M_{ap} \rangle(R)`
+        NMx             An estimate of :math:`\langle N_{ap} M_\times \rangle(R)`
         sig_nmap        The sqrt of the variance estimate of either of these
-        ==========      ====================================================
+        ==========      =========================================================
 
 
         Parameters:
@@ -675,41 +690,46 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
     def writeNorm(self, file_name, gg, dd, rr, R=None, dr=None, rg=None,
                   m2_uform=None, file_type=None, precision=None):
-        """Write the normalized aperture mass cross-correlation to the file, file_name.
+        r"""Write the normalized aperture mass cross-correlation to the file, file_name.
 
-        The combination :math:`\\langle N M_{ap}\\rangle^2 / \\langle M_{ap}^2\\rangle
-        \\langle N_{ap}^2\\rangle` is related to :math:`r`, the galaxy-mass correlation
-        coefficient.  Similarly, :math:`\\langle N_{ap}^2\\rangle / \\langle M_{ap}^2\\rangle`
+        The combination :math:`\langle N M_{ap}\rangle^2 / \langle M_{ap}^2\rangle
+        \langle N_{ap}^2\rangle` is related to :math:`r`, the galaxy-mass correlation
+        coefficient.  Similarly, :math:`\langle N_{ap}^2\rangle / \langle M_{ap}^2\rangle`
         is related to :math:`b`, the galaxy bias parameter.  cf. Hoekstra et al, 2002:
         http://adsabs.harvard.edu/abs/2002ApJ...577..604H
 
         This function computes these combinations and outputs them to a file.
 
         - if rg is provided, the compensated calculation will be used for
-          :math:`\\langle N_{ap} M_{ap} \\rangle`.
+          :math:`\langle N_{ap} M_{ap} \rangle`.
         - if dr is provided, the compensated calculation will be used for
-          :math:`\\langle N_{ap}^2 \\rangle`.
+          :math:`\langle N_{ap}^2 \rangle`.
 
-        See `calculateNMap` for an explanation of the **m2_uform** parameter.
+        See `calculateNMap` for an explanation of the ``m2_uform`` parameter.
 
         The output file will include the following columns:
 
-        ==========      ====================================================
+        ==========      =====================================================================
         Column          Description
-        ==========      ====================================================
+        ==========      =====================================================================
         R               The radius of the aperture
-        NMap            An estimate of <N_ap M_ap>(R)
-        NMx             An estimate of <N_ap M_x>(R)
+        NMap            An estimate of :math:`\langle N_{ap} M_{ap} \rangle(R)`
+        NMx             An estimate of :math:`\langle N_{ap} M_\times \rangle(R)`
         sig_nmap        The sqrt of the variance estimate of either of these
-        Napsq           An estimate of <N_ap^2>(R)
-        sig_napsq       The sqrt of the variance estimate of <N_ap^2>
-        Mapsq           An estimate of <M_ap^2>(R)
-        sig_mapsq       The sqrt of the variance estimate of <M_ap^2>
-        NMap_norm       The ratio <N_ap M_ap>^2 / <N_ap^2> <M_{ap}^2>
+        Napsq           An estimate of :math:`\langle N_{ap}^2 \rangle(R)`
+        sig_napsq       The sqrt of the variance estimate of :math:`\langle N_{ap}^2 \rangle`
+        Mapsq           An estimate of :math:`\langle M_{ap}^2 \rangle(R)`
+        sig_mapsq       The sqrt of the variance estimate of :math:`\langle M_{ap}^2 \rangle`
+        NMap_norm       The ratio :math:`\langle N_{ap} M_{ap} \rangle^2 /`
+                        :math:`\langle N_{ap}^2 \rangle \langle M_{ap}^2 \rangle`
+        ==========      =====================================================================
+        """
+
+        """
         sig_norm        The sqrt of the variance estimate of this ratio
-        Nsq_Mapsq       The ratio <N_ap^2>/<M_ap^2>
+        Nsq_Mapsq       The ratio :math:`\langle N_{ap}^2 \rangle / \langle M_{ap}^2 \rangle`
         sig_nn_mm       The sqrt of the variance estimate of this ratio
-        ==========      ====================================================
+        ==========      =====================================================================
 
         Parameters:
             file_name (str):    The name of the file to write to.

@@ -20,12 +20,15 @@ import numpy as np
 
 
 class KKKCorrelation(treecorr.BinnedCorr3):
-    """This class handles the calculation and storage of a 3-point kappa-kappa-kappa correlation
+    r"""This class handles the calculation and storage of a 3-point kappa-kappa-kappa correlation
     function.
 
-    Note: while we use the term kappa here and the letter K in various places, in fact
-    any scalar field will work here.  For example, you can use this to compute correlations
-    of the CMB temperature fluctuations, where "kappa" would really be delta T.
+    .. note::
+
+        While we use the term kappa (:math:`\kappa`) here and the letter K in various places,
+        in fact any scalar field will work here.  For example, you can use this to compute
+        correlations of the CMB temperature fluctuations, where "kappa" would really be
+        :math:`\Delta T`.
 
     See the doc string of `BinnedCorr3` for a description of how the triangles are binned.
 
@@ -64,18 +67,18 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         meanlogd2:  The mean value of log(d3) for the triangles in each bin.
         meanu:      The mean value of u for the triangles in each bin.
         meanv:      The mean value of v for the triangles in each bin.
-        zeta:       The correlation function, :math:`\\zeta(r,u,v)`.
-        varzeta:    The variance of :math:`\\zeta`, only including the shot noise propagated into
+        zeta:       The correlation function, :math:`\zeta(r,u,v)`.
+        varzeta:    The variance of :math:`\zeta`, only including the shot noise propagated into
                     the final correlation.  This does not include sample variance, so it is always
                     an underestimate of the actual variance.
         weight:     The total weight in each bin.
         ntri:       The number of triangles going into each bin (including those where one or
                     more objects have w=0).
 
-    If **sep_units** are given (either in the config dict or as a named kwarg) then the distances
+    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
     will all be in these units.  Note however, that if you separate out the steps of the
     `process` command and use `process_auto` and/or `process_cross`, then the units will not be
-    applied to **meanr** or **meanlogr** until the `finalize` function is called.
+    applied to ``meanr`` or ``meanlogr`` until the `finalize` function is called.
 
     The typical usage pattern is as follows:
 
@@ -87,15 +90,18 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries in addition to those listed
+                        This dict is allowed to have addition entries besides those listed
                         in `BinnedCorr3`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    See the documentation for `BinnedCorr3` for the list of other allowed kwargs, which may be
-    passed either directly or in the config dict.
+    Keyword Arguments:
+        **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
+                        arguments, which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
+        """Initialize `KKKCorrelation`.  See class doc for details.
+        """
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
 
         self._d1 = 2  # KData
@@ -141,7 +147,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                 treecorr._lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3, self._bintype)
 
     def __eq__(self, other):
-        """Return whether two KKKCorrelations are equal"""
+        """Return whether two `KKKCorrelation` instances are equal"""
         return (isinstance(other, KKKCorrelation) and
                 self.nbins == other.nbins and
                 self.bin_size == other.bin_size and
@@ -359,11 +365,13 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         self.results.clear()
 
     def __iadd__(self, other):
-        """Add a second KKKCorrelation's data to this one.
+        """Add a second `KKKCorrelation`'s data to this one.
 
-        Note: For this to make sense, both Correlation objects should have been using
-        `process_auto` and/or `process_cross`, and they should not have had `finalize` called yet.
-        Then, after adding them together, you should call `finalize` on the sum.
+        .. note::
+
+            For this to make sense, both `KKKCorrelation` objects should have been using
+            `process_auto` and/or `process_cross`, and they should not have had `finalize` called
+            yet.  Then, after adding them together, you should call `finalize` on the sum.
         """
         if not isinstance(other, KKKCorrelation):
             raise TypeError("Can only add another KKKCorrelation object")
@@ -405,12 +413,14 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         All arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
 
-        Note: For a correlation of multiple catalogs, it matters which corner of the
-        triangle comes from which catalog.  The final accumulation will have
-        d1 > d2 > d3 where d1 is between two points in cat2,cat3; d2 is between
-        points in cat1,cat3; and d3 is between points in cat1,cat2.  To accumulate
-        all the possible triangles between three catalogs, you should call this
-        multiple times with the different catalogs in different positions.
+        .. note::
+
+            For a correlation of multiple catalogs, it matters which corner of the
+            triangle comes from which catalog.  The final accumulation will have
+            d1 > d2 > d3 where d1 is between two points in cat2,cat3; d2 is between
+            points in cat1,cat3; and d3 is between points in cat1,cat2.  To accumulate
+            all the possible triangles between three catalogs, you should call this
+            multiple times with the different catalogs in different positions.
 
         Parameters:
             cat1 (Catalog):     A catalog or list of catalogs for the first N field.
@@ -452,7 +462,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
 
     def write(self, file_name, file_type=None, precision=None):
-        """Write the correlation function to the file, file_name.
+        r"""Write the correlation function to the file, file_name.
 
         The output file will include the following columns:
 
@@ -462,21 +472,29 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         r_nom           The nominal center of the bin in r = d2 where d1 > d2 > d3
         u_nom           The nominal center of the bin in u = d3/d2
         v_nom           The nominal center of the bin in v = +-(d1-d2)/d3
-        meand1          The mean value <d1> of triangles that fell into each bin
-        meanlogd1       The mean value <log(d1)> of triangles that fell into each bin
-        meand2          The mean value <d2> of triangles that fell into each bin
-        meanlogd2       The mean value <log(d2)> of triangles that fell into each bin
-        meand3          The mean value <d3> of triangles that fell into each bin
-        meanlogd3       The mean value <log(d3)> of triangles that fell into each bin
-        meanu           The mean value <u> of triangles that fell into each bin
-        meanv           The mean value <v> of triangles that fell into each bin
-        zeta            The estimator of zeta(r,u,v)
-        sigma_zeta      The sqrt of the variance estimate of zeta
+        meand1          The mean value :math:`\langle d1\rangle` of triangles that
+                        fell into each bin
+        meanlogd1       The mean value :math:`\langle \log(d1)\rangle` of triangles
+                        that fell into each bin
+        meand2          The mean value :math:`\langle d2\rangle` of triangles that
+                        fell into each bin
+        meanlogd2       The mean value :math:`\langle \log(d2)\rangle` of triangles
+                        that fell into each bin
+        meand3          The mean value :math:`\langle d3\rangle` of triangles that
+                        fell into each bin
+        meanlogd3       The mean value :math:`\langle \log(d3)\rangle` of triangles
+                        that fell into each bin
+        meanu           The mean value :math:`\langle u\rangle` of triangles that
+                        fell into each bin
+        meanv           The mean value :math:`\langle v\rangle` of triangles that
+                        fell into each bin
+        zeta            The estimator of :math:`\zeta(r,u,v)`
+        sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
         weight          The total weight of triangles contributing to each bin
         ntri            The number of triangles contributing to each bin
         ==========      =============================================================
 
-        If **sep_units** was given at construction, then the distances will all be in these units.
+        If ``sep_units`` was given at construction, then the distances will all be in these units.
         Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
         radians (for spherical coordinates).
 
@@ -515,9 +533,11 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         This should be a file that was written by TreeCorr, preferably a FITS file, so there
         is no loss of information.
 
-        Warning: The KKKCorrelation object should be constructed with the same configuration
-        parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
-        checked by the read function.
+        .. warning::
+
+            The `KKKCorrelation` object should be constructed with the same configuration
+            parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+            checked by the read function.
 
         Parameters:
             file_name (str):    The name of the file to read in.

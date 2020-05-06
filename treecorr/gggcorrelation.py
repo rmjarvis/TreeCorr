@@ -20,14 +20,14 @@ import numpy as np
 
 
 class GGGCorrelation(treecorr.BinnedCorr3):
-    """This class handles the calculation and storage of a 3-point shear-shear-shear correlation
+    r"""This class handles the calculation and storage of a 3-point shear-shear-shear correlation
     function.
 
     We use the "natural components" of the shear 3-point function described by Schneider &
     Lombardi (2003) [Astron.Astrophys. 397 (2003) 809-818].  In this paradigm, the shears
     are projected relative to some point defined by the geometry of the triangle.  They
     give several reasonable choices for this point.  We choose the triangle's centroid as the
-    "most natural" point, as many simple shear fields have purely real :math:`\\Gamma_0` using
+    "most natural" point, as many simple shear fields have purely real :math:`\Gamma_0` using
     this definition.  It is also a fairly simple point to calculate in the code compared to
     some of the other options they offer, so projections relative to it are fairly efficient.
 
@@ -37,12 +37,12 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
     .. math::
 
-        \\Gamma_0 &= \\langle \\gamma(\\mathbf{x1}) \\gamma(\\mathbf{x2}) \\gamma(\\mathbf{x3}) \\rangle \\\\
-        \\Gamma_1 &= \\langle \\gamma(\\mathbf{x1})^* \\gamma(\\mathbf{x2}) \\gamma(\\mathbf{x3}) \\rangle \\\\
-        \\Gamma_2 &= \\langle \\gamma(\\mathbf{x1}) \\gamma(\\mathbf{x2})^* \\gamma(\\mathbf{x3}) \\rangle \\\\
-        \\Gamma_3 &= \\langle \\gamma(\\mathbf{x1}) \\gamma(\\mathbf{x2}) \\gamma(\\mathbf{x3})^* \\rangle \\\\
+        \Gamma_0 &= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2}) \gamma(\mathbf{x3}) \rangle \\
+        \Gamma_1 &= \langle \gamma(\mathbf{x1})^* \gamma(\mathbf{x2}) \gamma(\mathbf{x3}) \rangle \\
+        \Gamma_2 &= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2})^* \gamma(\mathbf{x3}) \rangle \\
+        \Gamma_3 &= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2}) \gamma(\mathbf{x3})^* \rangle \\
 
-    where :math:`\\mathbf{x1}, \\mathbf{x2}, \\mathbf{x3}` are the corners of the triange opposite
+    where :math:`\mathbf{x1}, \mathbf{x2}, \mathbf{x3}` are the corners of the triange opposite
     sides d1, d2, d3 respectively, where d1 > d2 > d3, and :math:`{}^*` indicates complex
     conjugation.
 
@@ -84,25 +84,25 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         meanlogd2:  The mean value of log(d3) for the triangles in each bin.
         meanu:      The mean value of u for the triangles in each bin.
         meanv:      The mean value of v for the triangles in each bin.
-        gam0:       The 0th "natural" correlation function, :math:`\\Gamma_0(r,u,v)`.
-        gam1:       The 1st "natural" correlation function, :math:`\\Gamma_1(r,u,v)`.
-        gam2:       The 2nd "natural" correlation function, :math:`\\Gamma_2(r,u,v)`.
-        gam3:       The 3rd "natural" correlation function, :math:`\\Gamma_3(r,u,v)`.
-        vargam0:    The variance of :math:`\\Gamma_0`, only including the shot noise
+        gam0:       The 0th "natural" correlation function, :math:`\Gamma_0(r,u,v)`.
+        gam1:       The 1st "natural" correlation function, :math:`\Gamma_1(r,u,v)`.
+        gam2:       The 2nd "natural" correlation function, :math:`\Gamma_2(r,u,v)`.
+        gam3:       The 3rd "natural" correlation function, :math:`\Gamma_3(r,u,v)`.
+        vargam0:    The variance of :math:`\Gamma_0`, only including the shot noise
                     propagated into the final correlation.  This (and the related values for
                     1,2,3) does not include sample variance, so it is always an underestimate
                     of the actual variance.
-        vargam1:    The variance of :math:`\\Gamma_1`.
-        vargam2:    The variance of :math:`\\Gamma_2`.
-        vargam3:    The variance of :math:`\\Gamma_3`.
+        vargam1:    The variance of :math:`\Gamma_1`.
+        vargam2:    The variance of :math:`\Gamma_2`.
+        vargam3:    The variance of :math:`\Gamma_3`.
         weight:     The total weight in each bin.
         ntri:       The number of triangles going into each bin (including those where one or
                     more objects have w=0).
 
-    If **sep_units** are given (either in the config dict or as a named kwarg) then the distances
+    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
     will all be in these units.  Note however, that if you separate out the steps of the
     `process` command and use `process_auto` and/or `process_cross`, then the
-    units will not be applied to **meanr** or **meanlogr** until the `finalize` function is
+    units will not be applied to ``meanr`` or ``meanlogr`` until the `finalize` function is
     called.
 
     The typical usage pattern is as follows::
@@ -117,15 +117,18 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries in addition to those listed
+                        This dict is allowed to have addition entries besides those listed
                         in `BinnedCorr3`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
-    See the documentation for `BinnedCorr3` for the list of other allowed kwargs,
-    which may be passed either directly or in the config dict.
+    Keyword Arguments:
+        **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
+                        arguments, which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
+        """Initialize `GGGCorrelation`.  See class doc for details.
+        """
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
 
         self._d1 = 3  # GData
@@ -190,7 +193,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                 treecorr._lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3, self._bintype)
 
     def __eq__(self, other):
-        """Return whether two GGGCorrelations are equal"""
+        """Return whether two `GGGCorrelation` instances are equal"""
         return (isinstance(other, GGGCorrelation) and
                 self.nbins == other.nbins and
                 self.bin_size == other.bin_size and
@@ -440,11 +443,13 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.results.clear()
 
     def __iadd__(self, other):
-        """Add a second GGGCorrelation's data to this one.
+        """Add a second `GGGCorrelation`'s data to this one.
 
-        Note: For this to make sense, both Correlation objects should have been using
-        `process_auto` and/or `process_cross`, and they should not have had `finalize` called yet.
-        Then, after adding them together, you should call `finalize` on the sum.
+        .. note::
+
+            For this to make sense, both `GGGCorrelation` objects should have been using
+            `process_auto` and/or `process_cross`, and they should not have had `finalize` called
+            yet.  Then, after adding them together, you should call `finalize` on the sum.
         """
         if not isinstance(other, GGGCorrelation):
             raise TypeError("Can only add another GGGCorrelation object")
@@ -496,12 +501,14 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         All arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
 
-        Note: For a correlation of multiple catalogs, it matters which corner of the
-        triangle comes from which catalog.  The final accumulation will have
-        d1 > d2 > d3 where d1 is between two points in cat2,cat3; d2 is between
-        points in cat1,cat3; and d3 is between points in cat1,cat2.  To accumulate
-        all the possible triangles between three catalogs, you should call this
-        multiple times with the different catalogs in different positions.
+        .. note::
+
+            For a correlation of multiple catalogs, it matters which corner of the
+            triangle comes from which catalog.  The final accumulation will have
+            d1 > d2 > d3 where d1 is between two points in cat2,cat3; d2 is between
+            points in cat1,cat3; and d3 is between points in cat1,cat2.  To accumulate
+            all the possible triangles between three catalogs, you should call this
+            multiple times with the different catalogs in different positions.
 
         Parameters:
             cat1 (Catalog):     A catalog or list of catalogs for the first N field.
@@ -543,7 +550,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
 
     def write(self, file_name, file_type=None, precision=None):
-        """Write the correlation function to the file, file_name.
+        r"""Write the correlation function to the file, file_name.
 
         As described in the doc string for `GGGCorrelation`, we use the "natural components" of
         the shear 3-point function described by Schneider & Lombardi (2003) using the triangle
@@ -558,31 +565,39 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         r_nom           The nominal center of the bin in r = d2 where d1 > d2 > d3
         u_nom           The nominal center of the bin in u = d3/d2
         v_nom           The nominal center of the bin in v = +-(d1-d2)/d3
-        meand1          The mean value <d1> of triangles that fell into each bin
-        meanlogd1       The mean value <log(d1)> of triangles that fell into each bin
-        meand2          The mean value <d2> of triangles that fell into each bin
-        meanlogd2       The mean value <log(d2)> of triangles that fell into each bin
-        meand3          The mean value <d3> of triangles that fell into each bin
-        meanlogd3       The mean value <log(d3)> of triangles that fell into each bin
-        meanu           The mean value <u> of triangles that fell into each bin
-        meanv           The mean value <v> of triangles that fell into each bi.
-        gam0r           The real part of the estimator of Gamma_0(r,u,v)
-        gam0i           The imag part of the estimator of Gamma_0(r,u,v)
-        gam1r           The real part of the estimator of Gamma_1(r,u,v)
-        gam1i           The imag part of the estimator of Gamma_1(r,u,v)
-        gam2r           The real part of the estimator of Gamma_2(r,u,v)
-        gam2i           The imag part of the estimator of Gamma_2(r,u,v)
-        gam3r           The real part of the estimator of Gamma_3(r,u,v)
-        gam3i           The imag part of the estimator of Gamma_3(r,u,v)
-        sigma_gam0      The sqrt of the variance estimate of Gamma_0
-        sigma_gam1      The sqrt of the variance estimate of Gamma_1
-        sigma_gam2      The sqrt of the variance estimate of Gamma_2
-        sigma_gam3      The sqrt of the variance estimate of Gamma_3
+        meand1          The mean value :math:`\langle d1\rangle` of triangles that
+                        fell into each bin
+        meanlogd1       The mean value :math:`\langle \log(d1)\rangle` of triangles
+                        that fell into each bin
+        meand2          The mean value :math:`\langle d2\rangle` of triangles that
+                        fell into each bin
+        meanlogd2       The mean value :math:`\langle \log(d2)\rangle` of triangles
+                        that fell into each bin
+        meand3          The mean value :math:`\langle d3\rangle` of triangles that
+                        fell into each bin
+        meanlogd3       The mean value :math:`\langle \log(d3)\rangle` of triangles
+                        that fell into each bin
+        meanu           The mean value :math:`\langle u\rangle` of triangles that
+                        fell into each bin
+        meanv           The mean value :math:`\langle v\rangle` of triangles that
+                        fell into each bi.
+        gam0r           The real part of the estimator of :math:`\Gamma_0(r,u,v)`
+        gam0i           The imag part of the estimator of :math:`\Gamma_0(r,u,v)`
+        gam1r           The real part of the estimator of :math:`\Gamma_1(r,u,v)`
+        gam1i           The imag part of the estimator of :math:`\Gamma_1(r,u,v)`
+        gam2r           The real part of the estimator of :math:`\Gamma_2(r,u,v)`
+        gam2i           The imag part of the estimator of :math:`\Gamma_2(r,u,v)`
+        gam3r           The real part of the estimator of :math:`\Gamma_3(r,u,v)`
+        gam3i           The imag part of the estimator of :math:`\Gamma_3(r,u,v)`
+        sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`
+        sigma_gam1      The sqrt of the variance estimate of :math:`\Gamma_1`
+        sigma_gam2      The sqrt of the variance estimate of :math:`\Gamma_2`
+        sigma_gam3      The sqrt of the variance estimate of :math:`\Gamma_3`
         weight          The total weight of triangles contributing to each bin.
         ntri            The number of triangles contributing to each bin.
         ==========      =============================================================
 
-        If **sep_units** was given at construction, then the distances will all be in these units.
+        If ``sep_units`` was given at construction, then the distances will all be in these units.
         Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
         radians (for spherical coordinates).
 
@@ -624,9 +639,11 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         This should be a file that was written by TreeCorr, preferably a FITS file, so there
         is no loss of information.
 
-        Warning: The GGGCorrelation object should be constructed with the same configuration
-        parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
-        checked by the read function.
+        .. warning::
+
+            The `GGGCorrelation` object should be constructed with the same configuration
+            parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+            checked by the read function.
 
         Parameters:
             file_name (str):    The name of the file to read in.
@@ -778,46 +795,46 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
 
     def calculateMap3(self, R=None, k2=1, k3=1):
-        """Calculate the skewness of the aperture mass from the correlation function.
+        r"""Calculate the skewness of the aperture mass from the correlation function.
 
         The equations for this come from Jarvis, Bernstein & Jain (2004, MNRAS, 352).
         See their section 3, especially equations 51 and 52 for the :math:`T_i` functions,
-        equations 60 and 61 for the calculation of :math:`\\langle \\cal M^3 \\rangle` and
-        :math:`\\langle \\cal M^2 M^* \\rangle`, and equations 55-58 for how to convert
+        equations 60 and 61 for the calculation of :math:`\langle \cal M^3 \rangle` and
+        :math:`\langle \cal M^2 M^* \rangle`, and equations 55-58 for how to convert
         these to the return values.
 
         If k2 or k3 != 1, then this routine calculates the generalization of the skewness
         proposed by Schneider, Kilbinger & Lombardi (2005, A&A, 431):
-        :math:`\\langle M_{\\rm ap}^3(R, k_2 R, k_3 R)\\rangle` and related values.
+        :math:`\langle M_{ap}^3(R, k_2 R, k_3 R)\rangle` and related values.
 
         If k2 = k3 = 1 (the default), then there are only 4 combinations of Map and Mx
         that are relevant:
 
-        - map3 = :math:`\\langle M_{\\rm ap}^3(R)\\rangle`
-        - map2mx = :math:`\\langle M_{\\rm ap}^2(R) M_{\\times}(R)\\rangle`,
-        - mapmx2 = :math:`\\langle M_{\\rm ap}(R) M_{\\times}(R)\\rangle`
-        - mx3 = :math:`\\langle M_{\\rm \\times}^3(R)\\rangle`
+        - map3 = :math:`\langle M_{ap}^3(R)\rangle`
+        - map2mx = :math:`\langle M_{ap}^2(R) M_\times(R)\rangle`,
+        - mapmx2 = :math:`\langle M_{ap}(R) M_\times(R)\rangle`
+        - mx3 = :math:`\langle M_{\rm \times}^3(R)\rangle`
 
         However, if k2 or k3 != 1, then there are 8 combinations:
 
-        - map3 = :math:`\\langle M_{\\rm ap}(R) M_{\\rm ap}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
-        - mapmapmx = :math:`\\langle M_{\\rm ap}(R) M_{\\rm ap}(k_2 R) M_{\\times}(k_3 R)\\rangle`
-        - mapmxmap = :math:`\\langle M_{\\rm ap}(R) M_{\\times}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
-        - mxmapmap = :math:`\\langle M_{\\times}(R) M_{\\rm ap}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
-        - mxmxmap = :math:`\\langle M_{\\times}(R) M_{\\times}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
-        - mxmapmx = :math:`\\langle M_{\\times}(R) M_{\\rm ap}(k_2 R) M_{\\times}(k_3 R)\\rangle`
-        - mapmxmx = :math:`\\langle M_{\\rm ap}(R) M_{\\times}(k_2 R) M_{\\times}(k_3 R)\\rangle`
-        - mx3 = :math:`\\langle M_{\\times}(R) M_{\\times}(k_2 R) M_{\\times}(k_3 R)\\rangle`
+        - map3 = :math:`\langle M_{ap}(R) M_{ap}(k_2 R) M_{ap}(k_3 R)\rangle`
+        - mapmapmx = :math:`\langle M_{ap}(R) M_{ap}(k_2 R) M_\times(k_3 R)\rangle`
+        - mapmxmap = :math:`\langle M_{ap}(R) M_\times(k_2 R) M_{ap}(k_3 R)\rangle`
+        - mxmapmap = :math:`\langle M_\times(R) M_{ap}(k_2 R) M_{ap}(k_3 R)\rangle`
+        - mxmxmap = :math:`\langle M_\times(R) M_\times(k_2 R) M_{ap}(k_3 R)\rangle`
+        - mxmapmx = :math:`\langle M_\times(R) M_{ap}(k_2 R) M_\times(k_3 R)\rangle`
+        - mapmxmx = :math:`\langle M_{ap}(R) M_\times(k_2 R) M_\times(k_3 R)\rangle`
+        - mx3 = :math:`\langle M_\times(R) M_\times(k_2 R) M_\times(k_3 R)\rangle`
 
         To accommodate this full generality, we always return all 8 values, along with the
         estimated variance (which is equal for each), even when k2 = k3 = 1.
 
         .. note::
 
-            The formulae for the **m2_uform** = 'Schneider' definition of the aperture mass,
+            The formulae for the ``m2_uform`` = 'Schneider' definition of the aperture mass,
             described in the documentation of `calculateMapSq`, are not known, so that is not an
             option here.  The calculations here use the definition that corresponds to
-            **m2_uform** = 'Crittenden'.
+            ``m2_uform`` = 'Crittenden'.
 
         Parameters:
             R (array):      The R values at which to calculate the aperture mass statistics.
@@ -828,14 +845,14 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         Returns:
             Tuple containing
 
-                - map3 = array of :math:`\\langle M_{\\rm ap}(R) M_{\\rm ap}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
-                - mapmapmx = array of :math:`\\langle M_{\\rm ap}(R) M_{\\rm ap}(k_2 R) M_{\\times}(k_3 R)\\rangle`
-                - mapmxmap = array of :math:`\\langle M_{\\rm ap}(R) M_{\\times}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
-                - mxmapmap = array of :math:`\\langle M_{\\times}(R) M_{\\rm ap}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
-                - mxmxmap = array of :math:`\\langle M_{\\times}(R) M_{\\times}(k_2 R) M_{\\rm ap}(k_3 R)\\rangle`
-                - mxmapmx = array of :math:`\\langle M_{\\times}(R) M_{\\rm ap}(k_2 R) M_{\\times}(k_3 R)\\rangle`
-                - mapmxmx = array of :math:`\\langle M_{\\rm ap}(R) M_{\\times}(k_2 R) M_{\\times}(k_3 R)\\rangle`
-                - mx3 = array of :math:`\\langle M_{\\times}(R) M_{\\times}(k_2 R) M_{\\times}(k_3 R)\\rangle`
+                - map3 = array of :math:`\langle M_{ap}(R) M_{ap}(k_2 R) M_{ap}(k_3 R)\rangle`
+                - mapmapmx = array of :math:`\langle M_{ap}(R) M_{ap}(k_2 R) M_\times(k_3 R)\rangle`
+                - mapmxmap = array of :math:`\langle M_{ap}(R) M_\times(k_2 R) M_{ap}(k_3 R)\rangle`
+                - mxmapmap = array of :math:`\langle M_\times(R) M_{ap}(k_2 R) M_{ap}(k_3 R)\rangle`
+                - mxmxmap = array of :math:`\langle M_\times(R) M_\times(k_2 R) M_{ap}(k_3 R)\rangle`
+                - mxmapmx = array of :math:`\langle M_\times(R) M_{ap}(k_2 R) M_\times(k_3 R)\rangle`
+                - mapmxmx = array of :math:`\langle M_{ap}(R) M_\times(k_2 R) M_\times(k_3 R)\rangle`
+                - mx3 = array of :math:`\langle M_\times(R) M_\times(k_2 R) M_\times(k_3 R)\rangle`
                 - varmap3 = array of variance estimates of the above values
         """
         # As in the calculateMapSq function, we Make s and t matrices, so we can eventually do the
@@ -950,21 +967,22 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         return map3, mapmapmx, mapmxmap, mxmapmap, mxmxmap, mxmapmx, mapmxmx, mx3, var
 
     def writeMap3(self, file_name, R=None, file_type=None, precision=None):
-        """Write the aperture mass skewness based on the correlation function to the
+        r"""Write the aperture mass skewness based on the correlation function to the
         file, file_name.
 
         The output file will include the following columns:
 
-        ==========      ===================================================
+        ==========      ==========================================================
         Column          Description
-        ==========      ===================================================
+        ==========      ==========================================================
         R               The aperture radius
-        Map3            An estimate of <M_ap^3>(R)  (cf. `calculateMap3`)
-        Map2Mx          An estimate of <M_ap^2 M_x>(R)
-        MapMx2          An estimate of <M_ap M_x^2>(R)
-        Mx3             An estimate of <M_x^3>(R)
+        Map3            An estimate of :math:`\langle M_{ap}^3\rangle(R)`
+                        (cf. `calculateMap3`)
+        Map2Mx          An estimate of :math:`\langle M_{ap}^2 M_\times\rangle(R)`
+        MapMx2          An estimate of :math:`\langle M_{ap} M_\times^2\rangle(R)`
+        Mx3             An estimate of :math:`\langle M_\times^3\rangle(R)`
         sig_map         The sqrt of the variance estimate of each of these
-        ==========      ===================================================
+        ==========      ==========================================================
 
         Parameters:
             file_name (str):    The name of the file to write to.

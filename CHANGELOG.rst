@@ -28,7 +28,14 @@ Output Format Changes
 Performance Improvements
 ------------------------
 
+- Improved the speed of reading in FITS files, mostly by telling fitsio to read
+  all of the columns at once rather than doing them one at a time.
 - Delayed the loading of Catalogs from files until the data is actually needed.
+  Specifically, if the full catalog is never needed, and only patches are used,
+  then this allows for a much reduced memory footprint with a new ``low_mem``
+  option for ``process`` calls.
+- Added OpenMP parallelization to the (ra,dec) -> (x,y,z) calculation to speed
+  up that step during Catalog loading.
 
 
 New features
@@ -50,8 +57,10 @@ New features
   may be reasons to keep them, so that's now an option when building the Catalog.
 - Added ``save_patch_dir`` as an optional location to write patch catalog for increased
   efficiency when using patches across multiple processes.
-
-
-Bug fixes
----------
-
+- Added ``allow_xyz`` option to allow x,y,z columns be provided along with ra,dec
+  columns.  Normally this is not allowed, but if you know they are consistent,
+  then this option allows them to be input directly to avoid recalculating them.
+- Added ``low_mem`` option to ``process`` calls to unload patches that aren't being
+  used, thus saving memory at the expense of some extra I/O time.
+- Added ``comm`` option to ``process`` calls to use MPI to split a job up over
+  multiple machines.

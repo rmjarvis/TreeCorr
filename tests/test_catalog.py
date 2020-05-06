@@ -401,7 +401,6 @@ def test_ascii():
     assert cat14a._k is None
     assert cat14a == cat14    # When needed, it will reload, e.g. here to check equality.
 
-
 @timer
 def test_fits():
     try:
@@ -409,9 +408,27 @@ def test_fits():
     except ImportError:
         print('Skipping FITS tests, since fitsio is not installed')
         return
+    _test_fits_hdf('Aardvark.fit')
 
-    get_from_wiki('Aardvark.fit')
-    file_name = os.path.join('data','Aardvark.fit')
+@timer
+def test_hdf5():
+    try:
+        import h5py
+    except ImportError:
+        print("Skipping HDF5 tests, since h5py is not installed")
+        return
+    _test_fits_hdf('Aardvark.hdf5')
+
+
+def _test_fits_hdf(filename):
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
+
+    get_from_wiki(filename)
+    file_name = os.path.join('data',filename)
     config = treecorr.read_config('Aardvark.yaml')
     config['verbose'] = 1
     config['kk_file_name'] = 'kk.fits'
@@ -1703,6 +1720,7 @@ def test_lru():
 
 
 if __name__ == '__main__':
+    test_hdf5()
     test_ascii()
     test_fits()
     test_direct()

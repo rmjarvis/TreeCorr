@@ -447,14 +447,15 @@
 
 <span class="sd">        .. math::</span>
 
-<span class="sd">            I_i = \sum_{j \in S_i} \left| \vec x_j - \vec \mu_i \right|^2</span>
+<span class="sd">            I_i = \sum_{j \in S_i} \left| \vec x_j - \vec \mu_i \right|^2,</span>
 
 <span class="sd">        where :math:`\vec \mu_i` is the center of each patch:</span>
 
 <span class="sd">        .. math::</span>
 
-<span class="sd">            \vec \mu_i \equiv \sum_{j \in S_i} \vec x_j</span>
+<span class="sd">            \vec \mu_i \equiv \frac{\sum_{j \in S_i} \vec x_j}{N_i},</span>
 
+<span class="sd">        and :math:`N_i` is the number of points assigned to patch :math:`S_i`.</span>
 <span class="sd">        The k-means algorithm finds a solution that is a local minimum in the total inertia,</span>
 <span class="sd">        :math:`\sum_i I_i`.</span>
 
@@ -471,7 +472,7 @@
 
 <span class="sd">        .. math::</span>
 
-<span class="sd">            {d_{ij}^\prime}^2 \equiv \left| \vec x_j - \mu_i \right|^2 + f I_i.</span>
+<span class="sd">            d_{ij}^{\prime\;\! 2} = \left| \vec x_j - \mu_i \right|^2 + f I_i.</span>
 
 <span class="sd">        The penalty term means that patches with less inertia get more points on the next</span>
 <span class="sd">        iteration, and vice versa, which tends to equalize the inertia values somewhat.</span>

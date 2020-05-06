@@ -424,7 +424,7 @@
         <span class="k">return</span> <span class="n">ind</span>
 
 <div class="viewcode-block" id="Field.run_kmeans"><a class="viewcode-back" href="../../field.html#treecorr.Field.run_kmeans">[docs]</a>    <span class="k">def</span> <span class="nf">run_kmeans</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">npatch</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-5</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="s1">&#39;tree&#39;</span><span class="p">,</span> <span class="n">alt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Use k-means algorithm to set patch labels for a field.</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Use k-means algorithm to set patch labels for a field.</span>
 
 <span class="sd">        The k-means algorithm (cf. https://en.wikipedia.org/wiki/K-means_clustering) identifies</span>
 <span class="sd">        a center position for each patch.  Each point is then assigned to the patch whose center</span>
@@ -441,34 +441,66 @@
 <span class="sd">        more or less similar inertia, which make them useful for jackknife or other sampling</span>
 <span class="sd">        estimates of the errors in the correlation functions.</span>
 
+<span class="sd">        More specifically, if the points :math:`j` have vector positions :math:`\vec x_j`,</span>
+<span class="sd">        and we define patches :math:`S_i` to comprise disjoint subsets of the :math:`j`</span>
+<span class="sd">        values, then the inertia :math:`I_i` of each patch is defined as:</span>
+
+<span class="sd">        .. math::</span>
+
+<span class="sd">            I_i = \sum_{j \in S_i} \left| \vec x_j - \vec \mu_i \right|^2,</span>
+
+<span class="sd">        where :math:`\vec \mu_i` is the center of each patch:</span>
+
+<span class="sd">        .. math::</span>
+
+<span class="sd">            \vec \mu_i \equiv \frac{\sum_{j \in S_i} \vec x_j}{N_i},</span>
+
+<span class="sd">        and :math:`N_i` is the number of points assigned to patch :math:`S_i`.</span>
+<span class="sd">        The k-means algorithm finds a solution that is a local minimum in the total inertia,</span>
+<span class="sd">        :math:`\sum_i I_i`.</span>
+
 <span class="sd">        In addition to the normal k-means algorithm, we also offer an alternate algorithm, which</span>
-<span class="sd">        can produce slightly better patches for the purpose of error estimation.  The ideal patch</span>
-<span class="sd">        definition for such use would be to minimize the rms inertia of each patch, not the total</span>
-<span class="sd">        inertia.  It turns out that it is difficult to devise an algorithm that literally does</span>
-<span class="sd">        this, since it has a tendancy to become unstable and not converge.  However, adding a</span>
-<span class="sd">        penalty term to the patch assignment step of the normal k-means algorithm turns out to</span>
-<span class="sd">        work reasonably well.</span>
+<span class="sd">        can produce slightly better patches for the purpose of patch-based covariance estimation.</span>
+<span class="sd">        The ideal patch definition for such use would be to minimize the rms inertia of each patch,</span>
+<span class="sd">        not the total (or mean) inertia.  It turns out that it is difficult to devise an algorithm</span>
+<span class="sd">        that literally does this, since it has a tendancy to become unstable and not converge.</span>
 
-<span class="sd">        Specifically, we assign each point k to the patch with the minimum d_ik^2 + f I_i, where</span>
-<span class="sd">        d_ik is the distance to the center of patch i, I_i is the inertia of that patch from the</span>
-<span class="sd">        previous iteration, and f is a scaling constant (see below). The penalty term means that</span>
-<span class="sd">        patches with less inertia get more points on the next iteration, and vice versa, which</span>
-<span class="sd">        results in centers that have significantly lower rms inertia, but only slightly higher</span>
-<span class="sd">        total inertia.</span>
+<span class="sd">        However, adding a penalty term to the patch assignment step of the normal k-means</span>
+<span class="sd">        algorithm turns out to work reasonably well.  The penalty term we use is :math:`f I_i`,</span>
+<span class="sd">        where :math:`f` is a scaling constant (see below).  When doing the assignment step we assign</span>
+<span class="sd">        each point :math:`j` to the patch :math:`i` that gives the minimum penalized distance</span>
 
-<span class="sd">        For the scaling constant, f, we chose 3/&lt;N_i&gt;, three times the inverse of the mean number</span>
-<span class="sd">        of points in each patch.  The 1/&lt;N_i&gt; factor makes the two terms of comparable magnitude,</span>
-<span class="sd">        so patches still get most of the points near them, even if they already have larger than</span>
-<span class="sd">        average inertia, but some of the points in the outskirts of the patch might switch to</span>
-<span class="sd">        a nearby patch with smaller inertia.  The factor of 3 is purely empirical, and was found</span>
-<span class="sd">        to give good results in terms of rms inertia on some test data (the DES SV field).</span>
+<span class="sd">        .. math::</span>
+
+<span class="sd">            d_{ij}^{\prime\;\! 2} = \left| \vec x_j - \mu_i \right|^2 + f I_i.</span>
+
+<span class="sd">        The penalty term means that patches with less inertia get more points on the next</span>
+<span class="sd">        iteration, and vice versa, which tends to equalize the inertia values somewhat.</span>
+<span class="sd">        The resulting patches have significantly lower rms inertia, but typically only slightly</span>
+<span class="sd">        higher total inertia.</span>
+
+<span class="sd">        For the scaling constant, :math:`f`, we chose</span>
+
+<span class="sd">        .. math::</span>
+
+<span class="sd">            f = \frac{3}{\langle N_i\rangle},</span>
+
+<span class="sd">        three times the inverse of the mean number of points in each patch.</span>
+
+<span class="sd">        The :math:`1/\langle N_i\rangle` factor makes the two terms of comparable magnitude</span>
+<span class="sd">        near the edges of the patches, so patches still get most of the points near their previous</span>
+<span class="sd">        centers, even if they already have larger than average inertia, but some of the points in</span>
+<span class="sd">        the outskirts of the patch might switch to a nearby patch with smaller inertia.  The</span>
+<span class="sd">        factor of 3 is purely empirical, and was found to give good results in terms of rms</span>
+<span class="sd">        inertia on some test data (the DES SV field).</span>
 
 <span class="sd">        The alternate algorithm is available by specifying ``alt=True``.  Despite it typically</span>
 <span class="sd">        giving better patch centers than the standard algorithm, we don&#39;t make it the default,</span>
-<span class="sd">        because it is possible for the iteration to become unstable, leading to some patches</span>
-<span class="sd">        with no points in them.  If this happens for you, your best bet is probably to switch</span>
-<span class="sd">        to the standard algorithm, which should never suffer from this problem (at least with</span>
-<span class="sd">        reasonable initialization of the centers).</span>
+<span class="sd">        because it may be possible for the iteration to become unstable, leading to some patches</span>
+<span class="sd">        with no points in them. (This happened in our tests when the arbitrary factor in the</span>
+<span class="sd">        scaling constant was 5 instead of 3, but I could not prove that 3 would always avoid this</span>
+<span class="sd">        failure mode.) If this happens for you, your best bet is probably to switch to the</span>
+<span class="sd">        standard algorithm, which can never suffer from this problem.</span>
 
 <span class="sd">        Parameters:</span>
 <span class="sd">            npatch (int):       How many patches to generate</span>

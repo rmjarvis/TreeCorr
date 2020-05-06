@@ -116,7 +116,7 @@ def download_file():
         fitsio.write(fname_0, data)
         print('wrote',fname_0)
     for p in range(nproc):
-        fname_p = file_name.replace('.fits','%d.fits'%p)
+        fname_p = file_name.replace('.fits','_%d.fits'%p)
         if not os.path.exists(fname_p):
             shutil.copyfile(fname_0, fname_p)
             print('copied',fname_0,'to',fname_p)
@@ -127,22 +127,19 @@ def make_patches():
     # Or it might be made from a smaller version of the catalog:
     # either with the every_nth option, or maybe on a redmagic catalog or similar,
     # which would be smaller than the full source catalog, etc.
-    # Here, we use every_nth to reduce the catalog size.
     if not os.path.exists(patch_file):
         print('Making patches')
         fname = file_name.replace('.fits','_0.fits')
-        part_cat = treecorr.Catalog(fname,
-                                    ra_col=ra_col, dec_col=ra_col,
-                                    ra_units=ra_units, dec_units=dec_units,
-                                    g1_col=g1_col, g2_col=g1_col, flag_col=flag_col,
-                                    npatch=32, verbose=2)
-        print('Done loading file: nobj = ',part_cat.nobj,part_cat.ntot)
-        part_cat.get_patches()
-        print('Made patches: ',part_cat.patch_centers)
-        part_cat.write_patch_centers(patch_file)
+        cat = treecorr.Catalog(fname,
+                               ra_col=ra_col, dec_col=ra_col,
+                               ra_units=ra_units, dec_units=dec_units,
+                               g1_col=g1_col, g2_col=g1_col, flag_col=flag_col,
+                               npatch=32, verbose=2)
+        print('Done loading file: nobj = ',cat.nobj,cat.ntot)
+        cat.get_patches()
+        print('Made patches: ',cat.patch_centers)
+        cat.write_patch_centers(patch_file)
         print('Wrote patch file ',patch_file)
-        del part_cat
-        print('Done making patches')
     else:
         print('Using existing patch file')
 
@@ -188,7 +185,7 @@ def run_parallel():
 
     t0 = time.time()
     print(rank,socket.gethostname(),flush=True)
-    fname = file_name.replace('.fits','%d.fits'%rank)[:]
+    fname = file_name.replace('.fits','_%d.fits'%rank)[:]
     log_file = 'parallel_%d.log'%rank
 
     # All processes make the full cat with these patches.

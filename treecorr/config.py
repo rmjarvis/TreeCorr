@@ -251,7 +251,9 @@ def check_config(config, params, aliases=None, logger=None):
 
         # Get the value
         if may_be_list and isinstance(config[key], list):
-            value_type, value = [parse(v, value_types, key) for v in config[key] ]
+            parses = [parse(v, value_types, key) for v in config[key] ]
+            value_type = [p[0] for p in parses]
+            value = [p[1] for p in parses]
         else:
             value_type, value = parse(config[key], value_types, key)
 
@@ -301,10 +303,14 @@ def print_params(params):
 
         # str(value_type) looks like "<type 'float'>"
         # value_type.__name__ looks like 'float'
-        if may_be_list:
-            print("                Type must be {0} or a list of {0}.".format(value_type.__name__))
+        if isinstance(value_type, (list, tuple)):
+            value_type_str = '/'.join(v.__name__ for v in value_type)
         else:
-            print("                Type must be {0}.".format(value_type.__name__))
+            value_type_str = value_type.__name__
+        if may_be_list:
+            print("                Type must be {0} or a list of {0}.".format(value_type_str))
+        else:
+            print("                Type must be {0}.".format(value_type_str))
 
         if valid_values is not None:
             print("                Valid values are {0!s}".format(valid_values))

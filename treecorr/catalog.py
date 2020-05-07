@@ -284,20 +284,20 @@ class Catalog(object):
                             as FITS files in the given directory for more efficient loading when
                             doing cross-patch correlations with the ``low_mem`` option.
 
-        hdu (int):          For FITS files, Which extension to read. (default: 1)
-        x_ext (int):        Which extension to use for the x values. (default: hdu)
-        y_ext (int):        Which extension to use for the y values. (default: hdu)
-        z_ext (int):        Which extension to use for the z values. (default: hdu)
-        ra_ext (int):       Which extension to use for the ra values. (default: hdu)
-        dec_ext (int):      Which extension to use for the dec values. (default: hdu)
-        r_ext (int):        Which extension to use for the r values. (default: hdu)
-        g1_ext (int):       Which extension to use for the g1 values. (default: hdu)
-        g2_ext (int):       Which extension to use for the g2 values. (default: hdu)
-        k_ext (int):        Which extension to use for the k values. (default: hdu)
-        patch_ext (int):    Which extension to use for the patch numbers. (default: hdu)
-        w_ext (int):        Which extension to use for the w values. (default: hdu)
-        wpos_ext (int):     Which extension to use for the wpos values. (default: hdu)
-        flag_ext (int):     Which extension to use for the flag values. (default: hdu)
+        ext (int):          For FITS/HDF files, Which extension to read. (default: 1 for fits, root for HDF)
+        x_ext (int):        Which extension to use for the x values. (default: ext)
+        y_ext (int):        Which extension to use for the y values. (default: ext)
+        z_ext (int):        Which extension to use for the z values. (default: ext)
+        ra_ext (int):       Which extension to use for the ra values. (default: ext)
+        dec_ext (int):      Which extension to use for the dec values. (default: ext)
+        r_ext (int):        Which extension to use for the r values. (default: ext)
+        g1_ext (int):       Which extension to use for the g1 values. (default: ext)
+        g2_ext (int):       Which extension to use for the g2 values. (default: ext)
+        k_ext (int):        Which extension to use for the k values. (default: ext)
+        patch_ext (int):    Which extension to use for the patch numbers. (default: ext)
+        w_ext (int):        Which extension to use for the w values. (default: ext)
+        wpos_ext (int):     Which extension to use for the wpos values. (default: ext)
+        flag_ext (int):     Which extension to use for the flag values. (default: ext)
 
         verbose (int):      If no logger is provided, this will optionally specify a logging level
                             to use.
@@ -1327,20 +1327,10 @@ class Catalog(object):
         if (g1_col != '0' and g2_col == '0') or (g1_col == '0' and g2_col != '0'):
             raise ValueError("g1_col, g2_col are invalid for file %s"%file_name)
 
-        def get_ext(name, default=reader.subgroup_default):
-            # get the HDU as a string here but then see if it's actually an int
-            # if people named an HDU with an string that looks like an int not the same
-            # as its actual index then they deserve the error this will cause.
-            ext = treecorr.config.get_from_list(self.config,name,num,str,default)
-            try:
-                ext = int(ext)
-            except ValueError:
-                pass
-            return ext
-
-        ext = get_ext('ext')
 
         with reader(file_name) as infile:
+    
+            ext = infile.choose_extension(self.config, 'ext', num)
 
             # Technically, this doesn't catch all possible errors.  If someone specifies
             # an invalid flag_ext or something, then they'll get the fitsio error message.
@@ -1350,53 +1340,53 @@ class Catalog(object):
             infile.check_valid_ext(ext)
 
             if x_col != '0':
-                x_ext = get_ext('x_ext', ext)
-                y_ext = get_ext('y_ext', ext)
+                x_ext = infile.choose_extension(self.config, 'x_ext', num, ext)
+                y_ext = infile.choose_extension(self.config, 'y_ext', num, ext)
                 if x_col not in infile.names(x_ext):
                     raise ValueError("x_col is invalid for file %s"%file_name)
                 if y_col not in infile.names(y_ext):
                     raise ValueError("y_col is invalid for file %s"%file_name)
                 if z_col != '0':
-                    z_ext = get_ext('z_ext', ext)
+                    z_ext = infile.choose_extension(self.config, 'z_ext', num, ext)
                     if z_col not in infile.names(z_ext):
                         raise ValueError("z_col is invalid for file %s"%file_name)
             else:
-                ra_ext = get_ext('ra_ext', ext)
-                dec_ext = get_ext('dec_ext', ext)
+                ra_ext = infile.choose_extension(self.config, 'ra_ext', num, ext)
+                dec_ext = infile.choose_extension(self.config, 'dec_ext', num, ext)
                 if ra_col not in infile.names(ra_ext):
                     raise ValueError("ra_col is invalid for file %s"%file_name)
                 if dec_col not in infile.names(dec_ext):
                     raise ValueError("dec_col is invalid for file %s"%file_name)
                 if r_col != '0':
-                    r_ext = get_ext('r_ext', ext)
+                    r_ext = infile.choose_extension(self.config, 'r_ext', num, ext)
                     if r_col not in infile.names(r_ext):
                         raise ValueError("r_col is invalid for file %s"%file_name)
 
             if w_col != '0':
-                w_ext = get_ext('w_ext', ext)
+                w_ext = infile.choose_extension(self.config, 'w_ext', num, ext)
                 if w_col not in infile.names(w_ext):
                     raise ValueError("w_col is invalid for file %s"%file_name)
 
             if wpos_col != '0':
-                wpos_ext = get_ext('wpos_ext', ext)
+                wpos_ext = infile.choose_extension(self.config, 'wpos_ext', num, ext)
                 if wpos_col not in infile.names(wpos_ext):
                     raise ValueError("wpos_col is invalid for file %s"%file_name)
 
             if flag_col != '0':
-                flag_ext = get_ext('flag_ext', ext)
+                flag_ext = infile.choose_extension(self.config, 'flag_ext', num, ext)
                 if flag_col not in infile.names(flag_ext):
                     raise ValueError("flag_col is invalid for file %s"%file_name)
 
             if patch_col != '0':
-                patch_ext = get_ext('patch_ext', ext)
+                patch_ext = infile.choose_extension(self.config, 'patch_ext', num, ext)
                 if patch_col not in infile.names(patch_ext):
                     raise ValueError("patch_col is invalid for file %s"%file_name)
 
             if is_rand: return
 
             if g1_col != '0':
-                g1_ext = get_ext('g1_ext', ext)
-                g2_ext = get_ext('g2_ext', ext)
+                g1_ext = infile.choose_extension(self.config, 'g1_ext', num, ext)
+                g2_ext = infile.choose_extension(self.config, 'g2_ext', num, ext)
                 if (g1_col not in infile.names(g1_ext) or
                     g2_col not in infile.names(g2_ext)):
                     if isGColRequired(self.orig_config,num):
@@ -1407,7 +1397,7 @@ class Catalog(object):
                                             "because they are invalid, but unneeded.")
 
             if k_col != '0':
-                k_ext = get_ext('k_ext', ext)
+                k_ext = infile.choose_extension(self.config, 'k_ext', num, ext)
                 if k_col not in infile.names(k_ext):
                     if isKColRequired(self.orig_config,num):
                         raise ValueError("k_col is invalid for file %s"%file_name)
@@ -1483,21 +1473,9 @@ class Catalog(object):
         patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,str,'0')
 
 
-        def get_ext(name, default=reader.subgroup_default):
-            # get the HDU as a string here but then see if it's actually an int
-            # if people named an HDU with an string that looks like an int not the same
-            # as its actual index then they deserve the error this will cause.
-            ext = treecorr.config.get_from_list(self.config,name,num,str,default)
-            try:
-                # try to convert to int if fits
-                ext = reader.subgroup_type(ext)
-            except ValueError:
-                pass
-            return ext
-
-        ext = get_ext('ext', reader.subgroup_default)
-
         with reader(file_name) as infile:
+
+            ext = infile.choose_extension(self.config, 'ext', num)
 
             # Figure out what slice to use.  If all rows, then None is faster,
             # otherwise give the range explicitly.
@@ -1507,15 +1485,16 @@ class Catalog(object):
             if self.start == 0 and self.end is None and self.every_nth == 1:
                 s = slice(None)
             # fancy indexing in h5py is incredibly slow, so we explicitly
-            # check if we can slice or not
+            # check if we can slice or not.  This checks for the fitsio version in
+            # the fits case
             elif infile.can_slice:
                 s = slice(self.start, self.end, self.every_nth)
             else:
                 if x_col != '0':
-                    x_ext = get_ext('x_ext', ext)
+                    x_ext = infile.choose_extension(self.config, 'x_ext', num, ext)
                     col = x_col
                 else:
-                    x_ext = get_ext('ra_ext')
+                    x_ext = infile.choose_extension(self.config, 'ra_ext', num, ext)
                     col = ra_col
                 end = self.end if self.end is not None else infile.row_count(x_ext, col)
                 s = np.arange(self.start, end, self.every_nth)
@@ -1526,26 +1505,26 @@ class Catalog(object):
                         w_col, wpos_col, flag_col,
                         g1_col, g2_col, k_col]
 
-            # It's faster to read in all the columsn in one read, rather than individually.
-            # Typically (very close to always!), all the columns are in the same hdu.
+            # It's faster in FITS to read in all the columns in one read, rather than individually.
+            # Typically (very close to always!), all the columns are in the same extension.
             # Thus, the following would normally work fine.
             #     use_cols = [c for c in all_cols if c != '0']
-            #     data = fits[hdu][use_cols][:]
-            # However, we allow the option to have different columns read from different hdus.
+            #     data = fits[ext][use_cols][:]
+            # However, we allow the option to have different columns read from different extensions.
             # So this is slightly more complicated.
-            x_ext = get_ext('x_ext', ext)
-            y_ext = get_ext('y_ext', ext)
-            z_ext = get_ext('z_ext', ext)
-            ra_ext = get_ext('ra', ext)
-            dec_ext = get_ext('dec', ext)
-            r_ext = get_ext('r', ext)
-            patch_ext = get_ext('patch', ext)
-            w_ext = get_ext('w', ext)
-            wpos_ext = get_ext('wpos', ext)
-            flag_ext = get_ext('flag', ext)
-            g1_ext = get_ext('g1', ext)
-            g2_ext = get_ext('g2', ext)
-            k_ext = get_ext('k', ext)
+            x_ext = infile.choose_extension(self.config, 'x_ext', num, ext)
+            y_ext = infile.choose_extension(self.config, 'y_ext', num, ext)
+            z_ext = infile.choose_extension(self.config, 'z_ext', num, ext)
+            ra_ext = infile.choose_extension(self.config, 'ra_ext', num, ext)
+            dec_ext = infile.choose_extension(self.config, 'dec_ext', num, ext)
+            r_ext = infile.choose_extension(self.config, 'r_ext', num, ext)
+            patch_ext = infile.choose_extension(self.config, 'patch_ext', num, ext)
+            w_ext = infile.choose_extension(self.config, 'w_ext', num, ext)
+            wpos_ext = infile.choose_extension(self.config, 'wpos_ext', num, ext)
+            flag_ext = infile.choose_extension(self.config, 'flag_ext', num, ext)
+            g1_ext = infile.choose_extension(self.config, 'g1_ext', num, ext)
+            g2_ext = infile.choose_extension(self.config, 'g2_ext', num, ext)
+            k_ext = infile.choose_extension(self.config, 'k_ext', num, ext)
             all_exts = [x_ext, y_ext, z_ext,
                         ra_ext, dec_ext, r_ext,
                         patch_ext,
@@ -1583,7 +1562,7 @@ class Catalog(object):
                 data = {}  # Start fresh, since the ones we used so far are done.
 
                 # We might actually be done now, in which case, just return.
-                # (Else the fits read below won't actually work.)
+                # (Else the read below won't actually work.)
                 if len(all_cols) == 0:
                     return
 

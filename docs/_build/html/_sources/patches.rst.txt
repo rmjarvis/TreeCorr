@@ -100,9 +100,9 @@ algorithm runs:
 * ``kmeans_alt`` specifies whether to use an alternate iteration algorithm
   similar to k-means, which often produces somewhat more uniform patches.
 
-  This alternate algorithm specifically targets minimizing the rms inertia
-  rather than the mean inertia, so it tends to lead to patches that have
-  a smaller final rms size than the regular k-means algorithm.
+  This alternate algorithm specifically targets minimizing the standard deviation
+  of the inertia rather than the mean inertia, so it tends to lead to patches that
+  have a smaller final size variation than the regular k-means algorithm.
 
   This is not the default algorithm because it is not provably (at least by
   me) stable.  It is possible that the iteration can get into a failure mode
@@ -144,17 +144,17 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
     the total inertia, my metric for quality was the RMS intertia.
 
     Fortunately, the process of minimizing the total inertia does tend to select patches with
-    small rms as well, but it is worth noting that this is not directly targeted by the
+    small rms variation as well, but it is worth noting that this is not directly targeted by the
     normal k-means algorithm. And furthermore, the k-means algorithm almost never finds the true
     global minimum inertia. The quality of the local minimum depends pretty strongly on the
     choice of initial centers to seed the iterative part of the algorithm.
 
     Comparing the results of the various k-means implementations, I found that they all tend
     to be either fairly slow, taking a minute or more for just 1 million objects, or they have
-    very high rms inertia.
+    very high rms variation in the inertia.
     I reran each code multiple times using a different random million selected from the original
-    catalog (of around 16 million objects). Here is a scatter plot of the time vs rms inertia
-    for the various codes.
+    catalog (of around 16 million objects). Here is a scatter plot of the time vs rms variation
+    in the inertia (aka standard deviation) for the various codes.
 
     .. image:: https://user-images.githubusercontent.com/623887/57647337-ac6bd800-7590-11e9-80bc-900bda3bf66b.png
 
@@ -167,19 +167,19 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
 
     The big red dots in the lower left corner are the TreeCorr implementation of the standard
     k-means clustering algorithm. It typically takes about 1 or 2 seconds to classify these
-    1 million points into 40 patches, and the rms inertia is usually less than any other
+    1 million points into 40 patches, and the rms variation is usually less than any other
     implementation.
 
     The `notebook <https://github.com/rmjarvis/TreeCorr/blob/master/devel/kmeans.ipynb>`_ also
-    includes plots of total inertia, rms size using according to the mean d^2 rather than sum,
-    and rms counts. The TreeCorr algorithm tends to be the best k-means implementation according to
-    any of these metrics.
+    includes plots of total inertia, variation in size according to the mean d^2 rather than
+    sum, and variation in the counts. The TreeCorr algorithm tends to be the best k-means
+    implementation according to any of these metrics.
 
-    In addition, you can see some slightly smaller orange dots, which have even lower rms inertia
-    but take very slightly longer to run. These are the alternate algorithm I mentioned above.
-    This alternate algorithm is similar to k-means, but it penalizes patches with a
+    In addition, you can see some slightly smaller orange dots, which have even lower rms
+    variation but take very slightly longer to run. These are the alternate algorithm I mentioned
+    above.  This alternate algorithm is similar to k-means, but it penalizes patches with a
     larger-than-average inertia, so they give up some of their outer points to patches with
-    smaller inertia. In other words, it explicitly targets making the rms inertia as small as
+    smaller inertia. In other words, it explicitly targets making the rms variation as small as
     possible.  But in practice, it is not much worse in terms of total inertia either.
 
     The alternate algorithm is available using alt=True in `Field.run_kmeans`.
@@ -195,7 +195,7 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
     leads to this runaway trading failure mode. I know the regular k-means algorithm can't get
     into this mode, so it's always safe. Therefore, I think it's better to force the user to
     intentionally select the alternate algorithm if they really care about having a low rms
-    patch size, with the normal algorithm being the backup if the alternate one fails for them.
+    size variation, with the normal algorithm being the backup if the alternate one fails for them.
 
 
 Using Patch Centers

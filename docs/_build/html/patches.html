@@ -259,9 +259,9 @@ it will almost always yield the best final patches.
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">kmeans_alt</span></code> specifies whether to use an alternate iteration algorithm
 similar to k-means, which often produces somewhat more uniform patches.</p>
-<p>This alternate algorithm specifically targets minimizing the rms inertia
-rather than the mean inertia, so it tends to lead to patches that have
-a smaller final rms size than the regular k-means algorithm.</p>
+<p>This alternate algorithm specifically targets minimizing the standard deviation
+of the inertia rather than the mean inertia, so it tends to lead to patches that
+have a smaller final size variation than the regular k-means algorithm.</p>
 <p>This is not the default algorithm because it is not provably (at least by
 me) stable.  It is possible that the iteration can get into a failure mode
 where one patch will end up with zero objects.  The regular k-means
@@ -297,16 +297,16 @@ proxy for area, since that’s the thing that k-means algorithms natively work w
 here, we really want the patches to be all close to the <em>same</em> size.  So rather than
 the total inertia, my metric for quality was the RMS intertia.</p>
 <p>Fortunately, the process of minimizing the total inertia does tend to select patches with
-small rms as well, but it is worth noting that this is not directly targeted by the
+small rms variation as well, but it is worth noting that this is not directly targeted by the
 normal k-means algorithm. And furthermore, the k-means algorithm almost never finds the true
 global minimum inertia. The quality of the local minimum depends pretty strongly on the
 choice of initial centers to seed the iterative part of the algorithm.</p>
 <p>Comparing the results of the various k-means implementations, I found that they all tend
 to be either fairly slow, taking a minute or more for just 1 million objects, or they have
-very high rms inertia.
+very high rms variation in the inertia.
 I reran each code multiple times using a different random million selected from the original
-catalog (of around 16 million objects). Here is a scatter plot of the time vs rms inertia
-for the various codes.</p>
+catalog (of around 16 million objects). Here is a scatter plot of the time vs rms variation
+in the inertia (aka standard deviation) for the various codes.</p>
 <img alt="https://user-images.githubusercontent.com/623887/57647337-ac6bd800-7590-11e9-80bc-900bda3bf66b.png" src="https://user-images.githubusercontent.com/623887/57647337-ac6bd800-7590-11e9-80bc-900bda3bf66b.png" />
 <p>Since there was no existing implementation I was particularly happy with,
 I implemented it myself in TreeCorr. It turns out (not surprisingly) that the ball tree
@@ -316,17 +316,17 @@ on the choice of the initial centers, and using the ball tree for the initializa
 out to produce reliably better results than the initialization methods used by other packages.</p>
 <p>The big red dots in the lower left corner are the TreeCorr implementation of the standard
 k-means clustering algorithm. It typically takes about 1 or 2 seconds to classify these
-1 million points into 40 patches, and the rms inertia is usually less than any other
+1 million points into 40 patches, and the rms variation is usually less than any other
 implementation.</p>
 <p>The <a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/master/devel/kmeans.ipynb">notebook</a> also
-includes plots of total inertia, rms size using according to the mean d^2 rather than sum,
-and rms counts. The TreeCorr algorithm tends to be the best k-means implementation according to
-any of these metrics.</p>
-<p>In addition, you can see some slightly smaller orange dots, which have even lower rms inertia
-but take very slightly longer to run. These are the alternate algorithm I mentioned above.
-This alternate algorithm is similar to k-means, but it penalizes patches with a
+includes plots of total inertia, variation in size according to the mean d^2 rather than
+sum, and variation in the counts. The TreeCorr algorithm tends to be the best k-means
+implementation according to any of these metrics.</p>
+<p>In addition, you can see some slightly smaller orange dots, which have even lower rms
+variation but take very slightly longer to run. These are the alternate algorithm I mentioned
+above.  This alternate algorithm is similar to k-means, but it penalizes patches with a
 larger-than-average inertia, so they give up some of their outer points to patches with
-smaller inertia. In other words, it explicitly targets making the rms inertia as small as
+smaller inertia. In other words, it explicitly targets making the rms variation as small as
 possible.  But in practice, it is not much worse in terms of total inertia either.</p>
 <p>The alternate algorithm is available using alt=True in <a class="reference internal" href="field.html#treecorr.Field.run_kmeans" title="treecorr.Field.run_kmeans"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Field.run_kmeans</span></code></a>.
 I left this as a non-default option for two reasons. First, it’s not actually the real
@@ -340,7 +340,7 @@ value for this data set. So 3 might be safe, or there might be data sets where t
 leads to this runaway trading failure mode. I know the regular k-means algorithm can’t get
 into this mode, so it’s always safe. Therefore, I think it’s better to force the user to
 intentionally select the alternate algorithm if they really care about having a low rms
-patch size, with the normal algorithm being the backup if the alternate one fails for them.</p>
+size variation, with the normal algorithm being the backup if the alternate one fails for them.</p>
 </div>
 </div>
 <div class="section" id="using-patch-centers">

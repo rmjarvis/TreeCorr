@@ -305,8 +305,9 @@ def test_check():
     config1['reverse_g1'] = True
     with assert_raises(TypeError):
         treecorr.config.check_config(config1.copy(), valid_params)
-    config2 = treecorr.config.check_config(config1.copy(), valid_params,
-                                           aliases={'reverse_g1' : 'flip_g1'})
+    with assert_warns(FutureWarning):
+        config2 = treecorr.config.check_config(config1.copy(), valid_params,
+                                               aliases={'reverse_g1' : 'flip_g1'})
     assert config2['flip_g1'] == True
     assert 'reverse_g1' not in config2
     del config1['reverse_g1']
@@ -321,7 +322,7 @@ def test_check():
         treecorr.config.check_config(config1.copy(), valid_params)
     del config1['metric']
 
-    # With a logger, aliases emit a warning.
+    # With a logger, aliases write the warning to the logger.
     config1['n2_file_name'] = 'output/n2.out'
     with CaptureLog() as cl:
         config2 = treecorr.config.check_config(config1.copy(), valid_params, logger=cl.logger,
@@ -334,8 +335,9 @@ def test_check():
     if sys.version_info < (3,): return  # mock only available on python 3
     from unittest import mock
     with mock.patch('treecorr.corr2_aliases', {'n2_file_name' : 'nn_file_name'}):
-        config2 = treecorr.config.check_config(config1.copy(), valid_params,
-                                               aliases=treecorr.corr2_aliases)
+        with assert_warns(FutureWarning):
+            config2 = treecorr.config.check_config(config1.copy(), valid_params,
+                                                    aliases=treecorr.corr2_aliases)
     assert 'n2_file_name' not in config2
     assert config2['nn_file_name'] == 'output/n2.out'
     del config1['n2_file_name']

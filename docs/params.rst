@@ -81,7 +81,7 @@ Parameters about the input file(s)
     comment lines usually begin with '#', but you may specify something
     different if necessary.
 
-:hdu: (int, default=1) The HDU to use for a binary fits table.
+:ext: (int/str, default=1 for FITS or root for HDF5) The extension (fits) or group (hdf) to read from
 
     Normally if you are using a fits file, the binary fits table is
     taken from the first extension, HDU 1.  If you want to read from a
@@ -175,30 +175,30 @@ Parameters about the input file(s)
     If ``ok_flag`` is set, then objects with ``(flag & ~ok_flag != 0)`` will be ignored.
     The default is equivalent to ``ok_flag = 0``, which ignores any flag != 0.
 
-:x_hdu: (int) Which HDU to use for the ``x_col``.
-:y_hdu: (int) Which HDU to use for the ``y_col``.
-:z_hdu: (int) Which HDU to use for the ``z_col``.
-:ra_hdu: (int) Which HDU to use for the ``ra_col``.
-:dec_hdu: (int) Which HDU to use for the ``dec_col``.
-:r_hdu: (int) Which HDU to use for the ``r_col``.
-:g1_hdu: (int) Which HDU to use for the ``g1_col``.
-:g2_hdu: (int) Which HDU to use for the ``g2_col``.
-:k_hdu: (int) Which HDU to use for the ``k_col``.
-:patch_hdu: (int) Which HDU to use for the ``patch_col``.
-:w_hdu: (int) Which HDU to use for the ``w_col``.
-:wpos_hdu: (int) Which HDU to use for the ``wpos_col``.
-:flag_hdu: (int) Which HDU to use for the ``flag_col``.
+:x_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``x_col``.
+:y_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``y_col``.
+:z_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``z_col``.
+:ra_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``ra_col``.
+:dec_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``dec_col``.
+:r_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``r_col``.
+:g1_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``g1_col``.
+:g2_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``g2_col``.
+:k_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``k_col``.
+:patch_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``patch_col``.
+:w_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``w_col``.
+:wpos_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``wpos_col``.
+:flag_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``flag_col``.
 
-    If you want to use an HDU other than the first one, normally you would
-    specify which fits extension to use with the ``hdu`` parameter.  However, if
-    different columns need to come from different HDUs, then you can override
-    the default (given by ``hdu`` or 1 if there is no ``hdu`` parameter) for each
-    column separately.
+    If you want to use an extension other than the first one, normally you would
+    specify which fits extension or HDF5 group to use with the ``ext`` parameter.
+    However, if different columns need to come from different HDUs, then you can
+    override the default (given by ``ext``, or '1' (fits), or '/' (HDF) if there
+    is no ``ext`` parameter) for each column separately.
 
 :allow_xyz: (bool, default=False)
 
     Whether to allow x,y,z columns in conjunction with ra, dec.
-    
+
 :flip_g1: (bool, default=False) Whether to flip the sign of g1.
 :flip_g2: (bool, default=False) Whether to flip the sign of g2.
 

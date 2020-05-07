@@ -28,7 +28,6 @@ both provide dicts.
 """
 import numpy as np
 from treecorr.config import get_from_list
-import warnings
 
 class FitsReader:
     """Reader interface for FITS files.
@@ -165,7 +164,6 @@ class FitsReader:
         ext: int/str
             The value that can be used to look up the extension
         """
-
         # get the value as a string - if it's actually an int
         # we will convert below
         ext = get_from_list(config, name, num, str)
@@ -210,7 +208,43 @@ class HdfReader:
         return list(self.file[group].keys())
 
     def __enter__(self):
+        # Context manager, enables "with HdfReader(filename) as f:"
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
+        # closes file at end of "with" statement
         self.file.close()
+
+    def choose_extension(self, config, name, num, default=None):
+        """Select an extension name or index from a configuration.
+
+        If no key is found or default supplied, fall back to the
+        HDF root object ('/')
+
+        Parameters
+        ----------
+        config: dict
+            config to choose from
+        name: str
+            parameter name to get
+        num: int
+            if the value is a list, which item to get
+        default: str
+            optional, the fall-back if not found
+
+        Returns
+        -------
+        ext: str
+            The HDF group name
+        """
+        ext = get_from_list(config, name, num, str)
+
+        # If not found, use the default if present, otherwise the global
+        # default of using the root of the file
+        if ext is None:
+            if default is None:
+                ext = '/'
+            else:
+                ext = default
+
+        return ext

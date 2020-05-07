@@ -610,7 +610,218 @@ def test_fits():
     assert_raises(ValueError, treecorr.Catalog, file_name, config, every_nth=-10)
 
 @timer
+def test_ext():
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping FITS tests, since fitsio is not installed')
+        return
+
+    ngal = 200
+    s = 10.
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) )
+    z = rng.normal(0,s, (ngal,) )
+    ra, dec, r = coord.CelestialCoord.xyz_to_radec(x,y,z,return_r=True)
+    wpos = rng.random_sample(ngal)
+    w = wpos * rng.binomial(1, 0.95, (ngal,))
+    flag = rng.binomial(3, 0.02, (ngal,))
+    k = rng.normal(0,3, (ngal,) )
+    g1 = rng.normal(0,0.1, (ngal,) )
+    g2 = rng.normal(0,0.1, (ngal,) )
+
+    data = [x,y,z,ra,dec,r,w,wpos,flag,k,g1,g2]
+    names = ['x','y','z','ra','dec','r','w','wpos','flag','k','g1','g2']
+
+    fname = os.path.join('data','test_ext.fits')
+    with fitsio.FITS(fname, 'rw', clobber=True) as f:
+        f.write(data,names=names,extname='1')
+        f.write(data,names=names,extname='2')
+        f.write(data[:3],names=names[:3],extname='xyz')
+        f.write(data[3:6],names=names[3:6],extname='radec')
+        f.write(data[:3]+data[6:9],names=names[:3]+names[6:9],extname='w')
+        f.write(data[:3]+data[9:],names=names[:3]+names[9:],extname='kg')
+        f.write(data,names=names[::-1],extname='reverse')
+
+    cat1 = treecorr.Catalog(fname, allow_xyz=True,
+                            x_col='x', y_col='y', z_col='z',
+                            ra_col='ra', dec_col='dec', r_col='r',
+                            ra_units='rad', dec_units='rad',
+                            w_col='w', wpos_col='wpos', flag_col='flag',
+                            k_col='k', g1_col='g1', g2_col='g2',
+                           ext=1)
+    cat2 = treecorr.Catalog(fname, allow_xyz=True,
+                            x_col='x', y_col='y', z_col='z',
+                            ra_col='ra', dec_col='dec', r_col='r',
+                            ra_units='rad', dec_units='rad',
+                            w_col='w', wpos_col='wpos', flag_col='flag',
+                            k_col='k', g1_col='g1', g2_col='g2',
+                            ext=2)
+    assert cat2 == cat1
+
+    cat3 = treecorr.Catalog(fname,
+                            x_col='x', y_col='y', z_col='z',
+                            ext=3)
+    use = np.where(flag == 0)
+    np.testing.assert_array_equal(cat3.x[use], cat1.x)
+    np.testing.assert_array_equal(cat3.y[use], cat1.y)
+    np.testing.assert_array_equal(cat3.z[use], cat1.z)
+
+    cat4 = treecorr.Catalog(fname,
+                            ra_col='ra', dec_col='dec', r_col='r',
+                            ra_units='rad', dec_units='rad',
+                            ext=4)
+    print('cat4.ra = ',cat4.ra[use])
+    print('cat1.ra = ',cat1.ra)
+    np.testing.assert_allclose(cat4.ra[use], cat1.ra)  # roundtrip doesn't have to be exact.
+    np.testing.assert_allclose(cat4.dec[use], cat1.dec)
+    np.testing.assert_allclose(cat4.r[use], cat1.r)
+    np.testing.assert_allclose(cat4.x[use], cat1.x)
+    np.testing.assert_allclose(cat4.y[use], cat1.y)
+    np.testing.assert_allclose(cat4.z[use], cat1.z)
+
+    cat5 = treecorr.Catalog(fname,
+                            x_col='x', y_col='y', z_col='z',
+                            w_col='w', wpos_col='wpos', flag_col='flag',
+                            ext=5)
+    np.testing.assert_array_equal(cat5.x, cat1.x)
+    np.testing.assert_array_equal(cat5.y, cat1.y)
+    np.testing.assert_array_equal(cat5.z, cat1.z)
+    np.testing.assert_array_equal(cat5.w, cat1.w)
+    np.testing.assert_array_equal(cat5.wpos, cat1.wpos)
+
+    cat6 = treecorr.Catalog(fname,
+                            x_col='x', y_col='y', z_col='z',
+                            k_col='k', g1_col='g1', g2_col='g2',
+                            ext=6)
+    np.testing.assert_array_equal(cat6.x[use], cat1.x)
+    np.testing.assert_array_equal(cat6.y[use], cat1.y)
+    np.testing.assert_array_equal(cat6.z[use], cat1.z)
+    np.testing.assert_array_equal(cat6.k[use], cat1.k)
+    np.testing.assert_array_equal(cat6.g1[use], cat1.g1)
+    np.testing.assert_array_equal(cat6.g2[use], cat1.g2)
+
+    cat7 = treecorr.Catalog(fname, allow_xyz=True,
+                            x_col='x', y_col='y', z_col='z',
+                            ra_col='ra', dec_col='dec', r_col='r',
+                            ra_units='rad', dec_units='rad',
+                            w_col='w', wpos_col='wpos', flag_col='flag',
+                            k_col='k', g1_col='g1', g2_col='g2',
+                            ext=7)
+    assert cat7 != cat1  # This one has all the column names wrong.
+
+    cat8 = treecorr.Catalog(fname, allow_xyz=True,
+                            x_col='x', y_col='y', z_col='z',
+                            ra_col='ra', dec_col='dec', r_col='r',
+                            ra_units='rad', dec_units='rad',
+                            w_col='w', wpos_col='wpos', flag_col='flag',
+                            k_col='k', g1_col='g1', g2_col='g2',
+                            ext=-1)
+    assert cat8 == cat7  # -1 is allowed and means the last one.
+
+    cat9 = treecorr.Catalog(fname, allow_xyz=True,
+                            x_col='x', y_col='y', z_col='z',
+                            ra_col='ra', dec_col='dec', r_col='r',
+                            ra_units='rad', dec_units='rad',
+                            w_col='w', wpos_col='wpos', flag_col='flag',
+                            k_col='k', g1_col='g1', g2_col='g2',
+                            x_ext=1, y_ext=1, z_ext=1,
+                            ra_ext=2, dec_ext=1, r_ext=2,
+                            w_ext=1, wpos_ext=2, flag_ext=1,
+                            k_ext=1, g1_ext=1, g2_ext=2)
+    assert cat9 == cat1
+
+    cat10 = treecorr.Catalog(fname, allow_xyz=True,
+                             x_col='x', y_col='y', z_col='z',
+                             ra_col='ra', dec_col='dec', r_col='r',
+                             ra_units='rad', dec_units='rad',
+                             w_col='w', wpos_col='wpos', flag_col='flag',
+                             k_col='k', g1_col='g1', g2_col='g2',
+                             x_ext=3, y_ext=3, z_ext=3,
+                             ra_ext=4, dec_ext=4, r_ext=4,
+                             w_ext=5, wpos_ext=5, flag_ext=5,
+                             k_ext=6, g1_ext=6, g2_ext=6)
+    assert cat10 == cat1
+
+    # Not all columns in given ext
+    with assert_raises(ValueError):
+        treecorr.Catalog(fname, allow_xyz=True,
+                         x_col='x', y_col='y', z_col='z',
+                         ra_col='ra', dec_col='dec', r_col='r',
+                         ra_units='rad', dec_units='rad',
+                         w_col='w', wpos_col='wpos', flag_col='flag',
+                         k_col='k', g1_col='g1', g2_col='g2',
+                         ext=3)
+
+    # Invalid ext
+    with assert_raises(ValueError):
+        treecorr.Catalog(fname, allow_xyz=True,
+                         x_col='x', y_col='y', z_col='z',
+                         ra_col='ra', dec_col='dec', r_col='r',
+                         ra_units='rad', dec_units='rad',
+                         w_col='w', wpos_col='wpos', flag_col='flag',
+                         k_col='k', g1_col='g1', g2_col='g2',
+                         ext=8)
+    with assert_raises(ValueError):
+        treecorr.Catalog(fname, allow_xyz=True,
+                         x_col='x', y_col='y', z_col='z',
+                         ra_col='ra', dec_col='dec', r_col='r',
+                         ra_units='rad', dec_units='rad',
+                         w_col='w', wpos_col='wpos', flag_col='flag',
+                         k_col='k', g1_col='g1', g2_col='g2',
+                         ext=0)
+    with assert_raises(ValueError):
+        treecorr.Catalog(fname, allow_xyz=True,
+                         x_col='x', y_col='y', z_col='z',
+                         ra_col='ra', dec_col='dec', r_col='r',
+                         ra_units='rad', dec_units='rad',
+                         w_col='w', wpos_col='wpos', flag_col='flag',
+                         k_col='k', g1_col='g1', g2_col='g2',
+                         ext=-20)
+
+    # Not all columns in given ext
+    with assert_raises(ValueError):
+        treecorr.Catalog(fname,
+                         ra_col='ra', dec_col='dec',
+                         ra_units='rad', dec_units='rad',
+                         k_col='k', g1_col='g1', g2_col='g2',
+                         ext=6)
+
+    # Position columns required
+    with assert_raises(ValueError):
+        treecorr.Catalog(fname,
+                         k_col='k', g1_col='g1', g2_col='g2',
+                         ext=6)
+
+    # Missing units
+    with assert_raises(TypeError):
+        treecorr.Catalog(fname, allow_xyz=True,
+                         x_col='x', y_col='y', z_col='z',
+                         ra_col='ra', dec_col='dec', r_col='r',
+                         w_col='w', wpos_col='wpos', flag_col='flag',
+                         k_col='k', g1_col='g1', g2_col='g2',
+                         ext=1)
+    with assert_raises(TypeError):
+        treecorr.Catalog(fname, allow_xyz=True,
+                         x_col='x', y_col='y', z_col='z',
+                         ra_col='ra', dec_col='dec', r_col='r',
+                         ra_units='rad',
+                         w_col='w', wpos_col='wpos', flag_col='flag',
+                         k_col='k', g1_col='g1', g2_col='g2',
+                         ext=1)
+    with assert_raises(TypeError):
+        treecorr.Catalog(fname, allow_xyz=True,
+                         x_col='x', y_col='y', z_col='z',
+                         ra_col='ra', dec_col='dec', r_col='r',
+                         dec_units='rad',
+                         w_col='w', wpos_col='wpos', flag_col='flag',
+                         k_col='k', g1_col='g1', g2_col='g2',
+                         ext=1)
+
+@timer
 def test_hdu():
+    # Repeat test_ext, but with deprecated hdu names.
     try:
         import fitsio
     except ImportError:
@@ -644,34 +855,38 @@ def test_hdu():
         f.write(data[:3]+data[9:],names=names[:3]+names[9:],extname='kg')
         f.write(data,names=names[::-1],extname='reverse')
 
-    cat1 = treecorr.Catalog(fname, allow_xyz=True,
-                            x_col='x', y_col='y', z_col='z',
-                            ra_col='ra', dec_col='dec', r_col='r',
-                            ra_units='rad', dec_units='rad',
-                            w_col='w', wpos_col='wpos', flag_col='flag',
-                            k_col='k', g1_col='g1', g2_col='g2',
-                           hdu=1)
-    cat2 = treecorr.Catalog(fname, allow_xyz=True,
-                            x_col='x', y_col='y', z_col='z',
-                            ra_col='ra', dec_col='dec', r_col='r',
-                            ra_units='rad', dec_units='rad',
-                            w_col='w', wpos_col='wpos', flag_col='flag',
-                            k_col='k', g1_col='g1', g2_col='g2',
-                            hdu=2)
+    with assert_warns(FutureWarning):
+        cat1 = treecorr.Catalog(fname, allow_xyz=True,
+                                x_col='x', y_col='y', z_col='z',
+                                ra_col='ra', dec_col='dec', r_col='r',
+                                ra_units='rad', dec_units='rad',
+                                w_col='w', wpos_col='wpos', flag_col='flag',
+                                k_col='k', g1_col='g1', g2_col='g2',
+                               hdu=1)
+    with assert_warns(FutureWarning):
+        cat2 = treecorr.Catalog(fname, allow_xyz=True,
+                                x_col='x', y_col='y', z_col='z',
+                                ra_col='ra', dec_col='dec', r_col='r',
+                                ra_units='rad', dec_units='rad',
+                                w_col='w', wpos_col='wpos', flag_col='flag',
+                                k_col='k', g1_col='g1', g2_col='g2',
+                                hdu=2)
     assert cat2 == cat1
 
-    cat3 = treecorr.Catalog(fname,
-                            x_col='x', y_col='y', z_col='z',
-                            hdu=3)
+    with assert_warns(FutureWarning):
+        cat3 = treecorr.Catalog(fname,
+                                x_col='x', y_col='y', z_col='z',
+                                hdu=3)
     use = np.where(flag == 0)
     np.testing.assert_array_equal(cat3.x[use], cat1.x)
     np.testing.assert_array_equal(cat3.y[use], cat1.y)
     np.testing.assert_array_equal(cat3.z[use], cat1.z)
 
-    cat4 = treecorr.Catalog(fname,
-                            ra_col='ra', dec_col='dec', r_col='r',
-                            ra_units='rad', dec_units='rad',
-                            hdu=4)
+    with assert_warns(FutureWarning):
+        cat4 = treecorr.Catalog(fname,
+                                ra_col='ra', dec_col='dec', r_col='r',
+                                ra_units='rad', dec_units='rad',
+                                hdu=4)
     print('cat4.ra = ',cat4.ra[use])
     print('cat1.ra = ',cat1.ra)
     np.testing.assert_allclose(cat4.ra[use], cat1.ra)  # roundtrip doesn't have to be exact.
@@ -681,20 +896,22 @@ def test_hdu():
     np.testing.assert_allclose(cat4.y[use], cat1.y)
     np.testing.assert_allclose(cat4.z[use], cat1.z)
 
-    cat5 = treecorr.Catalog(fname,
-                            x_col='x', y_col='y', z_col='z',
-                            w_col='w', wpos_col='wpos', flag_col='flag',
-                            hdu=5)
+    with assert_warns(FutureWarning):
+        cat5 = treecorr.Catalog(fname,
+                                x_col='x', y_col='y', z_col='z',
+                                w_col='w', wpos_col='wpos', flag_col='flag',
+                                hdu=5)
     np.testing.assert_array_equal(cat5.x, cat1.x)
     np.testing.assert_array_equal(cat5.y, cat1.y)
     np.testing.assert_array_equal(cat5.z, cat1.z)
     np.testing.assert_array_equal(cat5.w, cat1.w)
     np.testing.assert_array_equal(cat5.wpos, cat1.wpos)
 
-    cat6 = treecorr.Catalog(fname,
-                            x_col='x', y_col='y', z_col='z',
-                            k_col='k', g1_col='g1', g2_col='g2',
-                            hdu=6)
+    with assert_warns(FutureWarning):
+        cat6 = treecorr.Catalog(fname,
+                                x_col='x', y_col='y', z_col='z',
+                                k_col='k', g1_col='g1', g2_col='g2',
+                                hdu=6)
     np.testing.assert_array_equal(cat6.x[use], cat1.x)
     np.testing.assert_array_equal(cat6.y[use], cat1.y)
     np.testing.assert_array_equal(cat6.z[use], cat1.z)
@@ -702,122 +919,52 @@ def test_hdu():
     np.testing.assert_array_equal(cat6.g1[use], cat1.g1)
     np.testing.assert_array_equal(cat6.g2[use], cat1.g2)
 
-    cat7 = treecorr.Catalog(fname, allow_xyz=True,
-                            x_col='x', y_col='y', z_col='z',
-                            ra_col='ra', dec_col='dec', r_col='r',
-                            ra_units='rad', dec_units='rad',
-                            w_col='w', wpos_col='wpos', flag_col='flag',
-                            k_col='k', g1_col='g1', g2_col='g2',
-                            hdu=7)
+    with assert_warns(FutureWarning):
+        cat7 = treecorr.Catalog(fname, allow_xyz=True,
+                                x_col='x', y_col='y', z_col='z',
+                                ra_col='ra', dec_col='dec', r_col='r',
+                                ra_units='rad', dec_units='rad',
+                                w_col='w', wpos_col='wpos', flag_col='flag',
+                                k_col='k', g1_col='g1', g2_col='g2',
+                                hdu=7)
     assert cat7 != cat1  # This one has all the column names wrong.
 
-    cat8 = treecorr.Catalog(fname, allow_xyz=True,
-                            x_col='x', y_col='y', z_col='z',
-                            ra_col='ra', dec_col='dec', r_col='r',
-                            ra_units='rad', dec_units='rad',
-                            w_col='w', wpos_col='wpos', flag_col='flag',
-                            k_col='k', g1_col='g1', g2_col='g2',
-                            hdu=-1)
+    with assert_warns(FutureWarning):
+        cat8 = treecorr.Catalog(fname, allow_xyz=True,
+                                x_col='x', y_col='y', z_col='z',
+                                ra_col='ra', dec_col='dec', r_col='r',
+                                ra_units='rad', dec_units='rad',
+                                w_col='w', wpos_col='wpos', flag_col='flag',
+                                k_col='k', g1_col='g1', g2_col='g2',
+                                hdu=-1)
     assert cat8 == cat7  # -1 is allowed and means the last one.
 
-    cat9 = treecorr.Catalog(fname, allow_xyz=True,
-                            x_col='x', y_col='y', z_col='z',
-                            ra_col='ra', dec_col='dec', r_col='r',
-                            ra_units='rad', dec_units='rad',
-                            w_col='w', wpos_col='wpos', flag_col='flag',
-                            k_col='k', g1_col='g1', g2_col='g2',
-                            x_hdu=1, y_hdu=1, z_hdu=1,
-                            ra_hdu=2, dec_hdu=1, r_hdu=2,
-                            w_hdu=1, wpos_hdu=2, flag_hdu=1,
-                            k_hdu=1, g1_hdu=1, g2_hdu=2)
+    with assert_warns(FutureWarning):
+        cat9 = treecorr.Catalog(fname, allow_xyz=True,
+                                x_col='x', y_col='y', z_col='z',
+                                ra_col='ra', dec_col='dec', r_col='r',
+                                ra_units='rad', dec_units='rad',
+                                w_col='w', wpos_col='wpos', flag_col='flag',
+                                k_col='k', g1_col='g1', g2_col='g2',
+                                x_hdu=1, y_hdu=1, z_hdu=1,
+                                ra_hdu=2, dec_hdu=1, r_hdu=2,
+                                w_hdu=1, wpos_hdu=2, flag_hdu=1,
+                                k_hdu=1, g1_hdu=1, g2_hdu=2)
     assert cat9 == cat1
 
-    cat10 = treecorr.Catalog(fname, allow_xyz=True,
-                             x_col='x', y_col='y', z_col='z',
-                             ra_col='ra', dec_col='dec', r_col='r',
-                             ra_units='rad', dec_units='rad',
-                             w_col='w', wpos_col='wpos', flag_col='flag',
-                             k_col='k', g1_col='g1', g2_col='g2',
-                             x_hdu=3, y_hdu=3, z_hdu=3,
-                             ra_hdu=4, dec_hdu=4, r_hdu=4,
-                             w_hdu=5, wpos_hdu=5, flag_hdu=5,
-                             k_hdu=6, g1_hdu=6, g2_hdu=6)
+    with assert_warns(FutureWarning):
+        cat10 = treecorr.Catalog(fname, allow_xyz=True,
+                                 x_col='x', y_col='y', z_col='z',
+                                 ra_col='ra', dec_col='dec', r_col='r',
+                                 ra_units='rad', dec_units='rad',
+                                 w_col='w', wpos_col='wpos', flag_col='flag',
+                                 k_col='k', g1_col='g1', g2_col='g2',
+                                 x_hdu=3, y_hdu=3, z_hdu=3,
+                                 ra_hdu=4, dec_hdu=4, r_hdu=4,
+                                 w_hdu=5, wpos_hdu=5, flag_hdu=5,
+                                 k_hdu=6, g1_hdu=6, g2_hdu=6)
     assert cat10 == cat1
 
-    # Not all columns in given hdu
-    with assert_raises(ValueError):
-        treecorr.Catalog(fname, allow_xyz=True,
-                         x_col='x', y_col='y', z_col='z',
-                         ra_col='ra', dec_col='dec', r_col='r',
-                         ra_units='rad', dec_units='rad',
-                         w_col='w', wpos_col='wpos', flag_col='flag',
-                         k_col='k', g1_col='g1', g2_col='g2',
-                         hdu=3)
-
-    # Invalid hdu
-    with assert_raises(ValueError):
-        treecorr.Catalog(fname, allow_xyz=True,
-                         x_col='x', y_col='y', z_col='z',
-                         ra_col='ra', dec_col='dec', r_col='r',
-                         ra_units='rad', dec_units='rad',
-                         w_col='w', wpos_col='wpos', flag_col='flag',
-                         k_col='k', g1_col='g1', g2_col='g2',
-                         hdu=8)
-    with assert_raises(ValueError):
-        treecorr.Catalog(fname, allow_xyz=True,
-                         x_col='x', y_col='y', z_col='z',
-                         ra_col='ra', dec_col='dec', r_col='r',
-                         ra_units='rad', dec_units='rad',
-                         w_col='w', wpos_col='wpos', flag_col='flag',
-                         k_col='k', g1_col='g1', g2_col='g2',
-                         hdu=0)
-    with assert_raises(ValueError):
-        treecorr.Catalog(fname, allow_xyz=True,
-                         x_col='x', y_col='y', z_col='z',
-                         ra_col='ra', dec_col='dec', r_col='r',
-                         ra_units='rad', dec_units='rad',
-                         w_col='w', wpos_col='wpos', flag_col='flag',
-                         k_col='k', g1_col='g1', g2_col='g2',
-                         hdu=-20)
-
-    # Not all columns in given hdu
-    with assert_raises(ValueError):
-        treecorr.Catalog(fname,
-                         ra_col='ra', dec_col='dec',
-                         ra_units='rad', dec_units='rad',
-                         k_col='k', g1_col='g1', g2_col='g2',
-                         hdu=6)
-
-    # Position columns required
-    with assert_raises(ValueError):
-        treecorr.Catalog(fname,
-                         k_col='k', g1_col='g1', g2_col='g2',
-                         hdu=6)
-
-    # Missing units
-    with assert_raises(TypeError):
-        treecorr.Catalog(fname, allow_xyz=True,
-                         x_col='x', y_col='y', z_col='z',
-                         ra_col='ra', dec_col='dec', r_col='r',
-                         w_col='w', wpos_col='wpos', flag_col='flag',
-                         k_col='k', g1_col='g1', g2_col='g2',
-                         hdu=1)
-    with assert_raises(TypeError):
-        treecorr.Catalog(fname, allow_xyz=True,
-                         x_col='x', y_col='y', z_col='z',
-                         ra_col='ra', dec_col='dec', r_col='r',
-                         ra_units='rad',
-                         w_col='w', wpos_col='wpos', flag_col='flag',
-                         k_col='k', g1_col='g1', g2_col='g2',
-                         hdu=1)
-    with assert_raises(TypeError):
-        treecorr.Catalog(fname, allow_xyz=True,
-                         x_col='x', y_col='y', z_col='z',
-                         ra_col='ra', dec_col='dec', r_col='r',
-                         dec_units='rad',
-                         w_col='w', wpos_col='wpos', flag_col='flag',
-                         k_col='k', g1_col='g1', g2_col='g2',
-                         hdu=1)
 
 @timer
 def test_direct():
@@ -1705,6 +1852,8 @@ def test_lru():
 if __name__ == '__main__':
     test_ascii()
     test_fits()
+    test_ext()
+    test_hdu()
     test_direct()
     test_var()
     test_nan()

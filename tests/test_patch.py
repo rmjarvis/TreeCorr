@@ -152,7 +152,7 @@ def test_cat_patches():
                                 ra_units='rad', dec_units='rad', patch_col='patch')
         np.testing.assert_array_equal(cat6.patch, p2)
         cat6b = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
-                                 ra_units='rad', dec_units='rad', patch_col='patch', patch_hdu=1)
+                                 ra_units='rad', dec_units='rad', patch_col='patch', patch_ext=1)
         np.testing.assert_array_equal(cat6b.patch, p2)
         assert len(cat6.patches) == npatch
         assert len(cat6b.patches) == npatch
@@ -255,7 +255,7 @@ def test_cat_patches():
         # bad patch hdu
         with assert_raises(IOError):
             treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
-                             ra_units='rad', dec_units='rad', patch_col='patch', patch_hdu=2)
+                             ra_units='rad', dec_units='rad', patch_col='patch', patch_ext=2)
         # bad patch col name for fits
         with assert_raises(ValueError):
             treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',

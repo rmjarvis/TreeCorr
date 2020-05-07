@@ -20,6 +20,7 @@ import sys
 from . import _lib
 import coord
 import numpy as np
+import warnings
 
 
 def parse_variable(config, v):
@@ -222,6 +223,9 @@ def check_config(config, params, aliases=None, logger=None):
             if logger:
                 logger.warning("The parameter %s is deprecated.  You should use %s instead."%(
                                key, aliases[key]))
+            else:
+                warnings.warn("The parameter %s is deprecated.  You should use %s instead."%(
+                              key, aliases[key]), FutureWarning)
             new_key = aliases[key]
             config[new_key] = config[key]
             del config[key]
@@ -371,7 +375,7 @@ def get(config, key, value_type=str, default=None):
     else:
         return default
 
-def merge_config(config, kwargs, valid_params):
+def merge_config(config, kwargs, valid_params, aliases=None):
     """Merge in the values from kwargs into config.
 
     If either of these is None, then the other one is returned.
@@ -382,6 +386,7 @@ def merge_config(config, kwargs, valid_params):
     :param kwargs:          A second dict with more or updated values
     :param valid_params:    A dict of valid parameters that are allowed for this usage.
                             The config dict is allowed to have extra items, but kwargs is not.
+    :param aliases:         An optional dict of aliases. (default: None)
 
     :returns:               The merged dict, including only items that are in valid_params.
     """
@@ -391,7 +396,7 @@ def merge_config(config, kwargs, valid_params):
         for key, value in config.items():
             if key in valid_params and key not in kwargs:
                 kwargs[key] = value
-    return check_config(kwargs, valid_params)
+    return check_config(kwargs, valid_params, aliases)
 
 
 

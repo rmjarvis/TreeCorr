@@ -286,7 +286,7 @@ def test_3d():
     ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
     r = (x**2 + y**2 + z**2)**0.5
     cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', r=r, w=w)
-    field = cat.getNField()
+    field = cat2.getNField()
     t0 = time.time()
     p2, cen = field.run_kmeans(npatch)
     t1 = time.time()
@@ -771,6 +771,184 @@ def test_zero_weight():
     print('w==0 patches = ',np.unique(p[w==0]))
     assert set(p[w>0]) == set(p[w==0])
 
+@timer
+def test_catalog_sphere():
+    # This follows the same path as test_radec, but using the Catalog API to run kmeans.
+
+    ngal = 100000
+    s = 10.
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) ) + 100  # Put everything at large y, so smallish angle on sky
+    z = rng.normal(0,s, (ngal,) )
+    w = rng.random_sample(ngal)
+    ra, dec, r = coord.CelestialCoord.xyz_to_radec(x,y,z, return_r=True)
+    print('minra = ',np.min(ra) * coord.radians / coord.degrees)
+    print('maxra = ',np.max(ra) * coord.radians / coord.degrees)
+    print('mindec = ',np.min(dec) * coord.radians / coord.degrees)
+    print('maxdec = ',np.max(dec) * coord.radians / coord.degrees)
+    npatch = 111
+    cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w, npatch=npatch)
+
+    t0 = time.time()
+    p = cat.patch
+    cen = cat.patch_centers
+    t1 = time.time()
+    print('patches = ',np.unique(p))
+    assert len(p) == cat.ntot
+    assert min(p) == 0
+    assert max(p) == npatch-1
+
+    # Check the returned center to a direct calculation.
+    xyz = np.array([cat.x, cat.y, cat.z]).T
+    direct_cen = np.array([np.average(xyz[p==i], axis=0, weights=w[p==i]) for i in range(npatch)])
+    direct_cen /= np.sqrt(np.sum(direct_cen**2,axis=1)[:,np.newaxis])
+    np.testing.assert_allclose(cen, direct_cen, atol=2.e-3)
+
+    inertia = np.array([np.sum(w[p==i][:,None] * (xyz[p==i] - cen[i])**2) for i in range(npatch)])
+    counts = np.array([np.sum(w[p==i]) for i in range(npatch)])
+
+    print('With standard algorithm:')
+    print('time = ',t1-t0)
+    print('inertia = ',inertia)
+    print('counts = ',counts)
+    print('total inertia = ',np.sum(inertia))
+    print('mean inertia = ',np.mean(inertia))
+    print('rms inertia = ',np.std(inertia))
+    assert np.sum(inertia) < 200.  # This is specific to this particular field and npatch.
+    assert np.std(inertia) < 0.3 * np.mean(inertia)  # rms is usually small  mean
+
+    # With weights, these aren't actually all that similar.  The range is more than a
+    # factor of 10.  I think because it varies whether high weight points happen to be near the
+    # edges or middles of patches, so the total weight varies when you target having the
+    # inertias be relatively similar.
+    print('mean counts = ',np.mean(counts))
+    print('min counts = ',np.min(counts))
+    print('max counts = ',np.max(counts))
+
+    # Check the alternate algorithm.  rms inertia should be lower.
+    cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w,
+                            npatch=npatch, kmeans_alt=True)
+    t0 = time.time()
+    p = cat2.patch
+    cen = cat2.patch_centers
+    t1 = time.time()
+    assert len(p) == cat2.ntot
+    assert min(p) == 0
+    assert max(p) == npatch-1
+
+    inertia = np.array([np.sum(w[p==i][:,None] * (xyz[p==i] - cen[i])**2) for i in range(npatch)])
+    counts = np.array([np.sum(w[p==i]) for i in range(npatch)])
+
+    print('With alternate algorithm:')
+    print('time = ',t1-t0)
+    print('total inertia = ',np.sum(inertia))
+    print('mean inertia = ',np.mean(inertia))
+    print('rms inertia = ',np.std(inertia))
+    assert np.sum(inertia) < 200.  # Total shouldn't increase much. (And often decreases.)
+    assert np.std(inertia) < 0.15 * np.mean(inertia)  # rms should be even smaller here.
+    print('mean counts = ',np.mean(counts))
+    print('min counts = ',np.min(counts))
+    print('max counts = ',np.max(counts))
+
+    # Check using patch_centers from (ra,dec) -> (ra,dec,r)
+    cat3 = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='rad', dec_units='rad', w=w,
+                            patch_centers=cat2.patch_centers)
+    np.testing.assert_array_equal(cat2.patch, cat3.patch)
+    np.testing.assert_array_equal(cat2.patch_centers, cat3.patch_centers)
+
+
+@timer
+def test_catalog_3d():
+    # With ra, dec, r, the Catalog API should only do patches using RA, Dec.
+
+    ngal = 100000
+    s = 10.
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) ) + 100  # Put everything at large y, so smallish angle on sky
+    z = rng.normal(0,s, (ngal,) )
+    w = rng.random_sample(ngal)
+    ra, dec, r = coord.CelestialCoord.xyz_to_radec(x,y,z, return_r=True)
+    print('minra = ',np.min(ra) * coord.radians / coord.degrees)
+    print('maxra = ',np.max(ra) * coord.radians / coord.degrees)
+    print('mindec = ',np.min(dec) * coord.radians / coord.degrees)
+    print('maxdec = ',np.max(dec) * coord.radians / coord.degrees)
+    npatch = 111
+    cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='rad', dec_units='rad', w=w,
+                           npatch=npatch)
+
+    t0 = time.time()
+    p = cat.patch
+    cen = cat.patch_centers
+    t1 = time.time()
+    print('patches = ',np.unique(p))
+    assert len(p) == cat.ntot
+    assert min(p) == 0
+    assert max(p) == npatch-1
+
+    # Check the returned center to a direct calculation.
+    xyz = np.array([cat.x/cat.r, cat.y/cat.r, cat.z/cat.r]).T
+    print('cen = ',cen)
+    print('xyz = ',xyz)
+    direct_cen = np.array([np.average(xyz[p==i], axis=0, weights=w[p==i]) for i in range(npatch)])
+    direct_cen /= np.sqrt(np.sum(direct_cen**2,axis=1)[:,np.newaxis])
+    np.testing.assert_allclose(cen, direct_cen, atol=2.e-3)
+
+    inertia = np.array([np.sum(w[p==i][:,None] * (xyz[p==i] - cen[i])**2) for i in range(npatch)])
+    counts = np.array([np.sum(w[p==i]) for i in range(npatch)])
+
+    print('With standard algorithm:')
+    print('time = ',t1-t0)
+    print('inertia = ',inertia)
+    print('counts = ',counts)
+    print('total inertia = ',np.sum(inertia))
+    print('mean inertia = ',np.mean(inertia))
+    print('rms inertia = ',np.std(inertia))
+    assert np.sum(inertia) < 200.  # This is specific to this particular field and npatch.
+    assert np.std(inertia) < 0.3 * np.mean(inertia)  # rms is usually small  mean
+
+    # With weights, these aren't actually all that similar.  The range is more than a
+    # factor of 10.  I think because it varies whether high weight points happen to be near the
+    # edges or middles of patches, so the total weight varies when you target having the
+    # inertias be relatively similar.
+    print('mean counts = ',np.mean(counts))
+    print('min counts = ',np.min(counts))
+    print('max counts = ',np.max(counts))
+
+    # Check the alternate algorithm.  rms inertia should be lower.
+    cat2 = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='rad', dec_units='rad', w=w,
+                            npatch=npatch, kmeans_alt=True)
+    t0 = time.time()
+    p = cat2.patch
+    cen = cat2.patch_centers
+    t1 = time.time()
+    assert len(p) == cat2.ntot
+    assert min(p) == 0
+    assert max(p) == npatch-1
+
+    inertia = np.array([np.sum(w[p==i][:,None] * (xyz[p==i] - cen[i])**2) for i in range(npatch)])
+    counts = np.array([np.sum(w[p==i]) for i in range(npatch)])
+
+    print('With alternate algorithm:')
+    print('time = ',t1-t0)
+    print('total inertia = ',np.sum(inertia))
+    print('mean inertia = ',np.mean(inertia))
+    print('rms inertia = ',np.std(inertia))
+    assert np.sum(inertia) < 200.  # Total shouldn't increase much. (And often decreases.)
+    assert np.std(inertia) < 0.15 * np.mean(inertia)  # rms should be even smaller here.
+    print('mean counts = ',np.mean(counts))
+    print('min counts = ',np.min(counts))
+    print('max counts = ',np.max(counts))
+
+    # Check using patch_centers from (ra,dec,r) -> (ra,dec)
+    cat3 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w,
+                            patch_centers=cat2.patch_centers)
+    np.testing.assert_array_equal(cat2.patch, cat3.patch)
+    np.testing.assert_array_equal(cat2.patch_centers, cat3.patch_centers)
+
+
+
 if __name__ == '__main__':
     test_dessv()
     test_radec()
@@ -779,3 +957,5 @@ if __name__ == '__main__':
     test_init_random()
     test_init_kmpp()
     test_zero_weight()
+    test_catalog_sphere()
+    test_catalog_3d()

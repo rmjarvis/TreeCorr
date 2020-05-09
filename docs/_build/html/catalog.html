@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Input Data &mdash; TreeCorr 4.1.0 documentation</title>
+  <title>Input Data &mdash; TreeCorr 4.1.1 documentation</title>
   
 
   
@@ -103,6 +103,7 @@
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-1-0-to-4-1-1">Changes from version 4.1.0 to 4.1.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -340,7 +341,8 @@ the last row in the file)</p></li>
 <li><p><strong>every_nth</strong> (<em>int</em>) – Only use every nth row of the input catalog. (default: 1)</p></li>
 <li><p><strong>npatch</strong> (<em>int</em>) – How many patches to split the catalog into (using kmeans) for the
 purpose of jackknife variance or other options that involve running via
-patches. (default: 1)</p></li>
+patches. Note: If the catalog has ra,dec,r positions, the patches will
+be made using just ra,dec. (default: 1)</p></li>
 <li><p><strong>kmeans_init</strong> (<em>str</em>) – If using kmeans to make patches, which init method to use.
 cf. <a class="reference internal" href="field.html#treecorr.Field.run_kmeans" title="treecorr.Field.run_kmeans"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Field.run_kmeans</span></code></a> (default: ‘tree’)</p></li>
 <li><p><strong>kmeans_alt</strong> (<em>str</em>) – If using kmeans to make patches, whether to use the alternate kmeans

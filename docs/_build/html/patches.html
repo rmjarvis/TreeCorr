@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Patches &mdash; TreeCorr 4.1.0 documentation</title>
+  <title>Patches &mdash; TreeCorr 4.1.1 documentation</title>
   
 
   
@@ -106,6 +106,7 @@
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-1-0-to-4-1-1">Changes from version 4.1.0 to 4.1.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -237,6 +238,14 @@ catalog of astronomical objects into fairly uniform patches.</p>
 <p>To use the TreeCorr implementation of k-means, simply
 set the <code class="docutils literal notranslate"><span class="pre">npatch</span></code> parameter in the <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a> constructor to specifiy
 how many patches you want TreeCorr to split the data into.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the input catalog has (ra, dec, r) positions, then the patches will
+be made using only the ra,dec location on the sky, not the full 3-D
+positions.  This is usually what you want for making patches over an
+astronomical survey area.  If you really want to make patches according
+to 3-D clustering of points, then you should input x,y,z values instead.</p>
+</div>
 <p>There are also two additional options which can affect how the k-means
 algorithm runs:</p>
 <ul>

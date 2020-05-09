@@ -575,7 +575,7 @@ class Catalog(object):
                     raise TypeError("x and y must both be provided")
                 if (ra is not None or dec is not None) and not allow_xyz:
                     raise TypeError("ra and dec may not be provided with x,y")
-                if r is not None:
+                if r is not None and not allow_xyz:
                     raise TypeError("r may not be provided with x,y")
             if ra is not None or dec is not None:
                 if ra is None or dec is None:
@@ -1542,7 +1542,7 @@ class Catalog(object):
 
                 # We might actually be done now, in which case, just return.
                 # (Else the fits read below won't actually work.)
-                if len(all_cols) == 0:
+                if len(all_cols) == 0 or (isinstance(s,np.ndarray) and len(s) == 0):
                     return
 
             # Now read the rest using the updated s

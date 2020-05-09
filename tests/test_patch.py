@@ -2189,7 +2189,7 @@ def test_lowmem():
     x = rng.uniform(-20,20, (ngal,) )
     y = rng.uniform(80,120, (ngal,) )  # Put everything at large y, so smallish angle on sky
     z = rng.uniform(-20,20, (ngal,) )
-    ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
+    ra, dec, r = coord.CelestialCoord.xyz_to_radec(x,y,z, return_r=True)
 
     file_name = os.path.join('output','test_lowmem.fits')
     orig_cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad')
@@ -2258,10 +2258,11 @@ def test_lowmem():
 
     # Check other combinations
     # Use a smaller catalog to run faster.
+    # And along the way we'll check other aspects of the patch usage.
     g1 = rng.uniform(-0.1,0.1, (ngal//100,) )
     g2 = rng.uniform(-0.1,0.1, (ngal//100,) )
     k = rng.uniform(-0.1,0.1, (ngal//100,) )
-    gk_cat0 = treecorr.Catalog(ra=ra[:ngal//100], dec=dec[:ngal//100],
+    gk_cat0 = treecorr.Catalog(ra=ra[:ngal//100], dec=dec[:ngal//100], r=r[:ngal//100],
                                ra_units='rad', dec_units='rad',
                                g1=g1, g2=g2, k=k,
                                npatch=4)
@@ -2271,6 +2272,7 @@ def test_lowmem():
     del gk_cat0
     if hp: hp.setrelheap()
 
+    # First GG with normal ra,dec from a file
     gk_cat1 = treecorr.Catalog(file_name,
                                ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
                                g1_col='g1', g2_col='g2', k_col='k',
@@ -2300,6 +2302,7 @@ def test_lowmem():
     np.testing.assert_allclose(gg1.xim, gg2.xim)
     np.testing.assert_allclose(gg1.weight, gg2.weight)
 
+    # NG, still with the same file, but cross correlation.
     ng1 = treecorr.NGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
@@ -2319,7 +2322,17 @@ def test_lowmem():
     np.testing.assert_allclose(ng1.xi, ng2.xi)
     np.testing.assert_allclose(ng1.weight, ng2.weight)
 
-    kk1 = treecorr.KKCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
+    # KK with r_col now to test that that works properly.
+    gk_cat1 = treecorr.Catalog(file_name,
+                               ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                               r_col='r', g1_col='g1', g2_col='g2', k_col='k',
+                               patch_centers=patch_centers)
+    gk_cat2 = treecorr.Catalog(file_name,
+                               ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                               r_col='r', g1_col='g1', g2_col='g2', k_col='k',
+                               patch_centers=patch_centers, save_patch_dir='output')
+
+    kk1 = treecorr.KKCorrelation(bin_size=0.5, min_sep=1., max_sep=20.)
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
     kk1.process(gk_cat1)
@@ -2327,7 +2340,7 @@ def test_lowmem():
     s1 = hp.heap().size if hp else 0
     print('KK1: ',s1, t1-t0, s1-s0)
     gk_cat1.unload()
-    kk2 = treecorr.KKCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
+    kk2 = treecorr.KKCorrelation(bin_size=0.5, min_sep=1., max_sep=20.)
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
     kk2.process(gk_cat2, low_mem=True)
@@ -2338,7 +2351,17 @@ def test_lowmem():
     np.testing.assert_allclose(kk1.xi, kk2.xi)
     np.testing.assert_allclose(kk1.weight, kk2.weight)
 
-    nk1 = treecorr.NKCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
+    # NK with r_col still, but not from a file.
+    gk_cat1 = treecorr.Catalog(ra=ra[:ngal//100], dec=dec[:ngal//100], r=r[:ngal//100],
+                               g1=g1[:ngal//100], g2=g2[:ngal//100], k=k[:ngal//100],
+                               ra_units='rad', dec_units='rad',
+                               patch_centers=patch_centers)
+    gk_cat2 = treecorr.Catalog(ra=ra[:ngal//100], dec=dec[:ngal//100], r=r[:ngal//100],
+                               g1=g1[:ngal//100], g2=g2[:ngal//100], k=k[:ngal//100],
+                               ra_units='rad', dec_units='rad',
+                               patch_centers=patch_centers, save_patch_dir='output')
+
+    nk1 = treecorr.NKCorrelation(bin_size=0.5, min_sep=1., max_sep=20.)
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
     nk1.process(gk_cat1, gk_cat1)
@@ -2346,7 +2369,7 @@ def test_lowmem():
     s1 = hp.heap().size if hp else 0
     print('NK1: ',s1, t1-t0, s1-s0)
     gk_cat1.unload()
-    nk2 = treecorr.NKCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
+    nk2 = treecorr.NKCorrelation(bin_size=0.5, min_sep=1., max_sep=20.)
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
     nk2.process(gk_cat2, gk_cat2, low_mem=True)
@@ -2356,6 +2379,16 @@ def test_lowmem():
     gk_cat2.unload()
     np.testing.assert_allclose(nk1.xi, nk2.xi)
     np.testing.assert_allclose(nk1.weight, nk2.weight)
+
+    # KG without r_col, and not from a file.
+    gk_cat1 = treecorr.Catalog(ra=ra[:ngal//100], dec=dec[:ngal//100],
+                               g1=g1[:ngal//100], g2=g2[:ngal//100], k=k[:ngal//100],
+                               ra_units='rad', dec_units='rad',
+                               patch_centers=patch_centers)
+    gk_cat2 = treecorr.Catalog(ra=ra[:ngal//100], dec=dec[:ngal//100],
+                               g1=g1[:ngal//100], g2=g2[:ngal//100], k=k[:ngal//100],
+                               ra_units='rad', dec_units='rad',
+                               patch_centers=patch_centers, save_patch_dir='output')
 
     kg1 = treecorr.KGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()

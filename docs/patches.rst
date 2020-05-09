@@ -80,6 +80,14 @@ To use the TreeCorr implementation of k-means, simply
 set the ``npatch`` parameter in the `Catalog` constructor to specifiy
 how many patches you want TreeCorr to split the data into.
 
+.. note::
+
+    If the input catalog has (ra, dec, r) positions, then the patches will
+    be made using only the ra,dec location on the sky, not the full 3-D
+    positions.  This is usually what you want for making patches over an
+    astronomical survey area.  If you really want to make patches according
+    to 3-D clustering of points, then you should input x,y,z values instead.
+
 There are also two additional options which can affect how the k-means
 algorithm runs:
 

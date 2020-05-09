@@ -196,7 +196,8 @@ class Catalog(object):
 
         npatch (int):       How many patches to split the catalog into (using kmeans) for the
                             purpose of jackknife variance or other options that involve running via
-                            patches. (default: 1)
+                            patches. Note: If the catalog has ra,dec,r positions, the patches will
+                            be made using just ra,dec. (default: 1)
         kmeans_init (str):  If using kmeans to make patches, which init method to use.
                             cf. `Field.run_kmeans` (default: 'tree')
         kmeans_alt (str):   If using kmeans to make patches, whether to use the alternate kmeans

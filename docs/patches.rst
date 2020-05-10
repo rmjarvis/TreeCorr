@@ -284,8 +284,11 @@ be a problem, but the source catalog is too large to hold in memory::
     >>> ng.process(lens_cat, source_cat, low_mem=True)
 
 In both cases, the result should be equivalent to what you would get if you could
-hold the catalogs fully in memory.  This usage will generally take somewhat longer
-(a factor of 2 or less for typical scenarios) but have much lower peak memory.
+hold the catalogs fully in memory.  This usage will generally take somewhat longer,
+but have much lower peak memory.
+(Probably something like a factor of 2 for typical scenarios, but this of course
+depends heavily on the nature of your calculation, how fast your disk I/O is
+compared to your CPUs, and how many cores you are using.)
 
 .. note::
 

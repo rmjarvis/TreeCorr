@@ -87,6 +87,15 @@ New features
 - Added ``comm`` option to ``process`` calls to use MPI to split a job up over
   multiple machines. (#98, #104)
 
+Deprecations
+------------
+
+- The `process_pairwise <NNCorrelation.process_pairwise>` functions have all been
+  deprecated.  I can't remember anymore why I added this feature, and I don't think
+  anyone uses it (or the associated `SimpleFields <NSimpleField>`).  If you need this
+  functionality, please open an issue to let me know, and I can keep them.  Otherwise,
+  I'll remove them as usesless cruft.
+
 Changes from version 4.1.0 to 4.1.1
 -----------------------------------
 

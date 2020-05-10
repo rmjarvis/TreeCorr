@@ -82,10 +82,7 @@ New features
   multiple machines.
 
 Changes from version 4.1.0 to 4.1.1
-===================================
-
-Bug fixes
----------
+-----------------------------------
 
 - Make sure ra,dec,r catalogs make patches using just ra,dec, not full 3D position.
 - Fix a bug when using ra,dec,r catalog with ``save_patch_dir`` option.

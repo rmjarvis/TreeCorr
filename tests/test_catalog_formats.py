@@ -27,6 +27,7 @@ def _test_reader(file_name, reader_class, ext, def_ext, bad_ext='invalid'):
     return reader
 
 def test_context():
+    get_from_wiki('Aardvark.fit')
     with FitsReader(os.path.join('data','Aardvark.fit')) as infile:
         pass
 

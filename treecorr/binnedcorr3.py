@@ -58,18 +58,22 @@ class BinnedCorr3(object):
     use one or if you want to change some parameters from what are in a config dict,
     then you can use normal kwargs, which take precedence over anything in the config dict.
 
-    There are only two implemented definitions for the distance between two points for
-    three-point corretions:
+    There are three implemented definitions for the ``metric``, which defines how to calculate
+    the distance between two points, for three-point corretions:
 
         - 'Euclidean' = straight line Euclidean distance between two points.  For spherical
           coordinates (ra,dec without r), this is the chord distance between points on the
           unit sphere.
         - 'Arc' = the true great circle distance for spherical coordinates.
-        - 'Periodic' = Like Euclidean, but with periodic boundaries.  Note that the triangles
-          for three-point correlations can become ambiguous if d1 > period/2, which means
-          the maximum d2 (max_sep) should be less than period/4.  This is not enforced.
+        - 'Periodic' = Like Euclidean, but with periodic boundaries.
 
-    Similarly, we have so far only implemented one binning type for three-point correlations.
+          .. note::
+
+            The triangles for three-point correlations can become ambiguous if d1 > period/2,
+            which means the maximum d2 (max_sep) should be less than period/4.
+            This is not enforced.
+
+    So far, there is only one allowed value for the ``bin_type`` for three-point correlations.
 
         - 'LogRUV' - The bin steps will be uniform in log(r) from log(min_sep) .. log(max_sep).
           The u and v values are binned linearly from min_u .. max_u and min_v .. max_v.
@@ -146,7 +150,7 @@ class BinnedCorr3(object):
 
         log_file (str):     If no logger is provided, this will specify a file to write the logging
                             output.  (default: None; i.e. output to standard output)
-        output_dots (boo):  Whether to output progress dots during the calcualtion of the
+        output_dots (bool): Whether to output progress dots during the calcualtion of the
                             correlation function. (default: False unless verbose is given and >= 2,
                             in which case True)
 
@@ -172,7 +176,7 @@ class BinnedCorr3(object):
 
         metric (str):       Which metric to use for distance measurements.  Options are listed
                             above.  (default: 'Euclidean')
-        bin_type (str):     What type of binning should be used.  Options are listed above.
+        bin_type (str):     What type of binning should be used.  Only one option currently.
                             (default: 'LogRUV')
         min_rpar (float):   Not currently supported for 3 point correlation. (default: None)
         max_rpar (float):   Not currently supported for 3 point correlation. (default: None)
@@ -190,8 +194,12 @@ class BinnedCorr3(object):
 
         num_threads (int):  How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
-                            the constructor in the config dict.) Note that this won't work if the
-                            system's C compiler cannot use OptnMP (e.g. clang prior to version 3.7.)
+                            the constructor in the config dict.)
+
+                            .. note::
+
+                                This won't work if the system's C compiler cannot use OpenMP
+                                (e.g. clang prior to version 3.7.)
     """
     _valid_params = {
         'nbins' : (int, False, None, None,

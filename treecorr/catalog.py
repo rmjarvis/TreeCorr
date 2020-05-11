@@ -39,7 +39,7 @@ class Catalog(object):
     is the value for that object.  Of course, all the arrays should be the same size.
 
     In some cases, there are additional required parameters.  For instance, with RA and Dec
-    positions, you need to declare what units the input values are given::
+    positions, you need to declare what units the given input values use::
 
         >>> cat = treecorr.Catalog(ra=ra, dec=dec, g1=g1, g2=g2,
         ...                        ra_units='hour', dec_units='deg')
@@ -94,43 +94,57 @@ class Catalog(object):
         dec:    The declination, if defined, as a numpy array (in radians). (None otherwise)
         r:      The distance, if defined, as a numpy array. (None otherwise)
         w:      The weights, as a numpy array. (All 1's if no weight column provided.)
-        wpos:   The weights for position centroiding, as a numpy array.  (All 1's if neither
-                weight column provided.)
+        wpos:   The weights for position centroiding, as a numpy array, if given. (None otherwise,
+                which means that implicitly wpos = w.)
         g1:     The g1 component of the shear, if defined, as a numpy array. (None otherwise)
         g2:     The g2 component of the shear, if defined, as a numpy array. (None otherwise)
         k:      The convergence, kappa, if defined, as a numpy array. (None otherwise)
         patch:  The patch number of each object, if patches are being used. (None otherwise)
                 If the entire catalog is a single patch, then ``patch`` may be an int.
-        ntot:   The total number of objects (including those with zero weight if keep_zero_weight
-                is set to True)
+        ntot:   The total number of objects (including those with zero weight if
+                ``keep_zero_weight`` is set to True)
         nobj:   The number of objects with non-zero weight
         sumw:   The sum of the weights
         varg:   The shear variance (aka shape noise) (0 if g1,g2 are not defined)
-                Note: If there are weights, this is really :math:`\\sum(w^2 |g|^2)/\\sum(w)`,
-                which is more like :math:`\\langle w \\rangle \\mathrm{Var}(g)`.  In finalize, we
-                divide this by the weight in each bin, so this is the right quantity to use there.
+
+                .. note::
+
+                    If there are weights, this is really :math:`\\sum(w^2 |g|^2)/\\sum(w)`,
+                    which is more like :math:`\\langle w \\rangle \\mathrm{Var}(g)`.
+                    It is only used for ``var_method='shot'``, where the noise estimate is this
+                    value divided by the total weight per bin, so this is the right quantity
+                    to use for that.
+
         vark:   The kappa variance (0 if k is not defined)
-                Note: If there are weights, this is really :math:`\\sum(w^2 \\kappa^2)/\\sum(w)`.
+
+                .. note::
+
+                    If there are weights, this is really :math:`\\sum(w^2 \\kappa^2)/\\sum(w)`.
+                    As for ``varg``, this is the right quantity to use for the ``'shot'``
+                    noise estimate.
 
         name:   When constructed from a file, this will be the file_name.  It is only used as
                 a reference name in logging output  after construction, so if you construct it
-                from data vectors directly, it will be ''.  You may assign to it if you want to
+                from data vectors directly, it will be ``''``.  You may assign to it if you want to
                 give this catalog a specific name.
 
-        coords: What kind of coordinate system is defined for this catalog?
+        coords: Which kind of coordinate system is defined for this catalog.
                 The possibilities for this attribute are:
 
                     - 'flat' = 2-dimensional flat coordinates.  Set when x,y are given.
                     - 'spherical' = spherical coordinates.  Set when ra,dec are given.
                     - '3d' = 3-dimensional coordinates.  Set when x,y,z or ra,dec,r are given.
 
-        field:  If any of the ``get?Field`` methods have been called to construct a field from
-                this catalog (either explicitly or implicitly via a `corr.process()
+        field:  If any of the `get?Field <Catalog.getNField>` methods have been called to construct
+                a field from this catalog (either explicitly or implicitly via a `corr.process()
                 <NNCorrelation.process>` command, then this attribute will hold the most recent
                 field to have been constructed.
-                Note: it holds this field as a weakref, so if caching is turned off with
-                ``resize_cache(0)``, and the field has been garbage collected, then this attribute
-                will be None.
+
+                .. note::
+
+                    It holds this field as a weakref, so if caching is turned off with
+                    ``resize_cache(0)``, and the field has been garbage collected, then this
+                    attribute will be None.
 
     Parameters:
         file_name (str):    The name of the catalog file to be read in. (default: None, in which
@@ -154,16 +168,17 @@ class Catalog(object):
                             x,y are required or ra,dec are required.)
         y (array):          The y values. (default: None; When providing values directly, either
                             x,y are required or ra,dec are required.)
-        z (array):          The z values, if doing 3d positions. (default: None)
+        z (array):          The z values, if doing 3d positions. (default: None; invalid in
+                            conjunction with ra, dec.)
         ra (array):         The RA values. (default: None; When providing values directly, either
                             x,y are required or ra,dec are required.)
         dec (array):        The Dec values. (default: None; When providing values directly, either
                             x,y are required or ra,dec are required.)
-        r (array):          The r values (the distances of each source from Earth). Note that r is
-                            invalid in conjunction with x,y. (default: None)
+        r (array):          The r values (the distances of each source from Earth). (default: None;
+                            invalid in conjunction with x, y.)
         w (array):          The weights to apply when computing the correlations. (default: None)
         wpos (array):       The weights to use for position centroiding. (default: None, which
-                            means to use the value weights, w, to weight the positions as well)
+                            means to use the value weights, w, to weight the positions as well.)
         flag (array):       An optional array of flags, indicating objects to skip.  Rows with
                             flag != 0 (or technically flag & ~ok_flag != 0) will be given a weight
                             of 0.  (default: None)
@@ -174,9 +189,13 @@ class Catalog(object):
         k (array):          The kappa values to use for scalar correlations. (This may represent
                             any scalar field.) (default: None)
         patch (array or int): Optionally, patch numbers to use for each object. (default: None)
-                            Note: This may also be an int if the entire catalog represents a
-                            single patch.  If ``patch_centers`` is given this will select those
-                            items from the full input that correspond to the given patch number.
+
+                            .. note::
+
+                                This may also be an int if the entire catalog represents a
+                                single patch.  If ``patch_centers`` is given this will select those
+                                items from the full input that correspond to the given patch number.
+
         patch_centers (array or str): Alternative to setting patch by hand or using kmeans, you
                             may instead give patch_centers either as a file name or an array
                             from which the patches will be determined. (default: None)
@@ -196,8 +215,13 @@ class Catalog(object):
 
         npatch (int):       How many patches to split the catalog into (using kmeans) for the
                             purpose of jackknife variance or other options that involve running via
-                            patches. Note: If the catalog has ra,dec,r positions, the patches will
-                            be made using just ra,dec. (default: 1)
+                            patches. (default: 1)
+
+                            .. note::
+
+                                If the catalog has ra,dec,r positions, the patches will
+                                be made using just ra,dec.
+
         kmeans_init (str):  If using kmeans to make patches, which init method to use.
                             cf. `Field.run_kmeans` (default: 'tree')
         kmeans_alt (str):   If using kmeans to make patches, whether to use the alternate kmeans
@@ -213,7 +237,7 @@ class Catalog(object):
                             y_col are required or ra_col and dec_col are required.)
         z_col (str or int): The column to use for the z values. This should be an integer for ASCII
                             files or a string for FITS files. (default: 0 or '0', which means not
-                            to read in this column.)
+                            to read in this column; invalid in conjunction with ra_col, dec_col.)
         ra_col (str or int): The column to use for the ra values. This should be an integer for
                             ASCII files or a string for FITS files. (default: 0 or '0', which
                             means not to read in this column. When reading from a file, either
@@ -223,9 +247,8 @@ class Catalog(object):
                             means not to read in this column. When reading from a file, either
                             x_col and y_col are required or ra_col and dec_col are required.)
         r_col (str or int): The column to use for the r values. This should be an integer for ASCII
-                            files or a string for FITS files.  Note that r_col is invalid in
-                            conjunction with x_col/y_col. (default: 0 or '0', which means not to
-                            read in this column.)
+                            files or a string for FITS files. (default: 0 or '0', which means not
+                            to read in this column; invalid in conjunction with x_col, y_col.)
 
         x_units (str):      The units to use for the x values, given as a string.  Valid options are
                             arcsec, arcmin, degrees, hours, radians.  (default: radians, although
@@ -259,7 +282,7 @@ class Catalog(object):
                             not to read in this column.)
         wpos_col (str or int): The column to use for the position weight values. This should be an
                             integer for ASCII files or a string for FITS files. (default: 0 or '0',
-                            which means not to read in this column.)
+                            which means not to read in this column, in which case wpos=w.)
         flag_col (str or int): The column to use for the flag values. This should be an integer for
                             ASCII files or a string for FITS files. Any row with flag != 0 (or
                             technically flag & ~ok_flag != 0) will be given a weight of 0.
@@ -274,8 +297,8 @@ class Catalog(object):
                             can save time to input them, rather than calculate them using trig
                             functions. (default: False)
 
-        flip_g1 (bool):     Whtether to flip the sign of the input g1 values. (default: False)
-        flip_g2 (bool):     Whtether to flip the sign of the input g2 values. (default: False)
+        flip_g1 (bool):     Whether to flip the sign of the input g1 values. (default: False)
+        flip_g2 (bool):     Whether to flip the sign of the input g2 values. (default: False)
         keep_zero_weight (bool): Whether to keep objects with wpos=0 in the catalog (including
                             any objects that indirectly get wpos=0 due to NaN or flags), so they
                             would be included in ntot and also in npairs calculations that use
@@ -328,6 +351,11 @@ class Catalog(object):
 
         num_threads (int):  How many OpenMP threads to use during the catalog load steps.
                             (default: use the number of cpu cores)
+
+                            .. note::
+
+                                This won't work if the system's C compiler cannot use OpenMP
+                                (e.g. clang prior to version 3.7.)
     """
     # Dict describing the valid kwarg parameters, what types they are, and a description:
     # Each value is a tuple with the following elements:
@@ -2157,9 +2185,9 @@ class Catalog(object):
     def write(self, file_name, file_type=None, cat_precision=None):
         """Write the catalog to a file.
 
-        Note that the position columns are output using the same units as were used when
-        building the Catalog.  If you want to use a different unit, you can set the catalog's
-        units directly before writing.  e.g.:
+        The position columns are output using the same units as were used when building the
+        Catalog.  If you want to use a different unit, you can set the catalog's units directly
+        before writing.  e.g.:
 
             >>> cat = treecorr.Catalog('cat.dat', ra=ra, dec=dec,
                                        ra_units='hours', dec_units='degrees')

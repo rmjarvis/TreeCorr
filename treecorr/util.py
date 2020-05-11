@@ -172,8 +172,11 @@ def gen_read(file_name, file_type=None, logger=None):
     """Read some columns from an input file.
 
     We do this basic functionality a lot, so put the code to do it in one place.
-    Note that the input file is expected to have been written by TreeCorr using the
-    gen_write function, so we don't have a lot of flexibility in the input structure.
+
+    .. note::
+
+        The input file is expected to have been written by TreeCorr using the
+        `gen_write` function, so we don't have a lot of flexibility in the input structure.
 
     :param file_name:   The name of the file to read.
     :param file_type:   Which kind of file to read. (default: determine from the file_name

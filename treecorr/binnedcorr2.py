@@ -36,9 +36,11 @@ class BinnedCorr2(object):
     - `NKCorrelation` handles count-kappa correlation functions
     - `KGCorrelation` handles kappa-shear correlation functions
 
-    Note that when we refer to kappa in the correlation function, that is because I
-    come from a weak lensing perspective.  But really any scalar quantity may be used
-    here.  CMB temperature fluctuations for example.
+    .. note::
+
+        When we refer to kappa in the correlation functions, that is because TreeCorr was
+        originally designed for weak lensing applications.  But in fact any scalar quantity
+        may be used here.  CMB temperature fluctuations for example.
 
     The constructor for all derived classes take a config dict as the first argument,
     since this is often how we keep track of parameters, but if you don't want to
@@ -133,7 +135,7 @@ class BinnedCorr2(object):
 
         log_file (str):     If no logger is provided, this will specify a file to write the logging
                             output.  (default: None; i.e. output to standard output)
-        output_dots (boo):  Whether to output progress dots during the calcualtion of the
+        output_dots (bool): Whether to output progress dots during the calcualtion of the
                             correlation function. (default: False unless verbose is given and >= 2,
                             in which case True)
 
@@ -189,8 +191,12 @@ class BinnedCorr2(object):
                             'marked_bootstrap' var_methods.  (default: 500)
 
         num_threads (int):  How many OpenMP threads to use during the calculation.
-                            (default: use the number of cpu cores) Note that this won't work if the
-                            system's C compiler cannot use OptnMP (e.g. clang prior to version 3.7.)
+                            (default: use the number of cpu cores)
+
+                            .. note::
+
+                                This won't work if the system's C compiler cannot use OpenMP
+                                (e.g. clang prior to version 3.7.)
     """
     _valid_params = {
         'nbins' : (int, False, None, None,

@@ -1053,7 +1053,7 @@ class Catalog(object):
 
     def makeArray(self, col, col_str, dtype=float):
         """Turn the input column into a numpy array if it wasn't already.
-        Also make sure the input in 1-d.
+        Also make sure the input is 1-d.
 
         Parameters:
             col (array-like):   The input column to be converted into a numpy array.

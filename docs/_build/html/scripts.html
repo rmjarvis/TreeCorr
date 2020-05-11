@@ -173,10 +173,21 @@
             
   <div class="section" id="using-configuration-files">
 <h1>Using configuration files<a class="headerlink" href="#using-configuration-files" title="Permalink to this headline">¶</a></h1>
+<p>Most of the TreeCorr classes can take a <code class="docutils literal notranslate"><span class="pre">config</span></code> parameter in lieu
+of a set of keyword arguments.  This is not necessarily incredibly
+useful when driving the code from Python; however, it enables running
+the code from some executable scripts, described below.</p>
+<p>Specifically, the parameters defined in the configuration file are
+loaded into a Python dict, which is passed to each of the classes
+as needed.  The advantage of this is that TreeCorr will only use the
+parameters it actually needs when initializing each object.
+Any additional parameters (e.g. those
+that are relevant to a different class) are ignored.</p>
 <div class="section" id="the-corr2-and-corr3-executables">
 <h2>The corr2 and corr3 executables<a class="headerlink" href="#the-corr2-and-corr3-executables" title="Permalink to this headline">¶</a></h2>
-<p>Also installed with TreeCorr are two executable scripts, called <code class="docutils literal notranslate"><span class="pre">corr2</span></code>
-and <code class="docutils literal notranslate"><span class="pre">corr3</span></code>.  The scripts takes one required command-line argument, which
+<p>Along with the installed Python library, TreeCorr also includes
+two executable scripts, called <code class="docutils literal notranslate"><span class="pre">corr2</span></code> and <code class="docutils literal notranslate"><span class="pre">corr3</span></code>.
+The scripts takes one required command-line argument, which
 is the name of a configuration file:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">corr2</span> <span class="n">config</span><span class="o">.</span><span class="n">yaml</span>
 <span class="n">corr3</span> <span class="n">config</span><span class="o">.</span><span class="n">yaml</span>
@@ -204,10 +215,18 @@ the configuration file. e.g.:</p>
 </div>
 <p>This can be useful when running the program from a script for lots of input
 files.</p>
-<p>It is also possible to access the same functionality from within Python:</p>
 </div>
 <div class="section" id="the-corr2-function-from-python">
 <h2>The corr2 function from python<a class="headerlink" href="#the-corr2-function-from-python" title="Permalink to this headline">¶</a></h2>
+<p>The same functionality that you have from the <code class="docutils literal notranslate"><span class="pre">corr2</span></code> executable is available in python via the
+<a class="reference internal" href="#treecorr.corr2" title="treecorr.corr2"><code class="xref any py py-func docutils literal notranslate"><span class="pre">corr2</span></code></a> function:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">treecorr</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">read_config</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+<span class="n">config</span><span class="p">[</span><span class="s1">&#39;file_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;catalog.dat&#39;</span>
+<span class="n">config</span><span class="p">[</span><span class="s1">&#39;gg_file_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;gg.out&#39;</span>
+<span class="n">treecorr</span><span class="o">.</span><span class="n">corr2</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="py function">
 <dt id="treecorr.corr2">
 <code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">corr2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr2.html#corr2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.corr2" title="Permalink to this definition">¶</a></dt>

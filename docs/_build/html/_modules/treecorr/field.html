@@ -861,6 +861,13 @@
 <span class="sd">        - NSimpleField describes a field of objects to be counted only.</span>
 <span class="sd">        - KSimpleField describes a field of points sampling a scalar field.</span>
 <span class="sd">        - GSimpleField describes a field of points sampling a spinor field.</span>
+
+<span class="sd">    .. warning::</span>
+
+<span class="sd">        .. deprecated:: 4.1</span>
+
+<span class="sd">            This function is deprecated and slated to be removed.</span>
+<span class="sd">            If you have a need for it, please open an issue to describe your use case.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
@@ -873,6 +880,13 @@
 <span class="sd">    An NSimpleField is typically created from a Catalog object using</span>
 
 <span class="sd">        &gt;&gt;&gt; nfield = cat.getNSimpleField()</span>
+
+<span class="sd">    .. warning::</span>
+
+<span class="sd">        .. deprecated:: 4.1</span>
+
+<span class="sd">            This function is deprecated and slated to be removed.</span>
+<span class="sd">            If you have a need for it, please open an issue to describe your use case.</span>
 
 <span class="sd">    Parameters:</span>
 <span class="sd">        cat (Catalog):      The catalog from which to make the field.</span>
@@ -911,6 +925,13 @@
 <span class="sd">    A KSimpleField is typically created from a Catalog object using</span>
 
 <span class="sd">        &gt;&gt;&gt; kfield = cat.getKSimpleField()</span>
+
+<span class="sd">    .. warning::</span>
+
+<span class="sd">        .. deprecated:: 4.1</span>
+
+<span class="sd">            This function is deprecated and slated to be removed.</span>
+<span class="sd">            If you have a need for it, please open an issue to describe your use case.</span>
 
 <span class="sd">    Parameters:</span>
 <span class="sd">        cat (Catalog):      The catalog from which to make the field.</span>
@@ -951,6 +972,13 @@
 
 <span class="sd">        &gt;&gt;&gt; gfield = cat.getGSimpleField()</span>
 
+<span class="sd">    .. warning::</span>
+
+<span class="sd">        .. deprecated:: 4.1</span>
+
+<span class="sd">            This function is deprecated and slated to be removed.</span>
+<span class="sd">            If you have a need for it, please open an issue to describe your use case.</span>
+
 <span class="sd">    Parameters:</span>
 <span class="sd">        cat (Catalog):      The catalog from which to make the field.</span>
 <span class="sd">        logger (Logger):    A logger file if desired. (default: None)</span>
@@ -981,7 +1009,6 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">):</span>  <span class="c1"># pragma: no branch</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_ffi</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">locked</span><span class="p">():</span> <span class="c1"># pragma: no branch</span>
                 <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">DestroyGSimpleField</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span></div>
-
 </pre></div>
 
            </div>

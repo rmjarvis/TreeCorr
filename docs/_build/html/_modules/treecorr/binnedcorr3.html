@@ -221,18 +221,22 @@
 <span class="sd">    use one or if you want to change some parameters from what are in a config dict,</span>
 <span class="sd">    then you can use normal kwargs, which take precedence over anything in the config dict.</span>
 
-<span class="sd">    There are only two implemented definitions for the distance between two points for</span>
-<span class="sd">    three-point corretions:</span>
+<span class="sd">    There are three implemented definitions for the ``metric``, which defines how to calculate</span>
+<span class="sd">    the distance between two points, for three-point corretions:</span>
 
 <span class="sd">        - &#39;Euclidean&#39; = straight line Euclidean distance between two points.  For spherical</span>
 <span class="sd">          coordinates (ra,dec without r), this is the chord distance between points on the</span>
 <span class="sd">          unit sphere.</span>
 <span class="sd">        - &#39;Arc&#39; = the true great circle distance for spherical coordinates.</span>
-<span class="sd">        - &#39;Periodic&#39; = Like Euclidean, but with periodic boundaries.  Note that the triangles</span>
-<span class="sd">          for three-point correlations can become ambiguous if d1 &gt; period/2, which means</span>
-<span class="sd">          the maximum d2 (max_sep) should be less than period/4.  This is not enforced.</span>
+<span class="sd">        - &#39;Periodic&#39; = Like Euclidean, but with periodic boundaries.</span>
+<span class="sd">        </span>
+<span class="sd">          .. note::</span>
+<span class="sd">          </span>
+<span class="sd">            The triangles for three-point correlations can become ambiguous if d1 &gt; period/2,</span>
+<span class="sd">            which means the maximum d2 (max_sep) should be less than period/4.</span>
+<span class="sd">            This is not enforced.</span>
 
-<span class="sd">    Similarly, we have so far only implemented one binning type for three-point correlations.</span>
+<span class="sd">    So far, there is only one allowed value for the ``bin_type`` for three-point correlations.</span>
 
 <span class="sd">        - &#39;LogRUV&#39; - The bin steps will be uniform in log(r) from log(min_sep) .. log(max_sep).</span>
 <span class="sd">          The u and v values are binned linearly from min_u .. max_u and min_v .. max_v.</span>
@@ -309,7 +313,7 @@
 
 <span class="sd">        log_file (str):     If no logger is provided, this will specify a file to write the logging</span>
 <span class="sd">                            output.  (default: None; i.e. output to standard output)</span>
-<span class="sd">        output_dots (boo):  Whether to output progress dots during the calcualtion of the</span>
+<span class="sd">        output_dots (bool): Whether to output progress dots during the calcualtion of the</span>
 <span class="sd">                            correlation function. (default: False unless verbose is given and &gt;= 2,</span>
 <span class="sd">                            in which case True)</span>
 
@@ -335,7 +339,7 @@
 
 <span class="sd">        metric (str):       Which metric to use for distance measurements.  Options are listed</span>
 <span class="sd">                            above.  (default: &#39;Euclidean&#39;)</span>
-<span class="sd">        bin_type (str):     What type of binning should be used.  Options are listed above.</span>
+<span class="sd">        bin_type (str):     What type of binning should be used.  Only one option currently.</span>
 <span class="sd">                            (default: &#39;LogRUV&#39;)</span>
 <span class="sd">        min_rpar (float):   Not currently supported for 3 point correlation. (default: None)</span>
 <span class="sd">        max_rpar (float):   Not currently supported for 3 point correlation. (default: None)</span>
@@ -353,8 +357,12 @@
 
 <span class="sd">        num_threads (int):  How many OpenMP threads to use during the calculation.</span>
 <span class="sd">                            (default: use the number of cpu cores; this value can also be given in</span>
-<span class="sd">                            the constructor in the config dict.) Note that this won&#39;t work if the</span>
-<span class="sd">                            system&#39;s C compiler cannot use OptnMP (e.g. clang prior to version 3.7.)</span>
+<span class="sd">                            the constructor in the config dict.)</span>
+<span class="sd">                            </span>
+<span class="sd">                            .. note::</span>
+<span class="sd">                            </span>
+<span class="sd">                                This won&#39;t work if the system&#39;s C compiler cannot use OpenMP</span>
+<span class="sd">                                (e.g. clang prior to version 3.7.)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_valid_params</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;nbins&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>

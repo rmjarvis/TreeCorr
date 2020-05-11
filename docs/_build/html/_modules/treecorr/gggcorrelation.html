@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>treecorr.gggcorrelation &mdash; TreeCorr 4.1.0 documentation</title>
+  <title>treecorr.gggcorrelation &mdash; TreeCorr 4.1.1 documentation</title>
   
 
   
@@ -263,10 +263,13 @@
 <span class="sd">                    more objects have w=0).</span>
 
 <span class="sd">    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances</span>
-<span class="sd">    will all be in these units.  Note however, that if you separate out the steps of the</span>
-<span class="sd">    `process` command and use `process_auto` and/or `process_cross`, then the</span>
-<span class="sd">    units will not be applied to ``meanr`` or ``meanlogr`` until the `finalize` function is</span>
-<span class="sd">    called.</span>
+<span class="sd">    will all be in these units.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        If you separate out the steps of the `process` command and use `process_auto` and/or</span>
+<span class="sd">        `process_cross`, then the units will not be applied to ``meanr`` or ``meanlogr`` until</span>
+<span class="sd">        the `finalize` function is called.</span>
 
 <span class="sd">    The typical usage pattern is as follows::</span>
 

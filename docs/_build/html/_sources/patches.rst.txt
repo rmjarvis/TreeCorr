@@ -80,6 +80,14 @@ To use the TreeCorr implementation of k-means, simply
 set the ``npatch`` parameter in the `Catalog` constructor to specifiy
 how many patches you want TreeCorr to split the data into.
 
+.. note::
+
+    If the input catalog has (ra, dec, r) positions, then the patches will
+    be made using only the ra,dec location on the sky, not the full 3-D
+    positions.  This is usually what you want for making patches over an
+    astronomical survey area.  If you really want to make patches according
+    to 3-D clustering of points, then you should input x,y,z values instead.
+
 There are also two additional options which can affect how the k-means
 algorithm runs:
 
@@ -276,8 +284,11 @@ be a problem, but the source catalog is too large to hold in memory::
     >>> ng.process(lens_cat, source_cat, low_mem=True)
 
 In both cases, the result should be equivalent to what you would get if you could
-hold the catalogs fully in memory.  This usage will generally take somewhat longer
-(a factor of 2 or less for typical scenarios) but have much lower peak memory.
+hold the catalogs fully in memory.  This usage will generally take somewhat longer,
+but have much lower peak memory.
+(Probably something like a factor of 2 for typical scenarios, but this of course
+depends heavily on the nature of your calculation, how fast your disk I/O is
+compared to your CPUs, and how many cores you are using.)
 
 .. note::
 

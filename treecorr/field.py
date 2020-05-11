@@ -698,6 +698,13 @@ class SimpleField(object):
         - NSimpleField describes a field of objects to be counted only.
         - KSimpleField describes a field of points sampling a scalar field.
         - GSimpleField describes a field of points sampling a spinor field.
+
+    .. warning::
+
+        .. deprecated:: 4.1
+
+            This function is deprecated and slated to be removed.
+            If you have a need for it, please open an issue to describe your use case.
     """
     def __init__(self):
         raise NotImplementedError(
@@ -710,6 +717,13 @@ class NSimpleField(SimpleField):
     An NSimpleField is typically created from a Catalog object using
 
         >>> nfield = cat.getNSimpleField()
+
+    .. warning::
+
+        .. deprecated:: 4.1
+
+            This function is deprecated and slated to be removed.
+            If you have a need for it, please open an issue to describe your use case.
 
     Parameters:
         cat (Catalog):      The catalog from which to make the field.
@@ -748,6 +762,13 @@ class KSimpleField(SimpleField):
     A KSimpleField is typically created from a Catalog object using
 
         >>> kfield = cat.getKSimpleField()
+
+    .. warning::
+
+        .. deprecated:: 4.1
+
+            This function is deprecated and slated to be removed.
+            If you have a need for it, please open an issue to describe your use case.
 
     Parameters:
         cat (Catalog):      The catalog from which to make the field.
@@ -788,6 +809,13 @@ class GSimpleField(SimpleField):
 
         >>> gfield = cat.getGSimpleField()
 
+    .. warning::
+
+        .. deprecated:: 4.1
+
+            This function is deprecated and slated to be removed.
+            If you have a need for it, please open an issue to describe your use case.
+
     Parameters:
         cat (Catalog):      The catalog from which to make the field.
         logger (Logger):    A logger file if desired. (default: None)
@@ -818,4 +846,3 @@ class GSimpleField(SimpleField):
         if hasattr(self,'data'):  # pragma: no branch
             if not treecorr._ffi._lock.locked(): # pragma: no branch
                 treecorr._lib.DestroyGSimpleField(self.data, self._coords)
-

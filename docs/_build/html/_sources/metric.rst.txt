@@ -38,8 +38,8 @@ the chord distance becomes significant.  The conversion formula is
 
 :math:`d_{\rm GC} = 2 \arcsin(d_{\rm Euclidean} / 2)`
 
-TreeCorr applies this formula at the end as part of the ``finalize`` function
-(e.g. :meth:`~treecorr.GGCorrelation.finalize`), so the ``meanr`` and ``meanlogr`` attributes
+TreeCorr applies this formula at the end as part of the `finalize <GGCorrelation.finalize>`
+function, so the ``meanr`` and ``meanlogr`` attributes
 will be in terms of great circle distances.  However, they will not necessarily be spaced
 precisely uniformly in log(r), since the original bin spacing will have been set up in terms
 of the chord distances.
@@ -63,6 +63,8 @@ chord calculations are in any way problematic for your particular use case.
 Also, unlike the "Euclidean" version, the bin spacing will be uniform in log(r) using the
 actual great circle distances, rather than being based on the chord distances.
 
+
+.. _Rperp:
 
 "Rperp" or "FisherRperp"
 ------------------------
@@ -172,8 +174,8 @@ line of sight to the second object (nominally the "source").  This is commonly r
 as the impact parameter of the light path from the source as it passes the lens.
 
 This metric also permits the use of two other parameters, ``min_rpar`` and ``max_rpar``,
-which set the minimum and maximum values of :math:`r_\parallel = r_2 - r_1` for pairs to be
-included in the correlations.
+which set the minimum and maximum values of :math:`r_\parallel`, defined as for
+`"Rperp" <Rperp>` above, for pairs to be included in the correlations.
 
 The sign of :math:`r_\parallel` is defined such that positive values mean
 the object from the second catalog is farther away. Thus, setting

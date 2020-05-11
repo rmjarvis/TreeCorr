@@ -204,9 +204,12 @@ the derived classes for more details:</p>
 <li><p><a class="reference internal" href="nk.html#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a> handles count-kappa correlation functions</p></li>
 <li><p><a class="reference internal" href="kg.html#treecorr.KGCorrelation" title="treecorr.KGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGCorrelation</span></code></a> handles kappa-shear correlation functions</p></li>
 </ul>
-<p>Note that when we refer to kappa in the correlation function, that is because I
-come from a weak lensing perspective.  But really any scalar quantity may be used
-here.  CMB temperature fluctuations for example.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When we refer to kappa in the correlation functions, that is because TreeCorr was
+originally designed for weak lensing applications.  But in fact any scalar quantity
+may be used here.  CMB temperature fluctuations for example.</p>
+</div>
 <p>The constructor for all derived classes take a config dict as the first argument,
 since this is often how we keep track of parameters, but if you don’t want to
 use one or if you want to change some parameters from what are in a config dict,
@@ -309,7 +312,7 @@ to use:</p>
 </p></li>
 <li><p><strong>log_file</strong> (<em>str</em>) – If no logger is provided, this will specify a file to write the logging
 output.  (default: None; i.e. output to standard output)</p></li>
-<li><p><strong>output_dots</strong> (<em>boo</em>) – Whether to output progress dots during the calcualtion of the
+<li><p><strong>output_dots</strong> (<em>bool</em>) – Whether to output progress dots during the calcualtion of the
 correlation function. (default: False unless verbose is given and &gt;= 2,
 in which case True)</p></li>
 <li><p><strong>split_method</strong> (<em>str</em>) – <p>How to split the cells in the tree when building the tree structure.
@@ -361,9 +364,14 @@ to allow for pairs being included in the correlation function.
 (default: ‘shot’)</p></li>
 <li><p><strong>num_bootstrap</strong> (<em>int</em>) – How many bootstrap samples to use for the ‘bootstrap’ and
 ‘marked_bootstrap’ var_methods.  (default: 500)</p></li>
-<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
-(default: use the number of cpu cores) Note that this won’t work if the
-system’s C compiler cannot use OptnMP (e.g. clang prior to version 3.7.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – <p>How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This won’t work if the system’s C compiler cannot use OpenMP
+(e.g. clang prior to version 3.7.)</p>
+</div>
+</p></li>
 </ul>
 </dd>
 </dl>

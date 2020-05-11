@@ -199,9 +199,11 @@
 <span class="sd">    - `NKCorrelation` handles count-kappa correlation functions</span>
 <span class="sd">    - `KGCorrelation` handles kappa-shear correlation functions</span>
 
-<span class="sd">    Note that when we refer to kappa in the correlation function, that is because I</span>
-<span class="sd">    come from a weak lensing perspective.  But really any scalar quantity may be used</span>
-<span class="sd">    here.  CMB temperature fluctuations for example.</span>
+<span class="sd">    .. note::</span>
+<span class="sd">    </span>
+<span class="sd">        When we refer to kappa in the correlation functions, that is because TreeCorr was</span>
+<span class="sd">        originally designed for weak lensing applications.  But in fact any scalar quantity</span>
+<span class="sd">        may be used here.  CMB temperature fluctuations for example.</span>
 
 <span class="sd">    The constructor for all derived classes take a config dict as the first argument,</span>
 <span class="sd">    since this is often how we keep track of parameters, but if you don&#39;t want to</span>
@@ -296,7 +298,7 @@
 
 <span class="sd">        log_file (str):     If no logger is provided, this will specify a file to write the logging</span>
 <span class="sd">                            output.  (default: None; i.e. output to standard output)</span>
-<span class="sd">        output_dots (boo):  Whether to output progress dots during the calcualtion of the</span>
+<span class="sd">        output_dots (bool): Whether to output progress dots during the calcualtion of the</span>
 <span class="sd">                            correlation function. (default: False unless verbose is given and &gt;= 2,</span>
 <span class="sd">                            in which case True)</span>
 
@@ -352,8 +354,12 @@
 <span class="sd">                            &#39;marked_bootstrap&#39; var_methods.  (default: 500)</span>
 
 <span class="sd">        num_threads (int):  How many OpenMP threads to use during the calculation.</span>
-<span class="sd">                            (default: use the number of cpu cores) Note that this won&#39;t work if the</span>
-<span class="sd">                            system&#39;s C compiler cannot use OptnMP (e.g. clang prior to version 3.7.)</span>
+<span class="sd">                            (default: use the number of cpu cores)</span>
+<span class="sd">                            </span>
+<span class="sd">                            .. note::</span>
+<span class="sd">                            </span>
+<span class="sd">                                This won&#39;t work if the system&#39;s C compiler cannot use OpenMP</span>
+<span class="sd">                                (e.g. clang prior to version 3.7.)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_valid_params</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;nbins&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>

@@ -218,20 +218,25 @@ min_v=0.2, max_v=0.6, then TreeCorr will also accumulate triangles with
 since this is often how we keep track of parameters, but if you don’t want to
 use one or if you want to change some parameters from what are in a config dict,
 then you can use normal kwargs, which take precedence over anything in the config dict.</p>
-<p>There are only two implemented definitions for the distance between two points for
-three-point corretions:</p>
+<p>There are three implemented definitions for the <code class="docutils literal notranslate"><span class="pre">metric</span></code>, which defines how to calculate
+the distance between two points, for three-point corretions:</p>
 <blockquote>
-<div><ul class="simple">
+<div><ul>
 <li><p>‘Euclidean’ = straight line Euclidean distance between two points.  For spherical
 coordinates (ra,dec without r), this is the chord distance between points on the
 unit sphere.</p></li>
 <li><p>‘Arc’ = the true great circle distance for spherical coordinates.</p></li>
-<li><p>‘Periodic’ = Like Euclidean, but with periodic boundaries.  Note that the triangles
-for three-point correlations can become ambiguous if d1 &gt; period/2, which means
-the maximum d2 (max_sep) should be less than period/4.  This is not enforced.</p></li>
+<li><p>‘Periodic’ = Like Euclidean, but with periodic boundaries.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The triangles for three-point correlations can become ambiguous if d1 &gt; period/2,
+which means the maximum d2 (max_sep) should be less than period/4.
+This is not enforced.</p>
+</div>
+</li>
 </ul>
 </div></blockquote>
-<p>Similarly, we have so far only implemented one binning type for three-point correlations.</p>
+<p>So far, there is only one allowed value for the <code class="docutils literal notranslate"><span class="pre">bin_type</span></code> for three-point correlations.</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>‘LogRUV’ - The bin steps will be uniform in log(r) from log(min_sep) .. log(max_sep).
@@ -314,7 +319,7 @@ to use:</p>
 </p></li>
 <li><p><strong>log_file</strong> (<em>str</em>) – If no logger is provided, this will specify a file to write the logging
 output.  (default: None; i.e. output to standard output)</p></li>
-<li><p><strong>output_dots</strong> (<em>boo</em>) – Whether to output progress dots during the calcualtion of the
+<li><p><strong>output_dots</strong> (<em>bool</em>) – Whether to output progress dots during the calcualtion of the
 correlation function. (default: False unless verbose is given and &gt;= 2,
 in which case True)</p></li>
 <li><p><strong>split_method</strong> (<em>str</em>) – <p>How to split the cells in the tree when building the tree structure.
@@ -339,7 +344,7 @@ typically be of order <span class="math notranslate nohighlight">\(2^{\rm max\_t
 digits to write. (default: 4)</p></li>
 <li><p><strong>metric</strong> (<em>str</em>) – Which metric to use for distance measurements.  Options are listed
 above.  (default: ‘Euclidean’)</p></li>
-<li><p><strong>bin_type</strong> (<em>str</em>) – What type of binning should be used.  Options are listed above.
+<li><p><strong>bin_type</strong> (<em>str</em>) – What type of binning should be used.  Only one option currently.
 (default: ‘LogRUV’)</p></li>
 <li><p><strong>min_rpar</strong> (<em>float</em>) – Not currently supported for 3 point correlation. (default: None)</p></li>
 <li><p><strong>max_rpar</strong> (<em>float</em>) – Not currently supported for 3 point correlation. (default: None)</p></li>
@@ -353,10 +358,15 @@ above.  (default: ‘Euclidean’)</p></li>
 (default: period)</p></li>
 <li><p><strong>var_method</strong> (<em>str</em>) – Which method to use for estimating the variance.  So far, only ‘shot’
 is implemented. (default: ‘shot’)</p></li>
-<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+<li><p><strong>num_threads</strong> (<em>int</em>) – <p>How many OpenMP threads to use during the calculation.
 (default: use the number of cpu cores; this value can also be given in
-the constructor in the config dict.) Note that this won’t work if the
-system’s C compiler cannot use OptnMP (e.g. clang prior to version 3.7.)</p></li>
+the constructor in the config dict.)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This won’t work if the system’s C compiler cannot use OpenMP
+(e.g. clang prior to version 3.7.)</p>
+</div>
+</p></li>
 </ul>
 </dd>
 </dl>

@@ -188,7 +188,7 @@ piece of information you want included.  For instance:</p>
 <p>Each of these input paramters should be a numpy array, where each corresponding element
 is the value for that object.  Of course, all the arrays should be the same size.</p>
 <p>In some cases, there are additional required parameters.  For instance, with RA and Dec
-positions, you need to declare what units the input values are given:</p>
+positions, you need to declare what units the given input values use:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">ra</span><span class="o">=</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">dec</span><span class="p">,</span> <span class="n">g1</span><span class="o">=</span><span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="o">=</span><span class="n">g2</span><span class="p">,</span>
 <span class="gp">... </span>                       <span class="n">ra_units</span><span class="o">=</span><span class="s1">&#39;hour&#39;</span><span class="p">,</span> <span class="n">dec_units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">)</span>
 </pre></div>
@@ -239,28 +239,40 @@ was given). (None otherwise)</p></li>
 <li><p><strong>dec</strong> – The declination, if defined, as a numpy array (in radians). (None otherwise)</p></li>
 <li><p><strong>r</strong> – The distance, if defined, as a numpy array. (None otherwise)</p></li>
 <li><p><strong>w</strong> – The weights, as a numpy array. (All 1’s if no weight column provided.)</p></li>
-<li><p><strong>wpos</strong> – The weights for position centroiding, as a numpy array.  (All 1’s if neither
-weight column provided.)</p></li>
+<li><p><strong>wpos</strong> – The weights for position centroiding, as a numpy array, if given. (None otherwise,
+which means that implicitly wpos = w.)</p></li>
 <li><p><strong>g1</strong> – The g1 component of the shear, if defined, as a numpy array. (None otherwise)</p></li>
 <li><p><strong>g2</strong> – The g2 component of the shear, if defined, as a numpy array. (None otherwise)</p></li>
 <li><p><strong>k</strong> – The convergence, kappa, if defined, as a numpy array. (None otherwise)</p></li>
 <li><p><strong>patch</strong> – The patch number of each object, if patches are being used. (None otherwise)
 If the entire catalog is a single patch, then <code class="docutils literal notranslate"><span class="pre">patch</span></code> may be an int.</p></li>
-<li><p><strong>ntot</strong> – The total number of objects (including those with zero weight if keep_zero_weight
-is set to True)</p></li>
+<li><p><strong>ntot</strong> – The total number of objects (including those with zero weight if
+<code class="docutils literal notranslate"><span class="pre">keep_zero_weight</span></code> is set to True)</p></li>
 <li><p><strong>nobj</strong> – The number of objects with non-zero weight</p></li>
 <li><p><strong>sumw</strong> – The sum of the weights</p></li>
-<li><p><strong>varg</strong> – The shear variance (aka shape noise) (0 if g1,g2 are not defined)
-Note: If there are weights, this is really <span class="math notranslate nohighlight">\(\sum(w^2 |g|^2)/\sum(w)\)</span>,
-which is more like <span class="math notranslate nohighlight">\(\langle w \rangle \mathrm{Var}(g)\)</span>.  In finalize, we
-divide this by the weight in each bin, so this is the right quantity to use there.</p></li>
-<li><p><strong>vark</strong> – The kappa variance (0 if k is not defined)
-Note: If there are weights, this is really <span class="math notranslate nohighlight">\(\sum(w^2 \kappa^2)/\sum(w)\)</span>.</p></li>
+<li><p><strong>varg</strong> – The shear variance (aka shape noise) (0 if g1,g2 are not defined)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If there are weights, this is really <span class="math notranslate nohighlight">\(\sum(w^2 |g|^2)/\sum(w)\)</span>,
+which is more like <span class="math notranslate nohighlight">\(\langle w \rangle \mathrm{Var}(g)\)</span>.
+It is only used for <code class="docutils literal notranslate"><span class="pre">var_method='shot'</span></code>, where the noise estimate is this
+value divided by the total weight per bin, so this is the right quantity
+to use for that.</p>
+</div>
+</li>
+<li><p><strong>vark</strong> – The kappa variance (0 if k is not defined)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If there are weights, this is really <span class="math notranslate nohighlight">\(\sum(w^2 \kappa^2)/\sum(w)\)</span>.
+As for <code class="docutils literal notranslate"><span class="pre">varg</span></code>, this is the right quantity to use for the <code class="docutils literal notranslate"><span class="pre">'shot'</span></code>
+noise estimate.</p>
+</div>
+</li>
 <li><p><strong>name</strong> – When constructed from a file, this will be the file_name.  It is only used as
 a reference name in logging output  after construction, so if you construct it
-from data vectors directly, it will be ‘’.  You may assign to it if you want to
+from data vectors directly, it will be <code class="docutils literal notranslate"><span class="pre">''</span></code>.  You may assign to it if you want to
 give this catalog a specific name.</p></li>
-<li><p><strong>coords</strong> – What kind of coordinate system is defined for this catalog?
+<li><p><strong>coords</strong> – Which kind of coordinate system is defined for this catalog.
 The possibilities for this attribute are:</p>
 <blockquote>
 <div><ul class="simple">
@@ -270,12 +282,16 @@ The possibilities for this attribute are:</p>
 </ul>
 </div></blockquote>
 </li>
-<li><p><strong>field</strong> – If any of the <code class="docutils literal notranslate"><span class="pre">get?Field</span></code> methods have been called to construct a field from
-this catalog (either explicitly or implicitly via a <a class="reference internal" href="nn.html#treecorr.NNCorrelation.process" title="treecorr.NNCorrelation.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">corr.process()</span></code></a> command, then this attribute will hold the most recent
-field to have been constructed.
-Note: it holds this field as a weakref, so if caching is turned off with
-<code class="docutils literal notranslate"><span class="pre">resize_cache(0)</span></code>, and the field has been garbage collected, then this attribute
-will be None.</p></li>
+<li><p><strong>field</strong> – If any of the <a class="reference internal" href="#treecorr.Catalog.getNField" title="treecorr.Catalog.getNField"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">get?Field</span></code></a> methods have been called to construct
+a field from this catalog (either explicitly or implicitly via a <a class="reference internal" href="nn.html#treecorr.NNCorrelation.process" title="treecorr.NNCorrelation.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">corr.process()</span></code></a> command, then this attribute will hold the most recent
+field to have been constructed.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It holds this field as a weakref, so if caching is turned off with
+<code class="docutils literal notranslate"><span class="pre">resize_cache(0)</span></code>, and the field has been garbage collected, then this
+attribute will be None.</p>
+</div>
+</li>
 </ul>
 </dd>
 <dt class="field-even">Parameters</dt>
@@ -298,16 +314,17 @@ skip k_col, g1_col, and g2_col if they were set for the main catalog.
 x,y are required or ra,dec are required.)</p></li>
 <li><p><strong>y</strong> (<em>array</em>) – The y values. (default: None; When providing values directly, either
 x,y are required or ra,dec are required.)</p></li>
-<li><p><strong>z</strong> (<em>array</em>) – The z values, if doing 3d positions. (default: None)</p></li>
+<li><p><strong>z</strong> (<em>array</em>) – The z values, if doing 3d positions. (default: None; invalid in
+conjunction with ra, dec.)</p></li>
 <li><p><strong>ra</strong> (<em>array</em>) – The RA values. (default: None; When providing values directly, either
 x,y are required or ra,dec are required.)</p></li>
 <li><p><strong>dec</strong> (<em>array</em>) – The Dec values. (default: None; When providing values directly, either
 x,y are required or ra,dec are required.)</p></li>
-<li><p><strong>r</strong> (<em>array</em>) – The r values (the distances of each source from Earth). Note that r is
-invalid in conjunction with x,y. (default: None)</p></li>
+<li><p><strong>r</strong> (<em>array</em>) – The r values (the distances of each source from Earth). (default: None;
+invalid in conjunction with x, y.)</p></li>
 <li><p><strong>w</strong> (<em>array</em>) – The weights to apply when computing the correlations. (default: None)</p></li>
 <li><p><strong>wpos</strong> (<em>array</em>) – The weights to use for position centroiding. (default: None, which
-means to use the value weights, w, to weight the positions as well)</p></li>
+means to use the value weights, w, to weight the positions as well.)</p></li>
 <li><p><strong>flag</strong> (<em>array</em>) – An optional array of flags, indicating objects to skip.  Rows with
 flag != 0 (or technically flag &amp; ~ok_flag != 0) will be given a weight
 of 0.  (default: None)</p></li>
@@ -317,10 +334,14 @@ spinor field.) (default: None)</p></li>
 spinor field.) (default: None)</p></li>
 <li><p><strong>k</strong> (<em>array</em>) – The kappa values to use for scalar correlations. (This may represent
 any scalar field.) (default: None)</p></li>
-<li><p><strong>patch</strong> (<em>array</em><em> or </em><em>int</em>) – Optionally, patch numbers to use for each object. (default: None)
-Note: This may also be an int if the entire catalog represents a
+<li><p><strong>patch</strong> (<em>array</em><em> or </em><em>int</em>) – <p>Optionally, patch numbers to use for each object. (default: None)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This may also be an int if the entire catalog represents a
 single patch.  If <code class="docutils literal notranslate"><span class="pre">patch_centers</span></code> is given this will select those
-items from the full input that correspond to the given patch number.</p></li>
+items from the full input that correspond to the given patch number.</p>
+</div>
+</p></li>
 <li><p><strong>patch_centers</strong> (<em>array</em><em> or </em><em>str</em>) – Alternative to setting patch by hand or using kmeans, you
 may instead give patch_centers either as a file name or an array
 from which the patches will be determined. (default: None)</p></li>
@@ -338,10 +359,15 @@ which means any whitespace)</p></li>
 <li><p><strong>last_row</strong> (<em>int</em>) – Which row to take as the last row to be used. (default: -1, which means
 the last row in the file)</p></li>
 <li><p><strong>every_nth</strong> (<em>int</em>) – Only use every nth row of the input catalog. (default: 1)</p></li>
-<li><p><strong>npatch</strong> (<em>int</em>) – How many patches to split the catalog into (using kmeans) for the
+<li><p><strong>npatch</strong> (<em>int</em>) – <p>How many patches to split the catalog into (using kmeans) for the
 purpose of jackknife variance or other options that involve running via
-patches. Note: If the catalog has ra,dec,r positions, the patches will
-be made using just ra,dec. (default: 1)</p></li>
+patches. (default: 1)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the catalog has ra,dec,r positions, the patches will
+be made using just ra,dec.</p>
+</div>
+</p></li>
 <li><p><strong>kmeans_init</strong> (<em>str</em>) – If using kmeans to make patches, which init method to use.
 cf. <a class="reference internal" href="field.html#treecorr.Field.run_kmeans" title="treecorr.Field.run_kmeans"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Field.run_kmeans</span></code></a> (default: ‘tree’)</p></li>
 <li><p><strong>kmeans_alt</strong> (<em>str</em>) – If using kmeans to make patches, whether to use the alternate kmeans
@@ -356,7 +382,7 @@ to read in this column. When reading from a file, either x_col and
 y_col are required or ra_col and dec_col are required.)</p></li>
 <li><p><strong>z_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the z values. This should be an integer for ASCII
 files or a string for FITS files. (default: 0 or ‘0’, which means not
-to read in this column.)</p></li>
+to read in this column; invalid in conjunction with ra_col, dec_col.)</p></li>
 <li><p><strong>ra_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the ra values. This should be an integer for
 ASCII files or a string for FITS files. (default: 0 or ‘0’, which
 means not to read in this column. When reading from a file, either
@@ -366,9 +392,8 @@ ASCII files or a string for FITS files. (default: 0 or ‘0’, which
 means not to read in this column. When reading from a file, either
 x_col and y_col are required or ra_col and dec_col are required.)</p></li>
 <li><p><strong>r_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the r values. This should be an integer for ASCII
-files or a string for FITS files.  Note that r_col is invalid in
-conjunction with x_col/y_col. (default: 0 or ‘0’, which means not to
-read in this column.)</p></li>
+files or a string for FITS files. (default: 0 or ‘0’, which means not
+to read in this column; invalid in conjunction with x_col, y_col.)</p></li>
 <li><p><strong>x_units</strong> (<em>str</em>) – The units to use for the x values, given as a string.  Valid options are
 arcsec, arcmin, degrees, hours, radians.  (default: radians, although
 with (x,y) positions, you can often just ignore the units, and the
@@ -400,7 +425,7 @@ ASCII files or a string for FITS files. (default: 0 or ‘0’, which means
 not to read in this column.)</p></li>
 <li><p><strong>wpos_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the position weight values. This should be an
 integer for ASCII files or a string for FITS files. (default: 0 or ‘0’,
-which means not to read in this column.)</p></li>
+which means not to read in this column, in which case wpos=w.)</p></li>
 <li><p><strong>flag_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the flag values. This should be an integer for
 ASCII files or a string for FITS files. Any row with flag != 0 (or
 technically flag &amp; ~ok_flag != 0) will be given a weight of 0.
@@ -414,8 +439,8 @@ it is an error to have both kinds of positions, but if you know that
 the x,y,z, values are consistent with the given ra,dec values, it
 can save time to input them, rather than calculate them using trig
 functions. (default: False)</p></li>
-<li><p><strong>flip_g1</strong> (<em>bool</em>) – Whtether to flip the sign of the input g1 values. (default: False)</p></li>
-<li><p><strong>flip_g2</strong> (<em>bool</em>) – Whtether to flip the sign of the input g2 values. (default: False)</p></li>
+<li><p><strong>flip_g1</strong> (<em>bool</em>) – Whether to flip the sign of the input g1 values. (default: False)</p></li>
+<li><p><strong>flip_g2</strong> (<em>bool</em>) – Whether to flip the sign of the input g2 values. (default: False)</p></li>
 <li><p><strong>keep_zero_weight</strong> (<em>bool</em>) – Whether to keep objects with wpos=0 in the catalog (including
 any objects that indirectly get wpos=0 due to NaN or flags), so they
 would be included in ntot and also in npairs calculations that use
@@ -468,8 +493,14 @@ of the range.</p></li>
 <li><p><strong>cat_precision</strong> (<em>int</em>) – The precision to use when writing a Catalog to an ASCII file. This
 should be an integer, which specifies how many digits to write.
 (default: 16)</p></li>
-<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the catalog load steps.
-(default: use the number of cpu cores)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – <p>How many OpenMP threads to use during the catalog load steps.
+(default: use the number of cpu cores)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This won’t work if the system’s C compiler cannot use OpenMP
+(e.g. clang prior to version 3.7.)</p>
+</div>
+</p></li>
 </ul>
 </dd>
 </dl>
@@ -848,9 +879,9 @@ constructed as well.</p>
 <dt id="treecorr.Catalog.write">
 <code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">file_type</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cat_precision</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the catalog to a file.</p>
-<p>Note that the position columns are output using the same units as were used when
-building the Catalog.  If you want to use a different unit, you can set the catalog’s
-units directly before writing.  e.g.:</p>
+<p>The position columns are output using the same units as were used when building the
+Catalog.  If you want to use a different unit, you can set the catalog’s units directly
+before writing.  e.g.:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="s1">&#39;cat.dat&#39;</span><span class="p">,</span> <span class="n">ra</span><span class="o">=</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">dec</span><span class="p">,</span>
 <span class="go">                           ra_units=&#39;hours&#39;, dec_units=&#39;degrees&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">ra_units</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">degrees</span>

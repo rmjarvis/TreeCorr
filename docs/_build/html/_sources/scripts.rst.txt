@@ -1,11 +1,24 @@
 Using configuration files
 =========================
 
+Most of the TreeCorr classes can take a ``config`` parameter in lieu
+of a set of keyword arguments.  This is not necessarily incredibly
+useful when driving the code from Python; however, it enables running
+the code from some executable scripts, described below.
+
+Specifically, the parameters defined in the configuration file are
+loaded into a Python dict, which is passed to each of the classes
+as needed.  The advantage of this is that TreeCorr will only use the
+parameters it actually needs when initializing each object.
+Any additional parameters (e.g. those
+that are relevant to a different class) are ignored.
+
 The corr2 and corr3 executables
 -------------------------------
 
-Also installed with TreeCorr are two executable scripts, called ``corr2``
-and ``corr3``.  The scripts takes one required command-line argument, which
+Along with the installed Python library, TreeCorr also includes
+two executable scripts, called ``corr2`` and ``corr3``.
+The scripts takes one required command-line argument, which
 is the name of a configuration file::
 
     corr2 config.yaml
@@ -36,10 +49,17 @@ the configuration file. e.g.::
 This can be useful when running the program from a script for lots of input
 files.
 
-It is also possible to access the same functionality from within Python:
-
 The corr2 function from python
 ------------------------------
+
+The same functionality that you have from the ``corr2`` executable is available in python via the
+`corr2` function::
+
+    import treecorr
+    config = treecorr.read_config(config_file)
+    config['file_name'] = 'catalog.dat'
+    config['gg_file_name'] = 'gg.out'
+    treecorr.corr2(config)
 
 .. autofunction:: treecorr.corr2
 

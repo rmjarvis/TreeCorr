@@ -102,6 +102,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#output-format-changes">Output Format Changes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#performance-improvements">Performance Improvements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#new-features">New features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deprecations">Deprecations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-1-0-to-4-1-1">Changes from version 4.1.0 to 4.1.1</a></li>
 </ul>
 </li>
@@ -186,30 +187,32 @@ to the nearest center position.</p></li>
 <p>For more details about making patches, see <a class="reference external" href="https://rmjarvis.github.io/TreeCorr/_build/html/patches.html">Patches</a></p>
 <p>For details about using patches to compute better covariance matrices,
 see <a class="reference external" href="https://rmjarvis.github.io/TreeCorr/_build/html/cov.html">Covariance Estimates</a></p>
-<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+4.1%22+is%3Aclosed">Relevant PRs and Issues</a></p>
+<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+4.1%22+is%3Aclosed">Relevant PRs and Issues,</a>
+whose issue numbers are listed below for the relevant items.</p>
 <div class="section" id="output-format-changes">
 <h2>Output Format Changes<a class="headerlink" href="#output-format-changes" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>When writing an <a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNCorrelation</span></code></a> to a file, if <a class="reference internal" href="nn.html#treecorr.NNCorrelation.calculateXi" title="treecorr.NNCorrelation.calculateXi"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NNCorrelation.calculateXi</span></code></a> has
 already been called, then the calculated <code class="docutils literal notranslate"><span class="pre">xi</span></code> and <code class="docutils literal notranslate"><span class="pre">varxi</span></code> will be written
 to the output file, even if you don’t provide the random catalog to the
-<a class="reference internal" href="nn.html#treecorr.NNCorrelation.write" title="treecorr.NNCorrelation.write"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NNCorrelation.write</span></code></a> function.</p></li>
+<a class="reference internal" href="nn.html#treecorr.NNCorrelation.write" title="treecorr.NNCorrelation.write"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NNCorrelation.write</span></code></a> function. (#99)</p></li>
 <li><p>Similarly, if <a class="reference internal" href="ng.html#treecorr.NGCorrelation.calculateXi" title="treecorr.NGCorrelation.calculateXi"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NGCorrelation.calculateXi</span></code></a> or <a class="reference internal" href="nk.html#treecorr.NKCorrelation.calculateXi" title="treecorr.NKCorrelation.calculateXi"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NKCorrelation.calculateXi</span></code></a> has
 been called using a random catalog, then the <code class="docutils literal notranslate"><span class="pre">xi</span></code> and <code class="docutils literal notranslate"><span class="pre">varxi</span></code> columns in
-the output file will be the compensated statistics, rather than the raw ones.</p></li>
+the output file will be the compensated statistics, rather than the raw ones.
+(#99)</p></li>
 </ul>
 </div>
 <div class="section" id="performance-improvements">
 <h2>Performance Improvements<a class="headerlink" href="#performance-improvements" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Improved the speed of reading in FITS files, mostly by telling fitsio to read
-all of the columns at once rather than doing them one at a time.</p></li>
+all of the columns at once rather than doing them one at a time. (#104)</p></li>
 <li><p>Delayed the loading of Catalogs from files until the data is actually needed.
 Specifically, if the full catalog is never needed, and only patches are used,
 then this allows for a much reduced memory footprint with a new <code class="docutils literal notranslate"><span class="pre">low_mem</span></code>
-option for <code class="docutils literal notranslate"><span class="pre">process</span></code> calls.</p></li>
+option for <code class="docutils literal notranslate"><span class="pre">process</span></code> calls. (#103)</p></li>
 <li><p>Added OpenMP parallelization to the (ra,dec) -&gt; (x,y,z) calculation to speed
-up that step during Catalog loading.</p></li>
+up that step during Catalog loading. (#104)</p></li>
 </ul>
 </div>
 <div class="section" id="new-features">
@@ -217,33 +220,47 @@ up that step during Catalog loading.</p></li>
 <ul class="simple">
 <li><p>Added <a class="reference internal" href="field.html#treecorr.Field.run_kmeans" title="treecorr.Field.run_kmeans"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Field.run_kmeans</span></code></a> to run K-Means algorithm on a Field to determine a
 good set of patches to use.  This will be run automatically simply by setting
-<code class="docutils literal notranslate"><span class="pre">npatch</span></code> when building a <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a>.</p></li>
+<code class="docutils literal notranslate"><span class="pre">npatch</span></code> when building a <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a>. (#88)</p></li>
 <li><p>Added ability input patch numbers from input file or input arrays using
-<code class="docutils literal notranslate"><span class="pre">patch_col</span></code> or <code class="docutils literal notranslate"><span class="pre">patch</span></code> respectively.</p></li>
-<li><p>Added ability to write patch centers to a file with <a class="reference internal" href="catalog.html#treecorr.Catalog.write_patch_centers" title="treecorr.Catalog.write_patch_centers"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Catalog.write_patch_centers</span></code></a>.</p></li>
+<code class="docutils literal notranslate"><span class="pre">patch_col</span></code> or <code class="docutils literal notranslate"><span class="pre">patch</span></code> respectively. (#96)</p></li>
+<li><p>Added ability to write patch centers to a file with <a class="reference internal" href="catalog.html#treecorr.Catalog.write_patch_centers" title="treecorr.Catalog.write_patch_centers"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Catalog.write_patch_centers</span></code></a>.
+(#99)</p></li>
 <li><p>Added ability to define patch numbers from patch centers (either a file or
-the <code class="docutils literal notranslate"><span class="pre">patch_centers</span></code> attribute of another Catalog).</p></li>
+the <code class="docutils literal notranslate"><span class="pre">patch_centers</span></code> attribute of another Catalog). (#99)</p></li>
 <li><p>Added the ability to compute jackknife, sample, bootstrap, and marked bootstrap
 variance and covariance estimates by dividing the full calculation into
 correlations across patches.  Set <code class="docutils literal notranslate"><span class="pre">var_method</span></code> in the Correlation class or
-use the <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2.estimate_cov" title="treecorr.BinnedCorr2.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr2.estimate_cov</span></code></a> method.</p></li>
+use the <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2.estimate_cov" title="treecorr.BinnedCorr2.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr2.estimate_cov</span></code></a> method. (#24, #50, #96)</p></li>
 <li><p>Added <a class="reference internal" href="correlation2.html#treecorr.estimate_multi_cov" title="treecorr.estimate_multi_cov"><code class="xref any py py-func docutils literal notranslate"><span class="pre">estimate_multi_cov</span></code></a> function, which will the compute covariance
-matrix across multiple statistics that have been run using the same set of patches.</p></li>
-<li><p>Added <code class="docutils literal notranslate"><span class="pre">every_nth</span></code> option for Catalogs to read in a fraction of the rows.</p></li>
+matrix across multiple statistics that have been run using the same set of patches.
+(#96)</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">every_nth</span></code> option for Catalogs to read in a fraction of the rows.  (#99)</p></li>
 <li><p>After calling <a class="reference internal" href="nn.html#treecorr.NNCorrelation.calculateXi" title="treecorr.NNCorrelation.calculateXi"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NNCorrelation.calculateXi</span></code></a>, the calculated <code class="docutils literal notranslate"><span class="pre">xi</span></code>, <code class="docutils literal notranslate"><span class="pre">varxi</span></code> and
-<code class="docutils literal notranslate"><span class="pre">cov</span></code> are available as attributes.</p></li>
+<code class="docutils literal notranslate"><span class="pre">cov</span></code> are available as attributes. (#99)</p></li>
 <li><p>Added <code class="docutils literal notranslate"><span class="pre">keep_zero_weight</span></code> option to include wpos=0 objects in the total npairs
 if you want.  The default is to throw out wpos=0 objects at the start, but there
-may be reasons to keep them, so that’s now an option when building the Catalog.</p></li>
+may be reasons to keep them, so that’s now an option when building the Catalog.
+(#99)</p></li>
 <li><p>Added <code class="docutils literal notranslate"><span class="pre">allow_xyz</span></code> option to allow x,y,z columns be provided along with ra,dec
 columns.  Normally this is not allowed, but if you know they are consistent,
-then this option allows them to be input directly to avoid recalculating them.</p></li>
+then this option allows them to be input directly to avoid recalculating them.
+(#103)</p></li>
 <li><p>Added <code class="docutils literal notranslate"><span class="pre">low_mem</span></code> option to <code class="docutils literal notranslate"><span class="pre">process</span></code> calls to unload patches that aren’t being
-used, thus saving memory at the expense of some extra I/O time.</p></li>
+used, thus saving memory at the expense of some extra I/O time. (#103)</p></li>
 <li><p>Added <code class="docutils literal notranslate"><span class="pre">save_patch_dir</span></code> as an optional location to write patch catalogs for increased
-efficiency when using <code class="docutils literal notranslate"><span class="pre">low_mem</span></code> option.</p></li>
+efficiency when using <code class="docutils literal notranslate"><span class="pre">low_mem</span></code> option. (#103)</p></li>
 <li><p>Added <code class="docutils literal notranslate"><span class="pre">comm</span></code> option to <code class="docutils literal notranslate"><span class="pre">process</span></code> calls to use MPI to split a job up over
-multiple machines.</p></li>
+multiple machines. (#98, #104)</p></li>
+</ul>
+</div>
+<div class="section" id="deprecations">
+<h2>Deprecations<a class="headerlink" href="#deprecations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>The <a class="reference internal" href="nn.html#treecorr.NNCorrelation.process_pairwise" title="treecorr.NNCorrelation.process_pairwise"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_pairwise</span></code></a> functions have all been
+deprecated.  I can’t remember anymore why I added this feature, and I don’t think
+anyone uses it (or the associated <a class="reference internal" href="field.html#treecorr.NSimpleField" title="treecorr.NSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">SimpleFields</span></code></a>).  If you need this
+functionality, please open an issue to let me know, and I can keep them.  Otherwise,
+I’ll remove them as usesless cruft.</p></li>
 </ul>
 </div>
 <div class="section" id="changes-from-version-4-1-0-to-4-1-1">

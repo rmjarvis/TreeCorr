@@ -197,8 +197,8 @@ distances across the sphere, not great circle distances.  For small angles, this
 correction, but as the angles get large, the difference between the great circle distance and
 the chord distance becomes significant.  The conversion formula is</p>
 <p><span class="math notranslate nohighlight">\(d_{\rm GC} = 2 \arcsin(d_{\rm Euclidean} / 2)\)</span></p>
-<p>TreeCorr applies this formula at the end as part of the <code class="docutils literal notranslate"><span class="pre">finalize</span></code> function
-(e.g. <a class="reference internal" href="gg.html#treecorr.GGCorrelation.finalize" title="treecorr.GGCorrelation.finalize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">finalize()</span></code></a>), so the <code class="docutils literal notranslate"><span class="pre">meanr</span></code> and <code class="docutils literal notranslate"><span class="pre">meanlogr</span></code> attributes
+<p>TreeCorr applies this formula at the end as part of the <a class="reference internal" href="gg.html#treecorr.GGCorrelation.finalize" title="treecorr.GGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>
+function, so the <code class="docutils literal notranslate"><span class="pre">meanr</span></code> and <code class="docutils literal notranslate"><span class="pre">meanlogr</span></code> attributes
 will be in terms of great circle distances.  However, they will not necessarily be spaced
 precisely uniformly in log(r), since the original bin spacing will have been set up in terms
 of the chord distances.</p>
@@ -217,7 +217,7 @@ chord calculations are in any way problematic for your particular use case.</p>
 actual great circle distances, rather than being based on the chord distances.</p>
 </div>
 <div class="section" id="rperp-or-fisherrperp">
-<h2>“Rperp” or “FisherRperp”<a class="headerlink" href="#rperp-or-fisherrperp" title="Permalink to this headline">¶</a></h2>
+<span id="rperp"></span><h2>“Rperp” or “FisherRperp”<a class="headerlink" href="#rperp-or-fisherrperp" title="Permalink to this headline">¶</a></h2>
 <p>This metric is only valid for 3-dimensional coordinates (ra,dec,r) or (x,y,z).</p>
 <p>The distance in this metric is defined as</p>
 <p><span class="math notranslate nohighlight">\(d_{\rm Rperp} = \sqrt{d_{\rm Euclidean}^2 - r_\parallel^2}\)</span></p>
@@ -295,8 +295,8 @@ In other words, this is the distance from the first object (nominally the “len
 line of sight to the second object (nominally the “source”).  This is commonly referred to
 as the impact parameter of the light path from the source as it passes the lens.</p>
 <p>This metric also permits the use of two other parameters, <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> and <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code>,
-which set the minimum and maximum values of <span class="math notranslate nohighlight">\(r_\parallel = r_2 - r_1\)</span> for pairs to be
-included in the correlations.</p>
+which set the minimum and maximum values of <span class="math notranslate nohighlight">\(r_\parallel\)</span>, defined as for
+<a class="reference internal" href="#rperp"><span class="std std-ref">&quot;Rperp&quot;</span></a> above, for pairs to be included in the correlations.</p>
 <p>The sign of <span class="math notranslate nohighlight">\(r_\parallel\)</span> is defined such that positive values mean
 the object from the second catalog is farther away. Thus, setting
 <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> = 0 will restrict the sources to being in the background of each lens.

@@ -55,9 +55,13 @@ class NNCorrelation(treecorr.BinnedCorr2):
         cov:        An estimate of the full covariance matrix.
 
     If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
-    will all be in these units.  Note however, that if you separate out the steps of the
-    `process` command and use `process_auto` and/or `process_cross`, then the units will not be
-    applied to ``meanr`` or ``meanlogr`` until the `finalize` function is called.
+    will all be in these units.
+
+    .. note::
+
+        If you separate out the steps of the `process` command and use `process_auto` and/or
+        `process_cross`, then the units will not be applied to ``meanr`` or ``meanlogr`` until
+        the `finalize` function is called.
 
     The typical usage pattern is as follows:
 

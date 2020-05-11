@@ -65,9 +65,13 @@ class KGCorrelation(treecorr.BinnedCorr2):
         else and use patches in the input catalog(s).  cf. `Covariance Estimates`.
 
     If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
-    will all be in these units.  Note however, that if you separate out the steps of the
-    `process` command and use `process_cross`, then the units will not be applied to ``meanr`` or
-    ``meanlogr`` until the `finalize` function is called.
+    will all be in these units.
+
+    .. note::
+
+        If you separate out the steps of the `process` command and use `process_cross`,
+        then the units will not be applied to ``meanr`` or ``meanlogr`` until the `finalize`
+        function is called.
 
     The typical usage pattern is as follows:
 

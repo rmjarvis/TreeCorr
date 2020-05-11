@@ -1,5 +1,5 @@
 from treecorr.catalog_formats import FitsReader, HdfReader
-from test_helper import get_from_wiki, assert_raises
+from test_helper import get_from_wiki, assert_raises, assert_warns
 import os
 import numpy as np
 
@@ -46,10 +46,25 @@ def test_hdf_reader():
     assert r.choose_extension({'g1_ext': 'g1'}, 'g1_ext', 0) == 'g1'
     assert r.choose_extension({}, 'g1_ext', 0, 'ext') == 'ext'
 
+def test_hdu_warning():
+    num = 0
+    with assert_warns(FutureWarning):
+        ext = FitsReader.choose_extension({'hdu': 1}, 'ext', num)
+        assert ext == 1
+    with assert_warns(FutureWarning):
+        ext = FitsReader.choose_extension({'x_hdu': 'hdu_name'}, 'x_ext', num)
+        assert ext == 'hdu_name'
+
+    with assert_warns(FutureWarning):
+        ext = HdfReader.choose_extension({'hdu': 'potato'}, 'ext', num)
+        assert ext == 'potato'
+        ext = HdfReader.choose_extension({'ra_hdu': 'group_name'}, 'ra_ext', num)
+        assert ext == 'group_name'
+
 
 
 if __name__ == '__main__':
-
+    test_hdu_warning()
     test_fits_reader()
     test_hdf_reader()
     test_context()

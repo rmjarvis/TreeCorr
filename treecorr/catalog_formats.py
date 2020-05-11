@@ -28,6 +28,7 @@ both provide dicts.
 """
 import numpy as np
 from treecorr.config import get_from_list
+import warnings
 
 class FitsReader:
     """Reader interface for FITS files.
@@ -145,7 +146,8 @@ class FitsReader:
             raise ValueError("Invalid ext={} for file {} (Not a TableHDU)".format(
                              ext, self.file_name))
 
-    def choose_extension(self, config, name, num, default=None):
+    @staticmethod
+    def choose_extension(config, name, num, default=None):
         """Select an extension name or index from a configuration.
 
         If no key is found or default supplied, fall back to the first FITS extension.
@@ -166,9 +168,20 @@ class FitsReader:
         ext: int/str
             The value that can be used to look up the extension
         """
+
         # get the value as a string - if it's actually an int
         # we will convert below
         ext = get_from_list(config, name, num, str)
+
+        # allow the user to use the old _hdu format names, but warn them
+        # that these are deprecated.
+        if ext is None:
+            ext = get_from_list(config, name.replace('ext', 'hdu'), num, str)
+
+            if ext is not None:
+                warnings.warn("Parameters ending in 'hdu' are deprecated and "
+                              "should now be renamed to end in 'ext' instead",
+                              FutureWarning)
 
         # If not found, use the default if present, otherwise the global
         # default of 1
@@ -309,7 +322,8 @@ class HdfReader:
         # closes file at end of "with" statement
         self.file.close()
 
-    def choose_extension(self, config, name, num, default=None):
+    @staticmethod
+    def choose_extension(config, name, num, default=None):
         """Select an extension name or index from a configuration.
 
         If no key is found or default supplied, fall back to the
@@ -332,6 +346,16 @@ class HdfReader:
             The HDF group name
         """
         ext = get_from_list(config, name, num, str)
+
+        # Although it's unlikely they'll use the "hdu" parameter when reading
+        # HDF files it's possible, so allow but warn.
+        if ext is None:
+            ext = get_from_list(config, name.replace('ext', 'hdu'), num, str)
+
+            if ext is not None:
+                warnings.warn("Parameters ending in 'hdu' are deprecated and "
+                              "should now be renamed to end in 'ext' instead",
+                              FutureWarning)
 
         # If not found, use the default if present, otherwise the global
         # default of using the root of the file

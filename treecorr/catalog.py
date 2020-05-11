@@ -1330,6 +1330,7 @@ class Catalog(object):
 
         with reader(file_name) as infile:
     
+            # get the vanilla "ext" parameter, and also try "hdu" for legacy
             ext = infile.choose_extension(self.config, 'ext', num)
 
             # Technically, this doesn't catch all possible errors.  If someone specifies

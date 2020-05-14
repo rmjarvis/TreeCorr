@@ -56,7 +56,7 @@ New features
 - Added `Field.run_kmeans` to run K-Means algorithm on a Field to determine a
   good set of patches to use.  This will be run automatically simply by setting
   ``npatch`` when building a `Catalog`. (#88)
-- Added ability input patch numbers from input file or input arrays using
+- Added ability to input patch numbers from input file or input arrays using
   ``patch_col`` or ``patch`` respectively. (#96)
 - Added ability to write patch centers to a file with `Catalog.write_patch_centers`.
   (#99)

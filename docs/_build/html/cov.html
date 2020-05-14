@@ -103,6 +103,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#covariance-matrix">Covariance Matrix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#random-catalogs">Random Catalogs</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
@@ -314,6 +315,50 @@ that were processed using the same patches with <a class="reference internal" hr
 </div>
 <p>This will calculate an estimate of the covariance matrix for the full data vector
 with <code class="docutils literal notranslate"><span class="pre">ng.xi</span></code> followed by <code class="docutils literal notranslate"><span class="pre">gg.xip</span></code> and then <code class="docutils literal notranslate"><span class="pre">gg.xim</span></code>.</p>
+</div>
+<div class="section" id="random-catalogs">
+<h2>Random Catalogs<a class="headerlink" href="#random-catalogs" title="Permalink to this headline">¶</a></h2>
+<p>There are a few adjustements to the above prescription when using random
+catalogs, which of course are required when doing an NN correlation.</p>
+<ol class="arabic simple">
+<li><p>It is not necessarily required to use patches for the random catalog.
+The random is supposed to be dense enough that it doesn’t materially contribute
+to the noise in the correlation measurement.  In particular, it doesn’t have
+any sample variance itself, and the shot noise component should be small
+compared to the shot noise in the data.</p></li>
+<li><p>If you do use patches for the random catalog, then you need to make sure
+that you use the same patch definitions for both the data and the randoms.
+Using patches for the randoms probably leads to slightly better covariance
+estimates in most cases, but the difference in the two results is usually small.</p></li>
+<li><p>The covariance calculation cannot happen until you call
+<a class="reference internal" href="nn.html#treecorr.NNCorrelation.calculateXi" title="treecorr.NNCorrelation.calculateXi"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateXi</span></code></a>
+to let TreeCorr know what the RR and DR (if using that) results are.</p></li>
+<li><p>After calling <a class="reference internal" href="nn.html#treecorr.NNCorrelation.calculateXi" title="treecorr.NNCorrelation.calculateXi"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">dd.calculateXi</span></code></a>, <code class="docutils literal notranslate"><span class="pre">dd</span></code>
+will have <code class="docutils literal notranslate"><span class="pre">varxi</span></code> and <code class="docutils literal notranslate"><span class="pre">cov</span></code> attributes calculated according
+to whatever <code class="docutils literal notranslate"><span class="pre">var_method</span></code> you specified.</p></li>
+<li><p>It also allows you to call <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2.estimate_cov" title="treecorr.BinnedCorr2.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">dd.estimate_cov</span></code></a>
+with any different method you want.
+And you can include <code class="docutils literal notranslate"><span class="pre">dd</span></code> in a list of correlation
+objects passed to <a class="reference internal" href="correlation2.html#treecorr.estimate_multi_cov" title="treecorr.estimate_multi_cov"><code class="xref any py py-func docutils literal notranslate"><span class="pre">treecorr.estimate_multi_cov</span></code></a>.</p></li>
+</ol>
+<p>Here is a worked example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">npatch</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rand</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">rand_config</span><span class="p">,</span> <span class="n">patch_centers</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">patch_centers</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dd</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">nn_config</span><span class="p">,</span> <span class="n">var_method</span><span class="o">=</span><span class="s1">&#39;jackknife&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dr</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">nn_config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rr</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">nn_config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dd</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">rand</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dd</span><span class="o">.</span><span class="n">calculateXi</span><span class="p">(</span><span class="n">rr</span><span class="o">=</span><span class="n">rr</span><span class="p">,</span> <span class="n">dr</span><span class="o">=</span><span class="n">dr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dd_cov</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">cov</span>  <span class="c1"># Can access covariance now.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dd_cov_bs</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">estimate_cov</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;bootstrap&#39;</span><span class="p">)</span> <span class="c1"># Or calculate a different one.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">txcov</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">estimate_multi_cov</span><span class="p">([</span><span class="n">ng</span><span class="p">,</span><span class="n">gg</span><span class="p">,</span><span class="n">dd</span><span class="p">],</span> <span class="s1">&#39;bootstrap&#39;</span><span class="p">)</span> <span class="c1"># Or include in multi_cov</span>
+</pre></div>
+</div>
+<p>As mentioned above, using <code class="docutils literal notranslate"><span class="pre">patch_centers</span></code> is optional for <code class="docutils literal notranslate"><span class="pre">rand</span></code>, but probably recommended.
+In the last line, it would be required that <code class="docutils literal notranslate"><span class="pre">ng</span></code> and <code class="docutils literal notranslate"><span class="pre">gg</span></code> were also made using catalogs
+with the same patch centers that <code class="docutils literal notranslate"><span class="pre">dd</span></code> used.</p>
 </div>
 </div>
 

@@ -46,6 +46,18 @@ parameter with integer values indicating the patch number.
 If reading in data from a file, then set a ``patch_col`` to use which
 should have these values.
 
+The next simplest way to define the patches is to tell TreeCorr how many
+patches you want using ``npatch``.
+TreeCorr will then run the K-Means algorithm to split up the full area
+into this many patches.
+See `Running K-Means` below for more details.
+
+Finally, to make sure multiple catalogs are using the same definition for
+where patches are on the sky, you would probably want to have a single
+set of patch centers and have all of your catalogs use that via
+the ``patch_centers`` option.  See `Using Patch Centers` below for details.
+
+
 Running K-Means
 ---------------
 
@@ -149,7 +161,8 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
 
     However, we don't really care about the total inertia being minimized.  For most purposes
     here, we really want the patches to be all close to the *same* size.  So rather than
-    the total inertia, my metric for quality was the RMS intertia.
+    the total inertia, my metric for quality was the rms variation of the intertia
+    (aka the standard deviation).
 
     Fortunately, the process of minimizing the total inertia does tend to select patches with
     small rms variation as well, but it is worth noting that this is not directly targeted by the
@@ -160,16 +173,17 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
     Comparing the results of the various k-means implementations, I found that they all tend
     to be either fairly slow, taking a minute or more for just 1 million objects, or they have
     very high rms variation in the inertia.
-    I reran each code multiple times using a different random million selected from the original
+    I reran each code multiple times using a different random million objects selected from the original
     catalog (of around 16 million objects). Here is a scatter plot of the time vs rms variation
-    in the inertia (aka standard deviation) for the various codes.
+    in the inertia for the various codes.
 
     .. image:: https://user-images.githubusercontent.com/623887/57647337-ac6bd800-7590-11e9-80bc-900bda3bf66b.png
 
     Since there was no existing implementation I was particularly happy with,
     I implemented it myself in TreeCorr. It turns out (not surprisingly) that the ball tree
-    structure that TreeCorr already uses for doing correlation functions quickly is also very
-    useful for doing k-means quickly. Also, the quality of the k-means result is pretty dependent
+    data structure that TreeCorr uses for efficient calculation of correlation functions
+    also enables a very efficient implementation of the k-means iteration step.
+    Furthermore, the quality of the k-means result is pretty dependent
     on the choice of the initial centers, and using the ball tree for the initialization turns
     out to produce reliably better results than the initialization methods used by other packages.
 
@@ -190,7 +204,7 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
     smaller inertia. In other words, it explicitly targets making the rms variation as small as
     possible.  But in practice, it is not much worse in terms of total inertia either.
 
-    The alternate algorithm is available using alt=True in `Field.run_kmeans`.
+    The alternate algorithm is available using ``alt=True`` in `Field.run_kmeans`.
     I left this as a non-default option for two reasons. First, it's not actually the real
     k-means, so I didn't want to confuse people who just want to use this for regular k-means
     clustering. But second, I'm not completely sure that it is always stable. There is a free
@@ -349,8 +363,8 @@ machine may end up with different patch definitions, which would definitely
 mess things up.
 
 If you wanted to have it all run in a single script, you should have only
-the rank 0 process define the patches, send it cat.patch_centers to the
-other ranks, who can then build their catalogs using this.
+the rank 0 process define the patches.  Then send ``cat.patch_centers`` to the
+other ranks, who can build their catalogs using this.
 But it's probably easier to just precompute the centers and save them to a file
 before starting the MPI run.
 

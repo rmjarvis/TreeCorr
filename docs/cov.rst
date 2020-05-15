@@ -167,3 +167,48 @@ that were processed using the same patches with `treecorr.estimate_multi_cov`.  
 
 This will calculate an estimate of the covariance matrix for the full data vector
 with ``ng.xi`` followed by ``gg.xip`` and then ``gg.xim``.
+
+Random Catalogs
+---------------
+
+There are a few adjustements to the above prescription when using random
+catalogs, which of course are required when doing an NN correlation.
+
+1. It is not necessarily required to use patches for the random catalog.
+   The random is supposed to be dense enough that it doesn't materially contribute
+   to the noise in the correlation measurement.  In particular, it doesn't have
+   any sample variance itself, and the shot noise component should be small
+   compared to the shot noise in the data.
+2. If you do use patches for the random catalog, then you need to make sure
+   that you use the same patch definitions for both the data and the randoms.
+   Using patches for the randoms probably leads to slightly better covariance
+   estimates in most cases, but the difference in the two results is usually small.
+3. The covariance calculation cannot happen until you call
+   `calculateXi <NNCorrelation.calculateXi>`
+   to let TreeCorr know what the RR and DR (if using that) results are.
+4. After calling `dd.calculateXi <NNCorrelation.calculateXi>`, ``dd``
+   will have ``varxi`` and ``cov`` attributes calculated according
+   to whatever ``var_method`` you specified.
+5. It also allows you to call `dd.estimate_cov <BinnedCorr2.estimate_cov>`
+   with any different method you want.
+   And you can include ``dd`` in a list of correlation
+   objects passed to `treecorr.estimate_multi_cov`.
+
+Here is a worked example::
+
+    >>> data = treecorr.Catalog(config, npatch=N)
+    >>> rand = treecorr.Catalog(rand_config, patch_centers=data.patch_centers)
+    >>> dd = treecorr.NNCorrelation(nn_config, var_method='jackknife')
+    >>> dr = treecorr.NNCorrelation(nn_config)
+    >>> rr = treecorr.NNCorrelation(nn_config)
+    >>> dd.process(data)
+    >>> dr.process(data, rand)
+    >>> rr.process(rand)
+    >>> dd.calculateXi(rr=rr, dr=dr)
+    >>> dd_cov = dd.cov  # Can access covariance now.
+    >>> dd_cov_bs = dd.estimate_cov(method='bootstrap') # Or calculate a different one.
+    >>> txcov = treecorr.estimate_multi_cov([ng,gg,dd], 'bootstrap') # Or include in multi_cov
+
+As mentioned above, using ``patch_centers`` is optional for ``rand``, but probably recommended.
+In the last line, it would be required that ``ng`` and ``gg`` were also made using catalogs
+with the same patch centers that ``dd`` used.

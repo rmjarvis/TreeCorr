@@ -279,16 +279,14 @@ in a fits file would look something like the following::
     >>> xim = gg.xim  # The xi_minus correlation function
     >>> gg.write('gg.out')  # Write results to a file
 
-For more involved worked examples, see our `Jupyter notebook tutorial
+For more details, see our slightly longer `Getting Started Guide
+<https://rmjarvis.github.io/TreeCorr/_build/html/guide.html>`_.
+
+Or for a more involved worked example, see our `Jupyter notebook tutorial
 <https://github.com/rmjarvis/TreeCorr/blob/master/tests/Tutorial.ipynb>`_.
 
 And for the complete details about all aspects of the code, see the `Sphinx-generated
 documentation <http://rmjarvis.github.io/TreeCorr>`_.
-
-If you are used to using ``corr2`` with a configuration file,
-and want to learn how to do the same thing in pythonn, there is also a
-`guide <https://rmjarvis.github.io/TreeCorr/_build/html/guide.html>`_
-to migrating over.
 
 
 Reporting bugs

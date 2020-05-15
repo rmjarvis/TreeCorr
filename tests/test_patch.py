@@ -1223,7 +1223,7 @@ def test_nn_jk():
 
     # Now run with jackknife variance estimate.  Should be much better.
     nn3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='jackknife')
-    nr3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='jackknife')
+    nr3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
     t0 = time.time()
     nn3.process(catp)
     t1 = time.time()
@@ -1262,7 +1262,7 @@ def test_nn_jk():
     np.testing.assert_allclose(cov3b.diagonal(), var_xib, rtol=0.5*tol_factor)
 
     # Check NN cross-correlation and other combinations of dr, rd.
-    rn3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='jackknife')
+    rn3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
     t0 = time.time()
     nn3.process(catp, catp)
     t1 = time.time()

@@ -142,10 +142,13 @@ that is also relatively straightforward:
 
         b) pandas will signficantly speed up reading from ASCII catalogs.
 
-        These are both pip installable::
+        c) h5py is required for reading HDF5 catalogs
+
+        These are all pip installable::
 
             pip install fitsio
             pip install pandas
+            pip install h5py
 
         But they are not installed with TreeCorr automatically.
 

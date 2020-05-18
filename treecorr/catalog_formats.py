@@ -248,7 +248,7 @@ class HdfReader:
             The extension to check
         """
         # root always exists
-        if ext == '':
+        if ext == '' or ext == '/':
             return True
         if ext not in self:
             raise ValueError("Invalid ext={} for file {} (does not exist)".format(

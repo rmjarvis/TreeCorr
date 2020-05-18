@@ -764,6 +764,34 @@ def test_ext():
                              k_ext=6, g1_ext=6, g2_ext=6)
     assert cat10 == cat1
 
+    # test that the case where we can't slice works
+    # by pretending that we are using an old fitsio version,
+    # temporarily.
+    actual_fitsio_version = fitsio.__version__
+    try:
+        fitsio.__version__ = '1.0.6'
+        cat11 = treecorr.Catalog(fname, allow_xyz=True,
+                                 x_col='x', y_col='y', z_col='z',
+                                 ra_col='ra', dec_col='dec', r_col='r',
+                                 ra_units='rad', dec_units='rad',
+                                 w_col='w', wpos_col='wpos', flag_col='flag',
+                                 k_col='k', g1_col='g1', g2_col='g2',
+                                 x_ext=3, y_ext=3, z_ext=3,
+                                 ra_ext=4, dec_ext=4, r_ext=4,
+                                 w_ext=5, wpos_ext=5, flag_ext=5,
+                                 k_ext=6, g1_ext=6, g2_ext=6)
+        assert cat11 == cat1
+        # and equiv for RA
+        cat12 = treecorr.Catalog(fname,
+                                ra_col='ra', dec_col='dec', r_col='r',
+                                ra_units='rad', dec_units='rad',
+                                ext=4, ra_ext=4)
+        np.testing.assert_array_equal(cat12.ra[use], cat1.ra)
+    finally:
+        fitsio.__version__ = actual_fitsio_version
+
+
+
     # Not all columns in given ext
     with assert_raises(ValueError):
         treecorr.Catalog(fname, allow_xyz=True,

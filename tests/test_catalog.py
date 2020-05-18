@@ -22,6 +22,7 @@ import copy
 import pickle
 from numpy import pi
 import treecorr
+import mock
 
 from test_helper import get_from_wiki, CaptureLog, assert_raises, do_pickle, timer, assert_warns
 
@@ -767,9 +768,7 @@ def test_ext():
     # test that the case where we can't slice works
     # by pretending that we are using an old fitsio version,
     # temporarily.
-    actual_fitsio_version = fitsio.__version__
-    try:
-        fitsio.__version__ = '1.0.6'
+    with mock.patch('fitsio.__version__', '1.0.6'):
         cat11 = treecorr.Catalog(fname, allow_xyz=True,
                                  x_col='x', y_col='y', z_col='z',
                                  ra_col='ra', dec_col='dec', r_col='r',
@@ -787,8 +786,6 @@ def test_ext():
                                 ra_units='rad', dec_units='rad',
                                 ext=4, ra_ext=4)
         np.testing.assert_array_equal(cat12.ra[use], cat1.ra)
-    finally:
-        fitsio.__version__ = actual_fitsio_version
 
 
 

@@ -2,6 +2,7 @@ from treecorr.catalog_formats import FitsReader, HdfReader
 from test_helper import get_from_wiki, assert_raises, assert_warns
 import os
 import numpy as np
+import mock
 
 def _test_reader(file_name, reader_class, ext, def_ext, bad_ext='invalid'):
     get_from_wiki(file_name)
@@ -31,6 +32,16 @@ def test_context():
     with FitsReader(os.path.join('data','Aardvark.fit')) as infile:
         pass
 
+def test_can_slice():
+    get_from_wiki('Aardvark.fit')
+    with mock.patch('fitsio.__version__', '1.0.6'):
+        with FitsReader(os.path.join('data','Aardvark.fit')) as infile:
+            assert not infile.can_slice
+
+    get_from_wiki('Aardvark.hdf5')
+    with HdfReader(os.path.join('data','Aardvark.hdf5')) as infile:
+            assert infile.can_slice
+
 
 def test_fits_reader():
     r = _test_reader('Aardvark.fit', FitsReader, 1, 1, 0)
@@ -50,6 +61,7 @@ def test_hdf_reader():
 def test_hdu_warning():
     num = 0
     get_from_wiki('Aardvark.fit')
+    get_from_wiki('Aardvark.hdf5')
     r = FitsReader(os.path.join('data', 'Aardvark.fit'))
     with assert_warns(FutureWarning):
         ext = r.choose_extension({'hdu': 1}, 'ext', num)
@@ -63,6 +75,21 @@ def test_hdu_warning():
         assert ext == 'potato'
         ext = r.choose_extension({'ra_hdu': 'group_name'}, 'ra_ext', num)
         assert ext == 'group_name'
+
+    r = HdfReader(os.path.join('data', 'Aardvark.hdf5'))
+    with assert_warns(FutureWarning):
+        ext = r.choose_extension({'hdu': 1}, 'ext', num)
+
+    with assert_warns(FutureWarning):
+        ext = r.choose_extension({'x_hdu': 'hdu_name'}, 'x_ext', num)
+        assert ext == 'hdu_name'
+
+    with assert_warns(FutureWarning):
+        ext = r.choose_extension({'hdu': 'potato'}, 'ext', num)
+        assert ext == 'potato'
+        ext = r.choose_extension({'ra_hdu': 'group_name'}, 'ra_ext', num)
+        assert ext == 'group_name'
+
 
 
 

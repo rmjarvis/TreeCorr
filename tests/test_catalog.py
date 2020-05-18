@@ -784,8 +784,24 @@ def test_ext():
         cat12 = treecorr.Catalog(fname,
                                 ra_col='ra', dec_col='dec', r_col='r',
                                 ra_units='rad', dec_units='rad',
-                                ext=4, ra_ext=4)
-        np.testing.assert_array_equal(cat12.ra[use], cat1.ra)
+                                ext=4, ra_ext=4, last_row=120)
+        cat13 = treecorr.Catalog(fname,
+                                ra_col='ra', dec_col='dec', r_col='r',
+                                ra_units='rad', dec_units='rad',
+                                ext=4, ra_ext=4, last_row=100)
+
+        np.testing.assert_allclose(cat12.ra[:99], cat13.ra[:99])
+        # and equiv for RA
+        cat12 = treecorr.Catalog(fname,
+                                x_col='ra', y_col='dec',
+                                x_units='rad', y_units='rad',
+                                ext=4, ra_ext=4, last_row=120)
+        cat13 = treecorr.Catalog(fname,
+                                x_col='ra', y_col='dec',
+                                x_units='rad', y_units='rad',
+                                ext=4, x_ext=4, last_row=100)
+
+        np.testing.assert_allclose(cat12.x[:99], cat13.x[:99])
 
 
 

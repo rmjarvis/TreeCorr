@@ -1366,8 +1366,6 @@ class Catalog(object):
             # Technically, this doesn't catch all possible errors.  If someone specifies
             # an invalid flag_ext or something, then they'll get the fitsio error message.
             # But this should probably catch the majorit of error cases.
-            if ext not in infile:
-                raise ValueError("Invalid ext={} for file {}".format(ext,file_name))
             infile.check_valid_ext(ext)
 
             if x_col != '0':

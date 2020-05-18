@@ -42,8 +42,6 @@ class FitsReader:
         file_name: str
         """
         import fitsio
-        # packaging is used by pip so is installed basically everywhere
-        from packaging.version import parse
         self.file = fitsio.FITS(file_name, 'r')
 
         # record file name to make error messages more useful
@@ -51,7 +49,7 @@ class FitsReader:
 
         # There is a bug in earlier fitsio versions that prevents
         # slicing
-        self.can_slice = parse(fitsio.__version__) > parse('1.0.6')
+        self.can_slice = fitsio.__version__ > '1.0.6'
 
     def read(self, ext, cols, s):
         """Read a slice of a column or list of columns from a specified extension

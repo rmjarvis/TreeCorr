@@ -144,8 +144,7 @@ class FitsReader:
             raise ValueError("Invalid ext={} for file {} (Not a TableHDU)".format(
                              ext, self.file_name))
 
-    @staticmethod
-    def choose_extension(config, name, num, default=None):
+    def choose_extension(self, config, name, num, default=None):
         """Select an extension name or index from a configuration.
 
         If no key is found or default supplied, fall back to the first FITS extension.
@@ -190,11 +189,13 @@ class FitsReader:
                 ext = default
 
         # FITS extensions can be indexed by number or
-        # string.  Try converting to an integer first
-        try:
-            ext = int(ext)
-        except:
-            pass
+        # string.  Try converting to an integer if the current
+        # value is not found.  If not let the error be caught later.
+        if ext not in self:
+            try:
+                ext = int(ext)
+            except ValueError:
+                pass
 
         return ext
 
@@ -320,8 +321,7 @@ class HdfReader:
         # closes file at end of "with" statement
         self.file.close()
 
-    @staticmethod
-    def choose_extension(config, name, num, default=None):
+    def choose_extension(self, config, name, num, default=None):
         """Select an extension name or index from a configuration.
 
         If no key is found or default supplied, fall back to the

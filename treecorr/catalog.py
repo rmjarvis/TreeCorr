@@ -308,20 +308,20 @@ class Catalog(object):
                             as FITS files in the given directory for more efficient loading when
                             doing cross-patch correlations with the ``low_mem`` option.
 
-        ext (int):          For FITS/HDF files, Which extension to read. (default: 1 for fits, root for HDF)
-        x_ext (int):        Which extension to use for the x values. (default: ext)
-        y_ext (int):        Which extension to use for the y values. (default: ext)
-        z_ext (int):        Which extension to use for the z values. (default: ext)
-        ra_ext (int):       Which extension to use for the ra values. (default: ext)
-        dec_ext (int):      Which extension to use for the dec values. (default: ext)
-        r_ext (int):        Which extension to use for the r values. (default: ext)
-        g1_ext (int):       Which extension to use for the g1 values. (default: ext)
-        g2_ext (int):       Which extension to use for the g2 values. (default: ext)
-        k_ext (int):        Which extension to use for the k values. (default: ext)
-        patch_ext (int):    Which extension to use for the patch numbers. (default: ext)
-        w_ext (int):        Which extension to use for the w values. (default: ext)
-        wpos_ext (int):     Which extension to use for the wpos values. (default: ext)
-        flag_ext (int):     Which extension to use for the flag values. (default: ext)
+        ext (int/str):          For FITS/HDF files, Which extension to read. (default: 1 for fits, root for HDF)
+        x_ext (int/str):        Which extension to use for the x values. (default: ext)
+        y_ext (int/str):        Which extension to use for the y values. (default: ext)
+        z_ext (int/str):        Which extension to use for the z values. (default: ext)
+        ra_ext (int/str):       Which extension to use for the ra values. (default: ext)
+        dec_ext (int/str):      Which extension to use for the dec values. (default: ext)
+        r_ext (int/str):        Which extension to use for the r values. (default: ext)
+        g1_ext (int/str):       Which extension to use for the g1 values. (default: ext)
+        g2_ext (int/str):       Which extension to use for the g2 values. (default: ext)
+        k_ext (int/str):        Which extension to use for the k values. (default: ext)
+        patch_ext (int/str):    Which extension to use for the patch numbers. (default: ext)
+        w_ext (int/str):        Which extension to use for the w values. (default: ext)
+        wpos_ext (int/str):     Which extension to use for the wpos values. (default: ext)
+        flag_ext (int/str):     Which extension to use for the flag values. (default: ext)
 
         verbose (int):      If no logger is provided, this will optionally specify a logging level
                             to use.

@@ -2,4 +2,3 @@ numpy>=1.14
 pyyaml>=3.13
 cffi>=1.12
 LSSTDESC.Coord>=1.1
-packaging

@@ -49,17 +49,19 @@ def test_hdf_reader():
 
 def test_hdu_warning():
     num = 0
+    get_from_wiki('Aardvark.fit')
+    r = FitsReader(os.path.join('data', 'Aardvark.fit'))
     with assert_warns(FutureWarning):
-        ext = FitsReader.choose_extension({'hdu': 1}, 'ext', num)
+        ext = r.choose_extension({'hdu': 1}, 'ext', num)
         assert ext == 1
     with assert_warns(FutureWarning):
-        ext = FitsReader.choose_extension({'x_hdu': 'hdu_name'}, 'x_ext', num)
+        ext = r.choose_extension({'x_hdu': 'hdu_name'}, 'x_ext', num)
         assert ext == 'hdu_name'
 
     with assert_warns(FutureWarning):
-        ext = HdfReader.choose_extension({'hdu': 'potato'}, 'ext', num)
+        ext = r.choose_extension({'hdu': 'potato'}, 'ext', num)
         assert ext == 'potato'
-        ext = HdfReader.choose_extension({'ra_hdu': 'group_name'}, 'ra_ext', num)
+        ext = r.choose_extension({'ra_hdu': 'group_name'}, 'ra_ext', num)
         assert ext == 'group_name'
 
 

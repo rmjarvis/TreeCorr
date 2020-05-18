@@ -1570,6 +1570,7 @@ class Catalog(object):
                     data[patch_col] = infile.read(patch_ext, patch_col, s)
                     all_cols.remove(patch_col)
                     set_patch(data, patch_col)
+                    end1 = infile.row_count(patch_ext, patch_col)
                 elif self._centers is not None:
                     pos_cols = [x_col, y_col, z_col, ra_col, dec_col, r_col]
                     pos_cols = [c for c in pos_cols if c != '0']
@@ -1580,13 +1581,16 @@ class Catalog(object):
                         data1 = infile.read(h, use_cols1, s)
                         for c in use_cols1:
                             data[c] = data1[c]
+                    end1 = infile.row_count(h, c)
                     set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col)
                 use = self._get_patch_index(self._single_patch)
                 self.select(use)
                 if isinstance(s,np.ndarray):
                     s = s[use]
-                else:
+                elif s == slice(None):
                     s = use
+                else:
+                    s = np.arange(s.start, end1, s.step)[use]
                 self._patch = None
                 data = {}  # Start fresh, since the ones we used so far are done.
 

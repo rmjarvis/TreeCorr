@@ -23,38 +23,44 @@ from mpi_test import *
 @unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer
 def test_mpi_gg():
-    mock_mpiexec(4, do_mpi_gg)
-    mock_mpiexec(1, do_mpi_gg)
+    output = __name__ == '__main__'
+    mock_mpiexec(4, do_mpi_gg, output)
+    mock_mpiexec(1, do_mpi_gg, output)
 
 @unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer
 def test_mpi_ng():
-    mock_mpiexec(4, do_mpi_ng)
-    mock_mpiexec(1, do_mpi_ng)
+    output = __name__ == '__main__'
+    mock_mpiexec(4, do_mpi_ng, output)
+    mock_mpiexec(1, do_mpi_ng, output)
 
 @unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer
 def test_mpi_nk():
-    mock_mpiexec(4, do_mpi_nk)
-    mock_mpiexec(1, do_mpi_nk)
+    output = __name__ == '__main__'
+    mock_mpiexec(4, do_mpi_nk, output)
+    mock_mpiexec(1, do_mpi_nk, output)
 
 @unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer
 def test_mpi_nn():
-    mock_mpiexec(4, do_mpi_nn)
-    mock_mpiexec(1, do_mpi_nn)
+    output = __name__ == '__main__'
+    mock_mpiexec(4, do_mpi_nn, output)
+    mock_mpiexec(1, do_mpi_nn, output)
 
 @unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer
 def test_mpi_kg():
-    mock_mpiexec(4, do_mpi_kg)
-    mock_mpiexec(1, do_mpi_kg)
+    output = __name__ == '__main__'
+    mock_mpiexec(4, do_mpi_kg, output)
+    mock_mpiexec(1, do_mpi_kg, output)
 
 @unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer
 def test_mpi_kk():
-    mock_mpiexec(4, do_mpi_kk)
-    mock_mpiexec(1, do_mpi_kk)
+    output = __name__ == '__main__'
+    mock_mpiexec(4, do_mpi_kk, output)
+    mock_mpiexec(1, do_mpi_kk, output)
 
 if __name__ == '__main__':
     setup()

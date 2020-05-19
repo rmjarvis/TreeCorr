@@ -118,7 +118,7 @@ class MockComm(object):
         return new_data
 
 
-def mock_mpiexec(nproc, target):
+def mock_mpiexec(nproc, target, *args):
     """Run a function, given as target, as though it were an MPI session using mpiexec -n nproc
     but using multiprocessing instead of mpi.
     """
@@ -140,7 +140,7 @@ def mock_mpiexec(nproc, target):
     comms = [ MockComm(rank, nproc, pipes, barrier) for rank,pipes in enumerate(all_pipes) ]
 
     # Make processes
-    procs = [ Process(target=target, args=(comm,)) for comm in comms ]
+    procs = [ Process(target=target, args=(comm,) + args) for comm in comms ]
 
     for p in procs:
         p.start()

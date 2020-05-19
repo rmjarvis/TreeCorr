@@ -41,13 +41,13 @@ class FitsReader:
         file_name: str
         """
         import fitsio
-        self.file = fitsio.FITS(file_name, 'r')
 
-        # record file name to make error messages more useful
+        self.file = None  # Only works inside a with block.
+
+        # record file name to know what to open when entering
         self.file_name = file_name
 
-        # There is a bug in earlier fitsio versions that prevents
-        # slicing
+        # There is a bug in earlier fitsio versions that prevents slicing
         self.can_slice = fitsio.__version__ > '1.0.6'
 
     def read(self, ext, cols, s):
@@ -116,12 +116,15 @@ class FitsReader:
 
     def __enter__(self):
         # Context manager, enables "with FitsReader(filename) as f:"
+        import fitsio
+        self.file = fitsio.FITS(self.file_name, 'r')
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         # Context manager closer - we just close the file at the end,
         # regardless of the error
         self.file.close()
+        self.file = None
 
     def check_valid_ext(self, ext):
         """Check if an extension is valid for reading, and raise ValueError if not.
@@ -196,8 +199,8 @@ class HdfReader:
     can_slice = True
 
     def __init__(self, file_name):
-        import h5py
-        self.file = h5py.File(file_name, 'r')
+        import h5py  # Just to check right away that it will work.
+        self.file = None  # Only works inside a with block.
         self.file_name = file_name
 
     def __contains__(self, ext):
@@ -299,11 +302,14 @@ class HdfReader:
 
     def __enter__(self):
         # Context manager, enables "with HdfReader(filename) as f:"
+        import h5py
+        self.file = h5py.File(self.file_name, 'r')
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         # closes file at end of "with" statement
         self.file.close()
+        self.file = None
 
     def choose_extension(self, config, name, num, default=None):
         """Select an extension name or index from a configuration.

@@ -21,7 +21,8 @@ import weakref
 import copy
 import os
 import treecorr
-from . import catalog_formats
+from .reader import FitsReader, HdfReader
+
 class Catalog(object):
     """A set of input data (positions and other quantities) to be correlated.
 
@@ -308,7 +309,8 @@ class Catalog(object):
                             as FITS files in the given directory for more efficient loading when
                             doing cross-patch correlations with the ``low_mem`` option.
 
-        ext (int/str):          For FITS/HDF files, Which extension to read. (default: 1 for fits, root for HDF)
+        ext (int/str):          For FITS/HDF files, Which extension to read. (default: 1 for fits,
+                                root for HDF)
         x_ext (int/str):        Which extension to use for the x values. (default: ext)
         y_ext (int/str):        Which extension to use for the y values. (default: ext)
         z_ext (int/str):        Which extension to use for the z values. (default: ext)
@@ -610,9 +612,9 @@ class Catalog(object):
                     file_type = 'ASCII'
                 self.logger.info("   file_type assumed to be %s from the file name.",file_type)
             if file_type == 'FITS':
-                self._check_fits_hdf(file_name, catalog_formats.FitsReader, num, is_rand)
+                self._check_fits_hdf(file_name, FitsReader, num, is_rand)
             elif file_type == 'HDF':
-                self._check_fits_hdf(file_name, catalog_formats.HdfReader, num, is_rand)
+                self._check_fits_hdf(file_name, HdfReader, num, is_rand)
             else:
                 self._check_ascii(file_name, num, is_rand)
 
@@ -1460,7 +1462,7 @@ class Catalog(object):
             num (int):          Which number catalog are we reading. (default: 0)
             is_rand (bool):     Is this a random catalog? (default: False)
         """
-        return self._read_structured(file_name, catalog_formats.HdfReader,
+        return self._read_structured(file_name, HdfReader,
             num=num, is_rand=is_rand)
 
     def read_fits(self, file_name, num=0, is_rand=False):
@@ -1472,7 +1474,7 @@ class Catalog(object):
             is_rand (bool):     Is this a random catalog? (default: False)
         """
 
-        return self._read_structured(file_name, catalog_formats.FitsReader,
+        return self._read_structured(file_name, FitsReader,
             num=num, is_rand=is_rand)
 
     def _read_structured(self, file_name, reader, num=0, is_rand=False):

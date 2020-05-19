@@ -27,7 +27,7 @@ indexed by string, but may prevent usage elsewhere. If so we could convert them 
 both provide dicts.
 """
 import numpy as np
-from treecorr.config import get_from_list
+from .config import get_from_list
 
 class FitsReader:
     """Reader interface for FITS files.
@@ -186,8 +186,6 @@ class FitsReader:
                 pass
 
         return ext
-
-
 
 
 class HdfReader:

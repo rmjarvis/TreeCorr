@@ -1,9 +1,22 @@
+# Copyright (c) 2003-2019 by Mike Jarvis
+#
+# TreeCorr is free software: redistribution and use in source and binary forms,
+# with or without modification, are permitted provided that the following
+# conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+#    list of conditions, and the disclaimer given in the accompanying LICENSE
+#    file.
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions, and the disclaimer given in the documentation
+#    and/or other materials provided with the distribution.
+
 import os
 import sys
 import numpy as np
 import treecorr
 
-from treecorr.catalog_formats import FitsReader, HdfReader
+from treecorr.reader import FitsReader, HdfReader
 from test_helper import get_from_wiki, assert_raises, assert_warns, timer
 
 def _test_reader(file_name, reader_class, ext, def_ext, bad_ext='invalid'):

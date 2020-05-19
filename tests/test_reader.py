@@ -45,6 +45,7 @@ def _test_reader(file_name, reader_class, ext, def_ext, bad_ext='invalid'):
 
 @timer
 def test_fits_reader():
+    r = _test_reader('Aardvark.fit', FitsReader, 'AARDWOLF', 1)
     r = _test_reader('Aardvark.fit', FitsReader, 1, 1, 0)
     # check we can also index by integer, not just number
     d = r.read('AARDWOLF', ['DEC'], np.arange(10))

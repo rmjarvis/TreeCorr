@@ -394,7 +394,7 @@ def parse_metric(metric, coords, coords2=None, coords3=None):
                 pass
             elif any([c not in [None, 'spherical', '3d'] for c in [coords, coords2, coords3]]):
                 raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
-            elif any([c == 'spherical' for c in [coords, coords2, coords3]]):
+            elif any([c == 'spherical' for c in [coords, coords2, coords3]]):  # pragma: no branch
                 # Switch to spherical
                 coords = 'spherical'
             else:  # pragma: no cover

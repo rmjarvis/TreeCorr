@@ -232,10 +232,8 @@ class HdfReader:
         ext: str
             The extension to check
         """
-        # root always exists
-        if ext == '' or ext == '/':
-            return True
-        if ext not in self:
+        # Allow '' as an alias of '/'
+        if ext != '' and ext not in self:
             raise ValueError("Invalid ext={} for file {} (does not exist)".format(
                              ext,self.file_name))
 

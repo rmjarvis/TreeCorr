@@ -651,6 +651,7 @@ def test_ext():
     k = rng.normal(0,3, (ngal,) )
     g1 = rng.normal(0,0.1, (ngal,) )
     g2 = rng.normal(0,0.1, (ngal,) )
+    patch = np.arange(ngal) % 5
 
     data = [x,y,z,ra,dec,r,w,wpos,flag,k,g1,g2]
     names = ['x','y','z','ra','dec','r','w','wpos','flag','k','g1','g2']
@@ -663,6 +664,7 @@ def test_ext():
         f.write(data[3:6],names=names[3:6],extname='radec')
         f.write(data[:3]+data[6:9],names=names[:3]+names[6:9],extname='w')
         f.write(data[:3]+data[9:],names=names[:3]+names[9:],extname='kg')
+        f.write([patch],names=['patch'],extname='patch')
         f.write(data,names=names[::-1],extname='reverse')
 
     cat1 = treecorr.Catalog(fname, allow_xyz=True,
@@ -729,7 +731,7 @@ def test_ext():
                             ra_units='rad', dec_units='rad',
                             w_col='w', wpos_col='wpos', flag_col='flag',
                             k_col='k', g1_col='g1', g2_col='g2',
-                            ext=7)
+                            ext=8)
     assert cat7 != cat1  # This one has all the column names wrong.
 
     cat8 = treecorr.Catalog(fname, allow_xyz=True,
@@ -792,16 +794,26 @@ def test_ext():
 
         np.testing.assert_allclose(cat12.ra[:99], cat13.ra[:99])
         # and equiv for RA
-        cat12 = treecorr.Catalog(fname,
+        cat14 = treecorr.Catalog(fname,
                                 x_col='ra', y_col='dec',
                                 x_units='rad', y_units='rad',
                                 ext=4, ra_ext=4, last_row=120)
-        cat13 = treecorr.Catalog(fname,
+        cat15 = treecorr.Catalog(fname,
                                 x_col='ra', y_col='dec',
                                 x_units='rad', y_units='rad',
                                 ext=4, x_ext=4, last_row=100)
 
-        np.testing.assert_allclose(cat12.x[:99], cat13.x[:99])
+        np.testing.assert_allclose(cat14.x[:99], cat15.x[:99])
+
+        cat16 = treecorr.Catalog(fname,
+                                ra_col='ra', dec_col='dec',
+                                ra_units='rad', dec_units='rad',
+                                ext=4,  last_row=100,
+                                patch_col='patch', patch_ext='patch',
+                                patch=0)
+        
+        np.testing.assert_allclose(cat16.ra, cat4.ra[:100][::5])
+
 
 
 
@@ -823,7 +835,7 @@ def test_ext():
                          ra_units='rad', dec_units='rad',
                          w_col='w', wpos_col='wpos', flag_col='flag',
                          k_col='k', g1_col='g1', g2_col='g2',
-                         ext=8)
+                         ext=9)
     with assert_raises(ValueError):
         treecorr.Catalog(fname, allow_xyz=True,
                          x_col='x', y_col='y', z_col='z',

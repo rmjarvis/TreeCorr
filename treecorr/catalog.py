@@ -612,9 +612,11 @@ class Catalog(object):
                     file_type = 'ASCII'
                 self.logger.info("   file_type assumed to be %s from the file name.",file_type)
             if file_type == 'FITS':
-                self._check_fits_hdf(file_name, FitsReader, num, is_rand)
+                self.reader = FitsReader(file_name)
+                self._check_file(file_name, self.reader, num, is_rand)
             elif file_type == 'HDF':
-                self._check_fits_hdf(file_name, HdfReader, num, is_rand)
+                self.reader = HdfReader(file_name)
+                self._check_file(file_name, self.reader, num, is_rand)
             else:
                 self._check_ascii(file_name, num, is_rand)
 
@@ -1327,7 +1329,7 @@ class Catalog(object):
         if self._single_patch is not None:
             self._select_patch(self._single_patch)
 
-    def _check_fits_hdf(self, file_name, reader, num=0, is_rand=False):
+    def _check_file(self, file_name, reader, num=0, is_rand=False):
         # Just check the consistency of the various column numbers so we can fail fast.
 
         # Get the column names
@@ -1377,66 +1379,66 @@ class Catalog(object):
         if (g1_col != '0' and g2_col == '0') or (g1_col == '0' and g2_col != '0'):
             raise ValueError("g1_col, g2_col are invalid for file %s"%file_name)
 
-        with reader(file_name) as infile:
+        with reader:
 
             # get the vanilla "ext" parameter
-            ext = infile.choose_extension(self.config, 'ext', num)
+            ext = reader.choose_extension(self.config, 'ext', num)
 
             # Technically, this doesn't catch all possible errors.  If someone specifies
             # an invalid flag_ext or something, then they'll get the fitsio error message.
             # But this should probably catch the majorit of error cases.
-            infile.check_valid_ext(ext)
+            reader.check_valid_ext(ext)
 
             if x_col != '0':
-                x_ext = infile.choose_extension(self.config, 'x_ext', num, ext)
-                y_ext = infile.choose_extension(self.config, 'y_ext', num, ext)
-                if x_col not in infile.names(x_ext):
+                x_ext = reader.choose_extension(self.config, 'x_ext', num, ext)
+                y_ext = reader.choose_extension(self.config, 'y_ext', num, ext)
+                if x_col not in reader.names(x_ext):
                     raise ValueError("x_col is invalid for file %s"%file_name)
-                if y_col not in infile.names(y_ext):
+                if y_col not in reader.names(y_ext):
                     raise ValueError("y_col is invalid for file %s"%file_name)
                 if z_col != '0':
-                    z_ext = infile.choose_extension(self.config, 'z_ext', num, ext)
-                    if z_col not in infile.names(z_ext):
+                    z_ext = reader.choose_extension(self.config, 'z_ext', num, ext)
+                    if z_col not in reader.names(z_ext):
                         raise ValueError("z_col is invalid for file %s"%file_name)
             else:
-                ra_ext = infile.choose_extension(self.config, 'ra_ext', num, ext)
-                dec_ext = infile.choose_extension(self.config, 'dec_ext', num, ext)
-                if ra_col not in infile.names(ra_ext):
+                ra_ext = reader.choose_extension(self.config, 'ra_ext', num, ext)
+                dec_ext = reader.choose_extension(self.config, 'dec_ext', num, ext)
+                if ra_col not in reader.names(ra_ext):
                     raise ValueError("ra_col is invalid for file %s"%file_name)
-                if dec_col not in infile.names(dec_ext):
+                if dec_col not in reader.names(dec_ext):
                     raise ValueError("dec_col is invalid for file %s"%file_name)
                 if r_col != '0':
-                    r_ext = infile.choose_extension(self.config, 'r_ext', num, ext)
-                    if r_col not in infile.names(r_ext):
+                    r_ext = reader.choose_extension(self.config, 'r_ext', num, ext)
+                    if r_col not in reader.names(r_ext):
                         raise ValueError("r_col is invalid for file %s"%file_name)
 
             if w_col != '0':
-                w_ext = infile.choose_extension(self.config, 'w_ext', num, ext)
-                if w_col not in infile.names(w_ext):
+                w_ext = reader.choose_extension(self.config, 'w_ext', num, ext)
+                if w_col not in reader.names(w_ext):
                     raise ValueError("w_col is invalid for file %s"%file_name)
 
             if wpos_col != '0':
-                wpos_ext = infile.choose_extension(self.config, 'wpos_ext', num, ext)
-                if wpos_col not in infile.names(wpos_ext):
+                wpos_ext = reader.choose_extension(self.config, 'wpos_ext', num, ext)
+                if wpos_col not in reader.names(wpos_ext):
                     raise ValueError("wpos_col is invalid for file %s"%file_name)
 
             if flag_col != '0':
-                flag_ext = infile.choose_extension(self.config, 'flag_ext', num, ext)
-                if flag_col not in infile.names(flag_ext):
+                flag_ext = reader.choose_extension(self.config, 'flag_ext', num, ext)
+                if flag_col not in reader.names(flag_ext):
                     raise ValueError("flag_col is invalid for file %s"%file_name)
 
             if patch_col != '0':
-                patch_ext = infile.choose_extension(self.config, 'patch_ext', num, ext)
-                if patch_col not in infile.names(patch_ext):
+                patch_ext = reader.choose_extension(self.config, 'patch_ext', num, ext)
+                if patch_col not in reader.names(patch_ext):
                     raise ValueError("patch_col is invalid for file %s"%file_name)
 
             if is_rand: return
 
             if g1_col != '0':
-                g1_ext = infile.choose_extension(self.config, 'g1_ext', num, ext)
-                g2_ext = infile.choose_extension(self.config, 'g2_ext', num, ext)
-                if (g1_col not in infile.names(g1_ext) or
-                    g2_col not in infile.names(g2_ext)):
+                g1_ext = reader.choose_extension(self.config, 'g1_ext', num, ext)
+                g2_ext = reader.choose_extension(self.config, 'g2_ext', num, ext)
+                if (g1_col not in reader.names(g1_ext) or
+                    g2_col not in reader.names(g2_ext)):
                     if isGColRequired(self.orig_config,num):
                         raise ValueError("g1_col, g2_col are invalid for file %s"%file_name)
                     else:
@@ -1445,8 +1447,8 @@ class Catalog(object):
                                             "because they are invalid, but unneeded.")
 
             if k_col != '0':
-                k_ext = infile.choose_extension(self.config, 'k_ext', num, ext)
-                if k_col not in infile.names(k_ext):
+                k_ext = reader.choose_extension(self.config, 'k_ext', num, ext)
+                if k_col not in reader.names(k_ext):
                     if isKColRequired(self.orig_config,num):
                         raise ValueError("k_col is invalid for file %s"%file_name)
                     else:
@@ -1462,8 +1464,7 @@ class Catalog(object):
             num (int):          Which number catalog are we reading. (default: 0)
             is_rand (bool):     Is this a random catalog? (default: False)
         """
-        return self._read_structured(file_name, HdfReader,
-            num=num, is_rand=is_rand)
+        return self._read_structured(file_name, HdfReader(file_name), num=num, is_rand=is_rand)
 
     def read_fits(self, file_name, num=0, is_rand=False):
         """Read the catalog from a FITS file
@@ -1473,9 +1474,7 @@ class Catalog(object):
             num (int):          Which number catalog are we reading. (default: 0)
             is_rand (bool):     Is this a random catalog? (default: False)
         """
-
-        return self._read_structured(file_name, FitsReader,
-            num=num, is_rand=is_rand)
+        return self._read_structured(file_name, FitsReader(file_name), num=num, is_rand=is_rand)
 
     def _read_structured(self, file_name, reader, num=0, is_rand=False):
         # Helper functions for things we might do in one of two places.
@@ -1521,9 +1520,9 @@ class Catalog(object):
         patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,str,'0')
 
 
-        with reader(file_name) as infile:
+        with reader:
 
-            ext = infile.choose_extension(self.config, 'ext', num)
+            ext = reader.choose_extension(self.config, 'ext', num)
 
             # Figure out what slice to use.  If all rows, then None is faster,
             # otherwise give the range explicitly.
@@ -1535,16 +1534,16 @@ class Catalog(object):
             # fancy indexing in h5py is incredibly slow, so we explicitly
             # check if we can slice or not.  This checks for the fitsio version in
             # the fits case
-            elif infile.can_slice:
+            elif reader.can_slice:
                 s = slice(self.start, self.end, self.every_nth)
             else:
                 if x_col != '0':
-                    x_ext = infile.choose_extension(self.config, 'x_ext', num, ext)
+                    x_ext = reader.choose_extension(self.config, 'x_ext', num, ext)
                     col = x_col
                 else:
-                    x_ext = infile.choose_extension(self.config, 'ra_ext', num, ext)
+                    x_ext = reader.choose_extension(self.config, 'ra_ext', num, ext)
                     col = ra_col
-                end = self.end if self.end is not None else infile.row_count(x_ext, col)
+                end = self.end if self.end is not None else reader.row_count(x_ext, col)
                 s = np.arange(self.start, end, self.every_nth)
 
             all_cols = [x_col, y_col, z_col,
@@ -1560,19 +1559,19 @@ class Catalog(object):
             #     data = fits[ext][use_cols][:]
             # However, we allow the option to have different columns read from different extensions.
             # So this is slightly more complicated.
-            x_ext = infile.choose_extension(self.config, 'x_ext', num, ext)
-            y_ext = infile.choose_extension(self.config, 'y_ext', num, ext)
-            z_ext = infile.choose_extension(self.config, 'z_ext', num, ext)
-            ra_ext = infile.choose_extension(self.config, 'ra_ext', num, ext)
-            dec_ext = infile.choose_extension(self.config, 'dec_ext', num, ext)
-            r_ext = infile.choose_extension(self.config, 'r_ext', num, ext)
-            patch_ext = infile.choose_extension(self.config, 'patch_ext', num, ext)
-            w_ext = infile.choose_extension(self.config, 'w_ext', num, ext)
-            wpos_ext = infile.choose_extension(self.config, 'wpos_ext', num, ext)
-            flag_ext = infile.choose_extension(self.config, 'flag_ext', num, ext)
-            g1_ext = infile.choose_extension(self.config, 'g1_ext', num, ext)
-            g2_ext = infile.choose_extension(self.config, 'g2_ext', num, ext)
-            k_ext = infile.choose_extension(self.config, 'k_ext', num, ext)
+            x_ext = reader.choose_extension(self.config, 'x_ext', num, ext)
+            y_ext = reader.choose_extension(self.config, 'y_ext', num, ext)
+            z_ext = reader.choose_extension(self.config, 'z_ext', num, ext)
+            ra_ext = reader.choose_extension(self.config, 'ra_ext', num, ext)
+            dec_ext = reader.choose_extension(self.config, 'dec_ext', num, ext)
+            r_ext = reader.choose_extension(self.config, 'r_ext', num, ext)
+            patch_ext = reader.choose_extension(self.config, 'patch_ext', num, ext)
+            w_ext = reader.choose_extension(self.config, 'w_ext', num, ext)
+            wpos_ext = reader.choose_extension(self.config, 'wpos_ext', num, ext)
+            flag_ext = reader.choose_extension(self.config, 'flag_ext', num, ext)
+            g1_ext = reader.choose_extension(self.config, 'g1_ext', num, ext)
+            g2_ext = reader.choose_extension(self.config, 'g2_ext', num, ext)
+            k_ext = reader.choose_extension(self.config, 'k_ext', num, ext)
             all_exts = [x_ext, y_ext, z_ext,
                         ra_ext, dec_ext, r_ext,
                         patch_ext,
@@ -1586,10 +1585,10 @@ class Catalog(object):
             # Also, if we are only reading in one patch, we should adjust s before doing this.
             if self._single_patch is not None:
                 if patch_col != '0':
-                    data[patch_col] = infile.read(patch_ext, patch_col, s)
+                    data[patch_col] = reader.read(patch_ext, patch_col, s)
                     all_cols.remove(patch_col)
                     set_patch(data, patch_col)
-                    end1 = infile.row_count(patch_ext, patch_col)
+                    end1 = reader.row_count(patch_ext, patch_col)
                 elif self._centers is not None:
                     pos_cols = [x_col, y_col, z_col, ra_col, dec_col, r_col]
                     pos_cols = [c for c in pos_cols if c != '0']
@@ -1597,10 +1596,10 @@ class Catalog(object):
                         all_cols.remove(c)
                     for h in all_exts:
                         use_cols1 = [c for c in pos_cols if col_by_ext[c] == h]
-                        data1 = infile.read(h, use_cols1, s)
+                        data1 = reader.read(h, use_cols1, s)
                         for c in use_cols1:
                             data[c] = data1[c]
-                    end1 = infile.row_count(h, c)
+                    end1 = reader.row_count(h, c)
                     set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col)
                 use = self._get_patch_index(self._single_patch)
                 self.select(use)
@@ -1621,10 +1620,10 @@ class Catalog(object):
             # Now read the rest using the updated s
             for h in all_exts:
                 use_cols1 = [c for c in all_cols if col_by_ext[c] == h and
-                                                    c in infile.names(h)]
+                                                    c in reader.names(h)]
                 if len(use_cols1) == 0:
                     continue
-                data1 = infile.read(h, use_cols1, s)
+                data1 = reader.read(h, use_cols1, s)
                 for c in use_cols1:
                     data[c] = data1[c]
 
@@ -1652,14 +1651,14 @@ class Catalog(object):
             # Skip g1,g2,k if this file is a random catalog
             if not is_rand:
                 # Set g1,g2
-                if g1_col in infile.names(g1_ext):
+                if g1_col in reader.names(g1_ext):
                     self._g1 = data[g1_col].astype(float)
                     self.logger.debug('read g1')
                     self._g2 = data[g2_col].astype(float)
                     self.logger.debug('read g2')
 
                 # Set k
-                if k_col in infile.names(k_ext):
+                if k_col in reader.names(k_ext):
                     self._k = data[k_col].astype(float)
                     self.logger.debug('read k')
 

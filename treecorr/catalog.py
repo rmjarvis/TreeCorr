@@ -53,8 +53,8 @@ class Catalog(object):
         >>> cat = treecorr.Catalog('data.fits', ra_col='ALPHA2000', dec_col='DELTA2000',
         ...                        g1_col='E1', g2_col='E2', ra_units='deg', dec_units='deg')
 
-    This reads the given columns from the input file.  The input file may be either
-    a FITS catalog or an ASCII catalog.  Normally the file type is determined according to the
+    This reads the given columns from the input file.  The input file may be a FITS file,
+    an HDF5 file or an ASCII file.  Normally the file type is determined according to the
     file's extension (e.g. '.fits' here), but it can also be set explicitly with ``file_type``.
 
     Finally, you may store all the various parameters in a configuration dict
@@ -203,9 +203,9 @@ class Catalog(object):
 
     Keyword Arguments:
 
-        file_type (str):    What kind of file is the input file. Valid options are 'ASCII' or
-                            'FITS' (default: if the file_name extension starts with .fit, then use
-                            'FITS', else 'ASCII')
+        file_type (str):    What kind of file is the input file. Valid options are 'ASCII', 'FITS'
+                            or 'HDF' (default: if the file_name extension starts with .fit, then
+                            use 'FITS', or with .hdf, then use 'HDF', else 'ASCII')
         delimiter (str):    For ASCII files, what delimiter to use between values. (default: None,
                             which means any whitespace)
         comment_marker (str): For ASCII files, what token indicates a comment line. (default: '#')
@@ -229,26 +229,26 @@ class Catalog(object):
                             algorithm. cf. `Field.run_kmeans` (default: False)
 
         x_col (str or int): The column to use for the x values. This should be an integer for ASCII
-                            files or a string for FITS files. (default: 0 or '0', which means not
+                            files or a string for FITS/HDF files. (default: '0', which means not
                             to read in this column. When reading from a file, either x_col and
                             y_col are required or ra_col and dec_col are required.)
         y_col (str or int): The column to use for the y values. This should be an integer for ASCII
-                            files or a string for FITS files. (default: 0 or '0', which means not
+                            files or a string for FITS/HDF files. (default: '0', which means not
                             to read in this column. When reading from a file, either x_col and
                             y_col are required or ra_col and dec_col are required.)
         z_col (str or int): The column to use for the z values. This should be an integer for ASCII
-                            files or a string for FITS files. (default: 0 or '0', which means not
+                            files or a string for FITS/HDF files. (default: '0', which means not
                             to read in this column; invalid in conjunction with ra_col, dec_col.)
         ra_col (str or int): The column to use for the ra values. This should be an integer for
-                            ASCII files or a string for FITS files. (default: 0 or '0', which
+                            ASCII files or a string for FITS/HDF files. (default: '0', which
                             means not to read in this column. When reading from a file, either
                             x_col and y_col are required or ra_col and dec_col are required.)
         dec_col (str or int): The column to use for the dec values. This should be an integer for
-                            ASCII files or a string for FITS files. (default: 0 or '0', which
+                            ASCII files or a string for FITS/HDF files. (default: '0', which
                             means not to read in this column. When reading from a file, either
                             x_col and y_col are required or ra_col and dec_col are required.)
         r_col (str or int): The column to use for the r values. This should be an integer for ASCII
-                            files or a string for FITS files. (default: 0 or '0', which means not
+                            files or a string for FITS/HDF files. (default: '0', which means not
                             to read in this column; invalid in conjunction with x_col, y_col.)
 
         x_units (str):      The units to use for the x values, given as a string.  Valid options are
@@ -267,27 +267,27 @@ class Catalog(object):
                             dec_col or providing dec directly)
 
         g1_col (str or int): The column to use for the g1 values. This should be an integer for
-                            ASCII files or a string for FITS files. (default: 0 or '0', which means
+                            ASCII files or a string for FITS/HDF files. (default: '0', which means
                             not to read in this column.)
         g2_col (str or int): The column to use for the g2 values. This should be an integer for
-                            ASCII files or a string for FITS files. (default: 0 or '0', which means
+                            ASCII files or a string for FITS/HDF files. (default: '0', which means
                             not to read in this column.)
         k_col (str or int): The column to use for the kappa values. This should be an integer for
-                            ASCII files or a string for FITS files. (default: 0 or '0', which means
+                            ASCII files or a string for FITS/HDF files. (default: '0', which means
                             not to read in this column.)
         patch_col (str or int): The column to use for the patch numbers. This should be an integer
-                            for ASCII files or a string for FITS files. (default: 0 or '0', which
+                            for ASCII files or a string for FITS/HDF files. (default: '0', which
                             means not to read in this column.)
         w_col (str or int): The column to use for the weight values. This should be an integer for
-                            ASCII files or a string for FITS files. (default: 0 or '0', which means
+                            ASCII files or a string for FITS/HDF files. (default: '0', which means
                             not to read in this column.)
         wpos_col (str or int): The column to use for the position weight values. This should be an
-                            integer for ASCII files or a string for FITS files. (default: 0 or '0',
+                            integer for ASCII files or a string for FITS/HDF files. (default: '0',
                             which means not to read in this column, in which case wpos=w.)
         flag_col (str or int): The column to use for the flag values. This should be an integer for
-                            ASCII files or a string for FITS files. Any row with flag != 0 (or
+                            ASCII files or a string for FITS/HDF files. Any row with flag != 0 (or
                             technically flag & ~ok_flag != 0) will be given a weight of 0.
-                            (default: 0 or '0', which means not to read in this column.)
+                            (default: '0', which means not to read in this column.)
         ignore_flag (int):  Which flags should be ignored. (default: all non-zero flags are ignored.
                             Equivalent to ignore_flag = ~0.)
         ok_flag (int):      Which flags should be considered ok. (default: 0.  i.e. all non-zero
@@ -367,7 +367,7 @@ class Catalog(object):
     #    list of valid values
     #    description
     _valid_params = {
-        'file_type' : (str, True, None, ['ASCII', 'FITS'],
+        'file_type' : (str, True, None, ['ASCII', 'FITS', 'HDF'],
                 'The file type of the input files. The default is to use the file name extension.'),
         'delimiter' : (str, True, None, None,
                 'The delimiter between values in an ASCII catalog. The default is any whitespace.'),
@@ -607,7 +607,7 @@ class Catalog(object):
                 if ext.lower().startswith('.fit'):
                     file_type = 'FITS'
                 elif ext.lower().startswith('.hdf'):
-                    file_type = "HDF"
+                    file_type = 'HDF'
                 else:
                     file_type = 'ASCII'
                 self.logger.info("   file_type assumed to be %s from the file name.",file_type)
@@ -618,6 +618,13 @@ class Catalog(object):
                 self.reader = HdfReader(file_name)
                 self._check_file(file_name, self.reader, num, is_rand)
             else:
+                try:
+                    import pandas
+                except ImportError:
+                    self.logger.warning(
+                        "Unable to import pandas..  Using np.genfromtxt instead.\n"+
+                        "Installing pandas is recommended for increased speed when "+
+                        "reading ASCII catalogs.")
                 comment_marker = self.config.get('comment_marker','#')
                 delimiter = self.config.get('delimiter',None)
                 self.reader = AsciiReader(file_name, comment_marker, delimiter)
@@ -1120,189 +1127,55 @@ class Catalog(object):
             col[index] = 0  # Don't leave the nans there.
 
 
-    def read_ascii(self, file_name, num=0, is_rand=False):
-        """Read the catalog from an ASCII file
-
-        Parameters:
-            file_name (str):    The name of the file to read in.
-            num (int):          Which number catalog are we reading. (default: 0)
-            is_rand (bool):     Is this a random catalog? (default: False)
-        """
-        comment_marker = self.config.get('comment_marker','#')
-        delimiter = self.config.get('delimiter',None)
-        # I want read_csv to ignore header lines that start with the comment marker, but
-        # there is currently a bug in read_csv that messing things up when we do this.
-        # cf. https://github.com/pydata/pandas/issues/4623
-        # For now, my workaround in to count how many lines start with the comment marker
-        # and skip them by hand.
-        skiprows = 0
-        with open(file_name, 'r') as fid:
-            for line in fid:  # pragma: no branch
-                if line.startswith(comment_marker): skiprows += 1
-                else: break
-        skiprows += self.start
-        if self.end is None:
-            nrows = None
-        else:
-            nrows = self.end - self.start
-        if self.every_nth != 1:
-            start = skiprows
-            skiprows = lambda x: x < start or (x-start) % self.every_nth != 0
-            nrows = (nrows-1) // self.every_nth + 1
-        try:
-            import pandas
-            if delimiter is None:
-                data = pandas.read_csv(file_name, comment=comment_marker, delim_whitespace=True,
-                                       header=None, skiprows=skiprows, nrows=nrows)
-            else:
-                data = pandas.read_csv(file_name, comment=comment_marker, delimiter=delimiter,
-                                       header=None, skiprows=skiprows, nrows=nrows)
-            data = data.dropna(axis=0).values
-        except ImportError:
-            self.logger.warning("Unable to import pandas..  Using np.genfromtxt instead.\n"+
-                                "Installing pandas is recommended for increased speed when "+
-                                "reading ASCII catalogs.")
-            if self.every_nth == 1:
-                data = np.genfromtxt(file_name, comments=comment_marker, delimiter=delimiter,
-                                     skip_header=skiprows, max_rows=nrows)
-            else:
-                # Numpy can't handle skiprows being a function.  Have to do this manually.
-                data = np.genfromtxt(file_name, comments=comment_marker, delimiter=delimiter,
-                                     skip_header=start, max_rows=self.end - self.start)
-                data = data[::self.every_nth]
-
-        # If only one row, and not using pands, then the shape comes in as one-d.  Reshape it:
-        if len(data.shape) == 1:
-            data = data.reshape(1,-1)
-        ncols = data.shape[1]
-
-        self.logger.debug('read data from %s, num=%d',file_name,num)
-        self.logger.debug('data shape = %s',str(data.shape))
-
-        # Get the column numbers
-        x_col = treecorr.config.get_from_list(self.config,'x_col',num,int,0)
-        y_col = treecorr.config.get_from_list(self.config,'y_col',num,int,0)
-        z_col = treecorr.config.get_from_list(self.config,'z_col',num,int,0)
-        ra_col = treecorr.config.get_from_list(self.config,'ra_col',num,int,0)
-        dec_col = treecorr.config.get_from_list(self.config,'dec_col',num,int,0)
-        r_col = treecorr.config.get_from_list(self.config,'r_col',num,int,0)
-        w_col = treecorr.config.get_from_list(self.config,'w_col',num,int,0)
-        wpos_col = treecorr.config.get_from_list(self.config,'wpos_col',num,int,0)
-        flag_col = treecorr.config.get_from_list(self.config,'flag_col',num,int,0)
-        g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,int,0)
-        g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,int,0)
-        k_col = treecorr.config.get_from_list(self.config,'k_col',num,int,0)
-        patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,int,0)
-
-        # Read x,y or ra,dec
-        if x_col != 0:
-            # NB. astype always copies, even if the type is already correct.
-            # We actually want this, since it makes the result contiguous in memory,
-            # which we will need.
-            self._x = data[:,x_col-1].astype(float)
-            self.logger.debug('read x')
-            self._y = data[:,y_col-1].astype(float)
-            self.logger.debug('read y')
-            if z_col != 0:
-                self._z = data[:,z_col-1].astype(float)
-                self.logger.debug('read r')
-        if ra_col != 0:
-            self._ra = data[:,ra_col-1].astype(float)
-            self.logger.debug('read ra')
-            self._dec = data[:,dec_col-1].astype(float)
-            self.logger.debug('read dec')
-            if r_col != 0:
-                self._r = data[:,r_col-1].astype(float)
-                self.logger.debug('read r')
-        self._apply_units()
-
-        # Read w
-        if w_col != 0:
-            self._w = data[:,w_col-1].astype(float)
-            self.logger.debug('read w')
-
-        # Read wpos
-        if wpos_col != 0:
-            self._wpos = data[:,wpos_col-1].astype(float)
-            self.logger.debug('read wpos')
-
-        # Read flag
-        if flag_col != 0:
-            self._flag = data[:,flag_col-1].astype(int)
-            self.logger.debug('read flag')
-
-        # Read patch
-        if patch_col != 0:
-            self._patch = data[:,patch_col-1].astype(int)
-            self.logger.debug('read patch')
-            self._set_npatch()
-
-        # Skip g1,g2,k if this file is a random catalog
-        if not is_rand:
-            # Read g1,g2
-            if g1_col >= 0 and g1_col <= ncols:
-                self._g1 = data[:,g1_col-1].astype(float)
-                self.logger.debug('read g1')
-                self._g2 = data[:,g2_col-1].astype(float)
-                self.logger.debug('read g2')
-
-            # Read k
-            if k_col >= 0 and k_col <= ncols:
-                self._k = data[:,k_col-1].astype(float)
-                self.logger.debug('read k')
-
-        if self._single_patch is not None:
-            self._select_patch(self._single_patch)
-
     def _check_file(self, file_name, reader, num=0, is_rand=False):
         # Just check the consistency of the various column numbers so we can fail fast.
 
         # Get the column names
-        x_col = treecorr.config.get_from_list(self.config,'x_col',num,reader.col_type,'0')
-        y_col = treecorr.config.get_from_list(self.config,'y_col',num,reader.col_type,'0')
-        z_col = treecorr.config.get_from_list(self.config,'z_col',num,reader.col_type,'0')
-        ra_col = treecorr.config.get_from_list(self.config,'ra_col',num,reader.col_type,'0')
-        dec_col = treecorr.config.get_from_list(self.config,'dec_col',num,reader.col_type,'0')
-        r_col = treecorr.config.get_from_list(self.config,'r_col',num,reader.col_type,'0')
-        w_col = treecorr.config.get_from_list(self.config,'w_col',num,reader.col_type,'0')
-        wpos_col = treecorr.config.get_from_list(self.config,'wpos_col',num,reader.col_type,'0')
-        flag_col = treecorr.config.get_from_list(self.config,'flag_col',num,reader.col_type,'0')
-        g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,reader.col_type,'0')
-        g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,reader.col_type,'0')
-        k_col = treecorr.config.get_from_list(self.config,'k_col',num,reader.col_type,'0')
-        patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,reader.col_type,'0')
+        x_col = treecorr.config.get_from_list(self.config,'x_col',num,str,'0')
+        y_col = treecorr.config.get_from_list(self.config,'y_col',num,str,'0')
+        z_col = treecorr.config.get_from_list(self.config,'z_col',num,str,'0')
+        ra_col = treecorr.config.get_from_list(self.config,'ra_col',num,str,'0')
+        dec_col = treecorr.config.get_from_list(self.config,'dec_col',num,str,'0')
+        r_col = treecorr.config.get_from_list(self.config,'r_col',num,str,'0')
+        w_col = treecorr.config.get_from_list(self.config,'w_col',num,str,'0')
+        wpos_col = treecorr.config.get_from_list(self.config,'wpos_col',num,str,'0')
+        flag_col = treecorr.config.get_from_list(self.config,'flag_col',num,str,'0')
+        g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,str,'0')
+        g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,str,'0')
+        k_col = treecorr.config.get_from_list(self.config,'k_col',num,str,'0')
+        patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,str,'0')
         allow_xyz = self.config.get('allow_xyz', False)
 
-        if str(x_col) != '0' or str(y_col) != '0':
-            if str(x_col) == '0':
+        if x_col != '0' or y_col != '0':
+            if x_col == '0':
                 raise ValueError("x_col missing for file %s"%file_name)
-            if str(y_col) == '0':
+            if y_col == '0':
                 raise ValueError("y_col missing for file %s"%file_name)
-            if str(ra_col) != '0' and not allow_xyz:
+            if ra_col != '0' and not allow_xyz:
                 raise ValueError("ra_col not allowed in conjunction with x/y cols")
-            if str(dec_col) != '0' and not allow_xyz:
+            if dec_col != '0' and not allow_xyz:
                 raise ValueError("dec_col not allowed in conjunction with x/y cols")
-            if str(r_col) != '0' and not allow_xyz:
+            if r_col != '0' and not allow_xyz:
                 raise ValueError("r_col not allowed in conjunction with x/y cols")
-        elif str(ra_col) != '0' or str(dec_col) != '0':
-            if str(ra_col) == '0':
+        elif ra_col != '0' or dec_col != '0':
+            if ra_col == '0':
                 raise ValueError("ra_col missing for file %s"%file_name)
-            if str(dec_col) == '0':
+            if dec_col == '0':
                 raise ValueError("dec_col missing for file %s"%file_name)
-            if str(z_col) != '0' and not allow_xyz:
+            if z_col != '0' and not allow_xyz:
                 raise ValueError("z_col not allowed in conjunction with ra/dec cols")
         else:
             raise ValueError("No valid position columns specified for file %s"%file_name)
 
-        if str(g1_col) == '0' and isGColRequired(self.orig_config,num):
+        if g1_col == '0' and isGColRequired(self.orig_config,num):
             raise ValueError("g1_col is missing for file %s"%file_name)
-        if str(g2_col) == '0' and isGColRequired(self.orig_config,num):
+        if g2_col == '0' and isGColRequired(self.orig_config,num):
             raise ValueError("g2_col is missing for file %s"%file_name)
-        if str(k_col) == '0' and isKColRequired(self.orig_config,num):
+        if k_col == '0' and isKColRequired(self.orig_config,num):
             raise ValueError("k_col is missing for file %s"%file_name)
 
         # Either both shoudl be 0 or both != 0.
-        if (str(g1_col) == '0') != (str(g2_col) == '0'):
+        if (g1_col == '0') != (g2_col == '0'):
             raise ValueError("g1_col, g2_col are invalid for file %s"%file_name)
 
         # This opens the file enough to read things inside.  The full read doesn't happen here.
@@ -1316,14 +1189,14 @@ class Catalog(object):
             # But this should probably catch the majorit of error cases.
             reader.check_valid_ext(ext)
 
-            if str(x_col) != '0':
+            if x_col != '0':
                 x_ext = reader.choose_extension(self.config, 'x_ext', num, ext)
                 y_ext = reader.choose_extension(self.config, 'y_ext', num, ext)
                 if x_col not in reader.names(x_ext):
                     raise ValueError("x_col is invalid for file %s"%file_name)
                 if y_col not in reader.names(y_ext):
                     raise ValueError("y_col is invalid for file %s"%file_name)
-                if str(z_col) != '0':
+                if z_col != '0':
                     z_ext = reader.choose_extension(self.config, 'z_ext', num, ext)
                     if z_col not in reader.names(z_ext):
                         raise ValueError("z_col is invalid for file %s"%file_name)
@@ -1334,34 +1207,34 @@ class Catalog(object):
                     raise ValueError("ra_col is invalid for file %s"%file_name)
                 if dec_col not in reader.names(dec_ext):
                     raise ValueError("dec_col is invalid for file %s"%file_name)
-                if str(r_col) != '0':
+                if r_col != '0':
                     r_ext = reader.choose_extension(self.config, 'r_ext', num, ext)
                     if r_col not in reader.names(r_ext):
                         raise ValueError("r_col is invalid for file %s"%file_name)
 
-            if str(w_col) != '0':
+            if w_col != '0':
                 w_ext = reader.choose_extension(self.config, 'w_ext', num, ext)
                 if w_col not in reader.names(w_ext):
                     raise ValueError("w_col is invalid for file %s"%file_name)
 
-            if str(wpos_col) != '0':
+            if wpos_col != '0':
                 wpos_ext = reader.choose_extension(self.config, 'wpos_ext', num, ext)
                 if wpos_col not in reader.names(wpos_ext):
                     raise ValueError("wpos_col is invalid for file %s"%file_name)
 
-            if str(flag_col) != '0':
+            if flag_col != '0':
                 flag_ext = reader.choose_extension(self.config, 'flag_ext', num, ext)
                 if flag_col not in reader.names(flag_ext):
                     raise ValueError("flag_col is invalid for file %s"%file_name)
 
-            if str(patch_col) != '0':
+            if patch_col != '0':
                 patch_ext = reader.choose_extension(self.config, 'patch_ext', num, ext)
                 if patch_col not in reader.names(patch_ext):
                     raise ValueError("patch_col is invalid for file %s"%file_name)
 
             if is_rand: return
 
-            if str(g1_col) != '0':
+            if g1_col != '0':
                 g1_ext = reader.choose_extension(self.config, 'g1_ext', num, ext)
                 g2_ext = reader.choose_extension(self.config, 'g2_ext', num, ext)
                 if (g1_col not in reader.names(g1_ext) or
@@ -1373,7 +1246,7 @@ class Catalog(object):
                                             file_name,num) +
                                             "because they are invalid, but unneeded.")
 
-            if str(k_col) != '0':
+            if k_col != '0':
                 k_ext = reader.choose_extension(self.config, 'k_ext', num, ext)
                 if k_col not in reader.names(k_ext):
                     if isKColRequired(self.orig_config,num):
@@ -1402,6 +1275,19 @@ class Catalog(object):
             is_rand (bool):     Is this a random catalog? (default: False)
         """
         return self._read_structured(file_name, FitsReader(file_name), num=num, is_rand=is_rand)
+
+    def read_ascii(self, file_name, num=0, is_rand=False):
+        """Read the catalog from an ASCII file
+
+        Parameters:
+            file_name (str):    The name of the file to read in.
+            num (int):          Which number catalog are we reading. (default: 0)
+            is_rand (bool):     Is this a random catalog? (default: False)
+        """
+        comment_marker = self.config.get('comment_marker','#')
+        delimiter = self.config.get('delimiter',None)
+        reader = AsciiReader(file_name, comment_marker, delimiter)
+        return self._read_structured(file_name, reader, num=num, is_rand=is_rand)
 
     def _read_structured(self, file_name, reader, num=0, is_rand=False):
         # Helper functions for things we might do in one of two places.
@@ -1445,7 +1331,6 @@ class Catalog(object):
         g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,str,'0')
         k_col = treecorr.config.get_from_list(self.config,'k_col',num,str,'0')
         patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,str,'0')
-
 
         with reader:
 

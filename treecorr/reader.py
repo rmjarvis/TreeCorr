@@ -30,8 +30,7 @@ import numpy as np
 from .config import get_from_list
 
 class AsciiReader:
-    """Reader interface for ASCII files.
-    Uses pandas if possible, else numpy.
+    """Reader interface for ASCII files using numpy.
     """
     can_slice = True
 
@@ -80,11 +79,6 @@ class AsciiReader:
         if self.ncols is None:
             raise RuntimeError('Cannot read when not in a "with" context')
 
-        # I want read_csv to ignore header lines that start with the comment marker, but
-        # there is currently a bug in read_csv that messing things up when we do this.
-        # cf. https://github.com/pydata/pandas/issues/4623
-        # For now, my workaround in to count how many lines start with the comment marker
-        # and skip them by hand.
         skiprows = 0
         with open(self.file_name, 'r') as fid:
             for line in fid:  # pragma: no branch
@@ -99,29 +93,17 @@ class AsciiReader:
             #start = skiprows
             #skiprows = lambda x: x < start or (x-start) % self.every_nth != 0
             #nrows = (nrows-1) // self.every_nth + 1
-        try:
-            import pandas
-            if self.delimiter is None:
-                data = pandas.read_csv(self.file_name, comment=self.comment_marker,
-                                       delim_whitespace=True,
-                                       header=None, skiprows=skiprows)
-            else:
-                data = pandas.read_csv(self.file_name, comment=self.comment_marker,
-                                       delimiter=self.delimiter,
-                                       header=None, skiprows=skiprows)
-            data = data.dropna(axis=0).values
-        except ImportError:
-            #if self.every_nth == 1:
-            if True:
-                data = np.genfromtxt(self.file_name, comments=self.comment_marker,
-                                     delimiter=self.delimiter,
-                                     skip_header=skiprows)
-            else:
-                # Numpy can't handle skiprows being a function.  Have to do this manually.
-                data = np.genfromtxt(self.file_name, comments=self.comment_marker,
-                                     delimiter=self.delimiter,
-                                     skip_header=start, max_rows=self.end - self.start)
-                data = data[::self.every_nth]
+        #if self.every_nth == 1:
+        if True:
+            data = np.genfromtxt(self.file_name, comments=self.comment_marker,
+                                    delimiter=self.delimiter,
+                                    skip_header=skiprows)
+        else:
+            # Numpy can't handle skiprows being a function.  Have to do this manually.
+            data = np.genfromtxt(self.file_name, comments=self.comment_marker,
+                                    delimiter=self.delimiter,
+                                    skip_header=start, max_rows=self.end - self.start)
+            data = data[::self.every_nth]
 
         # If only one row, and not using pands, then the shape comes in as one-d.  Reshape it:
         if len(data.shape) == 1:
@@ -199,6 +181,67 @@ class AsciiReader:
             None
         """
         return None
+
+
+class PandasReader(AsciiReader):
+    """Reader interface for ASCII files using pandas.
+    """
+    def __init__(self, file_name, delimiter=None, comment_marker='#'):
+        """
+        Parameters:
+            file_name (str)         The file name
+            delimiter (str):        What delimiter to use between values.  (default: None,
+                                    which means any whitespace)
+            comment_marker (str):   What token indicates a comment line. (default: '#')
+        """
+        # Do this immediately, so we get an ImportError if it isn't available.
+        import pandas
+        super(PandasReader,self).__init__(file_name, delimiter, comment_marker)
+
+    # This is the only other thing we need to override.
+    @property
+    def data(self):
+        import pandas
+        if self._data is not None:
+            return self._data
+        if self.ncols is None:
+            raise RuntimeError('Cannot read when not in a "with" context')
+
+        # I want read_csv to ignore header lines that start with the comment marker, but
+        # there is currently a bug in read_csv that messing things up when we do this.
+        # cf. https://github.com/pydata/pandas/issues/4623
+        # For now, my workaround in to count how many lines start with the comment marker
+        # and skip them by hand.
+        skiprows = 0
+        with open(self.file_name, 'r') as fid:
+            for line in fid:  # pragma: no branch
+                if line.startswith(self.comment_marker): skiprows += 1
+                else: break
+        #skiprows += self.start
+        #if self.end is None:
+            #nrows = None
+        #else:
+            #nrows = self.end - self.start
+        #if self.every_nth != 1:
+            #start = skiprows
+            #skiprows = lambda x: x < start or (x-start) % self.every_nth != 0
+            #nrows = (nrows-1) // self.every_nth + 1
+        if self.delimiter is None:
+            data = pandas.read_csv(self.file_name, comment=self.comment_marker,
+                                    delim_whitespace=True,
+                                    header=None, skiprows=skiprows)
+        else:
+            data = pandas.read_csv(self.file_name, comment=self.comment_marker,
+                                    delimiter=self.delimiter,
+                                    header=None, skiprows=skiprows)
+        data = data.dropna(axis=0).values
+
+        # If only one row, and not using pands, then the shape comes in as one-d.  Reshape it:
+        if len(data.shape) == 1:
+            data = data.reshape(1,-1)
+
+        self._data = data
+        return self._data
 
 
 class FitsReader:

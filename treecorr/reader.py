@@ -34,12 +34,12 @@ class AsciiReader:
     Uses pandas if possible, else numpy.
     """
     can_slice = True
-    col_type = int
 
     def __init__(self, file_name, comment_marker='#', delimiter=None):
         self.file_name = file_name
         self.comment_marker = comment_marker
         self.delimiter = delimiter
+        self._data = None
 
     def __contains__(self, ext):
         """Check if there is an extension with the given name in the file.
@@ -83,38 +83,40 @@ class AsciiReader:
         # For now, my workaround in to count how many lines start with the comment marker
         # and skip them by hand.
         skiprows = 0
-        with open(file_name, 'r') as fid:
+        with open(self.file_name, 'r') as fid:
             for line in fid:  # pragma: no branch
-                if line.startswith(comment_marker): skiprows += 1
+                if line.startswith(self.comment_marker): skiprows += 1
                 else: break
-        skiprows += self.start
-        if self.end is None:
-            nrows = None
-        else:
-            nrows = self.end - self.start
-        if self.every_nth != 1:
-            start = skiprows
-            skiprows = lambda x: x < start or (x-start) % self.every_nth != 0
-            nrows = (nrows-1) // self.every_nth + 1
+        #skiprows += self.start
+        #if self.end is None:
+            #nrows = None
+        #else:
+            #nrows = self.end - self.start
+        #if self.every_nth != 1:
+            #start = skiprows
+            #skiprows = lambda x: x < start or (x-start) % self.every_nth != 0
+            #nrows = (nrows-1) // self.every_nth + 1
         try:
             import pandas
-            if delimiter is None:
-                data = pandas.read_csv(file_name, comment=comment_marker, delim_whitespace=True,
-                                       header=None, skiprows=skiprows, nrows=nrows)
+            if self.delimiter is None:
+                data = pandas.read_csv(self.file_name, comment=self.comment_marker,
+                                       delim_whitespace=True,
+                                       header=None, skiprows=skiprows)
             else:
-                data = pandas.read_csv(file_name, comment=comment_marker, delimiter=delimiter,
-                                       header=None, skiprows=skiprows, nrows=nrows)
+                data = pandas.read_csv(self.file_name, comment=self.comment_marker,
+                                       delimiter=self.delimiter,
+                                       header=None, skiprows=skiprows)
             data = data.dropna(axis=0).values
         except ImportError:
-            self.logger.warning("Unable to import pandas..  Using np.genfromtxt instead.\n"+
-                                "Installing pandas is recommended for increased speed when "+
-                                "reading ASCII catalogs.")
-            if self.every_nth == 1:
-                data = np.genfromtxt(file_name, comments=comment_marker, delimiter=delimiter,
-                                     skip_header=skiprows, max_rows=nrows)
+            #if self.every_nth == 1:
+            if True:
+                data = np.genfromtxt(self.file_name, comments=self.comment_marker,
+                                     delimiter=self.delimiter,
+                                     skip_header=skiprows)
             else:
                 # Numpy can't handle skiprows being a function.  Have to do this manually.
-                data = np.genfromtxt(file_name, comments=comment_marker, delimiter=delimiter,
+                data = np.genfromtxt(self.file_name, comments=self.comment_marker,
+                                     delimiter=self.delimiter,
                                      skip_header=start, max_rows=self.end - self.start)
                 data = data[::self.every_nth]
 
@@ -133,7 +135,7 @@ class AsciiReader:
         ext: str
             Ignored
         cols: str/list
-            The name(s) of column(s) to read  (Only 1 column name allowed here.)
+            The name(s) of column(s) to read
         s: slice/array
             A slice object or selection of integers to read
 
@@ -142,7 +144,10 @@ class AsciiReader:
         data: array
             The data that is read.
         """
-        return self.data[:,cols-1][s]
+        if np.isscalar(cols):
+            return self.data[:,int(cols)-1][s]
+        else:
+            return {col : self.data[:,int(col)-1][s] for col in cols}
 
     def row_count(self, ext, col):
         """Count the number of rows in the named extension and column
@@ -175,7 +180,7 @@ class AsciiReader:
         names: list
             A list of string column names
         """
-        return range(1,self.ncols+1)
+        return [str(i) for i in range(1,self.ncols+1)]
 
     def __enter__(self):
         # Context manager, enables "with AsciiReader(filename) as f:"
@@ -220,7 +225,6 @@ class FitsReader:
     """Reader interface for FITS files.
     Uses fitsio to read columns, etc.
     """
-    col_type = str
 
     def __init__(self, file_name):
         """Open a file
@@ -386,7 +390,6 @@ class HdfReader:
     """
     # h5py can always accept slices as indices
     can_slice = True
-    col_type = str
 
     def __init__(self, file_name):
         import h5py  # Just to check right away that it will work.
@@ -452,10 +455,9 @@ class HdfReader:
         """
         g = self._group(ext)
         if np.isscalar(cols):
-            data = g[cols][s]
+            return g[cols][s]
         else:
-            data = {col: g[col][s] for col in cols}
-        return data
+            return {col : g[col][s] for col in cols}
 
     def row_count(self, ext, col):
         """Count the number of rows in the named extension and column

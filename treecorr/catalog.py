@@ -21,7 +21,7 @@ import weakref
 import copy
 import os
 import treecorr
-from .reader import FitsReader, HdfReader, AsciiReader
+from .reader import FitsReader, HdfReader, AsciiReader, PandasReader
 
 class Catalog(object):
     """A set of input data (positions and other quantities) to be correlated.
@@ -618,16 +618,13 @@ class Catalog(object):
                 self.reader = HdfReader(file_name)
                 self._check_file(file_name, self.reader, num, is_rand)
             else:
-                try:
-                    import pandas
-                except ImportError:
-                    self.logger.warning(
-                        "Unable to import pandas..  Using np.genfromtxt instead.\n"+
-                        "Installing pandas is recommended for increased speed when "+
-                        "reading ASCII catalogs.")
                 delimiter = self.config.get('delimiter',None)
                 comment_marker = self.config.get('comment_marker','#')
-                self.reader = AsciiReader(file_name, delimiter, comment_marker)
+                try:
+                    self.reader = PandasReader(file_name, delimiter, comment_marker)
+                except ImportError:
+                    self.pandas_warning()
+                    self.reader = AsciiReader(file_name, delimiter, comment_marker)
                 self._check_file(file_name, self.reader, num, is_rand)
 
             self.file_type = file_type
@@ -1276,6 +1273,12 @@ class Catalog(object):
         """
         return self._read_structured(file_name, FitsReader(file_name), num=num, is_rand=is_rand)
 
+    def pandas_warning(self):
+        self.logger.warning(
+            "Unable to import pandas..  Using np.genfromtxt instead.\n"+
+            "Installing pandas is recommended for increased speed when "+
+            "reading ASCII catalogs.")
+
     def read_ascii(self, file_name, num=0, is_rand=False):
         """Read the catalog from an ASCII file
 
@@ -1286,7 +1289,11 @@ class Catalog(object):
         """
         delimiter = self.config.get('delimiter',None)
         comment_marker = self.config.get('comment_marker','#')
-        reader = AsciiReader(file_name, delimiter, comment_marker)
+        try:
+            reader = PandasReader(file_name, delimiter, comment_marker)
+        except ImportError:
+            self.pandas_warning()
+            reader = AsciiReader(file_name, delimiter, comment_marker)
         return self._read_structured(file_name, reader, num=num, is_rand=is_rand)
 
     def _read_structured(self, file_name, reader, num=0, is_rand=False):

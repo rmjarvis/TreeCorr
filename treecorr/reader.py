@@ -33,6 +33,7 @@ class AsciiReader:
     """Reader interface for ASCII files using numpy.
     """
     can_slice = True
+    default_ext = None
 
     def __init__(self, file_name, delimiter=None, comment_marker='#'):
         """
@@ -166,22 +167,6 @@ class AsciiReader:
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self._data = None
 
-    def choose_extension(self, config, name, num, default=None):
-        """Select an extension name or index from a configuration.
-
-        Only None is valid, so this always returns None.
-
-        Parameters:
-            config (dict):      The config to choose from
-            name (str):         The parameter name to get
-            num (int):          If the value is a list, which item to get
-            default (int/str):  The default if not found (optional)
-
-        Returns:
-            None
-        """
-        return None
-
 
 class PandasReader(AsciiReader):
     """Reader interface for ASCII files using pandas.
@@ -248,6 +233,7 @@ class FitsReader:
     """Reader interface for FITS files.
     Uses fitsio to read columns, etc.
     """
+    default_ext = 1
 
     def __init__(self, file_name):
         """
@@ -275,6 +261,7 @@ class FitsReader:
         Returns:
             The data as a recarray
         """
+        ext = self._update_ext(ext)
         return self.file[ext][cols][s]
 
     def row_count(self, ext, col=None):
@@ -291,6 +278,7 @@ class FitsReader:
         Returns:
             The number of rows
         """
+        ext = self._update_ext(ext)
         return self.file[ext].get_nrows()
 
     def names(self, ext):
@@ -302,6 +290,7 @@ class FitsReader:
         Returns:
             A list of string column names
         """
+        ext = self._update_ext(ext)
         return self.file[ext].get_colnames()
 
     def __contains__(self, ext):
@@ -315,6 +304,7 @@ class FitsReader:
         Returns:
             Whether the extension exists
         """
+        ext = self._update_ext(ext)
         return ext in self.file
 
     def __enter__(self):
@@ -339,6 +329,7 @@ class FitsReader:
         """
         import fitsio
 
+        ext = self._update_ext(ext)
         if ext not in self:
             raise ValueError("Invalid ext={} for file {} (does not exist)".format(
                              ext, self.file_name))
@@ -347,41 +338,15 @@ class FitsReader:
             raise ValueError("Invalid ext={} for file {} (Not a TableHDU)".format(
                              ext, self.file_name))
 
-    def choose_extension(self, config, name, num, default=None):
-        """Select an extension name or index from a configuration.
-
-        If no key is found or default supplied, fall back to the first FITS extension.
-
-        Parameters:
-            config (dict):      The config to choose from
-            name (str):         The parameter name to get
-            num (int):          If the value is a list, which item to get
-            default (int/str):  The default if not found (optional)
-
-        Returns:
-            A valid extension to use
-        """
-        # get the value as a string - if it's actually an int
-        # we will convert below
-        ext = get_from_list(config, name, num, str)
-
-        # If not found, use the default if present, otherwise the global
-        # default of 1
-        if ext is None:
-            if default is None:
-                ext = 1
-            else:
-                ext = default
-
+    def _update_ext(self, ext):
         # FITS extensions can be indexed by number or
         # string.  Try converting to an integer if the current
         # value is not found.  If not let the error be caught later.
-        if ext not in self:
+        if ext not in self.file:
             try:
                 ext = int(ext)
             except ValueError:
                 pass
-
         return ext
 
 
@@ -391,6 +356,7 @@ class HdfReader:
     """
     # h5py can always accept slices as indices
     can_slice = True
+    default_ext = '/'
 
     def __init__(self, file_name):
         """
@@ -487,30 +453,3 @@ class HdfReader:
         # closes file at end of "with" statement
         self.file.close()
         self.file = None
-
-    def choose_extension(self, config, name, num, default=None):
-        """Select an extension name or index from a configuration.
-
-        If no key is found or default supplied, fall back to the
-        HDF root object ('/')
-
-        Parameters:
-            config (dict):      The config to choose from
-            name (str):         The parameter name to get
-            num (int):          If the value is a list, which item to get
-            default (int/str):  The default if not found (optional)
-
-        Returns:
-            The HDF group name
-        """
-        ext = get_from_list(config, name, num, str)
-
-        # If not found, use the default if present, otherwise the global
-        # default of using the root of the file
-        if ext is None:
-            if default is None:
-                ext = '/'
-            else:
-                ext = default
-
-        return ext

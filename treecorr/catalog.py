@@ -1179,7 +1179,7 @@ class Catalog(object):
         with reader:
 
             # get the vanilla "ext" parameter
-            ext = reader.choose_extension(self.config, 'ext', num)
+            ext = treecorr.config.get_from_list(self.config, 'ext', num, str, reader.default_ext)
 
             # Technically, this doesn't catch all possible errors.  If someone specifies
             # an invalid flag_ext or something, then they'll get the fitsio error message.
@@ -1187,53 +1187,53 @@ class Catalog(object):
             reader.check_valid_ext(ext)
 
             if x_col != '0':
-                x_ext = reader.choose_extension(self.config, 'x_ext', num, ext)
-                y_ext = reader.choose_extension(self.config, 'y_ext', num, ext)
+                x_ext = treecorr.config.get_from_list(self.config, 'x_ext', num, str, ext)
+                y_ext = treecorr.config.get_from_list(self.config, 'y_ext', num, str, ext)
                 if x_col not in reader.names(x_ext):
                     raise ValueError("x_col is invalid for file %s"%file_name)
                 if y_col not in reader.names(y_ext):
                     raise ValueError("y_col is invalid for file %s"%file_name)
                 if z_col != '0':
-                    z_ext = reader.choose_extension(self.config, 'z_ext', num, ext)
+                    z_ext = treecorr.config.get_from_list(self.config, 'z_ext', num, str, ext)
                     if z_col not in reader.names(z_ext):
                         raise ValueError("z_col is invalid for file %s"%file_name)
             else:
-                ra_ext = reader.choose_extension(self.config, 'ra_ext', num, ext)
-                dec_ext = reader.choose_extension(self.config, 'dec_ext', num, ext)
+                ra_ext = treecorr.config.get_from_list(self.config, 'ra_ext', num, str, ext)
+                dec_ext = treecorr.config.get_from_list(self.config, 'dec_ext', num, str, ext)
                 if ra_col not in reader.names(ra_ext):
                     raise ValueError("ra_col is invalid for file %s"%file_name)
                 if dec_col not in reader.names(dec_ext):
                     raise ValueError("dec_col is invalid for file %s"%file_name)
                 if r_col != '0':
-                    r_ext = reader.choose_extension(self.config, 'r_ext', num, ext)
+                    r_ext = treecorr.config.get_from_list(self.config, 'r_ext', num, str, ext)
                     if r_col not in reader.names(r_ext):
                         raise ValueError("r_col is invalid for file %s"%file_name)
 
             if w_col != '0':
-                w_ext = reader.choose_extension(self.config, 'w_ext', num, ext)
+                w_ext = treecorr.config.get_from_list(self.config, 'w_ext', num, str, ext)
                 if w_col not in reader.names(w_ext):
                     raise ValueError("w_col is invalid for file %s"%file_name)
 
             if wpos_col != '0':
-                wpos_ext = reader.choose_extension(self.config, 'wpos_ext', num, ext)
+                wpos_ext = treecorr.config.get_from_list(self.config, 'wpos_ext', num, str, ext)
                 if wpos_col not in reader.names(wpos_ext):
                     raise ValueError("wpos_col is invalid for file %s"%file_name)
 
             if flag_col != '0':
-                flag_ext = reader.choose_extension(self.config, 'flag_ext', num, ext)
+                flag_ext = treecorr.config.get_from_list(self.config, 'flag_ext', num, str, ext)
                 if flag_col not in reader.names(flag_ext):
                     raise ValueError("flag_col is invalid for file %s"%file_name)
 
             if patch_col != '0':
-                patch_ext = reader.choose_extension(self.config, 'patch_ext', num, ext)
+                patch_ext = treecorr.config.get_from_list(self.config, 'patch_ext', num, str, ext)
                 if patch_col not in reader.names(patch_ext):
                     raise ValueError("patch_col is invalid for file %s"%file_name)
 
             if is_rand: return
 
             if g1_col != '0':
-                g1_ext = reader.choose_extension(self.config, 'g1_ext', num, ext)
-                g2_ext = reader.choose_extension(self.config, 'g2_ext', num, ext)
+                g1_ext = treecorr.config.get_from_list(self.config, 'g1_ext', num, str, ext)
+                g2_ext = treecorr.config.get_from_list(self.config, 'g2_ext', num, str, ext)
                 if (g1_col not in reader.names(g1_ext) or
                     g2_col not in reader.names(g2_ext)):
                     if isGColRequired(self.orig_config,num):
@@ -1244,7 +1244,7 @@ class Catalog(object):
                                             "because they are invalid, but unneeded.")
 
             if k_col != '0':
-                k_ext = reader.choose_extension(self.config, 'k_ext', num, ext)
+                k_ext = treecorr.config.get_from_list(self.config, 'k_ext', num, str, ext)
                 if k_col not in reader.names(k_ext):
                     if isKColRequired(self.orig_config,num):
                         raise ValueError("k_col is invalid for file %s"%file_name)
@@ -1304,7 +1304,7 @@ class Catalog(object):
 
         with reader:
 
-            ext = reader.choose_extension(self.config, 'ext', num)
+            ext = treecorr.config.get_from_list(self.config, 'ext', num, str, reader.default_ext)
 
             # Figure out what slice to use.  If all rows, then None is faster,
             # otherwise give the range explicitly.
@@ -1320,10 +1320,10 @@ class Catalog(object):
                 s = slice(self.start, self.end, self.every_nth)
             else:
                 if x_col != '0':
-                    x_ext = reader.choose_extension(self.config, 'x_ext', num, ext)
+                    x_ext = treecorr.config.get_from_list(self.config, 'x_ext', num, str, ext)
                     col = x_col
                 else:
-                    x_ext = reader.choose_extension(self.config, 'ra_ext', num, ext)
+                    x_ext = treecorr.config.get_from_list(self.config, 'ra_ext', num, str, ext)
                     col = ra_col
                 end = self.end if self.end is not None else reader.row_count(x_ext, col)
                 s = np.arange(self.start, end, self.every_nth)
@@ -1341,19 +1341,19 @@ class Catalog(object):
             #     data = fits[ext][use_cols][:]
             # However, we allow the option to have different columns read from different extensions.
             # So this is slightly more complicated.
-            x_ext = reader.choose_extension(self.config, 'x_ext', num, ext)
-            y_ext = reader.choose_extension(self.config, 'y_ext', num, ext)
-            z_ext = reader.choose_extension(self.config, 'z_ext', num, ext)
-            ra_ext = reader.choose_extension(self.config, 'ra_ext', num, ext)
-            dec_ext = reader.choose_extension(self.config, 'dec_ext', num, ext)
-            r_ext = reader.choose_extension(self.config, 'r_ext', num, ext)
-            patch_ext = reader.choose_extension(self.config, 'patch_ext', num, ext)
-            w_ext = reader.choose_extension(self.config, 'w_ext', num, ext)
-            wpos_ext = reader.choose_extension(self.config, 'wpos_ext', num, ext)
-            flag_ext = reader.choose_extension(self.config, 'flag_ext', num, ext)
-            g1_ext = reader.choose_extension(self.config, 'g1_ext', num, ext)
-            g2_ext = reader.choose_extension(self.config, 'g2_ext', num, ext)
-            k_ext = reader.choose_extension(self.config, 'k_ext', num, ext)
+            x_ext = treecorr.config.get_from_list(self.config, 'x_ext', num, str, ext)
+            y_ext = treecorr.config.get_from_list(self.config, 'y_ext', num, str, ext)
+            z_ext = treecorr.config.get_from_list(self.config, 'z_ext', num, str, ext)
+            ra_ext = treecorr.config.get_from_list(self.config, 'ra_ext', num, str, ext)
+            dec_ext = treecorr.config.get_from_list(self.config, 'dec_ext', num, str, ext)
+            r_ext = treecorr.config.get_from_list(self.config, 'r_ext', num, str, ext)
+            patch_ext = treecorr.config.get_from_list(self.config, 'patch_ext', num, str, ext)
+            w_ext = treecorr.config.get_from_list(self.config, 'w_ext', num, str, ext)
+            wpos_ext = treecorr.config.get_from_list(self.config, 'wpos_ext', num, str, ext)
+            flag_ext = treecorr.config.get_from_list(self.config, 'flag_ext', num, str, ext)
+            g1_ext = treecorr.config.get_from_list(self.config, 'g1_ext', num, str, ext)
+            g2_ext = treecorr.config.get_from_list(self.config, 'g2_ext', num, str, ext)
+            k_ext = treecorr.config.get_from_list(self.config, 'k_ext', num, str, ext)
             all_exts = [x_ext, y_ext, z_ext,
                         ra_ext, dec_ext, r_ext,
                         patch_ext,

@@ -279,7 +279,7 @@ def test_check():
     assert config2['kg_file_name'] == 'output/kg.out'
 
     config3 = treecorr.config.check_config({'g1_ext': [3, 'g1']}, valid_params)
-    assert config3['g1_ext'] == [3, 'g1']
+    assert config3['g1_ext'] == ['3', 'g1']
 
     # Will also have other parameters filled from the valid_params dict
     for key in config2:

@@ -309,21 +309,21 @@ class Catalog(object):
                             as FITS files in the given directory for more efficient loading when
                             doing cross-patch correlations with the ``low_mem`` option.
 
-        ext (int/str):          For FITS/HDF files, Which extension to read. (default: 1 for fits,
-                                root for HDF)
-        x_ext (int/str):        Which extension to use for the x values. (default: ext)
-        y_ext (int/str):        Which extension to use for the y values. (default: ext)
-        z_ext (int/str):        Which extension to use for the z values. (default: ext)
-        ra_ext (int/str):       Which extension to use for the ra values. (default: ext)
-        dec_ext (int/str):      Which extension to use for the dec values. (default: ext)
-        r_ext (int/str):        Which extension to use for the r values. (default: ext)
-        g1_ext (int/str):       Which extension to use for the g1 values. (default: ext)
-        g2_ext (int/str):       Which extension to use for the g2 values. (default: ext)
-        k_ext (int/str):        Which extension to use for the k values. (default: ext)
-        patch_ext (int/str):    Which extension to use for the patch numbers. (default: ext)
-        w_ext (int/str):        Which extension to use for the w values. (default: ext)
-        wpos_ext (int/str):     Which extension to use for the wpos values. (default: ext)
-        flag_ext (int/str):     Which extension to use for the flag values. (default: ext)
+        ext (int/str):      For FITS/HDF files, Which extension to read. (default: 1 for fits,
+                            root for HDF)
+        x_ext (int/str):    Which extension to use for the x values. (default: ext)
+        y_ext (int/str):    Which extension to use for the y values. (default: ext)
+        z_ext (int/str):    Which extension to use for the z values. (default: ext)
+        ra_ext (int/str):   Which extension to use for the ra values. (default: ext)
+        dec_ext (int/str):  Which extension to use for the dec values. (default: ext)
+        r_ext (int/str):    Which extension to use for the r values. (default: ext)
+        g1_ext (int/str):   Which extension to use for the g1 values. (default: ext)
+        g2_ext (int/str):   Which extension to use for the g2 values. (default: ext)
+        k_ext (int/str):    Which extension to use for the k values. (default: ext)
+        patch_ext (int/str): Which extension to use for the patch numbers. (default: ext)
+        w_ext (int/str):    Which extension to use for the w values. (default: ext)
+        wpos_ext (int/str): Which extension to use for the wpos values. (default: ext)
+        flag_ext (int/str): Which extension to use for the flag values. (default: ext)
 
         verbose (int):      If no logger is provided, this will optionally specify a logging level
                             to use.
@@ -420,33 +420,33 @@ class Catalog(object):
                 'Ignore objects with flag & ~ok_flag != 0 (bitwise &, ~)'),
         'allow_xyz': (bool, True, False, None,
                 'Whether to allow x,y,z inputs in conjunction with ra,dec'),
-        'ext': ((int,str), True, None, None,
+        'ext': (str, True, None, None,
                 'Which extension/group in a fits/hdf file to use. Default=1 (fits), root (hdf)'),
-        'x_ext': ((int,str), True, None, None,
+        'x_ext': (str, True, None, None,
                 'Which extension to use for the x_col. default is the global ext value.'),
-        'y_ext': ((int,str), True, None, None,
+        'y_ext': (str, True, None, None,
                 'Which extension to use for the y_col. default is the global ext value.'),
-        'z_ext': ((int,str), True, None, None,
+        'z_ext': (str, True, None, None,
                 'Which extension to use for the z_col. default is the global ext value.'),
-        'ra_ext': ((int,str), True, None, None,
+        'ra_ext': (str, True, None, None,
                 'Which extension to use for the ra_col. default is the global ext value.'),
-        'dec_ext': ((int,str), True, None, None,
+        'dec_ext': (str, True, None, None,
                 'Which extension to use for the dec_col. default is the global ext value.'),
-        'r_ext': ((int,str), True, None, None,
+        'r_ext': (str, True, None, None,
                 'Which extension to use for the r_col. default is the global ext value.'),
-        'g1_ext': ((int,str), True, None, None,
+        'g1_ext': (str, True, None, None,
                 'Which extension to use for the g1_col. default is the global ext value.'),
-        'g2_ext': ((int,str), True, None, None,
+        'g2_ext': (str, True, None, None,
                 'Which extension to use for the g2_col. default is the global ext value.'),
-        'k_ext': ((int,str), True, None, None,
+        'k_ext': (str, True, None, None,
                 'Which extension to use for the k_col. default is the global ext value.'),
-        'patch_ext': ((int,str), True, None, None,
+        'patch_ext': (str, True, None, None,
                 'Which extension to use for the patch_col. default is the global ext value.'),
-        'w_ext': ((int,str), True, None, None,
+        'w_ext': (str, True, None, None,
                 'Which extension to use for the w_col. default is the global ext value.'),
-        'wpos_ext': ((int,str), True, None, None,
+        'wpos_ext': (str, True, None, None,
                 'Which extension to use for the wpos_col. default is the global ext value.'),
-        'flag_ext': ((int,str), True, None, None,
+        'flag_ext': (str, True, None, None,
                 'Which extension to use for the flag_col. default is the global ext value.'),
         'flip_g1' : (bool, True, False, None,
                 'Whether to flip the sign of g1'),

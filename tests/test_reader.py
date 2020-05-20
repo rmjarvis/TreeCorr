@@ -30,7 +30,7 @@ def test_fits_reader():
         r.check_valid_ext(1)
 
         # Default ext is 1
-        assert r.choose_extension({}, 'ext', 0) == 1
+        assert r.default_ext == 1
 
         s = slice(0, 10, 2)
         for ext in [1, 'AARDWOLF']:
@@ -45,9 +45,6 @@ def test_fits_reader():
 
         # check we can also index by integer, not just number
         d = r.read('AARDWOLF', ['DEC'], np.arange(10))
-        assert r.choose_extension({}, 'g1_ext', 0) == 1
-        assert r.choose_extension({'g1_ext':'gg1'}, 'g1_ext', 0, 'ext') == 'gg1'
-        assert r.choose_extension({'g1_ext':'gg1'}, 'g2_ext', 0, 0) == 0
         assert d.size==10
 
 
@@ -61,7 +58,7 @@ def test_hdf_reader():
         r.check_valid_ext('')
 
         # Default ext is '/'
-        assert r.choose_extension({}, 'ext', 0) == '/'
+        assert r.default_ext == '/'
 
         s = slice(0, 10, 2)
         data = r.read('/', ['RA'], s)
@@ -72,9 +69,6 @@ def test_hdf_reader():
         assert r.row_count('/', 'RA') == 390935
         assert r.row_count('/', 'GAMMA1') == 390935
         assert set(r.names('/')) == set("INDEX RA DEC Z EPSILON GAMMA1 GAMMA2 KAPPA MU".split())
-
-        assert r.choose_extension({'g1_ext': 'g1'}, 'g1_ext', 0) == 'g1'
-        assert r.choose_extension({}, 'g1_ext', 0, 'ext') == 'ext'
 
 
 @timer

@@ -35,24 +35,29 @@ class AsciiReader:
     """
     can_slice = True
 
-    def __init__(self, file_name, comment_marker='#', delimiter=None):
+    def __init__(self, file_name, delimiter=None, comment_marker='#'):
+        """
+        Parameters:
+            file_name (str)         The file name
+            delimiter (str):        What delimiter to use between values.  (default: None,
+                                    which means any whitespace)
+            comment_marker (str):   What token indicates a comment line. (default: '#')
+        """
         self.file_name = file_name
-        self.comment_marker = comment_marker
         self.delimiter = delimiter
+        self.comment_marker = comment_marker
         self._data = None
 
     def __contains__(self, ext):
-        """Check if there is an extension with the given name in the file.
+        """Check if ext is None.
 
-        Parameters
-        ----------
-        ext: str
-            name or index to search for
+        ASCII files don't have extensions, so the only ext allowed is None.
 
-        Returns
-        -------
-        bool
-            Whether the extension exists
+        Parameters:
+            ext (str):      The extension to check
+
+        Returns:
+            Whether ext is None
         """
         # None is the only valid "extension" for ASCII files
         return ext is None
@@ -62,10 +67,8 @@ class AsciiReader:
 
         None is the only valid extension for ASCII files.
 
-        Parameters
-        ----------
-        ext: str
-            The extension to check
+        Parameters:
+            ext (str)   The extension to check
         """
         if ext is not None:
             raise ValueError("Invalid ext={} for file {}".format(ext,self.file_name))
@@ -130,54 +133,38 @@ class AsciiReader:
     def read(self, ext, cols, s):
         """Read a slice of a column or list of columns from a specified extension.
 
-        Parameters
-        ----------
-        ext: str
-            Ignored
-        cols: str/list
-            The name(s) of column(s) to read
-        s: slice/array
-            A slice object or selection of integers to read
+        Parameters:
+            ext (str):          The extension (ignored)
+            cols (str/list):    The name(s) of column(s) to read
+            s (slice/array):    A slice object or selection of integers to read
 
-        Returns
-        -------
-        data: array
-            The data that is read.
+        Returns:
+            The data as a dict
         """
         if np.isscalar(cols):
             return self.data[:,int(cols)-1][s]
         else:
             return {col : self.data[:,int(col)-1][s] for col in cols}
 
-    def row_count(self, ext, col):
-        """Count the number of rows in the named extension and column
+    def row_count(self, ext=None, col=None):
+        """Count the number of rows in the file.
 
-        Unlike in FitsReader, col is required.
+        Parameters:
+            ext (str):  The extension (ignored)
+            col (str):  The column to use (ignored)
 
-        Parameters
-        ----------
-        ext: str
-            The HDF group name to use
-        col: str
-            The column to use
-
-        Returns
-        -------
-        count: int
+        Returns:
+            The number of rows
         """
         return self.data.shape[0]
 
     def names(self, ext):
         """Return a list of the names of all the columns in an extension
 
-        Parameters
-        ----------
-        ext: str
-            The extension to search for columns
+        Parameters:
+            ext (str)   The extension (ignored)
 
-        Returns
-        -------
-        names: list
+        Returns:
             A list of string column names
         """
         return [str(i) for i in range(1,self.ncols+1)]
@@ -202,21 +189,14 @@ class AsciiReader:
 
         Only None is valid, so this always returns None.
 
-        Parameters
-        ----------
-        config: dict
-            config to choose from
-        name: str
-            parameter name to get
-        num: int
-            if the value is a list, which item to get
-        default: str
-            optional, the fall-back if not found
+        Parameters:
+            config (dict):      The config to choose from
+            name (str):         The parameter name to get
+            num (int):          If the value is a list, which item to get
+            default (int/str):  The default if not found (optional)
 
-        Returns
-        -------
-        ext: str
-            The HDF group name
+        Returns:
+            None
         """
         return None
 
@@ -227,11 +207,9 @@ class FitsReader:
     """
 
     def __init__(self, file_name):
-        """Open a file
-
-        Parameters
-        ----------
-        file_name: str
+        """
+        Parameters:
+            file_name (str)     The file name
         """
         import fitsio
 
@@ -246,19 +224,13 @@ class FitsReader:
     def read(self, ext, cols, s):
         """Read a slice of a column or list of columns from a specified extension
 
-        Parameters
-        ----------
-        ext: int/str
-            The FITS extension to use
-        cols: str/list
-            The name(s) of column(s) to read
-        s: slice/array
-            A slice object or selection of integers to read
+        Parameters:
+            ext (str):          The FITS extension to use
+            cols (str/list):    The name(s) of column(s) to read
+            s (slice/array):    A slice object or selection of integers to read
 
-        Returns
-        -------
-        data: recarray
-            An array of the read data
+        Returns:
+            The data as a recarray
         """
         return self.file[ext][cols][s]
 
@@ -269,40 +241,35 @@ class FitsReader:
         of different lengths, we allow a second argument, col, but it is
         ignored here.
 
-        Parameters
-        ----------
-        ext: int/str
-            The fits extension to use
-        col: any
-            Ignored here, but nominally a string column name
+        Parameters:
+            ext (str):  The FITS extension to use
+            col (str):  The column to use (ignored)
 
-        Returns
-        -------
-        count: int
+        Returns:
+            The number of rows
         """
         return self.file[ext].get_nrows()
 
     def names(self, ext):
         """Return a list of the names of all the columns in an extension
 
-        Parameters
-        ----------
-        ext
+        Parameters:
+            ext (str)   The extension to search for columns
+
+        Returns:
+            A list of string column names
         """
         return self.file[ext].get_colnames()
 
     def __contains__(self, ext):
-        """Check if there is an extension with the given name or
-        index in the file.
+        """Check if there is an extension with the given name or index in the file.
 
-        Parameters
-        ----------
-        ext: int/str
-            name or index to search for
+        This may be either a name or an integer.
 
-        Returns
-        -------
-        bool
+        Parameters:
+            ext (str/int):  The extension to check for
+
+        Returns:
             Whether the extension exists
         """
         return ext in self.file
@@ -324,10 +291,8 @@ class FitsReader:
 
         The ext must both exist and be a table (not an image)
 
-        Parameters
-        ----------
-        ext: int/str
-            The extension to check
+        Parameters:
+            ext (str/int)   The extension to check
         """
         import fitsio
 
@@ -344,21 +309,14 @@ class FitsReader:
 
         If no key is found or default supplied, fall back to the first FITS extension.
 
-        Parameters
-        ----------
-        config: dict
-            config to choose from
-        name: str
-            parameter name to get
-        num: int
-            if the value is a list, which item to get
-        default: int/str
-            optional, the fall-back if not found
+        Parameters:
+            config (dict):      The config to choose from
+            name (str):         The parameter name to get
+            num (int):          If the value is a list, which item to get
+            default (int/str):  The default if not found (optional)
 
-        Returns
-        -------
-        ext: int/str
-            The value that can be used to look up the extension
+        Returns:
+            A valid extension to use
         """
         # get the value as a string - if it's actually an int
         # we will convert below
@@ -392,6 +350,10 @@ class HdfReader:
     can_slice = True
 
     def __init__(self, file_name):
+        """
+        Parameters:
+            file_name (str)     The file name
+        """
         import h5py  # Just to check right away that it will work.
         self.file = None  # Only works inside a with block.
         self.file_name = file_name
@@ -399,14 +361,10 @@ class HdfReader:
     def __contains__(self, ext):
         """Check if there is an extension with the given name in the file.
 
-        Parameters
-        ----------
-        ext: str
-            name or index to search for
+        Parameters:
+            ext (str):      The extension to check for
 
-        Returns
-        -------
-        bool
+        Returns:
             Whether the extension exists
         """
         return ext in self.file.keys()
@@ -423,10 +381,8 @@ class HdfReader:
 
         The ext must exist - there is no other requirement for HDF files.
 
-        Parameters
-        ----------
-        ext: str
-            The extension to check
+        Parameters:
+            ext (str)   The extension to check
         """
         # Allow '' as an alias of '/'
         if ext != '' and ext not in self:
@@ -439,19 +395,13 @@ class HdfReader:
         Slices should always be used when reading HDF files - using a sequence of
         integers is painfully slow.
 
-        Parameters
-        ----------
-        ext: str
-            The HDF (sub-)group to use
-        cols: str/list
-            The name(s) of column(s) to read
-        s: slice/array
-            A slice object or selection of integers to read
+        Parameters:
+            ext (str):          The HDF (sub-)group to use
+            cols (str/list):    The name(s) of column(s) to read
+            s (slice/array):    A slice object or selection of integers to read
 
-        Returns
-        -------
-        data: dict
-            The data that is read.
+        Returns:
+            The data as a dict
         """
         g = self._group(ext)
         if np.isscalar(cols):
@@ -464,30 +414,22 @@ class HdfReader:
 
         Unlike in FitsReader, col is required.
 
-        Parameters
-        ----------
-        ext: str
-            The HDF group name to use
-        col: str
-            The column to use
+        Parameters:
+            ext (str):  The HDF group name to use
+            col (str):  The column to use
 
-        Returns
-        -------
-        count: int
+        Returns:
+            The number of rows
         """
         return self._group(ext)[col].size
 
     def names(self, ext):
         """Return a list of the names of all the columns in an extension
 
-        Parameters
-        ----------
-        ext: str
-            The extension to search for columns
+        Parameters:
+            ext (str)   The extension to search for columns
 
-        Returns
-        -------
-        names: list
+        Returns:
             A list of string column names
         """
         return list(self._group(ext).keys())
@@ -509,20 +451,13 @@ class HdfReader:
         If no key is found or default supplied, fall back to the
         HDF root object ('/')
 
-        Parameters
-        ----------
-        config: dict
-            config to choose from
-        name: str
-            parameter name to get
-        num: int
-            if the value is a list, which item to get
-        default: str
-            optional, the fall-back if not found
+        Parameters:
+            config (dict):      The config to choose from
+            name (str):         The parameter name to get
+            num (int):          If the value is a list, which item to get
+            default (int/str):  The default if not found (optional)
 
-        Returns
-        -------
-        ext: str
+        Returns:
             The HDF group name
         """
         ext = get_from_list(config, name, num, str)

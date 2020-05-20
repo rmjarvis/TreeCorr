@@ -625,9 +625,9 @@ class Catalog(object):
                         "Unable to import pandas..  Using np.genfromtxt instead.\n"+
                         "Installing pandas is recommended for increased speed when "+
                         "reading ASCII catalogs.")
-                comment_marker = self.config.get('comment_marker','#')
                 delimiter = self.config.get('delimiter',None)
-                self.reader = AsciiReader(file_name, comment_marker, delimiter)
+                comment_marker = self.config.get('comment_marker','#')
+                self.reader = AsciiReader(file_name, delimiter, comment_marker)
                 self._check_file(file_name, self.reader, num, is_rand)
 
             self.file_type = file_type
@@ -1284,9 +1284,9 @@ class Catalog(object):
             num (int):          Which number catalog are we reading. (default: 0)
             is_rand (bool):     Is this a random catalog? (default: False)
         """
-        comment_marker = self.config.get('comment_marker','#')
         delimiter = self.config.get('delimiter',None)
-        reader = AsciiReader(file_name, comment_marker, delimiter)
+        comment_marker = self.config.get('comment_marker','#')
+        reader = AsciiReader(file_name, delimiter, comment_marker)
         return self._read_structured(file_name, reader, num=num, is_rand=is_rand)
 
     def _read_structured(self, file_name, reader, num=0, is_rand=False):

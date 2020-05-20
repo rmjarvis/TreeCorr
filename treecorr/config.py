@@ -195,27 +195,22 @@ def setup_logger(verbose, log_file=None):
     return logger
 
 
-def parse(value, value_types, name):
-    """Parse the input value as one of possibly several value types.
+def parse(value, value_type, name):
+    """Parse the input value as the given type.
 
     :param value:       The value to parse.
-    :param value_types: The possible types allowed for this.  Either a tuple or a single type.
+    :param value_type:  The type expected for this.
     :param name:        The name of this value. Only used for error reporting.
 
-    :returns: (value_type, value)
+    :returns: value
     """
-    if not isinstance(value_types, (list, tuple)):
-        value_types = (value_types,)
-    for value_type in value_types:
-        try:
-            if value_type is bool:
-                return value_type, parse_bool(value)
-            else:
-                return value_type, value_type(value)
-        except ValueError:
-            continue
-    raise ValueError("Could not parse {}={} as (any of) type(s) {}".format(
-                     name, value, value_types))
+    try:
+        if value_type is bool:
+            return parse_bool(value)
+        else:
+            return value_type(value)
+    except ValueError:
+        raise ValueError("Could not parse {}={} as type {}".format(name, value, value_type))
 
 
 def check_config(config, params, aliases=None, logger=None):
@@ -258,17 +253,15 @@ def check_config(config, params, aliases=None, logger=None):
         if key not in params:
             raise TypeError("Invalid parameter %s."%key)
 
-        value_types, may_be_list, default_value, valid_values = params[key][:4]
+        value_type, may_be_list, default_value, valid_values = params[key][:4]
 
         # Get the value
         if may_be_list and isinstance(config[key], list):
-            parses = [parse(v, value_types, key) for v in config[key] ]
-            value_type = [p[0] for p in parses]
-            value = [p[1] for p in parses]
+            value = [parse(v, value_type, key) for v in config[key] ]
         else:
-            value_type, value = parse(config[key], value_types, key)
+            value = parse(config[key], value_type, key)
 
-        # If limited allowed values, check that this is one of them.
+        # If limited allowed value, check that this is one of them.
         if valid_values is not None:
             if value_type is str:
                 matches = [ v for v in valid_values if value == v ]

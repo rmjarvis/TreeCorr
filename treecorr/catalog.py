@@ -21,7 +21,7 @@ import weakref
 import copy
 import os
 import treecorr
-from .reader import FitsReader, HdfReader
+from .reader import FitsReader, HdfReader, AsciiReader
 
 class Catalog(object):
     """A set of input data (positions and other quantities) to be correlated.
@@ -370,7 +370,7 @@ class Catalog(object):
         'file_type' : (str, True, None, ['ASCII', 'FITS'],
                 'The file type of the input files. The default is to use the file name extension.'),
         'delimiter' : (str, True, None, None,
-                'The delimeter between values in an ASCII catalog. The default is any whitespace.'),
+                'The delimiter between values in an ASCII catalog. The default is any whitespace.'),
         'comment_marker' : (str, True, '#', None,
                 'The first (non-whitespace) character of comment lines in an input ASCII catalog.'),
         'first_row' : (int, True, 1, None,
@@ -618,7 +618,10 @@ class Catalog(object):
                 self.reader = HdfReader(file_name)
                 self._check_file(file_name, self.reader, num, is_rand)
             else:
-                self._check_ascii(file_name, num, is_rand)
+                comment_marker = self.config.get('comment_marker','#')
+                delimiter = self.config.get('delimiter',None)
+                self.reader = AsciiReader(file_name, comment_marker, delimiter)
+                self._check_file(file_name, self.reader, num, is_rand)
 
             self.file_type = file_type
 
@@ -1116,84 +1119,6 @@ class Catalog(object):
             self._w[index] = 0
             col[index] = 0  # Don't leave the nans there.
 
-    def _check_ascii(self, file_name, num=0, is_rand=False):
-        # Just check the consistency of the various column numbers so we can fail fast.
-
-        # Just read 1 row so we know how many columns there are.
-        # Also will give an IO error if the file is unreadable.
-        comment_marker = self.config.get('comment_marker','#')
-        delimiter = self.config.get('delimiter',None)
-        data = np.genfromtxt(file_name, comments=comment_marker, delimiter=delimiter, max_rows=1)
-        if len(data.shape) != 1:  # pragma: no cover
-            raise IOError('Unable to parse the input catalog as a numpy array')
-        ncols = data.shape[0]
-
-        # Get the column numbers or names
-        x_col = treecorr.config.get_from_list(self.config,'x_col',num,int,0)
-        y_col = treecorr.config.get_from_list(self.config,'y_col',num,int,0)
-        z_col = treecorr.config.get_from_list(self.config,'z_col',num,int,0)
-        ra_col = treecorr.config.get_from_list(self.config,'ra_col',num,int,0)
-        dec_col = treecorr.config.get_from_list(self.config,'dec_col',num,int,0)
-        r_col = treecorr.config.get_from_list(self.config,'r_col',num,int,0)
-        w_col = treecorr.config.get_from_list(self.config,'w_col',num,int,0)
-        wpos_col = treecorr.config.get_from_list(self.config,'wpos_col',num,int,0)
-        flag_col = treecorr.config.get_from_list(self.config,'flag_col',num,int,0)
-        g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,int,0)
-        g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,int,0)
-        k_col = treecorr.config.get_from_list(self.config,'k_col',num,int,0)
-        patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,int,0)
-        allow_xyz = self.config.get('allow_xyz', False)
-
-        # Read x,y or ra,dec
-        if x_col != 0 or y_col != 0:
-            if x_col <= 0 or x_col > ncols:
-                raise TypeError("x_col missing or invalid for file %s"%file_name)
-            if y_col <= 0 or y_col > ncols:
-                raise TypeError("y_col missing or invalid for file %s"%file_name)
-            if z_col < 0 or z_col > ncols:
-                raise TypeError("z_col is invalid for file %s"%file_name)
-            if ra_col != 0 and not allow_xyz:
-                raise TypeError("ra_col not allowed in conjunction with x/y cols")
-            if dec_col != 0 and not allow_xyz:
-                raise TypeError("dec_col not allowed in conjunction with x/y cols")
-            if r_col != 0 and not allow_xyz:
-                raise TypeError("r_col not allowed in conjunction with x/y cols")
-        elif ra_col != 0 or dec_col != 0:
-            if ra_col <= 0 or ra_col > ncols:
-                raise TypeError("ra_col missing or invalid for file %s"%file_name)
-            if dec_col <= 0 or dec_col > ncols:
-                raise TypeError("dec_col missing or invalid for file %s"%file_name)
-            if r_col < 0 or r_col > ncols:
-                raise TypeError("r_col is invalid for file %s"%file_name)
-            if z_col != 0 and not allow_xyz:
-                raise TypeError("z_col not allowed in conjunction with ra/dec cols")
-        else:
-            raise TypeError("No valid position columns specified for file %s"%file_name)
-
-        if w_col < 0 or w_col > ncols:
-            raise TypeError("w_col is invalid for file %s"%file_name)
-        if wpos_col < 0 or wpos_col > ncols:
-            raise TypeError("wpos_col is invalid for file %s"%file_name)
-        if flag_col < 0 or flag_col > ncols:
-            raise TypeError("flag_col is invalid for file %s"%file_name)
-        if patch_col < 0 or patch_col > ncols:
-            raise ValueError("patch_col is invalid for file %s"%file_name)
-        if is_rand: return
-
-        if g1_col < 0 or g1_col > ncols or g2_col < 0 or g2_col > ncols or (g1_col!=0) != (g2_col!=0):
-            if isGColRequired(self.orig_config,num):
-                raise TypeError("g1_col, g2_col are invalid for file %s"%file_name)
-            else:
-                self.logger.warning("Warning: skipping g1_col, g2_col for %s, num=%d "%(
-                                    file_name,num) +
-                                    "because they are invalid, but unneeded.")
-
-        if k_col < 0 or k_col > ncols:
-            if isKColRequired(self.orig_config,num):
-                raise TypeError("k_col is invalid for file %s"%file_name)
-            else:
-                self.logger.warning("Warning: skipping k_col for %s, num=%d "%(file_name,num)+
-                                    "because it is invalid, but unneeded.")
 
     def read_ascii(self, file_name, num=0, is_rand=False):
         """Read the catalog from an ASCII file
@@ -1333,52 +1258,54 @@ class Catalog(object):
         # Just check the consistency of the various column numbers so we can fail fast.
 
         # Get the column names
-        x_col = treecorr.config.get_from_list(self.config,'x_col',num,str,'0')
-        y_col = treecorr.config.get_from_list(self.config,'y_col',num,str,'0')
-        z_col = treecorr.config.get_from_list(self.config,'z_col',num,str,'0')
-        ra_col = treecorr.config.get_from_list(self.config,'ra_col',num,str,'0')
-        dec_col = treecorr.config.get_from_list(self.config,'dec_col',num,str,'0')
-        r_col = treecorr.config.get_from_list(self.config,'r_col',num,str,'0')
-        w_col = treecorr.config.get_from_list(self.config,'w_col',num,str,'0')
-        wpos_col = treecorr.config.get_from_list(self.config,'wpos_col',num,str,'0')
-        flag_col = treecorr.config.get_from_list(self.config,'flag_col',num,str,'0')
-        g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,str,'0')
-        g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,str,'0')
-        k_col = treecorr.config.get_from_list(self.config,'k_col',num,str,'0')
-        patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,str,'0')
+        x_col = treecorr.config.get_from_list(self.config,'x_col',num,reader.col_type,'0')
+        y_col = treecorr.config.get_from_list(self.config,'y_col',num,reader.col_type,'0')
+        z_col = treecorr.config.get_from_list(self.config,'z_col',num,reader.col_type,'0')
+        ra_col = treecorr.config.get_from_list(self.config,'ra_col',num,reader.col_type,'0')
+        dec_col = treecorr.config.get_from_list(self.config,'dec_col',num,reader.col_type,'0')
+        r_col = treecorr.config.get_from_list(self.config,'r_col',num,reader.col_type,'0')
+        w_col = treecorr.config.get_from_list(self.config,'w_col',num,reader.col_type,'0')
+        wpos_col = treecorr.config.get_from_list(self.config,'wpos_col',num,reader.col_type,'0')
+        flag_col = treecorr.config.get_from_list(self.config,'flag_col',num,reader.col_type,'0')
+        g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,reader.col_type,'0')
+        g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,reader.col_type,'0')
+        k_col = treecorr.config.get_from_list(self.config,'k_col',num,reader.col_type,'0')
+        patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,reader.col_type,'0')
         allow_xyz = self.config.get('allow_xyz', False)
 
-        if x_col != '0' or y_col != '0':
-            if x_col == '0':
+        if str(x_col) != '0' or str(y_col) != '0':
+            if str(x_col) == '0':
                 raise ValueError("x_col missing for file %s"%file_name)
-            if y_col == '0':
+            if str(y_col) == '0':
                 raise ValueError("y_col missing for file %s"%file_name)
-            if ra_col != '0' and not allow_xyz:
+            if str(ra_col) != '0' and not allow_xyz:
                 raise ValueError("ra_col not allowed in conjunction with x/y cols")
-            if dec_col != '0' and not allow_xyz:
+            if str(dec_col) != '0' and not allow_xyz:
                 raise ValueError("dec_col not allowed in conjunction with x/y cols")
-            if r_col != '0' and not allow_xyz:
+            if str(r_col) != '0' and not allow_xyz:
                 raise ValueError("r_col not allowed in conjunction with x/y cols")
-        elif ra_col != '0' or dec_col != '0':
-            if ra_col == '0':
+        elif str(ra_col) != '0' or str(dec_col) != '0':
+            if str(ra_col) == '0':
                 raise ValueError("ra_col missing for file %s"%file_name)
-            if dec_col == '0':
+            if str(dec_col) == '0':
                 raise ValueError("dec_col missing for file %s"%file_name)
-            if z_col != '0' and not allow_xyz:
+            if str(z_col) != '0' and not allow_xyz:
                 raise ValueError("z_col not allowed in conjunction with ra/dec cols")
         else:
             raise ValueError("No valid position columns specified for file %s"%file_name)
 
-        if g1_col == '0' and isGColRequired(self.orig_config,num):
+        if str(g1_col) == '0' and isGColRequired(self.orig_config,num):
             raise ValueError("g1_col is missing for file %s"%file_name)
-        if g2_col == '0' and isGColRequired(self.orig_config,num):
+        if str(g2_col) == '0' and isGColRequired(self.orig_config,num):
             raise ValueError("g2_col is missing for file %s"%file_name)
-        if k_col == '0' and isKColRequired(self.orig_config,num):
+        if str(k_col) == '0' and isKColRequired(self.orig_config,num):
             raise ValueError("k_col is missing for file %s"%file_name)
 
-        if (g1_col != '0' and g2_col == '0') or (g1_col == '0' and g2_col != '0'):
+        # Either both shoudl be 0 or both != 0.
+        if (str(g1_col) == '0') != (str(g2_col) == '0'):
             raise ValueError("g1_col, g2_col are invalid for file %s"%file_name)
 
+        # This opens the file enough to read things inside.  The full read doesn't happen here.
         with reader:
 
             # get the vanilla "ext" parameter
@@ -1389,14 +1316,14 @@ class Catalog(object):
             # But this should probably catch the majorit of error cases.
             reader.check_valid_ext(ext)
 
-            if x_col != '0':
+            if str(x_col) != '0':
                 x_ext = reader.choose_extension(self.config, 'x_ext', num, ext)
                 y_ext = reader.choose_extension(self.config, 'y_ext', num, ext)
                 if x_col not in reader.names(x_ext):
                     raise ValueError("x_col is invalid for file %s"%file_name)
                 if y_col not in reader.names(y_ext):
                     raise ValueError("y_col is invalid for file %s"%file_name)
-                if z_col != '0':
+                if str(z_col) != '0':
                     z_ext = reader.choose_extension(self.config, 'z_ext', num, ext)
                     if z_col not in reader.names(z_ext):
                         raise ValueError("z_col is invalid for file %s"%file_name)
@@ -1407,34 +1334,34 @@ class Catalog(object):
                     raise ValueError("ra_col is invalid for file %s"%file_name)
                 if dec_col not in reader.names(dec_ext):
                     raise ValueError("dec_col is invalid for file %s"%file_name)
-                if r_col != '0':
+                if str(r_col) != '0':
                     r_ext = reader.choose_extension(self.config, 'r_ext', num, ext)
                     if r_col not in reader.names(r_ext):
                         raise ValueError("r_col is invalid for file %s"%file_name)
 
-            if w_col != '0':
+            if str(w_col) != '0':
                 w_ext = reader.choose_extension(self.config, 'w_ext', num, ext)
                 if w_col not in reader.names(w_ext):
                     raise ValueError("w_col is invalid for file %s"%file_name)
 
-            if wpos_col != '0':
+            if str(wpos_col) != '0':
                 wpos_ext = reader.choose_extension(self.config, 'wpos_ext', num, ext)
                 if wpos_col not in reader.names(wpos_ext):
                     raise ValueError("wpos_col is invalid for file %s"%file_name)
 
-            if flag_col != '0':
+            if str(flag_col) != '0':
                 flag_ext = reader.choose_extension(self.config, 'flag_ext', num, ext)
                 if flag_col not in reader.names(flag_ext):
                     raise ValueError("flag_col is invalid for file %s"%file_name)
 
-            if patch_col != '0':
+            if str(patch_col) != '0':
                 patch_ext = reader.choose_extension(self.config, 'patch_ext', num, ext)
                 if patch_col not in reader.names(patch_ext):
                     raise ValueError("patch_col is invalid for file %s"%file_name)
 
             if is_rand: return
 
-            if g1_col != '0':
+            if str(g1_col) != '0':
                 g1_ext = reader.choose_extension(self.config, 'g1_ext', num, ext)
                 g2_ext = reader.choose_extension(self.config, 'g2_ext', num, ext)
                 if (g1_col not in reader.names(g1_ext) or
@@ -1446,7 +1373,7 @@ class Catalog(object):
                                             file_name,num) +
                                             "because they are invalid, but unneeded.")
 
-            if k_col != '0':
+            if str(k_col) != '0':
                 k_ext = reader.choose_extension(self.config, 'k_ext', num, ext)
                 if k_col not in reader.names(k_ext):
                     if isKColRequired(self.orig_config,num):
@@ -2512,7 +2439,7 @@ def isGColRequired(config, num):
     """
     return config and ( 'gg_file_name' in config
                         or 'm2_file_name' in config
-                        or 'norm_file_name' in config
+                        or (num==1 and 'norm_file_name' in config)
                         or (num==1 and 'ng_file_name' in config)
                         or (num==1 and 'nm_file_name' in config)
                         or (num==1 and 'kg_file_name' in config) )

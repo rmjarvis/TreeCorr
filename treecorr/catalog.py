@@ -623,7 +623,7 @@ class Catalog(object):
                 try:
                     self.reader = PandasReader(file_name, delimiter, comment_marker)
                 except ImportError:
-                    self.pandas_warning()
+                    self._pandas_warning()
                     self.reader = AsciiReader(file_name, delimiter, comment_marker)
                 self._check_file(file_name, self.reader, num, is_rand)
 
@@ -1253,50 +1253,13 @@ class Catalog(object):
                                             file_name,num)+
                                             "because it is invalid, but unneeded.")
 
-    def read_hdf(self, file_name, num=0, is_rand=False):
-        """Read the catalog from an HDF5 file
-
-        Parameters:
-            file_name (str):    The name of the file to read in.
-            num (int):          Which number catalog are we reading. (default: 0)
-            is_rand (bool):     Is this a random catalog? (default: False)
-        """
-        return self._read_structured(file_name, HdfReader(file_name), num=num, is_rand=is_rand)
-
-    def read_fits(self, file_name, num=0, is_rand=False):
-        """Read the catalog from a FITS file
-
-        Parameters:
-            file_name (str):    The name of the file to read in.
-            num (int):          Which number catalog are we reading. (default: 0)
-            is_rand (bool):     Is this a random catalog? (default: False)
-        """
-        return self._read_structured(file_name, FitsReader(file_name), num=num, is_rand=is_rand)
-
-    def pandas_warning(self):
+    def _pandas_warning(self):
         self.logger.warning(
             "Unable to import pandas..  Using np.genfromtxt instead.\n"+
             "Installing pandas is recommended for increased speed when "+
             "reading ASCII catalogs.")
 
-    def read_ascii(self, file_name, num=0, is_rand=False):
-        """Read the catalog from an ASCII file
-
-        Parameters:
-            file_name (str):    The name of the file to read in.
-            num (int):          Which number catalog are we reading. (default: 0)
-            is_rand (bool):     Is this a random catalog? (default: False)
-        """
-        delimiter = self.config.get('delimiter',None)
-        comment_marker = self.config.get('comment_marker','#')
-        try:
-            reader = PandasReader(file_name, delimiter, comment_marker)
-        except ImportError:
-            self.pandas_warning()
-            reader = AsciiReader(file_name, delimiter, comment_marker)
-        return self._read_structured(file_name, reader, num=num, is_rand=is_rand)
-
-    def _read_structured(self, file_name, reader, num=0, is_rand=False):
+    def _read_file(self, file_name, reader, num, is_rand):
         # Helper functions for things we might do in one of two places.
         def set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col):
             if x_col != '0' and x_col in data:
@@ -1907,16 +1870,7 @@ class Catalog(object):
         """
         if not self.loaded:
             self.logger.info("Reading input file %s",self.name)
-            # Read the input file
-            if self.file_type == 'FITS':
-                self.read_fits(self.file_name,self._num,self._is_rand)
-            elif self.file_type == 'ASCII':
-                self.read_ascii(self.file_name,self._num,self._is_rand)
-            elif self.file_type == 'HDF':
-                self.read_hdf(self.file_name,self._num,self._is_rand)
-            else: # pragma: no cover
-                # This is already checked, so shouldn't be possible to happen.
-                raise ValueError("Invalid file_type %s"%self.file_type)
+            self._read_file(self.file_name, self.reader, self._num, self._is_rand)
             self._finish_input()
 
     def unload(self):

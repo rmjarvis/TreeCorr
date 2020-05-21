@@ -87,6 +87,7 @@ New features
 - Added ``comm`` option to ``process`` calls to use MPI to split a job up over
   multiple machines. (#98, #104)
 
+
 Deprecations
 ------------
 
@@ -95,6 +96,13 @@ Deprecations
   anyone uses it (or the associated `SimpleFields <NSimpleField>`).  If you need this
   functionality, please open an issue to let me know, and I can keep them.  Otherwise,
   I'll remove them as usesless cruft.
+
+
+Bug Fixes
+---------
+
+- Fixed a bug in 3-point calculations that could cause "Failed Assert: kr < _nbins".
+
 
 Changes from version 4.1.0 to 4.1.1
 -----------------------------------

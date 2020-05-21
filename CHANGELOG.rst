@@ -9,7 +9,9 @@ Performance improvements
 New features
 ------------
 
-Add ability to read from hdf5 catalogs.  (#106)
+Added ability to read from hdf5 catalogs.  (#106)
+Added ability to use named columns in ASCII files if the file has column names. (#108)
+
 
 Bug fixes
 ---------

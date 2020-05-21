@@ -57,6 +57,12 @@ class Catalog(object):
     an HDF5 file or an ASCII file.  Normally the file type is determined according to the
     file's extension (e.g. '.fits' here), but it can also be set explicitly with ``file_type``.
 
+    For FITS and HDF5 files, the column names should be strings as shown above.
+    For ASCII files, they may be strings if the input file has column names.  But you may
+    also use integer values giving the index of which column to use.  We use a 1-based convention
+    for these, so x_col=1 would mean to use the first column as the x value. (0 means don't
+    read that column.)
+
     Finally, you may store all the various parameters in a configuration dict
     and just pass the dict as an argument after the file name::
 
@@ -158,7 +164,7 @@ class Catalog(object):
         num (int):          Which number catalog are we reading.  e.g. for NG correlations the
                             catalog for the N has num=0, the one for G has num=1.  This is only
                             necessary if you are using a config dict where things like ``x_col``
-                            have multiple values.  (default: 0)
+                            have multiple values. (default: 0)
         logger:             If desired, a Logger object for logging. (default: None, in which case
                             one will be built according to the config dict's verbose level.)
         is_rand (bool):     If this is a random file, then setting is_rand to True will let them
@@ -182,7 +188,7 @@ class Catalog(object):
                             means to use the value weights, w, to weight the positions as well.)
         flag (array):       An optional array of flags, indicating objects to skip.  Rows with
                             flag != 0 (or technically flag & ~ok_flag != 0) will be given a weight
-                            of 0.  (default: None)
+                            of 0. (default: None)
         g1 (array):         The g1 values to use for shear correlations. (g1,g2 may represent any
                             spinor field.) (default: None)
         g2 (array):         The g2 values to use for shear correlations. (g1,g2 may represent any
@@ -228,35 +234,35 @@ class Catalog(object):
         kmeans_alt (str):   If using kmeans to make patches, whether to use the alternate kmeans
                             algorithm. cf. `Field.run_kmeans` (default: False)
 
-        x_col (str or int): The column to use for the x values. This should be an integer for ASCII
-                            files or a string for FITS/HDF files. (default: '0', which means not
-                            to read in this column. When reading from a file, either x_col and
-                            y_col are required or ra_col and dec_col are required.)
-        y_col (str or int): The column to use for the y values. This should be an integer for ASCII
-                            files or a string for FITS/HDF files. (default: '0', which means not
-                            to read in this column. When reading from a file, either x_col and
-                            y_col are required or ra_col and dec_col are required.)
-        z_col (str or int): The column to use for the z values. This should be an integer for ASCII
-                            files or a string for FITS/HDF files. (default: '0', which means not
-                            to read in this column; invalid in conjunction with ra_col, dec_col.)
-        ra_col (str or int): The column to use for the ra values. This should be an integer for
-                            ASCII files or a string for FITS/HDF files. (default: '0', which
-                            means not to read in this column. When reading from a file, either
-                            x_col and y_col are required or ra_col and dec_col are required.)
-        dec_col (str or int): The column to use for the dec values. This should be an integer for
-                            ASCII files or a string for FITS/HDF files. (default: '0', which
-                            means not to read in this column. When reading from a file, either
-                            x_col and y_col are required or ra_col and dec_col are required.)
-        r_col (str or int): The column to use for the r values. This should be an integer for ASCII
-                            files or a string for FITS/HDF files. (default: '0', which means not
-                            to read in this column; invalid in conjunction with x_col, y_col.)
+        x_col (str or int): The column to use for the x values. An integer is only allowed for
+                            ASCII files. (default: '0', which means not to read in this column.
+                            When reading from a file, either x_col and y_col are required or ra_col
+                            and dec_col are required.)
+        y_col (str or int): The column to use for the y values. An integer is only allowed for
+                            ASCII files. (default: '0', which means not to read in this column.
+                            When reading from a file, either x_col and y_col are required or ra_col
+                            and dec_col are required.)
+        z_col (str or int): The column to use for the z values. An integer is only allowed for
+                            ASCII files. (default: '0', which means not to read in this column;
+                            invalid in conjunction with ra_col, dec_col.)
+        ra_col (str or int): The column to use for the ra values. An integer is only allowed for
+                            ASCII files. (default: '0', which means not to read in this column.
+                            When reading from a file, either x_col and y_col are required or ra_col
+                            and dec_col are required.)
+        dec_col (str or int): The column to use for the dec values. An integer is only allowed for
+                            ASCII files. (default: '0', which means not to read in this column.
+                            When reading from a file, either x_col and y_col are required or ra_col
+                            and dec_col are required.)
+        r_col (str or int): The column to use for the r values. An integer is only allowed for
+                            ASCII files. (default: '0', which means not to read in this column;
+                            invalid in conjunction with x_col, y_col.)
 
         x_units (str):      The units to use for the x values, given as a string.  Valid options are
-                            arcsec, arcmin, degrees, hours, radians.  (default: radians, although
+                            arcsec, arcmin, degrees, hours, radians. (default: radians, although
                             with (x,y) positions, you can often just ignore the units, and the
                             output separations will be in whatever units x and y are in.)
         y_units (str):      The units to use for the y values, given as a string.  Valid options are
-                            arcsec, arcmin, degrees, hours, radians.  (default: radians, although
+                            arcsec, arcmin, degrees, hours, radians. (default: radians, although
                             with (x,y) positions, you can often just ignore the units, and the
                             output separations will be in whatever units x and y are in.)
         ra_units (str):     The units to use for the ra values, given as a string.  Valid options
@@ -266,31 +272,26 @@ class Catalog(object):
                             are arcsec, arcmin, degrees, hours, radians. (required when using
                             dec_col or providing dec directly)
 
-        g1_col (str or int): The column to use for the g1 values. This should be an integer for
-                            ASCII files or a string for FITS/HDF files. (default: '0', which means
-                            not to read in this column.)
-        g2_col (str or int): The column to use for the g2 values. This should be an integer for
-                            ASCII files or a string for FITS/HDF files. (default: '0', which means
-                            not to read in this column.)
-        k_col (str or int): The column to use for the kappa values. This should be an integer for
-                            ASCII files or a string for FITS/HDF files. (default: '0', which means
-                            not to read in this column.)
-        patch_col (str or int): The column to use for the patch numbers. This should be an integer
-                            for ASCII files or a string for FITS/HDF files. (default: '0', which
-                            means not to read in this column.)
-        w_col (str or int): The column to use for the weight values. This should be an integer for
-                            ASCII files or a string for FITS/HDF files. (default: '0', which means
-                            not to read in this column.)
-        wpos_col (str or int): The column to use for the position weight values. This should be an
-                            integer for ASCII files or a string for FITS/HDF files. (default: '0',
-                            which means not to read in this column, in which case wpos=w.)
-        flag_col (str or int): The column to use for the flag values. This should be an integer for
-                            ASCII files or a string for FITS/HDF files. Any row with flag != 0 (or
-                            technically flag & ~ok_flag != 0) will be given a weight of 0.
-                            (default: '0', which means not to read in this column.)
+        g1_col (str or int): The column to use for the g1 values. An integer is only allowed for
+                            ASCII files. (default: '0', which means not to read in this column.)
+        g2_col (str or int): The column to use for the g2 values. An integer is only allowed for
+                            ASCII files. (default: '0', which means not to read in this column.)
+        k_col (str or int): The column to use for the kappa values. An integer is only allowed for
+                            ASCII files. (default: '0', which means not to read in this column.)
+        patch_col (str or int): The column to use for the patch numbers. An integer is only allowed
+                            for ASCII files. (default: '0', which means not to read in this column.)
+        w_col (str or int): The column to use for the weight values. An integer is only allowed for
+                            ASCII files. (default: '0', which means not to read in this column.)
+        wpos_col (str or int): The column to use for the position weight values. An integer is only
+                            allowed for ASCII files. (default: '0', which means not to read in this
+                            column, in which case wpos=w.)
+        flag_col (str or int): The column to use for the flag values. An integer is only allowed for
+                            ASCII files. Any row with flag != 0 (or technically flag & ~ok_flag
+                            != 0) will be given a weight of 0. (default: '0', which means not to
+                            read in this column.)
         ignore_flag (int):  Which flags should be ignored. (default: all non-zero flags are ignored.
                             Equivalent to ignore_flag = ~0.)
-        ok_flag (int):      Which flags should be considered ok. (default: 0.  i.e. all non-zero
+        ok_flag (int):      Which flags should be considered ok. (default: 0. i.e. all non-zero
                             flags are ignored.)
         allow_xyz (bool):   Whether to allow x,y,z values in conjunction with ra,dec.  Normally,
                             it is an error to have both kinds of positions, but if you know that
@@ -334,7 +335,7 @@ class Catalog(object):
                                 - 3 means to output extensive debugging information
 
         log_file (str):     If no logger is provided, this will specify a file to write the logging
-                            output.  (default: None; i.e. output to standard output)
+                            output. (default: None; i.e. output to standard output)
 
         split_method (str): How to split the cells in the tree when building the tree structure.
                             Options are:

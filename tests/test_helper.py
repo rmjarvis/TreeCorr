@@ -51,6 +51,11 @@ def get_from_wiki(file_name, host=None):
         except (AttributeError, TypeError):
             # Note: prior to 2.7.9, there is no such function or even the context keyword.
             u = urlopen(url)
+        except urllib.error.HTTPError as e:
+            print('Caught ',e)
+            print('Wait 10 sec and try again.')
+            time.sleep(10)
+            u = urlopen(url, context=context)
         with open(local_file_name, 'wb') as out:
             shutil.copyfileobj(u, out)
         u.close()

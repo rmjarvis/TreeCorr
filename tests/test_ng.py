@@ -442,6 +442,7 @@ def test_single():
     # than pandas.  So mock it up to make sure we test it.
     if sys.version_info < (3,): return  # mock only available on python 3
     from unittest import mock
+    treecorr.Catalog._emitted_pandas_warning = False  # Reset this, in case already triggered.
     with mock.patch.dict(sys.modules, {'pandas':None}):
         with CaptureLog() as cl:
             treecorr.corr2(config, logger=cl.logger)

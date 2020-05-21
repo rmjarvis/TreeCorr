@@ -43,6 +43,8 @@ def test_fits_reader():
         r.names(1)
     with assert_raises(RuntimeError):
         r.names()
+    with assert_raises(RuntimeError):
+        1 in r
 
     with r:
         assert_raises(ValueError, r.check_valid_ext, 'invalid')
@@ -52,6 +54,9 @@ def test_fits_reader():
 
         # Default ext is 1
         assert r.default_ext == 1
+
+        # Default ext is "in" reader
+        assert 1 in r
 
         # Probably can slice, but depends on installed fitsio version
         assert r.can_slice == (fitsio.__version__ > '1.0.6')
@@ -96,6 +101,8 @@ def test_fits_reader():
         r.names(1)
     with assert_raises(RuntimeError):
         r.names()
+    with assert_raises(RuntimeError):
+        1 in r
 
     # Regardless of the system's fitsio version, check the two cases in code.
     with mock.patch('fitsio.__version__', '1.0.6'):
@@ -130,6 +137,8 @@ def test_hdf_reader():
         r.names('/')
     with assert_raises(RuntimeError):
         r.names()
+    with assert_raises(RuntimeError):
+        '/' in r
 
     with r:
 
@@ -140,6 +149,9 @@ def test_hdf_reader():
 
         # Default ext is '/'
         assert r.default_ext == '/'
+
+        # Default ext is "in" reader
+        assert '/' in r
 
         # Can always slice
         assert r.can_slice
@@ -171,6 +183,8 @@ def test_hdf_reader():
         r.names('/')
     with assert_raises(RuntimeError):
         r.names()
+    with assert_raises(RuntimeError):
+        '/' in r
 
 
 def _test_ascii_reader(r, has_names=True):
@@ -199,6 +213,9 @@ def _test_ascii_reader(r, has_names=True):
         assert_raises(ValueError, r.check_valid_ext, 1)
         r.check_valid_ext(None)
         assert r.default_ext == None
+
+        # Default ext is "in" reader
+        assert None in r
 
         # Can always slice
         assert r.can_slice

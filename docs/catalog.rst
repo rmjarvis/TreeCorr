@@ -20,3 +20,14 @@ Other utilities related to catalogs
     :members:
     :exclude-members: Catalog, read_catalogs, calculateVarG, calculateVarK
 
+File Readers
+------------
+
+.. autoclass:: treecorr.reader.FitsReader
+    :members:
+.. autoclass:: treecorr.reader.HdfReader
+    :members:
+.. autoclass:: treecorr.reader.AsciiReader
+    :members:
+.. autoclass:: treecorr.reader.PandasReader
+    :members:

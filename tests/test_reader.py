@@ -211,7 +211,6 @@ def _test_ascii_reader(r, has_names=True):
         assert data[1].size == 5
         assert data[3].size == 5
         assert data[9].size == 5
-        print('dec = ',dec)
         assert dec.size == 5
         # Check a few random values
         assert data[1][0] == 0.34044927  # ra, row 1
@@ -229,6 +228,20 @@ def _test_ascii_reader(r, has_names=True):
         assert len(all_data[1]) == 20
         assert r.row_count() == 20
 
+        # Check reading specific rows
+        s2 = np.array([0,6,8])
+        data2 = r.read([1,3,9], s2)
+        dec2 = r.read(2, s2)
+        assert sorted(data2.keys()) == [1,3,9]
+        assert data2[1].size == 3
+        assert data2[3].size == 3
+        assert data2[9].size == 3
+        assert dec2.size == 3
+        # Check the same values in this selection
+        assert data2[1][0] == 0.34044927  # ra, row 1
+        assert data2[3][2] == 0.01816738  # x, row 9
+        assert data2[9][1] == 0.79008204  # z, row 7
+
         if not has_names:
             return
         # Repeat with column names
@@ -238,9 +251,8 @@ def _test_ascii_reader(r, has_names=True):
         assert data['ra'].size == 5
         assert data['x'].size == 5
         assert data['z'].size == 5
-        print('dec = ',dec)
         assert dec.size == 5
-        # Check a few random values
+        # Check the same random values
         assert data['ra'][0] == 0.34044927
         assert data['x'][4] == 0.01816738
         assert data['z'][3] == 0.79008204
@@ -256,6 +268,19 @@ def _test_ascii_reader(r, has_names=True):
         assert len(all_data) == 12
         assert len(all_data['ra']) == 20
         assert r.row_count() == 20
+
+        # Check reading specific rows
+        data2 = r.read(['ra','x','z'], s2)
+        dec2 = r.read('dec', s2)
+        assert sorted(data2.keys()) == ['ra','x','z']
+        assert data2['ra'].size == 3
+        assert data2['x'].size == 3
+        assert data2['z'].size == 3
+        assert dec2.size == 3
+        assert data2['ra'][0] == 0.34044927
+        assert data2['x'][2] == 0.01816738
+        assert data2['z'][1] == 0.79008204
+
 
     # Again check things not allowed if not in context
     with assert_raises(RuntimeError):

@@ -308,10 +308,7 @@ def print_params(params):
 
         # str(value_type) looks like "<type 'float'>"
         # value_type.__name__ looks like 'float'
-        if isinstance(value_type, (list, tuple)):
-            value_type_str = '/'.join(v.__name__ for v in value_type)
-        else:
-            value_type_str = value_type.__name__
+        value_type_str = value_type.__name__
         if may_be_list:
             print("                Type must be {0} or a list of {0}.".format(value_type_str))
         else:

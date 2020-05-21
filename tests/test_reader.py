@@ -173,7 +173,7 @@ def test_hdf_reader():
         r.names()
 
 
-def _test_ascii_reader(r):
+def _test_ascii_reader(r, has_names=True):
     # Same tests for AsciiReader and PandasReader
 
     # Check things not allowed if not in context
@@ -229,6 +229,8 @@ def _test_ascii_reader(r):
         assert len(all_data[1]) == 20
         assert r.row_count() == 20
 
+        if not has_names:
+            return
         # Repeat with column names
         data = r.read(['ra','x','z'], s)
         dec = r.read('dec', s)
@@ -273,13 +275,16 @@ def _test_ascii_reader(r):
 
 @timer
 def test_ascii_reader():
-    r = AsciiReader(os.path.join('data','test1.dat'))
-    _test_ascii_reader(r)
+    # These all have the same data, but different comment lines
+    _test_ascii_reader(AsciiReader(os.path.join('data','test1.dat')))
+    _test_ascii_reader(AsciiReader(os.path.join('data','test2.dat')),False)
+    _test_ascii_reader(AsciiReader(os.path.join('data','test3.dat')))
 
 @timer
 def test_pandas_reader():
-    r = PandasReader(os.path.join('data','test1.dat'))
-    _test_ascii_reader(r)
+    _test_ascii_reader(PandasReader(os.path.join('data','test1.dat')))
+    _test_ascii_reader(PandasReader(os.path.join('data','test2.dat')),False)
+    _test_ascii_reader(PandasReader(os.path.join('data','test3.dat')))
 
 
 if __name__ == '__main__':

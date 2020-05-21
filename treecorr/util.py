@@ -221,7 +221,7 @@ def gen_read(file_name, file_type=None, logger=None):
     return data, params
 
 
-class LRU_Cache:
+class LRU_Cache(object):
     """ Simplified Least Recently Used Cache.
     Mostly stolen from http://code.activestate.com/recipes/577970-simplified-lru-cache/,
     but added a method for dynamic resizing.  The least recently used cached item is

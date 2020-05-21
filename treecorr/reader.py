@@ -29,7 +29,7 @@ both provide dicts.
 import numpy as np
 from .config import get_from_list
 
-class AsciiReader:
+class AsciiReader(object):
     """Reader interface for ASCII files using numpy.
     """
     can_slice = True
@@ -226,7 +226,7 @@ class PandasReader(AsciiReader):
         """
         # Do this immediately, so we get an ImportError if it isn't available.
         import pandas
-        super(PandasReader,self).__init__(file_name, delimiter, comment_marker)
+        AsciiReader.__init__(self, file_name, delimiter, comment_marker)
         # This is how pandas handles whitespace
         self.sep = '\s+' if self.delimiter is None else self.delimiter
 
@@ -293,7 +293,7 @@ class PandasReader(AsciiReader):
             return {col : df.loc[:,icols[i]].to_numpy() for i,col in enumerate(cols)}
 
 
-class FitsReader:
+class FitsReader(object):
     """Reader interface for FITS files.
     Uses fitsio to read columns, etc.
     """
@@ -415,7 +415,7 @@ class FitsReader:
         self.file = None
 
 
-class HdfReader:
+class HdfReader(object):
     """Reader interface for HDF5 files.
     Uses h5py to read columns, etc.
     """
@@ -443,7 +443,7 @@ class HdfReader:
         """
         if self.file is None:
             raise RuntimeError('Illegal operation when not in a "with" context')
-        return ext in self.file.keys()
+        return ext in self.file
 
     def _group(self, ext):
         # get a group from a name, using

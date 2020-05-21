@@ -472,21 +472,19 @@ def test_hdf5():
 
 
 def _test_fits_hdf(filename):
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
-
     get_from_wiki(filename)
     file_name = os.path.join('data',filename)
     config = treecorr.read_config('Aardvark.yaml')
     config['verbose'] = 1
-    config['kk_file_name'] = 'kk.fits'
-    config['gg_file_name'] = 'gg.fits'
+    config['kk_file_name'] = 'kk.out'
+    config['gg_file_name'] = 'gg.out'
 
-    if filename.endswith('hdf'):
+    if filename.endswith('hdf5'):
+        config['file_name'] = file_name
+        file_type = 'HDF'
+    else:
         config['ext'] = 'AARDWOLF'
+        file_type = 'FITS'
 
     # Just test a few random particular values
     cat1 = treecorr.Catalog(file_name, config)
@@ -559,8 +557,10 @@ def _test_fits_hdf(filename):
     assert_raises(ValueError, treecorr.Catalog, file_name, config, k_col='invalid')
 
     # Test using a limited set of rows
+    # Also explicit file_type
     config['first_row'] = 101
     config['last_row'] = 50000
+    config['file_type'] = file_type
     cat3 = treecorr.Catalog(file_name, config)
     np.testing.assert_equal(len(cat3.x), 49900)
     np.testing.assert_equal(cat3.ntot, 49900)

@@ -493,6 +493,7 @@ class Catalog(object):
         'flag_hdu' : 'flag_ext',
         'patch_hdu' : 'patch_ext',
     }
+    _emitted_pandas_warning = False  # Only emit the warning once.  Set to True once we have.
 
     def __init__(self, file_name=None, config=None, num=0, logger=None, is_rand=False,
                  x=None, y=None, z=None, ra=None, dec=None, r=None, w=None, wpos=None, flag=None,
@@ -1255,10 +1256,13 @@ class Catalog(object):
                                             "because it is invalid, but unneeded.")
 
     def _pandas_warning(self):
+        if Catalog._emitted_pandas_warning:
+            return
         self.logger.warning(
             "Unable to import pandas..  Using np.genfromtxt instead.\n"+
             "Installing pandas is recommended for increased speed when "+
             "reading ASCII catalogs.")
+        Catalog._emitted_pandas_warning = True
 
     def _read_file(self, file_name, reader, num, is_rand):
         # Helper functions for things we might do in one of two places.

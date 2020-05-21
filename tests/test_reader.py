@@ -173,9 +173,8 @@ def test_hdf_reader():
         r.names()
 
 
-@timer
-def test_ascii_reader():
-    r = AsciiReader(os.path.join('data','test1.dat'))
+def _test_ascii_reader(r):
+    # Same tests for AsciiReader and PandasReader
 
     # Check things not allowed if not in context
     with assert_raises(RuntimeError):
@@ -272,8 +271,19 @@ def test_ascii_reader():
     with assert_raises(RuntimeError):
         r.names()
 
+@timer
+def test_ascii_reader():
+    r = AsciiReader(os.path.join('data','test1.dat'))
+    _test_ascii_reader(r)
+
+@timer
+def test_pandas_reader():
+    r = PandasReader(os.path.join('data','test1.dat'))
+    _test_ascii_reader(r)
+
 
 if __name__ == '__main__':
     test_fits_reader()
     test_hdf_reader()
     test_ascii_reader()
+    test_pandas_reader()

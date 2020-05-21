@@ -1308,9 +1308,6 @@ class Catalog(object):
 
             # Figure out what slice to use.  If all rows, then None is faster,
             # otherwise give the range explicitly.
-            # Note: this is a workaround for a bug in fitsio <= 1.0.6.
-            # cf. https://github.com/esheldon/fitsio/pull/286
-            # We should be able to always use s = slice(self.start, self.end, self.every_nth)
             if self.start == 0 and self.end is None and self.every_nth == 1:
                 s = slice(None)
             # fancy indexing in h5py is incredibly slow, so we explicitly
@@ -1319,6 +1316,9 @@ class Catalog(object):
             elif reader.can_slice:
                 s = slice(self.start, self.end, self.every_nth)
             else:
+                # Note: this is a workaround for a bug in fitsio <= 1.0.6.
+                # cf. https://github.com/esheldon/fitsio/pull/286
+                # We should be able to always use s = slice(self.start, self.end, self.every_nth)
                 if x_col != '0':
                     x_ext = treecorr.config.get_from_list(self.config, 'x_ext', num, str, ext)
                     col = x_col
@@ -1370,7 +1370,6 @@ class Catalog(object):
                     data[patch_col] = reader.read(patch_ext, patch_col, s)
                     all_cols.remove(patch_col)
                     set_patch(data, patch_col)
-                    end1 = reader.row_count(patch_ext, patch_col)
                 elif self._centers is not None:
                     pos_cols = [x_col, y_col, z_col, ra_col, dec_col, r_col]
                     pos_cols = [c for c in pos_cols if c != '0']
@@ -1381,7 +1380,6 @@ class Catalog(object):
                         data1 = reader.read(h, use_cols1, s)
                         for c in use_cols1:
                             data[c] = data1[c]
-                    end1 = reader.row_count(h, c)
                     set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col)
                 use = self._get_patch_index(self._single_patch)
                 self.select(use)
@@ -1390,6 +1388,7 @@ class Catalog(object):
                 elif s == slice(None):
                     s = use
                 else:
+                    end1 = np.max(use)+s.start+1
                     s = np.arange(s.start, end1, s.step)[use]
                 self._patch = None
                 data = {}  # Start fresh, since the ones we used so far are done.

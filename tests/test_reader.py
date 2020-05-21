@@ -183,6 +183,8 @@ def test_ascii_reader():
     with assert_raises(RuntimeError):
         r.read([1,3,9])
     with assert_raises(RuntimeError):
+        r.read('ra')
+    with assert_raises(RuntimeError):
         r.row_count(1, None)
     with assert_raises(RuntimeError):
         r.row_count()
@@ -220,11 +222,38 @@ def test_ascii_reader():
         assert r.row_count(1, None) == 20
         assert r.row_count() == 20
         assert r.ncols == 12
-        assert r.names() == [str(i+1) for i in range(12)]
+        for i in range(12):
+            assert str(i+1) in r.names()
 
         all_data = r.read(range(1,r.ncols+1))
         assert len(all_data) == 12
         assert len(all_data[1]) == 20
+        assert r.row_count() == 20
+
+        # Repeat with column names
+        data = r.read(['ra','x','z'], s)
+        dec = r.read('dec', s)
+        assert sorted(data.keys()) == ['ra','x','z']
+        assert data['ra'].size == 5
+        assert data['x'].size == 5
+        assert data['z'].size == 5
+        print('dec = ',dec)
+        assert dec.size == 5
+        # Check a few random values
+        assert data['ra'][0] == 0.34044927
+        assert data['x'][4] == 0.01816738
+        assert data['z'][3] == 0.79008204
+
+        assert r.row_count('ra', None) == 20
+        assert r.row_count() == 20
+        assert r.ncols == 12
+        names = ['ra', 'dec', 'x', 'y', 'k', 'g1', 'g2', 'w', 'z', 'r', 'wpos', 'flag']
+        for name in names:
+            assert name in r.names()
+
+        all_data = r.read(names)
+        assert len(all_data) == 12
+        assert len(all_data['ra']) == 20
         assert r.row_count() == 20
 
     # Again check things not allowed if not in context
@@ -232,6 +261,8 @@ def test_ascii_reader():
         r.read([1,3,9], None)
     with assert_raises(RuntimeError):
         r.read([1,3,9])
+    with assert_raises(RuntimeError):
+        r.read('ra')
     with assert_raises(RuntimeError):
         r.row_count(1, None)
     with assert_raises(RuntimeError):

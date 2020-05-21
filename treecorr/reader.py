@@ -104,10 +104,11 @@ class AsciiReader:
             nrows = None
 
         # And which columns to read
+        geti = lambda col: self.col_names.index(col) if col in self.col_names else int(col)-1
         if np.isscalar(cols):
-            icols = [int(cols)-1]
+            icols = [geti(cols)]
         else:
-            icols = [int(col)-1 for col in cols]
+            icols = [geti(col) for col in cols]
 
         # Actually read the data
         data = np.genfromtxt(self.file_name, comments=self.comment_marker,
@@ -175,7 +176,8 @@ class AsciiReader:
         if self.ncols is None:
             raise RuntimeError('Cannot get names when not in a "with" context')
 
-        return [str(i+1) for i in range(self.ncols)]
+        # Include both int values as strings and any real names we know about.
+        return [str(i+1) for i in range(self.ncols)] + list(self.col_names)
 
     def __enter__(self):
         # See how many comment rows there are at the start
@@ -186,11 +188,23 @@ class AsciiReader:
                 else: break
 
         # Do a trivial read of 1 row, just to get basic info about columns
-        data = np.genfromtxt(self.file_name, comments=self.comment_marker, delimiter=self.delimiter,
-                             max_rows=1)
-        if len(data.shape) != 1:  # pragma: no cover
-            raise IOError('Unable to parse the input catalog as a numpy array')
-        self.ncols = data.shape[0]
+        self.ncols = None
+        if self.comment_rows >= 1:
+            try:
+                data = np.genfromtxt(self.file_name, comments=self.comment_marker,
+                                     delimiter=self.delimiter, names=True,
+                                     skip_header=self.comment_rows-1, max_rows=1)
+                self.col_names = data.dtype.names
+                self.ncols = len(self.col_names)
+            except Exception as e:
+                pass
+        if self.ncols is None:
+            data = np.genfromtxt(self.file_name, comments=self.comment_marker,
+                                 delimiter=self.delimiter, max_rows=1)
+            self.col_names = []
+            if len(data.shape) != 1:  # pragma: no cover
+                raise IOError('Unable to parse the input catalog as a numpy array')
+            self.ncols = data.shape[0]
 
         return self
 

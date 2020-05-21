@@ -227,51 +227,9 @@ class PandasReader(AsciiReader):
         # Do this immediately, so we get an ImportError if it isn't available.
         import pandas
         super(PandasReader,self).__init__(file_name, delimiter, comment_marker)
-        self._data = None
+        # This is how pandas handles whitespace
+        self.sep = '\s+' if self.delimiter is None else self.delimiter
 
-    @property
-    def data(self):
-        import pandas
-        if self._data is not None:
-            return self._data
-        if self.ncols is None:
-            raise RuntimeError('Cannot read when not in a "with" context')
-
-        # I want read_csv to ignore header lines that start with the comment marker, but
-        # there is currently a bug in read_csv that messing things up when we do this.
-        # cf. https://github.com/pydata/pandas/issues/4623
-        # For now, my workaround in to count how many lines start with the comment marker
-        # and skip them by hand.
-        skiprows = 0
-        with open(self.file_name, 'r') as fid:
-            for line in fid:  # pragma: no branch
-                if line.startswith(self.comment_marker): skiprows += 1
-                else: break
-        #skiprows += self.start
-        #if self.end is None:
-            #nrows = None
-        #else:
-            #nrows = self.end - self.start
-        #if self.every_nth != 1:
-            #start = skiprows
-            #skiprows = lambda x: x < start or (x-start) % self.every_nth != 0
-            #nrows = (nrows-1) // self.every_nth + 1
-        if self.delimiter is None:
-            data = pandas.read_csv(self.file_name, comment=self.comment_marker,
-                                    delim_whitespace=True,
-                                    header=None, skiprows=skiprows)
-        else:
-            data = pandas.read_csv(self.file_name, comment=self.comment_marker,
-                                    delimiter=self.delimiter,
-                                    header=None, skiprows=skiprows)
-        data = data.dropna(axis=0).values
-
-        # If only one row, and not using pands, then the shape comes in as one-d.  Reshape it:
-        if len(data.shape) == 1:
-            data = data.reshape(1,-1)
-
-        self._data = data
-        return self._data
 
     def read(self, cols, s=slice(None), ext=None):
         """Read a slice of a column or list of columns from a specified extension.
@@ -284,32 +242,55 @@ class PandasReader(AsciiReader):
         Returns:
             The data as a dict
         """
-        if np.isscalar(cols):
-            return self.data[:,int(cols)-1][s]
+        import pandas
+        if self.ncols is None:
+            raise RuntimeError('Cannot read when not in a "with" context')
+
+        # Figure out how many rows to skip at the start
+        if isinstance(s, slice) and s.start is not None:
+            skiprows = self.comment_rows + s.start
         else:
-            return {col : self.data[:,int(col)-1][s] for col in cols}
+            skiprows = self.comment_rows
 
-    def __enter__(self):
-        # See how many comment rows there are at the start
-        self.comment_rows = 0
-        with open(self.file_name, 'r') as fid:
-            for line in fid:  # pragma: no branch
-                if line.startswith(self.comment_marker): self.comment_rows += 1
-                else: break
+        # And how many to read (if we know)
+        # Note: genfromtxt can't handle a skip, so defer that to later.
+        # Also if s is an array, that won't work here either.
+        if isinstance(s, slice) and s.start is not None and s.stop is not None:
+            nrows = s.stop - s.start
+        else:
+            nrows = None
 
-        # Do a trivial read of 1 row, just to get basic info about columns
-        data = np.genfromtxt(self.file_name, comments=self.comment_marker, delimiter=self.delimiter,
-                             max_rows=1)
-        if len(data.shape) != 1:  # pragma: no cover
-            raise IOError('Unable to parse the input catalog as a numpy array')
-        self.ncols = data.shape[0]
+        # Pandas has the ability to skip according to a function, so we can accommodate
+        # arbitrary s (either slice or array of indices):
+        if isinstance(s, slice) and s.step is not None:
+            start = skiprows
+            skiprows = lambda x: x < start or (x-start) % s.step != 0
+            if nrows is not None:
+                nrows = (nrows-1) // s.step + 1
 
-        return self
+        if not isinstance(s, slice):
+            # Then s is a numpy array of indices
+            start = skiprows
+            ss = set(s)  # for efficiency
+            skiprows = lambda x: x-start not in ss
 
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        self._data = None
-        self.ncols = None  # Marker that we are not in context
-        self.nrows = None
+        # And which columns to read
+        geti = lambda col: self.col_names.index(col) if col in self.col_names else int(col)-1
+        if np.isscalar(cols):
+            icols = [geti(cols)]
+        else:
+            icols = [geti(col) for col in cols]
+
+        # Actually read the data
+        df = pandas.read_csv(self.file_name, comment=self.comment_marker,
+                             sep=self.sep, usecols=icols, header=None,
+                             skiprows=skiprows, nrows=nrows)
+
+        # Return is slightly different if we have multiple columns or not.
+        if np.isscalar(cols):
+            return df.iloc[:,0].to_numpy()
+        else:
+            return {col : df.loc[:,icols[i]].to_numpy() for i,col in enumerate(cols)}
 
 
 class FitsReader:

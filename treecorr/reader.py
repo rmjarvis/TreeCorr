@@ -47,6 +47,7 @@ class AsciiReader:
         self.delimiter = delimiter
         self.comment_marker = comment_marker
         self._data = None
+        self.ncols = None
 
     def __contains__(self, ext):
         """Check if ext is None.
@@ -113,13 +114,13 @@ class AsciiReader:
         self._data = data
         return self._data
 
-    def read(self, ext, cols, s):
+    def read(self, cols, s=slice(None), ext=None):
         """Read a slice of a column or list of columns from a specified extension.
 
         Parameters:
-            ext (str):          The extension (ignored)
             cols (str/list):    The name(s) of column(s) to read
-            s (slice/array):    A slice object or selection of integers to read
+            s (slice/array):    A slice object or selection of integers to read (default: all)
+            ext (str):          The extension (ignored)
 
         Returns:
             The data as a dict
@@ -129,19 +130,19 @@ class AsciiReader:
         else:
             return {col : self.data[:,int(col)-1][s] for col in cols}
 
-    def row_count(self, ext=None, col=None):
+    def row_count(self, col=None, ext=None):
         """Count the number of rows in the file.
 
         Parameters:
-            ext (str):  The extension (ignored)
             col (str):  The column to use (ignored)
+            ext (str):  The extension (ignored)
 
         Returns:
             The number of rows
         """
         return self.data.shape[0]
 
-    def names(self, ext):
+    def names(self, ext=None):
         """Return a list of the names of all the columns in an extension
 
         Parameters:
@@ -150,11 +151,12 @@ class AsciiReader:
         Returns:
             A list of string column names
         """
-        return [str(i) for i in range(1,self.ncols+1)]
+        if self.ncols is None:
+            raise RuntimeError('Cannot get names when not in a "with" context')
+
+        return [str(i+1) for i in range(self.ncols)]
 
     def __enter__(self):
-        # Context manager, enables "with AsciiReader(filename) as f:"
-
         # Do a trivial read of 1 row, just to get basic info about columns
         data = np.genfromtxt(self.file_name, comments=self.comment_marker, delimiter=self.delimiter,
                              max_rows=1)
@@ -166,6 +168,7 @@ class AsciiReader:
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self._data = None
+        self.ncols = None  # Marker that we are not in context
 
 
 class PandasReader(AsciiReader):
@@ -250,74 +253,19 @@ class FitsReader:
         # There is a bug in earlier fitsio versions that prevents slicing
         self.can_slice = fitsio.__version__ > '1.0.6'
 
-    def read(self, ext, cols, s):
-        """Read a slice of a column or list of columns from a specified extension
-
-        Parameters:
-            ext (str):          The FITS extension to use
-            cols (str/list):    The name(s) of column(s) to read
-            s (slice/array):    A slice object or selection of integers to read
-
-        Returns:
-            The data as a recarray
-        """
-        ext = self._update_ext(ext)
-        return self.file[ext][cols][s]
-
-    def row_count(self, ext, col=None):
-        """Count the number of rows in the named extension
-
-        For compatibility with the HDF interface, which can have columns
-        of different lengths, we allow a second argument, col, but it is
-        ignored here.
-
-        Parameters:
-            ext (str):  The FITS extension to use
-            col (str):  The column to use (ignored)
-
-        Returns:
-            The number of rows
-        """
-        ext = self._update_ext(ext)
-        return self.file[ext].get_nrows()
-
-    def names(self, ext):
-        """Return a list of the names of all the columns in an extension
-
-        Parameters:
-            ext (str)   The extension to search for columns
-
-        Returns:
-            A list of string column names
-        """
-        ext = self._update_ext(ext)
-        return self.file[ext].get_colnames()
-
     def __contains__(self, ext):
         """Check if there is an extension with the given name or index in the file.
 
         This may be either a name or an integer.
 
         Parameters:
-            ext (str/int):  The extension to check for
+            ext (str/int):  The extension to check for (default: 1)
 
         Returns:
             Whether the extension exists
         """
         ext = self._update_ext(ext)
         return ext in self.file
-
-    def __enter__(self):
-        # Context manager, enables "with FitsReader(filename) as f:"
-        import fitsio
-        self.file = fitsio.FITS(self.file_name, 'r')
-        return self
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        # Context manager closer - we just close the file at the end,
-        # regardless of the error
-        self.file.close()
-        self.file = None
 
     def check_valid_ext(self, ext):
         """Check if an extension is valid for reading, and raise ValueError if not.
@@ -342,12 +290,68 @@ class FitsReader:
         # FITS extensions can be indexed by number or
         # string.  Try converting to an integer if the current
         # value is not found.  If not let the error be caught later.
+        if self.file is None:
+            raise RuntimeError('Illegal operation when not in a "with" context')
         if ext not in self.file:
             try:
                 ext = int(ext)
             except ValueError:
                 pass
         return ext
+
+    def read(self, cols, s=slice(None), ext=1):
+        """Read a slice of a column or list of columns from a specified extension
+
+        Parameters:
+            cols (str/list):    The name(s) of column(s) to read
+            s (slice/array):    A slice object or selection of integers to read (default: all)
+            ext (str/int)):     The FITS extension to use (default: 1)
+
+        Returns:
+            The data as a recarray
+        """
+        ext = self._update_ext(ext)
+        return self.file[ext][cols][s]
+
+    def row_count(self, col=None, ext=1):
+        """Count the number of rows in the named extension
+
+        For compatibility with the HDF interface, which can have columns
+        of different lengths, we allow a second argument, col, but it is
+        ignored here.
+
+        Parameters:
+            col (str):      The column to use (ignored)
+            ext (str/int):  The FITS extension to use (default: 1)
+
+        Returns:
+            The number of rows
+        """
+        ext = self._update_ext(ext)
+        return self.file[ext].get_nrows()
+
+    def names(self, ext=1):
+        """Return a list of the names of all the columns in an extension
+
+        Parameters:
+            ext (str/int)   The extension to search for columns (default: 1)
+
+        Returns:
+            A list of string column names
+        """
+        ext = self._update_ext(ext)
+        return self.file[ext].get_colnames()
+
+    def __enter__(self):
+        import fitsio
+        self.file = fitsio.FITS(self.file_name, 'r')
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        # Context manager closer - we just close the file at the end,
+        # regardless of the error
+        self.file.close()
+        self.file = None
 
 
 class HdfReader:
@@ -376,13 +380,15 @@ class HdfReader:
         Returns:
             Whether the extension exists
         """
+        if self.file is None:
+            raise RuntimeError('Illegal operation when not in a "with" context')
         return ext in self.file.keys()
 
     def _group(self, ext):
         # get a group from a name, using
         # the root if the group is empty
-        if ext == '':
-            ext = '/'
+        if self.file is None:
+            raise RuntimeError('Illegal operation when not in a "with" context')
         return self.file[ext]
 
     def check_valid_ext(self, ext):
@@ -393,21 +399,20 @@ class HdfReader:
         Parameters:
             ext (str)   The extension to check
         """
-        # Allow '' as an alias of '/'
-        if ext != '' and ext not in self:
+        if ext not in self:
             raise ValueError("Invalid ext={} for file {} (does not exist)".format(
                              ext,self.file_name))
 
-    def read(self, ext, cols, s):
+    def read(self, cols, s=slice(None), ext='/'):
         """Read a slice of a column or list of columns from a specified extension.
 
         Slices should always be used when reading HDF files - using a sequence of
         integers is painfully slow.
 
         Parameters:
-            ext (str):          The HDF (sub-)group to use
             cols (str/list):    The name(s) of column(s) to read
-            s (slice/array):    A slice object or selection of integers to read
+            s (slice/array):    A slice object or selection of integers to read (default: all)
+            ext (str):          The HDF (sub-)group to use (default: '/')
 
         Returns:
             The data as a dict
@@ -418,25 +423,25 @@ class HdfReader:
         else:
             return {col : g[col][s] for col in cols}
 
-    def row_count(self, ext, col):
+    def row_count(self, col, ext='/'):
         """Count the number of rows in the named extension and column
 
         Unlike in FitsReader, col is required.
 
         Parameters:
-            ext (str):  The HDF group name to use
             col (str):  The column to use
+            ext (str):  The HDF group name to use (default: '/')
 
         Returns:
             The number of rows
         """
         return self._group(ext)[col].size
 
-    def names(self, ext):
+    def names(self, ext='/'):
         """Return a list of the names of all the columns in an extension
 
         Parameters:
-            ext (str)   The extension to search for columns
+            ext (str)   The extension to search for columns (default: '/')
 
         Returns:
             A list of string column names
@@ -444,7 +449,6 @@ class HdfReader:
         return list(self._group(ext).keys())
 
     def __enter__(self):
-        # Context manager, enables "with HdfReader(filename) as f:"
         import h5py
         self.file = h5py.File(self.file_name, 'r')
         return self

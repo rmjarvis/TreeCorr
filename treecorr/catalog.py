@@ -1325,7 +1325,7 @@ class Catalog(object):
                 else:
                     x_ext = treecorr.config.get_from_list(self.config, 'ra_ext', num, str, ext)
                     col = ra_col
-                end = self.end if self.end is not None else reader.row_count(x_ext, col)
+                end = self.end if self.end is not None else reader.row_count(col, x_ext)
                 s = np.arange(self.start, end, self.every_nth)
 
             all_cols = [x_col, y_col, z_col,
@@ -1367,7 +1367,7 @@ class Catalog(object):
             # Also, if we are only reading in one patch, we should adjust s before doing this.
             if self._single_patch is not None:
                 if patch_col != '0':
-                    data[patch_col] = reader.read(patch_ext, patch_col, s)
+                    data[patch_col] = reader.read(patch_col, s, patch_ext)
                     all_cols.remove(patch_col)
                     set_patch(data, patch_col)
                 elif self._centers is not None:
@@ -1375,9 +1375,9 @@ class Catalog(object):
                     pos_cols = [c for c in pos_cols if c != '0']
                     for c in pos_cols:
                         all_cols.remove(c)
-                    for h in all_exts:
-                        use_cols1 = [c for c in pos_cols if col_by_ext[c] == h]
-                        data1 = reader.read(h, use_cols1, s)
+                    for ext in all_exts:
+                        use_cols1 = [c for c in pos_cols if col_by_ext[c] == ext]
+                        data1 = reader.read(use_cols1, s, ext)
                         for c in use_cols1:
                             data[c] = data1[c]
                     set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col)
@@ -1399,12 +1399,12 @@ class Catalog(object):
                     return
 
             # Now read the rest using the updated s
-            for h in all_exts:
-                use_cols1 = [c for c in all_cols if col_by_ext[c] == h and
-                                                    c in reader.names(h)]
+            for ext in all_exts:
+                use_cols1 = [c for c in all_cols if col_by_ext[c] == ext and
+                                                    c in reader.names(ext)]
                 if len(use_cols1) == 0:
                     continue
-                data1 = reader.read(h, use_cols1, s)
+                data1 = reader.read(use_cols1, s, ext)
                 for c in use_cols1:
                     data[c] = data1[c]
 

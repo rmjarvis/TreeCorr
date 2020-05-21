@@ -48,6 +48,7 @@ class AsciiReader:
         self.comment_marker = comment_marker
         self._data = None
         self.ncols = None
+        self.nrows = None
 
     def __contains__(self, ext):
         """Check if ext is None.
@@ -140,7 +141,24 @@ class AsciiReader:
         Returns:
             The number of rows
         """
-        return self.data.shape[0]
+        if self.ncols is None:
+            raise RuntimeError('Illegal operation when not in a "with" context')
+        if self.nrows is not None:
+            return self.nrows
+        # cf. https://stackoverflow.com/a/850962/1332281
+        # On my system with python 3.7, bufcount was the fastest among these solutions.
+        # I also found 256K was the optimal buf size for my system.  Probably YMMV, but
+        # micro-optimizing this is not so important.  It's never used by treecorr.
+        # Only the FitsReader ever calls row_count other than from the unit tests.
+        with open(self.file_name) as f:
+            lines = 0
+            buf_size = 256 * 1024
+            buf = f.read(buf_size)
+            while buf:
+                lines += buf.count('\n')
+                buf = f.read(buf_size)
+        self.nrows = lines - self.comment_rows
+        return self.nrows
 
     def names(self, ext=None):
         """Return a list of the names of all the columns in an extension
@@ -157,6 +175,13 @@ class AsciiReader:
         return [str(i+1) for i in range(self.ncols)]
 
     def __enter__(self):
+        # See how many comment rows there are at the start
+        self.comment_rows = 0
+        with open(self.file_name, 'r') as fid:
+            for line in fid:  # pragma: no branch
+                if line.startswith(self.comment_marker): self.comment_rows += 1
+                else: break
+
         # Do a trivial read of 1 row, just to get basic info about columns
         data = np.genfromtxt(self.file_name, comments=self.comment_marker, delimiter=self.delimiter,
                              max_rows=1)
@@ -169,6 +194,7 @@ class AsciiReader:
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self._data = None
         self.ncols = None  # Marker that we are not in context
+        self.nrows = None
 
 
 class PandasReader(AsciiReader):

@@ -38,7 +38,7 @@ class AsciiReader:
     def __init__(self, file_name, delimiter=None, comment_marker='#'):
         """
         Parameters:
-            file_name (str)         The file name
+            file_name (str):        The file name
             delimiter (str):        What delimiter to use between values.  (default: None,
                                     which means any whitespace)
             comment_marker (str):   What token indicates a comment line. (default: '#')
@@ -69,7 +69,7 @@ class AsciiReader:
         None is the only valid extension for ASCII files.
 
         Parameters:
-            ext (str)   The extension to check
+            ext (str):  The extension to check
         """
         if ext is not None:
             raise ValueError("Invalid ext={} for file {}".format(ext,self.file_name))
@@ -168,7 +168,7 @@ class AsciiReader:
         """Return a list of the names of all the columns in an extension
 
         Parameters:
-            ext (str)   The extension (ignored)
+            ext (str):  The extension (ignored)
 
         Returns:
             A list of string column names
@@ -219,7 +219,7 @@ class PandasReader(AsciiReader):
     def __init__(self, file_name, delimiter=None, comment_marker='#'):
         """
         Parameters:
-            file_name (str)         The file name
+            file_name (str):        The file name
             delimiter (str):        What delimiter to use between values.  (default: None,
                                     which means any whitespace)
             comment_marker (str):   What token indicates a comment line. (default: '#')
@@ -302,7 +302,7 @@ class FitsReader:
     def __init__(self, file_name):
         """
         Parameters:
-            file_name (str)     The file name
+            file_name (str):    The file name
         """
         import fitsio
 
@@ -334,7 +334,7 @@ class FitsReader:
         The ext must both exist and be a table (not an image)
 
         Parameters:
-            ext (str/int)   The extension to check
+            ext (str/int):  The extension to check
         """
         import fitsio
 
@@ -395,7 +395,7 @@ class FitsReader:
         """Return a list of the names of all the columns in an extension
 
         Parameters:
-            ext (str/int)   The extension to search for columns (default: 1)
+            ext (str/int):  The extension to search for columns (default: 1)
 
         Returns:
             A list of string column names
@@ -426,7 +426,7 @@ class HdfReader:
     def __init__(self, file_name):
         """
         Parameters:
-            file_name (str)     The file name
+            file_name (str):    The file name
         """
         import h5py  # Just to check right away that it will work.
         self.file = None  # Only works inside a with block.
@@ -458,7 +458,7 @@ class HdfReader:
         The ext must exist - there is no other requirement for HDF files.
 
         Parameters:
-            ext (str)   The extension to check
+            ext (str):  The extension to check
         """
         if ext not in self:
             raise ValueError("Invalid ext={} for file {} (does not exist)".format(
@@ -502,7 +502,7 @@ class HdfReader:
         """Return a list of the names of all the columns in an extension
 
         Parameters:
-            ext (str)   The extension to search for columns (default: '/')
+            ext (str):  The extension to search for columns (default: '/')
 
         Returns:
             A list of string column names

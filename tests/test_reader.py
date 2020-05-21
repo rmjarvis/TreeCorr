@@ -307,6 +307,12 @@ def test_ascii_reader():
 
 @timer
 def test_pandas_reader():
+    try:
+        import pandas
+    except ImportError:
+        print('Skipping PandasReader tests, since pandas not installed.')
+        return
+
     _test_ascii_reader(PandasReader(os.path.join('data','test1.dat')))
     _test_ascii_reader(PandasReader(os.path.join('data','test2.dat')),False)
     _test_ascii_reader(PandasReader(os.path.join('data','test3.dat')))

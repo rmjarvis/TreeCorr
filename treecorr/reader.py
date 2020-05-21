@@ -46,7 +46,6 @@ class AsciiReader:
         self.file_name = file_name
         self.delimiter = delimiter
         self.comment_marker = comment_marker
-        self._data = None
         self.ncols = None
         self.nrows = None
 
@@ -75,45 +74,6 @@ class AsciiReader:
         if ext is not None:
             raise ValueError("Invalid ext={} for file {}".format(ext,self.file_name))
 
-    @property
-    def data(self):
-        if self._data is not None:
-            return self._data
-        if self.ncols is None:
-            raise RuntimeError('Cannot read when not in a "with" context')
-
-        skiprows = 0
-        with open(self.file_name, 'r') as fid:
-            for line in fid:  # pragma: no branch
-                if line.startswith(self.comment_marker): skiprows += 1
-                else: break
-        #skiprows += self.start
-        #if self.end is None:
-            #nrows = None
-        #else:
-            #nrows = self.end - self.start
-        #if self.every_nth != 1:
-            #start = skiprows
-            #skiprows = lambda x: x < start or (x-start) % self.every_nth != 0
-            #nrows = (nrows-1) // self.every_nth + 1
-        #if self.every_nth == 1:
-        if True:
-            data = np.genfromtxt(self.file_name, comments=self.comment_marker,
-                                    delimiter=self.delimiter,
-                                    skip_header=skiprows)
-        else:
-            # Numpy can't handle skiprows being a function.  Have to do this manually.
-            data = np.genfromtxt(self.file_name, comments=self.comment_marker,
-                                    delimiter=self.delimiter,
-                                    skip_header=start, max_rows=self.end - self.start)
-            data = data[::self.every_nth]
-
-        # If only one row, and not using pands, then the shape comes in as one-d.  Reshape it:
-        if len(data.shape) == 1:
-            data = data.reshape(1,-1)
-
-        self._data = data
-        return self._data
 
     def read(self, cols, s=slice(None), ext=None):
         """Read a slice of a column or list of columns from a specified extension.
@@ -126,10 +86,53 @@ class AsciiReader:
         Returns:
             The data as a dict
         """
-        if np.isscalar(cols):
-            return self.data[:,int(cols)-1][s]
+        if self.ncols is None:
+            raise RuntimeError('Illegal operation when not in a "with" context')
+
+        # Figure out how many rows to skip at the start
+        if isinstance(s, slice) and s.start is not None:
+            skiprows = self.comment_rows + s.start
         else:
-            return {col : self.data[:,int(col)-1][s] for col in cols}
+            skiprows = self.comment_rows
+
+        # And how many to read (if we know)
+        # Note: genfromtxt can't handle a skip, so defer that to later.
+        # Also if s is an array, that won't work here either.
+        if isinstance(s, slice) and s.start is not None and s.stop is not None:
+            nrows = s.stop - s.start
+        else:
+            nrows = None
+
+        # And which columns to read
+        if np.isscalar(cols):
+            icols = [int(cols)-1]
+        else:
+            icols = [int(col)-1 for col in cols]
+
+        # Actually read the data
+        data = np.genfromtxt(self.file_name, comments=self.comment_marker,
+                             delimiter=self.delimiter, usecols=icols,
+                             skip_header=skiprows, max_rows=nrows)
+
+        # If only one column, then the shape comes in as one-d.  Reshape it:
+        if len(icols) == 1:
+            data = data.reshape(len(data),1)
+
+        # If only one row, then the shape comes in as one-d.  Reshape it:
+        if len(data.shape) == 1:
+            data = data.reshape(1,len(data))
+
+        # Select the rows we want if start/end wasn't sufficient.
+        if isinstance(s, slice):
+            data = data[::s.step,:]
+        else:
+            data = data[s,:]
+
+        # Return is slightly different if we have multiple columns or not.
+        if np.isscalar(cols):
+            return data[:,0]
+        else:
+            return {col : data[:,i] for i,col in enumerate(cols)}
 
     def row_count(self, col=None, ext=None):
         """Count the number of rows in the file.
@@ -192,7 +195,6 @@ class AsciiReader:
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        self._data = None
         self.ncols = None  # Marker that we are not in context
         self.nrows = None
 
@@ -211,8 +213,8 @@ class PandasReader(AsciiReader):
         # Do this immediately, so we get an ImportError if it isn't available.
         import pandas
         super(PandasReader,self).__init__(file_name, delimiter, comment_marker)
+        self._data = None
 
-    # This is the only other thing we need to override.
     @property
     def data(self):
         import pandas
@@ -256,6 +258,44 @@ class PandasReader(AsciiReader):
 
         self._data = data
         return self._data
+
+    def read(self, cols, s=slice(None), ext=None):
+        """Read a slice of a column or list of columns from a specified extension.
+
+        Parameters:
+            cols (str/list):    The name(s) of column(s) to read
+            s (slice/array):    A slice object or selection of integers to read (default: all)
+            ext (str):          The extension (ignored)
+
+        Returns:
+            The data as a dict
+        """
+        if np.isscalar(cols):
+            return self.data[:,int(cols)-1][s]
+        else:
+            return {col : self.data[:,int(col)-1][s] for col in cols}
+
+    def __enter__(self):
+        # See how many comment rows there are at the start
+        self.comment_rows = 0
+        with open(self.file_name, 'r') as fid:
+            for line in fid:  # pragma: no branch
+                if line.startswith(self.comment_marker): self.comment_rows += 1
+                else: break
+
+        # Do a trivial read of 1 row, just to get basic info about columns
+        data = np.genfromtxt(self.file_name, comments=self.comment_marker, delimiter=self.delimiter,
+                             max_rows=1)
+        if len(data.shape) != 1:  # pragma: no cover
+            raise IOError('Unable to parse the input catalog as a numpy array')
+        self.ncols = data.shape[0]
+
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self._data = None
+        self.ncols = None  # Marker that we are not in context
+        self.nrows = None
 
 
 class FitsReader:

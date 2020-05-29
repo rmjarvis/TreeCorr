@@ -1197,7 +1197,8 @@ class Catalog(object):
         if self.every_nth != 1:
             start = skiprows
             skiprows = lambda x: x < start or (x-start) % self.every_nth != 0
-            nrows = (nrows-1) // self.every_nth + 1
+            if nrows is not None:
+                nrows = (nrows-1) // self.every_nth + 1
         try:
             import pandas
             if delimiter is None:

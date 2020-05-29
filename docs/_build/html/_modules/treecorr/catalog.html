@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>treecorr.catalog &mdash; TreeCorr 4.1.1 documentation</title>
+  <title>treecorr.catalog &mdash; TreeCorr 4.1.2 documentation</title>
   
 
   
@@ -1360,7 +1360,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">every_nth</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">start</span> <span class="o">=</span> <span class="n">skiprows</span>
             <span class="n">skiprows</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">start</span> <span class="ow">or</span> <span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">start</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">every_nth</span> <span class="o">!=</span> <span class="mi">0</span>
-            <span class="n">nrows</span> <span class="o">=</span> <span class="p">(</span><span class="n">nrows</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">every_nth</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">nrows</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">nrows</span> <span class="o">=</span> <span class="p">(</span><span class="n">nrows</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">every_nth</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">pandas</span>
             <span class="k">if</span> <span class="n">delimiter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>

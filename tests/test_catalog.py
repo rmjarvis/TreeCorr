@@ -369,6 +369,7 @@ def test_ascii():
     assert cat12.g2 is None
     assert cat12.k is None
 
+    # Check every_nth
     config['every_nth'] = 10
     cat13 = treecorr.Catalog(file_name, config)
     np.testing.assert_equal(len(cat13.x), 245)
@@ -390,6 +391,19 @@ def test_ascii():
     np.testing.assert_almost_equal(cat13.g1[100], g1[2009])
     np.testing.assert_almost_equal(cat13.g2[100], g2[2009])
     np.testing.assert_almost_equal(cat13.k[100], k[2009])
+
+    # Check every_nth with no first/last
+    del config['first_row']
+    del config['last_row']
+    cat13a = treecorr.Catalog(file_name, config)
+    np.testing.assert_equal(len(cat13a.x), 500)
+    np.testing.assert_equal(cat13a.ntot, 500)
+    np.testing.assert_equal(cat13a.nobj, np.sum(cat13a.w != 0))
+    np.testing.assert_equal(cat13a.sumw, np.sum(cat13a.w))
+    np.testing.assert_equal(cat13a.sumw, np.sum(cat6.w[::10]))
+    np.testing.assert_almost_equal(cat13a.g1[100], g1[1000])
+    np.testing.assert_almost_equal(cat13a.g2[100], g2[1000])
+    np.testing.assert_almost_equal(cat13a.k[100], k[1000])
 
     do_pickle(cat1)
     do_pickle(cat2)

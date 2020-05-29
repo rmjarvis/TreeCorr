@@ -1217,8 +1217,12 @@ class Catalog(object):
                                      skip_header=skiprows, max_rows=nrows)
             else:
                 # Numpy can't handle skiprows being a function.  Have to do this manually.
+                if self.end is None:
+                    max_rows = None
+                else:
+                    max_rows = self.end - self.start
                 data = np.genfromtxt(file_name, comments=comment_marker, delimiter=delimiter,
-                                     skip_header=start, max_rows=self.end - self.start)
+                                     skip_header=start, max_rows=max_rows)
                 data = data[::self.every_nth]
 
         # If only one row, and not using pands, then the shape comes in as one-d.  Reshape it:

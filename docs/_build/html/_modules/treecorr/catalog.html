@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>treecorr.catalog &mdash; TreeCorr 4.1.2 documentation</title>
+  <title>treecorr.catalog &mdash; TreeCorr 4.1.3 documentation</title>
   
 
   
@@ -1380,8 +1380,12 @@
                                      <span class="n">skip_header</span><span class="o">=</span><span class="n">skiprows</span><span class="p">,</span> <span class="n">max_rows</span><span class="o">=</span><span class="n">nrows</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># Numpy can&#39;t handle skiprows being a function.  Have to do this manually.</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">max_rows</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">max_rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">comments</span><span class="o">=</span><span class="n">comment_marker</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">,</span>
-                                     <span class="n">skip_header</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">max_rows</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+                                     <span class="n">skip_header</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">max_rows</span><span class="o">=</span><span class="n">max_rows</span><span class="p">)</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[::</span><span class="bp">self</span><span class="o">.</span><span class="n">every_nth</span><span class="p">]</span>
 
         <span class="c1"># If only one row, and not using pands, then the shape comes in as one-d.  Reshape it:</span>

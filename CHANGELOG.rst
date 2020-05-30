@@ -114,3 +114,8 @@ Changes from version 4.1.1 to 4.1.2
 -----------------------------------
 
 - Fix a bug when reading ascii files with every_nth != 1.
+
+Changes from version 4.1.2 to 4.1.3
+-----------------------------------
+
+- Fix the same every_nth bug when pandas is not installed.

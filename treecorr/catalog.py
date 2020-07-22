@@ -1105,7 +1105,7 @@ class Catalog(object):
                 col = col.reshape(-1)
                 self.logger.warning("Warning: Input %s column was not 1-d.\n"%col_str +
                                     "         Reshaping from %s to %s"%(s,col.shape))
-            col = col[self.start:self.end:self.every_nth]
+            col = np.ascontiguousarray(col[self.start:self.end:self.every_nth])
         return col
 
 

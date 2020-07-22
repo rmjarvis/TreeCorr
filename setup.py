@@ -28,13 +28,6 @@ except ImportError:
 # Turn this on for more verbose debugging output about compile attempts.
 debug = False
 
-#from distutils.command.install_headers import install_headers
-
-try:
-    from sysconfig import get_config_vars
-except:
-    from distutils.sysconfig import get_config_vars
-
 print('Python version = ',sys.version)
 py_version = "%d.%d"%sys.version_info[0:2]  # we check things based on the major.minor version.
 

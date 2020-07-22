@@ -245,7 +245,12 @@ public:
     double norm() const { return 1.; }
 
     // If appropriate, put the position back on the unit sphere.
-    void normalize() { *this /= Position<ThreeD>::norm(); resetNorm(); }
+    void normalize() {
+        double n = Position<ThreeD>::norm();
+        if (n == 0.) *this = Position<Sphere>(1,0,0);  // arbitrary
+        else *this /= Position<ThreeD>::norm();
+        resetNorm();
+    }
 
     Position<Sphere>& operator+=(const Position<Sphere>& p2)
     { Position<ThreeD>::operator+=(p2); return *this; }

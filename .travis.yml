@@ -104,7 +104,7 @@ install:
 
     # Only add optional ones for py3.7
     # They are slow to install, especially 3.8 and pypy, where installed from scratch.
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then $PIP install -U $__USER matplotlib nbval ipykernel scipy pandas guppy3; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then $PIP install -U $__USER matplotlib nbval ipykernel scipy pandas guppy3 h5py; fi
     # halotools doesn't work anymore in 3.x (because of astropy change), so do this in 2.7.
     - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then $PIP install -U $__USER h5py halotools; fi
 

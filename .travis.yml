@@ -99,7 +99,7 @@ install:
     # fitsio is technically optional, but better to do those tests on all systems.
     - $PIP install -U $__USER codecov fitsio mpi4py
     # Pin some versions for py2.7
-    - if [[ $TRAVIS_PYTHON_VERSION < 3.0 ]]; then $PIP install -U $__USER pytest=3.2 pytest-cov=2.4; fi
+    - if [[ $TRAVIS_PYTHON_VERSION < 3.0 ]]; then $PIP install -U $__USER pytest==3.2 pytest-cov==2.4; fi
     - if [[ $TRAVIS_PYTHON_VERSION > 3.0 ]]; then $PIP install -U $__USER pytest pytest-cov; fi
 
     # Only add optional ones for py3.6

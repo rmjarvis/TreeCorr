@@ -107,15 +107,20 @@ Bug Fixes
 Changes from version 4.1.0 to 4.1.1
 -----------------------------------
 
-- Make sure ra,dec,r catalogs make patches using just ra,dec, not full 3D position.
-- Fix a bug when using ra,dec,r catalog with ``save_patch_dir`` option.
+- Made sure ra,dec,r catalogs make patches using just ra,dec, not full 3D position.
+- Fixed a bug when using ra,dec,r catalog with ``save_patch_dir`` option.
 
 Changes from version 4.1.1 to 4.1.2
 -----------------------------------
 
-- Fix a bug when reading ascii files with every_nth != 1.
+- Fixed a bug when reading ascii files with every_nth != 1.
 
 Changes from version 4.1.2 to 4.1.3
 -----------------------------------
 
-- Fix the same every_nth bug when pandas is not installed.
+- Fixed the same every_nth bug when pandas is not installed.
+
+Changes from version 4.1.3 to 4.1.4
+-----------------------------------
+
+- Fixed a bug when using every_nth in conjunction with explicit numpy arrays.

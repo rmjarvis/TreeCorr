@@ -1,2 +1,3 @@
 def pytest_collectstart(collector):
-    collector.skip_compare += 'stderr',
+    if hasattr(collector, 'skip_compare'):
+        collector.skip_compare += 'stderr',

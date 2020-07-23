@@ -104,16 +104,11 @@ install:
     - if [[ $TRAVIS_PYTHON_VERSION < 3.0 ]]; then $PIP install -U $__USER pytest==3.2 pytest-cov==2.4; fi
     - if [[ $TRAVIS_PYTHON_VERSION > 3.0 ]]; then $PIP install -U $__USER pytest pytest-cov; fi
 
-    # Only add optional ones for py3.6
-    # They are slow to install, especially 3.8 and pypy, where installed from scratch.
-    # Note: nbval 0.9.4 seems to have a bug.  I'm getting:
-    # FileNotFoundError: [Errno 2] No such file or directory: '/home/travis/virtualenv/python3.6.7/lib/python3.6/site-packages/nbformat/v4/nbformat.v4.1.schema.json'
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then $PIP install -U $__USER matplotlib nbval==0.9.3 ipykernel scipy pandas; fi
-    # h5py not yet working with PyPy.  Install it for other systems.
-    - if [[ $TRAVIS_PYPY == '' ]]; then $PIP install -U $__USER h5py; fi
-    # Getting weird error on travis for guppy.  Try 3.7 instead.
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then $PIP install -U $__USER guppy3; fi
-    # halotools doesn't work anymore in 3.6 (because of astropy change), so do this in 2.7.
+    # Only add optional ones for py3.7
+    # They are slow to install, especially 3.8 and pypy, where some are installed from scratch.
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then $PIP install -U $__USER matplotlib nbval ipykernel scipy pandas guppy3 h5py; fi
+    # halotools doesn't work anymore in 3.x (because of astropy change), so do this in 2.7.
+    # And also test h5py here.
     - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then $PIP install -U $__USER h5py halotools; fi
 
     - $PIP list
@@ -127,7 +122,7 @@ script:
     # These just check that the code works when run in a real mpi session.
     - if [[ $TRAVIS_PYTHON_VERSION > 3.0 ]]; then mpiexec -n 2 $PYTHON -u mpi_test.py; fi
     - if [[ $TRAVIS_PYTHON_VERSION > 3.0 ]]; then mpiexec -n 1 $PYTHON -u mpi_test.py; fi
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pytest --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then pytest --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env; fi
 
 after_success:
     - codecov

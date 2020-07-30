@@ -2171,6 +2171,9 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
     num indicates which key to use if any of the fields like x_col, flip_g1, etc. are lists.
     The default is 0, which means to use the first item in the list if they are lists.
 
+    If the config dict specifies that patches be used, the returned list of Catalogs will be
+    a concatenation of the patches for each of the specified names.
+
     Parameters:
         config (dict):  The configuration dict to use for the appropriate parameters
         key (str):      Which key name to use for the file names. e.g. 'file_name' (default: None)
@@ -2211,8 +2214,10 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
             is_rand = 'rand' in list_key
     if not isinstance(file_names,list):
         file_names = file_names.split()
-    return [ Catalog(file_name, config, num, logger, is_rand) for file_name in file_names ]
-
+    ret = []
+    for file_name in file_names:
+        ret += Catalog(file_name, config, num, logger, is_rand).get_patches()
+    return ret
 
 def calculateVarG(cat_list):
     """Calculate the overall shear variance from a list of catalogs.

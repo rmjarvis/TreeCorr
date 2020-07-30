@@ -18,7 +18,7 @@ import coord
 import time
 import treecorr
 
-from test_helper import assert_raises, do_pickle, profile, timer
+from test_helper import assert_raises, do_pickle, profile, timer, get_from_wiki
 
 @timer
 def test_cat_patches():
@@ -2408,6 +2408,58 @@ def test_lowmem():
     gk_cat2.unload()
     np.testing.assert_allclose(kg1.xi, kg2.xi)
     np.testing.assert_allclose(kg1.weight, kg2.weight)
+
+@timer
+def test_config():
+    """Test using npatch and var_method in config file
+    """
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping patch config test, since fitsio is not installed')
+        return
+
+
+    get_from_wiki('Aardvark.fit')
+    file_name = os.path.join('data','Aardvark.fit')
+    config = treecorr.read_config('Aardvark.yaml')
+
+    config['gg_file_name'] = 'output/Aardvark.boot.fits'
+    config['var_method'] = 'bootstrap'
+    config['num_bootstrap'] = 1000
+    if __name__ == '__main__':
+        logger = treecorr.config.setup_logger(2)
+        config['npatch'] = 64
+    else:
+        logger = treecorr.config.setup_logger(0)
+        config['npatch'] = 8
+        config['verbose'] = 0
+        config['last_row'] = 10000
+
+    cat = treecorr.Catalog(file_name, config, logger=logger)
+    gg = treecorr.GGCorrelation(config, logger=logger)
+    gg.process(cat)
+
+    # Check that we get the same result using the corr2 function
+    treecorr.corr2(config, logger=logger)
+    gg2 = treecorr.GGCorrelation(config)
+    gg2.read(config['gg_file_name'])
+    print('gg.varxip = ',gg.varxip)
+    print('gg2.varxip = ',gg2.varxip)
+
+    # Bootstrap has intrinisic randomness, so this doesn't get all that close actually.
+    np.testing.assert_allclose(gg.varxip, gg2.varxip, rtol=0.3)
+
+    # Jackknife should be exactly equal (so long as npatch is 2^n), since deterministic.
+    varxi_jk = gg.estimate_cov('jackknife').diagonal()
+    config['var_method'] = 'jackknife'
+    treecorr.corr2(config, logger=logger)
+    gg2.read(config['gg_file_name'])
+    print('gg.varxi = ',varxi_jk)
+    print('gg2.varxip = ',gg2.varxip)
+    print('gg2.varxim = ',gg2.varxim)
+    np.testing.assert_allclose(varxi_jk, np.concatenate([gg2.varxip, gg2.varxim]), rtol=1.e-10)
+
 
 if __name__ == '__main__':
     test_cat_patches()

@@ -124,3 +124,9 @@ Changes from version 4.1.3 to 4.1.4
 -----------------------------------
 
 - Fixed a bug when using every_nth in conjunction with explicit numpy arrays.
+
+Changes from version 4.1.4 to 4.1.5
+-----------------------------------
+
+- Fixed read_catalogs to work properly with patches.
+

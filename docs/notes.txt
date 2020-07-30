@@ -10,13 +10,13 @@ Checklist for making a new release:
 - Update any docs that might need updating.
 - git checkout -b releases/M.m  (if necessary)
 - git push -u origin releases/M.m
+- python setup.py install  (make sure this is current)
 - In docs directory, run update_docs
 - Commit new docs in releases/M.m branch as single commit.
 - Cherry-pick docs commit onto master and push there.
 - Now, back on releases/M.m branch...
 - git tag -a vM.m.r -m vM.m.r
 - git push --tags
-- python setup.py install  (make sure this is current)
 - Delete the TreeCorr.egg-info directory (in case has extra files)
 - python setup.py sdist
 - Inspect the dist/*.tar.gz tarball to make sure it is accurate.

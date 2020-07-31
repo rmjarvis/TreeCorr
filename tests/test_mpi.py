@@ -15,9 +15,10 @@ from __future__ import print_function
 import treecorr
 import unittest
 import sys
+if sys.version_info > (3,0):
+    from mockmpi import mock_mpiexec
 
 from test_helper import timer
-from mock_mpi import mock_mpiexec
 from mpi_test import *
 
 @unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
@@ -63,6 +64,9 @@ def test_mpi_kk():
     mock_mpiexec(1, do_mpi_kk, output)
 
 if __name__ == '__main__':
+    if sys.version_info > (3,0):
+        print("mockmpi does not support python 2")
+        exit()
     setup()
     test_mpi_gg()
     test_mpi_ng()

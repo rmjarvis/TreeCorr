@@ -102,7 +102,7 @@ install:
     - $PIP install -U $__USER codecov fitsio mpi4py
     # Pin some versions for py2.7
     - if [[ $TRAVIS_PYTHON_VERSION < 3.0 ]]; then $PIP install -U $__USER pytest==3.2 pytest-cov==2.4; fi
-    - if [[ $TRAVIS_PYTHON_VERSION > 3.0 ]]; then $PIP install -U $__USER pytest pytest-cov; fi
+    - if [[ $TRAVIS_PYTHON_VERSION > 3.0 ]]; then $PIP install -U $__USER pytest pytest-cov mockmpi; fi
 
     # Only add optional ones for py3.7
     # They are slow to install, especially 3.8 and pypy, where some are installed from scratch.
@@ -120,8 +120,8 @@ script:
     - pytest --cov=treecorr test*.py
     # Don't do coverage for mpi tests.  Those are included in the main tests with mock_mpi.
     # These just check that the code works when run in a real mpi session.
-    - if [[ $TRAVIS_PYTHON_VERSION > 3.0 ]]; then mpiexec -n 2 $PYTHON -u mpi_test.py; fi
-    - if [[ $TRAVIS_PYTHON_VERSION > 3.0 ]]; then mpiexec -n 1 $PYTHON -u mpi_test.py; fi
+    - if [[ $TRAVIS_PYTHON_VERSION > 3.0 ]]; then mpiexec -n 2 $PYTHON -u mpi_test.py >& mpi2.out; fi
+    - if [[ $TRAVIS_PYTHON_VERSION > 3.0 ]]; then mpiexec -n 1 $PYTHON -u mpi_test.py >& mpi1.out; fi
     - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then pytest --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env; fi
 
 after_success:

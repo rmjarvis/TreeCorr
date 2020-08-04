@@ -1446,6 +1446,11 @@ def test_nan2():
     np.testing.assert_allclose(cat1.varg, cat2.varg)
     np.testing.assert_allclose(cat1.vark, cat2.vark)
 
+    # Catalog generation with > 200 nans, to test the other pathway
+    # in the warnings code.  No other immediate tests.
+    g1[:1000] = np.nan
+    cat2c = treecorr.Catalog(ra=ra, dec=dec, g1=g1, g2=g2, ra_units='deg', dec_units='deg')
+
 
 @timer
 def test_contiguous():

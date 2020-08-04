@@ -1118,11 +1118,11 @@ class Catalog(object):
         """
         if col is not None and np.any(np.isnan(col)):
             index = np.where(np.isnan(col))[0]
-            if len(index) < 200:
+            if len(index) < 10:
                 self.logger.warning("Warning: %d NaNs found in %s column.  Skipping rows %s."%(
                                     len(index),col_str,str(index.tolist())))
             else:
-                self.logger.warning("Warning: %d NaNs found in %s column.  Skipping rows starting %s."%(
+                self.logger.warning("Warning: %d NaNs found in %s column.  Skipping rows starting %s ..."%(
                                     len(index),col_str,str(index[:10].tolist())))
             if self._w is None:
                 self._w = np.ones_like(col, dtype=float)

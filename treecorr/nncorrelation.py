@@ -109,7 +109,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
                     self._min_sep,self._max_sep,self._nbins,self._bin_size,self.b,
                     self.min_rpar, self.max_rpar, self.xperiod, self.yperiod, self.zperiod,
                     dp(None), dp(None), dp(None), dp(None),
-                    dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
+                    dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs))
         return self._corr
 
     def __del__(self):
@@ -457,10 +457,10 @@ class NNCorrelation(treecorr.BinnedCorr2):
                                     desired. (default: None, which means use rd=dr)
 
         Returns:
-            Tuple containing
+            Tuple containing:
 
-                - xi = array of :math:`\xi(r)`
-                - varxi = an estimate of the variance of :math:`\xi(r)`
+            - xi = array of :math:`\xi(r)`
+            - varxi = an estimate of the variance of :math:`\xi(r)`
         """
         # Each random weight value needs to be rescaled by the ratio of total possible pairs.
         if rr.tot == 0:
@@ -536,7 +536,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
             # Check that rr,dr,rd use the same patches as dd
             if rr.npatch1 != 1 and rr.npatch2 != 1:
                 if rr.npatch1 != self.npatch1 or rr.npatch2 != self.npatch2:
-                    raise RuntimeError("If using patches, RR must be run with the same patches as DD")
+                    raise RuntimeError("If using patches, RR must be run with the same patches "
+                                       "as DD")
 
             if dr is not None and (len(dr.results) == 0 or dr.npatch1 != self.npatch1 or
                                    dr.npatch2 not in (self.npatch2, 1)):
@@ -588,8 +589,10 @@ class NNCorrelation(treecorr.BinnedCorr2):
             rr_tot = np.sum([self._rr.results[ij].tot for ij in pairs if ij in okij])
             rrf = dd_tot / rr_tot
         else:
-            diag_tot = np.sum([cij.tot**0.5 for ij,cij in self.results.items() if ij[0] == ij[1]])
-            rr_frac = np.sum([self.results[ij].tot**0.5 for ij in pairs if ij[0] == ij[1]]) / diag_tot
+            diag_tot = np.sum([cij.tot**0.5 for ij,cij in self.results.items()
+                               if ij[0] == ij[1]])
+            rr_frac = np.sum([self.results[ij].tot**0.5 for ij in pairs if ij[0] == ij[1]])
+            rr_frac = rr_frac / diag_tot
             rr = self._rr.weight * rr_frac
             rrf = self.tot / self._rr.tot
         if self._dr is not None:

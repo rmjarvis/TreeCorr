@@ -13,8 +13,6 @@
 
 from __future__ import print_function
 import os
-import sys
-import queue
 import time
 
 # This is an attempt to use fork to mock up an MPI session.
@@ -168,5 +166,3 @@ with MockMPI(2) as comm:
     # This next line causes it to freeze.
     #final_msg = comm.recv(0)
     #print(rank,'final message = ',final_msg,flush=True)
-
-

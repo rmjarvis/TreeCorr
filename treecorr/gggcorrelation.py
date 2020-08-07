@@ -163,13 +163,20 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.logger.debug('Finished building GGGCorr')
 
     @property
-    def gam0(self): return self.gam0r + 1j * self.gam0i
+    def gam0(self):
+        return self.gam0r + 1j * self.gam0i
+
     @property
-    def gam1(self): return self.gam1r + 1j * self.gam1i
+    def gam1(self):
+        return self.gam1r + 1j * self.gam1i
+
     @property
-    def gam2(self): return self.gam2r + 1j * self.gam2i
+    def gam2(self):
+        return self.gam2r + 1j * self.gam2i
+
     @property
-    def gam3(self): return self.gam3r + 1j * self.gam3i
+    def gam3(self):
+        return self.gam3r + 1j * self.gam3i
 
     @property
     def corr(self):
@@ -185,7 +192,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                     dp(self.gam2r), dp(self.gam2i), dp(self.gam3r), dp(self.gam3i),
                     dp(self.meand1), dp(self.meanlogd1), dp(self.meand2), dp(self.meanlogd2),
                     dp(self.meand3), dp(self.meanlogd3), dp(self.meanu), dp(self.meanv),
-                    dp(self.weight), dp(self.ntri));
+                    dp(self.weight), dp(self.ntri))
         return self._corr
 
     def __del__(self):
@@ -846,17 +853,17 @@ class GGGCorrelation(treecorr.BinnedCorr3):
             k3 (float):     If given, the ratio R3/R1 in the SKL formulae. (default: 1)
 
         Returns:
-            Tuple containing
+            Tuple containing:
 
-                - map3 = array of :math:`\langle M_{ap}(R) M_{ap}(k_2 R) M_{ap}(k_3 R)\rangle`
-                - mapmapmx = array of :math:`\langle M_{ap}(R) M_{ap}(k_2 R) M_\times(k_3 R)\rangle`
-                - mapmxmap = array of :math:`\langle M_{ap}(R) M_\times(k_2 R) M_{ap}(k_3 R)\rangle`
-                - mxmapmap = array of :math:`\langle M_\times(R) M_{ap}(k_2 R) M_{ap}(k_3 R)\rangle`
-                - mxmxmap = array of :math:`\langle M_\times(R) M_\times(k_2 R) M_{ap}(k_3 R)\rangle`
-                - mxmapmx = array of :math:`\langle M_\times(R) M_{ap}(k_2 R) M_\times(k_3 R)\rangle`
-                - mapmxmx = array of :math:`\langle M_{ap}(R) M_\times(k_2 R) M_\times(k_3 R)\rangle`
-                - mx3 = array of :math:`\langle M_\times(R) M_\times(k_2 R) M_\times(k_3 R)\rangle`
-                - varmap3 = array of variance estimates of the above values
+            - map3 = array of :math:`\langle M_{ap}(R) M_{ap}(k_2 R) M_{ap}(k_3 R)\rangle`
+            - mapmapmx = array of :math:`\langle M_{ap}(R) M_{ap}(k_2 R) M_\times(k_3 R)\rangle`
+            - mapmxmap = array of :math:`\langle M_{ap}(R) M_\times(k_2 R) M_{ap}(k_3 R)\rangle`
+            - mxmapmap = array of :math:`\langle M_\times(R) M_{ap}(k_2 R) M_{ap}(k_3 R)\rangle`
+            - mxmxmap = array of :math:`\langle M_\times(R) M_\times(k_2 R) M_{ap}(k_3 R)\rangle`
+            - mxmapmx = array of :math:`\langle M_\times(R) M_{ap}(k_2 R) M_\times(k_3 R)\rangle`
+            - mapmxmx = array of :math:`\langle M_{ap}(R) M_\times(k_2 R) M_\times(k_3 R)\rangle`
+            - mx3 = array of :math:`\langle M_\times(R) M_\times(k_2 R) M_\times(k_3 R)\rangle`
+            - varmap3 = array of variance estimates of the above values
         """
         # As in the calculateMapSq function, we Make s and t matrices, so we can eventually do the
         # integral by doing a matrix product.

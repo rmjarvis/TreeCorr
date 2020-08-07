@@ -115,7 +115,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
                     self._min_sep,self._max_sep,self._nbins,self._bin_size,self.b,
                     self.min_rpar, self.max_rpar, self.xperiod, self.yperiod, self.zperiod,
                     dp(self.xi), dp(None), dp(None), dp(None),
-                    dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
+                    dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs))
         return self._corr
 
     def __del__(self):

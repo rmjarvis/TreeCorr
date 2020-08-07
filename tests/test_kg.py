@@ -17,7 +17,7 @@ import treecorr
 import os
 import coord
 
-from test_helper import get_script_name, do_pickle, CaptureLog
+from test_helper import do_pickle, CaptureLog
 from test_helper import assert_raises, timer, assert_warns
 
 @timer
@@ -57,7 +57,6 @@ def test_direct():
         # But we can at least do all the pairs for each entry in cat1 at once with arrays.
         rsq = (x1[i]-x2)**2 + (y1[i]-y2)**2
         r = np.sqrt(rsq)
-        logr = np.log(r)
         expmialpha = ((x1[i]-x2) - 1j*(y1[i]-y2)) / r
 
         ww = w1[i] * w2
@@ -225,7 +224,6 @@ def test_direct_spherical():
             rsq = (x1[i]-x2[j])**2 + (y1[i]-y2[j])**2 + (z1[i]-z2[j])**2
             r = np.sqrt(rsq)
             r *= coord.radians / coord.degrees
-            logr = np.log(r)
 
             index = np.floor(np.log(r/min_sep) / bin_size).astype(int)
             if index < 0 or index >= nbins:
@@ -329,7 +327,6 @@ def test_pairwise():
 
     rsq = (x1-x2)**2 + (y1-y2)**2
     r = np.sqrt(rsq)
-    logr = np.log(r)
     expmialpha = ((x1-x2) - 1j*(y1-y2)) / r
 
     ww = w1 * w2
@@ -406,7 +403,7 @@ def test_single():
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','kg_single.out'), names=True,
-                                    skip_header=1)
+                                 skip_header=1)
     print('kg.xi = ',kg.xi)
     print('from corr2 output = ',corr2_output['kgamT'])
     print('ratio = ',corr2_output['kgamT']/kg.xi)
@@ -464,7 +461,7 @@ def test_pairwise2():
     with assert_warns(FutureWarning):
         treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','kg_pairwise.out'), names=True,
-                                    skip_header=1)
+                                 skip_header=1)
     print('kg.xi = ',kg.xi)
     print('from corr2 output = ',corr2_output['kgamT'])
     print('ratio = ',corr2_output['kgamT']/kg.xi)
@@ -667,7 +664,6 @@ def test_negw():
         # But we can at least do all the pairs for each entry in cat1 at once with arrays.
         rsq = (x1[i]-x2)**2 + (y1[i]-y2)**2
         r = np.sqrt(rsq)
-        logr = np.log(r)
         expmialpha = ((x1[i]-x2) - 1j*(y1[i]-y2)) / r
 
         ww = w1[i] * w2

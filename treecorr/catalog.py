@@ -23,6 +23,7 @@ import os
 import treecorr
 from .reader import FitsReader, HdfReader, AsciiReader, PandasReader
 
+
 class Catalog(object):
     """A set of input data (positions and other quantities) to be correlated.
 
@@ -412,7 +413,8 @@ class Catalog(object):
         'w_col' : (str, True, '0', None,
                 'Which column to use for weight. Should be an integer for ASCII catalogs.'),
         'wpos_col' : (str, True, '0', None,
-                'Which column to use for position weight. Should be an integer for ASCII catalogs.'),
+                'Which column to use for position weight. Should be an integer for ASCII '
+                'catalogs.'),
         'flag_col' : (str, True, '0', None,
                 'Which column to use for flag. Should be an integer for ASCII catalogs.'),
         'ignore_flag': (int, True, None, None,
@@ -699,9 +701,9 @@ class Catalog(object):
                 raise ValueError("Input arrays have zero length")
 
         if x is not None or self.config.get('x_col','0') not in [0,'0']:
-            if 'x_units' in self.config and not 'y_units' in self.config:
+            if 'x_units' in self.config and 'y_units' not in self.config:
                 raise TypeError("x_units specified without specifying y_units")
-            if 'y_units' in self.config and not 'x_units' in self.config:
+            if 'y_units' in self.config and 'x_units' not in self.config:
                 raise TypeError("y_units specified without specifying x_units")
         else:
             if 'x_units' in self.config:
@@ -1034,8 +1036,10 @@ class Catalog(object):
             self._ra *= self.ra_units
             self._dec *= self.dec_units
         else:
-            self.x_units = treecorr.config.get_from_list(self.config,'x_units',self._num,str,'radians')
-            self.y_units = treecorr.config.get_from_list(self.config,'y_units',self._num,str,'radians')
+            self.x_units = treecorr.config.get_from_list(self.config,'x_units',self._num,str,
+                                                         'radians')
+            self.y_units = treecorr.config.get_from_list(self.config,'y_units',self._num,str,
+                                                         'radians')
             self._x *= self.x_units
             self._y *= self.y_units
 
@@ -1108,7 +1112,6 @@ class Catalog(object):
             col = np.ascontiguousarray(col[self.start:self.end:self.every_nth])
         return col
 
-
     def checkForNaN(self, col, col_str):
         """Check if the column has any NaNs.  If so, set those rows to have w[k]=0.
 
@@ -1118,17 +1121,17 @@ class Catalog(object):
         """
         if col is not None and np.any(np.isnan(col)):
             index = np.where(np.isnan(col))[0]
-            if len(index) < 10:
-                self.logger.warning("Warning: %d NaNs found in %s column.  Skipping rows %s."%(
-                                    len(index),col_str,str(index.tolist())))
+            s = 's' if len(index) > 1 else ''
+            self.logger.warning("Warning: %d NaN%s found in %s column.",len(index),s,col_str)
+            if len(index) < 20:
+                self.logger.info("Skipping row%s %s.",s,index.tolist())
             else:
-                self.logger.warning("Warning: %d NaNs found in %s column.  Skipping rows starting %s ..."%(
-                                    len(index),col_str,str(index[:10].tolist())))
+                self.logger.info("Skipping rows starting %s",
+                                 str(index[:10].tolist()).replace(']',' ...]'))
             if self._w is None:
                 self._w = np.ones_like(col, dtype=float)
             self._w[index] = 0
             col[index] = 0  # Don't leave the nans there.
-
 
     def _check_file(self, file_name, reader, num=0, is_rand=False):
         # Just check the consistency of the various column numbers so we can fail fast.
@@ -1409,8 +1412,8 @@ class Catalog(object):
 
             # Now read the rest using the updated s
             for ext in all_exts:
-                use_cols1 = [c for c in all_cols if col_by_ext[c] == ext and
-                                                    c in reader.names(ext)]
+                use_cols1 = [c for c in all_cols
+                             if col_by_ext[c] == ext and c in reader.names(ext)]
                 if len(use_cols1) == 0:
                     continue
                 data1 = reader.read(use_cols1, s, ext)
@@ -1456,7 +1459,8 @@ class Catalog(object):
     def nfields(self):
         if not hasattr(self, '_nfields'):
             # Make simple functions that call NField, etc. with self as the first argument.
-            def get_nfield(*args, **kwargs): return treecorr.NField(self, *args, **kwargs)
+            def get_nfield(*args, **kwargs):
+                return treecorr.NField(self, *args, **kwargs)
             # Now wrap these in LRU_Caches with (initially) just 1 element being cached.
             self._nfields = treecorr.util.LRU_Cache(get_nfield, 1)
         return self._nfields
@@ -1464,35 +1468,40 @@ class Catalog(object):
     @property
     def kfields(self):
         if not hasattr(self, '_kfields'):
-            def get_kfield(*args, **kwargs): return treecorr.KField(self, *args, **kwargs)
+            def get_kfield(*args, **kwargs):
+                return treecorr.KField(self, *args, **kwargs)
             self._kfields = treecorr.util.LRU_Cache(get_kfield, 1)
         return self._kfields
 
     @property
     def gfields(self):
         if not hasattr(self, '_gfields'):
-            def get_gfield(*args, **kwargs): return treecorr.GField(self, *args, **kwargs)
+            def get_gfield(*args, **kwargs):
+                return treecorr.GField(self, *args, **kwargs)
             self._gfields = treecorr.util.LRU_Cache(get_gfield, 1)
         return self._gfields
 
     @property
     def nsimplefields(self):
         if not hasattr(self, '_nsimplefields'):
-            def get_nsimplefield(*args,**kwargs): return treecorr.NSimpleField(self,*args,**kwargs)
+            def get_nsimplefield(*args,**kwargs):
+                return treecorr.NSimpleField(self,*args,**kwargs)
             self._nsimplefields = treecorr.util.LRU_Cache(get_nsimplefield, 1)
         return self._nsimplefields
 
     @property
     def ksimplefields(self):
         if not hasattr(self, '_ksimplefields'):
-            def get_ksimplefield(*args,**kwargs): return treecorr.KSimpleField(self,*args,**kwargs)
+            def get_ksimplefield(*args,**kwargs):
+                return treecorr.KSimpleField(self,*args,**kwargs)
             self._ksimplefields = treecorr.util.LRU_Cache(get_ksimplefield, 1)
         return self._ksimplefields
 
     @property
     def gsimplefields(self):
         if not hasattr(self, '_gsimplefields'):
-            def get_gsimplefield(*args,**kwargs): return treecorr.GSimpleField(self,*args,**kwargs)
+            def get_gsimplefield(*args,**kwargs):
+                return treecorr.GSimpleField(self,*args,**kwargs)
             self._gsimplefields = treecorr.util.LRU_Cache(get_gsimplefield, 1)
         return self._gsimplefields
 
@@ -1790,11 +1799,11 @@ class Catalog(object):
         if self._patch is None:
             if self.coords == 'flat':
                 self._centers = np.array([[self._weighted_mean(self.x),
-                                            self._weighted_mean(self.y)]])
+                                           self._weighted_mean(self.y)]])
             else:
                 self._centers = np.array([[self._weighted_mean(self.x),
-                                            self._weighted_mean(self.y),
-                                            self._weighted_mean(self.z)]])
+                                           self._weighted_mean(self.y),
+                                           self._weighted_mean(self.z)]])
         else:
             npatch = self._npatch
             self._centers = np.empty((npatch,2 if self.z is None else 3))
@@ -1802,7 +1811,7 @@ class Catalog(object):
                 indx = np.where(self.patch == p)[0]
                 if len(indx) == 0:
                     raise RuntimeError("Cannot find center for patch %s."%p +
-                                        "  No items with this patch number")
+                                       "  No items with this patch number")
                 if self.coords == 'flat':
                     self._centers[p] = [self._weighted_mean(self.x,indx),
                                         self._weighted_mean(self.y,indx)]
@@ -2100,7 +2109,6 @@ class Catalog(object):
 
     def copy(self):
         """Make a copy"""
-        import copy
         return copy.deepcopy(self)
 
     def __getstate__(self):
@@ -2223,6 +2231,7 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
         ret += Catalog(file_name, config, num, logger, is_rand).get_patches()
     return ret
 
+
 def calculateVarG(cat_list):
     """Calculate the overall shear variance from a list of catalogs.
 
@@ -2246,6 +2255,7 @@ def calculateVarG(cat_list):
             varg += cat.varg * cat.sumw
             sumw += cat.sumw
         return varg / sumw
+
 
 def calculateVarK(cat_list):
     """Calculate the overall kappa variance from a list of catalogs.
@@ -2302,7 +2312,6 @@ def isGColRequired(config, num):
                         or (num==1 and 'ng_file_name' in config)
                         or (num==1 and 'nm_file_name' in config)
                         or (num==1 and 'kg_file_name' in config) )
-
 
 
 def isKColRequired(config, num):

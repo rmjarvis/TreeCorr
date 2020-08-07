@@ -12,9 +12,12 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+# flake8: noqa
+
 import sys
 import os
 import treecorr
+from sphinx.ext.napoleon.docstring import GoogleDocstring
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -113,8 +116,6 @@ html_theme = 'sphinx_rtd_theme'
 
 # https://michaelgoerz.net/notes/extending-sphinx-napoleon-docstring-sections.html
 # -- Extensions to the  Napoleon GoogleDocstring class ---------------------
-
-from sphinx.ext.napoleon.docstring import GoogleDocstring
 
 # first, we define new methods for any new sections and add them to the class
 def parse_keys_section(self, section):

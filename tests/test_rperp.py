@@ -17,10 +17,9 @@ import treecorr
 import os
 import coord
 import time
-import shutil
 import sys
 
-from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog, assert_raises, timer
+from test_helper import get_from_wiki, assert_raises, timer
 
 @timer
 def test_nn_direct_rperp():
@@ -421,7 +420,7 @@ def test_ng_rlens():
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','ng_rlens.out'), names=True,
-                                    skip_header=1)
+                                 skip_header=1)
     print('ng.xi = ',ng1.xi)
     print('from corr2 output = ',corr2_output['gamT'])
     print('ratio = ',corr2_output['gamT']/ng1.xi)
@@ -655,7 +654,7 @@ def test_ng_rlens_bkg():
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','ng_rlens_bkg.out'), names=True,
-                                    skip_header=1)
+                                 skip_header=1)
     print('ng.xi = ',ng1.xi)
     print('from corr2 output = ',corr2_output['gamT'])
     print('ratio = ',corr2_output['gamT']/ng1.xi)
@@ -725,7 +724,7 @@ def test_ng_rperp():
     # come out to +- 1.e-13 or so.  Use max_rpar=1.e-8 as meaning <= 0.
     ng = treecorr.NGCorrelation(nbins=10, min_sep=0.5, max_sep=60,
                                 min_rpar=-dmax, max_rpar=1.e-8, bin_slop=0.01)
-    ng.process(cat,cat,metric = 'OldRperp')
+    ng.process(cat, cat, metric='OldRperp')
 
     print('OldRperp:')
     print('ng.npairs = ',repr(ng.npairs))
@@ -743,7 +742,7 @@ def test_ng_rperp():
     np.testing.assert_allclose(ng.xi, true_xi, rtol=1.e-3, atol=1.e-4)
 
     # Rperp doesn't get exactly the same values, but it's similar.
-    ng.process(cat,cat,metric = 'FisherRperp')
+    ng.process(cat, cat, metric='FisherRperp')
 
     print('FisherRperp:')
     print('ng.npairs = ',repr(ng.npairs))
@@ -751,8 +750,8 @@ def test_ng_rperp():
 
     true_npairs = [  2191.,   4941.,  10820.,  21857.,  39881.,  53873.,  80599.,
                    105355., 126529.,  79872.]
-    true_xi =  [-0.0066858, -0.0000599,  0.00175524, -0.00135803, -0.00126972,
-                 0.0024636,  0.00787932,  0.00486865, 0.00722583, -0.00532089]
+    true_xi = [-0.0066858, -0.0000599,  0.00175524, -0.00135803, -0.00126972,
+                0.0024636,  0.00787932,  0.00486865, 0.00722583, -0.00532089]
 
     np.testing.assert_allclose(ng.npairs, true_npairs, rtol=1.e-3)
     np.testing.assert_allclose(ng.xi, true_xi, rtol=1.e-3)
@@ -936,13 +935,13 @@ def test_gg_rlens():
     gg1a = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
                                   metric='Rlens', bin_slop=0, brute=1)
     gg1a.process(lens_cat, source_cat)
-    assert lens_cat.field.brute == True
-    assert source_cat.field.brute == False
+    assert lens_cat.field.brute is True
+    assert source_cat.field.brute is False
     gg1b = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
                                   metric='Rlens', bin_slop=0, brute=2)
     gg1b.process(lens_cat, source_cat)
-    assert lens_cat.field.brute == False
-    assert source_cat.field.brute == True
+    assert lens_cat.field.brute is False
+    assert source_cat.field.brute is True
 
     assert max(abs(gg0.xim - true_gQ)) < 2.e-6
     assert max(abs(gg1.xim - true_gQ)) < 2.e-5
@@ -1249,7 +1248,7 @@ def test_gg_rperp():
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','gg_rperp.out'),names=True,
-                                    skip_header=1)
+                                 skip_header=1)
     print('gg.xim = ',gg.xim)
     print('from corr2 output = ',corr2_output['xim'])
     print('ratio = ',corr2_output['xim']/gg.xim)
@@ -1923,7 +1922,7 @@ def test_symmetric():
     print('r = ',dat['r'])
 
     # Set up the catalogues
-    cat  = treecorr.Catalog(w=None, ra_units='deg', dec_units='deg', **dat)
+    cat = treecorr.Catalog(w=None, ra_units='deg', dec_units='deg', **dat)
 
     pilo = 20
     pihi = 30

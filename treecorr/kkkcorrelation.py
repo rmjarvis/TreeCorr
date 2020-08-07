@@ -140,7 +140,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                     dp(None), dp(None), dp(None), dp(None),
                     dp(self.meand1), dp(self.meanlogd1), dp(self.meand2), dp(self.meanlogd2),
                     dp(self.meand3), dp(self.meanlogd3), dp(self.meanu), dp(self.meanv),
-                    dp(self.weight), dp(self.ntri));
+                    dp(self.weight), dp(self.ntri))
         return self._corr
 
     def __del__(self):

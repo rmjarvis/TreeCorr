@@ -30,11 +30,11 @@ corr3_valid_params = {
 
     'file_name' : (str, True, None, None,
             'The file(s) with the galaxy data.'),
-    'file_name2' : (str, True, None,  None,
+    'file_name2' : (str, True, None, None,
             'The file(s) to use for the second field for a cross-correlation.'),
-    'file_name3' : (str, True, None,  None,
+    'file_name3' : (str, True, None, None,
             'The file(s) to use for the third field for a cross-correlation.'),
-    'rand_file_name' : (str, True, None,  None,
+    'rand_file_name' : (str, True, None, None,
             'For NNN correlations, a list of random files.'),
     'rand_file_name2' : (str, True, None, None,
             'The randoms for the second field for a cross-correlation.'),
@@ -106,9 +106,9 @@ def corr3(config, logger=None):
     import pprint
     logger.debug('Using configuration dict:\n%s',pprint.pformat(config))
 
-    if ( 'output_dots' not in config
-          and config.get('log_file',None) is None
-          and config['verbose'] >= 2 ):
+    if ('output_dots' not in config
+            and config.get('log_file',None) is None
+            and config['verbose'] >= 2):
         config['output_dots'] = True
 
     # Set the number of threads

@@ -27,7 +27,6 @@ indexed by string, but may prevent usage elsewhere. If so we could convert them 
 both provide dicts.
 """
 import numpy as np
-from .config import get_from_list
 
 class AsciiReader(object):
     """Reader interface for ASCII files using numpy.
@@ -196,7 +195,7 @@ class AsciiReader(object):
                                      skip_header=self.comment_rows-1, max_rows=1)
                 self.col_names = data.dtype.names
                 self.ncols = len(self.col_names)
-            except Exception as e:
+            except Exception:
                 pass
         if self.ncols is None:
             data = np.genfromtxt(self.file_name, comments=self.comment_marker,
@@ -225,10 +224,11 @@ class PandasReader(AsciiReader):
             comment_marker (str):   What token indicates a comment line. (default: '#')
         """
         # Do this immediately, so we get an ImportError if it isn't available.
-        import pandas
+        import pandas  # noqa: F401
+
         AsciiReader.__init__(self, file_name, delimiter, comment_marker)
         # This is how pandas handles whitespace
-        self.sep = '\s+' if self.delimiter is None else self.delimiter
+        self.sep = r'\s+' if self.delimiter is None else self.delimiter
 
 
     def read(self, cols, s=slice(None), ext=None):
@@ -428,7 +428,8 @@ class HdfReader(object):
         Parameters:
             file_name (str):    The file name
         """
-        import h5py  # Just to check right away that it will work.
+        import h5py  # noqa: F401  Just to check right away that it will work.
+
         self.file = None  # Only works inside a with block.
         self.file_name = file_name
 

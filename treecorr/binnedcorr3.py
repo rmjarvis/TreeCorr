@@ -211,9 +211,11 @@ class BinnedCorr3(object):
         'max_sep' : (float, False, None, None,
                 'The maximum separation to include in the output.'),
         'sep_units' : (str, False, None, coord.AngleUnit.valid_names,
-                'The units to use for min_sep and max_sep.  Also the units of the output distances'),
+                'The units to use for min_sep and max_sep.  Also the units of the output '
+                'distances'),
         'bin_slop' : (float, False, None, None,
-                'The fraction of a bin width by which it is ok to let the pairs miss the correct bin.',
+                'The fraction of a bin width by which it is ok to let the pairs miss the correct '
+                'bin.',
                 'The default is to use 1 if bin_size <= 0.1, or 0.1/bin_size if bin_size > 0.1.'),
         'nubins' : (int, False, None, None,
                 'The number of output bins to use for u dimension.'),
@@ -437,26 +439,25 @@ class BinnedCorr3(object):
 
         # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
         self.logr1d = np.linspace(start=0, stop=self.nbins*self.bin_size,
-                                   num=self.nbins, endpoint=False)
+                                  num=self.nbins, endpoint=False)
         # Offset by the position of the center of the first bin.
         self.logr1d += math.log(self.min_sep) + 0.5*self.bin_size
 
         self.u1d = np.linspace(start=0, stop=self.nubins*self.ubin_size,
-                                  num=self.nubins, endpoint=False)
+                               num=self.nubins, endpoint=False)
         self.u1d += self.min_u + 0.5*self.ubin_size
 
         self.v1d = np.linspace(start=0, stop=self.nvbins*self.vbin_size,
-                                  num=self.nvbins, endpoint=False)
+                               num=self.nvbins, endpoint=False)
         self.v1d += self.min_v + 0.5*self.vbin_size
         self.v1d = np.concatenate([-self.v1d[::-1],self.v1d])
 
-        shape = (self.nbins, self.nubins, 2*self.nvbins)
         self.logr = np.tile(self.logr1d[:, np.newaxis, np.newaxis],
-                               (1, self.nubins, 2*self.nvbins))
+                            (1, self.nubins, 2*self.nvbins))
         self.u = np.tile(self.u1d[np.newaxis, :, np.newaxis],
-                            (self.nbins, 1, 2*self.nvbins))
+                         (self.nbins, 1, 2*self.nvbins))
         self.v = np.tile(self.v1d[np.newaxis, np.newaxis, :],
-                            (self.nbins, self.nubins, 1))
+                         (self.nbins, self.nubins, 1))
         self.rnom = np.exp(self.logr)
         self.rnom1d = np.exp(self.logr1d)
         self.brute = treecorr.config.get(self.config,'brute',bool,False)
@@ -534,7 +535,7 @@ class BinnedCorr3(object):
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
         coords, metric = treecorr.util.parse_metric(metric, coords1, coords2, coords3)
-        if self.coords != None or self.metric != None:
+        if self.coords is not None or self.metric is not None:
             if coords != self.coords:
                 self.logger.warning("Detected a change in catalog coordinate systems. "+
                                     "This probably doesn't make sense!")
@@ -583,4 +584,3 @@ class BinnedCorr3(object):
             return min_size, max_size
         else:
             return 0., 0.
-

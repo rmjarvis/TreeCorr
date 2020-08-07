@@ -18,7 +18,7 @@ import os
 import coord
 import time
 
-from test_helper import get_script_name, do_pickle, assert_raises, timer
+from test_helper import do_pickle, assert_raises, timer
 
 @timer
 def test_direct():
@@ -41,7 +41,6 @@ def test_direct():
     nrbins = 10
     nubins = 5
     nvbins = 5
-    max_sep = min_sep * np.exp(nrbins * bin_size)
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True)
     ggg.process(cat, num_threads=2)
 
@@ -363,7 +362,6 @@ def test_direct_spherical():
     nrbins = 10
     nubins = 5
     nvbins = 5
-    max_sep = min_sep * np.exp(nrbins * bin_size)
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   sep_units='deg', brute=True)
     ggg.process(cat)
@@ -380,7 +378,6 @@ def test_direct_spherical():
     true_gam3 = np.zeros((nrbins, nubins, 2*nvbins), dtype=complex)
 
     rad_min_sep = min_sep * coord.degrees / coord.radians
-    rad_max_sep = max_sep * coord.degrees / coord.radians
     c = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra, dec)]
     for i in range(ngal):
         for j in range(i+1,ngal):
@@ -581,17 +578,18 @@ def test_ggg():
     print('(meand1 - meand2)/meand3 = ',(ggg.meand1-ggg.meand2) / ggg.meand3)
     print('meanv = ',ggg.meanv)
     print('max diff = ',np.max(np.abs((ggg.meand1-ggg.meand2)/ggg.meand3 -np.abs(ggg.meanv))))
-    print('max rel diff = ',np.max(np.abs(((ggg.meand1-ggg.meand2)/ggg.meand3-np.abs(ggg.meanv))/ggg.meanv)))
+    print('max rel diff = ',np.max(np.abs(((ggg.meand1-ggg.meand2)/ggg.meand3-np.abs(ggg.meanv))
+                                          / ggg.meanv)))
     np.testing.assert_allclose(ggg.meanlogd1, np.log(ggg.meand1), rtol=1.e-3)
     np.testing.assert_allclose(ggg.meanlogd2, np.log(ggg.meand2), rtol=1.e-3)
     np.testing.assert_allclose(ggg.meanlogd3, np.log(ggg.meand3), rtol=1.e-3)
     np.testing.assert_allclose(ggg.meand3/ggg.meand2, ggg.meanu, rtol=1.e-5 * tol_factor)
     np.testing.assert_allclose((ggg.meand1-ggg.meand2)/ggg.meand3, np.abs(ggg.meanv),
-                                  rtol=1.e-5 * tol_factor, atol=1.e-5 * tol_factor)
+                               rtol=1.e-5 * tol_factor, atol=1.e-5 * tol_factor)
     np.testing.assert_allclose(ggg.meanlogd3-ggg.meanlogd2, np.log(ggg.meanu),
-                                  atol=1.e-3 * tol_factor)
+                               atol=1.e-3 * tol_factor)
     np.testing.assert_allclose(np.log(ggg.meand1-ggg.meand2)-ggg.meanlogd3,
-                                  np.log(np.abs(ggg.meanv)), atol=2.e-3 * tol_factor)
+                               np.log(np.abs(ggg.meanv)), atol=2.e-3 * tol_factor)
 
     d1 = ggg.meand1
     d2 = ggg.meand2
@@ -637,28 +635,28 @@ def test_ggg():
 
     # Gamma0 = -2/3 gamma0^3/L^2r0^4 Pi |q1|^2 |q2|^2 |q3|^2 exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2)
     true_gam0 = ((-2.*np.pi * gamma0**3)/(3. * L**2 * r0**4) *
-                    np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) * (nq1*nq2*nq3) )
+                 np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) * (nq1*nq2*nq3) )
 
     # Gamma1 = -2/3 gamma0^3/L^2r0^4 Pi exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2) *
     #             ( |q1|^2 |q2|^2 |q3|^2 - 8/3 r0^2 q1^2 q2* q3*
     #               + 8/9 r0^4 (q1^2 q2*^2 q3*^2)/(|q1|^2 |q2|^2 |q3|^2) (2q1^2-q2^2-q3^2) )
     true_gam1 = ((-2.*np.pi * gamma0**3)/(3. * L**2 * r0**4) *
-                    np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
-                    (nq1*nq2*nq3 - 8./3. * r0**2 * q1**2*nq2*nq3/(q2*q3)
-                     + (8./9. * r0**4 * (q1**2 * nq2 * nq3)/(nq1 * q2**2 * q3**2) *
-                         (2.*q1**2 - q2**2 - q3**2)) ))
+                 np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
+                 (nq1*nq2*nq3 - 8./3. * r0**2 * q1**2*nq2*nq3/(q2*q3)
+                  + (8./9. * r0**4 * (q1**2 * nq2 * nq3)/(nq1 * q2**2 * q3**2) *
+                     (2.*q1**2 - q2**2 - q3**2)) ))
 
     true_gam2 = ((-2.*np.pi * gamma0**3)/(3. * L**2 * r0**4) *
-                    np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
-                    (nq1*nq2*nq3 - 8./3. * r0**2 * nq1*q2**2*nq3/(q1*q3)
-                     + (8./9. * r0**4 * (nq1 * q2**2 * nq3)/(q1**2 * nq2 * q3**2) *
-                         (2.*q2**2 - q1**2 - q3**2)) ))
+                 np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
+                 (nq1*nq2*nq3 - 8./3. * r0**2 * nq1*q2**2*nq3/(q1*q3)
+                  + (8./9. * r0**4 * (nq1 * q2**2 * nq3)/(q1**2 * nq2 * q3**2) *
+                     (2.*q2**2 - q1**2 - q3**2)) ))
 
     true_gam3 = ((-2.*np.pi * gamma0**3)/(3. * L**2 * r0**4) *
-                    np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
-                    (nq1*nq2*nq3 - 8./3. * r0**2 * nq1*nq2*q3**2/(q1*q2)
-                     + (8./9. * r0**4 * (nq1 * nq2 * q3**2)/(q1**2 * q2**2 * nq3) *
-                         (2.*q3**2 - q1**2 - q2**2)) ))
+                 np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
+                 (nq1*nq2*nq3 - 8./3. * r0**2 * nq1*nq2*q3**2/(q1*q2)
+                  + (8./9. * r0**4 * (nq1 * nq2 * q3**2)/(q1**2 * q2**2 * nq3) *
+                     (2.*q3**2 - q1**2 - q2**2)) ))
 
     print('ntri = ',ggg.ntri)
     print('gam0 = ',ggg.gam0)
@@ -671,7 +669,7 @@ def test_ggg():
     # not super accurate.
     np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=0.2 * tol_factor, atol=1.e-7)
     np.testing.assert_allclose(np.log(np.abs(ggg.gam0)),
-                                  np.log(np.abs(true_gam0)), atol=0.2 * tol_factor)
+                               np.log(np.abs(true_gam0)), atol=0.2 * tol_factor)
 
     print('gam1 = ',ggg.gam1)
     print('true_gam1 = ',true_gam1)
@@ -680,7 +678,7 @@ def test_ggg():
     print('max rel diff = ',np.max(np.abs((ggg.gam1 - true_gam1)/true_gam1)))
     np.testing.assert_allclose(ggg.gam1, true_gam1, rtol=0.1 * tol_factor)
     np.testing.assert_allclose(np.log(np.abs(ggg.gam1)),
-                                  np.log(np.abs(true_gam1)), atol=0.1 * tol_factor)
+                               np.log(np.abs(true_gam1)), atol=0.1 * tol_factor)
 
     print('gam2 = ',ggg.gam2)
     print('true_gam2 = ',true_gam2)
@@ -690,7 +688,7 @@ def test_ggg():
     np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=0.1 * tol_factor)
     print('max rel diff for log = ',np.max(np.abs((ggg.gam2 - true_gam2)/true_gam2)))
     np.testing.assert_allclose(np.log(np.abs(ggg.gam2)),
-                                  np.log(np.abs(true_gam2)), atol=0.1 * tol_factor)
+                               np.log(np.abs(true_gam2)), atol=0.1 * tol_factor)
 
     print('gam3 = ',ggg.gam3)
     print('true_gam3 = ',true_gam3)
@@ -699,7 +697,7 @@ def test_ggg():
     print('max rel diff = ',np.max(np.abs((ggg.gam3 - true_gam3)/true_gam3)))
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=0.1 * tol_factor)
     np.testing.assert_allclose(np.log(np.abs(ggg.gam3)),
-                                  np.log(np.abs(true_gam3)), atol=0.1 * tol_factor)
+                               np.log(np.abs(true_gam3)), atol=0.1 * tol_factor)
 
     # We check the accuracy of the Map3 calculation below in test_map3.
     # Here we just check that it runs, round trips correctly through an output file,
@@ -879,25 +877,25 @@ def test_map3():
     nq3 = np.abs(q3)**2
 
     true_gam0 = ((-2.*np.pi * gamma0**3)/(3. * L**2 * r0**4) *
-                    np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) * (nq1*nq2*nq3) )
+                 np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) * (nq1*nq2*nq3) )
 
     true_gam1 = ((-2.*np.pi * gamma0**3)/(3. * L**2 * r0**4) *
-                    np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
-                    (nq1*nq2*nq3 - 8./3. * r0**2 * q1**2*nq2*nq3/(q2*q3)
-                     + (8./9. * r0**4 * (q1**2 * nq2 * nq3)/(nq1 * q2**2 * q3**2) *
-                         (2.*q1**2 - q2**2 - q3**2)) ))
+                 np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
+                 (nq1*nq2*nq3 - 8./3. * r0**2 * q1**2*nq2*nq3/(q2*q3)
+                  + (8./9. * r0**4 * (q1**2 * nq2 * nq3)/(nq1 * q2**2 * q3**2) *
+                     (2.*q1**2 - q2**2 - q3**2)) ))
 
     true_gam2 = ((-2.*np.pi * gamma0**3)/(3. * L**2 * r0**4) *
-                    np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
-                    (nq1*nq2*nq3 - 8./3. * r0**2 * nq1*q2**2*nq3/(q1*q3)
-                     + (8./9. * r0**4 * (nq1 * q2**2 * nq3)/(q1**2 * nq2 * q3**2) *
-                         (2.*q2**2 - q1**2 - q3**2)) ))
+                 np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
+                 (nq1*nq2*nq3 - 8./3. * r0**2 * nq1*q2**2*nq3/(q1*q3)
+                  + (8./9. * r0**4 * (nq1 * q2**2 * nq3)/(q1**2 * nq2 * q3**2) *
+                     (2.*q2**2 - q1**2 - q3**2)) ))
 
     true_gam3 = ((-2.*np.pi * gamma0**3)/(3. * L**2 * r0**4) *
-                    np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
-                    (nq1*nq2*nq3 - 8./3. * r0**2 * nq1*nq2*q3**2/(q1*q2)
-                     + (8./9. * r0**4 * (nq1 * nq2 * q3**2)/(q1**2 * q2**2 * nq3) *
-                         (2.*q3**2 - q1**2 - q2**2)) ))
+                 np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
+                 (nq1*nq2*nq3 - 8./3. * r0**2 * nq1*nq2*q3**2/(q1*q2)
+                  + (8./9. * r0**4 * (nq1 * nq2 * q3**2)/(q1**2 * q2**2 * nq3) *
+                     (2.*q3**2 - q1**2 - q2**2)) ))
 
     ggg.gam0r = true_gam0.real
     ggg.gam1r = true_gam1.real

@@ -16,6 +16,10 @@ import logging
 import sys
 import os
 import time
+import urllib
+import unittest
+import warnings
+from contextlib import contextmanager
 
 def get_from_wiki(file_name, host=None):
     """We host some larger files used for the test suite separately on the TreeCorr wiki repo
@@ -39,7 +43,8 @@ def get_from_wiki(file_name, host=None):
         # urllib.request.urlretrieve(url,local_file_name)
         # The above line doesn't work very well with the SSL certificate that github puts on it.
         # It works fine in a web browser, but on my laptop I get:
-        # urllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:600)>
+        # urllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate
+        #                        verify failed (_ssl.c:600)>
         # The solution is to open a context that doesn't do ssl verification.
         # But that can only be done with urlopen, not urlretrieve.  So, here is the solution.
         # cf. http://stackoverflow.com/questions/7243750/download-file-from-web-in-python-3
@@ -151,7 +156,6 @@ class CaptureLog(object):
 
 # Replicate a small part of the nose package to get the `assert_raises` function/context-manager
 # without relying on nose as a dependency.
-import unittest
 class Dummy(unittest.TestCase):
     def nop():
         pass
@@ -165,8 +169,6 @@ if False:
     # So just use our own (working) implementation for all Python versions.
     assert_warns = getattr(_t, 'assertWarns')
 else:
-    from contextlib import contextmanager
-    import warnings
     @contextmanager
     def assert_warns_context(wtype):
         # When used as a context manager
@@ -175,7 +177,7 @@ else:
             yield w
         assert len(w) >= 1, "Expected warning %s was not raised."%(wtype)
         assert any([issubclass(ww.category, wtype) for ww in w]), \
-                "Warning raised was the wrong type (got %s, expected %s)"%(
+            "Warning raised was the wrong type (got %s, expected %s)"%(
                 w[0].category, wtype)
 
     def assert_warns(wtype, *args, **kwargs):
@@ -203,7 +205,7 @@ class profile(object):
         self.nlines = nlines
 
     def __enter__(self):
-        import cProfile, pstats
+        import cProfile
         self.pr = cProfile.Profile()
         self.pr.enable()
         return self
@@ -215,12 +217,12 @@ class profile(object):
         ps.print_stats(self.nlines)
 
 
-def do_pickle(obj1, func = lambda x : x):
+def do_pickle(obj1, func=lambda x : x):
     """Check that the object is picklable.  Also that it has basic == and != functionality.
     """
     try:
         import cPickle as pickle
-    except:
+    except ImportError:
         import pickle
     import copy
     print('Try pickling ',str(obj1))
@@ -249,5 +251,3 @@ def do_pickle(obj1, func = lambda x : x):
     assert obj4 is not obj1
     f4 = func(obj4)
     assert f4 == f1
-
-

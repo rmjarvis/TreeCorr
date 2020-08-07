@@ -14,15 +14,14 @@
 import os
 import sys
 import numpy as np
-import treecorr
 
 from treecorr.reader import FitsReader, HdfReader, PandasReader, AsciiReader
-from test_helper import get_from_wiki, assert_raises, assert_warns, timer
+from test_helper import get_from_wiki, assert_raises, timer
 
 @timer
 def test_fits_reader():
     try:
-        import fitsio
+        import fitsio  # noqa: F401
     except ImportError:
         print('Skipping FitsReader tests, since fitsio not installed.')
         return
@@ -116,7 +115,7 @@ def test_fits_reader():
 @timer
 def test_hdf_reader():
     try:
-        import h5py
+        import h5py  # noqa: F401
     except ImportError:
         print('Skipping HdfReader tests, since h5py not installed.')
         return
@@ -212,7 +211,7 @@ def _test_ascii_reader(r, has_names=True):
         assert_raises(ValueError, r.check_valid_ext, '0')
         assert_raises(ValueError, r.check_valid_ext, 1)
         r.check_valid_ext(None)
-        assert r.default_ext == None
+        assert r.default_ext is None
 
         # Default ext is "in" reader
         assert None in r
@@ -325,7 +324,7 @@ def test_ascii_reader():
 @timer
 def test_pandas_reader():
     try:
-        import pandas
+        import pandas  # noqa: F401
     except ImportError:
         print('Skipping PandasReader tests, since pandas not installed.')
         return

@@ -18,9 +18,8 @@ import os
 import coord
 import time
 import shutil
-import sys
 
-from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog
+from test_helper import get_script_name, do_pickle, CaptureLog
 from test_helper import assert_raises, timer, assert_warns
 
 @timer
@@ -284,7 +283,8 @@ def test_linear_binning():
 
     # Check the use of sep_units
     # radians
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='radians', bin_type='Linear')
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='radians',
+                                bin_type='Linear')
     print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
     np.testing.assert_almost_equal(nn.min_sep, 5.)
     np.testing.assert_almost_equal(nn.max_sep, 20.)
@@ -300,7 +300,8 @@ def test_linear_binning():
     assert len(nn.logr) == nn.nbins
 
     # arcsec
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcsec', bin_type='Linear')
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcsec',
+                                bin_type='Linear')
     print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
     np.testing.assert_almost_equal(nn.min_sep, 5.)
     np.testing.assert_almost_equal(nn.max_sep, 20.)
@@ -315,7 +316,8 @@ def test_linear_binning():
     assert len(nn.logr) == nn.nbins
 
     # arcmin
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcmin', bin_type='Linear')
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcmin',
+                                bin_type='Linear')
     print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
     np.testing.assert_almost_equal(nn.min_sep, 5.)
     np.testing.assert_almost_equal(nn.max_sep, 20.)
@@ -329,7 +331,8 @@ def test_linear_binning():
     assert len(nn.logr) == nn.nbins
 
     # degrees
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='degrees', bin_type='Linear')
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='degrees',
+                                bin_type='Linear')
     print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
     np.testing.assert_almost_equal(nn.min_sep, 5.)
     np.testing.assert_almost_equal(nn.max_sep, 20.)
@@ -343,7 +346,8 @@ def test_linear_binning():
     assert len(nn.logr) == nn.nbins
 
     # hours
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='hours', bin_type='Linear')
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='hours',
+                                bin_type='Linear')
     print(nn.min_sep,nn.max_sep,nn.bin_size,nn.nbins)
     np.testing.assert_almost_equal(nn.min_sep, 5.)
     np.testing.assert_almost_equal(nn.max_sep, 20.)
@@ -488,7 +492,7 @@ def test_direct_count():
     logger = treecorr.config.setup_logger(0)
     treecorr.corr2(config, logger)
     corr2_output = np.genfromtxt(os.path.join('output','nn_direct.out'), names=True,
-                                    skip_header=1)
+                                 skip_header=1)
     print('corr2_output = ',corr2_output)
     print('corr2_output.dtype = ',corr2_output.dtype)
     print('rnom = ',dd.rnom)
@@ -519,7 +523,7 @@ def test_direct_count():
     p = subprocess.Popen( [corr2_exe,"configs/nn_direct.yaml","verbose=0"] )
     p.communicate()
     corr2_output = np.genfromtxt(os.path.join('output','nn_direct.out'), names=True,
-                                    skip_header=1)
+                                 skip_header=1)
     np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
 
     # Repeat with binslop = 0, since the code flow is different from brute=True
@@ -616,7 +620,7 @@ def test_direct_count():
         dd7.process(cat1, cat2, metric='Rlens')
 
     try:
-        import fitsio
+        import fitsio  # noqa: F401
     except ImportError:
         print('Skipping FITS tests, since fitsio is not installed')
         return
@@ -669,33 +673,21 @@ def test_direct_spherical():
     x1 /= r1;  y1 /= r1;  z1 /= r1
     x2 /= r2;  y2 /= r2;  z2 /= r2
 
-    north_pole = coord.CelestialCoord(0*coord.radians, 90*coord.degrees)
-
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
     true_npairs = np.zeros(nbins, dtype=int)
     true_weight = np.zeros(nbins, dtype=float)
     bin_size = (log_max_sep - log_min_sep) / nbins
 
-    c1 = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra1, dec1)]
-    c2 = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra2, dec2)]
     for i in range(ngal):
         for j in range(ngal):
             rsq = (x1[i]-x2[j])**2 + (y1[i]-y2[j])**2 + (z1[i]-z2[j])**2
             r = np.sqrt(rsq)
             r *= coord.radians / coord.degrees
-            logr = np.log(r)
 
             index = np.floor(np.log(r/min_sep) / bin_size).astype(int)
             if index < 0 or index >= nbins:
                 continue
-
-            # Rotate shears to coordinates where line connecting is horizontal.
-            # Original orientation is where north is up.
-            theta1 = 90*coord.degrees - c1[i].angleBetween(north_pole, c2[j])
-            theta2 = 90*coord.degrees - c2[j].angleBetween(c1[i], north_pole)
-            exp2theta1 = np.cos(2*theta1) + 1j * np.sin(2*theta1)
-            expm2theta2 = np.cos(2*theta2) - 1j * np.sin(2*theta2)
 
             ww = w1[i] * w2[j]
 
@@ -794,8 +786,6 @@ def test_pairwise():
 
     rsq = (x1-x2)**2 + (y1-y2)**2
     r = np.sqrt(rsq)
-    logr = np.log(r)
-    expmialpha = ((x1-x2) - 1j*(y1-y2)) / r
 
     ww = w1 * w2
 
@@ -1167,7 +1157,7 @@ def test_direct_linear():
     logger = treecorr.config.setup_logger(0)
     treecorr.corr2(config, logger)
     corr2_output = np.genfromtxt(os.path.join('output','nn_linear.out'), names=True,
-                                    skip_header=1)
+                                 skip_header=1)
     print('corr2_output = ',corr2_output)
     print('corr2_output.dtype = ',corr2_output.dtype)
     print('rnom = ',dd.rnom)
@@ -1269,7 +1259,7 @@ def test_nn():
     # we still have L in there.)
     np.testing.assert_allclose(xi, true_xi, rtol=0.1*tol_factor)
     np.testing.assert_allclose(np.log(np.abs(xi)), np.log(np.abs(true_xi)),
-                                  atol=0.1*tol_factor)
+                               atol=0.1*tol_factor)
 
     simple_xi, simple_varxi = dd.calculateXi(rr)
     print('simple xi = ',simple_xi)
@@ -1288,12 +1278,12 @@ def test_nn():
     assert 380 < cat.field.nTopLevelNodes < 410
     assert rand.field.nTopLevelNodes == 1024
     dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                min_top=9)
+                                 min_top=9)
     dd2.process(cat)
     print('d top = ',cat.field.nTopLevelNodes)
     assert 600 < cat.field.nTopLevelNodes < 610
     dd3 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
-                                min_top=10)
+                                 min_top=10)
     dd3.process(cat)
     print('d top = ',cat.field.nTopLevelNodes)
     assert cat.field.nTopLevelNodes == 1024
@@ -1521,7 +1511,7 @@ def test_3d():
     print('max rel diff = ',max(abs((simple_xi - true_xi)/true_xi)))
     np.testing.assert_allclose(simple_xi, true_xi, rtol=0.1*tol_factor)
     np.testing.assert_allclose(np.log(np.abs(simple_xi)), np.log(np.abs(true_xi)),
-                                  rtol=0.1*tol_factor)
+                               rtol=0.1*tol_factor)
 
     xi, varxi = dd.calculateXi(rr,dr)
     print('xi = ',xi)
@@ -1531,7 +1521,7 @@ def test_3d():
     print('max rel diff = ',max(abs((xi - true_xi)/true_xi)))
     np.testing.assert_allclose(xi, true_xi, rtol=0.1*tol_factor)
     np.testing.assert_allclose(np.log(np.abs(xi)), np.log(np.abs(true_xi)),
-                                  rtol=0.1*tol_factor)
+                               rtol=0.1*tol_factor)
 
     try:
         import fitsio
@@ -1573,7 +1563,7 @@ def test_3d():
     xi, varxi = dd.calculateXi(rr,dr)
     np.testing.assert_allclose(xi, true_xi, rtol=0.1*tol_factor)
     np.testing.assert_allclose(np.log(np.abs(xi)), np.log(np.abs(true_xi)),
-                                  rtol=0.1*tol_factor)
+                               rtol=0.1*tol_factor)
 
 
 @timer
@@ -1715,9 +1705,8 @@ def test_list():
     np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-2)
 
     # Repeat with exe to test -f flag
-    p = subprocess.Popen( [corr2_exe, "-f", "yaml", "configs/nn_list4.config", "verbose=3"],
+    p = subprocess.Popen([corr2_exe, "-f", "yaml", "configs/nn_list4.config", "verbose=3"],
                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    output = p.stdout.read()
     p.communicate()
     corr2_output = np.genfromtxt(os.path.join('output','nn_list4.out'),names=True,skip_header=1)
     print('xi = ',xi)
@@ -1786,7 +1775,8 @@ def test_split():
     print('middle: time = ',t1-t0)
     print('npairs = ',dd_middle.npairs)
 
-    dd_random1 = treecorr.NNCorrelation(bin_size=0.1, min_sep=5., max_sep=25., split_method='random')
+    dd_random1 = treecorr.NNCorrelation(bin_size=0.1, min_sep=5., max_sep=25.,
+                                        split_method='random')
     t0 = time.time()
     dd_random1.process(cat)
     t1 = time.time()
@@ -1796,7 +1786,8 @@ def test_split():
     # Random should be non-deterministic, so check a second version of it.
     # Need to clear the cache to get it to rebuild though.
     cat.nfields.clear()
-    dd_random2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=5., max_sep=25., split_method='random')
+    dd_random2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=5., max_sep=25.,
+                                        split_method='random')
     t0 = time.time()
     dd_random2.process(cat)
     t1 = time.time()

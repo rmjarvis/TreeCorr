@@ -17,7 +17,7 @@ import treecorr
 import os
 import coord
 
-from test_helper import get_script_name, do_pickle, CaptureLog
+from test_helper import do_pickle, CaptureLog
 from test_helper import assert_raises, timer, assert_warns
 
 @timer
@@ -56,8 +56,6 @@ def test_direct():
         # But we can at least do all the pairs for each entry in cat1 at once with arrays.
         rsq = (x1[i]-x2)**2 + (y1[i]-y2)**2
         r = np.sqrt(rsq)
-        logr = np.log(r)
-        expmialpha = ((x1[i]-x2) - 1j*(y1[i]-y2)) / r
 
         ww = w1[i] * w2
         xi = ww * k1[i] * k2
@@ -198,20 +196,15 @@ def test_direct_spherical():
     x1 /= r1;  y1 /= r1;  z1 /= r1
     x2 /= r2;  y2 /= r2;  z2 /= r2
 
-    north_pole = coord.CelestialCoord(0*coord.radians, 90*coord.degrees)
-
     true_npairs = np.zeros(nbins, dtype=int)
     true_weight = np.zeros(nbins, dtype=float)
     true_xi = np.zeros(nbins, dtype=float)
 
-    c1 = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra1, dec1)]
-    c2 = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra2, dec2)]
     for i in range(ngal):
         for j in range(ngal):
             rsq = (x1[i]-x2[j])**2 + (y1[i]-y2[j])**2 + (z1[i]-z2[j])**2
             r = np.sqrt(rsq)
             r *= coord.radians / coord.degrees
-            logr = np.log(r)
 
             index = np.floor(np.log(r/min_sep) / bin_size).astype(int)
             if index < 0 or index >= nbins:
@@ -303,8 +296,6 @@ def test_pairwise():
 
     rsq = (x1-x2)**2 + (y1-y2)**2
     r = np.sqrt(rsq)
-    logr = np.log(r)
-    expmialpha = ((x1-x2) - 1j*(y1-y2)) / r
 
     ww = w1 * w2
     xi = ww * k1 * k2

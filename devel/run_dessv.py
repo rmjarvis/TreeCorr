@@ -93,7 +93,7 @@ def run_dessv(source_file, lens_file, use_patches):
                               **patch_kwargs)
 
     # Configuration of correlation functions.
-    bin_config = dict(bin_size=0.2, min_sep=10., max_sep=200., 
+    bin_config = dict(bin_size=0.2, min_sep=10., max_sep=200.,
                       bin_slop=0.1, sep_units='arcmin',
                       verbose=1, output_dots=False)
     if use_patches:

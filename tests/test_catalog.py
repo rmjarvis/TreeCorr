@@ -17,7 +17,6 @@ import os
 import sys
 import time
 import coord
-import warnings
 import gc
 import copy
 import pickle
@@ -174,7 +173,7 @@ def test_ascii():
     config['ok_flag'] = 4
     cat3 = treecorr.Catalog(file_name, config)
     np.testing.assert_almost_equal(cat3.w[np.logical_or(flags==0, flags==4)],
-                                      w[np.logical_or(flags==0, flags==4)])
+                                   w[np.logical_or(flags==0, flags==4)])
     np.testing.assert_almost_equal(cat3.w[np.logical_and(flags!=0, flags!=4)], 0.)
 
     # Check ignore_flag
@@ -417,7 +416,7 @@ def test_ascii():
     do_pickle(cat10)
 
     # Check repr.  Usually too long, but cat13 is short enough to eval properly.
-    from numpy import array
+    from numpy import array  # noqa: F401
     original = np.get_printoptions()
     np.set_printoptions(precision=20)
     #print('cat13 = ',repr(cat13))
@@ -469,7 +468,7 @@ def test_ascii():
 @timer
 def test_fits():
     try:
-        import fitsio
+        import fitsio  # noqa: F401
     except ImportError:
         print('Skipping FITS tests, since fitsio is not installed')
         return
@@ -478,7 +477,7 @@ def test_fits():
 @timer
 def test_hdf5():
     try:
-        import h5py
+        import h5py  # noqa: F401
     except ImportError:
         print("Skipping HDF5 tests, since h5py is not installed")
         return
@@ -629,7 +628,7 @@ def _test_fits_hdf(filename):
     do_pickle(cat4)
 
     # Check repr.  Usually too long, but cat13 is short enough to eval properly.
-    from numpy import array
+    from numpy import array  # noqa: F401
     original = np.get_printoptions()
     np.set_printoptions(precision=20)
     #print('cat5 = ',repr(cat5))
@@ -1335,7 +1334,8 @@ def test_nan():
     assert "NaNs found in g2 column." in cl.output
     assert "NaNs found in w column." in cl.output
     assert "NaNs found in wpos column." in cl.output
-    mask = np.isnan(ra) | np.isnan(dec) | np.isnan(r) | np.isnan(g1) | np.isnan(g2) | np.isnan(wpos) | np.isnan(w)
+    mask = (np.isnan(ra) | np.isnan(dec) | np.isnan(r) |
+            np.isnan(g1) | np.isnan(g2) | np.isnan(wpos) | np.isnan(w))
     good = ~mask
     assert cat2.ntot == nobj
     assert cat2.nobj == np.sum(good)
@@ -1446,11 +1446,14 @@ def test_nan2():
     np.testing.assert_allclose(cat1.varg, cat2.varg)
     np.testing.assert_allclose(cat1.vark, cat2.vark)
 
-    # Catalog generation with > 200 nans, to test the other pathway
-    # in the warnings code.  No other immediate tests.
-    g1[:1000] = np.nan
-    cat2c = treecorr.Catalog(ra=ra, dec=dec, g1=g1, g2=g2, ra_units='deg', dec_units='deg')
-
+    # Catalog generation with > 20 nans, to test the other pathway in the warnings code.
+    g1[:100] = np.nan
+    with CaptureLog() as cl:
+        cat2c = treecorr.Catalog(ra=ra, dec=dec, g1=g1, g2=g2, ra_units='deg', dec_units='deg',
+                                 logger=cl.logger)
+    assert cat2c.nobj == cat2c.ntot == 9900
+    print(cl.output)
+    assert "Skipping rows starting" in cl.output
 
 @timer
 def test_contiguous():
@@ -1634,7 +1637,7 @@ def test_write():
     assert cat2r_asc.k is None
 
     try:
-        import fitsio
+        import fitsio  # noqa: F401
     except ImportError:
         print('Skipping FITS tests, since fitsio is not installed')
         return
@@ -1687,7 +1690,6 @@ def test_field():
 
     ra = rng.normal(11.34, 0.9, (ngal,) )
     dec = rng.normal(-48.12, 4.3, (ngal,) )
-    r = rng.normal(1024, 230, (ngal,) )
 
     k = rng.normal(0,s, (ngal,) )
     g1 = rng.normal(0,s, (ngal,) )
@@ -1744,6 +1746,9 @@ def test_field():
     assert cat1.field is gfield1
     assert cat2.field is gfield2
     assert cat3.field is gfield3
+    assert gfield1b is gfield1
+    assert gfield2b is gfield2
+    assert gfield3b is gfield3
     print('gfield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
 
@@ -1763,6 +1768,9 @@ def test_field():
     assert cat1.field is kfield1
     assert cat2.field is kfield2
     assert cat3.field is kfield3
+    assert kfield1b is kfield1
+    assert kfield2b is kfield2
+    assert kfield3b is kfield3
     print('kfield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
 
@@ -1781,6 +1789,9 @@ def test_field():
     assert cat1.field is kfield1   # SimpleFields don't supplant the field attribute
     assert cat2.field is kfield2
     assert cat3.field is kfield3
+    assert nsimplefield1b is nsimplefield1
+    assert nsimplefield2b is nsimplefield2
+    assert nsimplefield3b is nsimplefield3
     print('nsimplefield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
 
@@ -1800,6 +1811,9 @@ def test_field():
     assert cat1.field is kfield1   # SimpleFields don't supplant the field attribute
     assert cat2.field is kfield2
     assert cat3.field is kfield3
+    assert gsimplefield1b is gsimplefield1
+    assert gsimplefield2b is gsimplefield2
+    assert gsimplefield3b is gsimplefield3
     print('gsimplefield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
 
@@ -1819,6 +1833,9 @@ def test_field():
     assert cat1.field is kfield1   # SimpleFields don't supplant the field attribute
     assert cat2.field is kfield2
     assert cat3.field is kfield3
+    assert ksimplefield1b is ksimplefield1
+    assert ksimplefield2b is ksimplefield2
+    assert ksimplefield3b is ksimplefield3
     print('ksimplefield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
 

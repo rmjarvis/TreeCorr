@@ -36,7 +36,7 @@ def get_correlation_length_matrix(size, e1, e2):
 def corr2d(x, y, kappa1, kappa2, w=None, rmax=1., bins=513, return_counts=False):
 
     hrange = [ [-rmax,rmax], [-rmax,rmax] ]
-    
+
     ind = np.linspace(0,len(x)-1,len(x)).astype(int)
     i1, i2 = np.meshgrid(ind,ind)
     i1 = i1.reshape(len(x)**2)
@@ -88,7 +88,7 @@ def test_twod():
     N = 200
     x = rng.uniform(-20, 20, N)
     y = rng.uniform(-20, 20, N)
-    
+
     # Give the points a multivariate Gaussian random field for kappa and gamma
     L1 = [[0.33, 0.09], [-0.01, 0.26]]  # Some arbitrary correlation matrix
     invL1 = np.linalg.inv(L1)
@@ -111,7 +111,6 @@ def test_twod():
     gamma2 = rng.multivariate_normal(np.zeros(N), K*(A**2))
     gamma2 += rng.normal(scale=sigma, size=N)
     gamma = gamma1 + 1j * gamma2
-    gamma_err = kappa_err
 
     # Calculate the 2D correlation using brute force
     max_sep = 21.
@@ -176,7 +175,8 @@ def test_twod():
 
     xi_brut = corr2d(x, y, np.ones_like(kappa), kappa, w=1./kappa_err**2, rmax=max_sep, bins=nbins)
     # Check very small, but non-zeo min_sep
-    nk = treecorr.NKCorrelation(min_sep=1.e-6, max_sep=max_sep, nbins=nbins, bin_type='TwoD', brute=True)
+    nk = treecorr.NKCorrelation(min_sep=1.e-6, max_sep=max_sep, nbins=nbins, bin_type='TwoD',
+                                brute=True)
     nk.process(cat2, cat2)
     print('max abs diff = ',np.max(np.abs(nk.xi - xi_brut)))
     print('max rel diff = ',np.max(np.abs(nk.xi - xi_brut)/np.abs(nk.xi)))

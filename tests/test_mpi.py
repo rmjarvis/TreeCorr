@@ -12,14 +12,13 @@
 #    and/or other materials provided with the distribution.
 
 from __future__ import print_function
-import treecorr
 import unittest
 import sys
 if sys.version_info > (3,0):
     from mockmpi import mock_mpiexec
 
 from test_helper import timer
-from mpi_test import *
+from mpi_test import setup, do_mpi_gg, do_mpi_ng, do_mpi_nk, do_mpi_nn, do_mpi_kk, do_mpi_kg
 
 @unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer

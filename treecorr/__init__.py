@@ -18,7 +18,10 @@ from ._version import __version__, __version_info__
 # Also let treecorr.version show the version.
 version = __version__
 
-import os,cffi,glob
+import os
+import cffi
+import glob
+
 # Set module level attributes for the include directory and the library file name.
 treecorr_dir = os.path.dirname(__file__)
 include_dir = os.path.join(treecorr_dir,'include')

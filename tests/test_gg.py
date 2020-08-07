@@ -15,12 +15,10 @@ from __future__ import print_function
 import numpy as np
 import os
 import coord
-import time
 import treecorr
 
-from test_helper import get_from_wiki, get_script_name, do_pickle, CaptureLog
+from test_helper import get_from_wiki, do_pickle, CaptureLog
 from test_helper import assert_raises, timer, assert_warns
-from numpy import sin, cos, tan, arcsin, arccos, arctan, arctan2, pi
 
 @timer
 def test_direct():
@@ -61,7 +59,6 @@ def test_direct():
         # But we can at least do all the pairs for each entry in cat1 at once with arrays.
         rsq = (x1[i]-x2)**2 + (y1[i]-y2)**2
         r = np.sqrt(rsq)
-        logr = np.log(r)
         expmialpha = ((x1[i]-x2) - 1j*(y1[i]-y2)) / r
 
         ww = w1[i] * w2
@@ -254,7 +251,6 @@ def test_direct_spherical():
         for j in range(ngal):
             rsq = (x1[i]-x2[j])**2 + (y1[i]-y2[j])**2 + (z1[i]-z2[j])**2
             r = np.sqrt(rsq)
-            logr = np.log(r)
 
             index = np.floor(np.log(r/rad_min_sep) / bin_size).astype(int)
             if index < 0 or index >= nbins:
@@ -332,8 +328,6 @@ def test_direct_spherical():
     np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(gg.xip, true_xip.real, rtol=1.e-3, atol=1.e-6)
     np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-3, atol=1.e-6)
-    diff = np.abs(gg.xim - true_xim.real)
-    reldiff = diff / true_xim.real
     np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-3, atol=2.e-4)
     np.testing.assert_allclose(gg.xim_im, true_xim.imag, rtol=1.e-3, atol=2.e-4)
 
@@ -379,7 +373,6 @@ def test_pairwise():
 
     rsq = (x1-x2)**2 + (y1-y2)**2
     r = np.sqrt(rsq)
-    logr = np.log(r)
     expmialpha = ((x1-x2) - 1j*(y1-y2)) / r
 
     ww = w1 * w2
@@ -715,7 +708,7 @@ def test_mapsq():
     #          = 576 pi gamma0^2 r0^6/(L^2 R^4) exp(-R^2/2r0^2) (I4(R^2/2r0^2)
     # where I4 is the modified Bessel function with nu=4.
     try:
-        from scipy.special import iv, jv
+        from scipy.special import iv
     except ImportError:
         # Don't require scipy if the user doesn't have it.
         print('Skipping tests of Schneider aperture mass, since scipy.special not available.')
@@ -825,7 +818,7 @@ def test_spherical():
     g1 = -gamma0 * np.exp(-r2/2./r0**2) * (x**2-y**2)/r0**2
     g2 = -gamma0 * np.exp(-r2/2./r0**2) * (2.*x*y)/r0**2
     r = np.sqrt(r2)
-    theta = arctan2(y,x)
+    theta = np.arctan2(y,x)
 
     gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
                                 verbose=1)
@@ -837,7 +830,7 @@ def test_spherical():
     # Test this around several central points
     if __name__ == '__main__':
         ra0_list = [ 0., 1., 1.3, 232., 0. ]
-        dec0_list = [ 0., -0.3, 1.3, -1.4, pi/2.-1.e-6 ]
+        dec0_list = [ 0., -0.3, 1.3, -1.4, np.pi/2.-1.e-6 ]
     else:
         ra0_list = [ 232.]
         dec0_list = [ -1.4 ]
@@ -849,38 +842,38 @@ def test_spherical():
         # c = 2*asin(r/2)  (lambert projection)
         # B = Pi/2 - theta
 
-        c = 2.*arcsin(r/2.)
-        a = pi/2. - dec0
-        B = pi/2. - theta
+        c = 2.*np.arcsin(r/2.)
+        a = np.pi/2. - dec0
+        B = np.pi/2. - theta
         B[x<0] *= -1.
-        B[B<-pi] += 2.*pi
-        B[B>pi] -= 2.*pi
+        B[B<-np.pi] += 2.*np.pi
+        B[B>np.pi] -= 2.*np.pi
 
         # Solve the rest of the triangle with spherical trig:
-        cosb = cos(a)*cos(c) + sin(a)*sin(c)*cos(B)
-        b = arccos(cosb)
-        cosA = (cos(a) - cos(b)*cos(c)) / (sin(b)*sin(c))
-        #A = arccos(cosA)
+        cosb = np.cos(a)*np.cos(c) + np.sin(a)*np.sin(c)*np.cos(B)
+        b = np.arccos(cosb)
+        cosA = (np.cos(a) - np.cos(b)*np.cos(c)) / (np.sin(b)*np.sin(c))
+        #A = np.arccos(cosA)
         A = np.zeros_like(cosA)
-        A[abs(cosA)<1] = arccos(cosA[abs(cosA)<1])
-        A[cosA<=-1] = pi
-        cosC = (cos(c) - cos(a)*cos(b)) / (sin(a)*sin(b))
-        #C = arccos(cosC)
+        A[abs(cosA)<1] = np.arccos(cosA[abs(cosA)<1])
+        A[cosA<=-1] = np.pi
+        cosC = (np.cos(c) - np.cos(a)*np.cos(b)) / (np.sin(a)*np.sin(b))
+        #C = np.arccos(cosC)
         C = np.zeros_like(cosC)
-        C[abs(cosC)<1] = arccos(cosC[abs(cosC)<1])
-        C[cosC<=-1] = pi
+        C[abs(cosC)<1] = np.arccos(cosC[abs(cosC)<1])
+        C[cosC<=-1] = np.pi
         C[x<0] *= -1.
 
         ra = ra0 - C
-        dec = pi/2. - b
+        dec = np.pi/2. - b
 
         # Rotate shear relative to local west
         # gamma_sph = exp(2i beta) * gamma
         # where beta = pi - (A+B) is the angle between north and "up" in the tangent plane.
-        beta = pi - (A+B)
+        beta = np.pi - (A+B)
         beta[x>0] *= -1.
-        cos2beta = cos(2.*beta)
-        sin2beta = sin(2.*beta)
+        cos2beta = np.cos(2.*beta)
+        sin2beta = np.sin(2.*beta)
         g1_sph = g1 * cos2beta - g2 * sin2beta
         g2_sph = g2 * cos2beta + g1 * sin2beta
 
@@ -912,9 +905,9 @@ def test_spherical():
     # One more center that can be done very easily.  If the center is the north pole, then all
     # the tangential shears are pure (positive) g1.
     ra0 = 0
-    dec0 = pi/2.
+    dec0 = np.pi/2.
     ra = theta
-    dec = pi/2. - 2.*arcsin(r/2.)
+    dec = np.pi/2. - 2.*np.arcsin(r/2.)
     gammat = -gamma0 * r2/r0**2 * np.exp(-r2/2./r0**2)
 
     cat = treecorr.Catalog(ra=ra, dec=dec, g1=gammat, g2=np.zeros_like(gammat), ra_units='rad',
@@ -945,7 +938,7 @@ def test_spherical():
     config['verbose'] = 0
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','gg_spherical.out'), names=True,
-                                    skip_header=1)
+                                 skip_header=1)
     print('gg.xip = ',gg.xip)
     print('from corr2 output = ',corr2_output['xip'])
     print('ratio = ',corr2_output['xip']/gg.xip)
@@ -968,7 +961,7 @@ def test_spherical():
 @timer
 def test_aardvark():
     try:
-        import fitsio
+        import fitsio  # noqa: F401
     except ImportError:
         print('Skipping Aardvark test, since fitsio is not installed')
         return
@@ -1037,7 +1030,7 @@ def test_aardvark():
     if __name__ == '__main__':
         treecorr.corr2(config)
         corr2_output = np.genfromtxt(os.path.join('output','Aardvark.out'), names=True,
-                                        skip_header=1)
+                                     skip_header=1)
         print('gg.xip = ',gg.xip)
         print('from corr2 output = ',corr2_output['xip'])
         print('ratio = ',corr2_output['xip']/gg.xip)
@@ -1193,8 +1186,8 @@ def test_haloellip():
     for i in range(nlens):
         # First build the signal as it appears in the coordinate system where the halo
         # is oriented along the x-axis
-        dx = rng.normal(0., 10., (nsource,))
-        dy = rng.normal(0., 10., (nsource,))
+        dx = rng.normal(0., R, (nsource,))
+        dy = rng.normal(0., R, (nsource,))
         z = dx + 1j * dy
         exp2iphi = z**2 / np.abs(z)**2
         source_g = e_a + e_b * exp2iphi**2

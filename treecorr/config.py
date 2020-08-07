@@ -17,10 +17,11 @@
 
 from __future__ import print_function
 import sys
-from . import _lib
 import coord
 import numpy as np
 import warnings
+import logging
+import os
 
 
 def parse_variable(config, v):
@@ -42,7 +43,7 @@ def parse_variable(config, v):
         if value[-1] not in ['}',']',')']:
             raise ValueError('List symbol %s not properly matched'%value[0])
         values = value[1:-1].split(',')
-        values = [ v.strip() for v in values ]
+        values = [ vv.strip() for vv in values ]
     else:
         values = value.split() # on whitespace
     if len(values) == 1:
@@ -71,11 +72,15 @@ def parse_bool(value):
             return False
         else:
             try:
-                val = bool(int(value))
-                return val
+                bool(int(value))
             except Exception:
                 raise ValueError("Unable to parse %s as a bool."%value)
-    elif isinstance(value,(bool, int, np.bool_)):
+            else:
+                return int(value)
+    elif isinstance(value,(bool, np.bool_)):
+        return value
+    elif isinstance(value,int):
+        # Note: integers aren't converted to bool, since brute distinguishes 1 vs 2 vs True.
         return value
     else:
         raise ValueError("Unable to parse %s as a bool."%value)
@@ -163,11 +168,10 @@ def setup_logger(verbose, log_file=None):
 
     :returns:           The logging.Logger object to use.
     """
-    import logging, os
-    logging_levels = {  0: logging.CRITICAL,
-                        1: logging.WARNING,
-                        2: logging.INFO,
-                        3: logging.DEBUG }
+    logging_levels = { 0: logging.CRITICAL,
+                       1: logging.WARNING,
+                       2: logging.INFO,
+                       3: logging.DEBUG }
     logging_level = logging_levels[verbose]
 
     # Setup logging to go to sys.stdout or (if requested) to an output file
@@ -411,6 +415,3 @@ def merge_config(config, kwargs, valid_params, aliases=None):
             if key in valid_params and key not in kwargs:
                 kwargs[key] = value
     return check_config(kwargs, valid_params, aliases)
-
-
-

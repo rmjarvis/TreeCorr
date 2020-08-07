@@ -722,7 +722,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         Sm = np.empty_like(s)
         Sm[s<2.] = 1./(ssqa*np.pi) * (sa*np.sqrt(4.-ssqa)*(6.-ssqa)
-                                                 -8.*(3.-ssqa)*np.arcsin(sa/2.))
+                                      -8.*(3.-ssqa)*np.arcsin(sa/2.))
         Sm[s>=2.] = 4.*(ssq[s>=2]-3.)/ssq[s>=2]
         # This already includes the extra ssq factor.
 

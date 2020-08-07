@@ -1,5 +1,8 @@
 from __future__ import print_function
-import sys,os,glob,re
+import sys
+import os
+import glob
+import re
 import select
 import tempfile
 import subprocess
@@ -38,7 +41,7 @@ sources = glob.glob(os.path.join('src','*.cpp'))
 
 headers = glob.glob(os.path.join('include','*.h'))
 
-copt =  {
+copt = {
     'gcc' : ['-fopenmp','-O3','-ffast-math'],
     'icc' : ['-openmp','-O3'],
     'clang' : ['-O3','-ffast-math', '-stdlib=libc++'],
@@ -47,7 +50,7 @@ copt =  {
     'clang w/ manual OpenMP' : ['-Xpreprocessor','-fopenmp','-O3','-ffast-math', '-stdlib=libc++'],
     'unknown' : [],
 }
-lopt =  {
+lopt = {
     'gcc' : ['-fopenmp'],
     'icc' : ['-openmp'],
     'clang' : ['-stdlib=libc++'],
@@ -383,7 +386,7 @@ def query_yes_no(question, default="yes", timeout=30):
     """
     valid = {"yes":"yes",   "y":"yes",  "ye":"yes",
              "no":"no",     "n":"no"}
-    if default == None:
+    if default is None:
         prompt = " [y/n] "
     elif default == "yes":
         prompt = " [Y/n] "
@@ -413,7 +416,7 @@ def query_yes_no(question, default="yes", timeout=30):
 
 def check_ffi(compiler, cflags=[], lflags=[]):
     try:
-        import cffi
+        import cffi  # noqa: F401
     except ImportError:
         # Then cffi will need to be installed.
         # It requires libffi, so check if it is available.
@@ -547,10 +550,10 @@ class my_install_scripts( install_scripts ):  # For distutils
         install_scripts.run(self)
         self.distribution.script_install_dir = self.install_dir
 
-ext=Extension("treecorr._treecorr",
-              sources,
-              depends=headers,
-              undef_macros = undef_macros)
+ext = Extension("treecorr._treecorr",
+                sources,
+                depends=headers,
+                undef_macros=undef_macros)
 
 dependencies = ['numpy', 'cffi', 'pyyaml', 'LSSTDESC.Coord>=1.1']
 
@@ -569,24 +572,26 @@ else:
     raise RuntimeError("Unable to find version string in %s." % (version_file,))
 print('TreeCorr version is %s'%(treecorr_version))
 
-dist = setup(name="TreeCorr",
-      version=treecorr_version,
-      author="Mike Jarvis",
-      author_email="michael@jarvis.net",
-      description="Python module for computing 2-point correlation functions",
-      long_description=long_description,
-      license = "BSD License",
-      url="https://github.com/rmjarvis/TreeCorr",
-      download_url="https://github.com/rmjarvis/TreeCorr/releases/tag/v%s.zip"%treecorr_version,
-      packages=['treecorr'],
-      package_data={'treecorr' : headers },
-      ext_modules=[ext],
-      install_requires=dependencies,
-      cmdclass = {'build_ext': my_builder,
-                  'install_scripts': my_install_scripts,
-                  'easy_install': my_easy_install,
-                  },
-      scripts=scripts)
+dist = setup(
+    name="TreeCorr",
+    version=treecorr_version,
+    author="Mike Jarvis",
+    author_email="michael@jarvis.net",
+    description="Python module for computing 2-point correlation functions",
+    long_description=long_description,
+    license="BSD License",
+    url="https://github.com/rmjarvis/TreeCorr",
+    download_url="https://github.com/rmjarvis/TreeCorr/releases/tag/v%s.zip"%treecorr_version,
+    packages=['treecorr'],
+    package_data={'treecorr' : headers },
+    ext_modules=[ext],
+    install_requires=dependencies,
+    cmdclass={'build_ext': my_builder,
+              'install_scripts': my_install_scripts,
+              'easy_install': my_easy_install,
+              },
+    scripts=scripts
+)
 
 # I don't actually need these installed for TreeCorr, but I wanted to figure out how to do
 # it, so I played with it here.  distutils installs these automatically when the headers argument
@@ -598,7 +603,7 @@ dist = setup(name="TreeCorr",
 
 # Check if pandas and fitsio are installed.
 try:
-    import pandas
+    import pandas  # noqa: F401
 except ImportError:
     print("""
 NOTE: While not a required dependency, if you plan to use TreeCorr to read in
@@ -609,7 +614,7 @@ NOTE: While not a required dependency, if you plan to use TreeCorr to read in
 """)
 
 try:
-    import fitsio
+    import fitsio  # noqa: F401
 except ImportError:
     print("""
 NOTE: While not a required dependency, if you plan to use TreeCorr to read FITS
@@ -640,4 +645,3 @@ WARNING: The TreeCorr executables were installed in a directory not in your PATH
 if os.path.exists(local_tmp):
     print('Deleting temporary files in ',local_tmp)
     shutil.rmtree(local_tmp)
-

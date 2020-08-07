@@ -13,7 +13,6 @@
 
 from __future__ import print_function
 import numpy as np
-import time
 import coord
 import gc
 import treecorr
@@ -208,7 +207,6 @@ def test_get_near():
     field = cat.getNField()
     field.nTopLevelNodes
 
-    t0 = time.time()
     i1 = np.where(((x-x0)**2 + (y-y0)**2 < sep**2))[0]
     t1 = min(timeit.repeat(lambda: np.where(((x-x0)**2 + (y-y0)**2 < sep**2))[0], number=100))
     i2 = field.get_near(x=x0, y=y0, sep=sep)
@@ -254,7 +252,6 @@ def test_get_near():
     field = cat.getNField()
     field.nTopLevelNodes
 
-    t0 = time.time()
     i1 = np.where(((x-x0)**2 + (y-y0)**2 + (z-z0)**2 < sep**2))[0]
     t1 = min(timeit.repeat(lambda: np.where(((x-x0)**2 + (y-y0)**2 + (z-z0)**2 < sep**2))[0],
                            number=100))
@@ -343,7 +340,6 @@ def test_get_near():
     c = coord.CelestialCoord.from_xyz(x0,y0,z0)
     x0,y0,z0 = c.get_xyz()
     r0 = 2 * np.sin(sep / 2)  # length of chord subtending sep radians.
-    t0 = time.time()
     i1 = np.where(((x-x0)**2 + (y-y0)**2 + (z-z0)**2 < r0**2))[0]
     t1 = min(timeit.repeat(lambda: np.where(((x-x0)**2 + (y-y0)**2 + (z-z0)**2 < r0**2))[0],
                            number=100))

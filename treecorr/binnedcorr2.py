@@ -208,9 +208,11 @@ class BinnedCorr2(object):
         'max_sep' : (float, False, None, None,
                 'The maximum separation to include in the output.'),
         'sep_units' : (str, False, None, coord.AngleUnit.valid_names,
-                'The units to use for min_sep and max_sep.  Also the units of the output distances'),
+                'The units to use for min_sep and max_sep.  '
+                'Also the units of the output distances'),
         'bin_slop' : (float, False, None, None,
-                'The fraction of a bin width by which it is ok to let the pairs miss the correct bin.',
+                'The fraction of a bin width by which it is ok to let the pairs miss the correct '
+                'bin.',
                 'The default is to use 1 if bin_size <= 0.1, or 0.1/bin_size if bin_size > 0.1.'),
         'brute' : (bool, False, False, [False, True, 1, 2],
                 'Whether to use brute-force algorithm'),
@@ -257,7 +259,8 @@ class BinnedCorr2(object):
                 ['shot', 'jackknife', 'sample', 'bootstrap', 'marked_bootstrap'],
                 'The method to use for estimating the variance'),
         'num_bootstrap': (int, False, 500, None,
-                'How many bootstrap samples to use for the var_method=bootstrap and marked_bootstrap'),
+                'How many bootstrap samples to use for the var_method=bootstrap and '
+                'marked_bootstrap'),
         'num_threads' : (int, False, None, None,
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
     }
@@ -315,7 +318,7 @@ class BinnedCorr2(object):
         else:
             if self.bin_type == 'TwoD':
                 raise TypeError("Only 2 of max_sep, bin_size, nbins are allowed "
-                                     "for bin_type='TwoD'.")
+                                "for bin_type='TwoD'.")
             if 'min_sep' in self.config:
                 raise TypeError("Only 3 of min_sep, max_sep, bin_size, nbins are allowed.")
             self.max_sep = float(self.config['max_sep'])
@@ -337,7 +340,7 @@ class BinnedCorr2(object):
 
             # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
             self.logr = np.linspace(0, self.nbins*self.bin_size, self.nbins, endpoint=False,
-                                       dtype=float)
+                                    dtype=float)
             # Offset by the position of the center of the first bin.
             self.logr += math.log(self.min_sep) + 0.5*self.bin_size
             self.rnom = np.exp(self.logr)
@@ -362,7 +365,7 @@ class BinnedCorr2(object):
                 self.min_sep = self.max_sep - self.nbins*self.bin_size
 
             self.rnom = np.linspace(self.min_sep, self.max_sep, self.nbins, endpoint=False,
-                                       dtype=float)
+                                    dtype=float)
             # Offset by the position of the center of the first bin.
             self.rnom += 0.5*self.bin_size
             self.left_edges = self.rnom - 0.5*self.bin_size
@@ -383,7 +386,7 @@ class BinnedCorr2(object):
                 self.max_sep = self.nbins * self.bin_size / 2.
 
             sep = np.linspace(-self.max_sep, self.max_sep, self.nbins, endpoint=False,
-                                 dtype=float)
+                              dtype=float)
             sep += 0.5 * self.bin_size
             self.dx, self.dy = np.meshgrid(sep, sep)
             self.left_edges = self.dx - 0.5*self.bin_size
@@ -750,7 +753,7 @@ class BinnedCorr2(object):
         if self.sep_units != '' and coords == '3d' and metric != 'Arc':
             raise ValueError("sep_units is invalid with 3d coordinates. "
                              "min_sep and max_sep should be in the same units as r (or x,y,z).")
-        if self.coords != None or self.metric != None:
+        if self.coords is not None or self.metric is not None:
             if coords != self.coords:
                 self.logger.warning("Detected a change in catalog coordinate systems.\n"+
                                     "This probably doesn't make sense!")

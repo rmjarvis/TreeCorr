@@ -118,7 +118,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
                     self._min_sep,self._max_sep,self._nbins,self._bin_size,self.b,
                     self.min_rpar, self.max_rpar, self.xperiod, self.yperiod, self.zperiod,
                     dp(self.raw_xi),dp(self.raw_xi_im), dp(None), dp(None),
-                    dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs));
+                    dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs))
         return self._corr
 
     def __del__(self):
@@ -727,9 +727,6 @@ class NGCorrelation(treecorr.BinnedCorr2):
         NMap_norm       The ratio :math:`\langle N_{ap} M_{ap} \rangle^2 /`
                         :math:`\langle N_{ap}^2 \rangle \langle M_{ap}^2 \rangle`
         ==========      =====================================================================
-        """
-
-        """
         sig_norm        The sqrt of the variance estimate of this ratio
         Nsq_Mapsq       The ratio :math:`\langle N_{ap}^2 \rangle / \langle M_{ap}^2 \rangle`
         sig_nn_mm       The sqrt of the variance estimate of this ratio

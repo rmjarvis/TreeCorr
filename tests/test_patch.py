@@ -18,7 +18,7 @@ import coord
 import time
 import treecorr
 
-from test_helper import assert_raises, do_pickle, profile, timer, get_from_wiki
+from test_helper import assert_raises, do_pickle, timer, get_from_wiki
 
 @timer
 def test_cat_patches():
@@ -142,7 +142,7 @@ def test_cat_patches():
 
     # 6. Read patch from a column in FITS file
     try:
-        import fitsio
+        import fitsio  # noqa: F401
     except ImportError:
         print('Skip fitsio tests of patch_col')
     else:
@@ -413,7 +413,7 @@ def test_cat_centers():
 
     # Check fits
     try:
-        import fitsio
+        import fitsio  # noqa: F401
     except ImportError:
         pass
     else:
@@ -471,56 +471,56 @@ def test_cat_centers():
 
 
 def generate_shear_field(nside):
-   # Generate a random shear field with a well-defined power spectrum.
-   # It generates shears on a grid nside x nside, and returns, x, y, g1, g2
-   kvals = np.fft.fftfreq(nside) * 2*np.pi
-   kx,ky = np.meshgrid(kvals,kvals)
-   k = kx + 1j*ky
-   ksq = kx**2 + ky**2
+    # Generate a random shear field with a well-defined power spectrum.
+    # It generates shears on a grid nside x nside, and returns, x, y, g1, g2
+    kvals = np.fft.fftfreq(nside) * 2*np.pi
+    kx,ky = np.meshgrid(kvals,kvals)
+    k = kx + 1j*ky
+    ksq = kx**2 + ky**2
 
-   # Use a power spectrum with lots of large scale power.
-   # The rms shape ends up around 0.2 and min/max are around +-1.
-   # Having a lot more large-scale than small-scale power means that sample variance is
-   # very important, so the shot noise estimate of the variance is particularly bad.
-   Pk = 1.e4 * ksq / (1. + 300.*ksq)**2
+    # Use a power spectrum with lots of large scale power.
+    # The rms shape ends up around 0.2 and min/max are around +-1.
+    # Having a lot more large-scale than small-scale power means that sample variance is
+    # very important, so the shot noise estimate of the variance is particularly bad.
+    Pk = 1.e4 * ksq / (1. + 300.*ksq)**2
 
-   # Make complex gaussian field in k-space.
-   f1 = np.random.normal(size=Pk.shape)
-   f2 = np.random.normal(size=Pk.shape)
-   f = (f1 + 1j*f2) * np.sqrt(0.5)
+    # Make complex gaussian field in k-space.
+    f1 = np.random.normal(size=Pk.shape)
+    f2 = np.random.normal(size=Pk.shape)
+    f = (f1 + 1j*f2) * np.sqrt(0.5)
 
-   # Make f Hermitian, to correspond to E-mode-only field.
-   # Hermitian means f(-k) = conj(f(k)).
-   # Note: this is approximate.  It doesn't get all the k=0 and k=nside/2 correct.
-   # But this is good enough for xi- to be not close to zero.
-   ikxp = slice(1,(nside+1)//2)   # kx > 0
-   ikxn = slice(-1,nside//2,-1)   # kx < 0
-   ikyp = slice(1,(nside+1)//2)   # ky > 0
-   ikyn = slice(-1,nside//2,-1)   # ky < 0
-   f[ikyp,ikxn] = np.conj(f[ikyn,ikxp])
-   f[ikyn,ikxn] = np.conj(f[ikyp,ikxp])
+    # Make f Hermitian, to correspond to E-mode-only field.
+    # Hermitian means f(-k) = conj(f(k)).
+    # Note: this is approximate.  It doesn't get all the k=0 and k=nside/2 correct.
+    # But this is good enough for xi- to be not close to zero.
+    ikxp = slice(1,(nside+1)//2)   # kx > 0
+    ikxn = slice(-1,nside//2,-1)   # kx < 0
+    ikyp = slice(1,(nside+1)//2)   # ky > 0
+    ikyn = slice(-1,nside//2,-1)   # ky < 0
+    f[ikyp,ikxn] = np.conj(f[ikyn,ikxp])
+    f[ikyn,ikxn] = np.conj(f[ikyp,ikxp])
 
-   # Multiply by the power spectrum to get a realization of a field with this P(k)
-   f *= Pk
+    # Multiply by the power spectrum to get a realization of a field with this P(k)
+    f *= Pk
 
-   # Inverse fft gives the real-space field.
-   kappa = nside * np.fft.ifft2(f)
+    # Inverse fft gives the real-space field.
+    kappa = nside * np.fft.ifft2(f)
 
-   # Multiply by exp(2iphi) to get gamma field, rather than kappa.
-   ksq[0,0] = 1.  # Avoid division by zero
-   exp2iphi = k**2 / ksq
-   f *= exp2iphi
-   gamma = nside * np.fft.ifft2(f)
+    # Multiply by exp(2iphi) to get gamma field, rather than kappa.
+    ksq[0,0] = 1.  # Avoid division by zero
+    exp2iphi = k**2 / ksq
+    f *= exp2iphi
+    gamma = nside * np.fft.ifft2(f)
 
-   # Generate x,y values for the real-space field
-   x,y = np.meshgrid(np.linspace(0.,1000.,nside), np.linspace(0.,1000.,nside))
+    # Generate x,y values for the real-space field
+    x,y = np.meshgrid(np.linspace(0.,1000.,nside), np.linspace(0.,1000.,nside))
 
-   x = x.ravel()
-   y = y.ravel()
-   gamma = gamma.ravel()
-   kappa = np.real(kappa.ravel())
+    x = x.ravel()
+    y = y.ravel()
+    gamma = gamma.ravel()
+    kappa = np.real(kappa.ravel())
 
-   return x, y, np.real(gamma), np.imag(gamma), kappa
+    return x, y, np.real(gamma), np.imag(gamma), kappa
 
 
 @timer
@@ -1129,8 +1129,7 @@ def test_nn_jk():
 
         np.savez(file_name,
                  mean_xia=mean_xia, var_xia=var_xia,
-                 mean_xib=mean_xib, var_xib=var_xib,
-                )
+                 mean_xib=mean_xib, var_xib=var_xib)
 
     data = np.load(file_name)
     mean_xia = data['mean_xia']
@@ -1251,6 +1250,7 @@ def test_nn_jk():
     cov3 = nn3.estimate_cov('jackknife')
     t1 = time.time()
     print('Time to calculate jackknife covariance = ',t1-t0)
+    print('varxi = ',cov3.diagonal())
 
     # Check sample covariance estimate
     t0 = time.time()
@@ -1579,7 +1579,7 @@ def test_save_patches():
     # Test the option to write the patches to disk
 
     try:
-        import fitsio
+        import fitsio  # noqa: F401
     except ImportError:
         print('Save_patches feature requires fitsio')
         return
@@ -1837,7 +1837,7 @@ def test_clusters():
     # Check sample covariance estimate
     t0 = time.time()
     with assert_raises(RuntimeError):
-        cov_sample = ng3.estimate_cov('sample')
+        ng3.estimate_cov('sample')
     t1 = time.time()
     print('Time to calculate sample covariance = ',t1-t0)
 
@@ -2169,7 +2169,7 @@ def test_lowmem():
     # Test using patches to keep the memory usage lower.
 
     try:
-        import fitsio
+        import fitsio  # noqa: F401
     except ImportError:
         print('test_lowmem requires fitsio and (preferably) guppy')
         return
@@ -2184,7 +2184,6 @@ def test_lowmem():
         npatch = 16
         himem = 4.e6
         lomem = 2.e5
-    s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.uniform(-20,20, (ngal,) )
     y = rng.uniform(80,120, (ngal,) )  # Put everything at large y, so smallish angle on sky
@@ -2414,7 +2413,7 @@ def test_config():
     """Test using npatch and var_method in config file
     """
     try:
-        import fitsio
+        import fitsio  # noqa: F401
     except ImportError:
         print('Skipping patch config test, since fitsio is not installed')
         return

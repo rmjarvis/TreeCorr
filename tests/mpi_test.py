@@ -50,6 +50,7 @@ def do_mpi_corr(comm, Correlation, auto, attr, output=True):
 
     if rank == 0 and output:
         print('Start do_mpi_corr for ',Correlation.__name__,flush=True)
+        print('size = ',size)
 
     # All processes make the full cat with these patches.
     # Note: this doesn't actually read anything from disk yet.
@@ -110,6 +111,7 @@ def do_mpi_corr2(comm, Correlation, attr, output=True):
 
     if rank == 0 and output:
         print('Start do_mpi_corr2 for ',Correlation.__name__,flush=True)
+        print('size = ',size)
 
     cat1 = treecorr.Catalog(file_name,
                             ra_col='RA', dec_col='DEC', ra_units='deg', dec_units='deg',

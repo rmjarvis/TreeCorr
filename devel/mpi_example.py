@@ -21,7 +21,6 @@
 # See also the issue that I was having before resolving this:
 # https://nersc.servicenowservices.com/nav_to.do?uri=%2Fincident.do%3Fsys_id%3Dcc9f38341be85c102548ea82f54bcbea%26sysparm_view%3Dess
 
-import numpy as np
 import time
 import os
 import sys
@@ -33,16 +32,16 @@ try:
     from urllib2 import urlopen
 except ImportError:
     from urllib.request import urlopen
+from mpi4py import MPI
 
 # Some parameters you can play with here that will affect both serial (not really "serial", since
 # it still uses OpenMP -- just running on 1 node) and parallel runs.
 bin_size = 0.01
 min_sep = 1         # arcmin
-min_sep = 600
+max_sep = 600
 bin_slop = 1        # Can dial down to 0 to take longer
 low_mem = False     # Set to True to use less memory during processing.
 
-from mpi4py import MPI
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 nproc = comm.Get_size()

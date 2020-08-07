@@ -16,16 +16,15 @@ import numpy as np
 import os
 import time
 import coord
-import warnings
 import treecorr
 
-from test_helper import get_from_wiki, CaptureLog, assert_raises, profile, timer
+from test_helper import get_from_wiki, assert_raises, timer
 
 
 @timer
 def test_dessv():
     try:
-        import fitsio
+        import fitsio  # noqa: F401
     except ImportError:
         print('Skipping dessv test, since fitsio is not installed')
         return
@@ -763,7 +762,7 @@ def test_zero_weight():
     t0 = time.time()
     p, c = field.run_kmeans(npatch)
     t1 = time.time()
-    print('patches = ',np.unique(p))
+    print('patches = ',np.unique(p), t1-t0)
     assert len(p) == cat.ntot
     assert min(p) == 0
     assert max(p) == npatch-1

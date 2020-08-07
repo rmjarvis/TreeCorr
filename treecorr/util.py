@@ -18,7 +18,6 @@
 import treecorr
 import numpy as np
 import os
-import warnings
 import coord
 
 def ensure_dir(target):
@@ -108,7 +107,7 @@ def gen_write(file_name, col_names, columns, params=None, precision=4, file_type
 
     if file_type.upper() == 'FITS':
         try:
-            import fitsio
+            import fitsio  # noqa: F401
         except ImportError:
             logger.error("Unable to import fitsio.  Cannot write to %s"%file_name)
             raise
@@ -279,8 +278,9 @@ class LRU_Cache(object):
         self.root[3] = result
         oldroot = self.root
         self.root = self.root[1]
-        self.root[2], oldkey = None, self.root[2]
-        self.root[3], oldvalue = None, self.root[3]
+        oldkey = self.root[2]
+        self.root[2] = None
+        self.root[3] = None
         self.cache[key] = oldroot
         del self.cache[oldkey]
         if self.count < self.size: self.count += 1

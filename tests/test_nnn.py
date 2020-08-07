@@ -295,21 +295,21 @@ def test_log_binning():
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20,
                   bin_type='Invalid')
     assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  min_u=0.3, max_u = 0.9, ubin_size=0.1, nubins=6)
+                  min_u=0.3, max_u=0.9, ubin_size=0.1, nubins=6)
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  min_u=0.9, max_u = 0.3)
+                  min_u=0.9, max_u=0.3)
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  min_u=-0.1, max_u = 0.3)
+                  min_u=-0.1, max_u=0.3)
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  min_u=0.1, max_u = 1.3)
+                  min_u=0.1, max_u=1.3)
     assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  min_v=0.1, max_v = 0.9, vbin_size=0.1, nvbins=9)
+                  min_v=0.1, max_v=0.9, vbin_size=0.1, nvbins=9)
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  min_v=0.9, max_v = 0.3)
+                  min_v=0.9, max_v=0.3)
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  min_v=-0.1, max_v = 0.3)
+                  min_v=-0.1, max_v=0.3)
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  min_v=0.1, max_v = 1.3)
+                  min_v=0.1, max_v=1.3)
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20,
                   split_method='invalid')
 
@@ -571,23 +571,23 @@ def test_direct_count_auto():
                 ccw = True
                 if dij < dik:
                     if dik < djk:
-                        d3 = dij; d2 = dik; d1 = djk;
+                        d3 = dij; d2 = dik; d1 = djk
                         ccw = is_ccw(x[i],y[i],x[j],y[j],x[k],y[k])
                     elif dij < djk:
-                        d3 = dij; d2 = djk; d1 = dik;
+                        d3 = dij; d2 = djk; d1 = dik
                         ccw = is_ccw(x[j],y[j],x[i],y[i],x[k],y[k])
                     else:
-                        d3 = djk; d2 = dij; d1 = dik;
+                        d3 = djk; d2 = dij; d1 = dik
                         ccw = is_ccw(x[j],y[j],x[k],y[k],x[i],y[i])
                 else:
                     if dij < djk:
-                        d3 = dik; d2 = dij; d1 = djk;
+                        d3 = dik; d2 = dij; d1 = djk
                         ccw = is_ccw(x[i],y[i],x[k],y[k],x[j],y[j])
                     elif dik < djk:
-                        d3 = dik; d2 = djk; d1 = dij;
+                        d3 = dik; d2 = djk; d1 = dij
                         ccw = is_ccw(x[k],y[k],x[i],y[i],x[j],y[j])
                     else:
-                        d3 = djk; d2 = dik; d1 = dij;
+                        d3 = djk; d2 = dik; d1 = dij
                         ccw = is_ccw(x[k],y[k],x[j],y[j],x[i],y[i])
 
                 r = d2
@@ -854,7 +854,7 @@ def test_direct_count_auto():
 
     # Check fits I/O
     try:
-        import fitsio
+        import fitsio  # noqa: F401
     except ImportError:
         print('Skipping FITS tests, since fitsio is not installed')
         return
@@ -927,7 +927,7 @@ def test_direct_count_cross():
                 if d3 == 0.: continue
                 if d2 == 0.: continue
                 if d1 == 0.: continue
-                if d1 < d2 or d2 < d3: continue;
+                if d1 < d2 or d2 < d3: continue
                 ccw = is_ccw(x1[i],y1[i],x2[j],y2[j],x3[k],y3[k])
                 r = d2
                 u = d3/d2
@@ -1075,21 +1075,17 @@ def test_direct_spherical():
     nrbins = 10
     nubins = 5
     nvbins = 5
-    max_sep = min_sep * np.exp(nrbins * bin_size)
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   sep_units='deg', brute=True)
     ddd.process(cat, num_threads=2)
 
     r = np.sqrt(x**2 + y**2 + z**2)
     x /= r;  y /= r;  z /= r
-    north_pole = coord.CelestialCoord(0*coord.radians, 90*coord.degrees)
 
     true_ntri = np.zeros((nrbins, nubins, 2*nvbins), dtype=int)
     true_weight = np.zeros((nrbins, nubins, 2*nvbins), dtype=float)
 
     rad_min_sep = min_sep * coord.degrees / coord.radians
-    rad_max_sep = max_sep * coord.degrees / coord.radians
-    c = [coord.CelestialCoord(r*coord.radians, d*coord.radians) for (r,d) in zip(ra, dec)]
     for i in range(ngal):
         for j in range(i+1,ngal):
             for k in range(j+1,ngal):
@@ -1188,7 +1184,6 @@ def test_direct_arc():
 
     r = np.sqrt(x**2 + y**2 + z**2)
     x /= r;  y /= r;  z /= r
-    north_pole = coord.CelestialCoord(0*coord.radians, 90*coord.degrees)
 
     true_ntri = np.zeros((nrbins, nubins, 2*nvbins), dtype=int)
     true_weight = np.zeros((nrbins, nubins, 2*nvbins), dtype=float)
@@ -1311,7 +1306,7 @@ def test_direct_partial():
                 if d3 == 0.: continue
                 if d2 == 0.: continue
                 if d1 == 0.: continue
-                if d1 < d2 or d2 < d3: continue;
+                if d1 < d2 or d2 < d3: continue
                 ccw = is_ccw(x1[i],y1[i],x2[j],y2[j],x3[k],y3[k])
                 r = d2
                 u = d3/d2
@@ -1424,23 +1419,23 @@ def test_direct_3d_auto():
 
                 if dij < dik:
                     if dik < djk:
-                        d3 = dij; d2 = dik; d1 = djk;
+                        d3 = dij; d2 = dik; d1 = djk
                         ccw = is_ccw_3d(x[i],y[i],z[i],x[j],y[j],z[j],x[k],y[k],z[k])
                     elif dij < djk:
-                        d3 = dij; d2 = djk; d1 = dik;
+                        d3 = dij; d2 = djk; d1 = dik
                         ccw = is_ccw_3d(x[j],y[j],z[j],x[i],y[i],z[i],x[k],y[k],z[k])
                     else:
-                        d3 = djk; d2 = dij; d1 = dik;
+                        d3 = djk; d2 = dij; d1 = dik
                         ccw = is_ccw_3d(x[j],y[j],z[j],x[k],y[k],z[k],x[i],y[i],z[i])
                 else:
                     if dij < djk:
-                        d3 = dik; d2 = dij; d1 = djk;
+                        d3 = dik; d2 = dij; d1 = djk
                         ccw = is_ccw_3d(x[i],y[i],z[i],x[k],y[k],z[k],x[j],y[j],z[j])
                     elif dik < djk:
-                        d3 = dik; d2 = djk; d1 = dij;
+                        d3 = dik; d2 = djk; d1 = dij
                         ccw = is_ccw_3d(x[k],y[k],z[k],x[i],y[i],z[i],x[j],y[j],z[j])
                     else:
-                        d3 = djk; d2 = dik; d1 = dij;
+                        d3 = djk; d2 = dik; d1 = dij
                         ccw = is_ccw_3d(x[k],y[k],z[k],x[j],y[j],z[j],x[i],y[i],z[i])
 
                 r = d2
@@ -1566,7 +1561,7 @@ def test_direct_3d_cross():
                 if d3 == 0.: continue
                 if d2 == 0.: continue
                 if d1 == 0.: continue
-                if d1 < d2 or d2 < d3: continue;
+                if d1 < d2 or d2 < d3: continue
                 ccw = is_ccw_3d(x1[i],y1[i],z1[i],x2[j],y2[j],z2[j],x3[k],y3[k],z3[k])
                 r = d2
                 u = d3/d2
@@ -1689,7 +1684,8 @@ def test_nnn():
     print('(meand1 - meand2)/meand3 = ',(ddd.meand1-ddd.meand2) / ddd.meand3)
     print('meanv = ',ddd.meanv)
     print('max diff = ',np.max(np.abs((ddd.meand1-ddd.meand2)/ddd.meand3 -np.abs(ddd.meanv))))
-    print('max rel diff = ',np.max(np.abs(((ddd.meand1-ddd.meand2)/ddd.meand3-np.abs(ddd.meanv))/ddd.meanv)))
+    print('max rel diff = ',
+          np.max(np.abs(((ddd.meand1-ddd.meand2)/ddd.meand3-np.abs(ddd.meanv))/ddd.meanv)))
     np.testing.assert_allclose(ddd.meanlogd1, np.log(ddd.meand1), rtol=1.e-3)
     np.testing.assert_allclose(ddd.meanlogd2, np.log(ddd.meand2), rtol=1.e-3)
     np.testing.assert_allclose(ddd.meanlogd3, np.log(ddd.meand3), rtol=1.e-3)

@@ -68,22 +68,22 @@ def test_parse_bool():
     """Test parse_bool functionality
     """
     # Booleans have a number of possible specifications
-    assert treecorr.config.parse_bool('True') == True
-    assert treecorr.config.parse_bool(True) == True
-    assert treecorr.config.parse_bool(1) == True
-    assert treecorr.config.parse_bool('yes') == True
-    assert treecorr.config.parse_bool('T') == True
-    assert treecorr.config.parse_bool('y') == True
-    assert treecorr.config.parse_bool('1') == True
-    assert treecorr.config.parse_bool('10') == True
+    assert treecorr.config.parse_bool('True') is True
+    assert treecorr.config.parse_bool(True) is True
+    assert treecorr.config.parse_bool(1) == 1
+    assert treecorr.config.parse_bool('yes') is True
+    assert treecorr.config.parse_bool('T') is True
+    assert treecorr.config.parse_bool('y') is True
+    assert treecorr.config.parse_bool('1') == 1
+    assert treecorr.config.parse_bool('10') == 10
 
-    assert treecorr.config.parse_bool('False') == False
-    assert treecorr.config.parse_bool(False) == False
-    assert treecorr.config.parse_bool(0) == False
-    assert treecorr.config.parse_bool('no') == False
-    assert treecorr.config.parse_bool('F') == False
-    assert treecorr.config.parse_bool('n') == False
-    assert treecorr.config.parse_bool('0') == False
+    assert treecorr.config.parse_bool('False') is False
+    assert treecorr.config.parse_bool(False) is False
+    assert treecorr.config.parse_bool(0) == 0
+    assert treecorr.config.parse_bool('no') is False
+    assert treecorr.config.parse_bool('F') is False
+    assert treecorr.config.parse_bool('n') is False
+    assert treecorr.config.parse_bool('0') == 0
 
     with assert_raises(ValueError):
         treecorr.config.parse_bool('G')
@@ -200,7 +200,8 @@ def test_read():
     config6 = treecorr.config.read_config('configs/nn_list6.config', file_type='params')
     assert config6 == {
         'file_name': ['data/nn_list_data0.dat', 'data/nn_list_data1.dat', 'data/nn_list_data2.dat'],
-        'rand_file_name': ['data/nn_list_rand0.dat', 'data/nn_list_rand1.dat', 'data/nn_list_rand2.dat'],
+        'rand_file_name': ['data/nn_list_rand0.dat', 'data/nn_list_rand1.dat',
+                           'data/nn_list_rand2.dat'],
         'file_list2': 'data/nn_list_data_files.txt',
         'rand_file_list2': 'data/nn_list_rand_files.txt',
         'x_col': '1',
@@ -311,7 +312,7 @@ def test_check():
     with assert_warns(FutureWarning):
         config2 = treecorr.config.check_config(config1.copy(), valid_params,
                                                aliases={'reverse_g1' : 'flip_g1'})
-    assert config2['flip_g1'] == True
+    assert config2['flip_g1'] is True
     assert 'reverse_g1' not in config2
     del config1['reverse_g1']
 
@@ -340,7 +341,7 @@ def test_check():
     with mock.patch('treecorr.corr2_aliases', {'n2_file_name' : 'nn_file_name'}):
         with assert_warns(FutureWarning):
             config2 = treecorr.config.check_config(config1.copy(), valid_params,
-                                                    aliases=treecorr.corr2_aliases)
+                                                   aliases=treecorr.corr2_aliases)
     assert 'n2_file_name' not in config2
     assert config2['nn_file_name'] == 'output/n2.out'
     del config1['n2_file_name']
@@ -365,14 +366,14 @@ def test_get():
     assert treecorr.config.get(config1, 'x_col', str) == '1'
     assert treecorr.config.get(config1, 'x_col') == '1'
     assert treecorr.config.get(config1, 'x_col', int, 2) == 1
-    assert treecorr.config.get(config1, 'ra_col', int) == None
+    assert treecorr.config.get(config1, 'ra_col', int) is None
     assert treecorr.config.get(config1, 'ra_col', int, 2) == 2
 
     config1['flip_g1'] = True
-    assert treecorr.config.get(config1, 'flip_g1', bool) == True
-    assert treecorr.config.get(config1, 'flip_g1', bool, False) == True
-    assert treecorr.config.get(config1, 'flip_g2', bool, False) == False
-    assert treecorr.config.get(config1, 'flip_g2', bool) == None
+    assert treecorr.config.get(config1, 'flip_g1', bool) is True
+    assert treecorr.config.get(config1, 'flip_g1', bool, False) is True
+    assert treecorr.config.get(config1, 'flip_g2', bool, False) is False
+    assert treecorr.config.get(config1, 'flip_g2', bool) is None
 
     assert treecorr.config.get_from_list(config1, 'k_col', 0, int) == 3
     assert treecorr.config.get_from_list(config1, 'k_col', 0, str) == '3'
@@ -381,15 +382,15 @@ def test_get():
     assert treecorr.config.get_from_list(config1, 'k_col', 1, int) == 0
     assert treecorr.config.get_from_list(config1, 'k_col', 1, int, 2) == 0
     assert treecorr.config.get_from_list(config1, 'ra_col', 1, int, 2) == 2
-    assert treecorr.config.get_from_list(config1, 'ra_col', 1, int) == None
+    assert treecorr.config.get_from_list(config1, 'ra_col', 1, int) is None
 
     config1['flip_g1'] = [True, False]
-    assert treecorr.config.get_from_list(config1, 'flip_g1', 0, bool) == True
-    assert treecorr.config.get_from_list(config1, 'flip_g1', 1, bool) == False
-    assert treecorr.config.get_from_list(config1, 'flip_g1', 0, bool, False) == True
-    assert treecorr.config.get_from_list(config1, 'flip_g2', 1, bool) == None
-    assert treecorr.config.get_from_list(config1, 'flip_g2', 1, bool, False) == False
-    assert treecorr.config.get_from_list(config1, 'flip_g2', 2, bool, False) == False
+    assert treecorr.config.get_from_list(config1, 'flip_g1', 0, bool) is True
+    assert treecorr.config.get_from_list(config1, 'flip_g1', 1, bool) is False
+    assert treecorr.config.get_from_list(config1, 'flip_g1', 0, bool, False) is True
+    assert treecorr.config.get_from_list(config1, 'flip_g2', 1, bool) is None
+    assert treecorr.config.get_from_list(config1, 'flip_g2', 1, bool, False) is False
+    assert treecorr.config.get_from_list(config1, 'flip_g2', 2, bool, False) is False
 
     with assert_raises(IndexError):
         treecorr.config.get_from_list(config1, 'k_col', 2, int)

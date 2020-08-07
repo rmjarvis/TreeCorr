@@ -97,7 +97,7 @@ def test_direct_count():
     logger = treecorr.config.setup_logger(2)
     treecorr.corr2(config, logger)
     corr2_output = np.genfromtxt(os.path.join('output','nn_periodic.out'), names=True,
-                                    skip_header=1)
+                                 skip_header=1)
     np.testing.assert_allclose(corr2_output['r_nom'], dd.rnom, rtol=1.e-3)
     np.testing.assert_allclose(corr2_output['DD'], dd.npairs, rtol=1.e-3)
     np.testing.assert_allclose(corr2_output['npairs'], dd.npairs, rtol=1.e-3)
@@ -201,7 +201,7 @@ def test_periodic_ps():
     pk *= (r1 + 1j*r2) / np.sqrt(2.)
     pk[0,0] = 0.
 
-    # pk is now the FT for the kappa field. 
+    # pk is now the FT for the kappa field.
     # The gamma field is just rotated by exp(2ipsi)
     ksq[0,0] = 1.  # Not zero, so no division by 0.
     exp2ipsi = kz*kz / ksq
@@ -243,7 +243,7 @@ def test_periodic_ps():
 @timer
 def test_halotools():
     try:
-        import halotools
+        import halotools  # noqa: F401
         from astropy.utils.exceptions import AstropyWarning
 
         # Note: halotools as of version 0.6 use astropy.extern.six, which is deprecated.
@@ -261,11 +261,11 @@ def test_halotools():
     # Compare the Periodic metric with the same calculation in halotools
     # This first bit is directly from the documentation for halotools.npairs_3d
     # https://halotools.readthedocs.io/en/latest/api/halotools.mock_observables.npairs_3d.html
-    
+
     Npts1, Npts2, Lbox = 100000, 100000, 250.
     period = [Lbox, Lbox, Lbox]
     rbins = np.logspace(-1, 1.5, 15)
- 
+
     rng = np.random.RandomState(8675309)
     x1 = rng.uniform(0, Lbox, Npts1)
     y1 = rng.uniform(0, Lbox, Npts1)
@@ -278,7 +278,7 @@ def test_halotools():
     sample2 = np.vstack([x2, y2, z2]).T
 
     t0 = time.time()
-    result = npairs_3d(sample1, sample2, rbins, period = period)
+    result = npairs_3d(sample1, sample2, rbins, period=period)
     t1 = time.time()
 
     print('rbins = ',rbins)
@@ -406,23 +406,23 @@ def test_3pt():
                 ccw = True
                 if dij < dik:
                     if dik < djk:
-                        d3 = dij; d2 = dik; d1 = djk;
+                        d3 = dij; d2 = dik; d1 = djk
                         ccw = is_ccw(xi,yi,xj,yj,xk,yk)
                     elif dij < djk:
-                        d3 = dij; d2 = djk; d1 = dik;
+                        d3 = dij; d2 = djk; d1 = dik
                         ccw = is_ccw(xj,yj,xi,yi,xk,yk)
                     else:
-                        d3 = djk; d2 = dij; d1 = dik;
+                        d3 = djk; d2 = dij; d1 = dik
                         ccw = is_ccw(xj,yj,xk,yk,xi,yi)
                 else:
                     if dij < djk:
-                        d3 = dik; d2 = dij; d1 = djk;
+                        d3 = dik; d2 = dij; d1 = djk
                         ccw = is_ccw(xi,yi,xk,yk,xj,yj)
                     elif dik < djk:
-                        d3 = dik; d2 = djk; d1 = dij;
+                        d3 = dik; d2 = djk; d1 = dij
                         ccw = is_ccw(xk,yk,xi,yi,xj,yj)
                     else:
-                        d3 = djk; d2 = dik; d1 = dij;
+                        d3 = djk; d2 = dik; d1 = dij
                         ccw = is_ccw(xk,yk,xj,yj,xi,yi)
 
                 #print('d1,d2,d3 = ',d1,d2,d3)
@@ -448,17 +448,6 @@ def test_3pt():
                 true_ntri[kr,ku,kv] += 1
                 #print('good.', true_ntri[kr,ku,kv])
 
-
-    #print('true_ntri => ',true_ntri)
-    #print('diff = ',ddd.ntri - true_ntri)
-    mask = np.where(true_ntri > 0)
-    #print('ddd.ntri[mask] = ',ddd.ntri[mask])
-    #print('true_ntri[mask] = ',true_ntri[mask])
-    #print('diff[mask] = ',(ddd.ntri - true_ntri)[mask])
-    mask2 = np.where(ddd.ntri > 0)
-    #print('ddd.ntri[mask2] = ',ddd.ntri[mask2])
-    #print('true_ntri[mask2] = ',true_ntri[mask2])
-    #print('diff[mask2] = ',(ddd.ntri - true_ntri)[mask2])
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # If don't give a period, then an error.

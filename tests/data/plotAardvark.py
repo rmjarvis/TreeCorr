@@ -1,7 +1,6 @@
 #!/sw64/bin/python2.7
 # vim: set filetype=python :
 
-import math
 import matplotlib.pyplot as plt
 import numpy
 

@@ -4,7 +4,7 @@ Binning
 To be useful, the measured correlations need to be binned in some way to
 find the average correlation among many pairs of nearly the same separation.
 The different ways to bin the results may be specified using the ``bin_type``
-parameter in `BinnedCorr2` or `BinnedCorr3`.
+parameter in `BinnedCorr2`.
 
 "Log"
 -----
@@ -82,10 +82,56 @@ Note that this metric is only valid when the input positions are given as x,y (n
 and the metric is "Euclidean".  If you have a use case for other combinations, please
 open an issue with your specific case, and we can try to figure out how it should be implemented.
 
+Output quantities
+-----------------
+
+For all of the different binning options, the Correlation object will have the following attributes
+related to the locations of the bins:
+
+    - ``rnom`` The separation at the nominal centers of the bins.  For "Linear" binning,
+      these will be spaced uniformly.
+    - ``logr`` The log of the separation at the nominal centers of the bins.  For "Log"
+      binning, these will be spaced uniformly.  This is always the (natural)
+      log of ``rnom``.
+    - ``left_edges`` The separation at the left edges of the bins.  For "Linear" binning, these
+      are half-way between the ``rnom`` values of successive bins.  For "Log" binning, these are
+      the geometric mean of successive ``rnom`` values, rather than the arithmetic mean.
+      For "TwoD" binning, these are like "Linear" but for the x separations only.
+    - ``right_edges`` Analogously, the separation at the right edges of the bins.
+    - ``meanr`` The mean separation of all the pairs of points that actually ended up
+      falling in each bin.
+    - ``meanlogr`` The mean log(separation) of all the pairs of points that actually ended up
+      falling in each bin.
+
+The last two quantities are only available after finishing a calculation (e.g. with ``process``).
+
+In addition to the above, "TwoD" binning also includes the following:
+
+    - ``bottom_edges`` The y separation at the bottom edges of the 2-D bins. Like
+      ``left_edges``, but for the y values rather than the x values.
+    - ``top_edges`` The y separation at the top edges of the 2-D bins. Like
+      ``right_edges``, but for the y values rather than the x values.
+
+There is some subtlety about which separation to use when comparing measured correlation functions
+to theoretical predictions.  See Appendix D of
+`Singh et al, 2020 <https://ui.adsabs.harvard.edu/abs/2020MNRAS.491...51S/abstract>`_,
+who show that one can find percent level differences among the different options.
+(See their Figure D2 in particular.)
+The difference is smaller as the bin size decreases, although they point out that it is not always
+feasible to make the bin size very small, e.g. because of issues calculating the covariance matrix.
+
+In most cases, if the true signal is expected to be locally well approximated by a power law, then
+using ``meanlogr`` is probably the most appropriate choice.  This most closely approximates the
+signal-based weighting that they recommend, but if you are concerned about the percent level
+effects of this choice, you would be well-advised to investigate the different options with
+simulations to see exactly what impact the choice has on your science.
+
+
 Other options for binning
 -------------------------
 
-There are a few other options which impact how the binning is done.
+There are a few other options that affect the binning, which can be set when constructing
+any of the `BinnedCorr2` or `BinnedCorr3` classes.
 
 sep_units
 ^^^^^^^^^

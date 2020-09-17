@@ -56,7 +56,7 @@ The easiest ways to install TreeCorr are either with pip::
 
 or with conda::
 
-    conda install treecorr
+    conda install -c conda-forge treecorr
 
 If you have previously installed TreeCorr, and want to upgrade to a new
 released version, you should do::
@@ -65,7 +65,7 @@ released version, you should do::
 
 or::
 
-    conda update treecorr
+    conda update -c conda-forge treecorr
 
 Depending on the write permissions of the python distribution for your specific
 system, you might need to use one of the following variants for pip installation::
@@ -108,8 +108,8 @@ that is also relatively straightforward:
 ^^^^^^^^^^^^^^^^^^^^^^^
 
    All required dependencies should be installed automatically for you by
-   setup.py, so you should not need to worry about these.  But if you are
-   interested, the dependencies are:
+   setup.py or conda, so you should not need to worry about these.  But if you
+   are interested, the dependencies are:
 
     - numpy
     - pyyaml
@@ -122,7 +122,7 @@ that is also relatively straightforward:
 
    or::
 
-        conda install treecorr --only-deps
+        conda install -c conda-forge treecorr --only-deps
 
    The last dependency is the only one that typically could cause any problems, since it in
    turn depends on a library called libffi.  This is a common thing to have installed already
@@ -135,14 +135,14 @@ that is also relatively straightforward:
 
    .. note::
 
-        Two additional modules are not required for basic TreeCorr operations, but are
+        Three additional modules are not required for basic TreeCorr operations, but are
         potentially useful.
 
         a) fitsio is required for reading FITS catalogs or writing to FITS output files.
 
         b) pandas will signficantly speed up reading from ASCII catalogs.
 
-        c) h5py is required for reading HDF5 catalogs
+        c) h5py is required for reading HDF5 catalogs.
 
         These are all pip installable::
 

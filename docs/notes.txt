@@ -13,7 +13,7 @@ Checklist for making a new release:
 - python setup.py install  (make sure this is current)
 - In docs directory, run update_docs
 - Commit new docs in releases/M.m branch as single commit.
-- Cherry-pick docs commit onto master and push there.
+- Cherry-pick docs commit onto main and push there.
 - Now, back on releases/M.m branch...
 - git tag -a vM.m.r -m vM.m.r
 - git push --tags
@@ -24,7 +24,7 @@ Checklist for making a new release:
 - From another directory try out pip install TreeCorr --upgrade
 
 If major release:
-- Back in master, update version number to M.(m+1) (i.e. no .r)
+- Back in main, update version number to M.(m+1) (i.e. no .r)
 - Add tagged CHANGELOG blob to the history page in the docs.
 - Clear out CHANGELOG.rst
 - Change github home page to point to releases/M.m

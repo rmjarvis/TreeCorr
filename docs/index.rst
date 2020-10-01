@@ -1,4 +1,4 @@
-.. treecorr documentation master file
+.. treecorr documentation main file
 
 TreeCorr Documentation
 ======================

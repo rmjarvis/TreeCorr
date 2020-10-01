@@ -1,6 +1,6 @@
-.. image:: https://travis-ci.org/rmjarvis/TreeCorr.svg?branch=master
+.. image:: https://travis-ci.org/rmjarvis/TreeCorr.svg?branch=main
         :target: https://travis-ci.org/rmjarvis/TreeCorr
-.. image:: https://codecov.io/gh/rmjarvis/TreeCorr/branch/master/graph/badge.svg
+.. image:: https://codecov.io/gh/rmjarvis/TreeCorr/branch/main/graph/badge.svg
         :target: https://codecov.io/gh/rmjarvis/TreeCorr
 
 
@@ -286,7 +286,7 @@ For more details, see our slightly longer `Getting Started Guide
 <https://rmjarvis.github.io/TreeCorr/_build/html/guide.html>`_.
 
 Or for a more involved worked example, see our `Jupyter notebook tutorial
-<https://github.com/rmjarvis/TreeCorr/blob/master/tests/Tutorial.ipynb>`_.
+<https://github.com/rmjarvis/TreeCorr/blob/main/tests/Tutorial.ipynb>`_.
 
 And for the complete details about all aspects of the code, see the `Sphinx-generated
 documentation <http://rmjarvis.github.io/TreeCorr>`_.

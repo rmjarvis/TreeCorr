@@ -1,7 +1,8 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -11,18 +12,12 @@
   
 
   
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
   
   
   
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -30,11 +25,15 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Configuration Parameters" href="params.html" />
@@ -52,7 +51,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> TreeCorr
+            <a href="index.html" class="icon icon-home"> TreeCorr
           
 
           
@@ -79,7 +78,6 @@
           
         </div>
 
-        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -114,7 +112,6 @@
             
           
         </div>
-        
       </div>
     </nav>
 
@@ -153,7 +150,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="index.html">Docs</a> &raquo;</li>
         
       <li>Using configuration files</li>
     
@@ -230,9 +227,9 @@ files.</p>
 <span class="n">treecorr</span><span class="o">.</span><span class="n">corr2</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="py function">
+<dl class="function">
 <dt id="treecorr.corr2">
-<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">corr2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr2.html#corr2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.corr2" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">corr2</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr2.html#corr2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.corr2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run the full two-point correlation function code based on the parameters in the
 given config dict.</p>
 <p>The function <a class="reference internal" href="#treecorr.corr2.print_corr2_params" title="treecorr.corr2.print_corr2_params"><code class="xref any py py-func docutils literal notranslate"><span class="pre">print_corr2_params</span></code></a> will output information about the valid parameters
@@ -253,9 +250,9 @@ one will be built according to the config dict’s verbose level.)</p></li>
 </div>
 <div class="section" id="the-corr3-function-from-python">
 <h2>The corr3 function from python<a class="headerlink" href="#the-corr3-function-from-python" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
+<dl class="function">
 <dt id="treecorr.corr3">
-<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">corr3</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3.html#corr3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.corr3" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">corr3</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3.html#corr3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.corr3" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run the full three-point correlation function code based on the parameters in the
 given config dict.</p>
 <p>The function <a class="reference internal" href="#treecorr.corr3.print_corr3_params" title="treecorr.corr3.print_corr3_params"><code class="xref any py py-func docutils literal notranslate"><span class="pre">print_corr3_params</span></code></a> will output information about the valid parameters
@@ -276,13 +273,13 @@ one will be built according to the config dict’s verbose level.)</p></li>
 </div>
 <div class="section" id="other-utilities-related-to-corr2-and-corr3">
 <h2>Other utilities related to corr2 and corr3<a class="headerlink" href="#other-utilities-related-to-corr2-and-corr3" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
+<dl class="function">
 <dt id="treecorr.corr2.print_corr2_params">
 <code class="sig-prename descclassname">treecorr.corr2.</code><code class="sig-name descname">print_corr2_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr2.html#print_corr2_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.corr2.print_corr2_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print information about the valid parameters that may be given to the <a class="reference internal" href="#treecorr.corr2" title="treecorr.corr2"><code class="xref any py py-func docutils literal notranslate"><span class="pre">corr2</span></code></a> function.</p>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="treecorr.corr3.print_corr3_params">
 <code class="sig-prename descclassname">treecorr.corr3.</code><code class="sig-name descname">print_corr3_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3.html#print_corr3_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.corr3.print_corr3_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print information about the valid parameters that may be given to the <a class="reference internal" href="#treecorr.corr3" title="treecorr.corr3"><code class="xref any py py-func docutils literal notranslate"><span class="pre">corr3</span></code></a> function.</p>
@@ -291,9 +288,9 @@ one will be built according to the config dict’s verbose level.)</p></li>
 </div>
 <div class="section" id="module-treecorr.config">
 <span id="utilities-related-to-the-configuration-dict"></span><h2>Utilities related to the configuration dict<a class="headerlink" href="#module-treecorr.config" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-config"></span><dl class="py function">
+<span class="target" id="module-config"></span><dl class="function">
 <dt id="treecorr.config.check_config">
-<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">check_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">aliases</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#check_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.check_config" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">check_config</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">params</em>, <em class="sig-param">aliases=None</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#check_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.check_config" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check (and update) a config dict to conform to the given parameter rules.
 The params dict has an entry for each valid config parameter whose value is a tuple
 with the following items:</p>
@@ -321,9 +318,9 @@ with the following items:</p>
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="treecorr.config.convert">
-<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">convert</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">value_type</span></em>, <em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.convert" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">convert</code><span class="sig-paren">(</span><em class="sig-param">value</em>, <em class="sig-param">value_type</em>, <em class="sig-param">key</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.convert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert the given value to the given type.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">key</span></code> helps determine what kind of conversion should be performed.
 Specifically if ‘unit’ is in the <code class="docutils literal notranslate"><span class="pre">key</span></code> value, then a unit conversion is done.
@@ -342,7 +339,7 @@ Otherwise, it just parses the <code class="docutils literal notranslate"><span c
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="treecorr.config.get">
 <code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">key</em>, <em class="sig-param">value_type=&lt;class 'str'&gt;</em>, <em class="sig-param">default=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>A helper function to get a key from config converting to a particular type</p>
@@ -362,7 +359,7 @@ Otherwise, it just parses the <code class="docutils literal notranslate"><span c
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="treecorr.config.get_from_list">
 <code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">get_from_list</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">key</em>, <em class="sig-param">num</em>, <em class="sig-param">value_type=&lt;class 'str'&gt;</em>, <em class="sig-param">default=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#get_from_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.get_from_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>A helper function to get a key from config that is allowed to be a list</p>
@@ -386,9 +383,9 @@ all values of <code class="docutils literal notranslate"><span class="pre">num</
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="treecorr.config.merge_config">
-<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">merge_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">kwargs</span></em>, <em class="sig-param"><span class="n">valid_params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#merge_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.merge_config" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">merge_config</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">kwargs</em>, <em class="sig-param">valid_params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#merge_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.merge_config" title="Permalink to this definition">¶</a></dt>
 <dd><p>Merge in the values from kwargs into config.</p>
 <p>If either of these is None, then the other one is returned.
 If they are both dicts, then the values in kwargs take precedence over ones in config
@@ -408,9 +405,9 @@ The config dict is allowed to have extra items, but kwargs is not.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="treecorr.config.parse_bool">
-<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">parse_bool</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#parse_bool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.parse_bool" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">parse_bool</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#parse_bool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.parse_bool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse a value as a boolean.</p>
 <p>Valid string values for True are: ‘true’, ‘yes’, ‘t’, ‘y’
 Valid string values for False are: ‘false’, ‘no’, ‘f’, ‘n’, ‘none’
@@ -426,9 +423,9 @@ Capitalization is ignored.</p>
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="treecorr.config.parse_unit">
-<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">parse_unit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#parse_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.parse_unit" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">parse_unit</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#parse_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.parse_unit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse the input value as a string that should be one of the valid angle units in
 coord.AngleUnit.valid_names.</p>
 <p>The value is allowed to merely start with one of the unit names.  So ‘deg’, ‘degree’,
@@ -445,9 +442,9 @@ which has the value pi/180.</p>
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="treecorr.config.parse_variable">
-<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">parse_variable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">v</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#parse_variable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.parse_variable" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">parse_variable</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">v</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#parse_variable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.parse_variable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse a configuration variable from a string that should look like ‘key = value’
 and write that value to config[key].</p>
 <dl class="field-list simple">
@@ -460,9 +457,9 @@ and write that value to config[key].</p>
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="treecorr.config.print_params">
-<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">print_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#print_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.print_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">print_params</code><span class="sig-paren">(</span><em class="sig-param">params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#print_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.print_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print the information about the valid parameters, given by the given params dict.
 See check_config for the structure of the params dict.</p>
 <dl class="field-list simple">
@@ -472,9 +469,9 @@ See check_config for the structure of the params dict.</p>
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="treecorr.config.read_config">
-<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">read_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">file_type</span><span class="o">=</span><span class="default_value">'auto'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#read_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.read_config" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">read_config</code><span class="sig-paren">(</span><em class="sig-param">file_name</em>, <em class="sig-param">file_type='auto'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#read_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.read_config" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a configuration dict from a file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -490,9 +487,9 @@ See check_config for the structure of the params dict.</p>
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="treecorr.config.setup_logger">
-<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">setup_logger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">log_file</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#setup_logger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.setup_logger" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.config.</code><code class="sig-name descname">setup_logger</code><span class="sig-paren">(</span><em class="sig-param">verbose</em>, <em class="sig-param">log_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#setup_logger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.config.setup_logger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse the integer verbosity level from the command line args into a logging_level string</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -531,19 +528,11 @@ If omitted or None, then output to stdout.</p></li>
 
   <div role="contentinfo">
     <p>
-        
         &copy; Copyright 2019, Mike Jarvis
 
     </p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -554,6 +543,7 @@ If omitted or None, then output to stdout.</p></li>
 
   </div>
   
+
 
   <script type="text/javascript">
       jQuery(function () {

@@ -5,7 +5,7 @@ Jupyter Tutorial
 ^^^^^^^^^^^^^^^^
 
 The below page covers many of the same points as the
-`Jupyter notebook tutorial <https://github.com/rmjarvis/TreeCorr/blob/master/tests/Tutorial.ipynb>`_
+`Jupyter notebook tutorial <https://github.com/rmjarvis/TreeCorr/blob/main/tests/Tutorial.ipynb>`_
 available in the TreeCorr repo.
 You may find it useful to work through that as well as, or instead of, reading this guide.
 

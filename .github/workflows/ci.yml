@@ -105,8 +105,8 @@ jobs:
 
                 pip list
 
-            - name: Build
-              run: python setup.py install
+            - name: Build TreeCorr
+              run: pip install .
 
             - name: Run unit tests
               run: |

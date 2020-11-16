@@ -1,6 +1,6 @@
 name: TreeCorr CI
 
-on: 
+on:
     push:
         branches:
             - main
@@ -92,7 +92,9 @@ jobs:
                 pip install -U -r requirements.txt
 
                 # Extra packages needed for testing
-                pip install -U codecov fitsio mpi4py 
+                pip install -U codecov fitsio mpi4py
+                if [[ ${{ matrix.py }} < 3.0 ]]; then pip install -U pytest==3.2 pytest-cov=2.4; fi
+                if [[ ${{ matrix.py }} > 3.0 ]]; then pip install -U pytest pytest-cov mockmpi; fi
 
                 # Optional dependencies only on 3.7
                 # They are slow to install, especially 3.8 and pypy, where some are installed
@@ -106,7 +108,7 @@ jobs:
                 pip list
 
             - name: Build TreeCorr
-              run: pip install .
+              run: pip install -vvv .
 
             - name: Run unit tests
               run: |

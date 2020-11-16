@@ -113,16 +113,20 @@ jobs:
             - name: Run unit tests
               run: |
                 cd tests
-                pytest -cov=treecorr test*.py
+                pytest --cov=treecorr test*.py
 
-                # Check MPI functionality.
+            - name: Test MPI
+              if: {{ matrix.py > 3.0 }}
+              run: |
                 # The code is already mostly checked in the main tests with mock_mpi.
                 # These just check that the code works when run in a real mpi session.
-                if [[ ${{ matrix.py }} > 3.0 ]]; then mpiexec -n 2 $PYTHON -u mpi_test.py >& mpi2.out; fi
-                if [[ ${{ matrix.py }} > 3.0 ]]; then mpiexec -n 1 $PYTHON -u mpi_test.py >& mpi1.out; fi
+                mpiexec -n 2 python -u mpi_test.py >& mpi2.out
+                mpiexec -n 1 python -u mpi_test.py >& mpi1.out
 
-                # Test Tutorial notebook
-                if [[ ${{ matrix.py }} == 3.7 ]]; then pytest --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env; fi
+            - name: Test Tutorial notebook
+              if: {{ matrix.py == 3.7 }}
+              run: |
+                pytest --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env
 
             - name: Upload coverage to codecov
               uses: codecov/codecov-action@v1

@@ -17,61 +17,61 @@ jobs:
                 include:
                     # First all python version is basic linux
                     - os: ubuntu-latest
-                      python_version: 2.7
+                      py: 2.7
                       CC: gcc
                       CXX: g++
 
                     - os: ubuntu-latest
-                      python_version: 3.5
+                      py: 3.5
                       CC: gcc
                       CXX: g++
 
                     - os: ubuntu-latest
-                      python_version: 3.6
+                      py: 3.6
                       CC: gcc
                       CXX: g++
 
                     - os: ubuntu-latest
-                      python_version: 3.7
+                      py: 3.7
                       CC: gcc
                       CXX: g++
 
                     - os: ubuntu-latest
-                      python_version: 3.8
+                      py: 3.8
                       CC: gcc
                       CXX: g++
 
                     - os: ubuntu-latest
-                      python_version: 3.9
+                      py: 3.9
                       CC: gcc
                       CXX: g++
 
                     - os: ubuntu-latest
-                      python_version: pypy3
+                      py: pypy3
                       CC: gcc
                       CXX: g++
 
                     # A couple in MacOS
                     - os: macos-latest
-                      python_version: 2.7
+                      py: 2.7
                       CC: cc
                       CXX: c++
 
                     - os: macos-latest
-                      python_version: 3.7
+                      py: 3.7
                       CC: cc
                       CXX: c++
 
                     # Check one with clang compiler
                     - os: ubuntu-latest
-                      python_version: 3.7
+                      py: 3.7
                       CC: clang
                       CXX: clang++
 
         steps:
             - uses: actions/checkout@v2
 
-            - name: Set up Python ${{ matrix.python-version }}
+            - name: Set up Python ${{ matrix.py }}
               uses: actions/setup-python@v2
               with:
                 python-version: ${{ matrix.python-version }}
@@ -97,11 +97,11 @@ jobs:
                 # Optional dependencies only on 3.7
                 # They are slow to install, especially 3.8 and pypy, where some are installed
                 # from scratch.
-                if [[ ${{ matrix.python_version }} == 3.7 ]]; then pip install -U matplotlib nbval ipykernel scipy pandas guppy3 h5py; fi
+                if [[ ${{ matrix.py }} == 3.7 ]]; then pip install -U matplotlib nbval ipykernel scipy pandas guppy3 h5py; fi
 
                 # halotools doesn't work anymore in 3.x (because of astropy change), so do this in
                 # 2.7.And also test h5py here.
-                if [[ ${{ matrix.python_version }} == 2.7 ]]; then pip install -U h5py halotools; fi
+                if [[ ${{ matrix.py }} == 2.7 ]]; then pip install -U h5py halotools; fi
 
                 pip list
 
@@ -116,11 +116,11 @@ jobs:
                 # Check MPI functionality.
                 # The code is already mostly checked in the main tests with mock_mpi.
                 # These just check that the code works when run in a real mpi session.
-                if [[ ${{ matrix.python_version }} > 3.0 ]]; then mpiexec -n 2 $PYTHON -u mpi_test.py >& mpi2.out; fi
-                if [[ ${{ matrix.python_version }} > 3.0 ]]; then mpiexec -n 1 $PYTHON -u mpi_test.py >& mpi1.out; fi
+                if [[ ${{ matrix.py }} > 3.0 ]]; then mpiexec -n 2 $PYTHON -u mpi_test.py >& mpi2.out; fi
+                if [[ ${{ matrix.py }} > 3.0 ]]; then mpiexec -n 1 $PYTHON -u mpi_test.py >& mpi1.out; fi
 
                 # Test Tutorial notebook
-                if [[ ${{ matrix.python_version }} == 3.7 ]]; then pytest --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env; fi
+                if [[ ${{ matrix.py }} == 3.7 ]]; then pytest --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env; fi
 
             - name: Upload coverage to codecov
               uses: codecov/codecov-action@v1

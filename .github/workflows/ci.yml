@@ -93,7 +93,7 @@ jobs:
 
                 # Extra packages needed for testing
                 pip install -U codecov fitsio mpi4py
-                if [[ ${{ matrix.py }} < 3.0 ]]; then pip install -U pytest==3.2 pytest-cov=2.4; fi
+                if [[ ${{ matrix.py }} < 3.0 ]]; then pip install -U pytest==3.2 pytest-cov==2.4; fi
                 if [[ ${{ matrix.py }} > 3.0 ]]; then pip install -U pytest pytest-cov mockmpi; fi
 
                 # Optional dependencies only on 3.7

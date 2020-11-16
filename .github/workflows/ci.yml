@@ -11,10 +11,63 @@ on:
 
 jobs:
     build:
+        runs-on: ${{ matrix.os }}
         strategy:
             matrix:
-                python-version: [2.7, 3.5, 3.6, 3.7, 3.8]
-                runs-on: [ubuntu-latest, macos-latest]
+                include:
+                    # First all python version is basic linux
+                    - os: ubuntu-latest
+                      python_version: 2.7
+                      CC=gcc
+                      CXX=g++
+
+                    - os: ubuntu-latest
+                      python_version: 3.5
+                      CC=gcc
+                      CXX=g++
+
+                    - os: ubuntu-latest
+                      python_version: 3.6
+                      CC=gcc
+                      CXX=g++
+
+                    - os: ubuntu-latest
+                      python_version: 3.7
+                      CC=gcc
+                      CXX=g++
+
+                    - os: ubuntu-latest
+                      python_version: 3.8
+                      CC=gcc
+                      CXX=g++
+
+                    - os: ubuntu-latest
+                      python_version: 3.9
+                      CC=gcc
+                      CXX=g++
+
+                    - os: ubuntu-latest
+                      python_version: pypy3
+                      CC=gcc
+                      CXX=g++
+
+                    # A couple in MacOS
+                    - os: macos-latest
+                      python_version: 2.7
+                      CC=cc
+                      CXX=c++
+
+                    - os: macos-latest
+                      python_version: 3.7
+                      CC=cc
+                      CXX=c++
+
+                    # Check one with clang compiler
+                    - os: ubuntu-latest
+                      python_version: 3.7
+                      CC=clang
+                      CXX=clang++
+
         steps:
             - uses: actions/checkout@v2
 
@@ -25,8 +78,8 @@ jobs:
 
             - name: Install libffi, etc.
               run: |
-                if [[ ${{ matrix.runs-on }} == "ubuntu-latest" ]]; then sudo -H apt-get -qq update; sudo -H apt-get install -y libffi-dev openmpi-bin libopenmpi-dev; fi
-                if [[ ${{ matrix.runs-on }} == "macos-latest" ]]; then brew update; brew install libffi openmpi || true; fi
+                if [[ ${{ matrix.os }} == "ubuntu-latest" ]]; then sudo -H apt-get -qq update; sudo -H apt-get install -y libffi-dev openmpi-bin libopenmpi-dev; fi
+                if [[ ${{ matrix.os }} == "macos-latest" ]]; then brew update; brew install libffi openmpi || true; fi
 
             - name: Install dependencies
               run: |

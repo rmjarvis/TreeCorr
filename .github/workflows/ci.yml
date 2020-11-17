@@ -125,8 +125,8 @@ jobs:
               run: |
                 which -a mpiexec
                 which -a mpirun
-                mpirun -n 2 python -u mpi_test.py >& mpi2.out
-                mpirun -n 1 python -u mpi_test.py >& mpi1.out
+                mpiexec -n 2 python -u mpi_test.py #>& mpi2.out
+                mpiexec -n 1 python -u mpi_test.py #>& mpi1.out
 
             - name: Test Tutorial notebook
               if: ${{ matrix.py == 3.7 }}

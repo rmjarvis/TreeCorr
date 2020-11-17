@@ -114,6 +114,7 @@ jobs:
               run: |
                 cd tests
                 pytest --cov=treecorr test*.py
+                cd ..
 
             - name: Upload coverage to codecov
               uses: codecov/codecov-action@v1
@@ -123,13 +124,17 @@ jobs:
               # These just check that the code works when run in a real mpi session.
               if: ${{ matrix.py > 3.0 }}
               run: |
+                cd tests
                 which -a mpiexec
                 which -a mpirun
                 mpiexec -n 2 python -u mpi_test.py #>& mpi2.out
                 mpiexec -n 1 python -u mpi_test.py #>& mpi1.out
+                cd ..
 
             - name: Test Tutorial notebook
               if: ${{ matrix.py == 3.7 }}
               run: |
+                cd tests
                 pytest --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env
+                cd ..
 

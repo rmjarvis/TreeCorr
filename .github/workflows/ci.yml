@@ -59,14 +59,14 @@ jobs:
                     ${{ runner.os }}-
 
             - name: Install libffi, etc. on linux
-              if: ${{ matrix.os == "ubuntu-latest" }}
+              if: ${{ matrix.os }} == "ubuntu-latest"
               run: |
                 echo ${{ matrix.os }}
                 sudo -H apt-get -qq update
                 sudo -H apt-get install -y libffi-dev openmpi-bin libopenmpi-dev
 
             - name: Install libffi, etc. on MacOS
-              if: ${{ matrix.os == "macos-latest" }}
+              if: ${{ matrix.os }} == "macos-latest"
               # brew sometimes exits with 1 if things are already installed.
               # continue-on-error means that this still counds as success for this step.
               continue-on-error: true

@@ -13,14 +13,14 @@ jobs:
     build:
         runs-on: ${{ matrix.os }}
 
-        os: ubuntu-latest
-        CC: gcc
-        CXX: g++
 
         strategy:
             matrix:
-                # First all python version is basic linux
-                py: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9, pypy3]
+                # First all python versions in basic linux
+                py: [ 2.7, 3.5, 3.6, 3.7, 3.8, 3.9, pypy3 ]
+                os: [ ubuntu-latest ]
+                CC: [ gcc ]
+                CXX: [ g++ ]
 
                 # Add some other particular combinations to test
                 include:

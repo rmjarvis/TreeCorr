@@ -98,7 +98,7 @@ jobs:
                 pip install -U h5py halotools
 
             - name: Install py3.x dependencies
-              if: matrix.py > 3.0
+              if: matrix.py > 3.0 || matrix.py == 'pypy3'
               run: |
                 pip install -U pytest pytest-cov mockmpi
 

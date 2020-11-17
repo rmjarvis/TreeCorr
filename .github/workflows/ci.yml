@@ -59,14 +59,14 @@ jobs:
                     ${{ runner.os }}-
 
             - name: Install libffi, etc. on linux
-              if: ${{ matrix.os }} == "ubuntu-latest"
+              if: matrix.os == 'ubuntu-latest'
               run: |
                 echo ${{ matrix.os }}
                 sudo -H apt-get -qq update
                 sudo -H apt-get install -y libffi-dev openmpi-bin libopenmpi-dev
 
             - name: Install libffi, etc. on MacOS
-              if: ${{ matrix.os }} == "macos-latest"
+              if: matrix.os == 'macos-latest'
               # brew sometimes exits with 1 if things are already installed.
               # continue-on-error means that this still counds as success for this step.
               continue-on-error: true
@@ -89,7 +89,7 @@ jobs:
                 pip install -U codecov fitsio mpi4py
 
             - name: Install py2.7 dependencies
-              if: ${{ matrix.py == 2.7 }}
+              if: matrix.py == 2.7
               run: |
                 pip install -U pytest==3.2 pytest-cov==2.4
 
@@ -98,7 +98,7 @@ jobs:
                 pip install -U h5py halotools
 
             - name: Install py3.x dependencies
-              if: ${{ matrix.py > 3.0 }}
+              if: matrix.py > 3.0
               run: |
                 pip install -U pytest pytest-cov mockmpi
 
@@ -106,7 +106,7 @@ jobs:
               # Optional dependencies only on 3.7
               # They are slow to install, especially 3.8 and pypy, where some are installed
               # from scratch.
-              if: ${{ matrix.py > 3.0 }}
+              if: matrix.py > 3.0
               run: |
                 pip install -U matplotlib nbval ipykernel scipy pandas guppy3 h5py
 
@@ -129,7 +129,7 @@ jobs:
             - name: Test MPI
               # The code is already mostly checked in the main tests with mock_mpi.
               # These just check that the code works when run in a real mpi session.
-              if: ${{ matrix.py > 3.0 }}
+              if: matrix.py > 3.0
               run: |
                 cd tests
                 which -a mpiexec
@@ -139,7 +139,7 @@ jobs:
                 cd ..
 
             - name: Test Tutorial notebook
-              if: ${{ matrix.py == 3.7 }}
+              if: matrix.py == 3.7
               run: |
                 cd tests
                 pytest --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env

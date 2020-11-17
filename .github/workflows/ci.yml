@@ -14,43 +14,14 @@ jobs:
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
+                # First all python version is basic linux
+                os: ubuntu-latest
+                py: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9, pypy3]
+                CC: gcc
+                CXX: g++
+
+                # Add some other particular combinations to test
                 include:
-                    # First all python version is basic linux
-                    - os: ubuntu-latest
-                      py: 2.7
-                      CC: gcc
-                      CXX: g++
-
-                    - os: ubuntu-latest
-                      py: 3.5
-                      CC: gcc
-                      CXX: g++
-
-                    - os: ubuntu-latest
-                      py: 3.6
-                      CC: gcc
-                      CXX: g++
-
-                    - os: ubuntu-latest
-                      py: 3.7
-                      CC: gcc
-                      CXX: g++
-
-                    - os: ubuntu-latest
-                      py: 3.8
-                      CC: gcc
-                      CXX: g++
-
-                    - os: ubuntu-latest
-                      py: 3.9
-                      CC: gcc
-                      CXX: g++
-
-                    - os: ubuntu-latest
-                      py: pypy3
-                      CC: gcc
-                      CXX: g++
-
                     # A couple in MacOS
                     - os: macos-latest
                       py: 2.7
@@ -76,12 +47,31 @@ jobs:
               with:
                 python-version: ${{ matrix.py }}
 
-            - name: Install libffi, etc.
-              run: |
-                if [[ ${{ matrix.os }} == "ubuntu-latest" ]]; then sudo -H apt-get -qq update; sudo -H apt-get install -y libffi-dev openmpi-bin libopenmpi-dev; fi
-                if [[ ${{ matrix.os }} == "macos-latest" ]]; then brew update; brew install libffi openmpi || true; fi
+            - name: Cache pip
+              uses: actions/cache@v2
+              with:
+                path: ~/.cache/pip
+                key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+                restore-keys: |
+                    ${{ runner.os }}-pip-
+                    ${{ runner.os }}-
 
-            - name: Install dependencies
+            - name: Install libffi, etc. on linux
+              if: ${{ matrix.os }} == "ubuntu-latest"
+              run: |
+                sudo -H apt-get -qq update
+                sudo -H apt-get install -y libffi-dev openmpi-bin libopenmpi-dev
+
+            - name: Install libffi, etc. on MacOS
+              if: ${{ matrix.os }} == "macos-latest"
+              # brew sometimes exits with 1 if things are already installed.
+              # continue-on-error means that this still counds as success for this step.
+              continue-on-error: true
+              run: |
+                brew update
+                brew install libffi openmpi
+
+            - name: Install basic dependencies
               run: |
                 python -m pip install -U pip
 
@@ -93,19 +83,31 @@ jobs:
 
                 # Extra packages needed for testing
                 pip install -U codecov fitsio mpi4py
-                if [[ ${{ matrix.py }} < 3.0 ]]; then pip install -U pytest==3.2 pytest-cov==2.4; fi
-                if [[ ${{ matrix.py }} > 3.0 ]]; then pip install -U pytest pytest-cov mockmpi; fi
 
-                # Optional dependencies only on 3.7
-                # They are slow to install, especially 3.8 and pypy, where some are installed
-                # from scratch.
-                if [[ ${{ matrix.py }} == 3.7 ]]; then pip install -U matplotlib nbval ipykernel scipy pandas guppy3 h5py; fi
+            - name: Install py2.7 dependencies
+              if: ${{ matrix.py == 2.7 }}
+              run: |
+                pip install -U pytest==3.2 pytest-cov==2.4
 
                 # halotools doesn't work anymore in 3.x (because of astropy change), so do this in
                 # 2.7.And also test h5py here.
-                if [[ ${{ matrix.py }} == 2.7 ]]; then pip install -U h5py halotools; fi
+                pip install -U h5py halotools
 
-                pip list
+            - name: Install py3.x dependencies
+              if: ${{ matrix.py > 3.0 }}
+              run: |
+                pip install -U pytest pytest-cov mockmpi
+
+            - name: Install py3.7 dependencies
+              # Optional dependencies only on 3.7
+              # They are slow to install, especially 3.8 and pypy, where some are installed
+              # from scratch.
+              if: ${{ matrix.py > 3.0 }}
+              run: |
+                pip install -U matplotlib nbval ipykernel scipy pandas guppy3 h5py
+
+            - name: List all installed packages for reference
+              run: pip list
 
             - name: Build TreeCorr
               run: pip install -vvv .
@@ -114,7 +116,8 @@ jobs:
               run: |
                 cd tests
                 pytest --cov=treecorr test*.py
-                cd ..
+                cd ..  # N.B. This seems to happen automatically if omitted.
+                       # Less confusing to include it explicitly.
 
             - name: Upload coverage to codecov
               uses: codecov/codecov-action@v1

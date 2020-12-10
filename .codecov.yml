@@ -1,6 +1,11 @@
 codecov:
   branch: main
 
+fixes:
+  # Fix the file names:
+  - "/opt/hostedtoolcache/Python/*/x64/lib/python*/site-packages/::"
+  - "/Users/runner/hostedtoolcache/Python/*/x64/lib/python*/site-packages/::"
+
 coverage:
   precision: 2
   round: down

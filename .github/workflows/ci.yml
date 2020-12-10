@@ -124,7 +124,20 @@ jobs:
                        # Less confusing to include it explicitly.
 
             - name: Upload coverage to codecov
-              uses: codecov/codecov-action@v1
+              #uses: codecov/codecov-action@v1  # This didn't work for me.
+              run: |
+                pwd
+                pwd -P
+                cd tests
+                ls -la
+                coverage combine
+                coverage report
+                ls -la
+                #codecov  # This also didn't work.
+                # cf. https://community.codecov.io/t/github-not-getting-codecov-report-after-switching-from-travis-to-github-actions-for-ci/
+                # The solution was to switch to the bash uploader line instead.
+                bash <(curl -s https://codecov.io/bash)
+                cd ..
 
             - name: Test MPI
               # The code is already mostly checked in the main tests with mock_mpi.

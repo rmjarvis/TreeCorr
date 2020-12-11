@@ -1,10 +1,7 @@
 [run]
 branch = True
 
-include = *treecorr/*
-
 # Without this, coverage misses anything that is only run in multiprocessing mode.
-# We don't have any multiprocessing yet, but I plan to, so put this in now.
 concurrency = multiprocessing
 
 [report]

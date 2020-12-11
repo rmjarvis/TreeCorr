@@ -86,7 +86,7 @@ jobs:
                 pip install -U -r requirements.txt
 
                 # Extra packages needed for testing
-                pip install -U codecov fitsio mpi4py
+                pip install -U codecov fitsio mpi4py coverage
 
             - name: Install py2.7 dependencies
               if: matrix.py == 2.7
@@ -97,15 +97,13 @@ jobs:
                 # 2.7.And also test h5py here.
                 pip install -U h5py halotools
 
-            - name: Install py3.x dependencies
+            - name: Install py3.x, pypy dependencies
               if: matrix.py > 3.0 || matrix.py == 'pypy3'
               run: |
                 pip install -U pytest pytest-cov mockmpi
 
-            - name: Install py3.7 dependencies
-              # Optional dependencies only on 3.7
-              # They are slow to install, especially 3.8 and pypy, where some are installed
-              # from scratch.
+            - name: Install py3.x dependencies
+              # They are slow to install on pypy, where some are installed from scratch.
               if: matrix.py > 3.0
               run: |
                 pip install -U matplotlib nbval ipykernel scipy pandas guppy3 h5py
@@ -130,7 +128,7 @@ jobs:
                 pwd -P
                 cd tests
                 ls -la
-                coverage combine
+                coverage combine || true  # (Not necessary I think, but just in case.)
                 coverage report
                 ls -la
                 #codecov  # This also didn't work.

@@ -86,13 +86,11 @@ jobs:
                 pip install -U -r requirements.txt
 
                 # Extra packages needed for testing
-                pip install -U codecov fitsio mpi4py coverage
+                pip install -U nose codecov fitsio mpi4py coverage
 
             - name: Install py2.7 dependencies
               if: matrix.py == 2.7
               run: |
-                pip install -U pytest==3.2 pytest-cov==2.4
-
                 # halotools doesn't work anymore in 3.x (because of astropy change), so do this in
                 # 2.7.And also test h5py here.
                 pip install -U h5py halotools
@@ -100,7 +98,7 @@ jobs:
             - name: Install py3.x, pypy dependencies
               if: matrix.py > 3.0 || matrix.py == 'pypy3'
               run: |
-                pip install -U pytest pytest-cov mockmpi
+                pip install -U mockmpi
 
             - name: Install py3.x dependencies
               # They are slow to install on pypy, where some are installed from scratch.
@@ -117,7 +115,7 @@ jobs:
             - name: Run unit tests
               run: |
                 cd tests
-                pytest --cov=treecorr test*.py
+                nosetests --with-coverage --cover-package=treecorr
                 cd ..  # N.B. This seems to happen automatically if omitted.
                        # Less confusing to include it explicitly.
 

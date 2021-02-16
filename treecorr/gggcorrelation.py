@@ -872,17 +872,40 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
         # Pick s = d2, so dlogs is bin_size
         s = d2 = np.outer(1./R, self.meand2.ravel())
-        eq = (self.meanu >= 0.9) & (self.meanv > 0) & (self.meanv <= 0.1)
-        eq = eq.ravel()
 
         # We take t = d3, but we need the x and y components. (relative to s along x axis)
         # cf. Figure 1 in JBJ.
         # d1^2 = d2^2 + d3^2 - 2 d2 d3 cos(theta1)
         # tx = d3 cos(theta1) = (d2^2 + d3^2 - d1^2)/2d2
+        # Simplify this using u=d3/d2 and v=(d1-d2)/d3
+        #    = (d3^2 - (d1+d2)(d1-d2)) / 2d2
+        #    = d3 (d3 - (d1+d2)v) / 2d2
+        #    = d3 (u - (2+uv)v)/2
+        #    = d3 (u - 2v - uv^2)/2
+        #    = d3 (u(1-v^2)/2 - v)
+        # Note that v here is really |v|.  We'll account for the sign of v in ty.
         d3 = np.outer(1./R, self.meand3.ravel())
         d1 = np.outer(1./R, self.meand1.ravel())
-        tx = (d2*d2 + d3*d3 - d1*d1) / (2*d2)
-        ty = np.sqrt(d3*d3 - tx*tx)
+        u = self.meanu.ravel()
+        v = self.meanv.ravel()
+        tx = d3*(0.5*u*(1-v**2) - np.abs(v))
+        # This form tends to be more stable near potentially degenerate triangles
+        # than tx = (d2*d2 + d3*d3 - d1*d1) / (2*d2)
+        # However, add a check to make sure.
+        bad = (tx <= -d3) | (tx >= d3)
+        if np.any(bad):  # pragma: no cover
+            self.logger.warning("Warning: Detected some invalid triangles when computing Map^3")
+            self.logger.warning("Excluding these triangles from the integral.")
+            self.logger.debug("N bad points = %s",np.sum(bad))
+            self.logger.debug("d1[bad] = %s",d1[bad])
+            self.logger.debug("d2[bad] = %s",d2[bad])
+            self.logger.debug("d3[bad] = %s",d3[bad])
+            self.logger.debug("u[bad] = %s",u[bad])
+            self.logger.debug("v[bad] = %s",v[bad])
+            self.logger.debug("tx[bad] = %s",tx[bad])
+        bad = np.where(bad)
+        tx[bad] = 0  # for now to avoid nans
+        ty = np.sqrt(d3**2 - tx**2)
         ty[:,self.meanv.ravel() > 0] *= -1.
         t = tx + 1j * ty
 
@@ -892,9 +915,8 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         # Finally, account for the Jacobian in d^2t: jac = |J(tx, ty; u, v)|,
         # since our Gammas are accumulated in s, u, v, not s, tx, ty.
         # u = d3/d2, v = (d1-d2)/d3
-        # tx = (s^2 + (s u)^2 - (s u v + s)^2)/2s
-        #    = s/2 (1 + u^2 - (1 + 2uv + u^2v^2))
-        #    = s/2 (u^2 - 2uv - u^2 v^2)
+        # tx = d3 (u - 2v - uv^2)/2
+        #    = s/2 (u^2 - 2uv - u^2v^2)
         # dtx/du = s (u - v - uv^2)
         # dtx/dv = -us (1 + uv)
         # ty = sqrt(d3^2 - tx^2) = sqrt(u^2 s^2 - tx^2)
@@ -905,7 +927,9 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         #
         # J = s^3 u^2 (1+uv) / ty
         #   = d3^2 d1 / ty
+        #
         jac = np.abs(d3*d3*d1/ty)
+        jac[bad] = 0.  # Exclude any bad triangles from the integral.
         d2t = jac * self.ubin_size * self.vbin_size / (2.*np.pi)
         sds = s * s * self.bin_size  # Remember bin_size is dln(s)
         # Note: these are really d2t/2piR^2 and sds/R^2, which are what actually show up

@@ -1018,9 +1018,130 @@ def test_map3():
     data = np.genfromtxt(os.path.join('output','ggg_m3b.txt'), names=True)
     np.testing.assert_allclose(data['Map3'], map3)
 
+@timer
+def test_grid():
+    # Same as test_ggg, but the input is on a grid, where Sven Heydenreich reported getting nans.
+
+    gamma0 = 0.05
+    r0 = 10.
+    nside = 50
+    L = 20.*r0
+
+    x,y = np.meshgrid(np.linspace(-L,L,nside), np.linspace(-L,L,nside))
+    x = x.ravel()
+    y = y.ravel()
+    r2 = (x**2 + y**2)/r0**2
+    g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
+    g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
+
+    min_sep = 0.05*r0
+    max_sep = 5*r0
+    nbins = 10
+    nubins = 10
+    nvbins = 11
+
+    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
+    ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  nubins=nubins, nvbins=nvbins,
+                                  verbose=1)
+    ggg.process(cat)
+
+    # log(<d>) != <logd>, but it should be close:
+    np.testing.assert_allclose(ggg.meanlogd1, np.log(ggg.meand1), rtol=1.e-2)
+    np.testing.assert_allclose(ggg.meanlogd2, np.log(ggg.meand2), rtol=1.e-2)
+    np.testing.assert_allclose(ggg.meanlogd3, np.log(ggg.meand3), rtol=1.e-2)
+    np.testing.assert_allclose(ggg.meand3/ggg.meand2, ggg.meanu, atol=1.e-2)
+    np.testing.assert_allclose((ggg.meand1-ggg.meand2)/ggg.meand3, np.abs(ggg.meanv), atol=1.e-2)
+
+    d1 = ggg.meand1
+    d2 = ggg.meand2
+    d3 = ggg.meand3
+
+    # See test_ggg for comments about this derivation.
+    s = d2
+    tx = (d2**2 + d3**2 - d1**2)/(2.*d2)
+    tysq = d3**2 - tx**2
+    tysq[tysq <= 0] = 0.  # Watch out for invalid triangles that are actually just degenerate.
+    ty = np.sqrt(tysq)
+    ty[ggg.meanv > 0] *= -1.
+    t = tx + 1j * ty
+    q1 = (s + t)/3.
+    q2 = q1 - t
+    q3 = q1 - s
+    nq1 = np.abs(q1)**2
+    nq2 = np.abs(q2)**2
+    nq3 = np.abs(q3)**2
+    q1[nq1==0] = 1  # With the grid, some triangles are degenerate.  Don't divide by 0.
+    nq1[nq1==0] = 1
+    L = L - 2.*(q1 + q2 + q3)/3.
+    true_gam0 = ((-2.*np.pi * gamma0**3)/(3. * L**2 * r0**4) *
+                 np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) * (nq1*nq2*nq3) )
+    true_gam1 = ((-2.*np.pi * gamma0**3)/(3. * L**2 * r0**4) *
+                 np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
+                 (nq1*nq2*nq3 - 8./3. * r0**2 * q1**2*nq2*nq3/(q2*q3)
+                  + (8./9. * r0**4 * (q1**2 * nq2 * nq3)/(nq1 * q2**2 * q3**2) *
+                     (2.*q1**2 - q2**2 - q3**2)) ))
+    true_gam2 = ((-2.*np.pi * gamma0**3)/(3. * L**2 * r0**4) *
+                 np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
+                 (nq1*nq2*nq3 - 8./3. * r0**2 * nq1*q2**2*nq3/(q1*q3)
+                  + (8./9. * r0**4 * (nq1 * q2**2 * nq3)/(q1**2 * nq2 * q3**2) *
+                     (2.*q2**2 - q1**2 - q3**2)) ))
+    true_gam3 = ((-2.*np.pi * gamma0**3)/(3. * L**2 * r0**4) *
+                 np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
+                 (nq1*nq2*nq3 - 8./3. * r0**2 * nq1*nq2*q3**2/(q1*q2)
+                  + (8./9. * r0**4 * (nq1 * nq2 * q3**2)/(q1**2 * q2**2 * nq3) *
+                     (2.*q3**2 - q1**2 - q2**2)) ))
+
+    # The bug report was that sometimes gam* could be nan.
+    idx = np.where(np.isnan(ggg.gam0) | np.isnan(ggg.gam1) |
+                   np.isnan(ggg.gam2) | np.isnan(ggg.gam2) |
+                   np.isnan(true_gam0) | np.isnan(true_gam1) |
+                   np.isnan(true_gam2) | np.isnan(true_gam3))
+    if len(idx[0]) > 0:
+        print('values where nan:')
+        print('idx = ',idx)
+        print('ntri = ',ggg.ntri[idx])
+        print('d1 = ',ggg.meand1[idx])
+        print('d2 = ',ggg.meand2[idx])
+        print('d3 = ',ggg.meand3[idx])
+        print('u = ',ggg.meanu[idx])
+        print('v = ',ggg.meanv[idx])
+        print('rnom = ',ggg.rnom[idx])
+        print('unom = ',ggg.u[idx])
+        print('vnom = ',ggg.v[idx])
+        print('gam0 = ',ggg.gam0[idx])
+        print('gam1 = ',ggg.gam1[idx])
+        print('gam2 = ',ggg.gam2[idx])
+        print('gam3 = ',ggg.gam3[idx])
+        print('true_gam0 = ',true_gam0[idx])
+        print('true_gam1 = ',true_gam1[idx])
+        print('true_gam2 = ',true_gam2[idx])
+        print('true_gam3 = ',true_gam3[idx])
+        print('q1 = ',q1[idx])
+        print('q2 = ',q2[idx])
+        print('q3 = ',q3[idx])
+        print('nq1 = ',nq1[idx])
+        print('nq2 = ',nq2[idx])
+        print('nq3 = ',nq3[idx])
+    assert not np.any(np.isnan(ggg.gam0))
+    assert not np.any(np.isnan(ggg.gam1))
+    assert not np.any(np.isnan(ggg.gam2))
+    assert not np.any(np.isnan(ggg.gam3))
+    np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=0.2, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam1, true_gam1, rtol=0.2, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=0.2, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=0.2, atol=1.e-6)
+
+    map3_stats = ggg.calculateMap3()
+    map3 = map3_stats[0]
+    mx3 = map3_stats[7]
+    assert not np.any(np.isnan(map3))
+    assert not np.any(np.isnan(mx3))
+
 
 if __name__ == '__main__':
     test_direct()
     test_direct_spherical()
     test_ggg()
     test_map3()
+    test_grid()

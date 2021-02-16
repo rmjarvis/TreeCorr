@@ -20,6 +20,15 @@
 template <int C>
 struct ProjectHelper;
 
+inline double safe_norm(const std::complex<double>& z)
+{
+    // When dividing by a norm, if z = 0, that can lead to nans.
+    // This can happen in various places for extremal, degenerate triangles.
+    // So always use this for any place where that might be a problem.
+    double n = std::norm(z);
+    return n > 0. ? n : 1.;
+}
+
 template <>
 struct ProjectHelper<Flat>
 {
@@ -29,7 +38,7 @@ struct ProjectHelper<Flat>
     {
         // Project given shear to the line connecting them.
         std::complex<double> cr(c2.getData().getPos() - c1.getData().getPos());
-        std::complex<double> expm2iarg = conj(cr*cr)/std::norm(cr);
+        std::complex<double> expm2iarg = conj(cr*cr)/safe_norm(cr);
         g2 = c2.getData().getWG() * expm2iarg;
     }
 
@@ -39,7 +48,7 @@ struct ProjectHelper<Flat>
     {
         // Project given shears to the line connecting them.
         std::complex<double> cr(c2.getData().getPos() - c1.getData().getPos());
-        std::complex<double> expm2iarg = conj(cr*cr)/std::norm(cr);
+        std::complex<double> expm2iarg = conj(cr*cr)/safe_norm(cr);
         g1 = c1.getData().getWG() * expm2iarg;
         g2 = c2.getData().getWG() * expm2iarg;
     }
@@ -56,9 +65,9 @@ struct ProjectHelper<Flat>
         std::complex<double> cr1(cen - p1);
         std::complex<double> cr2(cen - p2);
         std::complex<double> cr3(cen - p3);
-        g1 = c1.getData().getWG() * conj(cr1*cr1)/std::norm(cr1);
-        g2 = c2.getData().getWG() * conj(cr2*cr2)/std::norm(cr2);
-        g3 = c3.getData().getWG() * conj(cr3*cr3)/std::norm(cr3);
+        g1 = c1.getData().getWG() * conj(cr1*cr1)/safe_norm(cr1);
+        g2 = c2.getData().getWG() * conj(cr2*cr2)/safe_norm(cr2);
+        g3 = c3.getData().getWG() * conj(cr3*cr3)/safe_norm(cr3);
     }
 };
 
@@ -130,6 +139,7 @@ struct ProjectHelper<Sphere>
         double cosAsq = cosA*cosA;
         double sinAsq = sinA*sinA;
         double normAsq = cosAsq + sinAsq;
+        if (normAsq == 0.) normAsq = 1.;  // This happens if p1==p2, which is possible for 3pt.
         Assert(normAsq > 0.);
         double cos2A = (cosAsq - sinAsq) / normAsq; // These are now correct.
         double sin2A = 2.*sinA*cosA / normAsq;

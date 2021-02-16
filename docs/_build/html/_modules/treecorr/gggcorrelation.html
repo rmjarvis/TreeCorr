@@ -1,39 +1,42 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>treecorr.gggcorrelation &mdash; TreeCorr 4.1.5 documentation</title>
+  <title>treecorr.gggcorrelation &mdash; TreeCorr 4.1.6 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
   
 
   
   
-  
+
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
 </head>
@@ -76,6 +79,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -103,6 +107,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -137,11 +142,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
@@ -1028,17 +1035,40 @@
 
         <span class="c1"># Pick s = d2, so dlogs is bin_size</span>
         <span class="n">s</span> <span class="o">=</span> <span class="n">d2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="n">R</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
-        <span class="n">eq</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanu</span> <span class="o">&gt;=</span> <span class="mf">0.9</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanv</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanv</span> <span class="o">&lt;=</span> <span class="mf">0.1</span><span class="p">)</span>
-        <span class="n">eq</span> <span class="o">=</span> <span class="n">eq</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
 
         <span class="c1"># We take t = d3, but we need the x and y components. (relative to s along x axis)</span>
         <span class="c1"># cf. Figure 1 in JBJ.</span>
         <span class="c1"># d1^2 = d2^2 + d3^2 - 2 d2 d3 cos(theta1)</span>
         <span class="c1"># tx = d3 cos(theta1) = (d2^2 + d3^2 - d1^2)/2d2</span>
+        <span class="c1"># Simplify this using u=d3/d2 and v=(d1-d2)/d3</span>
+        <span class="c1">#    = (d3^2 - (d1+d2)(d1-d2)) / 2d2</span>
+        <span class="c1">#    = d3 (d3 - (d1+d2)v) / 2d2</span>
+        <span class="c1">#    = d3 (u - (2+uv)v)/2</span>
+        <span class="c1">#    = d3 (u - 2v - uv^2)/2</span>
+        <span class="c1">#    = d3 (u(1-v^2)/2 - v)</span>
+        <span class="c1"># Note that v here is really |v|.  We&#39;ll account for the sign of v in ty.</span>
         <span class="n">d3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="n">R</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
         <span class="n">d1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="n">R</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meand1</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
-        <span class="n">tx</span> <span class="o">=</span> <span class="p">(</span><span class="n">d2</span><span class="o">*</span><span class="n">d2</span> <span class="o">+</span> <span class="n">d3</span><span class="o">*</span><span class="n">d3</span> <span class="o">-</span> <span class="n">d1</span><span class="o">*</span><span class="n">d1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">d2</span><span class="p">)</span>
-        <span class="n">ty</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d3</span><span class="o">*</span><span class="n">d3</span> <span class="o">-</span> <span class="n">tx</span><span class="o">*</span><span class="n">tx</span><span class="p">)</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanu</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanv</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">tx</span> <span class="o">=</span> <span class="n">d3</span><span class="o">*</span><span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="n">u</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">v</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+        <span class="c1"># This form tends to be more stable near potentially degenerate triangles</span>
+        <span class="c1"># than tx = (d2*d2 + d3*d3 - d1*d1) / (2*d2)</span>
+        <span class="c1"># However, add a check to make sure.</span>
+        <span class="n">bad</span> <span class="o">=</span> <span class="p">(</span><span class="n">tx</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="n">d3</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">tx</span> <span class="o">&gt;=</span> <span class="n">d3</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">bad</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Warning: Detected some invalid triangles when computing Map^3&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Excluding these triangles from the integral.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;N bad points = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">bad</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;d1[bad] = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">d1</span><span class="p">[</span><span class="n">bad</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;d2[bad] = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">d2</span><span class="p">[</span><span class="n">bad</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;d3[bad] = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">d3</span><span class="p">[</span><span class="n">bad</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;u[bad] = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">u</span><span class="p">[</span><span class="n">bad</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;v[bad] = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">v</span><span class="p">[</span><span class="n">bad</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;tx[bad] = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">tx</span><span class="p">[</span><span class="n">bad</span><span class="p">])</span>
+        <span class="n">bad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">bad</span><span class="p">)</span>
+        <span class="n">tx</span><span class="p">[</span><span class="n">bad</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># for now to avoid nans</span>
+        <span class="n">ty</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d3</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">tx</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
         <span class="n">ty</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">meanv</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mf">1.</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">tx</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">ty</span>
 
@@ -1048,9 +1078,8 @@
         <span class="c1"># Finally, account for the Jacobian in d^2t: jac = |J(tx, ty; u, v)|,</span>
         <span class="c1"># since our Gammas are accumulated in s, u, v, not s, tx, ty.</span>
         <span class="c1"># u = d3/d2, v = (d1-d2)/d3</span>
-        <span class="c1"># tx = (s^2 + (s u)^2 - (s u v + s)^2)/2s</span>
-        <span class="c1">#    = s/2 (1 + u^2 - (1 + 2uv + u^2v^2))</span>
-        <span class="c1">#    = s/2 (u^2 - 2uv - u^2 v^2)</span>
+        <span class="c1"># tx = d3 (u - 2v - uv^2)/2</span>
+        <span class="c1">#    = s/2 (u^2 - 2uv - u^2v^2)</span>
         <span class="c1"># dtx/du = s (u - v - uv^2)</span>
         <span class="c1"># dtx/dv = -us (1 + uv)</span>
         <span class="c1"># ty = sqrt(d3^2 - tx^2) = sqrt(u^2 s^2 - tx^2)</span>
@@ -1061,7 +1090,9 @@
         <span class="c1">#</span>
         <span class="c1"># J = s^3 u^2 (1+uv) / ty</span>
         <span class="c1">#   = d3^2 d1 / ty</span>
+        <span class="c1">#</span>
         <span class="n">jac</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">d3</span><span class="o">*</span><span class="n">d3</span><span class="o">*</span><span class="n">d1</span><span class="o">/</span><span class="n">ty</span><span class="p">)</span>
+        <span class="n">jac</span><span class="p">[</span><span class="n">bad</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>  <span class="c1"># Exclude any bad triangles from the integral.</span>
         <span class="n">d2t</span> <span class="o">=</span> <span class="n">jac</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ubin_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">vbin_size</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
         <span class="n">sds</span> <span class="o">=</span> <span class="n">s</span> <span class="o">*</span> <span class="n">s</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span>  <span class="c1"># Remember bin_size is dln(s)</span>
         <span class="c1"># Note: these are really d2t/2piR^2 and sds/R^2, which are what actually show up</span>
@@ -1178,20 +1209,25 @@
            
           </div>
           <footer>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Mike Jarvis
+        &#169; Copyright 2019, Mike Jarvis.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -1199,7 +1235,6 @@
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

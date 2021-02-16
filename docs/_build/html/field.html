@@ -1,39 +1,42 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Fields &mdash; TreeCorr 4.1.5 documentation</title>
+  <title>Fields &mdash; TreeCorr 4.1.6 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
   
 
   
   
-  
+
   
 
   
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Using configuration files" href="scripts.html" />
@@ -78,6 +81,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -105,6 +109,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -139,18 +144,20 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>Fields</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/field.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -191,7 +198,7 @@ rather than a tree.  Its subclasses, <a class="reference internal" href="#treeco
 <p>Typically, one would not create any of these objects directly, but would instead
 use Catalog methods <a class="reference internal" href="catalog.html#treecorr.Catalog.getNField" title="treecorr.Catalog.getNField"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getNField</span></code></a>, <a class="reference internal" href="catalog.html#treecorr.Catalog.getGField" title="treecorr.Catalog.getGField"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getGField</span></code></a>, <a class="reference internal" href="catalog.html#treecorr.Catalog.getKField" title="treecorr.Catalog.getKField"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getKField</span></code></a>.  Or indeed, usually, one
 does not even do that, and just lets the relevant <code class="docutils literal notranslate"><span class="pre">process</span></code> command do so for you.</p>
-<dl class="class">
+<dl class="py class">
 <dt id="treecorr.Field">
 <em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">Field</code><a class="reference internal" href="_modules/treecorr/field.html#Field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field" title="Permalink to this definition">¶</a></dt>
 <dd><p>A Field in TreeCorr is the object that stores the tree structure we use for efficient
@@ -248,7 +255,7 @@ weak lensing context).  In addition to the above values, cells keep track of
 the mean (complex) gamma value in the given region.</p></li>
 </ul>
 </div></blockquote>
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Field.cat">
 <em class="property">property </em><code class="sig-name descname">cat</code><a class="headerlink" href="#treecorr.Field.cat" title="Permalink to this definition">¶</a></dt>
 <dd><p>The catalog from which this field was constructed.</p>
@@ -256,9 +263,9 @@ the mean (complex) gamma value in the given region.</p></li>
 might be None.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Field.count_near">
-<code class="sig-name descname">count_near</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.count_near"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.count_near" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">count_near</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.count_near"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.count_near" title="Permalink to this definition">¶</a></dt>
 <dd><p>Count how many points are near a given coordinate.</p>
 <p>Use the existing tree structure to count how many points are within some given separation
 of a target coordinate.</p>
@@ -328,9 +335,9 @@ or sep_units respectively to specify which angular units are providing.</p>
 <code class="docutils literal notranslate"><span class="pre">coord.CelestialCoord</span></code> instance as the first argument to specify both RA and Dec.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Field.get_near">
-<code class="sig-name descname">get_near</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.get_near"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.get_near" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_near</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.get_near"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.get_near" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the indices of points near a given coordinate.</p>
 <p>Use the existing tree structure to find the points that are within some given separation
 of a target coordinate.</p>
@@ -400,9 +407,9 @@ or sep_units respectively to specify which angular units are providing.</p>
 <code class="docutils literal notranslate"><span class="pre">coord.CelestialCoord</span></code> instance as the first argument to specify both RA and Dec.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Field.kmeans_assign_patches">
-<code class="sig-name descname">kmeans_assign_patches</code><span class="sig-paren">(</span><em class="sig-param">centers</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.kmeans_assign_patches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.kmeans_assign_patches" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">kmeans_assign_patches</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">centers</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.kmeans_assign_patches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.kmeans_assign_patches" title="Permalink to this definition">¶</a></dt>
 <dd><p>Assign patch numbers to each point according to the given centers.</p>
 <p>This is final step in the full K-Means algorithm.  It assignes patch numbers to each
 point in the field according to which center is closest.</p>
@@ -419,9 +426,9 @@ spherical geometries.  In the latter case, the centers represent
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Field.kmeans_initialize_centers">
-<code class="sig-name descname">kmeans_initialize_centers</code><span class="sig-paren">(</span><em class="sig-param">npatch</em>, <em class="sig-param">init='tree'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.kmeans_initialize_centers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.kmeans_initialize_centers" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">kmeans_initialize_centers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">npatch</span></em>, <em class="sig-param"><span class="n">init</span><span class="o">=</span><span class="default_value">'tree'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.kmeans_initialize_centers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.kmeans_initialize_centers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use the field’s tree structure to assign good initial centers for a K-Means run.</p>
 <p>The classic K-Means algorithm involves starting with random points as the initial
 centers of the patches.  This has a tendency to result in rather poor results in
@@ -458,9 +465,9 @@ spherical geometries.  In the latter case, the centers represent
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Field.kmeans_refine_centers">
-<code class="sig-name descname">kmeans_refine_centers</code><span class="sig-paren">(</span><em class="sig-param">centers</em>, <em class="sig-param">max_iter=200</em>, <em class="sig-param">tol=1e-05</em>, <em class="sig-param">alt=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.kmeans_refine_centers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.kmeans_refine_centers" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">kmeans_refine_centers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">centers</span></em>, <em class="sig-param"><span class="n">max_iter</span><span class="o">=</span><span class="default_value">200</span></em>, <em class="sig-param"><span class="n">tol</span><span class="o">=</span><span class="default_value">1e-05</span></em>, <em class="sig-param"><span class="n">alt</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.kmeans_refine_centers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.kmeans_refine_centers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fast implementation of the K-Means algorithm</p>
 <p>The standard K-Means algorithm is as follows
 (cf. <a class="reference external" href="https://en.wikipedia.org/wiki/K-means_clustering">https://en.wikipedia.org/wiki/K-means_clustering</a>):</p>
@@ -505,15 +512,15 @@ deviation of the inertia rather than the total inertia (aka WCSS).
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Field.nTopLevelNodes">
 <em class="property">property </em><code class="sig-name descname">nTopLevelNodes</code><a class="headerlink" href="#treecorr.Field.nTopLevelNodes" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of top-level nodes.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="treecorr.Field.run_kmeans">
-<code class="sig-name descname">run_kmeans</code><span class="sig-paren">(</span><em class="sig-param">npatch</em>, <em class="sig-param">max_iter=200</em>, <em class="sig-param">tol=1e-05</em>, <em class="sig-param">init='tree'</em>, <em class="sig-param">alt=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.run_kmeans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.run_kmeans" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">run_kmeans</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">npatch</span></em>, <em class="sig-param"><span class="n">max_iter</span><span class="o">=</span><span class="default_value">200</span></em>, <em class="sig-param"><span class="n">tol</span><span class="o">=</span><span class="default_value">1e-05</span></em>, <em class="sig-param"><span class="n">init</span><span class="o">=</span><span class="default_value">'tree'</span></em>, <em class="sig-param"><span class="n">alt</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.run_kmeans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.run_kmeans" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use k-means algorithm to set patch labels for a field.</p>
 <p>The k-means algorithm (cf. <a class="reference external" href="https://en.wikipedia.org/wiki/K-means_clustering">https://en.wikipedia.org/wiki/K-means_clustering</a>) identifies
 a center position for each patch.  Each point is then assigned to the patch whose center
@@ -613,9 +620,9 @@ spherical geometries.  In the latter case, the centers represent
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="treecorr.NField">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">NField</code><span class="sig-paren">(</span><em class="sig-param">cat</em>, <em class="sig-param">min_size=0</em>, <em class="sig-param">max_size=None</em>, <em class="sig-param">split_method='mean'</em>, <em class="sig-param">brute=False</em>, <em class="sig-param">min_top=None</em>, <em class="sig-param">max_top=10</em>, <em class="sig-param">coords=None</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#NField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NField" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">NField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat</span></em>, <em class="sig-param"><span class="n">min_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">max_size</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">split_method</span><span class="o">=</span><span class="default_value">'mean'</span></em>, <em class="sig-param"><span class="n">brute</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">min_top</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_top</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#NField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NField" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class stores the positions and number of objects in a tree structure from which it is
 efficient to compute correlation functions.</p>
 <p>An NField is typically created from a Catalog object using</p>
@@ -643,9 +650,9 @@ efficient to compute correlation functions.</p>
 </dl>
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="treecorr.GField">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">GField</code><span class="sig-paren">(</span><em class="sig-param">cat</em>, <em class="sig-param">min_size=0</em>, <em class="sig-param">max_size=None</em>, <em class="sig-param">split_method='mean'</em>, <em class="sig-param">brute=False</em>, <em class="sig-param">min_top=None</em>, <em class="sig-param">max_top=10</em>, <em class="sig-param">coords=None</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#GField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GField" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">GField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat</span></em>, <em class="sig-param"><span class="n">min_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">max_size</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">split_method</span><span class="o">=</span><span class="default_value">'mean'</span></em>, <em class="sig-param"><span class="n">brute</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">min_top</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_top</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#GField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GField" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class stores the values of a spinor field (gamma in the weak lensing context) in a
 tree structure from which it is efficient to compute correlation functions.</p>
 <p>A GField is typically created from a Catalog object using</p>
@@ -673,9 +680,9 @@ tree structure from which it is efficient to compute correlation functions.</p>
 </dl>
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="treecorr.KField">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">KField</code><span class="sig-paren">(</span><em class="sig-param">cat</em>, <em class="sig-param">min_size=0</em>, <em class="sig-param">max_size=None</em>, <em class="sig-param">split_method='mean'</em>, <em class="sig-param">brute=False</em>, <em class="sig-param">min_top=None</em>, <em class="sig-param">max_top=10</em>, <em class="sig-param">coords=None</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#KField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KField" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">KField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat</span></em>, <em class="sig-param"><span class="n">min_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">max_size</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">split_method</span><span class="o">=</span><span class="default_value">'mean'</span></em>, <em class="sig-param"><span class="n">brute</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">min_top</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_top</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#KField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KField" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class stores the values of a scalar field (kappa in the weak lensing context) in a
 tree structure from which it is efficient to compute correlation functions.</p>
 <p>A KField is typically created from a Catalog object using</p>
@@ -703,7 +710,7 @@ tree structure from which it is efficient to compute correlation functions.</p>
 </dl>
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="treecorr.SimpleField">
 <em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">SimpleField</code><a class="reference internal" href="_modules/treecorr/field.html#SimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.SimpleField" title="Permalink to this definition">¶</a></dt>
 <dd><p>A SimpleField is like a Field, but only stores the leaves as a list, skipping all the
@@ -726,9 +733,9 @@ If you have a need for it, please open an issue to describe your use case.</p>
 </div>
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="treecorr.NSimpleField">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">NSimpleField</code><span class="sig-paren">(</span><em class="sig-param">cat</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#NSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NSimpleField" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">NSimpleField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#NSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NSimpleField" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class stores the positions as a list, skipping all the tree stuff.</p>
 <p>An NSimpleField is typically created from a Catalog object using</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nfield</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getNSimpleField</span><span class="p">()</span>
@@ -751,9 +758,9 @@ If you have a need for it, please open an issue to describe your use case.</p>
 </dl>
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="treecorr.GSimpleField">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">GSimpleField</code><span class="sig-paren">(</span><em class="sig-param">cat</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#GSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GSimpleField" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">GSimpleField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#GSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GSimpleField" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class stores the shear field as a list, skipping all the tree stuff.</p>
 <p>A GSimpleField is typically created from a Catalog object using</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gfield</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getGSimpleField</span><span class="p">()</span>
@@ -776,9 +783,9 @@ If you have a need for it, please open an issue to describe your use case.</p>
 </dl>
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="treecorr.KSimpleField">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">KSimpleField</code><span class="sig-paren">(</span><em class="sig-param">cat</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#KSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KSimpleField" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">KSimpleField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#KSimpleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KSimpleField" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class stores the kappa field as a list, skipping all the tree stuff.</p>
 <p>A KSimpleField is typically created from a Catalog object using</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kfield</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getKSimpleField</span><span class="p">()</span>
@@ -808,29 +815,29 @@ If you have a need for it, please open an issue to describe your use case.</p>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="scripts.html" class="btn btn-neutral float-right" title="Using configuration files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="cov.html" class="btn btn-neutral float-left" title="Covariance Estimates" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="scripts.html" class="btn btn-neutral float-right" title="Using configuration files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="cov.html" class="btn btn-neutral float-left" title="Covariance Estimates" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Mike Jarvis
+        &#169; Copyright 2019, Mike Jarvis.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -838,7 +845,6 @@ If you have a need for it, please open an issue to describe your use case.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

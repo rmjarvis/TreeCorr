@@ -149,7 +149,7 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
     * `sklearn.cluster.KMeans <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html#sklearn.cluster.KMeans>`_
     * `sklearn.cluster.MiniBatchKMeans <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.MiniBatchKMeans.html#sklearn.cluster.MiniBatchKMeans>`_
 
-    I made a `notebook <https://github.com/rmjarvis/TreeCorr/blob/master/devel/kmeans.ipynb>`_
+    I made a `notebook <https://github.com/rmjarvis/TreeCorr/blob/main/devel/kmeans.ipynb>`_
     comparing the different algorithms using a random million galaxies from the DES SV
     (Dark Energy Survey, Science Verification) footprint, chosen because it is a
     real-life use case that has some ratty edges to deal with, so it seemed like it would
@@ -192,7 +192,7 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
     1 million points into 40 patches, and the rms variation is usually less than any other
     implementation.
 
-    The `notebook <https://github.com/rmjarvis/TreeCorr/blob/master/devel/kmeans.ipynb>`_ also
+    The `notebook <https://github.com/rmjarvis/TreeCorr/blob/main/devel/kmeans.ipynb>`_ also
     includes plots of total inertia, variation in size according to the mean d^2 rather than
     sum, and variation in the counts. The TreeCorr algorithm tends to be the best k-means
     implementation according to any of these metrics.
@@ -369,5 +369,5 @@ But it's probably easier to just precompute the centers and save them to a file
 before starting the MPI run.
 
 A more complete worked example is
-`available <https://github.com/rmjarvis/TreeCorr/blob/master/devel/mpi_example.py>`_
+`available <https://github.com/rmjarvis/TreeCorr/blob/main/devel/mpi_example.py>`_
 in the TreeCorr devel directory.

@@ -130,3 +130,8 @@ Changes from version 4.1.4 to 4.1.5
 
 - Fixed read_catalogs to work properly with patches.
 
+Changes from version 4.1.5 to 4.1.6
+-----------------------------------
+
+- Fixed a bug in `GGGCorrelation.calculateMap3`, which could sometimes take
+  the sqrt of negative numbers, resulting in nans.

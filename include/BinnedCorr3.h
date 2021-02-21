@@ -58,7 +58,7 @@ public:
     void process3(const Cell<DC1,C>* c123, const MetricHelper<M>& metric);
 
     template <bool sort, int C, int M>
-    void process21(const Cell<DC1,C>* c12, const Cell<DC3,C>* c3, const MetricHelper<M>& metric);
+    void process12(const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const MetricHelper<M>& metric);
 
     template <bool sort, int C, int M>
     void process111(const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const Cell<DC3,C>* c3,

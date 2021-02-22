@@ -475,38 +475,26 @@ class BinnedCorr3(object):
         self.var_method = treecorr.config.get(self.config,'var_method',str,'shot')
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
 
-    def _process_all_auto(self, cat1, metric, num_threads):
-        # I'm not sure which of these is more intuitive, but both are correct...
-        if True:
-            for c1 in cat1:
-                self.process_auto(c1, metric, num_threads)
-                for c2 in cat1:
-                    if c2 is not c1:
-                        self.process_cross(c1,c1,c2, metric, num_threads)
-                        self.process_cross(c1,c2,c1, metric, num_threads)
-                        self.process_cross(c2,c1,c1, metric, num_threads)
-                        for c3 in cat1:
-                            if c3 is not c1 and c3 is not c2:
-                                self.process_cross(c1,c2,c3, metric, num_threads)
-        else: # pragma: no cover
-            for i,c1 in enumerate(cat1):
-                self.process_auto(c1)
-                for j,c2 in enumerate(cat1[i+1:]):
-                    self.process_cross(c1,c1,c2, metric, num_threads)
-                    self.process_cross(c1,c2,c1, metric, num_threads)
-                    self.process_cross(c2,c1,c1, metric, num_threads)
-                    self.process_cross(c1,c2,c2, metric, num_threads)
-                    self.process_cross(c2,c1,c2, metric, num_threads)
-                    self.process_cross(c2,c2,c1, metric, num_threads)
-                    for c3 in cat1[i+j+1:]:
-                        self.process_cross(c1,c2,c3, metric, num_threads)
-                        self.process_cross(c1,c3,c2, metric, num_threads)
-                        self.process_cross(c2,c1,c3, metric, num_threads)
-                        self.process_cross(c2,c3,c1, metric, num_threads)
-                        self.process_cross(c3,c1,c2, metric, num_threads)
-                        self.process_cross(c3,c2,c1, metric, num_threads)
+    def _process_all_auto(self, cats, metric, num_threads):
+        #print('start all_auto')
+        for i, c1 in enumerate(cats):
+            # All three points in c1
+            self.process_auto(c1, metric, num_threads)
+            #print('i = ',i,self.ntri)
+            for jj, c2 in enumerate(cats[i+1:]):
+                j = jj + i+1
+                # One point in c1, 2 in c2
+                self.process_cross12(c1,c2, metric, num_threads)
+                #print('i,j = ',i,j,self.ntri)
+                # One point in c2, 2 in c1
+                self.process_cross12(c2,c1, metric, num_threads)
+                #print('j,i = ',j,i,self.ntri)
+                for kk,c3 in enumerate(cats[j+1:]):
+                    k = kk + j+1
+                    # One point in each of c1, c2, c3
+                    self.process_cross(c1,c2,c3, metric, num_threads)
+                    #print('i,j,k = ',i,j,k,self.ntri)
 
-    # These are not actually implemented yet.
     def _process_all_cross21(self, cat1, cat2, metric, num_threads): # pragma: no cover
         for c1 in cat1:
             for c2 in cat2:

@@ -154,11 +154,12 @@ def test_direct():
     np.testing.assert_allclose(data['gam3r'], ggg.gam3r.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(data['gam3i'], ggg.gam3i.flatten(), rtol=1.e-3)
 
-    # Also check the "cross" calculation.  (Real cross doesn't work, but this should.)
+    # Also check the cross calculation.
+    # Here, we get 6x as many triangles, since each triangle is discovered 6 times.
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True)
     ggg.process(cat, cat, cat, num_threads=2)
-    np.testing.assert_array_equal(ggg.ntri, true_ntri)
-    np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_array_equal(ggg.ntri, 6*true_ntri)
+    np.testing.assert_allclose(ggg.weight, 6*true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam0i, true_gam0.imag, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam1r, true_gam1.real, rtol=1.e-5, atol=1.e-8)
@@ -334,8 +335,6 @@ def test_direct():
         ggg.process(cat, cat2=cat)
     with assert_raises(NotImplementedError):
         ggg.process(cat, cat3=cat)
-    with assert_raises(NotImplementedError):
-        ggg.process_cross21(cat, cat)
 
 
 @timer

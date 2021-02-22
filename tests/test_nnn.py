@@ -568,7 +568,6 @@ def test_direct_count_auto():
                 if dij == 0.: continue
                 if dik == 0.: continue
                 if djk == 0.: continue
-                ccw = True
                 if dij < dik:
                     if dik < djk:
                         d3 = dij; d2 = dik; d1 = djk
@@ -710,14 +709,14 @@ def test_direct_count_auto():
     #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
-    # This should be equivalent to processing a cross correlation with each catalog being
-    # the same thing.
+    # And compare to the cross correlation
+    # Here, we get 6x as much, since each triangle is discovered 6 times.
     ddd.clear()
     ddd.process(cat,cat,cat, num_threads=2)
     #print('ddd.ntri = ',ddd.ntri)
     #print('true_ntri => ',true_ntri)
     #print('diff = ',ddd.ntri - true_ntri)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri)
+    np.testing.assert_array_equal(ddd.ntri, 6*true_ntri)
 
     # Invalid to omit file_name
     config['verbose'] = 0
@@ -921,14 +920,33 @@ def test_direct_count_cross():
     for i in range(ngal):
         for j in range(ngal):
             for k in range(ngal):
-                d3 = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
-                d2 = np.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2)
-                d1 = np.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2)
-                if d3 == 0.: continue
-                if d2 == 0.: continue
-                if d1 == 0.: continue
-                if d1 < d2 or d2 < d3: continue
-                ccw = is_ccw(x1[i],y1[i],x2[j],y2[j],x3[k],y3[k])
+                dij = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
+                dik = np.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2)
+                djk = np.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2)
+                if dij == 0.: continue
+                if dik == 0.: continue
+                if djk == 0.: continue
+                if dij < dik:
+                    if dik < djk:
+                        d3 = dij; d2 = dik; d1 = djk
+                        ccw = is_ccw(x1[i],y1[i],x2[j],y2[j],x3[k],y3[k])
+                    elif dij < djk:
+                        d3 = dij; d2 = djk; d1 = dik
+                        ccw = is_ccw(x2[j],y2[j],x1[i],y1[i],x3[k],y3[k])
+                    else:
+                        d3 = djk; d2 = dij; d1 = dik
+                        ccw = is_ccw(x2[j],y2[j],x3[k],y3[k],x1[i],y1[i])
+                else:
+                    if dij < djk:
+                        d3 = dik; d2 = dij; d1 = djk
+                        ccw = is_ccw(x1[i],y1[i],x3[k],y3[k],x2[j],y2[j])
+                    elif dik < djk:
+                        d3 = dik; d2 = djk; d1 = dij
+                        ccw = is_ccw(x3[k],y3[k],x1[i],y1[i],x2[j],y2[j])
+                    else:
+                        d3 = djk; d2 = dik; d1 = dij
+                        ccw = is_ccw(x3[k],y3[k],x2[j],y2[j],x1[i],y1[i])
+
                 r = d2
                 u = d3/d2
                 v = (d1-d2)/d3
@@ -1037,8 +1055,6 @@ def test_direct_count_cross():
         ddd.process(cat1, cat2=cat2)
     with assert_raises(NotImplementedError):
         ddd.process(cat1, cat3=cat3)
-    with assert_raises(NotImplementedError):
-        ddd.process_cross21(cat1, cat2)
     del config['rand_file_name3']
     del config['file_name3']
     print('config = ',config)
@@ -1300,14 +1316,34 @@ def test_direct_partial():
     for i in range(27,84):
         for j in range(47,99):
             for k in range(21,67):
-                d3 = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
-                d2 = np.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2)
-                d1 = np.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2)
-                if d3 == 0.: continue
-                if d2 == 0.: continue
-                if d1 == 0.: continue
-                if d1 < d2 or d2 < d3: continue
-                ccw = is_ccw(x1[i],y1[i],x2[j],y2[j],x3[k],y3[k])
+                dij = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
+                dik = np.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2)
+                djk = np.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2)
+                if dij == 0.: continue
+                if dik == 0.: continue
+                if djk == 0.: continue
+                if dij < dik:
+                    if dik < djk:
+                        d3 = dij; d2 = dik; d1 = djk
+                        ccw = is_ccw(x1[i],y1[i],x2[j],y2[j],x3[k],y3[k])
+                    elif dij < djk:
+                        d3 = dij; d2 = djk; d1 = dik
+                        ccw = is_ccw(x2[j],y2[j],x1[i],y1[i],x3[k],y3[k])
+                    else:
+                        d3 = djk; d2 = dij; d1 = dik
+                        ccw = is_ccw(x2[j],y2[j],x3[k],y3[k],x1[i],y1[i])
+                else:
+                    if dij < djk:
+                        d3 = dik; d2 = dij; d1 = djk
+                        ccw = is_ccw(x1[i],y1[i],x3[k],y3[k],x2[j],y2[j])
+                    elif dik < djk:
+                        d3 = dik; d2 = djk; d1 = dij
+                        ccw = is_ccw(x3[k],y3[k],x1[i],y1[i],x2[j],y2[j])
+                    else:
+                        d3 = djk; d2 = dik; d1 = dij
+                        ccw = is_ccw(x3[k],y3[k],x2[j],y2[j],x1[i],y1[i])
+                assert d1 >= d2 >= d3
+
                 r = d2
                 u = d3/d2
                 v = (d1-d2)/d3
@@ -1415,8 +1451,6 @@ def test_direct_3d_auto():
                 if dij == 0.: continue
                 if dik == 0.: continue
                 if djk == 0.: continue
-                ccw = True
-
                 if dij < dik:
                     if dik < djk:
                         d3 = dij; d2 = dik; d1 = djk
@@ -1483,12 +1517,13 @@ def test_direct_3d_auto():
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And compare to the cross correlation
+    # Here, we get 6x as much, since each triangle is discovered 6 times.
     ddd.clear()
     ddd.process(cat,cat,cat)
     #print('ddd.ntri = ',ddd.ntri)
     #print('true_ntri => ',true_ntri)
     #print('diff = ',ddd.ntri - true_ntri)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri)
+    np.testing.assert_array_equal(ddd.ntri, 6*true_ntri)
 
     # Also compare to using x,y,z rather than ra,dec,r
     cat = treecorr.Catalog(x=x, y=y, z=z)
@@ -1552,17 +1587,33 @@ def test_direct_3d_cross():
     for i in range(ngal):
         for j in range(ngal):
             for k in range(ngal):
-                d1sq = (x2[j]-x3[k])**2 + (y2[j]-y3[k])**2 + (z2[j]-z3[k])**2
-                d2sq = (x1[i]-x3[k])**2 + (y1[i]-y3[k])**2 + (z1[i]-z3[k])**2
-                d3sq = (x1[i]-x2[j])**2 + (y1[i]-y2[j])**2 + (z1[i]-z2[j])**2
-                d1 = np.sqrt(d1sq)
-                d2 = np.sqrt(d2sq)
-                d3 = np.sqrt(d3sq)
-                if d3 == 0.: continue
-                if d2 == 0.: continue
-                if d1 == 0.: continue
-                if d1 < d2 or d2 < d3: continue
-                ccw = is_ccw_3d(x1[i],y1[i],z1[i],x2[j],y2[j],z2[j],x3[k],y3[k],z3[k])
+                djk = np.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2 + (z2[j]-z3[k])**2)
+                dik = np.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2 + (z1[i]-z3[k])**2)
+                dij = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2 + (z1[i]-z2[j])**2)
+                if dij == 0.: continue
+                if dik == 0.: continue
+                if djk == 0.: continue
+                if dij < dik:
+                    if dik < djk:
+                        d3 = dij; d2 = dik; d1 = djk
+                        ccw = is_ccw_3d(x1[i],y1[i],z1[i],x2[j],y2[j],z2[j],x3[k],y3[k],z3[k])
+                    elif dij < djk:
+                        d3 = dij; d2 = djk; d1 = dik
+                        ccw = is_ccw_3d(x2[j],y2[j],z2[j],x1[i],y1[i],z1[i],x3[k],y3[k],z3[k])
+                    else:
+                        d3 = djk; d2 = dij; d1 = dik
+                        ccw = is_ccw_3d(x2[j],y2[j],z2[j],x3[k],y3[k],z3[k],x1[i],y1[i],z1[i])
+                else:
+                    if dij < djk:
+                        d3 = dik; d2 = dij; d1 = djk
+                        ccw = is_ccw_3d(x1[i],y1[i],z1[i],x3[k],y3[k],z3[k],x2[j],y2[j],z2[j])
+                    elif dik < djk:
+                        d3 = dik; d2 = djk; d1 = dij
+                        ccw = is_ccw_3d(x3[k],y3[k],z3[k],x1[i],y1[i],z1[i],x2[j],y2[j],z2[j])
+                    else:
+                        d3 = djk; d2 = dik; d1 = dij
+                        ccw = is_ccw_3d(x3[k],y3[k],z3[k],x2[j],y2[j],z2[j],x1[i],y1[i],z1[i])
+
                 r = d2
                 u = d3/d2
                 v = (d1-d2)/d3

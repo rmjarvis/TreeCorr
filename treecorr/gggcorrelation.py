@@ -249,7 +249,6 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                 np.array_equal(self.weight, other.weight) and
                 np.array_equal(self.ntri, other.ntri))
 
-
     def copy(self):
         """Make a copy"""
         import copy
@@ -304,21 +303,20 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         treecorr._lib.ProcessAuto3(self.corr, field.data, self.output_dots,
                                    field._d, self._coords, self._bintype, self._metric)
 
-    def process_cross21(self, cat1, cat2, metric=None, num_threads=None):
-        """Process two catalogs, accumulating the 3pt cross-correlation, where two of the
-        points in each triangle come from the first catalog, and one from the second.
+    def process_cross12(self, cat1, cat2, metric=None, num_threads=None):
+        """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
+        points in each triangle come from the first catalog, and two come from the second.
 
-        This accumulates the cross-correlation for the given catalogs.  After
-        calling this function as often as desired, the `finalize` command will
-        finish the calculation of meand1, meanlogd1, etc.
-
-        .. warning::
-
-            This is not implemented yet.
+        This accumulates the cross-correlation for the given catalogs as part of a larger
+        auto-correlation calculation.  E.g. when splitting up a large catalog into patches,
+        this is appropriate to use for the cross correlation between different patches
+        as part of the complete auto-correlation of the full catalog.
 
         Parameters:
-            cat1 (Catalog):     The first catalog to process
-            cat2 (Catalog):     The second catalog to process
+            cat1 (Catalog):     The first catalog to process. (1 point in each triangle will come
+                                from this catalog.)
+            cat2 (Catalog):     The second catalog to process. (2 points in each triangle will come
+                                from this catalog.)
             metric (str):       Which metric to use.  See `Metrics` for details.
                                 (default: 'Euclidean'; this value can also be given in the
                                 constructor in the config dict.)
@@ -326,15 +324,39 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
         """
-        raise NotImplementedError("No partial cross GGG yet.")
+        if cat1.name == '' and cat2.name == '':
+            self.logger.info('Starting process GGG (1-2) cross-correlations')
+        else:
+            self.logger.info('Starting process GGG (1-2) cross-correlations for cats %s, %s.',
+                             cat1.name, cat2.name)
 
+        self._set_metric(metric, cat1.coords, cat2.coords)
+
+        self._set_num_threads(num_threads)
+
+        min_size, max_size = self._get_minmax_size()
+
+        f1 = cat1.getGField(min_size, max_size, self.split_method,
+                            bool(self.brute), self.min_top, self.max_top, self.coords)
+        f2 = cat2.getGField(min_size, max_size, self.split_method,
+                            bool(self.brute), self.min_top, self.max_top, self.coords)
+
+        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
+        # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
+        # into self.corr, whichever way the three catalogs are permuted for each triangle.
+        treecorr._lib.ProcessCross12(self.corr, self.corr, self.corr,
+                                     f1.data, f2.data, self.output_dots,
+                                     f1._d, f2._d, self._coords,
+                                     self._bintype, self._metric)
+        self.tot += cat1.sumw * cat2.sumw**2 / 2.
 
     def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
-        This accumulates the cross-correlation for the given catalogs.  After
-        calling this function as often as desired, the `finalize` command will
-        finish the calculation of meand1, meanlogd1, etc.
+        This accumulates the cross-correlation for the given catalogs as part of a larger
+        auto-correlation calculation.  E.g. when splitting up a large catalog into patches,
+        this is appropriate to use for the cross correlation between different patches
+        as part of the complete auto-correlation of the full catalog.
 
         Parameters:
             cat1 (Catalog):     The first catalog to process
@@ -367,9 +389,12 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                             bool(self.brute), self.min_top, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        treecorr._lib.ProcessCross3(self.corr, f1.data, f2.data, f3.data, self.output_dots,
+        # Note: all 6 correlation objects are the same.  Thus, all triangles will be placed
+        # into self.corr, whichever way the three catalogs are permuted for each triangle.
+        treecorr._lib.ProcessCross3(self.corr, self.corr, self.corr,
+                                    self.corr, self.corr, self.corr,
+                                    f1.data, f2.data, f3.data, self.output_dots,
                                     f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
-
 
     def finalize(self, varg1, varg2, varg3):
         """Finalize the calculation of the correlation function.
@@ -499,7 +524,6 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.ntri[:] += other.ntri[:]
         return self
 
-
     def process(self, cat1, cat2=None, cat3=None, metric=None, num_threads=None):
         """Accumulate the number of triangles of points between cat1, cat2, and cat3.
 
@@ -557,7 +581,6 @@ class GGGCorrelation(treecorr.BinnedCorr3):
             self.logger.info("varg3 = %f: sig_g = %f",varg3,math.sqrt(varg3))
             self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
         self.finalize(varg1,varg2,varg3)
-
 
     def write(self, file_name, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.
@@ -641,7 +664,6 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         treecorr.util.gen_write(
             file_name, col_names, columns,
             params=params, precision=precision, file_type=file_type, logger=self.logger)
-
 
     def read(self, file_name, file_type=None):
         """Read in values from a file.
@@ -802,7 +824,6 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                 (b3**2 * g3c**2 + 2*k1sq*k2sq*a1*a2*b3 * f1c * f2c) / (a123 * 27*Theta2))
 
         return T0, T1, T2, T3
-
 
     def calculateMap3(self, R=None, k2=1, k3=1):
         r"""Calculate the skewness of the aperture mass from the correlation function.

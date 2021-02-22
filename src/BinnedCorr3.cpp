@@ -140,6 +140,14 @@ struct ProcessHelper
                           const MetricHelper<M>&) {}
     static void process111(BinnedCorr3<D1,D2,D3,B>& , const Cell<D1,C>*, const Cell<D2,C>*,
                            const Cell<D3,C>*, const MetricHelper<M>&) {}
+    static void process12(BinnedCorr3<D1,D2,D2,B>& , BinnedCorr3<D2,D1,D2,B>& ,
+                          BinnedCorr3<D2,D2,D1,B>& ,
+                          const Cell<D1,C>* , const Cell<D2,C>* ,
+                          const MetricHelper<M>& ) {}
+    static void process111(BinnedCorr3<D1,D2,D2,B>& , BinnedCorr3<D2,D1,D2,B>& ,
+                           BinnedCorr3<D2,D2,D1,B>& ,
+                           const Cell<D1,C>* , const Cell<D2,C>* , const Cell<D2,C>*,
+                           const MetricHelper<M>& ) {}
 };
 
 template <int D1, int D2, int B, int C, int M>
@@ -150,6 +158,16 @@ struct ProcessHelper<D1,D2,D2,B,C,M>
                           const MetricHelper<M>&) {}
     static void process111(BinnedCorr3<D1,D2,D2,B>& b, const Cell<D1,C>* , const Cell<D2,C>*,
                            const Cell<D2,C>*, const MetricHelper<M>&) {}
+    static void process12(BinnedCorr3<D1,D2,D2,B>& b122, BinnedCorr3<D2,D1,D2,B>& b212,
+                          BinnedCorr3<D2,D2,D1,B>& b221,
+                          const Cell<D1,C>* c1, const Cell<D2,C>* c2,
+                          const MetricHelper<M>& metric)
+    { b122.template process12<C,M>(b212,b221,c1,c2, metric); }
+    static void process111(BinnedCorr3<D1,D2,D2,B>& b122, BinnedCorr3<D2,D1,D2,B>& b212,
+                           BinnedCorr3<D2,D2,D1,B>& b221,
+                           const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D2,C>* c3,
+                           const MetricHelper<M>& metric)
+    { b122.template process111<C,M>(b122,b212,b221,b212,b221,c1,c2,c3, metric); }
 };
 
 template <int D, int B, int C, int M>
@@ -160,16 +178,27 @@ struct ProcessHelper<D,D,D,B,C,M>
     { b.template process3<C,M>(c1, metric); }
     static void process12(BinnedCorr3<D,D,D,B>& b, const Cell<D,C>* c1, const Cell<D,C>* c2,
                           const MetricHelper<M>& metric)
-    { b.template process12<true,C,M>(c1,c2, metric); }
+    { b.template process12<C,M>(b,b,c1,c2, metric); }
     static void process111(BinnedCorr3<D,D,D,B>& b, const Cell<D,C>* c1, const Cell<D,C>* c2,
                            const Cell<D,C>* c3, const MetricHelper<M>& metric)
-    { b.template process111<true,C,M>(c1,c2,c3, metric); }
+    { b.template process111<C,M>(b,b,b,b,b,c1,c2,c3, metric); }
+    static void process12(BinnedCorr3<D,D,D,B>& b122, BinnedCorr3<D,D,D,B>& b212,
+                          BinnedCorr3<D,D,D,B>& b221,
+                          const Cell<D,C>* c1, const Cell<D,C>* c2,
+                          const MetricHelper<M>& metric)
+    { b122.template process12<C,M>(b212,b221,c1,c2, metric); }
+    static void process111(BinnedCorr3<D,D,D,B>& b122, BinnedCorr3<D,D,D,B>& b212,
+                           BinnedCorr3<D,D,D,B>& b221,
+                           const Cell<D,C>* c1, const Cell<D,C>* c2, const Cell<D,C>* c3,
+                           const MetricHelper<M>& metric)
+    { b122.template process111<C,M>(b122,b212,b221,b212,b221,c1,c2,c3, metric); }
 };
 
 template <int D1, int D2, int D3, int B> template <int C, int M>
 void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field, bool dots)
 {
     Assert(D1 == D2);
+    Assert(D1 == D3);
     Assert(_coords == -1 || _coords == C);
     _coords = C;
     const long n1 = field.getNTopLevel();
@@ -230,7 +259,97 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field, bool dots)
 }
 
 template <int D1, int D2, int D3, int B> template <int C, int M>
-void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field1, const Field<D2,C>& field2,
+void BinnedCorr3<D1,D2,D3,B>::process(BinnedCorr3<D2,D1,D2,B>* corr212,
+                                      BinnedCorr3<D2,D2,D1,B>* corr221,
+                                      const Field<D1,C>& field1, const Field<D2,C>& field2,
+                                      bool dots)
+{
+    xdbg<<"_coords = "<<_coords<<std::endl;
+    xdbg<<"C = "<<C<<std::endl;
+    Assert(_coords == -1 || _coords == C);
+    _coords = C;
+    const long n1 = field1.getNTopLevel();
+    const long n2 = field2.getNTopLevel();
+    xdbg<<"field1 has "<<n1<<" top level nodes\n";
+    xdbg<<"field2 has "<<n2<<" top level nodes\n";
+    Assert(n1 > 0);
+    Assert(n2 > 0);
+
+    MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
+
+#ifdef DEBUGLOGGING
+    if (verbose_level >= 2) {
+        xdbg<<"field1: \n";
+        for (long i=0;i<n1;++i) {
+            xdbg<<"node "<<i<<std::endl;
+            const Cell<D1,C>* c1 = field1.getCells()[i];
+            c1->WriteTree(get_dbgout());
+        }
+        xdbg<<"field2: \n";
+        for (long i=0;i<n2;++i) {
+            xdbg<<"node "<<i<<std::endl;
+            const Cell<D2,C>* c2 = field2.getCells()[i];
+            c2->WriteTree(get_dbgout());
+        }
+    }
+#endif
+
+#ifdef _OPENMP
+#pragma omp parallel
+    {
+        // Give each thread their own copy of the data vector to fill in.
+        BinnedCorr3<D2,D2,D1,B> bc122(*this,false);
+        BinnedCorr3<D2,D1,D2,B> bc212(*corr212,false);
+        BinnedCorr3<D1,D2,D2,B> bc221(*corr221,false);
+#else
+        BinnedCorr3<D2,D2,D1,B>& bc122 = *this;
+        BinnedCorr3<D2,D1,D2,B>& bc212 = *corr212;
+        BinnedCorr3<D2,D2,D2,B>& bc221 = *corr221;
+#endif
+
+#ifdef _OPENMP
+#pragma omp for schedule(dynamic)
+#endif
+        for (long i=0;i<n1;++i) {
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+            {
+                if (dots) std::cout<<'.'<<std::flush;
+#ifdef _OPENMP
+                dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
+#endif
+            }
+            const Cell<D1,C>* c1 = field1.getCells()[i];
+            for (long j=0;j<n2;++j) {
+                const Cell<D2,C>* c2 = field2.getCells()[j];
+                ProcessHelper<D1,D2,D3,B,C,M>::process12(bc122,bc212,bc221, c1,c2, metric);
+                for (long k=j+1;k<n2;++k) {
+                    const Cell<D2,C>* c3 = field2.getCells()[k];
+                    ProcessHelper<D1,D2,D3,B,C,M>::process111(bc122,bc212,bc221, c1,c2,c3, metric);
+                }
+            }
+        }
+#ifdef _OPENMP
+        // Accumulate the results
+#pragma omp critical
+        {
+            *this += bc122;
+            *corr212 += bc212;
+            *corr221 += bc221;
+        }
+    }
+#endif
+    if (dots) std::cout<<std::endl;
+}
+
+template <int D1, int D2, int D3, int B> template <int C, int M>
+void BinnedCorr3<D1,D2,D3,B>::process(BinnedCorr3<D1,D3,D2,B>* corr132,
+                                      BinnedCorr3<D2,D1,D3,B>* corr213,
+                                      BinnedCorr3<D2,D3,D1,B>* corr231,
+                                      BinnedCorr3<D3,D1,D2,B>* corr312,
+                                      BinnedCorr3<D3,D2,D1,B>* corr321,
+                                      const Field<D1,C>& field1, const Field<D2,C>& field2,
                                       const Field<D3,C>& field3, bool dots)
 {
     xdbg<<"_coords = "<<_coords<<std::endl;
@@ -276,9 +395,19 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field1, const Field<D2,
 #pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
-        BinnedCorr3<D1,D2,D3,B> bc3(*this,false);
+        BinnedCorr3<D1,D2,D3,B> bc123(*this,false);
+        BinnedCorr3<D1,D3,D2,B> bc132(*corr132,false);
+        BinnedCorr3<D2,D1,D3,B> bc213(*corr213,false);
+        BinnedCorr3<D2,D3,D1,B> bc231(*corr231,false);
+        BinnedCorr3<D3,D1,D2,B> bc312(*corr312,false);
+        BinnedCorr3<D3,D2,D1,B> bc321(*corr321,false);
 #else
-        BinnedCorr3<D1,D2,D3,B>& bc3 = *this;
+        BinnedCorr3<D1,D2,D3,B>& bc123 = *this;
+        BinnedCorr3<D1,D3,D2,B>& bc132 = *corr132;
+        BinnedCorr3<D2,D1,D3,B>& bc213 = *corr213;
+        BinnedCorr3<D2,D3,D1,B>& bc231 = *corr231;
+        BinnedCorr3<D3,D1,D2,B>& bc312 = *corr312;
+        BinnedCorr3<D3,D2,D1,B>& bc321 = *corr321;
 #endif
 
 #ifdef _OPENMP
@@ -299,7 +428,9 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field1, const Field<D2,
                 const Cell<D2,C>* c2 = field2.getCells()[j];
                 for (long k=0;k<n3;++k) {
                     const Cell<D3,C>* c3 = field3.getCells()[k];
-                    bc3.template process111<false,C,M>(c1, c2, c3, metric);
+                    bc123.template process111<C,M>(
+                        bc132, bc213, bc231, bc312, bc321,
+                        c1, c2, c3, metric);
                 }
             }
         }
@@ -307,7 +438,12 @@ void BinnedCorr3<D1,D2,D3,B>::process(const Field<D1,C>& field1, const Field<D2,
         // Accumulate the results
 #pragma omp critical
         {
-            *this += bc3;
+            *this += bc123;
+            *corr132 += bc132;
+            *corr213 += bc213;
+            *corr231 += bc231;
+            *corr312 += bc312;
+            *corr321 += bc321;
         }
     }
 #endif
@@ -332,16 +468,17 @@ void BinnedCorr3<D1,D2,D3,B>::process3(const Cell<D1,C>* c1, const MetricHelper<
     Assert(c1->getRight());
     process3<C,M>(c1->getLeft(), metric);
     process3<C,M>(c1->getRight(), metric);
-    process12<true,C,M>(c1->getLeft(),c1->getRight(), metric);
-    process12<true,C,M>(c1->getRight(),c1->getLeft(), metric);
+    process12<C,M>(*this, *this, c1->getLeft(),c1->getRight(), metric);
+    process12<C,M>(*this, *this, c1->getRight(),c1->getLeft(), metric);
 }
 
-template <int D1, int D2, int D3, int B> template <bool sort, int C, int M>
-void BinnedCorr3<D1,D2,D3,B>::process12(const Cell<D1,C>* c1, const Cell<D2,C>* c2,
-                                        const MetricHelper<M>& metric)
+template <int D1, int D2, int D3, int B> template <int C, int M>
+void BinnedCorr3<D1,D2,D3,B>::process12(
+    BinnedCorr3<D2,D1,D2,B>& bc212, BinnedCorr3<D2,D2,D1,B>& bc221,
+    const Cell<D1,C>* c1, const Cell<D2,C>* c2,
+    const MetricHelper<M>& metric)
 {
     // Does all triangles with one point in c1 and the other two points in c2
-    // This version is allowed to swap the positions of points 1,2,3
     xdbg<<"Process12: c1 = "<<c1->getData().getPos()<<"  "<<"  "<<c1->getSize()<<"  "<<c1->getData().getN()<<std::endl;
     xdbg<<"           c2  = "<<c2->getData().getPos()<<"  "<<"  "<<c2->getSize()<<"  "<<c2->getData().getN()<<std::endl;
 
@@ -354,22 +491,22 @@ void BinnedCorr3<D1,D2,D3,B>::process12(const Cell<D1,C>* c1, const Cell<D2,C>* 
         xdbg<<"    w2 == 0.  return\n";
         return;
     }
-    if (c2->getSize() == 0.) {
+    double s2 = c2->getSize();
+    if (s2 == 0.) {
         xdbg<<"    size2 == 0.  return\n";
         return;
     }
-    if (c2->getSize() < _halfmind3) {
+    if (s2 < _halfmind3) {
         xdbg<<"    size2 < halfminsep * umin.  return\n";
         return;
     }
 
     double s1 = c1->getSize();
-    double s2 = c2->getSize();
     double dsq = metric.DistSq(c1->getData().getPos(), c2->getData().getPos(), s1, s2);
     double s1ps2 = s1 + s2;
 
     // If all possible triangles will have d2 < minsep, then abort the recursion here.
-    // i.e. if  d + s1 + s2 < minsep
+    // i.e. if d + s1 + s2 < minsep
     if (dsq < _minsepsq && s1ps2 < _minsep && dsq < SQR(_minsep - s1ps2)) {
         xdbg<<"    d2 cannot be as large as minsep\n";
         return;
@@ -394,317 +531,124 @@ void BinnedCorr3<D1,D2,D3,B>::process12(const Cell<D1,C>* c1, const Cell<D2,C>* 
 
     Assert(c2->getLeft());
     Assert(c2->getRight());
-    process12<true,C,M>(c1, c2->getLeft(), metric);
-    process12<true,C,M>(c1, c2->getRight(), metric);
-    process111<true,C,M>(c1, c2->getLeft(), c2->getRight(), metric);
+    process12<C,M>(bc212, bc221, c1, c2->getLeft(), metric);
+    process12<C,M>(bc212, bc221, c1, c2->getRight(), metric);
+    // 111 order is 123, 132, 213, 231, 312, 321   Here 3->2.
+    process111<C,M>(*this,bc212,bc221,bc212,bc221, c1, c2->getLeft(), c2->getRight(), metric);
 }
 
-// A helper to calculate the distances and possibly sort the points.
-// First the sort = false case.
-template <int D1, int D2, int D3, bool sort, int C, int M>
-struct SortHelper
+static bool stop111(
+    double d1sq, double d2sq, double d3sq, double& d2,
+    double s1, double s2, double s3,
+    double minsep, double minsepsq, double maxsep, double maxsepsq,
+    double minu, double minusq, double maxu, double maxusq,
+    double minv, double minvsq, double maxv, double maxvsq)
 {
-    static void sort3(
-        const Cell<D1,C>*& c1, const Cell<D2,C>*& c2, const Cell<D3,C>*& c3,
-        const MetricHelper<M>& metric,
-        double& d1sq, double& d2sq, double& d3sq)
-    {
-        // TODO: Think about what the right thing to do with s1,s2,s3 is when the metric
-        //       DistSq function wants to adjust these values.  The current code isn't right
-        //       for non-Euclidean metrics.
-        double s=0.;
-        if (d1sq == 0.)
-            d1sq = metric.DistSq(c2->getData().getPos(), c3->getData().getPos(), s,s);
-        if (d2sq == 0.)
-            d2sq = metric.DistSq(c1->getData().getPos(), c3->getData().getPos(), s,s);
-        if (d3sq == 0.)
-            d3sq = metric.DistSq(c1->getData().getPos(), c2->getData().getPos(), s,s);
+    // If all possible triangles will have d2 < minsep, then abort the recursion here.
+    // This means at least two sides must have d + (s+s) < minsep.
+    // Probably if d2 + s1+s3 < minsep, we can stop, but also check d3.
+    // If one of these don't pass, then it's pretty unlikely that d1 will, so don't bother
+    // checking that one.
+    if (d2sq < minsepsq && s1+s3 < minsep && s1+s2 < minsep &&
+        (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3)) &&
+        (s1+s2 == 0. || d3sq < SQR(minsep - s1-s2)) ) {
+        xdbg<<"d2 cannot be as large as minsep\n";
+        return true;
     }
-    static bool stop111(
-        double d1sq, double d2sq, double d3sq, double& d2,
-        double s1, double s2, double s3,
-        double minsep, double minsepsq, double maxsep, double maxsepsq,
-        double minu, double minusq, double maxu, double maxusq,
-        double minv, double minvsq, double maxv, double maxvsq)
-    {
-        double sums = s1+s2+s3;
 
-        // Since we aren't sorting here, we may not have d1 > d2 > d3.
-        // We want to abort the recursion if there are no triangles in the given positions
-        // where d1 will be the largest, d2 the middle, and d3 the smallest.
+    // Similarly, we can abort if all possible triangles will have d2 > maxsep.
+    // This means at least two sides must have d - (s+s) > maxsep.
+    // Again, d2 - s1 - s3 >= maxsep is not sufficient.  Also check d1.
+    // And again, it's pretty unlikely that d3 needs to be checked if one of the first
+    // two don't pass.
+    if (d2sq >= maxsepsq &&
+        (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3)) &&
+        (s2+s3 == 0. || d1sq >= SQR(maxsep + s2+s3))) {
+        xdbg<<"d2 cannot be as small as maxsep\n";
+        return true;
+    }
 
-        // First, if the smallest d3 is larger than either the largest d1 or the largest d2,
-        // then it can't be the smallest side.
-        // i.e. if d3 - s1-s2 > d1 + s2+s3
-        // d3 > d1 + s1+s2 + s2+s3
-        // d3^2 > (d1 + s1+2s2+s3))^2
-        // Lemma: (x+y)^2 < 2x^2 + 2y^2
-        // d3^2 > 2d1^2 + 2(s1+2s2+s3)^2  (We only need that here, since we don't have d1,d3.)
-        if (d3sq > d1sq && d3sq > 2.*d1sq + 2.*SQR(sums + s2)) {
-            xdbg<<"d1 cannot be as large as d3\n";
-            return true;
-        }
-
-        // Likewise for d2.
-        d2 = sqrt(d2sq);
-        if (d3sq > d2sq && d3sq > SQR(d2 + sums + s1)) {
-            xdbg<<"d2 cannot be as large as d3\n";
-            return true;
-        }
-
-        // Similar for d1 being the largest.
-        // if d1 + s2+s3 < d2 - s1-s3
-        // d2 > d1 + s2+s3 + s1+s3
-        if (d2sq > d1sq && d2 > sums + s3 && d1sq < SQR(d2 - sums - s3)) {
-            xdbg<<"d1 cannot be as large as d2\n";
-            return true;
-        }
-
-        // If all possible triangles will have d2 < minsep, then abort the recursion here.
-        // i.e. if  d2 + s1 + s3 < minsep
-        // Since we aren't sorting, we only need to check the actual d2 value.
-        if (d2sq < minsepsq && s1+s3 < minsep && d2sq < SQR(minsep - s1 - s3)) {
-            xdbg<<"d2 cannot be as large as minsep\n";
-            return true;
-        }
-
-        // Similarly, we can abort if all possible triangles will have d2 > maxsep.
-        // i.e. if  d2 - s1 - s3 >= maxsep
-        if (d2sq >= maxsepsq && d2sq >= SQR(maxsep + s1 + s3)) {
-            xdbg<<"d2 cannot be as small as maxsep\n";
-            return true;
-        }
-
-        // If the user sets minu > 0, then we can abort if no possible triangle can have
-        // u = d3/d2 as large as this.
-        // The maximum possible u from our triangle is (d3+s1+s2) / (d2-s1-s3).
-        // Abort if (d3+s1+s2) / (d2-s1-s3) < minu
-        // (d3+s1+s2) < minu * (d2-s1-s3)
-        // d3 < minu * (d2-s1-s3) - (s1+s2)
-        if (minu > 0. && d3sq < minusq*d2sq && d2 > s1 +s3) {
-            double temp = minu * (d2-s1-s3);
-            if (temp > s1 + s2 && d3sq < SQR(temp - s1 - s2)) {
+    // If the user sets minu > 0, then we can abort if no possible triangle can have
+    // u = d3/d2 as large as this.
+    // The maximum possible u from our triangle is (d3+s1+s2) / (d2-s1-s3).
+    // Abort if (d3+s1+s2) / (d2-s1-s3) < minu
+    // (d3+s1+s2) < minu * (d2-s1-s3)
+    // d3 < minu * (d2-s1-s3) - (s1+s2)
+    d2 = sqrt(d2sq);
+    if (minu > 0. && d3sq < minusq*d2sq && d2 > s1+s3) {
+        double temp = minu * (d2-s1-s3);
+        if (temp > s1+s2 && d3sq < SQR(temp - s1-s2)) {
+            // However, d2 might not really be the middle leg.  So check d1 as well.
+            double minusq_d1sq = minusq * d1sq;
+            if (d3sq < minusq_d1sq && d1sq > 2.*SQR(s2+s3) &&
+                minusq_d1sq > 2.*d3sq + 2.*SQR(s1+s2 + minu * (s2+s3))) {
                 xdbg<<"u cannot be as large as minu\n";
                 return true;
             }
         }
+    }
 
-        // If the user sets a maxu < 1, then we can abort if no possible triangle can have
-        // u as small as this.
-        // The minimum possible u from our triangle is (d3-s1-s2) / (d2+s1+s3).
-        // Abort if (d3-s1-s2) / (d2+s1+s3) > maxu
-        // (d3-s1-s2) > maxu * (d2+s1+s3)
-        // d3 > maxu * (d2+s1+s3) + (s1+s2)
-        if (maxu < 1. && d3sq >= maxusq*d2sq && d3sq >= SQR(maxu * (d2 + s1 + s3) + s1 + s2)) {
+    // If the user sets a maxu < 1, then we can abort if no possible triangle can have
+    // u as small as this.
+    // The minimum possible u from our triangle is (d3-s1-s2) / (d2+s1+s3).
+    // Abort if (d3-s1-s2) / (d2+s1+s3) > maxu
+    // (d3-s1-s2) > maxu * (d2+s1+s3)
+    // d3 > maxu * (d2+s1+s3) + (s1+s2)
+    if (maxu < 1. && d3sq >= maxusq*d2sq && d3sq >= SQR(maxu * (d2+s1+s3) + s1+s2)) {
+        // This time, just make sure no other side could become the smallest side.
+        // d3 - s1-s2 < d2 - s1-s3
+        // d3 - s1-s2 < d1 - s2-s3
+        if ( d2sq > SQR(s1+s3) && d1sq > SQR(s2+s3) &&
+             (s2 > s3 || d3sq <= SQR(d2 - s3 + s2)) &&
+             (s1 > s3 || d1sq >= 2.*d3sq + 2.*SQR(s3 - s1)) ) {
             xdbg<<"u cannot be as small as maxu\n";
             return true;
         }
-
-        // If the user sets minv, maxv to be near 0, then we can abort if no possible triangle
-        // can have v = (d1-d2)/d3 as small in absolute value as either of these.
-        // |v| is |d1-d2|/d3.  The minimum numerator is a bit non-obvious.
-        // The easy part is from c1, c2.  These can shrink |d1-d2| by s1+s2.
-        // The edge of c3 can shrink |d1-d2| by at most another s3, assuming d3 < d2, so the
-        // angle at c3 is acute.  i.e. it's not 2s3 as one might naively assume.
-        // Thus, the minimum possible |v| from our triangle is (d1-d2-(s1+s2+s3)) / (d3+s1+s2).
-        // Abort if (d1-d2-s1-s2-s3) / (d3+s1+s2) > maxv
-        // (d1-d2-s1-s2-s3) > maxv * (d3+s1+s2)
-        // d1 > maxv d3 + d2+s1+s2+s3 + maxv*(s1+s2)
-        // Here, rather than using the lemma that (x+y)^2 < 2x^2 + 2y^2,
-        // we can instead realize that d3 < d2, so just check if
-        // d1 > maxv d2 + d2+s1+s2+s3 + maxv*(s1+s2)
-        // The main advantage of this check is when d3 ~= d2 anyway, so this is effective.
-        if (maxv < 1. && d1sq > SQR((1.+maxv)*d2 + sums + maxv * (s1+s2))) {
-            xdbg<<"|v| cannot be as small as maxv\n";
-            return true;
-        }
-
-        // It will unusual, but if minv > 0, then we can also potentially stop if no triangle
-        // can have |v| as large as minv.
-        // The maximum possible |v| from our triangle is (d1-d2+(s1+s2+s3)) / (d3-s1-s2).
-        // Abort if (d1-d2+s1+s2+s3) / (d3-s1-s2) < minv
-        // (d1-d2+s1+s2+s3) < minv * (d3-s1-s2)
-        // d1-d2 < minv d3 - (s1+s2+s3) - minv*(s1+s2)
-        // d1^2-d2^2 < (minv d3 - (s1+s2+s3) - minv*(s1+s2)) (d1+d2)
-        // This is most relevant when d1 ~= d2, so make this more restrictive with d1->d2 on rhs.
-        // d1^2-d2^2 < (minv d3 - (s1+s2+s3) - minv*(s1+s2)) 2d2
-        // minv d3 > (d1^2-d2^2)/(2d2) + (s1+s2+s3) + minv*(s1+s2)
-        if (minv > 0. && d3sq > SQR(s1+s2) &&
-            minvsq*d3sq > SQR((d1sq-d2sq)/(2.*d2) + sums + minv*(s1+s2))) {
-            xdbg<<"|v| cannot be as large as minv\n";
-            return true;
-        }
-
-        // Stop if any side is exactly 0 and elements are leaves
-        // (This is unusual, but we want to make sure to stop if it happens.)
-        if (s2==0 && s3==0 && d1sq == 0) return true;
-        if (s1==0 && s3==0 && d2sq == 0) return true;
-        if (s1==0 && s2==0 && d3sq == 0) return true;
-
-        return false;
     }
-};
 
-// This one has sort = true, so the points get sorted, and always returns true.
-template <int D, int C, int M>
-struct SortHelper<D,D,D,true,C,M>
-{
-    static void sort3(
-        const Cell<D,C>*& c1, const Cell<D,C>*& c2, const Cell<D,C>*& c3,
-        const MetricHelper<M>& metric,
-        double& d1sq, double& d2sq, double& d3sq)
-    {
-        double s=0.;
-        if (d1sq == 0.)
-            d1sq = metric.DistSq(c2->getData().getPos(), c3->getData().getPos(), s,s);
-        if (d2sq == 0.)
-            d2sq = metric.DistSq(c1->getData().getPos(), c3->getData().getPos(), s,s);
-        if (d3sq == 0.)
-            d3sq = metric.DistSq(c1->getData().getPos(), c2->getData().getPos(), s,s);
-
-        // Need to end up with d3 < d2 < d1
-        if (d1sq < d2sq) {
-            if (d2sq < d3sq) {
-                // 123 -> 321
-                std::swap(c1,c3);
-                std::swap(d1sq,d3sq);
-            } else if (d1sq < d3sq) {
-                // 132 -> 321
-                std::swap(c1,c3);
-                std::swap(d1sq,d3sq);
-                std::swap(c1,c2);
-                std::swap(d1sq,d2sq);
-            } else {
-                // 312 -> 321
-                std::swap(c1,c2);
-                std::swap(d1sq,d2sq);
-            }
-        } else {
-            if (d1sq < d3sq) {
-                // 213 -> 321
-                std::swap(c2,c3);
-                std::swap(d2sq,d3sq);
-                std::swap(c1,c2);
-                std::swap(d1sq,d2sq);
-            } else if (d2sq < d3sq) {
-                // 231 -> 321
-                std::swap(c2,c3);
-                std::swap(d2sq,d3sq);
-            } else {
-                // 321 -> 321
-            }
-        }
+    // If the user sets minv, maxv to be near 0, then we can abort if no possible triangle
+    // can have v = (d1-d2)/d3 as small in absolute value as either of these.
+    // d1 > maxv d3 + d2+s1+s2+s3 + maxv*(s1+s2)
+    // As before, use the fact that d3 < d2, so check
+    // d1 > maxv d2 + d2+s1+s2+s3 + maxv*(s1+s2)
+    double sums = s1+s2+s3;
+    if (maxv < 1. && d1sq > SQR((1.+maxv)*d2 + sums + maxv * (s1+s2))) {
+        // We don't need any extra checks here related to the possibility of the sides
+        // switching roles, since if this condition is true, than d1 has to be the largest
+        // side no matter what.  d1-s2 > d2+s1
+        xdbg<<"v cannot be as small as maxv\n";
+        return true;
     }
-    static bool stop111(
-        double d1sq, double d2sq, double d3sq, double& d2,
-        double s1, double s2, double s3,
-        double minsep, double minsepsq, double maxsep, double maxsepsq,
-        double minu, double minusq, double maxu, double maxusq,
-        double minv, double minvsq, double maxv, double maxvsq)
-    {
-        // If all possible triangles will have d2 < minsep, then abort the recursion here.
-        // This means at least two sides must have d + (s+s) < minsep.
-        // Probably if d2 + s1+s3 < minsep, we can stop, but also check d3.
-        // If one of these don't pass, then it's pretty unlikely that d1 will, so don't bother
-        // checking that one.
-        if (d2sq < minsepsq && s1+s3 < minsep && s1+s2 < minsep &&
-            (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3)) &&
-            (s1+s2 == 0. || d3sq < SQR(minsep - s1-s2)) ) {
-            xdbg<<"d2 cannot be as large as minsep\n";
-            return true;
-        }
 
-        // Similarly, we can abort if all possible triangles will have d2 > maxsep.
-        // This means at least two sides must have d - (s+s) > maxsep.
-        // Again, d2 - s1 - s3 >= maxsep is not sufficient.  Also check d1.
-        // And again, it's pretty unlikely that d3 needs to be checked if one of the first
-        // two don't pass.
-        if (d2sq >= maxsepsq &&
-            (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3)) &&
-            (s2+s3 == 0. || d1sq >= SQR(maxsep + s2+s3))) {
-            xdbg<<"d2 cannot be as small as maxsep\n";
-            return true;
-        }
-
-        // If the user sets minu > 0, then we can abort if no possible triangle can have
-        // u = d3/d2 as large as this.
-        // The maximum possible u from our triangle is (d3+s1+s2) / (d2-s1-s3).
-        // Abort if (d3+s1+s2) / (d2-s1-s3) < minu
-        // (d3+s1+s2) < minu * (d2-s1-s3)
-        // d3 < minu * (d2-s1-s3) - (s1+s2)
-        d2 = sqrt(d2sq);
-        if (minu > 0. && d3sq < minusq*d2sq && d2 > s1+s3) {
-            double temp = minu * (d2-s1-s3);
-            if (temp > s1+s2 && d3sq < SQR(temp - s1-s2)) {
-                // However, d2 might not really be the middle leg.  So check d1 as well.
-                double minusq_d1sq = minusq * d1sq;
-                if (d3sq < minusq_d1sq && d1sq > 2.*SQR(s2+s3) &&
-                    minusq_d1sq > 2.*d3sq + 2.*SQR(s1+s2 + minu * (s2+s3))) {
-                    xdbg<<"u cannot be as large as minu\n";
-                    return true;
-                }
-            }
-        }
-
-        // If the user sets a maxu < 1, then we can abort if no possible triangle can have
-        // u as small as this.
-        // The minimum possible u from our triangle is (d3-s1-s2) / (d2+s1+s3).
-        // Abort if (d3-s1-s2) / (d2+s1+s3) > maxu
-        // (d3-s1-s2) > maxu * (d2+s1+s3)
-        // d3 > maxu * (d2+s1+s3) + (s1+s2)
-        if (maxu < 1. && d3sq >= maxusq*d2sq && d3sq >= SQR(maxu * (d2+s1+s3) + s1+s2)) {
-            // This time, just make sure no other side could become the smallest side.
-            // d3 - s1-s2 < d2 - s1-s3
-            // d3 - s1-s2 < d1 - s2-s3
-            if ( d2sq > SQR(s1+s3) && d1sq > SQR(s2+s3) &&
-                 (s2 > s3 || d3sq <= SQR(d2 - s3 + s2)) &&
-                 (s1 > s3 || d1sq >= 2.*d3sq + 2.*SQR(s3 - s1)) ) {
-                xdbg<<"u cannot be as small as maxu\n";
-                return true;
-            }
-        }
-
-        // If the user sets minv, maxv to be near 0, then we can abort if no possible triangle
-        // can have v = (d1-d2)/d3 as small in absolute value as either of these.
-        // d1 > maxv d3 + d2+s1+s2+s3 + maxv*(s1+s2)
-        // As before, use the fact that d3 < d2, so check
-        // d1 > maxv d2 + d2+s1+s2+s3 + maxv*(s1+s2)
-        double sums = s1+s2+s3;
-        if (maxv < 1. && d1sq > SQR((1.+maxv)*d2 + sums + maxv * (s1+s2))) {
-            // We don't need any extra checks here related to the possibility of the sides
-            // switching roles, since if this condition is true, than d1 has to be the largest
-            // side no matter what.  d1-s2 > d2+s1
-            xdbg<<"v cannot be as small as maxv\n";
-            return true;
-        }
-
-        // It will unusual, but if minv > 0, then we can also potentially stop if no triangle
-        // can have |v| as large as minv.
-        // d1-d2 < minv d3 - (s1+s2+s3) - minv*(s1+s2)
-        // d1^2-d2^2 < (minv d3 - (s1+s2+s3) - minv*(s1+s2)) (d1+d2)
-        // This is most relevant when d1 ~= d2, so make this more restrictive with d1->d2 on rhs.
-        // d1^2-d2^2 < (minv d3 - (s1+s2+s3) - minv*(s1+s2)) 2d2
-        // minv d3 > (d1^2-d2^2)/(2d2) + (s1+s2+s3) + minv*(s1+s2)
-        if (minv > 0. && d3sq > SQR(s1+s2) &&
-            minvsq*d3sq > SQR((d1sq-d2sq)/(2.*d2) + sums + minv*(s1+s2))) {
-            // And again, we don't need anything else here, since it's fine if d1,d2 swap or
-            // even if d2,d3 swap.
-            xdbg<<"|v| cannot be as large as minv\n";
-            return true;
-        }
-
-        // Stop if any side is exactly 0 and elements are leaves
-        // (This is unusual, but we want to make sure to stop if it happens.)
-        if (s2==0 && s3==0 && d1sq == 0) return true;
-        if (s1==0 && s3==0 && d2sq == 0) return true;
-        if (s1==0 && s2==0 && d3sq == 0) return true;
-
-        return false;
+    // It will unusual, but if minv > 0, then we can also potentially stop if no triangle
+    // can have |v| as large as minv.
+    // d1-d2 < minv d3 - (s1+s2+s3) - minv*(s1+s2)
+    // d1^2-d2^2 < (minv d3 - (s1+s2+s3) - minv*(s1+s2)) (d1+d2)
+    // This is most relevant when d1 ~= d2, so make this more restrictive with d1->d2 on rhs.
+    // d1^2-d2^2 < (minv d3 - (s1+s2+s3) - minv*(s1+s2)) 2d2
+    // minv d3 > (d1^2-d2^2)/(2d2) + (s1+s2+s3) + minv*(s1+s2)
+    if (minv > 0. && d3sq > SQR(s1+s2) &&
+        minvsq*d3sq > SQR((d1sq-d2sq)/(2.*d2) + sums + minv*(s1+s2))) {
+        // And again, we don't need anything else here, since it's fine if d1,d2 swap or
+        // even if d2,d3 swap.
+        xdbg<<"|v| cannot be as large as minv\n";
+        return true;
     }
-};
 
-template <int D1, int D2, int D3, int B> template <bool sort, int C, int M>
+    // Stop if any side is exactly 0 and elements are leaves
+    // (This is unusual, but we want to make sure to stop if it happens.)
+    if (s2==0 && s3==0 && d1sq == 0) return true;
+    if (s1==0 && s3==0 && d2sq == 0) return true;
+    if (s1==0 && s2==0 && d3sq == 0) return true;
+
+    return false;
+}
+
+template <int D1, int D2, int D3, int B> template <int C, int M>
 void BinnedCorr3<D1,D2,D3,B>::process111(
+    BinnedCorr3<D1,D3,D2,B>& bc132,
+    BinnedCorr3<D2,D1,D3,B>& bc213, BinnedCorr3<D2,D3,D1,B>& bc231,
+    BinnedCorr3<D3,D1,D2,B>& bc312, BinnedCorr3<D3,D2,D1,B>& bc321,
     const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D3,C>* c3,
     const MetricHelper<M>& metric,
     double d1sq, double d2sq, double d3sq)
@@ -723,27 +667,81 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
         return;
     }
 
-    // Calculate the distances if they aren't known yet, and sort so that d3 < d2 < d1
-    SortHelper<D1,D2,D3,sort,C,M>::sort3(c1,c2,c3,metric,d1sq,d2sq,d3sq);
+    // Calculate the distances if they aren't known yet
+    double s=0.;
+    if (d1sq == 0.)
+        d1sq = metric.DistSq(c2->getData().getPos(), c3->getData().getPos(), s,s);
+    if (d2sq == 0.)
+        d2sq = metric.DistSq(c1->getData().getPos(), c3->getData().getPos(), s,s);
+    if (d3sq == 0.)
+        d3sq = metric.DistSq(c1->getData().getPos(), c2->getData().getPos(), s,s);
 
+    xdbg<<"Before sort: d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
+
+    BinnedCorr3<D1,D2,D3,B>& bc123 = *this;  // alias for clarity.
+    // Need to end up with d1 > d2 > d3
+    if (d1sq > d2sq) {
+        if (d2sq > d3sq) {
+            xdbg<<"123\n";
+            // 123 -> 123
+            bc123.process111Sorted(bc132,bc213,bc231,bc312,bc321,
+                                   c1,c2,c3, metric, d1sq,d2sq,d3sq);
+        } else if (d1sq > d3sq) {
+            xdbg<<"132\n";
+            // 132 -> 123
+            bc132.process111Sorted(bc123,bc312,bc321,bc213,bc231,
+                                   c1,c3,c2, metric, d1sq,d3sq,d2sq);
+        } else {
+            xdbg<<"312\n";
+            // 312 -> 123
+            bc312.process111Sorted(bc321,bc132,bc123,bc231,bc213,
+                                   c3,c1,c2, metric, d3sq,d1sq,d2sq);
+        }
+    } else {
+        if (d1sq > d3sq) {
+            xdbg<<"213\n";
+            // 213 -> 123
+            bc213.process111Sorted(bc231,bc123,bc132,bc321,bc312,
+                                   c2,c1,c3, metric, d2sq,d1sq,d3sq);
+        } else if (d2sq > d3sq) {
+            xdbg<<"231\n";
+            // 231 -> 123
+            bc231.process111Sorted(bc213,bc321,bc312,bc123,bc132,
+                                   c2,c3,c1, metric, d2sq,d3sq,d1sq);
+        } else {
+            xdbg<<"321\n";
+            // 321 -> 123
+            bc321.process111Sorted(bc312,bc231,bc213,bc132,bc123,
+                                   c3,c2,c1, metric, d3sq,d2sq,d1sq);
+        }
+    }
+}
+
+template <int D1, int D2, int D3, int B> template <int C, int M>
+void BinnedCorr3<D1,D2,D3,B>::process111Sorted(
+    BinnedCorr3<D1,D3,D2,B>& bc132,
+    BinnedCorr3<D2,D1,D3,B>& bc213, BinnedCorr3<D2,D3,D1,B>& bc231,
+    BinnedCorr3<D3,D1,D2,B>& bc312, BinnedCorr3<D3,D2,D1,B>& bc321,
+    const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D3,C>* c3,
+    const MetricHelper<M>& metric,
+    double d1sq, double d2sq, double d3sq)
+{
     const double s1 = c1->getSize();
     const double s2 = c2->getSize();
     const double s3 = c3->getSize();
 
-    xdbg<<"Process111: c1 = "<<c1->getData().getPos()<<"  "<<"  "<<c1->getSize()<<"  "<<c1->getData().getN()<<std::endl;
-    xdbg<<"            c2 = "<<c2->getData().getPos()<<"  "<<"  "<<c2->getSize()<<"  "<<c2->getData().getN()<<std::endl;
-    xdbg<<"            c3 = "<<c3->getData().getPos()<<"  "<<"  "<<c3->getSize()<<"  "<<c3->getData().getN()<<std::endl;
-    xdbg<<"            d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
-    Assert(!sort || d1sq >= d2sq);
-    Assert(!sort || d2sq >= d3sq);
+    xdbg<<"Process111Sorted: c1 = "<<c1->getData().getPos()<<"  "<<"  "<<c1->getSize()<<"  "<<c1->getData().getN()<<std::endl;
+    xdbg<<"                  c2 = "<<c2->getData().getPos()<<"  "<<"  "<<c2->getSize()<<"  "<<c2->getData().getN()<<std::endl;
+    xdbg<<"                  c3 = "<<c3->getData().getPos()<<"  "<<"  "<<c3->getSize()<<"  "<<c3->getData().getN()<<std::endl;
+    xdbg<<"                  d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
+    Assert(d1sq >= d2sq);
+    Assert(d2sq >= d3sq);
 
-    // The stopping criteria are different depending on whether we can swap the cells around
-    // when we sort into d1,d2,d3.  So call out to a templated helper function.
     double d2 = 0.;  // If not stop111, then d2 will be set.
-    if (SortHelper<D1,D2,D3,sort,C,M>::stop111(d1sq,d2sq,d3sq,d2,s1,s2,s3,
-                                               _minsep,_minsepsq,_maxsep,_maxsepsq,
-                                               _minu,_minusq,_maxu,_maxusq,
-                                               _minv,_minvsq,_maxv,_maxvsq)) {
+    if (stop111(d1sq,d2sq,d3sq,d2,s1,s2,s3,
+                _minsep,_minsepsq,_maxsep,_maxsepsq,
+                _minu,_minusq,_maxu,_maxusq,
+                _minv,_minvsq,_maxv,_maxvsq)) {
         return;
     }
 
@@ -770,7 +768,6 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
     // These are set correctly before they are used.
     double s1ps2=0., s1ps3=0.;
     bool d2split=false;
-    bool sortsplit=false;
 
     split3 = s3 > 0 && (
         // Check if d2 solution needs a split
@@ -778,11 +775,6 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
         (s3 > d2 * _b) ||
         //((s1ps3=s1+s3) > 0. && (s1ps3 > d2 * _b) && (d2split=true, s3 > factor1*s1)) ||
         ((s1ps3=s1+s3) > 0. && (s1ps3 > d2 * _b) && (d2split=true, s3 >= s1)) ||
-
-        // If we aren't sorting the sides, then d3 is not necessarily less than d2
-        // (nor d2 less than d1).  If this is the case, we always want to split something,
-        // since we don't actually have a valid u here.  Split c3 is s3 is largest s.
-        (!sort && (d1sq < d2sq || d2sq < d3sq) && (sortsplit=true, s3 >= std::max(s1,s2))) ||
 
         // Check if u solution needs a split
         // u = d3/d2
@@ -843,13 +835,6 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
             // Don't bother doing further calculations if already splitting something.
             split1 || split2 ||
 
-            // If we aren't sorting the sides, then d3 is not necessarily less than d2
-            // (nor d2 less than d1).  If this is the case, we always want to split something,
-            // since we don't actually have a valid u here.
-            // (Already checked this above, so if we didn't split c3 for it, split c1 or c2.)
-            sortsplit ||
-            (s3==0 && (d1sq < d2sq || d2sq < d3sq)) ||
-
             // Check splitting c1,c2 for u calculation.
             // u = d3 / d2
             // u_max = (d3 + s1ps2) / (d2 - s1+s3) ~= u + s1ps2/d2 + s1ps3 u/d2
@@ -899,24 +884,36 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
                     Assert(c2->getRight());
                     Assert(c3->getLeft());
                     Assert(c3->getRight());
-                    process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3->getLeft(),metric);
-                    process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3->getRight(),metric);
-                    process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3->getLeft(),metric);
-                    process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3->getRight(),metric);
-                    process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3->getLeft(),metric);
-                    process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3->getRight(),metric);
-                    process111<sort,C,M>(c1->getRight(),c2->getRight(),c3->getLeft(),metric);
-                    process111<sort,C,M>(c1->getRight(),c2->getRight(),c3->getRight(),metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1->getLeft(),c2->getLeft(),c3->getLeft(),metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1->getLeft(),c2->getLeft(),c3->getRight(),metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1->getLeft(),c2->getRight(),c3->getLeft(),metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1->getLeft(),c2->getRight(),c3->getRight(),metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1->getRight(),c2->getLeft(),c3->getLeft(),metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1->getRight(),c2->getLeft(),c3->getRight(),metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1->getRight(),c2->getRight(),c3->getLeft(),metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1->getRight(),c2->getRight(),c3->getRight(),metric);
                 } else {
                     // split 2,3
                     Assert(c2->getLeft());
                     Assert(c2->getRight());
                     Assert(c3->getLeft());
                     Assert(c3->getRight());
-                    process111<sort,C,M>(c1,c2->getLeft(),c3->getLeft(),metric);
-                    process111<sort,C,M>(c1,c2->getLeft(),c3->getRight(),metric);
-                    process111<sort,C,M>(c1,c2->getRight(),c3->getLeft(),metric);
-                    process111<sort,C,M>(c1,c2->getRight(),c3->getRight(),metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1,c2->getLeft(),c3->getLeft(),metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1,c2->getLeft(),c3->getRight(),metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1,c2->getRight(),c3->getLeft(),metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1,c2->getRight(),c3->getRight(),metric);
                 }
             } else {
                 if (split1) {
@@ -925,16 +922,22 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
                     Assert(c1->getRight());
                     Assert(c3->getLeft());
                     Assert(c3->getRight());
-                    process111<sort,C,M>(c1->getLeft(),c2,c3->getLeft(),metric);
-                    process111<sort,C,M>(c1->getLeft(),c2,c3->getRight(),metric);
-                    process111<sort,C,M>(c1->getRight(),c2,c3->getLeft(),metric);
-                    process111<sort,C,M>(c1->getRight(),c2,c3->getRight(),metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1->getLeft(),c2,c3->getLeft(),metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1->getLeft(),c2,c3->getRight(),metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1->getRight(),c2,c3->getLeft(),metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1->getRight(),c2,c3->getRight(),metric);
                 } else {
                     // split 3 only
                     Assert(c3->getLeft());
                     Assert(c3->getRight());
-                    process111<sort,C,M>(c1,c2,c3->getLeft(),metric,0.,0.,d3sq);
-                    process111<sort,C,M>(c1,c2,c3->getRight(),metric,0.,0.,d3sq);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1,c2,c3->getLeft(),metric,0.,0.,d3sq);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1,c2,c3->getRight(),metric,0.,0.,d3sq);
                 }
             }
         } else {
@@ -945,23 +948,31 @@ void BinnedCorr3<D1,D2,D3,B>::process111(
                     Assert(c1->getRight());
                     Assert(c2->getLeft());
                     Assert(c2->getRight());
-                    process111<sort,C,M>(c1->getLeft(),c2->getLeft(),c3,metric);
-                    process111<sort,C,M>(c1->getLeft(),c2->getRight(),c3,metric);
-                    process111<sort,C,M>(c1->getRight(),c2->getLeft(),c3,metric);
-                    process111<sort,C,M>(c1->getRight(),c2->getRight(),c3,metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1->getLeft(),c2->getLeft(),c3,metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1->getLeft(),c2->getRight(),c3,metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1->getRight(),c2->getLeft(),c3,metric);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1->getRight(),c2->getRight(),c3,metric);
                 } else {
                     // split 2 only
                     Assert(c2->getLeft());
                     Assert(c2->getRight());
-                    process111<sort,C,M>(c1,c2->getLeft(),c3,metric,0.,d2sq);
-                    process111<sort,C,M>(c1,c2->getRight(),c3,metric,0.,d2sq);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1,c2->getLeft(),c3,metric,0.,d2sq);
+                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                    c1,c2->getRight(),c3,metric,0.,d2sq);
                 }
             } else {
                 // split 1 only
                 Assert(c1->getLeft());
                 Assert(c1->getRight());
-                process111<sort,C,M>(c1->getLeft(),c2,c3,metric,d1sq);
-                process111<sort,C,M>(c1->getRight(),c2,c3,metric,d1sq);
+                process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                c1->getLeft(),c2,c3,metric,d1sq);
+                process111<C,M>(bc132,bc213,bc231,bc312,bc321,
+                                c1->getRight(),c2,c3,metric,d1sq);
             }
         }
     } else {
@@ -1373,28 +1384,134 @@ void ProcessAuto3(void* corr, void* field, int dots, int d, int coords, int bin_
     }
 }
 
+template <int M, int D1, int D2, int B>
+void ProcessCross12e(BinnedCorr3<D1,D2,D2,B>* corr122,
+                    BinnedCorr3<D2,D1,D2,B>* corr212,
+                    BinnedCorr3<D2,D2,D1,B>* corr221,
+                    void* field1, void* field2, int dots, int coords)
+{
+    switch(coords) {
+      case Flat:
+           Assert(MetricHelper<M>::_Flat == int(Flat));
+           corr122->template process<MetricHelper<M>::_Flat,M>(
+               corr212, corr221,
+               *static_cast<Field<D1,MetricHelper<M>::_Flat>*>(field1),
+               *static_cast<Field<D2,MetricHelper<M>::_Flat>*>(field2), dots);
+           break;
+      case Sphere:
+           Assert(MetricHelper<M>::_Sphere == int(Sphere));
+           corr122->template process<MetricHelper<M>::_Sphere,M>(
+               corr212, corr221,
+               *static_cast<Field<D1,MetricHelper<M>::_Sphere>*>(field1),
+               *static_cast<Field<D2,MetricHelper<M>::_Sphere>*>(field2), dots);
+           break;
+      case ThreeD:
+           Assert(MetricHelper<M>::_ThreeD == int(ThreeD));
+           corr122->template process<MetricHelper<M>::_ThreeD,M>(
+               corr212, corr221,
+               *static_cast<Field<D1,MetricHelper<M>::_ThreeD>*>(field1),
+               *static_cast<Field<D2,MetricHelper<M>::_ThreeD>*>(field2), dots);
+           break;
+      default:
+           Assert(false);
+    }
+}
+
+template <int D1, int D2, int B>
+void ProcessCross12d(BinnedCorr3<D1,D2,D2,B>* corr122,
+                    BinnedCorr3<D2,D1,D2,B>* corr212,
+                    BinnedCorr3<D2,D2,D1,B>* corr221,
+                    void* field1, void* field2, int dots, int coords, int metric)
+{
+    switch(metric) {
+      case Euclidean:
+           ProcessCross12e<Euclidean>(corr122, corr212, corr221,
+                                     field1, field2, dots, coords);
+           break;
+      case Arc:
+           ProcessCross12e<Arc>(corr122, corr212, corr221,
+                               field1, field2, dots, coords);
+           break;
+      case Periodic:
+           ProcessCross12e<Periodic>(corr122, corr212, corr221,
+                                    field1, field2, dots, coords);
+           break;
+      default:
+           Assert(false);
+    }
+}
+
+template <int D1, int D2>
+void ProcessCross12c(void* corr122, void* corr212, void* corr221,
+                     void* field1, void* field2, int dots,
+                     int bin_type, int coords, int metric)
+{
+    Assert(bin_type == Log);
+    ProcessCross12d(static_cast<BinnedCorr3<D1,D2,D2,Log>*>(corr122),
+                   static_cast<BinnedCorr3<D2,D1,D2,Log>*>(corr212),
+                   static_cast<BinnedCorr3<D2,D2,D1,Log>*>(corr221),
+                   field1, field2, dots, coords, metric);
+}
+
+void ProcessCross12(void* corr122, void* corr212, void* corr221,
+                    void* field1, void* field2, int dots,
+                    int d1, int d2, int coords, int bin_type, int metric)
+{
+    dbg<<"Start ProcessCross12 "<<d1<<" "<<d2<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
+
+    Assert(d2 == d1);
+    switch(d1) {
+      case NData:
+           ProcessCross12c<NData,NData>(corr122, corr212, corr221,
+                                        field1, field2, dots,
+                                        bin_type, coords, metric);
+           break;
+      case KData:
+           ProcessCross12c<KData,KData>(corr122, corr212, corr221,
+                                        field1, field2, dots,
+                                        bin_type, coords, metric);
+           break;
+      case GData:
+           ProcessCross12c<GData,GData>(corr122, corr212, corr221,
+                                        field1, field2, dots,
+                                        bin_type, coords, metric);
+           break;
+      default:
+           Assert(false);
+    }
+}
+
 template <int M, int D1, int D2, int D3, int B>
-void ProcessCross3e(BinnedCorr3<D1,D2,D3,B>* corr, void* field1, void* field2, void* field3,
+void ProcessCross3e(BinnedCorr3<D1,D2,D3,B>* corr123,
+                    BinnedCorr3<D1,D3,D2,B>* corr132,
+                    BinnedCorr3<D2,D1,D3,B>* corr213,
+                    BinnedCorr3<D2,D3,D1,B>* corr231,
+                    BinnedCorr3<D3,D1,D2,B>* corr312,
+                    BinnedCorr3<D3,D2,D1,B>* corr321,
+                    void* field1, void* field2, void* field3,
                     int dots, int coords)
 {
     switch(coords) {
       case Flat:
            Assert(MetricHelper<M>::_Flat == int(Flat));
-           corr->template process<MetricHelper<M>::_Flat,M>(
+           corr123->template process<MetricHelper<M>::_Flat,M>(
+               corr132, corr213, corr231, corr312, corr321,
                *static_cast<Field<D1,MetricHelper<M>::_Flat>*>(field1),
                *static_cast<Field<D2,MetricHelper<M>::_Flat>*>(field2),
                *static_cast<Field<D3,MetricHelper<M>::_Flat>*>(field3), dots);
            break;
       case Sphere:
            Assert(MetricHelper<M>::_Sphere == int(Sphere));
-           corr->template process<MetricHelper<M>::_Sphere,M>(
+           corr123->template process<MetricHelper<M>::_Sphere,M>(
+               corr132, corr213, corr231, corr312, corr321,
                *static_cast<Field<D1,MetricHelper<M>::_Sphere>*>(field1),
                *static_cast<Field<D2,MetricHelper<M>::_Sphere>*>(field2),
                *static_cast<Field<D3,MetricHelper<M>::_Sphere>*>(field3), dots);
            break;
       case ThreeD:
            Assert(MetricHelper<M>::_ThreeD == int(ThreeD));
-           corr->template process<MetricHelper<M>::_ThreeD,M>(
+           corr123->template process<MetricHelper<M>::_ThreeD,M>(
+               corr132, corr213, corr231, corr312, corr321,
                *static_cast<Field<D1,MetricHelper<M>::_ThreeD>*>(field1),
                *static_cast<Field<D2,MetricHelper<M>::_ThreeD>*>(field2),
                *static_cast<Field<D3,MetricHelper<M>::_ThreeD>*>(field3), dots);
@@ -1405,18 +1522,27 @@ void ProcessCross3e(BinnedCorr3<D1,D2,D3,B>* corr, void* field1, void* field2, v
 }
 
 template <int D1, int D2, int D3, int B>
-void ProcessCross3d(BinnedCorr3<D1,D2,D3,B>* corr, void* field1, void* field2, void* field3,
+void ProcessCross3d(BinnedCorr3<D1,D2,D3,B>* corr123,
+                    BinnedCorr3<D1,D3,D2,B>* corr132,
+                    BinnedCorr3<D2,D1,D3,B>* corr213,
+                    BinnedCorr3<D2,D3,D1,B>* corr231,
+                    BinnedCorr3<D3,D1,D2,B>* corr312,
+                    BinnedCorr3<D3,D2,D1,B>* corr321,
+                    void* field1, void* field2, void* field3,
                     int dots, int coords, int metric)
 {
     switch(metric) {
       case Euclidean:
-           ProcessCross3e<Euclidean>(corr, field1, field2, field3, dots, coords);
+           ProcessCross3e<Euclidean>(corr123, corr132, corr213, corr231, corr312, corr321,
+                                     field1, field2, field3, dots, coords);
            break;
       case Arc:
-           ProcessCross3e<Arc>(corr, field1, field2, field3, dots, coords);
+           ProcessCross3e<Arc>(corr123, corr132, corr213, corr231, corr312, corr321,
+                               field1, field2, field3, dots, coords);
            break;
       case Periodic:
-           ProcessCross3e<Periodic>(corr, field1, field2, field3, dots, coords);
+           ProcessCross3e<Periodic>(corr123, corr132, corr213, corr231, corr312, corr321,
+                                    field1, field2, field3, dots, coords);
            break;
       default:
            Assert(false);
@@ -1424,15 +1550,24 @@ void ProcessCross3d(BinnedCorr3<D1,D2,D3,B>* corr, void* field1, void* field2, v
 }
 
 template <int D1, int D2, int D3>
-void ProcessCross3c(void* corr, void* field1, void* field2, void* field3, int dots,
+void ProcessCross3c(void* corr123, void* corr132, void* corr213,
+                    void* corr231, void* corr312, void* corr321,
+                    void* field1, void* field2, void* field3, int dots,
                     int bin_type, int coords, int metric)
 {
     Assert(bin_type == Log);
-    ProcessCross3d(static_cast<BinnedCorr3<D1,D2,D3,Log>*>(corr), field1, field2, field3, dots,
-                   coords, metric);
+    ProcessCross3d(static_cast<BinnedCorr3<D1,D2,D3,Log>*>(corr123),
+                   static_cast<BinnedCorr3<D1,D3,D2,Log>*>(corr132),
+                   static_cast<BinnedCorr3<D2,D1,D3,Log>*>(corr213),
+                   static_cast<BinnedCorr3<D2,D3,D1,Log>*>(corr231),
+                   static_cast<BinnedCorr3<D3,D1,D2,Log>*>(corr312),
+                   static_cast<BinnedCorr3<D3,D2,D1,Log>*>(corr321),
+                   field1, field2, field3, dots, coords, metric);
 }
 
-void ProcessCross3(void* corr, void* field1, void* field2, void* field3, int dots,
+void ProcessCross3(void* corr123, void* corr132, void* corr213,
+                   void* corr231, void* corr312, void* corr321,
+                   void* field1, void* field2, void* field3, int dots,
                    int d1, int d2, int d3, int coords, int bin_type, int metric)
 {
     dbg<<"Start ProcessCross3 "<<d1<<" "<<d2<<" "<<d3<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
@@ -1441,15 +1576,18 @@ void ProcessCross3(void* corr, void* field1, void* field2, void* field3, int dot
     Assert(d3 == d1);
     switch(d1) {
       case NData:
-           ProcessCross3c<NData,NData,NData>(corr, field1, field2, field3, dots,
+           ProcessCross3c<NData,NData,NData>(corr123, corr132, corr213, corr231, corr312, corr321,
+                                             field1, field2, field3, dots,
                                              bin_type, coords, metric);
            break;
       case KData:
-           ProcessCross3c<KData,KData,KData>(corr, field1, field2, field3, dots,
+           ProcessCross3c<KData,KData,KData>(corr123, corr132, corr213, corr231, corr312, corr321,
+                                             field1, field2, field3, dots,
                                              bin_type, coords, metric);
            break;
       case GData:
-           ProcessCross3c<GData,GData,GData>(corr, field1, field2, field3, dots,
+           ProcessCross3c<GData,GData,GData>(corr123, corr132, corr213, corr231, corr312, corr321,
+                                             field1, field2, field3, dots,
                                              bin_type, coords, metric);
            break;
       default:

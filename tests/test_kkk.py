@@ -108,11 +108,12 @@ def test_direct():
     np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
     np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
 
-    # Also check the "cross" calculation.  (Real cross doesn't work, but this should.)
+    # Also check the cross calculation.
+    # Here, we get 6x as many triangles, since each triangle is discovered 6 times.
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True)
     kkk.process(cat, cat, cat, num_threads=2)
-    np.testing.assert_array_equal(kkk.ntri, true_ntri)
-    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_array_equal(kkk.ntri, 6*true_ntri)
+    np.testing.assert_allclose(kkk.weight, 6*true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
     config['file_name2'] = config['file_name']
@@ -239,8 +240,6 @@ def test_direct():
         kkk.process(cat, cat2=cat)
     with assert_raises(NotImplementedError):
         kkk.process(cat, cat3=cat)
-    with assert_raises(NotImplementedError):
-        kkk.process_cross21(cat, cat)
 
 
 @timer

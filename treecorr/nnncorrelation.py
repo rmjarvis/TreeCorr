@@ -88,7 +88,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         >>> rdd.process...           # Also with two data and one random
         >>> drd.process...           # ... in all three
         >>> ddr.process...           # ... permutations
-        >>> nn.write(file_name,rrr,drr,...)  # Write out to a file.
+        >>> nnn.write(file_name,rrr,drr,...)  # Write out to a file.
         >>> zeta,varzeta = nnn.calculateZeta(rrr,drr,...)  # Or get the 3pt function directly.
 
     Parameters:
@@ -239,21 +239,20 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                                    field._d, self._coords, self._bintype, self._metric)
         self.tot += (1./6.) * cat.sumw**3
 
-    def process_cross21(self, cat1, cat2, metric=None, num_threads=None):
-        """Process two catalogs, accumulating the 3pt cross-correlation, where two of the
-        points in each triangle come from the first catalog, and one from the second.
+    def process_cross12(self, cat1, cat2, metric=None, num_threads=None):
+        """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
+        points in each triangle come from the first catalog, and two come from the second.
 
-        This accumulates the cross-correlation for the given catalogs.  After
-        calling this function as often as desired, the `finalize` command will
-        finish the calculation of meand1, meanlogd1, etc.
-
-        .. warning::
-
-            This is not implemented yet.
+        This accumulates the cross-correlation for the given catalogs as part of a larger
+        auto-correlation calculation.  E.g. when splitting up a large catalog into patches,
+        this is appropriate to use for the cross correlation between different patches
+        as part of the complete auto-correlation of the full catalog.
 
         Parameters:
-            cat1 (Catalog):     The first catalog to process
-            cat2 (Catalog):     The second catalog to process
+            cat1 (Catalog):     The first catalog to process. (1 point in each triangle will come
+                                from this catalog.)
+            cat2 (Catalog):     The second catalog to process. (2 points in each triangle will come
+                                from this catalog.)
             metric (str):       Which metric to use.  See `Metrics` for details.
                                 (default: 'Euclidean'; this value can also be given in the
                                 constructor in the config dict.)
@@ -261,15 +260,39 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
         """
-        raise NotImplementedError("No partial cross NNN yet.")
+        if cat1.name == '' and cat2.name == '':
+            self.logger.info('Starting process NNN (1-2) cross-correlations')
+        else:
+            self.logger.info('Starting process NNN (1-2) cross-correlations for cats %s, %s.',
+                             cat1.name, cat2.name)
 
+        self._set_metric(metric, cat1.coords, cat2.coords)
+
+        self._set_num_threads(num_threads)
+
+        min_size, max_size = self._get_minmax_size()
+
+        f1 = cat1.getNField(min_size, max_size, self.split_method,
+                            bool(self.brute), self.min_top, self.max_top, self.coords)
+        f2 = cat2.getNField(min_size, max_size, self.split_method,
+                            bool(self.brute), self.min_top, self.max_top, self.coords)
+
+        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
+        # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
+        # into self.corr, whichever way the three catalogs are permuted for each triangle.
+        treecorr._lib.ProcessCross12(self.corr, self.corr, self.corr,
+                                     f1.data, f2.data, self.output_dots,
+                                     f1._d, f2._d, self._coords,
+                                     self._bintype, self._metric)
+        self.tot += cat1.sumw * cat2.sumw**2 / 2.
 
     def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
-        This accumulates the cross-correlation for the given catalogs.  After
-        calling this function as often as desired, the `finalize` command will
-        finish the calculation of meand1, meanlogd1, etc.
+        This accumulates the cross-correlation for the given catalogs as part of a larger
+        auto-correlation calculation.  E.g. when splitting up a large catalog into patches,
+        this is appropriate to use for the cross correlation between different patches
+        as part of the complete auto-correlation of the full catalog.
 
         Parameters:
             cat1 (Catalog):     The first catalog to process
@@ -302,10 +325,13 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                             bool(self.brute), self.min_top, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        treecorr._lib.ProcessCross3(self.corr, f1.data, f2.data, f3.data, self.output_dots,
+        # Note: all 6 correlation objects are the same.  Thus, all triangles will be placed
+        # into self.corr, whichever way the three catalogs are permuted for each triangle.
+        treecorr._lib.ProcessCross3(self.corr, self.corr, self.corr,
+                                    self.corr, self.corr, self.corr,
+                                    f1.data, f2.data, f3.data, self.output_dots,
                                     f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
-        self.tot += cat1.sumw * cat2.sumw * cat3.sumw / 6.0
-
+        self.tot += cat1.sumw * cat2.sumw * cat3.sumw
 
     def finalize(self):
         """Finalize the calculation of meand1, meanlogd1, etc.
@@ -338,7 +364,6 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.meanlogd3[mask2] = np.log(self.meand3[mask2])
         self.meand1[mask2] = self.v[mask2] * self.meand3[mask2] + self.meand2[mask2]
         self.meanlogd1[mask2] = np.log(self.meand1[mask2])
-
 
     def clear(self):
         """Clear the data vectors
@@ -391,7 +416,6 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.ntri[:] += other.ntri[:]
         self.tot += other.tot
         return self
-
 
     def process(self, cat1, cat2=None, cat3=None, metric=None, num_threads=None):
         """Accumulate the number of triangles of points between cat1, cat2, and cat3.
@@ -530,7 +554,6 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
         return zeta, varzeta
 
-
     def write(self, file_name, rrr=None, drr=None, rdr=None, rrd=None,
               ddr=None, drd=None, rdd=None, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.
@@ -659,7 +682,6 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         treecorr.util.gen_write(
             file_name, col_names, columns,
             params=params, precision=precision, file_type=file_type, logger=self.logger)
-
 
     def read(self, file_name, file_type=None):
         """Read in values from a file.

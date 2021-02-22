@@ -28,5 +28,11 @@ extern void DestroyCorr3(void* corr, int d1, int d2, int d3, int bin_type);
 extern void ProcessAuto3(void* corr, void* field, int dots,
                          int d, int coord, int bin_type, int metric);
 
-extern void ProcessCross3(void* corr, void* field1, void* field2, void* field3, int dots,
+extern void ProcessCross12(void* corr122, void* corr212, void* corr221,
+                           void* field1, void* field2, int dots,
+                           int d1, int d2, int coord, int bin_type, int metric);
+
+extern void ProcessCross3(void* corr123, void* corr132, void* corr213,
+                          void* corr231, void* corr312, void* corr321,
+                          void* field1, void* field2, void* field3, int dots,
                           int d1, int d2, int d3, int coord, int bin_type, int metric);

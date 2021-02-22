@@ -476,24 +476,19 @@ class BinnedCorr3(object):
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
 
     def _process_all_auto(self, cats, metric, num_threads):
-        #print('start all_auto')
         for i, c1 in enumerate(cats):
             # All three points in c1
             self.process_auto(c1, metric, num_threads)
-            #print('i = ',i,self.ntri)
             for jj, c2 in enumerate(cats[i+1:]):
                 j = jj + i+1
                 # One point in c1, 2 in c2
                 self.process_cross12(c1,c2, metric, num_threads)
-                #print('i,j = ',i,j,self.ntri)
                 # One point in c2, 2 in c1
                 self.process_cross12(c2,c1, metric, num_threads)
-                #print('j,i = ',j,i,self.ntri)
                 for kk,c3 in enumerate(cats[j+1:]):
                     k = kk + j+1
                     # One point in each of c1, c2, c3
                     self.process_cross(c1,c2,c3, metric, num_threads)
-                    #print('i,j,k = ',i,j,k,self.ntri)
 
     def _process_all_cross21(self, cat1, cat2, metric, num_threads): # pragma: no cover
         for c1 in cat1:

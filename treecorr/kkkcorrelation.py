@@ -430,7 +430,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         return self
 
     def process(self, cat1, cat2=None, cat3=None, metric=None, num_threads=None):
-        """Accumulate the number of triangles of points between cat1, cat2, and cat3.
+        """Accumulate the 3pt correlation of the points in the given Catalog(s).
 
         - If only 1 argument is given, then compute an auto-correlation function.
         - If 2 arguments are given, then compute a cross-correlation function with the
@@ -442,18 +442,17 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
         .. note::
 
-            For a correlation of multiple catalogs, it matters which corner of the
-            triangle comes from which catalog.  The final accumulation will have
-            d1 > d2 > d3 where d1 is between two points in cat2,cat3; d2 is between
-            points in cat1,cat3; and d3 is between points in cat1,cat2.  To accumulate
-            all the possible triangles between three catalogs, you should call this
-            multiple times with the different catalogs in different positions.
+            For a correlation of multiple catalogs, it typically matters which corner of the
+            triangle comes from which catalog, which is not kept track of by this function.
+            The final accumulation will have d1 > d2 > d3 regardless of which input catalog
+            appears at each corner.  The class which keeps track of which catalog appears
+            in each position in the triangle is `KKKCrossCorrelation`.
 
         Parameters:
-            cat1 (Catalog):     A catalog or list of catalogs for the first N field.
-            cat2 (Catalog):     A catalog or list of catalogs for the second N field, if any.
+            cat1 (Catalog):     A catalog or list of catalogs for the first K field.
+            cat2 (Catalog):     A catalog or list of catalogs for the second K field.
                                 (default: None)
-            cat3 (Catalog):     A catalog or list of catalogs for the third N field, if any.
+            cat3 (Catalog):     A catalog or list of catalogs for the third K field.
                                 (default: None)
             metric (str):       Which metric to use.  See `Metrics` for details.
                                 (default: 'Euclidean'; this value can also be given in the
@@ -571,6 +570,340 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         """
         self.logger.info('Reading KKK correlations from %s',file_name)
 
+        data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
+        s = self.logr.shape
+        if 'R_nom' in data.dtype.names:  # pragma: no cover
+            self.rnom = data['R_nom'].reshape(s)
+        else:
+            self.rnom = data['r_nom'].reshape(s)
+        self.logr = np.log(self.rnom)
+        self.u = data['u_nom'].reshape(s)
+        self.v = data['v_nom'].reshape(s)
+        self.meand1 = data['meand1'].reshape(s)
+        self.meanlogd1 = data['meanlogd1'].reshape(s)
+        self.meand2 = data['meand2'].reshape(s)
+        self.meanlogd2 = data['meanlogd2'].reshape(s)
+        self.meand3 = data['meand3'].reshape(s)
+        self.meanlogd3 = data['meanlogd3'].reshape(s)
+        self.meanu = data['meanu'].reshape(s)
+        self.meanv = data['meanv'].reshape(s)
+        self.zeta = data['zeta'].reshape(s)
+        self.varzeta = data['sigma_zeta'].reshape(s)**2
+        self.weight = data['weight'].reshape(s)
+        self.ntri = data['ntri'].reshape(s)
+        self.coords = params['coords'].strip()
+        self.metric = params['metric'].strip()
+        self.sep_units = params['sep_units'].strip()
+        self.bin_type = params['bin_type'].strip()
+
+
+class KKKCrossCorrelation(treecorr.BinnedCorr3):
+    r"""This class handles the calculation a 3-point kappa-kappa-kappa cross-correlation
+    function.
+
+    For 3-point cross correlations, it matters which of the two or three fields falls on
+    each corner of the triangle.  E.g. is field 1 on the corner opposite d1 (the longest
+    size of the triangle) or is it field 2 (or 3) there?  This is in contrast to the 2-point
+    correlation where the symmetry of the situation means that it doesn't matter which point
+    is identified with each field.  This makes it significantly more complicated to keep track
+    of all the relevant information for a 3-point cross correlation function.
+
+    The `KKKCorrelation` class holds a single :math:`\zeta` functions describing all
+    possible triangles, parameterized according to their relative side lengths ordered as
+    d1 > d2 > d3.
+
+    For a cross-correlation of two fields: K1 - K1 - K2 (i.e. the K1 field is at two of the
+    corners and K2 is at one corner), then we need three these :math:`\zeta` functions
+    to capture all of the triangles, since the K2 points may be opposite d1 or d2 or d3.
+    For a cross-correlation of three fields: K1 - K2 - K3, we need six sets, to account for
+    all of the possible permutations relative to the triangle sides.
+
+    Therefore, this class holds 6 instances of `KKKCorrelation`, which in turn hold the
+    information about triangles in each of the relevant configurations.  We name these:
+
+    Attribute:
+        k1k2k3:     Triangles where K1 is opposite d1, K2 is opposite d2, K3 is opposite d3.
+        k1k3k2:     Triangles where K1 is opposite d1, K3 is opposite d2, K2 is opposite d3.
+        k2k1k3:     Triangles where K2 is opposite d1, K1 is opposite d2, K3 is opposite d3.
+        k2k3k1:     Triangles where K2 is opposite d1, K3 is opposite d2, K1 is opposite d3.
+        k3k1k2:     Triangles where K3 is opposite d1, K1 is opposite d2, K2 is opposite d3.
+        k3k2k1:     Triangles where K3 is opposite d1, K2 is opposite d2, K1 is opposite d3.
+
+    If for instance K2 and K3 are the same field, then e.g. k1k2k3 and k1k3k2 will have
+    the same values.
+
+    Ojects of this class also hold the following attributes, which are identical in each of
+    the above KKKCorrelation instances.
+
+    Attributes:
+        nbins:      The number of bins in logr where r = d2
+        bin_size:   The size of the bins in logr
+        min_sep:    The minimum separation being considered
+        max_sep:    The maximum separation being considered
+        nubins:     The number of bins in u where u = d3/d2
+        ubin_size:  The size of the bins in u
+        min_u:      The minimum u being considered
+        max_u:      The maximum u being considered
+        nvbins:     The number of bins in v where v = +-(d1-d2)/d3
+        vbin_size:  The size of the bins in v
+        min_v:      The minimum v being considered
+        max_v:      The maximum v being considered
+        logr1d:     The nominal centers of the nbins bins in log(r).
+        u1d:        The nominal centers of the nubins bins in u.
+        v1d:        The nominal centers of the nvbins bins in v.
+
+    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
+    will all be in these units.
+
+    .. note::
+
+        If you separate out the steps of the `process` command and use `process_cross` directly,
+        then the units will not be applied to ``meanr`` or ``meanlogr`` until the `finalize`
+        function is called.
+
+    Parameters:
+        config (dict):  A configuration dict that can be used to pass in kwargs if desired.
+                        This dict is allowed to have addition entries besides those listed
+                        in `BinnedCorr3`, which are ignored here. (default: None)
+        logger:         If desired, a logger object for logging. (default: None, in which case
+                        one will be built according to the config dict's verbose level.)
+
+    Keyword Arguments:
+        **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
+                        arguments, which may be passed either directly or in the config dict.
+    """
+    def __init__(self, config=None, logger=None, **kwargs):
+        """Initialize `KKKCorrelation`.  See class doc for details.
+        """
+        treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
+
+        self._d1 = 2  # KData
+        self._d2 = 2  # KData
+        self._d3 = 2  # KData
+
+        self.k1k2k3 = KKKCorrelation(config, logger, **kwargs)
+        self.k1k3k2 = KKKCorrelation(config, logger, **kwargs)
+        self.k2k1k3 = KKKCorrelation(config, logger, **kwargs)
+        self.k2k3k1 = KKKCorrelation(config, logger, **kwargs)
+        self.k3k1k2 = KKKCorrelation(config, logger, **kwargs)
+        self.k3k2k1 = KKKCorrelation(config, logger, **kwargs)
+
+        self.logger.debug('Finished building KKKCrossCorr')
+
+    def __eq__(self, other):
+        """Return whether two `KKKCrossCorrelation` instances are equal"""
+        return (isinstance(other, KKKCrossCorrelation) and
+                self.nbins == other.nbins and
+                self.bin_size == other.bin_size and
+                self.min_sep == other.min_sep and
+                self.max_sep == other.max_sep and
+                self.sep_units == other.sep_units and
+                self.min_u == other.min_u and
+                self.max_u == other.max_u and
+                self.nubins == other.nubins and
+                self.ubin_size == other.ubin_size and
+                self.min_v == other.min_v and
+                self.max_v == other.max_v and
+                self.nvbins == other.nvbins and
+                self.vbin_size == other.vbin_size and
+                self.coords == other.coords and
+                self.bin_type == other.bin_type and
+                self.bin_slop == other.bin_slop and
+                self.min_rpar == other.min_rpar and
+                self.max_rpar == other.max_rpar and
+                self.xperiod == other.xperiod and
+                self.yperiod == other.yperiod and
+                self.zperiod == other.zperiod and
+                self.k1k2k3 == other.k1k2k3 and
+                self.k1k3k2 == other.k1k3k2 and
+                self.k2k1k3 == other.k2k1k3 and
+                self.k2k3k1 == other.k2k3k1 and
+                self.k3k1k2 == other.k3k1k2 and
+                self.k3k2k1 == other.k3k2k1)
+
+    def copy(self):
+        """Make a copy"""
+        import copy
+        return copy.deepcopy(self)
+
+    def __repr__(self):
+        return 'KKKCrossCorrelation(config=%r)'%self.config
+
+    def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
+        """Process a set of three catalogs, accumulating the 3pt cross-correlation.
+
+        This accumulates the cross-correlation for the given catalogs.  After
+        calling this function as often as desired, the `finalize` command will
+        finish the calculation of meand1, meanlogd1, etc.
+
+        Parameters:
+            cat1 (Catalog):     The first catalog to process
+            cat2 (Catalog):     The second catalog to process
+            cat3 (Catalog):     The third catalog to process
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
+        """
+        if cat1.name == '' and cat2.name == '' and cat3.name == '':
+            self.logger.info('Starting process KKK cross-correlations')
+        else:
+            self.logger.info('Starting process KKK cross-correlations for cats %s, %s, %s.',
+                             cat1.name, cat2.name, cat3.name)
+
+        self._set_metric(metric, cat1.coords, cat2.coords, cat3.coords)
+
+        self._set_num_threads(num_threads)
+
+        min_size, max_size = self._get_minmax_size()
+
+        f1 = cat1.getKField(min_size, max_size, self.split_method,
+                            bool(self.brute), self.min_top, self.max_top, self.coords)
+        f2 = cat2.getKField(min_size, max_size, self.split_method,
+                            bool(self.brute), self.min_top, self.max_top, self.coords)
+        f3 = cat3.getKField(min_size, max_size, self.split_method,
+                            bool(self.brute), self.min_top, self.max_top, self.coords)
+
+        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
+        treecorr._lib.ProcessCross3(self.k1k2k3.corr, self.k1k3k2.corr,
+                                    self.k2k1k3.corr, self.k2k3k1.corr,
+                                    self.k3k1k2.corr, self.k3k2k1.corr,
+                                    f1.data, f2.data, f3.data, self.output_dots,
+                                    f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
+
+    def finalize(self, vark1, vark2, vark3):
+        """Finalize the calculation of the correlation function.
+
+        The `process_cross` command accumulate values in each bin, so they can be called
+        multiple times if appropriate.  Afterwards, this command finishes the calculation
+        by dividing by the total weight.
+
+        Parameters:
+            vark1 (float):  The kappa variance for the first field that was correlated.
+            vark2 (float):  The kappa variance for the second field that was correlated.
+            vark3 (float):  The kappa variance for the third field that was correlated.
+        """
+        self.k1k2k3.finalize(vark1,vark2,vark3)
+        self.k1k3k2.finalize(vark1,vark3,vark2)
+        self.k2k1k3.finalize(vark2,vark1,vark3)
+        self.k2k3k1.finalize(vark2,vark3,vark1)
+        self.k3k1k2.finalize(vark3,vark1,vark2)
+        self.k3k2k1.finalize(vark3,vark2,vark1)
+
+    def clear(self):
+        """Clear the data vectors
+        """
+        self.k1k2k3.clear()
+        self.k1k3k2.clear()
+        self.k2k1k3.clear()
+        self.k2k3k1.clear()
+        self.k3k1k2.clear()
+        self.k3k2k1.clear()
+
+    def __iadd__(self, other):
+        """Add a second `KKKCrossCorrelation`'s data to this one.
+
+        .. note::
+
+            For this to make sense, both `KKKCorrelation` objects should have been using
+            `process_auto`, and they should not have had `finalize` called yet.  Then, after
+            adding them together, you should call `finalize` on the sum.
+        """
+        if not isinstance(other, KKKCorrelation):
+            raise TypeError("Can only add another KKKCorrelation object")
+        self.k1k2k3 += other.k1k2k3
+        self.k1k3k2 += other.k1k3k2
+        self.k2k1k3 += other.k2k1k3
+        self.k2k3k1 += other.k2k3k1
+        self.k3k1k2 += other.k3k1k2
+        self.k3k2k1 += other.k3k2k1
+        return self
+
+    def process(self, cat1, cat2, cat3, metric=None, num_threads=None):
+        """Accumulate the cross-correlation of the points in the given Catalogs: cat1, cat2, cat3.
+
+        All arguments may be lists, in which case all items in the list are used
+        for that element of the correlation.
+
+        Parameters:
+            cat1 (Catalog):     A catalog or list of catalogs for the first K field.
+            cat2 (Catalog):     A catalog or list of catalogs for the second K field.
+            cat3 (Catalog):     A catalog or list of catalogs for the third K field.
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
+        """
+        import math
+        self.clear()
+        if not isinstance(cat1,list): cat1 = cat1.get_patches()
+        if not isinstance(cat2,list): cat2 = cat2.get_patches()
+        if not isinstance(cat3,list): cat3 = cat3.get_patches()
+
+        vark1 = treecorr.calculateVarK(cat1)
+        vark2 = treecorr.calculateVarK(cat2)
+        vark3 = treecorr.calculateVarK(cat3)
+        self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
+        self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
+        self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
+        self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
+        self.finalize(vark1,vark2,vark3)
+
+    def write(self, file_name, file_type=None, precision=None):
+        r"""Write the correlation function to the file, file_name.
+
+        Parameters:
+            file_name (str):    The name of the file to write to.
+            file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
+                                the type automatically from the extension of file_name.)
+            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+                                this value can also be given in the constructor in the config dict.)
+        """
+        self.logger.info('Writing KKK cross-correlations to %s',file_name)
+
+        # TODO  Probably each one in a separate hdu?  What to do for ASCII?
+        col_names = [ 'r_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+                      'meand3', 'meanlogd3', 'meanu', 'meanv',
+                      'zeta', 'sigma_zeta', 'weight', 'ntri' ]
+        columns = [ self.rnom, self.u, self.v,
+                    self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
+                    self.meand3, self.meanlogd3, self.meanu, self.meanv,
+                    self.zeta, np.sqrt(self.varzeta), self.weight, self.ntri ]
+
+        params = { 'coords' : self.coords, 'metric' : self.metric,
+                   'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
+
+        if precision is None:
+            precision = self.config.get('precision', 4)
+
+        treecorr.util.gen_write(
+            file_name, col_names, columns,
+            params=params, precision=precision, file_type=file_type, logger=self.logger)
+
+    def read(self, file_name, file_type=None):
+        """Read in values from a file.
+
+        This should be a file that was written by TreeCorr, preferably a FITS file, so there
+        is no loss of information.
+
+        .. warning::
+
+            The `KKKCorrelation` object should be constructed with the same configuration
+            parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+            checked by the read function.
+
+        Parameters:
+            file_name (str):    The name of the file to read in.
+            file_type (str):    The type of file ('ASCII' or 'FITS').  (default: determine the type
+                                automatically from the extension of file_name.)
+        """
+        self.logger.info('Reading KKK cross-correlations from %s',file_name)
+
+        # TODO
         data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
         s = self.logr.shape
         if 'R_nom' in data.dtype.names:  # pragma: no cover

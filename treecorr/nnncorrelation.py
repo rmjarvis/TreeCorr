@@ -418,30 +418,29 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         return self
 
     def process(self, cat1, cat2=None, cat3=None, metric=None, num_threads=None):
-        """Accumulate the number of triangles of points between cat1, cat2, and cat3.
+        """Accumulate the 3pt correlation of the points in the given Catalog(s).
 
         - If only 1 argument is given, then compute an auto-correlation function.
         - If 2 arguments are given, then compute a cross-correlation function with the
-          first catalog taking two corners of the triangles. (Not implemented yet.)
-        - If 3 arguments are given, then compute a cross-correlation function.
+          first catalog taking one corner of the triangles, and the second taking two corners.
+        - If 3 arguments are given, then compute a three-way cross-correlation.
 
         All arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
 
         .. note::
 
-            For a correlation of multiple catalogs, it matters which corner of the
-            triangle comes from which catalog.  The final accumulation will have
-            d1 > d2 > d3 where d1 is between two points in cat2,cat3; d2 is between
-            points in cat1,cat3; and d3 is between points in cat1,cat2.  To accumulate
-            all the possible triangles between three catalogs, you should call this
-            multiple times with the different catalogs in different positions.
+            For a correlation of multiple catalogs, it typically matters which corner of the
+            triangle comes from which catalog, which is not kept track of by this function.
+            The final accumulation will have d1 > d2 > d3 regardless of which input catalog
+            appears at each corner.  The class which keeps track of which catalog appears
+            in each position in the triangle is `NNNCrossCorrelation`.
 
         Parameters:
             cat1 (Catalog):     A catalog or list of catalogs for the first N field.
-            cat2 (Catalog):     A catalog or list of catalogs for the second N field, if any.
+            cat2 (Catalog):     A catalog or list of catalogs for the second N field.
                                 (default: None)
-            cat3 (Catalog):     A catalog or list of catalogs for the third N field, if any.
+            cat3 (Catalog):     A catalog or list of catalogs for the third N field.
                                 (default: None)
             metric (str):       Which metric to use.  See `Metrics` for details.
                                 (default: 'Euclidean'; this value can also be given in the
@@ -722,6 +721,331 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.weight = data['DDD'].reshape(s)
         self.ntri = data['ntri'].reshape(s)
         self.tot = params['tot']
+        self.coords = params['coords'].strip()
+        self.metric = params['metric'].strip()
+        self.sep_units = params['sep_units'].strip()
+        self.bin_type = params['bin_type'].strip()
+
+
+class NNNCrossCorrelation(treecorr.BinnedCorr3):
+    r"""This class handles the calculation a 3-point count-count-count cross-correlation
+    function.
+
+    For 3-point cross correlations, it matters which of the two or three fields falls on
+    each corner of the triangle.  E.g. is field 1 on the corner opposite d1 (the longest
+    size of the triangle) or is it field 2 (or 3) there?  This is in contrast to the 2-point
+    correlation where the symmetry of the situation means that it doesn't matter which point
+    is identified with each field.  This makes it significantly more complicated to keep track
+    of all the relevant information for a 3-point cross correlation function.
+
+    The `NNNCorrelation` class holds a single :math:`\zeta` functions describing all
+    possible triangles, parameterized according to their relative side lengths ordered as
+    d1 > d2 > d3.
+
+    For a cross-correlation of two fields: N1 - N1 - N2 (i.e. the N1 field is at two of the
+    corners and N2 is at one corner), then we need three these :math:`\zeta` functions
+    to capture all of the triangles, since the N2 points may be opposite d1 or d2 or d3.
+    For a cross-correlation of three fields: N1 - N2 - N3, we need six sets, to account for
+    all of the possible permutations relative to the triangle sides.
+
+    Therefore, this class holds 6 instances of `NNNCorrelation`, which in turn hold the
+    information about triangles in each of the relevant configurations.  We name these:
+
+    Attribute:
+        n1n2n3:     Triangles where N1 is opposite d1, N2 is opposite d2, N3 is opposite d3.
+        n1n3n2:     Triangles where N1 is opposite d1, N3 is opposite d2, N2 is opposite d3.
+        n2n1n3:     Triangles where N2 is opposite d1, N1 is opposite d2, N3 is opposite d3.
+        n2n3n1:     Triangles where N2 is opposite d1, N3 is opposite d2, N1 is opposite d3.
+        n3n1n2:     Triangles where N3 is opposite d1, N1 is opposite d2, N2 is opposite d3.
+        n3n2n1:     Triangles where N3 is opposite d1, N2 is opposite d2, N1 is opposite d3.
+
+    If for instance N2 and N3 are the same field, then e.g. n1n2n3 and n1n3n2 will have
+    the same values.
+
+    Ojects of this class also hold the following attributes, which are identical in each of
+    the above NNNCorrelation instances.
+
+    Attributes:
+        nbins:      The number of bins in logr where r = d2
+        bin_size:   The size of the bins in logr
+        min_sep:    The minimum separation being considered
+        max_sep:    The maximum separation being considered
+        nubins:     The number of bins in u where u = d3/d2
+        ubin_size:  The size of the bins in u
+        min_u:      The minimum u being considered
+        max_u:      The maximum u being considered
+        nvbins:     The number of bins in v where v = +-(d1-d2)/d3
+        vbin_size:  The size of the bins in v
+        min_v:      The minimum v being considered
+        max_v:      The maximum v being considered
+        logr1d:     The nominal centers of the nbins bins in log(r).
+        u1d:        The nominal centers of the nubins bins in u.
+        v1d:        The nominal centers of the nvbins bins in v.
+
+    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
+    will all be in these units.
+
+    .. note::
+
+        If you separate out the steps of the `process` command and use `process_cross` directly,
+        then the units will not be applied to ``meanr`` or ``meanlogr`` until the `finalize`
+        function is called.
+
+    Parameters:
+        config (dict):  A configuration dict that can be used to pass in kwargs if desired.
+                        This dict is allowed to have addition entries besides those listed
+                        in `BinnedCorr3`, which are ignored here. (default: None)
+        logger:         If desired, a logger object for logging. (default: None, in which case
+                        one will be built according to the config dict's verbose level.)
+
+    Keyword Arguments:
+        **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
+                        arguments, which may be passed either directly or in the config dict.
+    """
+    def __init__(self, config=None, logger=None, **kwargs):
+        """Initialize `NNNCorrelation`.  See class doc for details.
+        """
+        treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
+
+        self._d1 = 1  # NData
+        self._d2 = 1  # NData
+        self._d3 = 1  # NData
+
+        self.n1n2n3 = NNNCorrelation(config, logger, **kwargs)
+        self.n1n3n2 = NNNCorrelation(config, logger, **kwargs)
+        self.n2n1n3 = NNNCorrelation(config, logger, **kwargs)
+        self.n2n3n1 = NNNCorrelation(config, logger, **kwargs)
+        self.n3n1n2 = NNNCorrelation(config, logger, **kwargs)
+        self.n3n2n1 = NNNCorrelation(config, logger, **kwargs)
+
+        self.logger.debug('Finished building NNNCrossCorr')
+
+
+    def __eq__(self, other):
+        """Return whether two `NNNCrossCorrelation` instances are equal"""
+        return (isinstance(other, NNNCrossCorrelation) and
+                self.nbins == other.nbins and
+                self.bin_size == other.bin_size and
+                self.min_sep == other.min_sep and
+                self.max_sep == other.max_sep and
+                self.sep_units == other.sep_units and
+                self.min_u == other.min_u and
+                self.max_u == other.max_u and
+                self.nubins == other.nubins and
+                self.ubin_size == other.ubin_size and
+                self.min_v == other.min_v and
+                self.max_v == other.max_v and
+                self.nvbins == other.nvbins and
+                self.vbin_size == other.vbin_size and
+                self.coords == other.coords and
+                self.bin_type == other.bin_type and
+                self.bin_slop == other.bin_slop and
+                self.min_rpar == other.min_rpar and
+                self.max_rpar == other.max_rpar and
+                self.xperiod == other.xperiod and
+                self.yperiod == other.yperiod and
+                self.zperiod == other.zperiod and
+                self.n1n2n3 == other.n1n2n3 and
+                self.n1n3n2 == other.n1n3n2 and
+                self.n2n1n3 == other.n2n1n3 and
+                self.n2n3n1 == other.n2n3n1 and
+                self.n3n1n2 == other.n3n1n2 and
+                self.n3n2n1 == other.n3n2n1)
+
+    def copy(self):
+        """Make a copy"""
+        import copy
+        return copy.deepcopy(self)
+
+    def __repr__(self):
+        return 'NNNCrossCorrelation(config=%r)'%self.config
+
+    def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
+        """Process a set of three catalogs, accumulating the 3pt cross-correlation.
+
+        This accumulates the cross-correlation for the given catalogs.  After
+        calling this function as often as desired, the `finalize` command will
+        finish the calculation of meand1, meanlogd1, etc.
+
+        Parameters:
+            cat1 (Catalog):     The first catalog to process
+            cat2 (Catalog):     The second catalog to process
+            cat3 (Catalog):     The third catalog to process
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
+        """
+        if cat1.name == '' and cat2.name == '' and cat3.name == '':
+            self.logger.info('Starting process NNN cross-correlations')
+        else:
+            self.logger.info('Starting process NNN cross-correlations for cats %s, %s, %s.',
+                             cat1.name, cat2.name, cat3.name)
+
+        self._set_metric(metric, cat1.coords, cat2.coords, cat3.coords)
+
+        self._set_num_threads(num_threads)
+
+        min_size, max_size = self._get_minmax_size()
+
+        f1 = cat1.getNField(min_size, max_size, self.split_method,
+                            bool(self.brute), self.min_top, self.max_top, self.coords)
+        f2 = cat2.getNField(min_size, max_size, self.split_method,
+                            bool(self.brute), self.min_top, self.max_top, self.coords)
+        f3 = cat3.getNField(min_size, max_size, self.split_method,
+                            bool(self.brute), self.min_top, self.max_top, self.coords)
+
+        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
+        treecorr._lib.ProcessCross3(self.n1n2n3.corr, self.n1n3n2.corr,
+                                    self.n2n1n3.corr, self.n2n3n1.corr,
+                                    self.n3n1n2.corr, self.n3n2n1.corr,
+                                    f1.data, f2.data, f3.data, self.output_dots,
+                                    f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
+
+    def finalize(self):
+        """Finalize the calculation of the correlation function.
+
+        The `process_cross` command accumulate values in each bin, so they can be called
+        multiple times if appropriate.  Afterwards, this command finishes the calculation
+        by dividing by the total weight.
+        """
+        self.n1n2n3.finalize()
+        self.n1n3n2.finalize()
+        self.n2n1n3.finalize()
+        self.n2n3n1.finalize()
+        self.n3n1n2.finalize()
+        self.n3n2n1.finalize()
+
+    def clear(self):
+        """Clear the data vectors
+        """
+        self.n1n2n3.clear()
+        self.n1n3n2.clear()
+        self.n2n1n3.clear()
+        self.n2n3n1.clear()
+        self.n3n1n2.clear()
+        self.n3n2n1.clear()
+
+    def __iadd__(self, other):
+        """Add a second `NNNCrossCorrelation`'s data to this one.
+
+        .. note::
+
+            For this to make sense, both `NNNCorrelation` objects should have been using
+            `process_auto`, and they should not have had `finalize` called yet.  Then, after
+            adding them together, you should call `finalize` on the sum.
+        """
+        if not isinstance(other, NNNCorrelation):
+            raise TypeError("Can only add another NNNCorrelation object")
+        self.n1n2n3 += other.n1n2n3
+        self.n1n3n2 += other.n1n3n2
+        self.n2n1n3 += other.n2n1n3
+        self.n2n3n1 += other.n2n3n1
+        self.n3n1n2 += other.n3n1n2
+        self.n3n2n1 += other.n3n2n1
+        return self
+
+    def process(self, cat1, cat2, cat3, metric=None, num_threads=None):
+        """Accumulate the cross-correlation of the points in the given Catalogs: cat1, cat2, cat3.
+
+        All arguments may be lists, in which case all items in the list are used
+        for that element of the correlation.
+
+        Parameters:
+            cat1 (Catalog):     A catalog or list of catalogs for the first N field.
+            cat2 (Catalog):     A catalog or list of catalogs for the second N field.
+            cat3 (Catalog):     A catalog or list of catalogs for the third N field.
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
+        """
+        import math
+        self.clear()
+        if not isinstance(cat1,list): cat1 = cat1.get_patches()
+        if not isinstance(cat2,list): cat2 = cat2.get_patches()
+        if not isinstance(cat3,list): cat3 = cat3.get_patches()
+
+        self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
+        self.finalize()
+
+    def write(self, file_name, file_type=None, precision=None):
+        r"""Write the correlation function to the file, file_name.
+
+        Parameters:
+            file_name (str):    The name of the file to write to.
+            file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
+                                the type automatically from the extension of file_name.)
+            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+                                this value can also be given in the constructor in the config dict.)
+        """
+        self.logger.info('Writing NNN cross-correlations to %s',file_name)
+
+        # TODO  Probably each one in a separate hdu?  What to do for ASCII?
+        col_names = [ 'r_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+                      'meand3', 'meanlogd3', 'meanu', 'meanv',
+                      'zeta', 'sigma_zeta', 'weight', 'ntri' ]
+        columns = [ self.rnom, self.u, self.v,
+                    self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
+                    self.meand3, self.meanlogd3, self.meanu, self.meanv,
+                    self.zeta, np.sqrt(self.varzeta), self.weight, self.ntri ]
+
+        params = { 'coords' : self.coords, 'metric' : self.metric,
+                   'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
+
+        if precision is None:
+            precision = self.config.get('precision', 4)
+
+        treecorr.util.gen_write(
+            file_name, col_names, columns,
+            params=params, precision=precision, file_type=file_type, logger=self.logger)
+
+
+    def read(self, file_name, file_type=None):
+        """Read in values from a file.
+
+        This should be a file that was written by TreeCorr, preferably a FITS file, so there
+        is no loss of information.
+
+        .. warning::
+
+            The `NNNCorrelation` object should be constructed with the same configuration
+            parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+            checked by the read function.
+
+        Parameters:
+            file_name (str):    The name of the file to read in.
+            file_type (str):    The type of file ('ASCII' or 'FITS').  (default: determine the type
+                                automatically from the extension of file_name.)
+        """
+        self.logger.info('Reading NNN cross-correlations from %s',file_name)
+
+        # TODO
+        data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
+        s = self.logr.shape
+        if 'R_nom' in data.dtype.names:  # pragma: no cover
+            self.rnom = data['R_nom'].reshape(s)
+        else:
+            self.rnom = data['r_nom'].reshape(s)
+        self.logr = np.log(self.rnom)
+        self.u = data['u_nom'].reshape(s)
+        self.v = data['v_nom'].reshape(s)
+        self.meand1 = data['meand1'].reshape(s)
+        self.meanlogd1 = data['meanlogd1'].reshape(s)
+        self.meand2 = data['meand2'].reshape(s)
+        self.meanlogd2 = data['meanlogd2'].reshape(s)
+        self.meand3 = data['meand3'].reshape(s)
+        self.meanlogd3 = data['meanlogd3'].reshape(s)
+        self.meanu = data['meanu'].reshape(s)
+        self.meanv = data['meanv'].reshape(s)
+        self.zeta = data['zeta'].reshape(s)
+        self.varzeta = data['sigma_zeta'].reshape(s)**2
+        self.weight = data['weight'].reshape(s)
+        self.ntri = data['ntri'].reshape(s)
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()
         self.sep_units = params['sep_units'].strip()

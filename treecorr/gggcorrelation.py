@@ -49,6 +49,13 @@ class GGGCorrelation(treecorr.BinnedCorr3):
     See the doc string of `BinnedCorr3` for a description of how the triangles
     are binned.
 
+    This class only holds one set of these :math:`\Gamma` functions, which means that it is only
+    directly applicable for computing auto-correlations.  To describe a cross-correlation of one
+    shear field with another, you need three sets of these functions.  To describe a three-way
+    cross-correlation of three different shear fields, you need six.  These use cases are
+    enabled by the class `GGGCrossCorrelation` which holds six instances of this class to keep
+    track of all the various triangles.  See that class for more details.
+
     Ojects of this class holds the following attributes:
 
     Attributes:
@@ -525,7 +532,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         return self
 
     def process(self, cat1, cat2=None, cat3=None, metric=None, num_threads=None):
-        """Accumulate the number of triangles of points between cat1, cat2, and cat3.
+        """Accumulate the 3pt correlation of the points in the given Catalog(s).
 
         - If only 1 argument is given, then compute an auto-correlation function.
         - If 2 arguments are given, then compute a cross-correlation function with the
@@ -537,18 +544,17 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
         .. note::
 
-            For a correlation of multiple catalogs, it matters which corner of the
-            triangle comes from which catalog.  The final accumulation will have
-            d1 > d2 > d3 where d1 is between two points in cat2,cat3; d2 is between
-            points in cat1,cat3; and d3 is between points in cat1,cat2.  To accumulate
-            all the possible triangles between three catalogs, you should call this
-            multiple times with the different catalogs in different positions.
+            For a correlation of multiple catalogs, it typically matters which corner of the
+            triangle comes from which catalog, which is not kept track of by this function.
+            The final accumulation will have d1 > d2 > d3 regardless of which input catalog
+            appears at each corner.  The class which keeps track of which catalog appears
+            in each position in the triangle is `GGGCrossCorrelation`.
 
         Parameters:
-            cat1 (Catalog):     A catalog or list of catalogs for the first N field.
-            cat2 (Catalog):     A catalog or list of catalogs for the second N field, if any.
+            cat1 (Catalog):     A catalog or list of catalogs for the first G field.
+            cat2 (Catalog):     A catalog or list of catalogs for the second G field.
                                 (default: None)
-            cat3 (Catalog):     A catalog or list of catalogs for the third N field, if any.
+            cat3 (Catalog):     A catalog or list of catalogs for the third G field.
                                 (default: None)
             metric (str):       Which metric to use.  See `Metrics` for details.
                                 (default: 'Euclidean'; this value can also be given in the
@@ -1061,3 +1067,360 @@ class GGGCorrelation(treecorr.BinnedCorr3):
             ['R','Map3','Map2Mx', 'MapMx2', 'Mx3','sig_map'],
             [ R, stats[0], stats[1], stats[4], stats[7], np.sqrt(stats[8]) ],
             precision=precision, file_type=file_type, logger=self.logger)
+
+
+class GGGCrossCorrelation(treecorr.BinnedCorr3):
+    r"""This class handles the calculation a 3-point shear-shear-shear cross-correlation
+    function.
+
+    For 3-point cross correlations, it matters which of the two or three fields falls on
+    each corner of the triangle.  E.g. is field 1 on the corner opposite d1 (the longest
+    size of the triangle) or is it field 2 (or 3) there?  This is in contrast to the 2-point
+    correlation where the symmetry of the situation means that it doesn't matter which point
+    is identified with each field.  This makes it significantly more complicated to keep track
+    of all the relevant information for a 3-point cross correlation function.
+
+    The `GGGCorrelation` class holds a single set of :math:`\Gamma` functions describing all
+    possible triangles, parameterized according to their relative side lengths ordered as
+    d1 > d2 > d3.
+
+    For a cross-correlation of two fields: G1 - G1 - G2 (i.e. the G1 field is at two of the
+    corners and G2 is at one corner), then we need three sets of these :math:`\Gamma` functions
+    to capture all of the triangles, since the G2 points may be opposite d1 or d2 or d3.
+    For a cross-correlation of three fields: G1 - G2 - G3, we need six sets, to account for
+    all of the possible permutations relative to the triangle sides.
+
+    Therefore, this class holds 6 instances of `GGGCorrelation`, which in turn hold the
+    information about triangles in each of the relevant configurations.  We name these:
+
+    Attribute:
+        g1g2g3:     Triangles where G1 is opposite d1, G2 is opposite d2, G3 is opposite d3.
+        g1g3g2:     Triangles where G1 is opposite d1, G3 is opposite d2, G2 is opposite d3.
+        g2g1g3:     Triangles where G2 is opposite d1, G1 is opposite d2, G3 is opposite d3.
+        g2g3g1:     Triangles where G2 is opposite d1, G3 is opposite d2, G1 is opposite d3.
+        g3g1g2:     Triangles where G3 is opposite d1, G1 is opposite d2, G2 is opposite d3.
+        g3g2g1:     Triangles where G3 is opposite d1, G2 is opposite d2, G1 is opposite d3.
+
+    If for instance G2 and G3 are the same field, then e.g. g1g2g3 and g1g3g2 will have
+    the same values.
+
+    Ojects of this class also hold the following attributes, which are identical in each of
+    the above GGGCorrelation instances.
+
+    Attributes:
+        nbins:      The number of bins in logr where r = d2
+        bin_size:   The size of the bins in logr
+        min_sep:    The minimum separation being considered
+        max_sep:    The maximum separation being considered
+        nubins:     The number of bins in u where u = d3/d2
+        ubin_size:  The size of the bins in u
+        min_u:      The minimum u being considered
+        max_u:      The maximum u being considered
+        nvbins:     The number of bins in v where v = +-(d1-d2)/d3
+        vbin_size:  The size of the bins in v
+        min_v:      The minimum v being considered
+        max_v:      The maximum v being considered
+        logr1d:     The nominal centers of the nbins bins in log(r).
+        u1d:        The nominal centers of the nubins bins in u.
+        v1d:        The nominal centers of the nvbins bins in v.
+
+    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
+    will all be in these units.
+
+    .. note::
+
+        If you separate out the steps of the `process` command and use `process_cross` directly,
+        then the units will not be applied to ``meanr`` or ``meanlogr`` until the `finalize`
+        function is called.
+
+    Parameters:
+        config (dict):  A configuration dict that can be used to pass in kwargs if desired.
+                        This dict is allowed to have addition entries besides those listed
+                        in `BinnedCorr3`, which are ignored here. (default: None)
+        logger:         If desired, a logger object for logging. (default: None, in which case
+                        one will be built according to the config dict's verbose level.)
+
+    Keyword Arguments:
+        **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
+                        arguments, which may be passed either directly or in the config dict.
+    """
+    def __init__(self, config=None, logger=None, **kwargs):
+        """Initialize `GGGCorrelation`.  See class doc for details.
+        """
+        treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
+
+        self._d1 = 3  # GData
+        self._d2 = 3  # GData
+        self._d3 = 3  # GData
+
+        self.g1g2g3 = GGGCorrelation(config, logger, **kwargs)
+        self.g1g3g2 = GGGCorrelation(config, logger, **kwargs)
+        self.g2g1g3 = GGGCorrelation(config, logger, **kwargs)
+        self.g2g3g1 = GGGCorrelation(config, logger, **kwargs)
+        self.g3g1g2 = GGGCorrelation(config, logger, **kwargs)
+        self.g3g2g1 = GGGCorrelation(config, logger, **kwargs)
+
+        self.logger.debug('Finished building GGGCrossCorr')
+
+
+    def __eq__(self, other):
+        """Return whether two `GGGCrossCorrelation` instances are equal"""
+        return (isinstance(other, GGGCrossCorrelation) and
+                self.nbins == other.nbins and
+                self.bin_size == other.bin_size and
+                self.min_sep == other.min_sep and
+                self.max_sep == other.max_sep and
+                self.sep_units == other.sep_units and
+                self.min_u == other.min_u and
+                self.max_u == other.max_u and
+                self.nubins == other.nubins and
+                self.ubin_size == other.ubin_size and
+                self.min_v == other.min_v and
+                self.max_v == other.max_v and
+                self.nvbins == other.nvbins and
+                self.vbin_size == other.vbin_size and
+                self.coords == other.coords and
+                self.bin_type == other.bin_type and
+                self.bin_slop == other.bin_slop and
+                self.min_rpar == other.min_rpar and
+                self.max_rpar == other.max_rpar and
+                self.xperiod == other.xperiod and
+                self.yperiod == other.yperiod and
+                self.zperiod == other.zperiod and
+                self.g1g2g3 == other.g1g2g3 and
+                self.g1g3g2 == other.g1g3g2 and
+                self.g2g1g3 == other.g2g1g3 and
+                self.g2g3g1 == other.g2g3g1 and
+                self.g3g1g2 == other.g3g1g2 and
+                self.g3g2g1 == other.g3g2g1)
+
+    def copy(self):
+        """Make a copy"""
+        import copy
+        return copy.deepcopy(self)
+
+    def __repr__(self):
+        return 'GGGCrossCorrelation(config=%r)'%self.config
+
+    def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
+        """Process a set of three catalogs, accumulating the 3pt cross-correlation.
+
+        This accumulates the cross-correlation for the given catalogs.  After
+        calling this function as often as desired, the `finalize` command will
+        finish the calculation of meand1, meanlogd1, etc.
+
+        Parameters:
+            cat1 (Catalog):     The first catalog to process
+            cat2 (Catalog):     The second catalog to process
+            cat3 (Catalog):     The third catalog to process
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
+        """
+        if cat1.name == '' and cat2.name == '' and cat3.name == '':
+            self.logger.info('Starting process GGG cross-correlations')
+        else:
+            self.logger.info('Starting process GGG cross-correlations for cats %s, %s, %s.',
+                             cat1.name, cat2.name, cat3.name)
+
+        self._set_metric(metric, cat1.coords, cat2.coords, cat3.coords)
+
+        self._set_num_threads(num_threads)
+
+        min_size, max_size = self._get_minmax_size()
+
+        f1 = cat1.getGField(min_size, max_size, self.split_method,
+                            bool(self.brute), self.min_top, self.max_top, self.coords)
+        f2 = cat2.getGField(min_size, max_size, self.split_method,
+                            bool(self.brute), self.min_top, self.max_top, self.coords)
+        f3 = cat3.getGField(min_size, max_size, self.split_method,
+                            bool(self.brute), self.min_top, self.max_top, self.coords)
+
+        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
+        treecorr._lib.ProcessCross3(self.g1g2g3.corr, self.g1g3g2.corr,
+                                    self.g2g1g3.corr, self.g2g3g1.corr,
+                                    self.g3g1g2.corr, self.g3g2g1.corr,
+                                    f1.data, f2.data, f3.data, self.output_dots,
+                                    f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
+
+    def finalize(self, varg1, varg2, varg3):
+        """Finalize the calculation of the correlation function.
+
+        The `process_cross` command accumulate values in each bin, so they can be called
+        multiple times if appropriate.  Afterwards, this command finishes the calculation
+        by dividing by the total weight.
+
+        Parameters:
+            varg1 (float):  The shear variance for the first field that was correlated.
+            varg2 (float):  The shear variance for the second field that was correlated.
+            varg3 (float):  The shear variance for the third field that was correlated.
+        """
+        self.g1g2g3.finalize(varg1,varg2,varg3)
+        self.g1g3g2.finalize(varg1,varg3,varg2)
+        self.g2g1g3.finalize(varg2,varg1,varg3)
+        self.g2g3g1.finalize(varg2,varg3,varg1)
+        self.g3g1g2.finalize(varg3,varg1,varg2)
+        self.g3g2g1.finalize(varg3,varg2,varg1)
+
+    def clear(self):
+        """Clear the data vectors
+        """
+        self.g1g2g3.clear()
+        self.g1g3g2.clear()
+        self.g2g1g3.clear()
+        self.g2g3g1.clear()
+        self.g3g1g2.clear()
+        self.g3g2g1.clear()
+
+    def __iadd__(self, other):
+        """Add a second `GGGCrossCorrelation`'s data to this one.
+
+        .. note::
+
+            For this to make sense, both `GGGCorrelation` objects should have been using
+            `process_auto`, and they should not have had `finalize` called yet.  Then, after
+            adding them together, you should call `finalize` on the sum.
+        """
+        if not isinstance(other, GGGCorrelation):
+            raise TypeError("Can only add another GGGCorrelation object")
+        self.g1g2g3 += other.g1g2g3
+        self.g1g3g2 += other.g1g3g2
+        self.g2g1g3 += other.g2g1g3
+        self.g2g3g1 += other.g2g3g1
+        self.g3g1g2 += other.g3g1g2
+        self.g3g2g1 += other.g3g2g1
+        return self
+
+    def process(self, cat1, cat2, cat3, metric=None, num_threads=None):
+        """Accumulate the cross-correlation of the points in the given Catalogs: cat1, cat2, cat3.
+
+        All arguments may be lists, in which case all items in the list are used
+        for that element of the correlation.
+
+        Parameters:
+            cat1 (Catalog):     A catalog or list of catalogs for the first G field.
+            cat2 (Catalog):     A catalog or list of catalogs for the second G field.
+            cat3 (Catalog):     A catalog or list of catalogs for the third G field.
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
+        """
+        import math
+        self.clear()
+        if not isinstance(cat1,list): cat1 = cat1.get_patches()
+        if not isinstance(cat2,list): cat2 = cat2.get_patches()
+        if not isinstance(cat3,list): cat3 = cat3.get_patches()
+
+        varg1 = treecorr.calculateVarG(cat1)
+        varg2 = treecorr.calculateVarG(cat2)
+        varg3 = treecorr.calculateVarG(cat3)
+        self.logger.info("varg1 = %f: sig_g = %f",varg1,math.sqrt(varg1))
+        self.logger.info("varg2 = %f: sig_g = %f",varg2,math.sqrt(varg2))
+        self.logger.info("varg3 = %f: sig_g = %f",varg3,math.sqrt(varg3))
+        self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
+        self.finalize(varg1,varg2,varg3)
+
+    def write(self, file_name, file_type=None, precision=None):
+        r"""Write the correlation function to the file, file_name.
+
+        Parameters:
+            file_name (str):    The name of the file to write to.
+            file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
+                                the type automatically from the extension of file_name.)
+            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+                                this value can also be given in the constructor in the config dict.)
+        """
+        self.logger.info('Writing GGG cross-correlations to %s',file_name)
+
+        # TODO  Probably each one in a separate hdu?  What to do for ASCII?
+        col_names = [ 'r_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+                      'meand3', 'meanlogd3', 'meanu', 'meanv',
+                      'gam0r', 'gam0i', 'gam1r', 'gam1i', 'gam2r', 'gam2i', 'gam3r', 'gam3i',
+                      'sigma_gam0', 'sigma_gam1', 'sigma_gam2', 'sigma_gam3', 'weight', 'ntri' ]
+        columns = [ self.rnom, self.u, self.v,
+                    self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
+                    self.meand3, self.meanlogd3, self.meanu, self.meanv,
+                    self.gam0r, self.gam0i, self.gam1r, self.gam1i,
+                    self.gam2r, self.gam2i, self.gam3r, self.gam3i,
+                    np.sqrt(self.vargam0), np.sqrt(self.vargam1), np.sqrt(self.vargam2),
+                    np.sqrt(self.vargam3), self.weight, self.ntri ]
+
+        params = { 'coords' : self.coords, 'metric' : self.metric,
+                   'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
+
+        if precision is None:
+            precision = self.config.get('precision', 4)
+
+        treecorr.util.gen_write(
+            file_name, col_names, columns,
+            params=params, precision=precision, file_type=file_type, logger=self.logger)
+
+
+    def read(self, file_name, file_type=None):
+        """Read in values from a file.
+
+        This should be a file that was written by TreeCorr, preferably a FITS file, so there
+        is no loss of information.
+
+        .. warning::
+
+            The `GGGCorrelation` object should be constructed with the same configuration
+            parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+            checked by the read function.
+
+        Parameters:
+            file_name (str):    The name of the file to read in.
+            file_type (str):    The type of file ('ASCII' or 'FITS').  (default: determine the type
+                                automatically from the extension of file_name.)
+        """
+        self.logger.info('Reading GGG cross-correlations from %s',file_name)
+
+        # TODO
+        data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
+        s = self.logr.shape
+        if 'R_nom' in data.dtype.names:  # pragma: no cover
+            self.rnom = data['R_nom'].reshape(s)
+        else:
+            self.rnom = data['r_nom'].reshape(s)
+        self.logr = np.log(self.rnom)
+        self.u = data['u_nom'].reshape(s)
+        self.v = data['v_nom'].reshape(s)
+        self.meand1 = data['meand1'].reshape(s)
+        self.meanlogd1 = data['meanlogd1'].reshape(s)
+        self.meand2 = data['meand2'].reshape(s)
+        self.meanlogd2 = data['meanlogd2'].reshape(s)
+        self.meand3 = data['meand3'].reshape(s)
+        self.meanlogd3 = data['meanlogd3'].reshape(s)
+        self.meanu = data['meanu'].reshape(s)
+        self.meanv = data['meanv'].reshape(s)
+        self.gam0r = data['gam0r'].reshape(s)
+        self.gam0i = data['gam0i'].reshape(s)
+        self.gam1r = data['gam1r'].reshape(s)
+        self.gam1i = data['gam1i'].reshape(s)
+        self.gam2r = data['gam2r'].reshape(s)
+        self.gam2i = data['gam2i'].reshape(s)
+        self.gam3r = data['gam3r'].reshape(s)
+        self.gam3i = data['gam3i'].reshape(s)
+        # Read old output files without error.
+        if 'sigma_gam' in data.dtype.names:  # pragma: no cover
+            self.vargam0 = data['sigma_gam'].reshape(s)**2
+            self.vargam1 = data['sigma_gam'].reshape(s)**2
+            self.vargam2 = data['sigma_gam'].reshape(s)**2
+            self.vargam3 = data['sigma_gam'].reshape(s)**2
+        else:
+            self.vargam0 = data['sigma_gam0'].reshape(s)**2
+            self.vargam1 = data['sigma_gam1'].reshape(s)**2
+            self.vargam2 = data['sigma_gam2'].reshape(s)**2
+            self.vargam3 = data['sigma_gam3'].reshape(s)**2
+        self.weight = data['weight'].reshape(s)
+        self.ntri = data['ntri'].reshape(s)
+        self.coords = params['coords'].strip()
+        self.metric = params['metric'].strip()
+        self.sep_units = params['sep_units'].strip()
+        self.bin_type = params['bin_type'].strip()

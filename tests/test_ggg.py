@@ -138,7 +138,10 @@ def test_direct():
     # Check that running via the corr3 script works correctly.
     config = treecorr.config.read_config('configs/ggg_direct.yaml')
     cat.write(config['file_name'])
+    t1 = time.time()
     treecorr.corr3(config)
+    t2 = time.time()
+    print('Time for auto correlation = ',t2-t1)
     data = fitsio.read(config['ggg_file_name'])
     np.testing.assert_allclose(data['r_nom'], ggg.rnom.flatten())
     np.testing.assert_allclose(data['u_nom'], ggg.u.flatten())
@@ -168,6 +171,27 @@ def test_direct():
     np.testing.assert_allclose(ggg.gam2i, true_gam2.imag, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
+
+    # Using the GGGCrossCorrelation class instead finds each triangle 6 times, but puts
+    # them into 6 different accumualtions, so they all end up with the same answer.
+    gggc = treecorr.GGGCrossCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                        brute=True)
+    t1 = time.time()
+    gggc.process(cat, cat, cat, num_threads=2)
+    t2 = time.time()
+    print('Time for cross correlation = ',t2-t1)
+    # All six correlation functions are equivalent to the auto results:
+    for g in [gggc.g1g2g3, gggc.g1g3g2, gggc.g2g1g3, gggc.g2g3g1, gggc.g3g1g2, gggc.g3g2g1]:
+        np.testing.assert_array_equal(g.ntri, true_ntri)
+        np.testing.assert_allclose(g.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(g.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(g.gam0i, true_gam0.imag, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(g.gam1r, true_gam1.real, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(g.gam1i, true_gam1.imag, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(g.gam2r, true_gam2.real, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(g.gam2i, true_gam2.imag, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(g.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(g.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
 
     config['file_name2'] = config['file_name']
     config['file_name3'] = config['file_name']
@@ -335,7 +359,6 @@ def test_direct():
         ggg.process(cat, cat2=cat)
     with assert_raises(NotImplementedError):
         ggg.process(cat, cat3=cat)
-
 
 @timer
 def test_direct_spherical():

@@ -59,8 +59,8 @@ from .kgcorrelation import KGCorrelation
 from .field import Field, NField, KField, GField
 from .field import SimpleField, NSimpleField, KSimpleField, GSimpleField
 from .binnedcorr3 import BinnedCorr3
-from .nnncorrelation import NNNCorrelation
-from .kkkcorrelation import KKKCorrelation
-from .gggcorrelation import GGGCorrelation
+from .nnncorrelation import NNNCorrelation, NNNCrossCorrelation
+from .kkkcorrelation import KKKCorrelation, KKKCrossCorrelation
+from .gggcorrelation import GGGCorrelation, GGGCrossCorrelation
 from .corr2 import corr2, print_corr2_params, corr2_valid_params, corr2_aliases
 from .corr3 import corr3, print_corr3_params, corr3_valid_params, corr3_aliases

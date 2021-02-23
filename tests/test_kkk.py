@@ -17,7 +17,7 @@ import treecorr
 import os
 import coord
 
-from test_helper import do_pickle, assert_raises, timer
+from test_helper import do_pickle, assert_raises, timer, is_ccw, is_ccw_3d
 
 @timer
 def test_direct():
@@ -26,11 +26,12 @@ def test_direct():
 
     ngal = 100
     s = 10.
+    sig_kap = 3
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
     y = rng.normal(0,s, (ngal,) )
     w = rng.random_sample(ngal)
-    kap = rng.normal(0,3, (ngal,) )
+    kap = rng.normal(0,sig_kap, (ngal,) )
 
     cat = treecorr.Catalog(x=x, y=y, w=w, k=kap)
 
@@ -68,7 +69,7 @@ def test_direct():
 
                 u = d3/d2
                 v = (d1-d2)/d3
-                if (x[jj]-x[ii])*(y[kk]-y[ii]) < (x[kk]-x[ii])*(y[jj]-y[ii]):
+                if not is_ccw(x[ii],y[ii],x[jj],y[jj],x[kk],y[kk]):
                     v = -v
 
                 uindex = np.floor(u / bin_size).astype(int)
@@ -115,6 +116,17 @@ def test_direct():
     np.testing.assert_array_equal(kkk.ntri, 6*true_ntri)
     np.testing.assert_allclose(kkk.weight, 6*true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
+
+    # Using the KKKCrossCorrelation class instead finds each triangle 6 times, but puts
+    # them into 6 different accumualtions, so they all end up with the same answer.
+    kkkc = treecorr.KKKCrossCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                        brute=True)
+    kkkc.process(cat, cat, cat, num_threads=2)
+    # All six correlation functions are equivalent to the auto results:
+    for k in [kkkc.k1k2k3, kkkc.k1k3k2, kkkc.k2k1k3, kkkc.k2k3k1, kkkc.k3k1k2, kkkc.k3k2k1]:
+        np.testing.assert_array_equal(k.ntri, true_ntri)
+        np.testing.assert_allclose(k.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(k.zeta, true_zeta.real, rtol=1.e-5, atol=1.e-8)
 
     config['file_name2'] = config['file_name']
     config['file_name3'] = config['file_name']
@@ -300,9 +312,7 @@ def test_direct_spherical():
 
                 u = d3/d2
                 v = (d1-d2)/d3
-                if ( ((x[jj]-x[ii])*(y[kk]-y[ii]) - (x[kk]-x[ii])*(y[jj]-y[ii])) * z[ii] +
-                     ((y[jj]-y[ii])*(z[kk]-z[ii]) - (y[kk]-y[ii])*(z[jj]-z[ii])) * x[ii] +
-                     ((z[jj]-z[ii])*(x[kk]-x[ii]) - (z[kk]-z[ii])*(x[jj]-x[ii])) * y[ii] ) > 0:
+                if not is_ccw_3d(x[ii],y[ii],z[ii],x[jj],y[jj],z[jj],x[kk],y[kk],z[kk]):
                     v = -v
 
                 uindex = np.floor(u / bin_size).astype(int)
@@ -350,6 +360,496 @@ def test_direct_spherical():
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-4, atol=1.e-6)
+
+@timer
+def test_direct_cross():
+    # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
+    # This should exactly match the treecorr result if brute=True.
+
+    ngal = 50
+    s = 10.
+    sig_kap = 3
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
+    k1 = rng.normal(0,sig_kap, (ngal,) )
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1)
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
+    k2 = rng.normal(0,sig_kap, (ngal,) )
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2)
+    x3 = rng.normal(0,s, (ngal,) )
+    y3 = rng.normal(0,s, (ngal,) )
+    w3 = rng.random_sample(ngal)
+    k3 = rng.normal(0,sig_kap, (ngal,) )
+    cat3 = treecorr.Catalog(x=x3, y=y3, w=w3, k=k3)
+
+    min_sep = 1.
+    bin_size = 0.2
+    nrbins = 10
+    min_u = 0.13
+    max_u = 0.89
+    nubins = 5
+    min_v = 0.13
+    max_v = 0.59
+    nvbins = 5
+
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  brute=True)
+    kkk.process(cat1, cat2, cat3, num_threads=2)
+
+    # Figure out the correct answer for each permutation
+    # (We'll need them separately below when we use KKKCrossCorrelation.)
+    true_ntri_123 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_ntri_132 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_ntri_213 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_ntri_231 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_ntri_312 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_ntri_321 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_zeta_123 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_zeta_132 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_zeta_213 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_zeta_231 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_zeta_312 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_zeta_321 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_123 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_132 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_213 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_231 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_312 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_321 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    ubin_size = (max_u-min_u) / nubins
+    vbin_size = (max_v-min_v) / nvbins
+    max_sep = min_sep * np.exp(nrbins*bin_size)
+    log_min_sep = np.log(min_sep)
+    for i in range(ngal):
+        for j in range(ngal):
+            for k in range(ngal):
+                dij = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
+                dik = np.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2)
+                djk = np.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2)
+                if dij == 0.: continue
+                if dik == 0.: continue
+                if djk == 0.: continue
+                if dij < dik:
+                    if dik < djk:
+                        d3 = dij; d2 = dik; d1 = djk
+                        ccw = is_ccw(x1[i],y1[i],x2[j],y2[j],x3[k],y3[k])
+                        true_ntri = true_ntri_123
+                        true_zeta = true_zeta_123
+                        true_weight = true_weight_123
+                    elif dij < djk:
+                        d3 = dij; d2 = djk; d1 = dik
+                        ccw = is_ccw(x2[j],y2[j],x1[i],y1[i],x3[k],y3[k])
+                        true_ntri = true_ntri_213
+                        true_zeta = true_zeta_213
+                        true_weight = true_weight_213
+                    else:
+                        d3 = djk; d2 = dij; d1 = dik
+                        ccw = is_ccw(x2[j],y2[j],x3[k],y3[k],x1[i],y1[i])
+                        true_ntri = true_ntri_231
+                        true_zeta = true_zeta_231
+                        true_weight = true_weight_231
+                else:
+                    if dij < djk:
+                        d3 = dik; d2 = dij; d1 = djk
+                        ccw = is_ccw(x1[i],y1[i],x3[k],y3[k],x2[j],y2[j])
+                        true_ntri = true_ntri_132
+                        true_zeta = true_zeta_132
+                        true_weight = true_weight_132
+                    elif dik < djk:
+                        d3 = dik; d2 = djk; d1 = dij
+                        ccw = is_ccw(x3[k],y3[k],x1[i],y1[i],x2[j],y2[j])
+                        true_ntri = true_ntri_312
+                        true_zeta = true_zeta_312
+                        true_weight = true_weight_312
+                    else:
+                        d3 = djk; d2 = dik; d1 = dij
+                        ccw = is_ccw(x3[k],y3[k],x2[j],y2[j],x1[i],y1[i])
+                        true_ntri = true_ntri_321
+                        true_zeta = true_zeta_321
+                        true_weight = true_weight_321
+
+                r = d2
+                u = d3/d2
+                v = (d1-d2)/d3
+                if r < min_sep or r >= max_sep: continue
+                if u < min_u or u >= max_u: continue
+                if v < min_v or v >= max_v: continue
+                if not ccw:
+                    v = -v
+                kr = int(np.floor( (np.log(r)-log_min_sep) / bin_size ))
+                ku = int(np.floor( (u-min_u) / ubin_size ))
+                if v > 0:
+                    kv = int(np.floor( (v-min_v) / vbin_size )) + nvbins
+                else:
+                    kv = int(np.floor( (v-(-max_v)) / vbin_size ))
+                assert 0 <= kr < nrbins
+                assert 0 <= ku < nubins
+                assert 0 <= kv < 2*nvbins
+                www = w1[i] * w2[j] * w3[k]
+                zeta = www * k1[i] * k2[j] * k3[k]
+                true_ntri[kr,ku,kv] += 1
+                true_weight[kr,ku,kv] += www
+                true_zeta[kr,ku,kv] += zeta
+
+    n_list = [true_ntri_123, true_ntri_132, true_ntri_213, true_ntri_231,
+              true_ntri_312, true_ntri_321]
+    w_list = [true_weight_123, true_weight_132, true_weight_213, true_weight_231,
+              true_weight_312, true_weight_321]
+    z_list = [true_zeta_123, true_zeta_132, true_zeta_213, true_zeta_231,
+              true_zeta_312, true_zeta_321]
+
+    # With the regular KKKCorrelation class, we end up with the sum of all permutations.
+    true_ntri_sum = sum(n_list)
+    true_weight_sum = sum(w_list)
+    true_zeta_sum = sum(z_list)
+    pos = true_weight_sum > 0
+    true_zeta_sum[pos] /= true_weight_sum[pos]
+    #print('true_ntri = ',true_ntri_sum)
+    #print('diff = ',kkk.ntri - true_ntri_sum)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
+
+    # Now normalize each one individually.
+    for w,z in zip(w_list, z_list):
+        pos = w > 0
+        z[pos] /= w[pos]
+
+    # Repeat with the full CrossCorrelation class, which distinguishes the permutations.
+    kkkc = treecorr.KKKCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                        min_u=min_u, max_u=max_u, nubins=nubins,
+                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                        brute=True, verbose=1)
+    kkkc.process(cat1, cat2, cat3)
+
+    #print('true_ntri_123 = ',true_ntri_123)
+    #print('diff = ',kkkc.k1k2k3.ntri - true_ntri_123)
+    np.testing.assert_array_equal(kkkc.k1k2k3.ntri, true_ntri_123)
+    np.testing.assert_array_equal(kkkc.k1k3k2.ntri, true_ntri_132)
+    np.testing.assert_array_equal(kkkc.k2k1k3.ntri, true_ntri_213)
+    np.testing.assert_array_equal(kkkc.k2k3k1.ntri, true_ntri_231)
+    np.testing.assert_array_equal(kkkc.k3k1k2.ntri, true_ntri_312)
+    np.testing.assert_array_equal(kkkc.k3k2k1.ntri, true_ntri_321)
+    np.testing.assert_allclose(kkkc.k1k2k3.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k1k3k2.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k2k1k3.weight, true_weight_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k2k3k1.weight, true_weight_231, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k3k1k2.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k3k2k1.weight, true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k1k2k3.zeta, true_zeta_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k1k3k2.zeta, true_zeta_132, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k2k1k3.zeta, true_zeta_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k2k3k1.zeta, true_zeta_231, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k3k1k2.zeta, true_zeta_312, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k3k2k1.zeta, true_zeta_321, rtol=1.e-5)
+
+    # Repeat with binslop = 0
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=1)
+    kkk.process(cat1, cat2, cat3)
+    #print('binslop > 0: kkk.ntri = ',kkk.ntri)
+    #print('diff = ',kkk.ntri - true_ntri_sum)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+
+    # And again with no top-level recursion
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=1, max_top=0)
+    kkk.process(cat1, cat2, cat3)
+    #print('max_top = 0: kkk.ntri = ',kkk.ntri)
+    #print('true_ntri = ',true_ntri_sum)
+    #print('diff = ',kkk.ntri - true_ntri_sum)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+
+    # Check that running via the corr3 script works correctly.
+    config = treecorr.config.read_config('configs/kkk_direct_cross.yaml')
+    cat1.write(config['file_name'])
+    cat2.write(config['file_name2'])
+    cat3.write(config['file_name3'])
+
+    config = treecorr.config.read_config('configs/kkk_direct_cross.yaml')
+    config['verbose'] = 0
+    treecorr.corr3(config)
+    corr3_output = np.genfromtxt(os.path.join('output','kkk_direct_cross.out'), names=True,
+                                    skip_header=1)
+    #print('corr3_output = ',corr3_output)
+    #print('corr3_output.dtype = ',corr3_output.dtype)
+    #print('rnom = ',kkk.rnom.flatten())
+    #print('       ',corr3_output['r_nom'])
+    np.testing.assert_allclose(corr3_output['r_nom'], kkk.rnom.flatten(), rtol=1.e-3)
+    #print('unom = ',kkk.u.flatten())
+    #print('       ',corr3_output['u_nom'])
+    np.testing.assert_allclose(corr3_output['u_nom'], kkk.u.flatten(), rtol=1.e-3)
+    #print('vnom = ',kkk.v.flatten())
+    #print('       ',corr3_output['v_nom'])
+    np.testing.assert_allclose(corr3_output['v_nom'], kkk.v.flatten(), rtol=1.e-3)
+    #print('zeta = ',kkk.zeta.flatten())
+    #print('      ',corr3_output['zeta'])
+    np.testing.assert_allclose(corr3_output['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['ntri'], kkk.ntri.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['weight'], kkk.weight.flatten(), rtol=1.e-3)
+
+    # Currently not implemented to only have cat2 or cat3
+    with assert_raises(NotImplementedError):
+        kkk.process(cat1, cat2=cat2)
+    with assert_raises(NotImplementedError):
+        kkk.process(cat1, cat3=cat3)
+
+@timer
+def test_direct_cross_3d():
+    # Now in 3d
+
+    ngal = 50
+    s = 10.
+    sig_kap = 3
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
+    z1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
+    k1 = rng.normal(0,sig_kap, (ngal,) )
+    cat1 = treecorr.Catalog(x=x1, y=y1, z=z1, w=w1, k=k1)
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
+    z2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
+    k2 = rng.normal(0,sig_kap, (ngal,) )
+    cat2 = treecorr.Catalog(x=x2, y=y2, z=z2, w=w2, k=k2)
+    x3 = rng.normal(0,s, (ngal,) )
+    y3 = rng.normal(0,s, (ngal,) )
+    z3 = rng.normal(0,s, (ngal,) )
+    w3 = rng.random_sample(ngal)
+    k3 = rng.normal(0,sig_kap, (ngal,) )
+    cat3 = treecorr.Catalog(x=x3, y=y3, z=z3, w=w3, k=k3)
+
+    min_sep = 1.
+    bin_size = 0.2
+    nrbins = 10
+    min_u = 0.13
+    max_u = 0.89
+    nubins = 5
+    min_v = 0.13
+    max_v = 0.59
+    nvbins = 5
+
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  brute=True)
+    kkk.process(cat1, cat2, cat3, num_threads=2)
+
+    # Figure out the correct answer for each permutation
+    # (We'll need them separately below when we use KKKCrossCorrelation.)
+    true_ntri_123 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_ntri_132 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_ntri_213 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_ntri_231 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_ntri_312 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_ntri_321 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_zeta_123 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_zeta_132 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_zeta_213 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_zeta_231 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_zeta_312 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_zeta_321 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_123 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_132 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_213 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_231 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_312 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_321 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    ubin_size = (max_u-min_u) / nubins
+    vbin_size = (max_v-min_v) / nvbins
+    max_sep = min_sep * np.exp(nrbins*bin_size)
+    log_min_sep = np.log(min_sep)
+    for i in range(ngal):
+        for j in range(ngal):
+            for k in range(ngal):
+                dij = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2 + (z1[i]-z2[j])**2)
+                dik = np.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2 + (z1[i]-z3[k])**2)
+                djk = np.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2 + (z2[j]-z3[k])**2)
+                if dij == 0.: continue
+                if dik == 0.: continue
+                if djk == 0.: continue
+                if dij < dik:
+                    if dik < djk:
+                        d3 = dij; d2 = dik; d1 = djk
+                        ccw = is_ccw_3d(x1[i],y1[i],z1[i],x2[j],y2[j],z2[j],x3[k],y3[k],z3[k])
+                        true_ntri = true_ntri_123
+                        true_zeta = true_zeta_123
+                        true_weight = true_weight_123
+                    elif dij < djk:
+                        d3 = dij; d2 = djk; d1 = dik
+                        ccw = is_ccw_3d(x2[j],y2[j],z2[j],x1[i],y1[i],z1[i],x3[k],y3[k],z3[k])
+                        true_ntri = true_ntri_213
+                        true_zeta = true_zeta_213
+                        true_weight = true_weight_213
+                    else:
+                        d3 = djk; d2 = dij; d1 = dik
+                        ccw = is_ccw_3d(x2[j],y2[j],z2[j],x3[k],y3[k],z3[k],x1[i],y1[i],z1[i])
+                        true_ntri = true_ntri_231
+                        true_zeta = true_zeta_231
+                        true_weight = true_weight_231
+                else:
+                    if dij < djk:
+                        d3 = dik; d2 = dij; d1 = djk
+                        ccw = is_ccw_3d(x1[i],y1[i],z1[i],x3[k],y3[k],z3[k],x2[j],y2[j],z2[j])
+                        true_ntri = true_ntri_132
+                        true_zeta = true_zeta_132
+                        true_weight = true_weight_132
+                    elif dik < djk:
+                        d3 = dik; d2 = djk; d1 = dij
+                        ccw = is_ccw_3d(x3[k],y3[k],z3[k],x1[i],y1[i],z1[i],x2[j],y2[j],z2[j])
+                        true_ntri = true_ntri_312
+                        true_zeta = true_zeta_312
+                        true_weight = true_weight_312
+                    else:
+                        d3 = djk; d2 = dik; d1 = dij
+                        ccw = is_ccw_3d(x3[k],y3[k],z3[k],x2[j],y2[j],z2[j],x1[i],y1[i],z1[i])
+                        true_ntri = true_ntri_321
+                        true_zeta = true_zeta_321
+                        true_weight = true_weight_321
+
+                r = d2
+                u = d3/d2
+                v = (d1-d2)/d3
+                if r < min_sep or r >= max_sep: continue
+                if u < min_u or u >= max_u: continue
+                if v < min_v or v >= max_v: continue
+                if not ccw:
+                    v = -v
+                kr = int(np.floor( (np.log(r)-log_min_sep) / bin_size ))
+                ku = int(np.floor( (u-min_u) / ubin_size ))
+                if v > 0:
+                    kv = int(np.floor( (v-min_v) / vbin_size )) + nvbins
+                else:
+                    kv = int(np.floor( (v-(-max_v)) / vbin_size ))
+                assert 0 <= kr < nrbins
+                assert 0 <= ku < nubins
+                assert 0 <= kv < 2*nvbins
+                www = w1[i] * w2[j] * w3[k]
+                zeta = www * k1[i] * k2[j] * k3[k]
+                true_ntri[kr,ku,kv] += 1
+                true_weight[kr,ku,kv] += www
+                true_zeta[kr,ku,kv] += zeta
+
+    n_list = [true_ntri_123, true_ntri_132, true_ntri_213, true_ntri_231,
+              true_ntri_312, true_ntri_321]
+    w_list = [true_weight_123, true_weight_132, true_weight_213, true_weight_231,
+              true_weight_312, true_weight_321]
+    z_list = [true_zeta_123, true_zeta_132, true_zeta_213, true_zeta_231,
+              true_zeta_312, true_zeta_321]
+
+    # With the regular KKKCorrelation class, we end up with the sum of all permutations.
+    true_ntri_sum = sum(n_list)
+    true_weight_sum = sum(w_list)
+    true_zeta_sum = sum(z_list)
+    pos = true_weight_sum > 0
+    true_zeta_sum[pos] /= true_weight_sum[pos]
+    #print('kkk.zeta = ',kkk.zeta)
+    #print('true_zeta = ',true_zeta_sum)
+    #print('diff = ',kkk.zeta - true_zeta_sum)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
+
+    # Now normalize each one individually.
+    for w,z in zip(w_list, z_list):
+        pos = w > 0
+        z[pos] /= w[pos]
+
+    # Repeat with the full CrossCorrelation class, which distinguishes the permutations.
+    kkkc = treecorr.KKKCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                        min_u=min_u, max_u=max_u, nubins=nubins,
+                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                        brute=True, verbose=1)
+    kkkc.process(cat1, cat2, cat3)
+
+    #print('true_ntri_123 = ',true_ntri_123)
+    #print('diff = ',kkkc.k1k2k3.ntri - true_ntri_123)
+    np.testing.assert_array_equal(kkkc.k1k2k3.ntri, true_ntri_123)
+    np.testing.assert_array_equal(kkkc.k1k3k2.ntri, true_ntri_132)
+    np.testing.assert_array_equal(kkkc.k2k1k3.ntri, true_ntri_213)
+    np.testing.assert_array_equal(kkkc.k2k3k1.ntri, true_ntri_231)
+    np.testing.assert_array_equal(kkkc.k3k1k2.ntri, true_ntri_312)
+    np.testing.assert_array_equal(kkkc.k3k2k1.ntri, true_ntri_321)
+    np.testing.assert_allclose(kkkc.k1k2k3.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k1k3k2.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k2k1k3.weight, true_weight_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k2k3k1.weight, true_weight_231, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k3k1k2.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k3k2k1.weight, true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k1k2k3.zeta, true_zeta_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k1k3k2.zeta, true_zeta_132, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k2k1k3.zeta, true_zeta_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k2k3k1.zeta, true_zeta_231, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k3k1k2.zeta, true_zeta_312, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k3k2k1.zeta, true_zeta_321, rtol=1.e-5)
+
+    # Repeat with binslop = 0
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=1)
+    kkk.process(cat1, cat2, cat3)
+    #print('binslop > 0: kkk.ntri = ',kkk.ntri)
+    #print('diff = ',kkk.ntri - true_ntri_sum)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+
+    # And again with no top-level recursion
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=1, max_top=0)
+    kkk.process(cat1, cat2, cat3)
+    #print('max_top = 0: kkk.ntri = ',kkk.ntri)
+    #print('true_ntri = ',true_ntri_sum)
+    #print('diff = ',kkk.ntri - true_ntri_sum)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+
+    # Check that running via the corr3 script works correctly.
+    config = treecorr.config.read_config('configs/kkk_direct_cross_3d.yaml')
+    cat1.write(config['file_name'])
+    cat2.write(config['file_name2'])
+    cat3.write(config['file_name3'])
+
+    config = treecorr.config.read_config('configs/kkk_direct_cross_3d.yaml')
+    config['verbose'] = 0
+    treecorr.corr3(config)
+    corr3_output = np.genfromtxt(os.path.join('output','kkk_direct_cross_3d.out'), names=True,
+                                    skip_header=1)
+    #print('corr3_output = ',corr3_output)
+    #print('corr3_output.dtype = ',corr3_output.dtype)
+    #print('rnom = ',kkk.rnom.flatten())
+    #print('       ',corr3_output['r_nom'])
+    np.testing.assert_allclose(corr3_output['r_nom'], kkk.rnom.flatten(), rtol=1.e-3)
+    #print('unom = ',kkk.u.flatten())
+    #print('       ',corr3_output['u_nom'])
+    np.testing.assert_allclose(corr3_output['u_nom'], kkk.u.flatten(), rtol=1.e-3)
+    #print('vnom = ',kkk.v.flatten())
+    #print('       ',corr3_output['v_nom'])
+    np.testing.assert_allclose(corr3_output['v_nom'], kkk.v.flatten(), rtol=1.e-3)
+    #print('zeta = ',kkk.zeta.flatten())
+    #print('      ',corr3_output['zeta'])
+    np.testing.assert_allclose(corr3_output['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['ntri'], kkk.ntri.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['weight'], kkk.weight.flatten(), rtol=1.e-3)
+
+    # Currently not implemented to only have cat2 or cat3
+    with assert_raises(NotImplementedError):
+        kkk.process(cat1, cat2=cat2)
+    with assert_raises(NotImplementedError):
+        kkk.process(cat1, cat3=cat3)
+
 
 @timer
 def test_constant():
